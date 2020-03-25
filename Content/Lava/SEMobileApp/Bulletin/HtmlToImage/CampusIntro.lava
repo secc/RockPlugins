@@ -1,6 +1,6 @@
-{%- contentchannelitem where:'Guid == "{{Guid}}"' -%}
-{%- assign item = contentchannelitemItems | First - %}
-{%- endcontentchannelitem -%}
+{%- campus where:'Guid == "{{Guid}}"' -%}
+{%- assign campus = campusItems | First -%}
+{%- endcampus -%}
 <html>
     <head>
         <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/layout.css?v=637171650738055685"/>
@@ -9,12 +9,14 @@
             html, body {
               margin: 0px;
               padding: 0px;
-              background-color: #121212;
+              background-color: #262626;
             }
             .box {
-              width: 1334px;
-              height:824px;
-              background-color: #262626;
+              /* margin: 0px 60px; */
+              width: 1494px;
+              height: 904px;
+              background-color: #121212;
+              border-radius: 0px 0px 0px 0px;
               background-repeat: no-repeat;
               background-size: contain;
               background-position: top;
@@ -22,45 +24,56 @@
             .box h4, .box h5, .box p {
               color: white;
             }
-            .content{
-              padding: 5em 5em 5em 5em;
-              height: 100%;
-              overflow: hidden;
+            .content {
+                overflow: hidden;
+                height: 100%;
+                position: relative;
+                display: block;
+                width: 100%;
             }
-            .content p {
-                font-size: 2.9em;
+            .content-container {
+                width: 100%;
+                overflow: hidden;
+                padding-right: 5em;
+                padding-left: 5em;
             }
-            .more {
+            .content-container-connect {
                 position: absolute;
                 bottom: 0;
                 width: 100%;
-                padding: 50px;
-                font-size: 2.8em;
-                color: white;
-                background-color: #28A5BB;
-                text-align: center;
-                font-weight: 600;
-                text-transform: uppercase;
+                overflow: hidden;
+                padding-right: 5em;
+                padding-left: 5em;
+            }
+            .connectTitle {
+                border-top: 3px solid #262626;
+                font-size: 4.0em;
+                padding: 60px 80px;
+            }
+            .resourceTitle {
+                font-size: 4.0em;
+                padding: 20px 80px;
+            }
+            .resourceInfo {
+                margin-bottom: 1em;
+                font-size: 3.0em;
+                padding: 0em 80px 1em 80px;
             }
         </style>
     </head>
     <body>
         <div class="box">
-            <div class="content-box g-position--relative">
-                {%- assign connectTitle = item | Attribute:'ConnectionTitle' -%}
-                {%- assign connectInfo = item | Attribute:'ConnectInfo' -%}
-                {%- assign connectUrl = item | Attribute:'ConnectURL' -%}
-                <div class="content truncateInfo">
-                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 2.9em; font-style: italic;">{{ connectTitle }}</h3>
-                    <div class="g-color--white g-padding-t-20--xs g-line-height truncate" style="font-size: 2.9em;">{{ connectInfo }}</div>
+            <div class="content">
+                <div class="content-container g-padding-t-150--xs">
+                    <h1 class="resourceTitle g-font-weight--600 g-color--white g-line-height">Welcome to Southeast Christian Church {{ campus.Name }} Campus</h1>
+                    <p class="resourceInfo">{{ campus.Description }}</p>
                 </div>
-                {%- if connectUrl != "" -%}
-                <div class="more">
-                    Learn More
+                <div class="content-container-connect">
+                    <h1 class="connectTitle g-font-weight--600 g-color--white g-line-height">Connecting Opportunities</h1>
                 </div>
-                {% endif %}
             </div>
         </div>
+
         <script>
             /**
           shave - Shave is a javascript plugin that truncates multi-line text within a html element based on set max height
@@ -145,8 +158,7 @@
           return shave;
 
         }));
-        shave('.truncateTile', 180, {character: ' ...'});
-        shave('.truncate', 350, {character: ' ...'});
+        shave('.resourceInfo', 400, {character: ' ...'});
         </script>
     </body>
 </html>

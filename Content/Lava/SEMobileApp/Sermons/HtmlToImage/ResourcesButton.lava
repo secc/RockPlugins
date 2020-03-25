@@ -29,14 +29,33 @@
               height: 100%;
               overflow: hidden;
             }
+            .resourceTitle {
+                font-size: 3.5em;
+                padding-right: 310px;
+            }
+            .resourceIcon {
+                font-size: 4.5em;
+                right: 150px;
+                vertical-align: middle;
+                top: 50%;
+                transform: translateY(-50%);
+                -webkit-transform: translateY(-50%);
+                border: 5px solid white;
+                padding: 20px;
+                border-radius: 25px;
+                font-size: 40px;
+            }
         </style>
     </head>
     <body>
         <div class="box">
-            <div class="content">
-                	<h1 class="g-font-weight--600 g-color--white g-line-height" style="font-size: 4.5em;">{{item.Title | Truncate:30 }}</h1>
-                    <h3 class="g-color--white g-line-height" style="font-size: 5rem;">{{ item | Attribute:'Speaker' }} &bull; {{ item.StartDateTime | Date:'MMM dd, yyyy' }}</h3>
-                    <br />
+            <div class="content g-position--relative">
+                <h1 class="resourceIcon pull-right g-position--absolute">
+                    <i class="fas fa-search g-color--white"></i>
+                </h1>
+                <h1 class="resourceTitle pull-left g-padding-l-120--xs g-width-100-percent--xs g-center--xs g-font-weight--600 g-color--white g-line-height">
+                    {{item.Title | Truncate:60 }}
+                </h1>
             </div>
         </div>
     </body>
