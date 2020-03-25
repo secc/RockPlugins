@@ -30,33 +30,103 @@
 	    }
 	},
 	"items": [
-		{%- contentchannelitem Id:'2087' -%}
-			{%- assign childItemsSorted = contentchannelitem.ChildItems | Sort:"Order" -%}
-			{%- for item in childItemsSorted -%}
-			    {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
-    			{%- assign startDateTime = item.ChildContentChannelItem.StartDateTime | Date:'yyyyMMddHHmmss' -%}
-    			{%- assign endDateTime = item.ChildContentChannelItem.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
-    			{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
-        			{%- assign title = item.ChildContentChannelItem.Title -%}
-        			{%- assign subtitle = item.ChildContentChannelItem | Attribute:'Subtitle' -%}
-        			{%- assign imageGuid = item.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
-        			{%- assign actionJson = item.ChildContentChannelItem | Attribute:'Action' -%}
-
-        			{
-        				"images":[
-        				    {"width": 668,
-        					"url":"https://app.secc.org/webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
-        					]
-        				{%- if actionJson != "" -%}
-        				,"actions":[{
-        					{{-actionJson-}}
-        				}],
-        				"title": "{{ title }}",
-        				"subtitle": "{{ subtitle }}"
-        				{%- endif -%}
-        			}{%- if forloop.last -%}{%- else -%},{%- endif -%}
-    			{%- endif -%}
-			{%- endfor %}
-		{%- endcontentchannelitem %}
+	{%- contentchannelitem Id:'2087' -%}
+		{%- assign childItemsSorted = contentchannelitem.ChildItems | Sort:"Order" -%}
+		{%- for item in childItemsSorted -%}
+			{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+			{%- assign today = 'Now' | Date:'dddd' -%}
+			{%- assign streamBannerShowDays = 'Sunday' -%}
+			{%- assign bulletinOneShowDays = 'Saturday|Sunday' -%}
+			{%- assign bulletinTwoShowDays = 'Monday|Tuesday|Wednesday|Thursday|Friday' -%}
+			{%- assign slug = item.ChildContentChannelItem.PrimarySlug -%}
+			{%- assign startDateTime = item.ChildContentChannelItem.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+			{%- assign endDateTime = item.ChildContentChannelItem.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+			{%- assign title = item.ChildContentChannelItem.Title -%}
+			{%- assign subtitle = item.ChildContentChannelItem | Attribute:'Subtitle' -%}
+			{%- assign imageGuid = item.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
+			{%- assign actionJson = item.ChildContentChannelItem | Attribute:'Action' -%}
+			{%- if slug == "streaming-now-1" or slug == "bulletin-1" or slug == "bulletin-2" -%}
+				{%- if slug == "streaming-now-1" and streamBannerShowDays contains today -%}
+					{%- comment -%} Start: Banner Item{%- endcomment -%}
+					{%- if Headers.sap-device-os == 'Android' -%}
+						{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
+					{%- endif -%}
+					{
+						"images":[
+							{"width": 668,
+							"url":"https://app.secc.org/Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+							]
+						{%- if actionJson != "" -%}
+						,"actions":[{
+							{{-actionJson-}}
+						}],
+						"title": "{{ title }}",
+						"subtitle": "{{ subtitle }}"
+						{%- endif -%}
+					}{%- if forloop.last -%}{%- else -%},{%- endif -%}
+					{%- comment -%} End: Banner Item{%- endcomment -%}
+				{%- elseif slug == "bulletin-1" and bulletinOneShowDays contains today -%}
+					{%- comment -%} Start: Banner Item{%- endcomment -%}
+					{%- if Headers.sap-device-os == 'Android' -%}
+						{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
+					{%- endif -%}
+					{
+						"images":[
+							{"width": 668,
+							"url":"https://app.secc.org/Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+							]
+						{%- if actionJson != "" -%}
+						,"actions":[{
+							{{-actionJson-}}
+						}],
+						"title": "{{ title }}",
+						"subtitle": "{{ subtitle }}"
+						{%- endif -%}
+					}{%- if forloop.last -%}{%- else -%},{%- endif -%}
+					{%- comment -%} End: Banner Item{%- endcomment -%}
+				{%- elseif slug == "bulletin-2" and bulletinTwoShowDays contains today -%}
+					{%- comment -%} Start: Banner Item{%- endcomment -%}
+					{%- if Headers.sap-device-os == 'Android' -%}
+						{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
+					{%- endif -%}
+					{
+						"images":[
+							{"width": 668,
+							"url":"https://app.secc.org/Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+							]
+						{%- if actionJson != "" -%}
+						,"actions":[{
+							{{-actionJson-}}
+						}],
+						"title": "{{ title }}",
+						"subtitle": "{{ subtitle }}"
+						{%- endif -%}
+					}{%- if forloop.last -%}{%- else -%},{%- endif -%}
+					{%- comment -%} End: Banner Item{%- endcomment -%}
+				{%- endif -%}
+			{%- else -%}
+				{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+					{%- comment -%} Start: Banner Item{%- endcomment -%}
+					{%- if Headers.sap-device-os == 'Android' -%}
+						{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
+					{%- endif -%}
+					{
+						"images":[
+							{"width": 668,
+							"url":"https://app.secc.org/Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+							]
+						{%- if actionJson != "" -%}
+						,"actions":[{
+							{{-actionJson-}}
+						}],
+						"title": "{{ title }}",
+						"subtitle": "{{ subtitle }}"
+						{%- endif -%}
+					}{%- if forloop.last -%}{%- else -%},{%- endif -%}
+					{%- comment -%} End: Banner Item{%- endcomment -%}
+				{%- endif -%}
+			{%- endif -%}
+		{%- endfor %}
+	{%- endcontentchannelitem %}
 	]
 }
