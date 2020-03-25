@@ -1,4 +1,4 @@
-{%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
+{%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' -%}
 {%- for series in contentchannelitemItems -%}
 {
 	"header": {

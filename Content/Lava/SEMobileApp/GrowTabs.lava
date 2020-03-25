@@ -7,7 +7,7 @@
             "title": "Resources",
             "actions": [{
                 "handler": "list",
-                "url": "https://app.secc.org/webhooks/SubSplash.ashx/campuses"
+                "url": "https://app.secc.org/webhooks/SubSplash.ashx/grow/resources"
             }]
         },
         {
