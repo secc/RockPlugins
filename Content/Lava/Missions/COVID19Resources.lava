@@ -46,7 +46,7 @@
                         <option value="allNeeds" data-shortcode="SE" data-need="">Serve</option>
 						{% tag where:'CategoryId == 1413' %}
 						   {% for tag in tagItems %}
-						   		{% assign respondTagsOnly = "Medical Professionals|Meals|Elderly or vulnerable|Other" %}
+						   		{% assign respondTagsOnly = "Medical Professionals|Meals|Elderly or vulnerable|Other|Prayer" %}
 								{% if respondTagsOnly contains tag.Name %}
 						        <option value="{{ tag.Id }}" data-need="{{ tag.Id }}">
 						            {{ tag.Name }}
@@ -108,14 +108,14 @@
                                 </span>
                                 {% endif %}
 
-								{% if website_url != empty %}<a href="{{ website_url }}" target="_blank">{% endif %}
+								{% if website_url != "" %}<a href="{{ website_url }}" target="_blank">{% endif %}
                                 <h5 class="g-padding-b-20--xs g-font-family--secondary">
                                 {{ item.Title }}
                                 </h5>
-								{% if website_url != empty %}</a>{% endif %}
+								{% if website_url != "" %}</a>{% endif %}
                                 <h6 class="g-line-height">{{ item.Content }}</h6>
 
-                                {% if phone != empty %}
+                                {% if phone != "" %}
                                 <div class="partner_location g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
                                     <div class="pull-left g-margin-r-20--xs" style="max-width: 35px; height:100%;" class="pull-left">
 										<img src="/Themes/SECC2019/Assets/img/SE/phone.svg" style="max-width:120px; width: 100%;" />
@@ -129,7 +129,7 @@
                                 </div>
                                 {% endif %}
 
-                                {% if website_url != empty %}
+                                {% if website_url != "" %}
                                 <div class="partner_location g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
                                     <div class="pull-left g-margin-r-20--xs" style="max-width: 35px; height:100%;" class="pull-left">
 										<a href="{{ website_url }}" target="_blank">
@@ -145,7 +145,7 @@
                                 </div>
                                 {% endif %}
 
-                                {% if se_address != emtpy %}
+                                {% if se_address != "" %}
                                 <div class="partner_location g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
                                     <div class="pull-left g-margin-r-20--xs" style="max-width: 35px; height:100%;" class="pull-left">
                                         <img src="/Themes/SECC2019/Assets/img/SE/Location.svg" style="max-width:120px; width: 100%;" />
