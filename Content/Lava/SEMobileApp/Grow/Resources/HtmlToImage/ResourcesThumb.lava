@@ -55,7 +55,7 @@
         <div class="box">
             <div class="overlay">
                 <div class="middle">
-                    <h1 class="g-font-family--secondary" style="font-size: 6.2em;">{{ item.Title }}</h1>
+                    <h1 class="g-font-family--secondary g-padding-x-40--xs" style="font-size: 6.2em;">{{ item.Title }}</h1>
                 </div>
             </div>
         </div>

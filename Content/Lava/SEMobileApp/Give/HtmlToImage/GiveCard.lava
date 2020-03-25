@@ -1,0 +1,103 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/layout.css?v=637171650738055685"/>
+        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/main.css?v=637171650775243506"/>
+        <style>
+            html, body {
+              margin: 0px;
+              padding: 0px;
+              background-color: #262626;
+            }
+            .box {
+              /* margin: 0px 60px; */
+              width: 1544px;
+              height: 2996px;
+              background-color: #121212;
+              border-radius: 0px 0px 0px 0px;
+              background-repeat: no-repeat;
+              background-size: contain;
+              background-position: top;
+              background-image: url("https://www.southeastchristian.org/Content/SubSplash/GiveSEApp3.jpg");
+            }
+            .box h4, .box h5, .box p {
+              color: white;
+            }
+            .content {
+                overflow: hidden;
+                height: 100%;
+                position: relative;
+                display: block;
+                width: 100%;
+                text-align: center;
+            }
+            .content-container {
+                width: 100%;
+                overflow: hidden;
+                padding-right: 5em;
+                padding-left: 5em;
+            }
+            .content-container-connect {
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+                overflow: hidden;
+                padding-right: 5em;
+                padding-left: 5em;
+            }
+            .connectTitle {
+                border-top: 3px solid #262626;
+                font-size: 4.0em;
+                padding: 60px 80px;
+            }
+            .resourceTitle {
+                font-size: 4.0em;
+                padding: 20px 80px;
+            }
+            .resourceInfo {
+                margin-bottom: 1em;
+                font-size: 3.0em;
+                padding: 0em 80px 1em 80px;
+            }
+            .btn {
+                width: 50%;
+                height: 200px;
+                background-color: #67CED9;
+                color: white;
+                border-radius: 100px;
+                position: absolute;
+                top: 23%;
+                -webkit-transform: translate(-50%, -50%);
+                -moz-transform:    translate(-50%, -50%);
+                -ms-transform:     translate(-50%, -50%);
+                -o-transform:      translate(-50%, -50%);
+                transform:         translate(-50%, -50%);
+                left: 50%;
+            }
+            .btn span {
+                color: white;
+                text-transform: uppercase;
+                font-weight: 800;
+                font-size: 3em;
+            }
+            .GiveInfo {
+                color: #000;
+                padding-top:20%;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="box">
+            <div class="content">
+                <div class="GiveInfo">
+                    <h1 style="font-size: 3em; padding-bottom: 20px;" class="uppercase g-font-weight--600">God is using your generosity</h1>
+                    <h1 class="g-font-family--secondary" style="font-size: 7.5em;">to make a difference.</h1>
+                </div>
+                <div class="btn">
+                    <span class="g-center--xs">
+                        Give Now
+                    </span>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
