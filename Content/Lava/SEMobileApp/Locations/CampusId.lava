@@ -1,22 +1,28 @@
-{% campus id:'{{Id}}' %}
+{%- campus id:'{{Id}}' -%}
+{%- assign campusSlug = campus | Attribute:'Slug' -%}
 {
 	"header": {
-		"title": "{{campus.Name}}"
+		"title": "{{campus.Name}} Campus"
 	},
 	"displayOptions":{
 		"style":"stacked",
-		"contentWidthRatio":9.5,
+		"contentWidthRatio":1.0,
 	    "itemDisplayOptions":{
-	        "indicatorAspectRatio":2.47407,
-	        "textPosition":"overlay"
+			"indicatorAspectRatio":2.784222737819026,
+			"indicatorShadowEnabled":true,
+        	"maxWidth":1400,
+	        "textPosition": "none"
 	    },
 		"colors":{
 	        "brand":{
 	            "primary":"#121212",
 	            "primaryAccent":"#FFFFFF"
 	        },
-	        "theme":{
+			"theme":{
 	            "primary":"#121212",
+				"block":"#262626",
+	            "blockAccent":"#262626",
+	            "secondaryAccent":"#FFFFFF",
 	            "primaryAccent":"#FFFFFF"
 	        },
 	        "topBar":{
@@ -31,36 +37,260 @@
 	    }
 	},
 	"items": [
-	    {
-				"images":[
-				    {"width": 668,
-					"url":"https://app.secc.org/GetImage.ashx?Guid=5DAB7A1E-483C-4169-A1BA-34FB87516736&mode=crop&s.roundcorners=20&bgcolor=121212&format=png&w=668&margin=50"}
-					],
-				"title":"Worship Service Times",
-				"subtitle":"Saturday - 5:30 p.m.\nSunday - 9:30 a.m., 11:15 a.m."
-			}
-			{% comment %}
-		{%- contentchannelitem Id:'2087' sort:'Order' -%}
-			{%- for item in contentchannelitem.ChildItems -%}
-			{%- assign title = item.ChildContentChannelItem.Title -%}
-			{%- assign subtitle = item.ChildContentChannelItem | Attribute:'Subtitle' -%}
-			{%- assign imageGuid = item.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
-			{%- assign actionJson = item.ChildContentChannelItem | Attribute:'Action' -%}
 
-			{
-				"images":[
-				    {"width": 668,
-					"url":"https://app.secc.org/GetImage.ashx?Guid=5DAB7A1E-483C-4169-A1BA-34FB87516736&mode=crop&s.roundcorners=20&bgcolor=121212&format=png"}
-					]
-				{%- if actionJson != "" -%}
-				,"actions":[{
-					{{-actionJson-}}
-				}]
+		{%- assign googleDir = 'https://www.google.com/maps/dir/Current+Location/' | Append:campus.Location.Street1 | Append:'+' | Append:campus.Location.City | Append:'+' | Append:campus.Location.State | Append:'+' | Append:campus.Location.PostalCode | Replace:' ','+' -%}
+        {%- comment -%}
+        Campus Image
+        {%- endcomment -%}
+        {%- assign intervalCuts = 574.666666666666667 -%}
+        {%- assign interY1 = 0 -%}
+        {%- assign interY2 = intervalCuts | Plus:1 -%}
+        {%- assign comma = "" -%}
+        {%- for i in (0..1) -%}
+        {{- comma -}}{
+			"title": "{{campus.Name}} Image",
+            "images":[
+			    { "width":800, "url":"https://app.secc.org/webhooks/ImageGenerator.ashx/location/info/{{campusSlug}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+		    ]{%- if forloop.index == 2 -%},"actions":[{
+                "handler":"browser",
+                "type":"navigation",
+                "style":"external",
+                "showBrowserControls": false,
+                "contentUrl": "{{googleDir}}"
+            }]{%- endif -%}
+		}
+        {%- assign comma = "," -%}
+		{%- if forloop.index ==  1 -%}
+			{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
+			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+		{%- else -%}
+			{%- assign interY1 = interY1 | Plus:intervalCuts -%}
+			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+		{%- endif -%}
+        {%- endfor -%}
+
+		{%- comment -%}
+        Worship Service Times (if any)
+        {%- endcomment -%}
+		{%- contentchannelitem where:'Status == 2 && ContentChannelId == 73' sort:'Order' -%}
+			{%- assign contentItem = "" -%}
+			{%- for item in contentchannelitemItems -%}
+				{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
+				{%- assign locationCampuses = item | Attribute:'Campuses' -%}
+				{%- if locationInfoTemplate == "worship" and locationCampuses contains campus.Name -%}
+					{%- assign contentItem = item -%}
+					{%- break -%}
 				{%- endif -%}
-			}{%- if forloop.last -%}{%- else -%},{%- endif -%}
-			{%- endfor %}
-		{%- endcontentchannelitem %}
-{% endcomment %}
-	]
+			{%- endfor -%}
+			{%- if contentItem != "" -%}
+				{%- assign url = contentItem | Attribute:'itemurl','RawValue' -%}
+				{%- comment -%}
+				iterate for each html-to-image slice
+				{%- endcomment -%}
+				{%- assign intervalCuts = 574.666666666666667 -%}
+				{%- assign interY1 = 0 -%}
+				{%- assign interY2 = intervalCuts | Plus:1 -%}
+				,{
+					"title": "{{campus.Name}} Worship Service Times",
+					"images":[
+						{ "width":800, "url":"https://app.secc.org/webhooks/ImageGenerator.ashx/location/info/oneslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+					]{%- if url != "" -%},"actions":[{
+		                "handler":"browser",
+		                "type":"navigation",
+		                "style":"external",
+		                "showBrowserControls": false,
+		                "contentUrl": "{{ url }}"
+		            }]{%- endif-%}
+				}
+			{%- endif -%}
+		{%- endcontentchannelitem -%}
+
+		{%- comment -%}
+        Group
+        {%- endcomment -%}
+		{%- contentchannelitem where:'Status == 2 && ContentChannelId == 73' sort:'Order' -%}
+			{%- assign contentItem = "" -%}
+			{%- for item in contentchannelitemItems -%}
+				{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
+				{%- assign locationCampus = item | Attribute:'Campuses' -%}
+				{%- if locationInfoTemplate == "group" and locationCampus contains campus.Name -%}
+					{%- assign contentItem = item -%}
+					{%- break -%}
+				{%- endif -%}
+			{%- endfor -%}
+			{%- if contentItem != "" -%}
+
+				{%- assign url = contentItem | Attribute:'itemurl','RawValue' -%}
+
+				{%- assign publishGroupId = contentItem | Attribute:'PublishGroupId' -%}
+				{%- assign registrationLink = "" -%}
+				{%- if publishGroupId != "" -%}
+					{% publishgroup where:'Id == {{- publishGroupId -}}' sort:'Order' %}
+						{%- assign publishGroup = publishgroupItems | First -%}
+					{%- endpublishgroup -%}
+					{%- assign registrationLink = 'https://www.southeastchristian.org/groups/oncampus/details/' | Append:publishGroup.Slug -%}
+				{%- endif -%}
+
+				{%- comment -%}
+				iterate for each html-to-image slice
+				{%- endcomment -%}
+				{%- assign intervalCuts = 574.666666666666667 -%}
+		        {%- assign interY1 = 0 -%}
+		        {%- assign interY2 = intervalCuts | Plus:1 -%}
+		        {%- for i in (0..2) -%}
+		        {{- comma -}}{
+					"title": "{{campus.Name}} Group",
+		            "images":[
+					    { "width":800, "url":"https://app.secc.org/Webhooks/ImageGenerator.ashx/location/info/threeslice/{{publishGroupId}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+				    ]
+					{%- if forloop.first -%}
+						,"actions":[{
+							"handler":"browser",
+							"type":"navigation",
+							"style":"external",
+							"showBrowserControls": false,
+							"contentUrl": "https://www.southeastchristian.org/groups/oncampus/{{campusSlug}}/all"
+						}]
+					{%- else -%}
+						{%- if registrationLink != "" -%},"actions":[{
+							"handler":"browser",
+							"type":"navigation",
+							"style":"external",
+							"showBrowserControls": false,
+							"contentUrl": "{{ registrationLink }}"
+						}]{%- elseif url != "" -%},"actions":[{
+							"handler":"browser",
+							"type":"navigation",
+							"style":"external",
+							"showBrowserControls": false,
+							"contentUrl": "{{ url }}"
+						}]{%- else -%},"actions":[{
+							"handler":"browser",
+							"type":"navigation",
+							"style":"external",
+							"showBrowserControls": false,
+							"contentUrl": "https://www.southeastchristian.org/groups/oncampus/{{campusSlug}}/all"
+						}]{%- endif -%}
+					{%- endif -%}
+				}
+		        {%- assign comma = "," -%}
+				{%- if forloop.index ==  1 -%}
+					{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
+					{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+				{%- else -%}
+					{%- assign interY1 = interY1 | Plus:intervalCuts -%}
+					{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+				{%- endif -%}
+		        {%- endfor -%}
+
+			{%- endif -%}
+		{%- endcontentchannelitem -%}
+
+		{%- comment -%}
+        Connection Card(s) (if any)
+        {%- endcomment -%}
+        {%- contentchannelitem where:'Status == 2 && ContentChannelId == 73' sort:'Order' -%}
+			{%- assign itemCount = 0 -%}
+			{%- assign contentItem = "" -%}
+
+			{%- for item in contentchannelitemItems -%}
+				{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
+				{%- assign locationCampus = item | Attribute:'Campuses' -%}
+				{%- if locationInfoTemplate == "connection" and locationCampus contains campus.Name -%}
+					{%- assign itemCount = itemCount | Plus:1 -%}
+				{%- endif -%}
+			{%- endfor -%}
+			{%- if itemCount > 0 -%}
+				{%- for item in contentchannelitemItems -%}
+					{%- assign contentItem = item -%}
+					{%- assign url = contentItem | Attribute:'itemurl','RawValue' -%}
+					{%- assign itemCampuses = contentItem | Attribute:'Campuses' -%}
+					{%- if itemCampuses == null -%}
+						{%- comment -%} *** Display Content *** {%- endcomment -%}
+					{%- else -%}
+						{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
+						{%- assign locationCampus = item | Attribute:'Campuses' -%}
+						{%- if locationInfoTemplate == "connection" and locationCampus contains campus.Name -%}
+						{%- comment -%}
+						iterate for each html-to-image slice
+						{%- endcomment -%}
+						{%- assign intervalCuts = 574.666666666666667 -%}
+						{%- assign interY1 = 0 -%}
+						{%- assign interY2 = intervalCuts | Plus:1 -%}
+						{%- for i in (0..1) -%}
+						{{- comma -}}{
+							"title": "{{campus.Name}} Connection",
+							"images":[
+								{ "width":800, "url":"https://app.secc.org/Webhooks/ImageGenerator.ashx/location/info/twoslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+							]{%- if url != "" -%},"actions":[{
+								"handler":"browser",
+								"type":"navigation",
+								"style":"external",
+								"showBrowserControls": false,
+								"contentUrl": "{{ url }}"
+							}]{%- endif-%}
+						}
+						{%- assign comma = "," -%}
+						{%- if forloop.index ==  1 -%}
+							{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
+							{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+						{%- else -%}
+							{%- assign interY1 = interY1 | Plus:intervalCuts -%}
+							{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+						{%- endif -%}
+						{%- endfor -%}
+						{%- endif -%}
+					{%- endif%}
+				{%- endfor -%}
+
+			{%- endif -%}
+		{%- endcontentchannelitem -%}
+
+		{%- comment -%}
+        Leaders (if any)
+        {%- endcomment -%}
+		{%- contentchannelitem where:'Status == 2 && ContentChannelId == 73' sort:'Order' -%}
+			{%- assign contentItem = "" -%}
+			{%- for item in contentchannelitemItems -%}
+				{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
+				{%- assign locationCampus = item | Attribute:'Campuses' -%}
+				{%- if locationInfoTemplate == "leadership" and locationCampus contains campus.Name -%}
+					{%- assign contentItem = item -%}
+					{%- break -%}
+				{%- endif -%}
+			{%- endfor -%}
+			{%- if contentItem != "" -%}
+				{%- assign url = contentItem | Attribute:'itemurl','RawValue' -%}
+				{%- comment -%}
+				iterate for each html-to-image slice
+				{%- endcomment -%}
+				{%- assign intervalCuts = 574.666666666666667 -%}
+				{%- assign interY1 = 0 -%}
+				{%- assign interY2 = intervalCuts | Plus:1 -%}
+				{%- for i in (0..1) -%}
+				{{- comma -}}{
+					"title": "{{campus.Name}} Leadership",
+					"images":[
+						{ "width":800, "url":"https://app.secc.org/webhooks/ImageGenerator.ashx/location/info/twoslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+					]{%- if url != "" -%},"actions":[{
+		                "handler":"browser",
+		                "type":"navigation",
+		                "style":"external",
+		                "showBrowserControls": false,
+		                "contentUrl": "{{ url }}"
+		            }]{%- endif-%}
+				}
+				{%- assign comma = "," -%}
+				{%- if forloop.index ==  1 -%}
+					{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
+					{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+				{%- else -%}
+					{%- assign interY1 = interY1 | Plus:intervalCuts -%}
+					{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+				{%- endif -%}
+				{%- endfor -%}
+			{%- endif -%}
+		{%- endcontentchannelitem -%}
+    ]
 }
-{% endcampus %}
+{%- endcampus -%}

@@ -81,7 +81,8 @@
 			            ]
 						{%- if connectUrl != "" -%}
 						,"actions": [{
-							"handler": "internalBrowser showTabBar",
+							"handler": "browser",
+							"style":"external",
 							"type":"navigation",
 							"showBrowserControls": true,
 							"contentUrl": "{{ connectUrl }}"
