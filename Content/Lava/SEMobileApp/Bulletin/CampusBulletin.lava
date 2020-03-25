@@ -68,7 +68,7 @@
                 { "width":636, "url":"https://app.secc.org/Webhooks/ImageGenerator.ashx/bulletin/campusIntro/{{campus.Guid}}"  }
             ]
 		{% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger %}
-        }{%- contentchannelitem where:'ContentChannelId == 70 && Status == 2' sort:'StartDateTime desc'  -%}{%- for item in contentchannelitemItems -%}
+	}{%- contentchannelitem where:'ContentChannelId == 70 && Status == 2' sort:'Order'  -%}{%- for item in contentchannelitemItems -%}
 		{% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
 		{% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsInteger %}
 			{% if itemStartDateTime <= currentDateTime %}
