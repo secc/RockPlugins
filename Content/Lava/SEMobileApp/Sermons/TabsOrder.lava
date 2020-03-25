@@ -1,0 +1,42 @@
+{%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' -%}
+{%- for series in contentchannelitemItems -%}
+{
+	"header": {
+		"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}"
+	},
+    "items": [
+        {%- if activeTabTest == "" -%}
+        {
+            "title": "Sermons",
+            "actions": [{
+				"handler": "list",
+				"url": "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}"
+			}]
+        },
+        {
+            "title": "Resources",
+            "actions": [{
+                "handler": "list",
+                "url": "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}/resources"
+            }]
+        }
+        {%- else -%}
+        {
+            "title": "Resources",
+            "actions": [{
+                "handler": "list",
+                "url": "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}/resources"
+            }]
+        },
+        {
+            "title": "Sermons",
+            "actions": [{
+				"handler": "list",
+				"url": "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}"
+			}]
+        }
+        {%- endif -%}
+    ]
+}
+{%- endfor -%}
+{% endcontentchannelitem -%}
