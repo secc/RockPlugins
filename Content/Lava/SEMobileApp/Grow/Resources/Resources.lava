@@ -42,10 +42,13 @@
 				  {%- assign subtitle = item.ChildContentChannelItem | Attribute:'Subtitle' -%}
 				  {%- assign imageGuid = item.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
 				  {%- assign actionJson = item.ChildContentChannelItem | Attribute:'Action' -%}
+				  {%- if Headers.sap-device-os == 'Android' -%}
+        			    {%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
+        			{%- endif -%}
 				  {
 					  "images":[
 						  {"width": 668,
-						  "url":"https://app.secc.org/webhooks/ImageGenerator.ashx/grow/resources/{{ item.ChildContentChannelItem.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=10"}
+						  "url":"https://app.secc.org/Webhooks/ImageGenerator.ashx/grow/resources/{{ item.ChildContentChannelItem.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=10"}
 						  ]
 					  {%- if actionJson != "" -%}
 					  ,"actions":[{
