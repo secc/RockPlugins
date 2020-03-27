@@ -12,6 +12,10 @@ a {
 	}
 }
 
+em, li {
+    color: #ffffff;
+}
+
 a.line {
     text-decoration: underline;
 }
@@ -88,7 +92,9 @@ article {
 	}
 }
 
-
+.breadcrumb {
+    background-color: rgba(97, 97, 97, 0.5) !important;
+}
 
 .contact-info {
 	.phone,.email {
