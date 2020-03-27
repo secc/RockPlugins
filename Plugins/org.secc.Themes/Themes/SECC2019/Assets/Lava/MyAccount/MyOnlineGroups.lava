@@ -63,7 +63,7 @@ Eventually we will need to convert the inline css below into BEM CSS.
 		<div class="col-xs-12 col-lg-6 g-margin-b-50--xs">
 			<div class="se-panel g-padding-y-50--xs g-padding-x-50--xs clearfix">
 				<h3 class="g-font-family--secondary g-font-weight--600">Feedback</h3>
-				<p class="g-font-family--primary g-line-height--sm">We would love to hear your thoughts to continue making this better. Please fill out the box below, and then click 'Submit'.</p>
+				<p class="g-font-family--primary g-line-height--sm">How has your initial experience been using the My Online Groups page and entering the group meetings? Please fill out the box below, and then click 'Submit'.</p>
 				<hr />
 				<form>
 					<textarea Id="tbFeedback" class="
