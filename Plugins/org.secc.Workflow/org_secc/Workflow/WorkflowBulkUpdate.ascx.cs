@@ -73,7 +73,7 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
             RockContext rockContext = new RockContext();
             EntitySetService entitySetService = new EntitySetService( rockContext );
             var entitySet = entitySetService.Get( PageParameter( "EntitySetId" ).AsInteger() );
-            var workflowEntityId = EntityTypeCache.GetId( typeof( Workflow ) );
+            var workflowEntityId = EntityTypeCache.GetId( typeof( Rock.Model.Workflow ) );
 
             if ( entitySet == null || entitySet.EntityTypeId != workflowEntityId )
             {
@@ -242,11 +242,11 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
             return attributeUpdates;
         }
 
-        private List<Workflow> GetWorkflows( RockContext rockContext )
+        private List<Rock.Model.Workflow> GetWorkflows( RockContext rockContext )
         {
             EntitySetService entitySetService = new EntitySetService( rockContext );
             var entitySet = entitySetService.Get( PageParameter( "EntitySetId" ).AsInteger() );
-            var workflowEntityId = EntityTypeCache.GetId( typeof( Workflow ) );
+            var workflowEntityId = EntityTypeCache.GetId( typeof( Rock.Model.Workflow ) );
 
             if ( entitySet == null || entitySet.EntityTypeId != workflowEntityId )
             {
@@ -300,7 +300,7 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
                 }
             }
 
-            var workflows = new List<Workflow>();
+            var workflows = new List<Rock.Model.Workflow>();
             foreach ( var item in mixedItems )
             {
                 var workflow = item.Workflow;
