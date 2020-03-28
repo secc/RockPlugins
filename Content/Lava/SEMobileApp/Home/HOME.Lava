@@ -32,6 +32,7 @@
 	"items": [
 	{%- contentchannelitem Id:'2087' -%}
 		{%- assign childItemsSorted = contentchannelitem.ChildItems | Sort:"Order" -%}
+		{%- assign comma = "" -%}
 		{%- for item in childItemsSorted -%}
 			{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
 			{%- assign today = 'Now' | Date:'dddd' -%}
@@ -51,6 +52,7 @@
 					{%- if Headers.sap-device-os == 'Android' -%}
 						{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
 					{%- endif -%}
+					{{ comma }}
 					{
 						"images":[
 							{"width": 668,
@@ -63,13 +65,15 @@
 						"title": "{{ title }}",
 						"subtitle": "{{ subtitle }}"
 						{%- endif -%}
-					}{%- if forloop.last -%}{%- else -%},{%- endif -%}
+					}
+					{%- assign comma = "," -%}
 					{%- comment -%} End: Banner Item{%- endcomment -%}
 				{%- elseif slug == "bulletin-1" and bulletinOneShowDays contains today -%}
 					{%- comment -%} Start: Banner Item{%- endcomment -%}
 					{%- if Headers.sap-device-os == 'Android' -%}
 						{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
 					{%- endif -%}
+					{{ comma }}
 					{
 						"images":[
 							{"width": 668,
@@ -82,13 +86,15 @@
 						"title": "{{ title }}",
 						"subtitle": "{{ subtitle }}"
 						{%- endif -%}
-					}{%- if forloop.last -%}{%- else -%},{%- endif -%}
+					}
+					{%- assign comma = "," -%}
 					{%- comment -%} End: Banner Item{%- endcomment -%}
 				{%- elseif slug == "bulletin-2" and bulletinTwoShowDays contains today -%}
 					{%- comment -%} Start: Banner Item{%- endcomment -%}
 					{%- if Headers.sap-device-os == 'Android' -%}
 						{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
 					{%- endif -%}
+					{{ comma }}
 					{
 						"images":[
 							{"width": 668,
@@ -101,7 +107,8 @@
 						"title": "{{ title }}",
 						"subtitle": "{{ subtitle }}"
 						{%- endif -%}
-					}{%- if forloop.last -%}{%- else -%},{%- endif -%}
+					}
+					{%- assign comma = "," -%}
 					{%- comment -%} End: Banner Item{%- endcomment -%}
 				{%- endif -%}
 			{%- else -%}
@@ -110,6 +117,7 @@
 					{%- if Headers.sap-device-os == 'Android' -%}
 						{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
 					{%- endif -%}
+					{{ comma }}
 					{
 						"images":[
 							{"width": 668,
@@ -122,10 +130,12 @@
 						"title": "{{ title }}",
 						"subtitle": "{{ subtitle }}"
 						{%- endif -%}
-					}{%- if forloop.last -%}{%- else -%},{%- endif -%}
+					}
+					{%- assign comma = "," -%}
 					{%- comment -%} End: Banner Item{%- endcomment -%}
 				{%- endif -%}
 			{%- endif -%}
+
 		{%- endfor %}
 	{%- endcontentchannelitem %}
 	]
