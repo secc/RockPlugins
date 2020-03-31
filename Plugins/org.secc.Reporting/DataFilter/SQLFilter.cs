@@ -229,12 +229,12 @@ function() {
                     //If we need to remove more than 5,000 entries it's faster/safer to just remove all the entries
                     if ( toRemove.Count >= 5000 )
                     {
-                        updateContext.Database.ExecuteSqlCommand( string.Format( "DELETE FROM DataViewSQLFilterStore WHERE Hash = '{0}'", hash ) );
+                        updateContext.Database.ExecuteSqlCommand( string.Format( "DELETE FROM _org_secc_Reporting_DataViewSQLFilterStore WHERE Hash = '{0}'", hash ) );
                         toAdd = entityIds;
                     }
                     else if ( toRemove.Any() )
                     {
-                        updateContext.Database.ExecuteSqlCommand( string.Format( "DELETE FROM DataViewSQLFilterStore WHERE Hash = '{0}' AND EntityId IN  ({1})", hash, string.Join( ",", toRemove ) ) );
+                        updateContext.Database.ExecuteSqlCommand( string.Format( "DELETE FROM _org_secc_Reporting_DataViewSQLFilterStore WHERE Hash = '{0}' AND EntityId IN ({1})", hash, string.Join( ",", toRemove ) ) );
                     }
 
                     if ( toAdd.Any() )
