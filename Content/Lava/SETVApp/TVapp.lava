@@ -1,0 +1,77 @@
+{%- cache key:'subsplash-tvapp-home' duration:'3600' -%}
+{
+    "header": {
+        "title":"Live Stream",
+        "style":"featured",
+        "sapid":"home",
+        "items": [
+            {
+                "images":[
+                    { "width":720, "url":"http://secckyf-a.akamaihd.net/file/Southeast_Christian_Church_Louisville/989/15/RTC-Streaming-Thumbnail-1920-10802.jpg" }
+                ],
+    			"title": "Live Stream",
+    			"subtitle": "Live Stream",
+    			"actions": [{
+    				"handler": "detail",
+    				"url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/livestream"
+    			}]
+    		}
+        ]
+    },
+    {% comment %}
+    "header": {
+        "title": "Recent Sermons",
+        "style": "featured",
+        "sapid": "home",
+        "items": [
+            {%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' limit:'1'  -%}
+
+            {%- assign comma = "" -%}
+            {%- assign mostRecentSermon = contentchannelitemItems | First -%}
+            {%- for seriesChild in  mostRecentSermon.ChildItems -%}
+            {%- assign sermon = seriesChild.ChildContentChannelItem -%}
+            {%- if sermon.ContentChannelId == "23" -%}
+            {{ comma }}
+            {
+                "images":[
+                    { "width":720, "url":"https://www.southeastchristian.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=720" },
+                    { "width":1080, "url":"https://www.southeastchristian.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1080" },
+                    { "width":1920, "url":"https://www.southeastchristian.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1920" }
+                ],
+    			"title": "{{sermon.Title | Replace:'"','\"'}}",
+    			"subtitle": "{{ sermon.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+    			"actions": [{
+    				"handler": "detail",
+    				"url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/sermon/{{sermon.Id}}"
+    			}]
+    		}
+            {%- assign comma = "," -%}
+            {%- endif -%}
+            {%- endfor -%}
+            {% endcontentchannelitem -%}
+        ]
+    },{% endcomment %}
+
+{%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' offset:'{{offset}}' limit:'120'  -%}
+	"items": [
+        {%- for item in contentchannelitemItems -%}
+        {% unless forloop.first %},{% endunless %}
+        {
+            "images":[
+                { "width":720, "url":"https://www.southeastchristian.org/GetImage.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=720" },
+                { "width":1080, "url":"https://www.southeastchristian.org/GetImage.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=1080" },
+                { "width":1920, "url":"https://www.southeastchristian.org/GetImage.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=1920" }
+		    ],
+			"position": "{{forloop.index}}",
+			"title": "{{item.Title | Replace:'"','\"'}}",
+			"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode | StripHtml  }}",
+			"actions": [{
+				"handler": "list",
+				"url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/series/{{item.Id}}"
+			}]
+		}
+        {%- endfor -%}
+    ]
+{% endcontentchannelitem -%}
+}
+{% endcache %}

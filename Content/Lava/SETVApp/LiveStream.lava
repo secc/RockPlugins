@@ -1,0 +1,14 @@
+{
+	"header": {
+		"title": "Live Stream"
+	},
+	"sapid":"livestream",
+	"images": [{ "width":1080, "url":"http://secckyf-a.akamaihd.net/file/Southeast_Christian_Church_Louisville/989/15/RTC-Streaming-Thumbnail-1920-10802.jpg"}],
+	"media": [
+	    {
+    		"url":"https://link.theplatform.com/s/IfSiAC/media/X2MF3_jZxkHp?formats=m3u&format=redirect&affiliate=Roku",
+            "format":"m3u8"
+        }],
+	"title": "Live Services",
+	"body":"Each weekend we broadcast our experience around the world. Whether you're at work or at home; in the car or at the gym; you can join an online community where you'll be encouraged, inspired, and challenged. \n\nEvent Times: Sundays 9:15 AM, 11:30 AM, 2:00 PM, and 8:00 PM.  All times ET."
+}
