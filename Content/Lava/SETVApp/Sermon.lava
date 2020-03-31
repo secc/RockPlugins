@@ -23,7 +23,7 @@
 			"format":"mp3"
 		}],
 	"title": "{{sermon.Title | Replace:'"','\"'}}",
-	"body":"{{ sermon.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}{%- if fullServiceUrl != "" -%} {{sermon | Attribute:'SermonStart' | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode}}{%- endif -%}"
+	"body":"{%- if fullServiceUrl != "" -%}[{{ sermon | Attribute:'SermonStart' | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode | Append:'] '}}{%- endif -%}{{ sermon.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}"
 }
 {%- endfor -%}
 {% endcontentchannelitem -%}

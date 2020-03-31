@@ -1,13 +1,23 @@
 {%- cache key:'subsplash-tvapp-series-{{series}}' duration:'3600' -%}
 {%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
 {%- for series in contentchannelitemItems -%}
+{%- assign seriesImageGuid = sermon | Attribute:'Image', 'RawValue' -%}
+{%- unless seriesImageGuid == empty -%}
+	{%- for child in sermon.ChildItems -%}
+		{%- assign seriesImage = child.ChildContentChannelItem | Attribute:'Image' -%}
+		{%- assign seriesImageGuid = child.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
+		{%- if seriesImage != empty -%}
+			{%- break -%}
+		{%- endif %}
+	{%- endfor -%}
+{%- endunless -%}
 {
 	"header": {
 		"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
 		"style": "banner",
 		"items": [{
 			"images":[
-                { "width":1920, "url":"https://www.southeastchristian.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&width=1920" }
+                { "width":1920, "url":"https://www.southeastchristian.org/GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=1920" }
 		    ]
 		}]
 	},
@@ -20,7 +30,7 @@
         {{ comma }}
         {
             "images":[
-                { "width":308, "url":"https://www.southeastchristian.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=308" }
+				{ "width":308, "url":"https://www.southeastchristian.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=308" }
             ],
 			"title": "{{sermon.Title | Replace:'"','\"'}}",
 			"subtitle": "{{ sermon.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
