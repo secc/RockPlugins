@@ -1,0 +1,372 @@
+<style>
+.se-input {
+	background-color: white;
+	border: 2px solid black;
+	padding: 5px 70px 5px 15px;
+	display: block;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	color: black;
+	line-height: 28px;
+	text-transform: uppercase;
+	font-weight: 600;
+	box-sizing: border-box;
+	display: inline-block;
+	margin: 0;
+	position: relative;
+	vertical-align: middle;
+	margin-top: 5px;
+	min-width: 170px;
+	z-index: 10;
+}
+.se-zipcode-loading {
+	position: absolute;
+	right: 25px;
+	top: 18px;
+	z-index: 30;
+}
+</style>
+
+<div class="container g-padding-t-150--xs g-padding-b-50--xs g-padding-x-50--xs">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-10 col-md-offset-1" >
+            <h3 class="g-font-weight--600">Find a Way to Respond</h3>
+            <p class="g-font-weight--400 g-line-height--sm">Filter to find opportunities in your area</p>
+            <div id="partnerFilters" class="g-display-block--xs">
+
+ 				<div class="g-display-inline-block--xs col-xs-12 col-md-3 g-padding-x-5--xs">
+                    <input id="se-zipcode" class="g-width-100-percent--xs se-input" placeholder="Zip code" type="number" pattern="\d*" />
+                    <i class="fas fa-circle-notch fa-spin se-zipcode-loading hidden"></i>
+                </div>
+
+                <!-- Select a Need? -->
+                <div class="g-display-inline-block--xs col-xs-12 col-md-4 g-padding-x-5--xs">
+                    <select class="select2-need" name="Need?" data-control="#partnerFilters">
+                        <option value="allNeeds" data-shortcode="SE" data-need="">Serve</option>
+						{% tag where:'CategoryId == 1413' %}
+						   {% for tag in tagItems %}
+						   		{% assign respondTagsOnly = "Medical Professionals|Meals|Elderly or vulnerable|Other|Prayer" %}
+								{% if respondTagsOnly contains tag.Name %}
+						        <option value="{{ tag.Id }}" data-need="{{ tag.Id }}">
+						            {{ tag.Name }}
+						        </option>
+								{% endif%}
+						   {% endfor %}
+						{% endtag %}
+                    </select>
+                </div>
+
+                <!-- Filter by Southeast Ministries -->
+                <div class="g-display-inline-block--xs col-xs-12 col-md-3 g-padding-x-5--xs g-margin-t-15--xs g-margin-l-20--xs">
+					<input id="se-partner" class="" type="checkbox" />
+                    <label for="se-otc" class="g-font-size-20--xs g-font-weight--600 g-display-inline-block--xs g-padding-r-10--xs">Only show Southeast ministries</label>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid g-padding-y-50--xs">
+    <div class="container g-padding-b-10--xs g-padding-x-0--xs">
+        <div class="isotope_wrap">
+            {% contentchannelitem where:'ContentChannelId == 68' sort:'Order' %}
+               {% for item in contentchannelitemItems %}
+
+			   		{% assign covidApplicable = item | Attribute:'COVID19' %}
+					{% assign covidInfo = item | Attribute:'COVID19INFO' %}
+
+					{% assign phone = item | Attribute:'Phone' %}
+                    {% assign website_url = item | Attribute:'Website','RawValue' %}
+                    {% assign se_address = item | Attribute:'Location' %}
+                    {% assign se_recognition = item | Attribute:'SoutheastRecognition' %}
+					{% assign resourceMediaFile = item | Attribute:'File','Object' %}
+
+					{% if covidApplicable == "Yes" or covidApplicable == "Both" %}
+                    <div class="isotope_item col-xs-12 col-md-6 col-lg-4"
+                         data-groupid="{{item.Id}}"
+                         data-need="{% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}{% for tag in taggeditemItems %}{%- if forloop.first -%}{%- else -%},{%- endif -%}{{ tag.Tag.Id }}{% endfor %}{% endtaggeditem %}"
+                         data-zipcode="{{ item | Attribute:'Location','PostalCode' | Truncate:5,'' }}"
+                         data-partner="{%- if se_recognition != "" -%}yes{%- endif -%}">
+
+                        <div class="clearfix se-panel">
+                            <div class="g-padding-y-25--xs g-padding-x-25--xs g-padding-y-50--md g-padding-x-50--md g-margin-y-20--xs g-margin-l-20--xs g-margin-r-50--xs">
+
+                                {% if se_recognition == "Mission Partner"%}
+                                <span class="label label-default label label-default g-position--absolute bug g-bg-color--2020-crisis-partner">
+                                    <span class="g-center--xs" style="width:90px;">
+                                        <img src="/Themes/SECC2019/Assets/img/SE/Mission_Partner_text.svg" class="img-responsive" />
+                                    </span>
+                                </span>
+                                {% endif %}
+                                {% if se_recognition == "Southeast Ministry"%}
+                                <span class="label label-default label label-default g-position--absolute bug g-bg-color--2020-crisis-ministry">
+                                    <span class="g-center--xs" style="width:90px;">
+                                        <img src="/Themes/SECC2019/Assets/img/SE/Southeast_Ministry_text.svg" class="img-responsive" />
+                                    </span>
+                                </span>
+                                {% endif %}
+
+								{% if website_url != "" %}<a href="{{ website_url }}" target="_blank">{% endif %}
+                                <h5 class="g-padding-b-20--xs g-font-family--secondary">
+                                {{ item.Title }}
+                                </h5>
+								{% if website_url != "" %}</a>{% endif %}
+                                <h6 class="g-line-height">{{ item.Content }}</h6>
+
+                                {% if phone != "" %}
+                                <div class="partner_location g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
+                                    <div class="pull-left g-margin-r-20--xs" style="max-width: 35px; height:100%;" class="pull-left">
+										<img src="/Themes/SECC2019/Assets/img/SE/phone.svg" style="max-width:120px; width: 100%;" />
+                                    </div>
+                                    <div>
+                                        <h6>
+                                            <small class="uppercase g-font-weight--700">phone</small><br />
+                                            {{ phone }}
+                                        </h6>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                {% if website_url != "" %}
+                                <div class="partner_location g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
+                                    <div class="pull-left g-margin-r-20--xs" style="max-width: 35px; height:100%;" class="pull-left">
+										<a href="{{ website_url }}" target="_blank">
+                                        <img src="/Themes/SECC2019/Assets/img/SE/web.svg" style="max-width:120px; width: 100%;" />
+										</a>
+                                    </div>
+                                    <div>
+                                        <h6>
+                                            <small class="uppercase g-font-weight--700">website</small><br />
+                                            <a href="{{ website_url }}" target="_blank">{{ website_url | Truncate:30,'...' }}</a>
+                                        </h6>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                {% if se_address != "" %}
+                                <div class="partner_location g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
+                                    <div class="pull-left g-margin-r-20--xs" style="max-width: 35px; height:100%;" class="pull-left">
+                                        <img src="/Themes/SECC2019/Assets/img/SE/Location.svg" style="max-width:120px; width: 100%;" />
+									</div>
+									<div>
+                                        <h6>
+                                            <small class="uppercase g-font-weight--700">location</small><br />
+                                            {{ item | Attribute:'Location','Street1' }}<br />
+                                            {{ item | Attribute:'Location','City' }}, {{ item | Attribute:'Location','State' }} {{ item | Attribute:'Location','PostalCode' }}
+											<br />
+											<br />
+											<h5 class="uppercase g-display-none--xs distance-miles text-center g-font-weight--700 g-hor-divider__solid__t--black-opacity-lighter g-padding-t-20--xs"></h5>
+										</h6>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                {% if covidInfo != "" %}
+                                <div class="covid_info g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
+									<h6 class="g-line-height g-hor-divider__solid__t--black-opacity-lighter g-padding-t-20--xs g-font-weight--700">COVID-19 Information:</h6>
+									<h6 class="g-line-height">
+									{{ covidInfo }}
+									</h6>
+                                </div>
+                                {% endif %}
+								{% if resourceMediaFile.Guid != null %}
+								<div class="g-margin-t-20--xs g-display-inline-block--xs g-width-100-percent--xs">
+									<a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-width-100-percent--xs" download>
+										<strong>Download PDF</strong>
+									</a>
+                                </div>
+								{% endif %}
+                            </div>
+                        </div>
+                    </div>
+					{% endif %}
+
+                {% endfor %}
+            {% endcontentchannelitem %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize Isotope/Items
+    $grid = $('.isotope_wrap').isotope({
+      itemSelector: '.isotope_item',
+      percentPosition: true,
+      layoutMode: 'masonry',
+	  getSortData: {
+					distance: '[data-distance] parseFloat',
+				},
+	  sortBy: 'distance'
+    });
+
+    if (Modernizr.mq('only all and (max-width: 720px)')) {
+        // Not using isotope or readmore on mobile - it's heavy on JS (breaks old iphones)
+        $('.isotope_wrap').addClass('is-showing-items');
+    } else {
+        var isoOptions = {
+            itemSelector: '.isotope_item',
+            percentPosition: true,
+            layoutMode: 'masonry',
+			getSortData: {
+					distance: '[data-distance] parseFloat',
+				},
+			sortBy: 'distance'
+        };
+        // init Isotope
+        $grid.addClass('is-showing-items').isotope(isoOptions);
+    }
+
+    // bind to 'need?' dropdown selection
+    var needSelected = '';
+    $('.select2-need').select2({
+      placeholder: 'Need?'
+    });
+    $('.select2-need').on('select2:select', function (e) {
+        e.preventDefault();
+        var data = e.params.data;
+        needSelected = $(data.element).data('need');
+        buildNeedFilters(needSelected);
+        reapplyIso();
+    });
+
+    // bind to partners checkbox
+    $('#se-partner:checkbox').change(function(e) {
+		e.preventDefault();
+        buildPartnerFilter();
+        reapplyIso();
+	});
+
+    // handling partners selection
+    var partner_selected = [];
+    function buildPartnerFilter() {
+        // reset campus array, campuses are only selected one at a time
+        partner_selected = [];
+       var checkbox = document.getElementById('se-partner').checked ? 'yes' : 'no';
+        // add to array
+        if (checkbox != undefined && checkbox == 'yes') {
+            partner_selected.push(checkbox);
+        }
+    }
+
+    // handling 'need?' tag selected
+    var need_filters_selected = [];
+    var need_filters_selected = [];
+    function buildNeedFilters(need) {
+        // reset need array, 'need?' values are only selected one at a time
+        need_filters_selected = [];
+        // add to array
+        if (need != '' && need != undefined) {
+            need_filters_selected.push(need);
+        }
+    }
+
+    function runFilters() {
+         var filterSelectors = [];
+         // if 'need?' tag is selected
+         if (need_filters_selected.length != 0) {
+             filterSelectors.push(createFilters(need_filters_selected, 'data-need'));
+         }
+         // if otc is selected
+         if (partner_selected.length != 0) {
+             filterSelectors.push(createFilters(partner_selected, 'data-partner'));
+         }
+         var filterArray = [];
+         if (filterSelectors.length!=0){
+             filterSelectors.forEach(function(filterSet, index, array) {
+                if (index==0) {
+                    filterArray = filterSet;
+                } else {
+                    var tempArray = [];
+                    filterArray.forEach(function(primaryFilter) {
+                        filterSet.forEach(function(secondaryFilter) {
+                            tempArray.push(primaryFilter+secondaryFilter);
+                        });
+                    });
+                    filterArray = tempArray;
+                }
+             });
+         }
+         return filterArray.join(',');
+     }
+
+     function reapplyIso() {
+         $grid.isotope({
+           itemSelector: '.isotope_item',
+           percentPosition: true,
+           layoutMode: 'masonry',
+           filter: runFilters()
+         });
+     }
+
+     function createFilters(arrayList, selector) {
+         var output = [];
+         if (arrayList.length != 0) {
+             // make string of selectors
+             arrayList.forEach(function(item, index, array) {
+                 output.push('['+selector+'*="'+item+'"]');
+             });
+         }
+         return output;
+     }
+
+
+	      //This is for the zipcode :)
+    $zipcode_input = $('#se-zipcode')
+
+    $zipcode_input.keydown( function (e) {
+        if (e.keyCode == 13) {
+            e.preventDefault();
+        }
+    });
+
+    $zipcode_input.keyup(function(){
+        var zipcode = $zipcode_input.val();
+        var $isotopeItem = $('.isotope_item');
+        if (zipcode.length==5){
+            $('.se-zipcode-loading').removeClass('hidden');
+            $.getJSON(
+            "/api/mapping/distance/30533/"+zipcode,
+            function(data){
+                $('.se-zipcode-loading').addClass('hidden');
+
+                $isotopeItem.attr("data-distance",Number.MAX_VALUE);
+                $.each( data, function( key, val ){
+					var $itemDiv = $("div[data-groupid='"+key+"']");
+                    $itemDiv.attr("data-distance",val);
+					$itemDiv.find('.distance-miles').html(val + " MILES").removeClass('g-display-none--xs');
+                });
+				$grid.isotope('updateSortData').isotope({
+					getSortData: {
+					distance: '[data-distance] parseFloat',
+				},
+				sortBy: [ 'distance' ]
+			});
+			});
+        } else {
+            $isotopeItem.find('div.distance-container').each(function(){
+               $(this).addClass("hidden");
+            });
+            $grid.isotope();
+        }
+     });
+
+     // Restricts input for the given textbox to the given inputFilter.
+     function setInputFilter(textbox, inputFilter) {
+      ["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop"].forEach(function(event) {
+        textbox.addEventListener(event, function() {
+          if (inputFilter(this.value)) {
+            this.oldValue = this.value;
+            this.oldSelectionStart = this.selectionStart;
+            this.oldSelectionEnd = this.selectionEnd;
+          }
+        });
+      });
+     }
+
+     // Restrict input to digits
+     setInputFilter(document.getElementById("se-zipcode"), function(value) {
+         return /^\d*$/.test(value);
+     });
+</script>
