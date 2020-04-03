@@ -1,0 +1,338 @@
+<script src="https://www.southeastchristian.org/Themes/SECC2019/Scripts/ResizeSensor/ResizeSensor.min.js"></script>
+<script src="https://www.southeastchristian.org/Themes/SECC2019/Scripts/ResizeSensor/ElementQueries.min.js"></script>
+<style>
+  .panel-id-alert-drawer-040220 .panel-block > .panel-heading,
+  .panel-id-alert-drawer-040220 .panel-default > .panel-heading {
+      border: none;
+  }
+  .panel-id-alert-drawer-040220 .panel {
+      border: none;
+      font-size: 0px;
+  }
+  .panel-id-alert-drawer-040220 .panel .panel-collapse .panel-body {
+      background-color: white;
+  }
+  .panel-id-alert-drawer-040220 .panel .panel-collapse .panel-body .need-container {
+      max-width: 600px;
+      margin: 0 auto;
+  }
+  .panel-id-alert-drawer-040220 .panel .panel-collapse {
+      font-size: 16px;
+      background-image: url('/Content/ExternalSite/WebImages/COVIDBG_Pattern.svg') !important;
+      background-repeat: repeat !important;
+      background-size: 196px;
+      padding: 5%;
+      padding-top: 0px;
+      background-color: #222324 !important;
+      overflow: hidden;
+  }
+  .panel-id-alert-drawer-040220 .panel .panel-heading::before {
+        border-color: #ffffff !important;
+  }
+  #heading1-id-alert-drawer-040220 {
+      min-height: auto;
+  }
+  @media all and (min-width: 991px) {
+    #heading1-id-alert-drawer-040220 {
+      min-height: 90px;
+    }
+  }
+  .se-toggle {
+    list-style: none;
+    margin: 0;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-align: start;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+  @media (max-width: 767px) {
+    .se-toggle {
+        margin-left: 0 !important;
+        -ms-flex-direction: column;
+        flex-direction: column;
+    }
+  }
+  .se-need {
+    background-color: #FFFFFF;
+    -webkit-box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
+    box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
+    position: relative;
+    -webkit-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+    padding: 1rem 3.5rem;
+    color: #000000;
+    border: 0.4rem solid transparent;
+    border-radius: 0.1rem;
+    margin: 10px;
+    cursor: pointer;
+    font-weight: 700 !important;
+    font-size: 1.2em;
+    text-align: center;
+  }
+  .se-need.active {
+    border: 0.4rem solid #000000;
+    border-radius: 0.1rem;
+    background: transparent;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+  }
+  .se-need.active {
+    border: 0.4rem solid #000000;
+    border-radius: 0.1rem;
+    background: transparent;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+  }
+  .need-container {
+  }
+  .se-need-content {
+      display: none;
+      overflow:hidden;
+  }
+  .se-need-content.active {
+      display: block;
+  }
+
+  .panel-id-alert-drawer-040220 .panel .panel-heading::before,
+  .panel-id-alert-drawer-040220 .panel .panel-heading::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      margin: -1px 0px 0px 0px;
+      border: none;
+      padding: 0px;
+      display: inline-block;
+      height: 2px;
+      background: #ffffff;
+      -webkit-transform-origin: 50% 50%;
+      -moz-transform-origin: 50% 50%;
+      -ms-transform-origin: 50% 50%;
+      -o-transform-origin: 50% 50%;
+      transform-origin: 50% 50%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      -webkit-transition: all 0.3s, -webkit-transform 0.3s;
+      -moz-transition: all 0.3s, -moz-transform 0.3s;
+      transition: all 0.3s, transform 0.3s;
+      right: 10%;
+      width: 20px;
+  }
+  .panel-id-alert-drawer-040220 .panel .panel-heading[aria-expanded="true"]::before,
+  .panel-id-alert-drawer-040220 .panel .panel-heading[aria-expanded="true"]::after {
+       content: '';
+       position: absolute;
+       top: 50%;
+       margin: -1px 0px 0px 0px;
+       border: none;
+       padding: 0px;
+       display: inline-block;
+       height: 2px;
+       background: #fff;
+       -webkit-transform-origin: 50% 50%;
+       -moz-transform-origin: 50% 50%;
+       -ms-transform-origin: 50% 50%;
+       -o-transform-origin: 50% 50%;
+       transform-origin: 50% 50%;
+       -webkit-backface-visibility: hidden;
+       backface-visibility: hidden;
+       -webkit-transition: all 0.3s, -webkit-transform 0.3s;
+       -moz-transition: all 0.3s, -moz-transform 0.3s;
+       transition: all 0.3s, transform 0.3s;
+       right: 10%;
+       width: 30px;
+  }
+
+   .panel-id-alert-drawer-040220 .panel .panel-heading::before {
+        -webkit-transform: translateX(1px) rotate(-45deg) !important;
+        -moz-transform: translateX(1px) rotate(-45deg) !important;
+        -ms-transform: translateX(1px) rotate(-45deg) !important;
+        -o-transform: translateX(1px) rotate(-45deg) !important;
+        transform: translateX(1px) rotate(-45deg) !important;
+    }
+
+   .panel-id-alert-drawer-040220 .panel .panel-heading::after {
+        -webkit-transform: translateX(-12px) rotate(45deg) !important;
+        -moz-transform: translateX(-12px) rotate(45deg) !important;
+        -ms-transform: translateX(-12px) rotate(45deg) !important;
+        -o-transform: translateX(-12px) rotate(45deg) !important;
+        transform: translateX(-12px) rotate(45deg) !important;
+   }
+    .panel-id-alert-drawer-040220 .panel .panel-heading[aria-expanded="true"]::before {
+        -webkit-transform: rotate(45deg) !important;
+        -moz-transform: rotate(45deg) !important;
+        -ms-transform: rotate(45deg) !important;
+        -o-transform: rotate(45deg) !important;
+        transform: rotate(45deg) !important;
+    }
+
+    .panel-id-alert-drawer-040220 .panel .panel-heading[aria-expanded="true"]::after {
+        -webkit-transform: rotate(-45deg) !important;
+        -moz-transform: rotate(-45deg) !important;
+        -ms-transform: rotate(-45deg) !important;
+        -o-transform: rotate(-45deg) !important;
+        transform: rotate(-45deg) !important;
+    }
+
+    .collapse-zone {
+        position: absolute;
+        width: 30%;
+        content: '';
+        display: block;
+        height: 10%;
+        cursor: pointer;
+        right: 0px;
+    }
+</style>
+<div class="alertBar container-fluid g-bg-color--dark" style="z-index: 1;">
+    <div class="row">
+        <div>
+            <div class="panel-id-alert-drawer-040220 accordions-2" id="faq-accordion-id-alert-drawer-040220" role="tablist" aria-multiselectable="true">
+                <div class="panel panel-default g-margin-b-0--xs">
+                    <div class="panel-heading collapsed g-bg-color--dark g-display-inline-block--xs collapsed" role="button" id="heading1-id-alert-drawer-040220" data-toggle="collapse" data-parent="#faq-accordion-id-alert-drawer-040220, #faq-accordion-id-alert-drawer-040220id-alert-drawer-040220" href="#collapse1-id-alert-drawer-040220" aria-expanded="false" aria-controls="faq-1-collapse-1" style="
+                        width: 100%;
+                        background-image: url('/Content/ExternalSite/WebImages/COVIDBG_Pattern.svg') !important;
+                        background-repeat: repeat !important;
+                        background-size: 196px;
+                        padding: 30px 0px;
+                        ">
+                      <h4 class="panel-title text-center g-font-weight--600 g-color--white g-font-family--secondary g-font-size-34--xs g-font-size-40--md g-width-100-percent--xs">
+                          How Can We Help?
+                      </h4>
+                    </div>
+                    <div id="collapse1-id-alert-drawer-040220" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading1-id-alert-drawer-040220" aria-expanded="false">
+                        <!-- <div class="collapse-zone"></div> -->
+                        <div class="panel-body">
+                            <div class="need-container">
+                                <h5 class="g-padding-t-50--xs g-padding-t-0--md g-padding-b-10--xs text-center">We know that this is a difficult time for many. <br>We want to be here to help you through this challenging season.</h5>
+                                <h5 class="g-padding-y-10--xs text-center"><strong>I Need...</strong></h5>
+                                <div class="g-padding-y-10--xs text-center">
+                                  <ul class="se-toggle">
+                                    <li data-toggle="help-need" class="se-need g-display-block-inline--xs g-width-250--xs active">Help</li>
+                                    <li data-toggle="prayer-need" class="se-need g-display-block-inline--xs g-width-250--xs">Prayer</li>
+                                    <li data-toggle="support-need" class="se-need g-display-block-inline--xs g-width-250--xs">Support</li>
+                                  </ul>
+                                </div>
+                                <div id="help-need" class="se-need-content active">
+                                  <h5 class="need_copy g-padding-y-10--xs text-center">Right now, we are facing more stressors and difficulties than ever. Our staff would love to listen, pray, and help in any way we can.</h5>
+                                  <div class="g-padding-y-10--xs text-center">
+                                      <h5 class="g-padding-t-10--xs text-center">Call us at: <a href="tel:502-253-8144">502.253.8144</a><br>or</h5>
+                                      <a href="https://www.southeastchristian.org/howcanwehelp" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 text-center">CONTACT US</a><br>
+                                  </div>
+                                </div>
+                                <div id="prayer-need" class="se-need-content">
+                                  <h5 class="need_copy g-padding-y-10--xs text-center">We firmly believe that prayer changes things. We want to hear about your needs and lift them up in prayer with you.</h5>
+                                  <div class="g-padding-y-10--xs text-center">
+                                      <a href="https://www.southeastchristian.org/howcanwehelp" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 text-center">REQUEST PRAYER</a><br>
+                                  </div>
+                                </div>
+                                <div id="support-need" class="se-need-content">
+                                  <h5 class="need_copy g-padding-y-10--xs text-center">Many of us are facing anxiety, fear, and confusion. God did not make us to walk this journey alone. We are offering a variety of online groups to help support you in this time.</h5>
+                                  <div class="g-padding-y-10--xs text-center">
+                                      <a href="https://www.southeastchristian.org/onlinegatherings" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 text-center">FIND AN ONLINE<br class="visible-xs visible-sm"> SUPPORT GROUP</a><br>
+                                  </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var homepages = "https://www.southeastchristian.org/|https://staging.southeastchristian.org/|https://secc.org/";
+    if (~homepages.toLowerCase().indexOf(window.location.href)) {
+        //i'm on the homepage
+        console.log('home!');
+        var myCookie = getCookie("Need_040320201327_Closed");
+        if (myCookie == null) {
+            // cookie doesn't exist
+            $('#heading1-id-alert-drawer-040220').attr("aria-expanded", "true");
+            $('#heading1-id-alert-drawer-040220').removeClass('collapsed');
+            $('#collapse1-id-alert-drawer-040220').attr("aria-expanded", "true");
+            $('#collapse1-id-alert-drawer-040220').addClass("in");
+        } else {
+            // cookie exists, so don't open the drawer
+        }
+    }
+
+    // listen for need clicks
+    $('.se-need').click(function () {
+        var need_id = "#"+$(this).data( "toggle" );
+        if ($(this).hasClass("active")) {
+            // don't do anything.
+        } else {
+            $(this).toggleClass('active').siblings().removeClass('active');
+        }
+        if ($(need_id).hasClass( "active" )) {
+            // don't do anything.
+        } else {
+            $(need_id).toggleClass('active').siblings().removeClass('active');
+        }
+    });
+    // Click: reposition the mega-menu upon opening/closing the drawer
+    $('#faq-accordion-id-alert-drawer-040220 .panel .panel-heading').click( function() {
+        menuPosition();
+
+        if (~homepages.toLowerCase().indexOf(window.location.href)) {
+            setCookie();
+        }
+    });
+    // Listen: reposition the mega-menu upon opening/closing the drawer
+    new ResizeSensor(jQuery('#superNoticeHeader'), function(){
+        menuPosition();
+    });
+    // do the work, reposition mega-menu
+    function menuPosition() {
+        var $menu = $('.cd-main-header');
+        var $searchbar = $('#cd-search');
+        var alertheight = getDivHeight('#superNoticeHeader');
+        var menuheight = getDivHeight('.cd-main-header');
+        if (alertheight == null) {alertheight = 0;}
+        var height = getDivHeight('.menu-switch');
+        if (height == null) {height = $('.page-banner').height();}
+        var scrollTop = $(window).scrollTop();
+        $menu.css('top',alertheight);
+        $searchbar.css('top', (menuheight + alertheight) );
+        // re-init jarallax positioning
+        jarallax(document.querySelectorAll('.jarallax'), 'onScroll');
+    }
+    function getDivHeight(divClass) {
+        var divHeight = "";
+        if (divClass != "") {
+            divHeight = $(divClass).height();
+        } else {
+            divHeight = null;
+        }
+        return divHeight;
+    }
+    function setCookie(){
+        var cookieString = "Need_040320201327_Closed=Yes";
+        document.cookie = cookieString;
+        console.log('cookie is set');
+    }
+    function getCookie(name) {
+        var dc = document.cookie;
+        var prefix = name + "=";
+        var begin = dc.indexOf("; " + prefix);
+        if (begin == -1) {
+            begin = dc.indexOf(prefix);
+            if (begin != 0) return null;
+        }
+        else
+        {
+            begin += 2;
+            var end = document.cookie.indexOf(";", begin);
+            if (end == -1) {
+            end = dc.length;
+            }
+        }
+        // because unescape has been deprecated, replaced with decodeURI
+        //return unescape(dc.substring(begin + prefix.length, end));
+        return decodeURI(dc.substring(begin + prefix.length, end));
+    }
+</script>
