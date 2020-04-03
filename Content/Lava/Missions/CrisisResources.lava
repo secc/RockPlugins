@@ -58,12 +58,17 @@
                 <div class="g-display-inline-block--xs col-xs-12 col-md-3 g-padding-x-5--xs g-margin-t-15--xs g-margin-l-20--xs">
 					<input id="se-partner" class="" type="checkbox" />
                     <label for="se-otc" class="g-font-size-20--xs g-font-weight--600 g-display-inline-block--xs g-padding-r-10--xs">Only show Southeast ministries</label>
-                </div>
-
+                </div> 
             </div>
         </div>
-    </div>
+	</div>
+	<div class="row">
+		<div class="col-xs-12 col-sm-12 col-md-10 col-md-offset-1">
+			<i>If this is an emergency, call 9-1-1 immediately.</i>
+		</div>
+ </div>
 </div>
+
 
 <div class="container-fluid g-padding-y-50--xs">
     <div class="container g-padding-b-10--xs">
