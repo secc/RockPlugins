@@ -12,7 +12,7 @@
           {% for post in Items %}
             <div class="swiper-slide">
 			  <div class="swiper-slide-clip">
-				<iframe src="https://player.vimeo.com/video/{{post | Attribute:'VimeoID'}}?autoplay=0&autoplay=0&loop=0&title=0&byline=0&portrait=0&controls=0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" frameborder="0"></iframe>
+				<iframe src="" data-src="https://player.vimeo.com/video/{{post | Attribute:'VimeoID'}}?autoplay=0&autoplay=0&loop=0&title=0&byline=0&portrait=0&controls=0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" frameborder="0"></iframe>
 				<div class="video-overlay">
 				  <a href="{{LinkedPages.DetailPage}}/{{post.Id}}" class="episode-button">
 					  <div class="slide_content">
@@ -37,6 +37,15 @@
 <script src="https://player.vimeo.com/api/player.js"></script>
 <!-- Initialize Swiper -->
 <script type="text/javascript">
+function load_iframes() {
+	var vidDefer = document.getElementsByTagName('iframe');
+	for (var i=0; i<vidDefer.length; i++) {
+		if(vidDefer[i].getAttribute('data-src')) {
+			vidDefer[i].setAttribute('src',vidDefer[i].getAttribute('data-src'));
+		} 
+	} 
+}
+$(document).ready(function() {
   var swiper = new Swiper('#video-swiper', {
     slidesPerView: 'auto',
     //centeredSlides: true,
@@ -78,4 +87,6 @@
   player.on('play', function() {
 	$.post( "/Webhooks/Lava.ashx/onepoint/vieweditem/{{firstItem.Id}}", function( data ) {});
   });
+  load_iframes();
+});
 </script>
