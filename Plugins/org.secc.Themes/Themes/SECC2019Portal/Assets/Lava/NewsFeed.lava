@@ -72,7 +72,7 @@
                 <ul class="list-unstyled">
                 {% definedvalue where:'DefinedTypeId == {{quickLinksDefinedTypeId}}' sort:'Order' %}
                   {% for value in definedvalueItems %}
-                	<li><a href="{{ value | Attribute:'LinkUrl','RawValue' }}" target="{{ value | Attribute:'LinkTarget' }}" class="se-btn se-btn--light-portal g-letter-spacing--1 uppercase g-margin-b-10--xs btn-block">{{ value.Value }}</a></li>
+                	<li><a href="{{ value | Attribute:'LinkUrl','RawValue' }}" target="{{ value | Attribute:'LinkTarget','RawValue' }}" class="se-btn se-btn--light-portal g-letter-spacing--1 uppercase g-margin-b-10--xs btn-block">{{ value.Value }}</a></li>
                   {% endfor %}
                 {% enddefinedvalue %}
                 </ul>
