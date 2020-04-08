@@ -67,6 +67,9 @@ namespace org.secc.Connection
     [TextField( "Group Member Attribute Keys - URL", "The key of any group member attributes that you would like to be set via the URL.  Enter as comma separated values.", false, key: "UrlKeys", order: 10)]
     [TextField( "Group Member Attribute Keys - Form", "The key of the group member attributes to show an edit control for on the opportunity signup.  Enter as comma separated values.", false, key: "FormKeys", order: 11 )]
     [BooleanField( "Display Add Another", "Whether to display the \"Connect and Add Another\" button", false, "", 12 )]
+    [TextField( "Comment label text", "The wording that should be used for the comment box title", true, "Comments", "", 13 )]
+    [BooleanField( "Comments Required", "Whether the comment are required", true, "", 14 )]
+     
     public partial class VolunteerSignupFormConnections : RockBlock, IDetailBlock
     {
         #region Fields
@@ -503,14 +506,24 @@ namespace org.secc.Connection
                 {
                     lIcon.Text = string.Format( "<i class='{0}' ></i>", opportunity.IconCssClass );
                 }
-
+                var mergeFields = new Dictionary<string, object>();
+                mergeFields.Add( "Opportunity", new ConnectionOpportunityService( rockContext ).Get( PageParameter( "OpportunityId" ).AsInteger() ) );
+                mergeFields.Add( "CurrentPerson", CurrentPerson );
                 lTitle.Text = opportunity.Name;
                 btnConnect.Text = GetAttributeValue( "ConnectButtonText" );
+                
+                
 
                 divHome.Visible = pnHome.Visible = GetAttributeValue( "DisplayHomePhone" ).AsBoolean();
                 divMobile.Visible = pnMobile.Visible = GetAttributeValue( "DisplayMobilePhone" ).AsBoolean();
                 divBirthdate.Visible = bpBirthdate.Visible = GetAttributeValue( "DisplayBirthdate" ).AsBoolean();
                 tbComments.Visible = GetAttributeValue( "DisplayComments" ).AsBoolean();
+
+                if ( tbComments.Visible == true )
+                {
+                    tbComments.Label = GetAttributeValue( "Commentlabeltext" ).ResolveMergeFields( mergeFields );
+                    tbComments.Required = GetAttributeValue( "CommentsRequired" ).AsBoolean();
+                }
 
                 // If any of these aren't showing then set the width to be a bit wider on the columns
                 if ( !(divHome.Visible && divMobile.Visible && divBirthdate.Visible ))
@@ -620,9 +633,7 @@ namespace org.secc.Connection
 
 
                 // show debug info
-                var mergeFields = new Dictionary<string, object>();
-                mergeFields.Add( "Opportunity", new ConnectionOpportunityService( rockContext ).Get( PageParameter( "OpportunityId" ).AsInteger() ) );
-                mergeFields.Add( "CurrentPerson", CurrentPerson );
+ 
                 if ( GetAttributeValue( "EnableDebug" ).AsBoolean() && IsUserAuthorized( Authorization.EDIT ) )
                 {
                     lDebug.Visible = true;

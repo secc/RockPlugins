@@ -61,8 +61,8 @@
                         </ItemTemplate>
                     </asp:Repeater>
                 </div>
-
-                <Rock:RockTextBox ID="tbComments" runat="server" Label="Comments" TextMode="MultiLine" Rows="4" />
+                
+                <Rock:RockTextBox ID="tbComments" runat="server" Label="Comments"  TextMode="MultiLine" Rows="4" />
 
                 <div class="actions">
                     <asp:LinkButton ID="btnConnectandAddAnother" Visible="false" runat="server" AccessKey="n" Text="Connect and Add Another" CssClass="btn btn-default" OnClick="btnConnect_Click" />
