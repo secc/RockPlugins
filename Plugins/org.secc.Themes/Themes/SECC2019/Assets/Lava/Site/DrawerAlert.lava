@@ -296,8 +296,19 @@
         var height = getDivHeight('.menu-switch');
         if (height == null) {height = $('.page-banner').height();}
         var scrollTop = $(window).scrollTop();
-        $menu.css('top',alertheight);
-        $searchbar.css('top', (menuheight + alertheight) );
+
+        if (scrollTop > alertheight) {
+            // if the alert bar IS NOT visible
+            $menu.css('top', '');
+            $menu.css('position', '');
+            $searchbar.css('top', '');
+            $searchbar.css('position', '');
+        } else {
+            // if the alert bar IS visible
+            $menu.css('top',alertheight);
+            $searchbar.css('top', (menuheight + alertheight) );
+        }
+
         // re-init jarallax positioning
         jarallax(document.querySelectorAll('.jarallax'), 'onScroll');
     }
