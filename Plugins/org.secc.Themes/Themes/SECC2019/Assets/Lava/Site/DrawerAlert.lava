@@ -198,7 +198,7 @@
                         background-size: 196px;
                         padding: 30px 0px;
                         ">
-                      <h4 class="panel-title text-center g-font-weight--600 g-color--white g-font-family--secondary g-font-size-34--xs g-font-size-40--md g-width-100-percent--xs">
+                      <h4 class="panel-title text-center g-font-weight--600 g-color--white g-font-family--secondary g-font-size-34--xs g-font-size-40--md g-width-100-percent--xs" style="color: white !important;">
                           How Can We Help?
                       </h4>
                     </div>
@@ -244,7 +244,7 @@
 </div>
 
 <script>
-    var homepages = "https://www.southeastchristian.org/|https://staging.southeastchristian.org/|https://secc.org/";
+    var homepages = "https://www.southeastchristian.org/|https://staging.southeastchristian.org/|https://secc.org/|https://www.southeastchristian.org/home";
     if (~homepages.toLowerCase().indexOf(window.location.href)) {
         //i'm on the homepage
         console.log('home!');

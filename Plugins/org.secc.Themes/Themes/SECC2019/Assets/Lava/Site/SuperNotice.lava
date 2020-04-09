@@ -64,6 +64,11 @@
                     $menu.css('box-shadow','');
                     $menu.css('border-top','');
                     $alert.css('border-bottom','');
+                } else {
+                    // accounts for menu not overlapping body elements
+                    document.getElementById("superNoticeHeader").style.top = '-'+menuheight+'px';
+                    document.getElementById("superNoticeHeader").style.borderBottom = '2px solid #f1f1f1';
+                    $menu.css('box-shadow','0px 2px 0px 0px rgba(0, 0, 0, 0.1)');
                 }
             } else {
                 // if the alert bar IS visible
