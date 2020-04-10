@@ -298,7 +298,14 @@ namespace org.secc.ChangeManager.Model
             var entityService = Reflection.GetServiceForEntityType( entityType, dbContext );
             MethodInfo deleteMethodInfo = entityService.GetType().GetMethod( "Delete" );
             object[] parametersArray = new object[] { targetEntity };
-            deleteMethodInfo.Invoke( entityService, parametersArray );
+            try
+            {
+                deleteMethodInfo.Invoke( entityService, parametersArray );
+            }
+            catch
+            {
+                //Usually happens when someone tries deleting an already deleted item.
+            }
             dbContext.SaveChanges();
         }
 
