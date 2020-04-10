@@ -1,11 +1,9 @@
 ﻿// <copyright>
-// Copyright by the Spark Development Network
+// Copyright Southeast Christian Church
 //
-// Licensed under the Rock Community License (the "License");
+// Licensed under the  Southeast Christian Church License (the "License");
 // you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.rockrms.com/license
+// A copy of the License shoud be included with this file.
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,8 +69,10 @@ namespace org.secc.Workflow.Person.Action
         Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT, "3: Other Settings", 12 )]
     [WorkflowAttribute( "Family Group/Member", "A family group or family member to use if this creates a new person.",
         false, "", "3: Other Settings", 13, "FamilyAttribute", new string[] { "Rock.Field.Types.PersonFieldType", "Rock.Field.Types.GroupFieldType" } )]
-    [BooleanField ( "Match Only", "If Yes, this will NOT create new person records and the person will only be set if a single match is found.", false,
-        "3: Other Settings", 14)]
+    [BooleanField( "Match Only", "If Yes, this will NOT create new person records and the person will only be set if a single match is found.", false,
+        "3: Other Settings", 14 )]
+    [BooleanField( "Continue On Error", "If there is an error with this action (such as incomplete data), should the workflow continue.", false,
+        "3: Other Settings", 15 )]
 
     public class GetPersonFromFields : ActionComponent
     {
@@ -88,7 +88,7 @@ namespace org.secc.Workflow.Person.Action
         {
             errorMessages = new List<string>();
 
-            var attribute = AttributeCache.Read( GetAttributeValue( action, "PersonAttribute" ).AsGuid(), rockContext );
+            var attribute = AttributeCache.Get( GetAttributeValue( action, "PersonAttribute" ).AsGuid(), rockContext );
             if ( attribute != null )
             {
                 var mergeFields = GetMergeFields( action );
@@ -149,21 +149,21 @@ namespace org.secc.Workflow.Person.Action
                             person.BirthYear = dateofBirth.Value.Year;
                         }
                         person.EmailPreference = EmailPreference.EmailAllowed;
-                        person.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                        person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
 
-                        var defaultConnectionStatus = DefinedValueCache.Read( GetAttributeValue( action, "DefaultConnectionStatus" ).AsGuid() );
+                        var defaultConnectionStatus = DefinedValueCache.Get( GetAttributeValue( action, "DefaultConnectionStatus" ).AsGuid() );
                         if ( defaultConnectionStatus != null )
                         {
                             person.ConnectionStatusValueId = defaultConnectionStatus.Id;
                         }
 
-                        var defaultRecordStatus = DefinedValueCache.Read( GetAttributeValue( action, "DefaultRecordStatus" ).AsGuid() );
+                        var defaultRecordStatus = DefinedValueCache.Get( GetAttributeValue( action, "DefaultRecordStatus" ).AsGuid() );
                         if ( defaultRecordStatus != null )
                         {
                             person.RecordStatusValueId = defaultRecordStatus.Id;
                         }
 
-                        var defaultCampus = CampusCache.Read( GetAttributeValue( action, "DefaultCampus", true ).AsGuid() );
+                        var defaultCampus = CampusCache.Get( GetAttributeValue( action, "DefaultCampus", true ).AsGuid() );
 
                         // Get the default family if applicable
                         Group family = null;
@@ -171,7 +171,7 @@ namespace org.secc.Workflow.Person.Action
                         {
                             PersonAliasService personAliasService = new PersonAliasService( rockContext );
                             family = personAliasService.Get( familyOrPersonGuid.Value )?.Person?.GetFamily();
-                            if (family == null)
+                            if ( family == null )
                             {
                                 GroupService groupService = new GroupService( rockContext );
                                 family = groupService.Get( familyOrPersonGuid.Value );
@@ -186,7 +186,7 @@ namespace org.secc.Workflow.Person.Action
                             if ( address != null )
                             {
                                 GroupLocation location = new GroupLocation();
-                                location.GroupLocationTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME ).Id;
+                                location.GroupLocationTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME ).Id;
                                 location.Location = address;
                                 familyGroup.GroupLocations.Add( location );
                             }
@@ -199,7 +199,7 @@ namespace org.secc.Workflow.Person.Action
                     if ( !string.IsNullOrWhiteSpace( phone ) )
                     {
                         List<string> changes = new List<string>();
-                        var numberType = DefinedValueCache.Read( GetAttributeValue( action, "DefaultPhoneNumberType" ).AsGuid() );
+                        var numberType = DefinedValueCache.Get( GetAttributeValue( action, "PhoneNumberType" ).AsGuid() );
                         if ( numberType != null )
                         {
 
@@ -250,11 +250,6 @@ namespace org.secc.Workflow.Person.Action
                                 phoneModel.IsUnlisted = unlisted;
                                 phoneModel.IsMessagingEnabled = smsEnabled;
 
-                                History.EvaluateChange(
-                                    changes,
-                                    string.Format( "{0} Phone", numberType.Value ),
-                                    oldPhoneNumber,
-                                    phoneModel.NumberFormattedWithCountryCode );
                             }
 
                         }
@@ -280,19 +275,28 @@ namespace org.secc.Workflow.Person.Action
             if ( errorMessages.Any() )
             {
                 errorMessages.ForEach( m => action.AddLogEntry( m, true ) );
-                return false;
+                if ( GetAttributeValue( action, "ContinueOnError" ).AsBoolean() )
+                {
+                    errorMessages.Clear();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
 
             return true;
         }
 
-        private Group SaveNewPerson(Rock.Model.Person person, Group existingFamily, int? defaultCampus, RockContext rockContext)
+        private Group SaveNewPerson( Rock.Model.Person person, Group existingFamily, int? defaultCampus, RockContext rockContext )
         {
-            if (existingFamily == null)
+            if ( existingFamily == null )
             {
                 return PersonService.SaveNewPerson( person, rockContext, ( defaultCampus != null ? defaultCampus : ( int? ) null ), false );
 
-            } else
+            }
+            else
             {
                 person.FirstName = person.FirstName.FixCase();
                 person.NickName = person.NickName.FixCase();
@@ -300,7 +304,7 @@ namespace org.secc.Workflow.Person.Action
                 person.LastName = person.LastName.FixCase();
 
                 // Create/Save Known Relationship Group
-                var knownRelationshipGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS );
+                var knownRelationshipGroupType = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS );
                 if ( knownRelationshipGroupType != null )
                 {
                     var ownerRole = knownRelationshipGroupType.Roles
@@ -323,12 +327,12 @@ namespace org.secc.Workflow.Person.Action
                 }
 
                 // Create/Save Implied Relationship Group
-                var impliedRelationshipGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_IMPLIED_RELATIONSHIPS );
+                var impliedRelationshipGroupType = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_PEER_NETWORK );
                 if ( impliedRelationshipGroupType != null )
                 {
                     var ownerRole = impliedRelationshipGroupType.Roles
                         .FirstOrDefault( r =>
-                            r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_IMPLIED_RELATIONSHIPS_OWNER.AsGuid() ) );
+                            r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_PEER_NETWORK_OWNER.AsGuid() ) );
                     if ( ownerRole != null )
                     {
                         var groupMember = new GroupMember();
@@ -344,7 +348,7 @@ namespace org.secc.Workflow.Person.Action
                         groupService.Add( group );
                     }
                 }
-                var familyGroupType = GroupTypeCache.Read( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
+                var familyGroupType = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
 
                 var adultRole = familyGroupType?.Roles
                    .FirstOrDefault( r =>
@@ -363,9 +367,8 @@ namespace org.secc.Workflow.Person.Action
                 return existingFamily;
             }
 
-            
+
         }
 
-     }
+    }
 }
- 
