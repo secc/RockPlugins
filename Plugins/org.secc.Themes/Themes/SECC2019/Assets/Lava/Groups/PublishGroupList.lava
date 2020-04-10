@@ -39,7 +39,9 @@
 
     <div class="isotope_wrap">
         {% for publishGroup in PublishGroups %}
-
+		{% if publishGroup.Group.IsPublic != true %}
+		{% continue %}
+		{% endif %}
         {% if filterByMinistry != null %}
             {% assign audienceValues = publishGroup.AudienceValues | Map:'Value' | Join:'---' | Prepend:'---' | Append:'---' | Downcase %}
             {% if audienceValues contains filterByMinistry %}
