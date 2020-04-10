@@ -76,14 +76,15 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     }
                 }
 
-                var groups = new GroupService( rockContext ).Queryable()
-                    .Where( g => g.IsActive && !g.IsArchived && groupTypeIds.Contains( g.GroupTypeId ) );
-                if ( !groups.Any() )
+                if ( !groupTypeIds.Any() )
                 {
                     nbAlert.Visible = true;
                     nbAlert.Text = "Please configure this block.";
                     return;
                 }
+
+                var groups = new GroupService( rockContext ).Queryable()
+                    .Where( g => g.IsActive && !g.IsArchived && groupTypeIds.Contains( g.GroupTypeId ) );
 
                 var members = groups.SelectMany( g => g.Members );
 
