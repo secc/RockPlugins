@@ -128,6 +128,13 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 string status = ( contextEntity != null ? "Completed" : "Active" );
                 
                 var workflowType = new WorkflowTypeService( rockContext ).Get( homeBoundPersonWorkflow );
+
+                if (workflowType == null )
+                {
+                    nbError.Visible = true;
+                    return;
+                }
+
                 var workflowTypeIdAsString = workflowType.Id.ToString();
 
                 var attributeIds = attributeService.Queryable()
