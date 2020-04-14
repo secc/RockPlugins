@@ -1,0 +1,14 @@
+{%- contentchannelitem where:'ContentChannelId == 76 && Status == 2' sort:'StartDateTime Desc' -%}
+    {%- for item in contentchannelitemItems -%}
+        {%- assign campuses = item | Attribute:'Campuses','RawValue' | Split: ',' -%}
+        {%- assign ministries = item | Attribute:'Ministries' -%}
+        {%- if ministries contains "Children's" -%}
+            {%- if CurrentPersonCanEdit -%}
+                <p class="alert alert-warning">If you could not edit you would be redirected to: <a href="https://www.southeastchristian.org/familyresources/{{ item.PrimarySlug }}">https://www.southeastchristian.org/familyresources/{{ item.PrimarySlug }}</a>.</p>
+            {%- else -%}
+                {{- 'https://www.southeastchristian.org/familyresources/' | Append: item.PrimarySlug | PageRedirect -}}
+            {%- endif -%}
+            {%- break -%}
+        {%- endif -%}
+    {%- endfor -%}
+{%- endcontentchannelitem -%}
