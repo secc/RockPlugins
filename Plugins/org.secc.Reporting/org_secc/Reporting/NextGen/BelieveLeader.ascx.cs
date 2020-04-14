@@ -538,7 +538,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
                     // Find the summary activity and activate it.
                     WorkflowActivityType workflowActivityType = workflow.WorkflowType.ActivityTypes.Where(at => at.Name.Contains("Summary")).FirstOrDefault();
-                    WorkflowActivity workflowActivity = WorkflowActivity.Activate(workflowActivityType, workflow, rockContext);
+                    WorkflowActivity workflowActivity = WorkflowActivity.Activate( WorkflowActivityTypeCache.Get( workflowActivityType.Id ), workflow, rockContext);
 
                 }
                 rockContext.SaveChanges();

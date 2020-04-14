@@ -248,7 +248,7 @@ namespace RockWeb.Blocks.Event
                             {
                                 continue;
                             }
-                            var maxRegistrantCount = 0;
+                            int? maxRegistrantCount = 0;
                             var currentRegistrationCount = 0;
 
                             if ( registrationInstance != null )
@@ -261,7 +261,7 @@ namespace RockWeb.Blocks.Event
 
 
                             int? registrationSpotsAvailable = null;
-                            if ( maxRegistrantCount != 0 )
+                            if ( maxRegistrantCount.HasValue && maxRegistrantCount != 0 )
                             {
                                 currentRegistrationCount = new RegistrationRegistrantService( rockContext ).Queryable().AsNoTracking()
                                                                 .Where( r =>
