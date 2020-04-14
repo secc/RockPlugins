@@ -2,7 +2,7 @@
 
 <asp:UpdatePanel ID="upReport" runat="server">
     <ContentTemplate>
-
+        <Rock:NotificationBox runat="server" ID="nbError" Text="Please configure block" NotificationBoxType="Validation" Visible="false" />
         <asp:Panel runat="server" ID="pnlInfo" Visible="false">
             <div class="panel-heading">
                 <asp:Literal Text="Information" runat="server" ID="ltHeading" />
