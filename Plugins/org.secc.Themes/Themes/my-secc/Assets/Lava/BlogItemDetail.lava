@@ -1,0 +1,9 @@
+{% for item in Items %}
+    
+    <div>
+        {{ item | Attribute:'Image' }}
+    </div>
+    
+    {{ item.Content }}
+
+{% endfor %}

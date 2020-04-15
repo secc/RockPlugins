@@ -1,0 +1,39 @@
+﻿// Load Master Styles
+// -------------------------
+
+@import "../../../Styles/Bootstrap/bootstrap.less";
+@import "../../../Styles/_rock-variables.less";
+@import "_variables.less";
+@import "_variable-overrides.less";
+@import "_inc/_theme-overrides.less";
+
+// custom variable switchbox
+@navbar-inverse-link-color: @nav-color;
+@blockquote-small-color: lighten(@text-color, 20%);
+
+// Override some bootstrap variables
+@headings-font-family: @proxima-light;
+@headings-font-weight: 300;
+
+@breadcrumb-padding-horizontal: 0;
+
+.btn:focus, .btn:active:focus, .btn.active:focus {
+	outline: none;
+}
+
+.btn:hover {
+	background: fade(#fff, 50%);
+	box-shadow: 1px 1px 1px fade(#000, 25%);
+}
+
+.btn-link:hover {
+	background: none;
+	box-shadow: none;
+}
+
+.form-control:focus {
+	box-shadow: none;
+	outline: none;
+	border-color: @input-border;
+}
+
