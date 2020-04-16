@@ -60,43 +60,47 @@
 <div class="container-fluid g-padding-y-40--xs">
 	<div class="container">
 		<div class="isotope_wrap margin-t-lg series-list">
+			{% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger %}
 			{% for item in Items -%}
-				{% assign itemImage = item | Attribute:'Image' -%}
-				{% assign itemImageGuid = item | Attribute:'Image','RawValue' -%}
-				{%- assign campuses = item | Attribute:'Campuses','RawValue' | Split: ',' -%}
-		        {%- assign ministries = item | Attribute:'Ministries' -%}
-				{%- if ministries contains "Children's" or ministries contains "Family" -%}
-					<div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
-						<div class="card">
-							<a href="/familyresources/{{ item.PrimarySlug }}">
-							{% if itemImage != empty -%}
-								<!-- Image -->
-								<div class="img-hover">
-									<img src="/GetImage.ashx?Guid={{ itemImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
+				{% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
+				{% if itemStartDateTime <= currentDateTime %}
+					{% assign itemImage = item | Attribute:'Image' -%}
+					{% assign itemImageGuid = item | Attribute:'Image','RawValue' -%}
+					{%- assign campuses = item | Attribute:'Campuses','RawValue' | Split: ',' -%}
+			        {%- assign ministries = item | Attribute:'Audiences' -%}
+					{%- if ministries contains "Children" or ministries contains "Family" -%}
+						<div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
+							<div class="card">
+								<a href="/familyresources/{{ item.PrimarySlug }}">
+								{% if itemImage != empty -%}
+									<!-- Image -->
+									<div class="img-hover">
+										<img src="/GetImage.ashx?Guid={{ itemImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
+									</div>
+								{% else -%}
+
+									<!-- Grab Sermon Image -->
+									{% for child in item.ChildItems -%}
+										{% assign itemImage = child.ChildContentChannelItem | Attribute:'Image' -%}
+										{% assign itemImageGuid = child.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
+										{% if itemImage != empty -%}
+											<!-- Image -->
+											<div class="img-hover">
+												<img src="/GetImage.ashx?Guid={{ itemImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
+											</div>
+											{% break -%}
+										{% endif %}
+									{% endfor -%}
+
+								{% endif -%}
+								</a>
+								<div class="g-padding-x-30--xs g-padding-y-40--xs g-margin-b-40--xs">
+									<h5 class="g-font-family--secondary g-padding-b-20--xs">{{ item.Title }}</h5>
 								</div>
-							{% else -%}
-
-								<!-- Grab Sermon Image -->
-								{% for child in item.ChildItems -%}
-									{% assign itemImage = child.ChildContentChannelItem | Attribute:'Image' -%}
-									{% assign itemImageGuid = child.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
-									{% if itemImage != empty -%}
-										<!-- Image -->
-										<div class="img-hover">
-											<img src="/GetImage.ashx?Guid={{ itemImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
-										</div>
-										{% break -%}
-									{% endif %}
-								{% endfor -%}
-
-							{% endif -%}
-							</a>
-							<div class="g-padding-x-30--xs g-padding-y-40--xs g-margin-b-40--xs">
-								<h5 class="g-font-family--secondary g-padding-b-20--xs">{{ item.Title }}</h5>
 							</div>
 						</div>
-					</div>
-				{%- endif -%}
+					{%- endif -%}
+				{% endif %}
 			{% endfor -%}
 		</div>
 		<!-- <div class="text-center">

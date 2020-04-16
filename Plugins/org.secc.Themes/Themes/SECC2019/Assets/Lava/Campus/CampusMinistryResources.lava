@@ -1,0 +1,312 @@
+<style>
+	#loading-animation {
+		display: none;
+	}
+	.current-series {
+		height: 220px;
+		background-size: cover;
+		background-position: center center;
+		background-repeat: no-repeat;
+	}
+
+	@media (min-width: 992px) {
+		.current-series {
+			height: 420px;
+		}
+	}
+
+	.current-series h1 {
+		background-color: rgba(0, 0, 0, 0.3);
+		text-align: center;
+		font-size: 16px;
+		font-weight: 600;
+		color: #fff;
+		margin: 0;
+		padding: 6px;
+	}
+
+	.series {
+		border: 1px solid rgba(0, 0, 0, .3);
+		position: relative;
+	}
+
+	.series h1 {
+		font-size: 20px;
+		font-weight: 600;
+		margin-top: 4px;
+		margin-bottom: 0;
+	}
+
+	.series-dates, .sermons-count {
+		opacity: .6;
+	}
+
+	.series-body {
+		padding: 15px;
+		/* height: 172px; */
+	}
+	.series-body h3 {
+		font-weight: 300;
+	}
+	.series-body hr {
+		margin: 10px 0px;
+	}
+</style>
+
+{% contentchannelitem where:'ContentChannelId == 76 && Status == 2' sort:'StartDateTime Desc' %}
+{% assign Items = contentchannelitemItems %}
+{% endcontentchannelitem %}
+{% comment %}
+{% endcomment %}
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-10 col-md-offset-1">
+            <div class="filterbox g-margin-b-0--xs g-padding-b-0--xs">
+                <div class="row">
+                    <div class="col-xs-12 col-md-12">
+						<h3 class="g-font-weight--600">Video Resources</h3>
+			            <p class="g-font-weight--400 g-line-height--sm">Filter videos by ministry and/or campuses.</p>
+                    </div>
+                    <div class="col-xs-12 col-md-4 g-padding-b-40--md" >
+                        <select class="select2-campuses" name="campus">
+                        <option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
+                        {% for campus in Campuses %}
+                        	{% assign publicCampus = campus | Attribute:'Public' %}
+                        	{% if publicCampus == 'Yes' %}
+                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Guid }}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
+                                    {{ campus.Name }}
+                                </option>
+                        	{% endif %}
+                        {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-xs-12 col-md-4 g-padding-b-20--xs g-padding-b-40--sm" >
+                        <select class="select2-ministries" name="minitries">
+                        <option value="allMinistries">All Ministries</option>
+
+						{% assign ministrySlug = 'Global' | PageParameter:'ministry' | Downcase  %}
+                        {% definedvalue where:'DefinedTypeId==16' %}
+                            {% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
+                            {% for definedValue in definedvalueItemsSorted %}
+                                {% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
+                                {% if publicFilter == "Yes" %}
+									{% assign urlSlug = definedValue | Attribute:'URLSlug' %}
+									<option value="{{ definedValue.Id }}" data-ministries="{{ definedValue.Guid }}" {% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        {% enddefinedvalue %}
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid g-padding-y-40--xs">
+	<div class="container">
+		<div class="isotope_wrap margin-t-lg series-list">
+			{% for item in Items -%}
+				{% assign subURL = '' -%}
+				{% assign itemImage = item | Attribute:'Image' -%}
+				{% assign itemImageGuid = item | Attribute:'Image','RawValue' -%}
+				{%- assign campuses = item | Attribute:'Campuses','RawValue' -%}
+		        {%- assign ministries = item | Attribute:'Audiences' -%}
+				{%- assign ministries_raw = item | Attribute:'Audiences','RawValue' -%}
+				{%- if ministries contains "Children" or ministries contains "Family" -%}
+					{% assign subURL = '/familyresources/' -%}
+				{%- endif -%}
+					<div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load"
+                         data-campus="{{campuses}}"
+						 data-ministries="{{ministries_raw}}"
+						 data-ministries-values="{{ministries}}">
+						<div class="card">
+						    <a href="/testcampus/{{ item.PrimarySlug }}">
+							<!--<a href="{{- subURL -}}{{ item.PrimarySlug }}">-->
+								{% if itemImage != empty -%}
+									<!-- Image -->
+									<div class="img-hover">
+										<img src="/GetImage.ashx?Guid={{ itemImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
+									</div>
+								{% else -%}
+
+								<!-- Grab Sermon Image -->
+								{% for child in item.ChildItems -%}
+									{% assign itemImage = child.ChildContentChannelItem | Attribute:'Image' -%}
+									{% assign itemImageGuid = child.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
+									{% if itemImage != empty -%}
+										<!-- Image -->
+										<div class="img-hover">
+											<img src="/GetImage.ashx?Guid={{ itemImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
+										</div>
+										{% break -%}
+									{% endif %}
+								{% endfor -%}
+
+							{% endif -%}
+							</a>
+							<div class="g-padding-x-30--xs g-padding-y-40--xs g-margin-b-40--xs">
+								<h5 class="g-font-family--secondary g-padding-b-20--xs">{{ item.Title }}</h5>
+							</div>
+						</div>
+					</div>
+
+			{% endfor -%}
+		</div>
+	</div>
+	<br />
+	<br />
+</div>
+
+<script>
+	$(document).ready(function() {
+	    // Re-Initialize Isotope
+	    var $grid = $('.isotope_wrap').isotope({
+	        // options
+	        percentPosition: true,
+	        itemSelector: '.isotope_item',
+	        layoutMode: 'fitRows'
+	    });
+
+	    // reveal all items after init
+	    var $items = $grid.find('.isotope_item');
+	    $grid.imagesLoaded().progress( function() {
+	      $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
+	    });
+	    $grid.isotope( 'revealItemElements', $items );
+
+	    // re-init jarallax
+	    // jarallax(document.querySelectorAll('.jarallax'), {
+	    //     disableParallax: /iPad|iPhone|iPod|Android/,
+	    //     disableVideo: /iPad|iPhone|iPod|Android/
+	    // });
+	});
+
+	// Fix select2 width
+	$(window).on('resize', function() {
+		reapplyIso();
+		$('.select2-campuses').select2({ width: '100%' });
+		$('.select2-ministries').select2({ width: '100%' });
+	});
+
+	// bind to 'campuu?' dropdown selection
+    var campusSelected = '';
+    $('.select2-campuses').select2({
+      placeholder: 'Campus'
+    });
+    $('.select2-campuses').on('select2:select', function (e) {
+        e.preventDefault();
+        var data = e.params.data;
+        campusSelected = $(data.element).data('campus');
+        buildCampusFilter(campusSelected);
+        reapplyIso();
+    });
+
+	// bind to 'ministry' dropdown selection
+    var needSelected = '';
+    $('.select2-ministries').select2({
+      placeholder: 'Ministry'
+    });
+    $('.select2-ministries').on('select2:select', function (e) {
+        e.preventDefault();
+        var data = e.params.data;
+        needSelected = $(data.element).data('ministries');
+        buildMinistryFilters(needSelected);
+        reapplyIso();
+    });
+
+    // handling campus selection
+    var campus_selected = [];
+    function buildCampusFilter() {
+		// reset need array, 'campus' values are only selected one at a time
+        campus_selected = [];
+        // add to array
+        if (need != '' && need != undefined) {
+            ministries_filters_selected.push(need);
+        }
+    }
+
+    // handling 'ministry' tag selected
+    var ministries_filters_selected = [];
+    function buildMinistryFilters(need) {
+        // reset need array, 'ministry' values are only selected one at a time
+        ministries_filters_selected = [];
+        // add to array
+        if (need != '' && need != undefined) {
+            ministries_filters_selected.push(need);
+        }
+    }
+
+    function runFilters() {
+         var filterSelectors = [];
+         if (ministries_filters_selected.length != 0) {
+             filterSelectors.push(createFilters(ministries_filters_selected, 'data-ministries'));
+         }
+         if (campus_selected.length != 0) {
+             filterSelectors.push(createFilters(campus_selected, 'data-campus'));
+         }
+         var filterArray = [];
+         if (filterSelectors.length!=0){
+             filterSelectors.forEach(function(filterSet, index, array) {
+                if (index==0) {
+                    filterArray = filterSet;
+                } else {
+                    var tempArray = [];
+                    filterArray.forEach(function(primaryFilter) {
+                        filterSet.forEach(function(secondaryFilter) {
+                            tempArray.push(primaryFilter+secondaryFilter);
+                        });
+                    });
+                    filterArray = tempArray;
+                }
+             });
+         }
+		 console.log(filterArray.join(','));
+         return filterArray.join(',');
+     }
+
+     function reapplyIso() {
+		 $('.isotope_wrap').isotope({
+ 	        percentPosition: true,
+ 	        itemSelector: '.isotope_item',
+ 	        layoutMode: 'masonry',
+			filter: runFilters()
+ 	    });
+     }
+
+     function createFilters(arrayList, selector) {
+         var output = [];
+         if (arrayList.length != 0) {
+             // make string of selectors
+             arrayList.forEach(function(item, index, array) {
+                 output.push('['+selector+'*="'+item+'"]');
+             });
+         }
+         return output;
+     }
+
+	 function loadQueryStringParam() {
+	     //Example how to use it:
+	     var params = parseQueryString();
+	     if (params) {
+
+	         // preselect options from Select2 dropdowns
+	         $("select.select2-campuses option[value='"+params["campusId"]+"']").attr("selected","selected");
+	         $("select.select2-ministries option[value='"+params["categoryID"]+"']").attr("selected","selected");
+
+	         // set HTML to indicate the selected ministries and/or campuses
+	         if (params["campusId"]) {
+	             $('#campus_selected').find('.section-header span').html('Events @ ' + $( "select.select2-campuses option:selected" ).text() );
+	             $('#campus_selected').removeClass('hide');
+	         }
+
+	         if (params["categoryID"]) {
+	             $('#ministry_selected').find('.section-header span').html( $( "select.select2-ministries option:selected" ).text() + ' Ministry');
+	             $('#ministry_selected').removeClass('hide');
+	         }
+	     }
+
+	 }
+
+</script>
