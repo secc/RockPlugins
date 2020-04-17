@@ -1,3 +1,13 @@
+{% assign pageParamCampus = 'Global' | PageParameter:'campus' | Downcase | Replace:"-","" %}
+{% assign selectedCampus = null %}
+{% for campus in Campuses %}
+	{% assign campusName = campus.Name | Downcase | Replace:" ",""  %}
+	{% if campusName == pageParamCampus %}
+		{% assign selectedCampus = campus %}
+		{% break %}
+	{% endif %}
+{% endfor %}
+
 <style>
 	#loading-animation {
 		display: none;
@@ -73,7 +83,7 @@
                         {% for campus in Campuses %}
                         	{% assign publicCampus = campus | Attribute:'Public' %}
                         	{% if publicCampus == 'Yes' %}
-                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Guid }}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
+                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ",""}}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
                                     {{ campus.Name }}
                                 </option>
                         	{% endif %}
@@ -84,14 +94,21 @@
                         <select class="select2-ministries" name="minitries">
                         <option value="allMinistries">All Ministries</option>
 
+						{% assign selectedMinistry = null %}
 						{% assign ministrySlug = 'Global' | PageParameter:'ministry' | Downcase  %}
                         {% definedvalue where:'DefinedTypeId==16' %}
                             {% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
                             {% for definedValue in definedvalueItemsSorted %}
-                                {% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
-                                {% if publicFilter == "Yes" %}
-									{% assign urlSlug = definedValue | Attribute:'URLSlug' %}
-									<option value="{{ definedValue.Id }}" data-ministries="{{ definedValue.Guid }}" {% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
+
+								{% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
+								{% assign ministry = definedValue.Value | Downcase | Replace:" ","" %}
+
+								{% if ministry == ministrySlug %}
+									{% assign selectedMinistry = definedValue %}
+								{% endif %}
+
+								{% if publicFilter == "Yes" %}
+									<option value="{{ definedValue.Id }}" data-ministries="{{ definedValue.Value | Downcase | Replace:" ","" }}" {% if ministry == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
                                 {% endif %}
                             {% endfor %}
                         {% enddefinedvalue %}
@@ -111,16 +128,15 @@
 				{% assign subURL = '' -%}
 				{% assign itemImage = item | Attribute:'Image' -%}
 				{% assign itemImageGuid = item | Attribute:'Image','RawValue' -%}
-				{%- assign campuses = item | Attribute:'Campuses','RawValue' -%}
-		        {%- assign ministries = item | Attribute:'Audiences' -%}
+				{%- assign campuses = item | Attribute:'Campuses' -%}
+		        {%- assign ministries = item | Attribute:'Audiences' | Downcase | Replace:" ","" -%}
 				{%- assign ministries_raw = item | Attribute:'Audiences','RawValue' -%}
 				{%- if ministries contains "Children" or ministries contains "Family" -%}
 					{% assign subURL = '/familyresources/' -%}
 				{%- endif -%}
 					<div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load"
-                         data-campus="{{campuses}}"
-						 data-ministries="{{ministries_raw}}"
-						 data-ministries-values="{{ministries}}">
+                         data-campus="{{ campuses | Downcase | Replace:" ","" }}"
+						 data-ministries="{{ministries}}">
 						<div class="card">
 						    <a href="/testcampus/{{ item.PrimarySlug }}">
 							<!--<a href="{{- subURL -}}{{ item.PrimarySlug }}">-->
@@ -160,37 +176,44 @@
 </div>
 
 <script>
-	$(document).ready(function() {
-	    // Re-Initialize Isotope
-	    var $grid = $('.isotope_wrap').isotope({
-	        // options
-	        percentPosition: true,
-	        itemSelector: '.isotope_item',
-	        layoutMode: 'fitRows'
-	    });
+$(document).ready(function() {
+	///////////////////////////////////////////////////
+	/////////////// PRESELECT FILTERS /////////////////
+	///////////////////////////////////////////////////
 
-	    // reveal all items after init
-	    var $items = $grid.find('.isotope_item');
-	    $grid.imagesLoaded().progress( function() {
-	      $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
-	    });
-	    $grid.isotope( 'revealItemElements', $items );
+	loadQueryStringParam();
 
-	    // re-init jarallax
-	    // jarallax(document.querySelectorAll('.jarallax'), {
-	    //     disableParallax: /iPad|iPhone|iPod|Android/,
-	    //     disableVideo: /iPad|iPhone|iPod|Android/
-	    // });
-	});
+	///////////////////////////////////////////////////
+    /////////////// INIT ISOTOPE //////////////////////
+    ///////////////////////////////////////////////////
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+        layoutMode: 'fitRows'
+    });
 
-	// Fix select2 width
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.imagesLoaded().progress( function() {
+      $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
+    });
+    $grid.isotope( 'revealItemElements', $items );
+
+	///////////////////////////////////////////////////
+    /////////////// Select2 Width Detect //////////////
+    ///////////////////////////////////////////////////
+
 	$(window).on('resize', function() {
 		reapplyIso();
 		$('.select2-campuses').select2({ width: '100%' });
 		$('.select2-ministries').select2({ width: '100%' });
 	});
 
-	// bind to 'campuu?' dropdown selection
+	///////////////////////////////////////////////////
+    /////////////// Initialize Select2 ////////////////
+    ///////////////////////////////////////////////////
+
     var campusSelected = '';
     $('.select2-campuses').select2({
       placeholder: 'Campus'
@@ -216,15 +239,20 @@
         reapplyIso();
     });
 
-    // handling campus selection
+	///////////////////////////////////////////////////
+    /////////////// Hanlding Filters //////////////////
+    ///////////////////////////////////////////////////
+
+	// handling campuses selected
     var campus_selected = [];
-    function buildCampusFilter() {
-		// reset need array, 'campus' values are only selected one at a time
+	function buildCampusFilter(campus) {
+        // reset campus array, campuses are only selected one at a time
         campus_selected = [];
         // add to array
-        if (need != '' && need != undefined) {
-            ministries_filters_selected.push(need);
+        if (campus != '' && campus != undefined) {
+            campus_selected.push(campus);
         }
+        console.debug(campus_selected);
     }
 
     // handling 'ministry' tag selected
@@ -266,6 +294,9 @@
          return filterArray.join(',');
      }
 
+	 ///////////////////////////////////////////////////
+     ////////////////////// Helpers ////////////////////
+     ///////////////////////////////////////////////////
      function reapplyIso() {
 		 $('.isotope_wrap').isotope({
  	        percentPosition: true,
@@ -273,8 +304,7 @@
  	        layoutMode: 'masonry',
 			filter: runFilters()
  	    });
-     }
-
+	 }
      function createFilters(arrayList, selector) {
          var output = [];
          if (arrayList.length != 0) {
@@ -285,28 +315,46 @@
          }
          return output;
      }
-
+	 function parseQueryString() {
+	     var str = window.location.search;
+	     var objURL = {};
+  		 str.replace(
+	         new RegExp( "([^?=&]+)(=([^&]*))?", "g" ),
+	         function( $0, $1, $2, $3, $4 ){
+	             objURL[ $1 ] = $3;
+	         }
+	     );
+	     return objURL;
+	 };
 	 function loadQueryStringParam() {
-	     //Example how to use it:
 	     var params = parseQueryString();
 	     if (params) {
+			 // campus is prefiltered by lava - see below this function.
 
-	         // preselect options from Select2 dropdowns
-	         $("select.select2-campuses option[value='"+params["campusId"]+"']").attr("selected","selected");
-	         $("select.select2-ministries option[value='"+params["categoryID"]+"']").attr("selected","selected");
-
+			 // preselect options from Select2 dropdowns
+	         $("select.select2-campuses option[data-campus='"+params["campus"]+"']").attr("selected","selected");
+	         $("select.select2-ministries option[data-ministries='"+params["ministry"]+"']").attr("selected","selected");
 	         // set HTML to indicate the selected ministries and/or campuses
-	         if (params["campusId"]) {
-	             $('#campus_selected').find('.section-header span').html('Events @ ' + $( "select.select2-campuses option:selected" ).text() );
-	             $('#campus_selected').removeClass('hide');
-	         }
-
-	         if (params["categoryID"]) {
-	             $('#ministry_selected').find('.section-header span').html( $( "select.select2-ministries option:selected" ).text() + ' Ministry');
-	             $('#ministry_selected').removeClass('hide');
-	         }
+	         // if (params["campusId"]) {
+	         //     $('#campus_selected').find('.section-header span').html('Events @ ' + $( "select.select2-campuses option:selected" ).text() );
+	         //     $('#campus_selected').removeClass('hide');
+	         // }
+	         // if (params["categoryID"]) {
+	         //     $('#ministry_selected').find('.section-header span').html( $( "select.select2-ministries option:selected" ).text() + ' Ministry');
+	         //     $('#ministry_selected').removeClass('hide');
+	         // }
 	     }
-
 	 }
-
+	 {% if selectedCampus.Id > 0 %}
+ 		console.debug("Campus: {{ selectedCampus.Name | Downcase | Replace:" ","" }}");
+ 	    // this initializes the campus selection based on the URL params
+     	buildCampusFilter('{{ selectedCampus.Name | Downcase | Replace:" ",""}}');
+ 	 {% endif %}
+	 {% if selectedMinistry.Id > 0 %}
+ 		console.debug("Ministry: {{ selectedMinistry.Value | Downcase | Replace:" ","" }}");
+ 	    // this initializes the campus selection based on the URL params
+     	buildMinistryFilters('{{ selectedMinistry.Value | Downcase | Replace:" ",""}}');
+ 	 {% endif %}
+	 reapplyIso();
+});
 </script>
