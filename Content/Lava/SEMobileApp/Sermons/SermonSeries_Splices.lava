@@ -62,7 +62,7 @@
 		{%- endif -%}
 		{%- endfor -%}
 		{%- if zeroSermons == true -%}
-		,{
+		{
 			"images":[
 				{%- assign Title = "Sermons Coming Soon" | Escape | EscapeDataString -%}
 				{%- if resourcesCount != 0 -%}
