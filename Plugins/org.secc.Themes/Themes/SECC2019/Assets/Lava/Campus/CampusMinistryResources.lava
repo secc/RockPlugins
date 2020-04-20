@@ -79,11 +79,11 @@
                     </div>
                     <div class="col-xs-12 col-md-4 g-padding-b-40--md" >
                         <select class="select2-campuses" name="campus">
-                        <option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
+                        <option value="all" data-campus="all" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
                         {% for campus in Campuses %}
                         	{% assign publicCampus = campus | Attribute:'Public' %}
                         	{% if publicCampus == 'Yes' %}
-                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ",""}}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
+                                <option value="{{ campus.Name | Downcase | Replace:" ",""}}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ",""}}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
                                     {{ campus.Name }}
                                 </option>
                         	{% endif %}
@@ -108,7 +108,7 @@
 								{% endif %}
 
 								{% if publicFilter == "Yes" %}
-									<option value="{{ definedValue.Id }}" data-ministries="{{ definedValue.Value | Downcase | Replace:" ","" }}" {% if ministry == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
+									<option value="{{ definedValue.Value | Downcase | Replace:" ","" }}" data-ministries="{{ definedValue.Value | Downcase | Replace:" ","" }}" {% if ministry == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
                                 {% endif %}
                             {% endfor %}
                         {% enddefinedvalue %}
@@ -200,14 +200,21 @@ $(document).ready(function() {
     });
     $grid.isotope( 'revealItemElements', $items );
 
-	///////////////////////////////////////////////////
-    /////////////// Select2 Width Detect //////////////
-    ///////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////
+    /////////////// Select2, History, & Width Detect //////////////
+    ///////////////////////////////////////////////////////////////
 
 	$(window).on('resize', function() {
 		reapplyIso();
 		$('.select2-campuses').select2({ width: '100%' });
 		$('.select2-ministries').select2({ width: '100%' });
+	});
+
+	$(window).on('popstate', function(event) {
+		event.preventDefault();
+	   	// alert("pop");
+		loadQueryStringParam();
+	 	reapplyIso();
 	});
 
 	///////////////////////////////////////////////////
@@ -224,6 +231,7 @@ $(document).ready(function() {
         campusSelected = $(data.element).data('campus');
         buildCampusFilter(campusSelected);
         reapplyIso();
+		updatePath();
     });
 
 	// bind to 'ministry' dropdown selection
@@ -237,6 +245,7 @@ $(document).ready(function() {
         needSelected = $(data.element).data('ministries');
         buildMinistryFilters(needSelected);
         reapplyIso();
+		updatePath();
     });
 
 	///////////////////////////////////////////////////
@@ -252,7 +261,6 @@ $(document).ready(function() {
         if (campus != '' && campus != undefined) {
             campus_selected.push(campus);
         }
-        console.debug(campus_selected);
     }
 
     // handling 'ministry' tag selected
@@ -290,7 +298,7 @@ $(document).ready(function() {
                 }
              });
          }
-		 console.log(filterArray.join(','));
+		 // console.log(filterArray.join(','));
          return filterArray.join(',');
      }
 
@@ -326,14 +334,60 @@ $(document).ready(function() {
 	     );
 	     return objURL;
 	 };
+	 function updatePath() {
+         var baseUrl = [location.protocol, '//', location.host].join('');
+         var parts = location.pathname.split('/');
+         //var urlParams = new URLSearchParams(window.location.search);
+
+		 // build urlParams
+		 var urlParams = '';
+		 // campus is already taken care of.
+
+		 // add ministries
+		 if (ministries_filters_selected && ministries_filters_selected.length) {
+			 urlParams = urlParams + '&ministry=' + ministries_filters_selected.join(',');
+		 }
+
+         // Set some defaults;
+         parts[1] = 'page'
+         parts[2] = '2321';
+         parts[3] = parts[3]||'all';
+         // parts[3] = parts[3]||'all';
+         // Set default part one of Groups
+
+		 // if campus is preselected
+         if (campus_selected.length != 0) {
+             parts[3] = campus_selected[0];
+         } else {
+			 parts[3] = 'all';
+		 }
+
+         window.history.pushState({}, '', baseUrl + parts.join('/') + "?" + decodeURIComponent(urlParams.toString()));
+         // console.log( "key: " + key);
+         // console.log( "value:" + value );
+         // console.log( "parts:" + parts );
+         return parts.join( '/' ) + "?" + decodeURIComponent(urlParams.toString());
+     }
 	 function loadQueryStringParam() {
 	     var params = parseQueryString();
-	     if (params) {
-			 // campus is prefiltered by lava - see below this function.
-
+		 if (params) {
+			 // console.log(params);
+			 // campus is prefiltered by lava on page load - see below this function.
+			 if (params["campus"]) {
+				 // alert(params["campus"]);
+				 buildCampusFilter(params["campus"])
+				 $("select.select2-campuses option[data-campus='"+params["campus"]+"']").attr("selected","selected");
+				 $('.select2-campuses').val(params["campus"]);
+			 	 $('.select2-campuses').trigger('change'); // Notify any JS components that the value changed
+			 }
+			 if (params["ministry"]) {
+				 // alert(params["ministry"]);
+				 buildMinistryFilters(params["ministry"])
+				 $("select.select2-ministries option[data-ministries='"+params["ministry"]+"']").attr("selected","selected");
+				 $('.select2-ministries').val(params["ministry"]);
+			 	 $('.select2-ministries').trigger('change'); // Notify any JS components that the value changed
+			 }
 			 // preselect options from Select2 dropdowns
-	         $("select.select2-campuses option[data-campus='"+params["campus"]+"']").attr("selected","selected");
-	         $("select.select2-ministries option[data-ministries='"+params["ministry"]+"']").attr("selected","selected");
 	         // set HTML to indicate the selected ministries and/or campuses
 	         // if (params["campusId"]) {
 	         //     $('#campus_selected').find('.section-header span').html('Events @ ' + $( "select.select2-campuses option:selected" ).text() );
@@ -346,13 +400,11 @@ $(document).ready(function() {
 	     }
 	 }
 	 {% if selectedCampus.Id > 0 %}
- 		console.debug("Campus: {{ selectedCampus.Name | Downcase | Replace:" ","" }}");
- 	    // this initializes the campus selection based on the URL params
+ 		// this initializes the campus selection based on the URL params
      	buildCampusFilter('{{ selectedCampus.Name | Downcase | Replace:" ",""}}');
  	 {% endif %}
 	 {% if selectedMinistry.Id > 0 %}
- 		console.debug("Ministry: {{ selectedMinistry.Value | Downcase | Replace:" ","" }}");
- 	    // this initializes the campus selection based on the URL params
+ 		// this initializes the campus selection based on the URL params
      	buildMinistryFilters('{{ selectedMinistry.Value | Downcase | Replace:" ",""}}');
  	 {% endif %}
 	 reapplyIso();
