@@ -193,65 +193,66 @@ namespace org.secc.Workflow.Person.Action
                         }
 
 
-                    }
 
-                    // Save/update the phone number
-                    if ( !string.IsNullOrWhiteSpace( phone ) )
-                    {
-                        List<string> changes = new List<string>();
-                        var numberType = DefinedValueCache.Get( GetAttributeValue( action, "PhoneNumberType" ).AsGuid() );
-                        if ( numberType != null )
+
+                        // Save/update the phone number
+                        if ( !string.IsNullOrWhiteSpace( phone ) )
                         {
-
-                            // gets value indicating if phone number is unlisted
-                            string unlistedValue = GetAttributeValue( action, "Unlisted" );
-                            Guid? unlistedValueGuid = unlistedValue.AsGuidOrNull();
-                            if ( unlistedValueGuid.HasValue )
+                            List<string> changes = new List<string>();
+                            var numberType = DefinedValueCache.Get( GetAttributeValue( action, "PhoneNumberType" ).AsGuid() );
+                            if ( numberType != null )
                             {
-                                unlistedValue = action.GetWorklowAttributeValue( unlistedValueGuid.Value );
-                            }
-                            else
-                            {
-                                unlistedValue = unlistedValue.ResolveMergeFields( GetMergeFields( action ) );
-                            }
-                            bool unlisted = unlistedValue.AsBoolean();
 
-                            // gets value indicating if messaging should be enabled for phone number
-                            string smsEnabledValue = GetAttributeValue( action, "MessagingEnabled" );
-                            Guid? smsEnabledValueGuid = smsEnabledValue.AsGuidOrNull();
-                            if ( smsEnabledValueGuid.HasValue )
-                            {
-                                smsEnabledValue = action.GetWorklowAttributeValue( smsEnabledValueGuid.Value );
-                            }
-                            else
-                            {
-                                smsEnabledValue = smsEnabledValue.ResolveMergeFields( GetMergeFields( action ) );
-                            }
-                            bool smsEnabled = smsEnabledValue.AsBoolean();
-
-
-                            var phoneModel = person.PhoneNumbers.FirstOrDefault( p => p.NumberTypeValueId == numberType.Id );
-                            string oldPhoneNumber = phoneModel != null ? phoneModel.NumberFormattedWithCountryCode : string.Empty;
-                            string newPhoneNumber = PhoneNumber.CleanNumber( phone );
-
-                            if ( newPhoneNumber != string.Empty && newPhoneNumber != oldPhoneNumber )
-                            {
-                                if ( phoneModel == null )
+                                // gets value indicating if phone number is unlisted
+                                string unlistedValue = GetAttributeValue( action, "Unlisted" );
+                                Guid? unlistedValueGuid = unlistedValue.AsGuidOrNull();
+                                if ( unlistedValueGuid.HasValue )
                                 {
-                                    phoneModel = new PhoneNumber();
-                                    person.PhoneNumbers.Add( phoneModel );
-                                    phoneModel.NumberTypeValueId = numberType.Id;
+                                    unlistedValue = action.GetWorklowAttributeValue( unlistedValueGuid.Value );
                                 }
                                 else
                                 {
-                                    oldPhoneNumber = phoneModel.NumberFormattedWithCountryCode;
+                                    unlistedValue = unlistedValue.ResolveMergeFields( GetMergeFields( action ) );
                                 }
-                                phoneModel.Number = newPhoneNumber;
-                                phoneModel.IsUnlisted = unlisted;
-                                phoneModel.IsMessagingEnabled = smsEnabled;
+                                bool unlisted = unlistedValue.AsBoolean();
+
+                                // gets value indicating if messaging should be enabled for phone number
+                                string smsEnabledValue = GetAttributeValue( action, "MessagingEnabled" );
+                                Guid? smsEnabledValueGuid = smsEnabledValue.AsGuidOrNull();
+                                if ( smsEnabledValueGuid.HasValue )
+                                {
+                                    smsEnabledValue = action.GetWorklowAttributeValue( smsEnabledValueGuid.Value );
+                                }
+                                else
+                                {
+                                    smsEnabledValue = smsEnabledValue.ResolveMergeFields( GetMergeFields( action ) );
+                                }
+                                bool smsEnabled = smsEnabledValue.AsBoolean();
+
+
+                                var phoneModel = person.PhoneNumbers.FirstOrDefault( p => p.NumberTypeValueId == numberType.Id );
+                                string oldPhoneNumber = phoneModel != null ? phoneModel.NumberFormattedWithCountryCode : string.Empty;
+                                string newPhoneNumber = PhoneNumber.CleanNumber( phone );
+
+                                if ( newPhoneNumber != string.Empty && newPhoneNumber != oldPhoneNumber )
+                                {
+                                    if ( phoneModel == null )
+                                    {
+                                        phoneModel = new PhoneNumber();
+                                        person.PhoneNumbers.Add( phoneModel );
+                                        phoneModel.NumberTypeValueId = numberType.Id;
+                                    }
+                                    else
+                                    {
+                                        oldPhoneNumber = phoneModel.NumberFormattedWithCountryCode;
+                                    }
+                                    phoneModel.Number = newPhoneNumber;
+                                    phoneModel.IsUnlisted = unlisted;
+                                    phoneModel.IsMessagingEnabled = smsEnabled;
+
+                                }
 
                             }
-
                         }
                     }
 
