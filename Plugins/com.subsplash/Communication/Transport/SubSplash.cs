@@ -175,8 +175,9 @@ namespace com.subsplash.Communcation.Transport
 
                                     var notification = new subsplash.Model.Notification();
                                     notification.AppKey = GetAttributeValue( "AppKey" );
-                                    notification.Body = message;
+                                    notification.Body = title;
                                     notification.Title = title;
+                                    notification.AdditionalDescription = message;
                                     notification.PublishedAt = RockDateTime.Now;
                                     notification.Embedded = new NotificationEmbedded();
                                     notification.Embedded.ExternalUser = new ExternalUser();
