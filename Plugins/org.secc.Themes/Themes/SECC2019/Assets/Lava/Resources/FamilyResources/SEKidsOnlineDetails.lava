@@ -56,16 +56,16 @@
                         {%- endif -%}
                     {%- endfor -%}
 
-                    <div class="text-center">
+                    <div class="text-center" id="{{ SEKidsItem.Guid }}">
                         <br />
                         <br />
                         <p><i class="fa fa-share-alt"></i> Share this:
                         {% assign ending = '%25%7D' | UnescapeDataString %}
                         {{ '{% assign itemImageGuid = "' | Append:itemImageGuid | Append: '" ' | Append: ending }}
                         {{ '{% assign itemTitle = "' | Append:SEKidsItem.Title | Append: '" ' | Append: ending }}
-                        {{ '{% assign itemContent = "' | Append:SEKidsItem.Content | Append: '" ' | Append: ending }}
+                        {{ '{% assign itemGuid = "' | Append:SEKidsItem.Guid | Append: '" ' | Append: ending }}
                         {% raw %}
-                        {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{- itemImageGuid -}}' emailsubject:'{{- itemTitle -}}' emailbody:'Check out this SE!Kids video I found at Southeast Christian Church.' facebooksummary:'{{- itemContent | Escape | EscapeDataString -}}' facebooktitle:'{{- itemTitle -}}' facebookog:'true' ]}
+                        {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{- itemImageGuid -}}' emailsubject:'{{- itemTitle -}}' emailbody:'Check out this SE!Kids video I found at Southeast Christian Church.' facebooktitle:'{{- itemTitle -}}' facebookog:'true' sharingguid:'{{- itemGuid -}}' ]}
                         {% endraw %}
                         <br />
                         <br />
