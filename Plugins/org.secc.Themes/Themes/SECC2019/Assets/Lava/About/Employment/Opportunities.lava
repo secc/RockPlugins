@@ -1,50 +1,113 @@
 <div class="container">
     <div class="row">
-        <article class="col-sm-10 col-sm-offset-1 g-padding-b-150--xs">
-            <h1 class="text-center g-font-family--secondary">Employment Opportunities</h1>
+        <article class="col-sm-10 col-sm-offset-1">
+            <h1 class="text-center g-font-family--secondary g-padding-b-50--xs">Employment Opportunities</h1>
             <br />
             <div class="jobb-list">
-            {[ faq columns:'1' ]}
-                {% webrequest url:'https://southeast.applicantstack.com/feed/jobs' responsecontenttype:'XML'  %}
+
+            {%- assign jobsAvail = 0 -%}
+            {%- webrequest url:'https://southeast.applicantstack.com/feed/jobs' responsecontenttype:'XML'  -%}
+                {%- assign OnlyOneIndex = 0 -%}
+                {%- capture dates -%}
+                    {%- for item in results.Openings.Job -%}
+                        {%- if item.DatePosted != null -%}
+                            {{item.DatePosted | AsDateTime | Date:'yyyyMMddHHmmss'}}--{{item.DatePosted}}|{%- assign OnlyOneIndex = forloop.index -%}
+                        {%- endif -%}
+                    {%- endfor -%}
+                {%- endcapture -%}
+                {%- assign dates = dates | ReplaceLast:'|','' -%}
+                {%- assign datesSorted = dates | Split:'|' | Sort:'' -%}
+                {%- assign jobsAvail = datesSorted | Size -%}
+            {%- endwebrequest -%}
+
+
+            {[ faq columns:'1' autoheight:'true' ]}
+                {%- webrequest url:'https://southeast.applicantstack.com/feed/jobs' responsecontenttype:'XML'  -%}
+                    {%- assign OnlyOneIndex = 0 -%}
                     {%- capture dates -%}
                         {%- for item in results.Openings.Job -%}
-                            {{item.DatePosted | AsDateTime | Date:'yyyyMMddHHmmss'}}--{{item.DatePosted}}{%- if forloop.last != true -%}|{%- endif -%}
+                            {%- if item.DatePosted != null -%}
+                                {{item.DatePosted | AsDateTime | Date:'yyyyMMddHHmmss'}}--{{item.DatePosted}}|{%- assign OnlyOneIndex = forloop.index -%}
+                            {%- endif -%}
                         {%- endfor -%}
                     {%- endcapture -%}
-                    {% assign datesSorted = dates | Split:'|' | Sort:'' %}
-                    {% for dateStr in datesSorted reversed %}
-                        {%- assign dateSearch = dateStr | Split:'--' | Last -%}
-                        {%- assign jobsByDate = results.Openings.Job | Where:'DatePosted', dateSearch %}
-                        {% for item in jobsByDate %}
-                            {%- if item.Type != "Internship" -%}
-                                [[ item title:'{{ item.Title }}' ]]
-                                <div class="jobbbby">
-                                    {% comment %}
+
+                    {%- assign dates = dates | ReplaceLast:'|','' -%}
+                    {%- assign datesSorted = dates | Split:'|' | Sort:'' -%}
+                    {%- assign jobsAvail = datesSorted | Size -%}
+
+                    {%- if jobsAvail != 0 -%}
+                        {%- for dateStr in datesSorted reversed -%}
+                            {%- assign dateSearch = dateStr | Split:'--' | Last -%}
+                            {%- if jobsAvail == 1 -%}
+                                {%- assign job = results.Openings.Job | Index:OnlyOneIndex -%}
+
+                                {%- capture customHtmlTitle -%}
                                     <header>
-                                        <div class="ministry">{{ item.Department }}</div>
-                                        <h3 class="job-title g-font-weight--700">{{ item.Title }}</h3>
-                                        <div class="hours">{{ item.Type }}</div>
-                                        {% if item.Location == 'Blankenbaker Campus' %}
-                                            <div class="location uppercase text">{{ item.Location }}</div>
-                                        {% elseif item.Location == 'Crestwood Campus' %}
-                                             <div class="location uppercase text">{{ item.Location }}</div>
-                                        {% else %}
-                                             <div class="location uppercase text">{{ item.Location }}</div>
-                                        {% endif %}
+                                        <h3 class="job-title g-font-weight--700 g-font-size-34--xs" style="margin: 0px !important;">{{ job.Title }}</h3>
+                                        <h5 class="location uppercase text g-font-size-24--xs g-padding-b-20--xs"style="margin: 0px !important;">{{ job.Location }}</h5>
+                                        <h5 class="department g-font-size-24--xs" style="margin: 0px !important;">{{ job.Department }}</h5>
+                                        <h5 class="type g-font-size-24--xs" style="margin: 0px !important;"><i>{{ job.Type }}</i></h5>
                                     </header>
-                                    {% endcomment %}
-                                    <div class="description g-font-family--primary">{{ item.DescriptionHtm | Replace:'<font','<div' | Replace:'</font','</div' | Replace:'font-family:','' }}</div>
-                                    <hr />
-                                    <div class="buttons">
-                    						<a href={{ item.DetailLink }} target="JobDetail" class="apply-link uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 pull-right">Apply Now</a>
-                    				</div>
-                                </div>
-                                [[ enditem ]]
-                            {% endif %}
-                        {% endfor %}
-                    {% endfor %}
-                {% endwebrequest %}
-                {[ endfaq ]}
+                                {%- endcapture -%}
+                                {%- assign customTitleEncoded = customHtmlTitle | EscapeDataString -%}
+
+                                {%- if job.Type != "Internship" -%}
+                                    [[ item customtitle:'{{ customTitleEncoded }}' ]]
+                                    <div class="se_job_description">
+                                        <div class="description g-font-family--primary">{{ job.DescriptionHtm | Replace:'<font','<div' | Replace:'</font','</div' | Replace:'ftont-family:','' }}</div>
+                                        <hr />
+                                        <div class="buttons">
+                        						<a href={{ job.DetailLink }} target="JobDetail" class="apply-link uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 pull-right">Apply Now</a>
+                        				</div>
+                                    </div>
+                                    [[ enditem ]]
+                                {%- endif -%}
+                            {%- else -%}
+                                {%- assign jobsByDate = results.Openings.Job | Where:'DatePosted', dateSearch -%}
+                                {%- for item in jobsByDate -%}
+                                    {%- capture customHtmlTitle -%}
+                                        <header>
+                                            <h3 class="job-title g-font-weight--700 g-font-size-34--xs" style="margin: 0px !important;">{{ item.Title }}</h3>
+                                            <h5 class="location uppercase text g-font-size-24--xs g-padding-b-20--xs"style="margin: 0px !important;">{{ item.Location }}</h5>
+                                            <h5 class="department g-font-size-24--xs" style="margin: 0px !important;">{{ item.Department }}</h5>
+                                            <h5 class="type g-font-size-24--xs" style="margin: 0px !important;"><i>{{ item.Type }}</i></h5>
+                                        </header>
+                                    {%- endcapture -%}
+                                    {%- assign customTitleEncoded = customHtmlTitle | EscapeDataString -%}
+
+                                    {%- if item.Type != "Internship" -%}
+                                        [[ item customtitle:'{{ customTitleEncoded }}' ]]
+                                        <div class="se_job_description">
+                                            <div class="description g-font-family--primary">{{ item.DescriptionHtm | Replace:'<font','<div' | Replace:'</font','</div' | Replace:'ftont-family:','' }}</div>
+                                            <hr />
+                                            <div class="buttons">
+                            						<a href={{ item.DetailLink }} target="JobDetail" class="apply-link uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 pull-right">Apply Now</a>
+                            				</div>
+                                        </div>
+                                        [[ enditem ]]
+                                    {%- endif -%}
+                                {%- endfor -%}
+                            {%- endif -%}
+                        {%- endfor -%}
+                    {%- endif -%}
+                {%- endwebrequest -%}
+            {[ endfaq ]}
+
+            {%- if jobsAvail == 0 -%}
+            <div class="text-center g-padding-x-100--xs g-padding-b-100--xs">
+                <hr class="g-width-150--xs" style="
+                border-color: black;
+                ">
+                <br>
+                <h3 class="g-font-family--secondary">We have no job openings at the moment. Please come back soon.</h3>
+                <br>
+                <h5>"For the Son of Man came to seek and to save the lost." Luke 19:10</h5>
+                <br>
+                <br>
+                <br>
+            </div>
+            {%- endif -%}
             </div>
         </article>
     </div>

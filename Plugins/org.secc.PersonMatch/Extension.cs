@@ -29,14 +29,15 @@ namespace org.secc.PersonMatch
     {
         const string DIMINUTIVE_NAMES = "3E2D2BEE-01BE-4D1E-8634-01932718AEA3";
         const string GOES_BY_ATTRIBUTE = "C31FDA8A-8CAB-4A1C-B96D-275415B5BB1C";
-        public static IEnumerable<Person> GetByMatch(this PersonService personService, String firstName, String lastName, DateTime? birthDate, String email = null, String phone = null, String street1 = null, String postalCode = null) {
-            using (Rock.Data.RockContext context = new Rock.Data.RockContext())
+        public static IEnumerable<Person> GetByMatch( this PersonService personService, String firstName, String lastName, DateTime? birthDate, String email = null, String phone = null, String street1 = null, String postalCode = null )
+        {
+            using ( Rock.Data.RockContext context = new Rock.Data.RockContext() )
             {
                 //FirstName LastName and (DOB or email or phone or street address) are required. If not return an empty list.
-                if (firstName.IsNullOrWhiteSpace() || lastName.IsNullOrWhiteSpace() ||
-                    (!birthDate.HasValue && 
-                        string.IsNullOrWhiteSpace(email) &&
-                        string.IsNullOrWhiteSpace(phone) &&
+                if ( firstName.IsNullOrWhiteSpace() || lastName.IsNullOrWhiteSpace() ||
+                    ( !birthDate.HasValue &&
+                        string.IsNullOrWhiteSpace( email ) &&
+                        string.IsNullOrWhiteSpace( phone ) &&
                         string.IsNullOrWhiteSpace( street1 ) ) )
                 {
                     return new List<Person>();
@@ -50,19 +51,19 @@ namespace org.secc.PersonMatch
                 firstName = firstName ?? string.Empty;
                 lastName = lastName ?? string.Empty;
                 email = email.ToLower() ?? string.Empty;
-                phone = phone ?? string.Empty;
+                phone = PhoneNumber.CleanNumber( phone ?? string.Empty );
                 List<Person> matchingPersons = new List<Person>();
 
                 // Do a quick check to see if we get a match right up front
                 List<Person> persons = new List<Person>();
                 if ( birthDate.HasValue || !string.IsNullOrEmpty( email ) )
                 {
-                    var fastQuery = personService.Queryable( false, false ).Where( p => (p.FirstName.ToLower() == firstName.ToLower() || p.NickName.ToLower() == firstName.ToLower() ) && p.LastName == lastName );
-                    if (birthDate.HasValue)
+                    var fastQuery = personService.Queryable( false, false ).Where( p => ( p.FirstName.ToLower() == firstName.ToLower() || p.NickName.ToLower() == firstName.ToLower() ) && p.LastName == lastName );
+                    if ( birthDate.HasValue )
                     {
                         fastQuery = fastQuery.Where( p => p.BirthDate == birthDate );
                     }
-                    if (!String.IsNullOrEmpty(email))
+                    if ( !String.IsNullOrEmpty( email ) )
                     {
                         fastQuery = fastQuery.Where( p => p.Email.ToLower() == email );
                     }
@@ -76,29 +77,30 @@ namespace org.secc.PersonMatch
                 }
 
                 // Go ahead and do this more leniant search if we get this far
-                persons = personService.Queryable(false, false)
-                    .Where(p =>
-                        p.LastName == lastName &&
-                        ( !birthDate.HasValue || p.BirthDate == null || (birthDate.HasValue && p.BirthDate.Value == birthDate.Value ) ) )
+                persons = personService.Queryable( false, false )
+                    .Where( p =>
+                         p.LastName == lastName &&
+                         ( !birthDate.HasValue || p.BirthDate == null || ( birthDate.HasValue && p.BirthDate.Value == birthDate.Value ) ) )
                     .ToList();
 
                 // Set a placeholder for the location so we only geocode it 1 time
                 Location location = null;
 
-                foreach (Person person in persons)
+                foreach ( Person person in persons )
                 {
                     // Check to see if the phone exists anywhere in the family
-                    Boolean phoneExists = !string.IsNullOrWhiteSpace(phone) && person.GetFamilies().Where(f => f.Members.Where(m => m.Person.PhoneNumbers.Where(pn => pn.Number == phone).Any()).Any()).Any();
+                    Boolean phoneExists = !string.IsNullOrWhiteSpace( phone ) && person.GetFamilies().Where( f => f.Members.Where( m => m.Person.PhoneNumbers.Where( pn => pn.Number == phone ).Any() ).Any() ).Any();
 
                     // Check to see if the email exists anywhere in the family
-                    Boolean emailExists = !string.IsNullOrWhiteSpace(email) && person.GetFamilies().Where(f => f.Members.Where(m => m.Person.Email == email).Any()).Any();
+                    Boolean emailExists = !string.IsNullOrWhiteSpace( email ) && person.GetFamilies().Where( f => f.Members.Where( m => m.Person.Email == email ).Any() ).Any();
 
                     Boolean addressMatches = false;
                     // Check the address if it was passed
-                    if (!string.IsNullOrEmpty(street1) && !string.IsNullOrEmpty(postalCode))
-                    { 
-                        if (person.GetHomeLocation() != null) { 
-                            if (person.GetHomeLocation().Street1 == street1)
+                    if ( !string.IsNullOrEmpty( street1 ) && !string.IsNullOrEmpty( postalCode ) )
+                    {
+                        if ( person.GetHomeLocation() != null )
+                        {
+                            if ( person.GetHomeLocation().Street1 == street1 )
                             {
                                 addressMatches = true;
                             }
@@ -111,7 +113,7 @@ namespace org.secc.PersonMatch
                                 locationService.Verify( location, true );
 
                             }
-                            if ( location != null && !addressMatches && person.GetHomeLocation().Street1 == location.Street1)
+                            if ( location != null && !addressMatches && person.GetHomeLocation().Street1 == location.Street1 )
                             {
                                 addressMatches = true;
                             }
@@ -119,9 +121,9 @@ namespace org.secc.PersonMatch
                     }
 
                     // At least phone, email, or address have to match
-                    if (phoneExists || emailExists || addressMatches)
+                    if ( phoneExists || emailExists || addressMatches )
                     {
-                        matchingPersons.Add(person);
+                        matchingPersons.Add( person );
                     }
 
                 }
@@ -129,7 +131,7 @@ namespace org.secc.PersonMatch
                 List<Person> firstNameMatchingPersons = new List<Person>();
 
                 // Now narrow down the list by looking for the first name (or diminutive name)
-                foreach (Person matchingPerson in matchingPersons )
+                foreach ( Person matchingPerson in matchingPersons )
                 {
                     if ( firstName != null && ( ( matchingPerson.FirstName != null && matchingPerson.FirstName.ToLower() != firstName.ToLower() ) || ( matchingPerson.NickName != null && matchingPerson.NickName.ToLower() != firstName.ToLower() ) ) )
                     {
@@ -139,14 +141,15 @@ namespace org.secc.PersonMatch
                             List<string> nameList = new List<string>();
                             nameList = av.Value.Split( '|' ).ToList();
                             nameList.Add( dv.Value );
-                            if ( nameList.Contains( firstName.ToLower() ) && 
-                                ( nameList.Contains( matchingPerson.FirstName.ToLower() )  ||  nameList.Contains( matchingPerson.NickName.ToLower() ) ) )
+                            if ( nameList.Contains( firstName.ToLower() ) &&
+                                ( nameList.Contains( matchingPerson.FirstName.ToLower() ) || nameList.Contains( matchingPerson.NickName.ToLower() ) ) )
                             {
                                 firstNameMatchingPersons.Add( matchingPerson );
                                 break;
                             }
                         }
-                    } else
+                    }
+                    else
                     {
                         firstNameMatchingPersons.Add( matchingPerson );
                     }

@@ -1,4 +1,4 @@
-{%- cache key:'subsplash-tvapp-home' duration:'3600' -%}
+{%- cache key:'subsplash-tvapp-home' duration:'60' -%}
 {
     {% contentchannelitem where:'ContentChannelId == 74' sort:'Order' %}
     {%- assign itemCount = contentchannelitemItems | Size -%}

@@ -160,7 +160,7 @@
 
             <Rock:Zone Name="Primary Site Navigation Placeholder" runat="server" />
 
-            <main id="PageBody" class="cd-main-content transparent-content">
+            <main id="PageBody" class="cd-main-content transparent-content se-mobile">
 
 
                 <!--========== PAGE CONTENT ==========-->
