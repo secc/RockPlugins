@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -11,23 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
-// <copyright>
-// Copyright by the Spark Development Network
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
-//
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -38,11 +21,11 @@ using Rock.Communication;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
-using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 using System.Web;
 using System.Security.Claims;
 using Microsoft.Owin.Security;
+using Microsoft.AspNet.Identity;
 
 namespace RockWeb.Plugins.org_secc.OAuth
 {
@@ -59,7 +42,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
 Thank-you for logging in, however, we need to confirm the email associated with this account belongs to you. We've sent you an email that contains a link for confirming.  Please click the link in your email to continue.
 ", "", 2 )]
     [LinkedPage( "Confirmation Page", "Page for user to confirm their account (if blank will use 'ConfirmAccount' page route)", false, "", "", 3 )]
-    [SystemEmailField( "Confirm Account Template", "Confirm Account Email Template", false, Rock.SystemGuid.SystemEmail.SECURITY_CONFIRM_ACCOUNT, "", 4 )]
+    [SystemCommunicationField( "Confirm Account Template", "Confirm Account Email Template", false, Rock.SystemGuid.SystemCommunication.SECURITY_CONFIRM_ACCOUNT, "", 4 )]
     [CodeEditorField( "Locked Out Caption", "The text (HTML) to display when a user's account has been locked.", CodeEditorMode.Html, CodeEditorTheme.Rock, 100, false, @"
 Sorry, your account has been locked.  Please contact our office at {{ 'Global' | Attribute:'OrganizationPhone' }} or email {{ 'Global' | Attribute:'OrganizationEmail' }} to resolve this.  Thank-you. 
 ", "", 5 )]
@@ -163,7 +146,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
                             }
                             else
                             {
-                                var globalMergeFields = Rock.Web.Cache.GlobalAttributesCache.GetMergeFields(null);
+                                var globalMergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields(null);
 
                                 if (userLogin.IsLockedOut ?? false)
                                 {
@@ -283,17 +266,20 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
                 url = ResolveRockUrl( "~/ConfirmAccount" );
             }
 
-            var mergeObjects = GlobalAttributesCache.GetMergeFields( CurrentPerson );
+            var mergeObjects = Rock.Lava.LavaHelper.GetCommonMergeFields(null, CurrentPerson );
             mergeObjects.Add( "ConfirmAccountUrl", RootPath + url.TrimStart( new char[] { '/' } ) );
 
             var personDictionary = userLogin.Person.ToLiquid() as Dictionary<string, object>;
             mergeObjects.Add( "Person", personDictionary );
             mergeObjects.Add( "User", userLogin );
 
-            var recipients = new List<RecipientData>();
-            recipients.Add( new RecipientData( userLogin.Person.Email, mergeObjects ) );
+            var recipients = new List<RockMessageRecipient>();
+            recipients.Add( new RockEmailMessageRecipient( userLogin.Person, mergeObjects ));
 
-            Email.Send( GetAttributeValue( "ConfirmAccountTemplate" ).AsGuid(), recipients, ResolveRockUrl( "~/" ), ResolveRockUrl( "~~/" ), false );
+            var emailMessage = new RockEmailMessage( GetAttributeValue( "ConfirmAccountTemplate" ).AsGuid() );
+            emailMessage.SetRecipients( recipients );
+            emailMessage.CreateCommunicationRecord = false;
+            emailMessage.Send();
         }
 
         private void CreateOAuthIdentity(UserLogin userLogin)
@@ -316,7 +302,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
                                 };
 
             authentication.SignIn(new AuthenticationProperties { IsPersistent = cbRememberMe.Checked },
-                new ClaimsIdentity(claims.ToArray(), "OAuth"));
+                new ClaimsIdentity(claims.ToArray(), DefaultAuthenticationTypes.ApplicationCookie ) );
 
 
         }

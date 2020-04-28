@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -11,41 +11,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
-// <copyright>
-// Copyright by the Spark Development Network
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
-//
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Web.UI;
 using Rock;
 using Rock.Attribute;
-using Rock.Communication;
-using Rock.Data;
 using Rock.Model;
-using Rock.Security;
 using Rock.Web.Cache;
-using Rock.Web.UI.Controls;
 using System.Web;
 using System.Security.Claims;
-using Microsoft.Owin.Security;
 using System.Linq;
 using org.secc.OAuth.Model;
 using org.secc.OAuth.Data;
+using Microsoft.AspNet.Identity;
 
 namespace RockWeb.Plugins.org_secc.OAuth
 {
@@ -84,8 +62,8 @@ namespace RockWeb.Plugins.org_secc.OAuth
             if (!String.IsNullOrEmpty(PageParameter("OAuthLogout")))
             {
                 var authentication = HttpContext.Current.GetOwinContext().Authentication;
-                authentication.SignOut("OAuth");
-                authentication.Challenge("OAuth");
+                authentication.SignOut( DefaultAuthenticationTypes.ApplicationCookie );
+                authentication.Challenge( DefaultAuthenticationTypes.ApplicationCookie );
                 Response.Redirect(OAuthSettings["OAuthLoginPath"] +"?logout=true&ReturnUrl=" + Server.UrlEncode(Request.RawUrl.Replace("&OAuthLogout=true", "")));
             }
             if (IsPostBack)
@@ -133,7 +111,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
             base.OnLoad( e );
 
             var authentication = HttpContext.Current.GetOwinContext().Authentication;
-            var ticket = authentication.AuthenticateAsync("OAuth").Result;
+            var ticket = authentication.AuthenticateAsync( DefaultAuthenticationTypes.ApplicationCookie ).Result;
             var identity = ticket != null ? ticket.Identity : null;
             string userName = null;
             string[] authorizedScopes = null;
@@ -141,14 +119,14 @@ namespace RockWeb.Plugins.org_secc.OAuth
             bool scopesApproved = false;
             if (identity == null)
             {
-                authentication.Challenge("OAuth");
+                authentication.Challenge( DefaultAuthenticationTypes.ApplicationCookie );
                 Response.Redirect(OAuthSettings["OAuthLoginPath"] + "?ReturnUrl=" + Server.UrlEncode(Request.RawUrl), true);
             }
             else if (CurrentUser == null)
             {
                 // Kill the OAuth session
-                authentication.SignOut("OAuth");
-                authentication.Challenge("OAuth");
+                authentication.SignOut( DefaultAuthenticationTypes.ApplicationCookie );
+                authentication.Challenge( DefaultAuthenticationTypes.ApplicationCookie );
                 Response.Redirect(OAuthSettings["OAuthLoginPath"] + "?ReturnUrl=" + Server.UrlEncode(Request.RawUrl), true);
             }
             else

@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -70,12 +70,11 @@ namespace RockWeb.Plugins.org_secc.Sass
                     // Check to see if block is configured to use a "Cache Duration'
                     if (block.OutputCacheDuration > 0)
                     {
-                        RockMemoryCache cache = RockMemoryCache.Default;
                         string blockCacheKey = string.Format("Rock:BlockOutput:{0}", block.Id);
-                        if (cache.Contains(blockCacheKey))
+                        if (RockCache.Get(blockCacheKey) != null)
                         {
                             // If the current block exists in our custom output cache, add the cached output instead of adding the control
-                            control = new LiteralControl(cache[blockCacheKey] as string);
+                            control = new LiteralControl( RockCache.Get(blockCacheKey) as string);
                         }
                     }
 

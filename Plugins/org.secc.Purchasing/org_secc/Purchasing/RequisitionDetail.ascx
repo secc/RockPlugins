@@ -144,6 +144,12 @@
         </div>
         <div id="pnlMain" class="panel panel-block">
 			<style>
+			#pnlMain.panel-block {
+				display: block;
+			}
+			#pnlMain.panel-block .panel-heading {
+				display: block;
+			}
 			.nothing {
 				border: 0;
 				outline: none;

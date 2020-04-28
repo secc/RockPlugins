@@ -20,6 +20,7 @@ using System.Xml.Serialization;
 
 using org.secc.Purchasing.DataLayer;
 using Rock;
+using Rock.Communication;
 using Rock.Model;
 using Rock.Web.Cache;
 
@@ -638,7 +639,7 @@ namespace org.secc.Purchasing
 
         public static DefinedValueCache GetDefaultStatus()
         {
-            return DefinedValueCache.Read( LOOKUP_STATUS_NEW_GUID );
+            return DefinedValueCache.Get( LOOKUP_STATUS_NEW_GUID );
         }
 
         public void RefreshApprovalRequests()
@@ -737,10 +738,10 @@ namespace org.secc.Purchasing
             {
                 return;
             }
-            SystemEmailService systemEmailService = new SystemEmailService( new Rock.Data.RockContext() );
+            SystemCommunicationService systemCommunicationService = new SystemCommunicationService( new Rock.Data.RockContext() );
 
-            Rock.Model.SystemEmail template = systemEmailService.Get(templateId.Value);
-            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+            Rock.Model.SystemCommunication template = systemCommunicationService.Get(templateId.Value);
+            Dictionary<string, object> Fields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, CurrentPerson);
             Fields.Add("RequestTitle", ProjectName);
             Fields.Add("RequestDescription", ProjectDescription);
             Fields.Add("RequestingMinistry", Ministry.Value);
@@ -786,10 +787,10 @@ namespace org.secc.Purchasing
                 {
                     return;
                 }
-                SystemEmailService systemEmailService = new SystemEmailService( new Rock.Data.RockContext() );
-                SystemEmail template = systemEmailService.Get(templateId.Value);
+                SystemCommunicationService SystemCommunicationService = new SystemCommunicationService( new Rock.Data.RockContext() );
+                SystemCommunication template = SystemCommunicationService.Get(templateId.Value);
 
-                Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+                Dictionary<string, object> Fields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, CurrentPerson );
                 Fields["ApproverName"] = currentRequest.Approver.NickName;
                 Fields["Requester"] = Requester.FullName;
                 Fields["ProjectTitle"] = ProjectName;
@@ -989,10 +990,10 @@ namespace org.secc.Purchasing
             {
                 return;
             }
-            SystemEmailService systemEmailService = new SystemEmailService( new Rock.Data.RockContext() );
-            SystemEmail template = systemEmailService.Get( templateId.Value );
+            SystemCommunicationService SystemCommunicationService = new SystemCommunicationService( new Rock.Data.RockContext() );
+            SystemCommunication template = SystemCommunicationService.Get( templateId.Value );
 
-            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+            Dictionary<string, object> Fields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, CurrentPerson );
             Fields.Add("RequesterName", Requester.NickName);
             Fields.Add("ProjectTitle", ProjectName);
             Fields.Add("CERLink", cerLink);
@@ -1011,11 +1012,11 @@ namespace org.secc.Purchasing
                 return;
             }
 
-            SystemEmailService systemEmailService = new SystemEmailService( new Rock.Data.RockContext() );
-            SystemEmail template = systemEmailService.Get( templateId.Value );
+            SystemCommunicationService SystemCommunicationService = new SystemCommunicationService( new Rock.Data.RockContext() );
+            SystemCommunication template = SystemCommunicationService.Get( templateId.Value );
 
 
-            Dictionary<string, object> Fields = GlobalAttributesCache.GetMergeFields(CurrentPerson);
+            Dictionary<string, object> Fields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, CurrentPerson );
             Fields.Add("RequesterName", Requester.NickName);
             Fields.Add("ApproverName", approvalReq.Approver.FullName);
             Fields.Add("ProjectName", ProjectName);
@@ -1229,7 +1230,7 @@ namespace org.secc.Purchasing
             }
         }
 
-        private void SendCommunication(Rock.Model.SystemEmail template, Person sender, List<Person> recepientList )
+        private void SendCommunication( SystemCommunication template, Person sender, List<Person> recepientList )
         {
             string fromName = null;
             string fromEmail = null;
@@ -1255,9 +1256,12 @@ namespace org.secc.Purchasing
                 replyToEmail = template.From;
             }
 
-            List<String> recepients = recepientList.Select(p => p.Email).ToList();
+            var recipients = recepientList.Select(p => new RockEmailMessageRecipient(p, null)).ToList();
 
-            Rock.Communication.Email.Send(fromEmail, fromName, template.Subject, recepients, template.Body);
+            var emailMessage = new RockEmailMessage( template );
+            emailMessage.SetRecipients( recipients );
+            emailMessage.CreateCommunicationRecord = true;
+            emailMessage.Send();
 
             //Arena.Utility.ArenaSendMail.SendMail( fromEmail, fromName, recepients, template.ReplyEmail, "", "", template.Subject, template.HtmlMessage, template.TextMessage );
         }

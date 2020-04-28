@@ -10,6 +10,7 @@
 </style>
 <asp:UpdatePanel ID="upnlContent" runat="server">
 <ContentTemplate>
+
     <asp:HiddenField ID="hfTriggerScroll" runat="server" Value="" />
     <asp:HiddenField ID="hfAllowNavigate" runat="server" Value="" />
 
@@ -18,9 +19,10 @@
 
     <Rock:NotificationBox ID="nbMain" runat="server" Visible="false"></Rock:NotificationBox>
     <Rock:NotificationBox ID="nbWaitingList" runat="server" Visible="false" NotificationBoxType="Warning" />
+
     <asp:Panel ID="pnlStart" runat="server" Visible="false" CssClass="registrationentry-intro">
-        
         <asp:Literal ID="lInstructions" runat="server" />
+
         <asp:Panel ID="pnlHowMany" runat="server" Visible="false" CssClass="registrationentry-intro">
             <h1>How many <asp:Literal ID="lRegistrantTerm" runat="server" /> will you be registering?</h1>
             <Rock:NumberUpDown ID="numHowMany"  runat="server" CssClass="input-lg" OnNumberUpdated="numHowMany_NumberUpdated"  />
@@ -32,16 +34,16 @@
     </asp:Panel>
     <%-- Prompt for any Registration Attributes that should be prompted for before entering registrations--%>
     <asp:Panel ID="pnlRegistrationAttributesStart" runat="server" Visible="false" CssClass="registrationentry-registration-attributes">
-         <div class="registration-heading">
-            <h1><asp:Literal ID="lRegistrationAttributesStartTitle" runat="server" /></h1>
+        <div class="registration-heading">
+        <h1><asp:Literal ID="lRegistrationAttributesStartTitle" runat="server" /></h1>
 
-            <asp:Panel ID="pnlRegistrationAttributesStartProgressBar" runat="server">
-                <div class="progress">
-                    <div class="progress-bar" role="progressbar" aria-valuenow="<%=this.PercentComplete%>" aria-valuemin="0" aria-valuemax="100" style="width: <%=this.PercentComplete%>%;">
-                        <span class="sr-only"><%=this.PercentComplete%>% Complete</span>
-                    </div>
+        <asp:Panel ID="pnlRegistrationAttributesStartProgressBar" runat="server">
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" aria-valuenow="<%=this.PercentComplete%>" aria-valuemin="0" aria-valuemax="100" style="width: <%=this.PercentComplete%>%;">
+                    <span class="sr-only"><%=this.PercentComplete%>% Complete</span>
                 </div>
-            </asp:Panel>
+            </div>
+        </asp:Panel>
         </div>
 
         <Rock:AttributeValuesContainer ID="avcRegistrationAttributesStart" runat="server" />
@@ -55,21 +57,20 @@
     <asp:Panel ID="pnlRegistrant" runat="server" Visible="false" CssClass="registrationentry-registrant">
 
         <div class="registration-heading">
-            <h1>
-                <asp:Literal ID="lRegistrantTitle" runat="server" />
-            </h1>        
-
-
-            <asp:Panel ID="pnlRegistrantProgressBar" runat="server" CssClass="clearfix">
-                <div class="progress">
-                    <div class="progress-bar" role="progressbar" aria-valuenow="<%=this.PercentComplete%>" aria-valuemin="0" aria-valuemax="100" style="width: <%=this.PercentComplete%>%;">
-                        <span class="sr-only"><%=this.PercentComplete%>% Complete</span>
-                    </div>
-                </div>
-            </asp:Panel>
-        </div>
+        <h1>
+            <asp:Literal ID="lRegistrantTitle" runat="server" />
+        </h1>        
 
         <Rock:NotificationBox ID="nbType" runat="server" NotificationBoxType="Warning"  />
+
+        <asp:Panel ID="pnlRegistrantProgressBar" runat="server" CssClass="clearfix">
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" aria-valuenow="<%=this.PercentComplete%>" aria-valuemin="0" aria-valuemax="100" style="width: <%=this.PercentComplete%>%;">
+                    <span class="sr-only"><%=this.PercentComplete%>% Complete</span>
+                </div>
+            </div>
+        </asp:Panel>
+        </div>
 
         <asp:Panel id="pnlRegistrantFields" runat="server" >
 
@@ -99,9 +100,8 @@
             <asp:HiddenField ID="hfRequiredDocumentQueryString" runat="server" />
             <asp:HiddenField ID="hfRegistrantGuid" runat="server" ClientIDMode="Static" />
 
-            <iframe id="iframeRequiredDocument" frameborder="0" runat="server" Visible="false" ClientIDMode="Static"></iframe>
+            <iframe id="iframeRequiredDocument" frameborder="0" runat="server" Visible="false" ClientIDMode="Static" ></iframe>
             <a id="lbRequiredDocument" runat="server" Visible="false" class="btn btn-default pull-right">Sign Document</a>
- 
             <span style="display:none" >
                 <asp:LinkButton ID="lbRequiredDocumentNext" runat="server" Text="Required Document Return" OnClick="lbRequiredDocumentNext_Click" CausesValidation="false" ></asp:LinkButton>
             </span>
@@ -118,15 +118,15 @@
     <%-- Prompt for any Registration Attributes that should be prompted for after entering registrations--%>
     <asp:Panel ID="pnlRegistrationAttributesEnd" runat="server" Visible="false" CssClass="registrationentry-registration-attributes">
         <div class="registration-heading">
-            <h1><asp:Literal ID="lRegistrationAttributesEndTitle" runat="server" /></h1>
+        <h1><asp:Literal ID="lRegistrationAttributesEndTitle" runat="server" /></h1>
 
-            <asp:Panel ID="pnlRegistrationAttributesEndProgressBar" runat="server">
-                <div class="progress">
-                    <div class="progress-bar" role="progressbar" aria-valuenow="<%=this.PercentComplete%>" aria-valuemin="0" aria-valuemax="100" style="width: <%=this.PercentComplete%>%;">
-                        <span class="sr-only"><%=this.PercentComplete%>% Complete</span>
-                    </div>
+        <asp:Panel ID="pnlRegistrationAttributesEndProgressBar" runat="server">
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" aria-valuenow="<%=this.PercentComplete%>" aria-valuemin="0" aria-valuemax="100" style="width: <%=this.PercentComplete%>%;">
+                    <span class="sr-only"><%=this.PercentComplete%>% Complete</span>
                 </div>
-            </asp:Panel>
+            </div>
+        </asp:Panel>
         </div>
 
         <Rock:AttributeValuesContainer ID="avcRegistrationAttributesEnd" runat="server" />
@@ -138,16 +138,16 @@
 
     <%-- Summary and Payment --%>
     <asp:Panel ID="pnlSummaryAndPayment" runat="server" Visible="false" CssClass="registrationentry-summary">
-         <div class="registration-heading">
-            <h1><asp:Literal ID="lSummaryAndPaymentTitle" runat="server" /></h1>
+        <div class="registration-heading">
+        <h1><asp:Literal ID="lSummaryAndPaymentTitle" runat="server" /></h1>
 
-            <asp:Panel ID="pnlSummaryAndPaymentProgressBar" runat="server">
-                <div class="progress">
-                    <div class="progress-bar" role="progressbar" aria-valuenow="<%=this.PercentComplete%>" aria-valuemin="0" aria-valuemax="100" style="width: <%=this.PercentComplete%>%;">
-                        <span class="sr-only"><%=this.PercentComplete%>% Complete</span>
-                    </div>
+        <asp:Panel ID="pnlSummaryAndPaymentProgressBar" runat="server">
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" aria-valuenow="<%=this.PercentComplete%>" aria-valuemin="0" aria-valuemax="100" style="width: <%=this.PercentComplete%>%;">
+                    <span class="sr-only"><%=this.PercentComplete%>% Complete</span>
                 </div>
-            </asp:Panel>
+            </div>
+        </asp:Panel>
         </div>
         <asp:Panel ID="pnlRegistrantsReview" CssClass="margin-b-md" runat="server" Visible="false">
             <asp:Literal ID="lRegistrantsReview" runat="server" />
@@ -180,7 +180,7 @@
                 <div id="divDiscountCode" runat="server" class="form-group pull-right">
                     <label class="control-label"><asp:Literal ID="lDiscountCodeLabel" runat="server" /></label>
                     <div class="input-group">
-                        <asp:TextBox ID="tbDiscountCode" runat="server" CssClass="form-control input-width-md input-sm"></asp:TextBox>
+                        <Rock:RockTextBox ID="tbDiscountCode" runat="server" CssClass="form-control input-width-md input-sm"></Rock:RockTextBox>
                         <asp:LinkButton ID="lbDiscountApply" runat="server" CssClass="btn btn-default btn-sm margin-l-sm" Text="Apply" OnClick="lbDiscountApply_Click" CausesValidation="false"></asp:LinkButton>
                     </div>
                 </div>
@@ -280,8 +280,7 @@
             </div>
 
         </asp:Panel>
-        
-        <asp:Panel ID="pnlRegistrarInfoPrompt" runat="server" CssClass="well">
+            <asp:Panel ID="pnlRegistrarInfoPrompt" runat="server" CssClass="well">
             
             <h4>This <asp:Literal id="lRegistrationTermPrompt" runat="server" /> Was Entered By</h4>
             <div class="row">
@@ -347,15 +346,15 @@
 
     <asp:Panel ID="pnlSuccess" runat="server" Visible="false" >
         <div class="registration-heading">
-            <h1><asp:Literal ID="lSuccessTitle" runat="server" /></h1>
+        <h1><asp:Literal ID="lSuccessTitle" runat="server" /></h1>
 
-            <asp:Panel ID="pnlSuccessProgressBar" runat="server">
-                <div class="progress">
-                    <div class="progress-bar" role="progressbar" aria-valuenow="<%=this.PercentComplete%>" aria-valuemin="0" aria-valuemax="100" style="width: <%=this.PercentComplete%>%;">
-                        <span class="sr-only"><%=this.PercentComplete%>% Complete</span>
-                    </div>
+        <asp:Panel ID="pnlSuccessProgressBar" runat="server">
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" aria-valuenow="<%=this.PercentComplete%>" aria-valuemin="0" aria-valuemax="100" style="width: <%=this.PercentComplete%>%;">
+                    <span class="sr-only"><%=this.PercentComplete%>% Complete</span>
                 </div>
-            </asp:Panel>
+            </div>
+        </asp:Panel>
         </div>
 
         <asp:Literal ID="lSuccess" runat="server" />

@@ -17,6 +17,8 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
+using System.Web;
+using Microsoft.AspNet.Identity;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
@@ -74,12 +76,27 @@ namespace org.secc.OAuth
                         // Just eat this exception.  It's thrown when headers have already been sent
                     }
                 }
+
+                // Pull the SetCookie header out of Owin and push it into HttpContext so Rock honors it
+                if ( context.Response.Headers.GetValueOrNull( "Set-Cookie" ) != null )
+                {
+                    foreach ( string value in context.Response.Headers.GetValueOrNull( "Set-Cookie" ) )
+                    {
+                        var cookieParts = value.Split( new[] { '=' }, 2 );
+                        if ( cookieParts[0].Contains( DefaultAuthenticationTypes.ApplicationCookie ) )
+                        {
+                            var cookie = new HttpCookie( cookieParts[0], cookieParts[1] );
+                            HttpContext.Current.Response.Cookies.Add( cookie );
+                        }
+                    }
+
+                }
             } );
 
             //Enable Application Sign In Cookie
             app.UseCookieAuthentication( new CookieAuthenticationOptions
             {
-                AuthenticationType = "OAuth",
+                AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
                 AuthenticationMode = AuthenticationMode.Passive,
                 LoginPath = new PathString( "/" + settings["OAuthLoginPath"].Trim( '/' ) ),
                 LogoutPath = new PathString( "/" + settings["OAuthLogoutPath"].Trim( '/' ) ),

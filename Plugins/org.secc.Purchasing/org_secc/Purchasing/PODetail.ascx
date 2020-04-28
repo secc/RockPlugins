@@ -103,7 +103,14 @@
         </div>
         
         <div id="pnlMain" class="panel panel-block">
-            
+            <style>
+			#pnlMain.panel-block {
+				display: block;
+			}
+			#pnlMain.panel-block .panel-heading {
+				display: block;
+			}
+			</style>
             <div class="panel-heading">
                 <div class="pull-right">
                     <asp:HyperLink ID="lnkNotes" runat="server" Visible="false" NavigateUrl="#catNotes"><i class="fa fa-sticky-note fa-2x" title="Notes"></i></asp:HyperLink>&nbsp; &nbsp;

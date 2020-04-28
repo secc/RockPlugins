@@ -1,0 +1,21 @@
+{
+	"header": {
+		"title": "Grow"
+	},
+    "items": [
+        {
+            "title": "Bible",
+            "actions": [{
+				"handler": "list",
+				"url": "http://api-feeds.subsplash.com/bible/books.xml"
+			}]
+        },
+        {
+            "title": "Resources",
+            "actions": [{
+                "handler": "list",
+                "url": "https://www.southeastchristian.org/webhooks/SubSplash.ashx/campuses"
+            }]
+        }
+    ]
+}

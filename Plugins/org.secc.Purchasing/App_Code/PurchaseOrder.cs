@@ -594,7 +594,6 @@ namespace org.secc.Purchasing
         {
             if (Status == null)
                 return false;
-            Status.LoadAttributes();
             return Status.GetAttributeValue("IsClosed").AsBoolean();
         }
 
@@ -644,7 +643,6 @@ namespace org.secc.Purchasing
 
         public void Reopen(string uid)
         {
-            Status.LoadAttributes();
 
             if (Status.GetAttributeValue("IsClosed").AsBoolean())
             {
@@ -794,7 +792,6 @@ namespace org.secc.Purchasing
             bool HasBeenRemoved = false;
             PurchaseOrderItem POItem = Items.FirstOrDefault(x => x.PurchaseOrderItemID == poItemID);
 
-            Status.LoadAttributes();
             if (!Status.GetAttributeValue("IsClosed").AsBoolean() && POItem != null && POItem.ItemID > 0)
             {
                 POItem.Active = false;
@@ -814,7 +811,6 @@ namespace org.secc.Purchasing
             Payment p = Payments.FirstOrDefault(x => x.PaymentID == paymentID);
 
             //PO is not closed.
-            Status.LoadAttributes();
             if (!Status.GetAttributeValue("IsClosed").AsBoolean() && p.PaymentID > 0)
             {
                 p.DeactivateCharges(uid);
