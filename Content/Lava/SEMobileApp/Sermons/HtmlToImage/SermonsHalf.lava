@@ -1,12 +1,22 @@
 {%- contentchannelitem where:'Guid == "{{Guid}}"' -%}
     {%- assign item = contentchannelitemItems | First - %}
-    {%- assign lastSermon = item.ChildItems | Last -%}
-	{%- assign sermonsCount = 0 %}
+    {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+    {%- assign sermonsCount = 0 -%}
 	{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
+	{%- assign firstSermon = "" -%}
+	{%- assign lastSermon = "" -%}
 	{%- for messages in itemChildItems -%}
-		{% assign message = messages.ChildContentChannelItem -%}
-		{% if message.ContentChannelId == "23" %}
-			{%- assign sermonsCount = sermonsCount | Plus:1 -%}
+		{%- assign message = messages.ChildContentChannelItem -%}
+		{%- assign startDateTime = message.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+		{%- assign endDateTime = message.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+		{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+			{%- if message.ContentChannelId == "23" -%}
+				{%- if lastSermon == "" -%}
+					{%- assign lastSermon = message -%}
+				{%- endif -%}
+				{%- assign firstSermon = message -%}
+				{%- assign sermonsCount = sermonsCount | Plus:1 -%}
+			{%- endif -%}
 		{%- endif -%}
 	{%- endfor -%}
 {%- endcontentchannelitem -%}
@@ -55,7 +65,7 @@
             <div class="content">
                 <h1 class="g-font-weight--600 g-color--white g-line-height" style="font-size: 4.5em;">{{item.Title | StripHtml | Upcase }}</h1>
                 {% if sermonsCount > 1 -%}
-                <h3 class="g-color--white g-line-height" style="font-size: 5rem">{{ item.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yyyy' }}<br />
+                <h3 class="g-color--white g-line-height" style="font-size: 5rem">{{ firstSermon.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.StartDateTime | Date:'MMM dd, yyyy' }}<br />
                 SERMONS: {{ sermonsCount }}</h3>
                 <br />
                 <h3 class="truncate-info g-color--white g-padding-t-20--xs g-line-height">
@@ -66,7 +76,7 @@
                     {%- endif -%}
                 </h3>
                 {% else %}
-                <h3 class="g-color--white g-line-height" style="font-size: 5rem;">{{ item.StartDateTime | Date:'MMM dd, yyyy' }}</h3>
+                <h3 class="g-color--white g-line-height" style="font-size: 5rem;">{{ firstSermon.StartDateTime | Date:'MMM dd, yyyy' }}</h3>
                 <br />
                 <h3 class="truncate-info-long g-color--white g-padding-t-20--xs g-line-height">
                     {%- if titleLength > titleLimitBeforeSubractingBody -%}

@@ -38,59 +38,63 @@
 	    {%- assign pageNumber = page -%}
 	{%- endif -%}
 	{%- assign offset = pageNumber | Minus:1 | Times: 120 -%}
+	{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
 	{%- contentchannelitem where:'Status == 2 && ContentChannelId == 24' sort:'StartDateTime desc' offset:'{{offset}}' limit:'120'  -%}
 		"items": [
 	        {%- for item in contentchannelitemItems -%}
-	        {% unless forloop.first %},{% endunless %}
-
-			{%- assign itemActionHandler = "list" -%}
-			{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/sermons/series/" | Append:item.Id -%}
-			{%- assign resourcesCount = 0 -%}
-			{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
-			{%- for messages in itemChildItems -%}
-				{%- assign message = messages.ChildContentChannelItem -%}
-				{%- if message.ContentChannelId != "23" -%}
-					{%- assign resourcesCount = resourcesCount | Plus:1 -%}
-				{%- endif -%}
-			{%- endfor -%}
-			{%- if resourcesCount != 0 -%}
-			{%- assign itemActionHandler = "subtabs" -%}
-			{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/tabs/series/" | Append:item.Id -%}
-			{%- endif -%}
-	        {
-				"title": "{{item.Title | Replace:'"','\"'}}",
-				"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
-	            "images":[
-					{%- assign seriesImageGuid = item | Attribute:'Image', 'RawValue' -%}
-					{%- if seriesImageGuid != empty -%}
-						{ "width":748, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=628&height=auto&mode=crop&s.roundcorners=20,20,0,0&bgcolor=121212&format=png&margin=60,87,60,0&anchor=topcenter"  }
-					{%- else -%}
-						{%- for child in item.ChildItems -%}
-						{%- assign seriesImage = child.ChildContentChannelItem | Attribute:'Image' -%}
-						{%- assign seriesImageGuid = child.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
-						{%- if seriesImage != empty -%}
-						{ "width":748, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=628&height=auto&mode=crop&s.roundcorners=20,20,0,0&bgcolor=121212&format=png&margin=60,87,60,0&anchor=topcenter"  }
-						{%- break -%}
-						{%- endif %}
-						{%- endfor -%}
+			{%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+            {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+            {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+		        {% unless forloop.first %},{% endunless %}
+				{%- assign itemActionHandler = "list" -%}
+				{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/sermons/series/" | Append:item.Id -%}
+				{%- assign resourcesCount = 0 -%}
+				{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
+				{%- for messages in itemChildItems -%}
+					{%- assign message = messages.ChildContentChannelItem -%}
+					{%- if message.ContentChannelId != "23" -%}
+						{%- assign resourcesCount = resourcesCount | Plus:1 -%}
 					{%- endif -%}
-			    ],
-				"actions": [{
-					"handler": "{{- itemActionHandler -}}",
-            		{%- if itemActionHandler == "subtabs" -%}"type": "navigation",{%- endif -%}
-					"url": "{{- itemActionUrl -}}"
-				}]
-			},
-			{
-	            "images":[
-				    { "width":748, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/sermon/halfcard/{{item.Guid | Upcase}}"  }
-			    ],
-				"actions": [{
-					"handler": "{{- itemActionHandler -}}",
-            		{%- if itemActionHandler == "subtabs" -%}"type": "navigation",{%- endif -%}
-					"url": "{{- itemActionUrl -}}"
-				}]
-			}
+				{%- endfor -%}
+				{%- if resourcesCount != 0 -%}
+				{%- assign itemActionHandler = "subtabs" -%}
+				{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/tabs/series/" | Append:item.Id -%}
+				{%- endif -%}
+		        {
+					"title": "{{item.Title | Replace:'"','\"'}}",
+					"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
+		            "images":[
+						{%- assign seriesImageGuid = item | Attribute:'Image', 'RawValue' -%}
+						{%- if seriesImageGuid != empty -%}
+							{ "width":748, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=628&height=auto&mode=crop&s.roundcorners=20,20,0,0&bgcolor=121212&format=png&margin=60,87,60,0&anchor=topcenter"  }
+						{%- else -%}
+							{%- for child in item.ChildItems -%}
+							{%- assign seriesImage = child.ChildContentChannelItem | Attribute:'Image' -%}
+							{%- assign seriesImageGuid = child.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
+							{%- if seriesImage != empty -%}
+							{ "width":748, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=628&height=auto&mode=crop&s.roundcorners=20,20,0,0&bgcolor=121212&format=png&margin=60,87,60,0&anchor=topcenter"  }
+							{%- break -%}
+							{%- endif %}
+							{%- endfor -%}
+						{%- endif -%}
+				    ],
+					"actions": [{
+						"handler": "{{- itemActionHandler -}}",
+	            		{%- if itemActionHandler == "subtabs" -%}"type": "navigation",{%- endif -%}
+						"url": "{{- itemActionUrl -}}"
+					}]
+				},
+				{
+		            "images":[
+					    { "width":748, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/sermon/halfcard/{{item.Guid | Upcase}}"  }
+				    ],
+					"actions": [{
+						"handler": "{{- itemActionHandler -}}",
+	            		{%- if itemActionHandler == "subtabs" -%}"type": "navigation",{%- endif -%}
+						"url": "{{- itemActionUrl -}}"
+					}]
+				}
+			{%- endif -%}
 	        {%- endfor -%}
 	    ]
 	{%- endcontentchannelitem -%}

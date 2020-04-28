@@ -1,4 +1,5 @@
 {%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
+{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
 {%- for series in contentchannelitemItems -%}
 {
 	"header": {
@@ -35,9 +36,12 @@
 		{%- assign zeroSermons = true -%}
         {%- for seriesChild in series.ChildItems reversed -%}
         {%- assign sermon = seriesChild.ChildContentChannelItem -%}
+		{%- assign startDateTime = sermon.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+		{%- assign endDateTime = sermon.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
 		{%- comment -%}
 		** Checks to see if there's a sermon. **
 		{%- endcomment -%}
+		{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
         {%- if sermon.ContentChannelId == "23" -%}
 			{%- assign zeroSermons = false -%}
 	        {{ comma }}
@@ -54,6 +58,7 @@
 			}
 	        {%- assign comma = "," -%}
         {%- endif -%}
+		{%- endif -%}
 		{%- comment -%}
 		** Checks to see if there are resources. **
 		{%- endcomment -%}
