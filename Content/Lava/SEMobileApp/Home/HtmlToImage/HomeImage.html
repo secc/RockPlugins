@@ -17,7 +17,7 @@
               background-repeat: no-repeat;
               background-size: contain;
               background-position: top;
-              background: url("https://app.secc.org/GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}&s.alpha=0.6&bgcolor=000000");
+              background: url("{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}&s.alpha=0.6&bgcolor=000000");
               position: relative;
            }
             .box h4, .box h5, .box p {

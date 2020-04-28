@@ -6,10 +6,10 @@
 		"style": "featured",
 		"items": [{
 			"images":[
-                { "width":320, "url":"https://app.secc.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=110&height=110"  },
-                { "width":720, "url":"https://app.secc.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=720&height=720" },
-                { "width":1080, "url":"https://app.secc.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=1080&height=1080" },
-                { "width":1920, "url":"https://app.secc.org/GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=1920&height=1920" }
+                { "width":320, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=110&height=110"  },
+                { "width":720, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=720&height=720" },
+                { "width":1080, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=1080&height=1080" },
+                { "width":1920, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=1920&height=1920" }
 		    ]
 		}]
 	},
@@ -55,7 +55,7 @@
 							"images":[
 								{%- assign Title = "Studies" | Escape | EscapeDataString -%}
 								{%- assign Body = "Find related studies below." | Escape | EscapeDataString -%}
-								{ "width":747, "url":"https://app.secc.org/Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 							]
 						},
 						{%- assign studiesStudiesIncluded = true -%}
@@ -64,7 +64,7 @@
 							"title": "{{ resource.Title }}",
 							"subtitle": "Download",
 							"images":[
-								{ "width":747, "url":"https://app.secc.org/Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 							],
 							"actions": [{
 								"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
@@ -80,7 +80,7 @@
 							"images":[
 								{%- assign Title = "Reading Plans" | Escape | EscapeDataString -%}
 								{%- assign Body = "Grow spiritually with a daily devotion." | Escape | EscapeDataString -%}
-								{ "width":747, "url":"https://app.secc.org/Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 							]
 						},
 						{%- assign studiesReadingPlansIncluded = true -%}
@@ -89,7 +89,7 @@
 							"title": "{{ resource.Title }}",
 							"subtitle": "{%- if ResourceURLText != "" -%}{{ ResourceURLText }}{%- else -%}Link{%- endif -%}",
 							"images":[
-								{ "width":747, "url":"https://app.secc.org/Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 							],
 							"actions": [{
 								"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
@@ -105,7 +105,7 @@
 							"images":[
 								{%- assign Title = "Media" | Escape | EscapeDataString -%}
 								{%- assign Body = "See other related videos, links, or testimonies." | Escape | EscapeDataString -%}
-								{ "width":747, "url":"https://app.secc.org/Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 							]
 						},
 						{%- assign studiesMediaIncluded = true -%}
@@ -114,14 +114,14 @@
 							"title": "{{ resource.Title }}",
 							"subtitle": "Watch",
 							"images":[
-								{ "width":747, "url":"https://app.secc.org/Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 							],
 							"actions": [{
 								"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
 								"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
 								"type":"navigation",
 								"showBrowserControls": true,
-								"contentUrl": "https://app.secc.org/sermons/{{slug}}/{{resource.PrimarySlug}}"
+								"contentUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}sermons/{{slug}}/{{resource.PrimarySlug}}"
 							}]
 						}
 					{%- endif -%}

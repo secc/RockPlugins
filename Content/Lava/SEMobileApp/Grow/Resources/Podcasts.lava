@@ -41,7 +41,7 @@
                     {
                         "images":[
                             {"width": 667,
-                            "url":"https://app.secc.org/webhooks/ImageGenerator.ashx/grow/resources/listcard/{{ item.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+                            "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/grow/resources/listcard/{{ item.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
                         ],
                         "title": "{{ title }}",
                         "actions":[{

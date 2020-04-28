@@ -44,7 +44,7 @@
 	        {% unless forloop.first %},{% endunless %}
 
 			{%- assign itemActionHandler = "list" -%}
-			{%- assign itemActionUrl = "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/" | Append:item.Id -%}
+			{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/sermons/series/" | Append:item.Id -%}
 			{%- assign resourcesCount = 0 -%}
 			{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
 			{%- for messages in itemChildItems -%}
@@ -55,7 +55,7 @@
 			{%- endfor -%}
 			{%- if resourcesCount != 0 -%}
 			{%- assign itemActionHandler = "subtabs" -%}
-			{%- assign itemActionUrl = "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/" | Append:item.Id -%}
+			{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/tabs/series/" | Append:item.Id -%}
 			{%- endif -%}
 	        {
 				"title": "{{item.Title | Replace:'"','\"'}}",
@@ -63,13 +63,13 @@
 	            "images":[
 					{%- assign seriesImageGuid = item | Attribute:'Image', 'RawValue' -%}
 					{%- if seriesImageGuid != empty -%}
-						{ "width":748, "url":"https://app.secc.org/GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=628&height=auto&mode=crop&s.roundcorners=20,20,0,0&bgcolor=121212&format=png&margin=60,87,60,0&anchor=topcenter"  }
+						{ "width":748, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=628&height=auto&mode=crop&s.roundcorners=20,20,0,0&bgcolor=121212&format=png&margin=60,87,60,0&anchor=topcenter"  }
 					{%- else -%}
 						{%- for child in item.ChildItems -%}
 						{%- assign seriesImage = child.ChildContentChannelItem | Attribute:'Image' -%}
 						{%- assign seriesImageGuid = child.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
 						{%- if seriesImage != empty -%}
-						{ "width":748, "url":"https://app.secc.org/GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=628&height=auto&mode=crop&s.roundcorners=20,20,0,0&bgcolor=121212&format=png&margin=60,87,60,0&anchor=topcenter"  }
+						{ "width":748, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=628&height=auto&mode=crop&s.roundcorners=20,20,0,0&bgcolor=121212&format=png&margin=60,87,60,0&anchor=topcenter"  }
 						{%- break -%}
 						{%- endif %}
 						{%- endfor -%}
@@ -83,7 +83,7 @@
 			},
 			{
 	            "images":[
-				    { "width":748, "url":"https://app.secc.org/webhooks/ImageGenerator.ashx/sermon/halfcard/{{item.Guid | Upcase}}"  }
+				    { "width":748, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/sermon/halfcard/{{item.Guid | Upcase}}"  }
 			    ],
 				"actions": [{
 					"handler": "{{- itemActionHandler -}}",

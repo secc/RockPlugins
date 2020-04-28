@@ -11,10 +11,10 @@
             "format":"mp4",
     		"downloadable":false,
     		"images":[
-    			{ "width":520, "url":"https://app.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=720"},
-    			{ "width":1080, "url":"https://app.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1080"},
-    			{ "width":1280, "url":"https://app.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1280"},
-    			{ "width":1920, "url":"https://app.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1920"}
+    			{ "width":520, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=720"},
+    			{ "width":1080, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1080"},
+    			{ "width":1280, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1280"},
+    			{ "width":1920, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1920"}
     		]
         },
 		{
@@ -22,10 +22,10 @@
 			"format":"mp3",
 			"downloadable":"true",
     		"images":[
-    			{ "width":520, "url":"https://app.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=720"},
-    			{ "width":1080, "url":"https://app.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1080"},
-    			{ "width":1280, "url":"https://app.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1280"},
-    			{ "width":1920, "url":"https://app.secc.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1920"}
+    			{ "width":520, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=720"},
+    			{ "width":1080, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1080"},
+    			{ "width":1280, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1280"},
+    			{ "width":1920, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1920"}
     		]
 		}],
 	"title": "{{sermon.Title | Replace:'"','\"'}}",

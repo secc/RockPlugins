@@ -19,7 +19,7 @@
 			}],
 			"actions": [{
 				"handler": "list",
-				"url": "https://app.secc.org/webhooks/Lava.ashx/subsplash/connect",
+				"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/Lava.ashx/subsplash/connect",
 				"authProviderId": "ccaf1fb2-03e0-4093-8f97-f8f60f125ddc"
 			}]
 		}]
@@ -53,7 +53,7 @@
 		{
 			"images":[{
 				"width":500,
-				"url":"https://app.secc.org/GetImage.ashx?id=1999892&w=720"
+				"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx?id=1999892&w=720"
 			}],
 			"title": "ESSENTIALS | Group Study",
 			"subtitle": "Essentials is a community designed for new believers and women who still have questions about their faith.",
@@ -80,7 +80,7 @@
 		{
 			"images":[{
 				"width":500,
-				"url":"https://app.secc.org/GetImage.ashx?Guid=358390c5-684d-4667-9c8f-917b6a7dd475"
+				"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx?Guid=358390c5-684d-4667-9c8f-917b6a7dd475"
 			}],
 			"title": "Prayer",
 			"subtitle": "Our vision is to be a praying church who reaches out and challenges everyone to follow Jesus completely.",

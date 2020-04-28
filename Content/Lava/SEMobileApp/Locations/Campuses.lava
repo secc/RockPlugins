@@ -37,12 +37,12 @@
 	        {
 				"images":[
 				    {"width": 668,
-					"url":"https://app.secc.org/webhooks/ImageGenerator.ashx/location/{{campus.Guid}}?bgcolor=121212&mode=crop&s.roundcorners=10"}
+					"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/location/{{campus.Guid}}?bgcolor=121212&mode=crop&s.roundcorners=10"}
 					],
 				"title":"{{campus.Name}}",
 				"actions": [{
 					"handler": "list",
-					"url": "https://app.secc.org/webhooks/SubSplash.ashx/campus/{{campus.Id}}"
+					"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/campus/{{campus.Id}}"
 				}]
 			}{%- if forloop.last -%}{%- else -%},{%- endif -%}
           {% endfor %}

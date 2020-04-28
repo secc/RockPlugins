@@ -45,7 +45,7 @@
 			"title": "{{item.Title | Replace:'"','\"'}}",
 			"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
             "images":[
-				{ "width":772, "url":"https://app.secc.org/webhooks/ImageGenerator.ashx/give?bgcolor=121314&crop=(0,{{ interY1 }},1544,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+				{ "width":772, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/give?bgcolor=121314&crop=(0,{{ interY1 }},1544,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 			],
 			"actions": [{
 				"handler": "externalBrowser",

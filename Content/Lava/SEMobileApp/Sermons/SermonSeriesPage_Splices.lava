@@ -46,42 +46,42 @@
 				"title": "{{item.Title | Replace:'"','\"'}}",
 				"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
 	            "images":[
-				    { "width":400, "url":"https://app.secc.org/GetImage.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=400&height=75&mode=crop&s.roundcorners=80,80,0,0&bgcolor=121212&format=png&margin=40,75,40,0&anchor=topcenter"  }
+				    { "width":400, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=400&height=75&mode=crop&s.roundcorners=80,80,0,0&bgcolor=121212&format=png&margin=40,75,40,0&anchor=topcenter"  }
 			    ],
 				"actions": [{
 					"handler": "subtabs",
             		"type": "navigation",
-					"url": "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
+					"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
 				}]
 			},
 			{
 	            "images":[
-				    { "width":400, "url":"https://app.secc.org/GetImage.ashx/7{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=400&height=150&mode=crop&s.roundcorners=0,0,0,0&bgcolor=121212&format=png&margin=40,0,40,0&anchor=bottomcenter"  }
+				    { "width":400, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/7{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=400&height=150&mode=crop&s.roundcorners=0,0,0,0&bgcolor=121212&format=png&margin=40,0,40,0&anchor=bottomcenter"  }
 			    ],
 				"actions": [{
 					"handler": "subtabs",
             		"type": "navigation",
-					"url": "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
+					"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
 				}]
 			},
 			{
 	            "images":[
-				    { "width":480, "url":"https://app.secc.org/Content/SubSplash/ContentPart1.jpg"  }
+				    { "width":480, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Content/SubSplash/ContentPart1.jpg"  }
 			    ],
 				"actions": [{
 					"handler": "subtabs",
             		"type": "navigation",
-					"url": "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
+					"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
 				}]
 			},
 			{
 	            "images":[
-				    { "width":480, "url":"https://app.secc.org/Content/SubSplash/ContentPart2.jpg"  }
+				    { "width":480, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Content/SubSplash/ContentPart2.jpg"  }
 			    ],
 				"actions": [{
 					"handler": "subtabs",
             		"type": "navigation",
-					"url": "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
+					"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
 				}]
 			}
 	        {%- endfor -%}

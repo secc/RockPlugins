@@ -10,14 +10,14 @@
             "title": "Sermons",
             "actions": [{
 				"handler": "list",
-				"url": "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}"
+				"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/sermons/series/{{series.Id}}"
 			}]
         },
         {
             "title": "Resources",
             "actions": [{
                 "handler": "list",
-                "url": "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}/resources"
+                "url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/sermons/series/{{series.Id}}/resources"
             }]
         }
         {%- else -%}
@@ -25,14 +25,14 @@
             "title": "Resources",
             "actions": [{
                 "handler": "list",
-                "url": "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}/resources"
+                "url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/sermons/series/{{series.Id}}/resources"
             }]
         },
         {
             "title": "Sermons",
             "actions": [{
 				"handler": "list",
-				"url": "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}"
+				"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/sermons/series/{{series.Id}}"
 			}]
         }
         {%- endif -%}
