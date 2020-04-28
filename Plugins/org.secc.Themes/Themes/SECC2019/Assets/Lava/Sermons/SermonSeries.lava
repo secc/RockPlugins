@@ -115,10 +115,10 @@
 									{%- assign endDateTime = message.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
 									{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
 										{%- if message.ContentChannelId == "23" -%}
-											{%- if firstSermon == "" -%}
-												{%- assign firstSermon = message -%}
+											{%- if lastSermon == "" -%}
+												{%- assign lastSermon = message -%}
 											{%- endif -%}
-											{%- assign lastSermon = message -%}
+											{%- assign firstSermon = message -%}
 											{%- assign sermonsCount = sermonsCount | Plus:1 -%}
 										{%- endif -%}
 									{%- endif -%}

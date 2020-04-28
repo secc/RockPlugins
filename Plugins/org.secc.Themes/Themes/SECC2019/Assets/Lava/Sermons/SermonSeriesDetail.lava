@@ -10,7 +10,9 @@
         {%- assign startDateTime = itemSlug.ContentChannelItem.StartDateTime | Date:'yyyyMMddHHmmss' -%}
         {%- assign endDateTime = itemSlug.ContentChannelItem.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
         {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
-            {%- assign series = itemSlug.ContentChannelItem -%}
+			{%- contentchannelitem id:'{{ itemSlug.ContentChannelItemId }}' -%}
+				{%- assign series = contentchannelitem -%}
+			{%- endcontentchannelitem %}
             {%- break -%}
         {%- endif -%}
     {%- endfor -%}
