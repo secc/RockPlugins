@@ -53,80 +53,95 @@
 	}
 </style>
 
-{% assign currentSeries = Items | First %}
-{% assign currentSeriesImageGuid = currentSeries | Attribute:'Image','RawValue' %}
+{%- assign currentSeries = Items | First -%}
+{%- assign currentSeriesImageGuid = currentSeries | Attribute:'Image','RawValue' -%}
 
 <div class="container-fluid g-padding-y-40--xs">
 
 	<div class="container">
 		<div class="isotope_wrap margin-t-lg series-list">
+			{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
 
-			{% for item in Items -%}
-			{% assign seriesImage = item | Attribute:'Image' -%}
-			{% assign seriesImageGuid = item | Attribute:'Image','RawValue' -%}
+			{%- for item in Items -%}
+			{%- assign seriesImage = item | Attribute:'Image' -%}
+			{%- assign seriesImageGuid = item | Attribute:'Image','RawValue' -%}
+
+			{%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+	        {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+			{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
 			<div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
 
 					<div class="card">
 						<a href="/sermons/{{ item.PrimarySlug }}">
-						{% if seriesImage != empty -%}
+						{%- if seriesImage != empty -%}
 							<!-- Image -->
 							<div class="img-hover">
 								<img src="/GetImage.ashx?Guid={{ seriesImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
 							</div>
-						{% else -%}
+						{%- else -%}
 
 							<!-- Grab Sermon Image -->
-							{% for child in item.ChildItems -%}
-								{% assign seriesImage = child.ChildContentChannelItem | Attribute:'Image' -%}
-								{% assign seriesImageGuid = child.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
-								{% if seriesImage != empty -%}
+							{%- for child in item.ChildItems -%}
+								{%- assign seriesImage = child.ChildContentChannelItem | Attribute:'Image' -%}
+								{%- assign seriesImageGuid = child.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
+								{%- if seriesImage != empty -%}
 									<!-- Image -->
 									<div class="img-hover">
 										<img src="/GetImage.ashx?Guid={{ seriesImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
 									</div>
-									{% break -%}
-								{% endif %}
-							{% endfor -%}
+									{%- break -%}
+								{%- endif -%}
+							{%- endfor -%}
 
-						{% endif -%}
+						{%- endif -%}
 						</a>
 						<div class="g-padding-x-30--xs g-padding-y-40--xs g-margin-b-40--xs">
 							<h5 class="g-font-family--secondary g-padding-b-20--xs">{{ item.Title }}</h5>
-							{% if item.Content != empty -%}
-							{% comment %}
+							{%- if item.Content != empty -%}
+							{%- comment -%}
 							<p class="">
 								{{ item.Content }}
 							</p>
-							{% endcomment %}
-							{% endif -%}
+							{%- endcomment -%}
+							{%- endif -%}
 							<h6 class="g-line-height--normal">
-								{% assign lastSermon = item.ChildItems | Last %}
-								{% assign sermonsCount = 0 %}
-								{% assign itemChildItems = item.ChildItems | Sort:'Order' %}
+								{%- assign sermonsCount = 0 -%}
+								{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
+								{%- assign firstSermon = "" -%}
+								{%- assign lastSermon = "" -%}
 								{%- for messages in itemChildItems -%}
-									{% assign message = messages.ChildContentChannelItem %}
-									{% if message.ContentChannelId == "23" %}
-										{%- assign sermonsCount = sermonsCount | Plus:1 -%}
+									{%- assign message = messages.ChildContentChannelItem -%}
+									{%- assign startDateTime = message.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+									{%- assign endDateTime = message.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+									{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+										{%- if message.ContentChannelId == "23" -%}
+											{%- if firstSermon == "" -%}
+												{%- assign firstSermon = message -%}
+											{%- endif -%}
+											{%- assign lastSermon = message -%}
+											{%- assign sermonsCount = sermonsCount | Plus:1 -%}
+										{%- endif -%}
 									{%- endif -%}
 								{%- endfor -%}
-								{% if sermonsCount > 1 -%}
-								{{ item.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yyyy' }}
+								{%- if sermonsCount > 1 -%}
+								{{ firstSermon.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.StartDateTime | Date:'MMM dd, yyyy' }}
 								<br />
 								SERMONS: {{ sermonsCount }}
-								{% else -%}
-									{% if sermonsCount == 1 -%}
+								{%- else -%}
+									{%- if sermonsCount == 1 -%}
 										{{ item.StartDateTime | Date:'MMM dd, yyyy' }}
 										<br />
 										SERMONS: {{ sermonsCount }}
-									{% else -%}
+									{%- else -%}
 										SERMONS COMING SOON
-									{% endif -%}
-								{% endif -%}
+									{%- endif -%}
+								{%- endif -%}
 							</h6>
 						</div>
 					</div>
 			</div>
-			{% endfor -%}
+			{%- endif -%}
+			{%- endfor -%}
 
 		</div>
 
