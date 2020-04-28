@@ -1,5 +1,6 @@
-{%- cache key:'subsplash-tvapp-series-{{series}}' duration:'3600' -%}
+{%- cache key:'subsplash-tvapp-series-{{series}}' duration:'0' -%}
 {%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
+{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
 {%- for series in contentchannelitemItems -%}
 {%- assign seriesImageGuid = sermon | Attribute:'Image', 'RawValue' -%}
 {%- unless seriesImageGuid == empty -%}
@@ -26,21 +27,25 @@
         {%- assign comma = "" -%}
         {%- for seriesChild in series.ChildItems -%}
         {%- assign sermon = seriesChild.ChildContentChannelItem -%}
-        {%- if sermon.ContentChannelId == "23" -%}
-        {{ comma }}
-        {
-            "images":[
-				{ "width":308, "url":"https://www.southeastchristian.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=308" }
-            ],
-			"title": "{{sermon.Title | Replace:'"','\"'}}",
-			"subtitle": "{{ sermon.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
-			"actions": [{
-				"handler": "detail",
-				"url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/sermon/{{sermon.Id}}"
-			}]
-		}
-        {%- assign comma = "," -%}
-        {%- endif -%}
+		{%- assign startDateTime = sermon.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+		{%- assign endDateTime = sermon.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+		{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+	        {%- if sermon.ContentChannelId == "23" -%}
+	        {{ comma }}
+	        {
+	            "images":[
+					{ "width":308, "url":"https://www.southeastchristian.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=308" }
+	            ],
+				"title": "{{sermon.Title | Replace:'"','\"'}}",
+				"subtitle": "{{ sermon.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+				"actions": [{
+					"handler": "detail",
+					"url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/sermon/{{sermon.Id}}"
+				}]
+			}
+	        {%- assign comma = "," -%}
+	        {%- endif -%}
+		{%- endif %}
         {%- endfor -%}
     ]
 }

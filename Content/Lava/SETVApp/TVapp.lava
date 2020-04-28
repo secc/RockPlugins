@@ -2,6 +2,7 @@
 {
     {% contentchannelitem where:'ContentChannelId == 74' sort:'Order' %}
     {%- assign itemCount = contentchannelitemItems | Size -%}
+    {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
     {%- if itemCount > 0 -%}
     "header": {
         "title":"Home",
@@ -11,7 +12,6 @@
             {%- assign num = 0 -%}
             {%- assign comma = "" -%}
             {% for item in contentchannelitemItems %}
-                {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
                 {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
                 {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
                 {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
@@ -99,7 +99,11 @@
 
 {%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' offset:'{{offset}}' limit:'120'  -%}
 	"items": [
+        {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
         {%- for item in contentchannelitemItems -%}
+        {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+        {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+		{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
         {% unless forloop.first %},{% endunless %}
         {
             "images":[
@@ -129,6 +133,7 @@
 				"url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/series/{{item.Id}}"
 			}]
 		}
+        {%- endif -%}
         {%- endfor -%}
     ]
 {% endcontentchannelitem -%}
