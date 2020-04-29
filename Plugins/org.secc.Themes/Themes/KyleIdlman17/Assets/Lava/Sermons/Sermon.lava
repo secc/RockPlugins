@@ -1,110 +1,156 @@
 {% assign slug = 'Global' | PageParameter:'Slug' %}
 {% assign sermonSelected = 'Global' | PageParameter:'SermonSlug' %}
+{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
 
 {% contentchannelitemslug where:'Slug=="{{slug}}"' -%}
 {% for itemSlug in contentchannelitemslugItems -%}
-	{% assign item = itemSlug.ContentChannelItem %}
-	{% break %}
+	{%- assign startDateTime = itemSlug.ContentChannelItem.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+	{%- assign endDateTime = itemSlug.ContentChannelItem.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+	{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+		{%- contentchannelitem id:'{{ itemSlug.ContentChannelItemId }}' -%}
+			{% assign item = contentchannelitem %}
+		{%- endcontentchannelitem %}
+		{%- break -%}
+	{%- endif -%}
 {% endfor -%}
 {% endcontentchannelitemslug -%}
 
+{%- if item -%}
+	{% if sermonSelected != "" %}
+		{% comment %}
+		SERMON SELECTED:
+		The Lava Code below grabs the correct sermon based on the URL paramter
+		{% endcomment %}
+		{% for childItem in item.ChildItems %}
+			{% assign message = childItem.ChildContentChannelItem %}
+			{%- assign speaker = message | Attribute:'Speaker' | Escape -%}
+			{%- assign startDateTime = message.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+            {%- assign endDateTime = message.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+			{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+				{% if speaker contains "Idleman" %}
+					{% if message.PrimarySlug != "" -%}
+						{% if sermonSelected == message.PrimarySlug -%}
+							{% assign currentMessage = childItem %}
+						{% endif -%}
+					{% endif -%}
+				{% endif %}
+			{% endif %}
+		{% endfor %}
+	{% else %}
+		{% comment %}
+		NO SERMON SELECTED:
+		The Lava Code below checks for the closest sermon message to this day – IF a slug isn't defined.
+		{% endcomment %}
+		{% for childItem in item.ChildItems %}
+			{% assign message = childItem.ChildContentChannelItem %}
+			{%- assign speaker = message | Attribute:'Speaker' | Escape -%}
+			{%- assign startDateTime = message.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+            {%- assign endDateTime = message.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+			{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+				{% if speaker contains "Idleman" %}
+					{% assign currentMessage = childItem %}
+				{% endif %}
+			{% endif %}
+		{% endfor %}
+	{% endif %}
 
-{% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
-{% assign currentMessage = item.ChildItems | Sort:'Order' | First %}
+	{% assign seriesImageGuid = item | Attribute:'SeriesImage','RawValue' %}
+	{% assign SermonSeries = item %}
+	{% assign currentMessageVideoId = currentMessage.ChildContentChannelItem | Attribute:'VimeoId' %}
 
-{% if sermonSelected != "" %}
-	{% comment %}
-	SERMON SELECTED:
-	The Lava Code below grabs the correct sermon based on the URL paramter
-	{% endcomment %}
-	{% for childItem in item.ChildItems %}
-		{% if childItem.ChildContentChannelItem.PrimarySlug != "" -%}
-			{% if sermonSelected == childItem.ChildContentChannelItem.PrimarySlug -%}
-				{% assign currentMessage = childItem %}
-			{% endif -%}
-		{% endif -%}
-	{% endfor %}
+	{%- if currentMessage != null -%}
+	<div class="centered-wrapper" style="padding-top: 5px">
+		<section class="percent-page no-sidebar">
+			<header id="sermon-header" class="page-title-subtitle">
+				<h1 class="portfolio-title float-left">{{ currentMessage.ChildContentChannelItem.Title }}</h1>
+				<div class="section-tagline float-left series-details">from the series <u>{{ SermonSeries.Title }}</u></div>
+			</header>
+			<section id="sermon-detail">
+
+				<div id="video-container">
+					<div class="sermon-wrapper">
+						{%- unless currentMessageVideoId == empty -%}
+						<iframe class="sermon-video" width="500" height="281" src="https://player.vimeo.com/video/{{ currentMessageVideoId }}?title=0&byline=0&portrait=0" frameborder="0" allowfullscreen=""></iframe>
+						{%- endunless -%}
+					</div>
+				</div>
+
+				<aside id="sermon-info float-right">
+					<h3>Sermon Description</h3>
+					{%- if currentMessage.ChildContentChannelItem.Content != empty -%}
+	                <p class="sermon-description">
+	                    {{ currentMessage.ChildContentChannelItem.Content }}
+	                </p>
+	                {%- endif -%}
+
+					<p></p>
+
+					<p class="sermon-date">{{ currentMessage.ChildContentChannelItem.StartDateTime | Date:'MMMM dd, yyyy' }}</p>
+
+
+					<p>
+						{%- assign mediaURL = currentMessage.ChildContentChannelItem | Attribute:'Audio','Path' | Replace:'~/','' -%}
+						{%- unless mediaURL == empty -%}
+						<a href="https://www.secc.org/{{ mediaURL }}">
+							<i class="fa fa-download"></i>&nbsp; Sermon Audio
+						</a>
+						{%- endunless -%}
+						|
+						<a href="https://itunes.apple.com/us/podcast/southeast-christian-church/id287341044?mt=2">
+							iTunes Podcast
+						</a>
+					</p>
+
+					<div style="clear:both">
+						{% comment %}
+						************ SERIES - The rest of the Sermons ************
+						{% endcomment %}
+						<h2>More from this series</h2>
+						<ul id="more-sermons" class="customlist">
+							{% assign itemChildItems = item.ChildItems | Sort:'Order' %}
+							{% for messages in itemChildItems %}
+								{% assign message = messages.ChildContentChannelItem %}
+								{%- assign speaker = message | Attribute:'Speaker' | Escape -%}
+								{%- assign startDateTime = message.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+					            {%- assign endDateTime = message.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+								{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+									{% if speaker contains "Idleman" and message.Id != currentMessage.ChildContentChannelItem.Id  %}
+										<li>
+											<i class="fa fa-caret-right"></i>
+											<a href="/sermons/{{ item.PrimarySlug }}/{{ message.PrimarySlug }}">{{ message.Title }}</a>
+										</li>
+									{% endif %}
+								{% endif %}
+				            {% endfor %}
+						</ul>
+					</div>
+				</aside>
+			</section>
+		</section>
+	</div>
+	{%- else -%}
+	<div class="centered-wrapper" style="padding-top: 5px">
+		<section class="percent-page no-sidebar">
+			<header id="sermon-header" class="page-title-subtitle text-center">
+				<h1 class="portfolio-title float-left">Sermon Unavailable.</h1>
+				<div class="section-tagline float-left series-details">Please try again by looking at our <a href="/sermons/{{ item.PrimarySlug }}"><strong><i>{{ item.Title }}</i></strong></a> sermons.</div>
+			</header>
+			<section id="sermon-detail text-center">
+				<h5>"For the Son of Man came to seek and to save the lost." Luke 19:10</h5>
+			</section>
+		</section>
+	</div>
+	{%- endif-%}
 {% else %}
-	{% comment %}
-	NO SERMON SELECTED:
-	The Lava Code below checks for the closest sermon message to this day – IF a slug isn't defined.
-	{% endcomment %}
-	{% for childItem in item.ChildItems %}
-		{% if slug != "" -%}
-			{% if slug == childItem.ChildContentChannelItem.PrimarySlug -%}
-			{% assign currentMessage = childItem %}
-			{% endif -%}
-		{% endif -%}
-	{% endfor %}
-{% endif %}
-
-
-{% assign seriesImageGuid = item | Attribute:'SeriesImage','RawValue' %}
-{% assign SermonSeries = item %}
-{% assign currentMessageVideoId = currentMessage.ChildContentChannelItem | Attribute:'VimeoId' %}
-
 <div class="centered-wrapper" style="padding-top: 5px">
 	<section class="percent-page no-sidebar">
-		<header id="sermon-header" class="page-title-subtitle">
-			<h1 class="portfolio-title float-left">{{ currentMessage.ChildContentChannelItem.Title }}</h1>
-			<div class="section-tagline float-left series-details">from the series <u>{{ SermonSeries.Title }}</u></div>
+		<header id="sermon-header" class="page-title-subtitle text-center">
+			<h1 class="portfolio-title float-left">Could not find series.</h1>
+			<div class="section-tagline float-left series-details">Please try again by looking under <a href="https://www.kyleidleman.com/sermons"><i>Sermons</i>.</a></div>
 		</header>
-		<section id="sermon-detail">
-
-			<div id="video-container">
-				<div class="sermon-wrapper">
-					{%- unless currentMessageVideoId == empty -%}
-					<iframe class="sermon-video" width="500" height="281" src="https://player.vimeo.com/video/{{ currentMessageVideoId }}?title=0&byline=0&portrait=0" frameborder="0" allowfullscreen=""></iframe>
-					{%- endunless -%}
-				</div>
-			</div>
-
-			<aside id="sermon-info float-right">
-				<h3>Sermon Description</h3>
-				{%- if currentMessage.ChildContentChannelItem.Content != empty -%}
-                <p class="sermon-description">
-                    {{ currentMessage.ChildContentChannelItem.Content }}
-                </p>
-                {%- endif -%}
-
-				<p></p>
-
-				<p class="sermon-date">{{ currentMessage.ChildContentChannelItem.StartDateTime | Date:'MMMM dd, yyyy' }}</p>
-
-
-				<p>
-					{%- assign mediaURL = currentMessage.ChildContentChannelItem | Attribute:'Audio','Path' | Replace:'~/','' -%}
-					{%- unless mediaURL == empty -%}
-					<a href="https://www.secc.org/{{ mediaURL }}">
-						<i class="fa fa-download"></i>&nbsp; Sermon Audio
-					</a>
-					{%- endunless -%}
-					|
-					<a href="https://itunes.apple.com/us/podcast/southeast-christian-church/id287341044?mt=2">
-						iTunes Podcast
-					</a>
-				</p>
-
-				<div style="clear:both">
-					{% comment %}
-					************ SERIES - The rest of the Sermons ************
-					{% endcomment %}
-					<h2>More from this series</h2>
-					<ul id="more-sermons" class="customlist">
-						{% assign itemChildItems = item.ChildItems | Sort:'Order' %}
-						{% for messages in itemChildItems %}
-							{% assign message = messages.ChildContentChannelItem %}
-							{%- assign speaker = message | Attribute:'Speaker' | Escape -%}
-							{% if speaker contains "Idleman" and message.Id != currentMessage.ChildContentChannelItem.Id  %}
-								<li>
-									<i class="fa fa-caret-right"></i>
-									<a href="/sermons/{{ item.PrimarySlug }}/{{ message.PrimarySlug }}">{{ message.Title }}</a>
-								</li>
-							{% endif %}
-			            {% endfor %}
-					</ul>
-				</div>
-			</aside>
+		<section id="sermon-detail text-center">
+			<h5>"For the Son of Man came to seek and to save the lost." Luke 19:10</h5>
 		</section>
 	</section>
 </div>
+{% endif %}
