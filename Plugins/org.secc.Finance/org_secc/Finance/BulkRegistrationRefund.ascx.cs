@@ -199,6 +199,7 @@ namespace RockWeb.Plugins.org_secc.Finance
                             SystemEmail systemEmail = systemEmailService.Get( ddlSystemEmail.SelectedValueAsInt().Value );
                             
                             var emailMessage = new RockEmailMessage( systemEmail );
+                            emailMessage.AdditionalMergeFields = mergeFields;
                             emailMessage.AddRecipient( new RecipientData( registration.ConfirmationEmail, mergeFields ) );
                             emailMessage.CreateCommunicationRecord = true;
                             emailMessage.Send();
