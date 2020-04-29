@@ -34,70 +34,75 @@
         <itunes:category text="Religion &amp; Spirituality">
             <itunes:category text="Christianity"></itunes:category>
         </itunes:category>
+        {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
         {%- for item in Items -%}
-            {%- capture echoJSON -%}
-                [
-                {%- for echoMessage in item.ChildItems -%}
-                    {
-                        "MediaUrl":"{{echoMessage.ChildContentChannelItem | Attribute:'Audio','Path' | Replace:'~/',''}}",
-                        "MediaGuid":"{{echoMessage.ChildContentChannelItem | Attribute:'Audio','RawValue'}}",
-                        "StartDateTime":"{{echoMessage.ChildContentChannelItem.StartDateTime | Date: 'yyyyMMddHHmmss'}}",
-                        "Item":{{ echoMessage.ChildContentChannelItem | ToJSON }}
-                    },
-                {%- endfor -%}
-                ]
-            {%- endcapture -%}
-            {%- assign echoMessages = echoJSON | FromJSON | Sort:'StartDateTime', 'desc' -%}
-            {%- for echoMessage in echoMessages -%}
-                {%- assign now = 'Now' | Date:'yyyyMMddHHmmss' -%}
-                {%- if now > echoMessage.StartDateTime -%}
-                <item>
-                    <title>{{ echoMessage.Item.Title | Escape }}</title>
-                    <secc:title>{{ echoMessage.Item.Title | Escape }}</secc:title>
-                    <description>{{ echoMessage.Item.Title | Escape }}</description>
-                    <link>{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ echoMessage.MediaUrl }}</link>
-                    <enclosure url="{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ echoMessage.MediaUrl }}" length="{{ size }}" type="audio/mpeg"></enclosure>
-                    <guid>{{ echoMessage.MediaGuid }}</guid>
-                    <pubDate>{{ echoMessage.Item.StartDateTime | Date:'ddd, dd MMM yyyy' }} EST</pubDate>
-                    <copyright>{{ echoMessage.Item.StartDateTime | Date:'yyyy' }}</copyright>
-                    <itunes:keywords>sermon</itunes:keywords>
-                    <itunes:explicit>No</itunes:explicit>
-                    <itunes:summary>{{ echoMessage.Item.Title | Escape }}</itunes:summary>
-                    <itunes:author>Southeast Christian Church</itunes:author>
-                </item>
-                {%- endif -%}
-            {%- endfor - %}
-            {%- assign mediaURL = item | Attribute:'Audio','Path' | Replace:'~/','' -%}
-            {%- assign mediaGuid = item | Attribute:'Audio','RawValue' -%}
             {%- assign parent = item | Property:'ParentItems' | First  | Property:'ContentChannelItem' -%}
-            {%- assign expireDays = 'Now' | DateDiff: parent.ExpireDateTime, 'd' -%}
-                {%- assign size = item | Attribute:'AudioFileSize' -%}
-                {%- assign duration = item | Attribute:'Duration' -%}
-                {%- assign summary = item.Content | StripHTML | Escape -%}
-                {%- assign speaker = item | Attribute:'Speaker' | Escape -%}
-                {%- assign pubdate = item.StartDateTime | Date:'ddd, dd MMM yyyy 11:00:00' -%}
-                {%- assign vimeoId = item | Attribute:'VimeoId' -%}
-                {%- unless mediaURL == empty -%}
-                <item>
-                    <title>{{ parent.Title | Escape }}: {{ item.Title | Escape }}</title>
-                    <secc:title>{{ item.Title | Escape }}</secc:title>
-                    <description>{{ summary }} Speaker: {{ speaker }}</description>
-                    <link>{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}</link>
-                    <enclosure url="{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}" length="{{ size }}" type="audio/mpeg"></enclosure>
-                    <guid>{{ mediaGuid }}</guid>
-                    <pubDate>{{ pubdate }} EST</pubDate>
-                    <copyright>{{ pubdate | Date:'yyyy' }}</copyright>
-                    <itunes:subtitle>{{ summary }}</itunes:subtitle>
-                    <itunes:summary>{{ summary }} Speaker: {{ speaker }}</itunes:summary>
-                    <itunes:duration>{{ duration }}</itunes:duration>
-                    <itunes:keywords>sermon</itunes:keywords>
-                    <itunes:author>{{ speaker }}</itunes:author>
-                    <itunes:image href="{{ imageURL }}"></itunes:image>
-                    <itunes:explicit>No</itunes:explicit>
-                    <secc:vimeo>{{ vimeoId }}</secc:vimeo>
-                    <secc:series>{{ parent.Title | Escape }}</secc:series>
-                </item>
-                {%- endunless -%}
+            {%- assign startDateTime = parent.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+	        {%- assign endDateTime = parent.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+			{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+                {%- capture echoJSON -%}
+                    [
+                    {%- for echoMessage in item.ChildItems -%}
+                        {
+                            "MediaUrl":"{{echoMessage.ChildContentChannelItem | Attribute:'Audio','Path' | Replace:'~/',''}}",
+                            "MediaGuid":"{{echoMessage.ChildContentChannelItem | Attribute:'Audio','RawValue'}}",
+                            "StartDateTime":"{{echoMessage.ChildContentChannelItem.StartDateTime | Date: 'yyyyMMddHHmmss'}}",
+                            "Item":{{ echoMessage.ChildContentChannelItem | ToJSON }}
+                        },
+                    {%- endfor -%}
+                    ]
+                {%- endcapture -%}
+                {%- assign echoMessages = echoJSON | FromJSON | Sort:'StartDateTime', 'desc' -%}
+                {%- for echoMessage in echoMessages -%}
+                    {%- assign now = 'Now' | Date:'yyyyMMddHHmmss' -%}
+                    {%- if now > echoMessage.StartDateTime -%}
+                    <item>
+                        <title>{{ echoMessage.Item.Title | Escape }}</title>
+                        <secc:title>{{ echoMessage.Item.Title | Escape }}</secc:title>
+                        <description>{{ echoMessage.Item.Title | Escape }}</description>
+                        <link>{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ echoMessage.MediaUrl }}</link>
+                        <enclosure url="{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ echoMessage.MediaUrl }}" length="{{ size }}" type="audio/mpeg"></enclosure>
+                        <guid>{{ echoMessage.MediaGuid }}</guid>
+                        <pubDate>{{ echoMessage.Item.StartDateTime | Date:'ddd, dd MMM yyyy' }} EST</pubDate>
+                        <copyright>{{ echoMessage.Item.StartDateTime | Date:'yyyy' }}</copyright>
+                        <itunes:keywords>sermon</itunes:keywords>
+                        <itunes:explicit>No</itunes:explicit>
+                        <itunes:summary>{{ echoMessage.Item.Title | Escape }}</itunes:summary>
+                        <itunes:author>Southeast Christian Church</itunes:author>
+                    </item>
+                    {%- endif -%}
+                {%- endfor - %}
+                {%- assign mediaURL = item | Attribute:'Audio','Path' | Replace:'~/','' -%}
+                {%- assign mediaGuid = item | Attribute:'Audio','RawValue' -%}
+                {%- assign expireDays = 'Now' | DateDiff: parent.ExpireDateTime, 'd' -%}
+                    {%- assign size = item | Attribute:'AudioFileSize' -%}
+                    {%- assign duration = item | Attribute:'Duration' -%}
+                    {%- assign summary = item.Content | StripHTML | Escape -%}
+                    {%- assign speaker = item | Attribute:'Speaker' | Escape -%}
+                    {%- assign pubdate = item.StartDateTime | Date:'ddd, dd MMM yyyy 11:00:00' -%}
+                    {%- assign vimeoId = item | Attribute:'VimeoId' -%}
+                    {%- unless mediaURL == empty -%}
+                    <item>
+                        <title>{{ parent.Title | Escape }}: {{ item.Title | Escape }}</title>
+                        <secc:title>{{ item.Title | Escape }}</secc:title>
+                        <description>{{ summary }} Speaker: {{ speaker }}</description>
+                        <link>{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}</link>
+                        <enclosure url="{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}" length="{{ size }}" type="audio/mpeg"></enclosure>
+                        <guid>{{ mediaGuid }}</guid>
+                        <pubDate>{{ pubdate }} EST</pubDate>
+                        <copyright>{{ pubdate | Date:'yyyy' }}</copyright>
+                        <itunes:subtitle>{{ summary }}</itunes:subtitle>
+                        <itunes:summary>{{ summary }} Speaker: {{ speaker }}</itunes:summary>
+                        <itunes:duration>{{ duration }}</itunes:duration>
+                        <itunes:keywords>sermon</itunes:keywords>
+                        <itunes:author>{{ speaker }}</itunes:author>
+                        <itunes:image href="{{ imageURL }}"></itunes:image>
+                        <itunes:explicit>No</itunes:explicit>
+                        <secc:vimeo>{{ vimeoId }}</secc:vimeo>
+                        <secc:series>{{ parent.Title | Escape }}</secc:series>
+                    </item>
+                    {%- endunless -%}
+                {%- endif -%}
         {%- endfor -%}
     </channel>
 </rss>
