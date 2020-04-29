@@ -1,3 +1,4 @@
+<div class="container g-padding-t-50--xs g-padding-b-150--xs">
 {% assign storySlug = 'Global' | PageParameter:'Slug'  %}
 
 {% cache key:'story-content-{{storySlug}}' duration:'3600' twopass:'true' %}
@@ -34,6 +35,8 @@
 {{ '{% assign ImageFile = "' | Append:ImageFile | Append: '" ' | Append: endPercetageBracketRaw }}
 {{ '{% assign ImageGuid = "' | Append:ImageGuid | Append: '" ' | Append: endPercetageBracketRaw }}
 {{ '{% assign facebookTitle = "' | Append:item.Title | Append: '" ' | Append: endPercetageBracketRaw }}
+{{ '{% assign itemGuid = "' | Append:item.Guid | Append: '" ' | Append: endPercetageBracketRaw }}
+
 {% comment %}
    Shortcodes within a shortcode will run twice even with caching, so as a
    fix, we needed to wrap the shortcode with a caputure tag, url encode it, and then wrap again
@@ -43,11 +46,7 @@
 
 {[ wow animate:'fadeIn' ]}
 <article class="post_item {{ PostLayout }}">
-    {% raw %}
-        {% capture socialshareCaptured %}%7B%5B%20socialshare%20facebookimage%3A%27https%3A%2F%2F%7B%7B-%20%27Global%27%20%7C%20Page%3A%27Host%27%20-%7D%7D%2FGetImage.ashx%2F%7B%7B-%20ImageFile%20-%7D%7D%3FGuid%3D%7B%7B-%20ImageGuid%20-%7D%7D%27%20facebooktitle%3A%27%7B%7B-%20facebookTitle%20-%7D%7D%27%20%5D%7D{% endcapture %}
-    {% endraw %}
-
-	{% if PostLayout contains "post_video"%}
+    {% if PostLayout contains "post_video"%}
         {% comment %}
         ********************************************************************************************
         ********************************************************************************************
@@ -64,7 +63,7 @@
 		<div class="text-center">
 			<p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
             {% raw %}
-            {{ socialshareCaptured | UnescapeDataString }}
+                {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{- ImageGuid -}}' facebooktitle:'{{- facebookTitle -}}' facebookog:'true' sharingguid:'{{- itemGuid -}}' ]}
             {% endraw %}
         </div>
         <hr />
@@ -94,7 +93,7 @@
 			<div class="text-center">
 				<p class="uppercase"><i class="fa fa-share-alt"></i> <strong>Share</strong> this Story:
                 {% raw %}
-                {{ socialshareCaptured | UnescapeDataString }}
+                    {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{- ImageGuid -}}' facebooktitle:'{{- facebookTitle -}}' facebookog:'true' sharingguid:'{{- itemGuid -}}' ]}
                 {% endraw %}
             </div>
             <hr />
@@ -121,3 +120,4 @@
 {[ endwow ]}
 
 {% endcache %}
+</div>
