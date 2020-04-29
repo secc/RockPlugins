@@ -1,5 +1,5 @@
-{% assign slug = 'Global' | PageParameter:'seriesSlug' %}
-{% assign sermonSelected = 'Global' | PageParameter:'sermonSelected' %}
+{% assign slug = 'Global' | PageParameter:'Slug' %}
+{% assign sermonSelected = 'Global' | PageParameter:'SermonSlug' %}
 
 {% contentchannelitemslug where:'Slug=="{{slug}}"' -%}
 {% for itemSlug in contentchannelitemslugItems -%}
@@ -98,7 +98,7 @@
 							{% if speaker contains "Idleman" and message.Id != currentMessage.ChildContentChannelItem.Id  %}
 								<li>
 									<i class="fa fa-caret-right"></i>
-									<a href="/kyle-sermons/{{ item.PrimarySlug }}/{{ message.PrimarySlug }}">{{ message.Title }}</a>
+									<a href="/sermons/{{ item.PrimarySlug }}/{{ message.PrimarySlug }}">{{ message.Title }}</a>
 								</li>
 							{% endif %}
 			            {% endfor %}
