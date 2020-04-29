@@ -2799,6 +2799,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 emailMessage.ReplyToEmail = replyToEmail;
                 emailMessage.FromEmail = fromEmail;
                 emailMessage.FromName = fromName;
+                emailMessage.GetRecipients().Clear();
                 emailMessage.AddRecipient( new RockEmailMessageRecipient( recepient, null) );
                 emailMessage.CreateCommunicationRecord = true;
                 emailMessage.Send();
