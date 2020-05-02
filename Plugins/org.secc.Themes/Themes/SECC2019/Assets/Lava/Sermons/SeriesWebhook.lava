@@ -1,7 +1,11 @@
 {"Series":
     [
         {%- assign itemComma = '' -%}
+        {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
         {%- for item in Items -%}
+            {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+            {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+            {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
             {{itemComma}}
             {
                 "Id": {{item.Id}},
@@ -27,6 +31,7 @@
 			]
             }
             {%- assign itemComma = ',' -%}
+            {%- endif -%}
         {%- endfor -%}
     ]
 }
