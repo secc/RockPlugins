@@ -41,11 +41,12 @@
 	{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
 	{%- contentchannelitem where:'Status == 2 && ContentChannelId == 24' sort:'StartDateTime desc' offset:'{{offset}}' limit:'120'  -%}
 		"items": [
+			{%- assign comma = "" -%}
 	        {%- for item in contentchannelitemItems -%}
 			{%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
             {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
             {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
-		        {% unless forloop.first %},{% endunless %}
+		        {{ comma }}
 				{%- assign itemActionHandler = "list" -%}
 				{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/sermons/series/" | Append:item.Id -%}
 				{%- assign resourcesCount = 0 -%}
@@ -94,6 +95,7 @@
 						"url": "{{- itemActionUrl -}}"
 					}]
 				}
+				{%- assign comma = "," -%}
 			{%- endif -%}
 	        {%- endfor -%}
 	    ]
