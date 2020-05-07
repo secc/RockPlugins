@@ -1,130 +1,405 @@
-{% contentchannelitem where:'ContentChannelId == 24 && Status == 2' sort:'StartDateTime Desc' %}
-{% assign series = "" %}
-{% assign currentMessage = "" %}
-{% for item in contentchannelitemItems %}
-	{% assign itemChildItems = item.ChildItems | Sort:'Order' %}
-	{%- for messages in itemChildItems -%}
-		{% assign message = messages.ChildContentChannelItem %}
-		{% if message.ContentChannelId == "23" %}
-			{% assign series = item %}
-			{% assign currentMessage = message %}
-			{% break %}
-		{%- endif -%}
-	{%- endfor -%}
-	{%- if series != "" -%}
-		{%- break -%}
-	{%- endif -%}
-{% endfor %}
-{% endcontentchannelitem %}
+{%- contentchannelitem where:'ContentChannelId == 79' sort:'Order' -%}
+{%- assign Items = contentchannelitemItems -%}
+{%- endcontentchannelitem -%}
 
-<section>
-    <div class="container">
-        <div class="row g-padding-y-150--xs">
-            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3 event-calendar">
-                <article class="g-margin-x-40--xs g-margin-y-20--xs g-margin-x-20--md card">
-                    <div>
-                        <a class="hover_icon hover_icon_link" href="/resources/podcasts">
-                            <img class="img-responsive g-width-100-percent--xs" alt="{{ item.Title }}" src="/Content/Media/Resources/neil-godding-179009-unsplash.jpg" style="margin: 0 auto">
-                        </a>
-                    </div>
-                    <div class="g-height-150--xs g-position--relative">
-    					<h5 class="g-font-family--secondary g-padding-y-40--xs g-padding-x-40--xs">
-    						<a class="g-letter-spacing--1" href="https://itunes.apple.com/us/podcast/southeast-christian-church/id287341044?mt=2" target="_blank">
-    						    Podcasts
-    						</a>
-                        </h5>
-        			</div>
-                </article>
+<div class="container-fluid g-padding-y-40--xs" style="position: relative; z-index: 20;">
+	<div class="container">
+        <div class="row g-margin-y-50--xs">
+            <div class="col-lg-12 clearfix text-center">
+                <h1 class="g-font-family--secondary g-padding-b-20--xs">Featured Resources</h1>
             </div>
+        </div>
 
-            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3 event-calendar">
-                <article class="g-margin-x-40--xs g-margin-y-20--xs g-margin-x-20--md card">
-                    <div>
-                        <a class="hover_icon hover_icon_link" href="https://accounts.rightnow.org/Account/Invite/secc?returnUrl=https://www.rightnowmedia.org/Account/Media/InviteReturn" target="_blank">
-                            <img class="img-responsive g-width-100-percent--xs" src="/Content/Media/Resources/SE_Rightnow_Media_promo_full_page_outlook_ad.jpg" style="margin: 0 auto">
-                        </a>
-                    </div>
-                    <div class="g-height-150--xs g-position--relative">
-    					<h5 class="g-font-family--secondary g-padding-y-40--xs g-padding-x-40--xs">
-    						<a class="g-letter-spacing--1" href="https://accounts.rightnow.org/Account/Invite/secc?returnUrl=https://www.rightnowmedia.org/Account/Media/InviteReturn" target="_blank">
-    						    RightNow Media
-    						</a>
-                        </h5>
-        			</div>
-                </article>
-            </div>
+		<div class="row">
+			{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+			{%- for item in Items -%}
+				{%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+				{%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+				{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+					{%- assign ritemImage = item | Attribute:'Image' -%}
+					{%- assign ritemImageGuid = item | Attribute:'Image','RawValue' -%}
+					{%- assign rCategories = item | Attribute:'Categories','RawValue' | Split: ',' -%}
+			        {%- assign rTemplate = item | Attribute:'Template' -%}
+					{%- assign rUrl = item | Attribute:'ResourceURL','RawValue' -%}
+					{%- assign rExternal = item | Attribute:'externalBoolean' -%}
+					{%- assign rFeatured = item | Attribute:'Featured' -%}
+					{%- if rFeatured == "Yes" -%}
+						{%- if rTemplate == "General Card" -%}
+							{% comment %}
+							This is for the general resources template with internal or external links
+							{% endcomment %}
+							<div class="col-lg-4 col-md-6 col-sm-6 event-calendar">
+								<div class="card">
+									{%- if rExternal == "Yes" -%}
+									<a href="{{ rUrl }}" target="_blank">
+									{%- else -%}
+									<a href="https://{{- 'Global' | Page:'Host' -}}{{ rUrl }}">
+									{%- endif -%}
+									{%- if ritemImage != empty -%}
+										<!-- Image -->
+										<div class="img-hover">
+											<img src="/GetImage.ashx?Guid={{ ritemImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
+										</div>
+									{%- endif -%}
+									</a>
+									<div class="g-padding-x-30--xs g-padding-y-40--xs g-margin-b-40--xs g-height-150--xs g-position--relative">
+										<h5 class="g-font-family--secondary g-padding-b-20--xs">{{ item.Title }}</h5>
+									</div>
+								</div>
+							</div>
+						{%- elseif rTemplate == "Latest Sermons" -%}
+							{% comment %}
+							This is for the latest sermon resources template
+							{% endcomment %}
+							{%- contentchannelitem where:'ContentChannelId == 24 && Status == 2' sort:'StartDateTime Desc' -%}
+							{%- assign series = "" -%}
+							{%- assign currentMessage = "" -%}
+							{%- for item in contentchannelitemItems -%}
+								{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
+								{%- for messages in itemChildItems -%}
+									{%- assign message = messages.ChildContentChannelItem -%}
+									{%- if message.ContentChannelId == "23" -%}
+										{%- assign series = item -%}
+										{%- assign currentMessage = message -%}
+										{%- break -%}
+									{%- endif -%}
+								{%- endfor -%}
+								{%- if series != "" -%}
+									{%- break -%}
+								{%- endif -%}
+							{%- endfor -%}
+							{%- endcontentchannelitem -%}
+							{%- if series -%}
+				                {%- assign seriesImageGuid = series | Attribute:'Image','RawValue' -%}
+								<div class="col-lg-4 col-md-6 col-sm-6 event-calendar">
+									<div class="card">
+										<a href="/sermons/{{ series.PrimarySlug }}">
+											<div class="img-hover">
+												<img src="https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}&format=jpg&mode=crop&width=800&height=591" class="event-image img-responsive" onerror="this.style.display='none'">
+											</div>
+										</a>
+										<div class="g-padding-x-30--xs g-padding-y-40--xs g-margin-b-40--xs g-height-150--xs g-position--relative">
+											<h5 class="g-font-family--secondary g-padding-b-20--xs">{{ item.Title }}</h5>
+										</div>
+									</div>
+								</div>
+							{%- endif -%}
+						{%- endif -%}
+					{%- endif -%}
+				{%- endif -%}
+			{%- endfor -%}
+		</div>
+		<!-- <div class="text-center">
+			<br />
+			<br />
+			<br />
+			<img id="loading-animation" src="/Content/ExternalSite/WebImages/loading.gif" />
+		</div> -->
+	</div>
+</div>
 
-            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3 event-calendar">
-                <article class="g-margin-x-40--xs g-margin-y-20--xs g-margin-x-20--md card">
-                    <div>
-                        <a class="hover_icon hover_icon_link" href="/resources/bible-studies">
-                            <img class="img-responsive g-width-100-percent--xs" src="/Content/Media/Resources/alexander-michl-724529-unsplash.jpg" style="margin: 0 auto">
-                        </a>
-                    </div>
-                    <div class="g-height-150--xs g-position--relative">
-    					<h5 class="g-font-family--secondary g-padding-y-40--xs g-padding-x-40--xs">
-    						<a class="g-letter-spacing--1" href="/resources/bible-studies">
-    						    Bible Studies &amp; Articles
-    						</a>
-                        </h5>
-        			</div>
-                </article>
-            </div>
+<!-- START: Page Sub-Menu -->
+<style>
+.page-menu {
+    height: 22rem;
+}
+.page-menu .page-nav {
+    height: 17rem;
+}
+.page-menu .page-nav li a {
+    text-transform: none;
+    letter-spacing: normal;
+	cursor: pointer;
+}
+.page-menu .page-nav li a:hover {
+    text-decoration: none;
+}
+.page-menu .page-nav li a.active {
+    color: #000;
+}
+.resource-icon {
+    max-width: 100px;
+    width: 100px;
+    position: relative;
+    background-repeat: no-repeat;
+    background-position-x: 50%;
+    background-size: 80px 80px;
+    background-position-y: 50%;
+    display: inline-block;
+    clear: both;
+    height: 80px;
+}
+.resource-icon.podcasts {
+	background-image: url(/Content/Media/Resources/Filters/Podcasts.svg);
+}
+a.button.active .resource-icon.podcasts {
+	background-image: url(/Content/Media/Resources/Filters/Podcasts_Dark.svg);
+}
+.resource-icon.sermons {
+	background-image: url(/Content/Media/Resources/Filters/Sermon%20Resources.svg);
+}
+a.button.active .resource-icon.sermons {
+	background-image: url(/Content/Media/Resources/Filters/Sermon%20Resources_Dark.svg);
+}
+.resource-icon.family {
+	background-image: url(/Content/Media/Resources/Filters/Family.svg);
+}
+a.button.active .resource-icon.family {
+	background-image: url(/Content/Media/Resources/Filters/Family_Dark.svg);
+}
+.resource-icon.studies {
+	background-image: url(/Content/Media/Resources/Filters/Bible_Studies.svg);
+}
+a.button.active .resource-icon.studies {
+	background-image: url(/Content/Media/Resources/Filters/Bible_Studies_Dark.svg);
+}
+.resource-icon.groups {
+	background-image: url(/Content/Media/Resources/Filters/Online%20Groups.svg);
+}
+a.button.active .resource-icon.groups {
+	background-image: url(/Content/Media/Resources/Filters/Online%20Groups_Dark.svg);
+}
+</style>
+<!-- preload "selected" images so it doesn't lag on selection -->
+<img src="/Content/Media/Resources/Filters/Podcasts_Dark.svg" style="display:none;" />
+<img src="/Content/Media/Resources/Filters/Sermon%20Resources_Dark.svg" style="display:none;" />
+<img src="/Content/Media/Resources/Filters/Family_Dark.svg" style="display:none;" />
+<img src="/Content/Media/Resources/Filters/Bible_Studies_Dark.svg" style="display:none;" />
+<img src="/Content/Media/Resources/Filters/Online%20Groups_Dark.svg" style="display:none;" />
 
-            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3 event-calendar">
-                <article class="g-margin-x-40--xs g-margin-y-20--xs g-margin-x-20--md card">
-                    <div>
-                        <a class="hover_icon hover_icon_link" href="/resources/readingplans">
-                            <img class="img-responsive g-width-100-percent--xs" src="/Content/Media/Resources/Reading_Plan.jpg" style="margin: 0 auto">
-                        </a>
-                    </div>
-                    <div class="g-height-150--xs g-position--relative">
-    					<h5 class="g-font-family--secondary g-padding-y-40--xs g-padding-x-40--xs">
-    						<a class="g-letter-spacing--1" href="/resources/readingplans" target="_blank">
-    						    YouVersion Reading Plans
-    						</a>
-                        </h5>
-        			</div>
-                </article>
-            </div>
+<div class="page-menu g-padding-t-60--xs" style="background-color:#ffffff; position: relative; z-index: 19;">
+    <div class="container-fluid text-center" style="padding: 0;">
+        <p>Filter resources by selecting categories</p>
+        <nav class="page-nav text-center">
+			<ul id="resourceCategories" class="list-inline">
+                <li>
+					<a data-filter="Podcasts" class="button">
+						<span class="resource-icon podcasts"></span><br />
+	                    Podcasts
+					</a>
+                </li>
+                <li>
+					<a data-filter="Sermon Resources" class="button">
+						<span class="resource-icon sermons"></span><br />
+						Sermon Resources
+					</a>
+                </li>
+                <li>
+					<a data-filter="Family" class="button">
+						<span class="resource-icon family"></span><br />
+						Family
+					</a>
+                </li>
+                <li>
+					<a data-filter="Bible Studies" class="button">
+						<span class="resource-icon studies"></span><br />
+						Bible Studies
+					</a>
+                </li>
+                <li>
+					<a data-filter="Online Groups" class="button">
+						<span class="resource-icon groups"></span><br />
+                    	Online Groups
+					</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+<!-- END: Page Sub-Menu -->
 
-            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3 event-calendar">
-                <article class="g-margin-x-40--xs g-margin-y-20--xs g-margin-x-20--md card">
-                    <div>
-                        <a class="hover_icon hover_icon_link" href="http://reveal-tv.com/" target="_blank">
-                            <img class="img-responsive g-width-100-percent--xs" src="/Content/Media/Resources/c7f92665-a2eb-42a8-b6f7-6ef65a5f5fd3.jpg" style="margin: 0 auto">
-                        </a>
-                    </div>
-                    <div class="g-height-150--xs g-position--relative">
-    					<h5 class="g-font-family--secondary g-padding-y-40--xs g-padding-x-40--xs">
-    						<a class="g-letter-spacing--1" href="http://reveal-tv.com/" target="_blank">
-    						    Reveal Platform
-    						</a>
-                        </h5>
-        			</div>
-                </article>
-            </div>
+<div class="container-fluid g-padding-t-70--xs"  style="position: relative; z-index: 20;">
+	<div class="container">
+		<div class="isotope_wrap margin-t-lg series-list">
+			{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+			{%- for item in Items -%}
+				{%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+				{%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+				{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+					{%- assign ritemImage = item | Attribute:'Image' -%}
+					{%- assign ritemImageGuid = item | Attribute:'Image','RawValue' -%}
+					{%- assign rCategories = item | Attribute:'Categories','RawValue' | Split: ',' -%}
+			        {%- assign rTemplate = item | Attribute:'Template' -%}
+					{%- assign rUrl = item | Attribute:'ResourceURL','RawValue' -%}
+					{%- assign rExternal = item | Attribute:'externalBoolean' -%}
+					{%- if rTemplate == "General Card" -%}
+						{% comment %}
+						This is for the general resources template with internal or external links
+						{% endcomment %}
+						<div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load" data-category="{{ rCategories }}">
+							<div class="card">
+								{%- if rExternal == "Yes" -%}
+								<a href="{{ rUrl }}" target="_blank">
+								{%- else -%}
+								<a href="https://{{- 'Global' | Page:'Host' -}}{{ rUrl }}">
+								{%- endif -%}
+								{%- if ritemImage != empty -%}
+									<!-- Image -->
+									<div class="img-hover">
+										<img src="/GetImage.ashx?Guid={{ ritemImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
+									</div>
+								{%- endif -%}
+								</a>
+								<div class="g-padding-x-30--xs g-padding-y-40--xs g-margin-b-40--xs g-height-150--xs g-position--relative">
+									<h5 class="g-font-family--secondary g-padding-b-20--xs">{{ item.Title }}</h5>
+								</div>
+							</div>
+						</div>
+					{%- elseif rTemplate == "Latest Sermons" -%}
+						{% comment %}
+						This is for the latest sermon resources template
+						{% endcomment %}
+						{%- contentchannelitem where:'ContentChannelId == 24 && Status == 2' sort:'StartDateTime Desc' -%}
+						{%- assign series = "" -%}
+						{%- assign currentMessage = "" -%}
+						{%- for item in contentchannelitemItems -%}
+							{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
+							{%- for messages in itemChildItems -%}
+								{%- assign message = messages.ChildContentChannelItem -%}
+								{%- if message.ContentChannelId == "23" -%}
+									{%- assign series = item -%}
+									{%- assign currentMessage = message -%}
+									{%- break -%}
+								{%- endif -%}
+							{%- endfor -%}
+							{%- if series != "" -%}
+								{%- break -%}
+							{%- endif -%}
+						{%- endfor -%}
+						{%- endcontentchannelitem -%}
+						{%- if series -%}
+			                {%- assign seriesImageGuid = series | Attribute:'Image','RawValue' -%}
+							<div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load" data-category="{{ rCategories }}">
+								<div class="card">
+									<a href="/sermons/{{ series.PrimarySlug }}">
+										<div class="img-hover">
+											<img src="https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}&format=jpg&mode=crop&width=800&height=591" class="event-image img-responsive" onerror="this.style.display='none'">
+										</div>
+									</a>
+									<div class="g-padding-x-30--xs g-padding-y-40--xs g-margin-b-40--xs g-height-150--xs g-position--relative">
+										<h5 class="g-font-family--secondary g-padding-b-20--xs">{{ item.Title }}</h5>
+									</div>
+								</div>
+							</div>
+						{%- endif -%}
+					{%- endif -%}
+				{%- endif -%}
+			{%- endfor -%}
+		</div>
+		<!-- <div class="text-center">
+			<br />
+			<br />
+			<br />
+			<img id="loading-animation" src="/Content/ExternalSite/WebImages/loading.gif" />
+		</div> -->
+	</div>
+</div>
 
-            {% if series %}
-                {% assign seriesImageGuid = series | Attribute:'Image','RawValue' %}
-                <div class="col-xs-12 col-sm-6 col-md-6 col-lg-3 event-calendar">
-                    <article class="g-margin-x-40--xs g-margin-y-20--xs g-margin-x-20--md card">
-                        <div>
-                            <a class="hover_icon hover_icon_link" href="/sermons/{{ series.PrimarySlug }}">
-                                <img class="img-responsive g-width-100-percent--xs" src="https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}&format=jpg&mode=crop&width=800&height=591" style="margin: 0 auto">
-                            </a>
-                        </div>
-                        <div class="g-height-150--xs g-position--relative">
-        					<h5 class="g-font-family--secondary g-padding-y-40--xs g-padding-x-40--xs">
-        						<a class="g-letter-spacing--1" href="/sermons/{{ series.PrimarySlug }}">
-        						    Current Sermon Series Resources
-        						</a>
-                            </h5>
-            			</div>
-                    </article>
-                </div>
-            {% endif %}
-
+<div class="container">
+	<div class="row g-padding-x-50--xs g-padding-t-50--xs g-padding-b-150--xs">
+	    <div class="col-md-8 col-md-offset-2">
+            <h5 class="g-font-weight--500 g-padding-b-15--xs" style="text-align: left; ">Southeast Christian Church is happy to share resources that we have created in-house with others working to build God's Kingdom. We hereby grant permission for the use of our resources within the following guidelines and restrictions:
+                <br>
+            </h5>
+            <ul><li style="text-align: left;"><span style="font-size: 18px; font-weight: normal;">Please do not share directly with others. Instead, point others to our website.&nbsp;</span></li><li style="text-align: left;"><span style="font-size: 18px; font-weight: normal;">We are providing these free of charge, therefore no content may be used for profit.&nbsp;</span></li><li style="text-align: left;"><span style="font-size: 18px; font-weight: normal;">Please do not repost as your own content.&nbsp;</span></li></ul>
         </div>
     </div>
-</section>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Re-Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+        layoutMode: 'fitRows'
+    });
+
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.imagesLoaded().progress( function() {
+      $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
+    });
+    $grid.isotope( 'revealItemElements', $items );
+
+	// bind to buttons related to the day of the week
+    $resourceCategories = $('#resourceCategories').on( 'click', '.button', function(e) {
+      e.preventDefault();
+      var $this = $( this );
+      var filterValue = $this.attr('data-filter');
+	  var alreadyActive = $this.hasClass('active');
+	  if (alreadyActive == true){
+		  // apply emtpy value
+		  bulldCategories('');
+		  $this.toggleClass('active');
+	  } else {
+		  // remove other active(s)
+		  $("#resourceCategories li a.active").removeClass("active");
+		  // apply filter value
+	      bulldCategories(filterValue);
+		  $this.toggleClass('active');
+	  }
+	  reapplyIso();
+
+    });
+
+	// handling days selected
+    var categories_selected = [];
+    function bulldCategories(category) {
+		// reset campus array, campuses are only selected one at a time
+        categories_selected = [];
+		// add to array
+        if (category != '' && category != undefined) {
+            categories_selected.push(category);
+        }
+     }
+
+	 function reapplyIso() {
+         $grid.isotope({
+           itemSelector: '.isotope_item',
+           percentPosition: true,
+           layoutMode: 'fitRows',
+           filter: runFilters()
+         });
+     }
+
+	 function createFilters(arrayList, selector) {
+         var output = [];
+         if (arrayList.length != 0) {
+             // make string of selectors
+             arrayList.forEach(function(item, index, array) {
+                 output.push('['+selector+'*="'+item+'"]');
+             });
+         }
+         return output;
+     }
+
+	 function runFilters() {
+         var filterSelectors = [];
+         // if categories are selected
+         if (categories_selected.length != 0) {
+             filterSelectors.push(createFilters(categories_selected, 'data-category'));
+         }
+		 var filterArray = [];
+         if (filterSelectors.length!=0){
+             filterSelectors.forEach(function(filterSet, index, array) {
+                if (index==0) {
+                    filterArray = filterSet;
+                } else {
+                    var tempArray = [];
+                    filterArray.forEach(function(primaryFilter) {
+                        filterSet.forEach(function(secondaryFilter) {
+                            tempArray.push(primaryFilter+secondaryFilter);
+                        });
+                    });
+                    filterArray = tempArray;
+                }
+             });
+         }
+         // console.log(filterArray.join(','));
+         return filterArray.join(',');
+     }
+
+});
+</script>

@@ -22,8 +22,8 @@
     {%- comment -%}
     ************ Get the newest sermon if exists ************
     {%- endcomment -%}
-    {%- assign seriesChildItems = series.ChildItems | Sort:'Order','Asc' -%}
-    {%- for messages in seriesChildItems -%}
+    {%- assign seriesChildItems = series.ChildItems | Sort:'Priority','Asc' -%}
+    {%- for messages in seriesChildItems reversed -%}
         {%- assign message = messages.ChildContentChannelItem -%}
         {%- if message.ContentChannelId == "23" -%}
             {%- assign startDateTime = message.StartDateTime | Date:'yyyyMMddHHmmss' -%}
@@ -61,9 +61,108 @@
 	{%- endif -%}
 
 
-    {%- if currentMessage != null -%}
-        <div class="container g-padding-y-100--md g-padding-x-0--xs">
+    <section>
 
+            {%- assign seriesHeroImageGuid = series | Attribute:'Hero','RawValue' -%}
+            {%- if seriesHeroImageGuid != "" -%}
+            <style>
+                #seriesHero {
+                    overflow: hidden;
+                }
+                #seriesHero img {
+                    width: 100%;
+                    margin: 0 auto;
+                    max-width: 1920px;
+                }
+                @media(max-width:600px){
+                    #seriesHero img {
+                        width: 900px;
+                        position: relative;
+                        left: 50%;
+                        transform: translate(-50%, 0px);
+                        margin: 0 auto;
+                        max-width: none;
+                    }
+            	}
+            </style>
+        	<div id="seriesHero" class="g-bg-color--black g-padding-x-0--xs">
+                <img src="/GetImage.ashx?Guid={{ seriesHeroImageGuid }}" class="img-responsive g-margin-x-auto--xs text-center" />
+                {% comment %}
+                {[ parallax image:'/GetImage.ashx?Guid={{ seriesHeroImageGuid }}' addclass:'menu-switch' height:'400px' position:'center center' speed:'0' ]}{[ endparallax ]}
+                {% endcomment %}
+        	</div>
+            {%- endif -%}
+
+        <!-- START: Page Sub-Menu -->
+        <div class="page-menu" >
+            <div class="container-fluid text-center" style="padding: 0;">
+                <nav class="page-nav text-center">
+                    <ul class="list-inline">
+                        {%- if sermonSlug != "" -%}
+                        <li><a href="/sermons/{{series.PrimarySlug}}">Back to Series</a></li>
+                        {%- endif -%}
+                        {%- if newestMessage != null -%}
+                        <li><a href="#Sermons">Sermons</a></li>
+                        {%- endif -%}
+                        {%- assign resourcesCount = 0 -%}
+                        {%- assign studiesStudiesIncluded = false -%}
+            			{%- assign studiesReadingPlansIncluded = false -%}
+            			{%- assign studiesMediaIncluded = false -%}
+                    	{%- assign itemChildItems = series.ChildItems | Sort:'Priority' -%}
+                    	{%- for messages in itemChildItems reversed -%}
+                    		{%- assign message = messages.ChildContentChannelItem -%}
+                    		{%- assign videoImageGuid = message | Attribute:'Image','RawValue' -%}
+                    		{%- if message.ContentChannelId != "23" -%}
+                    			{%- assign resourcesCount = resourcesCount | Plus:1 -%}
+                                {%- assign resource = message -%}
+                				{%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
+                				{%- assign resourceURL = resource | Attribute:'ResourceURL','RawValue' -%}
+                				{%- assign embedCode = resource | Attribute:'EmbedCode','RawValue' -%}
+                                {%- if resourceMediaFile.Guid != null -%}
+                                    {%- assign studiesStudiesIncluded = true -%}
+                                {%- elseif resourceURL != "" -%}
+                                    {%- assign studiesReadingPlansIncluded = true -%}
+                                {%- elseif embedCode != "" -%}
+                                    {%- assign studiesMediaIncluded = true -%}
+                                {%- endif -%%}
+                    		{%- endif -%}
+                    	{%- endfor -%}
+                        {%- if resourcesCount != 0 -%}
+    					<li><a href="#Resources">Resources</a></li>
+                        {%- endif -%}
+                        <li><a href="/sermons">Explore All Series</a></li>
+                        {%- comment -%}
+                        {%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' -%}
+                            {%- for item in contentchannelitemItems -%}
+                                {%- if forloop.first -%}
+                                    {%- assign currentSeries = contentchannelitemItems | First -%}
+                                {%- endif -%}
+                            {%- endfor -%}
+                        {%- endcontentchannelitem -%}
+                        <li><a href="/sermons/{{ currentSeries.PrimarySlug | Escape }}">Jump to Current Series</a></li>
+                        {%- endcomment -%}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        <!-- END: Page Sub-Menu -->
+
+        <script>
+        var scroll = new SmoothScroll('a[href*="#"]', {
+                speed: 500, // Integer. How fast to complete the scroll in milliseconds
+                easing: 'easeInOutCubic', // Easing pattern to use
+                header: '.cd-main-header'
+            });
+        </script>
+    </section>
+
+    {%- if currentMessage != null -%}
+        <div class="container g-padding-y-100--xs g-padding-x-0--xs">
+            {%- if sermonSlug == "" -%}
+            <div class="text-center g-padding-x-20--xs g-padding-b-60--xs">
+                <h5 class="uppercase g-letter-spacing--3 g-font-weight--600">Latest Sermon From Series</h5>
+            </div>
+            {%- endif -%}
             {%- assign seriesImageGuid = currentMessage | Attribute:'Image','RawValue' -%}
             {%- assign ending = '%25%7D' | UnescapeDataString -%}
             {{ '{%- assign seriesImageGuid = "' | Append:seriesImageGuid | Append: '" ' | Append: ending }}
@@ -88,7 +187,7 @@
                         <hr />
                         {%- if currentMessage.Content != empty -%}
                         <p class="series-summary g-line-height--sm">
-                            {{ currentMessage.Content }}
+                            {{ currentMessage.Content | Truncate:250,'...' }}
                         </p>
                         <hr />
                         {%- endif -%}
@@ -196,33 +295,10 @@
         {%- comment -%}
             ************ SERIES - The rest of the Sermons ************
         {%- endcomment -%}
-
-
         <div class="container-fluid g-padding-x-0--xs">
 
-        	{%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' -%}
-        		{%- for item in contentchannelitemItems -%}
-        			{%- if forloop.first -%}
-        				{%- assign currentSeries = contentchannelitemItems | First -%}
-        			{%- endif -%}
-        		{%- endfor -%}
-        	{%- endcontentchannelitem -%}
-
-            <!-- START: Page Sub-Menu -->
-            <div class="page-menu" >
-                <div class="container-fluid text-center" style="padding: 0;">
-                    <nav class="page-nav text-center">
-                        <ul class="list-inline">
-                            <li><a href="/sermons">Explore All Series</a></li>
-                            <li><a href="/sermons/{{ currentSeries.PrimarySlug | Escape }}">Jump to Current Series</a></li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
-            <!-- END: Page Sub-Menu -->
-
-			{%- if newestMessage != null -%}
-				<div class="container g-padding-y-100--xs">
+        	{%- if newestMessage != null -%}
+				<div class="container g-padding-t-20--xs" id="Sermons">
 
 					<div class="row g-padding-b-60--xs">
 						<div class="col-md-12 text-center">
@@ -230,10 +306,10 @@
 							<h1 class="g-font-size--jumbo-1 g-font-family--secondary">{{ series.Title }}</h1>
 							<p class="series-dates">
 								Series Date:
-                                {%- assign itemChildItems = series.ChildItems | Sort:'Order asc' -%}
+                                {%- assign itemChildItems = series.ChildItems | Sort:'Priority asc' -%}
                                 {%- assign firstSermon = "" -%}
 								{%- assign lastSermon = "" -%}
-								{%- for messages in itemChildItems -%}
+								{%- for messages in itemChildItems reversed -%}
 									{%- assign message = messages.ChildContentChannelItem -%}
 									{%- assign startDateTime = message.StartDateTime | Date:'yyyyMMddHHmmss' -%}
 									{%- assign endDateTime = message.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
@@ -246,9 +322,19 @@
 										{%- endif -%}
 									{%- endif -%}
 								{%- endfor -%}
-								<i><strong>
-									{{ firstSermon.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.StartDateTime | Date:'MMM dd, yyyy' }}
-								</strong></i>
+                                {%- if firstSermon.StartDateTime == lastSermon.StartDateTime -%}
+                                    <i>
+                                        <strong>
+                                            {{ firstSermon.StartDateTime | Date:'MMM dd, yyyy' }}
+                                        </strong>
+                                    </i>
+                                {%- else -%}
+                                    <i>
+                                        <strong>
+                                            {{ firstSermon.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.StartDateTime | Date:'MMM dd, yyyy' }}
+                                        </strong>
+                                    </i>
+                                {%- endif -%}
 							</p>
 						</div>
 					</div>
@@ -261,9 +347,9 @@
 						</div>
 					{%- endunless -%}
 					</div>
-					{%- assign itemChildItems = series.ChildItems | Sort:'Order' -%}
+					{%- assign itemChildItems = series.ChildItems | Sort:'Priority' -%}
 					<div class="messages isotope_wrap series-list g-margin-b-150--xs">
-						{%- for messages in itemChildItems -%}
+						{%- for messages in itemChildItems reversed -%}
 							{%- assign message = messages.ChildContentChannelItem -%}
 							{%- assign videoImageGuid = message | Attribute:'Image','RawValue' -%}
 
@@ -302,87 +388,159 @@
             {%- endif -%}
 		</div>
 
-        {%- comment -%}
-            ************ Resources ************
-        {%- endcomment -%}
+    {%- comment -%}
+        ************ Resources ************
+    {%- endcomment -%}
+    {%- if resourcesCount != 0 -%}
+		<div class="container-fluid g-padding-b-100--xs g-padding-x-0--xs" id="Resources">
 
-	{%- assign resourcesCount = 0 -%}
-	{%- assign itemChildItems = series.ChildItems | Sort:'Order' -%}
-	{%- for messages in itemChildItems -%}
-		{%- assign message = messages.ChildContentChannelItem -%}
-		{%- assign videoImageGuid = message | Attribute:'Image','RawValue' -%}
-		{%- if message.ContentChannelId != "23" -%}
-			{%- assign resourcesCount = resourcesCount | Plus:1 -%}
-		{%- endif -%}
-	{%- endfor -%}
+            <div class="container g-padding-t-0--xs g-padding-x-0--xs">
+    			<div class="row g-padding-y-60--xs g-padding-x-0--xs g-margin-x-0--xs">
+    				<div class="col-md-12 text-center g-padding-x-0--xs">
+    					<h1 class="g-font-size--jumbo-1 g-font-family--secondary">Series Resources</h1>
+    				</div>
+    			</div>
+    			<div class="">
+                    <style>
+                        @media only screen and (min-width : 480px) and (max-width: 780px) {
+                            .rsc-title-brd {
+                                margin: 0px 20px 5px;
+                                border-bottom: 1px solid rgba(124, 124, 124, 0.18);
+                            }
+                        }
+                        @media all and (min-width: 992px) {
+                            .rsc-title {
+                                position: relative;
+                                top: 50%;
+                                transform: translateY(-50%);
+                            }
+                        }
+                        @media all and (min-width: 768px) {
+                            .rsc-buttons {
+                                position: relative;
+                                top: 50%;
+                                transform: translateY(-50%);
+                            }
+                        }
+                        .sermon-resources-accordion .panel .panel-heading .panel-title {
+                            font-size: 2.5rem !important;
+                            padding-right: 5px;
+                        }
+                        .sermon-resources-accordion .panel .panel-heading {
+                            padding: 5px 5px 5px 20px !important;
+                        }
+                        .sermon-resources-accordion .panel .panel-heading::before {
+                            position: relative !important;
+                            width: 10px !important;
+                            height: 10px !important;
+                            vertical-align: bottom;
+                            left: 15px;
+                        }
+                        .sermon-resources-accordion .panel .panel-collapse .panel-body {
+                            padding: 20px !important;
+                        }
+                    </style>
+                    {% comment %}
+                    Grab all "Studies" resources
+                    {% endcomment %}
+                    {%- if studiesStudiesIncluded == true -%}
+                    {[ faq columns:'1' autoheight:'true' accordionclass:'accordions-nostyle sermon-resources-accordion' collapsed:'false' ]}
+                        [[ item title:'Studies' ]]
+        				{%- for messages in itemChildItems -%}
+        					{%- assign resource = messages.ChildContentChannelItem -%}
+        					{%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
+                            {%- if resourceMediaFile.Guid != null -%}
+                                <div class="se-panel g-padding-x-40--xs g-padding-y-20--xs g-margin-b-30--xs g-color--dark">
+                                    <div class="row g-display-flex--md">
+                                        <div class="rsc-title-brd col-sm-6 g-padding-y-20--xs">
+                                            <h4 class="rsc-title g-font-weight--600 g-text-center--xs g-text-left--md">{{ resource.Title }}</h4>
+                                        </div>
+                                        <div class="col-sm-6 g-padding-y-20--xs g-text-right--lg">
+                                            {% comment %}
+                                            <a class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-50-percent--xs text-center g-display-inline-block--xs">
+                                                <i class="fas fa-search g-margin-r-10--xs"></i> <strong>Preview</strong>
+                                            </a>
+                                            <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-50-percent--xs text-center g-display-inline-block--xs" download>
+                                                <i class="fas fa-download g-margin-r-10--xs"></i> <strong>Download</strong>
+                                            </a>
+                                            {% endcomment %}
+                                            <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-100-percent--xs text-center g-display-inline-block--xs" download>
+                                                <i class="fas fa-download g-margin-r-10--xs"></i> <strong>Download</strong>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {%- endif -%}
+                        {%- endfor -%}
+                        [[ enditem ]]
+                    {[ endfaq ]}
+                    {%- endif -%}
 
-	{%- if resourcesCount != 0 -%}
-		<div class="container g-padding-y-100--md g-padding-x-0--xs">
-			<div class="row g-padding-y-60--xs">
-				<div class="col-md-12 text-center">
-					<h1 class="g-font-size--jumbo-1 g-font-family--secondary">Series Resources</h1>
-				</div>
-			</div>
-			<div class="messages isotope_wrap series-list">
-				{%- for messages in itemChildItems -%}
-					{%- assign resource = messages.ChildContentChannelItem -%}
-					{%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
-					{%- assign resourceURL = resource | Attribute:'ResourceURL','RawValue' -%}
-					{%- assign ResourceURLText = resource | Attribute:'ResourceURLText','RawValue' -%}
-					{%- assign embedCode = resource | Attribute:'EmbedCode','RawValue' -%}
-
-					{%- if resource.ContentChannelId != "23" -%}
-
-						<div class="isotope_item
-							hide-on-load
-							event-calendar
-							col-md-4
-							col-sm-6
-							col-xs-12
-							g-margin-b-0--xs
-							">
-							<div class="
-								g-bg-color--gray-lighter
-								g-margin-b-50--md
-								g-margin-x-25--md
-								g-margin-b-30--xs
-								g-margin-x-15--xs
-								g-padding-y-100--md
-								g-padding-x-100--md
-								g-padding-y-50--xs
-								g-padding-x-50--xs
-								text-center
-								">
-								{%- if resourceMediaFile.Guid != null -%}
-									<h4 class="g-font-weight--700 g-color--white">{{ resource.Title }}</h4>
-									<br />
-									<a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1" download>
-										<strong>Download</strong>
-									</a>
-								{%- elseif resourceURL != "" -%}
-									<h4 class="g-font-weight--700 g-color--white">{{ resource.Title }}</h4>
-									<br />
-									<a href="{{ resourceURL }}" target="_blank" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
-										<strong>
-											{%- if ResourceURLText != "" -%}
-												{{ ResourceURLText }}
-											{%- else -%}
-												Link
-											{%- endif -%}
-										</strong>
-									</a>
-								{%- elseif embedCode != "" -%}
-									<h4 class="g-font-weight--700 g-color--white">{{ resource.Title }}</h4>
-									<br />
-									<a href="/sermons/{{slug}}/{{resource.PrimarySlug}}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
-										<strong>Watch</strong>
-									</a>
-								{%- endif -%}
-							</div>
-						</div>
-					{%- endif -%}
-				{%- endfor -%}
-			</div>
+                    {% comment %}
+                    Grab all "Reading Plans" or "Links" resources
+                    {% endcomment %}
+                    {%- if studiesReadingPlansIncluded == true -%}
+                    {[ faq columns:'1' autoheight:'true' accordionclass:'accordions-nostyle sermon-resources-accordion' collapsed:'false' ]}
+                        [[ item title:'Reading Plans' ]]
+                        {%- for messages in itemChildItems -%}
+        					{%- assign resource = messages.ChildContentChannelItem -%}
+        					{%- assign resourceURL = resource | Attribute:'ResourceURL','RawValue' -%}
+        					{%- assign ResourceURLText = resource | Attribute:'ResourceURLText','RawValue' -%}
+                            {%- if resourceURL != "" -%}
+                                <div class="se-panel g-padding-x-40--xs g-padding-y-20--xs g-margin-b-30--xs g-color--dark">
+                                    <div class="row g-display-flex--md">
+                                        <div class="rsc-title-brd col-sm-6 g-padding-y-20--xs">
+                                            <h4 class="rsc-title g-font-weight--600 g-text-center--xs g-text-left--md">{{ resource.Title }}</h4>
+                                        </div>
+                                        <div class="col-sm-6 g-padding-y-20--xs g-text-right--lg">
+                                            <a href="{{ resourceURL }}" target="_blank" class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-100-percent--xs text-center g-display-inline-block--xs">
+                                                <i class="fas fa-link g-margin-r-10--xs"></i>
+                                                <strong>
+                                                    {%- if ResourceURLText != "" -%}
+                                                        {{ ResourceURLText }}
+                                                    {%- else -%}
+                                                        Link
+                                                    {%- endif -%}
+                                                </strong>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {%- endif -%}
+                        {%- endfor -%}
+                        [[ enditem ]]
+                    {[ endfaq ]}
+                    {%- endif -%}
+                    {% comment %}
+                    Grab all "Media" resources
+                    {% endcomment %}
+                    {%- if studiesMediaIncluded == true -%}
+                    {[ faq columns:'1' autoheight:'true' accordionclass:'accordions-nostyle sermon-resources-accordion' collapsed:'false']}
+                        [[ item title:'Media' ]]
+                        {%- for messages in itemChildItems -%}
+        					{%- assign resource = messages.ChildContentChannelItem -%}
+        					{%- assign embedCode = resource | Attribute:'EmbedCode','RawValue' -%}
+                            {%- if embedCode != "" -%}
+                                <div class="se-panel g-padding-x-40--xs g-padding-y-20--xs g-margin-b-30--xs g-color--dark">
+                                    <div class="row g-display-flex--md">
+                                        <div class="rsc-title-brd col-sm-6 g-padding-y-20--xs">
+                                            <h4 class="rsc-title g-font-weight--600 g-text-center--xs g-text-left--md">{{ resource.Title }}</h4>
+                                        </div>
+                                        <div class="col-sm-6 g-padding-y-20--xs g-text-right--lg">
+                                            <a href="/sermons/{{slug}}/{{resource.PrimarySlug}}" class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-100-percent--xs text-center g-display-inline-block--xs">
+                                                <i class="fas fa-video g-margin-r-10--xs"></i>
+                                                <strong>Watch</strong>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {%- endif -%}
+                        {%- endfor -%}
+                        [[ enditem ]]
+                    {[ endfaq ]}
+                    {%- endif -%}
+    			</div>
+            </div>
 		</div>
 	{%- endif -%}
 

@@ -185,8 +185,8 @@
     {% contentchannelitem where:'ContentChannelId == 24 && Status == 2' sort:'StartDateTime Desc' %}
     {% for item in contentchannelitemItems %}
 
-        {% assign itemChildItems = item.ChildItems | Sort:'Order' %}
-        {%- for messages in itemChildItems -%}
+        {% assign itemChildItems = item.ChildItems | Sort:'Priority' %}
+        {%- for messages in itemChildItems reversed -%}
 
             {% assign message = messages.ChildContentChannelItem %}
             {% if message.ContentChannelId == "23" %}
@@ -203,8 +203,8 @@
     {% assign series = "" %}
     {% assign currentMessage = "" %}
     {% for item in contentchannelitemItems %}
-        {% assign itemChildItems = item.ChildItems | Sort:'Order' %}
-        {%- for messages in itemChildItems -%}
+        {% assign itemChildItems = item.ChildItems | Sort:'Priority' %}
+        {%- for messages in itemChildItems reversed -%}
             {% assign message = messages.ChildContentChannelItem %}
             {% if message.ContentChannelId == "23" %}
                 {% assign series = item %}

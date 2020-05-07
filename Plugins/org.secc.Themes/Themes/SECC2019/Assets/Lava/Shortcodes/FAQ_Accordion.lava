@@ -1,27 +1,17 @@
 {% comment %}
 *********************************** NAME ***************************************
-{% endcomment %}
-*FAQ Accordian
+FAQ Accordian
 
-{% comment %}
 *********************************** TagType ************************************
-{% endcomment %}
 Block
 
-{% comment %}
 *********************************** TAG NAME ***********************************
-{% endcomment %}
 faq
 
-{% comment %}
 *********************************** DESCRIPTION ********************************
-{% endcomment %}
 Accordion shortcode for the public website to be used in faq section
 
-{% comment %}
 ********************************* DOCUMENTATION ********************************
-{% endcomment %}
-
 <p>
     <a href="https://getbootstrap.com/docs/3.3/javascript/#collapse-example-accordion">Bootstrap accordions</a> are a clean way of displaying a large
     amount of structured content on a page. While they're not incredibly difficult to make using just HTML this shortcode simifies the markup
@@ -55,24 +45,21 @@ Accordion shortcode for the public website to be used in faq section
     <li><strong>title</strong> - The title of the section.</li><li><b>minheight - </b>Set the minimum height of the question panels. (Increase this if the questions are too long for the default height.) <i>Default <b>110</b>.</i></li><li><b>autoheight - </b>Allow question panels to adjust automatically to length of questions using automatic height. <i>Default <b>false</b>. Set to <b>true</b> to enable.</i><br><i></i></li><li><b>columns</b> - Set the number of columns (from 1-4). <i>Default <b>2</b>.</i><br></li>
 </ul>
 
-{% comment %}
 ************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
 {% endcomment %}
-
 {%- assign wrapperId = uniqueid -%}
 {%- assign wrapperId2 = uniqueid | Plus: uniqueid -%}
 {%- assign gridNum = 12 | DividedBy:columns -%}
 {%- assign nextPage = items | Size | DividedBy:columns,2 | Ceiling -%}
 {%- assign nextPageCounter = 0 -%}
 
-
 <div class="col-md-{{gridNum}} g-padding-x-20--xs">
   <div class="panel-{{ wrapperId }} {{accordionclass}}" id="faq-accordion-{{wrapperId}}" role="tablist" aria-multiselectable="true">
   {%- for item in items -%}
 
         <div class="panel panel-default">
-            <div class="panel-heading collapsed" role="button"  id="heading{{ forloop.index }}-{{ wrapperId }}" data-toggle="collapse" data-parent="#faq-accordion-{{wrapperId}}, #faq-accordion-{{wrapperId2}}"
-            href="#collapse{{ forloop.index }}-{{ wrapperId }}" aria-expanded="false" aria-controls="faq-1-collapse-1">
+            <div class="panel-heading {% if forloop.first %}{%- if collapsed == 'false' -%}{%- else -%}collapsed{%- endif -%}{%- else -%}collapsed{%- endif -%}" role="button"  id="heading{{ forloop.index }}-{{ wrapperId }}" data-toggle="collapse" data-parent="#faq-accordion-{{wrapperId}}, #faq-accordion-{{wrapperId2}}"
+            href="#collapse{{ forloop.index }}-{{ wrapperId }}" {% if forloop.first %}{%- if collapsed == 'false' -%}aria-expanded="true"{%- else -%}aria-expanded="false"{%- endif -%}{%- else -%}aria-expanded="false"{%- endif -%} aria-controls="faq-1-collapse-1">
               <style>
                 #heading{{ forloop.index }}-{{ wrapperId }} {
                     min-height: auto;
@@ -90,8 +77,8 @@ Accordion shortcode for the public website to be used in faq section
                   {{ item.customtitle | UnescapeDataString }}
               </h5>
             </div>
-            <div id="collapse{{ forloop.index }}-{{ wrapperId }}" class="panel-collapse collapse" role="tabpanel"
-            aria-labelledby="heading{{ forloop.index }}-{{ wrapperId }}" aria-expanded="false" style="height: 0px;">
+            <div id="collapse{{ forloop.index }}-{{ wrapperId }}" class="panel-collapse collapse {% if forloop.first %}{%- if collapsed == 'false' -%}in{%- else -%}{%- endif -%}{%- else -%}{%- endif -%}" role="tabpanel"
+            aria-labelledby="heading{{ forloop.index }}-{{ wrapperId }}" {% if forloop.first %}{%- if collapsed == 'false' -%}aria-expanded="true"{%- else -%}aria-expanded="false" style="height: 0px;"{%- endif -%}{%- else -%}aria-expanded="false" style="height: 0px;"{%- endif -%} >
               <div class="panel-body">
                 <p>{{ item.content }}</p>
               </div>
@@ -108,12 +95,13 @@ Accordion shortcode for the public website to be used in faq section
   {%- endfor -%}
   </div>
 </div>
-
 {% comment %}
 ************************ PARAMETERS ********************
 
-minheight    - 110
-autoheight   - false
-columns      - 2
+minheight      - 110
+autoheight     - false
+columns        - 2
+accordionclass - accordions-1
+collapsed      - true
 
 {% endcomment %}
