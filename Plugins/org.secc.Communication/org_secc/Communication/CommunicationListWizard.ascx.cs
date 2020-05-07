@@ -128,7 +128,16 @@ namespace RockWeb.Plugins.org_secc.Communication
 
             var groups = groupService.Queryable()
                 .Where( g => g.GroupTypeId == communicationListGroupTypeId && g.IsPublic && g.IsActive && !g.IsArchived )
+                .ToList()
+                .Select(g => new GroupPoco
+                {
+                    Id= g.Id,
+                    Name = g.Name,
+                    Description = g.Description,
+                    Members = g.ActiveMembers().Count()
+                } )
                 .ToList();
+
 
             groups.OrderBy( g => g.Name ).ToList();
 
@@ -251,6 +260,15 @@ namespace RockWeb.Plugins.org_secc.Communication
         protected void btnAnalytics_Click( object sender, RowEventArgs e )
         {
             Response.Redirect( "/EmailAnalytics?CommunicationListId=" + e.RowKeyValue );
+        }
+
+        private class GroupPoco
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+
+            public string Description { get; set; }
+            public int Members { get; set; }
         }
     }
 }

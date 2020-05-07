@@ -18,7 +18,7 @@
                             <Columns>
                                 <Rock:RockBoundField DataField="Name" HeaderText="Name" />
                                 <Rock:RockBoundField DataField="Description" HeaderText="Description" />
-                                <Rock:RockBoundField DataField="Members.Count" HeaderText="Members" />
+                                <Rock:RockBoundField DataField="Members" HeaderText="Members" />
                                 <Rock:LinkButtonField HeaderText="Analytics" ID="btnAnalytics" Text="<i class='fa fa-line-chart'></i>"
                                     OnClick="btnAnalytics_Click" CssClass="btn btn-default btn-sm" />
                             </Columns>
