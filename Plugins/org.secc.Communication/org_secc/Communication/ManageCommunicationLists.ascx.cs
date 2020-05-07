@@ -50,7 +50,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             this.AddConfigurationUpdateTrigger( upnlContent );
 
             Person = CurrentPerson;
-            if (Person == null )
+            if ( Person == null )
             {
                 var param = PageParameter( "p" );
                 if ( param.IsNotNullOrWhiteSpace() && param.Length >= 12 )
@@ -58,7 +58,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                     RockContext rockContext = new RockContext();
                     PersonService personService = new PersonService( rockContext );
                     var people = personService.Queryable().Where( p => p.Guid.ToString().EndsWith( param ) ).ToList();
-                    if (people.Count == 1 )
+                    if ( people.Count == 1 )
                     {
                         Person = people.FirstOrDefault();
                     }
@@ -66,7 +66,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                 }
             }
 
-            if (Person == null )
+            if ( Person == null )
             {
                 var site = RockPage.Layout.Site;
                 if ( site.LoginPageId.HasValue )
@@ -181,7 +181,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             GroupService groupService = new GroupService( rockContext );
             var group = groupService.Get( attributeValue.EntityId ?? 0 );
 
-            if ( group == null )
+            if ( group == null || !group.IsActive || group.IsArchived )
             {
                 pnlKeyword.Visible = false;
                 return;
