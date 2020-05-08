@@ -58,11 +58,9 @@
 								{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
 								{%- for messages in itemChildItems -%}
 									{%- assign message = messages.ChildContentChannelItem -%}
-									{%- if message.ContentChannelId == "23" -%}
-										{%- assign series = item -%}
-										{%- assign currentMessage = message -%}
-										{%- break -%}
-									{%- endif -%}
+									{%- assign series = item -%}
+									{%- assign currentMessage = message -%}
+									{%- break -%}
 								{%- endfor -%}
 								{%- if series != "" -%}
 									{%- break -%}
@@ -256,11 +254,9 @@ a.button.active .resource-icon.groups {
 							{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
 							{%- for messages in itemChildItems -%}
 								{%- assign message = messages.ChildContentChannelItem -%}
-								{%- if message.ContentChannelId == "23" -%}
-									{%- assign series = item -%}
-									{%- assign currentMessage = message -%}
-									{%- break -%}
-								{%- endif -%}
+								{%- assign series = item -%}
+								{%- assign currentMessage = message -%}
+								{%- break -%}
 							{%- endfor -%}
 							{%- if series != "" -%}
 								{%- break -%}
