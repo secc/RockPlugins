@@ -33,7 +33,7 @@
 									{%- if rExternal == "Yes" -%}
 									<a href="{{ rUrl }}" target="_blank">
 									{%- else -%}
-									<a href="https://{{- 'Global' | Page:'Host' -}}{{ rUrl }}">
+									<a href="{{- 'Global' | Page:'PublicApplicationRoot' -}}{{ rUrl }}">
 									{%- endif -%}
 									{%- if ritemImage != empty -%}
 										<!-- Image -->
@@ -231,7 +231,7 @@ a.button.active .resource-icon.groups {
 								{%- if rExternal == "Yes" -%}
 								<a href="{{ rUrl }}" target="_blank">
 								{%- else -%}
-								<a href="https://{{- 'Global' | Page:'Host' -}}{{ rUrl }}">
+								<a href="{{- 'Global' | Page:'PublicApplicationRoot' -}}{{ rUrl }}">
 								{%- endif -%}
 								{%- if ritemImage != empty -%}
 									<!-- Image -->
