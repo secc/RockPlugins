@@ -29,6 +29,7 @@ namespace org.secc.SermonFeed.Rest
                 return Json( output );
             }
 
+            var now = Rock.RockDateTime.Now;
 
             string imageLocation = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash() + "GetImage.ashx?Guid=";
             string audioLocation = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash() + "GetFile.ashx?Guid=";
@@ -37,7 +38,9 @@ namespace org.secc.SermonFeed.Rest
             var speakerQry = new AttributeValueService( rockContext ).Queryable().Where( av => av.AttributeId == SPEAKER_ATTRIBUTE && av.Value == speaker );
             ContentChannelItemService contentChannelItemService = new ContentChannelItemService( rockContext );
             var sermonSeriesQry = contentChannelItemService.Queryable()
-                .Where( i => i.ContentChannelId == CONTENT_CHANNEL );
+                .Where( i => i.ContentChannelId == CONTENT_CHANNEL )
+                .Where( i => i.StartDateTime <= now && ( i.ExpireDateTime == null || i.ExpireDateTime >= now ) );
+
             if ( !string.IsNullOrWhiteSpace( slug ) )
             {
                 sermonSeriesQry = sermonSeriesQry.Where( i => i.ContentChannelItemSlugs.Where( s => s.ContentChannelItemId == i.Id && s.Slug == slug ).Any() );
@@ -84,7 +87,11 @@ namespace org.secc.SermonFeed.Rest
                 output.Add( sermonSeries );
 
                 //add sermons to series
-                foreach ( var sermonItem in seriesItem.ChildItems.Where(s => s.ChildContentChannelItem.ContentChannelId == SERMON_CONTENT_CHANNEL).Select( s => s.ChildContentChannelItem ) )
+                foreach ( var sermonItem in seriesItem.ChildItems
+                    .Where( s => s.ChildContentChannelItem.ContentChannelId == SERMON_CONTENT_CHANNEL )
+                    .Select( s => s.ChildContentChannelItem ) 
+                    .Where( s => s.StartDateTime <= now && ( s.ExpireDateTime == null || s.ExpireDateTime >= now ) )
+                    .ToList())
                 {
                     sermonItem.LoadAttributes();
                     if ( sermonItem.GetAttributeValue( "Speaker" ).ToLower() != speaker.ToLower() )
