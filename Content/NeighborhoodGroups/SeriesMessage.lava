@@ -1,0 +1,75 @@
+﻿<style>
+
+</style>
+
+{% assign item = Items | First %}
+{% if item  %}
+
+	{% assign videoLink = item | Attribute:'VideoLink','RawValue' %}
+	{% assign videoEmbed = item | Attribute:'VideoEmbed' %}
+	{% assign audioLink = item | Attribute:'AudioLink','RawValue' %}
+
+	<article class="message-detail g-margin-b-30--xs g-margin-b-60--md">
+
+		<div class="row g-margin-b-15--xs g-margin-b-30--md">
+			<div class="col-md-12">
+
+				<h5 class="title_divider align_left">
+					<span class="title_divider_before"></span>
+						{{ item.Title }}
+					<span class="title_divider_after"></span>
+				</h5>
+
+				{% if videoEmbed != '' %}
+				<div class="embed-responsive embed-responsive-16by9 media-border-only">
+					{{ videoEmbed }}
+				</div>
+				{% endif %}
+			</div>
+		</div>
+
+		{% comment %}
+		<div class="row">
+			<div class="col-md-7 g-margin-b-25--xs">
+				<br />
+				<p>
+					<strong>
+						{% assign speaker = item | Attribute:'Speaker'%}
+						{% if speaker != '' %}
+							{{ speaker }} -
+						{% else %}
+						  Date Launched:
+						{% endif %}
+
+						{{ item.StartDateTime | Date:'M/d/yyyy' }}
+					</strong>
+				</p>
+				{{ item.Content }}
+				<br />
+			</div>
+			<div class="col-md-5">
+
+				{% assign discussionQuestions = item | Attribute:'Discussions', 'Object' %}
+				{% if discussionQuestions != '' %}
+				<div class="resources">
+					<div class="list-group">
+
+						{% if discussionQuestions != '' %}
+							<a href="/GetFile.ashx?guid={{ discussionQuestions.Guid}}" class="list-group-item" download="{{ item.Title | Downcase | ToPascal }}_discussions.pdf"><i class="fa fa-download"></i> Download Discussion Questions</a>
+						{% endif %}
+
+					</div>
+				</div>
+				{% endif %}
+				<hr />
+				{% assign sermonVideoEmbed = item | Attribute:'SermonEmbed' %}
+				{% assign sermonTitle = item | Attribute:'SermonTitle' %}
+				{% assign sermonLink = item | Attribute:'SermonLink', 'RawValue' %}
+			</div>
+		</row>
+		{% endcomment %}
+	</article>
+
+{% else %}
+	<h1>Could not find message.</h1>
+{% endif %}
