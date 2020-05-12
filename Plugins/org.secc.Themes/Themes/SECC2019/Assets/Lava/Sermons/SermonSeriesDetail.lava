@@ -194,7 +194,7 @@
         				<div class="text-center">
         					{%- assign mediaURL = currentMessage | Attribute:'Audio','Path' | Replace:'~/','' -%}
         					{%- unless mediaURL == empty -%}
-        					<a href="{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="margin-top: 5px;">
+        					<a href="{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}" data-resource="{{ currentMessage | Attribute:'Audio','FileName' }}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="margin-top: 5px;">
         						<i class="fa fa-headphones"></i>
         						Audio
         					</a>
@@ -460,11 +460,11 @@
                                             <a class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-50-percent--xs text-center g-display-inline-block--xs">
                                                 <i class="fas fa-search g-margin-r-10--xs"></i> <strong>Preview</strong>
                                             </a>
-                                            <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-50-percent--xs text-center g-display-inline-block--xs" download>
+                                            <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" data-resource="{{ resourceMediaFile.FileName }}" class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-50-percent--xs text-center g-display-inline-block--xs" download>
                                                 <i class="fas fa-download g-margin-r-10--xs"></i> <strong>Download</strong>
                                             </a>
                                             {% endcomment %}
-                                            <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-100-percent--xs text-center g-display-inline-block--xs" download>
+                                            <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" data-resource="{{ resourceMediaFile.FileName }}" class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-100-percent--xs text-center g-display-inline-block--xs" download>
                                                 <i class="fas fa-download g-margin-r-10--xs"></i> <strong>Download</strong>
                                             </a>
                                         </div>
@@ -493,7 +493,7 @@
                                             <h4 class="rsc-title g-font-weight--600 g-text-center--xs g-text-left--md">{{ resource.Title }}</h4>
                                         </div>
                                         <div class="col-sm-6 g-padding-y-20--xs g-text-right--lg">
-                                            <a href="{{ resourceURL }}" target="_blank" class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-100-percent--xs text-center g-display-inline-block--xs">
+                                            <a href="{{ resourceURL }}" data-resource="{{ resourceURL }}"  target="_blank" class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-100-percent--xs text-center g-display-inline-block--xs">
                                                 <i class="fas fa-link g-margin-r-10--xs"></i>
                                                 <strong>
                                                     {%- if ResourceURLText != "" -%}
