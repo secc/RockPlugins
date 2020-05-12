@@ -9,65 +9,83 @@
     }
 </style>
 
-<div class="container-fluid"  style="background-color: #f4f4f4; padding-top: 3rem; border-radius: 5px;">
-<!-- <div class="row">
-    <div class="col-md-12">
-        <a class="anchor" id="FAQ"></a>
-        <h4 class="title_divider align_left" style="margin-bottom: 0">
-            <span class="title_divider_before"></span>
-            <a href="/lwya/all-series/series">Current Series</a>
-            <span class="title_divider_after"></span>
-        </h4>
-        <br />
-    </div>
-</div> -->
+{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+{% if Group.GroupTypeId == 60 %}
+    {% assign groupSeries = Group | Attribute:'NeighborhoodGroupContent','RawValue' | Split:',' %}
+    
+    {% for seriesGuid in groupSeries %}
+        {%- contentchannelitem where:'Guid == "{{seriesGuid}}"' -%}
+        {%- assign series = contentchannelitemItems | First -%}
+        
+        {%- assign startDateTime = series.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+        {%- assign endDateTime = series.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+        {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+        
+            {%- assign Items = series.ChildItems -%}
+            {% comment %}
+            *** start of items to iterate ***
+            {% endcomment %}
+            {% assign item = Items | First %}
+            {% if item  %}
 
-{% assign item = Items | First %}
-{% if item  %}
-    {% assign messagesSize = item.ChildItems | Size %}
-    {% if messagesSize != 0 %}
-	<div class="messages isotope_wrap">
-    {% for message in item.ChildItems %}
-        {% assign messageTitle = message.ChildContentChannelItem | Attribute:'Title' %}
-        {% assign videoImageGuid = message.ChildContentChannelItem | Attribute:'VideoCover','RawValue' %}
+                {% assign messagesSize = Items | Size %}
+                {% if messagesSize != 0 %}
+                <div class="container-fluid"  style="background-color: #f4f4f4; padding-top: 3rem; border-radius: 5px; margin-bottom:15px;">
+                    <div class="messages isotope_wrap">
+                    {% for message in Items %}
+                        {%- assign msgStartDateTime = message.ChildContentChannelItem.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+                        {%- assign msgEndDateTime = message.ChildContentChannelItem.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+                        {% assign messageTitle = message.ChildContentChannelItem | Attribute:'Title' %}
+                        {% assign videoImageGuid = message.ChildContentChannelItem | Attribute:'VideoCover','RawValue' %}
+                        {%- if msgStartDateTime <= nowDateTime and nowDateTime <= msgEndDateTime -%}
+                        <div class="isotope_item col-xs-6 col-sm-6 col-md-4 nopadding">
+                            <article class="post_item media-wrapper">
 
-        <div class="isotope_item col-xs-6 col-sm-6 col-md-4 nopadding">
-            <article class="post_item media-wrapper">
 
+                                <div class="post_featured" style="margin-bottom: none;">
+                                    <div class="post_thumb" data-image="/GetImage.ashx?Guid={{ videoImageGuid }}" data-title="{{ item.Title }}">
+                                        <a class="hover_icon hover_icon_link" href="/page/1765?Item={{ message.ChildContentChannelItem.Id }}">
+                                            <img class="img-responsive" alt="{{ message.ChildContentChannelItem.Title }}" src="/GetImage.ashx?Guid={{ videoImageGuid }}&h=450&w=800&mode=crop">
+                                        </a>
+                                    </div>
+                                </div>
 
-                <div class="post_featured" style="margin-bottom: none;">
-                    <div class="post_thumb" data-image="/GetImage.ashx?Guid={{ videoImageGuid }}" data-title="{{ item.Title }}">
-                        <a class="hover_icon hover_icon_link" href="/page/1765?Item={{ message.ChildContentChannelItem.Id }}">
-                            <img class="img-responsive" alt="{{ message.ChildContentChannelItem.Title }}" src="/GetImage.ashx?Guid={{ videoImageGuid }}&h=450&w=800&mode=crop">
-                        </a>
-                    </div>
-                </div>
+                                <div class="massonry_border media-content" style="margin-bottom: 40px;">
+                                    <h4>
+                                        <small>{{ message.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yy' }}</small><br />
+                                        <a href="/page/1765?Item={{ message.ChildContentChannelItem.Id }}" class="hidden-xs">{{ message.ChildContentChannelItem.Title }}</a>
+                                    </h4>
+                                    <div class="post_content">
+                                        <div class="post_descr">
+                                            <!-- <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="button s-btn--primary-bg">
+                                                <span class="post_readmore_label">See</span>
+                                            </a> -->
+                                        </div>
+                                    </div>
+                                </div>
 
-                <div class="massonry_border media-content" style="margin-bottom: 40px;">
-                    <h4>
-                        <small>{{ message.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yy' }}</small><br />
-                        <a href="/page/1765?Item={{ message.ChildContentChannelItem.Id }}" class="hidden-xs">{{ message.ChildContentChannelItem.Title }}</a>
-                    </h4>
-                    <div class="post_content">
-                        <div class="post_descr">
-                            <!-- <a href="{{ LinkedPages.DetailPage }}?Item={{ item.Id }}" class="button s-btn--primary-bg">
-                                <span class="post_readmore_label">See</span>
-                            </a> -->
+                            </article>
                         </div>
+                        {% endif %}
+                    {% endfor %}
                     </div>
-                </div>
+                    </div>
+                {% endif %}
+                {% comment %}
+                *** end of items to iterate ***
+                {% endcomment %}
 
-            </article>
-        </div>
+            {% endif %}
+
+        {%- endif -%}
+        {% comment %}
+        *** end of series to iterate ***
+        {% endcomment %}
+        {%- endcontentchannelitem -%}
+            
     {% endfor %}
-    </div>
-    {% else %}
-    <h5 style="g-margin-b-60--xs">Hang tight! There are no messages in this series, but they're coming soon!</h5>
-    {% endif %}
-{% else %}
-	<h1>Could not find series.</h1>
 {% endif %}
-</div>
+
 
 <script type="text/javascript">
 	$(window).load(function() {
