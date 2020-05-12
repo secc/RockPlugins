@@ -86,7 +86,7 @@
             	}
             </style>
         	<div id="seriesHero" class="g-bg-color--black g-padding-x-0--xs">
-                <img src="/GetImage.ashx?Guid={{ seriesHeroImageGuid }}" class="img-responsive g-margin-x-auto--xs text-center" />
+                <img src="/GetImage.ashx?Guid={{ seriesHeroImageGuid }}&mode=crop&width=960&height=540" class="img-responsive g-margin-x-auto--xs text-center" />
                 {% comment %}
                 {[ parallax image:'/GetImage.ashx?Guid={{ seriesHeroImageGuid }}' addclass:'menu-switch' height:'400px' position:'center center' speed:'0' ]}{[ endparallax ]}
                 {% endcomment %}
@@ -209,7 +209,7 @@
         					<br />
                             <p><i class="fa fa-share-alt"></i> Share this Sermon:
                             {%- raw -%}
-                            {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}' emailsubject:'{{ currentMessage.Title }}' emailbody:'Check out this sermon I found at Southeast Christian Church.' ]}
+                            {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}&mode=crop&width=960&height=540' emailsubject:'{{ currentMessage.Title }}' emailbody:'Check out this sermon I found at Southeast Christian Church.' ]}
                             {%- endraw -%}
                             <br />
                             <br />
@@ -237,7 +237,7 @@
 							<div class="text-center">
 								<br />
 								<p><i class="fa fa-share-alt"></i> Share this video:
-								{[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}' ]}
+								{[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}&mode=crop&width=960&height=540' ]}
 								<br />
 								<br />
 							</div>
@@ -266,7 +266,7 @@
 					<div id="seriesHead" class="row">
                         {%- if seriesImageGuid != "" -%}
 						<div class="col-sm-12 col-lg-6 g-padding-x-0--xs g-padding-x-60--lg">
-							<img src="/GetImage.ashx?Guid={{ seriesImageGuid }}" class="img-responsive" style="margin: 0 auto">
+							<img src="/GetImage.ashx?Guid={{ seriesImageGuid }}&mode=crop&width=960&height=540" class="img-responsive" style="margin: 0 auto">
 						</div>
                         {%- endif -%}
 
@@ -282,7 +282,7 @@
 							<div class="text-center">
 								<br />
 								<p><i class="fa fa-share-alt"></i> Share this:
-								{[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}' ]}
+								{[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}&mode=crop&width=960&height=540' ]}
 								<br />
 								<br />
 							</div>
@@ -364,7 +364,7 @@
     									<!-- Image -->
                                         {% if videoImageGuid != "" %}
     									<div class="img-hover">
-    										<img src="/GetImage.ashx?Guid={{ videoImageGuid }}" class="img-responsive img-rounded" style="margin: 0 auto">
+    										<img src="/GetImage.ashx?Guid={{ videoImageGuid }}&mode=crop&width=960&height=540" class="img-responsive img-rounded" style="margin: 0 auto">
     									</div>
                                         {% endif %}
     									<div class="series-body g-padding-x-40--xs g-padding-y-40--xs">

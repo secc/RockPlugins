@@ -76,7 +76,7 @@
 						{%- if seriesImage != empty -%}
 							<!-- Image -->
 							<div class="img-hover">
-								<img src="/GetImage.ashx?Guid={{ seriesImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
+								<img src="/GetImage.ashx?Guid={{ seriesImageGuid }}&mode=crop&width=960&height=540" class="event-image img-responsive" onerror="this.style.display='none'">
 							</div>
 						{%- else -%}
 
@@ -87,7 +87,7 @@
 								{%- if seriesImage != empty -%}
 									<!-- Image -->
 									<div class="img-hover">
-										<img src="/GetImage.ashx?Guid={{ seriesImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
+										<img src="/GetImage.ashx?Guid={{ seriesImageGuid }}&mode=crop&width=960&height=540" class="event-image img-responsive" onerror="this.style.display='none'">
 									</div>
 									{%- break -%}
 								{%- endif -%}

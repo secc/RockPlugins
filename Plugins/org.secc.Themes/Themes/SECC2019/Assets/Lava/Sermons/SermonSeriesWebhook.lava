@@ -22,7 +22,7 @@
                     "Id": {{item.Id}},
                     "Name":"{{item.Title | Replace:'"','\"'}}",
                     "Description":"{{ item.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','<br>' | UrlDecode }}",
-                    "Image": "/GetImage.ashx/{{imageGuid}}.jpg?guid={{imageGuid}}",
+                    "Image": "/GetImage.ashx/{{imageGuid}}.jpg?guid={{imageGuid}}&mode=crop&width=960&height=540",
                     "Date":"{{item.StartDateTime}}",
                     "Slug":"{{item.PrimarySlug}}",
                     "Sermons": [
@@ -38,7 +38,7 @@
             			        "Title":"{{ message.ChildContentChannelItem.Title  | Replace:'"','\"' | NewlineToBr | Replace:'<br />',' ' }}",
             			        "Date":"{{ message.ChildContentChannelItem.StartDateTime | Date:'MMMM d, yyyy' }}",
             			        "Description":"{{ message.ChildContentChannelItem.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','<br>' | UrlDecode }}",
-            			        "Image": "/GetImage.ashx/{{message.ChildContentChannelItem | Attribute:'Image', 'RawValue'}}.jpg?guid={{message.ChildContentChannelItem | Attribute:'Image', 'RawValue'}}",
+            			        "Image": "/GetImage.ashx/{{message.ChildContentChannelItem | Attribute:'Image', 'RawValue'}}.jpg?guid={{message.ChildContentChannelItem | Attribute:'Image', 'RawValue'}}&mode=crop&width=960&height=540",
             			        "Audio": "/GetFile.ashx/{{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}.mp3?guid={{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}",
             			        "Speaker": "{{message.ChildContentChannelItem | Attribute:'Speaker'}}",
             			        "VimeoStreamingUrl":"{{message.ChildContentChannelItem | Attribute:'VimeoStreamingUrl'}}",
