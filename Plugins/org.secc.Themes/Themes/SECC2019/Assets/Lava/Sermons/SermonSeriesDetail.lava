@@ -86,7 +86,7 @@
             	}
             </style>
         	<div id="seriesHero" class="g-bg-color--black g-padding-x-0--xs">
-                <img src="/GetImage.ashx?Guid={{ seriesHeroImageGuid }}&mode=crop&width=960&height=540" class="img-responsive g-margin-x-auto--xs text-center" />
+                <img src="/GetImage.ashx?Guid={{ seriesHeroImageGuid }}&mode=crop&width=1920&height=575" class="img-responsive g-margin-x-auto--xs text-center" />
                 {% comment %}
                 {[ parallax image:'/GetImage.ashx?Guid={{ seriesHeroImageGuid }}' addclass:'menu-switch' height:'400px' position:'center center' speed:'0' ]}{[ endparallax ]}
                 {% endcomment %}
