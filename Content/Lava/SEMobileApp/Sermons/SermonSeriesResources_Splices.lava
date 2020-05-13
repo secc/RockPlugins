@@ -26,41 +26,47 @@
     "items": [
 		{%- assign comma = "" -%}
 		{%- assign resourcesCount = 0 -%}
-		{%- assign itemChildItems = series.ChildItems | Sort:'Order' -%}
-		{%- for messages in itemChildItems -%}
+		{%- assign studiesStudiesIncluded = false -%}
+		{%- assign studiesReadingPlansIncluded = false -%}
+		{%- assign studiesMediaIncluded = false -%}
+		{%- assign itemChildItems = series.ChildItems | Sort:'Priority' -%}
+		{%- for messages in itemChildItems reversed -%}
 			{%- assign message = messages.ChildContentChannelItem -%}
 			{%- assign videoImageGuid = message | Attribute:'Image','RawValue' -%}
 			{%- if message.ContentChannelId != "23" -%}
 				{%- assign resourcesCount = resourcesCount | Plus:1 -%}
+				{%- assign resource = message -%}
+				{%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
+				{%- assign resourceURL = resource | Attribute:'ResourceURL','RawValue' -%}
+				{%- assign embedCode = resource | Attribute:'EmbedCode','RawValue' -%}
+				{%- if resourceMediaFile.Guid != null -%}
+					{%- assign studiesStudiesIncluded = true -%}
+				{%- elseif resourceURL != "" -%}
+					{%- assign studiesReadingPlansIncluded = true -%}
+				{%- elseif embedCode != "" -%}
+					{%- assign studiesMediaIncluded = true -%}
+				{%- endif -%}
 			{%- endif -%}
 		{%- endfor -%}
 		{%- if resourcesCount != 0 -%}
-			{%- assign studiesStudiesIncluded = false -%}
-			{%- assign studiesReadingPlansIncluded = false -%}
-			{%- assign studiesMediaIncluded = false -%}
-
-			{%- for messages in itemChildItems -%}
-
-				{%- assign resource = messages.ChildContentChannelItem -%}
-				{%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
-				{%- assign resourceURL = resource | Attribute:'ResourceURL','RawValue' -%}
-				{%- assign ResourceURLText = resource | Attribute:'ResourceURLText','RawValue' -%}
-				{%- assign embedCode = resource | Attribute:'EmbedCode','RawValue' -%}
-
-				{%- if resource.ContentChannelId != "23" -%}
-					{{ comma }}
+			
+			{% comment %}
+			Grab all "Studies" resources
+			{% endcomment %}
+			{%- if studiesStudiesIncluded == true -%}
+				{{ comma }}
+				{
+					"images":[
+						{%- assign Title = "Studies" | Escape | EscapeDataString -%}
+						{%- assign Body = "Find related studies below." | Escape | EscapeDataString -%}
+						{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+					]
+				}
+				{%- for messages in itemChildItems -%}
+					{%- assign resource = messages.ChildContentChannelItem -%}
+					{%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
 					{%- if resourceMediaFile.Guid != null -%}
-						{%- if studiesStudiesIncluded == false -%}
-						{
-							"images":[
-								{%- assign Title = "Studies" | Escape | EscapeDataString -%}
-								{%- assign Body = "Find related studies below." | Escape | EscapeDataString -%}
-								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
-							]
-						},
-						{%- assign studiesStudiesIncluded = true -%}
-						{%- endif -%}
-						{
+						,{
 							"title": "{{ resource.Title }}",
 							"subtitle": "Download",
 							"images":[
@@ -74,18 +80,29 @@
 								"contentUrl": "https://www.southeastchristian.org/GetFile.ashx?guid={{ resourceMediaFile.Guid }}"
 							}]
 						}
-					{%- elseif resourceURL != "" -%}
-						{%- if studiesReadingPlansIncluded == false -%}
-						{
-							"images":[
-								{%- assign Title = "Reading Plans" | Escape | EscapeDataString -%}
-								{%- assign Body = "Grow spiritually with a daily devotion." | Escape | EscapeDataString -%}
-								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
-							]
-						},
-						{%- assign studiesReadingPlansIncluded = true -%}
-						{%- endif -%}
-						{
+					{%- endif -%}
+				{%- endfor -%}
+				{%- assign comma = "," -%}
+			{%- endif -%}
+
+			{% comment %}
+			Grab all "Reading Plans" or "Links" resources
+			{% endcomment %}
+			{%- if studiesReadingPlansIncluded == true -%}
+				{{ comma }}
+				{
+					"images":[
+						{%- assign Title = "Reading Plans" | Escape | EscapeDataString -%}
+						{%- assign Body = "Grow spiritually with a daily devotion." | Escape | EscapeDataString -%}
+						{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+					]
+				}
+				{%- for messages in itemChildItems -%}
+					{%- assign resource = messages.ChildContentChannelItem -%}
+					{%- assign resourceURL = resource | Attribute:'ResourceURL','RawValue' -%}
+					{%- assign ResourceURLText = resource | Attribute:'ResourceURLText','RawValue' -%}
+					{%- if resourceURL != "" -%}
+						,{
 							"title": "{{ resource.Title }}",
 							"subtitle": "{%- if ResourceURLText != "" -%}{{ ResourceURLText }}{%- else -%}Link{%- endif -%}",
 							"images":[
@@ -99,18 +116,28 @@
 								"contentUrl": "{{ resourceURL }}"
 							}]
 						}
-					{%- elseif embedCode != "" -%}
-						{%- if studiesMediaIncluded == false -%}
-						{
-							"images":[
-								{%- assign Title = "Media" | Escape | EscapeDataString -%}
-								{%- assign Body = "See other related videos, links, or testimonies." | Escape | EscapeDataString -%}
-								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
-							]
-						},
-						{%- assign studiesMediaIncluded = true -%}
-						{%- endif -%}
-						{
+					{%- endif -%}
+				{%- endfor -%}
+				{%- assign comma = "," -%}
+			{%- endif -%}
+
+			{% comment %}
+			Grab all "Media" resources
+			{% endcomment %}
+			{%- if studiesMediaIncluded == true -%}
+				{{ comma }}
+				{
+					"images":[
+						{%- assign Title = "Media" | Escape | EscapeDataString -%}
+						{%- assign Body = "See other related videos, links, or testimonies." | Escape | EscapeDataString -%}
+						{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+					]
+				}
+				{%- for messages in itemChildItems -%}
+					{%- assign resource = messages.ChildContentChannelItem -%}
+					{%- assign embedCode = resource | Attribute:'EmbedCode','RawValue' -%}
+					{%- if embedCode != "" -%}
+						,{
 							"title": "{{ resource.Title }}",
 							"subtitle": "Watch",
 							"images":[
@@ -125,17 +152,17 @@
 							}]
 						}
 					{%- endif -%}
-					{%- assign comma = "," -%}
-				{%- endif -%}
-				{%- if forloop.last -%}
-				{{ comma }}
-				{
-					"images":[
-						{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank121212.jpg"  }
-					]
-				}
-				{%- endif -%}
-			{%- endfor -%}
+				{%- endfor -%}
+				{%- assign comma = "," -%}
+			{%- endif -%}
+
+			{{ comma }}
+			{
+				"images":[
+					{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank121212.jpg"  }
+				]
+			}
+			
 		{%- endif -%}
     ]
 }
