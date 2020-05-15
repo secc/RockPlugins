@@ -1211,7 +1211,7 @@ namespace org.secc.Connection
                 {
                     roleId = value;
                 }
-                int? newGroupId = Groups.Where( kvp => kvp.Key.Contains( newConcatGuid ) ).Select( v => v.Value.AsIntegerOrNull() ).FirstOrDefault();
+                int? newGroupId = Groups.Where( kvp => kvp.Key.Contains( newConcatGuid ) && kvp.Value != "Not Mapped" ).Select( v => v.Value.AsIntegerOrNull() ).FirstOrDefault();
 
                 if ( partition.GroupMap != null && partition.GroupMap.ContainsKey( value ) && partition.GroupMap[value] != "Not Mapped" )
                 {
