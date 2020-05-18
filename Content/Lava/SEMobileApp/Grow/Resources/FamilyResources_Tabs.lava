@@ -1,0 +1,27 @@
+{%- cache key:'subsplash-familyresource-tab-{{id}}' duration:'3600' -%}
+{%- contentchannelitem where:'ContentChannelId == 76 && Id == {{id}}' -%}
+{%- for series in contentchannelitemItems -%}
+{
+	"header": {
+		"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}"
+	},
+    "items": [
+        {
+            "title": "Message",
+            "actions": [{
+				"handler": "detail",
+				"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/grow/resources/familyresources/message/{{series.Id}}"
+			}]
+        },
+        {
+            "title": "Resources",
+            "actions": [{
+                "handler": "list",
+                "url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/grow/resources/familyresources/message/{{series.Id}}/resources"
+            }]
+        }
+    ]
+}
+{%- endfor -%}
+{% endcontentchannelitem -%}
+{%- endcache -%}

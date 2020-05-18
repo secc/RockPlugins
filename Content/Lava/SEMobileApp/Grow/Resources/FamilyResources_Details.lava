@@ -1,0 +1,85 @@
+{%- cache key:'subsplash-familyresource-detail-{{id}}' duration:'3600' -%}
+{%- contentchannelitem where:'ContentChannelId == 76 && Id == {{id}}' -%}
+	{%- for item in contentchannelitemItems -%}
+		{%- assign ministries = item | Attribute:'Audiences' -%}
+		{%- if ministries contains "Children" or ministries contains "Family"  -%}
+			{%- assign SEKidsItem = item -%}
+		{%- endif -%}
+	{%- endfor -%}
+{%- endcontentchannelitem -%}
+{%-  assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger -%}
+{%-  assign itemStartDateTime = SEKidsItem.StartDateTime | Date:'yyMMddHHmm' | AsInteger -%}
+{%-  assign itemImage = SEKidsItem | Attribute:'Image' -%}
+{%-  assign itemImageGuid = SEKidsItem | Attribute:'Image','RawValue' -%}
+{%- if SEKidsItem and itemStartDateTime <= currentDateTime -%}
+	{%- assign seKidsChildItems = SEKidsItem.ChildItems | Sort:'Order','Asc' -%}
+	{%- for resources in seKidsChildItems -%}
+		{%- assign resource = resources.ChildContentChannelItem -%}
+		{%- if resource.ContentChannelId == '77' -%}
+			{%- assign resourceVimeoMP4 = resource | Attribute:'vimeo-mp4',"RawValue" -%}
+			{
+				"header": {
+					"title": "{{SEKidsItem.Title | Replace:'"','\"'}}"
+				},
+				"displayOptions":{
+					"colors": {
+						"brand":{
+							"primary":"#121212",
+							"primaryAccent":"#FFFFFF"
+						},
+						"theme":{
+							"primary":"#121212",
+							"primaryAccent":"#FFFFFF"
+						},
+						"topBar":{
+							"primary":"#121212",
+							"primaryAccent":"#FFFFFF"
+						},
+						"bottomBar":{
+							"primary":"#121212",
+							"primaryAccent":"#FFFFFF"
+						}
+					}
+				},
+				"actionSheet":{
+					"items":[
+						{
+							"actions":[{
+								"handler":"defaultShare",
+								"body":"Check this out! {{SEKidsItem.Title | Replace:'"','\"'}}",
+								"url":"{{ 'Global' | Attribute:'PublicApplicationRoot' }}familyresources/{{SEKidsItem.PrimarySlug}}"
+							}]
+						},
+						{
+							"actions":[{
+								"handler":"htmlShare",
+								"body":"<html>Check this out! Join us at <a href='{{ 'Global' | Attribute:'PublicApplicationRoot' }}familyresources/{{SEKidsItem.PrimarySlug}}'><b>{{SEKidsItem.Title | Replace:'"','\"'}}</b></a>.</html>"
+							}]
+						}
+					]
+				},
+				"media": [{
+					"url":"{{ resourceVimeoMP4 }}",
+					"format":"mp4",
+					"downloadable":false,
+					"images":[
+						{ "width":520, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{itemImageGuid}}.jpg?guid={{itemImageGuid}}&w=720&mode=crop&h=383&scale=both"},
+						{ "width":1080, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{itemImageGuid}}.jpg?guid={{itemImageGuid}}&w=1080&mode=crop&h=575&scale=both"},
+						{ "width":1280, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{itemImageGuid}}.jpg?guid={{itemImageGuid}}&w=1280&mode=crop&h=681&scale=both"},
+						{ "width":1920, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{itemImageGuid}}.jpg?guid={{itemImageGuid}}&w=1920&mode=crop&h=1021&scale=both"}
+					]
+				}],
+				"title": "{{SEKidsItem.Title| Replace:'"','\"'}}",
+				"body":"{{ SEKidsItem.Content | Replace:'"','\"' | StripHtml | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+				"subtitle":"{{ SEKidsItem | Attribute:'PromotionalDate' | Date:'MMMM dd, yyyy' }}",
+				"images":[
+					{ "width":520, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{itemImageGuid}}.jpg?guid={{itemImageGuid}}&w=720&mode=crop&h=383&scale=both"},
+					{ "width":1080, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{itemImageGuid}}.jpg?guid={{itemImageGuid}}&w=1080&mode=crop&h=575&scale=both"},
+					{ "width":1280, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{itemImageGuid}}.jpg?guid={{itemImageGuid}}&w=1280&mode=crop&h=681&scale=both"},
+					{ "width":1920, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{itemImageGuid}}.jpg?guid={{itemImageGuid}}&w=1920&mode=crop&h=1021&scale=both"}
+				]
+			}
+		{%- endif -%}
+	{%- endfor -%}
+{%- endif -%}
+{%- endcache -%}

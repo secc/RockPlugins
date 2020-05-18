@@ -1,0 +1,99 @@
+{%- cache key:'subsplash-familyresource-resource-{{id}}' duration:'3600' -%}
+{%- contentchannelitem where:'ContentChannelId == 76 && Id == {{id}}' -%}
+	{%- for item in contentchannelitemItems -%}
+		{%- assign ministries = item | Attribute:'Audiences' -%}
+		{%- if ministries contains "Children" or ministries contains "Family"  -%}
+			{%- assign SEKidsItem = item -%}
+		{%- endif -%}
+	{%- endfor -%}
+{%- endcontentchannelitem -%}
+{%-  assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger -%}
+{%-  assign itemStartDateTime = SEKidsItem.StartDateTime | Date:'yyMMddHHmm' | AsInteger -%}
+{%-  assign itemImage = SEKidsItem | Attribute:'Image' -%}
+{%-  assign itemImageGuid = SEKidsItem | Attribute:'Image','RawValue' -%}
+{%- if SEKidsItem and itemStartDateTime <= currentDateTime -%}
+{
+	"header": {
+		"title": "{{SEKidsItem.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+		"style": "featured",
+		"items": [{
+			"images":[
+                { "width":520, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{itemImageGuid}}.jpg?guid={{itemImageGuid}}&w=720&mode=crop&h=383&scale=both"},
+				{ "width":1080, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{itemImageGuid}}.jpg?guid={{itemImageGuid}}&w=1080&mode=crop&h=575&scale=both"},
+				{ "width":1280, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{itemImageGuid}}.jpg?guid={{itemImageGuid}}&w=1280&mode=crop&h=681&scale=both"},
+				{ "width":1920, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{itemImageGuid}}.jpg?guid={{itemImageGuid}}&w=1920&mode=crop&h=1021&scale=both"}
+			]
+		}]
+	},
+	"displayOptions": {
+		"style":"stacked",
+		"contentWidthRatio": 1.0,
+		"itemDisplayOptions": {
+			"indicatorAspectRatio":3.66,
+			"indicatorShadowEnabled":true,
+        	"maxWidth":1400,
+	        "textPosition": "none"
+		}
+    },
+    "items": [
+		{%- assign comma = "" -%}
+		{%- assign resourcesIncluded = false -%}
+			{% assign seKidsChildItems = SEKidsItem.ChildItems | Sort:'Order','Asc' %}
+			{%- for resources in seKidsChildItems -%}
+				{% assign resource = resources.ChildContentChannelItem %}
+					{% if resource.ContentChannelId == '78' %}
+						{%- if resourcesIncluded == false -%}
+						{{ comma }}
+						{
+							"images":[
+								{%- assign Title = "Downloadables" | Escape | EscapeDataString -%}
+								{%- assign Body = "Checkout the files below" | Escape | EscapeDataString -%}
+								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+							]
+						}{%- assign comma = "," -%}
+						{%- endif -%}
+						{% comment %}
+						Grab all downloadable resources
+						{% endcomment %}
+						{{ comma }}
+						{%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
+						{%- if resourceMediaFile.Guid != null -%}
+							{
+								"title": "{{ resource.Title }}",
+								"subtitle": "Download PDF",
+								"images":[
+									{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+								],
+								"actions": [{
+									"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
+									"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
+									"type":"navigation",
+									"showBrowserControls": true,
+									"contentUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}/GetFile.ashx?guid={{ resourceMediaFile.Guid }}"
+								}]
+							}
+						{%- endif -%}
+						{%- assign resourcesIncluded = true -%}
+						{%- assign comma = "," -%}
+					{%- endif -%}
+			{%- endfor -%}
+			{%- if resourcesIncluded == false -%}
+			{{ comma }}
+			{
+				"images":[
+					{%- assign Title = "Resources Coming" | Escape | EscapeDataString -%}
+					{%- assign Body = "Please come back soon" | Escape | EscapeDataString -%}
+					{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+				]
+			}{%- assign comma = "," -%}
+			{%- endif -%}
+			{{ comma }}
+			{
+				"images":[
+					{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank121212.jpg"  }
+				]
+			}
+    ]
+}
+{%- endif -%}
+{%- endcache -%}

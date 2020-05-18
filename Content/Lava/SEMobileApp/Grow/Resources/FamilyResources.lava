@@ -1,0 +1,83 @@
+{%- cache key:'subsplash-familyresource-list' duration:'3600' -%}
+{
+	"header": {
+		"title": "Family Resources"
+	},
+	"displayOptions":{
+		"style":"stacked",
+		"contentWidthRatio":1,
+	    "itemDisplayOptions":{
+	        "indicatorAspectRatio":2.5265,
+	        "textPosition": "none"
+	    },
+		"colors":{
+	        "brand":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "theme":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "topBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "bottomBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "brandableElements":"{{colors:brand}}"
+	    }
+	},
+	"items": [
+        {%- assign comma = "" -%}
+        {%- contentchannelitem where:'ContentChannelId == 76 && Status == 2' sort:'StartDateTime desc' -%}
+            {%- assign Items = contentchannelitemItems -%}
+        {%- endcontentchannelitem -%}
+        {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+        {%- for item in Items -%}
+            {{ comma }}
+            {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+            {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+            {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+				{%- assign resourcesCount = 0 -%}
+				{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
+				{%- for messages in itemChildItems -%}
+					{%- assign message = messages.ChildContentChannelItem -%}
+					{%- if message.ContentChannelId == "78" -%}
+						{%- assign resourcesCount = resourcesCount | Plus:1 -%}
+					{%- endif -%}
+				{%- endfor -%}
+				{%- if resourcesCount != 0 -%}
+					{%- assign itemActionHandler = "subtabs" -%}
+					{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/grow/resources/familyresources/tab/" | Append:item.Id -%}
+				{%- else -%}
+					{%- assign itemActionHandler = "detail" -%}
+					{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/grow/resources/familyresources/message/" | Append:item.Id -%}
+				{%- endif -%}
+                {%- assign itemImage = item | Attribute:'Image' -%}
+                {%- assign itemImageGuid = item | Attribute:'Image','RawValue' -%}
+                {%- assign campuses = item | Attribute:'Campuses','RawValue' | Split: ',' -%}
+                {%- assign ministries = item | Attribute:'Audiences' -%}
+				
+                {%- if ministries contains "Children" or ministries contains "Family" -%}
+                {
+                    "title": "{{-item.Title | Replace:'"','\"'-}}",
+                    "images":[{
+                        "width": 667,
+                        "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/grow/resources/listcard/{{- item.Guid -}}?mode=crop&s.roundcorners=20&bgcolor=121212"
+                    }],
+					"actions": [{
+                        "handler": "{{- itemActionHandler -}}",
+                        {%- if itemActionHandler == "subtabs" -%}"type": "navigation",{%- endif -%}
+                        "url": "{{- itemActionUrl -}}"
+                    }]
+                }
+                {%- assign comma = "," -%}
+                {%- endif -%}
+            {%- endif -%}
+        {%- endfor -%}
+	]
+}
+{%- endcache -%}
