@@ -1,0 +1,236 @@
+<style>
+.epeBadge {
+position: relative;
+width: 45px;
+height: 45px;
+/* margin: 15em auto; */
+}
+.epeCircle {
+width: 100%;
+height: 100%;
+border-radius: 50%;
+position: absolute;
+transform: rotate(35deg);
+}
+.epeAnimate {
+-webkit-transition: 0.2s cubic-bezier(.74,1.13,.83,1.2);
+-moz-transition: 0.2s cubic-bezier(.74,1.13,.83,1.2);
+-o-transition: 0.2s cubic-bezier(.74,1.13,.83,1.2);
+transition: 0.2s cubic-bezier(.74,1.13,.83,1.2);
+}
+.epeAnimate > span.epeInfo {
+    font-weight: 900;
+    opacity: 0;
+    transform: rotate(-35deg);
+    display: block;
+    position: relative;
+    font-size: 0.5em;
+    cursor: default;
+    text-align: center;
+}
+.epeAnimate:hover {
+transform: scale(1.8) rotate(35deg);
+transform-origin: center center;
+}
+.epeAnimate:hover > span.epeInfo {
+    opacity: 1;
+}
+.epeSlice1 {
+background-color: #d8d8d8;
+-webkit-clip-path: polygon(50% 50%, 50% 0, 100% 0, 100% 30%);
+clip-path: polygon(50% 50%, 50% 0, 100% 0, 100% 30%);
+}
+.epeSlice1:before {
+    content: '';
+    width: 90%;
+    height: 90%;
+    top: 47.5%;
+    left: 51.5%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+    background-color:#fff;
+    -webkit-clip-path: polygon(50% 50%, 50% 0, 100% 0, 100% 30%);
+    clip-path: polygon(50% 50%, 50% 0, 100% 0, 100% 30%);
+    border-radius: 50%;
+}
+.epeSlice1 > span.epeInfo {
+    top: 14%;
+    left: 18%;
+}
+
+.epeSlice2 {
+background-color:#d8d8d8;
+-webkit-clip-path: polygon(50% 50%, 100% 30%, 100% 100%, 100% 90%);
+clip-path: polygon(50% 50%, 100% 30%, 100% 100%, 100% 90%);
+}
+.epeSlice2:before {
+content: '';
+width: 90%;
+height: 90%;
+top: 50.25%;
+left: 53.25%;
+transform: translate(-50%, -50%);
+position: absolute;
+background-color: white;
+-webkit-clip-path: polygon(50% 50%, 100% 30%, 100% 100%, 100% 90%);
+clip-path: polygon(50% 50%, 100% 30%, 100% 100%, 100% 90%);
+border-radius: 50%;
+}
+.epeSlice2 > span.epeInfo {
+top: 44%;
+left: 33%;
+}
+
+
+.epeSlice3 {
+background-color: #d8d8d8;
+-webkit-clip-path: polygon(50% 50%, 100% 90%, 100% 100%, 50% 100%);
+clip-path: polygon(50% 50%, 100% 90%, 100% 100%, 50% 100%);
+}
+.epeSlice3:before {
+content: '';
+width: 90%;
+height: 90%;
+top: 52.5%;
+left: 51.5%;
+transform: translate(-50%, -50%);
+position: absolute;
+background-color: white;
+-webkit-clip-path: polygon(50% 50%, 100% 90%, 100% 100%, 50% 100%);
+clip-path: polygon(50% 50%, 100% 90%, 100% 100%, 50% 100%);
+border-radius: 50%;
+}
+.epeSlice3 > span.epeInfo {
+top: 75%;
+left: 16%;
+font-size: 5px;
+}
+
+.epeSlice4 {
+background-color: #d8d8d8;
+-webkit-clip-path: polygon(50% 50%, 0 100%, 50% 100%);
+clip-path: polygon(50% 50%, 0 100%, 50% 100%);
+}
+.epeSlice4:before {
+content: '';
+width: 90%;
+height: 90%;
+top: 52.5%;
+left: 49%;
+transform: translate(-50%, -50%);
+position: absolute;
+background-color: white;
+-webkit-clip-path: polygon(50% 50%, 0 100%, 50% 100%);
+clip-path: polygon(50% 50%, 0 100%, 50% 100%);
+border-radius: 50%;
+}
+.epeSlice4 > span.epeInfo {
+top: 70%;
+left: -13%;
+}
+
+.epeSlice5 {
+background-color: #d8d8d8;
+-webkit-clip-path: polygon(50% 50%, 0 30%, 0 100%);
+clip-path: polygon(50% 50%, 0 30%, 0 100%);
+}
+.epeSlice5:before {
+content: '';
+width: 90%;
+height: 90%;
+top: 50.5%;
+left: 47%;
+transform: translate(-50%, -50%);
+position: absolute;
+background-color: white;
+-webkit-clip-path: polygon(50% 50%, 0 30%, 0 100%);
+clip-path: polygon(50% 50%, 0 30%, 0 100%);
+border-radius: 50%;
+}
+.epeSlice5 > span.epeInfo {
+    top: 43%;
+    left: -32%;
+    font-size: 8px;
+}
+
+.epeSlice6 {
+background-color: #d8d8d8;
+-webkit-clip-path: polygon(50% 50%, 0 30%, 0 0, 50% 0);
+clip-path: polygon(50% 50%, 0 30%, 0 0, 50% 0);
+}
+.epeSlice6:before {
+content: '';
+width: 90%;
+height: 90%;
+top: 47.5%;
+left: 48.5%;
+transform: translate(-50%, -50%);
+position: absolute;
+background-color: white;
+-webkit-clip-path: polygon(50% 50%, 0 30%, 0 0, 50% 0);
+clip-path: polygon(50% 50%, 0 30%, 0 0, 50% 0);
+border-radius: 50%;
+}
+.epeSlice6 > span.epeInfo {
+top: 11%;
+left: -18%;
+}
+.epePieCampus {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    z-index: 1d8d8d800;
+    background-color: black;
+    color:white;
+    display: block;
+    width: 60%;
+    height: 60%;
+    border-radius: 50%;
+    border: 2px solid #d8d8d8;
+    transform: translate(-50%, -50%) rotate(0deg);
+}
+.epePieCampus div {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    font-size: 0.75em;
+    font-weight: 800;
+}
+.epeComplete {
+background-color: orange;
+}
+.epeComplete:before {
+background-color: orange;
+}
+.epeInProgress {
+background-color: orange;
+}
+.epeInProgress:before {
+background-color: white;
+}
+</style>
+<div class="epeBadge">
+    <div class="epeSlice1 epeCircle epeAnimate epeInProgress">
+        <span class="epeInfo">M</span>
+    </div>
+    <div class="epeSlice2 epeCircle epeAnimate epeComplete">
+        <span class="epeInfo">S</span>
+    </div>
+    <div class="epeSlice3 epeCircle epeAnimate">
+        <span class="epeInfo">ERA</span>
+    </div>
+    <div class="epeSlice4 epeCircle epeAnimate epeInProgress">
+        <span class="epeInfo">L</span>
+    </div>
+    <div class="epeSlice5 epeCircle epeAnimate">
+        <span class="epeInfo">ML</span>
+    </div>
+    <div class="epeSlice6 epeCircle epeAnimate epeComplete">
+        <span class="epeInfo">B</span>
+    </div>
+    <div class="epePieCampus">
+        <div class="campus">LA</div>
+    </div>
+</div>
