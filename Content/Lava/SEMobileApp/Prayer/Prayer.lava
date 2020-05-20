@@ -35,7 +35,7 @@
 	    }
 	},
 	"items": [
-		{%- assign prayerLink = 'https://www.southeastchristian.org/prayer' -%}
+		{%- assign prayerLink = 'https://www.southeastchristian.org/howcanwehelp' -%}
         {%- assign prayerCell = '5022538144' -%}
         {%- assign prayerEmail = 'prayer@secc.org' -%}
         {%- comment -%}
