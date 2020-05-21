@@ -42,21 +42,23 @@ namespace org.secc.Communication.Model
         {
             return this.Queryable().Where( th => th.SID == sid ).FirstOrDefault();
         }
-        private TwilioDirection GetDirection( MessageResource.DirectionEnum direction )
+        private TwilioDirection GetDirection( MessageResource.DirectionEnum dir )
         {
-            if ( direction == MessageResource.DirectionEnum.Inbound )
+            var direction = dir.ToString();
+
+            if ( direction == "inbound" )
             {
                 return TwilioDirection.Inbound;
             }
-            else if ( direction == MessageResource.DirectionEnum.OutboundApi )
+            else if ( direction == "outbound-api" )
             {
                 return TwilioDirection.OutboundApi;
             }
-            else if ( direction == MessageResource.DirectionEnum.OutboundCall )
+            else if ( direction == "outbound-call")
             {
                 return TwilioDirection.OutboundCall;
             }
-            else if ( direction == MessageResource.DirectionEnum.OutboundReply )
+            else if ( direction == "outbound-reply" )
             {
                 return TwilioDirection.OutboundReply;
             }
@@ -70,37 +72,38 @@ namespace org.secc.Communication.Model
         //No need to load the Twilio library to use the enum
         //Works in a switch statement
         //Hard coded enum values for consistant DB
-        private TwilioStatus GetStatus( MessageResource.StatusEnum status )
+        private TwilioStatus GetStatus( MessageResource.StatusEnum stat )
         {
-            if ( status == MessageResource.StatusEnum.Delivered )
+            var status = stat.ToString();
+            if ( status == "delivered")
             {
                 return TwilioStatus.Delivered;
             }
-            else if ( status == MessageResource.StatusEnum.Failed )
+            else if ( status == "failed" )
             {
                 return TwilioStatus.Failed;
             }
-            else if ( status == MessageResource.StatusEnum.Queued )
+            else if ( status == "queued" )
             {
                 return TwilioStatus.Queued;
             }
-            else if ( status == MessageResource.StatusEnum.Received )
+            else if ( status == "received" )
             {
                 return TwilioStatus.Received;
             }
-            else if ( status == MessageResource.StatusEnum.Receiving )
+            else if ( status == "receiving" )
             {
                 return TwilioStatus.Receiving;
             }
-            else if ( status == MessageResource.StatusEnum.Sending )
+            else if ( status == "sending" )
             {
                 return TwilioStatus.Sending;
             }
-            else if ( status == MessageResource.StatusEnum.Sent )
+            else if ( status == "sent" )
             {
                 return TwilioStatus.Sent;
             }
-            else if ( status == MessageResource.StatusEnum.Undelivered )
+            else if ( status == "undelivered" )
             {
                 return TwilioStatus.Undelivered;
             }
