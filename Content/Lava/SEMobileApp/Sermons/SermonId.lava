@@ -1,9 +1,36 @@
 {%- cache key:'subsplash-sermon-{{id}}' duration:'3600' -%}
 {%- contentchannelitem where:'ContentChannelId == 23 && Id == {{id}}' sort:'StartDateTime desc'  -%}
 {%- for sermon in contentchannelitemItems -%}
+{%- comment -%}
+ Grabbing the parent series for URL sharing
+{%- endcomment -%}
+{%- contentchannelitemassociation where:'ChildContentChannelItemId == {{id}}' -%}
+	{%- assign item = contentchannelitemassociationItems | First -%}
+	{%- assign seriesId = item.ContentChannelItemId -%}
+	{%- contentchannelitem where:'ContentChannelId == 24 && Id == {{seriesId}}' -%}
+		{%- assign series = contentchannelitemItems | First -%}
+	{%- endcontentchannelitem -%}
+{%- endcontentchannelitemassociation -%}
 {
 	"header": {
 		"title": "{{sermon.Title | Replace:'"','\"'}}"
+	},
+	"actionSheet":{
+		"items":[
+			{
+				"actions":[{
+					"handler":"defaultShare",
+					"body":"Check this out! {{series.Title | Replace:'"','\"'}} | {{sermon.Title | Replace:'"','\"'}}",
+					"url":"{{ 'Global' | Attribute:'PublicApplicationRoot' }}sermons/{{series.PrimarySlug}}/{{sermon.PrimarySlug}}"
+				}]
+			},
+			{
+				"actions":[{
+					"handler":"htmlShare",
+					"body":"<html>Check this out! <a href='{{ 'Global' | Attribute:'PublicApplicationRoot' }}sermons/{{series.PrimarySlug}}/{{sermon.PrimarySlug}}'><b>{{series.Title | Replace:'"','\"'}} | {{sermon.Title | Replace:'"','\"'}}</b></a>.</html>"
+				}]
+			}
+		]
 	},
 	"media": [
 	    {

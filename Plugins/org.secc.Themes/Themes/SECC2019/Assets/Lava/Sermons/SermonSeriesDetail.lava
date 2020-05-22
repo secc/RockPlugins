@@ -182,6 +182,10 @@
 
                     <div id="sermonContent" class="col-sm-12 col-lg-4">
                         <br />
+                        {{ '{%- assign pageTile = "' | Append:series.Title | Append:' | ' | Append:currentMessage.Title | Append: '" ' | Append: ending }}
+                        {% raw %}
+                        {{ pageTile | SetPageTitle }}
+                        {% endraw %}
                         <h2 class="g-font-size--jumbo-2 g-font-family--secondary">{{ currentMessage.Title }}</h2>
                     	<h5 class="uppercase">by {{ currentMessage | Attribute:'Speaker' }} – {{ currentMessage.StartDateTime | Date:'MMMM dd, yyyy' }}</h5>
                         <hr />
