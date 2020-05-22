@@ -1,0 +1,91 @@
+<section id="Map" class="clearfix">
+    <style>
+        .google-maps {
+            position: relative;
+            top: 0;
+            left: 0;
+            height: 0;
+            overflow: hidden;
+            height: 600px !important;
+            width: 100% !important;
+        }
+        .page_content_wrap {
+            padding: 0px;
+            height: 0px;
+            border-bottom: 0.0625rem solid rgba(34, 35, 36, 0.1);
+            background-color: rgb(34, 35, 36);
+            margin: 0px;
+            width: 100%;
+        }
+        .iw_title {
+            font-size: 1.5rem;
+            font-weight: bolder;
+        }
+        .iw_subTitle {
+            font-size: 1.2rem;
+            font-weight: bolder;
+        }
+    </style>
+
+    <div class="row clearfix">
+        <div class="col-md-12 clearfix" style="position: relative;">
+            <div id="PrayerWalkMap" class="google-maps"></div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            map = createMap("PrayerWalkMap");
+            var campusMarkers = [];
+            // a new Info Window is created
+            infoWindow = new google.maps.InfoWindow({
+                pixelOffset: new google.maps.Size(0, 0)
+            });
+            {%- for campus in Campuses  -%}
+                {%- campus id:'{{campus.Id}}' -%}
+                    
+                    var marker{{campus.Slug}} = new google.maps.Marker({
+                        position: new google.maps.LatLng({{ campus.Location.Latitude }},{{ campus.Location.Longitude }}),
+                        icon: {
+                            url: "https://rockstaging.secc.org/Themes/SECC2019/Assets/img/SE/PrayerWalk4.svg",
+                            // This marker is 20 pixels wide by 32 pixels high.
+                            size: new google.maps.Size(44, 64)
+                        },
+                        animation: google.maps.Animation.DROP,
+                        map: map
+                    });
+
+                    campusMarkers[campusMarkers.length] = marker{{campus.Slug}};
+
+                    // This event expects a click on a marker
+                    // When this event is fired the Info Window content is created
+                    // and the Info Window is opened.
+                    google.maps.event.addListener(marker{{campus.Slug}}, 'click', function() {
+
+                        // stop animation if there is one (should be)...
+                        if (marker{{campus.Slug}}.getAnimation() != null) {
+                            marker{{campus.Slug}}.setAnimation(null);
+                        }
+
+                        // Creating the content to be inserted in the infowindow
+                        var iwContent = '<div id="iw_container">' +
+                            '<div class="iw_title">Prayer Walk</div>' +
+                            '<div class="iw_content">{{ campus.Location.Street1 }}<br />' +
+                            '{{ campus.Location.City }}, {{ campus.Location.State }} {{ campus.Location.PostalCode }}'
+                            '</div>' +
+                            '</div>';
+
+                        // including content to the Info Window.
+                        infoWindow.setContent(iwContent);
+
+                        // opening the Info Window in the current map and at the current marker location.
+                        infoWindow.open(map, marker{{campus.Slug}});
+                    });
+                {%- endcampus -%}
+            {%- endfor -%}
+
+            if ($( document ).width() > 768) {
+                map.setCenter(new google.maps.LatLng((map.getCenter().lat()) , (map.getCenter().lng() - .5)));
+            }
+        });
+    </script>
+</section>
