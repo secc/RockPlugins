@@ -12,10 +12,12 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using DotLiquid.Util;
 using org.secc.ChangeManager.Data;
 using org.secc.ChangeManager.Utilities;
 using Rock;
 using Rock.Attribute;
+using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
@@ -84,7 +86,7 @@ namespace org.secc.ChangeManager.Model
             System.Reflection.MethodInfo getMethod = entityService.GetType().GetMethod( "Get", new Type[] { typeof( int ) } );
             var mergeObjectEntity = getMethod.Invoke( entityService, new object[] { EntityId } ) as Rock.Data.IEntity;
 
-            this.Name = mergeObjectEntity.ToString();
+            this.Name = mergeObjectEntity != null ? mergeObjectEntity.ToString() : "Unknown Entity" ;
         }
 
         #endregion
@@ -128,7 +130,7 @@ namespace org.secc.ChangeManager.Model
                                 changeRecord.RelatedEntityId = targetEntity.Id;
 
                                 //if we add a phone number add that to the change list
-                                if ( targetEntity.GetType() == typeof( PhoneNumber ) )
+                                if ( targetEntity?.GetType() == typeof( PhoneNumber ) )
                                 {
                                     var number = targetEntity as PhoneNumber;
                                     var numberType = DefinedValueCache.GetValue( number.NumberTypeValueId.Value );
@@ -136,6 +138,13 @@ namespace org.secc.ChangeManager.Model
                                 }
 
                             }
+                        }
+
+                        //Some times entitities can be deleted (such as a binary file being cleaned up)
+                        //And cannot update, delete or change and attribute on it anymore
+                        if ( targetEntity == null )
+                        {
+                            continue;
                         }
 
                         //Remove records marked as delete
@@ -151,7 +160,7 @@ namespace org.secc.ChangeManager.Model
                         {
                             PropertyInfo prop = targetEntity.GetType().GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
 
-                            if ( prop.PropertyType.GetInterfaces().Any( i => i.IsInterface && i.GetInterfaces().Contains( typeof( IEntity ) ) ) )
+                            if ( prop != null && prop.PropertyType.GetInterfaces().Any( i => i.IsInterface && i.GetInterfaces().Contains( typeof( IEntity ) ) ) )
                             {
                                 PropertyInfo propId = targetEntity.GetType().GetProperty( changeRecord.Property + "Id", BindingFlags.Public | BindingFlags.Instance );
                                 var newObject = changeRecord.NewValue.FromJsonOrNull<BasicEntity>();
@@ -173,7 +182,7 @@ namespace org.secc.ChangeManager.Model
                         changeRecord.WasApplied = true;
 
                         //Check to see if the email address was changed
-                        var targetEntityType = targetEntity.GetType();
+                        var targetEntityType = targetEntity?.GetType();
                         if ( targetEntityType?.BaseType == typeof( Person ) // is a person
                             && changeRecord.Property == "Email" // and changed email
                             && changeRecord.OldValue.IsNotNullOrWhiteSpace() //old value isn't blank
@@ -234,7 +243,12 @@ namespace org.secc.ChangeManager.Model
                         //Property changes
                         else if ( changeRecord.Property.IsNotNullOrWhiteSpace() )
                         {
-                            PropertyInfo prop = targetEntity.GetType().GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
+                            PropertyInfo prop = targetEntity?.GetType()?.GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
+                            if ( targetEntity == null ||  prop == null )
+                            {
+                                //Entity was probably deleted after the change request
+                                continue;
+                            }
 
                             if ( prop.PropertyType.GetInterfaces().Any( i => i.IsInterface && i.GetInterfaces().Contains( typeof( IEntity ) ) ) )
                             {
@@ -280,6 +294,12 @@ namespace org.secc.ChangeManager.Model
 
         private void UpdateAttribute( IEntity targetEntity, string attributeKey, string value, RockContext rockContext )
         {
+            //Sometimes we can get change requests on deleted items.
+            if ( targetEntity == null )
+            {
+                return;
+            }
+
             if ( !( targetEntity is IHasAttributes ) )
             {
                 return;
@@ -293,19 +313,18 @@ namespace org.secc.ChangeManager.Model
 
         private void DeleteEntity( IEntity targetEntity, RockContext dbContext )
         {
+            //Sometimes we can get change requests on deleted items.
+            if ( targetEntity == null )
+            {
+                return;
+            }
+
             var entityTypeCache = EntityTypeCache.Get( targetEntity.TypeId );
             var entityType = entityTypeCache.GetEntityType();
             var entityService = Reflection.GetServiceForEntityType( entityType, dbContext );
             MethodInfo deleteMethodInfo = entityService.GetType().GetMethod( "Delete" );
             object[] parametersArray = new object[] { targetEntity };
-            try
-            {
-                deleteMethodInfo.Invoke( entityService, parametersArray );
-            }
-            catch
-            {
-                //Usually happens when someone tries deleting an already deleted item.
-            }
+            deleteMethodInfo.Invoke( entityService, parametersArray );
             dbContext.SaveChanges();
         }
 
