@@ -29,7 +29,7 @@
   {% endif %}
   {% if CurrentPerson.Guid %}
     <li id="LogOut">
-        <a href="/?logout=true" title="Log Out">Log Out</a>
+        <a href="/?logout=true" title="Log Out" rel="nofollow">Log Out</a>
     </li>
 	<!-- <li><a class="cd-search-trigger" href="#cd-search" title="Search">Search<span></span></a></li> -->
   {% endif %}

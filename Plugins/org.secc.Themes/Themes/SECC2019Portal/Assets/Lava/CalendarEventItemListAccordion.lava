@@ -7,12 +7,12 @@
 	            <nav>
 		            <ul class="pager">
 			            {% if thismonth > now %}
-			            <li class="previous"><a href="{{ DetailsPage }}?date={{ StartDate | DateAdd:-1,'M' | Date:'MM/01/yyyy' }}"><span class="arrow" aria-hidden="true"></span><span class="sr-only">{{ StartDate | DateAdd:-1,'M' | Date:'MMMM yyyy' }}</span></a></li>
+			            <li class="previous"><a href="{{ DetailsPage }}?date={{ StartDate | DateAdd:-1,'M' | Date:'MM/01/yyyy' }}" rel="nofollow"><span class="arrow" aria-hidden="true"></span><span class="sr-only">{{ StartDate | DateAdd:-1,'M' | Date:'MMMM yyyy' }}</span></a></li>
 			            {% else %}
-			            <li class="previous disabled"><a href="{{ DetailsPage }}?date={{ StartDate | DateAdd:-1,'M' | Date:'MM/01/yyyy' }}"><span class="arrow" aria-hidden="true"></span><span class="sr-only">{{ StartDate | DateAdd:-1,'M' | Date:'MMMM yyyy' }}</span></a></li>
+			            <li class="previous disabled"><a href="{{ DetailsPage }}?date={{ StartDate | DateAdd:-1,'M' | Date:'MM/01/yyyy' }}" rel="nofollow"><span class="arrow" aria-hidden="true"></span><span class="sr-only">{{ StartDate | DateAdd:-1,'M' | Date:'MMMM yyyy' }}</span></a></li>
 			            {% endif %}
 			            <li class="g-font-size--jumbo-1 g-font-family--secondary g-font-weight--400">{{ StartDate | Date:'MMMM yyyy' }}</li>
-			            <li class="next"><a href="{{ DetailsPage }}?date={{ StartDate | DateAdd:1,'M' | Date:'MM/01/yyyy' }}"><span class="arrow" aria-hidden="true"></span><span class="sr-only">{{ StartDate | DateAdd:1,'M' | Date:'MMMM yyyy' }}</span></a></li>
+			            <li class="next"><a href="{{ DetailsPage }}?date={{ StartDate | DateAdd:1,'M' | Date:'MM/01/yyyy' }}" rel="nofollow"><span class="arrow" aria-hidden="true"></span><span class="sr-only">{{ StartDate | DateAdd:1,'M' | Date:'MMMM yyyy' }}</span></a></li>
 		            </ul>
 	            </nav>
 

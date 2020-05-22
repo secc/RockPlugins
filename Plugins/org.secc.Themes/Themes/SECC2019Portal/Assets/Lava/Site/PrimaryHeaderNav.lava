@@ -11,7 +11,7 @@
     {% comment %}
     *** Use this if a logout icon is going back in the menu as requested ***
     <li id="LogOut">
-        <a href="/?logout=true" class="cd-nav-logout" title="Log Out"><i class="fas fa-sign-out"></i><span class="sr-only">Log Out</span></a>
+        <a href="/?logout=true" class="cd-nav-logout" title="Log Out" rel="nofollow"><i class="fas fa-sign-out"></i><span class="sr-only">Log Out</span></a>
     </li>
     {% endcomment %}
 	<li><a class="cd-search-trigger" href="#cd-search" title="Search">Search<span></span></a></li>
