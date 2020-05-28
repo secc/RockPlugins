@@ -1,3 +1,4 @@
+{% assign onlineCampusId = 11 %}
 
 {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
 {% assign campusIdSize = pageParamCampusId | Size %}
@@ -135,13 +136,13 @@
 <div class="container g-padding-t-150--xs g-padding-b-50--xs">
     <div class="row">
         <div class="col-xs-12 col-sm-12 col-md-10 col-md-offset-1" >
-			<div class=" col-xs-12 col-md-4">
+			<div class=" col-xs-12 col-md-5">
 				<h3 class="g-font-weight--600">Find a Group</h3>
 				<p class="g-font-weight--400 g-line-height--sm">Find a group that interests you by selecting meeting day and/or ministry. Click on the image to see more details or to register.</p>
 			</div>
-            <div id="groupFilters" class="g-display-block--xs col-xs-12 col-md-8 g-padding-t-50--sm">
+            <div id="groupFilters" class="g-display-block--xs col-xs-12 col-md-7 g-padding-t-50--sm">
                 
-				<div class="g-display-inline-block--xs col-xs-12 col-sm-4 g-padding-x-5--xs" tabindex="0" style="outline: none;">
+				<div style="display:none;" class="g-display-inline-block--xs col-xs-12 col-sm-4 g-padding-x-5--xs" tabindex="0" style="outline: none;">
 					<select class="select2-campuses" name="campus">
 					<option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
 					<option value="-1" data-shortcode="SEO" data-campus="seonline"{% if selectedCampus == '-1' %} selected="selected"{% endif %}>
@@ -204,7 +205,16 @@
     <div class="isotope_wrap g-margin-b-80--xs">
         {% for group in Groups %}
             {% if group.IsActive and group.IsPublic %}
-
+			
+				{% assign skip = true %}
+				{% assign groupCampusId = group.CampusId %}
+				{% if groupCampusId == empty or groupCampusId == null or group or groupCampusId == onlineCampusId %}
+					{% assign skip = false %}
+				{% endif %}
+				{% if skip == true %}
+					{% continue %}
+				{% endif %}
+				
                 {% assign groupUrl = group.Campus | Attribute:'Slug' %}
                 {% assign groupLocations = group.GroupLocations %}
                 {% assign otc = group | Attribute: 'OpentoChildren' %}

@@ -192,6 +192,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
         private void FormatValues( int entityTypeId, IEntity targetEntity, ChangeRecord changeRecord, RockContext rockContext )
         {
+            
+
             //Get the target Entity
             if ( changeRecord.RelatedEntityId.HasValue
                     && changeRecord.RelatedEntityId.Value != 0
@@ -211,6 +213,11 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                         targetEntity = ChangeRequest.GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext );
                         break;
                 }
+            }
+
+            if (targetEntity == null )
+            {
+                return;
             }
 
             //Enums
@@ -358,7 +365,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
             var changeRequest = changeRequestService.Get( hfChangeId.ValueAsInt() );
             changeRequest.ApproverComment = tbApproverComment.Text;
-            changeRequest.CompleteChanges( rockContext );
+            changeRequest.CompleteChanges( new RockContext() );
 
             changeRequest.IsComplete = true;
             changeRequest.ApproverAliasId = CurrentPersonAliasId ?? 0;
