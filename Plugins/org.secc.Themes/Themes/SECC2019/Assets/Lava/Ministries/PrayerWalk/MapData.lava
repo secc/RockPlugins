@@ -1,12 +1,47 @@
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAE0SCdnU3rGnC2bO5l24Y4dcfjpvstxzU"></script>
 <script>
+var styleOptions =[
+        {
+            "featureType": "all",
+            "elementType": "all",
+            "stylers": [
+                {
+                    "invert_lightness": true
+                },
+                {
+                    "saturation": 10
+                },
+                {
+                    "lightness": 30
+                },
+                {
+                    "gamma": 0.5
+                },
+                {
+                    "hue": "#435158"
+                }
+            ]
+        }
+    ];
+var styleOptionsLight =[];
 var createMap = function(containerId)
-{
+{   
+    // Create a new StyledMapType object, passing it an array of styles,
+    // and the name to be displayed on the map type control.
+    var styledMapType = new google.maps.StyledMapType(
+        styleOptions,
+        {name: 'Prayer on the Move'}
+    );
+    var lightMapType = new google.maps.StyledMapType(
+        styleOptionsLight,
+        {name: 'Default'}
+    );
+
     map = new google.maps.Map(document.getElementById(containerId), {
-        center: {lat: 38.2282191, lng: -85.5474217},
+        center: {lat: 38.1596835, lng: -84.9802525},
         zoom: 9,
         mapTypeControlOptions: {
-          mapTypeIds: []
+          mapTypeIds: ['default_map','dark_map']
         }, // here´s the array of controls
         //gestureHandling: 'greedy',
         disableDefaultUI: true, // a way to quickly hide all controls
@@ -17,282 +52,15 @@ var createMap = function(containerId)
           style: google.maps.ZoomControlStyle.LARGE 
         },
         mapTypeId: google.maps.MapTypeId.ROADMAP,
-        styles: [
-    {
-        "featureType": "all",
-        "elementType": "labels.text.fill",
-        "stylers": [
-            {
-                "saturation": 36
-            },
-            {
-                "color": "#aaa5a5"
-            },
-            {
-                "lightness": 40
-            }
-        ]
-    },
-    {
-        "featureType": "all",
-        "elementType": "labels.text.stroke",
-        "stylers": [
-            {
-                "visibility": "on"
-            },
-            {
-                "color": "#000000"
-            },
-            {
-                "lightness": 16
-            }
-        ]
-    },
-    {
-        "featureType": "all",
-        "elementType": "labels.icon",
-        "stylers": [
-            {
-                "visibility": "off"
-            }
-        ]
-    },
-    {
-        "featureType": "administrative",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#000000"
-            },
-            {
-                "lightness": 20
-            }
-        ]
-    },
-    {
-        "featureType": "administrative",
-        "elementType": "geometry.stroke",
-        "stylers": [
-            {
-                "color": "#000000"
-            },
-            {
-                "lightness": 17
-            },
-            {
-                "weight": 1.2
-            }
-        ]
-    },
-    {
-        "featureType": "landscape",
-        "elementType": "geometry",
-        "stylers": [
-            {
-                "color": "#222324"
-            },
-            {
-                "lightness": 20
-            }
-        ]
-    },
-    {
-        "featureType": "landscape",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#222324"
-            }
-        ]
-    },
-    {
-        "featureType": "landscape",
-        "elementType": "geometry.stroke",
-        "stylers": [
-            {
-                "color": "#222324"
-            }
-        ]
-    },
-    {
-        "featureType": "landscape.natural",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#333333"
-            }
-        ]
-    },
-    {
-        "featureType": "poi",
-        "elementType": "geometry",
-        "stylers": [
-            {
-                "color": "#000000"
-            },
-            {
-                "lightness": 21
-            }
-        ]
-    },
-    {
-        "featureType": "poi",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#292929"
-            }
-        ]
-    },
-    {
-        "featureType": "poi",
-        "elementType": "geometry.stroke",
-        "stylers": [
-            {
-                "color": "#4b4b4b"
-            }
-        ]
-    },
-    {
-        "featureType": "road.highway",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#3d3d3d"
-            },
-            {
-                "lightness": 17
-            }
-        ]
-    },
-    {
-        "featureType": "road.highway",
-        "elementType": "geometry.stroke",
-        "stylers": [
-            {
-                "color": "#242526"
-            },
-            {
-                "lightness": 29
-            },
-            {
-                "weight": 0.2
-            }
-        ]
-    },
-    {
-        "featureType": "road.arterial",
-        "elementType": "geometry",
-        "stylers": [
-            {
-                "color": "#000000"
-            },
-            {
-                "lightness": 18
-            }
-        ]
-    },
-    {
-        "featureType": "road.arterial",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#262626"
-            }
-        ]
-    },
-    {
-        "featureType": "road.arterial",
-        "elementType": "geometry.stroke",
-        "stylers": [
-            {
-                "color": "#395761"
-            }
-        ]
-    },
-    {
-        "featureType": "road.local",
-        "elementType": "geometry",
-        "stylers": [
-            {
-                "color": "#000000"
-            },
-            {
-                "lightness": 16
-            }
-        ]
-    },
-    {
-        "featureType": "road.local",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#474747"
-            }
-        ]
-    },
-    {
-        "featureType": "road.local",
-        "elementType": "geometry.stroke",
-        "stylers": [
-            {
-                "color": "#484848"
-            }
-        ]
-    },
-    {
-        "featureType": "transit",
-        "elementType": "geometry",
-        "stylers": [
-            {
-                "color": "#000000"
-            },
-            {
-                "lightness": 19
-            }
-        ]
-    },
-    {
-        "featureType": "water",
-        "elementType": "all",
-        "stylers": [
-            {
-                "color": "#2b3638"
-            }
-        ]
-    },
-    {
-        "featureType": "water",
-        "elementType": "geometry",
-        "stylers": [
-            {
-                "color": "#2b3638"
-            },
-            {
-                "lightness": 17
-            }
-        ]
-    },
-    {
-        "featureType": "water",
-        "elementType": "geometry.fill",
-        "stylers": [
-            {
-                "color": "#486888"
-            }
-        ]
-    },
-    {
-        "featureType": "water",
-        "elementType": "geometry.stroke",
-        "stylers": [
-            {
-                "color": "#24282b"
-            }
-        ]
-    }
-]
+        styles: styleOptions
       });
+
+      //Associate the styled map with the MapTypeId and set it to display.
+      map.mapTypes.set('default_map', lightMapType);
+      map.setMapTypeId('default_map');
+      map.mapTypes.set('dark_map', styledMapType);
+      map.setMapTypeId('dark_map');
+
       return map;
 }
 
