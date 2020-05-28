@@ -1,0 +1,16 @@
+{%- definedvalue where:'DefinedTypeId == 314' sort:'Order' -%}
+    {%- for dv in definedvalueItems -%}
+        {%- assign weekDay = dv | Attribute:'WeekDay' -%}
+        {%- assign currentDay = 'Now' | Date:'dddd' -%}
+        {%- if weekDay contains currentDay -%}
+            {%- assign now = 'Now' | Date -%}
+            {%- assign startTime = dv | Attribute:'StartTime','RawValue' -%}
+            {%- assign endTime = dv | Attribute:'EndTime','RawValue' -%}
+            {%- assign startTime = 'Now' | Date:'M/d/yyyy ' | Append: ' ' | Append:startTime | AsDateTime -%}
+            {%- assign endTime = 'Now' | Date:'M/d/yyyy ' | Append: ' ' | Append:endTime | AsDateTime -%}
+            {%- assign startTimeDifference = now | DateDiff:startTime,'s' -%}
+            {%- assign endTimeDifference = now | DateDiff:endTime,'s' -%}
+            {%- if startTimeDifference < 0 and endTimeDifference > 0 -%}{{ dv.Value | PageRedirect }}{%- endif -%}
+        {%- endif -%}
+    {%- endfor -%}
+{%- enddefinedvalue -%}

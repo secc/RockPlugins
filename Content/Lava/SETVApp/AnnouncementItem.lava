@@ -3,7 +3,7 @@
 {%- endcontentchannelitem -%}
 {
 	"header": {
-		"title": "{{- item.Title -}}"
+		"title": "{{- item.Title -}}: {{ item | Attribute:'Subtitle' }}"
 	},
 	"sapid":"{{- item.Guid -}}",
 	"images": [{ "width":1080, "url":"https://app.secc.org/GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}&width=720"}],
@@ -12,6 +12,6 @@
     		"url":"{{- item | Attribute:'VideoURL','RawValue' -}}",
             "format":"{{- item | Attribute:'VideoType' -}}"
         }],
-	"title": "{{- item.Title -}}",
+	"title": "{{- item.Title -}}: {{ item | Attribute:'Subtitle' }}",
 	"body":"{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode | StripHtml }}"
 }

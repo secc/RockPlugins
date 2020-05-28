@@ -21,7 +21,7 @@
                         { "width":720, "url":"https://www.southeastchristian.org/GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}&width=720" }
                     ],
                     "title": "{{- item.Title -}}",
-                    "subtitle": "{{- item.Title -}}",
+                    "subtitle": "{{- item | Attribute:'Subtitle' -}}",
                     "actions": [{
                         "handler": "detail",
                         "url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/home/{{ item.Guid }}"
@@ -97,6 +97,7 @@
         ]
     },{% endcomment %}
 
+{%- assign comma = "" -%}
 {%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' offset:'{{offset}}' limit:'120'  -%}
 	"items": [
         {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
@@ -104,7 +105,7 @@
         {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
         {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
 		{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
-        {% unless forloop.first %},{% endunless %}
+        {{comma}}
         {
             "images":[
                 {%- assign seriesImageGuid = item | Attribute:'Image', 'RawValue' -%}
@@ -133,6 +134,7 @@
 				"url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/series/{{item.Id}}"
 			}]
 		}
+		{%- assign comma = "," -%}
         {%- endif -%}
         {%- endfor -%}
     ]
