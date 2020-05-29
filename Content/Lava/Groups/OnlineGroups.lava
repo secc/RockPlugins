@@ -1,4 +1,4 @@
-{% assign onlineCampusId = 11 %}
+{% assign onlineCampusId = 12 %}
 
 {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
 {% assign campusIdSize = pageParamCampusId | Size %}
