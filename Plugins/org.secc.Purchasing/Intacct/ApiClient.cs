@@ -111,7 +111,13 @@ namespace org.secc.Purchasing.Intacct
                 restRequest.AddBody( request );
 
                 var response = client.Execute<List<RestrictedData>>( restRequest );
-                CheckResponse( response );
+
+                var xmlDeserializer = new RestSharp.Deserializers.XmlDeserializer();
+                var responseObj = xmlDeserializer.Deserialize<Response>( response );
+                if ( responseObj?.Operation?.Result?.Status != "success" && !string.IsNullOrWhiteSpace( responseObj?.ErrorMessage?.Error?.Description ) )
+                {
+                    CheckResponse( response );
+                }
 
                 items = response.Data;
 

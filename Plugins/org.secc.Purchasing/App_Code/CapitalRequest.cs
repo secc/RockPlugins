@@ -1346,14 +1346,19 @@ namespace org.secc.Purchasing
                 if ( account != null )
                 {
                     var restrictedData = apiClient.GetDimensionRestrictedData( account );
-                    if ( !GLDepartmentId.HasValue || !restrictedData.Any( r => r.Dimension == "DEPARTMENT" && r.IdValues.Contains( GLDepartmentId.Value ) ) )
-                    {
-                        account = null;
-                    }
 
-                    if ( !GLFundId.HasValue || !restrictedData.Any( r => r.Dimension == "LOCATION" && r.IdValues.Contains( GLFundId.Value ) ) )
+                    // If we get here with no data, then the restricted data is just not available so go ahead and allow it
+                    if ( restrictedData.Count > 0 )
                     {
-                        account = null;
+                        if ( !GLDepartmentId.HasValue || !restrictedData.Any( r => r.Dimension == "DEPARTMENT" && r.IdValues.Contains( GLDepartmentId.Value ) ) )
+                        {
+                            account = null;
+                        }
+
+                        if ( !GLFundId.HasValue || !restrictedData.Any( r => r.Dimension == "LOCATION" && r.IdValues.Contains( GLFundId.Value ) ) )
+                        {
+                            account = null;
+                        }
                     }
 
                 }

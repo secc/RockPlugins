@@ -112,16 +112,20 @@ namespace org.secc.Purchasing
                 if ( mAccount != null )
                 {
                     var restrictedData = api.GetDimensionRestrictedData( mAccount );
-                    if ( !restrictedData.Any( r => r.Dimension == "DEPARTMENT" && r.IdValues.Contains( DepartmentID ) ) )
-                    {
-                        mAccount = null;
-                    }
 
-                    if ( !restrictedData.Any( r => r.Dimension == "LOCATION" && r.IdValues.Contains( FundID ) ) )
+                    // If we get here with no data, then the restricted data is just not available so go ahead and allow it
+                    if ( restrictedData.Count > 0 )
                     {
-                        mAccount = null;
-                    }
+                        if ( !restrictedData.Any( r => r.Dimension == "DEPARTMENT" && r.IdValues.Contains( DepartmentID ) ) )
+                        {
+                            mAccount = null;
+                        }
 
+                        if ( !restrictedData.Any( r => r.Dimension == "LOCATION" && r.IdValues.Contains( FundID ) ) )
+                        {
+                            mAccount = null;
+                        }
+                    }
                 }
 
                 return mAccount;
