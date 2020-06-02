@@ -177,8 +177,16 @@
                     <li>
                         <a href="/ministries/seniors">Seniors</a>
                     </li>
-                    <li>
+                    {% comment %} <li>
                         <a href="/ministries/generous-living">Generous Living</a>
+                    </li> {% endcomment %}
+                    <li class="has-children">
+                        <a class="arrow">Generous Living</a>
+                        <ul class="is-hidden">
+                            <li class="go-back arrow"><a class="arrow">Generous Living</a></li>
+                            <li><a href="/ministries/generous-living">Overview</a></li>
+                            <li><a href="/ministries/generous-living/business-leaders">Business Leaders</a></li>
+                        </ul>
                     </li>
                     <li>
                         <a href="/ministries/foster-and-adoption">Foster Care & Adoption </a>
