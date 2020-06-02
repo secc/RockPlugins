@@ -148,7 +148,7 @@
             */
             
             //map2 = createMap("NewPrayerWalkMap");
-            var campusMarkers = [];
+            var prayerwalkMarkers = [];
             // a new Info Window is created
             /*infoWindow = new google.maps.InfoWindow({
                 pixelOffset: new google.maps.Size(0, 0)
@@ -169,7 +169,7 @@
                 // Creating the content to be inserted in the infowindow
                 var contentString = '<div id="iw_container">' +
                         '<div class="iw_title text-center">Place Your Prayer Walk Here!<br /><small>click on the button below to complete</small><br /></div><br />' +
-                        '<a href="/prayeronthemove/' + lat + '/' + lng + '" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--600">Create Prayer Walk</a>' +
+                        '<a href="/respond/prayerwalk/new/' + lat + '/' + lng + '" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--600">Create Prayer Walk</a>' +
                         '</div>' +
                     '</div>';
                 var infowindow = new google.maps.InfoWindow({
@@ -179,7 +179,7 @@
                 var marker = new google.maps.Marker({
                     position: latLng,
                     icon: {
-                        url: "https://rockstaging.secc.org/Themes/SECC2019/Assets/img/SE/PrayerWalkAdd.svg",
+                        url: "/Themes/SECC2019/Assets/img/SE/PrayerWalkAdd.svg",
                         // This marker is 20 pixels wide by 32 pixels high.
                         size: new google.maps.Size(44, 64)
                     },
@@ -225,25 +225,21 @@
                 newMarker = [];
             }
             
-            {%- for campus in Campuses  -%}
-                {%- campus id:'{{campus.Id}}' -%}
-                    {% if campus.Name != "SE Online"%}
-                    /* {{campus.Name}} */
-                    var marker{{campus.Slug}} = new google.maps.Marker({
-                        position: new google.maps.LatLng({{ campus.Location.Latitude }},{{ campus.Location.Longitude }}),
+            {%- workflow where:'WorkflowTypeId == 477' -%}
+                {% for w in workflowItems %}
+                    /* {{w.Guid}} */
+                    prayerwalkMarkers[prayerwalkMarkers.length] = new google.maps.Marker({
+                        position: new google.maps.LatLng({{ w | Attribute:'Lat'}},{{w | Attribute:'Long' }}),
                         icon: {
-                            url: "https://rockstaging.secc.org/Themes/SECC2019/Assets/img/SE/PrayerWalk4.svg",
+                            url: "/Themes/SECC2019/Assets/img/SE/PrayerWalk4.svg",
                             // This marker is 20 pixels wide by 32 pixels high.
                             size: new google.maps.Size(44, 64)
                         },
                         animation: google.maps.Animation.DROP,
                         map: map1
                     });
-                    campusMarkers[campusMarkers.length] = marker{{campus.Slug}};
-
-                    {% endif %}
-                {%- endcampus -%}
-            {%- endfor -%}
+                {% endfor %}
+            {%- endworkflow -%}
 
             function geocodeLatLng(geocoder, latlng) {
                 /*var input = document.getElementById('latlng').value;
