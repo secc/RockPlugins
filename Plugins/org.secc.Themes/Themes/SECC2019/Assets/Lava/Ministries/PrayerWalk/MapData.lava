@@ -39,6 +39,7 @@ var createMap = function(containerId)
 
     map = new google.maps.Map(document.getElementById(containerId), {
         center: {lat: 38.1596835, lng: -84.9802525},
+        gestureHandling: 'cooperative',
         zoom: 9,
         mapTypeControlOptions: {
           mapTypeIds: ['default_map','dark_map']

@@ -27,6 +27,9 @@
         .gm-style .gm-style-iw-t::after {
             box-shadow: none !important;
         }
+        .gm-style-iw.gm-style-iw-c {
+            padding: 12px !important;
+        }
         .modal {
             background-color: transparent;
         }
@@ -233,7 +236,7 @@
                         icon: {
                             url: "/Themes/SECC2019/Assets/img/SE/PrayerWalk4.svg",
                             // This marker is 20 pixels wide by 32 pixels high.
-                            size: new google.maps.Size(44, 64)
+                            size: new google.maps.Size(30, 44)
                         },
                         animation: google.maps.Animation.DROP,
                         map: map1
