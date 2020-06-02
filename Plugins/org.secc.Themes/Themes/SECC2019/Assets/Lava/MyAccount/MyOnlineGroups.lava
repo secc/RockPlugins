@@ -22,9 +22,9 @@ Eventually we will need to convert the inline css below into BEM CSS.
     }
 </style>
 
-<div class="container g-margin-y-60--xs g-margin-y-120--md">
-	<div class="row g-display-flex--md">
-		<div class="col-xs-12 col-lg-6 g-margin-b-50--xs">
+<div class="container-fluid g-margin-y-60--xs g-margin-y-120--md">
+	<div class="row">
+		<div class="col-md-12 col-lg-6 g-margin-b-50--xs">
 			<div class="se-panel g-padding-y-50--xs g-padding-x-50--xs g-height-100-percent--xs">
 				<h3 class="g-font-family--secondary g-font-weight--600">My Online Groups</h3>
 				<p class="g-font-family--primary g-line-height--sm">To find online groups to join, look under <a href="/page/2137" class="g-color--black"><u><i>Connect > Groups</i></u></a>.</p>
@@ -60,7 +60,7 @@ Eventually we will need to convert the inline css below into BEM CSS.
 				{% endif %}
 			</div>
 		</div>
-		<div class="col-xs-12 col-lg-6 g-margin-b-50--xs">
+		<div class="col-md-12 col-lg-6 g-margin-b-50--xs">
 			<div class="se-panel g-padding-y-50--xs g-padding-x-50--xs clearfix">
 				<h3 class="g-font-family--secondary g-font-weight--600">Feedback</h3>
 				<p class="g-font-family--primary g-line-height--sm">How has your initial experience been using the My Online Groups page and entering the group meetings? Please fill out the box below, and then click 'Submit'.</p>
