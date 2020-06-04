@@ -53,7 +53,7 @@ namespace RockWeb.Plugins.com_subsplash.Communication
 
         protected int? CommunicationId
         {
-            get { return ViewState["CommunicationId"] as int?; }
+            get { return (int?)ViewState["CommunicationId"] ?? PageParameter( "CommunicationId" ).AsIntegerOrNull(); }
             set { ViewState["CommunicationId"] = value; }
         }
 
@@ -216,6 +216,12 @@ namespace RockWeb.Plugins.com_subsplash.Communication
             base.OnLoad( e );
 
             nbTestResult.Visible = false;
+            pnlMessage.Visible = false;
+
+            if ( !GetAttributeValue( "Transport" ).AsGuidOrNull().HasValue )
+            {
+                
+            }
 
             if ( Page.IsPostBack )
             {
@@ -229,11 +235,9 @@ namespace RockWeb.Plugins.com_subsplash.Communication
                 var communication = RockPage.GetSharedItem( "Communication" ) as Rock.Model.Communication;
                 if ( communication == null )
                 {
-                    // If not, check page parameter for existing communication
-                    int? communicationId = PageParameter( "CommunicationId" ).AsIntegerOrNull();
-                    if ( communicationId.HasValue )
+                    if ( CommunicationId.HasValue )
                     {
-                        communication = new CommunicationService( new RockContext() ).Get( communicationId.Value );
+                        communication = new CommunicationService( new RockContext() ).Get( CommunicationId.Value );
                     }
                 }
                 else
@@ -280,8 +284,14 @@ namespace RockWeb.Plugins.com_subsplash.Communication
                 }
                 else
                 {
-                    // Not an editable communication, so hide this block. If there is a CommunicationDetail block on this page, it'll be shown instead
-                    this.Visible = false;
+                    // Not an editable communication, so hide this block. 
+                    upPanel.Visible = false;
+
+                    // Show Message Details instead
+                    pnlMessage.Visible = true;
+                    ShowMessageDetails( communication );
+                    ShowMessageActions( communication );
+
                 }
             }
         }
@@ -708,9 +718,366 @@ namespace RockWeb.Plugins.com_subsplash.Communication
             }
         }
 
+        /// <summary>
+        /// Handles the Click event of the btnEdit control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
+        protected void btnEdit_Click( object sender, EventArgs e )
+        {
+            var dataContext = new RockContext();
+
+            var service = new CommunicationService( dataContext );
+            var communication = service.Get( CommunicationId.Value );
+            if ( communication != null &&
+                communication.Status == CommunicationStatus.PendingApproval &&
+                IsUserAuthorized( "Approve" ) )
+            {
+                // Redirect back to same page without the edit param
+                var pageRef = CurrentPageReference;
+                pageRef.Parameters.Add( "edit", "true" );
+                Response.Redirect( pageRef.BuildUrl() );
+                Context.ApplicationInstance.CompleteRequest();
+            }
+        }
+
+        /// <summary>
+        /// Handles the Click event of the btnApprove control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
+        protected void btnApprove_Click( object sender, EventArgs e )
+        {
+            if ( Page.IsValid && CommunicationId.HasValue )
+            {
+                var dataContext = new RockContext();
+
+                var service = new CommunicationService( dataContext );
+                var communication = service.Get( CommunicationId.Value );
+                if ( communication != null )
+                {
+                    if ( communication.Status == CommunicationStatus.PendingApproval )
+                    {
+                        var prevStatus = communication.Status;
+                        if ( IsUserAuthorized( "Approve" ) )
+                        {
+                            communication.Status = CommunicationStatus.Approved;
+                            communication.ReviewedDateTime = RockDateTime.Now;
+                            communication.ReviewerPersonAliasId = CurrentPersonAliasId;
+
+                            dataContext.SaveChanges();
+
+                            // TODO: Send notice to sender that communication was approved
+
+                            ShowResult( "The communication has been approved", communication, NotificationBoxType.Success );
+                        }
+                        else
+                        {
+                            ShowResult( "Sorry, you are not authorized to approve this communication!", communication, NotificationBoxType.Danger );
+                        }
+                    }
+                    else
+                    {
+                        ShowResult( string.Format( "This communication is already {0}!", communication.Status.ConvertToString() ),
+                            communication, NotificationBoxType.Warning );
+                    }
+                }
+
+            }
+        }
+
+        /// <summary>
+        /// Handles the Click event of the btnDeny control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
+        protected void btnDeny_Click( object sender, EventArgs e )
+        {
+            if ( Page.IsValid && CommunicationId.HasValue )
+            {
+                var dataContext = new RockContext();
+
+                var service = new CommunicationService( dataContext );
+                var communication = service.Get( CommunicationId.Value );
+                if ( communication != null )
+                {
+                    if ( communication.Status == CommunicationStatus.PendingApproval )
+                    {
+                        if ( IsUserAuthorized( "Approve" ) )
+                        {
+                            communication.Status = CommunicationStatus.Denied;
+                            communication.ReviewedDateTime = RockDateTime.Now;
+                            communication.ReviewerPersonAliasId = CurrentPersonAliasId;
+
+                            dataContext.SaveChanges();
+
+                            // TODO: Send notice to sender that communication was denied
+
+                            ShowResult( "The communication has been denied", communication, NotificationBoxType.Warning );
+                        }
+                        else
+                        {
+                            ShowResult( "Sorry, you are not authorized to approve or deny this communication!", communication, NotificationBoxType.Danger );
+                        }
+                    }
+                    else
+                    {
+                        ShowResult( string.Format( "This communication is already {0}!", communication.Status.ConvertToString() ),
+                            communication, NotificationBoxType.Warning );
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handles the Click event of the btnCancel control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
+        protected void btnCancelSend_Click( object sender, EventArgs e )
+        {
+            if ( Page.IsValid && CommunicationId.HasValue )
+            {
+                var dataContext = new RockContext();
+
+                var service = new CommunicationService( dataContext );
+                var communication = service.Get( CommunicationId.Value );
+                if ( communication != null )
+                {
+                    if ( communication.Status == CommunicationStatus.Approved || communication.Status == CommunicationStatus.PendingApproval )
+                    {
+                        if ( !communication.Recipients
+                            .Where( r => r.Status == CommunicationRecipientStatus.Delivered )
+                            .Any() )
+                        {
+                            communication.Status = CommunicationStatus.Draft;
+                            dataContext.SaveChanges();
+
+                            ShowResult( "This communication has successfully been cancelled without any recipients receiving communication!", communication, NotificationBoxType.Success );
+                        }
+                        else
+                        {
+                            communication.Recipients
+                                .Where( r => r.Status == CommunicationRecipientStatus.Pending )
+                                .ToList()
+                                .ForEach( r => r.Status = CommunicationRecipientStatus.Cancelled );
+                            dataContext.SaveChanges();
+
+                            int delivered = communication.Recipients.Count( r => r.Status == CommunicationRecipientStatus.Delivered );
+                            ShowResult( string.Format( "This communication has been cancelled, however the communication was delivered to {0} recipients!", delivered )
+                                , communication, NotificationBoxType.Warning );
+                        }
+                    }
+                    else
+                    {
+                        ShowResult( "This communication has already been cancelled!", communication, NotificationBoxType.Warning );
+                    }
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// Handles the Click event of the btnCopy control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
+        protected void btnCopy_Click( object sender, EventArgs e )
+        {
+            if ( Page.IsValid && CommunicationId.HasValue )
+            {
+                var dataContext = new RockContext();
+
+                var service = new CommunicationService( dataContext );
+                var communication = service.Get( CommunicationId.Value );
+                if ( communication != null )
+                {
+                    var newCommunication = communication.Clone( false );
+                    newCommunication.CreatedByPersonAlias = null;
+                    newCommunication.CreatedByPersonAliasId = null;
+                    newCommunication.CreatedDateTime = RockDateTime.Now;
+                    newCommunication.ModifiedByPersonAlias = null;
+                    newCommunication.ModifiedByPersonAliasId = null;
+                    newCommunication.ModifiedDateTime = RockDateTime.Now;
+                    newCommunication.Id = 0;
+                    newCommunication.Guid = Guid.Empty;
+                    newCommunication.SenderPersonAliasId = CurrentPersonAliasId;
+                    newCommunication.Status = CommunicationStatus.Draft;
+                    newCommunication.ReviewerPersonAliasId = null;
+                    newCommunication.ReviewedDateTime = null;
+                    newCommunication.ReviewerNote = string.Empty;
+                    newCommunication.SendDateTime = null;
+                    newCommunication.ForeignGuid = null;
+                    newCommunication.ForeignId = null;
+                    newCommunication.ForeignKey = null;
+
+                    communication.Recipients.ToList().ForEach( r =>
+                        newCommunication.Recipients.Add( new CommunicationRecipient()
+                        {
+                            PersonAliasId = r.PersonAliasId,
+                            Status = CommunicationRecipientStatus.Pending,
+                            StatusNote = string.Empty,
+                            AdditionalMergeValuesJson = r.AdditionalMergeValuesJson
+                        } ) );
+
+
+                    foreach ( var attachment in communication.Attachments.ToList() )
+                    {
+                        var newAttachment = new CommunicationAttachment();
+                        newAttachment.BinaryFileId = attachment.BinaryFileId;
+                        newAttachment.CommunicationType = attachment.CommunicationType;
+                        newCommunication.Attachments.Add( newAttachment );
+                    }
+
+                    service.Add( newCommunication );
+                    dataContext.SaveChanges();
+
+                    // Redirect to new communication
+                    if ( CurrentPageReference.Parameters.ContainsKey( "CommunicationId" ) )
+                    {
+                        CurrentPageReference.Parameters[ "CommunicationId" ] = newCommunication.Id.ToString();
+                    }
+                    else
+                    {
+                        CurrentPageReference.Parameters.Add( "CommunicationId", newCommunication.Id.ToString() );
+                    }
+
+                    Response.Redirect( CurrentPageReference.BuildUrl() );
+                    Context.ApplicationInstance.CompleteRequest();
+                }
+            }
+        }
+
         #endregion
 
         #region Private Methods
+
+        /// <summary>
+        /// Show the message panel.
+        /// </summary>
+        /// <param name="communication"></param>
+        private void ShowMessageDetails( Rock.Model.Communication communication )
+        {
+            pdAuditDetails.SetEntity( communication, ResolveRockUrl( "~" ) );
+
+            SetCommunicationAuditDisplayControlValue( lCreatedBy, communication.CreatedByPersonAlias, communication.CreatedDateTime, "Created By" );
+            SetCommunicationAuditDisplayControlValue( lApprovedBy, communication.ReviewerPersonAlias, communication.ReviewedDateTime, "Approved By" );
+
+            if ( communication.FutureSendDateTime.HasValue && communication.FutureSendDateTime.Value > RockDateTime.Now )
+            {
+                lFutureSend.Text = String.Format( "<div class='alert alert-success'><strong>Future Send</strong> This communication is scheduled to be sent {0} <small>({1})</small>.</div>", communication.FutureSendDateTime.Value.ToRelativeDateString(), communication.FutureSendDateTime.Value.ToString() );
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat( "<dt>{0}</dt><dd>{1}</dd>", "Title", communication.PushTitle );
+            sb.AppendFormat( "<dt>{0}</dt><dd>{1}</dd>", "Message", communication.PushMessage );
+
+            var details = sb.ToString();
+
+            if ( string.IsNullOrWhiteSpace( details ) )
+            {
+                details = "<div class='alert alert-warning'>No message details are available for this communication</div>";
+            }
+
+            if ( communication.UrlReferrer.IsNotNullOrWhiteSpace() )
+            {
+                details += string.Format( "<small>Originated from <a href='{0}'>this page</a></small>", communication.UrlReferrer );
+            }
+
+            lDetails.Text = details;
+        }
+
+        /// <summary>
+        /// Shows the actions.
+        /// </summary>
+        /// <param name="communication">The communication.</param>
+        private void ShowMessageActions( Rock.Model.Communication communication )
+        {
+            bool canApprove = IsUserAuthorized( "Approve" );
+
+            // Set default visibility
+            btnApprove.Visible = false;
+            btnDeny.Visible = false;
+            btnEdit.Visible = false;
+            btnCancelSend.Visible = false;
+            btnCopy.Visible = false;
+
+            if ( communication != null )
+            {
+                switch ( communication.Status )
+                {
+                    case CommunicationStatus.Transient:
+                    case CommunicationStatus.Draft:
+                    case CommunicationStatus.Denied:
+                        {
+                            // This block isn't used for transient, draft or denied communications
+                            break;
+                        }
+                    case CommunicationStatus.PendingApproval:
+                        {
+                            if ( canApprove )
+                            {
+                                btnApprove.Visible = true;
+                                btnDeny.Visible = true;
+                                btnEdit.Visible = true;
+                            }
+                            btnCancelSend.Visible = communication.IsAuthorized( Rock.Security.Authorization.EDIT, CurrentPerson );
+                            break;
+                        }
+                    case CommunicationStatus.Approved:
+                        {
+                            // If there are still any pending recipients, allow canceling of send
+                            var dataContext = new RockContext();
+
+                            var hasPendingRecipients = new CommunicationRecipientService( dataContext ).Queryable()
+                            .Where( r => r.CommunicationId == communication.Id ).Where( r => r.Status == CommunicationRecipientStatus.Pending ).Any();
+
+
+                            btnCancelSend.Visible = hasPendingRecipients;
+
+                            // Allow then to create a copy if they have VIEW (don't require full EDIT auth)
+                            btnCopy.Visible = communication.IsAuthorized( Rock.Security.Authorization.VIEW, CurrentPerson );
+                            break;
+                        }
+                }
+            }
+        }
+
+
+        /// <summary>
+        /// Sets the value of a control that displays audit information for a communication.
+        /// </summary>
+        /// <param name="literal"></param>
+        /// <param name="personAlias"></param>
+        /// <param name="datetime"></param>
+        /// <param name="labelText"></param>
+        private void SetCommunicationAuditDisplayControlValue( Literal literal, PersonAlias personAlias, DateTime? datetime, string labelText )
+        {
+            if ( personAlias != null )
+            {
+                SetPersonDateValue( literal, personAlias.Person, datetime, labelText );
+            }
+        }
+
+        /// <summary>
+        /// Sets the value of a control that displays audit information for a communication.
+        /// </summary>
+        /// <param name="literal"></param>
+        /// <param name="person"></param>
+        /// <param name="datetime"></param>
+        /// <param name="labelText"></param>
+        private void SetPersonDateValue( Literal literal, Person person, DateTime? datetime, string labelText )
+        {
+            if ( person != null )
+            {
+                literal.Text = String.Format( "<strong>{0}</strong> {1}", labelText, person.FullName );
+
+                if ( datetime.HasValue )
+                {
+                    literal.Text += String.Format( " <small class='js-date-rollover' data-toggle='tooltip' data-placement='top' title='{0}'>({1})</small>", datetime.Value.ToString(), datetime.Value.ToRelativeDateString() );
+                }
+            }
+        }
 
         /// <summary>
         /// Shows the detail.
@@ -1407,13 +1774,15 @@ namespace RockWeb.Plugins.com_subsplash.Communication
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="communication">The communication.</param>
-        private void ShowResult( string message, Rock.Model.Communication communication )
+        private void ShowResult( string message, Rock.Model.Communication communication, NotificationBoxType notificationType = NotificationBoxType.Success)
         {
             ShowStatus( communication );
 
             pnlEdit.Visible = false;
 
             nbResult.Text = message;
+            
+            nbResult.NotificationBoxType = notificationType;
 
             CurrentPageReference.Parameters.AddOrReplace( "CommunicationId", communication.Id.ToString() );
             hlViewCommunication.NavigateUrl = CurrentPageReference.BuildUrl();
@@ -1469,7 +1838,19 @@ namespace RockWeb.Plugins.com_subsplash.Communication
 
                 var response = client.Execute( sendPush );
 
-                ErrorResponse error = ( ErrorResponse ) JsonConvert.DeserializeObject( response.Content, typeof( ErrorResponse ), serializerSettings );
+                
+                notification = JsonConvert.DeserializeObject<com.subsplash.Model.Notification>(
+                    response.Content,
+                    new JsonSerializerSettings
+                    {
+                        ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+                        DateTimeZoneHandling = DateTimeZoneHandling.Local
+                    }
+                );
+
+                // Set the SendDateTime and ForeignGuid
+                communication.SendDateTime = notification.PublishedAt;
+                communication.ForeignGuid = notification.Id;
             }
         }
 

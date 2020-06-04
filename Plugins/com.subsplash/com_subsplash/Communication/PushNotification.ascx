@@ -145,4 +145,43 @@
     </ContentTemplate>
 </asp:UpdatePanel>
 
+<asp:UpdatePanel ID="pnlMessage" runat="server">
+    <ContentTemplate>
+        
+        <div class="panel panel-block">
+            <div class="panel-heading">
+                <h1 class="panel-title"><i class="fa fa-bell"></i> Push Notification Details</h1>
 
+            </div>
+            <Rock:PanelDrawer ID="pdAuditDetails" runat="server"></Rock:PanelDrawer>
+            <div class="panel-body">
+                <div class="margin-t-lg">
+                    <div class="form-horizontal">
+                        <asp:Literal ID="lFutureSend" runat="server"></asp:Literal>
+                        <div class="row margin-b-lg">
+                            <div class="col-md-6">
+                                <asp:Literal ID="lCreatedBy" runat="server"></asp:Literal>
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <asp:Literal ID="lApprovedBy" runat="server"></asp:Literal>
+                            </div>
+                        </div>
+                    </div>
+
+                    <%-- Message Content --%>
+                    <asp:Literal ID="lDetails" runat="server" />
+
+                    <%-- Message Actions --%>
+                    <div class="actions">
+                        <asp:LinkButton ID="btnApprove" runat="server" Text="Approve" CssClass="btn btn-success" OnClick="btnApprove_Click" />
+                        <asp:LinkButton ID="btnDeny" runat="server" Text="Deny" CssClass="btn btn-danger" OnClick="btnDeny_Click" />
+                        <asp:LinkButton ID="btnEdit" runat="server" Text="Edit" CssClass="btn btn-default" OnClick="btnEdit_Click" />
+                        <asp:LinkButton ID="btnCancelSend" runat="server" Text="Cancel Send" CssClass="btn btn-link" OnClick="btnCancelSend_Click" />
+                        <asp:LinkButton ID="btnCopy" runat="server" Text="Copy Communication" CssClass="btn btn-link" OnClick="btnCopy_Click" />
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </ContentTemplate>
+</asp:UpdatePanel>
