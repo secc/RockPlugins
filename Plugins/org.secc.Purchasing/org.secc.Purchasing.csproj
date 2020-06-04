@@ -44,11 +44,26 @@
       <HintPath>$(SolutionDir)\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Owin">
+      <HintPath>$(SolutionDir)\RockWeb\Bin\Microsoft.Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="RestSharp, Version=105.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\RestSharp.105.2.3\lib\net452\RestSharp.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Linq" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -56,14 +71,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="App_Code\Accounting\Account.cs" />
-    <Compile Include="App_Code\Accounting\Company.cs" />
-    <Compile Include="App_Code\Accounting\Department.cs" />
-    <Compile Include="App_Code\Accounting\FiscalYear.cs" />
-    <Compile Include="App_Code\Accounting\Fund.cs" />
     <Compile Include="App_Code\Approval.cs" />
     <Compile Include="App_Code\Attachment.cs" />
-    <Compile Include="App_Code\Campus.cs" />
     <Compile Include="App_Code\CapitalRequest.cs" />
     <Compile Include="App_Code\CapitalRequestBid.cs" />
     <Compile Include="App_Code\CreditCard.cs" />
@@ -76,11 +85,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Purchasing.dbml</DependentUpon>
     </Compile>
-    <Compile Include="App_Code\DataLayer\Shelby.designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Shelby.dbml</DependentUpon>
-    </Compile>
     <Compile Include="App_Code\DataLayer\StaffMemberData.cs" />
     <Compile Include="App_Code\Enums\HistoryType.cs" />
     <Compile Include="App_Code\Helpers\Address.cs" />
@@ -92,6 +96,30 @@
     <Compile Include="App_Code\PaymentCharge.cs" />
     <Compile Include="App_Code\PaymentMethod.cs" />
     <Compile Include="App_Code\PreferredVendor.cs" />
+    <Compile Include="Intacct\ApiClient.cs" />
+    <Compile Include="Intacct\Api\Error.cs" />
+    <Compile Include="Intacct\Api\Content.cs" />
+    <Compile Include="Intacct\Api\Operation.cs" />
+    <Compile Include="Intacct\Api\Control.cs" />
+    <Compile Include="Intacct\Api\Result.cs" />
+    <Compile Include="Intacct\Auth\Authentication.cs" />
+    <Compile Include="Intacct\Auth\Login.cs" />
+    <Compile Include="Intacct\Functions\IntacctFunction.cs" />
+    <Compile Include="Intacct\Functions\GetAPISession.cs" />
+    <Compile Include="Intacct\Functions\GetDimensionRestrictedData.cs" />
+    <Compile Include="Intacct\Functions\ReadMore.cs" />
+    <Compile Include="Intacct\Functions\ReadByQuery.cs" />
+    <Compile Include="Intacct\Api\Response.cs" />
+    <Compile Include="Intacct\Api\Request.cs" />
+    <Compile Include="Intacct\Model\ApiSession.cs" />
+    <Compile Include="Intacct\Model\Data.cs" />
+    <Compile Include="Intacct\Model\Location.cs" />
+    <Compile Include="Intacct\Model\IntacctModel.cs" />
+    <Compile Include="Intacct\Model\GLAccount.cs" />
+    <Compile Include="Intacct\Model\LocationEntity.cs" />
+    <Compile Include="Intacct\Model\Department.cs" />
+    <Compile Include="Intacct\Model\Project.cs" />
+    <Compile Include="Intacct\Model\RestrictedData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -111,19 +139,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="App_Code\DataLayer\Shelby.dbml.layout">
-      <DependentUpon>Shelby.dbml</DependentUpon>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App_Code\DataLayer\Purchasing.dbml">
       <Generator>MSLinqToSQLGenerator</Generator>
       <LastGenOutput>Purchasing.designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="App_Code\DataLayer\Shelby.dbml">
-      <Generator>MSLinqToSQLGenerator</Generator>
-      <LastGenOutput>Shelby.designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
@@ -150,6 +170,7 @@
       <Name>DotLiquid</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"

@@ -22,7 +22,6 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 
 using org.secc.Purchasing;
-using org.secc.Purchasing.Accounting;
 using Rock.Web.UI;
 using Rock.Attribute;
 using Rock.Model;
@@ -32,6 +31,8 @@ using Rock.Web.Cache;
 using System.Web.UI.HtmlControls;
 using Rock.Data;
 using Rock.Communication;
+using org.secc.Purchasing.Intacct;
+using Newtonsoft.Json;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
@@ -291,6 +292,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         #endregion
 
         #region Properties
+        protected ApiClient ApiClient
+        {
+            get {
+
+                string jsonSettings = Rock.Security.Encryption.DecryptString(GlobalAttributesCache.Get().GetValue( "IntacctAPISettings" ) );
+                return JsonConvert.DeserializeObject<ApiClient>( jsonSettings );
+            }
+        }
+
         protected int RequisitionID
         {
             get
@@ -2096,9 +2106,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             ddlItemCompany.Items.Clear();
 
-            ddlItemCompany.DataSource = Company.GetCompanies().OrderBy(c => c.CompanyName);
-            ddlItemCompany.DataValueField = "CompanyID";
-            ddlItemCompany.DataTextField = "CompanyName";
+            
+
+            ddlItemCompany.DataSource = ApiClient.GetLocationEntities().OrderBy(c => c.Name);
+            ddlItemCompany.DataValueField = "RecordNo";
+            ddlItemCompany.DataTextField = "Name";
             ddlItemCompany.DataBind();
         }
 
@@ -2116,7 +2128,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtItemAccountNumber.Text = string.Empty;
             chkItemAllowExpedited.Checked = false;
             
-            int DefaultCompanyID = GetUserCompanyID(Company.GetDefaultCompany().CompanyID);
+            int DefaultCompanyID = GetUserCompanyID( ApiClient.GetLocationEntities().Min(l => l.RecordNo) );
 
             if(ddlItemCompany.Items.FindByValue(DefaultCompanyID.ToString()) != null)
             {
@@ -2150,6 +2162,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 txtItemFundNumber.Text = i.FundID.ToString();
                 txtItemDepartmentNumber.Text = i.DepartmentID.ToString();
                 txtItemAccountNumber.Text = i.AccountID.ToString();
+                txtProjectId.Text = i.ProjectId;
                 
                 if(i.DateNeeded > DateTime.MinValue)
                     txtDateNeeded.Text = string.Format("{0:d}", i.DateNeeded);
@@ -2168,6 +2181,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 txtItemFundNumber.Text = CurrentRequisition.CapitalRequest.GLFundId.ToString();
                 txtItemDepartmentNumber.Text = CurrentRequisition.CapitalRequest.GLDepartmentId.ToString();
                 txtItemAccountNumber.Text = CurrentRequisition.CapitalRequest.GLAccountId.ToString();
+                txtProjectId.Text = CurrentRequisition.CapitalRequest.ProjectId;
             }
 
 
@@ -2282,6 +2296,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     Item.AccountID = accountID;
                 }
+
+                Item.ProjectId = txtProjectId.Text;
 
                 Decimal ItemPrice = 0;
                 if ( decimal.TryParse( txtItemPrice.Text.Trim(), out ItemPrice ) || String.IsNullOrWhiteSpace( txtItemPrice.Text ) )

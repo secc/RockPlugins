@@ -251,6 +251,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             capRequestDT.Columns.Add( "RequesterName", typeof( string ) );
             capRequestDT.Columns.Add( "RequesterNameLastFirst", typeof( string ) );
             capRequestDT.Columns.Add( "FullAccountNumber", typeof( string ) );
+            capRequestDT.Columns.Add( "ProjectId", typeof( string ) );
             capRequestDT.Columns.Add( "Status", typeof( string ) );
             capRequestDT.Columns.Add( "RequisitionCount", typeof( int ) );
             capRequestDT.Columns.Add( "TotalCharges", typeof( decimal ) );
@@ -265,6 +266,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                         request.RequesterName,
                         request.RequesterNameLastFirst,
                         request.FullAccountNumber,
+                        request.ProjectId,
                         request.Status,
                         request.RequisitionCount,
                         request.TotalCharges,
@@ -341,24 +343,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void LoadFiscalYearList()
         {
-            int companyId = org.secc.Purchasing.Accounting.Company.GetDefaultCompany().CompanyID;
-
-            var fiscalYears = org.secc.Purchasing.Accounting.FiscalYear.GetFiscalYearsByCompany( companyId )
-                                .Select( y => new
-                                {
-                                    Year = y.StartDate.Year,
-                                    StartDate = y.StartDate,
-                                    EndDate = y.EndDate
-                                } )
-                                .OrderByDescending( y => y.StartDate );
-
-            ddlFiscalYear.DataSource = fiscalYears;
-            ddlFiscalYear.DataValueField = "StartDate";
-            ddlFiscalYear.DataTextField = "Year";
-            ddlFiscalYear.DataBind();
-
             ddlFiscalYear.Items.Insert( 0, new ListItem( "All", DateTime.MinValue.ToString() ) );
 
+            for ( int i = 0; i <= 10; i++ )
+            {
+                string date =  RockDateTime.New(RockDateTime.Now.Year - i, 1, 1).ToString();
+                ddlFiscalYear.Items.Insert( 0, new ListItem( (RockDateTime.Now.Year - i).ToString(), date.ToString() ) );
+            }
         }
 
         private void LoadLocationList()

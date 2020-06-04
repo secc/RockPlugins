@@ -17,10 +17,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
+using Newtonsoft.Json;
 using org.secc.Purchasing.DataLayer;
 using org.secc.Purchasing.Enums;
-using org.secc.Purchasing.Accounting;
+using org.secc.Purchasing.Intacct;
+using org.secc.Purchasing.Intacct.Model;
 using Rock.Model;
+using Rock.Web.Cache;
 
 namespace org.secc.Purchasing
 {
@@ -30,7 +33,7 @@ namespace org.secc.Purchasing
         private Requisition mRequisition;
         private Person mCreatedBy;
         private Person mModifiedBy;
-        private Account mAccount;
+        private GLAccount mAccount;
         private List<PurchaseOrderItem> mPOItems;
 
         private Guid ShippingTypeLTGuid = new Guid("DFAC2EB7-97D0-4318-ACF3-554ADC2272F3");
@@ -48,6 +51,7 @@ namespace org.secc.Purchasing
         public int FundID { get; set; }
         public int DepartmentID { get; set; }
         public int AccountID { get; set; }
+        public string ProjectId { get; set; }
         public DateTime FYStartDate { get; set; }
         public string CreatedByUserID { get; set; }
         public string ModifiedByUserID { get; set; }
@@ -91,13 +95,34 @@ namespace org.secc.Purchasing
         }
 
         [XmlIgnore]
-        public Account Account
+        public GLAccount Account
         {
             get
             {
-                if(CompanyID > 0 && FundID > 0 && DepartmentID > 0 && AccountID > 0 && FYStartDate > DateTime.MinValue)
-                    mAccount = new Account(CompanyID, FundID, DepartmentID, AccountID, FYStartDate);
-                
+                // Fetch the account
+                mAccount = ApiClient.GetGLAccounts().Where( a => a.AccountNo == AccountID ).FirstOrDefault();
+
+                // Now verify that the location and department are valid
+                if ( mAccount != null)
+                {
+                    var restrictedData = ApiClient.GetDimensionRestrictedData( mAccount );
+
+                    // If we get here with no data, then the restricted data is just not available so go ahead and allow it
+                    if ( restrictedData.Count > 0)
+                    { 
+                        if (!restrictedData.Any(r => r.Dimension == "DEPARTMENT" && r.IdValues.Contains( DepartmentID ) ) )
+                        {
+                            mAccount = null;
+                        }
+
+                        if ( !restrictedData.Any( r => r.Dimension == "LOCATION" && r.IdValues.Contains( FundID ) ) )
+                        {
+                            mAccount = null;
+                        }
+                    }
+
+                }
+
                 return mAccount;
             }
         }
@@ -114,6 +139,20 @@ namespace org.secc.Purchasing
             }
         }
 
+        private ApiClient apiClient = null;
+        [XmlIgnore]
+        ApiClient ApiClient
+        {
+            get
+            {
+                if ( apiClient == null )
+                {
+                    string jsonSettings = Rock.Security.Encryption.DecryptString( GlobalAttributesCache.Get().GetValue( "IntacctAPISettings" ) );
+                    apiClient = JsonConvert.DeserializeObject<ApiClient>( jsonSettings );
+                }
+                return apiClient;
+            }
+        }
         #endregion
 
         #region Constructors
@@ -166,6 +205,8 @@ namespace org.secc.Purchasing
                 if (!Changed && DepartmentID != Original.DepartmentID)
                     Changed = true;
                 if (!Changed && AccountID != Original.AccountID)
+                    Changed = true;
+                if ( !Changed && ProjectId != Original.ProjectId )
                     Changed = true;
                 if (!Changed && FYStartDate != Original.FYStartDate)
                     Changed = true;
@@ -235,6 +276,7 @@ namespace org.secc.Purchasing
                     data.fund_id = FundID;
                     data.department_id = DepartmentID;
                     data.account_id = AccountID;
+                    data.project_id = ProjectId;
                     data.active = Active;
                     data.fiscal_year_start = FYStartDate;
                     data.is_expedited_shipping_allowed = IsExpeditiedShippingAllowed;
@@ -313,6 +355,7 @@ namespace org.secc.Purchasing
             FundID = 0;
             DepartmentID = 0;
             AccountID = 0;
+            ProjectId = null;
             FYStartDate = new DateTime(DateTime.Now.Year, 1, 1);
             CreatedByUserID = String.Empty;
             ModifiedByUserID = String.Empty;
@@ -348,6 +391,7 @@ namespace org.secc.Purchasing
                 FundID = data.fund_id;
                 DepartmentID = data.department_id;
                 AccountID = data.account_id;
+                ProjectId = data.project_id;
                 CreatedByUserID = data.created_by;
                 ModifiedByUserID = data.modified_by;
                 DateCreated = data.date_created;
@@ -402,9 +446,17 @@ namespace org.secc.Purchasing
             if (CompanyID <= 0 || FundID <= 0 || DepartmentID <= 0 || AccountID <= 0 || FYStartDate == DateTime.MinValue)
             { 
                 ValErrors.Add("Account", "Please select a valid account");
-            } else if (Account == null || Account.AccountID <= 0)
+            } else if (Account == null || Account.AccountNo <= 0)
             {
                 ValErrors.Add("Account", "Account not found.");
+            }
+
+            if ( !string.IsNullOrWhiteSpace( ProjectId ) )
+            {
+                if ( !ApiClient.GetProjects().Where(p => p.ProjectId == ProjectId).Any() )
+                {
+                    ValErrors.Add( "Project", "Project not found: Please enter a valid project code." );
+                }
             }
 
             if (ItemID <= 0 && FYStartDate.Year < DateTime.Now.Year)
@@ -416,7 +468,7 @@ namespace org.secc.Purchasing
 
             return ValErrors;
         }
-        
+
         #endregion
 
     }
@@ -431,6 +483,7 @@ namespace org.secc.Purchasing
         public DateTime? DateNeeded { get; set; }
         public bool ExpeditedShipping { get; set; }
         public string AccountNumber { get; set; }
+        public string ProjectId { get; set; }
         public List<int> PONumbers { get; set; }
         public decimal? EstimatedCost { get; set; }
         public decimal? LineItemCost { get; set; }

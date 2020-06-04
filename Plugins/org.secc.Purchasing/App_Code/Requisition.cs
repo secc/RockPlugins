@@ -1097,6 +1097,7 @@ namespace org.secc.Purchasing
                             DateNeeded = ri.date_needed,
                             ExpeditedShipping = ri.is_expedited_shipping_allowed,
                             AccountNumber = string.Format("{0}-{1}-{2}", ri.fund_id, ri.department_id, ri.account_id),
+                            ProjectId = ri.project_id,
                             PONumbers = ri.PurchaseOrderItemDatas.Where(poi => poi.active && poi.PurchaseOrderData.active)
                                 .Where(poi => poi.PurchaseOrderData.active && poi.PurchaseOrderData.status_luid != PurchaseOrder.PurchaseOrderStatusCancelledLUID() )
                                 .Select(poi => poi.PurchaseOrderData.purchase_order_id).Distinct().ToList(),

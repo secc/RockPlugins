@@ -17,8 +17,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
-
+using Newtonsoft.Json;
 using org.secc.Purchasing.DataLayer;
+using org.secc.Purchasing.Intacct;
 using Rock;
 using Rock.Communication;
 using Rock.Model;
@@ -71,6 +72,7 @@ namespace org.secc.Purchasing
         public int? GLFundId { get; set; }
         public int? GLDepartmentId { get; set; }
         public int? GLAccountId { get; set; }
+        public string ProjectId { get; set; }
         public DateTime GLFiscalYearStartDate { get; set; }
         public string CreatedByUserId { get; set; }
         public string ModifiedByUserId {get; set; }
@@ -429,30 +431,31 @@ namespace org.secc.Purchasing
                                              }
                                 )
                                 .Select( cr => new CapitalRequestListItem()
-                                    {
-                                        CapitalRequestId = cr.capitalRequest.capital_request_id,
-                                        ProjectName = cr.capitalRequest.project_name,
-                                        RequestingMinistryLUID = cr.capitalRequest.ministry_luid,
-                                        RequesterId = cr.requester.Id,
-                                        RequestingMinistry = cr.capitalRequestMinistry.Value,
-                                        RequesterNickName = cr.requester.PersonData.NickName,
-                                        RequesterLastName = cr.requester.PersonData.LastName,
-                                        StatusLUID = cr.capitalRequest.status_luid,
-                                        Status = cr.capitalRequestStatus.Value,
-                                        RequisitionCount = cr.capitalRequest.RequisitionDatas.Where( req => req.active ).Where( req => req.status_luid != requisitionCancelledLUID ).Count(),
-                                        TotalCharges = cr.capitalRequest.RequisitionDatas.Where( req => req.active )
+                                {
+                                    CapitalRequestId = cr.capitalRequest.capital_request_id,
+                                    ProjectName = cr.capitalRequest.project_name,
+                                    RequestingMinistryLUID = cr.capitalRequest.ministry_luid,
+                                    RequesterId = cr.requester.Id,
+                                    RequestingMinistry = cr.capitalRequestMinistry.Value,
+                                    RequesterNickName = cr.requester.PersonData.NickName,
+                                    RequesterLastName = cr.requester.PersonData.LastName,
+                                    StatusLUID = cr.capitalRequest.status_luid,
+                                    Status = cr.capitalRequestStatus.Value,
+                                    RequisitionCount = cr.capitalRequest.RequisitionDatas.Where( req => req.active ).Where( req => req.status_luid != requisitionCancelledLUID ).Count(),
+                                    TotalCharges = cr.capitalRequest.RequisitionDatas.Where( req => req.active )
                                                         .Where( req => req.status_luid != requisitionCancelledLUID )
-                                                        .Select( req => (decimal?)req.PaymentChargeDatas
+                                                        .Select( req => ( decimal? ) req.PaymentChargeDatas
                                                                         .Where( c => c.active )
                                                                         .Select( c => c.amount ).Sum() ).Sum() ?? new decimal( 0 ),
-                                        FiscalYearBeginDate = cr.capitalRequest.gl_fiscal_year_start,
-                                        FundId = cr.capitalRequest.gl_fund_id,
-                                        DepartmentId = cr.capitalRequest.gl_department_id,
-                                        AccountId = cr.capitalRequest.gl_account_id,
-                                        CreatedByUserId = cr.capitalRequest.created_by,
-                                        Active = cr.capitalRequest.active,
-                                        LocationLUID = cr.capitalRequest.location_luid,
-                                        ApprovalItems = context.ApprovalDatas
+                                    FiscalYearBeginDate = cr.capitalRequest.gl_fiscal_year_start,
+                                    FundId = cr.capitalRequest.gl_fund_id,
+                                    DepartmentId = cr.capitalRequest.gl_department_id,
+                                    AccountId = cr.capitalRequest.gl_account_id,
+                                    ProjectId = cr.capitalRequest.project_id,
+                                    CreatedByUserId = cr.capitalRequest.created_by,
+                                    Active = cr.capitalRequest.active,
+                                    LocationLUID = cr.capitalRequest.location_luid,
+                                    ApprovalItems = context.ApprovalDatas
                                                             .Where( a => a.object_type_name == typeof( CapitalRequest ).ToString() )
                                                             .Where( a => a.identifier == cr.capitalRequest.capital_request_id )
                                                             .Where( a => a.active )
@@ -494,7 +497,7 @@ namespace org.secc.Purchasing
                                                                 ApprovalStatusLUID = a.approval.approval_status_luid,
                                                                 DateApprovedString = a.approval.date_approved.ToString()
                                                             } )
-                                    } );
+                                } ); ;
 
                 if ( filter.ContainsKey( "StatusLUID" ) )
                 {
@@ -904,6 +907,7 @@ namespace org.secc.Purchasing
                     capRequest.gl_fund_id = GLFundId;
                     capRequest.gl_department_id = GLDepartmentId;
                     capRequest.gl_account_id = GLAccountId;
+                    capRequest.project_id = ProjectId;
                     capRequest.gl_fiscal_year_start = GLFiscalYearStartDate;
 
                     capRequest.modified_by = userId;
@@ -1064,14 +1068,12 @@ namespace org.secc.Purchasing
             OngoingMaintenanceCost = 0;
             ItemLocation = null;
             AnticipatedInserviceDate = DateTime.MinValue;
-            GLCompanyId = Accounting.Company.GetDefaultCompany().CompanyID;
+            GLCompanyId = 1;
             GLFundId = null;
             GLDepartmentId = null;
             GLAccountId = null;
-            Accounting.Company company = new Accounting.Company((int)GLCompanyId);
-            if (company.GetCurrentFiscalYear() != null) {
-                GLFiscalYearStartDate = company.GetCurrentFiscalYear().StartDate;
-            }
+            ProjectId = null;
+            GLFiscalYearStartDate = new DateTime( DateTime.Now.Year, 1, 1 );
             CreatedByUserId = null;
             ModifiedByUserId = null;
             DateCreated = DateTime.MinValue;
@@ -1139,6 +1141,7 @@ namespace org.secc.Purchasing
                 GLFundId = data.gl_fund_id;
                 GLDepartmentId = data.gl_department_id;
                 GLAccountId = data.gl_account_id;
+                ProjectId = data.project_id;
 
                 if ( data.gl_fiscal_year_start != null )
                 {
@@ -1334,9 +1337,33 @@ namespace org.secc.Purchasing
 
             if ( GLCompanyId != null && GLFundId != null && GLDepartmentId != null && GLAccountId != null )
             {
-                Accounting.Account glaccount = new Accounting.Account( (int)GLCompanyId, (int)GLFundId, (int)GLDepartmentId, (int)GLAccountId, GLFiscalYearStartDate );
+                string jsonSettings = Rock.Security.Encryption.DecryptString( GlobalAttributesCache.Get().GetValue( "IntacctAPISettings" ) );
+                var apiClient = JsonConvert.DeserializeObject<ApiClient>( jsonSettings );
+                // Fetch the account
+                var account = apiClient.GetGLAccounts().Where( a => a.AccountNo == GLAccountId ).FirstOrDefault();
 
-                if ( glaccount == null || glaccount.AccountID <= 0 )
+                // Now verify that the location and department are valid
+                if ( account != null )
+                {
+                    var restrictedData = apiClient.GetDimensionRestrictedData( account );
+
+                    // If we get here with no data, then the restricted data is just not available so go ahead and allow it
+                    if ( restrictedData.Count > 0 )
+                    {
+                        if ( !GLDepartmentId.HasValue || !restrictedData.Any( r => r.Dimension == "DEPARTMENT" && r.IdValues.Contains( GLDepartmentId.Value ) ) )
+                        {
+                            account = null;
+                        }
+
+                        if ( !GLFundId.HasValue || !restrictedData.Any( r => r.Dimension == "LOCATION" && r.IdValues.Contains( GLFundId.Value ) ) )
+                        {
+                            account = null;
+                        }
+                    }
+
+                }
+                
+                if ( account == null )
                 {
                     valErrors.Add( "General Ledger Account", "General Ledger Account is not valid." );
                 }
@@ -1376,6 +1403,7 @@ namespace org.secc.Purchasing
         public int? FundId { get; set; }
         public int? DepartmentId { get; set; }
         public int? AccountId { get; set; }
+        public string ProjectId { get; set; }
         public string CreatedByUserId { get; set; }
         public bool Active { get; set; }
         public IQueryable<ApprovalListItem> ApprovalItems { get; set; }
