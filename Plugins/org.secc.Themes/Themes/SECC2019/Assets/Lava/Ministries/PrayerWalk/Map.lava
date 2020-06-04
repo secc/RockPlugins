@@ -230,17 +230,21 @@
             
             {%- workflow where:'WorkflowTypeId == 477' -%}
                 {% for w in workflowItems %}
-                    /* {{w.Guid}} */
-                    prayerwalkMarkers[prayerwalkMarkers.length] = new google.maps.Marker({
-                        position: new google.maps.LatLng({{ w | Attribute:'Lat'}},{{w | Attribute:'Long' }}),
-                        icon: {
-                            url: "/Themes/SECC2019/Assets/img/SE/PrayerWalk4.svg",
-                            // This marker is 20 pixels wide by 32 pixels high.
-                            size: new google.maps.Size(30, 44)
-                        },
-                        animation: google.maps.Animation.DROP,
-                        map: map1
-                    });
+					{% assign lat = w | Attribute:'Lat' | AsDouble %}
+					{% assign long = w | Attribute:'Long' | AsDouble %}
+					{% if lat > 0 && long > 0 %}
+						/* {{w.Guid}} */
+						prayerwalkMarkers[prayerwalkMarkers.length] = new google.maps.Marker({
+							position: new google.maps.LatLng({{ lat }},{{ long }}),
+							icon: {
+								url: "/Themes/SECC2019/Assets/img/SE/PrayerWalk4.svg",
+								// This marker is 20 pixels wide by 32 pixels high.
+								size: new google.maps.Size(30, 44)
+							},
+							animation: google.maps.Animation.DROP,
+							map: map1
+						});
+					{% endif %}
                 {% endfor %}
             {%- endworkflow -%}
 
