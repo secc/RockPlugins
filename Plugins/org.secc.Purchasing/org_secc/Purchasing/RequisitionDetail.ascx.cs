@@ -770,9 +770,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 lbRemove.CommandArgument = Item.ItemID.ToString();
                 lbEdit.CommandArgument = Item.ItemID.ToString();
                 lbRemove.Visible = UserCanDeleteItem(Item.ItemID);
-                e.Row.Cells[12].Visible = UserCanDeleteItem(Item.ItemID);
+                e.Row.Cells[13].Visible = UserCanDeleteItem(Item.ItemID);
                 lbEdit.Visible = CanUserEditItemDetail();
-                e.Row.Cells[11].Visible = CanUserEditItemDetail();
+                e.Row.Cells[12].Visible = CanUserEditItemDetail();
             }
         }
 
