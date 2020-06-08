@@ -689,7 +689,7 @@
                                         </label>
                                         <div>
                                             <div class="form-inline">
-                                                <Rock:RockTextBox ID="txtProjectId" runat="server" MaxLength="15" Size="15" ValidationGroup="ItemDetail" />
+                                                <Rock:RockTextBox ID="txtProjectId" runat="server" MaxLength="50" Size="15" ValidationGroup="ItemDetail" />
                                             </div>
                                         </div>
                                     </div>
