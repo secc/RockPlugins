@@ -71,8 +71,10 @@ namespace org.secc.Workflow.Person.Action
         false, "", "3: Other Settings", 13, "FamilyAttribute", new string[] { "Rock.Field.Types.PersonFieldType", "Rock.Field.Types.GroupFieldType" } )]
     [BooleanField( "Match Only", "If Yes, this will NOT create new person records and the person will only be set if a single match is found.", false,
         "3: Other Settings", 14 )]
+    [BooleanField( "Create Nameless Person", "If we don't have information to create a person and Match Only is set false, create a new nameless person.",
+        false, "3: Other Settings", 15 )]
     [BooleanField( "Continue On Error", "If there is an error with this action (such as incomplete data), should the workflow continue.", false,
-        "3: Other Settings", 15 )]
+        "3: Other Settings", 16 )]
 
     public class GetPersonFromFields : ActionComponent
     {
@@ -96,6 +98,7 @@ namespace org.secc.Workflow.Person.Action
                 string lastName = GetAttributeValue( action, "LastName", true ).ResolveMergeFields( mergeFields );
                 string email = GetAttributeValue( action, "Email", true ).ResolveMergeFields( mergeFields );
                 string phone = GetAttributeValue( action, "Phone", true ).ResolveMergeFields( mergeFields );
+                var createNameless = GetAttributeValue( action, "CreateNamelessPerson" ).AsBoolean();
                 DateTime? dateofBirth = GetAttributeValue( action, "DOB", true ).AsDateTime();
                 Guid? addressGuid = GetAttributeValue( action, "Address", true ).AsGuidOrNull();
                 Guid? familyOrPersonGuid = GetAttributeValue( action, "FamilyAttribute", true ).AsGuidOrNull();
@@ -108,22 +111,30 @@ namespace org.secc.Workflow.Person.Action
                 }
 
 
-                if ( string.IsNullOrWhiteSpace( firstName ) ||
+                if ( !createNameless && (  //If we cannot create a namless person we must have a minimum set of values to match
+                    string.IsNullOrWhiteSpace( firstName ) ||
                      string.IsNullOrWhiteSpace( lastName ) ||
                     ( string.IsNullOrWhiteSpace( email ) &&
                         string.IsNullOrWhiteSpace( phone ) &&
                         !dateofBirth.HasValue &&
-                        ( address == null || address != null && string.IsNullOrWhiteSpace( address.Street1 ) ) )
+                        ( address == null || address != null && string.IsNullOrWhiteSpace( address.Street1 ) ) ) )
                     )
                 {
                     errorMessages.Add( "First Name, Last Name, and one of Email, Phone, DoB, or Address Street are required. One or more of these values was not provided!" );
+                }
+                else if ( createNameless && //Else if we can create a nameless person we at least need email and phone
+                            string.IsNullOrWhiteSpace( email ) &&
+                            string.IsNullOrWhiteSpace( phone ) )
+                {
+                    errorMessages.Add( "Email or Phone is required to create a nameless person. One or more of these values was not provided!" );
                 }
                 else
                 {
                     Rock.Model.Person person = null;
                     PersonAlias personAlias = null;
                     var personService = new PersonService( rockContext );
-                    var people = personService.GetByMatch( firstName, lastName, dateofBirth, email, phone, address?.Street1, address?.PostalCode ).ToList();
+
+                    var people = personService.GetByMatch( firstName, lastName, dateofBirth, email, phone, address?.Street1, address?.PostalCode, createNameless ).ToList();
                     if ( people.Count == 1 &&
                          // Make sure their email matches.  If it doesn't, we need to go ahead and create a new person to be matched later.
                          ( string.IsNullOrWhiteSpace( email ) ||
@@ -191,9 +202,6 @@ namespace org.secc.Workflow.Person.Action
                                 familyGroup.GroupLocations.Add( location );
                             }
                         }
-
-
-
 
                         // Save/update the phone number
                         if ( !string.IsNullOrWhiteSpace( phone ) )

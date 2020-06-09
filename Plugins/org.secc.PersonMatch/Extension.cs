@@ -20,6 +20,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Rock;
 using Rock.Web.Cache;
+using Rock.Configuration;
+using Rock.Data;
+using DotLiquid.Util;
+using Rock.Search.Group;
 
 namespace org.secc.PersonMatch
 {
@@ -29,18 +33,26 @@ namespace org.secc.PersonMatch
     {
         const string DIMINUTIVE_NAMES = "3E2D2BEE-01BE-4D1E-8634-01932718AEA3";
         const string GOES_BY_ATTRIBUTE = "C31FDA8A-8CAB-4A1C-B96D-275415B5BB1C";
-        public static IEnumerable<Person> GetByMatch( this PersonService personService, String firstName, String lastName, DateTime? birthDate, String email = null, String phone = null, String street1 = null, String postalCode = null )
+
+        public static IEnumerable<Person> GetByMatch( this PersonService personService, String firstName, String lastName, DateTime? birthDate, String email = null, String phone = null, String street1 = null, String postalCode = null, bool createNameless = false )
         {
             using ( Rock.Data.RockContext context = new Rock.Data.RockContext() )
             {
                 //FirstName LastName and (DOB or email or phone or street address) are required. If not return an empty list.
                 if ( firstName.IsNullOrWhiteSpace() || lastName.IsNullOrWhiteSpace() ||
                     ( !birthDate.HasValue &&
-                        string.IsNullOrWhiteSpace( email ) &&
-                        string.IsNullOrWhiteSpace( phone ) &&
-                        string.IsNullOrWhiteSpace( street1 ) ) )
+                        email.IsNotNullOrWhiteSpace() &&
+                        phone.IsNotNullOrWhiteSpace() &&
+                        street1.IsNotNullOrWhiteSpace() ) )
                 {
-                    return new List<Person>();
+                    if ( createNameless && ( email.IsNotNullOrWhiteSpace() || phone.IsNotNullOrWhiteSpace() ) )
+                    {
+                        return new List<Person> { GetOrCreateNamelessPerson( email, phone, personService ) };
+                    }
+                    else
+                    {
+                        return new List<Person>();
+                    }
                 }
 
                 LocationService locationService = new LocationService( context );
@@ -159,5 +171,60 @@ namespace org.secc.PersonMatch
             }
         }
 
+        private static Person GetOrCreateNamelessPerson( string email, string phone, PersonService personService )
+        {
+
+            var namelessPersonRecordValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_NAMELESS ).Id;
+            int numberTypeMobileValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE ).Id;
+            var number = PhoneNumber.CleanNumber( phone );
+
+            var personQryOptions = new Rock.Model.PersonService.PersonQueryOptions
+            {
+                IncludeNameless = true
+            };
+
+            var qry = personService.Queryable( personQryOptions ).Where( p => p.RecordTypeValueId == namelessPersonRecordValueId );
+
+            if ( email.IsNotNullOrWhiteSpace() )
+            {
+                qry = qry.Where( p => p.Email == email );
+            }
+
+            if ( phone.IsNotNullOrWhiteSpace() )
+            {
+                qry = qry.Where( p => p.PhoneNumbers.Select( pn => pn.Number == number ).Any() );
+            }
+
+            var people = qry.ToList();
+            if ( people.Count() == 1 )
+            {
+                return people.First();
+            }
+
+            //Didn't get just one person... Time to make a new one!
+            var person = new Person();
+            person.RecordTypeValueId = namelessPersonRecordValueId;
+
+            if ( email.IsNotNullOrWhiteSpace() )
+            {
+                person.Email = email;
+            }
+
+            if ( phone.IsNotNullOrWhiteSpace() )
+            {
+                var smsPhoneNumber = new PhoneNumber();
+                smsPhoneNumber.NumberTypeValueId = numberTypeMobileValueId;
+                smsPhoneNumber.Number = number;
+                smsPhoneNumber.IsMessagingEnabled = true;
+                person.PhoneNumbers.Add( smsPhoneNumber );
+            }
+
+            personService.Add( person );
+            ( ( RockContext ) personService.Context ).SaveChanges();
+
+            person = personService.Get( person.Id );
+            return person;
+
+        }
     }
 }
