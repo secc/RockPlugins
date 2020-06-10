@@ -94,7 +94,7 @@
       <Project>{69ac175c-3997-4514-8c9e-5d24811928c2}</Project>
       <Name>SignNowSDK</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\org.secc.DevLib\org.secc.DevLib.csproj">
+    <ProjectReference Include="..\org.secc.DevLib\org.secc.DevLib.csproj">
       <Project>{a6e9c252-af5b-4fa6-bce1-91a5540cbfb4}</Project>
       <Name>org.secc.DevLib</Name>
     </ProjectReference>
