@@ -20,6 +20,7 @@ using System.Xml.Serialization;
 using Newtonsoft.Json;
 using org.secc.Purchasing.DataLayer;
 using org.secc.Purchasing.Intacct;
+using org.secc.Purchasing.Intacct.Model;
 using Rock;
 using Rock.Communication;
 using Rock.Model;
@@ -1367,13 +1368,28 @@ namespace org.secc.Purchasing
                 {
                     valErrors.Add( "General Ledger Account", "General Ledger Account is not valid." );
                 }
+
+
+                if ( account != null && account.RequireProject == "true" && string.IsNullOrWhiteSpace( ProjectId ) )
+                {
+                    valErrors.Add( "Project", "Project required: The account code you entered requires a project to be entered." );
+                } 
+                else if ( !string.IsNullOrWhiteSpace( ProjectId ) )
+                {
+                    var project = apiClient.GetProjects().Where( a => a.ProjectId == ProjectId ).FirstOrDefault();
+                    if ( project == null )
+                    {
+                        valErrors.Add( "Project", "Project not found: Please enter a valid project code." );
+                    }
+                }
+
             }
 
             if (StatusLUID != DefinedValueCache.Get(new Guid(LOOKUP_STATUS_NEW_GUID)).Id && StatusLUID != DefinedValueCache.Get(new Guid(LOOKUP_STATUS_CANCELLED_GUID)).Id)
             {
                 if ( GLCompanyId == null || GLFundId == null || GLDepartmentId == null || GLAccountId == null )
                 {
-                    valErrors.Add( "Project Account", "Project Account is required" );
+                    valErrors.Add( "GL Account", "GL Account is required" );
                 }
             }
 

@@ -964,7 +964,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     dr["IsExpedited"] = poi.RequisitionItem.IsExpeditiedShippingAllowed;
                     dr["DateNeeded"] = poi.RequisitionItem.DateNeeded > DateTime.MinValue ? poi.RequisitionItem.DateNeeded.ToShortDateString() : String.Empty;
                     dr["Description"] = poi.RequisitionItem.Description;
-                    dr["AccountNumber"] = string.Format("{0}-{1}-{2}", poi.RequisitionItem.FundID, poi.RequisitionItem.DepartmentID, poi.RequisitionItem.AccountID);
+                    dr["AccountNumber"] = string.Format("{0}-{1}-{2} {3}", poi.RequisitionItem.FundID, poi.RequisitionItem.DepartmentID, poi.RequisitionItem.AccountID, poi.RequisitionItem.ProjectId);
                     dr["RequisitionID"] = poi.RequisitionItem.RequisitionID;
                     dr["Price"] = poi.Price == 0 ? String.Empty : string.Format("{0:c}", poi.Price);
                     dr["Extension"] = poi.Price == 0 ? String.Empty : string.Format("{0:c}", poi.Price * poi.Quantity);
@@ -2924,6 +2924,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                         FundID = i.RequisitionItem.FundID,
                         DepartmentID = i.RequisitionItem.DepartmentID,
                         AccountID = i.RequisitionItem.AccountID,
+                        ProjectId = i.RequisitionItem.ProjectId,
                         FYStartDate = i.RequisitionItem.FYStartDate,
                         POItemId = i.PurchaseOrderItemID
                     })
@@ -2935,6 +2936,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                             i.FundID,
                             i.DepartmentID,
                             i.AccountID,
+                            i.ProjectId,
                             i.FYStartDate
                         })
                     .Select(g => new
@@ -2945,6 +2947,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                             g.Key.FundID,
                             g.Key.DepartmentID,
                             g.Key.AccountID,
+                            g.Key.ProjectId,
                             g.Key.FYStartDate,
                             MinPOItemId = g.Min(a => a.POItemId)
                         }
@@ -2965,7 +2968,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 DataRow dr = dt.NewRow();
                 dr["RequisitionID"] = ra.RequisitionID;
                 dr["CompanyID"] = ra.CompanyID;
-                dr["AccountNumber"] = string.Format("{0}-{1}-{2}", ra.FundID, ra.DepartmentID, ra.AccountID);
+                dr["AccountNumber"] = string.Format("{0}-{1}-{2} {3}", ra.FundID, ra.DepartmentID, ra.AccountID, ra.ProjectId );
                 dr["FiscalYearStart"] = ra.FYStartDate;
                 dr["Requisition"] = string.Format("{0} - {1}", ra.RequisitionID, ra.RequisitionTitle);
                 if (Charge != null)
@@ -3184,9 +3187,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                                 Charge.AccountID = AcctID;
                                 Charge.FYStartDate = FYStartDate.Value;
                             }
-
-                            Charge.Amount = ChargeAmount;
-                            Charge.Save(CurrentUser.UserName);
+                            if ( Charge.Amount != ChargeAmount )
+                            {
+                                Charge.Amount = ChargeAmount;
+                                Charge.Save( CurrentUser.UserName );
+                            }
                         }
 
                     }

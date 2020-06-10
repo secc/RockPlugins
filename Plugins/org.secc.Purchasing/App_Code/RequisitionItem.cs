@@ -419,7 +419,12 @@ namespace org.secc.Purchasing
         private Dictionary<string, string> Validate()
         {
             Dictionary<string, string> ValErrors = new Dictionary<string, string>();
-            if (ItemID <= 0)
+            if ( Active != true )
+            {
+                return ValErrors;
+            }
+
+            if (ItemID <= 0 )
             {
                 if (DateNeeded != DateTime.MinValue && DateNeeded < DateTime.Now.Date)
                     ValErrors.Add("Date Needed", "Date Needed can not be in the past.");
@@ -449,6 +454,11 @@ namespace org.secc.Purchasing
             } else if (Account == null || Account.AccountNo <= 0)
             {
                 ValErrors.Add("Account", "Account not found.");
+            }
+
+            if ( Account?.RequireProject == "true" && string.IsNullOrWhiteSpace( ProjectId ) )
+            {
+                ValErrors.Add( "Project", "Project required: The account code you entered requires a project to be entered." );
             }
 
             if ( !string.IsNullOrWhiteSpace( ProjectId ) )

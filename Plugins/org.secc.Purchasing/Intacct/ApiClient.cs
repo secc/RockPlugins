@@ -256,7 +256,7 @@ namespace org.secc.Purchasing.Intacct
                 var xmlDeserializer = new RestSharp.Deserializers.XmlDeserializer();
                 var auth = xmlDeserializer.Deserialize<Authentication>( response );
 
-                CacheTimeout = auth?.SessionTimeout?.AddMinutes( -30 )??DateTime.Now.AddHours(1);
+                CacheTimeout = DateTime.Now.AddHours(2);
 
                 RockCache.AddOrUpdate( cacheKey, null, apiSession, CacheTimeout, INTACCT_CACHE_TAG ); ;
             }

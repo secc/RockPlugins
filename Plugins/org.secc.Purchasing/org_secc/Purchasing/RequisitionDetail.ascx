@@ -168,6 +168,10 @@
 			{
 				height: 65px;
 			}
+			.form-group.height-auto
+			{
+				height: auto;
+			}
 			@media print {
 			  .form-group {
 				  height: auto;
@@ -661,7 +665,7 @@
                             </div>
                             <Rock:RockTextBox Label="Quantity" Id="txtItemQuantity" runat="server" Required="true" ValidationGroup="ItemDetail" />
                             <Rock:RockTextBox Label="Item Number <small>(Max 50 Characters)</small>" Id="txtItemNumber" runat="server" ValidationGroup="ItemDetail" MaxLength="50" />
-                            <Rock:RockTextBox Label="Description" Id="txtItemDescription" TextMode="MultiLine" runat="server" Required="true" ValidationGroup="ItemDetail" />
+                            <Rock:RockTextBox Label="Description" Id="txtItemDescription" FormGroupCssClass="height-auto" TextMode="MultiLine" runat="server" Required="true" ValidationGroup="ItemDetail" />
 
                             <asp:Panel id="pnlItemDetailCompany" runat="server" class="hidden">
                                 <Rock:RockDropDownList Label="Organization" ID="ddlItemCompany" runat="server" />
