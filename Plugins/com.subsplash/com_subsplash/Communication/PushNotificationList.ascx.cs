@@ -231,13 +231,22 @@ namespace RockWeb.Plugins.com_subsplash.Communication
                                     DateTimeZoneHandling = DateTimeZoneHandling.Local
                                 }
                             );
+
                             if ( notification.SentCount > 0 )
                             {
                                 lRecipients.Text = "<span class=\"badge badge-info\" title=\"Sent\" data-toggle=\"tooltip\" style=\"display: inline-block\">" + notification.SentCount + "</span>";
+                            } else
+                            {
+                                lRecipients.Text = "<span class=\"badge badge-none\" title=\"Pending\" data-toggle=\"tooltip\" style=\"display:inline-block\">" + notification.Embedded.Topics.Select( t => t.NumSubscribers ).FirstOrDefault() + "</span>";
+
                             }
                             if ( notification.DeletedAt.HasValue )
                             {
                                 e.Row.Cells[5].CssClass += "hide-button";
+                            }
+                            if ( !notification.Sent.HasValue || notification.Sent.Value == false )
+                            {
+                                communicationItem.SendDateTimePrefix = "<span class='label label-info'>Future</span>&nbsp;";
                             }
                         }
 
@@ -246,6 +255,8 @@ namespace RockWeb.Plugins.com_subsplash.Communication
                     {
                         e.Row.Cells[5].CssClass += "hide-button";
                     }
+                    Literal lSent = e.Row.FindControl( "lSent" ) as Literal;
+                    lSent.Text = communicationItem.SendDateTimeFormat;
 
                 }
             }
@@ -268,6 +279,9 @@ namespace RockWeb.Plugins.com_subsplash.Communication
         /// <param name="e">The <see cref="Rock.Web.UI.Controls.RowEventArgs"/> instance containing the event data.</param>
         protected void gCommunication_Delete( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
+            // First remove it from Subsplash
+            gCommunication_Remove( sender, e );
+
             var rockContext = new RockContext();
             var communicationService = new CommunicationService( rockContext );
             var communication = communicationService.Get( e.RowKeyId );

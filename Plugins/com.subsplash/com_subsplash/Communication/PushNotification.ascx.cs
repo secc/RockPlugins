@@ -285,7 +285,7 @@ namespace RockWeb.Plugins.com_subsplash.Communication
                 else
                 {
                     // Not an editable communication, so hide this block. 
-                    upPanel.Visible = false;
+                    pnlEditForm.Visible = false;
 
                     // Show Message Details instead
                     pnlMessage.Visible = true;
@@ -846,14 +846,37 @@ namespace RockWeb.Plugins.com_subsplash.Communication
                 {
                     if ( communication.Status == CommunicationStatus.Approved || communication.Status == CommunicationStatus.PendingApproval )
                     {
+                        // Load the notifications using the Push Notifications Transport
+                        var transport = TransportContainer.Instance.Components.FirstOrDefault( t => t.Value.Value.TypeGuid == GetAttributeValue( "Transport" ).AsGuidOrNull() ).Value.Value;
+                        if ( transport != null && communication.ForeignGuid.HasValue )
+                        {
+                            transport.LoadAttributes();
+
+                            var client = new RestClient( transport.GetAttributeValue( "APIEndpoint" ) );
+
+                            var pushNotificationRequest = new RestRequest( "notifications/{id}", Method.DELETE );
+                            pushNotificationRequest.AddHeader( "Content-Type", "application/json" );
+                            pushNotificationRequest.AddHeader( "Authorization", "Bearer " + Encryption.DecryptString( transport.GetAttributeValue( "JWTToken" ) ) );
+                            pushNotificationRequest.AddParameter( "id", communication.ForeignGuid.ToString(), ParameterType.UrlSegment );
+                            pushNotificationRequest.RequestFormat = DataFormat.Json;
+
+                            var response = client.Execute( pushNotificationRequest );
+                        }
+
                         if ( !communication.Recipients
                             .Where( r => r.Status == CommunicationRecipientStatus.Delivered )
                             .Any() )
                         {
+
                             communication.Status = CommunicationStatus.Draft;
                             dataContext.SaveChanges();
 
                             ShowResult( "This communication has successfully been cancelled without any recipients receiving communication!", communication, NotificationBoxType.Success );
+
+                            // communication is either new or ok to edit
+                            ShowDetail( communication );
+                            pnlEditForm.Visible = true;
+                            pnlMessage.Visible = false;
                         }
                         else
                         {
@@ -1032,6 +1055,37 @@ namespace RockWeb.Plugins.com_subsplash.Communication
                             var hasPendingRecipients = new CommunicationRecipientService( dataContext ).Queryable()
                             .Where( r => r.CommunicationId == communication.Id ).Where( r => r.Status == CommunicationRecipientStatus.Pending ).Any();
 
+
+                            // Load the notifications using the Push Notifications Transport
+                            var transport = TransportContainer.Instance.Components.FirstOrDefault( t => t.Value.Value.TypeGuid == GetAttributeValue( "Transport" ).AsGuidOrNull() ).Value.Value;
+                            if ( transport != null )
+                            {
+                                transport.LoadAttributes();
+
+                                var client = new RestClient( transport.GetAttributeValue( "APIEndpoint" ) );
+
+                                var pushNotificationRequest = new RestRequest( "notifications/{id}", Method.GET );
+                                pushNotificationRequest.AddHeader( "Content-Type", "application/json" );
+                                pushNotificationRequest.AddHeader( "Authorization", "Bearer " + Encryption.DecryptString( transport.GetAttributeValue( "JWTToken" ) ) );
+                                pushNotificationRequest.AddParameter( "id", communication.ForeignGuid.ToString(), ParameterType.UrlSegment );
+                                pushNotificationRequest.RequestFormat = DataFormat.Json;
+
+                                var response = client.Get( pushNotificationRequest );
+
+                                var notification = JsonConvert.DeserializeObject<com.subsplash.Model.Notification>(
+                                    response.Content,
+                                    new JsonSerializerSettings
+                                    {
+                                        ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+                                        DateTimeZoneHandling = DateTimeZoneHandling.Local
+                                    }
+                                );
+
+                                if ( !notification.Sent.HasValue || notification.Sent.Value == false )
+                                {
+                                    hasPendingRecipients = true;
+                                }
+                            }
 
                             btnCancelSend.Visible = hasPendingRecipients;
 

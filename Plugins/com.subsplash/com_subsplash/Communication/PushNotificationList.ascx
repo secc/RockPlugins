@@ -33,7 +33,7 @@
                             <Rock:RockBoundField DataField="Subject" SortExpression="Subject" HeaderText="Subject" />
                             <Rock:EnumField DataField="Status" SortExpression="Status" HeaderText="Status" />
                             <Rock:RockLiteralField HeaderText="Details" ID="lDetails" />
-                            <Rock:RockBoundField  DataField="SendDateTimeFormat" HtmlEncode="false" HeaderStyle-HorizontalAlign="Right" ItemStyle-HorizontalAlign="Right" SortExpression="SendDateTime" ColumnPriority="Desktop" HeaderText="Sent" />
+                            <Rock:RockLiteralField HeaderText="Sent" ID="lSent" HeaderStyle-HorizontalAlign="Right" ItemStyle-HorizontalAlign="Right" SortExpression="SendDateTime" ColumnPriority="Desktop" />
                             <Rock:RockLiteralField HeaderText="Recipients" ID="lRecipients" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center" SortExpression="Recipients" />
                             <Rock:LinkButtonField ID="lbRemove" OnClick="gCommunication_Remove" ControlStyle-CssClass="btn btn-warning btn-sm fa fa-minus-square" ToolTip="This will remove this message from the SubSplash app inbox."></Rock:LinkButtonField>
                             <Rock:DeleteField OnClick="gCommunication_Delete" />
