@@ -5,6 +5,7 @@
       {%- for eventOccurrenceSummary in EventOccurrenceSummaries -%}
           {%- assign eventName = eventOccurrenceSummary.Name -%}
           {%- assign eventSummary = eventOccurrenceSummary.Description -%}
+          {%- assign eventLocationDesc = eventOccurrenceSummary.LocationDescription -%}
             <div class="panel panel-default">
                 <div class="panel-heading collapsed" role="button"  id="heading{{ forloop.index }}-accordion-events" data-toggle="collapse" data-parent="#event-accordion-accordion-events"
                 href="#collapse{{ forloop.index }}-accordion-events" aria-expanded="false" aria-controls="collapse{{ forloop.index }}-accordion-events">
@@ -18,7 +19,7 @@
     			              </td>
     		              </tr>
     	              </table>
-                    <h5 class="g-display-inline-block--sm g-font-size-40--xs g-font-size-60--md g-font-family--secondary g-font-weight--400 g-margin-l-40--xs">{{ eventName }}</h5>
+                    <h5 class="g-display-inline-block--sm g-font-size-60--md g-font-family--secondary g-font-weight--400 g-margin-l-40--xs">{{ eventName }}</h5>
                   </div>
                 </div>
                 <div id="collapse{{ forloop.index }}-accordion-events" class="panel-collapse collapse" role="tabpanel"
@@ -29,6 +30,7 @@
     			              <h3 class="g-font-weight--700">Event Details</h3>
     			              <p><strong>Time:</strong> {{ eventOccurrenceSummary.DateTime | Date: 'hh:mm tt'  }}</p>
     			              <p><strong>Location:</strong> {{ eventOccurrenceSummary.Location }}</p>
+                        <p>{{ eventOccurrenceSummary.EventItemOccurrence.Location}}</p>
     			              <div class="g-margin-t-30--sm g-margin-t-20--xs">
     			                <p>{{ eventSummary }}</p>
                                 {% comment %}
