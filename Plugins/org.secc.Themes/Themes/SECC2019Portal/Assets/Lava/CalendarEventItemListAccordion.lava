@@ -24,14 +24,15 @@
 							{%- assign gridNum = 12 -%}
 							<div class="col-md-{{gridNum}} g-padding-x-20--xs">
 							  <div class="panel-accordion-events accordion-events" id="event-accordion-accordion-events" role="tablist" aria-multiselectable="true">
-							  {%- for eventItemOccurrence in EventItemOccurrences -%}
-							      {%- assign eventName = eventItemOccurrence.Name -%}
-							      {%- assign eventSummary = eventItemOccurrence.Description -%}
+                  {%- for eventItemOccurrence in EventItemOccurrences -%}
+                  {%- assign eventName = eventItemOccurrence.Name -%}
+                  {%- assign eventSummary = eventItemOccurrence.Description -%}
+                  {%- assign eventLocationDesc = eventItemOccurrence.LocationDescription -%}
 
-							      {%- assign eventStartDiff = 'Now' | DateDiff: eventItemOccurrence.DateTime, 'm' -%}
+                  {%- assign eventStartDiff = 'Now' | DateDiff: eventItemOccurrence.DateTime, 'm' -%}
 
-										{%- if eventStartDiff > 0 -%}
-							        <div class="panel panel-default">
+                  {%- if eventStartDiff > 0 -%}
+                  <div class="panel panel-default">
 							            <div class="panel-heading collapsed" role="button"  id="heading{{ forloop.index }}-accordion-events" data-toggle="collapse" data-parent="#event-accordion-accordion-events"
 							            href="#collapse{{ forloop.index }}-accordion-events" aria-expanded="false" aria-controls="collapse{{ forloop.index }}-accordion-events">
 							              <div class="panel-title g-font-size-30--xs g-font-size-32--md g-font-weight--700 g-display-flex--sm" style="align-items: center">
@@ -44,7 +45,7 @@
 										              </td>
 									              </tr>
 								              </table>
-							                <h5 class="g-display-inline-block--sm g-font-size-40--xs g-font-size-60--xs g-font-family--secondary g-font-weight--400 g-margin-l-40--xs">{{ eventName }}</h5>
+							                <h5 class="g-display-inline-block--sm g-font-size-60--xs g-font-family--secondary g-font-weight--400 g-margin-l-40--xs">{{ eventName }}</h5>
 							              </div>
 							            </div>
 							            <div id="collapse{{ forloop.index }}-accordion-events" class="panel-collapse collapse" role="tabpanel"
@@ -55,6 +56,7 @@
 										              <h3 class="g-font-weight--700">Event Details</h3>
 										              <p><strong>Time:</strong> {{ eventItemOccurrence.DateTime | Date: 'hh:mm tt'  }}</p>
 										              <p><strong>Location:</strong> {{ eventItemOccurrence.Location }}</p>
+                                  <p> {{ eventLocationDesc }}</p>
 										              <div class="g-margin-t-30--sm g-margin-t-20--xs">
 										                <p>{{ eventSummary }}</p>
                                                         {% comment %}
