@@ -99,18 +99,26 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attribute\CheckinGroupFieldAttribute.cs" />
+    <Compile Include="Cache\KioskTypeCache.cs" />
+    <Compile Include="Cache\MobileCheckinRecordCache.cs" />
     <Compile Include="Data\FamilyCheckinContext.cs" />
     <Compile Include="Data\FamilyCheckinService.cs" />
     <Compile Include="Exceptions\CheckInStateLost.cs" />
     <Compile Include="FieldTypes\CheckinGroupFieldType.cs" />
     <Compile Include="Jobs\ResetGroupLocationSchedules.cs" />
-    <Compile Include="Migrations\201606272016469_Init.cs" />
-    <Compile Include="Migrations\201607151453103_Message.cs" />
-    <Compile Include="Migrations\201607151453103_Message.Designer.cs">
-      <DependentUpon>201607151453103_Message.cs</DependentUpon>
-    </Compile>
+    <Compile Include="Migrations\001_Init.cs" />
+    <Compile Include="Migrations\007_SearchType.cs" />
+    <Compile Include="Migrations\006_KioskNameIndex.cs" />
+    <Compile Include="Migrations\005_KioskCategories.cs" />
+    <Compile Include="Migrations\004_Touchless.cs" />
+    <Compile Include="Migrations\002_Message.cs" />
+    <Compile Include="Migrations\010_AttendanceQualifiers.cs" />
+    <Compile Include="Migrations\009_ExpirationTime.cs" />
+    <Compile Include="Migrations\008_MobileCheckinRecord.cs" />
     <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Migrations\UpdateCacheTags.cs" />
+    <Compile Include="Migrations\003_UpdateCacheTags.cs" />
+    <Compile Include="Model\MobileCheckinRecordService.cs" />
+    <Compile Include="Model\MobileCheckinRecord.cs" />
     <Compile Include="Model\Kiosk.cs" />
     <Compile Include="Model\KioskType.cs" />
     <Compile Include="Model\KioskService.cs" />
@@ -161,14 +169,6 @@
     <Folder Include="org_secc\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201606272016469_Init.resx">
-      <DependentUpon>201606272016469_Init.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201607151453103_Message.resx">
-      <DependentUpon>201607151453103_Message.cs</DependentUpon>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="$(SolutionDir)DotLiquid\DotLiquid.csproj">
       <Project>{00edcb8d-ef33-459c-ad62-02876bd24dff}</Project>
       <Name>DotLiquid</Name>
@@ -180,6 +180,10 @@
     <ProjectReference Include="$(SolutionDir)Rock\Rock.csproj">
       <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\org.secc.DevLib\org.secc.DevLib.csproj">
+      <Project>{a6e9c252-af5b-4fa6-bce1-91a5540cbfb4}</Project>
+      <Name>org.secc.DevLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

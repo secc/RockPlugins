@@ -20,6 +20,7 @@ using Rock.Attribute;
 using Rock;
 using Rock.Model;
 using Rock.Data;
+using org.secc.FamilyCheckin.Cache;
 
 namespace org.secc.FamilyCheckin
 {
@@ -75,8 +76,9 @@ namespace org.secc.FamilyCheckin
             Rock.Web.Cache.DefinedTypeCache.Remove( dtDeactivated.Id );
 
             rockContext.SaveChanges();
-            
-            //flush kiosk cache
+
+            //flush kiosk caches
+            KioskTypeCache.Clear();
             Rock.CheckIn.KioskDevice.Clear();
 
             context.Result = string.Format("Finished at {0}. Reset {1} GroupScheduleLocations.", Rock.RockDateTime.Now, deactivatedGroupLocationSchedules.Count);

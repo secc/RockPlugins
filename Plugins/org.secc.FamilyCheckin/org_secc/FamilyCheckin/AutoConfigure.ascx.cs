@@ -20,6 +20,7 @@ using System.Net;
 using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
 using Rock;
 using Rock.Attribute;
@@ -181,7 +182,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 CurrentWorkflow = null;
                 Session["KioskTypeId"] = kiosk.KioskType.Id;
                 Session["KioskMessage"] = kiosk.KioskType.Message;
+
+                //Clean things up so we have the freshest possible version.
+                KioskTypeCache.Remove( kiosk.KioskTypeId ?? 0 );
                 KioskDevice.Remove( device.Id );
+
                 SaveState();
                 NavigateToNextPage();
             }

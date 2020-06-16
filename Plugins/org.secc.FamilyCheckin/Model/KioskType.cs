@@ -24,6 +24,8 @@ namespace org.secc.FamilyCheckin.Model
     using System.Runtime.Serialization;
     using Rock.Model;
     using Rock;
+    using Rock.Data;
+
     [Table( "_org_secc_FamilyCheckin_KioskType" )]
     [DataContract]
     public partial class KioskType : Rock.Data.Model<KioskType>, Rock.Security.ISecured, Rock.Data.IRockEntity
@@ -44,6 +46,22 @@ namespace org.secc.FamilyCheckin.Model
         public int? CheckinTemplateId { get; set; }
 
         public virtual GroupType CheckinTemplate { get; set; }
+
+        [DataMember]
+        public int? CampusId { get; set; }
+
+        [LavaInclude]
+        public virtual Campus Campus { get; set; }
+
+        [DataMember]
+        public int? MinutesValid { get; set; }
+
+        [DataMember]
+        public int? GraceMinutes { get; set; }
+
+        [DataMember]
+        [Index]
+        public bool IsMobile { get; set; }
 
         /// <summary>
         /// Gets or sets a collection containing the <see cref="Rock.Model.Location">Locations</see> that use this kiosktype.

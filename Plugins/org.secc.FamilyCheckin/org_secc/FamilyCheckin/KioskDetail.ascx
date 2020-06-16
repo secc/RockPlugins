@@ -34,6 +34,12 @@
                         </div>
                     </div>
 
+                    <div class="row">
+                        <div class="col-md-12">
+                            <Rock:CategoryPicker runat="server" ID="pCategory" Label="Category" />
+                        </div>
+                    </div>
+
                     <Rock:DataDropDownList CausesValidation="false" runat="server" ID="ddlKioskType" Label="Kiosk Type" DataTextField="Name" DataValueField="Id" SourceTypeName="org.secc.FamilyCheckin.Model.Kiosk, org.secc.FamilyCheckin" PropertyName="KioskTypeId"></Rock:DataDropDownList>
 
                     <h4>Print Settings</h4>

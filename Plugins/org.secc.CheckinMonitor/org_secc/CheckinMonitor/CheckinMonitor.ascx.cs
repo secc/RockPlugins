@@ -26,6 +26,7 @@ using Rock.CheckIn;
 using Rock.Attribute;
 using org.secc.FamilyCheckin.Utilities;
 using Rock.Web.Cache;
+using org.secc.FamilyCheckin.Cache;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -730,6 +731,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         }
                     }
                     _rockContext.SaveChanges();
+
+                    KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
                     Rock.CheckIn.KioskDevice.Clear();
                     CheckInCountCache.Flush();
                 }
@@ -817,6 +820,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             RecordGroupLocationSchedule( groupLocation, schedule );
                             groupLocation.Schedules.Remove( schedule );
                             _rockContext.SaveChanges();
+                            KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
                             Rock.CheckIn.KioskDevice.Clear();
                             CheckInCountCache.Flush();
                             if ( bindTable )
@@ -965,6 +969,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         protected void btnRefresh_Click( object sender, EventArgs e )
         {
             ViewState["LocationRatios"] = null;
+            KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
             KioskDevice.Clear();
             CheckInCountCache.Flush();
             BindTable();
@@ -989,6 +994,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 _rockContext.SaveChanges();
                 mdLocation.Hide();
                 ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
+                KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
                 Rock.CheckIn.KioskDevice.Clear();
                 CheckInCountCache.Flush();
             }

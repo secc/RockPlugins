@@ -29,6 +29,9 @@ using org.secc.FamilyCheckin.Rest.Handlers;
 using System.Web.SessionState;
 using Rock.Data;
 using org.secc.FamilyCheckin.Model;
+using org.secc.FamilyCheckin.Utilities;
+using System.Data.Entity;
+using org.secc.FamilyCheckin.Cache;
 
 namespace org.secc.FamilyCheckin.Rest.Controllers
 {
@@ -37,11 +40,6 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
     /// </summary>
     public partial class FamilyCheckinController : ApiController, IHasCustomRoutes
     {
-
-        protected CheckInState CurrentCheckInState;
-
-        protected int CurrentKioskId { get; set; }
-
         /// <summary>
         /// Add Custom route for flushing cached attributes
         /// </summary>
@@ -78,18 +76,18 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
         {
             try
             {
-                var Session = HttpContext.Current.Session;
+                var session = HttpContext.Current.Session;
 
                 var localDeviceConfigCookie = HttpContext.Current.Request.Cookies[CheckInCookieKey.LocalDeviceConfig].Value;
                 var localDevice = localDeviceConfigCookie.FromJsonOrNull<LocalDeviceConfiguration>();
 
-                CurrentKioskId = localDevice.CurrentKioskId.Value;
-                Guid blockGuid = ( Guid ) Session["BlockGuid"];
-                CurrentCheckInState = new CheckInState( CurrentKioskId, localDevice.CurrentCheckinTypeId, localDevice.CurrentGroupTypeIds );
-                CurrentCheckInState.CheckIn.UserEnteredSearch = true;
-                CurrentCheckInState.CheckIn.ConfirmSingleFamily = true;
-                CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER );
-                CurrentCheckInState.CheckIn.SearchValue = param;
+                var currentKioskId = localDevice.CurrentKioskId.Value;
+                Guid blockGuid = ( Guid ) session["BlockGuid"];
+                var currentCheckInState = new CheckInState( currentKioskId, localDevice.CurrentCheckinTypeId, localDevice.CurrentGroupTypeIds );
+                currentCheckInState.CheckIn.UserEnteredSearch = true;
+                currentCheckInState.CheckIn.ConfirmSingleFamily = true;
+                currentCheckInState.CheckIn.SearchType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER );
+                currentCheckInState.CheckIn.SearchValue = param;
 
                 var rockContext = new Rock.Data.RockContext();
                 var block = BlockCache.Get( blockGuid );
@@ -100,18 +98,18 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                 var workflowService = new WorkflowService( rockContext );
                 var workflowType = WorkflowTypeCache.Get( workflowGuid.Value );
 
-                var CurrentWorkflow = Rock.Model.Workflow.Activate( workflowType, CurrentCheckInState.Kiosk.Device.Name, rockContext );
+                var CurrentWorkflow = Rock.Model.Workflow.Activate( workflowType, currentCheckInState.Kiosk.Device.Name, rockContext );
 
                 var activityType = workflowType.ActivityTypes.Where( a => a.Name == workflowActivity ).FirstOrDefault();
                 if ( activityType != null )
                 {
                     WorkflowActivity.Activate( activityType, CurrentWorkflow, rockContext );
-                    if ( workflowService.Process( CurrentWorkflow, CurrentCheckInState, out errors ) )
+                    if ( workflowService.Process( CurrentWorkflow, currentCheckInState, out errors ) )
                     {
                         // Keep workflow active for continued processing
                         CurrentWorkflow.CompletedDateTime = null;
-                        SaveState( Session );
-                        List<CheckInFamily> families = CurrentCheckInState.CheckIn.Families;
+                        SaveState( session, currentCheckInState );
+                        List<CheckInFamily> families = currentCheckInState.CheckIn.Families;
                         families = families.OrderBy( f => f.Caption ).ToList();
                         return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, families );
                     }
@@ -133,11 +131,12 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
         [HttpGet()]
         public HttpResponseMessage KioskStatus( int param )
         {
-            var kioskType = new KioskTypeService( new RockContext() ).Get( param );
+            CheckInState currentCheckInState;
+            var kioskType = KioskTypeCache.Get( param );
             var Session = HttpContext.Current.Session;
             if ( Session["CheckInState"] != null )
             {
-                CurrentCheckInState = Session["CheckInState"] as CheckInState;
+                currentCheckInState = Session["CheckInState"] as CheckInState;
             }
             else
             {
@@ -145,10 +144,10 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
             }
 
             if ( kioskType == null
-                || CurrentCheckInState == null
+                || currentCheckInState == null
                 || !kioskType.IsOpen()
-                || CurrentCheckInState.Kiosk.FilteredGroupTypes( CurrentCheckInState.ConfiguredGroupTypes ).Count == 0
-                || !CurrentCheckInState.Kiosk.HasLocations( CurrentCheckInState.ConfiguredGroupTypes ) )
+                || currentCheckInState.Kiosk.FilteredGroupTypes( currentCheckInState.ConfiguredGroupTypes ).Count == 0
+                || !currentCheckInState.Kiosk.HasLocations( currentCheckInState.ConfiguredGroupTypes ) )
             {
                 return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new Dictionary<string, bool> { { "active", false } } );
             }
@@ -156,13 +155,84 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
             return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new Dictionary<string, bool> { { "active", true } } );
         }
 
-        private void SaveState( HttpSessionState Session )
+        [HttpGet()]
+        public HttpResponseMessage ProcessMobileCheckin( string param )
+        {
+            try
+            {
+                var session = HttpContext.Current.Session;
+
+                var currentCheckInState = session["CheckInState"] as CheckInState;
+                if ( currentCheckInState.CheckIn.SearchType.Guid != Constants.CHECKIN_SEARCH_TYPE_USERLOGIN.AsGuid() )
+                {
+                    throw new Exception(); //We'll catch this later and return a forbidden
+                }
+
+                var localDeviceConfigCookie = HttpContext.Current.Request.Cookies[CheckInCookieKey.LocalDeviceConfig].Value;
+                var localDevice = localDeviceConfigCookie.FromJsonOrNull<LocalDeviceConfiguration>();
+
+                var rockContext = new Rock.Data.RockContext();
+
+                UserLoginService userLoginService = new UserLoginService( rockContext );
+                var family = userLoginService.Queryable().AsNoTracking()
+                    .Where( u => u.UserName == currentCheckInState.CheckIn.SearchValue )
+                    .Select( u => u.Person.PrimaryFamily )
+                    .FirstOrDefault();
+                var checkinFamily = new CheckInFamily
+                {
+                    Group = family.Clone( false ),
+                    Caption = family.ToString(),
+                    Selected = true
+                };
+                currentCheckInState.CheckIn.Families.Add( checkinFamily );
+                SaveState( session, currentCheckInState );
+
+                Guid blockGuid = ( Guid ) session["BlockGuid"];
+                var block = BlockCache.Get( blockGuid );
+                Guid? workflowGuid = block.GetAttributeValue( "WorkflowType" ).AsGuidOrNull();
+                string workflowActivity = block.GetAttributeValue( "WorkflowActivity" );
+
+                List<string> errors;
+                var workflowService = new WorkflowService( rockContext );
+                var workflowType = WorkflowTypeCache.Get( workflowGuid.Value );
+
+                var CurrentWorkflow = Rock.Model.Workflow.Activate( workflowType, currentCheckInState.Kiosk.Device.Name, rockContext );
+
+                var activityType = workflowType.ActivityTypes.Where( a => a.Name == workflowActivity ).FirstOrDefault();
+                if ( activityType != null )
+                {
+                    WorkflowActivity.Activate( activityType, CurrentWorkflow, rockContext );
+                    if ( workflowService.Process( CurrentWorkflow, currentCheckInState, out errors ) )
+                    {
+                        // Keep workflow active for continued processing
+                        CurrentWorkflow.CompletedDateTime = null;
+                        SaveState( session, currentCheckInState );
+                        List<CheckInFamily> families = currentCheckInState.CheckIn.Families;
+                        families = families.OrderBy( f => f.Caption ).ToList();
+                        return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, param );
+                    }
+                }
+                else
+                {
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.InternalServerError, string.Format( "Workflow type does not have a '{0}' activity type", workflowActivity ) );
+                }
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.InternalServerError, String.Join( "\n", errors ) );
+
+            }
+            catch ( Exception ex )
+            {
+                ExceptionLogService.LogException( ex, HttpContext.Current );
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
+            }
+        }
+
+        private void SaveState( HttpSessionState Session, CheckInState currentCheckInState )
         {
             if ( Session != null )
             {
-                if ( CurrentCheckInState != null )
+                if ( currentCheckInState != null )
                 {
-                    Session["CheckInState"] = CurrentCheckInState;
+                    Session["CheckInState"] = currentCheckInState;
                 }
                 else
                 {

@@ -34,7 +34,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [DisplayName( "QuickCheckin" )]
     [Category( "SECC > Check-in" )]
     [Description( "QuickCheckin block for helping parents check in their family quickly." )]
+
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Location Link Attribute", "Group attribute which determines if group is location linking." )]
+    [TextField( "Complete Checkin Activity Name", "Workflow activity to run when the user completes check-in.", true, "Save Attendance", key: "CheckinActivity" )]
+    [BooleanField( "Is Mobile Checkin", "If this block is used for mobile check-in set true", false, key: "IsMobileCheckin" )]
     public partial class QuickCheckin : CheckInBlock
     {
         #region Fields
@@ -225,12 +228,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 if ( selectedSchedules.Contains( schedule.Schedule.Id ) )
                 {
                     btnActive.CssClass = "btn btn-block btn-selectSchedule btn-selectSchedule-active";
-                    btnActive.Text = string.Format( "<div class='row'><div class='col-md-2'><i class='fa fa-check-square-o'></i></div><div class='col-md-10'>{0}</div></div>", schedule.Schedule.Name );
+                    btnActive.Text = string.Format( "<div class='row'><div class='col-xs-2'><i class='fa fa-check-square-o'></i></div><div class='col-xs-10'>{0}</div></div>", schedule.Schedule.Name );
                 }
                 else
                 {
                     btnActive.CssClass = "btn  btn-block btn-selectSchedule";
-                    btnActive.Text = string.Format( "<div class='row'><div class='col-md-2'><i class='fa fa-square-o'></i></div><div class='col-md-10'>{0}</div></div>", schedule.Schedule.Name );
+                    btnActive.Text = string.Format( "<div class='row'><div class='col-xs-2'><i class='fa fa-square-o'></i></div><div class='col-xs-10'>{0}</div></div>", schedule.Schedule.Name );
                 }
                 btnActive.Click += ( s, e ) =>
                 {
@@ -545,7 +548,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     //If a room is selected
                     if ( location != null )
                     {
-                        btnSchedule.CssClass = "btn btn-primary col-xs-8 scheduleSelected";
+                        btnSchedule.CssClass = "btn btn-primary col-md-8 scheduleSelected";
                         btnSchedule.Text = "<b>" + schedule.Schedule.Name + "</b><br>" + group + " > " + location;
                     }
                 }
@@ -850,7 +853,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             List<string> errors = new List<string>();
             try
             {
-                bool test = ProcessActivity( "Save Attendance", out errors );
+                var activityName = GetAttributeValue( "CheckinActivity" );
+                bool test = ProcessActivity( activityName, out errors );
             }
             catch ( Exception ex )
             {
@@ -858,8 +862,16 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 NavigateToHomePage();
                 return;
             }
-            ProcessLabels();
-            pnlMain.Visible = false;
+
+            if ( GetAttributeValue( "IsMobileCheckin" ).AsBoolean() )
+            {
+                NavigateToHomePage();
+            }
+            else
+            {
+                ProcessLabels();
+                pnlMain.Visible = false;
+            }
         }
 
         protected void btnNoCheckin_Click( object sender, EventArgs e )

@@ -28,6 +28,11 @@ using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Exceptions;
 using Rock.Data;
 using Rock.Model;
+using Newtonsoft.Json;
+using org.secc.FamilyCheckin.Utilities;
+using WebGrease.Css.Extensions;
+using org.secc.FamilyCheckin.Cache;
+using Microsoft.AspNet.SignalR;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
@@ -45,12 +50,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         protected int minLength;
         protected int maxLength;
-        protected KioskType KioskType;
-
+        protected KioskTypeCache KioskType;
+        private IHubContext _hubContext = GlobalHost.ConnectionManager.GetHubContext<RockMessageHub>();
 
         protected override void OnInit( EventArgs e )
         {
-
             base.OnInit( e );
 
             if ( CurrentCheckInState == null )
@@ -63,7 +67,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             if ( Session["KioskTypeId"] != null )
             {
                 int kioskTypeId = ( int ) Session["KioskTypeId"];
-                KioskType = new KioskTypeService( new RockContext() ).Get( kioskTypeId );
+                KioskType = KioskTypeCache.Get( kioskTypeId );
                 if ( KioskType == null )
                 {
                     NavigateToPreviousPage();
@@ -78,6 +82,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             RockPage.AddScriptLink( "~/scripts/jquery.plugin.min.js" );
             RockPage.AddScriptLink( "~/scripts/jquery.countdown.min.js" );
+            RockPage.AddScriptLink( "~/Scripts/CheckinClient/ZebraPrint.js" );
 
             RegisterScript();
         }
@@ -183,7 +188,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             if ( !KioskType.IsOpen( currentDateTime ) )
             {
-                DateTime? activeAt = KioskType.GetNextOpen( currentDateTime);
+                DateTime? activeAt = KioskType.GetNextOpen( currentDateTime );
                 if ( activeAt == null )
                 {
                     pnlNotActive.Visible = true;
@@ -199,12 +204,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
             else
             {
-                var schedules = KioskType.GroupTypes
-                    .SelectMany( gt => gt.Groups )
-                    .SelectMany( g => g.GroupLocations )
-                    .SelectMany( gl => gl.Schedules )
-                    .DistinctBy( s => s.Id )
-                    .ToList();
+                var schedules = KioskType.CheckInSchedules;
 
                 if ( schedules.Where( s => s.WasCheckInActive( currentDateTime ) ).Any() )
                 {
@@ -296,6 +296,63 @@ if ($ActiveWhen.text() != '')
 
 ", this.Page.ClientScript.GetPostBackEventReference( lbRefresh, "" ), KioskType.Id );
             ScriptManager.RegisterStartupScript( Page, Page.GetType(), "RefreshScript", script, true );
+        }
+
+        protected void btnMobileCheckin_Click( object sender, EventArgs e )
+        {
+            MobileCheckin( hfMobileAccessKey.Value );
+        }
+
+        private void MobileCheckin( string accessKey )
+        {
+
+            _hubContext.Clients.All.mobilecheckincomplete( accessKey, true );
+            return;
+
+            var mobileDidAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_DID_ATTEND ).Id;
+            var mobileNotAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_NOT_ATTEND ).Id;
+
+            RockContext rockContext = new RockContext();
+            MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
+            var mobileCheckinRecord = mobileCheckinRecordService.Queryable().Where( r => r.AccessKey == accessKey ).FirstOrDefault();
+            try
+            {
+
+                List<CheckInLabel> labels = JsonConvert.DeserializeObject<List<CheckInLabel>>( mobileCheckinRecord.SerializedCheckInState );
+
+                LabelPrinter labelPrinter = new LabelPrinter()
+                {
+                    Request = Request,
+                    Labels = labels
+                };
+
+                labelPrinter.PrintNetworkLabels();
+                var script = labelPrinter.GetClientScript();
+                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
+
+                foreach ( var attendance in mobileCheckinRecord.Attendances )
+                {
+                    if ( attendance.QualifierValueId == mobileDidAttendId )
+                    {
+                        attendance.DidAttend = true;
+                        attendance.QualifierValueId = null;
+                        attendance.StartDateTime = Rock.RockDateTime.Now;
+                    }
+                    else if ( attendance.QualifierValueId == mobileNotAttendId )
+                    {
+                        attendance.DidAttend = false;
+                        attendance.QualifierValueId = null;
+                    }
+                }
+                mobileCheckinRecord.Attendances.Clear();
+                mobileCheckinRecordService.Delete( mobileCheckinRecord );
+                rockContext.SaveChanges();
+                MobileCheckinRecordCache.Remove( mobileCheckinRecord.Id );
+
+            }
+            catch ( Exception e )
+            {
+            }
         }
     }
 }

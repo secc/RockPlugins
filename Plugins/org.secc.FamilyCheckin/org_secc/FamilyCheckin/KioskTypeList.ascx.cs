@@ -13,26 +13,13 @@
 // </copyright>
 //
 // <copyright>
-// Copyright by the Spark Development Network
-//
-// Licensed under the Rock Community License (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.rockrms.com/license
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
-//
+
 using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Data;
 using org.secc.FamilyCheckin.Model;
 using Rock;
@@ -69,7 +56,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             gKioskTypes.Actions.AddClick += gKioskType_Add;
             gKioskTypes.GridRebind += gKioskType_GridRebind;
 
-            // Block Security and special attributes (RockPage takes care of View)
             bool canAddEditDelete = IsUserAuthorized( Authorization.EDIT );
             gKioskTypes.Actions.ShowAdd = canAddEditDelete;
             gKioskTypes.IsDeleteEnabled = canAddEditDelete;
@@ -125,6 +111,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 KioskTypeService.Delete( KioskType );
                 checkinContext.SaveChanges();
 
+                KioskTypeCache.Clear();
                 Rock.CheckIn.KioskDevice.Clear();
             }
 

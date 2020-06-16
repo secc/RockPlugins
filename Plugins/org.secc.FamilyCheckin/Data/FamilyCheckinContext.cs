@@ -22,6 +22,7 @@ namespace org.secc.FamilyCheckin.Data
         #region Models
         public DbSet<KioskType> KioskTypes { get; set; }
         public DbSet<Kiosk> Kiosks { get; set; }
+        public DbSet<MobileCheckinRecord> MobileCheckinRecords { get; set; }
         #endregion
 
         /// <summary>

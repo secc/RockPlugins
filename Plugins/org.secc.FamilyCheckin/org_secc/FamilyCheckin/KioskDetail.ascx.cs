@@ -63,6 +63,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
+            var kioskEntityId = EntityTypeCache.Get( typeof( Kiosk ) ).Id;
+            pCategory.EntityTypeId = kioskEntityId;
 
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.AddConfigurationUpdateTrigger( upnlDevice );
@@ -91,20 +93,20 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         protected void btnSave_Click( object sender, EventArgs e )
         {
-            Kiosk Kiosk = null;
+            Kiosk kiosk = null;
 
             var rockContext = new RockContext();
             var kioskService = new KioskService( rockContext );
             var attributeService = new AttributeService( rockContext );
 
-            int KioskId = int.Parse( hfKioskId.Value );
+            int kioskId = int.Parse( hfKioskId.Value );
 
-            if ( KioskId != 0 )
+            if ( kioskId != 0 )
             {
-                Kiosk = kioskService.Get( KioskId );
+                kiosk = kioskService.Get( kioskId );
             }
 
-            if ( Kiosk == null )
+            if ( kiosk == null )
             {
                 // Check for existing
                 var existingDevice = kioskService.Queryable()
@@ -117,35 +119,37 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 }
                 else
                 {
-                    Kiosk = new Kiosk();
-                    kioskService.Add( Kiosk );
+                    kiosk = new Kiosk();
+                    kioskService.Add( kiosk );
                 }
             }
 
 
-            if ( Kiosk != null )
+            if ( kiosk != null )
             {
-                Kiosk.Name = tbName.Text;
-                Kiosk.Description = tbDescription.Text;
-                Kiosk.IPAddress = tbIPAddress.Text;
+                kiosk.Name = tbName.Text;
+                kiosk.Description = tbDescription.Text;
+                kiosk.IPAddress = tbIPAddress.Text;
 
-                if ( !Kiosk.IsValid || !Page.IsValid )
+                if ( !kiosk.IsValid || !Page.IsValid )
                 {
                     // Controls will render the error messages
                     return;
                 }
 
-                //Save kiosk's checkin type
-                Kiosk.KioskTypeId = ddlKioskType.SelectedValue.AsInteger();
+                kiosk.CategoryId = pCategory.SelectedValueAsId();
 
-                Kiosk.PrintToOverride = ( PrintTo ) System.Enum.Parse( typeof( PrintTo ), ddlPrintTo.SelectedValue );
-                Kiosk.PrinterDeviceId = ddlPrinter.SelectedValueAsInt();
-                Kiosk.PrintFrom = ( PrintFrom ) System.Enum.Parse( typeof( PrintFrom ), ddlPrintFrom.SelectedValue );
+                //Save kiosk's checkin type
+                kiosk.KioskTypeId = ddlKioskType.SelectedValue.AsInteger();
+
+                kiosk.PrintToOverride = ( PrintTo ) System.Enum.Parse( typeof( PrintTo ), ddlPrintTo.SelectedValue );
+                kiosk.PrinterDeviceId = ddlPrinter.SelectedValueAsInt();
+                kiosk.PrintFrom = ( PrintFrom ) System.Enum.Parse( typeof( PrintFrom ), ddlPrintFrom.SelectedValue );
 
 
                 rockContext.SaveChanges();
 
-                Rock.CheckIn.KioskDevice.Clear( );
+                Rock.CheckIn.KioskDevice.Clear();
 
                 NavigateToParentPage();
             }
@@ -173,27 +177,27 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         public void ShowDetail( int kioskId )
         {
             pnlDetails.Visible = true;
-            Kiosk Kiosk = null;
+            Kiosk kiosk = null;
 
             var rockContext = new RockContext();
 
             if ( !kioskId.Equals( 0 ) )
             {
-                Kiosk = new KioskService( rockContext ).Get( kioskId );
+                kiosk = new KioskService( rockContext ).Get( kioskId );
                 lActionTitle.Text = ActionTitle.Edit( Kiosk.FriendlyTypeName ).FormatAsHtmlTitle();
             }
 
-            if ( Kiosk == null )
+            if ( kiosk == null )
             {
-                Kiosk = new Kiosk { Id = 0 };
+                kiosk = new Kiosk { Id = 0 };
                 lActionTitle.Text = ActionTitle.Add( Kiosk.FriendlyTypeName ).FormatAsHtmlTitle();
             }
 
-            hfKioskId.Value = Kiosk.Id.ToString();
+            hfKioskId.Value = kiosk.Id.ToString();
 
-            tbName.Text = Kiosk.Name;
-            tbDescription.Text = Kiosk.Description;
-            tbIPAddress.Text = Kiosk.IPAddress;
+            tbName.Text = kiosk.Name;
+            tbDescription.Text = kiosk.Description;
+            tbIPAddress.Text = kiosk.IPAddress;
 
             // render UI based on Authorized and IsSystem
             bool readOnly = false;
@@ -205,6 +209,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 nbEditModeMessage.Text = EditModeMessage.ReadOnlyEditActionNotAllowed( Kiosk.FriendlyTypeName );
             }
 
+            pCategory.SetValue( kiosk.CategoryId );
+
             if ( readOnly )
             {
                 lActionTitle.Text = ActionTitle.View( Kiosk.FriendlyTypeName );
@@ -215,15 +221,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             tbDescription.ReadOnly = readOnly;
 
             btnSave.Visible = !readOnly;
-            BindDropDownList( Kiosk );
+            BindDropDownList( kiosk );
         }
 
         private void BindDropDownList( Kiosk kiosk = null )
         {
             RockContext rockContext = new RockContext();
             KioskTypeService kioskTypeService = new KioskTypeService( rockContext );
-            
-           
+
+
             ddlKioskType.DataSource = kioskTypeService
                 .Queryable()
                 .OrderBy( t => t.Name )
