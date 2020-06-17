@@ -3152,7 +3152,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                         int AcctID = 0;
                         DateTime? FYStartDate = dgPaymentDetailCharges.DataKeys[dgi.RowIndex][3].ToString().AsDateTime();
                         decimal ChargeAmount = 0;
-                        string[] AcctPartArr = dgPaymentDetailCharges.DataKeys[dgi.RowIndex][2].ToString().Split("-".ToCharArray());
+                        string[] AcctPartArr = dgPaymentDetailCharges.DataKeys[dgi.RowIndex][2].ToString().Split(" ".ToCharArray())[0].Split("-".ToCharArray());
 
                         if (AcctPartArr.Length == 3)
                         {
