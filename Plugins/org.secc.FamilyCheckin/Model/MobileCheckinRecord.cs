@@ -50,6 +50,9 @@ namespace org.secc.FamilyCheckin.Model
         public string SerializedCheckInState { get; set; }
 
         [DataMember]
+        public DateTime? ReservedUntilDateTime { get; set; }
+
+        [DataMember]
         public DateTime? ExpirationDateTime { get; set; }
 
         [DataMember]

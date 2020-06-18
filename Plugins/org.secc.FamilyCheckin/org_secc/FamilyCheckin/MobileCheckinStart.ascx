@@ -3,77 +3,14 @@
 
 <script src="/SignalR/hubs"></script>
 <style>
-    .lds-ellipsis {
-        display: inline-block;
-        position: relative;
-        width: 80px;
-        height: 80px;
-    }
-
-        .lds-ellipsis div {
-            position: absolute;
-            top: 33px;
-            width: 13px;
-            height: 13px;
-            border-radius: 50%;
-            background: #fff;
-            animation-timing-function: cubic-bezier(0, 1, 1, 0);
-        }
-
-            .lds-ellipsis div:nth-child(1) {
-                left: 8px;
-                animation: lds-ellipsis1 0.6s infinite;
-            }
-
-            .lds-ellipsis div:nth-child(2) {
-                left: 8px;
-                animation: lds-ellipsis2 0.6s infinite;
-            }
-
-            .lds-ellipsis div:nth-child(3) {
-                left: 32px;
-                animation: lds-ellipsis2 0.6s infinite;
-            }
-
-            .lds-ellipsis div:nth-child(4) {
-                left: 56px;
-                animation: lds-ellipsis3 0.6s infinite;
-            }
-
-    @keyframes lds-ellipsis1 {
-        0% {
-            transform: scale(0);
-        }
-
-        100% {
-            transform: scale(1);
-        }
-    }
-
-    @keyframes lds-ellipsis3 {
-        0% {
-            transform: scale(1);
-        }
-
-        100% {
-            transform: scale(0);
-        }
-    }
-
-    @keyframes lds-ellipsis2 {
-        0% {
-            transform: translate(0, 0);
-        }
-
-        100% {
-            transform: translate(24px, 0);
-        }
-    }
-
     .loading {
         text-align: center;
         margin-top: 40%;
     }
+
+        .loading div {
+            margin: auto;
+        }
 </style>
 
 <script>
@@ -127,7 +64,8 @@
             <br />
             <asp:Image runat="server" ID="iQr" CssClass="img-responsive" />
             <div class="text-center">
-                Your check-in place will be held until <b><asp:Literal runat="server" ID="ltValidUntil" /></b>.
+                Your check-in place will be held until <b>
+                    <asp:Literal runat="server" ID="ltValidUntil" /></b>.
                 <br />
                 After this time, you can still check-in, but reservations may be released if rooms fill.
             </div>
@@ -135,15 +73,26 @@
 
         <asp:Panel runat="server" ID="pnlLoading" Visible="false">
             <div class="loading">
-                Loading your check-in options...
-            <br />
-                <div class="lds-ellipsis">
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                    <div></div>
+
+                <div class="secc-cube-grid">
+                    <div class="secc-cube secc-cube1"></div>
+                    <div class="secc-cube secc-cube2"></div>
+                    <div class="secc-cube secc-cube3"></div>
+                    <div class="secc-cube secc-cube4"></div>
+                    <div class="secc-cube secc-cube5"></div>
+                    <div class="secc-cube secc-cube6"></div>
+                    <div class="secc-cube secc-cube7"></div>
+                    <div class="secc-cube secc-cube8"></div>
+                    <div class="secc-cube secc-cube9"></div>
                 </div>
+                <br />
+                <br />
+                Loading your check-in options...
+               
             </div>
+        </asp:Panel>
+        <asp:Panel runat="server" ID="pnlPostCheckin" Visible="false">
+            <asp:Literal runat="server" ID="ltPostCheckin" />
         </asp:Panel>
     </ContentTemplate>
 </asp:UpdatePanel>

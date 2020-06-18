@@ -33,6 +33,8 @@ using System.Text;
 using System.Net;
 using org.secc.FamilyCheckin.Utilities;
 using System.Data.Entity;
+using org.secc.FamilyCheckin.Cache;
+using DDay.iCal;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -367,7 +369,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var attendanceService = new AttendanceService( _rockContext );
             var attendanceItem = attendanceService.Get( attendanceItemId );
             attendanceItem.EndDateTime = Rock.RockDateTime.Now;
-            CheckInCountCache.RemoveAttendance( attendanceItem );
+            AttendanceCache.AddOrUpdate( attendanceItem );
             _rockContext.SaveChanges();
             BuildPersonCheckinDetails();
         }
@@ -377,7 +379,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var attendanceItemId = ( int ) e.RowKeyValue;
             var attendanceItem = new AttendanceService( _rockContext ).Get( attendanceItemId );
             attendanceItem.EndDateTime = Rock.RockDateTime.Now;
-            CheckInCountCache.RemoveAttendance( attendanceItem );
+            AttendanceCache.AddOrUpdate( attendanceItem );
             _rockContext.SaveChanges();
             BuildPersonCheckinDetails();
         }
@@ -419,8 +421,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
 
-            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes );
-
             if ( cbSuperCheckin.Checked )
             {
                 cbVolunteer.Visible = true;
@@ -440,6 +440,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
 
+            var volunteerGroupIds = OccurrenceCache.GetVolunteerOccurrences().Select(o => o.GroupId);
+
             foreach ( var groupType in checkinPerson.GroupTypes )
             {
                 //ignore group types with no non-excluded groups on non-super checkin
@@ -450,14 +452,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 //ignore if volunteer selected and does not contain volunteers
                 if ( cbSuperCheckin.Checked && cbVolunteer.Checked
-                    && !groupType.Groups.Where( g => kioskCountUtility.VolunteerGroupIds.Contains( g.Group.Id ) ).Any() )
+                    && !groupType.Groups.Where( g => volunteerGroupIds.Contains( g.Group.Id ) ).Any() )
                 {
                     continue;
                 }
 
                 //ignore if volunteer not selected and does not contain children
                 if ( cbSuperCheckin.Checked && !cbVolunteer.Checked
-                    && !groupType.Groups.Where( g => kioskCountUtility.ChildGroupIds.Contains( g.Group.Id ) ).Any() )
+                    && !groupType.Groups.Where( g => volunteerGroupIds.Contains( g.Group.Id ) ).Any() )
                 {
                     continue;
                 }
@@ -480,12 +482,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         continue;
                     }
 
-                    if ( cbSuperCheckin.Checked && cbVolunteer.Checked && !kioskCountUtility.VolunteerGroupIds.Contains( group.Group.Id ) )
+                    if ( cbSuperCheckin.Checked && cbVolunteer.Checked && !volunteerGroupIds.Contains( group.Group.Id ) )
                     {
                         continue;
                     }
 
-                    if ( cbSuperCheckin.Checked && !cbVolunteer.Checked && !kioskCountUtility.ChildGroupIds.Contains( group.Group.Id ) )
+                    if ( cbSuperCheckin.Checked && !cbVolunteer.Checked && !volunteerGroupIds.Contains( group.Group.Id ) )
                     {
                         continue;
                     }

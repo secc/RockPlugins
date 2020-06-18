@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
+using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
@@ -158,7 +159,6 @@ namespace org.secc.FamilyCheckin
 
                                             attendanceService.Add( attendance );
                                             attendances.Add( attendance );
-                                            CheckInCountCache.AddAttendance( attendance );
                                         }
                                     }
                                 }
@@ -170,13 +170,15 @@ namespace org.secc.FamilyCheckin
                 if ( isMobile )
                 {
                     KioskService kioskService = new KioskService( rockContext );
-                    var campusId = kioskService.GetByClientName( checkInState.Kiosk.Device.Name ).KioskType.CampusId;
+                    var kioskType = kioskService.GetByClientName( checkInState.Kiosk.Device.Name ).KioskType;
+                    var campusId = kioskType.CampusId;
 
                     MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
                     var mobileCheckinRecord = new MobileCheckinRecord
                     {
                         AccessKey = "MCR" + Guid.NewGuid().ToString( "N" ).Substring( 0, 12 ),
-                        ExpirationDateTime = Rock.RockDateTime.Now.AddMinutes( 10 ),
+                        ReservedUntilDateTime = Rock.RockDateTime.Now.AddMinutes( kioskType.MinutesValid ?? 10 ),
+                        ExpirationDateTime = Rock.RockDateTime.Now.AddMinutes( ( kioskType.MinutesValid ?? 10 ) + ( kioskType.GraceMinutes ?? 60 ) ),
                         UserName = checkInState.Kiosk.Device.Name,
                         FamilyGroupId = checkInState.CheckIn.CurrentFamily.Group.Id,
                         CampusId = campusId.Value
@@ -191,6 +193,10 @@ namespace org.secc.FamilyCheckin
                 }
 
                 rockContext.SaveChanges();
+                foreach ( var attendance in attendances )
+                {
+                    AttendanceCache.AddOrUpdate( attendance );
+                }
                 return true;
             }
 

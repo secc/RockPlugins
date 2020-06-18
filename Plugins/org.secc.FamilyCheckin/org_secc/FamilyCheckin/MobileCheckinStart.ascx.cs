@@ -58,6 +58,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         order: 9
         )]
 
+    [CodeEditorField( "Post Check-in Instructions",
+        "Text which appears immediatly after the user checks in. <span class='tip tip-html'></span>",
+        Rock.Web.UI.Controls.CodeEditorMode.Html,
+        key: AttributeKeys.PostCheckinInstructions,
+        order: 10
+        )]
+
     public partial class MobileCheckinStart : CheckInBlock
     {
 
@@ -66,6 +73,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             public const string TutorialText = "TutorialText";
             public const string IntroductionText = "IntroductionText";
             public const string CodeInstructions = "CodeInstructions";
+            public const string PostCheckinInstructions = "PostCheckinInstructions";
         }
 
         protected override void OnInit( EventArgs e )
@@ -80,7 +88,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             if ( !Page.IsPostBack )
             {
-
                 if ( CurrentUser == null )
                 {
                     pnlError.Visible = true;
@@ -124,10 +131,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             pnlQr.Visible = true;
             iQr.ImageUrl = "/api/qr/" + record.AccessKey;
             ltCodeInstructions.Text = GetAttributeValue( AttributeKeys.CodeInstructions );
-            if ( record.ExpirationDateTime.HasValue )
+            if ( record.ReservedUntilDateTime.HasValue )
             {
-                ltValidUntil.Text = record.ExpirationDateTime.Value.ToString( "h:m tt" );
+                ltValidUntil.Text = record.ReservedUntilDateTime.Value.ToString( "h:mm tt" );
             }
+            else
+            {
+                ltValidUntil.Text = "some time in the future";
+            }
+
             RegisterSignalrScript( record.AccessKey );
         }
 
@@ -423,7 +435,9 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
 
         protected void lbCheckinComplete_Click( object sender, EventArgs e )
         {
-
+            pnlQr.Visible = false;
+            pnlPostCheckin.Visible = true;
+            ltPostCheckin.Text = GetAttributeValue( AttributeKeys.PostCheckinInstructions );
         }
     }
 }

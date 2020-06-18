@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Utilities;
 using org.secc.RoomScanner.Models;
 using Rock;
@@ -240,8 +241,8 @@ namespace org.secc.RoomScanner.Utilities
             attendance.EndDateTime = Rock.RockDateTime.Now;
             InMemoryPersonStatus.RemoveFromWorship( attendance.PersonAlias.PersonId );
             InMemoryPersonStatus.RemoveFromWithParent( attendance.PersonAlias.PersonId );
-            CheckInCountCache.AddAttendance( newAttendance );
-            CheckInCountCache.RemoveAttendance( attendance );
+            AttendanceCache.AddOrUpdate( newAttendance );
+            AttendanceCache.AddOrUpdate( attendance );
         }
 
         public static Response GetEntryResponse( RockContext rockContext, Person person, Location location )
@@ -298,7 +299,7 @@ namespace org.secc.RoomScanner.Utilities
                 activeAttendance.DidAttend = stayedFifteenMinutes;
                 activeAttendance.EndDateTime = Rock.RockDateTime.Now;
                 AddExitHistory( rockContext, attendeeAttendance.Occurrence.Location, attendeeAttendance, isSubroom );
-                CheckInCountCache.RemoveAttendance( activeAttendance );
+                AttendanceCache.AddOrUpdate( activeAttendance );
             }
             if ( didRemove )
             {

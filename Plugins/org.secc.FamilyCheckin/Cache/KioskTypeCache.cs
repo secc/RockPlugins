@@ -147,7 +147,11 @@ namespace org.secc.FamilyCheckin.Cache
             var kioskTypeIds = All().Where( kt => kt.CheckinTemplateId == templateId ).Select( kt => kt.Id );
             foreach ( var id in kioskTypeIds )
             {
+                //Why am I removing this item then immediatly getting it again?
+                //Because FlushItem is marked internal and I'm too tired to hack anymore
+                //This makes me sad
                 Remove( id );
+                Get( id );
             }
         }
 

@@ -20,6 +20,7 @@ using System.Threading.Tasks;
 
 namespace org.secc.RoomScanner.Utilities
 {
+    [Obsolete("This doesn't work in a multi-server environment")]
     static class InMemoryPersonStatus
     {
         private static List<int> _inWorshipPersonIds;

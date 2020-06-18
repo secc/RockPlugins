@@ -18,6 +18,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Web.Http;
+using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Utilities;
 using org.secc.RoomScanner.Models;
 using org.secc.RoomScanner.Utilities;
@@ -31,30 +32,27 @@ namespace org.secc.RoomScanner.Rest.Controllers
 {
     public partial class RoomScannerController : ApiController
     {
-        public static AttributeCache volAttribute = AttributeCache.Get( new Guid( "F5DAD320-B77D-4282-98C9-35414FB0A6DC" ) );
+        public static AttributeCache volAttribute = AttributeCache.Get( Constants.VOLUNTEER_ATTRIBUTE_GUID.AsGuid() );
 
         private List<int> VolunteerGroupIds
         {
-            get => KioskCountUtility.GetVolunteerGroupIds();
+            get => OccurrenceCache.GetVolunteerOccurrences().Select( o => o.GroupId ).ToList();
         }
 
-        private int NumberOfVolunteersCheckedIn( int locationId )
+        private int NumberOfVolunteersInRoom( int locationId )
         {
-            var lglsc = CheckInCountCache.GetByLocation( locationId );
-            return lglsc
-                .Where( glsc => VolunteerGroupIds.Contains( glsc.GroupId ) || glsc.GroupId == 0 )
-                .SelectMany( glsc => glsc.InRoomPersonIds )
+            var attendances = AttendanceCache.GetByLocationId( locationId );
+            return attendances
+                .Where( a => a.IsVolunteer && a.AttendanceState == AttendanceState.InRoom )
+                .Select( a => a.PersonId )
                 .Distinct()
                 .Count();
         }
 
-        private bool AreChildrenCheckedIn( int locationId )
+        private bool AreChildrenInRoom( int locationId )
         {
-            var lglsc = CheckInCountCache.GetByLocation( locationId );
-            var count = lglsc.Where( glsc => !VolunteerGroupIds.Contains( glsc.GroupId ) && glsc.GroupId != 0 )
-                .Select( glsc => glsc.InRoomPersonIds.Count() )
-                .Sum();
-            return count >= 1;
+            var attendances = AttendanceCache.GetByLocationId( locationId );
+            return attendances.Any( a => !a.IsVolunteer && a.AttendanceState == AttendanceState.InRoom );
         }
 
 
@@ -81,7 +79,6 @@ namespace org.secc.RoomScanner.Rest.Controllers
         {
             try
             {
-
                 if ( ValidationHelper.TestPin( new RockContext(), pinCode ) != null )
                 {
                     return new Response( true, "PIN is authorized", false );
@@ -393,8 +390,8 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 //Then don't allow for check-out
                 if ( ( attendances.Where( a => VolunteerGroupIds.Contains( a.Occurrence.GroupId ?? 0 ) ).Any()
                     || attendances.Where( a => a.Occurrence.GroupId == 0 || a.Occurrence.GroupId == null ).Any() )
-                    && AreChildrenCheckedIn( req.LocationId )
-                    && NumberOfVolunteersCheckedIn( req.LocationId ) <= 2 )
+                    && AreChildrenInRoom( req.LocationId )
+                    && NumberOfVolunteersInRoom( req.LocationId ) <= 2 )
                 {
                     return new Response( false, "Cannot checkout volunteer with children still in class. Two volunteers are required at all times.", false );
                 }
@@ -404,7 +401,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     var stayedFifteenMinutes = ( Rock.RockDateTime.Now - attendance.StartDateTime ) > new TimeSpan( 0, 15, 0 );
                     attendance.DidAttend = stayedFifteenMinutes;
                     attendance.EndDateTime = Rock.RockDateTime.Now;
-                    CheckInCountCache.RemoveAttendance( attendance );
+                    AttendanceCache.AddOrUpdate( attendance );
                     var personId = attendeeAttendance.PersonAlias.PersonId;
                     InMemoryPersonStatus.RemoveFromWorship( personId );
                     InMemoryPersonStatus.RemoveFromWithParent( personId );
@@ -462,7 +459,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 }
 
                 //If no volunteers are checked in and not checking-in a volunteer
-                if ( NumberOfVolunteersCheckedIn( req.LocationId ) < 2
+                if ( NumberOfVolunteersInRoom( req.LocationId ) < 2
                     && !attendances.Where( a => VolunteerGroupIds.Contains( a.Occurrence.GroupId ?? 0 ) ).Any() )
                 {
                     return new Response(
@@ -553,7 +550,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     {
                         attendance.ForeignId = location.Id;
                     }
-                    CheckInCountCache.UpdateAttendance( attendance );
+                    AttendanceCache.AddOrUpdate( attendance );
                 }
 
                 DataHelper.CloseActiveAttendances( rockContext, attendeeAttendance, location, isSubroom );
@@ -716,7 +713,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 }
                 DataHelper.CloseActiveAttendances( rockContext, newAttendance, location, isSubroom );
                 DataHelper.AddEntranceHistory( rockContext, location, newAttendance, isSubroom );
-                CheckInCountCache.AddAttendance( newAttendance );
+                AttendanceCache.AddOrUpdate( newAttendance );
                 rockContext.SaveChanges();
 
                 return DataHelper.GetEntryResponse( rockContext, person, location );

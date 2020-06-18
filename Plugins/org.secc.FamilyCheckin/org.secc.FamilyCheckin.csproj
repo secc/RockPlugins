@@ -36,6 +36,7 @@
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CacheManager.Core, Version=1.1.2.0, Culture=neutral, PublicKeyToken=5b450b4fb65c4cdb" />
     <Reference Include="Common.Logging, Version=3.3.1.0, Culture=neutral, PublicKeyToken=af08829b84f0328e, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\Common.Logging.3.3.1\lib\net40\Common.Logging.dll</HintPath>
       <Private>True</Private>
@@ -101,10 +102,13 @@
     <Compile Include="Attribute\CheckinGroupFieldAttribute.cs" />
     <Compile Include="Cache\KioskTypeCache.cs" />
     <Compile Include="Cache\MobileCheckinRecordCache.cs" />
+    <Compile Include="Cache\AttendanceCache.cs" />
+    <Compile Include="Cache\OccurrenceCache.cs" />
     <Compile Include="Data\FamilyCheckinContext.cs" />
     <Compile Include="Data\FamilyCheckinService.cs" />
     <Compile Include="Exceptions\CheckInStateLost.cs" />
     <Compile Include="FieldTypes\CheckinGroupFieldType.cs" />
+    <Compile Include="Jobs\RemoveExpiredMobileReservations.cs" />
     <Compile Include="Jobs\ResetGroupLocationSchedules.cs" />
     <Compile Include="Migrations\001_Init.cs" />
     <Compile Include="Migrations\007_SearchType.cs" />
@@ -112,6 +116,7 @@
     <Compile Include="Migrations\005_KioskCategories.cs" />
     <Compile Include="Migrations\004_Touchless.cs" />
     <Compile Include="Migrations\002_Message.cs" />
+    <Compile Include="Migrations\011_ReservedUntil.cs" />
     <Compile Include="Migrations\010_AttendanceQualifiers.cs" />
     <Compile Include="Migrations\009_ExpirationTime.cs" />
     <Compile Include="Migrations\008_MobileCheckinRecord.cs" />
@@ -128,10 +133,7 @@
     <Compile Include="Rest\Handlers\SessionControllerHandler.cs" />
     <Compile Include="Rest\Handlers\SessionRouteHandler.cs" />
     <Compile Include="UI\CheckinGroupPicker.cs" />
-    <Compile Include="Utilities\CheckInCountCache.cs" />
     <Compile Include="Utilities\Constants.cs" />
-    <Compile Include="Utilities\GroupLocationScheduleCount.cs" />
-    <Compile Include="Utilities\KioskCountUtility.cs" />
     <Compile Include="Utilities\LabelPrinter.cs" />
     <Compile Include="Workflows\CreateMedicationLabels.cs" />
     <Compile Include="Workflows\CreateEventLabels.cs" />

@@ -43,8 +43,8 @@ namespace org.secc.FamilyCheckin.Migrations
                     ForeignKey = c.String( maxLength: 100 ),
                 } )
                 .PrimaryKey( t => t.Id )
-                .ForeignKey( "dbo.Campus", t => t.CampusId, cascadeDelete: true )
-                .ForeignKey( "dbo.Group", t => t.FamilyGroupId, cascadeDelete: true )
+                .ForeignKey( "dbo.Campus", t => t.CampusId )
+                .ForeignKey( "dbo.Group", t => t.FamilyGroupId )
                 .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
                 .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
                 .Index( t => t.AccessKey, unique: true )

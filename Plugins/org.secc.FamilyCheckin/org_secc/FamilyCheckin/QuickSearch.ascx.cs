@@ -33,6 +33,7 @@ using org.secc.FamilyCheckin.Utilities;
 using WebGrease.Css.Extensions;
 using org.secc.FamilyCheckin.Cache;
 using Microsoft.AspNet.SignalR;
+using Mono.CompilerServices.SymbolWriter;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
@@ -163,6 +164,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         /// </summary>
         private void RefreshView()
         {
+            if ( KioskType == null )
+            {
+                LogException( new CheckInStateLost( "Lost check-in state on refresh view" ) );
+                NavigateToHomePage();
+                return;
+            }
+
             hfRefreshTimerSeconds.Value = GetAttributeValue( "RefreshInterval" );
             pnlNotActive.Visible = false;
             pnlNotActiveYet.Visible = false;
@@ -243,6 +251,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             ScriptManager.RegisterStartupScript( Page, Page.GetType(), "ShowWelcomeSign", "showWelcome();", true );
         }
 
+        private void ShowWrongCampusSign( string mobileCampus, string actualCampus )
+        {
+            var content = string.Format( "Uh oh. You seem to be trying to check in to the {0} campus, but your reservation is for {1}.<br> Please see the check-in volunteer for assistance.", actualCampus, mobileCampus );
+            ScriptManager.RegisterStartupScript( Page, Page.GetType(), "ShowWrongCampusSign", "showSign('" + mobileCampus + "','" + actualCampus + "',false, '1vw' );", true );
+        }
+
         /// <summary>
         /// Registers the script.
         /// </summary>
@@ -306,18 +320,26 @@ if ($ActiveWhen.text() != '')
         private void MobileCheckin( string accessKey )
         {
 
-            _hubContext.Clients.All.mobilecheckincomplete( accessKey, true );
-            return;
-
             var mobileDidAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_DID_ATTEND ).Id;
             var mobileNotAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_NOT_ATTEND ).Id;
 
             RockContext rockContext = new RockContext();
             MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
+
             var mobileCheckinRecord = mobileCheckinRecordService.Queryable().Where( r => r.AccessKey == accessKey ).FirstOrDefault();
             try
             {
+                if ( mobileCheckinRecord == null )
+                {
+                    return;
+                }
 
+                if ( KioskType.CampusId.HasValue && KioskType.CampusId != mobileCheckinRecord.CampusId )
+                {
+                    //Someone tried to check-in at the wrong campus. :0
+                    ShowWrongCampusSign( mobileCheckinRecord.Campus.Name, KioskType.Campus.Name );
+                    return;
+                }
                 List<CheckInLabel> labels = JsonConvert.DeserializeObject<List<CheckInLabel>>( mobileCheckinRecord.SerializedCheckInState );
 
                 LabelPrinter labelPrinter = new LabelPrinter()
@@ -343,11 +365,14 @@ if ($ActiveWhen.text() != '')
                         attendance.DidAttend = false;
                         attendance.QualifierValueId = null;
                     }
+                    attendance.Note = "Completed mobile check-in at: " + CurrentCheckInState.Kiosk.Device.Name;
+                    AttendanceCache.AddOrUpdate( attendance );
                 }
                 mobileCheckinRecord.Attendances.Clear();
                 mobileCheckinRecordService.Delete( mobileCheckinRecord );
                 rockContext.SaveChanges();
                 MobileCheckinRecordCache.Remove( mobileCheckinRecord.Id );
+                _hubContext.Clients.All.mobilecheckincomplete( accessKey, true );
 
             }
             catch ( Exception e )

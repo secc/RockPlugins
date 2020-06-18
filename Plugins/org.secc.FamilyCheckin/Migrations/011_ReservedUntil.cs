@@ -12,20 +12,23 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace org.secc.FamilyCheckin.Utilities
+namespace org.secc.FamilyCheckin.Migrations
 {
-    public class GroupLocationScheduleCount
+    using Rock.Plugin;
+    using org.secc.DevLib.Extensions.Migration;
+    using org.secc.FamilyCheckin.Utilities;
+
+    [MigrationNumber( 11, "1.10.2" )]
+    public partial class ReservedUntil : Migration
     {
-        public int GroupId { get; set; }
-        public int LocationId { get; set; }
-        public int ScheduleId { get; set; }
-        public List<int> PersonIds { get; set; }
-        public List<int> InRoomPersonIds { get; set; }
+        public override void Up()
+        {
+            AddColumn( "dbo._org_secc_FamilyCheckin_MobileCheckinRecord", "ReservedUntilDateTime", c => c.DateTime( nullable: true ) );
+        }
+
+        public override void Down()
+        {
+
+        }
     }
 }

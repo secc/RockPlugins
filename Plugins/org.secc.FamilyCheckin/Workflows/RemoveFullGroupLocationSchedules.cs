@@ -28,7 +28,7 @@ using Rock.Attribute;
 using Rock.Web.Cache;
 using System.Runtime.Caching;
 using org.secc.FamilyCheckin.Utilities;
-
+using org.secc.FamilyCheckin.Cache;
 
 namespace org.secc.FamilyCheckin
 {
@@ -62,8 +62,8 @@ namespace org.secc.FamilyCheckin
                 var family = checkInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault();
                 if ( family != null )
                 {
-                    KioskCountUtility kioskCountUtility = new KioskCountUtility( checkInState.ConfiguredGroupTypes );
-                    List<int> volunteerGroupIds = kioskCountUtility.VolunteerGroupIds;
+
+                    List<int> volunteerGroupIds = OccurrenceCache.All().Where( o => o.IsVolunteer ).Select( o => o.GroupId ).ToList();
 
                     var locationService = new LocationService( rockContext );
                     var attendanceService = new AttendanceService( rockContext ).Queryable();
@@ -102,18 +102,21 @@ namespace org.secc.FamilyCheckin
 
                                         var threshold = locationEntity.FirmRoomThreshold ?? 0;
 
-                                        LocationScheduleCount locationScheduleCount = kioskCountUtility.GetLocationScheduleCount( location.Location.Id, schedule.Schedule.Id );
-                                        if ( locationScheduleCount.TotalCount >= threshold )
+                                        List<AttendanceCache> attendances = AttendanceCache.GetByLocationAndSchedule( location.Location, schedule.Schedule );
+                                        
+                                        //If the hard cap is met remove schedule
+                                        if ( attendances.Count >= threshold )
                                         {
                                             location.Schedules.Remove( schedule );
                                             continue;
                                         }
 
+                                        //If not volunteer and soft threshold met remove
                                         if ( !volunteerGroupIds.Contains( group.Group.Id ) )
                                         {
                                             threshold = Math.Min( locationEntity.FirmRoomThreshold ?? 0, locationEntity.SoftRoomThreshold ?? 0 );
 
-                                            if ( locationScheduleCount.ChildCount >= threshold )
+                                            if ( attendances.Where(a => !a.IsVolunteer).Count() >= threshold )
                                             {
                                                 location.Schedules.Remove( schedule );
                                             }
