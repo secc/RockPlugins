@@ -33,6 +33,7 @@ using Rock.Workflow.Action;
 using Newtonsoft.Json;
 using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Cache;
+using DotLiquid.Util;
 
 namespace org.secc.FamilyCheckin
 {
@@ -360,6 +361,8 @@ namespace org.secc.FamilyCheckin
                 {
                     MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
                     MobileCheckinRecord mobileCheckinRecord = mobileCheckinRecordService.Queryable()
+                        .Where( r => r.Status == MobileCheckinStatus.Active )
+                        .Where( r => r.CreatedDateTime > Rock.RockDateTime.Today )
                         .Where( r => r.UserName == checkInState.Kiosk.Device.Name )
                         .FirstOrDefault();
 
@@ -372,14 +375,10 @@ namespace org.secc.FamilyCheckin
                     rockContext.SaveChanges();
 
                     //Freshen cache (we're going to need it soon)
-                    MobileCheckinRecordCache.Remove( mobileCheckinRecord.Id );
-                    MobileCheckinRecordCache.Get( mobileCheckinRecord.Id );
+                    MobileCheckinRecordCache.Update( mobileCheckinRecord.Id );
                 }
-
                 return true;
-
             }
-
             return false;
         }
 

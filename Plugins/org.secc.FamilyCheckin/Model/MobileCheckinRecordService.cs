@@ -30,6 +30,11 @@ namespace org.secc.FamilyCheckin.Model
         /// <param name="context">The context.</param>
         public MobileCheckinRecordService( RockContext context ) : base( context ) { }
 
+        public override bool CanDelete( MobileCheckinRecord item, out string errorMessage )
+        {
+            errorMessage = string.Empty;
+            return false;
+        }
 
     }
 }

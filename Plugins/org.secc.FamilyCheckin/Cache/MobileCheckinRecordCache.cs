@@ -14,12 +14,14 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Messaging;
 using System.Runtime.Serialization;
 using DotLiquid.Util;
 using org.secc.FamilyCheckin.Model;
+using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
@@ -52,6 +54,12 @@ namespace org.secc.FamilyCheckin.Cache
         public DateTime? ExpirationDateTime { get; set; }
 
         [DataMember]
+        public MobileCheckinStatus Status { get; set; }
+
+        [DataMember]
+        public bool? IsDirty { get; set; }
+
+        [DataMember]
         public List<int> AttendanceIds { get; set; }
 
         [DataMember]
@@ -68,14 +76,22 @@ namespace org.secc.FamilyCheckin.Cache
             return All().Where( r => r.AccessKey == accessKey ).FirstOrDefault();
         }
 
-        public static MobileCheckinRecordCache GetByUserName( string userName )
+        public static MobileCheckinRecordCache GetActiveByUserName( string userName )
         {
-            return All().Where( r => r.UserName == userName ).FirstOrDefault();
+            return AllActive().Where( r => r.UserName == userName ).FirstOrDefault();
         }
 
-        public static MobileCheckinRecordCache GetByFamilyGroupId( int familyGroupId )
+        public static MobileCheckinRecordCache GetActiveByFamilyGroupId( int familyGroupId )
         {
-            return All().Where( r => r.FamilyGroupId == familyGroupId ).FirstOrDefault();
+            return AllActive().Where( r => r.FamilyGroupId == familyGroupId ).FirstOrDefault();
+        }
+
+        public static List<MobileCheckinRecordCache> AllActive()
+        {
+            return All()
+                .Where( r => r.Status == MobileCheckinStatus.Active
+                          && r.CreatedDateTime >= Rock.RockDateTime.Today)
+                .ToList();
         }
 
         public static MobileCheckinRecordCache GetByAttendanceId( int id )
@@ -83,10 +99,22 @@ namespace org.secc.FamilyCheckin.Cache
             return All().Where( m => m.AttendanceIds.Contains( id ) ).FirstOrDefault();
         }
 
+        public static MobileCheckinRecordCache Update( int id )
+        {
+            Remove( id );
+            return Get( id );
+        }
+
         public static bool CancelReservation( MobileCheckinRecordCache record, bool cancelEvenIfNotExpired = false )
         {
+            if (record.Status != MobileCheckinStatus.Active )
+            {
+                //We can't cancel a mobile record that is not active.
+                return false;
+            }
+
             //Keeps us from accidentally pulling the rug out from under someone
-            if ( !cancelEvenIfNotExpired && record.ReservedUntilDateTime.HasValue && record.ReservedUntilDateTime.Value < Rock.RockDateTime.Now )
+            if ( !cancelEvenIfNotExpired && record.ReservedUntilDateTime.HasValue && record.ReservedUntilDateTime.Value > Rock.RockDateTime.Now )
             {
                 return false;
             }
@@ -104,14 +132,11 @@ namespace org.secc.FamilyCheckin.Cache
                     attendance.QualifierValueId = null;
                 }
 
-                mobileCheckinRecord.Attendances.Clear();
-                mobileCheckinRecordService.Delete( mobileCheckinRecord );
-
+                mobileCheckinRecord.Status = MobileCheckinStatus.Canceled;
 
                 rockContext.SaveChanges();
-                Remove( record.Id );
                 attendances.ForEach( a => AttendanceCache.AddOrUpdate( a ) );
-
+                Update( mobileCheckinRecord.Id );
             }
 
             return true;
@@ -134,6 +159,8 @@ namespace org.secc.FamilyCheckin.Cache
             ExpirationDateTime = record.ExpirationDateTime;
             CreatedDateTime = record.CreatedDateTime;
             SerializedCheckInState = record.SerializedCheckInState;
+            Status = record.Status;
+            IsDirty = record.IsDirty;
             AttendanceIds = record.Attendances.Select( a => a.Id ).ToList();
             CampusId = record.CampusId;
         }
@@ -143,5 +170,75 @@ namespace org.secc.FamilyCheckin.Cache
             MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
             return mobileCheckinRecordService.Get( Id );
         }
+
+        #region BaseOverrides
+        /// <summary>
+        /// Gets all the instances of this type of model/entity that are currently in cache.
+        /// </summary>
+        /// <returns></returns>
+        public static new List<MobileCheckinRecordCache> All()
+        {
+            return All( null );
+        }
+
+        /// <summary>
+        /// Gets all the instances of this type of model/entity that are currently in cache.
+        /// </summary>
+        /// <returns></returns>
+        public static new List<MobileCheckinRecordCache> All( RockContext rockContext )
+        {
+            var cachedKeys = GetOrAddKeys( () => QueryDbForAllIds( rockContext ) );
+            if ( cachedKeys == null )
+                return new List<MobileCheckinRecordCache>();
+
+            var allValues = new List<MobileCheckinRecordCache>();
+            foreach ( var key in cachedKeys.ToList() )
+            {
+                var value = Get( key.AsInteger(), rockContext );
+                if ( value != null )
+                {
+                    allValues.Add( value );
+                }
+            }
+
+            return allValues;
+        }
+
+        /// <summary>
+        /// Queries the database for all ids.
+        /// </summary>
+        /// <param name="rockContext">The rock context.</param>
+        /// <returns></returns>
+        private static List<string> QueryDbForAllIds( RockContext rockContext )
+        {
+            if ( rockContext != null )
+            {
+                return QueryDbForAllIdsWithContext( rockContext );
+            }
+
+            using ( var newRockContext = new RockContext() )
+            {
+                return QueryDbForAllIdsWithContext( newRockContext );
+            }
+        }
+
+        /// <summary>
+        /// Queries the database for all ids with context.
+        /// </summary>
+        /// <param name="rockContext">The rock context.</param>
+        /// <returns></returns>
+        private static List<string> QueryDbForAllIdsWithContext( RockContext rockContext )
+        {
+            //We have to make our own version of this to only cache todays requests.
+            var service = new MobileCheckinRecordService( rockContext );
+            return service.Queryable().AsNoTracking()
+                .Where( r => r.CreatedDateTime >= Rock.RockDateTime.Today )
+                .Select( r => r.Id )
+                .ToList()
+                .ConvertAll( r => r.ToString() );
+        }
+
+        #endregion
+
     }
 }

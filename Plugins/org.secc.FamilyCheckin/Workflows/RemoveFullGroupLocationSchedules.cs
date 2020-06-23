@@ -100,7 +100,7 @@ namespace org.secc.FamilyCheckin
                                             continue;
                                         }
 
-                                        var threshold = locationEntity.FirmRoomThreshold ?? 0;
+                                        var threshold = locationEntity.FirmRoomThreshold ?? int.MaxValue;
 
                                         List<AttendanceCache> attendances = AttendanceCache.GetByLocationAndSchedule( location.Location, schedule.Schedule );
                                         
@@ -114,7 +114,7 @@ namespace org.secc.FamilyCheckin
                                         //If not volunteer and soft threshold met remove
                                         if ( !volunteerGroupIds.Contains( group.Group.Id ) )
                                         {
-                                            threshold = Math.Min( locationEntity.FirmRoomThreshold ?? 0, locationEntity.SoftRoomThreshold ?? 0 );
+                                            threshold = Math.Min( locationEntity.FirmRoomThreshold ?? int.MaxValue, locationEntity.SoftRoomThreshold ?? int.MaxValue );
 
                                             if ( attendances.Where(a => !a.IsVolunteer).Count() >= threshold )
                                             {

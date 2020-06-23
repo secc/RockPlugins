@@ -169,6 +169,13 @@ namespace org.secc.FamilyCheckin
 
                 if ( isMobile )
                 {
+                    var alreadyExistingMobileCheckin = MobileCheckinRecordCache.GetActiveByFamilyGroupId( checkInState.CheckIn.CurrentFamily.Group.Id );
+                    if ( alreadyExistingMobileCheckin != null )
+                    {
+                        //This should never run, it's just in case. Each family should only have 1 mobile check-in reservation.
+                        MobileCheckinRecordCache.CancelReservation( alreadyExistingMobileCheckin, true );
+                    }
+
                     KioskService kioskService = new KioskService( rockContext );
                     var kioskType = kioskService.GetByClientName( checkInState.Kiosk.Device.Name ).KioskType;
                     var campusId = kioskType.CampusId;

@@ -116,7 +116,6 @@
     <Compile Include="Migrations\005_KioskCategories.cs" />
     <Compile Include="Migrations\004_Touchless.cs" />
     <Compile Include="Migrations\002_Message.cs" />
-    <Compile Include="Migrations\011_ReservedUntil.cs" />
     <Compile Include="Migrations\010_AttendanceQualifiers.cs" />
     <Compile Include="Migrations\009_ExpirationTime.cs" />
     <Compile Include="Migrations\008_MobileCheckinRecord.cs" />

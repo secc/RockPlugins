@@ -16,10 +16,11 @@
         color: white;
         background-color: #d9534f;
     }
+
         .btn-danger:hover {
-        color: white;
-        background-color: #b24340;
-    }
+            color: white;
+            background-color: #b24340;
+        }
 </style>
 
 <asp:UpdatePanel ID="upContent" runat="server">
@@ -87,11 +88,54 @@
                     <div class="col-md-4">
                         <Rock:NotificationBox runat="server" ID="nbLogin" NotificationBoxType="Validation" Visible="false" />
                         <Rock:RockTextBox runat="server" ID="tbUsername" Label="Username" />
-                        <Rock:RockTextBox runat="server" ID="tbPassword" TextMode="Password" Label="Password"/>
+                        <Rock:RockTextBox runat="server" ID="tbPassword" TextMode="Password" Label="Password" />
                         <Rock:BootstrapButton runat="server" ID="btnLoginPrint" CssClass="btn btn-primary" Text="Print" OnClick="btnLoginPrint_Click" />
                         <Rock:BootstrapButton runat="server" ID="btnLoginCancel" CssClass="btn btn-default" Text="Cancel" OnClick="btnLoginCancel_Click" />
                     </div>
                     <div class="col-md-4"></div>
+                </div>
+            </Content>
+        </Rock:ModalDialog>
+
+        <Rock:ModalDialog runat="server" ID="mdMobileCheckin" Title="Mobile Checkin History">
+            <Content>
+                <asp:Literal runat="server" ID="ltMobileCheckin" />
+
+                <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                    <div class="row">
+
+                        <asp:Repeater runat="server" ID="rMCR" OnItemCommand="rMCR_ItemCommand">
+                            <ItemTemplate>
+                                <div class="col-xs-12">
+
+                                    <div class="panel panel-block">
+                                        <div class="panel-heading" role="tab" id="heading<%# Eval("Record.Id") %>">
+                                            <h4 class="panel-title pull-left">
+                                                <a role="button" data-toggle="collapse" data-parent="#accordion" class="btn-block"
+                                                    href="#collapse<%# Eval("Record.Id") %>" aria-controls="collapse<%# Eval("Record.Id") %>">
+                                                    <%# Eval("Caption") %>  <i class='fa fa-chevron-down'></i>
+                                                </a>
+                                            </h4>
+                                            <div class="panel-labels pull-right">
+                                                <asp:LinkButton Text="Complete Checkin" runat="server" ID="btnComplete" CommandName="Checkin"
+                                                    CommandArgument='<%# Eval("Record.AccessKey") %>' Visible='<%# Eval("Active") %>' CssClass="btn btn-primary" />
+                                                <asp:LinkButton Text="Cancel Checkin" runat="server" ID="btnCancel" CommandName="Cancel"
+                                                    CommandArgument='<%# Eval("Record.AccessKey") %>' Visible='<%# Eval("Active") %>'
+                                                    CssClass="btn btn-danger" OnClientClick="Rock.dialogs.confirmPreventOnCancel( event, 'Are you sure you want to cancel this reservation?');" />
+                                                <asp:LinkButton Text='<%# Eval("Record.Status") %>' runat="server" ID="btnDefault"
+                                                    Visible='<%# bool.Parse(Eval("Active").ToString()) == false %>' CssClass="btn btn-default" Enabled="false" />
+                                            </div>
+                                        </div>
+                                        <div id="collapse<%# Eval("Record.Id") %>" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading<%# Eval("Record.Id") %>">
+                                            <div class="panel-body">
+                                                <%# Eval("SubCaption") %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </ItemTemplate>
+                        </asp:Repeater>
+                    </div>
                 </div>
             </Content>
         </Rock:ModalDialog>
@@ -165,9 +209,9 @@
                     <Rock:BootstrapButton runat="server" ID="btnNewMember" Text="Add Person" OnClick="btnNewMember_Click"
                         CssClass="btn btn-primary btn-block btn-lg"></Rock:BootstrapButton>
                     <div style="margin-top: 4px">
-                        <Rock:BootstrapButton runat="server" ID="btnBack" CssClass="btn btn-danger col-sm-6 btn-lg" Text="<i class='fa fa-arrow-left'></i>" OnClick="btnBack_Click" />
-
-                        <Rock:BootstrapButton runat="server" ID="btnPrint" CssClass="btn btn-warning col-sm-6 btn-lg" Text="<i class='fa fa-print'></i>" OnClick="btnPrint_Click" />
+                        <Rock:BootstrapButton runat="server" ID="btnBack" CssClass="btn btn-danger col-sm-4 btn-lg" Text="<i class='fa fa-arrow-left'></i>" OnClick="btnBack_Click" />
+                        <Rock:BootstrapButton runat="server" ID="btnMobile" CssClass="btn btn-info col-sm-4 btn-lg" Text="<i class='fa fa-mobile'></i>" OnClick="btnMobile_Click" />
+                        <Rock:BootstrapButton runat="server" ID="btnPrint" CssClass="btn btn-warning col-sm-4 btn-lg" Text="<i class='fa fa-print'></i>" OnClick="btnPrint_Click" />
                     </div>
                 </div>
                 <div class="col-md-9">
@@ -197,10 +241,10 @@
                             <h3>Reserved:</h3>
                             <Rock:Grid runat="server" DataKeyNames="Id" ID="gReserved" ShowHeader="false" ShowFooter="false" ShowActionRow="false" DisplayType="Light">
                                 <Columns>
-                                    <Rock:RockBoundField DataField="Group.Name"></Rock:RockBoundField>
-                                    <Rock:RockBoundField DataField="Location.Name"></Rock:RockBoundField>
-                                    <Rock:RockBoundField DataField="Schedule.Name"></Rock:RockBoundField>
-                                    <Rock:LinkButtonField OnClick="CancelReserved_Click" Text="Cancel" CssClass="btn btn-sm btn-danger"></Rock:LinkButtonField>
+                                    <Rock:RockBoundField DataField="Occurrence.Group.Name" HtmlEncode="false"></Rock:RockBoundField>
+                                    <Rock:RockBoundField DataField="Occurrence.Location.Name"></Rock:RockBoundField>
+                                    <Rock:RockBoundField DataField="Occurrence.Schedule.Name"></Rock:RockBoundField>
+                                    <Rock:LinkButtonField OnClick="CancelReserved_Click" Text="Cancel" CssClass="btn btn-sm btn-danger" />
                                 </Columns>
                             </Rock:Grid>
                         </asp:Panel>

@@ -15,25 +15,21 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text.RegularExpressions;
 using System.Linq;
-
+using System.Web.UI;
+using Microsoft.AspNet.SignalR;
+using Newtonsoft.Json;
+using org.secc.FamilyCheckin.Cache;
+using org.secc.FamilyCheckin.Exceptions;
+using org.secc.FamilyCheckin.Model;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
-using Rock.Web.UI.Controls;
-using Rock.Web.Cache;
-using System.Web.UI;
-using org.secc.FamilyCheckin.Model;
-using org.secc.FamilyCheckin.Exceptions;
 using Rock.Data;
 using Rock.Model;
-using Newtonsoft.Json;
-using org.secc.FamilyCheckin.Utilities;
-using WebGrease.Css.Extensions;
-using org.secc.FamilyCheckin.Cache;
-using Microsoft.AspNet.SignalR;
-using Mono.CompilerServices.SymbolWriter;
+using Rock.Web.Cache;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
@@ -48,6 +44,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [CodeEditorField( "Default Content", "Default content to display", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 12 )]
     public partial class QuickSearch : CheckInBlock
     {
+
+        protected static class AttributeKeys
+        {
+            internal const string NoMobileCheckinRecord = "NoMobileCheckinRecord";
+            internal const string ExpiredMobileCheckinRecord = "ExpiredMobileCheckinRecord";
+            internal const string AlreadyCompleteCheckinRecord = "AlreadyCompleteCheckinRecord";
+            internal const string WrongCampusMessage = "WrongCampusMessage";
+            internal const string CompletingMobileCheckin = "CompletingMobileCheckin";
+        }
 
         protected int minLength;
         protected int maxLength;
@@ -319,7 +324,6 @@ if ($ActiveWhen.text() != '')
 
         private void MobileCheckin( string accessKey )
         {
-
             var mobileDidAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_DID_ATTEND ).Id;
             var mobileNotAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_NOT_ATTEND ).Id;
 
@@ -327,6 +331,23 @@ if ($ActiveWhen.text() != '')
             MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
 
             var mobileCheckinRecord = mobileCheckinRecordService.Queryable().Where( r => r.AccessKey == accessKey ).FirstOrDefault();
+
+            if ( mobileCheckinRecord == null )
+            {
+                MobileCheckinMessage( GetAttributeValue( AttributeKeys.NoMobileCheckinRecord ) );
+                return;
+            }
+            else if ( mobileCheckinRecord.Status == MobileCheckinStatus.Canceled )
+            {
+                MobileCheckinMessage( GetAttributeValue( AttributeKeys.ExpiredMobileCheckinRecord ) );
+                return;
+            }
+            else if ( mobileCheckinRecord.Status == MobileCheckinStatus.Complete )
+            {
+                MobileCheckinMessage( GetAttributeValue( AttributeKeys.AlreadyCompleteCheckinRecord ) );
+                return;
+            }
+
             try
             {
                 if ( mobileCheckinRecord == null )
@@ -336,7 +357,6 @@ if ($ActiveWhen.text() != '')
 
                 if ( KioskType.CampusId.HasValue && KioskType.CampusId != mobileCheckinRecord.CampusId )
                 {
-                    //Someone tried to check-in at the wrong campus. :0
                     ShowWrongCampusSign( mobileCheckinRecord.Campus.Name, KioskType.Campus.Name );
                     return;
                 }
@@ -366,18 +386,30 @@ if ($ActiveWhen.text() != '')
                         attendance.QualifierValueId = null;
                     }
                     attendance.Note = "Completed mobile check-in at: " + CurrentCheckInState.Kiosk.Device.Name;
-                    AttendanceCache.AddOrUpdate( attendance );
                 }
-                mobileCheckinRecord.Attendances.Clear();
-                mobileCheckinRecordService.Delete( mobileCheckinRecord );
-                rockContext.SaveChanges();
-                MobileCheckinRecordCache.Remove( mobileCheckinRecord.Id );
-                _hubContext.Clients.All.mobilecheckincomplete( accessKey, true );
 
+                mobileCheckinRecord.Status = MobileCheckinStatus.Complete;
+
+                rockContext.SaveChanges();
+
+                //wait until we successfully save to update cache
+                foreach ( var attendance in mobileCheckinRecord.Attendances )
+                {
+                    AttendanceCache.AddOrUpdate( attendance );
+
+                }
+                MobileCheckinRecordCache.Update( mobileCheckinRecord.Id );
+                _hubContext.Clients.All.mobilecheckincomplete( accessKey, true );
+                MobileCheckinMessage( GetAttributeValue( AttributeKeys.CompletingMobileCheckin ), 3 );
             }
             catch ( Exception e )
             {
             }
+        }
+
+        private void MobileCheckinMessage( string message, int secondsOpen = 10 )
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -68,6 +68,9 @@
                     <asp:Literal runat="server" ID="ltValidUntil" /></b>.
                 <br />
                 After this time, you can still check-in, but reservations may be released if rooms fill.
+                <br /><br />
+                <asp:LinkButton Text="Cancel My Check-in Reservation" runat="server" ID="btnCancelReseration"
+                    OnClick="btnCancelReseration_Click" CssClass="btn btn-primary" />
             </div>
         </asp:Panel>
 

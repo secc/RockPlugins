@@ -31,8 +31,11 @@ namespace org.secc.FamilyCheckin.Migrations
                     UserName = c.String( nullable: false, maxLength: 255 ),
                     FamilyGroupId = c.Int( nullable: false ),
                     SerializedCheckInState = c.String(),
+                    ReservedUntilDateTime = c.DateTime(),
                     ExpirationDateTime = c.DateTime(),
                     CampusId = c.Int( nullable: false ),
+                    Status = c.Int( nullable: false ),
+                    IsDirty = c.Boolean(),
                     CreatedDateTime = c.DateTime(),
                     ModifiedDateTime = c.DateTime(),
                     CreatedByPersonAliasId = c.Int(),
@@ -48,9 +51,10 @@ namespace org.secc.FamilyCheckin.Migrations
                 .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
                 .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
                 .Index( t => t.AccessKey, unique: true )
-                .Index( t => t.UserName, unique: true )
+                .Index( t => t.UserName )
                 .Index( t => t.CampusId )
                 .Index( t => t.FamilyGroupId )
+                .Index( t => t.Status )
                 .Index( t => t.CreatedByPersonAliasId )
                 .Index( t => t.ModifiedByPersonAliasId )
                 .Index( t => t.Guid, unique: true )

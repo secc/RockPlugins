@@ -82,6 +82,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             RockPage.AddScriptLink( "~/scripts/jquery.plugin.min.js" );
             RockPage.AddScriptLink( "~/scripts/jquery.countdown.min.js" );
             RockPage.AddScriptLink( "~/Scripts/jquery.signalR-2.2.0.min.js", fingerprint: false );
+
+            btnCancelReseration.Attributes["onclick"] = "javascript: return Rock.dialogs.confirmDelete(event, 'check-in reservation');";
         }
 
         protected override void OnLoad( EventArgs e )
@@ -97,10 +99,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 string kioskName = CurrentUser.UserName;
 
-                var mobileCheckinRecord = MobileCheckinRecordCache.GetByFamilyGroupId( CurrentPerson.PrimaryFamilyId ?? 0 );
+                var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( CurrentPerson.PrimaryFamilyId ?? 0 );
                 if ( mobileCheckinRecord == null )
                 {
-                    mobileCheckinRecord = MobileCheckinRecordCache.GetByUserName( kioskName );
+                    mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByUserName( kioskName );
                 }
 
                 if ( mobileCheckinRecord != null )
@@ -438,6 +440,22 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             pnlQr.Visible = false;
             pnlPostCheckin.Visible = true;
             ltPostCheckin.Text = GetAttributeValue( AttributeKeys.PostCheckinInstructions );
+        }
+
+        protected void btnCancelReseration_Click( object sender, EventArgs e )
+        {
+            var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( CurrentPerson.PrimaryFamilyId ?? 0 );
+            if ( mobileCheckinRecord == null )
+            {
+                string kioskName = CurrentUser.UserName;
+                mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByUserName( kioskName );
+            }
+
+            if ( mobileCheckinRecord != null )
+            {
+                MobileCheckinRecordCache.CancelReservation( mobileCheckinRecord, true );
+            }
+            NavigateToCurrentPage();
         }
     }
 }

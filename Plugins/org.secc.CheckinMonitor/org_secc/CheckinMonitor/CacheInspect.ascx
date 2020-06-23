@@ -31,9 +31,9 @@
                 <Rock:DateField HeaderText="LocationId" DataField="LocationId" />
                 <Rock:DateField HeaderText="ScheduleId" DataField="ScheduleId" />
                 <Rock:RockBoundField HeaderText="Code" DataField="Code" />
-                <Rock:DateField HeaderText="CreatedDateTime" DataField="CreatedDateTime" />
-                <Rock:DateField HeaderText="StartDateTime" DataField="StartDateTime" />
-                <Rock:DateField HeaderText="EndDateTime" DataField="EndDateTime" />
+                <Rock:DateTimeField HeaderText="CreatedDateTime" DataField="CreatedDateTime" />
+                <Rock:DateTimeField HeaderText="StartDateTime" DataField="StartDateTime" />
+                <Rock:DateTimeField HeaderText="EndDateTime" DataField="EndDateTime" />
                 <Rock:EnumField HeaderText="AttendanceState" DataField="AttendanceState" />
                 <Rock:BoolField HeaderText="IsVolunteer" DataField="IsVolunteer" />
             </Columns>

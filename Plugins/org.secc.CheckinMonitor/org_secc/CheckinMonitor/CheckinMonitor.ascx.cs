@@ -1148,7 +1148,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     tcButtons.Controls.Add( btnSearchMove );
                 }
 
-                if ( attendance.DidAttend == false && attendance.EndDateTime == null )
+                if ( attendance.DidAttend == false && attendance.EndDateTime == null && attendance.QualifierValueId == null )
                 {
                     BootstrapButton btnCancel = new BootstrapButton();
                     btnCancel.ID = string.Format( "btnSearchCancel{0}", attendance.Id );
