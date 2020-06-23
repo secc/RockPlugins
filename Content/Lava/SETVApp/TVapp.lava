@@ -20,8 +20,8 @@
                     "images":[
                         { "width":720, "url":"https://www.southeastchristian.org/GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}&width=720" }
                     ],
-                    "title": "{{- item.Title -}}",
-                    "subtitle": "{{- item | Attribute:'Subtitle' -}}",
+                    "title": "{{- item.Title | Replace:'"','\"' -}}",
+                    "subtitle": "{{- item | Attribute:'Subtitle' | Replace:'"','\"' -}}",
                     "actions": [{
                         "handler": "detail",
                         "url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/home/{{ item.Guid }}"
