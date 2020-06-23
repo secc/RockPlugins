@@ -89,13 +89,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             var qry = publishGroupService
                 .Queryable( "Group" )
-                .Where(pg => !pg.IsHidden) //Is not hidden from list
+                .Where( pg => !pg.IsHidden ) //Is not hidden from list
                 .Where( pg => pg.PublishGroupStatus == PublishGroupStatus.Approved ) //Approved
                 .Where( pg => pg.StartDateTime <= Rock.RockDateTime.Today && pg.EndDateTime >= Rock.RockDateTime.Today ) //Active
                 .Where( pg => pg.Group.GroupType.GroupCapacityRule == GroupCapacityRule.None
                               || pg.Group.GroupCapacity == null || pg.Group.GroupCapacity == 0
                               || pg.Group.Members.Count() < pg.Group.GroupCapacity ); // Not full
-            
+
 
             // Filter by campus
             if ( campusIds.Any() )
@@ -133,6 +133,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 var publishGroup = item.PublishGroup;
                 publishGroup.AttributeValues = item.PublishGroupAttributes.ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
                 publishGroup.Attributes = item.PublishGroupAttributes.ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
+                if ( publishGroup.Group == null )
+                {
+                    continue;
+                }
                 publishGroup.Group.AttributeValues = item.GroupAttributes.ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
                 publishGroup.Group.Attributes = item.GroupAttributes.ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
                 publishGroups.Add( publishGroup );
