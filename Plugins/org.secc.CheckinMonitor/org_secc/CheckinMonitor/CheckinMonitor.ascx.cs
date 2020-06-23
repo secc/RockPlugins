@@ -526,7 +526,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         tblReserved.Controls.Add( trRecord );
 
                         TableCell tcName = new TableCell();
-                        tcName.Text = record.PersonName;
+                        if ( record.AttendanceState == AttendanceState.MobileReserve )
+                        {
+                            tcName.Text = "<i class='fa fa-mobile'></i> " + record.PersonName;
+                        }
+                        else
+                        {
+                            tcName.Text = record.PersonName;
+                        }
                         trRecord.Controls.Add( tcName );
                         tcName.Style.Add( "width", "30%" );
 
@@ -568,6 +575,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             btnCancel.ID = "cancel" + record.Id.ToString();
                             btnCancel.CssClass = "btn btn-danger btn-xs";
                             btnCancel.Text = "Cancel";
+                            if ( record.AttendanceState == AttendanceState.MobileReserve )
+                            {
+                                btnCancel.OnClientClick = "Rock.dialogs.confirmPreventOnCancel(event, 'Are you sure you want to delete this attendance? It is an active mobile checkin and will remove all connected attendances.')";
+                            }
+                            else
+                            {
+                                btnCancel.OnClientClick = "Rock.dialogs.confirmPreventOnCancel(event, 'Are you sure you want to delete this attendance?')";
+                            }
                             btnCancel.Click += ( s, e ) => { CancelReservation( record.Id ); };
                             tcButtons.Controls.Add( btnCancel );
                         }
@@ -580,11 +595,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void CancelReservation( int id )
         {
-
             var record = MobileCheckinRecordCache.GetByAttendanceId( id );
             if ( record != null )
             {
                 MobileCheckinRecordCache.CancelReservation( record );
+                RebuildModal();
                 return;
             }
 
