@@ -13,6 +13,6 @@
     		"url":"{{- item | Attribute:'VideoURL','RawValue' -}}",
             "format":"{{- item | Attribute:'VideoType' -}}"
         }],
-	"title": "{{- item.Title -}}{% if subtitleSize > 0 %}: {{ item | Attribute:'Subtitle' }}{% endif %}",
+	"title": "{{- item.Title | Replace:'"','\"'  -}}{% if subtitleSize > 0 %}: {{ item | Attribute:'Subtitle' | Replace:'"','\"'  }}{% endif %}",
 	"body":"{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode | StripHtml }}"
 }
