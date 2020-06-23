@@ -29,6 +29,7 @@ using Rock.Web.Cache;
 using org.secc.FamilyCheckin.Cache;
 using Humanizer;
 using C5;
+using DotLiquid.Util;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -528,7 +529,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         TableCell tcName = new TableCell();
                         if ( record.AttendanceState == AttendanceState.MobileReserve )
                         {
-                            tcName.Text = "<i class='fa fa-mobile'></i> " + record.PersonName;
+                            tcName.Text = "<i class='fa fa-mobile'></i> " + record.PersonName + " (" + record.CreatedDateTime.Humanize( true, Rock.RockDateTime.Now ) + ")";
                         }
                         else
                         {

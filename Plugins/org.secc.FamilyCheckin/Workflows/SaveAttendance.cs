@@ -141,6 +141,7 @@ namespace org.secc.FamilyCheckin
                                             attendance.CheckedInByPersonAliasId = checkInState.CheckIn.CheckedInByPersonAliasId;
                                             attendance.SearchResultGroupId = family.Group.Id;
                                             attendance.AttendanceCodeId = attendanceCode.Id;
+                                            attendance.CreatedDateTime = startDateTime;
                                             attendance.StartDateTime = startDateTime;
                                             attendance.EndDateTime = null;
                                             attendance.Note = group.Notes;
