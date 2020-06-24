@@ -378,7 +378,11 @@
     											{%- assign runningMinutes = message | Attribute: 'Duration' | DividedBy:60 | Floor -%}
     											{%- assign temp = runningMinutes | Times:60 -%}
     											{%- assign runningSeconds = message | Attribute: 'Duration' | Minus:temp -%}
-    											Running Time: {{runningMinutes}}:{{runningSeconds}}
+                                                {% if runningSeconds < 10 %}
+                                                    Running Time: {{runningMinutes}}:0{{runningSeconds}}
+                                                {% else %}    
+    											    Running Time: {{runningMinutes}}:{{runningSeconds}}
+                                                {% endif %}
     										</h6>
     									</div>
     								</div>
