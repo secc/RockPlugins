@@ -180,6 +180,19 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 CurrentCheckInState = null;
                 CurrentWorkflow = null;
+
+                var kioskTypeCookie = this.Page.Request.Cookies["KioskTypeId"];
+
+                if ( kioskTypeCookie == null )
+                {
+                    kioskTypeCookie = new System.Web.HttpCookie( "KioskTypeId" );
+                }
+
+                kioskTypeCookie.Expires = RockDateTime.Now.AddYears( 1 );
+                kioskTypeCookie.Value = kiosk.KioskType.Id.ToString();
+
+                this.Page.Response.Cookies.Set( kioskTypeCookie );
+
                 Session["KioskTypeId"] = kiosk.KioskType.Id;
                 Session["KioskMessage"] = kiosk.KioskType.Message;
 

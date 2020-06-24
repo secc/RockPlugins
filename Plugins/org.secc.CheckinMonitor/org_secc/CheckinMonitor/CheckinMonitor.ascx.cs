@@ -42,6 +42,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
     public partial class CheckinMonitor : CheckInBlock
     {
+
+        KioskTypeCache KioskType = null;
         private static class ViewStateKeys
         {
             internal const string ModalLocationId = "ModalLocationId";
@@ -56,6 +58,16 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         {
             base.OnInit( e );
             RockPage.AddScriptLink( "~/Scripts/CheckinClient/ZebraPrint.js" );
+            var kioskTypeCookie = this.Page.Request.Cookies["KioskTypeId"];
+            if ( kioskTypeCookie != null )
+            {
+                KioskType = KioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
+            }
+
+            if ( KioskType == null )
+            {
+                NavigateToHomePage();
+            }
         }
 
         /// <summary>
@@ -123,8 +135,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             else if ( selectedScheduleId == 0 )
             {
                 //Use the kiosk type to get the active schedules
-                var kioskType = KioskTypeCache.All().FirstOrDefault();
-                var activeScheduleIds = kioskType.CheckInSchedules
+                var activeScheduleIds = KioskType.CheckInSchedules
                     .Where( s => s.WasScheduleOrCheckInActive( Rock.RockDateTime.Now ) )
                     .Select( s => s.Id )
                     .ToList();

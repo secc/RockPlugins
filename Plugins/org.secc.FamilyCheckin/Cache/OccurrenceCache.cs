@@ -79,8 +79,10 @@ namespace org.secc.FamilyCheckin.Cache
         [DataMember]
         public bool IsVolunteer { get; set; }
 
+        [DataMember]
         public int? SoftRoomThreshold { get; set; }
 
+        [DataMember]
         public int? FirmRoomThreshold { get; set; }
 
         public List<AttendanceCache> Attendances { get => AttendanceCache.GetByOccurrenceKey( this.AccessKey ); }
@@ -127,7 +129,7 @@ namespace org.secc.FamilyCheckin.Cache
             GroupLocationService groupLocationService = new GroupLocationService( rockContext );
             ScheduleService scheduleService = new ScheduleService( rockContext );
 
-            var groupLocation = groupLocationService.Get( groupLocationId );
+            var groupLocation = groupLocationService.Queryable("Group,Location").Where( gl => gl.Id == groupLocationId ).FirstOrDefault();
             var schedule = scheduleService.Get( scheduleId );
 
             if ( groupLocation == null || schedule == null )

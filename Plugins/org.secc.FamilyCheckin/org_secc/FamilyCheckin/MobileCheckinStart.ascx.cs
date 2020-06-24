@@ -415,8 +415,20 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
 
             CurrentCheckInState = null;
             CurrentWorkflow = null;
+
+            var kioskTypeCookie = this.Page.Request.Cookies["KioskTypeId"];
+
+            if ( kioskTypeCookie == null )
+            {
+                kioskTypeCookie = new System.Web.HttpCookie( "KioskTypeId" );
+            }
+
+            kioskTypeCookie.Expires = RockDateTime.Now.AddYears( 1 );
+            kioskTypeCookie.Value = kiosk.KioskType.Id.ToString();
+
+            this.Page.Response.Cookies.Set( kioskTypeCookie );
+
             Session["KioskTypeId"] = kioskType.Id;
-            Session["KioskMessage"] = kioskType.Message;
             KioskDevice.Remove( device.Id );
             SaveState();
 

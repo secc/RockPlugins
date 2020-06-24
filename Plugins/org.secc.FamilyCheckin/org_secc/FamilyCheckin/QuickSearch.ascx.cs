@@ -70,20 +70,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 return;
             }
 
-            if ( Session["KioskTypeId"] != null )
+            var kioskTypeCookie = this.Page.Request.Cookies["KioskTypeId"];
+            if ( kioskTypeCookie != null )
             {
-                int kioskTypeId = ( int ) Session["KioskTypeId"];
-                KioskType = KioskTypeCache.Get( kioskTypeId );
-                if ( KioskType == null )
-                {
-                    NavigateToPreviousPage();
-                    return;
-                }
+                KioskType = KioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
             }
-            else
+
+            if ( KioskType == null )
             {
-                NavigateToPreviousPage();
-                return;
+                NavigateToHomePage();
             }
 
             RockPage.AddScriptLink( "~/scripts/jquery.plugin.min.js" );
@@ -112,9 +107,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 SaveState();
                 Session["BlockGuid"] = BlockCache.Guid;
                 RefreshView();
-                if ( Session["KioskMessage"] != null && !string.IsNullOrWhiteSpace( ( string ) Session["KioskMessage"] ) )
+                if ( KioskType.Message.IsNotNullOrWhiteSpace() )
                 {
-                    ltContent.Text = ( string ) Session["KioskMessage"];
+                    ltContent.Text = KioskType.Message;
                 }
                 else
                 {

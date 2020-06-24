@@ -96,6 +96,12 @@ namespace org.secc.FamilyCheckin.Cache
             if ( kioskType == null )
                 return;
 
+            //Rock tries to go fast, but it doesn't work right in redis for what I'm doing.
+            RockContext rockContext = new RockContext();
+            KioskTypeService kioskTypeService = new KioskTypeService( rockContext );
+            kioskType = kioskTypeService.Get( kioskType.Id );
+
+
             Id = kioskType.Id;
             Guid = kioskType.Guid;
             Name = kioskType.Name;
