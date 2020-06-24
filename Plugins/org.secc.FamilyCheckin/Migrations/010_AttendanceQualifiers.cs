@@ -24,12 +24,14 @@ namespace org.secc.FamilyCheckin.Migrations
         public override void Up()
         {
             RockMigrationHelper.AddDefinedType( "Check-in",
-                "Mobile Check-in Type", "Used in mobile check-in to tell that an attendance is mobile, and what to do with it once it is completed.",
-                Constants.DEFINED_TYPE_MOBILE_ATTENDANCE_TYPE );
-            RockMigrationHelper.AddDefinedValue( Constants.DEFINED_TYPE_MOBILE_ATTENDANCE_TYPE, "Mobile Check-in - Set Did Attend",
+                "Attendance Qualifiers", "Used to note special properties of an attendance record, such as mobile or with parent.",
+                Constants.DEFINED_TYPE_ATTENDANCE_QUALIFIERS );
+            RockMigrationHelper.AddDefinedValue( Constants.DEFINED_TYPE_ATTENDANCE_QUALIFIERS, "Mobile Check-in - Set Did Attend",
                 "Qualifies an attendance that it is a mobile check-in and SHOULD be marked DidAtted when scanned.", Constants.DEFINED_VALUE_MOBILE_DID_ATTEND );
-            RockMigrationHelper.AddDefinedValue( Constants.DEFINED_TYPE_MOBILE_ATTENDANCE_TYPE, "Mobile Check-in - Set Did NOT Attend",
+            RockMigrationHelper.AddDefinedValue( Constants.DEFINED_TYPE_ATTENDANCE_QUALIFIERS, "Mobile Check-in - Set Did NOT Attend",
                 "Qualifies an attendance that it is a mobile check-in and should NOT be marked DidAtted when scanned.", Constants.DEFINED_VALUE_MOBILE_NOT_ATTEND );
+            RockMigrationHelper.AddDefinedValue( Constants.DEFINED_TYPE_ATTENDANCE_QUALIFIERS, "Attendance Status - With Parent",
+               "Qualifies an attendance that a child has temporarily left the class room with a parent and is expected to return.", Constants.DEFINED_VALUE_ATTENDANCE_STATUS_WITH_PARENT );
         }
 
         public override void Down()

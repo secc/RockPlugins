@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using org.secc.FamilyCheckin.Cache;
-using org.secc.FamilyCheckin.Utilities;
 using org.secc.RoomScanner.Models;
 using Rock;
 using Rock.Data;

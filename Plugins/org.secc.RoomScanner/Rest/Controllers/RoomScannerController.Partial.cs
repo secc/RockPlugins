@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Core.Common;
 using System.Linq;
 using System.Text;
 using System.Web.Http;
@@ -273,6 +274,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 {
                     locationId = location.ParentLocationId ?? 0;
                 }
+
                 AttendanceService attendanceService = new AttendanceService( rockContext );
                 var qry = attendanceService.Queryable()
                     .Where( a => a.Occurrence.LocationId == locationId && a.StartDateTime > Rock.RockDateTime.Today && a.StartDateTime < tomorrow );
@@ -296,8 +298,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     .ToList();
                 foreach ( var entry in roster )
                 {
-                    entry.InWorship = InMemoryPersonStatus.IsInWorship( entry.PersonId );
-                    entry.WithParent = InMemoryPersonStatus.IsWithParent( entry.PersonId );
+                    entry.WithParent = AttendanceCache.Get( entry.Id )?.WithParent == true;
                 }
                 return roster;
             }
@@ -403,8 +404,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                     attendance.EndDateTime = Rock.RockDateTime.Now;
                     AttendanceCache.AddOrUpdate( attendance );
                     var personId = attendeeAttendance.PersonAlias.PersonId;
-                    InMemoryPersonStatus.RemoveFromWorship( personId );
-                    InMemoryPersonStatus.RemoveFromWithParent( personId );
+                    AttendanceCache.RemoveWithParent( personId );
                 }
 
                 //Add history of exit
@@ -593,36 +593,6 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 return new Response( false, "An error occured", false );
             }
         }
-
-        [Authenticate, Secured]
-        [HttpPost]
-        [System.Web.Http.Route( "api/org.secc/roomscanner/movetoworship" )]
-        public Response MoveToWorship( [FromBody] MultiRequest req )
-        {
-            try
-            {
-                var personIds = req.PersonIds
-                    .Split( new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries )
-                    .Select( s => s.AsInteger() ).ToList();
-                RockContext rockContext = new RockContext();
-                PersonService personService = new PersonService( rockContext );
-                var people = personService.GetByIds( personIds );
-
-                foreach ( var person in people )
-                {
-
-                    DataHelper.AddMoveTwoWorshipHistory( rockContext, person );
-                }
-                rockContext.SaveChanges();
-                return new Response( true, "Success", false );
-            }
-            catch ( Exception e )
-            {
-                ExceptionLogService.LogException( e, System.Web.HttpContext.Current );
-                return new Response( false, "An error occured", false );
-            }
-        }
-
 
         [Authenticate, Secured]
         [HttpPost]

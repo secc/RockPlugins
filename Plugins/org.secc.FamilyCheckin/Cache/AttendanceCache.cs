@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using DotLiquid.Util;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Constants;
 using Rock.Data;
@@ -71,18 +74,22 @@ namespace org.secc.FamilyCheckin.Cache
         [DataMember]
         public bool IsVolunteer { get; set; }
 
+        [DataMember]
+        public bool WithParent { get; set; }
+
+
         public bool CanClose
         {
             get
             {
-                if (AttendanceState != AttendanceState.MobileReserve )
+                if ( AttendanceState != AttendanceState.MobileReserve )
                 {
                     return true;
                 }
 
                 //You can't close a mobile check-in that we've promised the user would be active for some time
                 var mobileCheckinRecord = MobileCheckinRecordCache.GetByAttendanceId( Id );
-                if (mobileCheckinRecord == null )
+                if ( mobileCheckinRecord == null )
                 {
                     return true;
                 }
@@ -133,6 +140,42 @@ namespace org.secc.FamilyCheckin.Cache
             return GetOrAddExisting( key, () => LoadById( key.AsInteger() ), TimeSpan.FromHours( 6 ) );
         }
 
+        public static void SetWithParent( int personId )
+        {
+            var attendanceIds = All()
+                .Where( a => a.PersonId == personId && a.AttendanceState == AttendanceState.InRoom )
+                .Select( a => a.Id )
+                .ToList();
+
+            RockContext rockContext = new RockContext();
+            AttendanceService attendanceService = new AttendanceService( rockContext );
+            var attendances = attendanceService.Queryable()
+                .Where( a => attendanceIds.Contains( a.Id ) )
+                .ToList();
+            attendances.ForEach( a => a.QualifierValueId = DefinedValueCache.GetId( Constants.DEFINED_VALUE_ATTENDANCE_STATUS_WITH_PARENT.AsGuid() ) );
+            rockContext.SaveChanges();
+
+            attendances.ForEach( a => AddOrUpdate( a ) );
+        }
+
+        public static void RemoveWithParent( int personId )
+        {
+            var attendanceIds = All()
+                .Where( a => a.PersonId == personId && a.WithParent )
+                .Select( a => a.Id )
+                .ToList();
+
+            RockContext rockContext = new RockContext();
+            AttendanceService attendanceService = new AttendanceService( rockContext );
+            var attendances = attendanceService.Queryable()
+                .Where( a => attendanceIds.Contains( a.Id ) )
+                .ToList();
+            attendances.ForEach( a => a.QualifierValueId = null );
+            rockContext.SaveChanges();
+
+            attendances.ForEach( a => AddOrUpdate( a ) );
+        }
+
         private static AttendanceCache LoadById( int id )
         {
             RockContext rockContext = new RockContext();
@@ -162,30 +205,42 @@ namespace org.secc.FamilyCheckin.Cache
                 GroupId = attendance.Occurrence.GroupId,
                 LocationId = attendance.Occurrence.LocationId,
                 ScheduleId = attendance.Occurrence.ScheduleId,
-                IsVolunteer = OccurrenceCache.GetVolunteerOccurrences().Select( o => o.GroupId ).Contains( attendance.Occurrence.GroupId ?? 0 )
+                IsVolunteer = OccurrenceCache.GetVolunteerOccurrences().Select( o => o.GroupId ).Contains( attendance.Occurrence.GroupId ?? 0 ),
+                WithParent = false
             };
 
-            if ( attendance.QualifierValueId.HasValue )
+
+            if ( attendance.EndDateTime.HasValue ) //End date means checked out
             {
-                attendanceCache.AttendanceState = AttendanceState.MobileReserve;
+                attendanceCache.AttendanceState = AttendanceState.CheckedOut;
             }
-            else if ( !attendance.EndDateTime.HasValue )
+            else //has not been checked out yet
             {
-                if ( attendance.DidAttend == true )
+                if ( attendance.DidAttend == false && attendance.QualifierValueId.HasValue )
+                {
+                    attendanceCache.AttendanceState = AttendanceState.MobileReserve;
+                }
+                else if ( attendance.DidAttend == true )
                 {
                     attendanceCache.AttendanceState = AttendanceState.InRoom;
+                    if ( attendance.QualifierValueId == DefinedValueCache.GetId( Constants.DEFINED_VALUE_ATTENDANCE_STATUS_WITH_PARENT.AsGuid() ) )
+                    {
+                        attendanceCache.WithParent = true;
+                    }
                 }
                 else
                 {
                     attendanceCache.AttendanceState = AttendanceState.EnRoute;
                 }
             }
-            else
-            {
-                attendanceCache.AttendanceState = AttendanceState.CheckedOut;
-            }
+
 
             return attendanceCache;
+        }
+
+        public static bool IsWithParent( int personId )
+        {
+            return All().Where( a => a.PersonId == personId && a.WithParent ).Any();
         }
 
         private static List<string> AllKeys()

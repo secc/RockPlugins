@@ -108,7 +108,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rest\Controllers\RoomScannerController.Partial.cs" />
     <Compile Include="Utilities\DataHelper.cs" />
-    <Compile Include="Utilities\InMemoryPersonStatus.cs" />
     <Compile Include="Utilities\ValidationHelper.cs" />
   </ItemGroup>
   <ItemGroup>
