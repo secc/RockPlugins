@@ -62,71 +62,39 @@ namespace org.secc.FamilyCheckin
                 var family = checkInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault();
                 if ( family != null )
                 {
-
-                    List<int> volunteerGroupIds = OccurrenceCache.All().Where( o => o.IsVolunteer ).Select( o => o.GroupId ).ToList();
-
-                    var locationService = new LocationService( rockContext );
-                    var attendanceService = new AttendanceService( rockContext ).Queryable();
                     foreach ( var person in family.People )
                     {
-                        List<int> filteredScheduleIds = new List<int>();
                         foreach ( var groupType in person.GroupTypes )
                         {
                             foreach ( var group in groupType.Groups )
                             {
                                 foreach ( var location in group.Locations )
                                 {
-                                    //Get a new copy of the entity because otherwise the threshold data may be stale
-                                    var locationEntity = locationService.Get( location.Location.Id );
-
                                     foreach ( var schedule in location.Schedules.ToList() )
                                     {
-                                        if ( filterAttendanceSchedules && filteredScheduleIds.Contains( schedule.Schedule.Id ) )
+                                        var occurrence = OccurrenceCache.Get( group.Group.Id, location.Location.Id, schedule.Schedule.Id );
+                                        if ( occurrence == null || occurrence.IsFull )
                                         {
                                             location.Schedules.Remove( schedule );
                                             continue;
                                         }
 
-                                        var attendanceQry = attendanceService.Where( a =>
-                                             a.EndDateTime == null
-                                             && a.Occurrence.ScheduleId == schedule.Schedule.Id
-                                             && a.StartDateTime >= Rock.RockDateTime.Today );
+                                        var hasSameScheduleAttendances = AttendanceCache.All()
+                                            .Where( a => a.PersonId == person.Person.Id
+                                                      && a.AttendanceState != AttendanceState.CheckedOut
+                                                      && a.ScheduleId == schedule.Schedule.Id )
+                                            .Any();
 
-
-                                        if ( filterAttendanceSchedules && attendanceQry.Where( a => a.PersonAlias.PersonId == person.Person.Id ).Any() )
-                                        {
-                                            filteredScheduleIds.Add( schedule.Schedule.Id );
-                                            location.Schedules.Remove( schedule );
-                                            continue;
-                                        }
-
-                                        var threshold = locationEntity.FirmRoomThreshold ?? int.MaxValue;
-
-                                        List<AttendanceCache> attendances = AttendanceCache.GetByLocationAndSchedule( location.Location, schedule.Schedule );
-                                        
-                                        //If the hard cap is met remove schedule
-                                        if ( attendances.Count >= threshold )
+                                        if ( filterAttendanceSchedules && hasSameScheduleAttendances )
                                         {
                                             location.Schedules.Remove( schedule );
                                             continue;
-                                        }
-
-                                        //If not volunteer and soft threshold met remove
-                                        if ( !volunteerGroupIds.Contains( group.Group.Id ) )
-                                        {
-                                            threshold = Math.Min( locationEntity.FirmRoomThreshold ?? int.MaxValue, locationEntity.SoftRoomThreshold ?? int.MaxValue );
-
-                                            if ( attendances.Where(a => !a.IsVolunteer).Count() >= threshold )
-                                            {
-                                                location.Schedules.Remove( schedule );
-                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-
                     return true;
                 }
                 else

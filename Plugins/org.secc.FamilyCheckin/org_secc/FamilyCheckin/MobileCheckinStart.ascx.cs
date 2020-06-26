@@ -391,6 +391,7 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             kiosk.KioskTypeId = kioskType.Id;
 
             DeviceService deviceService = new DeviceService( rockContext );
+            LocationService locationService = new LocationService( rockContext );
             //Load matching device and update or create information
             var device = deviceService.Queryable().Where( d => d.Name == kiosk.Name ).FirstOrDefault();
 
@@ -406,9 +407,10 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             device.LoadAttributes();
             device.IPAddress = kiosk.IPAddress;
             device.Locations.Clear();
-            foreach ( var loc in kiosk.KioskType.Locations.ToList() )
+            foreach ( var loc in kioskType.Locations.ToList() )
             {
-                device.Locations.Add( loc );
+                var location = locationService.Get( loc.Id );
+                device.Locations.Add( location );
             }
             device.PrintFrom = kiosk.PrintFrom;
             device.PrintToOverride = kiosk.PrintToOverride;
@@ -484,8 +486,12 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
                 .Select( p => p.Id )
                 .ToList();
 
-            var attendances = AttendanceCache.All().Where( a => personIds.Contains( a.PersonId ) ).ToList();
+            var attendances = AttendanceCache.All()
+                .Where( a => personIds.Contains( a.PersonId ) && a.AttendanceState != AttendanceState.CheckedOut )
+                .ToList();
+
             var scheduleIds = attendances.Select( a => a.ScheduleId ).Distinct().ToList();
+
             var tokenOccurrences = OccurrenceCache.All() //Just need the schedule data so we can order stuff.
                 .Where( o => scheduleIds.Contains( o.ScheduleId ) )
                 .DistinctBy( o => o.ScheduleId )

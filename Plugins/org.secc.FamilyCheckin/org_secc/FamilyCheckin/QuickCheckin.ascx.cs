@@ -93,7 +93,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 return;
             }
 
-            CurrentCheckInState.CheckinTypeId = CurrentCheckinTypeId;
+            CurrentCheckInState.CheckinTypeId = LocalDeviceConfig.CurrentCheckinTypeId;
 
             var locationLinkAtributeGuid = GetAttributeValue( "LocationLinkAttribute" ).AsGuid();
             if ( locationLinkAtributeGuid != Guid.Empty )
@@ -731,17 +731,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 return;
             }
 
-            var rockContext = new RockContext();
-
-            var volAttribute = AttributeCache.Get( Constants.VOLUNTEER_ATTRIBUTE_GUID.AsGuid() );
-            AttributeValueService attributeValueService = new AttributeValueService( rockContext );
-            List<int> volunteerGroupIds = attributeValueService.Queryable().Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
-
             //Test for overloaded rooms
             var overload = false;
-            var locationService = new LocationService( rockContext );
-
-            var attendanceService = new AttendanceService( rockContext ).Queryable().AsNoTracking();
             foreach ( var person in CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Selected ) )
             {
                 foreach ( var groupType in person.GroupTypes.Where( gt => gt.Selected ) )
@@ -750,44 +741,27 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     {
                         foreach ( var location in group.Locations.Where( l => l.Selected ) )
                         {
-                            var locationEntity = locationService.Get( location.Location.Id );
-                            if ( locationEntity == null )
-                            {
-                                continue;
-                            }
                             foreach ( var schedule in location.Schedules.Where( s => s.Selected ).ToList() )
                             {
-                                var threshold = locationEntity.FirmRoomThreshold ?? int.MaxValue;
-                                var attendanceQry = attendanceService.Where( a =>
-                                     a.EndDateTime == null
-                                     && a.Occurrence.ScheduleId == schedule.Schedule.Id
-                                     && a.StartDateTime >= Rock.RockDateTime.Today );
-
-                                //Filter out if person is already checked in
-                                if ( attendanceQry.Where( a => a.PersonAlias.PersonId == person.Person.Id ).Any() )
+                                var occurrence = OccurrenceCache.Get( group.Group.Id, location.Location.Id, schedule.Schedule.Id );
+                                if ( occurrence == null || occurrence.IsFull )
                                 {
                                     location.Schedules.Remove( schedule );
                                     overload = true;
+                                    continue;
                                 }
 
-                                List<AttendanceCache> attendanceCaches = AttendanceCache.GetByLocationIdAndScheduleId( location.Location.Id, schedule.Schedule.Id );
-                                if ( attendanceCaches.Count >= threshold )
+                                var hasSameScheduleAttendances = AttendanceCache.All()
+                                    .Where( a => a.PersonId == person.Person.Id
+                                              && a.AttendanceState != AttendanceState.CheckedOut
+                                              && a.ScheduleId == schedule.Schedule.Id )
+                                    .Any();
+
+                                if ( hasSameScheduleAttendances )
                                 {
-                                    person.Selected = false;
                                     location.Schedules.Remove( schedule );
                                     overload = true;
-                                }
-
-                                if ( !volunteerGroupIds.Contains( group.Group.Id ) )
-                                {
-                                    threshold = Math.Min( locationEntity.FirmRoomThreshold ?? int.MaxValue, locationEntity.SoftRoomThreshold ?? int.MaxValue );
-
-                                    if ( attendanceCaches.Where( a => !a.IsVolunteer ).Count() >= threshold )
-                                    {
-                                        person.Selected = false;
-                                        location.Schedules.Remove( schedule );
-                                        overload = true;
-                                    }
+                                    continue;
                                 }
                             }
                         }

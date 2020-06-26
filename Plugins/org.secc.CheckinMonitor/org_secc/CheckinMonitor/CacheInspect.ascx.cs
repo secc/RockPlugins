@@ -29,6 +29,7 @@ using Rock.Web.UI;
 using System.Data.Entity;
 using System.Diagnostics;
 using org.secc.FamilyCheckin.Cache;
+using OpenXmlPowerTools;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -38,12 +39,76 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
     public partial class CacheInspect : RockBlock
     {
+        private const string defaultCss = "btn btn-default";
+        private const string activeCss = "btn btn-primary";
+
         protected override void OnLoad( EventArgs e )
         {
+
+
+        }
+
+
+        protected void btnOccurrences_Click( object sender, EventArgs e )
+        {
+            btnOccurrences.CssClass = activeCss;
+            btnAttendances.CssClass = defaultCss;
+            btnMobileRecords.CssClass = defaultCss;
+            pnlOccurrences.Visible = true;
+            pnlAttendances.Visible = false;
+            pnlMobileRecords.Visible = false;
             gOccurrences.DataSource = OccurrenceCache.All();
             gOccurrences.DataBind();
+        }
 
-            gAttendances.DataSource = AttendanceCache.All();
+        protected void btnAttendances_Click( object sender, EventArgs e )
+        {
+            ShowAttendances( null );
+
+        }
+
+        protected void btnMobileRecords_Click( object sender, EventArgs e )
+        {
+            btnOccurrences.CssClass = defaultCss;
+            btnAttendances.CssClass = defaultCss;
+            btnMobileRecords.CssClass = activeCss;
+            pnlOccurrences.Visible = false;
+            pnlAttendances.Visible = false;
+            pnlMobileRecords.Visible = true;
+            gMobileRecords.DataSource = MobileCheckinRecordCache.All();
+            gMobileRecords.DataBind();
+        }
+
+        protected void gMobileRecords_RowSelected( object sender, RowEventArgs e )
+        {
+            var recordId = e.RowKeyId;
+            var record = MobileCheckinRecordCache.Get( recordId );
+            ShowAttendances( record.AttendanceIds );
+        }
+
+        protected void gOccurrences_RowSelected( object sender, RowEventArgs e )
+        {
+            var accessKey = ( string ) e.RowKeyValue;
+            var occurrence = OccurrenceCache.Get( accessKey );
+            ShowAttendances( occurrence.Attendances.Select( a => a.Id ).ToList() );
+        }
+
+        private void ShowAttendances( List<int> attendanceIds )
+        {
+            btnOccurrences.CssClass = defaultCss;
+            btnAttendances.CssClass = activeCss;
+            btnMobileRecords.CssClass = defaultCss;
+            pnlOccurrences.Visible = false;
+            pnlAttendances.Visible = true;
+            pnlMobileRecords.Visible = false;
+            var attendances = AttendanceCache.All();
+
+            if ( attendanceIds != null )
+            {
+                attendances = attendances.Where( a => attendanceIds.Contains( a.Id ) ).ToList();
+            }
+
+            gAttendances.DataSource = attendances;
             gAttendances.DataBind();
         }
 

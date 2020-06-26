@@ -87,6 +87,39 @@ namespace org.secc.FamilyCheckin.Cache
 
         public List<AttendanceCache> Attendances { get => AttendanceCache.GetByOccurrenceKey( this.AccessKey ); }
 
+        public bool IsFull
+        {
+            get
+            {
+                if ( !SoftRoomThreshold.HasValue || !FirmRoomThreshold.HasValue )
+                {
+                    return true; //No data --free pass.
+                }
+
+                var capacity = FirmRoomThreshold.Value;
+                if ( !IsVolunteer )
+                {
+                    capacity = Math.Min( FirmRoomThreshold.Value, SoftRoomThreshold.Value );
+                }
+
+                var attendanceCount = AttendanceCache
+                    .All()
+                    .Where( a => a.LocationId == LocationId
+                              && a.ScheduleId == ScheduleId
+                              && a.AttendanceState != AttendanceState.CheckedOut )
+                    .Count();
+
+                if ( attendanceCount >= capacity )
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
 
         public static List<OccurrenceCache> All()
         {
@@ -115,6 +148,11 @@ namespace org.secc.FamilyCheckin.Cache
 
         }
 
+        public static OccurrenceCache Get( int groupId, int locationId, int scheduleId )
+        {
+            return All().Where( o => o.GroupId == groupId && o.LocationId == locationId && o.ScheduleId == scheduleId ).FirstOrDefault();
+        }
+
         public static OccurrenceCache Get( string accessKey )
         {
             return GetOrAddExisting( accessKey, () => LoadByAccessKey( accessKey ) );
@@ -129,7 +167,7 @@ namespace org.secc.FamilyCheckin.Cache
             GroupLocationService groupLocationService = new GroupLocationService( rockContext );
             ScheduleService scheduleService = new ScheduleService( rockContext );
 
-            var groupLocation = groupLocationService.Queryable("Group,Location").Where( gl => gl.Id == groupLocationId ).FirstOrDefault();
+            var groupLocation = groupLocationService.Queryable( "Group,Location" ).Where( gl => gl.Id == groupLocationId ).FirstOrDefault();
             var schedule = scheduleService.Get( scheduleId );
 
             if ( groupLocation == null || schedule == null )

@@ -42,12 +42,24 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     public partial class MobileCheckinViewer : CheckInBlock
     {
         private IHubContext _hubContext = GlobalHost.ConnectionManager.GetHubContext<RockMessageHub>();
+        protected KioskTypeCache KioskType;
 
 
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
             RockPage.AddScriptLink( "~/Scripts/CheckinClient/ZebraPrint.js" );
+
+            var kioskTypeCookie = this.Page.Request.Cookies["KioskTypeId"];
+            if ( kioskTypeCookie != null )
+            {
+                KioskType = KioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
+            }
+
+            if ( KioskType == null )
+            {
+                NavigateToPreviousPage();
+            }
         }
 
         protected override void OnLoad( EventArgs e )
@@ -68,8 +80,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void BindRepeater()
         {
-            var kioskType = KioskTypeCache.All().Where( k => k.CheckinTemplateId == LocalDeviceConfig.CurrentCheckinTypeId ).FirstOrDefault();
-            var campus = kioskType.Campus;
+            var campus = KioskType.Campus;
 
             RockContext rockContext = new RockContext();
             MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );

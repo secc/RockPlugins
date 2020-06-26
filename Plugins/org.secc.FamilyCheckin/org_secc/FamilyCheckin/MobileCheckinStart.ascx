@@ -98,10 +98,14 @@
             </div>
         </asp:Panel>
         <asp:Panel runat="server" ID="pnlPostCheckin" Visible="false">
-            <asp:Literal runat="server" ID="ltPostCheckin" />
-            <asp:Literal runat="server" ID="ltAttendance" />
+            <div>
+                <asp:Literal runat="server" ID="ltPostCheckin" />
+            </div>
+            <div>
+                <asp:Literal runat="server" ID="ltAttendance" />
+            </div>
             <Rock:BootstrapButton runat="server" ID="btnNewCheckin" CssClass="btn btn-default btn-block"
-                Text="New Mobile Check-in" OnClick="btnNewCheckin_Click"/>
+                Text="New Mobile Check-in" OnClick="btnNewCheckin_Click" />
         </asp:Panel>
     </ContentTemplate>
 </asp:UpdatePanel>
