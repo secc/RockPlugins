@@ -13,14 +13,19 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using antlr;
 using C5;
 using CSScriptLibrary;
+using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
+using OpenXmlPowerTools;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
 using Rock;
@@ -90,6 +95,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             if ( !Page.IsPostBack )
             {
+                BindDropDown();
+
                 if ( CurrentUser == null )
                 {
                     pnlError.Visible = true;
@@ -110,9 +117,17 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     ShowQRCode( mobileCheckinRecord );
                     return;
                 }
+                else
+                {
+                    var completeMobileCheckins = MobileCheckinRecordCache.All().Where( r => r.FamilyGroupId == CurrentPerson.PrimaryFamilyId ).Any();
+                    if ( completeMobileCheckins )
+                    {
+                        ShowCheckinCompletion();
+                        return;
+                    }
+                }
 
 
-                BindDropDown();
 
                 if ( this.IsUserAuthorized( Rock.Security.Authorization.ADMINISTRATE ) && PageParameter( "KioskName" ).IsNotNullOrWhiteSpace() )
                 {
@@ -127,6 +142,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             }
         }
+
 
         private void ShowQRCode( MobileCheckinRecordCache record )
         {
@@ -449,9 +465,60 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
 
         protected void lbCheckinComplete_Click( object sender, EventArgs e )
         {
+            ShowCheckinCompletion();
+        }
+
+
+        private void ShowCheckinCompletion()
+        {
             pnlQr.Visible = false;
             pnlPostCheckin.Visible = true;
             ltPostCheckin.Text = GetAttributeValue( AttributeKeys.PostCheckinInstructions );
+
+            //This is all an elaborate effort to get the family's checkin data in an organized fashion without touching the db
+            //The thought is I can add more webservers I can't add more database servers right now.
+
+            var personIds = CurrentPerson.PrimaryFamily.Members.Select( m => m.Person )
+                .OrderBy( p => p.AgeClassification )
+                .ThenBy( p => p.BirthDate )
+                .Select( p => p.Id )
+                .ToList();
+
+            var attendances = AttendanceCache.All().Where( a => personIds.Contains( a.PersonId ) ).ToList();
+            var scheduleIds = attendances.Select( a => a.ScheduleId ).Distinct().ToList();
+            var tokenOccurrences = OccurrenceCache.All() //Just need the schedule data so we can order stuff.
+                .Where( o => scheduleIds.Contains( o.ScheduleId ) )
+                .DistinctBy( o => o.ScheduleId )
+                .OrderBy( o => o.ScheduleStartTime )
+                .ToList();
+
+            var attendanceData = new StringBuilder();
+            foreach ( var tokenOccurrence in tokenOccurrences )
+            {
+                if ( attendances.Where( a => a.ScheduleId == tokenOccurrence.ScheduleId ).Any() )
+                {
+                    attendanceData.Append( "<b>" + tokenOccurrence.ScheduleName + "</b><ul>" );
+                    foreach ( var personId in personIds )
+                    {
+                        var attendance = attendances.FirstOrDefault( a => a.PersonId == personId && a.ScheduleId == tokenOccurrence.ScheduleId );
+                        if ( attendance == null )
+                        {
+                            continue;
+                        }
+
+                        OccurrenceCache occurrence = OccurrenceCache.Get( attendance.OccurrenceAccessKey );
+                        if ( occurrence == null )
+                        {
+                            continue;
+                        }
+
+                        attendanceData.Append( string.Format( "<li>{0}: {1} in {2}</li>", attendance.PersonName, occurrence.GroupName, occurrence.LocationName ) );
+                    }
+                    attendanceData.Append( "</ul>" );
+                }
+            }
+
+            ltAttendance.Text = attendanceData.ToString();
         }
 
         protected void btnCancelReseration_Click( object sender, EventArgs e )
@@ -468,6 +535,19 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
                 MobileCheckinRecordCache.CancelReservation( mobileCheckinRecord, true );
             }
             NavigateToCurrentPage();
+        }
+
+        protected void btnNewCheckin_Click( object sender, EventArgs e )
+        {
+            ConfigureKiosk( CurrentUser.UserName );
+            pnlPostCheckin.Visible = false;
+            pnlSelectCampus.Visible = true;
+        }
+
+        class CheckedInMember
+        {
+            public string Name { get; set; }
+            public List<string> AttendanceData { get; set; }
         }
     }
 }

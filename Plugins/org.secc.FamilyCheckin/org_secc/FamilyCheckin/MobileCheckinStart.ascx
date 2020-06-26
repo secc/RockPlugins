@@ -62,13 +62,16 @@
         <asp:Panel runat="server" ID="pnlQr" Visible="false">
             <asp:Literal runat="server" ID="ltCodeInstructions" />
             <br />
-            <asp:Image runat="server" ID="iQr" CssClass="img-responsive" />
+            <br />
+            <asp:Image runat="server" ID="iQr" CssClass="img-responsive" Style="width: 50%; margin: auto;" />
+            <br />
             <div class="text-center">
                 Your check-in place will be held until <b>
                     <asp:Literal runat="server" ID="ltValidUntil" /></b>.
                 <br />
                 After this time, you can still check-in, but reservations may be released if rooms fill.
-                <br /><br />
+                <br />
+                <br />
                 <asp:LinkButton Text="Cancel My Check-in Reservation" runat="server" ID="btnCancelReseration"
                     OnClick="btnCancelReseration_Click" CssClass="btn btn-primary" />
             </div>
@@ -96,6 +99,9 @@
         </asp:Panel>
         <asp:Panel runat="server" ID="pnlPostCheckin" Visible="false">
             <asp:Literal runat="server" ID="ltPostCheckin" />
+            <asp:Literal runat="server" ID="ltAttendance" />
+            <Rock:BootstrapButton runat="server" ID="btnNewCheckin" CssClass="btn btn-default btn-block"
+                Text="New Mobile Check-in" OnClick="btnNewCheckin_Click"/>
         </asp:Panel>
     </ContentTemplate>
 </asp:UpdatePanel>

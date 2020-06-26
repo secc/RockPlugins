@@ -57,7 +57,7 @@
                 var date = new Date();
 
                 //If it's been half a second since the last key press reset the keyboard buffer
-                if (date.getTime() - lastbufferedkey > 5000) {
+                if (date.getTime() - lastbufferedkey > 500) {
                     keybuffer = '';
                 }
 
@@ -71,8 +71,6 @@
                     $phoneNumber = $("input[id$='tbPhone']");
                     $phoneNumber.val($phoneNumber.val() + char);
                 }
-
-                console.log(keybuffer);
 
                 lastbufferedkey = date.getTime();
             }
@@ -269,8 +267,25 @@
     pushHistory();
 
     var mobileCheckIn = function () {
+        if (kioskActive == false) {
+            return;
+        }
         $('#hfMobileAccessKey').val(keybuffer);
+        showMobileDialog("<center><br><br><h2>Loading...</h2>Please wait. We are looking up your check-in record.</center>")
         window.location = "javascript:__doPostBack('<%= btnMobileCheckin.UniqueID %>', 'Click')";
+    }
+
+    var showMobileDialog = function (html, time) {
+        $("#mdMobileBackdrop").show();
+        $("#mdMobile").show();
+        $("#mdMobileContent").html(html);
+
+        if (time) {
+            setTimeout(function () {
+                $("#mdMobileBackdrop").hide();
+                $("#mdMobile").hide();
+            }, time);
+        }
     }
 
 </script>
@@ -278,7 +293,6 @@
 <asp:UpdatePanel ID="upContent" runat="server" CssClass="">
     <ContentTemplate>
         <asp:Literal Visible="false" ID="lTime" runat="server" />
-
 
         <asp:PlaceHolder ID="phScript" runat="server"></asp:PlaceHolder>
         <asp:HiddenField ID="hfMobileAccessKey" runat="server" ClientIDMode="Static" />
@@ -378,7 +392,6 @@
                                         </div>
                                         <a href="#" class="btn btn-primary btn-lg search-button" onclick="doSearch()">Search</a>
                                     </asp:Panel>
-
                                 </div>
                             </div>
                             <div class="col-xs-8" id="contentContainer">
@@ -391,7 +404,19 @@
                     </div>
                 </div>
             </div>
+
+
         </asp:Panel>
+
+        <!-- Mobile Dialog  -->
+        <div id="mdMobileBackdrop" class="modal-backdrop in" style="z-index: 1050; display: none">&nbsp;</div>
+        <div id="mdMobile" class="modal-scrollable" style="z-index: 1060; display: none;">
+            <div style="display: block; margin-top: 0px;" class="modal container modal-content rock-modal rock-modal-frame modal-overflow in">
+                <div id="mdMobileContent" class="text-center">
+                    &nbsp;
+                </div>
+            </div>
+        </div>
 
     </ContentTemplate>
 </asp:UpdatePanel>

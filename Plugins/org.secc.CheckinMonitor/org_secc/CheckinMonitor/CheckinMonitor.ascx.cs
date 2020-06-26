@@ -583,7 +583,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                         if ( record.CanClose )
                         {
-                            BootstrapButton btnCancel = new BootstrapButton();
+                            LinkButton btnCancel = new LinkButton();
                             btnCancel.ID = "cancel" + record.Id.ToString();
                             btnCancel.CssClass = "btn btn-danger btn-xs";
                             btnCancel.Text = "Cancel";
@@ -607,9 +607,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void CancelReservation( int id )
         {
-            var record = MobileCheckinRecordCache.GetByAttendanceId( id );
-            if ( record != null )
+            var attendanceCache = AttendanceCache.Get( id );
+
+            if ( attendanceCache.AttendanceState == AttendanceState.MobileReserve )
             {
+                var record = MobileCheckinRecordCache.GetByAttendanceId( id );
                 MobileCheckinRecordCache.CancelReservation( record );
                 RebuildModal();
                 return;

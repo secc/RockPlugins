@@ -42,6 +42,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [TextField( "Search Regex", "Regular Expression to run the search input through before sending it to the workflow. Useful for stripping off characters.", false )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.CHECKIN_SEARCH_TYPE, "Search Type", "The type of search to use for check-in (default is phone number).", true, false, Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER, order: 4 )]
     [CodeEditorField( "Default Content", "Default content to display", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 12 )]
+    [CodeEditorField( "No Mobile Checkin Record", "Message to display when there is no mobile checkin record.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 13, key: AttributeKeys.NoMobileCheckinRecord )]
+    [CodeEditorField( "Expired Checkin Record", "Message to display when the check-in record has been exprired/deleted.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 13, key: AttributeKeys.ExpiredMobileCheckinRecord )]
+    [CodeEditorField( "Already Completed Checkin Record", "Message to display when the check-in record has been deleted.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 14, key: AttributeKeys.AlreadyCompleteCheckinRecord )]
+    [CodeEditorField( "Completing Checkin Record", "Message to display when completing the check-in record.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 15, key: AttributeKeys.CompletingMobileCheckin )]
     public partial class QuickSearch : CheckInBlock
     {
 
@@ -253,8 +257,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private void ShowWrongCampusSign( string mobileCampus, string actualCampus )
         {
-            var content = string.Format( "Uh oh. You seem to be trying to check in to the {0} campus, but your reservation is for {1}.<br> Please see the check-in volunteer for assistance.", actualCampus, mobileCampus );
-            ScriptManager.RegisterStartupScript( Page, Page.GetType(), "ShowWrongCampusSign", "showSign('" + mobileCampus + "','" + actualCampus + "',false, '1vw' );", true );
+            var content = string.Format( "<h2>Uh Oh.</h2> You seem to be trying to check in to the {0} campus, but your reservation is for {1}.<br> Please see the check-in volunteer for assistance.", actualCampus, mobileCampus );
+            MobileCheckinMessage( content, 20 );
         }
 
         /// <summary>
@@ -395,7 +399,7 @@ if ($ActiveWhen.text() != '')
                 }
                 MobileCheckinRecordCache.Update( mobileCheckinRecord.Id );
                 _hubContext.Clients.All.mobilecheckincomplete( accessKey, true );
-                MobileCheckinMessage( GetAttributeValue( AttributeKeys.CompletingMobileCheckin ), 3 );
+                MobileCheckinMessage( GetAttributeValue( AttributeKeys.CompletingMobileCheckin ), 5 );
             }
             catch ( Exception e )
             {
@@ -404,7 +408,9 @@ if ($ActiveWhen.text() != '')
 
         private void MobileCheckinMessage( string message, int secondsOpen = 10 )
         {
-            throw new NotImplementedException();
+            message = message.RemoveCrLf();
+            secondsOpen = secondsOpen * 1000;
+            ScriptManager.RegisterStartupScript( Page, Page.GetType(), "ShowMobileMessage", "showMobileDialog('" + message + "'," + secondsOpen.ToString() + ");", true );
         }
     }
 }
