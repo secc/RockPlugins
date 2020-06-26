@@ -30,7 +30,6 @@ namespace org.secc.RoomScanner.Models
         public DateTime? EndDateTime { get; set; }
         public bool DidAttend { get; set; }
         public string AttendanceGuid { get; set; }
-        public bool InWorship { get; set; }
         public bool WithParent { get; set; }
         public bool IsVolunteer { get; set; }
     }

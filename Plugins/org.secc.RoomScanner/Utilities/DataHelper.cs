@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Utilities;
 using org.secc.RoomScanner.Models;
 using Rock;
@@ -75,7 +76,7 @@ namespace org.secc.RoomScanner.Utilities
             };
 
             historyService.Add( history );
-            InMemoryPersonStatus.RemoveFromWorship( attendeeAttendance.PersonAlias.PersonId );
+            AttendanceCache.RemoveWithParent( attendeeAttendance.PersonAlias.PersonId );
         }
 
 
@@ -145,61 +146,25 @@ namespace org.secc.RoomScanner.Utilities
                 CategoryId = 4
             };
             historyService.Add( history );
-            InMemoryPersonStatus.AddToWithParent( person.Id );
+            AttendanceCache.SetWithParent( person.Id );
         }
 
-        public static void AddMoveTwoWorshipHistory( RockContext rockContext, Person person )
-        {
-            HistoryService historyService = new HistoryService( rockContext );
-            var summary = string.Format( "Moved to Worship at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
-
-            History history = new History()
-            {
-                EntityTypeId = personEntityTypeId,
-                EntityId = person.Id,
-                Verb = "Moved",
-                Summary = summary,
-                Caption = "Moved To Worship",
-                RelatedData = GetHostInfo(),
-                CategoryId = 4
-            };
-            historyService.Add( history );
-            InMemoryPersonStatus.AddToWorship( person.Id );
-        }
 
         public static void AddReturnToRoomHistory( RockContext rockContext, Person person )
         {
-            var summary = "";
-            var caption = "";
             HistoryService historyService = new HistoryService( rockContext );
-            if ( InMemoryPersonStatus.IsInWorship( person.Id ) && InMemoryPersonStatus.IsWithParent( person.Id ) )
+            if ( AttendanceCache.IsWithParent( person.Id ) )
             {
-                InMemoryPersonStatus.RemoveFromWorship( person.Id );
-                InMemoryPersonStatus.RemoveFromWithParent( person.Id );
-                summary = string.Format( "Returned from Worship and Parent at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
-                caption = "Returned from Worship and Parent";
-            }
-            else if ( InMemoryPersonStatus.IsInWorship( person.Id ) )
-            {
-                InMemoryPersonStatus.RemoveFromWorship( person.Id );
-                summary = string.Format( "Returned from Worship at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
-                caption = "Returned from Worship";
-            }
-            else if ( InMemoryPersonStatus.IsWithParent( person.Id ) )
-            {
-                InMemoryPersonStatus.RemoveFromWithParent( person.Id );
-                summary = string.Format( "Returned from Parent at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
-                caption = "Returned from Parent";
-            }
-            if ( !string.IsNullOrWhiteSpace( caption ) )
-            {
+                AttendanceCache.RemoveWithParent( person.Id );
+                var summary = string.Format( "Returned from Parent at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
+
                 History history = new History()
                 {
                     EntityTypeId = personEntityTypeId,
                     EntityId = person.Id,
                     Verb = "Returned",
                     Summary = summary,
-                    Caption = "Returned from Worship",
+                    Caption = "Returned from Parent",
                     RelatedData = GetHostInfo(),
                     CategoryId = 4
                 };
@@ -238,10 +203,9 @@ namespace org.secc.RoomScanner.Utilities
             var stayedFifteenMinutes = ( Rock.RockDateTime.Now - attendance.StartDateTime ) > new TimeSpan( 0, 15, 0 );
             attendance.DidAttend = stayedFifteenMinutes;
             attendance.EndDateTime = Rock.RockDateTime.Now;
-            InMemoryPersonStatus.RemoveFromWorship( attendance.PersonAlias.PersonId );
-            InMemoryPersonStatus.RemoveFromWithParent( attendance.PersonAlias.PersonId );
-            CheckInCountCache.AddAttendance( newAttendance );
-            CheckInCountCache.RemoveAttendance( attendance );
+            AttendanceCache.RemoveWithParent( attendance.PersonAlias.PersonId );
+            AttendanceCache.AddOrUpdate( newAttendance );
+            AttendanceCache.AddOrUpdate( attendance );
         }
 
         public static Response GetEntryResponse( RockContext rockContext, Person person, Location location )
@@ -298,13 +262,12 @@ namespace org.secc.RoomScanner.Utilities
                 activeAttendance.DidAttend = stayedFifteenMinutes;
                 activeAttendance.EndDateTime = Rock.RockDateTime.Now;
                 AddExitHistory( rockContext, attendeeAttendance.Occurrence.Location, attendeeAttendance, isSubroom );
-                CheckInCountCache.RemoveAttendance( activeAttendance );
+                AttendanceCache.AddOrUpdate( activeAttendance );
             }
             if ( didRemove )
             {
                 var personId = attendeeAttendance.PersonAlias.PersonId;
-                InMemoryPersonStatus.RemoveFromWorship( personId );
-                InMemoryPersonStatus.RemoveFromWithParent( personId );
+                AttendanceCache.RemoveWithParent( personId );
             }
         }
     }

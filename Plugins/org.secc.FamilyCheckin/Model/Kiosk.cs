@@ -21,10 +21,12 @@ namespace org.secc.FamilyCheckin.Model
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.ModelConfiguration;
     using System.Runtime.Serialization;
+    using Rock.Data;
+    using Rock.Field.Types;
     using Rock.Model;
     [Table( "_org_secc_FamilyCheckin_Kiosk" )]
     [DataContract]
-    public partial class Kiosk : Rock.Data.Model<Kiosk>, Rock.Security.ISecured, Rock.Data.IRockEntity
+    public partial class Kiosk : Rock.Data.Model<Kiosk>, Rock.Security.ISecured, Rock.Data.IRockEntity, ICategorized
     {
         public override string ToString()
         {
@@ -58,7 +60,10 @@ namespace org.secc.FamilyCheckin.Model
         [DataMember]
         public PrintTo PrintToOverride { get; set; }
 
+        [DataMember]
+        public int? CategoryId { get; set; }
 
+        public virtual Category Category { get; set; }
     }
 
     /// <summary>

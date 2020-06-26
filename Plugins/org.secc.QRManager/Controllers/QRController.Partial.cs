@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -7,6 +8,8 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Web.Http;
+using org.secc.FamilyCheckin.Cache;
+using org.secc.FamilyCheckin.Model;
 using QRCoder;
 using Rock;
 using Rock.Data;
@@ -25,12 +28,25 @@ namespace org.secc.QRManager.Rest.Controllers
         [System.Web.Http.Route( "api/qr/{code}" )]
         public HttpResponseMessage GetEntityGuid( string code )
         {
-            RockContext rockContext = new RockContext();
-            PersonSearchKeyService personSearchKeyService = new PersonSearchKeyService( rockContext );
-            var key = personSearchKeyService.Queryable().Where( k => k.SearchValue == code );
-            if ( !key.Any() )
+            if ( code.StartsWith( "MCR" ) )
             {
-                throw new Exception( "Invalid Key" );
+                var mobileCheckinRecord = MobileCheckinRecordCache.GetByAccessKey( code );
+                if ( mobileCheckinRecord == null )
+                {
+                    throw new Exception( "Invalid Key" );
+                }
+            }
+            else
+            {
+                //Check to see if is a person's search key
+                RockContext rockContext = new RockContext();
+                PersonSearchKeyService personSearchKeyService = new PersonSearchKeyService( rockContext );
+                var key = personSearchKeyService.Queryable().Where( k => k.SearchValue == code );
+                if ( !key.Any() )
+                {
+                    throw new Exception( "Invalid Key" );
+                }
+
             }
 
             var qr = GenerateQR( code );

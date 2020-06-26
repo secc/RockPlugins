@@ -33,6 +33,13 @@ using System.Text;
 using System.Net;
 using org.secc.FamilyCheckin.Utilities;
 using System.Data.Entity;
+using org.secc.FamilyCheckin.Cache;
+using DDay.iCal;
+using org.secc.FamilyCheckin.Model;
+using C5;
+using Newtonsoft.Json;
+using Microsoft.AspNet.SignalR;
+using OpenXmlPowerTools;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -54,9 +61,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [SecurityRoleField( "Reprint Tag Security Group", "Group to allow reprinting of tags.", key: "SecurityGroup", defaultSecurityRoleGroupGuid: Rock.SystemGuid.Group.GROUP_STAFF_MEMBERS )]
     public partial class SuperCheckin : CheckInBlock
     {
-
         private RockContext _rockContext;
         private List<int> _approvedPeopleIds;
+        private IHubContext _hubContext = GlobalHost.ConnectionManager.GetHubContext<RockMessageHub>();
 
         protected override void OnInit( EventArgs e )
         {
@@ -328,16 +335,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     && a.DidAttend == true && a.EndDateTime == null && a.PersonAliasId == person.PrimaryAliasId ).ToList();
                 var history = attendanceService.Queryable().Where( a => a.StartDateTime > Rock.RockDateTime.Today
                     && a.EndDateTime != null && a.PersonAliasId == person.PrimaryAliasId ).ToList();
-                if ( reserved.Any() )
-                {
-                    pnlReserved.Visible = true;
-                    gReserved.DataSource = reserved;
-                    gReserved.DataBind();
-                }
-                else
-                {
-                    pnlReserved.Visible = false;
-                }
+
                 if ( current.Any() )
                 {
                     pnlCheckedin.Visible = true;
@@ -358,17 +356,44 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 {
                     pnlHistory.Visible = false;
                 }
+
+                if ( reserved.Any() )
+                {
+                    foreach ( var item in reserved )
+                    {
+                        if ( item.QualifierValueId.HasValue )
+                        {
+                            item.Occurrence.Group.Name = "<i class='fa fa-mobile'></i> " + item.Occurrence.Group.Name;
+                        }
+                    }
+                    pnlReserved.Visible = true;
+                    gReserved.DataSource = reserved;
+                    gReserved.DataBind();
+                }
+                else
+                {
+                    pnlReserved.Visible = false;
+                }
             }
         }
 
         protected void CancelReserved_Click( object sender, RowEventArgs e )
         {
             var attendanceItemId = ( int ) e.RowKeyValue;
-            var attendanceService = new AttendanceService( _rockContext );
-            var attendanceItem = attendanceService.Get( attendanceItemId );
-            attendanceItem.EndDateTime = Rock.RockDateTime.Now;
-            CheckInCountCache.RemoveAttendance( attendanceItem );
-            _rockContext.SaveChanges();
+            var mobileRecord = MobileCheckinRecordCache.GetByAttendanceId( attendanceItemId );
+            if ( mobileRecord != null && mobileRecord.Status == MobileCheckinStatus.Active )
+            {
+                MobileCheckinRecordCache.CancelReservation( mobileRecord, true );
+            }
+            else
+            {
+                var attendanceService = new AttendanceService( _rockContext );
+                var attendanceItem = attendanceService.Get( attendanceItemId );
+
+                attendanceItem.EndDateTime = Rock.RockDateTime.Now;
+                AttendanceCache.AddOrUpdate( attendanceItem );
+                _rockContext.SaveChanges();
+            }
             BuildPersonCheckinDetails();
         }
 
@@ -377,7 +402,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var attendanceItemId = ( int ) e.RowKeyValue;
             var attendanceItem = new AttendanceService( _rockContext ).Get( attendanceItemId );
             attendanceItem.EndDateTime = Rock.RockDateTime.Now;
-            CheckInCountCache.RemoveAttendance( attendanceItem );
+            AttendanceCache.AddOrUpdate( attendanceItem );
             _rockContext.SaveChanges();
             BuildPersonCheckinDetails();
         }
@@ -419,8 +444,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
 
-            KioskCountUtility kioskCountUtility = new KioskCountUtility( CurrentCheckInState.ConfiguredGroupTypes );
-
             if ( cbSuperCheckin.Checked )
             {
                 cbVolunteer.Visible = true;
@@ -440,6 +463,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
 
+            var volunteerGroupIds = OccurrenceCache.GetVolunteerOccurrences().Select( o => o.GroupId );
+
             foreach ( var groupType in checkinPerson.GroupTypes )
             {
                 //ignore group types with no non-excluded groups on non-super checkin
@@ -450,14 +475,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 //ignore if volunteer selected and does not contain volunteers
                 if ( cbSuperCheckin.Checked && cbVolunteer.Checked
-                    && !groupType.Groups.Where( g => kioskCountUtility.VolunteerGroupIds.Contains( g.Group.Id ) ).Any() )
+                    && !groupType.Groups.Where( g => volunteerGroupIds.Contains( g.Group.Id ) ).Any() )
                 {
                     continue;
                 }
 
                 //ignore if volunteer not selected and does not contain children
                 if ( cbSuperCheckin.Checked && !cbVolunteer.Checked
-                    && !groupType.Groups.Where( g => kioskCountUtility.ChildGroupIds.Contains( g.Group.Id ) ).Any() )
+                    && !groupType.Groups.Where( g => volunteerGroupIds.Contains( g.Group.Id ) ).Any() )
                 {
                     continue;
                 }
@@ -480,12 +505,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         continue;
                     }
 
-                    if ( cbSuperCheckin.Checked && cbVolunteer.Checked && !kioskCountUtility.VolunteerGroupIds.Contains( group.Group.Id ) )
+                    if ( cbSuperCheckin.Checked && cbVolunteer.Checked && !volunteerGroupIds.Contains( group.Group.Id ) )
                     {
                         continue;
                     }
 
-                    if ( cbSuperCheckin.Checked && !cbVolunteer.Checked && !kioskCountUtility.ChildGroupIds.Contains( group.Group.Id ) )
+                    if ( cbSuperCheckin.Checked && !cbVolunteer.Checked && !volunteerGroupIds.Contains( group.Group.Id ) )
                     {
                         continue;
                     }
@@ -1519,8 +1544,184 @@ try{{
             }
             return false;
         }
+
+        protected void btnMobile_Click( object sender, EventArgs e )
+        {
+            BindMCRRepeater();
+        }
+
+        private void BindMCRRepeater()
+        {
+            var kioskType = KioskTypeCache.All().Where( k => k.CheckinTemplateId == LocalDeviceConfig.CurrentCheckinTypeId ).FirstOrDefault();
+            var campus = kioskType.Campus;
+
+            RockContext rockContext = new RockContext();
+            MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
+            GroupService groupService = new GroupService( rockContext );
+
+            var familyId = CurrentCheckInState.CheckIn.CurrentFamily.Group.Id;
+
+            var groupQry = groupService.Queryable();
+
+            var records = mobileCheckinRecordService.Queryable().AsNoTracking()
+                .Where( r => r.CreatedDateTime >= Rock.RockDateTime.Today && r.FamilyGroupId == familyId )
+                .Join( groupQry,
+                r => r.FamilyGroupId,
+                g => g.Id,
+                ( r, g ) => new
+                {
+                    Record = r,
+                    Caption = g.Name,
+                    Attendances = r.Attendances
+                } )
+                .ToList()
+                .Select( r => new MCRPoco
+                {
+                    Record = r.Record,
+                    Caption = r.Caption,
+                    Active = r.Record.Status == MobileCheckinStatus.Active,
+                    SubCaption = string.Join( "<br>", r.Attendances.Select( a => string.Format( "{0}: {1} in {2} at {3}", a.PersonAlias.Person.NickName, a.Occurrence.Group.Name, a.Occurrence.Location.Name, a.Occurrence.Schedule.Name ) ) )
+                } )
+                .OrderByDescending( r => r.Record.CreatedDateTime )
+                .ToList();
+
+            rMCR.DataSource = records;
+            rMCR.DataBind();
+
+            if ( !records.Any() )
+            {
+                ltMobileCheckin.Text = "<h3>There are no check-in records for this family</h3>";
+            }
+            else
+            {
+                ltMobileCheckin.Text = "";
+            }
+
+
+            mdMobileCheckin.Show();
+        }
+
+
+        protected void rMCR_ItemCommand( object source, System.Web.UI.WebControls.RepeaterCommandEventArgs e )
+        {
+            if ( e.CommandName == "Checkin" )
+            {
+                var accessKey = e.CommandArgument.ToString();
+                MobileCheckin( accessKey );
+            }
+            else if ( e.CommandName == "Cancel" )
+            {
+                var accessKey = e.CommandArgument.ToString();
+                var record = MobileCheckinRecordCache.GetByAccessKey( accessKey );
+                MobileCheckinRecordCache.CancelReservation( record, true );
+                BindMCRRepeater();
+            }
+
+            if ( ViewState["SelectedPersonId"] != null && pnlEditPerson.Visible )
+            {
+                var personId = ( int ) ViewState["SelectedPersonId"];
+                var person = new PersonService( _rockContext ).Get( personId );
+                EditPerson( person );
+            }
+        }
+
+        private void MobileCheckin( string accessKey )
+        {
+            var mobileDidAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_DID_ATTEND ).Id;
+            var mobileNotAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_NOT_ATTEND ).Id;
+
+            RockContext rockContext = new RockContext();
+            MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
+
+            var mobileCheckinRecord = mobileCheckinRecordService.Queryable().Where( r => r.AccessKey == accessKey ).FirstOrDefault();
+
+            if ( mobileCheckinRecord == null )
+            {
+                maWarning.Show( "Mobile check-in record not found", ModalAlertType.Alert );
+                BindMCRRepeater();
+                return;
+            }
+            else if ( mobileCheckinRecord.Status == MobileCheckinStatus.Canceled )
+            {
+                maWarning.Show( "Mobile check-in record is expired.", ModalAlertType.Alert );
+                BindMCRRepeater();
+                return;
+            }
+            else if ( mobileCheckinRecord.Status == MobileCheckinStatus.Complete )
+            {
+                maWarning.Show( "Mobile check-in record has already been completed.", ModalAlertType.Alert );
+                BindMCRRepeater();
+                return;
+            }
+
+            try
+            {
+                if ( mobileCheckinRecord == null )
+                {
+                    return;
+                }
+
+                List<CheckInLabel> labels = JsonConvert.DeserializeObject<List<CheckInLabel>>( mobileCheckinRecord.SerializedCheckInState );
+
+                LabelPrinter labelPrinter = new LabelPrinter()
+                {
+                    Request = Request,
+                    Labels = labels
+                };
+
+                labelPrinter.PrintNetworkLabels();
+                var script = labelPrinter.GetClientScript();
+                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
+
+                foreach ( var attendance in mobileCheckinRecord.Attendances )
+                {
+                    if ( attendance.QualifierValueId == mobileDidAttendId )
+                    {
+                        attendance.DidAttend = true;
+                        attendance.QualifierValueId = null;
+                        attendance.StartDateTime = Rock.RockDateTime.Now;
+                    }
+                    else if ( attendance.QualifierValueId == mobileNotAttendId )
+                    {
+                        attendance.DidAttend = false;
+                        attendance.QualifierValueId = null;
+                    }
+                    attendance.Note = "Completed mobile check-in at: " + CurrentCheckInState.Kiosk.Device.Name;
+                }
+
+                mobileCheckinRecord.Status = MobileCheckinStatus.Complete;
+
+                rockContext.SaveChanges();
+
+                //wait until we successfully save to update cache
+                foreach ( var attendance in mobileCheckinRecord.Attendances )
+                {
+                    AttendanceCache.AddOrUpdate( attendance );
+
+                }
+                MobileCheckinRecordCache.Update( mobileCheckinRecord.Id );
+                _hubContext.Clients.All.mobilecheckincomplete( accessKey, true );
+                BindMCRRepeater();
+            }
+            catch ( Exception e )
+            {
+                LogException( e );
+                maWarning.Show( "An unexpected issue occurred.", ModalAlertType.Alert );
+                BindMCRRepeater();
+            }
+        }
+
+
+        private class MCRPoco
+        {
+            public MobileCheckinRecord Record { get; set; }
+            public string Caption { get; set; }
+            public string SubCaption { get; set; }
+            public bool Active { get; set; }
+        }
+
     }
-    public class FamilyLabel
+    class FamilyLabel
     {
         public Guid FileGuid { get; set; }
 
@@ -1552,4 +1753,7 @@ try{{
             }
         }
     }
+
+
+
 }

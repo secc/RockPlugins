@@ -26,6 +26,8 @@ using Rock.Security;
 using Rock.Web.UI;
 using org.secc.FamilyCheckin.Model;
 using System.Data.Entity;
+using org.secc.FamilyCheckin.Cache;
+using System.Globalization;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
@@ -127,7 +129,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         protected void btnSave_Click( object sender, EventArgs e )
         {
-            KioskType KioskType = null;
+            KioskType kioskType = null;
 
             var rockContext = new RockContext();
             var kioskTypeService = new KioskTypeService( rockContext );
@@ -136,75 +138,79 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             var scheduleService = new ScheduleService( rockContext );
             var groupTypeService = new GroupTypeService( rockContext );
 
-            int KioskTypeId = int.Parse( hfKioskTypeId.Value );
+            int kioskTypeId = int.Parse( hfKioskTypeId.Value );
 
-            if ( KioskTypeId != 0 )
+            if ( kioskTypeId != 0 )
             {
-                KioskType = kioskTypeService.Get( KioskTypeId );
+                kioskType = kioskTypeService.Get( kioskTypeId );
             }
 
-            if ( KioskType == null )
+            if ( kioskType == null )
             {
-                KioskType = new KioskType();
-                kioskTypeService.Add( KioskType );
+                kioskType = new KioskType();
+                kioskTypeService.Add( kioskType );
 
             }
 
-            if ( KioskType != null )
+            if ( kioskType != null )
             {
-                KioskType.Name = tbName.Text;
-                KioskType.Description = tbDescription.Text;
-                KioskType.Message = tbMessage.Text;
+                kioskType.Name = tbName.Text;
+                kioskType.Description = tbDescription.Text;
+                kioskType.Message = tbMessage.Text;
+                kioskType.IsMobile = cbIsMobile.Checked;
+                kioskType.MinutesValid = tbMinutesValid.Text.AsIntegerOrNull();
+                kioskType.GraceMinutes = tbGraceMinutes.Text.AsIntegerOrNull();
 
-                if ( !KioskType.IsValid || !Page.IsValid )
+
+                if ( !kioskType.IsValid || !Page.IsValid )
                 {
                     // Controls will render the error messages
                     return;
                 }
 
                 // Remove any deleted locations
-                foreach ( var location in KioskType.Locations
+                foreach ( var location in kioskType.Locations
                     .Where( l =>
                         !Locations.Keys.Contains( l.Id ) )
                     .ToList() )
                 {
-                    KioskType.Locations.Remove( location );
+                    kioskType.Locations.Remove( location );
                 }
 
                 // Remove any deleted schedules
-                foreach ( var schedule in KioskType.Schedules
+                foreach ( var schedule in kioskType.Schedules
                     .Where( s =>
                         !Schedules.Keys.Contains( s.Id ) )
                     .ToList() )
                 {
-                    KioskType.Schedules.Remove( schedule );
+                    kioskType.Schedules.Remove( schedule );
                 }
 
                 // Add any new locations
-                var existingLocationIDs = KioskType.Locations.Select( l => l.Id ).ToList();
+                var existingLocationIDs = kioskType.Locations.Select( l => l.Id ).ToList();
                 foreach ( var location in locationService.Queryable()
                     .Where( l =>
                         Locations.Keys.Contains( l.Id ) &&
                         !existingLocationIDs.Contains( l.Id ) ) )
                 {
-                    KioskType.Locations.Add( location );
+                    kioskType.Locations.Add( location );
                 }
 
                 // Add any new schedules
-                var existingScheduleIDs = KioskType.Schedules.Select( s => s.Id ).ToList();
+                var existingScheduleIDs = kioskType.Schedules.Select( s => s.Id ).ToList();
                 foreach ( var schedule in scheduleService.Queryable()
                     .Where( s =>
                         Schedules.Keys.Contains( s.Id ) &&
                         !existingScheduleIDs.Contains( s.Id ) ) )
                 {
-                    KioskType.Schedules.Add( schedule );
+                    kioskType.Schedules.Add( schedule );
                 }
 
                 //Save checkin template
-                KioskType.CheckinTemplateId = ddlTemplates.SelectedValue.AsInteger();
+                kioskType.CheckinTemplateId = ddlTemplates.SelectedValue.AsInteger();
 
 
-                var GroupTypes = KioskType.GroupTypes;
+                var GroupTypes = kioskType.GroupTypes;
                 GroupTypes.Clear();
 
                 foreach ( ListItem item in cblPrimaryGroupTypes.Items )
@@ -215,8 +221,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     }
                 }
 
+                kioskType.CampusId = ddlCampus.SelectedCampusId;
+
                 rockContext.SaveChanges();
 
+                KioskTypeCache.Clear();
                 Rock.CheckIn.KioskDevice.Clear();
 
                 NavigateToParentPage();
@@ -322,30 +331,34 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         public void ShowDetail( int kioskTypeId )
         {
             pnlDetails.Visible = true;
-            KioskType KioskType = null;
+            KioskType kioskType = null;
 
             var checkinContext = new RockContext();
 
             if ( !kioskTypeId.Equals( 0 ) )
             {
-                KioskType = new KioskTypeService( checkinContext ).Get( kioskTypeId );
+                kioskType = new KioskTypeService( checkinContext ).Get( kioskTypeId );
                 lActionTitle.Text = ActionTitle.Edit( KioskType.FriendlyTypeName ).FormatAsHtmlTitle();
             }
 
-            if ( KioskType == null )
+            if ( kioskType == null )
             {
-                KioskType = new KioskType { Id = 0 };
+                kioskType = new KioskType { Id = 0 };
                 lActionTitle.Text = ActionTitle.Add( KioskType.FriendlyTypeName ).FormatAsHtmlTitle();
             }
 
-            hfKioskTypeId.Value = KioskType.Id.ToString();
+            hfKioskTypeId.Value = kioskType.Id.ToString();
 
-            tbName.Text = KioskType.Name;
-            tbDescription.Text = KioskType.Description;
-            tbMessage.Text = KioskType.Message;
+            tbName.Text = kioskType.Name;
+            tbDescription.Text = kioskType.Description;
+            tbMessage.Text = kioskType.Message;
+            cbIsMobile.Checked = kioskType.IsMobile;
+            tbGraceMinutes.Text = kioskType.GraceMinutes.ToString();
+            tbMinutesValid.Text = kioskType.MinutesValid.ToString();
+
 
             Locations = new Dictionary<int, string>();
-            foreach ( var location in KioskType.Locations )
+            foreach ( var location in kioskType.Locations )
             {
                 string path = location.Name;
                 var parentLocation = location.ParentLocation;
@@ -358,12 +371,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
 
             Schedules = new Dictionary<int, string>();
-            foreach ( var schedule in KioskType.Schedules )
+            foreach ( var schedule in kioskType.Schedules )
             {
                 Schedules.Add( schedule.Id, schedule.Name );
             }
 
-            BindDropDownList( KioskType );
+            BindDropDownList( kioskType );
             BindLocations();
             BindSchedules();
 
@@ -382,6 +395,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 lActionTitle.Text = ActionTitle.View( KioskType.FriendlyTypeName );
                 btnCancel.Text = "Close";
             }
+
+            ddlCampus.SelectedCampusId = kioskType.CampusId;
 
             tbName.ReadOnly = readOnly;
             tbDescription.ReadOnly = readOnly;

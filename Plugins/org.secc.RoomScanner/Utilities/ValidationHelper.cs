@@ -15,7 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using org.secc.FamilyCheckin.Utilities;
+using org.secc.FamilyCheckin.Cache;
 using org.secc.RoomScanner.Models;
 using Rock;
 using Rock.Data;
@@ -147,7 +147,7 @@ namespace org.secc.RoomScanner.Utilities
             AttendanceOccurrenceService attendanceOccurrenceService = new AttendanceOccurrenceService( rockContext );
             var occurrences = attendanceOccurrenceService.Queryable()
                 .Where( o => o.OccurrenceDate == RockDateTime.Now.Date && o.LocationId == location.Id ).ToList();
-            var volunteerOccurrences = occurrences.Where( o => KioskCountUtility.GetVolunteerGroupIds().Contains( o.GroupId ?? 0 ) ).FirstOrDefault();
+            var volunteerOccurrences = occurrences.Where( o => OccurrenceCache.GetVolunteerOccurrences().Select( oc => oc.GroupId ).Contains( o.GroupId ?? 0 ) ).FirstOrDefault();
             if ( volunteerOccurrences != null )
             {
                 return volunteerOccurrences;

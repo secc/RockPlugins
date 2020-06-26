@@ -1,8 +1,7 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="KioskTypeDetail.ascx.cs" Inherits="RockWeb.Plugins.org_secc.FamilyCheckin.KioskTypeDetail" %>
 
 <script type="text/javascript">
-    function clearActiveDialog()
-    {
+    function clearActiveDialog() {
         $('#<%=hfAddLocationId.ClientID %>').val('');
     }
 </script>
@@ -46,6 +45,28 @@
                             <Rock:RockCheckBoxList CausesValidation="false" ID="cblPrimaryGroupTypes" runat="server" Label="Check-in Area(s)" DataTextField="Name" DataValueField="Id"></Rock:RockCheckBoxList>
                         </div>
                     </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <Rock:CampusPicker runat="server" ID="ddlCampus" Label="Campus"
+                                Help="Sets the campus that this kiosktype belongs." />
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3">
+                         <Rock:RockCheckBox runat="server" ID="cbIsMobile" Label="Is Mobile" Help="Check if this kiosk type should be available from the mobile app" />
+                        </div>
+                        <div class="col-md-3">
+                            <Rock:RockTextBox runat="server" ID="tbMinutesValid"
+                                Label="Minutes Valid" Help="The number of minutes a check-in is guaranteed after mobile checkin." />
+                        </div>
+                        <div class="col-md-3">
+                            <Rock:RockTextBox runat="server" ID="tbGraceMinutes"
+                                Label="Grace Minutes" Help="The number of minutes a check-in is available after the valid time expires." />
+                        </div>
+                    </div>
+
                     <h3>Locations</h3>
                     <Rock:Grid ID="gLocations" runat="server" DisplayType="Light" RowItemText="Location" ShowConfirmDeleteDialog="false">
                         <Columns>

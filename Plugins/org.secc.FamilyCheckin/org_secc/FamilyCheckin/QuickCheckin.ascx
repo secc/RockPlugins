@@ -82,7 +82,7 @@
                                 <Rock:BootstrapButton ID="btnCheckinHeader" OnClick="btnCheckinHeader_Click"
                                     Text="Check-in" runat="server" />
                             </span>
-                            <Rock:BootstrapButton ID="btnInterfaceCheckin" runat="server" CssClass="btn btn-lg btn-primary doCheckin" OnClick="btnInterfaceCheckin_Click">Check-In</Rock:BootstrapButton>
+                            <Rock:BootstrapButton ID="btnInterfaceCheckin" runat="server" CssClass="btn btn-success doCheckin" OnClick="btnInterfaceCheckin_Click">Check-In</Rock:BootstrapButton>
                             <Rock:BootstrapButton runat="server" ID="btnAddPerson" CssClass="btn btn-lg btn-default addPerson" OnClick="addPerson_Click">+</Rock:BootstrapButton>
                             <div style="height: 0px; width: 0px; visibility: hidden">
                                 <Rock:BootstrapButton runat="server" ID="btnCheckin" CssClass="btn btn-lg btn-primary" OnClick="btnCheckin_Click"></Rock:BootstrapButton>
@@ -104,7 +104,7 @@
             <h4>Check-in may become available for your family members at a future time today.
                 <br />
                 If you need assistance or believe this is in error, please contact one of our volunteers.</h4>
-            <Rock:BootstrapButton runat="server" ID="btnNoCheckin" OnClick="btnNoCheckin_Click" Text="OK" CssClass="btn btn-primary btn-lg pull-right"></Rock:BootstrapButton>
+            <Rock:BootstrapButton runat="server" ID="btnNoCheckin" OnClick="btnNoCheckin_Click" Text="<span class='center'>OK</span>" CssClass="btn btn-primary btn-lg pull-right"></Rock:BootstrapButton>
             <br />
             <br />
         </asp:Panel>

@@ -20,6 +20,7 @@ using System.Net;
 using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
 using Rock;
 using Rock.Attribute;
@@ -179,9 +180,26 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 CurrentCheckInState = null;
                 CurrentWorkflow = null;
+
+                var kioskTypeCookie = this.Page.Request.Cookies["KioskTypeId"];
+
+                if ( kioskTypeCookie == null )
+                {
+                    kioskTypeCookie = new System.Web.HttpCookie( "KioskTypeId" );
+                }
+
+                kioskTypeCookie.Expires = RockDateTime.Now.AddYears( 1 );
+                kioskTypeCookie.Value = kiosk.KioskType.Id.ToString();
+
+                this.Page.Response.Cookies.Set( kioskTypeCookie );
+
                 Session["KioskTypeId"] = kiosk.KioskType.Id;
                 Session["KioskMessage"] = kiosk.KioskType.Message;
+
+                //Clean things up so we have the freshest possible version.
+                KioskTypeCache.Remove( kiosk.KioskTypeId ?? 0 );
                 KioskDevice.Remove( device.Id );
+
                 SaveState();
                 NavigateToNextPage();
             }

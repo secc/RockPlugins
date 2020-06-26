@@ -29,6 +29,11 @@ using Rock.Workflow.Action.CheckIn;
 using Rock;
 using System.Runtime.Caching;
 using org.secc.FamilyCheckin.Utilities;
+using Rock.Workflow.Action;
+using Newtonsoft.Json;
+using org.secc.FamilyCheckin.Model;
+using org.secc.FamilyCheckin.Cache;
+using DotLiquid.Util;
 
 namespace org.secc.FamilyCheckin
 {
@@ -43,6 +48,7 @@ namespace org.secc.FamilyCheckin
     [TextField( "Merge Text", "Text to merge label merge field into separated by commas.", false, "AAA,BBB,CCC,DDD,EEE,FFF" )]
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Volunteer Group Attribute" )]
     [GroupTypeField( "Breakout GroupType", "The grouptype which represents elementary breakout groups." )]
+    [BooleanField( "Is Mobile", "If this is a mobile check-in and needs to have its attendances set as RSVP and stored in an entity set, set true.", false )]
     public class CreateLabelsAggregate : CheckInActionComponent
     {
 
@@ -65,6 +71,7 @@ namespace org.secc.FamilyCheckin
 
             List<string> labelCodes = new List<string>();
             List<int> childGroupIds;
+            List<CheckInLabel> checkInLabels = new List<CheckInLabel>();
 
             var volAttributeGuid = GetAttributeValue( action, "VolunteerGroupAttribute" );
             string volAttributeKey = "";
@@ -252,6 +259,7 @@ namespace org.secc.FamilyCheckin
                                             }
                                         }
                                     }
+                                    checkInLabels.Add( label );
                                 }
                             }
                         }
@@ -340,16 +348,37 @@ namespace org.secc.FamilyCheckin
                             if ( lastCheckinGroupType != null )
                             {
                                 lastCheckinGroupType.Labels.Add( checkInLabel );
+                                checkInLabels.Add( checkInLabel );
                             }
                         }
-
                     }
                 }
 
+                //For mobile check-in we need to serialize this data and save it in the database.
+                //This will mean that when it's time to finish checkin in
+                //All we will need to do is deserialize and pass the data to the printer
+                if ( GetAttributeValue( action, "IsMobile" ).AsBoolean() )
+                {
+                    MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
+                    MobileCheckinRecord mobileCheckinRecord = mobileCheckinRecordService.Queryable()
+                        .Where( r => r.Status == MobileCheckinStatus.Active )
+                        .Where( r => r.CreatedDateTime > Rock.RockDateTime.Today )
+                        .Where( r => r.UserName == checkInState.Kiosk.Device.Name )
+                        .FirstOrDefault();
+
+                    if ( mobileCheckinRecord == null )
+                    {
+                        ExceptionLogService.LogException( "Mobile Check-in failed to find mobile checkin record" );
+                    }
+                    mobileCheckinRecord.SerializedCheckInState = JsonConvert.SerializeObject( checkInLabels );
+
+                    rockContext.SaveChanges();
+
+                    //Freshen cache (we're going to need it soon)
+                    MobileCheckinRecordCache.Update( mobileCheckinRecord.Id );
+                }
                 return true;
-
             }
-
             return false;
         }
 

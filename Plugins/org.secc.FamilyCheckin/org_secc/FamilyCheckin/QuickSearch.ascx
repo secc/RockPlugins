@@ -11,25 +11,33 @@
     </div>
 </div>
 <script>
-    var selectionActive=false;
-    var showingWelcome=false;
+    var selectionActive = false;
+    var showingWelcome = false;
     var kioskActive = false;
 
+    var keybuffer = '';
+    var lastbufferedkey = 0;
 
 
     Sys.Application.add_load(function () {
 
-        var captureSpecialKey = function(e){
+        var captureSpecialKey = function (e) {
             $phoneNumber = $("input[id$='tbPhone']");
             e = e || event;
-            if (e.keyCode == 13){
-                doSearch();
+            if (e.keyCode == 13) {
+                if (keybuffer.length > 0) {
+                    mobileCheckIn();
+                }
+                else {
+                    doSearch();
+                }
+
                 e.preventDefault();
-            
-            } else if(e.keyCode == 8){
-                if (!$phoneNumber.is(":focus")){
+
+            } else if (e.keyCode == 8) {
+                if (!$phoneNumber.is(":focus")) {
                     $phoneNumber.val($phoneNumber.val().slice(0, -1));
-                    if ($phoneNumber.val().length==0){
+                    if ($phoneNumber.val().length == 0) {
                         showWelcome();
                     }
                     pushHistory();
@@ -38,15 +46,33 @@
             }
         }
 
-        var captureKey = function(e){
+
+        var captureKey = function (e) {
             $phoneNumber = $("input[id$='tbPhone']");
             e = e || event;
-            if (!$phoneNumber.is(":focus")){
+            if (!$phoneNumber.is(":focus")) {
+                //Get the character
                 var char = String.fromCharCode(e.keyCode || e.charCode);
-                if (["0","1","2","3","4","5","6","7","8","9"].indexOf(char)>-1){
+
+                var date = new Date();
+
+                //If it's been half a second since the last key press reset the keyboard buffer
+                if (date.getTime() - lastbufferedkey > 500) {
+                    keybuffer = '';
+                }
+
+                if (keybuffer.length > 0) {
+                    keybuffer += char;
+                }
+                else if (char === "M") { // The first charater will be an "M" if it is a mobile checkin record access key
+                    keybuffer = "M";
+                }
+                else if (["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].indexOf(char) > -1) {
                     $phoneNumber = $("input[id$='tbPhone']");
                     $phoneNumber.val($phoneNumber.val() + char);
                 }
+
+                lastbufferedkey = date.getTime();
             }
         }
 
@@ -54,24 +80,24 @@
         document.body.onkeypress = captureKey;
 
         $('.tenkey a.digit').click(function () {
-            if (selectionActive){
+            if (selectionActive) {
                 return;
             }
             $phoneNumber = $("input[id$='tbPhone']");
             $phoneNumber.val($phoneNumber.val() + $(this).html());
         });
         $('.tenkey a.back').click(function () {
-            if (selectionActive){
+            if (selectionActive) {
                 return;
             }
             $phoneNumber = $("input[id$='tbPhone']");
             $phoneNumber.val($phoneNumber.val().slice(0, -1));
-            if ($phoneNumber.val().length==0){
+            if ($phoneNumber.val().length == 0) {
                 showWelcome();
             }
         });
         $('.tenkey a.clear').click(function () {
-            if (selectionActive){
+            if (selectionActive) {
                 return;
             }
             $phoneNumber = $("input[id$='tbPhone']");
@@ -80,23 +106,24 @@
         });
     });
 
-    var checkStatus = function(kioskTypeId){
+    var checkStatus = function (kioskTypeId) {
         $.ajax({
-            url: "/api/org.secc/familycheckin/KioskStatus/"+kioskTypeId,
+            url: "/api/org.secc/familycheckin/KioskStatus/" + kioskTypeId,
             dataType: "json",
-            success: function(data){
-                updateKiosk(data,kioskTypeId );},
-            error: function(data){
+            success: function (data) {
+                updateKiosk(data, kioskTypeId);
+            },
+            error: function (data) {
                 refreshKiosk();
             }
         });
     }
 
-    var updateKiosk = function(data,kioskTypeId){
-        if(data["active"]){
+    var updateKiosk = function (data, kioskTypeId) {
+        if (data["active"]) {
             window.clearTimeout(timeout);
-            timeout = window.setTimeout(function(){checkStatus( kioskTypeId )}, timeoutSeconds * 1000);
-            if (!kioskActive){
+            timeout = window.setTimeout(function () { checkStatus(kioskTypeId) }, timeoutSeconds * 1000);
+            if (!kioskActive) {
                 refreshKiosk();
             }
         } else {
@@ -104,21 +131,22 @@
         }
     }
 
-    var doSearch = function(){
-        if (selectionActive){
+    var doSearch = function () {
+        if (selectionActive) {
             return;
         }
-        var phoneNumber =  $("input[id$='tbPhone']").val().replace(/\D/g, '');
+        var phoneNumber = $("input[id$='tbPhone']").val().replace(/\D/g, '');
         var minLength = <%= minLength.ToString()%>;
-        if (phoneNumber.length>=minLength){
+        if (phoneNumber.length >= minLength) {
             showSign('Searching...', true);
-                
+
             $.ajax({
-                url: "/api/org.secc/familycheckin/family/"+phoneNumber,
+                url: "/api/org.secc/familycheckin/family/" + phoneNumber,
                 dataType: "json",
-                success: function(data){
-                    showFamilies(data);},
-                error: function(data){
+                success: function (data) {
+                    showFamilies(data);
+                },
+                error: function (data) {
                     showSign("There was an issue with the request. Please try again. If the problem continues please contact a volunteer to help you.", false, "1vw")
                 }
             });
@@ -128,115 +156,137 @@
         }
     }
 
-    var showFamilies = function(families) {
-        if (selectionActive){
+    var showFamilies = function (families) {
+        if (selectionActive) {
             return;
         }
-        if (families.length==0){
+        if (families.length == 0) {
             var content = document.getElementById("contentDiv");
-            content.style.transform="translateX(0px)";
+            content.style.transform = "translateX(0px)";
             var families = document.getElementById("familyDiv");
-            families.style.transform="translateX(0px)";
-            setTimeout(function(){ showSign("Sorry, we could not find your phone number.",false, "2vw")},300);
+            families.style.transform = "translateX(0px)";
+            setTimeout(function () { showSign("Sorry, we could not find your phone number.", false, "2vw") }, 300);
             return;
         }
 
         familyDiv = $("#familyDiv");
-        if(families.length==1){
-            setTimeout(function(){ showSign("Loading your family",true, "2.5vw")},300);
-            setTimeout(function() {__doPostBack("ChooseFamily", families[0]["Group"]["Id"]);}, 1);
+        if (families.length == 1) {
+            setTimeout(function () { showSign("Loading your family", true, "2.5vw") }, 300);
+            setTimeout(function () { __doPostBack("ChooseFamily", families[0]["Group"]["Id"]); }, 1);
         }
-        else{
+        else {
             var content = document.getElementById("contentDiv");
-            content.style.transform="translateX(800px)";
+            content.style.transform = "translateX(800px)";
             familyDiv.empty();
             families.forEach(
-                function(family){
+                function (family) {
                     var link = $("<a>");
-                    link.html("<h2>"+family["Caption"] +"</h2>"+ family["SubCaption"]);
-                    link.attr("id",family["Group"]["Id"]);
+                    link.html("<h2>" + family["Caption"] + "</h2>" + family["SubCaption"]);
+                    link.attr("id", family["Group"]["Id"]);
                     link.click(chooseFamily)
                     link.addClass("btn btn-primary btn-block familyButton");
                     familyDiv.append(link);
                 }
             );
-            setTimeout(function(){ showSign("Select your family to continue.",false, "2.5vw")},300)
+            setTimeout(function () { showSign("Select your family to continue.", false, "2.5vw") }, 300)
             familyDiv.get(0).style.transform = "translateX(800px)";
         }
     }
 
-    var chooseFamily = function(event){
-        if (selectionActive){
+    var chooseFamily = function (event) {
+        if (selectionActive) {
             return;
         }
-        selectionActive=true
+        selectionActive = true
         this.innerHTML = "<h2><i class='fa fa-refresh fa-spin'></i> Loading Family</h2>Please wait..."
         this.className = "btn btn-success btn-block"
         familyId = this.id
-        setTimeout(function() { __doPostBack("ChooseFamily", familyId); },1)
+        setTimeout(function () { __doPostBack("ChooseFamily", familyId); }, 1)
     }
 
-    var signVisible=false;
+    var signVisible = false;
     var signTimeout;
- 
-    var showSign = function(text, showLoading, fontSize){
+
+    var showSign = function (text, showLoading, fontSize) {
         if (signVisible) {
             hideSign();
-            if (signTimeout)clearTimeout(signTimeout);
-            signTimeout= setTimeout(function() {showSign(text,showLoading, fontSize) },100)
+            if (signTimeout) clearTimeout(signTimeout);
+            signTimeout = setTimeout(function () { showSign(text, showLoading, fontSize) }, 100)
             return;
         }
-        signVisible=true;
+        signVisible = true;
         var signText = document.getElementById("signText");
         signText.innerHTML = text;
         if (fontSize) {
-            signText.style.fontSize=fontSize;
-        }else {
-            signText.style.fontSize="4vw";
-        }
-  
-        if (!showLoading) {
-            document.getElementById("signFlower").style.display="none";
-            document.getElementById("signFlowerShadow").style.display="none";
+            signText.style.fontSize = fontSize;
         } else {
-            document.getElementById("signFlower").style.display="block";
-            document.getElementById("signFlowerShadow").style.display="block";
+            signText.style.fontSize = "4vw";
+        }
+
+        if (!showLoading) {
+            document.getElementById("signFlower").style.display = "none";
+            document.getElementById("signFlowerShadow").style.display = "none";
+        } else {
+            document.getElementById("signFlower").style.display = "block";
+            document.getElementById("signFlowerShadow").style.display = "block";
         }
         var signOuter = document.getElementById("signOuter");
-        signOuter.style.transform="translateY(13vw)";
-        showingWelcome=false;
-    }
- 
-    var hideSign = function(){
-        signVisible=false;
-        var signOuter = document.getElementById("signOuter");
-        signOuter.style.transform="translateY(-15vw)";
-        showingWelcome=false;
+        signOuter.style.transform = "translateY(13vw)";
+        showingWelcome = false;
     }
 
-    var showWelcome =function(){
-        if (showingWelcome){
+    var hideSign = function () {
+        signVisible = false;
+        var signOuter = document.getElementById("signOuter");
+        signOuter.style.transform = "translateY(-15vw)";
+        showingWelcome = false;
+    }
+
+    var showWelcome = function () {
+        if (showingWelcome) {
             return;
         }
         showSign("<span style='font-size:3vw'>Welcome!</span><br>Please enter your phone number.", false, "1.5vw")
-        try{
+        try {
             var content = document.getElementById("contentDiv");
-            content.style.transform="translateX(0px)";
-        } catch(e) {}
+            content.style.transform = "translateX(0px)";
+        } catch (e) { }
         try {
             var families = document.getElementById("familyDiv");
-            families.style.transform="translateX(0px)";
+            families.style.transform = "translateX(0px)";
         }
-        catch(e){}
+        catch (e) { }
 
-        setTimeout(function(){showingWelcome=true},150);
+        setTimeout(function () { showingWelcome = true }, 150);
         document.body.focus();
     }
 
-    var pushHistory = function(){
+    var pushHistory = function () {
         history.pushState("CHECK-IN", document.title, window.location.pathname);
     }
     pushHistory();
+
+    var mobileCheckIn = function () {
+        if (kioskActive == false) {
+            return;
+        }
+        $('#hfMobileAccessKey').val(keybuffer);
+        showMobileDialog("<center><br><br><h2>Loading...</h2>Please wait. We are looking up your check-in record.</center>")
+        window.location = "javascript:__doPostBack('<%= btnMobileCheckin.UniqueID %>', 'Click')";
+    }
+
+    var showMobileDialog = function (html, time) {
+        $("#mdMobileBackdrop").show();
+        $("#mdMobile").show();
+        $("#mdMobileContent").html(html);
+
+        if (time) {
+            setTimeout(function () {
+                $("#mdMobileBackdrop").hide();
+                $("#mdMobile").hide();
+            }, time);
+        }
+    }
 
 </script>
 
@@ -244,8 +294,9 @@
     <ContentTemplate>
         <asp:Literal Visible="false" ID="lTime" runat="server" />
 
-
         <asp:PlaceHolder ID="phScript" runat="server"></asp:PlaceHolder>
+        <asp:HiddenField ID="hfMobileAccessKey" runat="server" ClientIDMode="Static" />
+        <asp:LinkButton runat="server" ID="btnMobileCheckin" OnClick="btnMobileCheckin_Click" />
 
         <Rock:HiddenFieldWithClass ID="hfRefreshTimerSeconds" runat="server" CssClass="js-refresh-timer-seconds" />
 
@@ -341,7 +392,6 @@
                                         </div>
                                         <a href="#" class="btn btn-primary btn-lg search-button" onclick="doSearch()">Search</a>
                                     </asp:Panel>
-
                                 </div>
                             </div>
                             <div class="col-xs-8" id="contentContainer">
@@ -354,7 +404,20 @@
                     </div>
                 </div>
             </div>
+
+
         </asp:Panel>
+
+        <!-- Mobile Dialog  -->
+        <div id="mdMobileBackdrop" class="modal-backdrop in" style="z-index: 1050; display: none">&nbsp;</div>
+        <div id="mdMobile" class="modal-scrollable" style="z-index: 1060; display: none;">
+            <div style="display: block; margin-top: 0px;" class="modal container modal-content rock-modal rock-modal-frame modal-overflow in">
+                <div id="mdMobileContent" class="text-center">
+                    &nbsp;
+                </div>
+            </div>
+        </div>
+
     </ContentTemplate>
 </asp:UpdatePanel>
 

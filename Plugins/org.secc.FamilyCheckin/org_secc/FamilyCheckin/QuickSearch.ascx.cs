@@ -15,19 +15,21 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text.RegularExpressions;
 using System.Linq;
-
+using System.Web.UI;
+using Microsoft.AspNet.SignalR;
+using Newtonsoft.Json;
+using org.secc.FamilyCheckin.Cache;
+using org.secc.FamilyCheckin.Exceptions;
+using org.secc.FamilyCheckin.Model;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
-using Rock.Web.UI.Controls;
-using Rock.Web.Cache;
-using System.Web.UI;
-using org.secc.FamilyCheckin.Model;
-using org.secc.FamilyCheckin.Exceptions;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {
@@ -40,17 +42,29 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [TextField( "Search Regex", "Regular Expression to run the search input through before sending it to the workflow. Useful for stripping off characters.", false )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.CHECKIN_SEARCH_TYPE, "Search Type", "The type of search to use for check-in (default is phone number).", true, false, Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER, order: 4 )]
     [CodeEditorField( "Default Content", "Default content to display", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 12 )]
+    [CodeEditorField( "No Mobile Checkin Record", "Message to display when there is no mobile checkin record.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 13, key: AttributeKeys.NoMobileCheckinRecord )]
+    [CodeEditorField( "Expired Checkin Record", "Message to display when the check-in record has been exprired/deleted.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 13, key: AttributeKeys.ExpiredMobileCheckinRecord )]
+    [CodeEditorField( "Already Completed Checkin Record", "Message to display when the check-in record has been deleted.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 14, key: AttributeKeys.AlreadyCompleteCheckinRecord )]
+    [CodeEditorField( "Completing Checkin Record", "Message to display when completing the check-in record.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 15, key: AttributeKeys.CompletingMobileCheckin )]
     public partial class QuickSearch : CheckInBlock
     {
 
+        protected static class AttributeKeys
+        {
+            internal const string NoMobileCheckinRecord = "NoMobileCheckinRecord";
+            internal const string ExpiredMobileCheckinRecord = "ExpiredMobileCheckinRecord";
+            internal const string AlreadyCompleteCheckinRecord = "AlreadyCompleteCheckinRecord";
+            internal const string WrongCampusMessage = "WrongCampusMessage";
+            internal const string CompletingMobileCheckin = "CompletingMobileCheckin";
+        }
+
         protected int minLength;
         protected int maxLength;
-        protected KioskType KioskType;
-
+        protected KioskTypeCache KioskType;
+        private IHubContext _hubContext = GlobalHost.ConnectionManager.GetHubContext<RockMessageHub>();
 
         protected override void OnInit( EventArgs e )
         {
-
             base.OnInit( e );
 
             if ( CurrentCheckInState == null )
@@ -60,24 +74,20 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 return;
             }
 
-            if ( Session["KioskTypeId"] != null )
+            var kioskTypeCookie = this.Page.Request.Cookies["KioskTypeId"];
+            if ( kioskTypeCookie != null )
             {
-                int kioskTypeId = ( int ) Session["KioskTypeId"];
-                KioskType = new KioskTypeService( new RockContext() ).Get( kioskTypeId );
-                if ( KioskType == null )
-                {
-                    NavigateToPreviousPage();
-                    return;
-                }
+                KioskType = KioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
             }
-            else
+
+            if ( KioskType == null )
             {
-                NavigateToPreviousPage();
-                return;
+                NavigateToHomePage();
             }
 
             RockPage.AddScriptLink( "~/scripts/jquery.plugin.min.js" );
             RockPage.AddScriptLink( "~/scripts/jquery.countdown.min.js" );
+            RockPage.AddScriptLink( "~/Scripts/CheckinClient/ZebraPrint.js" );
 
             RegisterScript();
         }
@@ -101,9 +111,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 SaveState();
                 Session["BlockGuid"] = BlockCache.Guid;
                 RefreshView();
-                if ( Session["KioskMessage"] != null && !string.IsNullOrWhiteSpace( ( string ) Session["KioskMessage"] ) )
+                if ( KioskType.Message.IsNotNullOrWhiteSpace() )
                 {
-                    ltContent.Text = ( string ) Session["KioskMessage"];
+                    ltContent.Text = KioskType.Message;
                 }
                 else
                 {
@@ -158,6 +168,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         /// </summary>
         private void RefreshView()
         {
+            if ( KioskType == null )
+            {
+                LogException( new CheckInStateLost( "Lost check-in state on refresh view" ) );
+                NavigateToHomePage();
+                return;
+            }
+
             hfRefreshTimerSeconds.Value = GetAttributeValue( "RefreshInterval" );
             pnlNotActive.Visible = false;
             pnlNotActiveYet.Visible = false;
@@ -183,7 +200,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             if ( !KioskType.IsOpen( currentDateTime ) )
             {
-                DateTime? activeAt = KioskType.GetNextOpen( currentDateTime);
+                DateTime? activeAt = KioskType.GetNextOpen( currentDateTime );
                 if ( activeAt == null )
                 {
                     pnlNotActive.Visible = true;
@@ -199,12 +216,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
             else
             {
-                var schedules = KioskType.GroupTypes
-                    .SelectMany( gt => gt.Groups )
-                    .SelectMany( g => g.GroupLocations )
-                    .SelectMany( gl => gl.Schedules )
-                    .DistinctBy( s => s.Id )
-                    .ToList();
+                var schedules = KioskType.CheckInSchedules;
 
                 if ( schedules.Where( s => s.WasCheckInActive( currentDateTime ) ).Any() )
                 {
@@ -241,6 +253,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         private void ShowWelcomeSign()
         {
             ScriptManager.RegisterStartupScript( Page, Page.GetType(), "ShowWelcomeSign", "showWelcome();", true );
+        }
+
+        private void ShowWrongCampusSign( string mobileCampus, string actualCampus )
+        {
+            var content = string.Format( "<h2>Uh Oh.</h2> You seem to be trying to check in to the {0} campus, but your reservation is for {1}.<br> Please see the check-in volunteer for assistance.", actualCampus, mobileCampus );
+            MobileCheckinMessage( content, 20 );
         }
 
         /// <summary>
@@ -296,6 +314,103 @@ if ($ActiveWhen.text() != '')
 
 ", this.Page.ClientScript.GetPostBackEventReference( lbRefresh, "" ), KioskType.Id );
             ScriptManager.RegisterStartupScript( Page, Page.GetType(), "RefreshScript", script, true );
+        }
+
+        protected void btnMobileCheckin_Click( object sender, EventArgs e )
+        {
+            MobileCheckin( hfMobileAccessKey.Value );
+        }
+
+        private void MobileCheckin( string accessKey )
+        {
+            var mobileDidAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_DID_ATTEND ).Id;
+            var mobileNotAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_NOT_ATTEND ).Id;
+
+            RockContext rockContext = new RockContext();
+            MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
+
+            var mobileCheckinRecord = mobileCheckinRecordService.Queryable().Where( r => r.AccessKey == accessKey ).FirstOrDefault();
+
+            if ( mobileCheckinRecord == null )
+            {
+                MobileCheckinMessage( GetAttributeValue( AttributeKeys.NoMobileCheckinRecord ) );
+                return;
+            }
+            else if ( mobileCheckinRecord.Status == MobileCheckinStatus.Canceled )
+            {
+                MobileCheckinMessage( GetAttributeValue( AttributeKeys.ExpiredMobileCheckinRecord ) );
+                return;
+            }
+            else if ( mobileCheckinRecord.Status == MobileCheckinStatus.Complete )
+            {
+                MobileCheckinMessage( GetAttributeValue( AttributeKeys.AlreadyCompleteCheckinRecord ) );
+                return;
+            }
+
+            try
+            {
+                if ( mobileCheckinRecord == null )
+                {
+                    return;
+                }
+
+                if ( KioskType.CampusId.HasValue && KioskType.CampusId != mobileCheckinRecord.CampusId )
+                {
+                    ShowWrongCampusSign( mobileCheckinRecord.Campus.Name, KioskType.Campus.Name );
+                    return;
+                }
+                List<CheckInLabel> labels = JsonConvert.DeserializeObject<List<CheckInLabel>>( mobileCheckinRecord.SerializedCheckInState );
+
+                LabelPrinter labelPrinter = new LabelPrinter()
+                {
+                    Request = Request,
+                    Labels = labels
+                };
+
+                labelPrinter.PrintNetworkLabels();
+                var script = labelPrinter.GetClientScript();
+                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
+
+                foreach ( var attendance in mobileCheckinRecord.Attendances )
+                {
+                    if ( attendance.QualifierValueId == mobileDidAttendId )
+                    {
+                        attendance.DidAttend = true;
+                        attendance.QualifierValueId = null;
+                        attendance.StartDateTime = Rock.RockDateTime.Now;
+                    }
+                    else if ( attendance.QualifierValueId == mobileNotAttendId )
+                    {
+                        attendance.DidAttend = false;
+                        attendance.QualifierValueId = null;
+                    }
+                    attendance.Note = "Completed mobile check-in at: " + CurrentCheckInState.Kiosk.Device.Name;
+                }
+
+                mobileCheckinRecord.Status = MobileCheckinStatus.Complete;
+
+                rockContext.SaveChanges();
+
+                //wait until we successfully save to update cache
+                foreach ( var attendance in mobileCheckinRecord.Attendances )
+                {
+                    AttendanceCache.AddOrUpdate( attendance );
+
+                }
+                MobileCheckinRecordCache.Update( mobileCheckinRecord.Id );
+                _hubContext.Clients.All.mobilecheckincomplete( accessKey, true );
+                MobileCheckinMessage( GetAttributeValue( AttributeKeys.CompletingMobileCheckin ), 5 );
+            }
+            catch ( Exception e )
+            {
+            }
+        }
+
+        private void MobileCheckinMessage( string message, int secondsOpen = 10 )
+        {
+            message = message.RemoveCrLf();
+            secondsOpen = secondsOpen * 1000;
+            ScriptManager.RegisterStartupScript( Page, Page.GetType(), "ShowMobileMessage", "showMobileDialog('" + message + "'," + secondsOpen.ToString() + ");", true );
         }
     }
 }

@@ -12,13 +12,17 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
+using Newtonsoft.Json;
 using Rock;
 using Rock.CheckIn;
 using Rock.Data;
@@ -28,9 +32,12 @@ namespace org.secc.FamilyCheckin.Utilities
 {
     public class LabelPrinter
     {
-        private CheckInState _currentCheckinState;
-        private HttpRequest _request;
-        List<CheckInLabel> _labels;
+        public CheckInState CheckInState { get; set; }
+
+        public HttpRequest Request { get; set; }
+        
+        public List<CheckInLabel> Labels { get; set; }
+
         /// <summary>
         /// Gets a count of the current labesl to print over network
         /// </summary>
@@ -38,11 +45,11 @@ namespace org.secc.FamilyCheckin.Utilities
         {
             get
             {
-                if ( _labels == null )
+                if ( Labels == null )
                 {
                     return 0;
                 }
-                return _labels.Count( l => l.PrintFrom == Rock.Model.PrintFrom.Server );
+                return Labels.Count( l => l.PrintFrom == Rock.Model.PrintFrom.Server );
             }
         }
         /// <summary>
@@ -52,12 +59,17 @@ namespace org.secc.FamilyCheckin.Utilities
         {
             get
             {
-                if ( _labels == null )
+                if ( Labels == null )
                 {
                     return 0;
                 }
-                return _labels.Count( l => l.PrintFrom == Rock.Model.PrintFrom.Client );
+                return Labels.Count( l => l.PrintFrom == Rock.Model.PrintFrom.Client );
             }
+        }
+
+        public LabelPrinter()
+        {
+
         }
 
         /// <summary>
@@ -65,11 +77,11 @@ namespace org.secc.FamilyCheckin.Utilities
         /// </summary>
         /// <param name="CurrentCheckinState"></param>
         /// <param name="Request"></param>
-        public LabelPrinter( CheckInState CurrentCheckinState, HttpRequest Request )
+        public LabelPrinter( CheckInState currentCheckinState, HttpRequest request )
         {
-            _currentCheckinState = CurrentCheckinState;
-            _request = Request;
-            _labels = new List<CheckInLabel>();
+            CheckInState = currentCheckinState;
+            Request = request;
+            Labels = new List<CheckInLabel>();
             ProcessLabels();
         }
 
@@ -78,7 +90,7 @@ namespace org.secc.FamilyCheckin.Utilities
         /// </summary>
         private void ProcessLabels()
         {
-            foreach ( var selectedFamily in _currentCheckinState.CheckIn.Families.Where( p => p.Selected ) )
+            foreach ( var selectedFamily in CheckInState.CheckIn.Families.Where( p => p.Selected ) )
             {
                 List<CheckInPerson> selectedPeople = selectedFamily.People.Where( p => p.Selected ).ToList();
 
@@ -93,7 +105,7 @@ namespace org.secc.FamilyCheckin.Utilities
                                 foreach ( var label in groupType.Labels )
                                 {
                                     var file = new BinaryFileService( rockContext ).Get( label.FileGuid );
-                                    _labels.Add( label );
+                                    Labels.Add( label );
                                 }
                             }
                         }
@@ -109,10 +121,10 @@ namespace org.secc.FamilyCheckin.Utilities
         public string GetClientScript()
         {
             // Print client labels
-            if ( _labels.Any( l => l.PrintFrom == Rock.Model.PrintFrom.Client ) )
+            if ( Labels.Any( l => l.PrintFrom == Rock.Model.PrintFrom.Client ) )
             {
-                var clientLabels = _labels.Where( l => l.PrintFrom == PrintFrom.Client ).ToList();
-                var urlRoot = string.Format( "{0}://{1}", _request.Url.Scheme, _request.Url.Authority );
+                var clientLabels = Labels.Where( l => l.PrintFrom == PrintFrom.Client ).ToList();
+                var urlRoot = string.Format( "{0}://{1}", Request.Url.Scheme, Request.Url.Authority );
                 clientLabels.ForEach( l => l.LabelFile = urlRoot + l.LabelFile );
                 return AddLabelScript( clientLabels.ToJson() );
             }
@@ -125,7 +137,7 @@ namespace org.secc.FamilyCheckin.Utilities
         {
             var printQueue = new Dictionary<string, StringBuilder>();
             // Print server labels
-            if ( _labels.Any( l => l.PrintFrom == Rock.Model.PrintFrom.Server ) )
+            if ( Labels.Any( l => l.PrintFrom == Rock.Model.PrintFrom.Server ) )
             {
                 string delayCut = @"^XB";
                 string endingTag = @"^XZ";
@@ -133,8 +145,8 @@ namespace org.secc.FamilyCheckin.Utilities
                 var labelContent = new StringBuilder();
 
                 // make sure labels have a valid ip
-                var lastLabel = _labels.Last();
-                foreach ( var label in _labels.Where( l => l.PrintFrom == PrintFrom.Server && !string.IsNullOrEmpty( l.PrinterAddress ) ) )
+                var lastLabel = Labels.Last();
+                foreach ( var label in Labels.Where( l => l.PrintFrom == PrintFrom.Server && !string.IsNullOrEmpty( l.PrinterAddress ) ) )
                 {
                     var labelCache = KioskLabel.Get( label.FileGuid );
                     if ( labelCache != null )

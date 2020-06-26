@@ -17,12 +17,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
+using org.secc.FamilyCheckin.Cache;
+using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
 using Rock.Workflow;
 using Rock.Workflow.Action.CheckIn;
 
@@ -35,6 +38,8 @@ namespace org.secc.FamilyCheckin
     [Description( "Saves the selected check-in data as attendance" )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Save Attendance Custom" )]
+
+    [BooleanField( "Is Mobile", "If this is a mobile check-in and needs to have its attendances set as RSVP and stored in an entity set, set true.", false )]
     public class SaveAttendance : CheckInActionComponent
     {
         /// <summary>
@@ -48,6 +53,10 @@ namespace org.secc.FamilyCheckin
         /// <exception cref="System.NotImplementedException"></exception>
         public override bool Execute( RockContext rockContext, Rock.Model.WorkflowAction action, Object entity, out List<string> errorMessages )
         {
+            var isMobile = GetAttributeValue( action, "IsMobile" ).AsBoolean();
+            var mobileDidAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_DID_ATTEND ).Id;
+            var mobileNotAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_NOT_ATTEND ).Id;
+
             var checkInState = GetCheckInState( entity, out errorMessages );
             if ( checkInState != null )
             {
@@ -63,6 +72,9 @@ namespace org.secc.FamilyCheckin
                 var attendanceService = new AttendanceService( rockContext );
                 var groupMemberService = new GroupMemberService( rockContext );
                 var personAliasService = new PersonAliasService( rockContext );
+
+                //This list is just for mobile check-in
+                List<Attendance> attendances = new List<Attendance>();
 
                 var family = checkInState.CheckIn.CurrentFamily;
                 if ( family != null )
@@ -129,13 +141,25 @@ namespace org.secc.FamilyCheckin
                                             attendance.CheckedInByPersonAliasId = checkInState.CheckIn.CheckedInByPersonAliasId;
                                             attendance.SearchResultGroupId = family.Group.Id;
                                             attendance.AttendanceCodeId = attendanceCode.Id;
+                                            attendance.CreatedDateTime = startDateTime;
                                             attendance.StartDateTime = startDateTime;
                                             attendance.EndDateTime = null;
                                             attendance.Note = group.Notes;
-                                            attendance.DidAttend = groupType.GroupType.GetAttributeValue( "SetDidAttend" ).AsBoolean();
+                                            attendance.DidAttend = isMobile ? false : groupType.GroupType.GetAttributeValue( "SetDidAttend" ).AsBoolean();
+                                            if ( isMobile )
+                                            {
+                                                if ( groupType.GroupType.GetAttributeValue( "SetDidAttend" ).AsBoolean() )
+                                                {
+                                                    attendance.QualifierValueId = mobileDidAttendId;
+                                                }
+                                                else
+                                                {
+                                                    attendance.QualifierValueId = mobileNotAttendId;
+                                                }
+                                            };
 
                                             attendanceService.Add( attendance );
-                                            CheckInCountCache.AddAttendance( attendance );
+                                            attendances.Add( attendance );
                                         }
                                     }
                                 }
@@ -144,7 +168,43 @@ namespace org.secc.FamilyCheckin
                     }
                 }
 
+                if ( isMobile )
+                {
+                    var alreadyExistingMobileCheckin = MobileCheckinRecordCache.GetActiveByFamilyGroupId( checkInState.CheckIn.CurrentFamily.Group.Id );
+                    if ( alreadyExistingMobileCheckin != null )
+                    {
+                        //This should never run, it's just in case. Each family should only have 1 mobile check-in reservation.
+                        MobileCheckinRecordCache.CancelReservation( alreadyExistingMobileCheckin, true );
+                    }
+
+                    KioskService kioskService = new KioskService( rockContext );
+                    var kioskType = kioskService.GetByClientName( checkInState.Kiosk.Device.Name ).KioskType;
+                    var campusId = kioskType.CampusId;
+
+                    MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
+                    var mobileCheckinRecord = new MobileCheckinRecord
+                    {
+                        AccessKey = "MCR" + Guid.NewGuid().ToString( "N" ).Substring( 0, 12 ),
+                        ReservedUntilDateTime = Rock.RockDateTime.Now.AddMinutes( kioskType.MinutesValid ?? 10 ),
+                        ExpirationDateTime = Rock.RockDateTime.Now.AddMinutes( ( kioskType.MinutesValid ?? 10 ) + ( kioskType.GraceMinutes ?? 60 ) ),
+                        UserName = checkInState.Kiosk.Device.Name,
+                        FamilyGroupId = checkInState.CheckIn.CurrentFamily.Group.Id,
+                        CampusId = campusId.Value
+                    };
+
+                    foreach ( var attendance in attendances )
+                    {
+                        mobileCheckinRecord.Attendances.Add( attendance );
+                    }
+
+                    mobileCheckinRecordService.Add( mobileCheckinRecord );
+                }
+
                 rockContext.SaveChanges();
+                foreach ( var attendance in attendances )
+                {
+                    AttendanceCache.AddOrUpdate( attendance );
+                }
                 return true;
             }
 

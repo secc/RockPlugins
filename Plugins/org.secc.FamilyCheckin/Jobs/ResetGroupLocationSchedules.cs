@@ -20,12 +20,11 @@ using Rock.Attribute;
 using Rock;
 using Rock.Model;
 using Rock.Data;
+using org.secc.FamilyCheckin.Cache;
+using org.secc.FamilyCheckin.Utilities;
 
 namespace org.secc.FamilyCheckin
 {
-
-    [DefinedTypeField("Disabled GroupLocationSchedules", "Defined type which the disabled GroupLocationSchedules are saved", true)]
-
     [DisallowConcurrentExecution]
     public class ResetGroupLocationSchedules : IJob
     {
@@ -38,14 +37,10 @@ namespace org.secc.FamilyCheckin
             JobDataMap dataMap = context.JobDetail.JobDataMap;
 
             var rockContext = new RockContext();
-            var definedTypeGuid = dataMap.GetString( "DisabledGroupLocationSchedules" ).AsGuidOrNull();
-            if ( definedTypeGuid == null )
-            {
-                return;
-            }
+
             var definedTypeService = new DefinedTypeService( rockContext );
             var definedValueService = new DefinedValueService( rockContext );
-            var dtDeactivated = definedTypeService.Get( definedTypeGuid ?? new Guid());
+            var dtDeactivated = definedTypeService.Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES.AsGuid() );
             var dvDeactivated = dtDeactivated.DefinedValues.ToList();
             var scheduleService = new ScheduleService( rockContext );
             var groupLocationService = new GroupLocationService( rockContext );
@@ -57,7 +52,7 @@ namespace org.secc.FamilyCheckin
                 } ).ToList();
 
             //add schedules back
-            foreach (var groupLocationSchedule in deactivatedGroupLocationSchedules )
+            foreach ( var groupLocationSchedule in deactivatedGroupLocationSchedules )
             {
                 if ( !groupLocationSchedule.GroupLocation.Schedules.Contains( groupLocationSchedule.Schedule ) )
                 {
@@ -65,7 +60,7 @@ namespace org.secc.FamilyCheckin
                 }
             }
             //Remove defined values
-            foreach (var value in dvDeactivated )
+            foreach ( var value in dvDeactivated )
             {
                 definedValueService.Delete( value );
                 Rock.Web.Cache.DefinedValueCache.Remove( value.Id );
@@ -75,11 +70,14 @@ namespace org.secc.FamilyCheckin
             Rock.Web.Cache.DefinedTypeCache.Remove( dtDeactivated.Id );
 
             rockContext.SaveChanges();
-            
-            //flush kiosk cache
-            Rock.CheckIn.KioskDevice.Clear();
 
-            context.Result = string.Format("Finished at {0}. Reset {1} GroupScheduleLocations.", Rock.RockDateTime.Now, deactivatedGroupLocationSchedules.Count);
+            //clear caches
+            KioskTypeCache.Clear();
+            Rock.CheckIn.KioskDevice.Clear();
+            OccurrenceCache.Clear();
+            AttendanceCache.Clear();
+
+            context.Result = string.Format( "Finished at {0}. Reset {1} GroupScheduleLocations.", Rock.RockDateTime.Now, deactivatedGroupLocationSchedules.Count );
         }
     }
 }
