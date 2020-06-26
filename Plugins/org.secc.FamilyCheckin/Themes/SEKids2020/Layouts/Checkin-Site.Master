@@ -19,8 +19,10 @@
     <asp:ContentPlaceHolder ID="css" runat="server" />
 
     <!-- Included CSS Files -->
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/checkin-theme.css", true) %>" />
-
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/main.css", true) %>" />
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/simplebar.css", true) %>" />
+    <script src="<%# ResolveRockUrl("~~/Scripts/simplebar.js" ) %>"></script>
+    
     <script src="<%# ResolveRockUrl("~/Scripts/fastclick.js" ) %>"></script>
 
     <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
@@ -32,7 +34,7 @@
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-ipad.png", true) %>">
     <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Assets/Icons/touch-icon-iphone.png", true) %>">
 </head>
-<body style="touch-action: pan-x">
+<body style="touch-action: pan-x pan-y;">
 <%-- <body oncontextmenu="return false" style="touch-action: pan-x"> --%>
     <form id="form1" runat="server">
 
@@ -43,6 +45,7 @@
             window.addEventListener('load', function ()
             {
                 new FastClick(document.body);
+                $('#familyDiv').attr('data-simplebar','');
             }, false);
         </script>
 
