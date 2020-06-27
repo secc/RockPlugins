@@ -672,6 +672,7 @@ body {
 
 .scheduleSelected {
     @include phones {
+        display: block;
         width: 100%;
     }
 }
@@ -679,6 +680,7 @@ body {
 .scheduleNotSelected {
     background-color: #fff;
     color: #3F6387;
+    display: block;
     &::first-line {
         font-weight: 700;
     }
@@ -797,11 +799,34 @@ fieldset[disabled] .btn {
     border: none;
     color: white;
     font-size: 3em;
-    // background-color: #f17148;
-    // box-shadow: 2px 2px 1px black;
     float: right;
     margin-right: 10px;
     width: 76px;
+    @include tablets {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 2em;
+        left: 51%;
+        transform: translate(-50%, 0);
+        &:after {
+            position: relative;
+            content: "Add Person";
+            display: inline-block;
+            padding-left: 10px;
+        }
+    }
+    @include phones {
+        width: 100%;
+        margin: 0 auto;
+        font-size: 2em;    left: 51%;
+    transform: translate(-50%, 0);
+        &:after {
+            position: relative;
+            content: "Add Person";
+            display: inline-block;
+            padding-left: 10px;
+        }
+    }
 }
 
 .header {
@@ -832,6 +857,12 @@ fieldset[disabled] .btn {
     margin-bottom: 10px;
     border-radius: 5px;
     padding: 25px;
+    @include tablets {
+        padding: 25px 0px;
+    }
+    @include phones {
+        padding: 25px 0px;
+    }
 }
 
 .CheckinHeader a,
@@ -839,6 +870,12 @@ fieldset[disabled] .btn {
     font-size: 4em;
     color: #3F6387;
     font-weight: 700;
+    @include tablets {
+        font-size: 3em;
+    }
+    @include phones {
+        font-size: 3em;
+    }
 }
 
 .modal {
@@ -847,6 +884,14 @@ fieldset[disabled] .btn {
         color: #3F6387;
         font-weight: 700;
         margin-bottom: 25px;
+
+        @include tablets {
+            font-size: 1.5em;
+        }
+
+        @include phones {
+            font-size: 1.5em;
+        }
     }
 }
 
@@ -881,8 +926,14 @@ fieldset[disabled] .btn {
     left: 50%;
     top: 50%;
     transform: translate(-50%,-50%);
-    width: 90%;
     min-height: 70vh;
+    @include tablets {
+        width: 90%;
+    }
+
+    @include phones {
+        width: 90%;
+    }
 }
 .modal-backdrop {
     background-color: rgba(0, 0, 0, 0.8);
@@ -899,7 +950,13 @@ fieldset[disabled] .btn {
 }
 .modal-body {
     text-align: center;
-    padding: 10%;
+    padding: 2% 10%;
+    @include tablets {
+        padding: 10% 0px;
+    }
+    @include phones {
+        padding: 10% 0px;
+    }
 }
 
 .body-content {
