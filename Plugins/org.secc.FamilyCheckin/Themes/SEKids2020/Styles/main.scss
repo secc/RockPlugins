@@ -61,16 +61,13 @@
 // @import '../../SECC2019/Styles/_lib/print';
 
 //
-// Mix-ins
+// SE!Kids Theme Variables
 // --------------------------------------------------
-// .checkinBackground () {
-//     background-color: transparent;
-// }
-
-// .checkinBackgroundRetina() {
-//     background-color: transparent;
-// }
-
+$ThemeColor_1: rgba(255, 255, 255, 1); //#FFFFFF
+$ThemeColor_2: rgba(0, 0, 0, 0.16); //#00000029
+$ThemeColor_3: rgba(218, 86, 44, 1); //#DA562C
+$ThemeColor_4: rgba(63, 99, 135, 1); //#3F6387
+$ThemeColor_5: rgba(112, 112, 112, 1); //#707070
 
 //
 // Custom Overrides
@@ -110,7 +107,7 @@ body {
     overflow-x: hidden;
 
     &::before {
-        background-image: url(../Assets/Images/SEKids_logo_white.svg);
+        background-image: url("../Assets/Images/SEKids_logo_white.svg");
         background-repeat: no-repeat;
         background-attachment: initial;
         content: '';
@@ -168,8 +165,8 @@ body {
    text-shadow: none;
    background-image: none;
    border: none;
-   color: #fff;
-   background-color: #3F6387;
+   color: $ThemeColor_1;
+   background-color: $ThemeColor_4;
    border-radius: 16px;
    -webkit-box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
    box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
@@ -202,7 +199,7 @@ body {
 .btn-default:active,
 .btn-default:focus {
     background-color: #28598a;
-    color: #fff;
+    color: $ThemeColor_1;
     border: none;
     outline: none;&::first-line {
         font-weight: 700;
@@ -213,7 +210,7 @@ body {
 .btn-success:active,
 .btn-success:focus {
     background-color: #b54825;
-    color: #fff;
+    color: $ThemeColor_1;
     border: none;
     outline: none;
     &::first-line {
@@ -228,7 +225,7 @@ body {
     outline: none;
 }
 .btn-success {
-    background-color: #DA562C;
+    background-color: $ThemeColor_3;
 }
 
 .fa-5x {
@@ -236,12 +233,12 @@ body {
 }
 
 .alert-warning {
-    color: #3F6387;
-    background-color: #fff;
+    color: $ThemeColor_4;
+    background-color: $ThemeColor_1;
     background-image: none;
     padding: 20px;
     border-radius: 15px;
-    border-color: #fff;
+    border-color: $ThemeColor_1;
 }
 
 #signOuter {
@@ -314,7 +311,7 @@ body {
     position: relative;
     top: 50%;
     transform: translateY(-50%);
-    color: #3F6387;
+    color: $ThemeColor_4;
     text-align: left;
 }
 
@@ -382,8 +379,8 @@ body {
     display: inline-table;
     width: 8rem;
     height: 8rem;
-    color: #fff;
-    background-color: #3F6387;
+    color: $ThemeColor_1;
+    background-color: $ThemeColor_4;
     margin: 0 auto;
     text-align: center;
     vertical-align: middle;
@@ -406,7 +403,7 @@ body {
 .tenkey a:active,
 .tenkey a:focus {
     background-color: #28598a;
-    color: #fff;
+    color: $ThemeColor_1;
 }
 
 .checkin-body .container {
@@ -417,7 +414,7 @@ body {
     background-image: none;
     border-radius: 15px;
     border: none;
-    color: #3F6387;
+    color: $ThemeColor_4;
     height: 50px;
     max-width: 260px;
     margin: 0 auto;
@@ -433,7 +430,7 @@ body {
 .search-button,
 .search-button:hover,
 .search-button:active {
-    background-color: #DA562C;
+    background-color: $ThemeColor_3;
     border: 0px;
     box-shadow: none;
     border-radius: 15px;
@@ -455,7 +452,7 @@ body {
     transition: all 0.3s ease;
 }
 .search-button:focus {
-    color: #fff;
+    color: $ThemeColor_1;
     background-color: #b54825;
 }
 
@@ -472,7 +469,7 @@ body {
     left: 0px;
     height: 498px;
     overflow: hidden;
-    background-color: #ffffff;
+    background-color: $ThemeColor_1;
     border-radius: 15px;
     padding: 7%;
     -webkit-box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);     
@@ -488,10 +485,10 @@ body {
 #contentDiv h4
 #contentDiv h5,
 #contentDiv h6 {
-    color: #3F6387;
+    color: $ThemeColor_4;
 }
 #contentDiv p {
-    color: #707070;
+    color: $ThemeColor_5;
 }
 
 
@@ -516,27 +513,27 @@ body {
     &::-webkit-scrollbar-thumb {
         border-radius: 10px;
         -webkit-box-shadow: none;
-        background-color: #3F6387;
+        background-color: $ThemeColor_4;
     }
 
     h2 {
         margin: 0px;
         font-weight: 600;
-        color: #3F6387;
+        color: $ThemeColor_4;
     }
     .btn {
         padding: 15px 0px;
         margin: 15px;
         width: 90%;
         border-radius: 16px;
-        color: #3F6387;
-        background-color: #fff;
+        color: $ThemeColor_4;
+        background-color: $ThemeColor_1;
     }
     .btn-success {
-        color: #fff;
-        background-color: #3F6387;
+        color: $ThemeColor_1;
+        background-color: $ThemeColor_4;
         h2 {
-            color: #fff;
+            color: $ThemeColor_1;
         }
     }
 }
@@ -563,7 +560,7 @@ body {
     h1 {
         font-weight: 700;
         font-size: 2em;
-        color: #3F6387;
+        color: $ThemeColor_4;
         margin: 60px;
         left: 35%;
         position: relative;
@@ -604,8 +601,8 @@ body {
 
 .btn-selectSchedule,
 .btn-selectSchedule:hover {
-    background-color: #ffffff;
-    color: #3F6387;
+    background-color: $ThemeColor_1;
+    color: $ThemeColor_4;
     font-size: 1.4em;
     padding: 15px;
     width: 50%;
@@ -625,8 +622,8 @@ body {
         width: 90%;
     }
     &:active {
-        background-color: #3F6387;
-        color: #fff;
+        background-color: $ThemeColor_4;
+        color: $ThemeColor_1;
     }
     .col-md-2 {
         @include tablets {
@@ -655,8 +652,8 @@ body {
 .btn-selectSchedule-active,
 .btn-selectSchedule-active:hover {
     @extend .btn-selectSchedule;
-    background-color: #3F6387;
-    color: #fff;
+    background-color: $ThemeColor_4;
+    color: $ThemeColor_1;
 }
 
 .btn-selectScheduleNext,
@@ -678,8 +675,8 @@ body {
 }
 
 .scheduleNotSelected {
-    background-color: #fff;
-    color: #3F6387;
+    background-color: $ThemeColor_1;
+    color: $ThemeColor_4;
     display: block;
     &::first-line {
         font-weight: 700;
@@ -701,8 +698,8 @@ fieldset[disabled] .btn-default:hover,
 fieldset[disabled] .btn-default:focus,
 fieldset[disabled] .btn-default:active,
 fieldset[disabled] .btn-default.active {
-    background-color: #fff;
-    color: #3F6387;
+    background-color: $ThemeColor_1;
+    color: $ThemeColor_4;
     @include phones {
         width: 100%;
     }
@@ -743,13 +740,13 @@ fieldset[disabled] .btn {
 
 .checkinPersonSelected,
 .checkinPersonSelected:hover {
-    background-color: #3F6387;
-    color: #FFF;
+    background-color: $ThemeColor_4;
+    color: $ThemeColor_1;
 }
 
 .checkinPersonNotSelected {
-    background-color: #FFF;
-    color: #3F6387;
+    background-color: $ThemeColor_1;
+    color: $ThemeColor_4;
 }
 
 .doCheckin,
@@ -868,7 +865,7 @@ fieldset[disabled] .btn {
 .CheckinHeader a,
 .CheckinHeader a:hover {
     font-size: 4em;
-    color: #3F6387;
+    color: $ThemeColor_4;
     font-weight: 700;
     @include tablets {
         font-size: 3em;
@@ -881,7 +878,7 @@ fieldset[disabled] .btn {
 .modal {
     h1 {
         font-size: 2.5em;
-        color: #3F6387;
+        color: $ThemeColor_4;
         font-weight: 700;
         margin-bottom: 25px;
 
@@ -903,7 +900,7 @@ fieldset[disabled] .btn {
 }
 
 .cancelButton a {
-    color: #3F6387;
+    color: $ThemeColor_4;
 }
 
 
@@ -913,10 +910,10 @@ fieldset[disabled] .btn {
     width: 70vw;
     left: 15vw;
     top: 100vh;
-    background-color: #FFF;
+    background-color: $ThemeColor_1;
     font-weight: bold;
     font-size: 5em;
-    color: #3F6387;
+    color: $ThemeColor_4;
     background-image: none;
     border-radius: 15px;
     padding: 35px;
@@ -964,7 +961,7 @@ fieldset[disabled] .btn {
 }
 
 #contentDiv {
-    color: #A54217;
+    color: $ThemeColor_3;
     font-size: 1.8em;
 }
 
@@ -973,7 +970,7 @@ fieldset[disabled] .btn {
 #contentDiv h3,
 #contentDiv h4,
 #contentDiv h5 {
-    color: #A54217;
+    color: $ThemeColor_3;
     font-weight: bold;
     font-size-adjust: 1;
 }
