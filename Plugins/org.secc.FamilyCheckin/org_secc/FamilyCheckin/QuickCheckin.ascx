@@ -99,19 +99,13 @@
             </div>
         </asp:Panel>
         <asp:Panel runat="server" ID="pnlNoCheckin" class="text-center alert alert-warning" Visible="false" Style="margin-top: 100px">
-            <h2>We are sorry</h2>
-            <h3>There are no members of your family who are able to check-in at this kiosk right now.</h3>
-            <h4>Check-in may become available for your family members at a future time today.
-                <br />
-                If you need assistance or believe this is in error, please contact one of our volunteers.</h4>
+            <asp:Literal runat="server" Id="ltNoneFound"/>
             <Rock:BootstrapButton runat="server" ID="btnNoCheckin" OnClick="btnNoCheckin_Click" Text="<span class='center'>OK</span>" CssClass="btn btn-primary btn-lg pull-right"></Rock:BootstrapButton>
             <br />
             <br />
         </asp:Panel>
         <div id="success" class="text-center alert alert-success successModal">
-
-            <h2>Welcome.</h2>
-            <h2>We are preparing your security labels now.</h2>
+            <asp:Literal runat="server" ID="ltCompletion" />
         </div>
     </ContentTemplate>
 </asp:UpdatePanel>

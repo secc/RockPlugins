@@ -19,18 +19,13 @@ using System.Linq;
 using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using antlr;
-using C5;
 using CSScriptLibrary;
-using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
-using OpenXmlPowerTools;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
 using Rock;
 using Rock.Attribute;
-using Rock.Blocks.Types.Mobile.Cms;
 using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
@@ -81,6 +76,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             public const string PostCheckinInstructions = "PostCheckinInstructions";
         }
 
+        private static class PageParameterKeys
+        {
+            public const string CampusId = "CampusId";
+        }
+
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
@@ -93,53 +93,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         protected override void OnLoad( EventArgs e )
         {
+            SetRefreshTimer();
+
             if ( !Page.IsPostBack )
             {
                 BindDropDown();
-
-                if ( CurrentUser == null )
-                {
-                    pnlError.Visible = true;
-                    pnlSelectCampus.Visible = false;
-                    return;
-                }
-
-                string kioskName = CurrentUser.UserName;
-
-                var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( CurrentPerson.PrimaryFamilyId ?? 0 );
-                if ( mobileCheckinRecord == null )
-                {
-                    mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByUserName( kioskName );
-                }
-
-                if ( mobileCheckinRecord != null )
-                {
-                    ShowQRCode( mobileCheckinRecord );
-                    return;
-                }
-                else
-                {
-                    var completeMobileCheckins = MobileCheckinRecordCache.All().Where( r => r.FamilyGroupId == CurrentPerson.PrimaryFamilyId ).Any();
-                    if ( completeMobileCheckins )
-                    {
-                        ShowCheckinCompletion();
-                        return;
-                    }
-                }
-
-
-
-                if ( this.IsUserAuthorized( Rock.Security.Authorization.ADMINISTRATE ) && PageParameter( "KioskName" ).IsNotNullOrWhiteSpace() )
-                {
-                    kioskName = PageParameter( "KioskName" );
-                }
-
-                ConfigureKiosk( kioskName );
-
-                pnlTutorial.Visible = true;
-                lTutorial.Text = GetAttributeValue( AttributeKeys.TutorialText );
-                pnlSelectCampus.Visible = false;
-
+                UpdateView();
             }
         }
 
@@ -158,7 +117,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 ltValidUntil.Text = "some time in the future";
             }
 
+            SetRefreshTimer( 30 );
             RegisterSignalrScript( record.AccessKey );
+        }
+
+        private void SetRefreshTimer( int seconds = 60 * 60 )
+        {
+            RefreshNotiTimer.Interval = seconds * 1000;
         }
 
         private void RegisterSignalrScript( string accessKey )
@@ -211,10 +176,25 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 rockContext.SaveChanges();
             }
 
-            var kioskType = kiosk.KioskType;
+            KioskTypeCache kioskType = null;
+
+            var campusParameter = PageParameter( PageParameterKeys.CampusId );
+            if ( campusParameter.IsNotNullOrWhiteSpace() )
+            {
+                kioskType = KioskTypeCache.All().Where( k => k.IsMobile && k.CampusId == campusParameter.AsIntegerOrNull() ).FirstOrDefault();
+            }
+
+            if ( kioskType == null )
+            {
+                if ( kiosk.KioskTypeId.HasValue )
+                {
+                    kioskType = KioskTypeCache.Get( kiosk.KioskTypeId.Value );
+                }
+            }
+
             if ( kioskType != null )
             {
-                ddlCampus.SetValue( kioskType.CampusId.ToString() );
+                ddlCampus.SetValue( kioskType.Id.ToString() );
             }
             else
             {
@@ -236,8 +216,56 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         }
 
 
-        protected void Timer1_Tick( object sender, EventArgs e )
+        protected void RefreshNotiTimer_Tick( object sender, EventArgs e )
         {
+            UpdateView();
+        }
+
+        private void UpdateView()
+        {
+            pnlQr.Visible = false;
+            pnlLoading.Visible = false;
+            pnlPostCheckin.Visible = false;
+            pnlSelectCampus.Visible = false;
+            pnlTutorial.Visible = false;
+
+            string kioskName = CurrentUser.UserName;
+
+            var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( CurrentPerson.PrimaryFamilyId ?? 0 );
+            if ( mobileCheckinRecord == null )
+            {
+                mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByUserName( kioskName );
+            }
+
+            if ( mobileCheckinRecord != null )
+            {
+                ShowQRCode( mobileCheckinRecord );
+                return;
+            }
+            else
+            {
+                var completeMobileCheckins = MobileCheckinRecordCache.All().Where( r => r.FamilyGroupId == CurrentPerson.PrimaryFamilyId ).Any();
+                if ( completeMobileCheckins )
+                {
+                    ShowCheckinCompletion();
+                    return;
+                }
+            }
+
+            if ( this.IsUserAuthorized( Rock.Security.Authorization.ADMINISTRATE ) && PageParameter( "KioskName" ).IsNotNullOrWhiteSpace() )
+            {
+                kioskName = PageParameter( "KioskName" );
+            }
+
+            ConfigureKiosk( kioskName );
+
+            if ( ShowInstructions() )
+            {
+                pnlTutorial.Visible = true;
+                lTutorial.Text = GetAttributeValue( AttributeKeys.TutorialText );
+                return;
+            }
+
         }
 
         protected void ddlCampus_SelectedIndexChanged( object sender, EventArgs e )
@@ -338,9 +366,7 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
 
         private void ActivateCheckIn()
         {
-            var localDeviceConfigCookie = Request.Cookies[CheckInCookieKey.LocalDeviceConfig].Value;
-            var localDevice = localDeviceConfigCookie.FromJsonOrNull<LocalDeviceConfiguration>();
-            CurrentCheckInState = new CheckInState( localDevice.CurrentKioskId.Value, localDevice.CurrentCheckinTypeId, localDevice.CurrentGroupTypeIds );
+            CurrentCheckInState = new CheckInState( LocalDeviceConfig.CurrentKioskId.Value, LocalDeviceConfig.CurrentCheckinTypeId, LocalDeviceConfig.CurrentGroupTypeIds );
             var userloginCheckinSearchValue = DefinedValueCache.Get( org.secc.FamilyCheckin.Utilities.Constants.CHECKIN_SEARCH_TYPE_USERLOGIN );
             CurrentCheckInState.CheckIn.SearchType = userloginCheckinSearchValue;
             CurrentCheckInState.CheckIn.SearchValue = CurrentUser.UserName;
@@ -350,8 +376,30 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             pnlSelectCampus.Visible = false;
             pnlLoading.Visible = true;
 
+            SetNoInstructionsCookie();
+
             var nextpageUrl = LinkedPageUrl( "NextPage" );
             ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "Load", "processMobileCheckin('" + nextpageUrl + "')", true );
+        }
+
+        private void SetNoInstructionsCookie()
+        {
+            var noInstructionsCookie = this.Page.Request.Cookies["MobileCheckinNoInstructions"];
+
+            if ( noInstructionsCookie == null )
+            {
+                noInstructionsCookie = new System.Web.HttpCookie( "MobileCheckinNoInstructions" );
+            }
+
+            noInstructionsCookie.Expires = RockDateTime.Now.AddDays( 28 );
+            noInstructionsCookie.Value = "true";
+
+            this.Page.Response.Cookies.Set( noInstructionsCookie );
+        }
+
+        private bool ShowInstructions()
+        {
+            return Request.Cookies["MobileCheckinNoInstructions"].IsNull();
         }
 
         private Kiosk ConfigureKiosk()
@@ -449,8 +497,8 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             Session["KioskTypeId"] = kioskType.Id;
             KioskDevice.Remove( device.Id );
             SaveState();
-
             return kiosk;
+
         }
 
         protected void btnTutorial_Click( object sender, EventArgs e )

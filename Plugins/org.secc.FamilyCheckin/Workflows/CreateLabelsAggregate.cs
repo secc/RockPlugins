@@ -34,6 +34,7 @@ using Newtonsoft.Json;
 using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Cache;
 using DotLiquid.Util;
+using DotLiquid.Tags;
 
 namespace org.secc.FamilyCheckin
 {
@@ -438,9 +439,19 @@ namespace org.secc.FamilyCheckin
                 {
                     //If the cache is empty, fill it up!
                     Guid breakoutGroupTypeGuid = GetAttributeValue( action, "BreakoutGroupType" ).AsGuid();
-                    allBreakoutGroups = new GroupService( rockContext ).Queryable( "Members" ).AsNoTracking()
-                       .Where( g => g.GroupType.Guid == breakoutGroupTypeGuid && g.IsActive && !g.IsArchived ).ToList();
-                    var cachePolicy = new CacheItemPolicy();
+                    var breakoutGroups = new GroupService( rockContext )
+                        .Queryable( "Members" )
+                        .AsNoTracking()
+                       .Where( g => g.GroupType.Guid == breakoutGroupTypeGuid && g.IsActive && !g.IsArchived )
+                       .ToList();
+
+                    allBreakoutGroups = new List<Group>();
+
+                    foreach ( var breakoutGroup in breakoutGroups )
+                    {
+                        allBreakoutGroups.Add( breakoutGroup.Clone( false ) );
+                    }
+
                     RockCache.AddOrUpdate( cacheKey, null, allBreakoutGroups, RockDateTime.Now.AddMinutes( 10 ), Constants.CACHE_TAG );
                 }
 
