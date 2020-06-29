@@ -164,18 +164,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     }
                 }
 
-                // Try to find person by name/email 
-                if ( person == null )
-                {
-                    var personQuery = new PersonService.PersonMatchQuery( tbFirstName.Text.Trim(), tbLastName.Text.Trim(), tbEmail.Text.Trim(), pnCell.Text.Trim() );
-                    person = personService.FindPerson( personQuery, true );
-                    if ( person != null )
-                    {
-                        isMatch = true;
-                    }
-                }
-
-                // Check to see if this is a new person
+                //Use our custom person matching
                 if ( person == null )
                 {
                     var people = personService.GetByMatch(
@@ -194,6 +183,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                        )
                     {
                         person = people.First();
+                        family = person.GetFamily();
                     }
                     else
                     {
@@ -389,7 +379,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             message.FromName = _publishGroup.ConfirmationFromName;
             message.Subject = _publishGroup.ConfirmationSubject;
             message.Message = _publishGroup.ConfirmationBody;
-            message.AddRecipient( new RecipientData( new CommunicationRecipient() { PersonAlias = person.PrimaryAlias }, mergeObjects ) );
+            message.AddRecipient( new RockEmailMessageRecipient( person, mergeObjects ) );
             message.Send();
         }
 
