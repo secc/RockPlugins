@@ -34,6 +34,7 @@ namespace org.secc.FamilyCheckin.Utilities
         public const string DEFINED_VALUE_MOBILE_NOT_ATTEND = "E1D5F3DB-A76F-43E7-8A76-57CF5B39120C";
         public const string DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES = "4A3255CE-9363-402C-9998-B2998B6712E0";
         public const string LOCATION_ATTRIBUTE_ROOM_RATIO = "RoomRatio";
+        public const string GROUP_ATTRIBUTE_LINK_LOCATIONS = "0A8723A4-4AEE-4D21-A32B-350845FC8FA9";
 
     }
 }

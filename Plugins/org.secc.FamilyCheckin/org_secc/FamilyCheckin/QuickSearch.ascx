@@ -409,9 +409,9 @@
         </asp:Panel>
 
         <!-- Mobile Dialog  -->
-        <div id="mdMobileBackdrop" class="modal-backdrop in" style="z-index: 1050; display: none">&nbsp;</div>
+        <div id="mdMobileBackdrop" class="modal-backdrop checkin-modal-backdrop" style="z-index: 1050; display: none">&nbsp;</div>
         <div id="mdMobile" class="modal-scrollable" style="z-index: 1060; display: none;">
-            <div style="display: block; margin-top: 0px;" class="modal container modal-content rock-modal rock-modal-frame modal-overflow in">
+            <div style="display: block; margin-top: 0px;" class="modal container modal-content checkin-modal">
                 <div id="mdMobileContent" class="text-center">
                     &nbsp;
                 </div>

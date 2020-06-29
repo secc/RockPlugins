@@ -196,7 +196,7 @@ namespace org.secc.FamilyCheckin.Cache
             {
                 Id = attendance.Id,
                 OccurrenceAccessKey = OccurrenceCache.GetByOccurrence( attendance.Occurrence )?.AccessKey ?? "None",
-                Code = attendance.AttendanceCode.Code,
+                Code = attendance.AttendanceCode?.Code,
                 CreatedDateTime = attendance.CreatedDateTime,
                 StartDateTime = attendance.StartDateTime,
                 EndDateTime = attendance.EndDateTime,

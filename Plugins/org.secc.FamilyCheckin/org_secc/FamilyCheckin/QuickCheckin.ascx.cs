@@ -37,16 +37,31 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [Category( "SECC > Check-in" )]
     [Description( "QuickCheckin block for helping parents check in their family quickly." )]
 
-    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Location Link Attribute", "Group attribute which determines if group is location linking." )]
     [TextField( "Complete Checkin Activity Name", "Workflow activity to run when the user completes check-in.", true, "Save Attendance", key: "CheckinActivity" )]
     [BooleanField( "Is Mobile Checkin", "If this block is used for mobile check-in set true", false, key: "IsMobileCheckin" )]
+
+    [CodeEditorField( "Completion HTML",
+        "Text that appears when someone completes their check-in proccess  <span class='tip tip-html'></span>", CodeEditorMode.Html,
+        key: AttributeKeys.CompletionHTML,
+        defaultValue: "<h2>Welcome.</h2> <h2>We are preparing your security labels now.</h2>",
+        order: 100
+        )]
+
+    [CodeEditorField( "No Eligible Family Members",
+        "Text that appears when no one in the family is able to check-in.  <span class='tip tip-html'></span>", CodeEditorMode.Html,
+        key: AttributeKeys.NoneFound,
+        defaultValue: "<h2>We are sorry</h2><h3>There are no members of your family who are able to check-in at this kiosk right now.</h3><h4>Check-in may become available for your family members at a future time today.<br />If you need assistance or believe this is in error, please contact one of our volunteers.</h4>",
+        order: 101
+        )]
+
+
     public partial class QuickCheckin : CheckInBlock
     {
-        #region Fields
-
-        private string locationLinkAttributeKey = string.Empty;
-
-        #endregion
+        protected static class AttributeKeys
+        {
+            internal const string CompletionHTML = "CompletionHTML";
+            internal const string NoneFound = "NoneFound";
+        }
 
         #region Properties
         public List<int> SelectedSchedules
@@ -95,18 +110,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             CurrentCheckInState.CheckinTypeId = LocalDeviceConfig.CurrentCheckinTypeId;
 
-            var locationLinkAtributeGuid = GetAttributeValue( "LocationLinkAttribute" ).AsGuid();
-            if ( locationLinkAtributeGuid != Guid.Empty )
-            {
-                locationLinkAttributeKey = AttributeCache.Get( locationLinkAtributeGuid ).Key;
-            }
-            else
-            {
-                maAlert.Show( "LocationLink attribute not configured", ModalAlertType.Alert );
-            }
-
             if ( !Page.IsPostBack )
             {
+                ltCompletion.Text = GetAttributeValue( AttributeKeys.CompletionHTML );
+                ltNoneFound.Text = GetAttributeValue( AttributeKeys.NoneFound );
+
                 //Clear UI state from session
                 Session["modalActive"] = false;
                 if ( Session["modalActive"] != null )
@@ -1101,6 +1109,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         /// <param name="schedule"></param>
         private void ClearRoomSelection( CheckInPerson checkInPerson, CheckInSchedule schedule )
         {
+            var locationLinkAttributeKey = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() ).Key;
             List<CheckInGroupType> groupTypes = GetGroupTypes( checkInPerson, schedule );
 
             foreach ( var groupType in groupTypes )
@@ -1192,6 +1201,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             ClearRoomSelection( checkInPerson, schedule );
             checkInPerson.Selected = true;
+
+            var locationLinkAttributeKey = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() ).Key;
             if ( group.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
             {
                 LinkLocations( checkInPerson, group, room );
@@ -1335,10 +1346,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                 checkinGroup.PreSelected = true;
                                 checkInLocation.Selected = true;
                                 checkInLocation.PreSelected = true;
+
+                                var locationLinkAttributeKey = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() ).Key;
                                 if ( checkinGroup.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
                                 {
                                     LinkLocations( checkinPerson, checkinGroup, checkInLocation );
                                 }
+
                                 RemoveOverlappingSchedules( checkinPerson, locationSchedule );
                                 complete = true;
                                 break;

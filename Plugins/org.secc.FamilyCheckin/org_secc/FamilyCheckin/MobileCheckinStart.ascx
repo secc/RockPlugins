@@ -22,7 +22,7 @@
                 window.location.href = nextUrl;
             },
             error: function (data) {
-                alert("Something broke, and the developer forgot to add an error message.")
+                alert("We're sorry, there was an issue with your request. Please see an attendance volunteer at your campus for assistance.")
             }
         });
     }
@@ -61,7 +61,6 @@
 
         <asp:Panel runat="server" ID="pnlQr" Visible="false">
             <asp:Literal runat="server" ID="ltCodeInstructions" />
-            <br />
             <br />
             <asp:Image runat="server" ID="iQr" CssClass="img-responsive" Style="width: 50%; margin: auto;" />
             <br />
@@ -107,5 +106,8 @@
             <Rock:BootstrapButton runat="server" ID="btnNewCheckin" CssClass="btn btn-default btn-block"
                 Text="New Mobile Check-in" OnClick="btnNewCheckin_Click" />
         </asp:Panel>
+
+        <asp:Timer ID="RefreshNotiTimer" runat="server" Interval="60000" OnTick="RefreshNotiTimer_Tick">
+        </asp:Timer>
     </ContentTemplate>
 </asp:UpdatePanel>
