@@ -1,12 +1,13 @@
 
     //
-    // SE!Kids Theme Variables
+    // Checkin Theme Variables
     // --------------------------------------------------
     $ThemeColor_1: rgba(255, 255, 255, 1); //#FFFFFF
-    $ThemeColor_2: rgba(255, 255, 255, 0.16); //#00000029
+    $ThemeColor_2: rgba(51, 51, 51, 1); //#00000029
     $ThemeColor_3: rgba(38, 38, 38, 1); //#DA562C
     $ThemeColor_4: rgba(41, 165, 187, 1); //#3F6387
     $ThemeColor_5: rgba(112, 112, 112, 1); //#707070
+    $ThemeColor_6: rgba(236, 180, 55, 1); //#ECB437
 
     #quickCheckinContent {
         position: absolute;
@@ -78,6 +79,74 @@
 
                 @include phones {
                     padding: 10% 0px;
+                }
+            }
+            
+            .btn.btn-block.btn-success {
+                text-shadow: none;
+                display: block !important;
+                background-image: none;
+                border: none;
+                color: $ThemeColor_1;
+                background-color: $ThemeColor_4;
+                border-radius: 16px;
+                -webkit-box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
+                box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
+                -webkit-transition: all 0.3s ease;
+                -o-transition: all 0.3s ease;
+                transition: all 0.3s ease;
+                overflow: hidden;
+                white-space: normal;
+                min-height: 55px;
+                min-width: 60px;
+                position: relative;
+
+                &::first-line {
+                    font-weight: 700;
+                }
+
+                span.center {
+                    width: 100%;
+                    position: absolute;
+                    transform: translate(-50%, -50%);
+                    left: 50%;
+                    top: 50%;
+                    font-weight: 700;
+                    padding: 0px 5px;
+                }
+            }
+
+            .btn-default {
+                text-shadow: none !important;
+                background-image: none !important;
+                display: block !important;
+                border: none !important;
+                background-color: $ThemeColor_2 !important;
+                color: $ThemeColor_1 !important;
+                border-radius: 16px !important;
+                -webkit-box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15) !important;
+                box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15) !important;
+                -webkit-transition: all 0.3s ease !important;
+                -o-transition: all 0.3s ease !important;
+                transition: all 0.3s ease !important;
+                overflow: hidden !important;
+                white-space: normal !important;
+                min-height: 55px !important;
+                min-width: 60px !important;
+                position: relative !important;
+
+                &::first-line {
+                    font-weight: 700!important;
+                }
+
+                span.center {
+                    width: 100%;
+                    position: absolute;
+                    transform: translate(-50%, -50%);
+                    left: 50%;
+                    top: 50%;
+                    font-weight: 700;
+                    padding: 0px 5px;
                 }
             }
 
@@ -201,10 +270,20 @@
             }
         }
 
+        .btn:active,
+        .btn:hover,
+        .btn:focus {
+            border: none;
+            outline: none;
+        }
+
+        .btn-success {
+            background-color: $ThemeColor_6;
+        } 
         .btn-success:hover,
         .btn-success:active,
         .btn-success:focus {
-            background-color: darken($ThemeColor_3, 10%);
+            background-color: darken($ThemeColor_6, 10%);
             color: $ThemeColor_1;
             border: none;
             outline: none;
@@ -214,17 +293,7 @@
             }
         }
 
-        .btn:active,
-        .btn:hover,
-        .btn:focus {
-            border: none;
-            outline: none;
-        }
-
-        .btn-success {
-            background-color: $ThemeColor_3;
-        } 
-
+        
         .fa-5x {
             font-size: 3em;
         }
@@ -397,7 +466,7 @@
         .search-button,
         .search-button:hover,
         .search-button:active {
-            background-color: $ThemeColor_3;
+            background-color: $ThemeColor_6;
             border: 0px;
             box-shadow: none;
             border-radius: 15px;
@@ -522,7 +591,6 @@
         #pgtSelect {
             text-align: center;
             position: relative;
-            top: -105px;
             z-index: 2;
 
             @include tablets {
@@ -537,26 +605,20 @@
                 font-weight: 700;
                 font-size: 2em;
                 color: $ThemeColor_1;
-                margin: 60px;
-                left: 35%;
+                margin: 15px auto;
+                left: 0px;
                 position: relative;
                 max-width: 500px;
                 text-align: center;
 
                 @include tablets {
                     font-size: 2.5rem;
-                    margin: 15px auto;
-                    left: 0px;
-                    // background-color: rgba(255, 255, 255, 0.85);
                     border-radius: 16px;
                     padding: 13px;
                 }
 
                 @include phones {
                     font-size: 2.5rem;
-                    margin: 15px auto;
-                    left: 0px;
-                    // background-color: rgba(255, 255, 255, 0.85);
                     border-radius: 16px;
                     padding: 13px;
                 }
@@ -565,8 +627,8 @@
 
         .btn-selectSchedule,
         .btn-selectSchedule:hover {
-            background-color: $ThemeColor_1;
-            color: $ThemeColor_4;
+            background-color: $ThemeColor_2;
+            color: $ThemeColor_1;
             font-size: 1.4em;
             padding: 15px;
             width: 50%;
@@ -631,9 +693,9 @@
         .btn-selectScheduleNext:hover {
             @extend .search-button;
             font-size: 2.2rem;
-            margin: 25px auto;
+            margin: 25px auto 10px auto;
             display: inline-block;
-            border-radius: 10px;
+            border-radius: 40px;
             padding: 10px 35px;
             width: auto;
         }
@@ -646,8 +708,8 @@
         }
 
         .scheduleNotSelected {
-            background-color: $ThemeColor_1;
-            color: $ThemeColor_4;
+            background-color: $ThemeColor_2;
+            color: $ThemeColor_1;
             display: block;
 
             &::first-line {
@@ -670,7 +732,7 @@
         fieldset[disabled] .btn-default:focus,
         fieldset[disabled] .btn-default:active,
         fieldset[disabled] .btn-default.active {
-            background-color: $ThemeColor_1;
+            background-color: $ThemeColor_2;
             color: $ThemeColor_4;
 
             @include phones {
@@ -689,9 +751,9 @@
             box-shadow: none;
         }
 
-        .btn-block+.btn-block {
-            margin-top: 0px;
-        }
+        // .btn-block+.btn-block {
+        //     margin-top: 0px;
+        // }
 
         .personContainer {
             a {
@@ -721,8 +783,8 @@
         }
 
         .checkinPersonNotSelected {
-            background-color: $ThemeColor_1;
-            color: $ThemeColor_4;
+            background-color: $ThemeColor_2;
+            color: $ThemeColor_1;
         }
 
         .doCheckin,
@@ -809,11 +871,12 @@
         }
 
         .header {
-            margin: 60px;
+            margin: 60px auto;
             height: auto;
-            left: 38%;
+            left: 0px;
             width: 50%;
             position: relative;
+            text-align: center;
 
             @include tablets {
                 width: 97%;
@@ -849,7 +912,7 @@
         .CheckinHeader a,
         .CheckinHeader a:hover {
             font-size: 4em;
-            color: $ThemeColor_4;
+            color: $ThemeColor_1;
             font-weight: 700;
 
             @include tablets {
