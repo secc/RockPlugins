@@ -340,7 +340,6 @@ namespace org.secc.FamilyCheckin.Cache
                     || attendance.PersonAlias.PersonId != attendanceCache.PersonId
                     || attendance.Occurrence.LocationId != attendanceCache.LocationId
                     || attendance.Occurrence.ScheduleId != attendanceCache.ScheduleId
-                    || !attendance.StartDateTime.Equals( attendanceCache.StartDateTime )
                     || attendanceState != attendanceCache.AttendanceState
                     || withParent != attendanceCache.WithParent
                     )

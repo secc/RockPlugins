@@ -21,6 +21,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using Amazon.Runtime.Internal.Util;
 using CSScriptLibrary;
+using OpenXmlPowerTools;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
 using Rock;
@@ -72,22 +73,33 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         order: 11
         )]
 
+    [BooleanField( "Debug Mode",
+        Description = "Turn on debug mode, for debugging and load testing.",
+        DefaultBooleanValue = false,
+        Key = AttributeKeys.DebugMode )]
+
     public partial class MobileCheckinStart : CheckInBlock
     {
 
         private static class AttributeKeys
         {
-            public const string TutorialText = "TutorialText";
-            public const string IntroductionText = "IntroductionText";
-            public const string CodeInstructions = "CodeInstructions";
-            public const string PostCheckinInstructions = "PostCheckinInstructions";
-            public const string NotLoggedInMessage = "NotLoggedInMessage";
+            internal const string TutorialText = "TutorialText";
+            internal const string IntroductionText = "IntroductionText";
+            internal const string CodeInstructions = "CodeInstructions";
+            internal const string PostCheckinInstructions = "PostCheckinInstructions";
+            internal const string NotLoggedInMessage = "NotLoggedInMessage";
+            internal const string DebugMode = "DebugMode";
         }
 
         private static class PageParameterKeys
         {
-            public const string CampusId = "CampusId";
+            internal const string CampusId = "CampusId";
+            internal const string UserName = "UserName";
         }
+
+        private Person currentPerson;
+        private UserLogin currentUser;
+
 
         protected override void OnInit( EventArgs e )
         {
@@ -102,6 +114,24 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         protected override void OnLoad( EventArgs e )
         {
             SetRefreshTimer();
+
+            currentUser = CurrentUser;
+            currentPerson = CurrentPerson;
+
+            //This allows us to use a username to build use a username to test or debug
+            if ( PageParameter( PageParameterKeys.UserName ).IsNotNullOrWhiteSpace()
+                && ( this.IsUserAuthorized( Rock.Security.Authorization.ADMINISTRATE ) || GetAttributeValue( AttributeKeys.DebugMode ).AsBoolean() ) )
+            {
+                var username = PageParameter( PageParameterKeys.UserName );
+                RockContext rockContext = new RockContext();
+                UserLoginService userLoginService = new UserLoginService( rockContext );
+
+                currentUser = userLoginService.Queryable().Where( u => u.UserName == username ).FirstOrDefault();
+                if ( currentUser != null )
+                {
+                    currentPerson = currentUser.Person;
+                }
+            }
 
             if ( !Page.IsPostBack )
             {
@@ -236,14 +266,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             pnlSelectCampus.Visible = false;
             pnlTutorial.Visible = false;
 
-            if ( CurrentUser == null )
+            if ( currentUser == null )
             {
                 ltError.Text = GetAttributeValue( AttributeKeys.NotLoggedInMessage );
                 pnlError.Visible = true;
                 return;
             }
 
-            string kioskName = CurrentUser.UserName;
+            string kioskName = currentUser.UserName;
 
             var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( CurrentPerson.PrimaryFamilyId ?? 0 );
             if ( mobileCheckinRecord == null )
@@ -259,7 +289,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             else
             {
                 var completeMobileCheckins = MobileCheckinRecordCache.All()
-                    .Where( r => r.FamilyGroupId == CurrentPerson.PrimaryFamilyId && r.Status == MobileCheckinStatus.Complete )
+                    .Where( r => r.FamilyGroupId == currentPerson.PrimaryFamilyId && r.Status == MobileCheckinStatus.Complete )
                     .Any();
                 if ( completeMobileCheckins )
                 {
@@ -268,10 +298,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 }
             }
 
-            if ( this.IsUserAuthorized( Rock.Security.Authorization.ADMINISTRATE ) && PageParameter( "KioskName" ).IsNotNullOrWhiteSpace() )
-            {
-                kioskName = PageParameter( "KioskName" );
-            }
 
             ConfigureKiosk( kioskName );
 
@@ -387,7 +413,7 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             CurrentCheckInState = new CheckInState( LocalDeviceConfig.CurrentKioskId.Value, LocalDeviceConfig.CurrentCheckinTypeId, LocalDeviceConfig.CurrentGroupTypeIds );
             var userloginCheckinSearchValue = DefinedValueCache.Get( org.secc.FamilyCheckin.Utilities.Constants.CHECKIN_SEARCH_TYPE_USERLOGIN );
             CurrentCheckInState.CheckIn.SearchType = userloginCheckinSearchValue;
-            CurrentCheckInState.CheckIn.SearchValue = CurrentUser.UserName;
+            CurrentCheckInState.CheckIn.SearchValue = currentUser.UserName;
             Session["BlockGuid"] = BlockCache.Guid;
             SaveState();
 
@@ -422,14 +448,9 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
 
         private Kiosk ConfigureKiosk()
         {
-            string kioskName = CurrentUser.UserName;
-
-            if ( this.IsUserAuthorized( Rock.Security.Authorization.ADMINISTRATE ) && PageParameter( "KioskName" ).IsNotNullOrWhiteSpace() )
-            {
-                kioskName = PageParameter( "KioskName" );
-            }
-
             var rockContext = new RockContext();
+
+            string kioskName = currentUser.UserName;
 
             var kioskTypeId = ddlCampus.SelectedValue.AsInteger();
 
@@ -516,7 +537,6 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             KioskDevice.Remove( device.Id );
             SaveState();
             return kiosk;
-
         }
 
         protected void btnTutorial_Click( object sender, EventArgs e )

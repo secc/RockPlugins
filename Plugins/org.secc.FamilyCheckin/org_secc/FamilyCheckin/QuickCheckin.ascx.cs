@@ -846,7 +846,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 return;
             }
 
-            if ( GetAttributeValue( "IsMobileCheckin" ).AsBoolean() )
+            if ( GetAttributeValue( AttributeKeys.IsMobileCheckin ).AsBoolean() )
             {
                 NavigateToHomePage();
             }
