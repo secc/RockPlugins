@@ -107,7 +107,6 @@
                         <asp:Repeater runat="server" ID="rMCR" OnItemCommand="rMCR_ItemCommand">
                             <ItemTemplate>
                                 <div class="col-xs-12">
-
                                     <div class="panel panel-block">
                                         <div class="panel-heading" role="tab" id="heading<%# Eval("Record.Id") %>">
                                             <h4 class="panel-title pull-left">
@@ -132,6 +131,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <br />
                                 </div>
                             </ItemTemplate>
                         </asp:Repeater>

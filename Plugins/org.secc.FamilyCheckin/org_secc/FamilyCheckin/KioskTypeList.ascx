@@ -4,10 +4,10 @@
     <ContentTemplate>
 
         <Rock:ModalAlert ID="mdGridWarning" runat="server" />
-        
+
         <div class="panel panel-block">
             <div class="panel-heading">
-                <h1 class="panel-title"><i class="fa fa-hand-pointer-o"></i> Kiosk Type List</h1>
+                <h1 class="panel-title"><i class="fa fa-hand-pointer-o"></i>Kiosk Type List</h1>
             </div>
             <div class="panel-body">
 
@@ -15,14 +15,14 @@
                     <Rock:Grid ID="gKioskTypes" runat="server" AllowSorting="true" OnRowSelected="gKioskType_Edit">
                         <Columns>
                             <Rock:RockBoundField DataField="Name" HeaderText="Name" SortExpression="Name" />
-                            <Rock:RockBoundField DataField="CheckinTemplate" HeaderText="Check-in Template" SortExpression="Name" />
+                            <Rock:RockBoundField DataField="CheckinTemplate" HeaderText="Check-in Template" SortExpression="Template" />
+                            <Rock:CampusField DataField="Campus" HeaderText="Campus" SortExpression="Campus" />
+                            <Rock:BoolField DataField="IsMobile" HeaderText="Is Mobile" SortExpression="IsMobile" />
                             <Rock:DeleteField OnClick="gKioskType_Delete" />
                         </Columns>
                     </Rock:Grid>
                 </div>
-
             </div>
         </div>
-
     </ContentTemplate>
 </asp:UpdatePanel>

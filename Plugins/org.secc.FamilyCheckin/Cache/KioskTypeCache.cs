@@ -161,6 +161,44 @@ namespace org.secc.FamilyCheckin.Cache
             }
         }
 
+        /// <summary>
+        /// Verifies the cache is correct.
+        /// </summary>
+        /// <param name="errors">The errors.</param>
+        public static void Verify( ref List<string> errors )
+        {
+            RockContext rockContext = new RockContext();
+            KioskTypeService kioskTypeService = new KioskTypeService( rockContext );
+            var kioskTypes = kioskTypeService.Queryable().ToList();
+            var kioskTypeCaches = KioskTypeCache.All();
+
+            if ( kioskTypes.Count != kioskTypeCaches.Count )
+            {
+                errors.Add( "Kiosk Types count does not match Kiosk Type Caches count" );
+            }
+
+            foreach ( var kioskType in kioskTypes )
+            {
+                var kioskTypeCache = KioskTypeCache.Get( kioskType.Id );
+
+                if ( kioskType.Name != kioskTypeCache.Name
+                    || kioskType.CampusId != kioskTypeCache.CampusId
+                    || kioskType.Description != kioskTypeCache.Description
+                    || kioskType.CheckinTemplateId != kioskTypeCache.CheckinTemplateId
+                    || kioskType.MinutesValid != kioskTypeCache.MinutesValid
+                    || kioskType.GraceMinutes != kioskTypeCache.GraceMinutes
+                    || kioskType.IsMobile != kioskTypeCache.IsMobile
+                    || kioskType.Message != kioskTypeCache.Message )
+                {
+                    errors.Add( "KioskType cache error Id: " + kioskType.Id.ToString() );
+                }
+
+                //Todo test KioskType Locations
+                //Todo test KioskType GroupTypes
+                //Todo test KioskType Schedules
+            }
+        }
+
         public override string ToString()
         {
             return this.Name;

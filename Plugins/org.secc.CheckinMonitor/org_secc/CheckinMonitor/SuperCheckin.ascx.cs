@@ -120,8 +120,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 CurrentCheckInState.CheckIn.Families.Where( f => f.Selected )
                 .FirstOrDefault()
                 .People.SelectMany( p => p.GroupTypes )
+                .Where( gt => gt.Selected )
                 .SelectMany( gt => gt.Groups )
+                .Where( g => g.Selected )
                 .SelectMany( g => g.Locations )
+                .Where( l => l.Selected )
                 .SelectMany( l => l.Schedules )
                 .Where( s => s.Selected )
                 .Any()
@@ -1571,14 +1574,14 @@ try{{
                 ( r, g ) => new
                 {
                     Record = r,
-                    Caption = g.Name,
+                    FamilyName = g.Name,
                     Attendances = r.Attendances
                 } )
                 .ToList()
                 .Select( r => new MCRPoco
                 {
                     Record = r.Record,
-                    Caption = r.Caption,
+                    Caption = string.Format( "{0} ({1})", r.FamilyName, r.Record.Campus.Name ),
                     Active = r.Record.Status == MobileCheckinStatus.Active,
                     SubCaption = string.Join( "<br>", r.Attendances.Select( a => string.Format( "{0}: {1} in {2} at {3}", a.PersonAlias.Person.NickName, a.Occurrence.Group.Name, a.Occurrence.Location.Name, a.Occurrence.Schedule.Name ) ) )
                 } )

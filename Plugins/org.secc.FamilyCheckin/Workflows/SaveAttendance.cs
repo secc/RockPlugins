@@ -178,8 +178,21 @@ namespace org.secc.FamilyCheckin
                     }
 
                     KioskService kioskService = new KioskService( rockContext );
-                    var kioskType = kioskService.GetByClientName( checkInState.Kiosk.Device.Name ).KioskType;
+                    var kioskTypeId = kioskService.GetByClientName( checkInState.Kiosk.Device.Name ).KioskTypeId;
+                    var kioskType = KioskTypeCache.Get( kioskTypeId.Value );
                     var campusId = kioskType.CampusId;
+                    if ( campusId == null )
+                    {
+                        var compatableKioskType = KioskTypeCache.All().Where( kt => kt.CampusId.HasValue && kt.CheckinTemplateId == kioskType.CheckinTemplateId ).FirstOrDefault();
+                        if ( compatableKioskType != null )
+                        {
+                            campusId = compatableKioskType.CampusId;
+                        }
+                        else
+                        {
+                            campusId = 0;
+                        }
+                    }
 
                     MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
                     var mobileCheckinRecord = new MobileCheckinRecord

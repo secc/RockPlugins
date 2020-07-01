@@ -2,14 +2,9 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using DotLiquid.Util;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
-using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
@@ -122,7 +117,6 @@ namespace org.secc.FamilyCheckin.Cache
             }
 
             return allItems.Where( a => a.CreatedDateTime.HasValue && a.CreatedDateTime.Value >= Rock.RockDateTime.Today ).ToList();
-
         }
 
         internal static List<AttendanceCache> GetByOccurrenceKey( string accessKey )
@@ -289,6 +283,71 @@ namespace org.secc.FamilyCheckin.Cache
         {
             var attendanceCache = LoadByAttendance( attendance );
             UpdateCacheItem( attendance.Id.ToString(), attendanceCache, TimeSpan.FromHours( 6 ) );
+        }
+
+        public static void Verify( ref List<string> errors )
+        {
+            RockContext rockContext = new RockContext();
+            AttendanceService attendanceService = new AttendanceService( rockContext );
+            var attendances = attendanceService.Queryable( "Occurrence" )
+                .Where( a => a.CreatedDateTime.HasValue && a.CreatedDateTime >= Rock.RockDateTime.Today )
+                .ToList();
+            var attendanceCaches = AttendanceCache.All();
+
+            if ( attendanceCaches.Count != attendanceCaches.Count )
+            {
+                errors.Add( "Attendance count does not match Attendance Cache count" );
+            }
+
+
+            foreach ( var attendance in attendances )
+            {
+                var attendanceCache = AttendanceCache.Get( attendance.Id );
+                if ( attendanceCache == null )
+                {
+                    errors.Add( "Attendance Cache missing for Attendance Id: " + attendance.Id.ToString() );
+                    continue;
+                }
+
+                AttendanceState attendanceState = AttendanceState.CheckedOut;
+                bool withParent = false;
+
+                if ( attendance.EndDateTime.HasValue ) //End date means checked out
+                {
+                    attendanceState = AttendanceState.CheckedOut;
+                }
+                else //has not been checked out yet
+                {
+                    if ( attendance.DidAttend == false && attendance.QualifierValueId.HasValue )
+                    {
+                        attendanceState = AttendanceState.MobileReserve;
+                    }
+                    else if ( attendance.DidAttend == true )
+                    {
+                        attendanceState = AttendanceState.InRoom;
+                        if ( attendance.QualifierValueId == DefinedValueCache.GetId( Constants.DEFINED_VALUE_ATTENDANCE_STATUS_WITH_PARENT.AsGuid() ) )
+                        {
+                            withParent = true;
+                        }
+                    }
+                    else
+                    {
+                        attendanceState = AttendanceState.EnRoute;
+                    }
+                }
+
+                if ( attendance.Occurrence.GroupId != attendanceCache.GroupId
+                    || attendance.PersonAlias.PersonId != attendanceCache.PersonId
+                    || attendance.Occurrence.LocationId != attendanceCache.LocationId
+                    || attendance.Occurrence.ScheduleId != attendanceCache.ScheduleId
+                    || !attendance.StartDateTime.Equals( attendanceCache.StartDateTime )
+                    || attendanceState != attendanceCache.AttendanceState
+                    || withParent != attendanceCache.WithParent
+                    )
+                {
+                    errors.Add( "Attendance cache error. Id: " + attendance.Id.ToString() );
+                }
+            }
         }
     }
 

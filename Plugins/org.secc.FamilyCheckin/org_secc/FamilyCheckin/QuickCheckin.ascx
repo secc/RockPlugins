@@ -32,12 +32,13 @@
                 var content = document.getElementById("quickCheckinContainer");
                 document.body.style.overflow = "hidden";
                 content.style.transitionDuration = "0.2s";
-                content.style.transform = "translateY(100vh)";
+                content.style.transform = "translateY(200vh)";
 
                 var success = document.getElementById("success");
                 success.style.display = "block";
                 success.style.transform = "translateY(-90vh)";
                 __doPostBack("<%= btnCheckin.UniqueID%>", "OnClick");
+                $('.doCheckin').hide();
             }, 0
         )
     }

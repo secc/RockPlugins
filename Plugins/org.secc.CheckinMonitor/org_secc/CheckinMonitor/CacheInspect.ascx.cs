@@ -30,6 +30,8 @@ using System.Data.Entity;
 using System.Diagnostics;
 using org.secc.FamilyCheckin.Cache;
 using OpenXmlPowerTools;
+using org.secc.FamilyCheckin.Model;
+using Rock.ServiceObjects.GeoCoder;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -57,6 +59,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             pnlOccurrences.Visible = true;
             pnlAttendances.Visible = false;
             pnlMobileRecords.Visible = false;
+            pnlVerify.Visible = false;
             gOccurrences.DataSource = OccurrenceCache.All();
             gOccurrences.DataBind();
         }
@@ -75,6 +78,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             pnlOccurrences.Visible = false;
             pnlAttendances.Visible = false;
             pnlMobileRecords.Visible = true;
+            pnlVerify.Visible = false;
             gMobileRecords.DataSource = MobileCheckinRecordCache.All();
             gMobileRecords.DataBind();
         }
@@ -101,6 +105,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             pnlOccurrences.Visible = false;
             pnlAttendances.Visible = true;
             pnlMobileRecords.Visible = false;
+            pnlVerify.Visible = false;
             var attendances = AttendanceCache.All();
 
             if ( attendanceIds != null )
@@ -112,5 +117,35 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             gAttendances.DataBind();
         }
 
+
+        protected void btnVerify_Click( object sender, EventArgs e )
+        {
+            btnOccurrences.CssClass = defaultCss;
+            btnAttendances.CssClass = defaultCss;
+            btnMobileRecords.CssClass = defaultCss;
+            pnlOccurrences.Visible = false;
+            pnlAttendances.Visible = true;
+            pnlMobileRecords.Visible = false;
+            pnlVerify.Visible = true;
+
+            VerifyCache();
+        }
+
+        private void VerifyCache()
+        {
+            List<string> errors = new List<string>();
+            KioskTypeCache.Verify( ref errors );
+            AttendanceCache.Verify( ref errors );
+            MobileCheckinRecordCache.Verify( ref errors );
+
+            if ( errors.Any() )
+            {
+                ltVerify.Text = string.Join( "<br>", errors );
+            }
+            else
+            {
+                ltVerify.Text = "<b>No Errors</b>";
+            }
+        }
     }
 }

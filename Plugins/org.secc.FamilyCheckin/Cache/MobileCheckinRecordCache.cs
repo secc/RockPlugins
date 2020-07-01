@@ -90,7 +90,7 @@ namespace org.secc.FamilyCheckin.Cache
         {
             return All()
                 .Where( r => r.Status == MobileCheckinStatus.Active
-                          && r.CreatedDateTime >= Rock.RockDateTime.Today)
+                          && r.CreatedDateTime >= Rock.RockDateTime.Today )
                 .ToList();
         }
 
@@ -107,7 +107,7 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static bool CancelReservation( MobileCheckinRecordCache record, bool cancelEvenIfNotExpired = false )
         {
-            if (record.Status != MobileCheckinStatus.Active )
+            if ( record.Status != MobileCheckinStatus.Active )
             {
                 //We can't cancel a mobile record that is not active.
                 return false;
@@ -240,5 +240,39 @@ namespace org.secc.FamilyCheckin.Cache
 
         #endregion
 
+        public static void Verify( ref List<string> errors )
+        {
+            RockContext rockContext = new RockContext();
+            MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
+            var mobileCheckinRecords = mobileCheckinRecordService.Queryable().Where( r => r.CreatedDateTime >= Rock.RockDateTime.Today ).ToList();
+            var mcrCaches = All();
+
+            if ( mobileCheckinRecords.Count != mcrCaches.Count )
+            {
+                errors.Add( "Mobile Checkin Record count does not match Mobile Checkin Record Cache count" );
+            }
+
+            foreach ( var mobileCheckinRecord in mobileCheckinRecords )
+            {
+                var mcrCache = Get( mobileCheckinRecord.Id );
+                if ( mcrCache == null )
+                {
+                    errors.Add( "Mobile Checkin Record Cache missing for Mobile Checkin Record Id: " + mobileCheckinRecord.Id.ToString() );
+                    continue;
+                }
+                if ( mobileCheckinRecord.FamilyGroupId != mcrCache.FamilyGroupId
+                    || mobileCheckinRecord.UserName != mcrCache.UserName
+                    || mobileCheckinRecord.Attendances.Count != mcrCache.AttendanceIds.Count
+                    || mobileCheckinRecord.AccessKey != mcrCache.AccessKey
+                    || mobileCheckinRecord.CampusId != mcrCache.CampusId
+                    || mobileCheckinRecord.ReservedUntilDateTime != mcrCache.ReservedUntilDateTime
+                    || mobileCheckinRecord.ExpirationDateTime != mcrCache.ExpirationDateTime )
+                {
+                    errors.Add( "Mobile Checkin Record cache error. Id: " + mobileCheckinRecord.Id.ToString() );
+                }
+                //Todo Check Attendance Status
+            }
+        }
     }
 }
+

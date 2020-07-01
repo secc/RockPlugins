@@ -19,15 +19,15 @@ using System.Linq;
 using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using Amazon.Runtime.Internal.Util;
 using CSScriptLibrary;
-using DocumentFormat.OpenXml.Spreadsheet;
-using DocumentFormat.OpenXml.Wordprocessing;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
 using Rock.Data;
+using Rock.Field.Types;
 using Rock.Model;
 using Rock.Web.Cache;
 
@@ -65,6 +65,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         order: 10
         )]
 
+    [CodeEditorField( "Not Logged In Message",
+        "Message to show if the user is not logged in. <span class='tip tip-html'></span>",
+        Rock.Web.UI.Controls.CodeEditorMode.Html,
+        key: AttributeKeys.NotLoggedInMessage,
+        order: 11
+        )]
+
     public partial class MobileCheckinStart : CheckInBlock
     {
 
@@ -74,6 +81,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             public const string IntroductionText = "IntroductionText";
             public const string CodeInstructions = "CodeInstructions";
             public const string PostCheckinInstructions = "PostCheckinInstructions";
+            public const string NotLoggedInMessage = "NotLoggedInMessage";
         }
 
         private static class PageParameterKeys
@@ -154,14 +162,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             lIntroduction.Text = GetAttributeValue( AttributeKeys.IntroductionText );
 
-            pnlSelectCampus.Visible = true;
             var rockContext = new RockContext();
 
             var mobileUserCategory = CategoryCache.Get( org.secc.FamilyCheckin.Utilities.Constants.KIOSK_CATEGORY_MOBILEUSER );
 
             var kioskService = new KioskService( rockContext );
             var kiosk = kioskService.Queryable( "KioskType" )
-                .Where( k => k.CategoryId == mobileUserCategory.Id && k.Name == kioskName )
+                .Where( k => k.Name == kioskName )
                 .FirstOrDefault();
 
             if ( kiosk == null )
@@ -229,6 +236,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             pnlSelectCampus.Visible = false;
             pnlTutorial.Visible = false;
 
+            if ( CurrentUser == null )
+            {
+                ltError.Text = GetAttributeValue( AttributeKeys.NotLoggedInMessage );
+                pnlError.Visible = true;
+                return;
+            }
+
             string kioskName = CurrentUser.UserName;
 
             var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( CurrentPerson.PrimaryFamilyId ?? 0 );
@@ -244,7 +258,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
             else
             {
-                var completeMobileCheckins = MobileCheckinRecordCache.All().Where( r => r.FamilyGroupId == CurrentPerson.PrimaryFamilyId ).Any();
+                var completeMobileCheckins = MobileCheckinRecordCache.All()
+                    .Where( r => r.FamilyGroupId == CurrentPerson.PrimaryFamilyId && r.Status == MobileCheckinStatus.Complete )
+                    .Any();
                 if ( completeMobileCheckins )
                 {
                     ShowCheckinCompletion();
@@ -263,9 +279,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 pnlTutorial.Visible = true;
                 lTutorial.Text = GetAttributeValue( AttributeKeys.TutorialText );
-                return;
             }
-
+            else
+            {
+                pnlSelectCampus.Visible = true;
+            }
         }
 
         protected void ddlCampus_SelectedIndexChanged( object sender, EventArgs e )
@@ -421,7 +439,7 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
 
             var kioskService = new KioskService( rockContext );
             var kiosk = kioskService.Queryable( "KioskType" )
-                .Where( k => k.CategoryId == mobileUserCategory.Id && k.Name == kioskName )
+                .Where( k => k.Name == kioskName )
                 .FirstOrDefault();
 
             if ( kiosk == null )

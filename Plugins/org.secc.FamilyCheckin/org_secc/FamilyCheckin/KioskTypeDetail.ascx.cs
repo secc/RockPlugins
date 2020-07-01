@@ -225,7 +225,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 rockContext.SaveChanges();
 
-                KioskTypeCache.Clear();
+                KioskTypeCache.Remove( kioskType.Id );
+                KioskTypeCache.Get( kioskType.Id );
                 Rock.CheckIn.KioskDevice.Clear();
 
                 NavigateToParentPage();

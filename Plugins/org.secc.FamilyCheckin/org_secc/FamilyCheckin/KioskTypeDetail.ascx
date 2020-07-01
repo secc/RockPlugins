@@ -59,11 +59,11 @@
                         </div>
                         <div class="col-md-3">
                             <Rock:RockTextBox runat="server" ID="tbMinutesValid"
-                                Label="Minutes Valid" Help="The number of minutes a check-in is guaranteed after mobile checkin." />
+                                Label="Minutes Reserved" Help="The number of minutes a check-in is guaranteed after mobile checkin." />
                         </div>
                         <div class="col-md-3">
                             <Rock:RockTextBox runat="server" ID="tbGraceMinutes"
-                                Label="Grace Minutes" Help="The number of minutes a check-in is available after the valid time expires." />
+                                Label="Expire After" Help="The number of minutes a check-in is available after the reserved time expires." />
                         </div>
                     </div>
 

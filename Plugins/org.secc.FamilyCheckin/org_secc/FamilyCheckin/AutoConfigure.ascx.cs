@@ -22,6 +22,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
@@ -127,8 +128,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 kiosk.Name = clientName;
                 kiosk.Description = "Automatically created Kiosk";
                 kioskService.Add( kiosk );
-                rockContext.SaveChanges();
             }
+            kiosk.CategoryId = CategoryCache.GetId( Constants.KIOSK_CATEGORY_STATION.AsGuid() );
+            rockContext.SaveChanges();
             GetKioskType( kiosk, rockContext );
         }
 
@@ -236,6 +238,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 kioskService.Add( kiosk );
             }
             kiosk.KioskTypeId = kioskType.Id;
+            kiosk.CategoryId = CategoryCache.GetId( Constants.KIOSK_CATEGORY_STAFFUSER.AsGuid() );
             rockContext.SaveChanges();
             GetKioskType( kiosk, rockContext );
         }

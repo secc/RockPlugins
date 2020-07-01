@@ -38,7 +38,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [Description( "QuickCheckin block for helping parents check in their family quickly." )]
 
     [TextField( "Complete Checkin Activity Name", "Workflow activity to run when the user completes check-in.", true, "Save Attendance", key: "CheckinActivity" )]
-    [BooleanField( "Is Mobile Checkin", "If this block is used for mobile check-in set true", false, key: "IsMobileCheckin" )]
+    [BooleanField( "Is Mobile Checkin", "If this block is used for mobile check-in set true", false, key: AttributeKeys.IsMobileCheckin )]
 
     [CodeEditorField( "Completion HTML",
         "Text that appears when someone completes their check-in proccess  <span class='tip tip-html'></span>", CodeEditorMode.Html,
@@ -61,6 +61,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             internal const string CompletionHTML = "CompletionHTML";
             internal const string NoneFound = "NoneFound";
+            internal const string IsMobileCheckin = "IsMobileCheckin";
         }
 
         #region Properties
@@ -602,7 +603,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                         btnRoom.Text = groupType.GroupType.Name + ": " + group.Group.Name + "<br>" + location.Location.Name;
 
                         //Add location count
-                        if ( CurrentCheckInType.DisplayLocationCount && !GetAttributeValue( "IsMobile" ).AsBoolean() )
+                        if ( CurrentCheckInType.DisplayLocationCount && !GetAttributeValue( AttributeKeys.IsMobileCheckin ).AsBoolean() )
                         {
                             btnRoom.Text += " (Count:" + AttendanceCache.GetByLocationIdAndScheduleId( location.Location.Id, schedule.Schedule.Id ).Where( a => !a.IsVolunteer ).Count().ToString() + ")";
                         }

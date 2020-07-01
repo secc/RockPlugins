@@ -6,6 +6,7 @@
         <Rock:BootstrapButton runat="server" ID="btnOccurrences" CssClass="btn btn-default" Text="Occurrences" OnClick="btnOccurrences_Click" />
         <Rock:BootstrapButton runat="server" ID="btnAttendances" CssClass="btn btn-default" Text="Attendances" OnClick="btnAttendances_Click" />
         <Rock:BootstrapButton runat="server" ID="btnMobileRecords" CssClass="btn btn-default" Text="Mobile Checkin Records" OnClick="btnMobileRecords_Click" />
+        <Rock:BootstrapButton runat="server" ID="btnVerify" CssClass="btn btn-danger" Text="Verify Cache" OnClick="btnVerify_Click" />
 
         <asp:Panel runat="server" ID="pnlOccurrences" Visible="false">
             <Rock:Grid runat="server" ID="gOccurrences" DataKeyNames="AccessKey" OnRowSelected="gOccurrences_RowSelected">
@@ -64,7 +65,12 @@
 
                 </Columns>
             </Rock:Grid>
-
+        </asp:Panel>
+        <asp:Panel runat="server" ID="pnlVerify" Visible="false">
+            <h2>
+                Cache Inaccuracies:
+            </h2>
+            <asp:Literal runat="server" ID="ltVerify" />
         </asp:Panel>
 
     </ContentTemplate>

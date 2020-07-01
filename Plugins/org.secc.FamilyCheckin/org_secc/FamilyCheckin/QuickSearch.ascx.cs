@@ -354,7 +354,7 @@ if ($ActiveWhen.text() != '')
                     return;
                 }
 
-                if ( KioskType.CampusId.HasValue && KioskType.CampusId != mobileCheckinRecord.CampusId )
+                if ( KioskType.CampusId.HasValue && KioskType.CampusId != 0 && KioskType.CampusId != mobileCheckinRecord.CampusId )
                 {
                     ShowWrongCampusSign( mobileCheckinRecord.Campus.Name, KioskType.Campus.Name );
                     return;
