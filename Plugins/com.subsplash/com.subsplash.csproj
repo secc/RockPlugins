@@ -103,9 +103,14 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attributes\SubsplashActionHandler.cs" />
     <Compile Include="Communication\Transport\Subsplash.cs" />
+    <Compile Include="Controls\SubsplashActionHandlerPicker.cs" />
+    <Compile Include="FieldTypes\SubsplashActionHandlerFieldType.cs" />
+    <Compile Include="Migrations\20200630131300_InitialCreate.cs" />
     <Compile Include="Model\Address.cs" />
     <Compile Include="Model\App.cs" />
+    <Compile Include="Model\Action.cs" />
     <Compile Include="Model\ErrorResponse.cs" />
     <Compile Include="Model\ErrorResponseErrors.cs" />
     <Compile Include="Model\ExternalUser.cs" />
@@ -141,6 +146,7 @@
     <None Include="packages.config" />
     <None Include="Webhooks\Subsplash.ashx" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R "$(ProjectDir)Webhooks\*" "$(SolutionDir)RockWeb\Webhooks\"
