@@ -28,18 +28,16 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Data.Entity;
 using System.Linq;
 using Rock;
-using Rock.Workflow;
+using Rock.Attribute;
 using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
-using Rock.Attribute;
+using Rock.Workflow;
 using Rock.Workflow.Action.CheckIn;
 
 namespace org.secc.FamilyCheckin
@@ -52,7 +50,7 @@ namespace org.secc.FamilyCheckin
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Search By PIN" )]
     [BooleanField( "Always Search", "Should we search even if a family has been found?", false )]
-    [BooleanField("Clear Families", "Should we clear families if we find a PIN", false)]
+    [BooleanField( "Clear Families", "Should we clear families if we find a PIN", false )]
     public class SearchByPIN : CheckInActionComponent
     {
         /// <summary>
@@ -84,7 +82,7 @@ namespace org.secc.FamilyCheckin
                         if ( user != null )
                         {
                             //Short PINs can be confused for phone numbers. Clear families if we have selected.
-                            if (GetActionAttributeValue(action, "ClearFamilies" ).AsBoolean() )
+                            if ( GetActionAttributeValue( action, "ClearFamilies" ).AsBoolean() )
                             {
                                 checkInState.CheckIn.Families.Clear();
                             }

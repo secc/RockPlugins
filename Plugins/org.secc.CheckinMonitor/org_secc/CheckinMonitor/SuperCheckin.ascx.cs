@@ -15,31 +15,27 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text.RegularExpressions;
+using System.Data.Entity;
 using System.Linq;
-
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using Microsoft.AspNet.SignalR;
+using Newtonsoft.Json;
+using org.secc.FamilyCheckin.Cache;
+using org.secc.FamilyCheckin.Model;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
+using Rock.Data;
+using Rock.Model;
+using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
-using Rock.Model;
-using System.Web.UI.WebControls;
-using Rock.Data;
-using Rock.Security;
-using System.Web.UI;
-using System.Net.Sockets;
-using System.Text;
-using System.Net;
-using org.secc.FamilyCheckin.Utilities;
-using System.Data.Entity;
-using org.secc.FamilyCheckin.Cache;
-using DDay.iCal;
-using org.secc.FamilyCheckin.Model;
-using C5;
-using Newtonsoft.Json;
-using Microsoft.AspNet.SignalR;
-using OpenXmlPowerTools;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {

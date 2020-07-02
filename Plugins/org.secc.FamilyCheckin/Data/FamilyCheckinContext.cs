@@ -12,8 +12,8 @@
 // limitations under the License.
 // </copyright>
 //
-using org.secc.FamilyCheckin.Model;
 using System.Data.Entity;
+using org.secc.FamilyCheckin.Model;
 
 namespace org.secc.FamilyCheckin.Data
 {

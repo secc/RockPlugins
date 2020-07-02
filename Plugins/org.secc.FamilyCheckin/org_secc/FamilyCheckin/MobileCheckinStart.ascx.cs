@@ -19,16 +19,13 @@ using System.Linq;
 using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using Amazon.Runtime.Internal.Util;
 using CSScriptLibrary;
-using OpenXmlPowerTools;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
 using Rock.Data;
-using Rock.Field.Types;
 using Rock.Model;
 using Rock.Web.Cache;
 

@@ -18,7 +18,6 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Data.Entity;
 using System.Linq;
-using System.Runtime.Caching;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;

@@ -12,16 +12,10 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Linq;
-
-using Quartz;
-using Rock.Attribute;
-using Rock;
-using Rock.Model;
-using Rock.Data;
 using org.secc.FamilyCheckin.Cache;
-using Rock.Rest.Controllers;
+using Quartz;
+using Rock;
 
 namespace org.secc.FamilyCheckin
 {

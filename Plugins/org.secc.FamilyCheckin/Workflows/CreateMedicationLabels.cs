@@ -16,9 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Data.Entity;
 using System.Linq;
-
+using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
 using Rock.Data;
@@ -26,8 +25,6 @@ using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Workflow;
 using Rock.Workflow.Action.CheckIn;
-using Rock;
-using System.Runtime.Caching;
 
 namespace org.secc.FamilyCheckin
 {
@@ -130,7 +127,7 @@ namespace org.secc.FamilyCheckin
                                 mergeObjects.Add( "People", people );
                                 mergeObjects.Add( "GroupType", groupType );
 
-                                if (attributeMatrix == null || attributeMatrix.AttributeMatrixItems.Count == 0)
+                                if ( attributeMatrix == null || attributeMatrix.AttributeMatrixItems.Count == 0 )
                                 {
                                     // Add a No Medication Information label for anyone without data
                                     var checkInLabel = new CheckInLabel( labelCache, mergeObjects );
@@ -138,14 +135,14 @@ namespace org.secc.FamilyCheckin
                                     var index = 0;
                                     foreach ( string mergeFieldText in medicationText )
                                     {
-                                        checkInLabel.MergeFields.Add( mergeFieldText, index==0?"No Medication Information Found":"" );
+                                        checkInLabel.MergeFields.Add( mergeFieldText, index == 0 ? "No Medication Information Found" : "" );
                                         checkInLabel.MergeFields.Add( instructionsText[index], "" );
                                         index++;
                                     }
                                     addLabel( checkInLabel, checkInState, groupType, group, rockContext );
                                 }
                                 else
-                                { 
+                                {
                                     var items = attributeMatrix.AttributeMatrixItems.ToList();
                                     var index = 0;
 
@@ -163,7 +160,7 @@ namespace org.secc.FamilyCheckin
                                                 string scheduleText = "";
                                                 string separator = "";
                                                 var schedule = items[index].GetAttributeValue( matrixAttributeScheduleKey ).SplitDelimitedValues();
-                                                foreach(var scheduleGuid in schedule)
+                                                foreach ( var scheduleGuid in schedule )
                                                 {
                                                     scheduleText += separator + DefinedValueCache.Get( scheduleGuid );
                                                     separator = ", ";

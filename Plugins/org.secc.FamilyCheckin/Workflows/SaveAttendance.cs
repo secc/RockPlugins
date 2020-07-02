@@ -22,7 +22,6 @@ using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
-using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;

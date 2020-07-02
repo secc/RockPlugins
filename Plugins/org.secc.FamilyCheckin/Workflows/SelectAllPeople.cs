@@ -28,17 +28,14 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Data.Entity;
 using System.Linq;
 using Rock;
-using Rock.Workflow;
-using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
+using Rock.Workflow;
 using Rock.Workflow.Action.CheckIn;
 
 namespace org.secc.FamilyCheckin
@@ -61,7 +58,7 @@ namespace org.secc.FamilyCheckin
         /// <param name="errorMessages">The error messages.</param>
         /// <returns></returns>
         /// <exception cref="System.NotImplementedException"></exception>
-        public override bool Execute(RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages)
+        public override bool Execute( RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
         {
             var checkInState = GetCheckInState( entity, out errorMessages );
             if ( checkInState != null )
@@ -69,7 +66,7 @@ namespace org.secc.FamilyCheckin
                 var family = checkInState.CheckIn.Families.Where( f => f.Selected ).FirstOrDefault();
                 if ( family != null )
                 {
-                    foreach (var person in family.People)
+                    foreach ( var person in family.People )
                     {
                         person.Selected = true;
                         person.PreSelected = true;

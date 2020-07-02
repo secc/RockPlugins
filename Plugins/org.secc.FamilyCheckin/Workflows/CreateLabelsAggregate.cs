@@ -18,7 +18,11 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Data.Entity;
 using System.Linq;
-
+using Newtonsoft.Json;
+using org.secc.FamilyCheckin.Cache;
+using org.secc.FamilyCheckin.Model;
+using org.secc.FamilyCheckin.Utilities;
+using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
 using Rock.Data;
@@ -26,15 +30,6 @@ using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Workflow;
 using Rock.Workflow.Action.CheckIn;
-using Rock;
-using System.Runtime.Caching;
-using org.secc.FamilyCheckin.Utilities;
-using Rock.Workflow.Action;
-using Newtonsoft.Json;
-using org.secc.FamilyCheckin.Model;
-using org.secc.FamilyCheckin.Cache;
-using DotLiquid.Util;
-using DotLiquid.Tags;
 
 namespace org.secc.FamilyCheckin
 {

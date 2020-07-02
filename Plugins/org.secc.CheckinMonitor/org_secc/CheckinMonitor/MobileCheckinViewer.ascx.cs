@@ -15,24 +15,21 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text.RegularExpressions;
+using System.Data.Entity;
 using System.Linq;
-
+using System.Web.UI;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNet.SignalR;
+using Newtonsoft.Json;
+using org.secc.FamilyCheckin.Cache;
+using org.secc.FamilyCheckin.Model;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
-using Rock.Attribute;
 using Rock.CheckIn;
+using Rock.Data;
+using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
-using org.secc.FamilyCheckin.Cache;
-using Rock.Data;
-using org.secc.FamilyCheckin.Model;
-using System.Data.Entity;
-using Rock.Model;
-using DocumentFormat.OpenXml.Wordprocessing;
-using org.secc.FamilyCheckin.Utilities;
-using Newtonsoft.Json;
-using System.Web.UI;
-using Microsoft.AspNet.SignalR;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {

@@ -12,23 +12,17 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Data.Entity;
 using System.Linq;
+using org.secc.FamilyCheckin.Cache;
 using Rock;
-using Rock.Workflow;
-using Rock.CheckIn;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Workflow;
 using Rock.Workflow.Action.CheckIn;
-using Rock.Attribute;
-using Rock.Web.Cache;
-using System.Runtime.Caching;
-using org.secc.FamilyCheckin.Utilities;
-using org.secc.FamilyCheckin.Cache;
 
 namespace org.secc.FamilyCheckin
 {
