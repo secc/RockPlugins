@@ -46,6 +46,7 @@
                     <Rock:BoolField HeaderText="IsVolunteer" DataField="IsVolunteer" />
                 </Columns>
             </Rock:Grid>
+            <Rock:RockLiteral runat="server" ID="ltAttendance" Label="Keys" />
         </asp:Panel>
 
         <asp:Panel runat="server" ID="pnlMobileRecords" Visible="false">

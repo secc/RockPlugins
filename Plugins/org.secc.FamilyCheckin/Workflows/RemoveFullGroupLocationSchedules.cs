@@ -64,6 +64,12 @@ namespace org.secc.FamilyCheckin
                 {
                     foreach ( var person in family.People )
                     {
+                        var inScheduleIds = AttendanceCache.All()
+                                            .Where( a => a.PersonId == person.Person.Id
+                                                      && a.AttendanceState != AttendanceState.CheckedOut )
+                                            .Select( a => a.ScheduleId )
+                                            .ToList();
+
                         foreach ( var groupType in person.GroupTypes )
                         {
                             foreach ( var group in groupType.Groups )
@@ -72,20 +78,14 @@ namespace org.secc.FamilyCheckin
                                 {
                                     foreach ( var schedule in location.Schedules.ToList() )
                                     {
-                                        var occurrence = OccurrenceCache.Get( group.Group.Id, location.Location.Id, schedule.Schedule.Id );
-                                        if ( occurrence == null || occurrence.IsFull )
+                                        if ( filterAttendanceSchedules && inScheduleIds.Contains( schedule.Schedule.Id ) )
                                         {
                                             location.Schedules.Remove( schedule );
                                             continue;
                                         }
 
-                                        var hasSameScheduleAttendances = AttendanceCache.All()
-                                            .Where( a => a.PersonId == person.Person.Id
-                                                      && a.AttendanceState != AttendanceState.CheckedOut
-                                                      && a.ScheduleId == schedule.Schedule.Id )
-                                            .Any();
-
-                                        if ( filterAttendanceSchedules && hasSameScheduleAttendances )
+                                        var occurrence = OccurrenceCache.Get( group.Group.Id, location.Location.Id, schedule.Schedule.Id );
+                                        if ( occurrence == null || occurrence.IsFull )
                                         {
                                             location.Schedules.Remove( schedule );
                                             continue;

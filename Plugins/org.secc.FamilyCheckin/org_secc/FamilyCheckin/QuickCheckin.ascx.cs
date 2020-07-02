@@ -1348,10 +1348,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                 checkInLocation.Selected = true;
                                 checkInLocation.PreSelected = true;
 
-                                var locationLinkAttributeKey = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() ).Key;
-                                if ( checkinGroup.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
+                                var locationLinkAttribute = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() );
+                                if ( locationLinkAttribute != null )
                                 {
-                                    LinkLocations( checkinPerson, checkinGroup, checkInLocation );
+
+                                    if ( checkinGroup.Group.GetAttributeValue( locationLinkAttribute.Key ).AsBoolean() )
+                                    {
+                                        LinkLocations( checkinPerson, checkinGroup, checkInLocation );
+                                    }
                                 }
 
                                 RemoveOverlappingSchedules( checkinPerson, locationSchedule );

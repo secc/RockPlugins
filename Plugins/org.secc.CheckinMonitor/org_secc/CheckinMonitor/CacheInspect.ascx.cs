@@ -115,6 +115,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             gAttendances.DataSource = attendances;
             gAttendances.DataBind();
+
+            ltAttendance.Text = string.Join( ", ", AttendanceCache.Keys() );
         }
 
 
@@ -124,7 +126,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             btnAttendances.CssClass = defaultCss;
             btnMobileRecords.CssClass = defaultCss;
             pnlOccurrences.Visible = false;
-            pnlAttendances.Visible = true;
+            pnlAttendances.Visible = false;
             pnlMobileRecords.Visible = false;
             pnlVerify.Visible = true;
 

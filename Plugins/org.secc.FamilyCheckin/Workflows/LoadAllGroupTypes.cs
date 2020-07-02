@@ -47,7 +47,7 @@ namespace org.secc.FamilyCheckin
     /// </summary>
     [ActionCategory( "SECC > Check-In" )]
     [Description( "Loads the group types allowed for each person in a family. This is identical to the load group type in core except it doesn't filter by count." )]
-    [Export(typeof(ActionComponent))]
+    [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Load All Group Types" )]
     public class LoadAllGroupTypes : CheckInActionComponent
     {
@@ -65,20 +65,30 @@ namespace org.secc.FamilyCheckin
             var checkInState = GetCheckInState( entity, out errorMessages );
             if ( checkInState != null )
             {
+
+                //This is an optimization over standard Rock
+                //Core Rock has this inside the loop. Reading all the iCals is slow.
+                var activeKioskGroupTypes = new List<KioskGroupType>();
+
+                foreach ( var kioskGroupType in checkInState.Kiosk.ActiveGroupTypes( checkInState.ConfiguredGroupTypes ) )
+                {
+                    if ( kioskGroupType.KioskGroups.SelectMany( g => g.KioskLocations ).Any( l => l.IsCheckInActive && l.Location.IsActive ) )
+                    {
+                        activeKioskGroupTypes.Add( kioskGroupType );
+                    }
+                }
+
                 foreach ( var family in checkInState.CheckIn.GetFamilies( true ) )
                 {
                     foreach ( var person in family.People )
                     {
-                        foreach ( var kioskGroupType in checkInState.Kiosk.ActiveGroupTypes( checkInState.ConfiguredGroupTypes ) )
+                        foreach ( var kioskGroupType in activeKioskGroupTypes )
                         {
-                            if ( kioskGroupType.KioskGroups.SelectMany( g => g.KioskLocations ).Any( l => l.IsCheckInActive && l.Location.IsActive ) )
+                            if ( !person.GroupTypes.Any( g => g.GroupType.Id == kioskGroupType.GroupType.Id ) )
                             {
-                                if ( !person.GroupTypes.Any( g => g.GroupType.Id == kioskGroupType.GroupType.Id ) )
-                                {
-                                    var checkinGroupType = new CheckInGroupType();
-                                    checkinGroupType.GroupType = kioskGroupType.GroupType;
-                                    person.GroupTypes.Add( checkinGroupType );
-                                }
+                                var checkinGroupType = new CheckInGroupType();
+                                checkinGroupType.GroupType = kioskGroupType.GroupType;
+                                person.GroupTypes.Add( checkinGroupType );
                             }
                         }
                     }

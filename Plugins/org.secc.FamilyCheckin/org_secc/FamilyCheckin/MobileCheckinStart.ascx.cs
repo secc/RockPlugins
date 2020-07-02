@@ -331,17 +331,20 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 if ( isOpen )
                 {
                     btnSelectCampus.Enabled = true;
+                    btnSelectCampus.OnClientClick = "";
                     btnSelectCampus.Text = "Begin Check-in";
                 }
                 else if ( activeAt.HasValue )
                 {
                     btnSelectCampus.Enabled = false;
+                    btnSelectCampus.OnClientClick = "javascript:return false;";
                     lblActiveWhen.Text = activeAt.Value.AddSeconds( 30 ).ToString( "o" );
                     RegisterCountdownScript();
                 }
                 else
                 {
                     btnSelectCampus.Enabled = false;
+                    btnSelectCampus.OnClientClick = "javascript:return false;";
                     btnSelectCampus.Text = "No More Check-ins Today";
                 }
             }
@@ -618,7 +621,7 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( CurrentPerson.PrimaryFamilyId ?? 0 );
             if ( mobileCheckinRecord == null )
             {
-                string kioskName = CurrentUser.UserName;
+                string kioskName = currentUser.UserName;
                 mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByUserName( kioskName );
             }
 
