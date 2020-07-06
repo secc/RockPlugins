@@ -13,25 +13,22 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
-
+using System.Web.SessionState;
+using org.secc.FamilyCheckin.Cache;
+using org.secc.FamilyCheckin.Rest.Handlers;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
+using Rock.CheckIn;
 using Rock.Model;
 using Rock.Rest;
-using Rock.CheckIn;
-using System.Web;
 using Rock.Web.Cache;
-using System.Collections.Generic;
-using org.secc.FamilyCheckin.Rest.Handlers;
-using System.Web.SessionState;
-using Rock.Data;
-using org.secc.FamilyCheckin.Model;
-using org.secc.FamilyCheckin.Utilities;
-using System.Data.Entity;
-using org.secc.FamilyCheckin.Cache;
 
 namespace org.secc.FamilyCheckin.Rest.Controllers
 {

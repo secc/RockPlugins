@@ -13,25 +13,15 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Web.UI;
 using System.Web.UI.WebControls;
-using Rock;
-using Rock.Data;
-using Rock.Model;
-using Rock.Web.UI.Controls;
-using System.Collections.Generic;
-using Rock.CheckIn;
-using Rock.Attribute;
-using org.secc.FamilyCheckin.Utilities;
-using Rock.Web.UI;
-using System.Data.Entity;
-using System.Diagnostics;
 using org.secc.FamilyCheckin.Cache;
-using OpenXmlPowerTools;
-using org.secc.FamilyCheckin.Model;
-using Rock.ServiceObjects.GeoCoder;
+using Rock;
+using Rock.Model;
+using Rock.Web.UI;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
@@ -115,6 +105,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             gAttendances.DataSource = attendances;
             gAttendances.DataBind();
+
+            ltAttendance.Text = string.Join( ", ", AttendanceCache.Keys() );
         }
 
 
@@ -124,7 +116,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             btnAttendances.CssClass = defaultCss;
             btnMobileRecords.CssClass = defaultCss;
             pnlOccurrences.Visible = false;
-            pnlAttendances.Visible = true;
+            pnlAttendances.Visible = false;
             pnlMobileRecords.Visible = false;
             pnlVerify.Visible = true;
 

@@ -15,18 +15,15 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using Humanizer;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Exceptions;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
-using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
@@ -1348,10 +1345,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                 checkInLocation.Selected = true;
                                 checkInLocation.PreSelected = true;
 
-                                var locationLinkAttributeKey = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() ).Key;
-                                if ( checkinGroup.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
+                                var locationLinkAttribute = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() );
+                                if ( locationLinkAttribute != null )
                                 {
-                                    LinkLocations( checkinPerson, checkinGroup, checkInLocation );
+
+                                    if ( checkinGroup.Group.GetAttributeValue( locationLinkAttribute.Key ).AsBoolean() )
+                                    {
+                                        LinkLocations( checkinPerson, checkinGroup, checkInLocation );
+                                    }
                                 }
 
                                 RemoveOverlappingSchedules( checkinPerson, locationSchedule );

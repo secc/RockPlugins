@@ -13,23 +13,18 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using org.secc.FamilyCheckin.Model;
 using Rock;
-using Rock.Attribute;
 using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI;
-using org.secc.FamilyCheckin.Model;
-using org.secc.FamilyCheckin.Data;
-using System.Data.Entity;
-using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {

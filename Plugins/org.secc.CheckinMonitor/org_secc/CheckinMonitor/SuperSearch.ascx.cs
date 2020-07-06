@@ -15,9 +15,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Text.RegularExpressions;
 using System.Linq;
-
+using System.Text.RegularExpressions;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
@@ -105,7 +104,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 ProcessActivity( GetAttributeValue( "WorkflowActivity" ), out errorMessages );
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
                 LogException( ex );
             }

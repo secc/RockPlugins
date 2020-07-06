@@ -29,6 +29,7 @@
     var doCheckin = function () {
         setTimeout(
             function () {
+                window.scrollTo(0, 0);
                 var content = document.getElementById("quickCheckinContainer");
                 document.body.style.overflow = "hidden";
                 content.style.transitionDuration = "0.2s";

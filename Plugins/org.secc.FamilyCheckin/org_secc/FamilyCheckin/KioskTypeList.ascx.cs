@@ -20,14 +20,12 @@ using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using org.secc.FamilyCheckin.Cache;
-using org.secc.FamilyCheckin.Data;
 using org.secc.FamilyCheckin.Model;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
-using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 

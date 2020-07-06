@@ -34,12 +34,12 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Rock;
-using Rock.Workflow;
 using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
-using Rock.Workflow.Action.CheckIn;
 using Rock.Web.Cache;
+using Rock.Workflow;
+using Rock.Workflow.Action.CheckIn;
 
 namespace org.secc.FamilyCheckin
 {
@@ -97,7 +97,7 @@ namespace org.secc.FamilyCheckin
                                     var schedules = new List<CheckInSchedule>();
                                     foreach ( var schedule in groupLocation.Schedules.ToList() )
                                     {
-                                        if ( !schedule.WasCheckInActive(RockDateTime.Now) )
+                                        if ( !schedule.WasCheckInActive( RockDateTime.Now ) )
                                         {
                                             continue;
                                         }

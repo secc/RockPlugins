@@ -12,17 +12,13 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
-using Newtonsoft.Json;
 using Rock;
 using Rock.CheckIn;
 using Rock.Data;
@@ -35,7 +31,7 @@ namespace org.secc.FamilyCheckin.Utilities
         public CheckInState CheckInState { get; set; }
 
         public HttpRequest Request { get; set; }
-        
+
         public List<CheckInLabel> Labels { get; set; }
 
         /// <summary>

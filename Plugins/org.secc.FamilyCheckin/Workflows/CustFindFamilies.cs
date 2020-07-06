@@ -35,7 +35,6 @@ using System.ComponentModel.Composition;
 using System.Data.Entity;
 using System.Linq;
 using Rock;
-using Rock.Attribute;
 using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;

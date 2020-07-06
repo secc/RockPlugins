@@ -15,19 +15,18 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using org.secc.FamilyCheckin.Cache;
+using org.secc.FamilyCheckin.Model;
 using Rock;
 using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web.UI;
-using org.secc.FamilyCheckin.Model;
-using System.Data.Entity;
-using org.secc.FamilyCheckin.Cache;
-using System.Globalization;
 
 namespace RockWeb.Plugins.org_secc.FamilyCheckin
 {

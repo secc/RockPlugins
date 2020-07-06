@@ -1,4 +1,18 @@
-﻿using System;
+﻿// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -175,6 +189,13 @@ namespace org.secc.FamilyCheckin.Cache
             RockContext rockContext = new RockContext();
             AttendanceService attendanceService = new AttendanceService( rockContext );
             var attendance = attendanceService.Get( id );
+
+            if ( attendance == null )
+            {
+                Remove( id );
+                return null;
+            }
+
             return LoadByAttendance( attendance );
         }
 
@@ -183,6 +204,7 @@ namespace org.secc.FamilyCheckin.Cache
             //We don't want to cache attendances created before today.
             if ( !attendance.CreatedDateTime.HasValue || attendance.CreatedDateTime < Rock.RockDateTime.Today )
             {
+                Remove( attendance.Id );
                 return null;
             }
 
@@ -242,7 +264,7 @@ namespace org.secc.FamilyCheckin.Cache
             RockContext rockContext = new RockContext();
             AttendanceService attendanceService = new AttendanceService( rockContext );
             var keys = attendanceService.Queryable().AsNoTracking()
-                .Where( a => a.StartDateTime > RockDateTime.Today )
+                .Where( a => a.StartDateTime >= RockDateTime.Today )
                 .Select( a => a.Id.ToString() )
                 .ToList();
 
@@ -292,13 +314,19 @@ namespace org.secc.FamilyCheckin.Cache
             var attendances = attendanceService.Queryable( "Occurrence" )
                 .Where( a => a.CreatedDateTime.HasValue && a.CreatedDateTime >= Rock.RockDateTime.Today )
                 .ToList();
-            var attendanceCaches = AttendanceCache.All();
+            var attendanceCaches = All();
 
             if ( attendanceCaches.Count != attendanceCaches.Count )
             {
                 errors.Add( "Attendance count does not match Attendance Cache count" );
             }
 
+            if ( Keys().Count != attendanceCaches.Count )
+            {
+                errors.Add(
+                    string.Format( "Attendance Cache has a different number of key to items. Keys:{0} Items:{1}",
+                    Keys().Count, attendanceCaches.Count ) );
+            }
 
             foreach ( var attendance in attendances )
             {
@@ -347,6 +375,11 @@ namespace org.secc.FamilyCheckin.Cache
                     errors.Add( "Attendance cache error. Id: " + attendance.Id.ToString() );
                 }
             }
+        }
+
+        public static List<string> Keys()
+        {
+            return RockCacheManager<List<string>>.Instance.Cache.Get( AllKey, _AllRegion );
         }
     }
 

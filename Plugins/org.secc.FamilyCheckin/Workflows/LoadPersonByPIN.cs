@@ -12,18 +12,17 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Data.Entity;
 using System.Linq;
 using Rock;
-using Rock.Workflow;
+using Rock.Attribute;
 using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
-using Rock.Attribute;
+using Rock.Workflow;
 using Rock.Workflow.Action.CheckIn;
 
 namespace org.secc.FamilyCheckin
@@ -37,7 +36,7 @@ namespace org.secc.FamilyCheckin
     [ExportMetadata( "ComponentName", "Load Person By PIN" )]
     [BooleanField( "Search By Phone", "Should we also allow searching by phone number? This will only return true if a person is found by PIN." )]
     [IntegerField( "Minimum Phone Length", "The minimum number of digits for a phone number.", false, 7 )]
-    [BooleanField("Search By Pin", "Should we search by PIN?")]
+    [BooleanField( "Search By Pin", "Should we search by PIN?" )]
     public class LoadPersonByPIN : CheckInActionComponent
     {
         /// <summary>
@@ -63,7 +62,7 @@ namespace org.secc.FamilyCheckin
                 {
                     UserLoginService userLogin = new UserLoginService( rockContext );
                     var user = userLogin.GetByUserName( searchValue );
-                    if ( user != null && GetAttributeValue(action, "SearchByPin").AsBoolean() )
+                    if ( user != null && GetAttributeValue( action, "SearchByPin" ).AsBoolean() )
                     {
                         var memberService = new GroupMemberService( rockContext );
                         var families = user.Person.GetFamilies();
@@ -95,7 +94,7 @@ namespace org.secc.FamilyCheckin
                             return false;
                         }
                         PhoneNumberService phoneNumberService = new PhoneNumberService( rockContext );
-                        var phoneNumbers = phoneNumberService.GetBySearchterm( searchValue ).DistinctBy( pn => pn.PersonId ).Take(20).ToList();
+                        var phoneNumbers = phoneNumberService.GetBySearchterm( searchValue ).DistinctBy( pn => pn.PersonId ).Take( 20 ).ToList();
 
                         foreach ( var phoneNumber in phoneNumbers )
                         {

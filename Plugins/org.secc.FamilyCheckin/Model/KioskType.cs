@@ -15,16 +15,16 @@
 namespace org.secc.FamilyCheckin.Model
 {
     using System;
-    using System.Linq;
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.ModelConfiguration;
+    using System.Linq;
     using System.Runtime.Serialization;
-    using Rock.Model;
     using Rock;
     using Rock.Data;
+    using Rock.Model;
 
     [Table( "_org_secc_FamilyCheckin_KioskType" )]
     [DataContract]

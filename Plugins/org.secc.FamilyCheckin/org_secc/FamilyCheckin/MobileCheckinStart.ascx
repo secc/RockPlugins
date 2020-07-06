@@ -123,7 +123,7 @@
                 DataValueField="Value" AutoPostBack="true" OnSelectedIndexChanged="ddlCampus_SelectedIndexChanged" />
             <br />
             <Rock:RockLiteral runat="server" ID="lCampusLava" />
-            <Rock:BootstrapButton runat="server" ID="btnSelectCampus" Text="Begin Check-in" CssClass="se-btn se-btn--app-highlight btn-block btn-select" OnClick="btnSelectCampus_Click" />
+            <asp:LinkButton runat="server" ID="btnSelectCampus" Text="Begin Check-in" CssClass="se-btn se-btn--app-highlight btn-block btn-select" OnClick="btnSelectCampus_Click" />
         </asp:Panel>
 
         <asp:Panel runat="server" ID="pnlQr" Visible="false">

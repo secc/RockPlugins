@@ -13,23 +13,21 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using Humanizer;
+using org.secc.FamilyCheckin.Cache;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
+using Rock.Attribute;
+using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.UI.Controls;
-using System.Collections.Generic;
-using Rock.CheckIn;
-using Rock.Attribute;
-using org.secc.FamilyCheckin.Utilities;
 using Rock.Web.Cache;
-using org.secc.FamilyCheckin.Cache;
-using Humanizer;
-using C5;
-using DotLiquid.Util;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {

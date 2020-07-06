@@ -19,16 +19,13 @@ using System.Linq;
 using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using Amazon.Runtime.Internal.Util;
 using CSScriptLibrary;
-using OpenXmlPowerTools;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
 using Rock.Data;
-using Rock.Field.Types;
 using Rock.Model;
 using Rock.Web.Cache;
 
@@ -331,17 +328,20 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 if ( isOpen )
                 {
                     btnSelectCampus.Enabled = true;
+                    btnSelectCampus.OnClientClick = "";
                     btnSelectCampus.Text = "Begin Check-in";
                 }
                 else if ( activeAt.HasValue )
                 {
                     btnSelectCampus.Enabled = false;
+                    btnSelectCampus.OnClientClick = "javascript:return false;";
                     lblActiveWhen.Text = activeAt.Value.AddSeconds( 30 ).ToString( "o" );
                     RegisterCountdownScript();
                 }
                 else
                 {
                     btnSelectCampus.Enabled = false;
+                    btnSelectCampus.OnClientClick = "javascript:return false;";
                     btnSelectCampus.Text = "No More Check-ins Today";
                 }
             }
@@ -618,7 +618,7 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( CurrentPerson.PrimaryFamilyId ?? 0 );
             if ( mobileCheckinRecord == null )
             {
-                string kioskName = CurrentUser.UserName;
+                string kioskName = currentUser.UserName;
                 mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByUserName( kioskName );
             }
 

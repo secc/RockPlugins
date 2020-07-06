@@ -34,12 +34,12 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Rock;
-using Rock.Workflow;
 using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
-using Rock.Workflow.Action.CheckIn;
 using Rock.Web.Cache;
+using Rock.Workflow;
+using Rock.Workflow.Action.CheckIn;
 
 namespace org.secc.FamilyCheckin
 {
@@ -81,7 +81,7 @@ namespace org.secc.FamilyCheckin
                             checkinGroupTypes.Add( cgt );
                             var groups = groupService.Queryable().Where( g => g.GroupTypeId == id );
                             List<CheckInGroup> checkinGroups = new List<CheckInGroup>();
-                            foreach ( var group in groups.Where(g => g.IsActive) )
+                            foreach ( var group in groups.Where( g => g.IsActive ) )
                             {
                                 var cg = new CheckInGroup();
                                 cg.Group = group;
@@ -89,14 +89,14 @@ namespace org.secc.FamilyCheckin
                                 checkinGroups.Add( cg );
                                 var groupLocations = group.GroupLocations;
                                 List<CheckInLocation> checkinLocations = new List<CheckInLocation>();
-                                foreach(var groupLocation in groupLocations )
+                                foreach ( var groupLocation in groupLocations )
                                 {
                                     var cl = new CheckInLocation();
                                     cl.Location = groupLocation.Location;
                                     cl.CampusId = cl.Location.CampusId;
                                     checkinLocations.Add( cl );
                                     var schedules = new List<CheckInSchedule>();
-                                    foreach(var schedule in groupLocation.Schedules )
+                                    foreach ( var schedule in groupLocation.Schedules )
                                     {
                                         var cs = new CheckInSchedule();
                                         cs.Schedule = schedule;
