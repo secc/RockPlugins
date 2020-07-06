@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -481,7 +481,8 @@ $('#updateProgress').show();
             pagination.UrlTemplate = pageRef.BuildUrl();
             var currentPageContent = pagination.GetCurrentPageItems( content );
 
-            var globalAttributeFields = Rock.Web.Cache.GlobalAttributesCache.GetMergeFields( CurrentPerson );
+
+            var globalAttributeFields = Rock.Lava.LavaHelper.GetCommonMergeFields(RockPage, CurrentPerson );
 
             // Merge content and attribute fields if block is configured to do so.
             if ( GetAttributeValue( "MergeContent" ).AsBoolean() )
@@ -517,12 +518,9 @@ $('#updateProgress').show();
 
 
             var mergeFields = new Dictionary<string, object>();
-            mergeFields.Add( "PageParameter", RockPage.PageParameters() );
-            mergeFields.Add( "Pagination", pagination );
+             mergeFields.Add( "Pagination", pagination );
             mergeFields.Add( "LinkedPages", linkedPages );
             mergeFields.Add( "Items", currentPageContent );
-            mergeFields.Add( "Campuses", CampusCache.All() );
-            mergeFields.Add( "CurrentPerson", CurrentPerson );
             mergeFields.Add( "Context", contextObjects );
 
             globalAttributeFields.ToList().ForEach( d => mergeFields.Add( d.Key, d.Value ) );
