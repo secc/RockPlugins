@@ -56,16 +56,18 @@
         .successModal {
             display: none;
             position: absolute;
-            width: 70vw;
-            left: 15vw;
+            width: 80vw;
+            left: 10vw;
             top: 100vh;
-            background-color: $ThemeColor_1;
+            background-color: $ThemeColor_1 !important;
             font-weight: bold;
-            font-size: 5em;
-            color: $ThemeColor_4;
+            color: $ThemeColor_4 !important;
             background-image: none;
             border-radius: 15px;
             padding: 35px;
+            h3 {
+                font-size: 1.2em !important;
+            }
         }
 
         .modal {   
@@ -74,11 +76,11 @@
                 padding: 2% 10%;
 
                 @include tablets {
-                    padding: 10% 0px;
+                    padding: 15px;
                 }
 
                 @include phones {
-                    padding: 10% 0px;
+                    padding: 15px;
                 }
             }
             
@@ -160,9 +162,9 @@
                 border-radius: 16px;
                 h1 {
                     font-size: 2.5em;
-                    color: $ThemeColor_4;
+                    color: $ThemeColor_3;
                     font-weight: 700;
-                    margin-bottom: 25px;
+                    margin-bottom: 5px;
 
                     @include tablets {
                         font-size: 1.5em;
@@ -234,7 +236,7 @@
             -o-transition: all 0.3s ease;
             transition: all 0.3s ease;
             overflow: hidden;
-            white-space: normal;
+            white-space: normal !important;
             min-height: 55px;
             min-width: 60px;
             position: relative;
@@ -618,7 +620,7 @@
                 }
 
                 @include phones {
-                    font-size: 2.5rem;
+                    font-size: 2rem;
                     border-radius: 16px;
                     padding: 13px;
                 }
@@ -638,7 +640,7 @@
             -o-transition: all 0.3s ease;
             transition: all 0.3s ease;
             font-weight: 700;
-            margin: 15px auto;
+            // margin: 15px auto;
             -webkit-box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
             box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
 
@@ -701,6 +703,10 @@
         }
 
         .scheduleSelected {
+            @include tablets {
+                display: block;
+                width: 100%;
+            }
             @include phones {
                 display: block;
                 width: 100%;
@@ -732,8 +738,8 @@
         fieldset[disabled] .btn-default:focus,
         fieldset[disabled] .btn-default:active,
         fieldset[disabled] .btn-default.active {
-            background-color: $ThemeColor_2;
-            color: $ThemeColor_4;
+            // background-color: $ThemeColor_2;
+            // color: $ThemeColor_1;
 
             @include phones {
                 width: 100%;
@@ -745,7 +751,7 @@
         fieldset[disabled] .btn {
             cursor: not-allowed;
             pointer-events: none;
-            opacity: 0.75;
+            opacity: 0.5;
             filter: alpha(opacity=75);
             -webkit-box-shadow: none;
             box-shadow: none;
@@ -767,8 +773,11 @@
             }
 
             @include phones {
-                padding: 0px;
+                padding: 0px !important;
                 width: 100%;
+                div:first-child {
+                    margin: 0px !important;
+                }
             }
         }
 
@@ -916,11 +925,11 @@
             font-weight: 700;
 
             @include tablets {
-                font-size: 3em;
+                font-size: 2em;
             }
 
             @include phones {
-                font-size: 3em;
+                font-size: 2em;
             }
         }
 
