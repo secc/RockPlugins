@@ -34,6 +34,12 @@ $ThemeColor_5: rgba(112, 112, 112, 1); //#707070
     display: none;
 }
 
+div[id*="pnlNotActive"] {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
 
 body {
     background-image: url("../Assets/Images/Shine_Circles_BG.jpg");
