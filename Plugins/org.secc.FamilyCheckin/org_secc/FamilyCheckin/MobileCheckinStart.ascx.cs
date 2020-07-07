@@ -232,7 +232,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
             else
             {
-                ddlCampus.SetValue( CurrentPerson.PrimaryCampusId.ToString() );
+                ddlCampus.SetValue( currentPerson.PrimaryCampusId.ToString() );
             }
             UpdateKioskText();
         }
