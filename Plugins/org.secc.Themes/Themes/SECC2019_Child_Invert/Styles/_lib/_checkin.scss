@@ -98,7 +98,7 @@
                 -o-transition: all 0.3s ease;
                 transition: all 0.3s ease;
                 overflow: hidden;
-                white-space: normal;
+                white-space: normal !important;
                 min-height: 55px;
                 min-width: 60px;
                 position: relative;
