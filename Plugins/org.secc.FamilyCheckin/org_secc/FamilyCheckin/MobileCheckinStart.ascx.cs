@@ -272,7 +272,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             string kioskName = currentUser.UserName;
 
-            var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( CurrentPerson.PrimaryFamilyId ?? 0 );
+            var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( currentPerson.PrimaryFamilyId ?? 0 );
             if ( mobileCheckinRecord == null )
             {
                 mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByUserName( kioskName );
