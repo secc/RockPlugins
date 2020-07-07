@@ -106,6 +106,64 @@
 		{%- endcontentchannelitem -%}
 
 		{%- comment -%}
+        SE!Kids Checkin (if any)
+        {%- endcomment -%}
+        {%- contentchannelitem where:'Status == 2 && ContentChannelId == 73' sort:'Order' -%}
+			{%- assign itemCount = 0 -%}
+			{%- assign contentItem = "" -%}
+
+			{%- for item in contentchannelitemItems -%}
+				{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
+				{%- assign locationCampus = item | Attribute:'Campuses' -%}
+				{%- if locationInfoTemplate == "connection" and locationCampus contains campus.Name -%}
+					{%- assign itemCount = itemCount | Plus:1 -%}
+				{%- endif -%}
+			{%- endfor -%}
+			{%- if itemCount > 0 -%}
+				{%- for item in contentchannelitemItems -%}
+					{%- assign contentItem = item -%}
+					{%- assign url = contentItem | Attribute:'itemurl','RawValue' -%}
+					{%- assign itemCampuses = contentItem | Attribute:'Campuses' -%}
+					{%- if itemCampuses == null -%}
+						{%- comment -%} *** Display Content *** {%- endcomment -%}
+					{%- else -%}
+						{%- assign locationInfoTemplate = item | Attribute:'Template','RawValue' -%}
+						{%- assign locationCampus = item | Attribute:'Campuses' -%}
+						{%- if locationInfoTemplate == "kcheckin" and locationCampus contains campus.Name -%}
+						{%- comment -%}
+						iterate for each html-to-image slice
+						{%- endcomment -%}
+						{%- assign intervalCuts = 574.666666666666667 -%}
+						{%- assign interY1 = 0 -%}
+						{%- assign interY2 = intervalCuts | Plus:1 -%}
+						{%- for i in (0..1) -%}
+						{{- comma -}}{
+							"title": "{{campus.Name}} SE!Kids Checkin",
+							"images":[
+								{ "width":800, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/location/info/twoslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+							],"actions":[{
+								"url": "https://app.secc.org/webhooks/SubSplash.ashx/checkin/{{campus.Id}}",
+								"handler": "list",
+                    			"authProviderId": "ccaf1fb2-03e0-4093-8f97-f8f60f125ddc"
+							}]
+						}
+						{%- assign comma = "," -%}
+						{%- if forloop.index ==  1 -%}
+							{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
+							{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+						{%- else -%}
+							{%- assign interY1 = interY1 | Plus:intervalCuts -%}
+							{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+						{%- endif -%}
+						{%- endfor -%}
+						{%- endif -%}
+					{%- endif%}
+				{%- endfor -%}
+
+			{%- endif -%}
+		{%- endcontentchannelitem -%}
+
+		{%- comment -%}
         Group
         {%- endcomment -%}
 		{%- contentchannelitem where:'Status == 2 && ContentChannelId == 73' sort:'Order' -%}

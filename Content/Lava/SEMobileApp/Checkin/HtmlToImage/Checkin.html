@@ -1,0 +1,139 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019_Child_Invert/Styles/layout.css?v=637196153346169397"/>
+        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019_Child_Invert/Styles/main.css?v=637196153358512916"/>
+        <style>
+            html, body {
+              margin: 0px;
+              padding: 0px;
+              background-color: #121212;
+              color: white;
+            }
+            a,p,h1,h2,h3,h4,h5,h6,span,div {
+                color: white !important;
+            }
+
+            #GeneralImage {
+                background: no-repeat 50%
+                url("https://www.southeastchristian.org/Content/MobileApp/SE_Kids_Check_in__1_.jpg");
+                background-size: cover;
+                background-position-x: 50%;
+                position: relative;
+                width: 100%;
+                margin: 0 auto;
+                min-height: 1000px;
+                max-width: 1600px;
+            }
+            #GeneralImage:after {
+                top: 0;
+                left: 0;
+                content: '';
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                z-index: 1;
+                background-image: -webkit-linear-gradient(270deg, rgba(18, 18, 18, 0) 50%, rgba(18, 18, 18, 0.8) 75%, rgba(18, 18, 18, 1) 100%) !important;
+                background-image: -o-linear-gradient(270deg, rgba(18, 18, 18, 0) 50%, rgba(18, 18, 18, 0.8) 75%, rgba(18, 18, 18, 1) 100%) !important;
+                background-image: linear-gradient(270deg, rgba(18, 18, 18, 0) 50%, rgba(18, 18, 18, 0.8) 75%, rgba(18, 18, 18, 1) 100%) !important;
+                /*background-image: -webkit-linear-gradient(180deg, rgba(18, 18, 18, 0) 50%, rgba(18, 18, 18, 0.8) 75%,
+                rgba(18, 18, 18, 1) 100%) !important;
+                background-image: -o-linear-gradient(180deg, rgba(18, 18, 18, 0) 50%, rgba(18, 18, 18, 0.8) 75%, rgba(18, 18, 18, 1) 100%) !important;
+                background-image: linear-gradient(180deg, rgba(18, 18, 18, 0) 50%, rgba(18, 18, 18, 0.8) 75%, rgba(18,
+                18, 18, 1) 100%) !important; */
+                background-repeat: repeat-x !important;
+            }
+            .campus-actions-items {
+                position: absolute;
+                z-index: 2;
+                bottom: 0;
+                text-align: center;
+                width: 100%;
+            }
+            .se-btn--app-highlight {
+                border-radius: 10rem;
+                padding: 5rem 8rem
+            }
+        </style>
+    </head>
+    <body>
+    <section id="GeneralImage">
+        <!-- Campus Image -->
+        <div class="campus-actions-items" style="bottom: -5%;">
+            <!-- Campus Title - Secondary Font -->
+            <h1 class="g-font-family--secondary g-padding-b-100--xs g-font-size-150--xs g-color--white g-font-size-100--xs">SE!Kids Check-in</h3>
+            <!-- My Campus -->
+
+            <!-- Get Directions, button -->
+            <div style="width:100%;">
+                <h6 class="text-center pull-left" style="width:25%;">
+                    &nbsp;
+                </h6>
+                <h6 class="text-center pull-left g-font-size-80--xs" style="vertical-align:bottom;width: 50%;white-space: normal;font-size: 0.7em;">
+                    <a class="uppercase se-btn--app-highlight uppercase g-letter-spacing--1 g-display-inline-block--xs"
+                       target="_blank"
+                       href="https://maps.google.com/?saddr=Current+Location&daddr={{campus.Location.Street1 | | Replace:' ','+' }}+{{campus.Location.City}}+{{campus.Location.State}}+{{campus.Location.PostalCode}}"
+                       style="vertical-align:bottom;">
+                       <strong>Start Check-in</strong>
+                    </a>
+                </h6>
+                <h6 class="text-center pull-left" style="width:25%;">
+                    &nbsp;
+                </h6>
+            </div>
+        </div>
+    </section>
+    <div id="CampusBody" class="g-padding-t-150--xs g-padding-b-50--xs">
+
+        <article class="g-bg-color--2020-seapp-grey g-margin-x-150--xs g-padding-x-150--xs g-padding-y-150--xs" style="border-radius:5.5em;">
+            <div class="services g-text-left--xs">
+                <p class="service-times g-margin-b-0--xs g-font-size-100--xs">
+                    <i style="line-height: 1.4em;">“Children are a gift from the Lord; they are a reward from him.” Psalm 127:3 NLT</i>
+                </p>
+            </div>
+        </article>
+
+        <article class="g-margin-x-150--xs g-margin-y-100--xs g-position--relative" style="border-radius:5.5em;">
+            <div class="services g-text-left--xs g-padding-x-150--xs g-padding-y-50--xs g-overflow--hidden">
+                <p class="service-times g-margin-b-0--xs g-font-size-100--xs">
+                    Mobile check-in is a new touchless option for parents. Instead of checking in your kids at the
+                    kiosk, you now have the option to check them in right here on your phone. After selecting a campus
+                    and classes, a QR code will show up on your screen. Scan that code at any check-in station and your
+                    kids' name tags will print immediatly.
+                </p>
+                 <br />
+                <p class="service-times g-margin-b-0--xs g-font-size-100--xs">
+                    Before scanning your QR code, your reservations will be guaranteed for about 10 minutes. If you are
+                    past your reserved time, your spots may be released to make room for present familes. (Once you scan
+                    your code and receive your name tags, we know you're here and won't cancel your check-in.)
+                </p>
+                 <br />
+                <p class="service-times g-margin-b-0--xs g-font-size-100--xs">
+                    If you need any help or have any questions please see one of our check-in volunteers.
+                </p>
+            </div>
+        </article>
+
+        <article class="g-bg-color--2020-seapp-blue-dark g-margin-x-150--xs g-margin-b-150--xs g-position--relative" style="border-radius:5.5em;">
+            <div class="services g-text-left--xs g-padding-x-150--xs g-padding-y-150--xs g-overflow--hidden text-center">
+                <p class="g-margin-b-0--xs g-font-size-100--xs text-center uppercase"><strong>Start Check-in</strong></p>
+            </div>
+        </article>
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        </div>
+    </body>
+</html>
