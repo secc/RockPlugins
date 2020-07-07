@@ -37,7 +37,6 @@ namespace org.secc.FamilyCheckin.Cache
         [DataMember]
         public int? CheckinTemplateId { get; set; }
 
-        [DataMember]
         public GroupTypeCache CheckinTemplate
         {
             get
@@ -53,8 +52,7 @@ namespace org.secc.FamilyCheckin.Cache
         [DataMember]
         public int? CampusId { get; set; }
 
-        [DataMember]
-        public CampusCache Campus { get; set; }
+        public CampusCache Campus { get => CampusCache.Get( CampusId ?? 0 ); }
 
         [DataMember]
         public bool IsMobile { get; set; }
@@ -85,7 +83,9 @@ namespace org.secc.FamilyCheckin.Cache
         public List<Location> Locations { get; set; }
 
         [DataMember]
-        public List<GroupTypeCache> GroupTypes { get; set; }
+        public List<int> GroupTypeIds { get; set; }
+
+        public List<GroupTypeCache> GroupTypes { get => GroupTypeCache.All().Where( g => GroupTypeIds.Contains( g.Id ) ).ToList(); }
 
 
         public override void SetFromEntity( IEntity entity )
@@ -99,29 +99,33 @@ namespace org.secc.FamilyCheckin.Cache
             //Rock tries to go fast, but it doesn't work right in redis for what I'm doing.
             RockContext rockContext = new RockContext();
             KioskTypeService kioskTypeService = new KioskTypeService( rockContext );
-            kioskType = kioskTypeService.Get( kioskType.Id );
 
+            var kioskdata = kioskTypeService.Queryable()
+                .Where( k => k.Id == kioskType.Id )
+                .Select( k => new
+                {
+                    Kiosk = k,
+                    Locations = k.Locations,
+                    Schedules = k.Schedules,
+                    CheckInSchedules = k.GroupTypes
+                     .SelectMany( gt => gt.Groups )
+                 .SelectMany( g => g.GroupLocations )
+                 .SelectMany( gl => gl.Schedules )
+                 .Distinct()
+                } ).FirstOrDefault();
 
-            Id = kioskType.Id;
-            Guid = kioskType.Guid;
             Name = kioskType.Name;
             Description = kioskType.Description;
             CheckinTemplateId = kioskType.CheckinTemplateId;
             CampusId = kioskType.CampusId;
-            Campus = CampusCache.Get( kioskType.CampusId ?? 0 );
             MinutesValid = kioskType.MinutesValid;
             GraceMinutes = kioskType.GraceMinutes;
             IsMobile = kioskType.IsMobile;
-            Locations = kioskType.Locations.ToList();
-            Schedules = kioskType.Schedules.ToList();
-            GroupTypes = kioskType.GroupTypes.Select( gt => GroupTypeCache.Get( gt.Id ) ).ToList();
+            Locations = kioskdata.Locations.Select( l => l.Clone( false ) ).ToList();
+            Schedules = kioskdata.Schedules.Select( s => s.Clone( false ) ).ToList();
+            GroupTypeIds = kioskType.GroupTypes.Select( gt => gt.Id ).ToList();
             Message = kioskType.Message;
-            CheckInSchedules = kioskType.GroupTypes
-                .SelectMany( gt => gt.Groups )
-                .SelectMany( g => g.GroupLocations )
-                .SelectMany( gl => gl.Schedules )
-                .DistinctBy( s => s.Id )
-                .ToList();
+            CheckInSchedules = kioskdata.CheckInSchedules.Select( s => s.Clone( false ) ).ToList();
         }
 
         public bool IsOpen( DateTime? dateTime = null )
@@ -153,12 +157,14 @@ namespace org.secc.FamilyCheckin.Cache
             var kioskTypeIds = All().Where( kt => kt.CheckinTemplateId == templateId ).Select( kt => kt.Id );
             foreach ( var id in kioskTypeIds )
             {
-                //Why am I removing this item then immediatly getting it again?
-                //Because FlushItem is marked internal and I'm too tired to hack anymore
-                //This makes me sad
-                Remove( id );
-                Get( id );
+                FlushItem( id );
             }
+        }
+
+        public static void FlushItem( int id )
+        {
+            var qualifiedKey = QualifiedKey( id.ToString() );
+            RockCacheManager<KioskTypeCache>.Instance.Cache.Remove( qualifiedKey );
         }
 
         /// <summary>

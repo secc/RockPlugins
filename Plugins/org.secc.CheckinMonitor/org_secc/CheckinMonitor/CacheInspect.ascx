@@ -6,24 +6,26 @@
         <Rock:BootstrapButton runat="server" ID="btnOccurrences" CssClass="btn btn-default" Text="Occurrences" OnClick="btnOccurrences_Click" />
         <Rock:BootstrapButton runat="server" ID="btnAttendances" CssClass="btn btn-default" Text="Attendances" OnClick="btnAttendances_Click" />
         <Rock:BootstrapButton runat="server" ID="btnMobileRecords" CssClass="btn btn-default" Text="Mobile Checkin Records" OnClick="btnMobileRecords_Click" />
+        <Rock:BootstrapButton runat="server" ID="btnKioskTypes" CssClass="btn btn-default" Text="Kiosk Types" OnClick="btnKioskTypes_Click" />
         <Rock:BootstrapButton runat="server" ID="btnVerify" CssClass="btn btn-danger" Text="Verify Cache" OnClick="btnVerify_Click" />
 
         <asp:Panel runat="server" ID="pnlOccurrences" Visible="false">
-            <Rock:Grid runat="server" ID="gOccurrences" DataKeyNames="AccessKey" OnRowSelected="gOccurrences_RowSelected">
+            <Rock:Grid runat="server" ID="gOccurrences" DataKeyNames="Id" OnRowSelected="gOccurrences_RowSelected">
                 <Columns>
-                    <Rock:RockBoundField HeaderText="AccessKey" DataField="AccessKey" />
-                    <Rock:RockBoundField HeaderText="GroupId" DataField="GroupId" />
-                    <Rock:RockBoundField HeaderText="GroupName" DataField="GroupName" />
-                    <Rock:RockBoundField HeaderText="LocationId" DataField="LocationId" />
-                    <Rock:RockBoundField HeaderText="LocationName" DataField="LocationName" />
-                    <Rock:RockBoundField HeaderText="ScheduleId" DataField="ScheduleId" />
-                    <Rock:RockBoundField HeaderText="ScheduleName" DataField="ScheduleName" />
-                    <Rock:BoolField HeaderText="IsActive" DataField="IsActive" />
-                    <Rock:BoolField HeaderText="IsFull" DataField="IsFull" />
-                    <Rock:BoolField HeaderText="IsVolunteer" DataField="IsVolunteer" />
-                    <Rock:RockBoundField HeaderText="SoftRoomThreshold" DataField="SoftRoomThreshold" />
-                    <Rock:RockBoundField HeaderText="FirmRoomThreshold" DataField="FirmRoomThreshold" />
-                    <Rock:RockBoundField HeaderText="Attendances Count" DataField="Attendances.Count" />
+                    <Rock:RockBoundField HeaderText="AccessKey" DataField="Item.AccessKey" />
+                    <Rock:RockBoundField HeaderText="GroupId" DataField="Item.GroupId" />
+                    <Rock:RockBoundField HeaderText="GroupName" DataField="Item.GroupName" />
+                    <Rock:RockBoundField HeaderText="LocationId" DataField="Item.LocationId" />
+                    <Rock:RockBoundField HeaderText="LocationName" DataField="Item.LocationName" />
+                    <Rock:RockBoundField HeaderText="ScheduleId" DataField="Item.ScheduleId" />
+                    <Rock:RockBoundField HeaderText="ScheduleName" DataField="Item.ScheduleName" />
+                    <Rock:BoolField HeaderText="IsActive" DataField="Item.IsActive" />
+                    <Rock:BoolField HeaderText="IsFull" DataField="Item.IsFull" />
+                    <Rock:BoolField HeaderText="IsVolunteer" DataField="Item.IsVolunteer" />
+                    <Rock:RockBoundField HeaderText="SoftRoomThreshold" DataField="Item.SoftRoomThreshold" />
+                    <Rock:RockBoundField HeaderText="FirmRoomThreshold" DataField="Item.FirmRoomThreshold" />
+                    <Rock:RockBoundField HeaderText="Attendances Count" DataField="Item.Attendances.Count" />
+                    <Rock:RockBoundField HeaderText="Size" DataField="Size" />
                 </Columns>
             </Rock:Grid>
         </asp:Panel>
@@ -67,9 +69,24 @@
                 </Columns>
             </Rock:Grid>
         </asp:Panel>
+
+        <asp:Panel runat="server" ID="pnlKioskTypes" Visible="false">
+            <Rock:Grid runat="server" ID="gKioskTypes" DataKeyNames="Id" OnRowSelected="gKioskTypes_RowSelected">
+                <Columns>
+                    <Rock:RockBoundField HeaderText="Id" DataField="Item.Id" />
+                    <Rock:RockBoundField HeaderText="Name" DataField="Item.Name" />
+                    <Rock:RockBoundField HeaderText="Campus" DataField="Item.Campus.Name" />
+                    <Rock:BoolField HeaderText="Is Mobile" DataField="Item.IsMobile" />
+                    <Rock:RockBoundField HeaderText="Locations" DataField="Item.Locations.Count" />
+                    <Rock:RockBoundField HeaderText="Kiosk Schedules" DataField="Item.Schedules.Count" />
+                    <Rock:RockBoundField HeaderText="Check-in Schedules" DataField="Item.CheckInSchedules.Count" />
+                    <Rock:RockBoundField HeaderText="Size" DataField="Size" />
+                </Columns>
+            </Rock:Grid>
+        </asp:Panel>
+
         <asp:Panel runat="server" ID="pnlVerify" Visible="false">
-            <h2>
-                Cache Inaccuracies:
+            <h2>Cache Inaccuracies:
             </h2>
             <asp:Literal runat="server" ID="ltVerify" />
         </asp:Panel>
