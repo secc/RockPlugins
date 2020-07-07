@@ -35,13 +35,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [Category( "SECC > Check-in" )]
     [Description( "Start page for the mobile check-in process." )]
 
-    [CodeEditorField( "Tutorial Text",
-        "Tutorial text to help the user learn how to check-in.<span class='tip tip-html'></span>",
-        Rock.Web.UI.Controls.CodeEditorMode.Html,
-        key: AttributeKeys.TutorialText,
-        order: 7
-        )]
-
     [CodeEditorField( "Introduction Text",
         "Text which appears as above the select campus page.<span class='tip tip-html'></span>",
         Rock.Web.UI.Controls.CodeEditorMode.Html,
@@ -80,7 +73,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private static class AttributeKeys
         {
-            internal const string TutorialText = "TutorialText";
             internal const string IntroductionText = "IntroductionText";
             internal const string CodeInstructions = "CodeInstructions";
             internal const string PostCheckinInstructions = "PostCheckinInstructions";
@@ -261,7 +253,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             pnlLoading.Visible = false;
             pnlPostCheckin.Visible = false;
             pnlSelectCampus.Visible = false;
-            pnlTutorial.Visible = false;
 
             if ( currentUser == null )
             {
@@ -298,15 +289,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             ConfigureKiosk( kioskName );
 
-            if ( ShowInstructions() )
-            {
-                pnlTutorial.Visible = true;
-                lTutorial.Text = GetAttributeValue( AttributeKeys.TutorialText );
-            }
-            else
-            {
-                pnlSelectCampus.Visible = true;
-            }
+            pnlSelectCampus.Visible = true;
+
         }
 
         protected void ddlCampus_SelectedIndexChanged( object sender, EventArgs e )
@@ -420,30 +404,8 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             pnlSelectCampus.Visible = false;
             pnlLoading.Visible = true;
 
-            SetNoInstructionsCookie();
-
             var nextpageUrl = LinkedPageUrl( "NextPage" );
             ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "Load", "processMobileCheckin('" + nextpageUrl + "')", true );
-        }
-
-        private void SetNoInstructionsCookie()
-        {
-            var noInstructionsCookie = this.Page.Request.Cookies["MobileCheckinNoInstructions"];
-
-            if ( noInstructionsCookie == null )
-            {
-                noInstructionsCookie = new System.Web.HttpCookie( "MobileCheckinNoInstructions" );
-            }
-
-            noInstructionsCookie.Expires = RockDateTime.Now.AddDays( 28 );
-            noInstructionsCookie.Value = "true";
-
-            this.Page.Response.Cookies.Set( noInstructionsCookie );
-        }
-
-        private bool ShowInstructions()
-        {
-            return Request.Cookies["MobileCheckinNoInstructions"].IsNull();
         }
 
         private Kiosk ConfigureKiosk()
@@ -537,13 +499,6 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             KioskDevice.Remove( device.Id );
             SaveState();
             return kiosk;
-        }
-
-        protected void btnTutorial_Click( object sender, EventArgs e )
-        {
-            pnlTutorial.Visible = false;
-            pnlSelectCampus.Visible = true;
-            UpdateKioskText();
         }
 
         protected void lbRefresh_Click( object sender, EventArgs e )

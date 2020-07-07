@@ -113,11 +113,6 @@
             <asp:Literal runat="server" ID="ltError" />
         </asp:Panel>
 
-        <asp:Panel runat="server" ID="pnlTutorial" Visible="false">
-            <asp:Literal runat="server" ID="lTutorial" />
-            <Rock:BootstrapButton runat="server" ID="btnTutorial" Text="Start" OnClick="btnTutorial_Click" CssClass="se-btn se-btn--app-highlight btn-block" />
-        </asp:Panel>
-
         <asp:Panel runat="server" ID="pnlSelectCampus" Visible="false">
             <asp:Literal runat="server" ID="lIntroduction" />
             <Rock:RockDropDownList runat="server" ID="ddlCampus" DataTextField="Text"
