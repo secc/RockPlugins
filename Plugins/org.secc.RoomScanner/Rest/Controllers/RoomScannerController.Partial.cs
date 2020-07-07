@@ -438,9 +438,15 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 {
                     return new Response( false, "Attendance record not found.", false );
                 }
+
                 if ( Rock.RockDateTime.Today != attendeeAttendance.StartDateTime.Date )
                 {
                     return new Response( false, "Attendance record not from today.", false );
+                }
+
+                if ( attendeeAttendance.DidAttend == false && attendeeAttendance.QualifierValueId.HasValue )
+                {
+                    return new Response( false, "Mobile check-in must be completed at kiosk before entering room.", false );
                 }
 
                 var person = attendeeAttendance.PersonAlias.Person;
