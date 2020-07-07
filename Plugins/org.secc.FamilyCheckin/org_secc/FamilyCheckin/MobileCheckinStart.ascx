@@ -89,8 +89,8 @@
                 window.location.href = nextUrl;
             },
             error: function (data) {
-                alert("We're sorry, there was an issue with your request. Please see an attendance volunteer at your campus for assistance.")
-                setTimeout(function () { window.location = window.location }, 5000)
+                alert("We're sorry, there was an issue with your request. Please see an attendance volunteer at your campus for assistance.");
+                setTimeout(function () { window.location = window.location }, 5000);
             }
         });
     }
