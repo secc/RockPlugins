@@ -18,8 +18,6 @@ using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
-using Amazon.S3.Model.Internal.MarshallTransformations;
-using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNet.SignalR;
 using Newtonsoft.Json;
 using org.secc.FamilyCheckin.Cache;
@@ -80,7 +78,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         {
             var campus = KioskType.Campus;
 
-            if (campus == null )
+            if ( campus == null )
             {
                 nbError.Text = "Kiosk Type is not configured with a campus.";
                 nbError.Visible = true;
