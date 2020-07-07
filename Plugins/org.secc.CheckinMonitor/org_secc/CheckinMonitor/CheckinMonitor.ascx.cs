@@ -613,9 +613,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             if ( attendanceCache.AttendanceState == AttendanceState.MobileReserve )
             {
                 var record = MobileCheckinRecordCache.GetByAttendanceId( id );
-                MobileCheckinRecordCache.CancelReservation( record );
-                RebuildModal();
-                return;
+                if ( record != null ) //Unlikely but happened in testing
+                {
+                    MobileCheckinRecordCache.CancelReservation( record );
+                    RebuildModal();
+                    return;
+                }
             }
 
             using ( RockContext rockContext = new RockContext() )
