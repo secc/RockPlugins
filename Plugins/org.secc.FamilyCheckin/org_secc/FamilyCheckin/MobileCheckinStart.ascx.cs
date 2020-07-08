@@ -411,12 +411,10 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
         private Kiosk ConfigureKiosk()
         {
             var rockContext = new RockContext();
-
-            string kioskName = currentUser.UserName;
-
             var kioskTypeId = ddlCampus.SelectedValue.AsInteger();
 
             var kioskType = KioskTypeCache.Get( kioskTypeId );
+            string kioskName = currentUser.UserName;
 
             var mobileUserCategory = CategoryCache.Get( org.secc.FamilyCheckin.Utilities.Constants.KIOSK_CATEGORY_MOBILEUSER );
 
@@ -434,47 +432,70 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
                     Description = "Automatically created mobile Kiosk"
                 };
                 kioskService.Add( kiosk );
-                rockContext.SaveChanges();
             }
 
             kiosk.KioskTypeId = kioskType.Id;
+            rockContext.SaveChanges();
 
             DeviceService deviceService = new DeviceService( rockContext );
-            LocationService locationService = new LocationService( rockContext );
+
+            var deviceName = "Mobile:" + kioskType.Name.RemoveAllNonAlphaNumericCharacters();
+
             //Load matching device and update or create information
-            var device = deviceService.Queryable().Where( d => d.Name == kiosk.Name ).FirstOrDefault();
+            var device = deviceService.Queryable( "Location" ).Where( d => d.Name == deviceName ).FirstOrDefault();
+
+            var dirty = false;
 
             //create new device to match our kiosk
             if ( device == null )
             {
                 device = new Device();
                 device.DeviceTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.DEVICE_TYPE_CHECKIN_KIOSK ).Id;
-                device.Name = kiosk.Name;
+                device.Name = deviceName;
                 deviceService.Add( device );
+                device.PrintFrom = PrintFrom.Client;
+                device.PrintToOverride = PrintTo.Default;
+                dirty = true;
             }
 
-            device.LoadAttributes();
-            device.IPAddress = kiosk.IPAddress;
-            device.Locations.Clear();
-            foreach ( var loc in kioskType.Locations.ToList() )
-            {
-                var location = locationService.Get( loc.Id );
-                device.Locations.Add( location );
-            }
-            device.PrintFrom = kiosk.PrintFrom;
-            device.PrintToOverride = kiosk.PrintToOverride;
-            device.PrinterDeviceId = kiosk.PrinterDeviceId;
-            rockContext.SaveChanges();
+            var deviceLocationIds = device.Locations.Select( l => l.Id );
+            var ktLocationIds = kioskType.Locations.Select( l => l.Id );
 
-            if ( this.IsUserAuthorized( Rock.Security.Authorization.ADMINISTRATE ) && PageParameter( "datetime" ).IsNotNullOrWhiteSpace() )
+            var unmatchedDeviceLocations = deviceLocationIds.Except( ktLocationIds ).Any();
+            var unmatchedKtLocations = ktLocationIds.Except( deviceLocationIds ).Any();
+
+            if ( unmatchedDeviceLocations || unmatchedKtLocations )
             {
-                device.SetAttributeValue( "core_device_DebugDateTime", PageParameter( "datetime" ) );
+                LocationService locationService = new LocationService( rockContext );
+                device.Locations.Clear();
+                foreach ( var loc in kioskType.Locations.ToList() )
+                {
+                    var location = locationService.Get( loc.Id );
+                    device.Locations.Add( location );
+                }
+                dirty = true;
             }
-            else
+
+            if ( this.IsUserAuthorized( Rock.Security.Authorization.ADMINISTRATE ) )
             {
-                device.SetAttributeValue( "core_device_DebugDateTime", "" );
+                device.LoadAttributes();
+
+                if ( PageParameter( "datetime" ).IsNotNullOrWhiteSpace() )
+                {
+                    device.SetAttributeValue( "core_device_DebugDateTime", PageParameter( "datetime" ) );
+                }
+                else
+                {
+                    device.SetAttributeValue( "core_device_DebugDateTime", "" );
+                }
             }
-            device.SaveAttributeValues( rockContext );
+
+            if ( dirty )
+            {
+                rockContext.SaveChanges();
+                device.SaveAttributeValues( rockContext );
+                KioskDevice.Remove( device.Id );
+            }
 
             LocalDeviceConfig.CurrentKioskId = device.Id;
             LocalDeviceConfig.CurrentGroupTypeIds = kiosk.KioskType.GroupTypes.Select( gt => gt.Id ).ToList();
@@ -496,7 +517,6 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             this.Page.Response.Cookies.Set( kioskTypeCookie );
 
             Session["KioskTypeId"] = kioskType.Id;
-            KioskDevice.Remove( device.Id );
             SaveState();
             return kiosk;
         }
@@ -570,7 +590,7 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
 
         protected void btnCancelReseration_Click( object sender, EventArgs e )
         {
-            var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( CurrentPerson.PrimaryFamilyId ?? 0 );
+            var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( currentPerson.PrimaryFamilyId ?? 0 );
             if ( mobileCheckinRecord == null )
             {
                 string kioskName = currentUser.UserName;
