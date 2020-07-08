@@ -71,6 +71,7 @@
         }
 
         .modal {   
+            
             .modal-body {
                 text-align: center;
                 padding: 2% 10%;
@@ -154,12 +155,14 @@
 
             &.container {
                 width: 90% !important;
-                margin-left: 0px;
-                top: 10%;
+                top: 20px;
+                bottom: 20px;
                 left: 50%;
-                transform: translate(-50%, -10%);
+                transform: translate(-50%, 0px);
                 transition-duration: 1s;
                 border-radius: 16px;
+                margin-bottom: 100px !important;
+                
                 h1 {
                     font-size: 2.5em;
                     color: $ThemeColor_3;
