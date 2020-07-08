@@ -199,7 +199,7 @@ namespace org.secc.FamilyCheckin
                         AccessKey = "MCR" + Guid.NewGuid().ToString( "N" ).Substring( 0, 12 ),
                         ReservedUntilDateTime = Rock.RockDateTime.Now.AddMinutes( kioskType.MinutesValid ?? 10 ),
                         ExpirationDateTime = Rock.RockDateTime.Now.AddMinutes( ( kioskType.MinutesValid ?? 10 ) + ( kioskType.GraceMinutes ?? 60 ) ),
-                        UserName = checkInState.Kiosk.Device.Name,
+                        UserName = checkInState.CheckIn.SearchValue,
                         FamilyGroupId = checkInState.CheckIn.CurrentFamily.Group.Id,
                         CampusId = campusId.Value
                     };
