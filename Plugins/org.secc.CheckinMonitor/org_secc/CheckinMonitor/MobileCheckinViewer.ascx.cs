@@ -18,7 +18,6 @@ using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
-using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNet.SignalR;
 using Newtonsoft.Json;
 using org.secc.FamilyCheckin.Cache;
@@ -78,6 +77,13 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         private void BindRepeater()
         {
             var campus = KioskType.Campus;
+
+            if ( campus == null )
+            {
+                nbError.Text = "Kiosk Type is not configured with a campus.";
+                nbError.Visible = true;
+                return;
+            }
 
             RockContext rockContext = new RockContext();
             MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );

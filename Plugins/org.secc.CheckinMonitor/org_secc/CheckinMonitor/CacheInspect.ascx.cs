@@ -20,6 +20,7 @@ using System.Web.UI.WebControls;
 using org.secc.FamilyCheckin.Cache;
 using Rock;
 using Rock.Model;
+using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -46,11 +47,16 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             btnOccurrences.CssClass = activeCss;
             btnAttendances.CssClass = defaultCss;
             btnMobileRecords.CssClass = defaultCss;
+            btnKioskTypes.CssClass = defaultCss;
             pnlOccurrences.Visible = true;
             pnlAttendances.Visible = false;
             pnlMobileRecords.Visible = false;
+            pnlKioskTypes.Visible = false;
             pnlVerify.Visible = false;
-            gOccurrences.DataSource = OccurrenceCache.All();
+
+            var occurrences = OccurrenceCache.All().Select( o => new CacheContainer( o, o.AccessKey ) ).ToList();
+
+            gOccurrences.DataSource = occurrences;
             gOccurrences.DataBind();
         }
 
@@ -65,9 +71,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             btnOccurrences.CssClass = defaultCss;
             btnAttendances.CssClass = defaultCss;
             btnMobileRecords.CssClass = activeCss;
+            btnKioskTypes.CssClass = defaultCss;
             pnlOccurrences.Visible = false;
             pnlAttendances.Visible = false;
             pnlMobileRecords.Visible = true;
+            pnlKioskTypes.Visible = false;
             pnlVerify.Visible = false;
             gMobileRecords.DataSource = MobileCheckinRecordCache.All();
             gMobileRecords.DataBind();
@@ -92,9 +100,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             btnOccurrences.CssClass = defaultCss;
             btnAttendances.CssClass = activeCss;
             btnMobileRecords.CssClass = defaultCss;
+            btnKioskTypes.CssClass = defaultCss;
             pnlOccurrences.Visible = false;
             pnlAttendances.Visible = true;
             pnlMobileRecords.Visible = false;
+            pnlKioskTypes.Visible = false;
             pnlVerify.Visible = false;
             var attendances = AttendanceCache.All();
 
@@ -115,9 +125,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             btnOccurrences.CssClass = defaultCss;
             btnAttendances.CssClass = defaultCss;
             btnMobileRecords.CssClass = defaultCss;
+            btnKioskTypes.CssClass = defaultCss;
             pnlOccurrences.Visible = false;
             pnlAttendances.Visible = false;
             pnlMobileRecords.Visible = false;
+            pnlKioskTypes.Visible = false;
             pnlVerify.Visible = true;
 
             VerifyCache();
@@ -138,6 +150,57 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 ltVerify.Text = "<b>No Errors</b>";
             }
+        }
+
+        protected void btnKioskTypes_Click( object sender, EventArgs e )
+        {
+            btnOccurrences.CssClass = defaultCss;
+            btnAttendances.CssClass = defaultCss;
+            btnMobileRecords.CssClass = defaultCss;
+            btnKioskTypes.CssClass = activeCss;
+            pnlOccurrences.Visible = false;
+            pnlAttendances.Visible = false;
+            pnlMobileRecords.Visible = false;
+            pnlKioskTypes.Visible = true;
+            pnlVerify.Visible = false;
+
+            var kioskTypes = KioskTypeCache.All().Select( k => new CacheContainer( k, k.Id ) ).ToList();
+            gKioskTypes.DataSource = kioskTypes;
+            gKioskTypes.DataBind();
+        }
+
+        class CacheContainer
+        {
+            public string Id { get; set; }
+            public CacheContainer( IItemCache item, object id )
+            {
+                Item = item;
+                Id = id.ToString();
+            }
+
+            public IItemCache Item { get; set; }
+            public int Size
+            {
+                get
+                {
+                    return Item.ToJson().Length;
+                }
+            }
+
+            public string Json
+            {
+                get
+                {
+                    return Item.ToJson();
+                }
+            }
+        }
+
+        protected void gKioskTypes_RowSelected( object sender, RowEventArgs e )
+        {
+            var id = e.RowKeyValue.ToString().AsInteger();
+            var item = KioskTypeCache.Get( id );
+            KioskTypeCache.ClearForTemplateId( item.CheckinTemplateId ?? 0 );
         }
     }
 }

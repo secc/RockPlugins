@@ -35,13 +35,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [Category( "SECC > Check-in" )]
     [Description( "Start page for the mobile check-in process." )]
 
-    [CodeEditorField( "Tutorial Text",
-        "Tutorial text to help the user learn how to check-in.<span class='tip tip-html'></span>",
-        Rock.Web.UI.Controls.CodeEditorMode.Html,
-        key: AttributeKeys.TutorialText,
-        order: 7
-        )]
-
     [CodeEditorField( "Introduction Text",
         "Text which appears as above the select campus page.<span class='tip tip-html'></span>",
         Rock.Web.UI.Controls.CodeEditorMode.Html,
@@ -80,7 +73,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private static class AttributeKeys
         {
-            internal const string TutorialText = "TutorialText";
             internal const string IntroductionText = "IntroductionText";
             internal const string CodeInstructions = "CodeInstructions";
             internal const string PostCheckinInstructions = "PostCheckinInstructions";
@@ -232,7 +224,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
             else
             {
-                ddlCampus.SetValue( CurrentPerson.PrimaryCampusId.ToString() );
+                ddlCampus.SetValue( currentPerson.PrimaryCampusId.ToString() );
             }
             UpdateKioskText();
         }
@@ -261,7 +253,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             pnlLoading.Visible = false;
             pnlPostCheckin.Visible = false;
             pnlSelectCampus.Visible = false;
-            pnlTutorial.Visible = false;
 
             if ( currentUser == null )
             {
@@ -272,7 +263,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             string kioskName = currentUser.UserName;
 
-            var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( CurrentPerson.PrimaryFamilyId ?? 0 );
+            var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( currentPerson.PrimaryFamilyId ?? 0 );
             if ( mobileCheckinRecord == null )
             {
                 mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByUserName( kioskName );
@@ -298,15 +289,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             ConfigureKiosk( kioskName );
 
-            if ( ShowInstructions() )
-            {
-                pnlTutorial.Visible = true;
-                lTutorial.Text = GetAttributeValue( AttributeKeys.TutorialText );
-            }
-            else
-            {
-                pnlSelectCampus.Visible = true;
-            }
+            pnlSelectCampus.Visible = true;
+
         }
 
         protected void ddlCampus_SelectedIndexChanged( object sender, EventArgs e )
@@ -420,41 +404,18 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             pnlSelectCampus.Visible = false;
             pnlLoading.Visible = true;
 
-            SetNoInstructionsCookie();
-
             var nextpageUrl = LinkedPageUrl( "NextPage" );
             ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "Load", "processMobileCheckin('" + nextpageUrl + "')", true );
-        }
-
-        private void SetNoInstructionsCookie()
-        {
-            var noInstructionsCookie = this.Page.Request.Cookies["MobileCheckinNoInstructions"];
-
-            if ( noInstructionsCookie == null )
-            {
-                noInstructionsCookie = new System.Web.HttpCookie( "MobileCheckinNoInstructions" );
-            }
-
-            noInstructionsCookie.Expires = RockDateTime.Now.AddDays( 28 );
-            noInstructionsCookie.Value = "true";
-
-            this.Page.Response.Cookies.Set( noInstructionsCookie );
-        }
-
-        private bool ShowInstructions()
-        {
-            return Request.Cookies["MobileCheckinNoInstructions"].IsNull();
         }
 
         private Kiosk ConfigureKiosk()
         {
             var rockContext = new RockContext();
-
-            string kioskName = currentUser.UserName;
-
             var kioskTypeId = ddlCampus.SelectedValue.AsInteger();
 
             var kioskType = KioskTypeCache.Get( kioskTypeId );
+
+            var kioskName = "Mobile:" + kioskType.Name.RemoveAllNonAlphaNumericCharacters();
 
             var mobileUserCategory = CategoryCache.Get( org.secc.FamilyCheckin.Utilities.Constants.KIOSK_CATEGORY_MOBILEUSER );
 
@@ -472,47 +433,69 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
                     Description = "Automatically created mobile Kiosk"
                 };
                 kioskService.Add( kiosk );
-                rockContext.SaveChanges();
             }
 
             kiosk.KioskTypeId = kioskType.Id;
+            rockContext.SaveChanges();
 
             DeviceService deviceService = new DeviceService( rockContext );
-            LocationService locationService = new LocationService( rockContext );
+
+
             //Load matching device and update or create information
-            var device = deviceService.Queryable().Where( d => d.Name == kiosk.Name ).FirstOrDefault();
+            var device = deviceService.Queryable( "Location" ).Where( d => d.Name == kioskName ).FirstOrDefault();
+
+            var dirty = false;
 
             //create new device to match our kiosk
             if ( device == null )
             {
                 device = new Device();
                 device.DeviceTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.DEVICE_TYPE_CHECKIN_KIOSK ).Id;
-                device.Name = kiosk.Name;
+                device.Name = kioskName;
                 deviceService.Add( device );
+                device.PrintFrom = PrintFrom.Client;
+                device.PrintToOverride = PrintTo.Default;
+                dirty = true;
             }
 
-            device.LoadAttributes();
-            device.IPAddress = kiosk.IPAddress;
-            device.Locations.Clear();
-            foreach ( var loc in kioskType.Locations.ToList() )
-            {
-                var location = locationService.Get( loc.Id );
-                device.Locations.Add( location );
-            }
-            device.PrintFrom = kiosk.PrintFrom;
-            device.PrintToOverride = kiosk.PrintToOverride;
-            device.PrinterDeviceId = kiosk.PrinterDeviceId;
-            rockContext.SaveChanges();
+            var deviceLocationIds = device.Locations.Select( l => l.Id );
+            var ktLocationIds = kioskType.Locations.Select( l => l.Id );
 
-            if ( this.IsUserAuthorized( Rock.Security.Authorization.ADMINISTRATE ) && PageParameter( "datetime" ).IsNotNullOrWhiteSpace() )
+            var unmatchedDeviceLocations = deviceLocationIds.Except( ktLocationIds ).Any();
+            var unmatchedKtLocations = ktLocationIds.Except( deviceLocationIds ).Any();
+
+            if ( unmatchedDeviceLocations || unmatchedKtLocations )
             {
-                device.SetAttributeValue( "core_device_DebugDateTime", PageParameter( "datetime" ) );
+                LocationService locationService = new LocationService( rockContext );
+                device.Locations.Clear();
+                foreach ( var loc in kioskType.Locations.ToList() )
+                {
+                    var location = locationService.Get( loc.Id );
+                    device.Locations.Add( location );
+                }
+                dirty = true;
             }
-            else
+
+            if ( this.IsUserAuthorized( Rock.Security.Authorization.ADMINISTRATE ) )
             {
-                device.SetAttributeValue( "core_device_DebugDateTime", "" );
+                device.LoadAttributes();
+
+                if ( PageParameter( "datetime" ).IsNotNullOrWhiteSpace() )
+                {
+                    device.SetAttributeValue( "core_device_DebugDateTime", PageParameter( "datetime" ) );
+                }
+                else
+                {
+                    device.SetAttributeValue( "core_device_DebugDateTime", "" );
+                }
             }
-            device.SaveAttributeValues( rockContext );
+
+            if ( dirty )
+            {
+                rockContext.SaveChanges();
+                device.SaveAttributeValues( rockContext );
+                KioskDevice.Remove( device.Id );
+            }
 
             LocalDeviceConfig.CurrentKioskId = device.Id;
             LocalDeviceConfig.CurrentGroupTypeIds = kiosk.KioskType.GroupTypes.Select( gt => gt.Id ).ToList();
@@ -534,16 +517,8 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             this.Page.Response.Cookies.Set( kioskTypeCookie );
 
             Session["KioskTypeId"] = kioskType.Id;
-            KioskDevice.Remove( device.Id );
             SaveState();
             return kiosk;
-        }
-
-        protected void btnTutorial_Click( object sender, EventArgs e )
-        {
-            pnlTutorial.Visible = false;
-            pnlSelectCampus.Visible = true;
-            UpdateKioskText();
         }
 
         protected void lbRefresh_Click( object sender, EventArgs e )
@@ -615,7 +590,7 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
 
         protected void btnCancelReseration_Click( object sender, EventArgs e )
         {
-            var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( CurrentPerson.PrimaryFamilyId ?? 0 );
+            var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( currentPerson.PrimaryFamilyId ?? 0 );
             if ( mobileCheckinRecord == null )
             {
                 string kioskName = currentUser.UserName;

@@ -1,6 +1,9 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="MobileCheckinViewer.ascx.cs" Inherits="RockWeb.Plugins.org_secc.CheckinMonitor.MobileCheckinViewer" %>
 <asp:UpdatePanel ID="upContent" runat="server">
     <ContentTemplate>
+
+        <Rock:NotificationBox runat="server" ID="nbError" NotificationBoxType="Danger" Visible="false" />
+
         <asp:Panel runat="server" CssClass="text-center" ID="pnlNoRecords">
             <h2>There are no active mobile check-in reservations at this time.</h2>
         </asp:Panel>

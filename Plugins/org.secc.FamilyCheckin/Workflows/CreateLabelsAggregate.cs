@@ -355,11 +355,13 @@ namespace org.secc.FamilyCheckin
                 //All we will need to do is deserialize and pass the data to the printer
                 if ( GetAttributeValue( action, "IsMobile" ).AsBoolean() )
                 {
+                    
+
                     MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
                     MobileCheckinRecord mobileCheckinRecord = mobileCheckinRecordService.Queryable()
                         .Where( r => r.Status == MobileCheckinStatus.Active )
                         .Where( r => r.CreatedDateTime > Rock.RockDateTime.Today )
-                        .Where( r => r.UserName == checkInState.Kiosk.Device.Name )
+                        .Where( r => r.UserName == checkInState.CheckIn.SearchValue )
                         .FirstOrDefault();
 
                     if ( mobileCheckinRecord == null )

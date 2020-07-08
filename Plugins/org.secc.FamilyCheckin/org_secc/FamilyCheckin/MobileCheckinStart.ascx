@@ -89,7 +89,8 @@
                 window.location.href = nextUrl;
             },
             error: function (data) {
-                alert("We're sorry, there was an issue with your request. Please see an attendance volunteer at your campus for assistance.")
+                alert("We're sorry, there was an issue with your request. Please see an attendance volunteer at your campus for assistance.");
+                setTimeout(function () { window.location = window.location }, 5000);
             }
         });
     }
@@ -110,11 +111,6 @@
         <asp:Label ID="lblActiveWhen" runat="server" CssClass="active-when hidden" />
         <asp:Panel runat="server" Visible="false" ID="pnlError">
             <asp:Literal runat="server" ID="ltError" />
-        </asp:Panel>
-
-        <asp:Panel runat="server" ID="pnlTutorial" Visible="false">
-            <asp:Literal runat="server" ID="lTutorial" />
-            <Rock:BootstrapButton runat="server" ID="btnTutorial" Text="Start" OnClick="btnTutorial_Click" CssClass="se-btn se-btn--app-highlight btn-block" />
         </asp:Panel>
 
         <asp:Panel runat="server" ID="pnlSelectCampus" Visible="false">

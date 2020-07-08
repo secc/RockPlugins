@@ -282,6 +282,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                                 || childCount >= ( locationOccurrence.SoftRoomThreshold ?? int.MaxValue ) ) )
                             {
                                 CloseOccurrence( locationOccurrence.GroupLocationId, locationOccurrence.ScheduleId );
+                                KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
                                 return;
                             }
                             tcCapacity.CssClass = "danger";
@@ -317,12 +318,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             btnToggle.Text = "Active";
                             btnToggle.ToolTip = "Click to deactivate.";
                             btnToggle.CssClass = "btn btn-sm btn-success btn-block";
+                            btnToggle.DataLoadingText = "Updating...";
                         }
                         else
                         {
                             btnToggle.Text = "Inactive";
                             btnToggle.ToolTip = "Click to activate.";
                             btnToggle.CssClass = "btn btn-sm btn-danger btn-block";
+                            btnToggle.DataLoadingText = "Updating...";
                         }
                         tcToggle.Controls.Add( btnToggle );
 
@@ -610,9 +613,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             if ( attendanceCache.AttendanceState == AttendanceState.MobileReserve )
             {
                 var record = MobileCheckinRecordCache.GetByAttendanceId( id );
-                MobileCheckinRecordCache.CancelReservation( record );
-                RebuildModal();
-                return;
+                if ( record != null ) //Unlikely but happened in testing
+                {
+                    MobileCheckinRecordCache.CancelReservation( record );
+                    RebuildModal();
+                    return;
+                }
             }
 
             using ( RockContext rockContext = new RockContext() )
@@ -810,7 +816,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             RecordGroupLocationSchedule( groupLocation, schedule );
                             groupLocation.Schedules.Remove( schedule );
                             _rockContext.SaveChanges();
-                            KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
                             Rock.CheckIn.KioskDevice.Clear();
                             var occurrence = OccurrenceCache.All().Where( o => o.GroupLocationId == groupLocationId && o.ScheduleId == scheduleId ).FirstOrDefault();
                             occurrence.IsActive = false;
@@ -1248,6 +1253,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 CloseOccurrence( occcurrence.GroupLocationId, occcurrence.ScheduleId, false );
             }
+
+            KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
+
             BindTable();
             ddlClose.SelectedValue = null;
             mdConfirmClose.Hide();
