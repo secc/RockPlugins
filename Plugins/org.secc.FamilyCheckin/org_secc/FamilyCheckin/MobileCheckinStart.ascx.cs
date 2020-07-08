@@ -414,7 +414,8 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             var kioskTypeId = ddlCampus.SelectedValue.AsInteger();
 
             var kioskType = KioskTypeCache.Get( kioskTypeId );
-            string kioskName = currentUser.UserName;
+
+            var kioskName = "Mobile:" + kioskType.Name.RemoveAllNonAlphaNumericCharacters();
 
             var mobileUserCategory = CategoryCache.Get( org.secc.FamilyCheckin.Utilities.Constants.KIOSK_CATEGORY_MOBILEUSER );
 
@@ -439,10 +440,9 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
 
             DeviceService deviceService = new DeviceService( rockContext );
 
-            var deviceName = "Mobile:" + kioskType.Name.RemoveAllNonAlphaNumericCharacters();
 
             //Load matching device and update or create information
-            var device = deviceService.Queryable( "Location" ).Where( d => d.Name == deviceName ).FirstOrDefault();
+            var device = deviceService.Queryable( "Location" ).Where( d => d.Name == kioskName ).FirstOrDefault();
 
             var dirty = false;
 
@@ -451,7 +451,7 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             {
                 device = new Device();
                 device.DeviceTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.DEVICE_TYPE_CHECKIN_KIOSK ).Id;
-                device.Name = deviceName;
+                device.Name = kioskName;
                 deviceService.Add( device );
                 device.PrintFrom = PrintFrom.Client;
                 device.PrintToOverride = PrintTo.Default;
