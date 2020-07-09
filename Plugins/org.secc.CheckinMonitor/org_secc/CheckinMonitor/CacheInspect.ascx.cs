@@ -202,5 +202,24 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var item = KioskTypeCache.Get( id );
             KioskTypeCache.ClearForTemplateId( item.CheckinTemplateId ?? 0 );
         }
+
+        protected void btnFlushAttendance_Click( object sender, EventArgs e )
+        {
+            AttendanceCache.Clear();
+            AttendanceCache.All();
+        }
+
+        protected void btnFlushMCR_Click( object sender, EventArgs e )
+        {
+            MobileCheckinRecordCache.Clear();
+            MobileCheckinRecordCache.All();
+        }
+
+        protected void btnFlushKioskTypes_Click( object sender, EventArgs e )
+        {
+            KioskTypeCache.Clear();
+            KioskTypeCache.All();
+
+        }
     }
 }

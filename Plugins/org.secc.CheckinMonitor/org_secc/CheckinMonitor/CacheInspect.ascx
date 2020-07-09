@@ -49,6 +49,8 @@
                 </Columns>
             </Rock:Grid>
             <Rock:RockLiteral runat="server" ID="ltAttendance" Label="Keys" />
+            <asp:LinkButton runat="server" ID="btnFlushAttendance" Text="Flush Cache" CssClass="btn btn-danger"
+                OnClientClick="Rock.dialogs.confirmPreventOnCancel( event, 'Are you sure you want to flush Attendance cache?');" OnClick="btnFlushAttendance_Click"/>
         </asp:Panel>
 
         <asp:Panel runat="server" ID="pnlMobileRecords" Visible="false">
@@ -68,6 +70,9 @@
 
                 </Columns>
             </Rock:Grid>
+
+               <asp:LinkButton runat="server" ID="btnFlushMCR" Text="Flush Cache" CssClass="btn btn-danger"
+                OnClientClick="Rock.dialogs.confirmPreventOnCancel( event, 'Are you sure you want to flush Mobile Checkin Record cache?');" OnClick="btnFlushMCR_Click"/>
         </asp:Panel>
 
         <asp:Panel runat="server" ID="pnlKioskTypes" Visible="false">
@@ -83,6 +88,8 @@
                     <Rock:RockBoundField HeaderText="Size" DataField="Size" />
                 </Columns>
             </Rock:Grid>
+               <asp:LinkButton runat="server" ID="btnFlushKioskTypes" Text="Flush Cache" CssClass="btn btn-danger"
+                OnClientClick="Rock.dialogs.confirmPreventOnCancel( event, 'Are you sure you want to flush Kiosk Type cache?');" OnClick="btnFlushKioskTypes_Click"/>
         </asp:Panel>
 
         <asp:Panel runat="server" ID="pnlVerify" Visible="false">
