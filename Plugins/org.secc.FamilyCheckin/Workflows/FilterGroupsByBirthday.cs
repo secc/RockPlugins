@@ -70,7 +70,8 @@ namespace org.secc.FamilyCheckin
             var checkInState = GetCheckInState( entity, out errorMessages );
             if ( checkInState == null )
             {
-                throw new Exception( "Check-In state lost: Filter Groups By Birthday" );
+                errorMessages.Add( $"Attempted to run {this.GetType().GetFriendlyTypeName()} in check-in, but the check-in state was null." );
+                return false;
             }
 
             var family = checkInState.CheckIn.CurrentFamily;

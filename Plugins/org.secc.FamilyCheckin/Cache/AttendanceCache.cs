@@ -316,15 +316,27 @@ namespace org.secc.FamilyCheckin.Cache
                 .ToList();
             var attendanceCaches = All();
 
-            if ( attendanceCaches.Count != attendanceCaches.Count )
+            if ( attendances.Count != attendanceCaches.Count )
             {
-                errors.Add( "Attendance count does not match Attendance Cache count" );
+                var recordIds = attendances.Select( r => r.Id );
+                var cacheIds = attendanceCaches.Select( r => r.Id );
+                var missingCacheIds = recordIds.Except( cacheIds ).ToList();
+                var extraCacheIds = cacheIds.Except( recordIds ).ToList();
+                foreach ( var id in missingCacheIds )
+                {
+                    errors.Add( $"Warning: Attendance Cache missing from All(): {id}" );
+                }
+
+                foreach ( var id in extraCacheIds )
+                {
+                    errors.Add( $"Error: Extraneous Attendance Cache: {id}" );
+                }
             }
 
             if ( Keys().Count != attendanceCaches.Count )
             {
                 errors.Add(
-                    string.Format( "Attendance Cache has a different number of key to items. Keys:{0} Items:{1}",
+                    string.Format( "Error: Attendance Cache has a different number of key to items. Keys:{0} Items:{1}",
                     Keys().Count, attendanceCaches.Count ) );
             }
 
@@ -333,7 +345,7 @@ namespace org.secc.FamilyCheckin.Cache
                 var attendanceCache = AttendanceCache.Get( attendance.Id );
                 if ( attendanceCache == null )
                 {
-                    errors.Add( "Attendance Cache missing for Attendance Id: " + attendance.Id.ToString() );
+                    errors.Add( "Error: Attendance Cache missing for Attendance Id: " + attendance.Id.ToString() );
                     continue;
                 }
 
@@ -364,15 +376,34 @@ namespace org.secc.FamilyCheckin.Cache
                     }
                 }
 
-                if ( attendance.Occurrence.GroupId != attendanceCache.GroupId
-                    || attendance.PersonAlias.PersonId != attendanceCache.PersonId
-                    || attendance.Occurrence.LocationId != attendanceCache.LocationId
-                    || attendance.Occurrence.ScheduleId != attendanceCache.ScheduleId
-                    || attendanceState != attendanceCache.AttendanceState
-                    || withParent != attendanceCache.WithParent
-                    )
+                if ( attendance.Occurrence.GroupId != attendanceCache.GroupId )
                 {
-                    errors.Add( "Attendance cache error. Id: " + attendance.Id.ToString() );
+                    errors.Add( $"Error: Attendance Cache (Id:{attendance.Id}) Desync: GroupId - DB:{attendance.Occurrence.GroupId} - Cache:{attendanceCache.GroupId}" );
+                }
+
+                if ( attendance.PersonAlias.PersonId != attendanceCache.PersonId )
+                {
+                    errors.Add( $"Error: Attendance Cache (Id:{attendance.Id}) Desync: PersonId - DB:{attendance.PersonAlias.PersonId} - Cache:{attendanceCache.PersonId}" );
+                }
+
+                if ( attendance.Occurrence.LocationId != attendanceCache.LocationId )
+                {
+                    errors.Add( $"Error: Attendance Cache (Id:{attendance.Id}) Desync: LocationId - DB:{attendance.Occurrence.LocationId} - Cache:{attendanceCache.LocationId}" );
+                }
+
+                if ( attendance.Occurrence.ScheduleId != attendanceCache.ScheduleId )
+                {
+                    errors.Add( $"Error: Attendance Cache (Id:{attendance.Id}) Desync: ScheduleId - DB:{attendance.Occurrence.ScheduleId} - Cache:{attendanceCache.ScheduleId}" );
+                }
+
+                if ( attendanceState != attendanceCache.AttendanceState )
+                {
+                    errors.Add( $"Error: Attendance Cache (Id:{attendance.Id}) Desync: attendanceState - DB:{attendanceState} - Cache:{attendanceCache.AttendanceState}" );
+                }
+
+                if ( withParent != attendanceCache.WithParent )
+                {
+                    errors.Add( $"Error: Attendance Cache (Id:{attendance.Id}) Desync: WithParent - DB:{withParent} - Cache:{attendanceCache.WithParent}" );
                 }
             }
         }

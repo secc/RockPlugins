@@ -21,6 +21,7 @@ using org.secc.FamilyCheckin.Model;
 using Rock;
 using Rock.Data;
 using Rock.Model;
+using Rock.ServiceObjects.GeoCoder;
 using Rock.Web.Cache;
 
 namespace org.secc.FamilyCheckin.Cache
@@ -246,7 +247,19 @@ namespace org.secc.FamilyCheckin.Cache
 
             if ( mobileCheckinRecords.Count != mcrCaches.Count )
             {
-                errors.Add( "Mobile Checkin Record count does not match Mobile Checkin Record Cache count" );
+                var recordIds = mobileCheckinRecords.Select( r => r.Id );
+                var cacheIds = mcrCaches.Select( r => r.Id );
+                var missingCacheIds = recordIds.Except( cacheIds ).ToList();
+                var extraCacheIds = cacheIds.Except( recordIds ).ToList();
+                foreach ( var id in missingCacheIds )
+                {
+                    errors.Add( $"Warning: Mobile Check-in Record Cache missing from All(): {id}" );
+                }
+
+                foreach ( var id in extraCacheIds )
+                {
+                    errors.Add( $"Error: Extraneous Mobile Check-in Record Cache: {id}" );
+                }
             }
 
             foreach ( var mobileCheckinRecord in mobileCheckinRecords )
@@ -254,18 +267,53 @@ namespace org.secc.FamilyCheckin.Cache
                 var mcrCache = Get( mobileCheckinRecord.Id );
                 if ( mcrCache == null )
                 {
-                    errors.Add( "Mobile Checkin Record Cache missing for Mobile Checkin Record Id: " + mobileCheckinRecord.Id.ToString() );
+                    errors.Add( "Error: Mobile Checkin Record Cache missing for Mobile Checkin Record Id: " + mobileCheckinRecord.Id.ToString() );
                     continue;
                 }
-                if ( mobileCheckinRecord.FamilyGroupId != mcrCache.FamilyGroupId
-                    || mobileCheckinRecord.UserName != mcrCache.UserName
-                    || mobileCheckinRecord.Attendances.Count != mcrCache.AttendanceIds.Count
-                    || mobileCheckinRecord.AccessKey != mcrCache.AccessKey
-                    || mobileCheckinRecord.CampusId != mcrCache.CampusId
-                    || mobileCheckinRecord.ReservedUntilDateTime != mcrCache.ReservedUntilDateTime
-                    || mobileCheckinRecord.ExpirationDateTime != mcrCache.ExpirationDateTime )
+
+                if ( mobileCheckinRecord.FamilyGroupId != mcrCache.FamilyGroupId )
                 {
-                    errors.Add( "Mobile Checkin Record cache error. Id: " + mobileCheckinRecord.Id.ToString() );
+                    errors.Add( $"Error: Mobile Checkin Record Cache (Id:{mobileCheckinRecord.Id}) Desync: FamilyGroupId - DB:{mobileCheckinRecord.FamilyGroupId} - Cache:{mcrCache.FamilyGroupId}" );
+                }
+
+                if ( mobileCheckinRecord.UserName != mcrCache.UserName )
+                {
+                    errors.Add( $"Error: Mobile Checkin Record Cache (Id:{mobileCheckinRecord.Id}) Desync: UserName - DB:{mobileCheckinRecord.UserName} - Cache:{mcrCache.UserName}" );
+                }
+
+                if ( mobileCheckinRecord.Attendances.Count != mcrCache.AttendanceIds.Count )
+                {
+                    errors.Add( $"Error: Mobile Checkin Record Cache (Id:{mobileCheckinRecord.Id}) Desync: Attendance Count - DB:{mobileCheckinRecord.Attendances.Count} - Cache:{mcrCache.AttendanceIds.Count}" );
+                }
+
+                if ( mobileCheckinRecord.AccessKey != mcrCache.AccessKey )
+                {
+                    errors.Add( $"Error: Mobile Checkin Record Cache (Id:{mobileCheckinRecord.Id}) Desync: AccessKey - DB:{mobileCheckinRecord.AccessKey} - Cache:{mcrCache.AccessKey}" );
+                }
+
+                if ( mobileCheckinRecord.CampusId != mcrCache.CampusId )
+                {
+                    errors.Add( $"Error: Mobile Checkin Record Cache (Id:{mobileCheckinRecord.Id}) Desync: CampusId - DB:{mobileCheckinRecord.CampusId} - Cache:{mcrCache.CampusId}" );
+                }
+
+                if ( mobileCheckinRecord.ReservedUntilDateTime != mcrCache.ReservedUntilDateTime )
+                {
+                    errors.Add( $"Error: Mobile Checkin Record Cache (Id:{mobileCheckinRecord.Id}) Desync: ReservedUntilDateTime - DB:{mobileCheckinRecord.ReservedUntilDateTime} - Cache:{mcrCache.ReservedUntilDateTime}" );
+                }
+
+                if ( mobileCheckinRecord.ExpirationDateTime != mcrCache.ExpirationDateTime )
+                {
+                    errors.Add( $"Error: Mobile Checkin Record Cache (Id:{mobileCheckinRecord.Id}) Desync: ExpirationDateTime - DB:{mobileCheckinRecord.ExpirationDateTime} - Cache:{mcrCache.ExpirationDateTime}" );
+                }
+
+                if ( mobileCheckinRecord.SerializedCheckInState != mcrCache.SerializedCheckInState )
+                {
+                    errors.Add( $"Error: Mobile Checkin Record Cache (Id:{mobileCheckinRecord.Id}) Desync: SerializedCheckInState - DB:{mobileCheckinRecord.SerializedCheckInState} - Cache:{mcrCache.SerializedCheckInState}" );
+                }
+
+                if ( mcrCache.SerializedCheckInState.IsNullOrWhiteSpace() )
+                {
+                    errors.Add( $"Info: Mobile Checkin Record Cache missing serialized check-in data. Id: {mobileCheckinRecord.Id}." );
                 }
                 //Todo Check Attendance Status
             }
