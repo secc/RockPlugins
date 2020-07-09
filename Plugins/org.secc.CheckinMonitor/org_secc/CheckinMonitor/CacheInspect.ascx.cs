@@ -13,10 +13,13 @@
 // </copyright>
 //
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Web.UI.WebControls;
+using CacheManager.Core;
 using org.secc.FamilyCheckin.Cache;
 using Rock;
 using Rock.Model;
@@ -37,7 +40,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected override void OnLoad( EventArgs e )
         {
-
 
         }
 
@@ -115,8 +117,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             gAttendances.DataSource = attendances;
             gAttendances.DataBind();
-
-            ltAttendance.Text = string.Join( ", ", AttendanceCache.Keys() );
         }
 
 

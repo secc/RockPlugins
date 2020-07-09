@@ -30,7 +30,7 @@ namespace org.secc.FamilyCheckin.Cache
 {
     [DataContract]
     [Serializable]
-    public class AttendanceCache : ItemCache<AttendanceCache>
+    public class AttendanceCache : CheckinCache<AttendanceCache>
     {
         private AttendanceCache()
         {
@@ -112,38 +112,7 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static List<AttendanceCache> All()
         {
-            var cacheHandle = RockCacheManager<AttendanceCache>.Instance.Cache.CacheHandles.FirstOrDefault();
-            if ( cacheHandle == null )
-            {
-                return FallbackAll();
-            }
-
-            var cacheDict = ( ConcurrentDictionary<string, CacheItem<AttendanceCache>> ) cacheHandle
-                .GetType()
-                .GetField( "_cache", BindingFlags.NonPublic | BindingFlags.Instance )
-                .GetValue( cacheHandle );
-            if ( cacheDict == null )
-            {
-                return FallbackAll();
-            }
-
-            var cachedKeys = cacheDict.Keys;
-
-            if ( cachedKeys.Any() )
-            {
-                return cacheDict.Values
-                    .Select( a => a.Value )
-                    .Where( a => a.CreatedDateTime.HasValue && a.CreatedDateTime.Value >= Rock.RockDateTime.Today )
-                    .ToList();
-            }
-
-            return FallbackAll();
-        }
-
-
-        public static List<AttendanceCache> FallbackAll()
-        {
-            var allKeys = AllKeys();
+            var allKeys = AllKeys( () => KeyFactory() );
 
             var allItems = new List<AttendanceCache>();
 
@@ -157,22 +126,21 @@ namespace org.secc.FamilyCheckin.Cache
             }
 
             return allItems;
-            ;
+        }
+
+        public static AttendanceCache Get( int id )
+        {
+            return Get( id.ToString() );
+        }
+
+        public static AttendanceCache Get( string key )
+        {
+            return Get( key, () => ItemFactory( key ), () => KeyFactory() );
         }
 
         internal static List<AttendanceCache> GetByOccurrenceKey( string accessKey )
         {
             return All().Where( a => a.OccurrenceAccessKey == accessKey ).ToList();
-        }
-
-        public static AttendanceCache Get( int id )
-        {
-            return GetOrAddExisting( id.ToString(), () => LoadById( id ), TimeSpan.FromHours( 6 ) );
-        }
-
-        private static AttendanceCache Get( string key )
-        {
-            return GetOrAddExisting( key, () => LoadById( key.AsInteger() ), TimeSpan.FromHours( 6 ) );
         }
 
         public static void SetWithParent( int personId )
@@ -211,6 +179,12 @@ namespace org.secc.FamilyCheckin.Cache
             attendances.ForEach( a => AddOrUpdate( a ) );
         }
 
+        private static AttendanceCache ItemFactory( string qualifiedKey )
+        {
+            var key = KeyFromQualifiedKey( qualifiedKey );
+            return LoadById( key.AsInteger() );
+        }
+
         private static AttendanceCache LoadById( int id )
         {
             RockContext rockContext = new RockContext();
@@ -225,6 +199,12 @@ namespace org.secc.FamilyCheckin.Cache
 
             return LoadByAttendance( attendance );
         }
+
+        public static void Remove( int id )
+        {
+            Remove( id, () => KeyFactory() );
+        }
+
 
         private static AttendanceCache LoadByAttendance( Attendance attendance )
         {
@@ -286,7 +266,7 @@ namespace org.secc.FamilyCheckin.Cache
             return All().Where( a => a.PersonId == personId && a.WithParent ).Any();
         }
 
-        private static List<string> AllKeys()
+        private static List<string> KeyFactory()
         {
             RockContext rockContext = new RockContext();
             AttendanceService attendanceService = new AttendanceService( rockContext );
@@ -331,7 +311,12 @@ namespace org.secc.FamilyCheckin.Cache
         public static void AddOrUpdate( Attendance attendance )
         {
             var attendanceCache = LoadByAttendance( attendance );
-            UpdateCacheItem( attendance.Id.ToString(), attendanceCache, TimeSpan.FromHours( 6 ) );
+            AddOrUpdate( attendanceCache.Id, attendanceCache, () => KeyFactory() );
+        }
+
+        public static void Clear()
+        {
+            Clear( () => KeyFactory() );
         }
 
         public static void Verify( ref List<string> errors )
@@ -358,13 +343,6 @@ namespace org.secc.FamilyCheckin.Cache
                 {
                     errors.Add( $"Error: Extraneous Attendance Cache: {id}" );
                 }
-            }
-
-            if ( Keys().Count != attendanceCaches.Count )
-            {
-                errors.Add(
-                    string.Format( "Error: Attendance Cache has a different number of key to items. Keys:{0} Items:{1}",
-                    Keys().Count, attendanceCaches.Count ) );
             }
 
             foreach ( var attendance in attendances )
@@ -433,11 +411,6 @@ namespace org.secc.FamilyCheckin.Cache
                     errors.Add( $"Error: Attendance Cache (Id:{attendance.Id}) Desync: WithParent - DB:{withParent} - Cache:{attendanceCache.WithParent}" );
                 }
             }
-        }
-
-        public static List<string> Keys()
-        {
-            return RockCacheManager<List<string>>.Instance.Cache.Get( AllKey, _AllRegion );
         }
     }
 

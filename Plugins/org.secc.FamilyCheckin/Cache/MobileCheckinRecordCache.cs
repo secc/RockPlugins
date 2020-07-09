@@ -30,8 +30,14 @@ namespace org.secc.FamilyCheckin.Cache
 {
     [Serializable]
     [DataContract]
-    public class MobileCheckinRecordCache : ModelCache<MobileCheckinRecordCache, MobileCheckinRecord>
+    public class MobileCheckinRecordCache : CheckinCache<MobileCheckinRecordCache>
     {
+        [DataMember]
+        public int Id { get; set; }
+
+        [DataMember]
+        public Guid Guid { get; set; }
+
         [DataMember]
         public string AccessKey { get; set; }
 
@@ -101,8 +107,10 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static MobileCheckinRecordCache Update( int id )
         {
-            Remove( id );
-            return Get( id );
+            var record = LoadById( id );
+            AddOrUpdate( id, record, () => KeyFactory() );
+
+            return record;
         }
 
         public static bool CancelReservation( MobileCheckinRecordCache record, bool cancelEvenIfNotExpired = false )
@@ -142,14 +150,30 @@ namespace org.secc.FamilyCheckin.Cache
             return true;
         }
 
-        public override void SetFromEntity( IEntity entity )
+        private static MobileCheckinRecordCache ItemFactory( string qualifiedKey )
         {
-            base.SetFromEntity( entity );
+            var key = KeyFromQualifiedKey( qualifiedKey );
+            return LoadById( key.AsInteger() );
+        }
 
-            var record = entity as MobileCheckinRecord;
-            if ( record == null )
-                return;
+        public static MobileCheckinRecordCache LoadById( int id )
+        {
+            MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( new RockContext() );
+            var record = mobileCheckinRecordService.Get( id );
 
+            if ( record == null || record.CreatedDateTime < Rock.RockDateTime.Today )
+            {
+                return null;
+            }
+
+            var recordCache = new MobileCheckinRecordCache();
+            recordCache.SetFromEntity( record );
+
+            return recordCache;
+        }
+
+        private void SetFromEntity( MobileCheckinRecord record )
+        {
             Id = record.Id;
             Guid = record.Guid;
             AccessKey = record.AccessKey;
@@ -176,68 +200,14 @@ namespace org.secc.FamilyCheckin.Cache
         /// Gets all the instances of this type of model/entity that are currently in cache.
         /// </summary>
         /// <returns></returns>
-        public static new List<MobileCheckinRecordCache> All()
+        public static List<MobileCheckinRecordCache> All()
         {
-            return All( null );
-        }
-
-        /// <summary>
-        /// Gets all the instances of this type of model/entity that are currently in cache.
-        /// </summary>
-        /// <returns></returns>
-        public static new List<MobileCheckinRecordCache> All( RockContext rockContext )
-        {
-            var cacheHandle = RockCacheManager<MobileCheckinRecordCache>.Instance.Cache.CacheHandles.FirstOrDefault();
-            if ( cacheHandle == null )
-            {
-                return FallbackAll( rockContext );
-            }
-
-            var cacheDict = ( ConcurrentDictionary<string, CacheItem<MobileCheckinRecordCache>> ) cacheHandle
-                .GetType()
-                .GetField( "_cache", BindingFlags.NonPublic | BindingFlags.Instance )
-                .GetValue( cacheHandle );
-            if ( cacheDict == null )
-            {
-                return FallbackAll( rockContext );
-            }
-
-            var cachedKeys = cacheDict.Keys;
-
-            if ( cachedKeys.Any() )
-            {
-                return cacheDict.Values.Select( a => a.Value ).ToList();
-            }
-
-            cachedKeys= QueryDbForAllIds( rockContext );
+            var cachedKeys = AllKeys( () => KeyFactory() );
 
             var allValues = new List<MobileCheckinRecordCache>();
             foreach ( var key in cachedKeys.ToList() )
             {
-                var value = Get( key.AsInteger(), rockContext );
-                if ( value != null )
-                {
-                    allValues.Add( value );
-                }
-            }
-            return allValues;
-        }
-
-        /// <summary>
-        /// Fallbacks all.
-        /// </summary>
-        /// <param name="rockContext">The rock context.</param>
-        /// <returns></returns>
-        public static new List<MobileCheckinRecordCache> FallbackAll( RockContext rockContext )
-        {
-            var cachedKeys = GetOrAddKeys( () => QueryDbForAllIds( rockContext ) );
-            if ( cachedKeys == null )
-                return new List<MobileCheckinRecordCache>();
-
-            var allValues = new List<MobileCheckinRecordCache>();
-            foreach ( var key in cachedKeys.ToList() )
-            {
-                var value = Get( key.AsInteger(), rockContext );
+                var value = Get( key );
                 if ( value != null )
                 {
                     allValues.Add( value );
@@ -247,23 +217,19 @@ namespace org.secc.FamilyCheckin.Cache
             return allValues;
         }
 
-
-        /// <summary>
-        /// Queries the database for all ids.
-        /// </summary>
-        /// <param name="rockContext">The rock context.</param>
-        /// <returns></returns>
-        private static List<string> QueryDbForAllIds( RockContext rockContext )
+        public static MobileCheckinRecordCache Get( int id )
         {
-            if ( rockContext != null )
-            {
-                return QueryDbForAllIdsWithContext( rockContext );
-            }
+            return Get( id.ToString() );
+        }
 
-            using ( var newRockContext = new RockContext() )
-            {
-                return QueryDbForAllIdsWithContext( newRockContext );
-            }
+        public static MobileCheckinRecordCache Get( string key )
+        {
+            return Get( key, () => ItemFactory( key ), () => KeyFactory() );
+        }
+
+        public static void Clear()
+        {
+            Clear( () => KeyFactory() );
         }
 
         /// <summary>
@@ -271,16 +237,16 @@ namespace org.secc.FamilyCheckin.Cache
         /// </summary>
         /// <param name="rockContext">The rock context.</param>
         /// <returns></returns>
-        private static List<string> QueryDbForAllIdsWithContext( RockContext rockContext )
+        private static List<string> KeyFactory()
         {
-            //We have to make our own version of this to only cache todays requests.
-            var service = new MobileCheckinRecordService( rockContext );
-            return service.Queryable().AsNoTracking()
+            return new MobileCheckinRecordService( new RockContext() )
+                .Queryable().AsNoTracking()
                 .Where( r => r.CreatedDateTime >= Rock.RockDateTime.Today )
-                .Select( r => r.Id )
-                .ToList()
-                .ConvertAll( r => r.ToString() );
+                .Select( r => r.Id.ToString() )
+                .ToList();
         }
+
+
 
         #endregion
 

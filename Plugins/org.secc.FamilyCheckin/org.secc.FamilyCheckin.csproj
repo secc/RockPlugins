@@ -100,6 +100,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attribute\CheckinGroupFieldAttribute.cs" />
+    <Compile Include="Cache\CheckinCache.cs" />
     <Compile Include="Cache\KioskTypeCache.cs" />
     <Compile Include="Cache\MobileCheckinRecordCache.cs" />
     <Compile Include="Cache\AttendanceCache.cs" />
