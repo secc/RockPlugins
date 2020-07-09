@@ -13,15 +13,17 @@
 // </copyright>
 //
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
+using CacheManager.Core;
 using org.secc.FamilyCheckin.Model;
 using Rock;
 using Rock.Data;
 using Rock.Model;
-using Rock.ServiceObjects.GeoCoder;
 using Rock.Web.Cache;
 
 namespace org.secc.FamilyCheckin.Cache
@@ -185,6 +187,49 @@ namespace org.secc.FamilyCheckin.Cache
         /// <returns></returns>
         public static new List<MobileCheckinRecordCache> All( RockContext rockContext )
         {
+            var cacheHandle = RockCacheManager<MobileCheckinRecordCache>.Instance.Cache.CacheHandles.FirstOrDefault();
+            if ( cacheHandle == null )
+            {
+                return FallbackAll( rockContext );
+            }
+
+            var cacheDict = ( ConcurrentDictionary<string, CacheItem<MobileCheckinRecordCache>> ) cacheHandle
+                .GetType()
+                .GetField( "_cache", BindingFlags.NonPublic | BindingFlags.Instance )
+                .GetValue( cacheHandle );
+            if ( cacheDict == null )
+            {
+                return FallbackAll( rockContext );
+            }
+
+            var cachedKeys = cacheDict.Keys;
+
+            if ( cachedKeys.Any() )
+            {
+                return cacheDict.Values.Select( a => a.Value ).ToList();
+            }
+
+            cachedKeys= QueryDbForAllIds( rockContext );
+
+            var allValues = new List<MobileCheckinRecordCache>();
+            foreach ( var key in cachedKeys.ToList() )
+            {
+                var value = Get( key.AsInteger(), rockContext );
+                if ( value != null )
+                {
+                    allValues.Add( value );
+                }
+            }
+            return allValues;
+        }
+
+        /// <summary>
+        /// Fallbacks all.
+        /// </summary>
+        /// <param name="rockContext">The rock context.</param>
+        /// <returns></returns>
+        public static new List<MobileCheckinRecordCache> FallbackAll( RockContext rockContext )
+        {
             var cachedKeys = GetOrAddKeys( () => QueryDbForAllIds( rockContext ) );
             if ( cachedKeys == null )
                 return new List<MobileCheckinRecordCache>();
@@ -201,6 +246,7 @@ namespace org.secc.FamilyCheckin.Cache
 
             return allValues;
         }
+
 
         /// <summary>
         /// Queries the database for all ids.

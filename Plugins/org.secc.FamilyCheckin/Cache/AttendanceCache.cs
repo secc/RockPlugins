@@ -13,10 +13,13 @@
 // </copyright>
 //
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Serialization;
+using CacheManager.Core;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Data;
@@ -109,15 +112,38 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static List<AttendanceCache> All()
         {
-            var allKeys = RockCacheManager<List<string>>.Instance.Cache.Get( AllKey, _AllRegion );
-            if ( allKeys == null )
+            var cacheHandle = RockCacheManager<AttendanceCache>.Instance.Cache.CacheHandles.FirstOrDefault();
+            if ( cacheHandle == null )
             {
-                allKeys = GetOrAddKeys( () => AllKeys() );
-                if ( allKeys == null )
-                {
-                    return new List<AttendanceCache>();
-                }
+                return FallbackAll();
             }
+
+            var cacheDict = ( ConcurrentDictionary<string, CacheItem<AttendanceCache>> ) cacheHandle
+                .GetType()
+                .GetField( "_cache", BindingFlags.NonPublic | BindingFlags.Instance )
+                .GetValue( cacheHandle );
+            if ( cacheDict == null )
+            {
+                return FallbackAll();
+            }
+
+            var cachedKeys = cacheDict.Keys;
+
+            if ( cachedKeys.Any() )
+            {
+                return cacheDict.Values
+                    .Select( a => a.Value )
+                    .Where( a => a.CreatedDateTime.HasValue && a.CreatedDateTime.Value >= Rock.RockDateTime.Today )
+                    .ToList();
+            }
+
+            return FallbackAll();
+        }
+
+
+        public static List<AttendanceCache> FallbackAll()
+        {
+            var allKeys = AllKeys();
 
             var allItems = new List<AttendanceCache>();
 
@@ -130,7 +156,8 @@ namespace org.secc.FamilyCheckin.Cache
                 }
             }
 
-            return allItems.Where( a => a.CreatedDateTime.HasValue && a.CreatedDateTime.Value >= Rock.RockDateTime.Today ).ToList();
+            return allItems;
+            ;
         }
 
         internal static List<AttendanceCache> GetByOccurrenceKey( string accessKey )
