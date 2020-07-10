@@ -46,7 +46,7 @@
 			{%- assign subtitle = item.ChildContentChannelItem | Attribute:'Subtitle' -%}
 			{%- assign imageGuid = item.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
 			{%- assign actionJson = item.ChildContentChannelItem | Attribute:'Action' -%}
-			{%- if slug == "streaming-now-1" or slug == "bulletin-1" or slug == "bulletin-2" -%}
+			{%- if slug == "streaming-now-1" or slug == "bulletin-1" or slug == "bulletin-2" or slug == "sekids-check-in-1" or slug == "sekids-check-in-2" -%}
 				{%- if slug == "streaming-now-1" and streamBannerShowDays contains today -%}
 					{%- comment -%} Start: Banner Item{%- endcomment -%}
 					{%- if Headers.sap-device-os == 'Android' -%}
@@ -68,48 +68,52 @@
 					}
 					{%- assign comma = "," -%}
 					{%- comment -%} End: Banner Item{%- endcomment -%}
-				{%- elseif slug == "bulletin-1" and bulletinOneShowDays contains today -%}
-					{%- comment -%} Start: Banner Item{%- endcomment -%}
-					{%- if Headers.sap-device-os == 'Android' -%}
-						{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
-					{%- endif -%}
-					{{ comma }}
-					{
-						"images":[
-							{"width": 668,
-							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
-							]
-						{%- if actionJson != "" -%}
-						,"actions":[{
-							{{-actionJson-}}
-						}],
-						"title": "{{ title }}",
-						"subtitle": "{{ subtitle }}"
+				{%- elseif slug == "bulletin-1" or slug == "sekids-check-in-1" -%}
+					{% if bulletinOneShowDays contains today %}
+						{%- comment -%} Start: Banner Item{%- endcomment -%}
+						{%- if Headers.sap-device-os == 'Android' -%}
+							{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
 						{%- endif -%}
-					}
-					{%- assign comma = "," -%}
-					{%- comment -%} End: Banner Item{%- endcomment -%}
-				{%- elseif slug == "bulletin-2" and bulletinTwoShowDays contains today -%}
-					{%- comment -%} Start: Banner Item{%- endcomment -%}
-					{%- if Headers.sap-device-os == 'Android' -%}
-						{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
+						{{ comma }}
+						{
+							"images":[
+								{"width": 668,
+								"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+								]
+							{%- if actionJson != "" -%}
+							,"actions":[{
+								{{-actionJson-}}
+							}],
+							"title": "{{ title }}",
+							"subtitle": "{{ subtitle }}"
+							{%- endif -%}
+						}
+						{%- assign comma = "," -%}
+						{%- comment -%} End: Banner Item{%- endcomment -%}
 					{%- endif -%}
-					{{ comma }}
-					{
-						"images":[
-							{"width": 668,
-							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
-							]
-						{%- if actionJson != "" -%}
-						,"actions":[{
-							{{-actionJson-}}
-						}],
-						"title": "{{ title }}",
-						"subtitle": "{{ subtitle }}"
+				{%- elseif slug == "bulletin-2" or slug == "sekids-check-in-2" -%}
+					{% if bulletinTwoShowDays contains today %}
+						{%- comment -%} Start: Banner Item{%- endcomment -%}
+						{%- if Headers.sap-device-os == 'Android' -%}
+							{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
 						{%- endif -%}
-					}
-					{%- assign comma = "," -%}
-					{%- comment -%} End: Banner Item{%- endcomment -%}
+						{{ comma }}
+						{
+							"images":[
+								{"width": 668,
+								"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+								]
+							{%- if actionJson != "" -%}
+							,"actions":[{
+								{{-actionJson-}}
+							}],
+							"title": "{{ title }}",
+							"subtitle": "{{ subtitle }}"
+							{%- endif -%}
+						}
+						{%- assign comma = "," -%}
+						{%- comment -%} End: Banner Item{%- endcomment -%}
+					{%- endif -%}
 				{%- endif -%}
 			{%- else -%}
 				{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
