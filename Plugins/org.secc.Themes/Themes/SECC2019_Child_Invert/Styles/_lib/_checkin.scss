@@ -70,6 +70,15 @@
             }
         }
 
+        .modal-scrollable {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            overflow: auto
+        }
+
         .modal {   
             
             .modal-body {
@@ -158,10 +167,13 @@
                 top: 20px;
                 bottom: 20px;
                 left: 50%;
+                margin: 0 0 20px 0 !important;
                 transform: translate(-50%, 0px);
                 transition-duration: 1s;
                 border-radius: 16px;
-                margin-bottom: 100px !important;
+                margin-bottom: 20px !important;
+                position: relative !important;
+                z-index: 1000;
                 
                 h1 {
                     font-size: 2.5em;
@@ -853,11 +865,13 @@
 
             @include tablets {
                 width: 100%;
-                margin: 0 auto;
+                margin: 15px auto;
                 font-size: 2em;
                 left: 51%;
                 transform: translate(-50%, 0);
-
+                vertical-align: middle;
+                line-height: 45px;
+                
                 &:after {
                     position: relative;
                     content: "Add Person";
@@ -868,10 +882,12 @@
 
             @include phones {
                 width: 100%;
-                margin: 0 auto;
+                margin: 15px auto;
                 font-size: 2em;
                 left: 51%;
                 transform: translate(-50%, 0);
+                vertical-align: middle;
+                line-height: 45px;
 
                 &:after {
                     position: relative;
