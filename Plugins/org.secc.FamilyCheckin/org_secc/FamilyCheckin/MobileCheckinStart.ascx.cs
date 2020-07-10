@@ -86,6 +86,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             internal const string UserName = "UserName";
         }
 
+        private static class UserPreferenceKeys
+        {
+            internal const string PreferredCampusId = "PreferredCampusId";
+        }
+
         private Person currentPerson;
         private UserLogin currentUser;
 
@@ -177,55 +182,43 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         /// Sets up the kiosk for display.
         /// </summary>
         /// <param name="kioskName">Name of the kiosk.</param>
-        private void ConfigureKiosk( string kioskName )
+        private void ConfigureForUser( string kioskName )
         {
             lIntroduction.Text = GetAttributeValue( AttributeKeys.IntroductionText );
 
             var rockContext = new RockContext();
 
-            var mobileUserCategory = CategoryCache.Get( org.secc.FamilyCheckin.Utilities.Constants.KIOSK_CATEGORY_MOBILEUSER );
-
-            var kioskService = new KioskService( rockContext );
-            var kiosk = kioskService.Queryable( "KioskType" )
-                .Where( k => k.Name == kioskName )
-                .FirstOrDefault();
-
-            if ( kiosk == null )
-            {
-                kiosk = new Kiosk
-                {
-                    Name = kioskName,
-                    CategoryId = mobileUserCategory.Id,
-                    Description = "Automatically created mobile Kiosk"
-                };
-                kioskService.Add( kiosk );
-                rockContext.SaveChanges();
-            }
-
             KioskTypeCache kioskType = null;
 
+            //First try page parameter
             var campusParameter = PageParameter( PageParameterKeys.CampusId );
             if ( campusParameter.IsNotNullOrWhiteSpace() )
             {
                 kioskType = KioskTypeCache.All().Where( k => k.IsMobile && k.CampusId == campusParameter.AsIntegerOrNull() ).FirstOrDefault();
             }
 
+            //Next try personal preference
             if ( kioskType == null )
             {
-                if ( kiosk.KioskTypeId.HasValue )
-                {
-                    kioskType = KioskTypeCache.Get( kiosk.KioskTypeId.Value );
-                }
+                var campusId = PersonService.GetUserPreference(currentPerson, UserPreferenceKeys.PreferredCampusId ).AsIntegerOrNull();
+                kioskType = KioskTypeCache.All().Where( k => k.IsMobile && k.CampusId == campusId ).FirstOrDefault();
+            }
+
+            //Finally set to primary campus Id
+            if ( kioskType == null )
+            {
+
+                var campusId = currentPerson.PrimaryCampusId;
+                kioskType = KioskTypeCache.All().Where( k => k.IsMobile && k.CampusId == campusId ).FirstOrDefault();
             }
 
             if ( kioskType != null )
             {
                 ddlCampus.SetValue( kioskType.Id.ToString() );
             }
-            else
-            {
-                ddlCampus.SetValue( currentPerson.PrimaryCampusId.ToString() );
-            }
+
+            //Default is first in list
+
             UpdateKioskText();
         }
 
@@ -278,6 +271,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 var completeMobileCheckins = MobileCheckinRecordCache.All()
                     .Where( r => r.FamilyGroupId == currentPerson.PrimaryFamilyId && r.Status == MobileCheckinStatus.Complete )
+                    .SelectMany( r => r.AttendanceIds )
+                    .Select( i => AttendanceCache.Get( i ) )
+                    .Where( a => a.AttendanceState != AttendanceState.CheckedOut )
                     .Any();
                 if ( completeMobileCheckins )
                 {
@@ -286,8 +282,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 }
             }
 
-
-            ConfigureKiosk( kioskName );
+            ConfigureForUser( kioskName );
 
             pnlSelectCampus.Visible = true;
 
@@ -384,6 +379,8 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
         {
             var kiosk = ConfigureKiosk();
             var kioskType = KioskTypeCache.Get( kiosk.KioskTypeId ?? 0 );
+
+            PersonService.SaveUserPreference( currentPerson, UserPreferenceKeys.PreferredCampusId, kioskType.CampusId.ToString() );
 
             DateTime? activeAt = null;
             if ( CheckinIsActive( kioskType, out activeAt ) )
@@ -606,7 +603,7 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
 
         protected void btnNewCheckin_Click( object sender, EventArgs e )
         {
-            ConfigureKiosk( CurrentUser.UserName );
+            ConfigureForUser( currentUser.UserName );
             pnlPostCheckin.Visible = false;
             pnlSelectCampus.Visible = true;
         }

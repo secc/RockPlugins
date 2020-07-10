@@ -119,14 +119,25 @@ namespace org.secc.FamilyCheckin.Cache
                               && a.AttendanceState != AttendanceState.CheckedOut )
                     .Count();
 
+                //If we are within 2 of full, cache is too slow to be reliablly accurate
+                //.. to the database!!
+                if ( attendanceCount < capacity && attendanceCount >= capacity - 2)
+                {
+                    var attendanceService = new AttendanceService( new RockContext() ).Queryable().AsNoTracking();
+                    attendanceCount = attendanceService.Where( a =>
+                                  a.EndDateTime == null
+                                  && a.Occurrence.ScheduleId == ScheduleId
+                                  && a.Occurrence.LocationId == LocationId
+                                  && a.StartDateTime >= Rock.RockDateTime.Today )
+                        .Count();
+                }
+
                 if ( attendanceCount >= capacity )
                 {
                     return true;
                 }
-                else
-                {
-                    return false;
-                }
+
+                return false;
             }
         }
 

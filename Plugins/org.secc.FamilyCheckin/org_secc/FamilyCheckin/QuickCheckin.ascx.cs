@@ -455,7 +455,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             btnMessage.AddCssClass( "btn btn-default col-xs-8 disabled" );
             hgcAreaRow.Controls.Add( btnMessage );
 
-            btnMessage.Text = "There are no classes available for " + person.Person.NickName + "<br> to check-in, or all rooms are currently full.";
+            btnMessage.Text = "There are no classes available for " + person.Person.NickName + " to check-in, or all rooms are currently full.";
             foreach ( var locationId in person.GroupTypes.SelectMany( gt => gt.Groups ).SelectMany( g => g.Locations ).Select( l => l.Location.Id ).ToList() )
             {
                 var attendances = AttendanceCache.GetByLocationId( locationId );
@@ -800,12 +800,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 //trigger the final checkin process!
                 ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "doCheckin", "doCheckin();", true );
             }
-        }
-
-        protected void btnContinue_Click( object sender, EventArgs e )
-        {
-            //trigger the final checkin process!
-            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "doCheckin", "doCheckin();", true );
         }
 
         /// <summary>
@@ -1347,7 +1341,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     var checkinGroupType = checkinGroupTypes.Where( cgt => cgt.Groups.Any( cg => cg.Group.Id == checkinGroup.Group.Id ) ).FirstOrDefault();
                     var checkinLocations = GetLocations( checkinPerson, checkinSchedule, checkinGroupType, checkinGroup );
 
-                    var checkInLocations = checkinLocations
+                    checkinLocations = checkinLocations
                     .OrderByDescending( l => l.Selected )
                     .ThenByDescending( l => l.PreSelected )
                     .ThenBy( l => AttendanceCache.GetByLocationIdAndScheduleId( l.Location.Id, checkinSchedule.Schedule.Id ).Where( a => !a.IsVolunteer ).Count() )

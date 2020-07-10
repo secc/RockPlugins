@@ -278,8 +278,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             && ( totalCount + reservedCount ) >= ( locationOccurrence.FirmRoomThreshold ?? int.MaxValue ) )
                         {
                             if ( locationOccurrence.IsActive && totalCount != 0
-                                && ( totalCount >= ( locationOccurrence.FirmRoomThreshold ?? int.MaxValue )
-                                || childCount >= ( locationOccurrence.SoftRoomThreshold ?? int.MaxValue ) ) )
+                                && totalCount >= ( locationOccurrence.FirmRoomThreshold ?? int.MaxValue ) )
                             {
                                 CloseOccurrence( locationOccurrence.GroupLocationId, locationOccurrence.ScheduleId );
                                 KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
