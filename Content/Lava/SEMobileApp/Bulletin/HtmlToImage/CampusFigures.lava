@@ -1,0 +1,172 @@
+{%- campus where:'Guid == "{{Guid}}"' -%}
+{%- assign campus = campusItems | First -%}
+{%- endcampus -%}
+<html>
+    <head>
+        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/layout.css?v=637171650738055685"/>
+        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/main.css?v=637171650775243506"/>
+        <style>
+            html, body {
+              margin: 0px;
+              padding: 0px;
+              background-color: #262626;
+            }
+            .box {
+              /* margin: 0px 60px; */
+              width: 1494px;
+              height: 904px;
+              background-color: #121212;
+              border-radius: 0px 0px 0px 0px;
+              background-repeat: no-repeat;
+              background-size: contain;
+              background-position: top;
+            }
+            .box h4, .box h5, .box p {
+              color: white;
+            }
+            .content {
+                overflow: hidden;
+                height: 100%;
+                position: relative;
+                display: block;
+                width: 100%;
+            }
+            .content-container {
+                width: 100%;
+                overflow: hidden;
+                padding-right: 5em;
+                padding-left: 5em;
+            }
+            .content-container-connect {
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+                overflow: hidden;
+                padding-right: 5em;
+                padding-left: 5em;
+            }
+            .connectTitle {
+                border-top: 3px solid #262626;
+                font-size: 4.0em;
+                padding: 60px 80px;
+            }
+            .resourceTitle {
+                font-size: 4.0em;
+                padding: 20px 80px;
+            }
+            .resourceInfo {
+                margin-bottom: 1em;
+                font-size: 3.0em;
+                padding: 0em 80px 1em 80px;
+            }
+        </style>
+    </head>
+    <body>
+        {% assign campusId = campus.Id %}
+        {%- comment -%}
+        -----------------------------------------------------------
+        ------- Determines which weekend to pull in Metrics -------
+        -----------------------------------------------------------
+        {%- endcomment -%}
+        {%- assign today = 'Now' | Date:'dddd' -%}
+        {%- assign subtractDays = -14 -%}
+        {%- if today == "Saturday" or today == "Sunday" -%}
+            {%- assign subtractDays = -7 -%}
+        {% endif %}
+        {% assign weekendDate = "Now" | SundayDate | DateAdd:subtractDays | Date:'yyyy-MM-dd' %}
+
+        {%- comment -%}
+        ----------------------------------------
+        ------- Grabs Weekend Attendance -------
+        ----------------------------------------
+        {%- endcomment -%}
+        {% assign campusTotal = 0 %}
+        {% assign total = 0 %}
+        {% assign currentCampus = 0 %}
+        {% assign metricIds = '2|17|11|12|14' | Split:'|' %}
+        {% for id in metricIds %}
+            {% metricvalue where:'MetricId == {{id}} && MetricValueDateTime == "{{weekendDate}}"' %}
+                {% for metricValue in  metricvalueItems %}
+                    {% for partition in  metricValue.MetricValuePartitions %}
+                        {% if partition.MetricPartition.Label == 'Campus' %}
+                            {% assign currentCampus = partition.EntityId %}
+                        {% endif %}
+                    {% endfor %}
+                    {% if currentCampus == campusId %}
+                        {% assign campusTotal = campusTotal | Plus:metricValue.YValue %}
+                    {% endif %}
+                    {% assign total = total | Plus:metricValue.YValue %}
+                    {% assign currentCampus = 0 %}
+                {% endfor %}
+            {% endmetricvalue %}
+        {% endfor %}
+
+        {%- comment -%}
+        ------------------------------------
+        ------- General Fund Giving -------
+        ------------------------------------
+        {%- endcomment -%}
+        {% assign campusGeneralFund = 0 %}
+        {% metricvalue where:'MetricId == 6 && MetricValueDateTime == "{{weekendDate}}"' %}
+            {% for metricValue in  metricvalueItems %}
+                {% if campusId == metricValue.MetricValuePartitions[0].EntityId %}
+                    {% assign campusGeneralFund = metricValue.YValue %}
+                {% endif %}
+            {% endfor %}
+        {% endmetricvalue %}
+
+        {%- comment -%}
+        ------------------------------------
+        ------- Building Fund Giving -------
+        ------------------------------------
+        {%- endcomment -%}
+        {% assign campusBuildingFund = 0 %}
+        {% metricvalue where:'MetricId == 7 && MetricValueDateTime == "{{weekendDate}}"' %}
+            {% for metricValue in  metricvalueItems %}
+                {% if campusId == metricValue.MetricValuePartitions[0].EntityId %}
+                    {% assign campusBuildingFund = metricValue.YValue %}
+                {% endif %}
+            {% endfor %}
+        {% endmetricvalue %}
+
+        <div class="box">
+            <div class="content">
+                <div class="content-container">
+                    <div class="g-margin-b-50--xs g-display-inline-block--xs" style="width: 100%;">
+                        <div class="text-center g-overflow--hidden g-bg-color--2020-seapp-grey pull-left"
+                            style="border-radius:3.5em; width: 47.5%; margin: 0 1.25%;">
+                            <h1 class="g-color--white g-bg-color--2020-seapp-blue-dark g-padding-y-70--xs
+                                g-padding-x-50--xs g-font-weight--600">
+                                Church-Wide Attendance</h1>
+                            <h1 class="g-color--white g-padding-y-60--xs g-font-size-130--xs g-font-weight--700">{{ total | Format:'#,##0' }}</h1>
+                        </div>
+                        <div class="text-center g-overflow--hidden g-bg-color--2020-seapp-grey pull-left"
+                            style="border-radius:3.5em; width: 47.5%; margin: 0 1.25%;">
+                            <h1 class="g-color--white g-bg-color--2020-seapp-blue-dark g-padding-y-70--xs
+                                g-padding-x-50--xs g-font-weight--600">Campus Attendance</h1>
+                            <h1 class="g-color--white g-padding-y-60--xs g-font-size-130--xs g-font-weight--700">{{ campusTotal | Format:'#,##0' }}</h1>
+                        </div>
+                    </div>
+                    <div class="g-margin-b-50--xs g-display-inline-block--xs" style="width: 100%;">
+                        <div class="text-center g-overflow--hidden g-bg-color--2020-seapp-grey pull-left"
+                            style="border-radius:3.5em; width: 47.5%; margin: 0 1.25%;">
+                            <h1 class="g-color--white g-bg-color--2020-seapp-blue-dark g-padding-y-70--xs
+                                g-padding-x-50--xs g-font-weight--600">Campus General Offering</h1>
+                            <h1 class="g-color--white g-padding-y-60--xs g-font-size-130--xs g-font-weight--700">{{ campusGeneralFund | FormatAsCurrency }}</h1>
+                        </div>
+                        <div class="text-center g-overflow--hidden g-bg-color--2020-seapp-grey pull-left"
+                            style="border-radius:3.5em; width: 47.5%; margin: 0 1.25%;">
+                            <h1 class="g-color--white g-bg-color--2020-seapp-blue-dark g-padding-y-70--xs
+                                g-padding-x-50--xs g-font-weight--600">Campus Building Fund</h1>
+                            <h1 class="g-color--white g-padding-y-60--xs g-font-size-130--xs g-font-weight--700">{{ campusBuildingFund | FormatAsCurrency }}</h1>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-container-connect">
+                    <h1 class="connectTitle g-font-weight--600 g-color--white g-line-height">Connecting Opportunities</h1>
+                </div>
+            </div>
+        </div>
+
+    </body>
+</html>

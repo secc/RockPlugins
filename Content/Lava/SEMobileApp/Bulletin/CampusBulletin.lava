@@ -67,8 +67,12 @@
             "images":[
                 { "width":636, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/campusIntro/{{campus.Guid}}"  }
             ]
-		{% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger %}
-	}{%- contentchannelitem where:'ContentChannelId == 70 && Status == 2' sort:'Order'  -%}{%- for item in contentchannelitemItems -%}
+	},{
+            "images":[
+                { "width":636, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/campusFigures/{{campus.Guid}}"  }
+            ]
+	}{%- assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger -%}
+	 {%- contentchannelitem where:'ContentChannelId == 70 && Status == 2' sort:'Order'  -%}{%- for item in contentchannelitemItems -%}
 		{% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
 		{% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsInteger %}
 			{% if itemStartDateTime <= currentDateTime %}

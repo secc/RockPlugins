@@ -69,7 +69,21 @@
                     <p class="resourceInfo">{{ campus.Description }}</p>
                 </div>
                 <div class="content-container-connect">
-                    <h1 class="connectTitle g-font-weight--600 g-color--white g-line-height">Connecting Opportunities</h1>
+                    {%- comment -%}
+                    -----------------------------------------------------------
+                    ------- Determines which weekend to pull in Metrics -------
+                    -----------------------------------------------------------
+                    {%- endcomment -%}
+                    {%- assign today = 'Now' | Date:'dddd' -%}
+                    {%- assign subtractDays = -14 -%}
+                    {%- if today == "Saturday" or today == "Sunday" -%}
+                        {%- assign subtractDays = -7 -%}
+                    {% endif %}
+                    {% assign sundayBefore = "Now" | SundayDate | DateAdd:subtractDays | Date:'dd' %}
+                    {%- assign satSubtractDays = subtractDays | Plus:-1 -%}
+                    {% assign saturdayBefore = "Now" | SundayDate | DateAdd:satSubtractDays | Date:'dd' %}
+                    {% assign weekendDate = "Now" | SundayDate | DateAdd:subtractDays | Date:'MMMM SAT-SUN, 2020' | Replace:'SAT',saturdayBefore | Replace:'SUN',sundayBefore %}
+                    <h1 class="connectTitle g-font-weight--600 g-color--white g-line-height">Facts & Figures<br /><small class="g-color--white g-font-weight--500 uppercase">{{ weekendDate }}</small></h1>
                 </div>
             </div>
         </div>
