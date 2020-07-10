@@ -13,18 +13,14 @@
 // </copyright>
 //
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.Serialization;
-using CacheManager.Core;
 using org.secc.FamilyCheckin.Model;
 using Rock;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 
 namespace org.secc.FamilyCheckin.Cache
 {
@@ -32,6 +28,7 @@ namespace org.secc.FamilyCheckin.Cache
     [DataContract]
     public class MobileCheckinRecordCache : CheckinCache<MobileCheckinRecordCache>
     {
+        #region Properties
         [DataMember]
         public int Id { get; set; }
 
@@ -70,11 +67,43 @@ namespace org.secc.FamilyCheckin.Cache
 
         [DataMember]
         public int CampusId { get; set; }
+        #endregion
 
+        #region Methods
         public List<Attendance> GetAttendances( RockContext rockContext )
         {
             AttendanceService attendanceService = new AttendanceService( rockContext );
             return attendanceService.Queryable().Where( a => AttendanceIds.Contains( a.Id ) ).ToList();
+        }
+
+        private void SetFromEntity( MobileCheckinRecord record )
+        {
+            Id = record.Id;
+            Guid = record.Guid;
+            AccessKey = record.AccessKey;
+            UserName = record.UserName;
+            FamilyGroupId = record.FamilyGroupId;
+            ReservedUntilDateTime = record.ReservedUntilDateTime;
+            ExpirationDateTime = record.ExpirationDateTime;
+            CreatedDateTime = record.CreatedDateTime;
+            SerializedCheckInState = record.SerializedCheckInState;
+            Status = record.Status;
+            IsDirty = record.IsDirty;
+            AttendanceIds = record.Attendances.Select( a => a.Id ).ToList();
+            CampusId = record.CampusId;
+        }
+
+        public MobileCheckinRecord GetEntity( RockContext rockContext )
+        {
+            MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
+            return mobileCheckinRecordService.Get( Id );
+        }
+        #endregion
+
+        #region Static Methods
+        public static MobileCheckinRecordCache GetByAttendanceId( int id )
+        {
+            return All().Where( m => m.AttendanceIds.Contains( id ) ).FirstOrDefault();
         }
 
         public static MobileCheckinRecordCache GetByAccessKey( string accessKey )
@@ -98,19 +127,6 @@ namespace org.secc.FamilyCheckin.Cache
                 .Where( r => r.Status == MobileCheckinStatus.Active
                           && r.CreatedDateTime >= Rock.RockDateTime.Today )
                 .ToList();
-        }
-
-        public static MobileCheckinRecordCache GetByAttendanceId( int id )
-        {
-            return All().Where( m => m.AttendanceIds.Contains( id ) ).FirstOrDefault();
-        }
-
-        public static MobileCheckinRecordCache Update( int id )
-        {
-            var record = LoadById( id );
-            AddOrUpdate( id, record, () => KeyFactory() );
-
-            return record;
         }
 
         public static bool CancelReservation( MobileCheckinRecordCache record, bool cancelEvenIfNotExpired = false )
@@ -150,10 +166,12 @@ namespace org.secc.FamilyCheckin.Cache
             return true;
         }
 
-        private static MobileCheckinRecordCache ItemFactory( string qualifiedKey )
+        public static MobileCheckinRecordCache Update( int id )
         {
-            var key = KeyFromQualifiedKey( qualifiedKey );
-            return LoadById( key.AsInteger() );
+            var record = LoadById( id );
+            AddOrUpdate( QualifiedKey( id ), record, () => KeyFactory() );
+
+            return record;
         }
 
         public static MobileCheckinRecordCache LoadById( int id )
@@ -172,34 +190,6 @@ namespace org.secc.FamilyCheckin.Cache
             return recordCache;
         }
 
-        private void SetFromEntity( MobileCheckinRecord record )
-        {
-            Id = record.Id;
-            Guid = record.Guid;
-            AccessKey = record.AccessKey;
-            UserName = record.UserName;
-            FamilyGroupId = record.FamilyGroupId;
-            ReservedUntilDateTime = record.ReservedUntilDateTime;
-            ExpirationDateTime = record.ExpirationDateTime;
-            CreatedDateTime = record.CreatedDateTime;
-            SerializedCheckInState = record.SerializedCheckInState;
-            Status = record.Status;
-            IsDirty = record.IsDirty;
-            AttendanceIds = record.Attendances.Select( a => a.Id ).ToList();
-            CampusId = record.CampusId;
-        }
-
-        public MobileCheckinRecord GetEntity( RockContext rockContext )
-        {
-            MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
-            return mobileCheckinRecordService.Get( Id );
-        }
-
-        #region BaseOverrides
-        /// <summary>
-        /// Gets all the instances of this type of model/entity that are currently in cache.
-        /// </summary>
-        /// <returns></returns>
         public static List<MobileCheckinRecordCache> All()
         {
             var cachedKeys = AllKeys( () => KeyFactory() );
@@ -207,7 +197,7 @@ namespace org.secc.FamilyCheckin.Cache
             var allValues = new List<MobileCheckinRecordCache>();
             foreach ( var key in cachedKeys.ToList() )
             {
-                var value = Get( key );
+                var value = GetFromQualifiedKey( key );
                 if ( value != null )
                 {
                     allValues.Add( value );
@@ -222,9 +212,14 @@ namespace org.secc.FamilyCheckin.Cache
             return Get( id.ToString() );
         }
 
+        public static MobileCheckinRecordCache GetFromQualifiedKey( string qualifiedKey )
+        {
+            return Get( qualifiedKey, () => ItemFactory( KeyFromQualifiedKey( qualifiedKey ) ), () => KeyFactory() );
+        }
+
         public static MobileCheckinRecordCache Get( string key )
         {
-            return Get( key, () => ItemFactory( key ), () => KeyFactory() );
+            return Get( QualifiedKey( key ), () => ItemFactory( key ), () => KeyFactory() );
         }
 
         public static void Clear()
@@ -232,11 +227,15 @@ namespace org.secc.FamilyCheckin.Cache
             Clear( () => KeyFactory() );
         }
 
-        /// <summary>
-        /// Queries the database for all ids with context.
-        /// </summary>
-        /// <param name="rockContext">The rock context.</param>
-        /// <returns></returns>
+        #endregion
+
+        #region Factories
+
+        private static MobileCheckinRecordCache ItemFactory( string key )
+        {
+            return LoadById( key.AsInteger() );
+        }
+
         private static List<string> KeyFactory()
         {
             return new MobileCheckinRecordService( new RockContext() )
@@ -245,11 +244,9 @@ namespace org.secc.FamilyCheckin.Cache
                 .Select( r => r.Id.ToString() )
                 .ToList();
         }
-
-
-
         #endregion
 
+        #region Verification
         public static void Verify( ref List<string> errors )
         {
             RockContext rockContext = new RockContext();
@@ -330,6 +327,8 @@ namespace org.secc.FamilyCheckin.Cache
                 //Todo Check Attendance Status
             }
         }
+
+        #endregion
     }
 }
 

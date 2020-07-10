@@ -26,15 +26,8 @@ namespace org.secc.FamilyCheckin.Cache
             return keys;
         }
 
-        public static T Get( int id, Func<T> itemFactory, Func<List<string>> keyFactory )
+        public static T Get( string qualifiedKey, Func<T> itemFactory, Func<List<string>> keyFactory )
         {
-            return Get( id.ToString(), itemFactory, keyFactory );
-        }
-
-        public static T Get( string key, Func<T> itemFactory, Func<List<string>> keyFactory )
-        {
-            string qualifiedKey = QualifiedKey( key );
-
             var item = RockCacheManager<T>.Instance.Cache.Get( qualifiedKey );
 
             if ( item != null )
@@ -62,19 +55,12 @@ namespace org.secc.FamilyCheckin.Cache
             return item;
         }
 
-        public static void AddOrUpdate( int id, T item, Func<List<string>> keyFactory )
-        {
-            AddOrUpdate( id.ToString(), item, keyFactory );
-        }
-
-        public static void AddOrUpdate( string key, T item, Func<List<string>> keyFactory )
+        public static void AddOrUpdate( string qualifiedKey, T item, Func<List<string>> keyFactory )
         {
             if ( item == null )
             {
                 return;
             }
-
-            string qualifiedKey = QualifiedKey( key );
 
             var keys = AllKeys();
             if ( !keys.Any() || !keys.Contains( qualifiedKey ) )
@@ -85,16 +71,8 @@ namespace org.secc.FamilyCheckin.Cache
             RockCacheManager<T>.Instance.Cache.AddOrUpdate( qualifiedKey, item, v => item );
         }
 
-
-        public static void Remove( int id, Func<List<string>> keyFactory )
+        public static void Remove( string qualifiedKey, Func<List<string>> keyFactory )
         {
-            Remove( id.ToString(), keyFactory );
-        }
-
-        public static void Remove( string key, Func<List<string>> keyFactory )
-        {
-            string qualifiedKey = QualifiedKey( key );
-
             RockCacheManager<T>.Instance.Cache.Remove( qualifiedKey );
             UpdateKeys( keyFactory );
         }
@@ -109,15 +87,14 @@ namespace org.secc.FamilyCheckin.Cache
             }
         }
 
-        public static void FlushItem( int id )
+        public static void FlushItem( string qualifiedKey )
         {
-            FlushItem( id.ToString() );
+            RockCacheManager<T>.Instance.Cache.Remove( qualifiedKey );
         }
 
-        public static void FlushItem( string key )
+        internal protected static string QualifiedKey( int id )
         {
-            string qualifiedKey = QualifiedKey( key );
-            RockCacheManager<T>.Instance.Cache.Remove( qualifiedKey );
+            return QualifiedKey( id.ToString() );
         }
 
         internal protected static string QualifiedKey( string key )
@@ -125,10 +102,10 @@ namespace org.secc.FamilyCheckin.Cache
             return $"{KeyPrefix}:{key}";
         }
 
-        internal protected static string KeyFromQualifiedKey(string qualifiedKey )
+        internal protected static string KeyFromQualifiedKey( string qualifiedKey )
         {
             var parts = qualifiedKey.Split( ':' );
-            if (parts.Length> 1 )
+            if ( parts.Length > 1 )
             {
                 return parts[1];
             }

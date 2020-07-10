@@ -13,13 +13,10 @@
 // </copyright>
 //
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.Serialization;
-using CacheManager.Core;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Data;
@@ -118,7 +115,7 @@ namespace org.secc.FamilyCheckin.Cache
 
             foreach ( var key in allKeys.ToList() )
             {
-                var value = Get( key );
+                var value = GetFromQualifiedKey( key );
                 if ( value != null )
                 {
                     allItems.Add( value );
@@ -133,9 +130,14 @@ namespace org.secc.FamilyCheckin.Cache
             return Get( id.ToString() );
         }
 
+        public static AttendanceCache GetFromQualifiedKey( string qualifiedKey )
+        {
+            return Get( qualifiedKey, () => ItemFactory( KeyFromQualifiedKey( qualifiedKey ) ), () => KeyFactory() );
+        }
+
         public static AttendanceCache Get( string key )
         {
-            return Get( key, () => ItemFactory( key ), () => KeyFactory() );
+            return Get( QualifiedKey( key ), () => ItemFactory( key ), () => KeyFactory() );
         }
 
         internal static List<AttendanceCache> GetByOccurrenceKey( string accessKey )
@@ -179,9 +181,8 @@ namespace org.secc.FamilyCheckin.Cache
             attendances.ForEach( a => AddOrUpdate( a ) );
         }
 
-        private static AttendanceCache ItemFactory( string qualifiedKey )
+        private static AttendanceCache ItemFactory( string key )
         {
-            var key = KeyFromQualifiedKey( qualifiedKey );
             return LoadById( key.AsInteger() );
         }
 
@@ -202,7 +203,7 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static void Remove( int id )
         {
-            Remove( id, () => KeyFactory() );
+            Remove( QualifiedKey( id ), () => KeyFactory() );
         }
 
 
@@ -311,14 +312,14 @@ namespace org.secc.FamilyCheckin.Cache
         public static void AddOrUpdate( Attendance attendance )
         {
             var attendanceCache = LoadByAttendance( attendance );
-            AddOrUpdate( attendanceCache.Id, attendanceCache, () => KeyFactory() );
+            AddOrUpdate( QualifiedKey( attendanceCache.Id ), attendanceCache, () => KeyFactory() );
         }
 
         public static void Clear()
         {
             Clear( () => KeyFactory() );
         }
-
+        #region Verification
         public static void Verify( ref List<string> errors )
         {
             RockContext rockContext = new RockContext();
@@ -412,6 +413,7 @@ namespace org.secc.FamilyCheckin.Cache
                 }
             }
         }
+        #endregion
     }
 
     public enum AttendanceState
