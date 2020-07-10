@@ -33,6 +33,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Rock;
 using Rock.CheckIn;
 using Rock.Data;
 using Rock.Workflow;
@@ -93,7 +94,7 @@ namespace org.secc.FamilyCheckin
                 }
                 return true;
             }
-
+            errorMessages.Add( $"Attempted to run {this.GetType().GetFriendlyTypeName()} in check-in, but the check-in state was null." );
             return false;
         }
     }

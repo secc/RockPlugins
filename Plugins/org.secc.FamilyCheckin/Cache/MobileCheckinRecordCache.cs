@@ -21,14 +21,20 @@ using org.secc.FamilyCheckin.Model;
 using Rock;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 
 namespace org.secc.FamilyCheckin.Cache
 {
     [Serializable]
     [DataContract]
-    public class MobileCheckinRecordCache : ModelCache<MobileCheckinRecordCache, MobileCheckinRecord>
+    public class MobileCheckinRecordCache : CheckinCache<MobileCheckinRecordCache>
     {
+        #region Properties
+        [DataMember]
+        public int Id { get; set; }
+
+        [DataMember]
+        public Guid Guid { get; set; }
+
         [DataMember]
         public string AccessKey { get; set; }
 
@@ -61,11 +67,43 @@ namespace org.secc.FamilyCheckin.Cache
 
         [DataMember]
         public int CampusId { get; set; }
+        #endregion
 
+        #region Methods
         public List<Attendance> GetAttendances( RockContext rockContext )
         {
             AttendanceService attendanceService = new AttendanceService( rockContext );
             return attendanceService.Queryable().Where( a => AttendanceIds.Contains( a.Id ) ).ToList();
+        }
+
+        private void SetFromEntity( MobileCheckinRecord record )
+        {
+            Id = record.Id;
+            Guid = record.Guid;
+            AccessKey = record.AccessKey;
+            UserName = record.UserName;
+            FamilyGroupId = record.FamilyGroupId;
+            ReservedUntilDateTime = record.ReservedUntilDateTime;
+            ExpirationDateTime = record.ExpirationDateTime;
+            CreatedDateTime = record.CreatedDateTime;
+            SerializedCheckInState = record.SerializedCheckInState;
+            Status = record.Status;
+            IsDirty = record.IsDirty;
+            AttendanceIds = record.Attendances.Select( a => a.Id ).ToList();
+            CampusId = record.CampusId;
+        }
+
+        public MobileCheckinRecord GetEntity( RockContext rockContext )
+        {
+            MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
+            return mobileCheckinRecordService.Get( Id );
+        }
+        #endregion
+
+        #region Static Methods
+        public static MobileCheckinRecordCache GetByAttendanceId( int id )
+        {
+            return All().Where( m => m.AttendanceIds.Contains( id ) ).FirstOrDefault();
         }
 
         public static MobileCheckinRecordCache GetByAccessKey( string accessKey )
@@ -89,17 +127,6 @@ namespace org.secc.FamilyCheckin.Cache
                 .Where( r => r.Status == MobileCheckinStatus.Active
                           && r.CreatedDateTime >= Rock.RockDateTime.Today )
                 .ToList();
-        }
-
-        public static MobileCheckinRecordCache GetByAttendanceId( int id )
-        {
-            return All().Where( m => m.AttendanceIds.Contains( id ) ).FirstOrDefault();
-        }
-
-        public static MobileCheckinRecordCache Update( int id )
-        {
-            Remove( id );
-            return Get( id );
         }
 
         public static bool CancelReservation( MobileCheckinRecordCache record, bool cancelEvenIfNotExpired = false )
@@ -139,59 +166,38 @@ namespace org.secc.FamilyCheckin.Cache
             return true;
         }
 
-        public override void SetFromEntity( IEntity entity )
+        public static MobileCheckinRecordCache Update( int id )
         {
-            base.SetFromEntity( entity );
+            var record = LoadById( id );
+            AddOrUpdate( QualifiedKey( id ), record, () => KeyFactory() );
 
-            var record = entity as MobileCheckinRecord;
-            if ( record == null )
-                return;
-
-            Id = record.Id;
-            Guid = record.Guid;
-            AccessKey = record.AccessKey;
-            UserName = record.UserName;
-            FamilyGroupId = record.FamilyGroupId;
-            ReservedUntilDateTime = record.ReservedUntilDateTime;
-            ExpirationDateTime = record.ExpirationDateTime;
-            CreatedDateTime = record.CreatedDateTime;
-            SerializedCheckInState = record.SerializedCheckInState;
-            Status = record.Status;
-            IsDirty = record.IsDirty;
-            AttendanceIds = record.Attendances.Select( a => a.Id ).ToList();
-            CampusId = record.CampusId;
+            return record;
         }
 
-        public MobileCheckinRecord GetEntity( RockContext rockContext )
+        public static MobileCheckinRecordCache LoadById( int id )
         {
-            MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
-            return mobileCheckinRecordService.Get( Id );
+            MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( new RockContext() );
+            var record = mobileCheckinRecordService.Get( id );
+
+            if ( record == null || record.CreatedDateTime < Rock.RockDateTime.Today )
+            {
+                return null;
+            }
+
+            var recordCache = new MobileCheckinRecordCache();
+            recordCache.SetFromEntity( record );
+
+            return recordCache;
         }
 
-        #region BaseOverrides
-        /// <summary>
-        /// Gets all the instances of this type of model/entity that are currently in cache.
-        /// </summary>
-        /// <returns></returns>
-        public static new List<MobileCheckinRecordCache> All()
+        public static List<MobileCheckinRecordCache> All()
         {
-            return All( null );
-        }
-
-        /// <summary>
-        /// Gets all the instances of this type of model/entity that are currently in cache.
-        /// </summary>
-        /// <returns></returns>
-        public static new List<MobileCheckinRecordCache> All( RockContext rockContext )
-        {
-            var cachedKeys = GetOrAddKeys( () => QueryDbForAllIds( rockContext ) );
-            if ( cachedKeys == null )
-                return new List<MobileCheckinRecordCache>();
+            var cachedKeys = AllKeys( () => KeyFactory() );
 
             var allValues = new List<MobileCheckinRecordCache>();
             foreach ( var key in cachedKeys.ToList() )
             {
-                var value = Get( key.AsInteger(), rockContext );
+                var value = GetFromQualifiedKey( key );
                 if ( value != null )
                 {
                     allValues.Add( value );
@@ -201,42 +207,46 @@ namespace org.secc.FamilyCheckin.Cache
             return allValues;
         }
 
-        /// <summary>
-        /// Queries the database for all ids.
-        /// </summary>
-        /// <param name="rockContext">The rock context.</param>
-        /// <returns></returns>
-        private static List<string> QueryDbForAllIds( RockContext rockContext )
+        public static MobileCheckinRecordCache Get( int id )
         {
-            if ( rockContext != null )
-            {
-                return QueryDbForAllIdsWithContext( rockContext );
-            }
-
-            using ( var newRockContext = new RockContext() )
-            {
-                return QueryDbForAllIdsWithContext( newRockContext );
-            }
+            return Get( id.ToString() );
         }
 
-        /// <summary>
-        /// Queries the database for all ids with context.
-        /// </summary>
-        /// <param name="rockContext">The rock context.</param>
-        /// <returns></returns>
-        private static List<string> QueryDbForAllIdsWithContext( RockContext rockContext )
+        public static MobileCheckinRecordCache GetFromQualifiedKey( string qualifiedKey )
         {
-            //We have to make our own version of this to only cache todays requests.
-            var service = new MobileCheckinRecordService( rockContext );
-            return service.Queryable().AsNoTracking()
-                .Where( r => r.CreatedDateTime >= Rock.RockDateTime.Today )
-                .Select( r => r.Id )
-                .ToList()
-                .ConvertAll( r => r.ToString() );
+            return Get( qualifiedKey, () => ItemFactory( KeyFromQualifiedKey( qualifiedKey ) ), () => KeyFactory() );
+        }
+
+        public static MobileCheckinRecordCache Get( string key )
+        {
+            return Get( QualifiedKey( key ), () => ItemFactory( key ), () => KeyFactory() );
+        }
+
+        public static void Clear()
+        {
+            Clear( () => KeyFactory() );
         }
 
         #endregion
 
+        #region Factories
+
+        private static MobileCheckinRecordCache ItemFactory( string key )
+        {
+            return LoadById( key.AsInteger() );
+        }
+
+        private static List<string> KeyFactory()
+        {
+            return new MobileCheckinRecordService( new RockContext() )
+                .Queryable().AsNoTracking()
+                .Where( r => r.CreatedDateTime >= Rock.RockDateTime.Today )
+                .Select( r => r.Id.ToString() )
+                .ToList();
+        }
+        #endregion
+
+        #region Verification
         public static void Verify( ref List<string> errors )
         {
             RockContext rockContext = new RockContext();
@@ -246,7 +256,19 @@ namespace org.secc.FamilyCheckin.Cache
 
             if ( mobileCheckinRecords.Count != mcrCaches.Count )
             {
-                errors.Add( "Mobile Checkin Record count does not match Mobile Checkin Record Cache count" );
+                var recordIds = mobileCheckinRecords.Select( r => r.Id );
+                var cacheIds = mcrCaches.Select( r => r.Id );
+                var missingCacheIds = recordIds.Except( cacheIds ).ToList();
+                var extraCacheIds = cacheIds.Except( recordIds ).ToList();
+                foreach ( var id in missingCacheIds )
+                {
+                    errors.Add( $"Warning: Mobile Check-in Record Cache missing from All(): {id}" );
+                }
+
+                foreach ( var id in extraCacheIds )
+                {
+                    errors.Add( $"Error: Extraneous Mobile Check-in Record Cache: {id}" );
+                }
             }
 
             foreach ( var mobileCheckinRecord in mobileCheckinRecords )
@@ -254,22 +276,59 @@ namespace org.secc.FamilyCheckin.Cache
                 var mcrCache = Get( mobileCheckinRecord.Id );
                 if ( mcrCache == null )
                 {
-                    errors.Add( "Mobile Checkin Record Cache missing for Mobile Checkin Record Id: " + mobileCheckinRecord.Id.ToString() );
+                    errors.Add( "Error: Mobile Checkin Record Cache missing for Mobile Checkin Record Id: " + mobileCheckinRecord.Id.ToString() );
                     continue;
                 }
-                if ( mobileCheckinRecord.FamilyGroupId != mcrCache.FamilyGroupId
-                    || mobileCheckinRecord.UserName != mcrCache.UserName
-                    || mobileCheckinRecord.Attendances.Count != mcrCache.AttendanceIds.Count
-                    || mobileCheckinRecord.AccessKey != mcrCache.AccessKey
-                    || mobileCheckinRecord.CampusId != mcrCache.CampusId
-                    || mobileCheckinRecord.ReservedUntilDateTime != mcrCache.ReservedUntilDateTime
-                    || mobileCheckinRecord.ExpirationDateTime != mcrCache.ExpirationDateTime )
+
+                if ( mobileCheckinRecord.FamilyGroupId != mcrCache.FamilyGroupId )
                 {
-                    errors.Add( "Mobile Checkin Record cache error. Id: " + mobileCheckinRecord.Id.ToString() );
+                    errors.Add( $"Error: Mobile Checkin Record Cache (Id:{mobileCheckinRecord.Id}) Desync: FamilyGroupId - DB:{mobileCheckinRecord.FamilyGroupId} - Cache:{mcrCache.FamilyGroupId}" );
+                }
+
+                if ( mobileCheckinRecord.UserName != mcrCache.UserName )
+                {
+                    errors.Add( $"Error: Mobile Checkin Record Cache (Id:{mobileCheckinRecord.Id}) Desync: UserName - DB:{mobileCheckinRecord.UserName} - Cache:{mcrCache.UserName}" );
+                }
+
+                if ( mobileCheckinRecord.Attendances.Count != mcrCache.AttendanceIds.Count )
+                {
+                    errors.Add( $"Error: Mobile Checkin Record Cache (Id:{mobileCheckinRecord.Id}) Desync: Attendance Count - DB:{mobileCheckinRecord.Attendances.Count} - Cache:{mcrCache.AttendanceIds.Count}" );
+                }
+
+                if ( mobileCheckinRecord.AccessKey != mcrCache.AccessKey )
+                {
+                    errors.Add( $"Error: Mobile Checkin Record Cache (Id:{mobileCheckinRecord.Id}) Desync: AccessKey - DB:{mobileCheckinRecord.AccessKey} - Cache:{mcrCache.AccessKey}" );
+                }
+
+                if ( mobileCheckinRecord.CampusId != mcrCache.CampusId )
+                {
+                    errors.Add( $"Error: Mobile Checkin Record Cache (Id:{mobileCheckinRecord.Id}) Desync: CampusId - DB:{mobileCheckinRecord.CampusId} - Cache:{mcrCache.CampusId}" );
+                }
+
+                if ( mobileCheckinRecord.ReservedUntilDateTime != mcrCache.ReservedUntilDateTime )
+                {
+                    errors.Add( $"Error: Mobile Checkin Record Cache (Id:{mobileCheckinRecord.Id}) Desync: ReservedUntilDateTime - DB:{mobileCheckinRecord.ReservedUntilDateTime} - Cache:{mcrCache.ReservedUntilDateTime}" );
+                }
+
+                if ( mobileCheckinRecord.ExpirationDateTime != mcrCache.ExpirationDateTime )
+                {
+                    errors.Add( $"Error: Mobile Checkin Record Cache (Id:{mobileCheckinRecord.Id}) Desync: ExpirationDateTime - DB:{mobileCheckinRecord.ExpirationDateTime} - Cache:{mcrCache.ExpirationDateTime}" );
+                }
+
+                if ( mobileCheckinRecord.SerializedCheckInState != mcrCache.SerializedCheckInState )
+                {
+                    errors.Add( $"Error: Mobile Checkin Record Cache (Id:{mobileCheckinRecord.Id}) Desync: SerializedCheckInState - DB:{mobileCheckinRecord.SerializedCheckInState} - Cache:{mcrCache.SerializedCheckInState}" );
+                }
+
+                if ( mcrCache.SerializedCheckInState.IsNullOrWhiteSpace() )
+                {
+                    errors.Add( $"Info: Mobile Checkin Record Cache missing serialized check-in data. Id: {mobileCheckinRecord.Id}." );
                 }
                 //Todo Check Attendance Status
             }
         }
+
+        #endregion
     }
 }
 

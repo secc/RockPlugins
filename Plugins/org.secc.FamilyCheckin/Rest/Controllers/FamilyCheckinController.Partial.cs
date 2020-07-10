@@ -103,12 +103,30 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                     WorkflowActivity.Activate( activityType, CurrentWorkflow, rockContext );
                     if ( workflowService.Process( CurrentWorkflow, currentCheckInState, out errors ) )
                     {
+                        if ( errors.Any() )
+                        {
+                            var innerException = new Exception( string.Join( " -- ", errors ) );
+                            ExceptionLogService.LogException( new Exception( "Process Mobile Checkin failed initial workflow. See inner exception for details.", innerException ) );
+                        }
+
                         // Keep workflow active for continued processing
                         CurrentWorkflow.CompletedDateTime = null;
                         SaveState( session, currentCheckInState );
                         List<CheckInFamily> families = currentCheckInState.CheckIn.Families;
                         families = families.OrderBy( f => f.Caption ).ToList();
                         return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, families );
+                    }
+                    else
+                    {
+                        if ( errors.Any() )
+                        {
+                            var innerException = new Exception( string.Join( " -- ", errors ) );
+                            ExceptionLogService.LogException( new Exception( "Process Mobile Checkin failed initial workflow. See inner exception for details.", innerException ) );
+                        }
+                        else
+                        {
+                            ExceptionLogService.LogException( new Exception( "Process Mobile Checkin failed initial workflow. See inner exception for details." ) );
+                        }
                     }
                 }
                 else
@@ -201,12 +219,30 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                     WorkflowActivity.Activate( activityType, CurrentWorkflow, rockContext );
                     if ( workflowService.Process( CurrentWorkflow, currentCheckInState, out errors ) )
                     {
+                        if ( errors.Any() )
+                        {
+                            var innerException = new Exception( string.Join( " -- ", errors ) );
+                            ExceptionLogService.LogException( new Exception( "Process Mobile Checkin failed initial workflow. See inner exception for details.", innerException ) );
+                        }
+
                         // Keep workflow active for continued processing
                         CurrentWorkflow.CompletedDateTime = null;
                         SaveState( session, currentCheckInState );
                         List<CheckInFamily> families = currentCheckInState.CheckIn.Families;
                         families = families.OrderBy( f => f.Caption ).ToList();
                         return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, param );
+                    }
+                    else
+                    {
+                        if ( errors.Any() )
+                        {
+                            var innerException = new Exception( string.Join( " -- ", errors ) );
+                            ExceptionLogService.LogException( new Exception( "Process Mobile Checkin failed initial workflow. See inner exception for details.", innerException ) );
+                        }
+                        else
+                        {
+                            ExceptionLogService.LogException( new Exception( "Process Mobile Checkin failed initial workflow. See inner exception for details." ) );
+                        }
                     }
                 }
                 else

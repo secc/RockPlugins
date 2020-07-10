@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Web.Configuration;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using org.secc.FamilyCheckin.Cache;
@@ -124,19 +125,32 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     Session.Remove( "modalSchedule" );
                 }
 
-                List<string> errors = new List<string>();
                 string workflowActivity = GetAttributeValue( "WorkflowActivity" );
-                try
+                if ( workflowActivity.IsNotNullOrWhiteSpace() )
                 {
-                    //Sometimes this blows up if the session state is lost
-                    bool test = ProcessActivity( workflowActivity, out errors );
-                }
-                catch ( Exception ex )
-                {
-                    LogException( ex );
-                    NavigateToPreviousPage();
-                    Response.End();
-                    return;
+
+                    try
+                    {
+                        List<string> errors = new List<string>();
+                        //Sometimes this blows up if the session state is lost
+                        bool test = ProcessActivity( workflowActivity, out errors );
+                        if ( errors.Any() )
+                        {
+                            var innerException = new Exception( string.Join( " -- ", errors ) );
+                            LogException( new Exception( "Quick Check-in failed initial workflow. See inner exception for details.", innerException ) );
+                        }
+                        else if ( test == false )
+                        {
+                            LogException( new Exception( "Quick Check-in failed initial workflow. The workflow returned no error messages." ) );
+                        }
+                    }
+                    catch ( Exception ex )
+                    {
+                        LogException( ex );
+                        NavigateToPreviousPage();
+                        Response.End();
+                        return;
+                    }
                 }
 
                 UpdateSelectedSchedules();
@@ -835,6 +849,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 var activityName = GetAttributeValue( "CheckinActivity" );
                 bool test = ProcessActivity( activityName, out errors );
+                if ( errors.Any() )
+                {
+                    var innerException = new Exception( string.Join( " -- ", errors ) );
+                    LogException( new Exception( "Quick Check-in failed to complete the check-in process. See inner exception for details.", innerException ) );
+                }
+                else if ( test == false )
+                {
+                    LogException( new Exception( "Quick Check-in failed to complete the check-in process. The workflow returned no error messages." ) );
+                }
             }
             catch ( Exception ex )
             {

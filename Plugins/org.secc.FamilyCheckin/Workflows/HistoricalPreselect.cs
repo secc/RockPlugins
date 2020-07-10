@@ -170,6 +170,7 @@ namespace org.secc.FamilyCheckin
                 }
                 return true;
             }
+            errorMessages.Add( $"Attempted to run {this.GetType().GetFriendlyTypeName()} in check-in, but the check-in state was null." );
             return false;
         }
 

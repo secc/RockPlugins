@@ -67,6 +67,7 @@ namespace org.secc.FamilyCheckin
             var checkInState = GetCheckInState( entity, out errorMessages );
             if ( checkInState == null )
             {
+                errorMessages.Add( $"Attempted to run {this.GetType().GetFriendlyTypeName()} in check-in, but the check-in state was null." );
                 return false;
             }
 
