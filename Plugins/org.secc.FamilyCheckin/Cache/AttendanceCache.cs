@@ -272,7 +272,7 @@ namespace org.secc.FamilyCheckin.Cache
             RockContext rockContext = new RockContext();
             AttendanceService attendanceService = new AttendanceService( rockContext );
             var keys = attendanceService.Queryable().AsNoTracking()
-                .Where( a => a.StartDateTime >= RockDateTime.Today )
+                .Where( a => a.CreatedDateTime != null && a.CreatedDateTime >= RockDateTime.Today )
                 .Select( a => a.Id.ToString() )
                 .ToList();
 
@@ -319,6 +319,7 @@ namespace org.secc.FamilyCheckin.Cache
         {
             Clear( () => KeyFactory() );
         }
+
         #region Verification
         public static void Verify( ref List<string> errors )
         {
