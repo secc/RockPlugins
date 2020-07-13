@@ -98,15 +98,10 @@
     var refreshPage = function () {
         window.location = "javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions('<%= lbRefresh.UniqueID %>', '', true, '', '', false, true))";
     }
-
-    var checkinComplete = function () {
-        window.location = "javascript:WebForm_DoPostBackWithOptions(new WebForm_PostBackOptions('<%= lbCheckinComplete.UniqueID %>', '', true, '', '', false, true))";
-    }
 </script>
 
 <asp:UpdatePanel ID="upContent" runat="server">
     <ContentTemplate>
-        <asp:LinkButton ID="lbCheckinComplete" runat="server" OnClick="lbCheckinComplete_Click" />
         <asp:LinkButton ID="lbRefresh" runat="server" OnClick="lbRefresh_Click" />
         <asp:Label ID="lblActiveWhen" runat="server" CssClass="active-when hidden" />
         <asp:Panel runat="server" Visible="false" ID="pnlError">
