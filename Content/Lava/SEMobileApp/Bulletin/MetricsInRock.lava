@@ -1,0 +1,177 @@
+{%- comment -%}
+-----------------------------------------------------------
+------- Create index arrays to hold campus totals ---------
+-----------------------------------------------------------
+{%- endcomment -%}
+{% assign campusIds = "" %}
+{% assign cTotal = "" %}
+{% campus where:'Public == true' %}
+    {% for campus in campusItems %}
+        {% assign campusIds = campusIds | Append:campus.Id | Append:"|" %}
+        {% assign cTotal = cTotal | Append:0 | Append:"|" %}
+    {% endfor %}
+    {% assign campusIds = campusIds | ReplaceLast:"|","" %}
+    {% assign cTotal = cTotal | ReplaceLast:"|","" %}
+{% endcampus %}
+{% assign campusIds = campusIds | Split:'|' %}
+{% assign cTotal = cTotal | Split:'|' %}
+<style>
+.inlineMetrics { 
+    display: inline-block; 
+}
+</style>
+{%- comment -%}
+-----------------------------------------------------------
+------- Determines which weekend to pull in Metrics -------
+-----------------------------------------------------------
+{%- endcomment -%}
+{%- assign today = 'Now' | Date:'dddd' -%}
+{%- assign subtractDays = -7 -%}
+{% comment %} {%- assign subtractDays = -14 -%}
+{%- if today == "Saturday" or today == "Sunday" -%}
+    {%- assign subtractDays = -7 -%}
+{% endif %} {% endcomment %}
+{% assign sundayBefore = "Now" | SundayDate | DateAdd:subtractDays | Date:'dd' %}
+{%- assign satSubtractDays = subtractDays | Plus:-1 -%}
+{% assign saturdayBefore = "Now" | SundayDate | DateAdd:satSubtractDays | Date:'dd' %}
+{% assign weekendDate = "Now" | SundayDate | DateAdd:subtractDays | Date:'yyyy-MM-dd' %}
+{% assign weekendDateToDisplay = "Now" | SundayDate | DateAdd:subtractDays | Date:'MMMM SAT-SUN, 2020' | Replace:'SAT',saturdayBefore | Replace:'SUN',sundayBefore %}
+<h1 style="
+    margin: 0;
+    line-height: 32px;
+    padding-bottom: 30px;
+    text-align: center;
+    padding: 0px;
+">Facts & Figures<br /><small style="color:#a2a2a2">{{ weekendDateToDisplay }}</small></h1>
+<hr />
+{%- comment -%}
+----------------------------------------------------
+------- Loop Through Campuses To Grab Totals -------
+----------------------------------------------------
+{%- endcomment -%}
+<div>
+    <h4 style="margin: 0 0 10px 0; text-align: left;"><strong>Church-Wide Attendance</strong></h4>
+    {%- comment -%}
+    {% assign weekendDate = 'Now' | SundayDate | DateAdd:-7 | Date:'yyyy-MM-dd' %}
+    {%- endcomment -%}
+    {% assign campusTotal = 0 %}
+    {% assign total = 0 %}
+    {% assign currentCampus = 0 %}
+    {% assign metricIds = '2|17|11|12|14' | Split:'|' %}
+    {% assign metricName = 'Weekend Adult Worship|Weekend Elem Worship|Weekend EC Worship|HSM Attendance|MSM Attendance' | Split:'|' %}
+    {% for id in metricIds %}
+        <div class="inlineMetrics" style="border: 2px solid #dedede; background-color: #eaeaea; border-radius: 20px; padding: 20px; margin: 3px; vertical-align: top;">
+            <strong>{{ metricName[forloop.index0] }}</strong>
+            <div style="margin:5px 20px;">
+            {% assign loopTotal = 0 %}
+            {% metricvalue where:'MetricId == {{id}} && MetricValueDateTime == "{{weekendDate}}"' %}
+                {% for metricValue in  metricvalueItems %}
+
+                    {{metricValue.YValue | Format:'#,##0' }} (
+                    {% for partition in  metricValue.MetricValuePartitions %}
+                        {% if partition.MetricPartition.Label == 'Service' %}
+                            {% schedule id:'{{partition.EntityId}}' %}
+                                – {{ schedule.Name }}
+                            {% endschedule %}
+                        {% endif %}
+                        {% if partition.MetricPartition.Label == 'Campus' %}
+                            {% campus id:'{{partition.EntityId}}' %}
+                                {{ campus.ShortCode }}
+                            {% endcampus %}
+                            {% assign currentCampus = partition.EntityId %}
+                        {% endif %}
+                    {% endfor %}
+                    )
+                    {%- comment -%}
+                    -----------------------------------------------------------
+                    ------- Loop through campus index array to update ---------
+                    ------- campus totals using a temporary array -------------
+                    -----------------------------------------------------------
+                    {%- endcomment -%}
+                    {% assign tempCTotal = "" %}
+                    {% for cID in campusIds %}
+                        {% assign mValue = 0 %}
+                        {% if cID == currentCampus %}
+                            {% assign mValue = cTotal[forloop.index0] | Plus:metricValue.YValue | Format:'#,##0' %}
+                        {% else %}
+                            {% assign mValue = cTotal[forloop.index0] | Format:'#,##0' %}
+                        {% endif %}
+                        {% assign tempCTotal = tempCTotal | Append:mValue | Append:"|" %}
+                    {% endfor %}
+                    {% comment %} <br />tempTotal:{{tempCTotal | ReplaceLast:'|',''}}<br /> {% endcomment %}
+                    {% assign cTotal = tempCTotal | ReplaceLast:'|','' | Split:'|' %}
+                    <br />
+
+                    {% assign total = total | Plus:metricValue.YValue %}
+                    {% assign loopTotal = loopTotal | Plus:metricValue.YValue %}
+                    {% assign currentCampus = 0 %}
+                {% endfor %}
+            {% endmetricvalue %}
+            </div>
+            <strong>Total:</strong> {{ loopTotal | Format:'#,##0' }}
+        </div>
+    {% endfor %}
+    <h4 style="margin: 10px 0 0 0px;text-align: left;"><strong>Total:</strong> {{ total | Format:'#,##0' }}</h4>
+    <br />
+    <hr />
+    {% campus where:'Public == true' %}
+        {% for assignedCampus in campusItems %}
+            {% assign campusId = assignedCampus.Id %}
+            <div class="inlineMetrics" style="padding: 0px 2px 10px;">
+                <h4 style="margin: 0 0 0 30px;"><strong>{{assignedCampus.ShortCode}}</strong></h4>
+                <div style="border: 2px solid #dedede;
+                            border-radius: 20px;
+                            padding: 20px;
+                            margin: 3px;
+                            vertical-align: top;
+                            background-color: #eaeaea;
+                        ">
+                    
+                    {%- comment -%}
+                    ---------------------------------------------------------
+                    ------- Grab Weekend Attendance with index array --------
+                    ---------------------------------------------------------
+                    {%- endcomment -%}
+                    <strong>Campus Attendance:</strong> {% for cID in campusIds %}{% if cID == campusId %}{{ cTotal[forloop.index0] }}{% endif %}{% endfor %}<br />
+                    
+                    {%- comment -%}
+                    ------------------------------------
+                    ------- General Fund Giving -------
+                    ------------------------------------
+                    {%- endcomment -%}
+                    <strong>General Offering:</strong>
+                    {% assign campusGeneralFund = 0 %}
+                    {% metricvalue where:'MetricId == 6 && MetricValueDateTime == "{{weekendDate}}"' %}
+                        {% for metricValue in  metricvalueItems %}
+                            {% if campusId == metricValue.MetricValuePartitions[0].EntityId %}
+                                {% assign campusGeneralFund = metricValue.YValue %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endmetricvalue %}
+                    {{ campusGeneralFund | FormatAsCurrency }}<br />
+                    {% comment %}
+                    {% endcomment %}
+                    {%- comment -%}
+                    ------------------------------------
+                    ------- Building Fund Giving -------
+                    ------------------------------------
+                    {%- endcomment -%}
+                    <strong>Building Fund:</strong>
+                    {% assign campusBuildingFund = 0 %}
+                    {% metricvalue where:'MetricId == 7 && MetricValueDateTime == "{{weekendDate}}"' %}
+                        {% for metricValue in  metricvalueItems %}
+                            {% if campusId == metricValue.MetricValuePartitions[0].EntityId %}
+                                {% assign campusBuildingFund = metricValue.YValue %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endmetricvalue %}
+                    {{ campusBuildingFund | FormatAsCurrency }}<br />
+                    {% comment %}
+                    {% endcomment %}
+                </div>
+            </div>
+
+        {% endfor %}
+    {% endcampus %}
+
+</div>
