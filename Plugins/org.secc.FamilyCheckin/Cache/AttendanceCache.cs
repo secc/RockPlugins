@@ -312,7 +312,10 @@ namespace org.secc.FamilyCheckin.Cache
         public static void AddOrUpdate( Attendance attendance )
         {
             var attendanceCache = LoadByAttendance( attendance );
-            AddOrUpdate( QualifiedKey( attendanceCache.Id ), attendanceCache, () => KeyFactory() );
+            if ( attendanceCache != null )
+            {
+                AddOrUpdate( QualifiedKey( attendanceCache.Id ), attendanceCache, () => KeyFactory() );
+            }
         }
 
         public static void Clear()
