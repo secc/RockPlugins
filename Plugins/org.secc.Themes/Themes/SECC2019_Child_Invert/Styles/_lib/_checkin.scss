@@ -871,7 +871,7 @@
                 transform: translate(-50%, 0);
                 vertical-align: middle;
                 line-height: 45px;
-                
+
                 &:after {
                     position: relative;
                     content: "Add Person";
@@ -939,7 +939,7 @@
 
         .CheckinHeader a,
         .CheckinHeader a:hover {
-            font-size: 4em;
+            font-size: 3em;
             color: $ThemeColor_1;
             font-weight: 700;
 
