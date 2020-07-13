@@ -37,9 +37,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [Description( "Displays active mobile check-in records for printing." )]
     public partial class MobileCheckinViewer : CheckInBlock
     {
-        private IHubContext _hubContext = GlobalHost.ConnectionManager.GetHubContext<RockMessageHub>();
         protected KioskTypeCache KioskType;
-
 
         protected override void OnInit( EventArgs e )
         {

@@ -150,32 +150,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
 
             SetRefreshTimer( 30 );
-            RegisterSignalrScript( record.AccessKey );
         }
 
         private void SetRefreshTimer( int seconds = 60 * 60 )
         {
             RefreshNotiTimer.Interval = seconds * 1000;
-        }
-
-        private void RegisterSignalrScript( string accessKey )
-        {
-            var script = string.Format( @"
-  $(function () {{
-        var proxy = $.connection.rockMessageHub;
-        proxy.client.mobilecheckincomplete = function (name, iscomplete) {{
-            if (name == '{0}') {{
-                if (iscomplete) {{
-                    checkinComplete();
-                }}
-            }}
-        }}
-        $.connection.hub.start().done(function () {{
-        }});
-    }})
-", accessKey );
-
-            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "SignalRScript", script, true );
         }
 
         /// <summary>
@@ -522,12 +501,6 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
         {
             UpdateKioskText();
         }
-
-        protected void lbCheckinComplete_Click( object sender, EventArgs e )
-        {
-            ShowCheckinCompletion();
-        }
-
 
         private void ShowCheckinCompletion()
         {

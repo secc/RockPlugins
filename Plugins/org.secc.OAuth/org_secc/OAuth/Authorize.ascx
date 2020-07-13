@@ -22,7 +22,7 @@
                             <Rock:BootstrapButton ID="btnGrant" runat="server" CssClass="btn btn-primary pull-right" Text="Grant and Continue" OnClick="btnGrant_Click"/>
                         </p>
                         <p style="margin-top: 150px">
-                            If you this is not your account, please <asp:HyperLink ID="hlLogout" runat="server">logout</asp:HyperLink> to sign in as different user.
+                            If this is not your account, please <asp:HyperLink ID="hlLogout" runat="server">logout</asp:HyperLink> to sign in as different user.
                         </p>
                     </form>
                 </div>

@@ -59,8 +59,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     {
         private RockContext _rockContext;
         private List<int> _approvedPeopleIds;
-        private IHubContext _hubContext = GlobalHost.ConnectionManager.GetHubContext<RockMessageHub>();
-
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );

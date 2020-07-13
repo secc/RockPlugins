@@ -203,6 +203,9 @@ namespace org.secc.RoomScanner.Utilities
             var stayedFifteenMinutes = ( Rock.RockDateTime.Now - attendance.StartDateTime ) > new TimeSpan( 0, 15, 0 );
             attendance.DidAttend = stayedFifteenMinutes;
             attendance.EndDateTime = Rock.RockDateTime.Now;
+
+            attendanceService.Context.SaveChanges();
+
             AttendanceCache.RemoveWithParent( attendance.PersonAlias.PersonId );
             AttendanceCache.AddOrUpdate( newAttendance );
             AttendanceCache.AddOrUpdate( attendance );
