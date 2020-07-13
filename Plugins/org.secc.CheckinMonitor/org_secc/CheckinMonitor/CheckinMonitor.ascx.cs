@@ -282,6 +282,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             {
                                 CloseOccurrence( locationOccurrence.GroupLocationId, locationOccurrence.ScheduleId );
                                 KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
+                                KioskDeviceHelpers.Clear( CurrentCheckInState.ConfiguredGroupTypes );
                                 return;
                             }
                             tcCapacity.CssClass = "danger";
@@ -748,7 +749,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     _rockContext.SaveChanges();
 
                     KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
-                    Rock.CheckIn.KioskDevice.Clear();
+                    KioskDeviceHelpers.Clear( CurrentCheckInState.ConfiguredGroupTypes );
                     OccurrenceCache.AddOrUpdate( occurrence );
                 }
                 BindTable();
@@ -815,7 +816,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             RecordGroupLocationSchedule( groupLocation, schedule );
                             groupLocation.Schedules.Remove( schedule );
                             _rockContext.SaveChanges();
-                            Rock.CheckIn.KioskDevice.Clear();
                             var occurrence = OccurrenceCache.All().Where( o => o.GroupLocationId == groupLocationId && o.ScheduleId == scheduleId ).FirstOrDefault();
                             occurrence.IsActive = false;
                             OccurrenceCache.AddOrUpdate( occurrence );
@@ -993,7 +993,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 mdLocation.Hide();
                 ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
                 KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
-                Rock.CheckIn.KioskDevice.Clear();
+                KioskDeviceHelpers.Clear( CurrentCheckInState.ConfiguredGroupTypes );
 
                 //Update the occurrence caches with the new numbers
                 var occurrences = OccurrenceCache.All().Where( a => a.LocationId == location.Id ).ToList();
@@ -1254,6 +1254,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
 
             KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
+            KioskDeviceHelpers.Clear( CurrentCheckInState.ConfiguredGroupTypes );
 
             BindTable();
             ddlClose.SelectedValue = null;

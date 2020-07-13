@@ -21,6 +21,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Constants;
 using Rock.Data;
@@ -226,7 +227,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 KioskTypeCache.Remove( kioskType.Id );
                 KioskTypeCache.Get( kioskType.Id );
-                Rock.CheckIn.KioskDevice.Clear();
+                KioskDeviceHelpers.Clear( kioskType.GroupTypes.Select(gt => gt.Id).ToList() );
 
                 NavigateToParentPage();
             }
