@@ -1,5 +1,5 @@
 <section id="Map" class="clearfix">
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBsXUGTFS09pLVdsYEE9YrO2y4IAncAO2U"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAE0SCdnU3rGnC2bO5l24Y4dcfjpvstxzU"></script>
 
 <style>
     .google-maps {
@@ -148,7 +148,7 @@
         var campusMarkers = [];
        // a new Info Window is created
        infoWindow = new google.maps.InfoWindow({
-			pixelOffset: new google.maps.Size(-30, 0)
+			//pixelOffset: new google.maps.Size(-30, 0)
 		});
         {%- for campus in Campuses  -%}
           {%- campus id:'{{campus.Id}}' -%}
@@ -165,8 +165,7 @@
                 position: new google.maps.LatLng({{ campus.Location.Latitude }},{{ campus.Location.Longitude }}),
                 icon: {
                     url: "{{campus | Attribute:'MapIcon' }}",
-                    // This marker is 20 pixels wide by 32 pixels high.
-                    size: new google.maps.Size(100, 100),
+                    size: new google.maps.Size(48, 75),
                 },
                 map: map
               });
@@ -236,7 +235,7 @@
 					}
 				});
 				var title = "";
-				console.debug(values)
+				//console.debug(values)
 				if(values.hasOwnProperty('Place of Ministry')){
 				  var content = '<div id="iw_container">' +
 					 '<div class="iw_subTitle">'+values['Place of Ministry']+'</div>' +
