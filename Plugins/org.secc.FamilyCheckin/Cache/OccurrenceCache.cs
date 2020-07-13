@@ -233,6 +233,11 @@ namespace org.secc.FamilyCheckin.Cache
             return All().Where( o => o.IsVolunteer ).ToList();
         }
 
+        public static List<OccurrenceCache> GetChildOccurrences()
+        {
+            return All().Where( o => !o.IsVolunteer ).ToList();
+        }
+
         internal static OccurrenceCache GetByOccurrence( AttendanceOccurrence occurrence )
         {
             var candidate = All()

@@ -23,7 +23,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using Microsoft.AspNet.SignalR;
 using Newtonsoft.Json;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
@@ -458,6 +457,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
 
             var volunteerGroupIds = OccurrenceCache.GetVolunteerOccurrences().Select( o => o.GroupId );
+            var childGroupIds = OccurrenceCache.GetChildOccurrences().Select( o => o.GroupId );
 
             foreach ( var groupType in checkinPerson.GroupTypes )
             {
@@ -476,7 +476,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 //ignore if volunteer not selected and does not contain children
                 if ( cbSuperCheckin.Checked && !cbVolunteer.Checked
-                    && !groupType.Groups.Where( g => volunteerGroupIds.Contains( g.Group.Id ) ).Any() )
+                    && !groupType.Groups.Where( g => childGroupIds.Contains( g.Group.Id ) ).Any() )
                 {
                     continue;
                 }
@@ -1694,7 +1694,6 @@ try{{
 
                 }
                 MobileCheckinRecordCache.Update( mobileCheckinRecord.Id );
-                _hubContext.Clients.All.mobilecheckincomplete( accessKey, true );
                 BindMCRRepeater();
             }
             catch ( Exception e )
