@@ -238,6 +238,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             kiosk.KioskTypeId = kioskType.Id;
             kiosk.CategoryId = CategoryCache.GetId( Constants.KIOSK_CATEGORY_STAFFUSER.AsGuid() );
             rockContext.SaveChanges();
+
+            SetBlockUserPreference( "KioskTypeId", kioskType.Id.ToString() );
+
             GetKioskType( kiosk, rockContext );
         }
 
@@ -246,8 +249,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             RockContext rockContext = new RockContext();
             KioskTypeService kioskTypeService = new KioskTypeService( rockContext );
 
-
-            ddlKioskType.DataSource = kioskTypeService
+            var kioskTypes =  kioskTypeService
                 .Queryable()
                 .OrderBy( t => t.Name )
                 .Select( t => new
@@ -256,7 +258,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     t.Id
                 } )
                 .ToList();
+
+            ddlKioskType.DataSource = kioskTypes;
             ddlKioskType.DataBind();
+
+            var preSelectedKioskTypeId = GetBlockUserPreference( "KioskTypeId" ).AsInteger();
+            if ( kioskTypes.Where(k => k.Id == preSelectedKioskTypeId ).Any() )
+            {
+                ddlKioskType.SelectedValue = preSelectedKioskTypeId.ToString();
+            }
         }
     }
 }
