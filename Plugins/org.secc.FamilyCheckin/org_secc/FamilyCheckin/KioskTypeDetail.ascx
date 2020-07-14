@@ -67,6 +67,8 @@
                         </div>
                     </div>
 
+                    <Rock:DataDropDownList runat="server" CausesValidation="false" ID="ddlTheme" Label="Theme" SourceTypeName="org.secc.FamilyCheckin.Model.KioskType, org.secc.FamilyCheckin" PropertyName="Description" />
+
                     <h3>Locations</h3>
                     <Rock:Grid ID="gLocations" runat="server" DisplayType="Light" RowItemText="Location" ShowConfirmDeleteDialog="false">
                         <Columns>
@@ -74,6 +76,8 @@
                             <Rock:DeleteField OnClick="gLocations_Delete" />
                         </Columns>
                     </Rock:Grid>
+
+
 
                     <h3>Schedules</h3>
                     <Rock:Grid ID="gSchedules" runat="server" DisplayType="Light" RowItemText="Schedule" ShowConfirmDeleteDialog="false">

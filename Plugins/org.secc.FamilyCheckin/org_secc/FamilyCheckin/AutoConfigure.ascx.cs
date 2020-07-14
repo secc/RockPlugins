@@ -13,6 +13,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.Security;
@@ -200,8 +201,16 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 KioskTypeCache.Remove( kiosk.KioskTypeId ?? 0 );
                 KioskDevice.Remove( device.Id );
 
+                Dictionary<string, string> themeParameters = new Dictionary<string, string>();
+                if ( kiosk.KioskType.Theme.IsNotNullOrWhiteSpace() )
+                {
+                    LocalDeviceConfig.CurrentTheme = kiosk.KioskType.Theme;
+                    themeParameters.Add( "theme", LocalDeviceConfig.CurrentTheme );
+                }
+
                 SaveState();
-                NavigateToNextPage();
+
+                NavigateToNextPage( themeParameters );
             }
             else
             {
@@ -249,7 +258,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             RockContext rockContext = new RockContext();
             KioskTypeService kioskTypeService = new KioskTypeService( rockContext );
 
-            var kioskTypes =  kioskTypeService
+            var kioskTypes = kioskTypeService
                 .Queryable()
                 .OrderBy( t => t.Name )
                 .Select( t => new
@@ -263,7 +272,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             ddlKioskType.DataBind();
 
             var preSelectedKioskTypeId = GetBlockUserPreference( "KioskTypeId" ).AsInteger();
-            if ( kioskTypes.Where(k => k.Id == preSelectedKioskTypeId ).Any() )
+            if ( kioskTypes.Where( k => k.Id == preSelectedKioskTypeId ).Any() )
             {
                 ddlKioskType.SelectedValue = preSelectedKioskTypeId.ToString();
             }

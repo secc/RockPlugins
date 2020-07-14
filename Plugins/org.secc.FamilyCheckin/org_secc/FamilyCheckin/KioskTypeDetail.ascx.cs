@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -112,6 +113,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             if ( !Page.IsPostBack )
             {
+                BindThemeDropDown();
                 ShowDetail( PageParameter( "KioskTypeId" ).AsInteger() );
             }
 
@@ -119,7 +121,20 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 mdLocationPicker.Show();
             }
+        }
 
+        private void BindThemeDropDown()
+        {
+            DirectoryInfo di = new DirectoryInfo( this.Page.Request.MapPath( ResolveRockUrl( "~~" ) ) );
+            foreach ( var themeDir in di.Parent.EnumerateDirectories().OrderBy( a => a.Name ) )
+            {
+                var checkinLayout = themeDir.GetFiles( "Checkin-Site.Master", SearchOption.AllDirectories );
+                if ( checkinLayout.Length > 0 )
+                {
+                    ddlTheme.Items.Add( new ListItem( themeDir.Name, themeDir.Name.ToLower() ) );
+                }
+            }
+            ddlTheme.Items.Insert( 0, new ListItem( "", "" ) );
         }
 
         #endregion
@@ -160,7 +175,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 kioskType.IsMobile = cbIsMobile.Checked;
                 kioskType.MinutesValid = tbMinutesValid.Text.AsIntegerOrNull();
                 kioskType.GraceMinutes = tbGraceMinutes.Text.AsIntegerOrNull();
-
+                kioskType.Theme = ddlTheme.SelectedValue;
 
                 if ( !kioskType.IsValid || !Page.IsValid )
                 {
@@ -227,7 +242,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 KioskTypeCache.Remove( kioskType.Id );
                 KioskTypeCache.Get( kioskType.Id );
-                KioskDeviceHelpers.Clear( kioskType.GroupTypes.Select(gt => gt.Id).ToList() );
+                KioskDeviceHelpers.Clear( kioskType.GroupTypes.Select( gt => gt.Id ).ToList() );
 
                 NavigateToParentPage();
             }
@@ -357,6 +372,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             tbGraceMinutes.Text = kioskType.GraceMinutes.ToString();
             tbMinutesValid.Text = kioskType.MinutesValid.ToString();
 
+            ddlTheme.SelectedValue = kioskType.Theme;
 
             Locations = new Dictionary<int, string>();
             foreach ( var location in kioskType.Locations )
