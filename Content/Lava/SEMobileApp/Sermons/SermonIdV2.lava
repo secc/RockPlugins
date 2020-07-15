@@ -1,0 +1,115 @@
+{%- contentchannelitem where:'ContentChannelId == 23 && Id == {{id}}' sort:'StartDateTime desc'  -%}
+{%- for sermon in contentchannelitemItems -%}
+{%- comment -%}
+ Grabbing the parent series for URL sharing
+{%- endcomment -%}
+{%- contentchannelitemassociation where:'ChildContentChannelItemId == {{id}}' -%}
+	{%- assign item = contentchannelitemassociationItems | First -%}
+	{%- assign seriesId = item.ContentChannelItemId -%}
+	{%- contentchannelitem where:'ContentChannelId == 24 && Id == {{seriesId}}' -%}
+		{%- assign series = contentchannelitemItems | First -%}
+	{%- endcontentchannelitem -%}
+{%- endcontentchannelitemassociation -%}
+{
+    "blocks": [{
+        "type": "mediaBanner",
+        "props": {
+            "playlistUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/Subsplash.ashx/sermon/v2/{{sermon.Id}}/playlist.json",
+            "posterImageUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1920",
+            "bannerBackgroundUrl": "",
+            "averageColor": "#606060",
+            "vibrantColor": "#606060"
+        }
+    }, {
+        "type": "text",
+        "props": {
+            "content": "{{sermon.Title | Replace:'"','\"'}}",
+            "h1": true
+        }
+    }, {
+        "type": "text",
+        "props": {
+            "content": "{{series.Title  Replace:'"','\"'}}",
+            "subtitle": true,
+            "topSpacing": "small"
+        }
+    }, {
+        "type": "text",
+        "props": {
+            "content": "%{\"date\":{\"value\":\"{{ sermon.StartDateTime | Date:'yyyy-MM-ddTHH:mm:ss' }}\"}}% • {{ sermon | Attribute:'Speaker' }}",
+            "body1": true,
+            "format": true,
+            "topSpacing": "small"
+        }
+    }, {
+        "type": "circleButtonRow",
+        "props": {
+            "topSpacing": "large",
+            "buttons": [{
+                "type": "mediaDownload",
+                "playlistUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/Subsplash.ashx/sermon/v2/{{sermon.Id}}/playlist.json",
+                "downloadKey": "https://www.southeastchristian.org/GetFile.ashx/{{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}.mp3?guid={{sermon | Attribute:'Audio', 'RawValue'}}"
+            }{% comment %},{
+                "type": "default",
+                "title": "Take a note",
+                "icon": "edit",
+                "action": {
+                    "handler": "note",
+                    "url": "",
+                    "authProviderId": "ccaf1fb2-03e0-4093-8f97-f8f60f125ddc"
+                }
+            }{% endcomment %}, {
+                "type": "default",
+                "title": "Share",
+                "icon": "share",
+                "action": {
+                    "handler": "share",
+                    "shareUrl": "{{ 'Global' | Attribute:'PublicApplicationRoot' }}sermons/{{series.PrimarySlug}}/{{sermon.PrimarySlug}}",
+                    "shareBody": "Check this out! {{series.Title | Replace:'"','\"'}} | {{sermon.Title | Replace:'"','\"'}}"
+                }
+            }]
+        }
+    }{% comment %}, {
+        "type": "button",
+        "props": {
+            "title": "Notes",
+            "topSpacing": "medium",
+            "action": {
+                "handler": "browser",
+                "contentUrl": ".../document.pdf",
+                "style": "internal"
+            }
+        }
+    }, {
+        "type": "button",
+        "props": {
+            "title": "Google",
+            "topSpacing": "medium",
+            "action": {
+                "handler": "browser",
+                "contentUrl": "https://www.google.com",
+                "style": "external"
+            }
+        }
+    }, {
+        "type": "button",
+        "props": {
+            "title": "Example",
+            "topSpacing": "medium",
+            "action": {
+                "handler": "browser",
+                "contentUrl": "https://www.example.com",
+                "style": "external"
+            }
+        }
+    }{% endcomment %}, {
+        "type": "text",
+        "props": {
+            "content": "{{ sermon.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+            "markdown": true,
+            "topSpacing": "medium"
+        }
+    }]
+}
+{%- endfor -%}
+{% endcontentchannelitem -%}
