@@ -60,6 +60,9 @@ namespace org.secc.FamilyCheckin.Model
         public int? GraceMinutes { get; set; }
 
         [DataMember]
+        public string Theme { get; set; }
+
+        [DataMember]
         [Index]
         public bool IsMobile { get; set; }
 
