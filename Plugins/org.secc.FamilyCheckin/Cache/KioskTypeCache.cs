@@ -67,6 +67,9 @@ namespace org.secc.FamilyCheckin.Cache
         public string Message { get; set; }
 
         [DataMember]
+        public string Theme { get; set; }
+
+        [DataMember]
         public List<Schedule> Schedules { get; set; }
 
         /// <summary>
@@ -121,6 +124,7 @@ namespace org.secc.FamilyCheckin.Cache
             MinutesValid = kioskType.MinutesValid;
             GraceMinutes = kioskType.GraceMinutes;
             IsMobile = kioskType.IsMobile;
+            Theme = kioskType.Theme;
             Locations = kioskdata.Locations.Select( l => l.Clone( false ) ).ToList();
             Schedules = kioskdata.Schedules.Select( s => s.Clone( false ) ).ToList();
             GroupTypeIds = kioskType.GroupTypes.Select( gt => gt.Id ).ToList();

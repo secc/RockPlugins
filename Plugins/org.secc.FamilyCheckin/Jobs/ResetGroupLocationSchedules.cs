@@ -70,7 +70,7 @@ namespace org.secc.FamilyCheckin
 
             //clear caches
             KioskTypeCache.Clear();
-            Rock.CheckIn.KioskDevice.Clear();
+            KioskDeviceHelpers.Clear();
             OccurrenceCache.Clear();
             AttendanceCache.Clear();
 

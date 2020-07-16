@@ -18,6 +18,7 @@ using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using org.secc.FamilyCheckin.Model;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Constants;
 using Rock.Data;
@@ -128,7 +129,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 rockContext.SaveChanges();
 
-                Rock.CheckIn.KioskDevice.Clear();
+                DeviceService deviceService = new DeviceService( rockContext );
+                var devices = deviceService.Queryable().Where( d => d.Name == kiosk.Name ).ToList();
+                foreach ( var device in devices )
+                {
+                    KioskDeviceHelpers.FlushItem( device.Id );
+                }
 
                 NavigateToParentPage();
             }

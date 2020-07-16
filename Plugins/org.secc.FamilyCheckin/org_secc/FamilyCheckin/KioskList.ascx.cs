@@ -20,6 +20,7 @@ using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using org.secc.FamilyCheckin.Model;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -92,24 +93,29 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         protected void gKiosk_Delete( object sender, RowEventArgs e )
         {
             var rockContext = new RockContext();
-            KioskService KioskService = new KioskService( rockContext );
-            Kiosk Kiosk = KioskService.Get( e.RowKeyId );
+            KioskService kioskService = new KioskService( rockContext );
+            Kiosk kiosk = kioskService.Get( e.RowKeyId );
 
-            if ( Kiosk != null )
+            if ( kiosk != null )
             {
-                int kioskId = Kiosk.Id;
+                int kioskId = kiosk.Id;
 
                 string errorMessage;
-                if ( !KioskService.CanDelete( Kiosk, out errorMessage ) )
+                if ( !kioskService.CanDelete( kiosk, out errorMessage ) )
                 {
                     mdGridWarning.Show( errorMessage, ModalAlertType.Information );
                     return;
                 }
 
-                KioskService.Delete( Kiosk );
+                kioskService.Delete( kiosk );
                 rockContext.SaveChanges();
 
-                Rock.CheckIn.KioskDevice.Clear();
+                DeviceService deviceService = new DeviceService( rockContext );
+                var devices = deviceService.Queryable().Where( d => d.Name == kiosk.Name ).ToList();
+                foreach ( var device in devices )
+                {
+                    KioskDeviceHelpers.FlushItem( device.Id );
+                }
             }
 
             BindGrid();

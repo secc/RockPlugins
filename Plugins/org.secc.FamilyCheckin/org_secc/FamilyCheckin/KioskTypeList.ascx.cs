@@ -21,6 +21,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -110,7 +111,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 checkinContext.SaveChanges();
 
                 KioskTypeCache.Clear();
-                Rock.CheckIn.KioskDevice.Clear();
+                KioskDeviceHelpers.Clear();
             }
 
             BindGrid();

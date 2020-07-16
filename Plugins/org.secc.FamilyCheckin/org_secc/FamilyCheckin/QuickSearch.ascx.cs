@@ -61,7 +61,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         protected int minLength;
         protected int maxLength;
         protected KioskTypeCache KioskType;
-        private IHubContext _hubContext = GlobalHost.ConnectionManager.GetHubContext<RockMessageHub>();
 
         protected override void OnInit( EventArgs e )
         {
@@ -398,7 +397,6 @@ if ($ActiveWhen.text() != '')
 
                 }
                 MobileCheckinRecordCache.Update( mobileCheckinRecord.Id );
-                _hubContext.Clients.All.mobilecheckincomplete( accessKey, true );
                 MobileCheckinMessage( GetAttributeValue( AttributeKeys.CompletingMobileCheckin ), 5 );
             }
             catch ( Exception e )

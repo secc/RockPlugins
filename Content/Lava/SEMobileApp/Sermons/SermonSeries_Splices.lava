@@ -46,14 +46,20 @@
 			{%- assign zeroSermons = false -%}
 	        {{ comma }}
 			{
-				"title": "{{sermon.Guid}} {{sermon.Title | Replace:'"','\"'}}",
+				"title": "{{sermon.Title | Replace:'"','\"'}}",
 				"subtitle": "{{ sermon | Attribute:'Speaker' | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }} {{ '&bull;' | HtmlDecode }} {{ sermon.StartDateTime | Date:'MMMM d, yyyy' }}",
 				"images":[
 					{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/button/{{sermon.Guid}}?bgcolor=121314&mode=crop&s.roundcorners=40&margin=80,80,80,0"  }
 				],
 				"actions": [{
-					"handler": "detail",
-					"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/Subsplash.ashx/sermon/{{sermon.Id}}"
+					{%- if Headers.sap-app-version >= '5.4.0' -%}
+						"handler": "blockPage",
+						"topBarStyle": "transparent",
+						"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/Subsplash.ashx/sermon/v2/{{sermon.Id}}"
+					{%- else -%}
+						"handler": "detail",
+						"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/Subsplash.ashx/sermon/{{sermon.Id}}"
+					{%- endif -%}
 				}]
 			}
 	        {%- assign comma = "," -%}

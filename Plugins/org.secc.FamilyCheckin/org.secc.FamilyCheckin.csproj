@@ -117,6 +117,7 @@
     <Compile Include="Migrations\005_KioskCategories.cs" />
     <Compile Include="Migrations\004_Touchless.cs" />
     <Compile Include="Migrations\002_Message.cs" />
+    <Compile Include="Migrations\011_KioskTypeTheme.cs" />
     <Compile Include="Migrations\010_AttendanceQualifiers.cs" />
     <Compile Include="Migrations\009_ExpirationTime.cs" />
     <Compile Include="Migrations\008_MobileCheckinRecord.cs" />
@@ -134,6 +135,7 @@
     <Compile Include="Rest\Handlers\SessionRouteHandler.cs" />
     <Compile Include="UI\CheckinGroupPicker.cs" />
     <Compile Include="Utilities\Constants.cs" />
+    <Compile Include="Utilities\KioskDeviceHelpers.cs" />
     <Compile Include="Utilities\LabelPrinter.cs" />
     <Compile Include="Workflows\CreateMedicationLabels.cs" />
     <Compile Include="Workflows\CreateEventLabels.cs" />
