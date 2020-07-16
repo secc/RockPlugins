@@ -39,9 +39,16 @@ namespace org.secc.RedisSession.Converters
                 ManagerLoggedIn = state.ManagerLoggedIn,
                 Messages = state.Messages
             };
+
+            JsonSerializerSettings settings = new JsonSerializerSettings();
+            settings.Converters.Add( new ObjectConverter( typeof( Person ), typeof( CheckInStatus ), typeof( CheckInFamily ), typeof( CheckInSchedule ), typeof( CheckInPerson ), typeof( CheckInLocation ) ) );
+
+
+            var debug = JsonConvert.SerializeObject( analog, settings );
+
             serializer.Serialize( writer, analog );
-            
         }
+
         public override object ReadJson( JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer )
         {
             serializer.Converters.Add( new ObjectConverter( typeof( Person ), typeof( CheckInStatus ), typeof( CheckInFamily ), typeof( CheckInSchedule ), typeof( CheckInPerson ), typeof( CheckInLocation ) ) );
@@ -54,10 +61,12 @@ namespace org.secc.RedisSession.Converters
             state.Messages = analog.Messages;
             return state;
         }
+
         public override bool CanConvert( Type objectType )
         {
             return _types.Any( t => t == objectType );
         }
+
         public class CheckInStateAnalog
         {
             public int DeviceId { get; set; }
