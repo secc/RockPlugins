@@ -34,10 +34,10 @@ namespace RockWeb.Plugins.org_secc.Finance
     /// <summary>
     /// 
     /// </summary>
-    [DisplayName( "Bulk Registration Refund" )]
+    [DisplayName( "Bulk Refund" )]
     [Category( "SECC > Finance" )]
-    [Description( "Block to issue bulk refunds for registrations." )]
-    public partial class BulkRegistrationRefund : RockBlock
+    [Description( "Block to issue bulk refunds." )]
+    public partial class BulkRefund : RockBlock
     {
 
         #region Fields
@@ -110,9 +110,12 @@ namespace RockWeb.Plugins.org_secc.Finance
                 List<int> registrationTemplateIds = rtpRegistrationTemplate.ItemIds.AsIntegerList();
                 registrationTemplateIds.RemoveAll( i => i.Equals( 0 ) );
 
-                if ( registrationTemplateIds.Count > 0 )
+                RockContext rockContext = new RockContext();
+
+                SystemCommunicationService systemCommunicationService = new SystemCommunicationService( rockContext );
+
+                if ( pnlRegistration.Visible && registrationTemplateIds.Count > 0 )
                 {
-                    RockContext rockContext = new RockContext();
                     List<int> registrationInstanceIds = new List<int>();
                     if ( ddlRegistrationInstance.SelectedValueAsId().HasValue && ddlRegistrationInstance.SelectedValueAsId() > 0)
                     {
@@ -129,7 +132,6 @@ namespace RockWeb.Plugins.org_secc.Finance
                     }
 
                     RegistrationInstanceService registrationInstanceService = new RegistrationInstanceService( rockContext );
-                    SystemEmailService systemEmailService = new SystemEmailService( rockContext );
 
                     // Load the registration instance and then iterate through all registrations.
                     var registrations = registrationInstanceService.Queryable().Where( ri => registrationInstanceIds.Contains( ri.Id )  ).SelectMany( ri => ri.Registrations );
@@ -140,67 +142,51 @@ namespace RockWeb.Plugins.org_secc.Finance
                         OnProgress( "Processing registration refund " + j + " of " + registrations.Count() );
                         foreach ( var payment in registration.GetPayments( rockContext ) )
                         {
-                            decimal refundAmount = payment.Amount + payment.Transaction.Refunds.Sum( r => r.FinancialTransaction.TotalAmount );
-
-                            // If refunds totalling the amount of the payments have not already been issued
-                            if ( payment.Amount > 0 && refundAmount > 0 )
-                            {
-                                string errorMessage;
-
-                                using ( var refundRockContext = new RockContext() )
-                                {
-                                    var financialTransactionService = new FinancialTransactionService( refundRockContext );
-                                    var refundTransaction = financialTransactionService.ProcessRefund( payment.Transaction, refundAmount, dvpRefundReason.SelectedDefinedValueId, tbRefundSummary.Text, true, string.Empty, out errorMessage );
-
-                                    if ( refundTransaction != null )
-                                    {
-                                        refundRockContext.SaveChanges();
-                                    }
-
-                                    if ( !string.IsNullOrWhiteSpace( errorMessage ) )
-                                    {
-                                        results["Fail"] += string.Format( "Failed refund for registration {0}: {1}",
-                                            registration.FirstName + " " + registration.LastName,
-                                            errorMessage) + Environment.NewLine ;
-                                    }
-                                    else
-                                    {
-                                        results["Success"] += string.Format("Successfully issued {0} refund for registration {1} payment {2} ({3}) - Refund Transaction Id: {4}, Amount: {5}",
-
-                                            refundAmount < payment.Amount?"Partial":"Full",
-                                            registration.FirstName + " " + registration.LastName,
-                                            payment.Transaction.TransactionCode,
-                                            payment.Transaction.TotalAmount,
-                                            refundTransaction.TransactionCode,
-                                            refundTransaction.TotalAmount.FormatAsCurrency() ) + Environment.NewLine;
-                                        issuedRefund = true;
-
-                                    }
-
-                                }
-                                System.Threading.Thread.Sleep( 2500 );
-                            }
-                            else if ( payment.Transaction.Refunds.Count > 0 )
-                            {
-                                results[ "Success"] += string.Format( "Refund already issued for registration {0} payment {1} ({2})",
-                                            registration.FirstName + " " + registration.LastName,
-                                            payment.Transaction.TransactionCode,
-                                            payment.Transaction.TotalAmount ) + Environment.NewLine;
-                            }
+                                issuedRefund = issueRefund( payment.Transaction, "Registration", registration.FirstName + " " + registration.LastName );                            
                         }
                         j++;
 
                         // Send an email if applicable
-                        if ( issuedRefund && !string.IsNullOrWhiteSpace( registration.ConfirmationEmail ) && ddlSystemEmail.SelectedValueAsInt().HasValue && ddlSystemEmail.SelectedValueAsInt() > 0 )
+                        if ( issuedRefund && !string.IsNullOrWhiteSpace( registration.ConfirmationEmail ) && ddlSystemCommunication.SelectedValueAsInt().HasValue && ddlSystemCommunication.SelectedValueAsInt() > 0 )
                         {
                             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage );
                             mergeFields.Add( "Registration", registration );
 
-                            SystemEmail systemEmail = systemEmailService.Get( ddlSystemEmail.SelectedValueAsInt().Value );
+                            SystemCommunication systemCommunication = systemCommunicationService.Get( ddlSystemCommunication.SelectedValueAsInt().Value );
                             
-                            var emailMessage = new RockEmailMessage( systemEmail );
+                            var emailMessage = new RockEmailMessage( systemCommunication );
                             emailMessage.AdditionalMergeFields = mergeFields;
-                            emailMessage.AddRecipient( new RecipientData( registration.ConfirmationEmail, mergeFields ) );
+                            
+                            emailMessage.AddRecipient( RockEmailMessageRecipient.CreateAnonymous( registration.ConfirmationEmail, mergeFields ) );
+                            emailMessage.CreateCommunicationRecord = true;
+                            emailMessage.Send();
+                        }
+                    }
+                }
+
+                if ( pnlTransactionCodes.Visible && tbTransactionCodes.Text.Length > 0 )
+                {
+                    var codes = tbTransactionCodes.Text.SplitDelimitedValues();
+                    FinancialTransactionService financialTransactionService = new FinancialTransactionService( rockContext );
+                    var transactions = financialTransactionService.Queryable().Where( ft => codes.Contains( ft.TransactionCode ) );
+                    int j = 0;
+                    foreach(var transaction in transactions)
+                    {
+                        OnProgress( "Processing transaction refund " + j + " of " + transactions.Count() );
+                        var issuedRefund = issueRefund( transaction, "Transaction", transaction.AuthorizedPersonAlias != null ? transaction.AuthorizedPersonAlias.Person.FullName : "Unknown" );
+
+                        // Send an email if applicable
+                        if ( issuedRefund && transaction.AuthorizedPersonAlias != null && !string.IsNullOrWhiteSpace( transaction.AuthorizedPersonAlias.Person.Email ) && ddlSystemCommunication.SelectedValueAsInt().HasValue && ddlSystemCommunication.SelectedValueAsInt() > 0 )
+                        {
+                            var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage );
+                            mergeFields.Add( "Transaction", transaction );
+
+                            SystemCommunication systemCommunication = systemCommunicationService.Get( ddlSystemCommunication.SelectedValueAsInt().Value );
+
+                            var emailMessage = new RockEmailMessage( systemCommunication );
+                            emailMessage.AdditionalMergeFields = mergeFields;
+                            emailMessage.FromEmail = ebEmail.Text;
+                            emailMessage.AddRecipient( new RockEmailMessageRecipient(transaction.AuthorizedPersonAlias.Person, mergeFields ));
                             emailMessage.CreateCommunicationRecord = true;
                             emailMessage.Send();
                         }
@@ -236,6 +222,67 @@ namespace RockWeb.Plugins.org_secc.Finance
         }
 
         /// <summary>
+        /// Issue a refund for the transaction
+        /// </summary>
+        /// <param name="transaction">The transaction to refund.</param>
+        /// <param name="label">The label for the log entry (Registration or Transaction).</param>
+        /// <param name="value">The value for the log entry for this line item.</param>
+        /// <returns></returns>
+        private bool issueRefund( FinancialTransaction transaction, string label, string value)
+        {
+            decimal refundAmount = transaction.TotalAmount + transaction.Refunds.Sum( r => r.FinancialTransaction.TotalAmount );
+
+            // If refunds totalling the amount of the payments have not already been issued
+            if ( transaction.TotalAmount > 0 && refundAmount > 0 )
+            {
+                string errorMessage;
+
+                using ( var refundRockContext = new RockContext() )
+                {
+                    var financialTransactionService = new FinancialTransactionService( refundRockContext );
+                    var refundTransaction = financialTransactionService.ProcessRefund( transaction, refundAmount, dvpRefundReason.SelectedDefinedValueId, tbRefundSummary.Text, true, string.Empty, out errorMessage );
+
+                    if ( refundTransaction != null )
+                    {
+                        refundRockContext.SaveChanges();
+                    }
+
+                    if ( !string.IsNullOrWhiteSpace( errorMessage ) )
+                    {
+                        results["Fail"] += string.Format( "Failed refund for {0} {1}: {2}",
+                            label,
+                            value,
+                            errorMessage ) + Environment.NewLine;
+                    }
+                    else
+                    {
+                        results["Success"] += string.Format( "Successfully issued {0} refund for {1} {2} payment {3} ({4}) - Refund Transaction Id: {5}, Amount: {6}",
+
+                            refundAmount < transaction.TotalAmount ? "partial" : "full",
+                            label,
+                            value,
+                            transaction.TransactionCode,
+                            transaction.TotalAmount,
+                            refundTransaction.TransactionCode,
+                            refundTransaction.TotalAmount.FormatAsCurrency() ) + Environment.NewLine;
+                        return true;
+
+                    }
+
+                }
+            }
+            else if ( transaction.Refunds.Count > 0 )
+            {
+                results["Success"] += string.Format( "Refund already issued for {0} {1} payment {2} ({3})",
+                            label,
+                            value,
+                            transaction.TransactionCode,
+                            transaction.TotalAmount ) + Environment.NewLine;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Handles the ProgressChanged event of the BackgroundWorker control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
@@ -264,21 +311,23 @@ namespace RockWeb.Plugins.org_secc.Finance
             RockContext rockContext = new RockContext();
             dvpRefundReason.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.FINANCIAL_TRANSACTION_REFUND_REASON.AsGuid(), rockContext ).Id;
 
-            if ( !ddlSystemEmail.SelectedValueAsInt().HasValue )
+            if ( !ddlSystemCommunication.SelectedValueAsInt().HasValue )
             {
-                SystemEmailService systemEmailService = new SystemEmailService( rockContext );
-                var systemEmails = systemEmailService.Queryable().Select( e => new { Title = e.Category.Name + " - " + e.Title, e.Id } ).OrderBy( e => e.Title ).ToList();
-                systemEmails.Insert( 0, new { Title = "", Id = 0 } );
-                ddlSystemEmail.DataSource = systemEmails;
-                ddlSystemEmail.DataValueField = "Id";
-                ddlSystemEmail.DataTextField = "Title";
-                ddlSystemEmail.DataBind();
+                SystemCommunicationService systemCommunicationService = new SystemCommunicationService( rockContext );
+                var systemCommunications = systemCommunicationService.Queryable().Where(c => c.IsActive == true ).Select( e => new { Title = e.Category.Name + " - " + e.Title, e.Id } ).OrderBy( e => e.Title ).ToList();
+                systemCommunications.Insert( 0, new { Title = "", Id = 0 } );
+                ddlSystemCommunication.DataSource = systemCommunications;
+                ddlSystemCommunication.DataValueField = "Id";
+                ddlSystemCommunication.DataTextField = "Title";
+                ddlSystemCommunication.DataBind();
             }
 
             List<int> registrationTemplateIds = rtpRegistrationTemplate.ItemIds.AsIntegerList();
             registrationTemplateIds.RemoveAll( i => i.Equals( 0 ) );
+            int itemCount = 0;
+            decimal totalPayments = 0;
 
-            if ( registrationTemplateIds.Count > 0 )
+            if ( liRegistration.Visible == true &&  registrationTemplateIds.Count > 0 )
             {
                 RegistrationTemplateService registrationTemplateService = new RegistrationTemplateService( rockContext );
                 var templates = registrationTemplateService.GetByIds( rtpRegistrationTemplate.ItemIds.AsIntegerList() );
@@ -288,9 +337,8 @@ namespace RockWeb.Plugins.org_secc.Finance
                     var instanceId = ddlRegistrationInstance.SelectedValueAsId();
                     instances = instances.Where( i => i.Id == instanceId );
                 }
-                int registrationCount = instances.SelectMany( i => i.Registrations ).Count();
-                var totalPayments = instances.SelectMany( i => i.Registrations ).ToList().SelectMany( r => r.Payments ).Sum( p => p.Transaction.TotalAmount );
-                lAlert.Text = registrationCount + " Registrations - " + totalPayments.FormatAsCurrency() + " Total";
+                itemCount = instances.SelectMany( i => i.Registrations ).Count();
+                totalPayments = instances.SelectMany( i => i.Registrations ).ToList().SelectMany( r => r.Payments ).Sum( p => p.Transaction.TotalAmount );
 
                 if ( ! ddlRegistrationInstance.SelectedValueAsInt().HasValue )
                 { 
@@ -302,6 +350,17 @@ namespace RockWeb.Plugins.org_secc.Finance
                     ddlRegistrationInstance.DataBind();
                 }
             }
+
+            if ( liTransactionCodes.Visible == true && tbTransactionCodes.Text.Length > 0 )
+            {
+                var codes = tbTransactionCodes.Text.SplitDelimitedValues();
+                FinancialTransactionService financialTransactionService = new FinancialTransactionService( rockContext );
+                var transactions = financialTransactionService.Queryable().Where( ft => codes.Contains( ft.TransactionCode ) );
+                totalPayments = transactions.SelectMany( t => t.TransactionDetails ).Sum( td => td.Amount );
+                itemCount = transactions.Count();
+
+            }
+            lAlert.Text = itemCount + ( pnlRegistration.Visible?" Registrations - ": " Transactions - " ) + totalPayments.FormatAsCurrency() + " Total";
         }
 
         /// <summary>
@@ -334,6 +393,32 @@ namespace RockWeb.Plugins.org_secc.Finance
         protected void ddlRegistrationInstance_SelectionChanged( object sender, EventArgs e )
         {
             BindData();
+        }
+
+        protected void btnRefundType_Click( object sender, EventArgs e )
+        {
+            liTransactionCodes.RemoveCssClass( "active" );
+            pnlTransactionCodes.Visible = false;
+            liRegistration.RemoveCssClass( "active" );
+            pnlRegistration.Visible = false;
+            var argument = ( ( LinkButton ) sender).CommandArgument;
+            switch ( argument )
+            {
+                case "Codes":
+                    liTransactionCodes.AddCssClass( "active" );
+                    pnlTransactionCodes.Visible = true;
+                    ebEmail.Required = true;
+                    break;
+                case "Registration":
+                default:
+                    liRegistration.AddCssClass( "active" );
+                    pnlRegistration.Visible = true;
+                    ebEmail.Required = false;
+                    break;
+            }
+
+            BindData();
+
         }
     }
 }

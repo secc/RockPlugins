@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="BulkRegistrationRefund.ascx.cs" Inherits="RockWeb.Plugins.org_secc.Finance.BulkRegistrationRefund" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="BulkRefund.ascx.cs" Inherits="RockWeb.Plugins.org_secc.Finance.BulkRefund" %>
 
 <script src="/SignalR/hubs"></script>
 <script type="text/javascript">
@@ -40,26 +40,43 @@
         });
     })
 </script>
-
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
 
         <asp:Panel ID="pnlView" runat="server" CssClass="panel panel-block">
 
             <div class="panel-heading">
-                <div class="label label-info pull-right"><asp:label runat="server" ID="lAlert" >0 Registrations - $0 Total</asp:label></div>
+                
                 <h1 class="panel-title"><i class="fa fa-undo"></i>&nbsp;Bulk Registration Refund Tool</h1>
+                <div class="label label-info pull-right"><asp:label runat="server" ID="lAlert" >0 Registrations - $0 Total</asp:label></div>
             </div>
             <div class="panel-body">
                 <asp:ValidationSummary ID="vsBulkRegistrationRefund" runat="server" HeaderText="Please correct the following:" CssClass="alert alert-validation"/>
+                
                 <div class="row">
                     <div class="col-md-6">
-                        <Rock:RegistrationTemplatePicker runat="server" ID="rtpRegistrationTemplate" Required="true" OnSelectItem="rtpRegistrationTemplate_SelectItem" AllowMultiSelect="True" Label="Registration Template(s):" />
-                        <Rock:RockDropDownList runat="server" ID="ddlRegistrationInstance" Label="Registration Instance" Required="false" Title="All Instances" AutoPostBack="true" OnSelectionChanged="ddlRegistrationInstance_SelectionChanged" />
-
+                        <label class="control-label">Refund Type</label>
+                        <ul class="nav nav-pills">
+                            <li runat="server" id="liRegistration" class="active">
+                                <asp:LinkButton ID="btnRegistration" runat="server" CssClass="show-pill" Text="Registration" CommandArgument="Registration" OnClick="btnRefundType_Click" CausesValidation="false">
+                                        </asp:LinkButton>
+                            </li>
+                            <li runat="server" id="liTransactionCodes">
+                                <asp:LinkButton ID="btnTransactionCodes" runat="server" CssClass="show-pill" Text="Transaction Codes" CommandArgument="Codes" OnClick="btnRefundType_Click" CausesValidation="false">
+                                        </asp:LinkButton>
+                            </li>
+                        </ul>
+                        <asp:Panel runat="server" ID="pnlRegistration" Visible="true">
+                            <Rock:RegistrationTemplatePicker runat="server" ID="rtpRegistrationTemplate" Required="true" OnSelectItem="rtpRegistrationTemplate_SelectItem" AllowMultiSelect="True" Label="Registration Template(s):" />
+                            <Rock:RockDropDownList runat="server" ID="ddlRegistrationInstance" Label="Registration Instance" Required="false" Title="All Instances" AutoPostBack="true" OnSelectionChanged="ddlRegistrationInstance_SelectionChanged" />
+                        </asp:Panel>
+                        <asp:Panel runat="server" ID="pnlTransactionCodes" Visible="true">
+                            <Rock:RockTextBox runat="server" ID="tbTransactionCodes" Rows="5" TextMode="MultiLine" Required="true" Label="Transaction Codes" Help="Enter a list of transaction codes with each on its own line." AutoPostBack="true" />
+                        </asp:Panel>
                     </div>
                     <div class="col-md-6">
-                        <Rock:RockDropDownList runat="server" ID="ddlSystemEmail" Label="System Email" Required="false" Help="If an system email is selected here, a copy of this email will be sent to the confirmation email address for every registration that is issued a refund. <span class='tip tip-lava'></span>" />
+                        <Rock:EmailBox runat="server" ID="ebEmail" Label="From Email" Required="false" Help="Who should the refund email be sent from.  This is required for transaction code refunds but, if left blank, registration refund emails will be sent from the contact email on the registration." />
+                        <Rock:RockDropDownList runat="server" ID="ddlSystemCommunication" Label="System Communication" Required="false" Help="If an system communication is selected here, a copy of this email will be sent to the confirmation email address for every registration that is issued a refund. <span class='tip tip-lava'></span>" />
                         <Rock:DefinedValuePicker runat="server" ID="dvpRefundReason" Label="Refund Reason" Required="true" />
                     </div>
                     <div class="col-md-12">
