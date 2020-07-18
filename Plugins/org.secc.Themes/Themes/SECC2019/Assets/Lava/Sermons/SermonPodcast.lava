@@ -1,7 +1,7 @@
 {% cache key:'secc-sermon-podcast' duration:'3600' -%}
 <?xml version="1.0"?>
 {%- assign timezone = 'Now' | Date:'zzz' | Replace:':','' -%}
-{%- assign imageURL = 'https://www.southeastchristian.org/content/podcasts/SEC_logo_solid_black.png' -%}
+{%- assign imageURL = 'https://www.southeastchristian.org/content/podcasts/SELogoPodcast.jpg' -%}
 <rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:secc="http://www.secc.org/dtds/sermons-1.0.dtd" version="2.0">
     <channel>
         <title>Southeast Christian Church</title>
@@ -18,7 +18,7 @@
         <itunes:author>Southeast Christian Church, Louisville, KY</itunes:author>
         <itunes:summary>Southeast Christian Church in Louisville, KY invites you to join us in Connecting with Jesus and one another through our weekly podcast with teaching from Senior Pastor Kyle Idleman.</itunes:summary>
         <itunes:owner><itunes:name>Southeast Christian Church</itunes:name><itunes:email>web@secc.org</itunes:email></itunes:owner>
-        <itunes:keywords>Southeast Christian Church, Kyle Idleman, Sermons, Dave Stone, Louisville Kentucky</itunes:keywords>
+        <itunes:keywords>Southeast Christian Church, Kyle Idleman, Sermons, Louisville Kentucky</itunes:keywords>
         <itunes:image href="{{ imageURL }}"/>
         <itunes:explicit>No</itunes:explicit>
         <image>
