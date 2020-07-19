@@ -200,7 +200,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 }
                 MobileCheckinRecordCache.Update( mobileCheckinRecord.Id );
-                _hubContext.Clients.All.mobilecheckincomplete( accessKey, true );
                 BindRepeater();
             }
             catch ( Exception e )
