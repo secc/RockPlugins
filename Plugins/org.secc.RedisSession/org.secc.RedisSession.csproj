@@ -99,6 +99,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CheckInStateSessionManager.cs" />
     <Compile Include="Converters\AttributeValueCacheConverter.cs" />
     <Compile Include="Converters\CacheItemConverter.cs" />
     <Compile Include="Converters\ObjectConverter.cs" />
