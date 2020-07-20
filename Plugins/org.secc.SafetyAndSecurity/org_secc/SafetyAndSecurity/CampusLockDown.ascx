@@ -49,10 +49,14 @@
 
 <asp:UpdatePanel ID="upCampus" runat="server">
     <ContentTemplate>
-        <Rock:ModalDialog ID="mdCustomMessage" runat="server" Title="Custom Message" OnSaveClick="mdCustomMessage_SaveClick"  SaveButtonText="Save">
+        <Rock:ModalDialog ID="mdCustomMessage" runat="server" Title="Create Lockdown Alert" OnSaveClick="mdCustomMessage_SaveClick"  SaveButtonText="Save">
             <Content>
-                <asp:HiddenField ID="hfCustomMessage" runat="server" />
+                <%-- single-line textbox --%>
+                <p>Alert Name:</p>
+                <Rock:RockTextBox ID="tbAlertName" runat="server" CssClass="js-sms-text-message" Placeholder="Type Alert Name" Required="false"  ValidateRequestMode="Disabled" />
+
                 <%-- multi-line textbox --%>
+                <p>Message:</p>
                 <Rock:RockTextBox ID="tbAlertMessage" runat="server" CssClass="js-sms-text-message" TextMode="MultiLine" Rows="3" Placeholder="Type a message" Required="false"  ValidateRequestMode="Disabled" />
             </Content>
         </Rock:ModalDialog>
@@ -108,8 +112,9 @@
                                 <asp:Label ID="lCampusTitle" runat="server" /></span>! 
                         </div>
                         <div style="display: inline-block;">
+                            <Rock:RockLiteral ID="lAlertTitle" runat="server" />
                             <i>
-                                <Rock:RockLiteral ID="lStandardMessage" runat="server" /></i>
+                                <Rock:RockLiteral ID="lMessage" runat="server" /></i>
                         </div>
                         <div style="display: inline-block;">
                             <asp:LinkButton ID="btnEdit" runat="server" Title="Edit Message" CssClass="btn btn-sm btn-square btn-default " OnClick="btnEdit_Click">
