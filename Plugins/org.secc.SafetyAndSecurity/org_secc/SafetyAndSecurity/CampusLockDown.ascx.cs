@@ -29,21 +29,19 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using org.secc.SafetyAndSecurity.Model;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using Rock.Web.Cache;
-using System.Web.UI.HtmlControls;
-
 
 namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
 {
@@ -55,17 +53,24 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
     [Description( "Campus Lock Down" )]
 
     #region Block Settings
-
-    [MemoField(
-        name: "Standard Alert",
-        description: "Message that will be delivered when standard alert is sent",
-        required: true,
-        defaultValue: "This is the Standard Alert Message",
+    [TextField(
+        name: "Standard Alert Title",
+        description: "Default title of an alert",
+        required: false,
+        defaultValue: "Alert",
         order: 0,
+        key: "StandardTitle" )]
+    [MemoField(
+        name: "Standard Alert Message",
+        description: "Message that will be delivered when standard alert is sent",
+        required: false,
+        defaultValue: "This is the Standard Alert Message",
+        order: 1,
         key: "StandardAlert" )]
+   
     [DataViewField(
-        name: "Default Review DataView",
-        description: "The default DataView to use for the review process.",
+        name: "DataView",
+        description: "The DataView to use for the review process.",
         required: false )]
 
     #endregion Block Settings
@@ -78,7 +83,7 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
         {
             base.OnInit( e );
 
-            RockContext  rockContext = new RockContext();
+            RockContext rockContext = new RockContext();
             var campusList = CampusCache.All()
                 .Select( a => new CampusItem { Name = a.Name, Id = a.Id } )
                 .ToList();
@@ -86,9 +91,9 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
             rptCampuses.DataSource = campusList;
             rptCampuses.DataBind();
 
-            bddlCampus.DataSource = CampusCache.All( );
-                bddlCampus.DataBind();
-               
+            bddlCampus.DataSource = CampusCache.All();
+            bddlCampus.DataBind();
+
         }
 
 
@@ -104,16 +109,10 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
 
             if ( !Page.IsPostBack )
             {
-                if ( string.IsNullOrWhiteSpace( GetAttributeValue( "StandardAlert" ) ) )
-                {
-                    ShowMessage( "Block not configured. Please configure to use.", "Configuration Error", "panel panel-danger" );
-                    return;
-                }
-                else
-                {
-                    lStandardMessage.Text = GetAttributeValue( "StandardAlert" ).ToString();
-                }
-                if ( GetAttributeValue( "DefaultReviewDataView" ).IsNotNullOrWhiteSpace() )
+                lMessage.Text = GetAttributeValue( "StandardAlert" );
+                lAlertTitle.Text = GetAttributeValue( "StandardTitle" );
+
+                if ( GetAttributeValue( "DataView" ).IsNotNullOrWhiteSpace() )
                 {
                     DataViewService dataViewService = new DataViewService( new RockContext() );
                     //var dvipReviewDataView.SetValue( dataViewService.Get( GetAttributeValue( "DefaultReviewDataView" ).AsGuid() ) );
@@ -135,17 +134,17 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
                 }
             }
 
- 
- 
- 
+
+
+
         }
 
 
         #endregion
 
         #region Internal Methods
- 
- 
+
+
         private void ShowMessage( string message, string header = "Information", string cssClass = "panel panel-warning" )
         {
             pnlMain.Visible = false;
@@ -159,15 +158,48 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
         #endregion
 
         #region Events
- 
+
         protected void btnStaff_Click( object sender, EventArgs e )
         {
-            GetStaff(  );
+            GetStaff();
+
+            RockContext rockContext = new RockContext();
+
+            AlertNotificationService alertNotificationService = new AlertNotificationService( rockContext );
+            AlertMessageService alertMessageService = new AlertMessageService( rockContext );
+
+            int alertTypeId = 31480;
+            int alertAudienceId = 31476;
+
+            var alertnotification = new AlertNotification
+            {
+                Title = lAlertTitle.Text,
+                AlertNotificationTypeValueId = alertTypeId,
+                AudienceValueId = alertAudienceId,
+                IsActive = true,
+            };
+
+
+
+            alertNotificationService.Add( alertnotification );
+
+            rockContext.SaveChanges();
+
+
+
+            alertMessageService.Add( new AlertMessage
+            {
+                AlertNotificationId = alertnotification.Id,
+                Message = lMessage.Text,
+                CommunicationId = 40558,
+            } );
+
+            rockContext.SaveChanges();
         }
 
         protected void btnStaffVol_Click( object sender, EventArgs e )
         {
-            GetCheckedInVolunteers( 1 );
+            //GetCheckedInVolunteers( 1 );
 
         }
         protected void bddlCampus_SelectionChanged( object sender, EventArgs e )
@@ -175,21 +207,23 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
             SetBlockUserPreference( "Campus", bddlCampus.SelectedValue );
             var campus = CampusCache.Get( bddlCampus.SelectedValueAsInt() ?? 0 );
             bddlCampus.Title = campus != null ? campus.Name : "All Campuses";
-                lCampusTitle.Text = bddlCampus.Title;
-            
+            lCampusTitle.Text = bddlCampus.Title;
+
         }
- 
+
         protected void mdCustomMessage_SaveClick( object sender, EventArgs e )
         {
             string message = tbAlertMessage.Text.Trim();
- //           if ( message.IsNullOrWhiteSpace() )
- //           {
- //               hfCustomMessage.Value = " " ;
- //               return;
- //           }
+            //           if ( message.IsNullOrWhiteSpace() )
+            //           {
+            //               hfCustomMessage.Value = " " ;
+            //               return;
+            //           }
+            string title = tbAlertName.Text.Trim();
 
-            
-            hfCustomMessage.Value =  message ;
+            lMessage.Text = message;
+            lAlertTitle.Text = title;
+
             mdCustomMessage.Hide();
         }
 
@@ -202,7 +236,7 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
         {
             var campusId = e.CommandArgument.ToString();
             int cId = Int32.Parse( campusId );
-            
+
 
             if ( campusId != null )
             {
@@ -221,62 +255,17 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
 
         #region Methods
 
- 
-        private void GetStaff( )
+
+        private void GetStaff()
         {
-            if ( hfCustomMessage.Value.IsNotNullOrWhiteSpace() )
-            {
-                SendMessage( "Staff", hfCustomMessage.Value );
-            }
-            else
-            {
-                SendMessage( "Staff", lStandardMessage.Text );
-            }
+
+            SendMessage( "Staff", lMessage.Text );
         }
 
-        private void GetCheckedInVolunteers( int campus )
+        private void SendMessage( string send, string msg )
         {
-            List<VolunteerByCampus> volunteerList = new List<VolunteerByCampus>();
-            volunteerList = GetCheckedInVols().ToList();
+            maPopup.Show( "The LockDown message has been sent to all " + send + ".  " + msg, ModalAlertType.Information );
 
-            if ( hfCustomMessage.Value.IsNotNullOrWhiteSpace() )
-            {
-                SendMessage( "All Staff and checked in Volunteers at the " + lCampusTitle.Text + " campus. ", hfCustomMessage.Value );
-            }
-            else
-            {
-                SendMessage( "All Staff and checked in Volunteers at the " + lCampusTitle.Text + " campus. ", lStandardMessage.Text );
-            }
-            
-        }
-
-        private IQueryable<VolunteerByCampus> GetCheckedInVols()
-        {
-            RockContext rockContext = new RockContext();
-            rockContext.SqlLogging( true );
-
-                       
-            rockContext.Database.CommandTimeout = GetAttributeValue( "CommandTimeout" ).AsIntegerOrNull() ?? 300;
-
-            var volunteers = rockContext.Database.SqlQuery<VolunteerByCampus>( @"SELECT 
-                    PersonAliasId AS [VolunteerPerson ], COALESCE(a.CampusId, g.campusId) AS [CampusId]
-                           FROM( Attendance a
-                            join AttendanceOccurrence ao on a.OccurrenceId = ao.id
-                            JOIN[Group] g on ao.GroupId = g.id
-                            join AttributeValue av on g.Id = av.EntityId and av.AttributeId = 10946)
-                          WHERE StartDateTime > '2019-11-10' 
-						AND av.Value = 'True'" ).AsQueryable();
-
-            volunteers = volunteers.Where( v => v.CampusId.Equals( 1 ) );
-            return volunteers;
-            // COALESCE(a.CampusId, g.campusId) AS [CampusId]
-
-        }
-
-        private void SendMessage(string send, string msg )
-        {
-            maPopup.Show( "The LockDown message has been sent to all " + send + " " + msg, ModalAlertType.Information );
-         
         }
 
         #endregion
