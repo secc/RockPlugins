@@ -131,7 +131,7 @@
         }
     }
 
-    var doSearch = function () {
+    var doSearch = function (refresh) {
         if (selectionActive) {
             return;
         }
@@ -147,7 +147,12 @@
                     showFamilies(data);
                 },
                 error: function (data) {
-                    showSign("There was an issue with the request. Please try again. If the problem continues please contact a volunteer to help you.", false, "1vw")
+                    if (!refresh) {
+                        window.location = "javascript:__doPostBack('<%= btnRefresh.UniqueID %>', 'Click')";
+                    }
+                    else {
+                        showSign("There was an issue with the request. Please try again. If the problem continues please contact a volunteer to help you.", false, "1vw")
+                    }
                 }
             });
         } else {
@@ -297,6 +302,7 @@
         <asp:PlaceHolder ID="phScript" runat="server"></asp:PlaceHolder>
         <asp:HiddenField ID="hfMobileAccessKey" runat="server" ClientIDMode="Static" />
         <asp:LinkButton runat="server" ID="btnMobileCheckin" OnClick="btnMobileCheckin_Click" />
+        <asp:LinkButton runat="server" ID="btnRefresh" OnClick="btnRefresh_Click" />
 
         <Rock:HiddenFieldWithClass ID="hfRefreshTimerSeconds" runat="server" CssClass="js-refresh-timer-seconds" />
 

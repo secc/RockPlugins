@@ -65,6 +65,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
+            Session["BlockGuid"] = BlockCache.Guid;
 
             if ( CurrentCheckInState == null )
             {
@@ -108,7 +109,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 CurrentWorkflow = null;
                 CurrentCheckInState.CheckIn = new CheckInStatus();
                 SaveState();
-                Session["BlockGuid"] = BlockCache.Guid;
+
                 RefreshView();
                 if ( KioskType.Message.IsNotNullOrWhiteSpace() )
                 {
@@ -409,6 +410,11 @@ if ($ActiveWhen.text() != '')
             message = message.RemoveCrLf();
             secondsOpen = secondsOpen * 1000;
             ScriptManager.RegisterStartupScript( Page, Page.GetType(), "ShowMobileMessage", "showMobileDialog('" + message + "'," + secondsOpen.ToString() + ");", true );
+        }
+
+        protected void btnRefresh_Click( object sender, EventArgs e )
+        {
+            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "ReRunSearch", "doSearch(true)", true );
         }
     }
 }
