@@ -4,7 +4,7 @@
 {%- endif -%}
 {
 	"header": {
-		"title": "SE!Kids Check-in"
+		"title": "SE!KIDS Check-in"
 	},
 	"displayOptions":{
 		"style":"stacked",
@@ -49,7 +49,7 @@
         {%- assign comma = "" -%}
         {%- for i in (0..9) -%}
         {{- comma -}}{
-			"title": "SE!Kids Check-in",
+			"title": "SE!KIDS Check-in",
             "images":[
 			    { "width":800, "url":"https://app.secc.org/webhooks/ImageGenerator.ashx/checkin?width=1544&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 		    ]{%- if forloop.index == 3 or forloop.index == 9 or forloop.index == 10 -%},"actions":[{
