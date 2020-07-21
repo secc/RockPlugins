@@ -172,9 +172,11 @@ namespace org.secc.RoomScanner.Utilities
             }
         }
 
-        public static void CloneAttendance( Attendance attendance, bool isSubroom, Location location, AttendanceService attendanceService, Request req )
+        public static void CloneAttendance( Attendance attendance, bool isSubroom, Location location, AttendanceService notUsed, Request req )
         {
-            Attendance newAttendance = null;
+            RockContext rockContext = new RockContext();
+            AttendanceService attendanceService = new AttendanceService( rockContext );
+            Attendance newAttendance;
             if ( !isSubroom )
             {
                 newAttendance = attendanceService.AddOrUpdate( attendance.PersonAliasId, attendance.StartDateTime.Date, attendance.Occurrence.GroupId,
@@ -204,7 +206,7 @@ namespace org.secc.RoomScanner.Utilities
             attendance.DidAttend = stayedFifteenMinutes;
             attendance.EndDateTime = Rock.RockDateTime.Now;
 
-            attendanceService.Context.SaveChanges();
+            rockContext.SaveChanges();
 
             AttendanceCache.RemoveWithParent( attendance.PersonAlias.PersonId );
             AttendanceCache.AddOrUpdate( newAttendance );
