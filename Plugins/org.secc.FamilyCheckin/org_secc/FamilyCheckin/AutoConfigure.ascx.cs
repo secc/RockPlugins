@@ -202,7 +202,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 KioskDevice.Remove( device.Id );
 
                 Dictionary<string, string> themeParameters = new Dictionary<string, string>();
-                if ( kiosk.KioskType.Theme.IsNotNullOrWhiteSpace() )
+                if ( kiosk.KioskType.Theme.IsNotNullOrWhiteSpace() && !GetAttributeValue("Manual").AsBoolean() )
                 {
                     LocalDeviceConfig.CurrentTheme = kiosk.KioskType.Theme;
                     themeParameters.Add( "theme", LocalDeviceConfig.CurrentTheme );
