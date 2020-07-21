@@ -182,6 +182,12 @@ namespace org.secc.FamilyCheckin.Cache
         private static OccurrenceCache LoadByAccessKey( string accessKey )
         {
             var keys = accessKey.SplitDelimitedValues();
+
+            if (keys.Length < 2 )
+            {
+                return null;
+            }
+
             var groupLocationId = keys[0].AsInteger();
             var scheduleId = keys[1].AsInteger();
             RockContext rockContext = new RockContext();

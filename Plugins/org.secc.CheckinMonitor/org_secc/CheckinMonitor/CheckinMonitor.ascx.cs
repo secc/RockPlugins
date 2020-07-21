@@ -457,7 +457,17 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 var occurrance = OccurrenceCache.Get( attendances.FirstOrDefault().OccurrenceAccessKey );
                 if ( occurrance == null )
                 {
-                    LogException( new Exception( "Failed OccurrenceCacheLoad: " + attendances.FirstOrDefault().OccurrenceAccessKey ) );
+                    //There is no group location schedule combination that matches this first attendance,
+                    //we'll load the title manually
+                    var attendance = attendances.FirstOrDefault();
+                    RockContext rockContext = new RockContext();
+                    var location = new LocationService( rockContext ).Get( attendance.LocationId ?? 0 );
+                    var schedule = new ScheduleService( rockContext ).Get( attendance.ScheduleId ?? 0 );
+
+                    if ( location != null && schedule != null )
+                    {
+                        ltLocation.Text = string.Format( "{0} @ {1}", location.Name, schedule.Name );
+                    }
                 }
                 else
                 {
