@@ -1123,7 +1123,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         /// <param name="schedule"></param>
         private void ClearRoomSelection( CheckInPerson checkInPerson, CheckInSchedule schedule )
         {
-            var locationLinkAttributeKey = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() ).Key;
+            var locationLinkAttribute = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() );
             List<CheckInGroupType> groupTypes = GetGroupTypes( checkInPerson, schedule );
 
             foreach ( var groupType in groupTypes )
@@ -1142,7 +1142,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                             if ( roomSchedule.Schedule.Guid == schedule.Schedule.Guid )
                             {
                                 roomSchedule.Selected = false;
-                                if ( group.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
+                                if ( locationLinkAttribute !=null && group.Group.GetAttributeValue( locationLinkAttribute.Key ).AsBoolean() )
                                 {
                                     room.Selected = false;
                                 }
@@ -1216,8 +1216,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             ClearRoomSelection( checkInPerson, schedule );
             checkInPerson.Selected = true;
 
-            var locationLinkAttributeKey = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() ).Key;
-            if ( group.Group.GetAttributeValue( locationLinkAttributeKey ).AsBoolean() )
+            var locationLinkAttribute = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() );
+            if ( locationLinkAttribute != null && group.Group.GetAttributeValue( locationLinkAttribute.Key ).AsBoolean() )
             {
                 LinkLocations( checkInPerson, group, room );
             }
