@@ -456,8 +456,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
 
-            var volunteerGroupIds = OccurrenceCache.GetVolunteerOccurrences().Select( o => o.GroupId );
-            var childGroupIds = OccurrenceCache.GetChildOccurrences().Select( o => o.GroupId );
+            var volunteerGroupIds = OccurrenceCache.GetVolunteerOccurrences().Select( o => o.GroupId ).ToList();
+            var childGroupIds = OccurrenceCache.GetChildOccurrences().Select( o => o.GroupId ).ToList();
 
             foreach ( var groupType in checkinPerson.GroupTypes )
             {
@@ -504,7 +504,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         continue;
                     }
 
-                    if ( cbSuperCheckin.Checked && !cbVolunteer.Checked && !volunteerGroupIds.Contains( group.Group.Id ) )
+                    if ( cbSuperCheckin.Checked && !cbVolunteer.Checked && !childGroupIds.Contains( group.Group.Id ) )
                     {
                         continue;
                     }
