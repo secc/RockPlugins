@@ -18,6 +18,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Web.UI;
+using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Data;
@@ -167,7 +168,7 @@ namespace RockWeb.Blocks.Reporting.Children
             }
 
             var records = new List<AttendanceRecord>();
-            var volunteerGroupIds = KioskCountUtility.GetVolunteerGroupIds();
+            var volunteerGroupIds = OccurrenceCache.GetVolunteerOccurrences().Select(o => o.GroupId).ToList();
 
             foreach ( var attendance in attendances )
             {
