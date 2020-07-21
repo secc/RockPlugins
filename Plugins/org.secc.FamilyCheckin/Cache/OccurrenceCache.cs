@@ -107,29 +107,65 @@ namespace org.secc.FamilyCheckin.Cache
                 }
 
                 var capacity = FirmRoomThreshold.Value;
+                var attendanceCount = 0;
+
                 if ( !IsVolunteer )
                 {
                     capacity = Math.Min( FirmRoomThreshold.Value, SoftRoomThreshold.Value );
                 }
 
-                var attendanceCount = AttendanceCache
-                    .All()
-                    .Where( a => a.LocationId == LocationId
-                              && a.ScheduleId == ScheduleId
-                              && a.AttendanceState != AttendanceState.CheckedOut )
-                    .Count();
+                if ( IsVolunteer )
+                {
+                    attendanceCount = AttendanceCache
+                        .All()
+                        .Where( a => a.LocationId == LocationId
+                                  && a.ScheduleId == ScheduleId
+                                  && a.AttendanceState != AttendanceState.CheckedOut )
+                        .Count();
+                }
+                else
+                {
+                    attendanceCount = AttendanceCache
+                      .All()
+                      .Where( a => a.LocationId == LocationId
+                                && a.ScheduleId == ScheduleId
+                                && !a.IsVolunteer
+                                && a.AttendanceState != AttendanceState.CheckedOut )
+                      .Count();
+                }
 
                 //If we are within 2 of full, cache is too slow to be reliablly accurate
                 //.. to the database!!
-                if ( attendanceCount < capacity && attendanceCount >= capacity - 2)
+                if ( attendanceCount < capacity && attendanceCount >= capacity - 2 )
                 {
                     var attendanceService = new AttendanceService( new RockContext() ).Queryable().AsNoTracking();
-                    attendanceCount = attendanceService.Where( a =>
-                                  a.EndDateTime == null
-                                  && a.Occurrence.ScheduleId == ScheduleId
-                                  && a.Occurrence.LocationId == LocationId
-                                  && a.StartDateTime >= Rock.RockDateTime.Today )
-                        .Count();
+
+                    if ( IsVolunteer )
+                    {
+                        attendanceCount = attendanceService.Where( a =>
+                                      a.EndDateTime == null
+                                      && a.Occurrence.ScheduleId == ScheduleId
+                                      && a.Occurrence.LocationId == LocationId
+                                      && a.StartDateTime >= Rock.RockDateTime.Today )
+                            .Count();
+                    }
+                    else
+                    {
+                        var childGroupIds = All()
+                            .Where( o => o.LocationId == LocationId
+                                         && o.ScheduleId == ScheduleId
+                                         && !o.IsVolunteer )
+                            .Select( o => o.GroupId )
+                            .ToList();
+                        attendanceCount = attendanceService.Where( a =>
+                                      a.EndDateTime == null
+                                      && a.Occurrence.ScheduleId == ScheduleId
+                                      && a.Occurrence.LocationId == LocationId
+                                      && childGroupIds.Contains( a.Occurrence.GroupId ?? 0 )
+                                      && a.StartDateTime >= Rock.RockDateTime.Today )
+                            .Count();
+
+                    }
                 }
 
                 if ( attendanceCount >= capacity )
@@ -183,7 +219,7 @@ namespace org.secc.FamilyCheckin.Cache
         {
             var keys = accessKey.SplitDelimitedValues();
 
-            if (keys.Length < 2 )
+            if ( keys.Length < 2 )
             {
                 return null;
             }
