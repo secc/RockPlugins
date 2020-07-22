@@ -16,11 +16,13 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Data;
 using Rock.Model;
+using Rock.ServiceObjects.GeoCoder;
 using Rock.Web.Cache;
 
 namespace org.secc.FamilyCheckin.Cache
@@ -332,6 +334,165 @@ namespace org.secc.FamilyCheckin.Cache
         public static void AddOrUpdate( OccurrenceCache occurrenceCache )
         {
             UpdateCacheItem( occurrenceCache.AccessKey, occurrenceCache, TimeSpan.MaxValue );
+        }
+
+
+        public static void Verify( ref List<string> errors )
+        {
+            //Load Fresh Values
+            var freshKeys = AllKeys();
+            var freshCaches = new List<OccurrenceCache>();
+            foreach ( var key in freshKeys )
+            {
+                var cache = OccurrenceCache.LoadByAccessKey( key );
+                if ( cache != null )
+                {
+                    freshCaches.Add( cache );
+                }
+                else
+                {
+                    errors.Add( $"Could not load cache by access key {key}" );
+                }
+            }
+
+            All();
+            var currentKeys = RockCacheManager<List<string>>.Instance.Cache.Get( AllKey, _AllRegion );
+
+            var missingKeys = freshKeys.Except( currentKeys ).ToList();
+            if ( missingKeys.Any() )
+            {
+                foreach ( var key in missingKeys )
+                {
+                    errors.Add( $"Missing key: {key}." );
+                }
+                errors.Add( "Restored Missing Keys" );
+                RockCacheManager<List<string>>.Instance.Cache.AddOrUpdate( AllKey, _AllRegion, freshKeys, ( x ) => freshKeys );
+            }
+
+            foreach ( var freshCache in freshCaches )
+            {
+                var cache = Get( freshCache.AccessKey );
+                var heal = false;
+
+                if ( cache.FirmRoomThreshold != freshCache.FirmRoomThreshold )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:FirmRoomThreshold) Cache: {cache.FirmRoomThreshold} Actual:{freshCache.FirmRoomThreshold})" );
+                }
+
+                if ( cache.GroupId != freshCache.GroupId )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:GroupId) Cache: {cache.GroupId} Actual:{freshCache.GroupId})" );
+                }
+
+                if ( cache.GroupLocationId != freshCache.GroupLocationId )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:GroupLocationId) Cache: {cache.GroupLocationId} Actual:{freshCache.GroupLocationId})" );
+                }
+
+                if ( cache.GroupLocationOrder != freshCache.GroupLocationOrder )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:GroupLocationOrder) Cache: {cache.GroupLocationOrder} Actual:{freshCache.GroupLocationOrder})" );
+                }
+
+                if ( cache.GroupName != freshCache.GroupName )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:GroupName) Cache: {cache.GroupName} Actual:{freshCache.GroupName})" );
+                }
+
+                if ( cache.GroupOrder != freshCache.GroupOrder )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:GroupOrder) Cache: {cache.GroupOrder} Actual:{freshCache.GroupOrder})" );
+                }
+
+                if ( cache.GroupTypeId != freshCache.GroupTypeId )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:GroupTypeId) Cache: {cache.GroupTypeId} Actual:{freshCache.GroupTypeId})" );
+                }
+
+                if ( cache.IsActive != freshCache.IsActive )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:IsActive) Cache: {cache.IsActive} Actual:{freshCache.IsActive})" );
+                }
+
+                if ( cache.IsFull != freshCache.IsFull )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:IsFull) Cache: {cache.IsFull} Actual:{freshCache.IsFull})" );
+                }
+
+                if ( cache.IsVolunteer != freshCache.IsVolunteer )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:IsVolunteer) Cache: {cache.IsVolunteer} Actual:{freshCache.IsVolunteer})" );
+                }
+
+                if ( cache.LocationId != freshCache.LocationId )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:LocationId) Cache: {cache.LocationId} Actual:{freshCache.LocationId})" );
+                }
+
+                if ( cache.LocationName != freshCache.LocationName )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:LocationName) Cache: {cache.LocationName} Actual:{freshCache.LocationName})" );
+                }
+
+                if ( cache.RoomRatio != freshCache.RoomRatio )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:RoomRatio) Cache: {cache.RoomRatio} Actual:{freshCache.RoomRatio})" );
+                }
+
+                if ( cache.ScheduleId != freshCache.ScheduleId )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:ScheduleId) Cache: {cache.ScheduleId} Actual:{freshCache.ScheduleId})" );
+                }
+
+                if ( cache.ScheduleId != freshCache.ScheduleId )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:ScheduleId) Cache: {cache.ScheduleId} Actual:{freshCache.ScheduleId})" );
+                }
+
+                if ( cache.ScheduleId != freshCache.ScheduleId )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:ScheduleId) Cache: {cache.ScheduleId} Actual:{freshCache.ScheduleId})" );
+                }
+
+                if ( cache.ScheduleName != freshCache.ScheduleName )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:ScheduleName) Cache: {cache.ScheduleName} Actual:{freshCache.ScheduleName})" );
+                }
+
+                if ( cache.ScheduleStartTime != freshCache.ScheduleStartTime )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:ScheduleStartTime) Cache: {cache.ScheduleStartTime} Actual:{freshCache.ScheduleStartTime})" );
+                }
+
+                if ( cache.SoftRoomThreshold != freshCache.SoftRoomThreshold )
+                {
+                    heal = true;
+                    errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:SoftRoomThreshold) Cache: {cache.SoftRoomThreshold} Actual:{freshCache.SoftRoomThreshold})" );
+                }
+
+                if ( heal )
+                {
+                    UpdateCacheItem( freshCache.AccessKey, freshCache, TimeSpan.MaxValue );
+                }
+            }
         }
     }
 }

@@ -13,15 +13,21 @@
 // </copyright>
 //
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
+using System.Text;
 using System.Web.UI.WebControls;
-using CacheManager.Core;
+using CacheManager.Serialization.Json;
+using Lucene.Net.Search;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using org.secc.FamilyCheckin.Cache;
+using org.secc.RedisSession;
+using org.secc.RedisSession.Converters;
 using Rock;
+using Rock.CheckIn;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
@@ -40,7 +46,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected override void OnLoad( EventArgs e )
         {
-
         }
 
 
@@ -65,7 +70,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         protected void btnAttendances_Click( object sender, EventArgs e )
         {
             ShowAttendances( null );
-
         }
 
         protected void btnMobileRecords_Click( object sender, EventArgs e )
@@ -141,6 +145,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             KioskTypeCache.Verify( ref errors );
             AttendanceCache.Verify( ref errors );
             MobileCheckinRecordCache.Verify( ref errors );
+            OccurrenceCache.Verify( ref errors );
 
             if ( errors.Any() )
             {
