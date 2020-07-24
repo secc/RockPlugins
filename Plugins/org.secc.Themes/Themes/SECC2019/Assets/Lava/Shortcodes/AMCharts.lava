@@ -1,0 +1,490 @@
+{%- comment -%} 
+/************************************************/
+/**************** SHORTCODE DEMOS ***************/
+/************************************************/
+
+	<!-- PIE CHART -->
+	{[ amcharts data-value:'visitors' data-category:'site' ]}
+		[[ dataitem label:'iOS' value:'332846' ]] [[ enddataitem ]]
+		[[ dataitem label:'Android' value:'134889' ]] [[ enddataitem ]]
+		[[ dataitem label:'Apple TV' value:'1672' ]] [[ enddataitem ]]
+		[[ dataitem label:'Roku' value:'10650' ]] [[ enddataitem ]]
+	{[ endamcharts ]}
+
+	OR
+
+	<!-- 1/2 PIE CHART -->
+	{[ amcharts data-value:'value' data-category:'country' type:'halfdonut' ]}
+		[[ dataitem label:'Computer' value:'739' ]] [[ enddataitem ]]
+		[[ dataitem label:'Mobile Phone' value:'1993' ]] [[ enddataitem ]]
+		[[ dataitem label:'Tablet' value:'169' ]] [[ enddataitem ]]
+		[[ dataitem label:'TV' value:'115' ]] [[ enddataitem ]]
+	{[ endamcharts ]}
+
+	OR
+
+	<!-- RADAR CHART -->
+	{[ amcharts data-value:'online viewers' data-category:'campus' type:'radar' ]}
+		[[ dataitem label:'Blankenbaker' value:'1019' ]] [[ enddataitem ]]
+		[[ dataitem label:'Indiana' value:'697' ]] [[ enddataitem ]]
+		[[ dataitem label:'Crestwood' value:'876' ]] [[ enddataitem ]]
+		[[ dataitem label:'Southwest' value:'822' ]] [[ enddataitem ]]
+		[[ dataitem label:'La Grange' value:'1345' ]] [[ enddataitem ]]
+		[[ dataitem label:'Elizabethtown' value:'527' ]] [[ enddataitem ]]
+		[[ dataitem label:'River Valley' value:'352' ]] [[ enddataitem ]]
+		[[ dataitem label:'Chapel in the Woods' value:'198' ]] [[ enddataitem ]]
+		[[ dataitem label:'Shelby County' value:'373' ]] [[ enddataitem ]]
+		[[ dataitem label:'Bullitt County' value:'507' ]] [[ enddataitem ]]
+	{[ endamcharts ]}
+
+	OR
+
+	<!-- BAR CHART -->
+	{[ amcharts chartheight:'400px' style:'margin: 50px auto;' data-value:'viewers' data-category:'socialmedia' type:'bar' ]}
+		[[ dataitem label:'YouTube' value:'723' color:'auto' bullet:'https://rock.secc.org/content/externalsite/yt_logo_mono_light.svg' ]] [[ enddataitem ]]
+		[[ dataitem label:'Vimeo' value:'280' color:'auto' bullet:'https://rock.secc.org/content/externalsite/Vimeo.svg' ]] [[ enddataitem ]]
+	{[ endamcharts ]}
+
+	OR
+
+	<!-- SIDEBAR CHART -->
+	{[ amcharts chartheight:'1000px;' data-category:'campus,total,new,weekly' data-category-labels:'Campus,Total Followers,New Followers,Weekly Post Reach' type:'sidebar' ]}
+		[[ dataitem value:'Blankenbaker,1844,76,9677' ]] [[ enddataitem ]]
+		[[ dataitem value:'Indiana,3714,16,4902' ]] [[ enddataitem ]]
+		[[ dataitem value:'Crestwood,3674,22,5222' ]] [[ enddataitem ]]
+		[[ dataitem value:'Southwest,4133,15,4505' ]] [[ enddataitem ]]
+		[[ dataitem value:'La Grange,2206,15,5898' ]] [[ enddataitem ]]
+		[[ dataitem value:'Elizabethtown,2461,10,5295' ]] [[ enddataitem ]]
+		[[ dataitem value:'River Valley,1013,21,1823' ]] [[ enddataitem ]]
+		[[ dataitem value:'Chapel in the Woods,458,18,1173' ]] [[ enddataitem ]]
+		[[ dataitem value:'Shelby County,739,12,2888' ]] [[ enddataitem ]]
+		[[ dataitem value:'Bullitt  County,1298,26,2875' ]] [[ enddataitem ]]
+	{[ endamcharts ]}
+
+	OR
+
+	<!-- MULTI-LINE CHART -->
+	{[ amcharts data-category:'date,giving,units,online,average' data-category-labels:'Date,$ General Giving,$ Amount / Giving Unit,# of Giving Units,% of Online Giving' type:'linechart' legend:'on' ]}
+		[[ dataitem value:'April 26 2020,987935,3712,73,266' ]][[ enddataitem ]]
+		[[ dataitem value:'May 3 2020,1256557,4582,81,274' ]][[ enddataitem ]]
+		[[ dataitem value:'May 10 2020,1060088,3708,66,286' ]][[ enddataitem ]]
+		[[ dataitem value:'May 17 2020,1147240,4261,84,269' ]][[ enddataitem ]]
+		[[ dataitem value:'May 24 2020,865035,3485,77,248' ]][[ enddataitem ]]
+	{[ endamcharts ]}
+
+{%- endcomment -%}
+
+{%- comment -%} 
+/************************************************/
+/****************** CHART STYLES ****************/
+/************************************************/
+{%- endcomment -%} 
+{%- assign id = uniqueid -%}
+<style>
+	@font-face {
+		font-family: 'proxima_nova_rgregular';
+		src: url('https://litmus.com/fonts/Emails/proximanova-regular-webfont.eot');
+		src: url('https://litmus.com/fonts/Emails/proximanova-regular-webfont.eot?#iefix') format('embedded-opentype'),
+			url('https://litmus.com/fonts/Emails/proximanova-regular-webfont.woff') format('woff'),
+			url('https://litmus.com/fonts/Emails/proximanova-regular-webfont.ttf') format('truetype'),
+			url('https://litmus.com/fonts/Emails/proximanova-regular-webfont.svg#proxima_nova_rgregular') format('svg');
+		font-weight: normal;
+		font-style: normal;
+	}
+	@font-face {
+		font-family: 'proxima_nova_rgbold';
+		src: url('https://litmus.com/fonts/Emails/proximanova-bold-webfont.eot');
+		src: url('https://litmus.com/fonts/Emails/proximanova-bold-webfont.eot?#iefix') format('embedded-opentype'),
+			url('https://litmus.com/fonts/Emails/proximanova-bold-webfont.woff') format('woff'),
+			url('https://litmus.com/fonts/Emails/proximanova-bold-webfont.ttf') format('truetype'),
+			url('https://litmus.com/fonts/Emails/proximanova-bold-webfont.svg#proxima_nova_rgbold') format('svg');
+		font-weight: normal;
+		font-style: normal;
+	}
+	@font-face {
+		font-family: 'adelle_rgregular';
+		src: url('https://litmus.com/fonts/Emails/adelle_reg-webfont.eot');
+		src: url('https://litmus.com/fonts/Emails/adelle_reg-webfont.eot?#iefix') format('embedded-opentype'),
+			url('https://litmus.com/fonts/Emails/adelle_reg-webfont.woff') format('woff'),
+			url('https://litmus.com/fonts/Emails/adelle_reg-webfont.ttf') format('truetype'),
+			url('https://litmus.com/fonts/Emails/adelle_reg-webfont.svg#adelle_rgregular') format('svg');
+		font-weight: normal;
+		font-style: normal;
+	}
+	body{
+		font-family: 'proxima_nova_rgregular', Helvetica, Arial, sans-serif;
+	}
+	#chartdiv-{{ id }} {
+		width: {{ chartwidth }};
+		height: {{ chartheight }};
+		{{ style }}
+	}
+</style>
+{%- comment -%} 
+/************************************************/
+/***************** CHART SCRIPTS ****************/
+/************************************************/
+{%- endcomment -%} 
+{%- javascript url:'https://www.amcharts.com/lib/4/core.js' id:'amChartCore'%}{%- endjavascript -%}
+{%- javascript url:'https://www.amcharts.com/lib/4/charts.js' id:'amCharts'%}{%- endjavascript -%}
+{%- javascript url:'https://www.amcharts.com/lib/4/themes/animated.js' id:'amChartsAnimated'%}{%- endjavascript -%}
+
+{%- comment -%} 
+/************************************************/
+/************** CHART PLACEHOLDER ***************/
+/************************************************/
+{%- endcomment -%} 
+<div id="chartdiv-{{ id }}"></div>
+
+{%- comment -%} 
+/************************************************/
+/******************* CHART JS *******************/
+/************************************************/
+{%- endcomment -%} 
+<script>
+	{%- comment -%} 
+	/************************************************/
+	/***************** CHART THEME ******************/
+	/************************************************/
+	{%- endcomment -%} 
+	am4core.useTheme(am4themes_animated);
+
+	{%- comment -%} 
+	/************************************************/
+	/**************** CHART INSTANCE ****************/
+	/************************************************/
+	{%- endcomment -%} 
+	{%- if type == 'pie' or type == 'halfdonut' -%}
+		var chart = am4core.create("chartdiv-{{ id }}", am4charts.PieChart);
+		{%- if type == 'halfdonut' -%}
+		chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
+		{%- endif -%}
+	{%- elseif type == 'radar' -%}
+		var chart = am4core.create("chartdiv-{{ id }}", am4charts.RadarChart);
+	{%- elseif type == 'bar' or type == 'sidebar' or type == 'linechart' -%}
+		var chart = am4core.create("chartdiv-{{ id }}", am4charts.XYChart);
+	{%- endif -%}
+
+	{%- comment -%} 
+	/************************************************/
+	/****************** CHART DATA ******************/
+	/************************************************/
+	{%- endcomment -%} 
+	{%- assign categories = data-category | Split:',' -%}
+	{%- assign category-labels = data-category-labels | Split:',' -%}
+	{%- assign categoryCount = categories | Size | Minus:1 -%}
+	{%- assign seriesData = '' -%}
+	{%- for dataitem in dataitems -%}
+		{%- capture itemData -%}
+			{	
+				{%- capture itemOptions -%}
+				{%- if categoryCount > 1 -%}
+					{%- assign values = dataitem.value | Split:',' -%}
+					{%- for i in (0..categoryCount) -%}
+						{%- if categories[i] != "date" -%}
+							"{{ categories[i] }}": "{{ values[i] }}",
+						{%- else -%}
+							"{{ categories[i] }}": new Date('{{ values[i] }}'),
+						{%- endif -%}
+					{%- endfor -%}
+				{%- else -%}
+					"{{ data-category }}": "{{ dataitem.label }}",
+					"{{ data-value }}": "{{ dataitem.value }}",
+				{%- endif -%}
+				{%- if dataitem.color == "auto" -%}"color": chart.colors.next(),{%- elseif dataitem.color != "" -%}"color": "{{ dataitem.color }}",{%- endif -%}
+				{%- if dataitem.bullet != "" -%}"bullet": "{{ dataitem.bullet }}",{%- endif -%}
+				{%- endcapture -%}
+				{{ itemOptions | ReplaceLast:',', '' }}
+			},
+		{%- endcapture -%}
+		{%- assign seriesData = seriesData | Append:itemData -%}
+	{%- endfor -%}
+	{%- assign seriesData = seriesData | ReplaceLast:',', '' -%}
+	// Add data
+	chart.data = [{{ seriesData }}];
+
+	{%- if type == 'pie' or type == 'halfdonut' -%}
+		{%- comment -%} 
+		/************************************************/
+		/******** PIE CHART (or 1/2 PIE) CONFIG *********/
+		/************************************************/
+		{%- endcomment -%}
+		{%- if type == 'halfdonut' -%}
+			chart.radius = am4core.percent(70);
+			chart.innerRadius = am4core.percent(40);
+			chart.startAngle = 180;
+			chart.endAngle = 360;  
+		{%- else -%}
+			// Set inner radius
+			chart.innerRadius = am4core.percent(50);
+		{%- endif -%}
+		{%- if type == 'halfdonut' -%}
+			// half donut chart
+			var series = chart.series.push(new am4charts.PieSeries());
+			series.dataFields.value = "{{ data-value }}";
+			series.dataFields.category = "{{ data-category }}";
+
+			series.slices.template.cornerRadius = 10;
+			series.slices.template.innerCornerRadius = 7;
+			series.slices.template.draggable = true;
+			series.slices.template.inert = true;
+			series.alignLabels = false;
+			series.labels.template.fontSize = 10;
+
+			series.hiddenState.properties.startAngle = 90;
+			series.hiddenState.properties.endAngle = 90;
+		{%- else -%}
+			// Full Pie Chart
+			// Add and configure Series
+			var pieSeries = chart.series.push(new am4charts.PieSeries());
+			pieSeries.dataFields.value = "{{ data-value }}";
+			pieSeries.dataFields.category = "{{ data-category }}";
+			pieSeries.slices.template.stroke = am4core.color("#fff");
+			pieSeries.slices.template.strokeWidth = 2;
+			pieSeries.slices.template.strokeOpacity = 1;
+			pieSeries.labels.template.maxWidth = 130;
+			pieSeries.labels.template.wrap = true;
+			pieSeries.labels.template.fontSize = 10;
+			pieSeries.alignLabels = false;
+			// This creates initial animation
+			pieSeries.hiddenState.properties.opacity = 1;
+			pieSeries.hiddenState.properties.endAngle = -90;
+			pieSeries.hiddenState.properties.startAngle = -90;
+		{%- endif -%}
+	{%- elseif type == 'radar' -%}
+		{%- comment -%} 
+		/************************************************/
+		/************** RADAR CHART CONFIG **************/
+		/************************************************/
+		{%- endcomment -%} 
+
+		// Make chart not full circle
+		chart.startAngle = -90;
+		chart.endAngle = 180;
+		chart.innerRadius = am4core.percent(20);
+
+		// Set number format
+		chart.numberFormatter.numberFormat = "#.#";
+
+		// Create axes
+		var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+		categoryAxis.dataFields.category = "{{ data-category }}";
+		categoryAxis.renderer.grid.template.location = 0;
+		categoryAxis.renderer.grid.template.strokeOpacity = 0;
+		categoryAxis.renderer.labels.template.horizontalCenter = "right";
+		categoryAxis.renderer.labels.template.fontWeight = 500;
+		categoryAxis.renderer.labels.template.fontSize = 10;
+		categoryAxis.renderer.labels.template.adapter.add("fill", function(fill, target) {
+		return (target.dataItem.index >= 0) ? chart.colors.getIndex(target.dataItem.index) : fill;
+		});
+		categoryAxis.renderer.minGridDistance = 2;
+
+		var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+		valueAxis.renderer.grid.template.strokeOpacity = 0;
+		valueAxis.renderer.labels.template.fontSize = 10;
+		valueAxis.min = 0;
+		{% comment %} /* valueAxis.max = 1345; */ {% endcomment %}
+		valueAxis.strictMinMax = true;
+
+		// Create series
+		var series1 = chart.series.push(new am4charts.RadarColumnSeries());
+		series1.dataFields.valueX = "{{ data-value }}";
+		series1.dataFields.categoryY = "{{ data-category }}";
+		series1.clustered = false;
+		series1.columns.template.fill = new am4core.InterfaceColorSet().getFor("alternativeBackground");
+		series1.columns.template.fillOpacity = 0.08;
+		series1.columns.template.cornerRadiusTopLeft = 20;
+		series1.columns.template.strokeWidth = 0;
+		series1.columns.template.radarColumn.cornerRadius = 20;
+
+		var series2 = chart.series.push(new am4charts.RadarColumnSeries());
+		series2.dataFields.valueX = "{{ data-value }}";
+		series2.dataFields.categoryY = "{{ data-category }}";
+		series2.clustered = false;
+		series2.columns.template.strokeWidth = 0;
+		series2.columns.template.tooltipText = "{categoryY}: [bold]{valueX}[/]";
+		series2.columns.template.radarColumn.cornerRadius = 20;
+
+		series2.columns.template.adapter.add("fill", function(fill, target) {
+		return chart.colors.getIndex(target.dataItem.index);
+		});
+
+		// Add cursor
+		chart.cursor = new am4charts.RadarCursor();
+	{%- elseif type == 'bar' -%}
+		{%- comment -%} 
+		/************************************************/
+		/************** BAR CHART CONFIG ****************/
+		/************************************************/
+		{%- endcomment -%} 
+		// Create axes
+		var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+		categoryAxis.dataFields.category = "{{ data-category }}";
+		categoryAxis.renderer.grid.template.disabled = true;
+		categoryAxis.renderer.minGridDistance = 30;
+		categoryAxis.renderer.inside = true;
+		categoryAxis.renderer.labels.template.fill = am4core.color("#fff");
+		categoryAxis.renderer.labels.template.fontSize = 10;
+
+		var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+		valueAxis.renderer.grid.template.strokeDasharray = "4,4";
+		valueAxis.renderer.labels.template.disabled = true;
+		valueAxis.min = 0;
+
+		// Do not crop bullets
+		chart.maskBullets = false;
+
+		// Remove padding
+		chart.paddingBottom = 0;
+
+		// Create series
+		var series = chart.series.push(new am4charts.ColumnSeries());
+		series.dataFields.valueY = "{{ data-value }}";
+		series.dataFields.categoryX = "{{ data-category }}";
+		series.columns.template.propertyFields.fill = "color";
+		series.columns.template.propertyFields.stroke = "color";
+		series.columns.template.column.cornerRadiusTopLeft = 15;
+		series.columns.template.column.cornerRadiusTopRight = 15;
+		series.columns.template.tooltipText = "{categoryX}: [bold]{valueY}[/b]";
+
+		// Add bullets
+		var bullet = series.bullets.push(new am4charts.Bullet());
+		var image = bullet.createChild(am4core.Image);
+		image.horizontalCenter = "middle";
+		image.verticalCenter = "bottom";
+		image.dy = 20;
+		image.y = am4core.percent(100);
+		image.propertyFields.href = "bullet";
+		image.tooltipText = series.columns.template.tooltipText;
+		image.propertyFields.fill = "color";
+		image.width = 100;
+		image.height = 75;
+		// image.filters.push(new am4core.DropShadowFilter());
+	
+	{%- elseif type == 'sidebar' -%}
+		{%- comment -%} 
+		/**************************************************/
+		/************** SIDEBAR CHART CONFIG **************/
+		/**************************************************/
+		{%- endcomment -%} 
+		// Create axes
+		var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+		categoryAxis.dataFields.category = "campus";
+		categoryAxis.numberFormatter.numberFormat = "#";
+		categoryAxis.renderer.inversed = true;
+		categoryAxis.renderer.grid.template.location = 0;
+		categoryAxis.renderer.labels.template.fontSize = 10;
+		categoryAxis.renderer.cellStartLocation = 0.1;
+		categoryAxis.renderer.cellEndLocation = 0.9;
+		categoryAxis.renderer.minGridDistance = 2;
+
+		var  valueAxis = chart.xAxes.push(new am4charts.ValueAxis()); 
+		valueAxis.renderer.opposite = true;
+
+		// Create series
+		function createSeries(field, name) {
+		var series = chart.series.push(new am4charts.ColumnSeries());
+		series.dataFields.valueX = field;
+		series.dataFields.categoryY = "{{ categories[0] }}";
+		series.name = name;
+		series.columns.template.tooltipText = "{categoryY} {name}: [bold]{valueX}[/]";
+		series.columns.template.height = am4core.percent(100);
+		series.sequencedInterpolation = true;
+
+		var valueLabel = series.bullets.push(new am4charts.LabelBullet());
+		// valueLabel.label.text = "{valueX}";
+		valueLabel.label.horizontalCenter = "left";
+		valueLabel.label.dx = 10;
+		valueLabel.label.hideOversized = false;
+		valueLabel.label.truncate = false;
+
+		var categoryLabel = series.bullets.push(new am4charts.LabelBullet());
+		categoryLabel.label.text = " ";
+		categoryLabel.label.horizontalCenter = "right";
+		categoryLabel.label.dx = -10;
+		categoryLabel.label.fill = am4core.color("#fff");
+		categoryLabel.label.hideOversized = false;
+		categoryLabel.label.truncate = false;
+		}
+
+		chart.legend = new am4charts.Legend();
+		// series.legendSettings.labelText = "[bold]{category}[/]";
+		// series.legendSettings.valueText = " ";
+		// series.legendSettings.itemValueText = " ";
+
+		{%- if categoryCount > 1 -%}
+			{%- for i in (1..categoryCount) -%}
+			createSeries("{{ categories[i] }}", "{{ category-labels[i] }}");
+			{%- endfor -%}
+		{%- else -%}
+			createSeries("{{ categories[i] }}", "{{ category-labels[i] }}");
+		{%- endif -%}
+
+	{%- elseif type == 'linechart' -%}
+		{%- comment -%} 
+		/****************************************************/
+		/************** LINECHART CHART CONFIG **************/
+		/****************************************************/
+		{%- endcomment -%} 
+		// Increase contrast by taking evey second color
+		chart.colors.step = 2;
+		// Create axes
+		var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+		dateAxis.renderer.minGridDistance = 50;
+
+
+		// Create series
+		function createAxisAndSeries(field, name, opposite, bullet) {
+		var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+		if(chart.yAxes.indexOf(valueAxis) != 0){
+			valueAxis.syncWithAxis = chart.yAxes.getIndex(0);
+		}
+		
+		var series = chart.series.push(new am4charts.LineSeries());
+		series.dataFields.valueY = field;
+		series.dataFields.dateX = "date";
+		series.strokeWidth = 2;
+		series.yAxis = valueAxis;
+		series.name = name;
+		series.tooltipText = "{name}: [bold]{valueY}[/]";
+		series.tensionX = 0.8;
+		series.showOnInit = true;
+		
+		var interfaceColors = new am4core.InterfaceColorSet();
+		
+		switch(bullet) {
+			default:
+			var bullet = series.bullets.push(new am4charts.CircleBullet());
+			bullet.circle.stroke = interfaceColors.getFor("background");
+			bullet.circle.strokeWidth = 2;
+			break;
+		}
+		
+		valueAxis.renderer.line.strokeOpacity = 1;
+		valueAxis.renderer.line.strokeWidth = 2;
+		valueAxis.renderer.line.stroke = series.stroke;
+		valueAxis.renderer.labels.template.fill = series.stroke;
+		valueAxis.renderer.opposite = opposite;
+		}
+
+		{%- if categoryCount > 1 -%}
+			{%- for i in (1..categoryCount) -%}
+				createAxisAndSeries("{{ categories[i] }}", "{{ category-labels[i] }}", true, "circle");
+			{%- endfor -%}
+		{%- else -%}
+			createAxisAndSeries("{{ categories[i] }}", "{{ category-labels[i] }}", true, "circle");
+		{%- endif -%}
+
+		// Add cursor
+		chart.cursor = new am4charts.XYCursor();
+	{%- endif -%}
+
+	{%- comment -%} 
+	/************************************************/
+	/************* CHART LEGEND CONFIG **************/
+	/************************************************/
+	{%- endcomment -%} 
+	{%- if legend == 'on' -%}
+		chart.legend = new am4charts.Legend();
+	{%- endif -%}
+</script>

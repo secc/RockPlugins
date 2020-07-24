@@ -1,0 +1,709 @@
+<div class="g-bg-color--gray-lightest">
+    <div class="container g-padding-b-100--xs">
+        {% comment %} --------------------------------------------------------
+        ------------------------ SE ENGAGEMENT HEADER ------------------------
+        -------------------------------------------------------{% endcomment %}
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-margin-y-50--xs g-margin-y-100--md g-display-flex--lg" style="background-color: #6771DC; border-radius: 30px">
+            <div class="g-padding-y-150--xs g-padding-x-75--xs col-md-6 col-lg-5" style="background-color: #67B7DC;border-radius: 30px;">
+                <div class="g-width-100-percent--xs">
+                    <img src="/Content/Ministries/SEEngage.svg" class="img-responsive g-margin-x-auto--xs">
+                </div>
+            </div>
+            <div class="col-lg-7 col-md-6 g-position--relative" style="">
+                <div class="g-width-100-percent--xs g-padding-x-60--xs g-padding-y-60--xs g-center--lg">
+                    <h2 class="g-color--primary g-font-weight--600">Welcome!</h2>
+                    <h5 class="g-color--primary">Here you’ll find a snapshot of our latest engagement numbers. Whether it’s how many people tuned in to SE Online, the number of followers and interactions on our social media platforms, or the latest giving total and where those dollars are coming from throughout the world, it’s all here—all at a glance.</h5>
+                </div>
+            </div>
+        </div>
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- DIVIDER ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
+            <hr style="border-color: #4D4D4D;position: relative;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+                SE ONLINE ENGAGEMENT
+            </h4>
+        </div>
+
+        {% comment %} --------------------------------------------------------------
+        ---------------------------- SE ONLINE ENAGEMENT ---------------------------
+        ----------------------------------------------------------- {% endcomment %}
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-lg-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Online Viewers</h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <div class="g-center--xs g-text-center--xs" style="bottom: 45%;">
+                            <h6 class="uppercase g-font-weight--700">Total</h6>
+                            <h3 class="g-font-weight--700" style="color: #6794DD;">33,897</h3>
+                        </div>
+                        {[ amcharts chartwidth:'100%' chartheight:'280px' data-category:'site' data-value:'visitors' ]}
+                            [[ dataitem label:'SE Website' value:'276' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Youtube' value:'492' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Facebook' value:'3439' ]] [[ enddataitem ]]
+                        {[ endamcharts ]}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Engagements</h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <div class="g-center--xs g-text-center--xs" style="bottom: 45%;">
+                            <h6 class="uppercase g-font-weight--700">Total</h6>
+                            <h3 class="g-font-weight--700" style="color: #6794DD;">4,207</h3>
+                        </div>
+                        {[ amcharts chartwidth:'100%' chartheight:'280px' data-category:'site' data-value:'visitors' ]}
+                            [[ dataitem label:'SE Website' value:'2101' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Youtube' value:'1602' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Facebook' value:'502' ]] [[ enddataitem ]]
+                        {[ endamcharts ]}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-position--relative">
+            <div class="col-lg-12">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Unique Locations</h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        {% comment %} -----------------------------------------------------------
+                        ---------------------------- UNIQUE LOCATIONS ---------------------------
+                        -------------------------------------------------------- {% endcomment %}
+                        <script src="https://www.amcharts.com/lib/4/maps.js"></script>
+                        <script src="https://www.amcharts.com/lib/4/geodata/worldLow.js"></script>
+                        <div id="chartdivUniqLocations"></div>
+                        <style>
+                        #chartdivUniqLocations {
+                            width: 100%;
+                            height: 500px;
+                            overflow: hidden;
+                        }
+                        </style>
+                        <script>
+                        /**
+                        * ---------------------------------------
+                        * This demo was created using amCharts 4.
+                        * 
+                        * For more information visit:
+                        * https://www.amcharts.com/
+                        * 
+                        * Documentation is available at:
+                        * https://www.amcharts.com/docs/v4/
+                        * ---------------------------------------
+                        */
+                        // Themes begin
+                        am4core.useTheme(am4themes_animated);
+                        // Themes end
+                        // Create map instance
+                        var chart = am4core.create("chartdivUniqLocations", am4maps.MapChart);
+                        // Set map definition
+                        chart.geodata = am4geodata_worldLow;
+                        // Set projection
+                        chart.projection = new am4maps.projections.Miller();
+                        chart.chartContainer.wheelable = false;
+                        // Create map polygon series
+                        var polygonSeries = chart.series.push(new am4maps.MapPolygonSeries());
+                        // Exclude Antartica
+                        polygonSeries.exclude = ["AQ"];
+                        // Make map load polygon (like country names) data from GeoJSON
+                        polygonSeries.useGeodata = true;
+                        // Configure series
+                        var polygonTemplate = polygonSeries.mapPolygons.template;
+                        polygonTemplate.tooltipText = "{name}";
+                        polygonTemplate.polygon.fillOpacity = 0.6;
+                        // Create hover state and set alternative fill color
+                        var hs = polygonTemplate.states.create("hover");
+                        hs.properties.fill = chart.colors.getIndex(0);
+                        // Add image series
+                        var imageSeries = chart.series.push(new am4maps.MapImageSeries());
+                        imageSeries.mapImages.template.propertyFields.longitude = "longitude";
+                        imageSeries.mapImages.template.propertyFields.latitude = "latitude";
+                        imageSeries.mapImages.template.tooltipText = "{title}";
+                        imageSeries.mapImages.template.propertyFields.url = "url";
+                        var circle = imageSeries.mapImages.template.createChild(am4core.Circle);
+                        circle.radius = 5;
+                        circle.propertyFields.fill = "color";
+                        var circle2 = imageSeries.mapImages.template.createChild(am4core.Circle);
+                        circle2.radius = 4;
+                        circle2.propertyFields.fill = "color";
+                        circle2.events.on("inited", function(event){
+                        animateBullet(event.target);
+                        });
+                        function animateBullet(circle) {
+                            var animation = circle.animate([{ property: "scale", from: 1, to: 3 }, { property: "opacity", from: 1, to: 0 }], 1000, am4core.ease.circleOut);
+                            animation.events.on("animationended", function(event){
+                            animateBullet(event.target.object);
+                            });
+                        }
+                        var colorSet = new am4core.ColorSet();
+                        imageSeries.data = [ {
+                        "title": "Indonesia",
+                            "latitude": -2.4151629,
+                            "longitude": 108.8270939,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Malaysia",
+                                "latitude": 4.1278731, 
+                                "longitude": 105.1109232,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "South Korea",
+                        "latitude": 35.7981093,
+                            "longitude": 125.6247401,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Nigeria",
+                        "latitude": 9.0270254,
+                        "longitude": 6.4279373,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Nepal",
+                                "latitude": 28.3789164,
+                                "longitude": 81.8812292,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Czech Republic",
+                                "latitude": 49.7820202,
+                                "longitude": 13.2271521,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Austria",
+                                "latitude": 47.6745153,
+                                "longitude": 11.0978707,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Netherlands",
+                                "latitude": 52.2076561,
+                                "longitude": 4.155728,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Germany",
+                                "latitude": 51.0895525,
+                                "longitude": 5.9587011,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Spain",
+                                "latitude": 40.1213348,
+                                "longitude": -8.2123216,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Portugal",
+                                "latitude": 37.1367202,
+                                "longitude": -23.3273098,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Brazil",
+                                "latitude": -13.7020097,
+                                "longitude": -69.6968099,
+                        "color":colorSet.next()
+                        }, {
+                                "title": "Colombia",
+                                "latitude": 4.6310417,
+                                "longitude": -78.8462063,
+                        "color":colorSet.next()
+                        }, {
+                                "title": "Panama",
+                                "latitude": 8.3761109,
+                                "longitude": -81.2293544,
+                        "color":colorSet.next()
+                        }, {
+                                "title": "Dominican Republic",
+                                "latitude": 18.6665563,
+                                "longitude": -71.2540031,
+                        "color":colorSet.next()
+                        }, {
+                                "title": "Honduras",
+                                "latitude": 15.2215167,
+                                "longitude": -87.3332567,
+                        "color":colorSet.next()
+                        }, {
+                                "title": "Mexico",
+                                "latitude": 23.292818,
+                                "longitude": -111.6612058,
+                        "color":colorSet.next()
+                        }, {
+                                "title": "Canada",
+                                "latitude": 54.6924369,
+                                "longitude": -113.7537297,
+                        "color":colorSet.next()
+                        }, {
+                                "title": "Italy",
+                                "latitude": 41.2032007,
+                                "longitude": 8.2132121,
+                        "color":colorSet.next()
+                        }, {
+                                "title": "Australia",
+                                "latitude": -25.0258658, 
+                                "longitude": 115.1730476,
+                        "color":colorSet.next()
+                        }];
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- DIVIDER ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
+            <hr style="border-color: #4D4D4D;position: relative;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+                SE!KIDS ONLINE ENGAGEMENT
+            </h4>
+        </div>
+        {% comment %} -------------------------------------------------------------------
+        ---------------------------- SE!KIDS ONLINE ENAGEMENT ---------------------------
+        ---------------------------------------------------------------- {% endcomment %}
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-lg-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Viewers Per Platform</h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <!-- BAR CHART -->
+                        {[ amcharts chartwidth:'100%' chartheight:'250px' data-value:'viewers' data-category:'socialmedia' type:'bar' ]}
+                            [[ dataitem label:'YouTube' value:'723' color:'auto' bullet:'https://rock.secc.org/content/externalsite/yt_logo_mono_light.svg' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Vimeo' value:'280' color:'auto' bullet:'https://rock.secc.org/content/externalsite/Vimeo.svg' ]] [[ enddataitem ]]
+                        {[ endamcharts ]}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Devices Across Platforms</h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 20%;left: 50%;transform: translate(-50%, -50%);">
+                            <h6 class="uppercase g-font-weight--700">Total</h6>
+                            <h3 class="g-font-weight--700" style="color: #6794DD;">4,413</h3>
+                        </div>
+                        {[ amcharts chartwidth:'100%' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
+                            [[ dataitem label:'Computer' value:'739' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Mobile Phone' value:'1993' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Tablet' value:'169' ]] [[ enddataitem ]]
+                            [[ dataitem label:'TV' value:'115' ]] [[ enddataitem ]]
+                        {[ endamcharts ]}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- DIVIDER ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
+            <hr style="border-color: #4D4D4D;position: relative;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+                SOCIAL MEDIA ENGAGEMENT
+            </h4>
+        </div>
+
+        {% comment %} ------------------------------------------------------------------
+        ---------------------------- SOCIAL MEDIA ENGAGEMENT ---------------------------
+        --------------------------------------------------------------- {% endcomment %}
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-lg-12">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Family Gatherings</h4>
+                    <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                        <div class="col-md-4 g-padding-y-50--xs ">
+                            <!-- VIEWS -->
+                            <div class="g-text-center--xs">
+                                <h6 class="uppercase g-font-weight--700">Views</h6>
+                            </div>
+                            {[ amcharts chartwidth:'' chartheight:'300px' data-value:'online viewers' data-category:'campus' type:'radar' ]}
+                                [[ dataitem label:'Blankenbaker' value:'1019' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Indiana' value:'697' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Crestwood' value:'876' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Southwest' value:'822' ]] [[ enddataitem ]]
+                                [[ dataitem label:'La Grange' value:'1345' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Elizabethtown' value:'527' ]] [[ enddataitem ]]
+                                [[ dataitem label:'River Valley' value:'352' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Chapel in the Woods' value:'198' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Shelby County' value:'373' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Bullitt County' value:'507' ]] [[ enddataitem ]]
+                            {[ endamcharts ]}
+                        </div>
+                        <div class="col-md-4 g-padding-y-50--xs ">
+                            <!-- COMMENTS -->
+                            <div class="g-text-center--xs">
+                                <h6 class="uppercase g-font-weight--700">COMMENTS</h6>
+                            </div>
+                            {[ amcharts chartwidth:'' chartheight:'300px' data-value:'online viewers' data-category:'campus' type:'radar' ]}
+                                [[ dataitem label:'Blankenbaker' value:'189' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Indiana' value:'60' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Crestwood' value:'377' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Southwest' value:'541' ]] [[ enddataitem ]]
+                                [[ dataitem label:'La Grange' value:'790' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Elizabethtown' value:'192' ]] [[ enddataitem ]]
+                                [[ dataitem label:'River Valley' value:'307' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Chapel in the Woods' value:'107' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Shelby County' value:'83' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Bullitt County' value:'109' ]] [[ enddataitem ]]
+                            {[ endamcharts ]}
+                        </div>
+                        <div class="col-md-4 g-padding-y-50--xs ">
+                            <!-- SHARES -->
+                            <div class="g-text-center--xs">
+                                <h6 class="uppercase g-font-weight--700">SHARES</h6>
+                            </div>
+                            {[ amcharts chartwidth:'' chartheight:'300px' data-value:'online viewers' data-category:'campus' type:'radar' ]}
+                                [[ dataitem label:'Blankenbaker' value:'8' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Indiana' value:'3' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Crestwood' value:'2' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Southwest' value:'6' ]] [[ enddataitem ]]
+                                [[ dataitem label:'La Grange' value:'20' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Elizabethtown' value:'7' ]] [[ enddataitem ]]
+                                [[ dataitem label:'River Valley' value:'3' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Chapel in the Woods' value:'0' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Shelby County' value:'7' ]] [[ enddataitem ]]
+                                [[ dataitem label:'Bullitt County' value:'4' ]] [[ enddataitem ]]
+                            {[ endamcharts ]}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-md-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Facebook</h4>
+                    <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
+                            <h6 class="uppercase g-font-weight--700"><i class="fab fa-3x fa-facebook g-padding-b-10--xs"></i><br>Total Followers</h6>
+                            <h3 class="g-font-weight--700" style="color: #6794DD;">51,022</h3>
+                        </div>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
+                            [[ dataitem label:'Total Followers' value:'51022' ]] [[ enddataitem ]]
+                            [[ dataitem label:'New Followers' value:'237' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Page Reach' value:'102800' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Post Engagement' value:'41400' ]] [[ enddataitem ]]
+                        {[ endamcharts ]}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Instagram</h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
+                            <h6 class="uppercase g-font-weight--700"><i class="fab fa-3x fa-instagram g-padding-b-10--xs"></i><br>Total Followers</h6>
+                            <h3 class="g-font-weight--700" style="color: #6794DD;">21,651</h3>
+                        </div>
+                        {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' legend:'off' ]}
+                            [[ dataitem label:'Total Followers' value:'21651' ]] [[ enddataitem ]]
+                            [[ dataitem label:'New Followers' value:'67' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Accounts Reached' value:'13778' ]] [[ enddataitem ]]
+                        {[ endamcharts ]}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-md-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Twitter</h4>
+                    <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
+                            <h6 class="uppercase g-font-weight--700"><i class="fab fa-3x fa-twitter g-padding-b-10--xs"></i><br>Total Followers</h6>
+                            <h3 class="g-font-weight--700" style="color: #6794DD;">14,426</h3>
+                        </div>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
+                            [[ dataitem label:'Total Followers' value:'21651' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Engagements (Retweets, Favorites,Replies)' value:'351' ]] [[ enddataitem ]]
+                        {[ endamcharts ]}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">YouTube</h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
+                            <h6 class="uppercase g-font-weight--700"><i class="fab fa-3x fa-youtube g-padding-b-10--xs"></i><br>Total Followers</h6>
+                            <h3 class="g-font-weight--700" style="color: #6794DD;">23,100</h3>
+                        </div>
+                        {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
+                            [[ dataitem label:'Views' value:'23100' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Watch Time (hours)' value:'9600' ]] [[ enddataitem ]]
+                            [[ dataitem label:'New Subscribers' value:'207' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Total Subscribers' value:'18987' ]] [[ enddataitem ]]
+                        {[ endamcharts ]}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-lg-12">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Campus Facebook Pages</h4>
+                    <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                        <div class="col-md-12 g-padding-y-50--xs ">
+                            {[ amcharts chartheight:'500px;' data-category:'campus,total,new,weekly' data-category-labels:'Campus,Total Followers,New Followers,Weekly Post Reach' type:'sidebar' ]}
+                                [[ dataitem value:'Blankenbaker,1844,76,9677' ]] [[ enddataitem ]]
+                                [[ dataitem value:'Indiana,3714,16,4902' ]] [[ enddataitem ]]
+                                [[ dataitem value:'Crestwood,3674,22,5222' ]] [[ enddataitem ]]
+                                [[ dataitem value:'Southwest,4133,15,4505' ]] [[ enddataitem ]]
+                                [[ dataitem value:'La Grange,2206,15,5898' ]] [[ enddataitem ]]
+                                [[ dataitem value:'Elizabethtown,2461,10,5295' ]] [[ enddataitem ]]
+                                [[ dataitem value:'River Valley,1013,21,1823' ]] [[ enddataitem ]]
+                                [[ dataitem value:'Chapel in the Woods,458,18,1173' ]] [[ enddataitem ]]
+                                [[ dataitem value:'Shelby County,739,12,2888' ]] [[ enddataitem ]]
+                                [[ dataitem value:'Bullitt  County,1298,26,2875' ]] [[ enddataitem ]]
+                            {[ endamcharts ]}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- DIVIDER ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
+            <hr style="border-color: #4D4D4D;position: relative;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+                GIVING
+            </h4>
+        </div>
+        {% comment %} -------------------------------------------------------------
+        ---------------------------------- GIVING ---------------------------------
+        ---------------------------------------------------------- {% endcomment %}
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-lg-12">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Giving Totals</h4>
+                    <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                        <div class="col-md-12 g-padding-y-50--xs ">
+                            {[ amcharts data-category:'date,giving,units,online,average' data-category-labels:'Date,$ General Giving,$ Amount / Giving Unit,# of Giving Units,% of Online Giving' type:'linechart' legend:'on' ]}
+                                [[ dataitem value:'April 26 2020,987935,3712,73,266' ]][[ enddataitem ]]
+                                [[ dataitem value:'May 3 2020,1256557,4582,81,274' ]][[ enddataitem ]]
+                                [[ dataitem value:'May 10 2020,1060088,3708,66,286' ]][[ enddataitem ]]
+                                [[ dataitem value:'May 17 2020,1147240,4261,84,269' ]][[ enddataitem ]]
+                                [[ dataitem value:'May 24 2020,865035,3485,77,248' ]][[ enddataitem ]]
+                            {[ endamcharts ]}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-lg-12">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Giving by Location</h4>
+                    <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                        <div class="col-md-12 g-padding-y-50--xs ">
+
+                            <script src="https://www.amcharts.com/lib/4/geodata/data/countries2.js"></script>
+                            <div id="chartdivGivingByLocation"></div>
+
+                            <style>
+                            body {
+                            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+                            }
+
+                            #chartdivGivingByLocation {
+                            width: 100%;
+                            height: 500px;
+                            }
+                            </style>
+
+                            <script>
+                            /**
+                            * ---------------------------------------
+                            * This demo was created using amCharts 4.
+                            * 
+                            * For more information visit:
+                            * https://www.amcharts.com/
+                            * 
+                            * Documentation is available at:
+                            * https://www.amcharts.com/docs/v4/
+                            * ---------------------------------------
+                            */
+
+                            // Themes begin
+                            am4core.useTheme(am4themes_animated);
+                            // Themes end
+
+                            /*var continents = {
+                            "AF": 0,
+                            "AN": 1,
+                            "AS": 2,
+                            "EU": 3,
+                            "NA": 4,
+                            "OC": 5,
+                            "SA": 6
+                            }*/
+
+                            // Create map instance
+                            var chart = am4core.create("chartdivGivingByLocation", am4maps.MapChart);
+                            chart.projection = new am4maps.projections.Miller();
+
+                            // Create map polygon series for world map
+                            var worldSeries = chart.series.push(new am4maps.MapPolygonSeries());
+                            worldSeries.useGeodata = true;
+                            worldSeries.geodata = am4geodata_worldLow;
+                            worldSeries.exclude = ["AQ", "AF", "AS", "SA"];
+
+                            var worldPolygon = worldSeries.mapPolygons.template;
+                            worldPolygon.tooltipText = "{name}";
+                            worldPolygon.nonScalingStroke = true;
+                            worldPolygon.strokeOpacity = 0.5;
+                            worldPolygon.fill = am4core.color("#eee");
+                            worldPolygon.propertyFields.fill = "color";
+
+                            var hs = worldPolygon.states.create("hover");
+                            //hs.properties.fill = chart.colors.getIndex(9);
+                            hs.properties.fill = am4core.color("#6771DC");
+
+                            // Create country specific series (but hide it for now)
+                            var countrySeries = chart.series.push(new am4maps.MapPolygonSeries());
+                            countrySeries.useGeodata = true;
+                            countrySeries.hide();
+                            countrySeries.geodataSource.events.on("done", function(ev) {
+
+                            var data = [];
+                            for(var i = 0; i < ev.target.data.features.length; i++) {
+                                data.push({
+                                id: ev.target.data.features[i].id,
+                                color: '#000000',
+                                value: Math.round( Math.random() * 10000 )
+                                })
+                            }
+                            countrySeries.data = data;
+
+                            worldSeries.hide();
+                            countrySeries.show();
+                            });
+
+                            var countryPolygon = countrySeries.mapPolygons.template;
+                            countryPolygon.tooltipText = "{name}";
+                            countryPolygon.nonScalingStroke = true;
+                            countryPolygon.strokeOpacity = 0.5;
+                            countryPolygon.fill = am4core.color("#eee");
+
+                            var hs = countryPolygon.states.create("hover");
+                            //hs.properties.fill = chart.colors.getIndex(9);
+                            hs.properties.fill = am4core.color("#67B7DC");
+
+                            // Set up click events
+                            worldPolygon.events.on("hit", function(ev) {
+                            ev.target.series.chart.zoomToMapObject(ev.target);
+                            var map = ev.target.dataItem.dataContext.map;
+                            if (map) {
+                                ev.target.isHover = false;
+                                countrySeries.geodataSource.url = "https://www.amcharts.com/lib/4/geodata/json/" + map + ".json";
+                            
+                                /*// Set up data for counties
+                                countrySeries.geodataSource.data["US-CO"] = [{
+                                "id": "US-CO",
+                                "name": "Colorado",
+                                "color": '#000000'
+                                }];*/
+
+                                countrySeries.geodataSource.load();
+                            }
+                            });
+
+                            // Set up data for countries
+                            /*color: chart.colors.getIndex(continents[country.continent_code]),*/
+                            var data = [];
+                            for(var id in am4geodata_data_countries2) {
+                            if (am4geodata_data_countries2.hasOwnProperty(id)) {
+                                var country = am4geodata_data_countries2[id];
+                                if (country.maps.length) {
+                                if (id == "US") {
+                                    data.push({
+                                    id: id,
+                                    color: '#67B7DC',
+                                    map: country.maps[0]
+                                    });
+                                }
+                                }
+                            }
+                            }
+                            worldSeries.data = data;
+
+
+                            // Zoom control
+                            chart.zoomControl = new am4maps.ZoomControl();
+
+                            var homeButton = new am4core.Button();
+                            homeButton.events.on("hit", function() {
+                            worldSeries.show();
+                            countrySeries.hide();
+                            chart.goHome();
+                            });
+
+                            homeButton.icon = new am4core.Sprite();
+                            homeButton.padding(7, 5, 7, 5);
+                            homeButton.width = 30;
+                            homeButton.icon.path = "M16,8 L14,8 L14,16 L10,16 L10,10 L6,10 L6,16 L2,16 L2,8 L0,8 L8,0 L16,8 Z M16,8";
+                            homeButton.marginBottom = 10;
+                            homeButton.parent = chart.zoomControl;
+                            homeButton.insertBefore(chart.zoomControl.plusButton);
+                            </script>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- DIVIDER ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
+            <hr style="border-color: #4D4D4D;position: relative;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+                SE APP
+            </h4>
+        </div>
+
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-lg-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Downloads by Platform</h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <div class="g-center--xs g-text-center--xs" style="bottom: 45%;">
+                            <h6 class="uppercase g-font-weight--700">Total</h6>
+                            <h3 class="g-font-weight--700" style="color: #6794DD;">16,904</h3>
+                        </div>
+                        {[ amcharts chartwidth:'' chartheight:'280px' data-category:'platform' data-value:'visitors' ]}
+                            [[ dataitem label:'iOS' value:'10311' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Android' value:'2736' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Apple TV' value:'141' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Roku' value:'365' ]] [[ enddataitem ]]
+                        {[ endamcharts ]}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Impressions by Platform</h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <div class="g-center--xs g-text-center--xs" style="bottom: 45%;">
+                            <h6 class="uppercase g-font-weight--700">Total</h6>
+                            <h3 class="g-font-weight--700" style="color: #6794DD;">480,057</h3>
+                        </div>
+                        {[ amcharts chartwidth:'' chartheight:'280px' data-category:'platforms' data-value:'visitors' ]}
+                            [[ dataitem label:'iOS' value:'332846' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Android' value:'134889' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Apple TV' value:'1672' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Roku' value:'10650' ]] [[ enddataitem ]]
+                        {[ endamcharts ]}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
