@@ -65,7 +65,7 @@
     padding: 1rem 3.5rem;
     color: #000000;
     border: 0.4rem solid transparent;
-    border-radius: 0.1rem;
+    border-radius: 3rem;
     margin: 10px;
     cursor: pointer;
     font-weight: 700 !important;
@@ -74,14 +74,14 @@
   }
   .se-need.active {
     border: 0.4rem solid #000000;
-    border-radius: 0.1rem;
+    border-radius: 3rem;
     background: transparent;
     -webkit-box-shadow: none;
     box-shadow: none;
   }
   .se-need.active {
     border: 0.4rem solid #000000;
-    border-radius: 0.1rem;
+    border-radius: 3rem;
     background: transparent;
     -webkit-box-shadow: none;
     box-shadow: none;

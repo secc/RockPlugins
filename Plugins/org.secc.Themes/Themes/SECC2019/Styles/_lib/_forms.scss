@@ -80,7 +80,7 @@ form {
 				$brd-width: .4rem,
 				$brd-style: solid,
 				$brd-color: $color-dark,
-				$brd-radius: 0.1rem,
+				$brd-radius: 3rem !important,
 				$hvr-bg: lighten($color-dark, 18%),
 				$hvr-color: $color-primary,
 				$hvr-brd-color: $color-dark);
@@ -95,7 +95,7 @@ form {
 				$brd-width: .4rem,
 				$brd-style: solid,
 				$brd-color: lighten($color-dark, 60%),
-				$brd-radius: 0.1rem,
+				$brd-radius: 3rem !important,
 				$hvr-bg: lighten($color-dark, 18%),
 				$hvr-color: $color-primary,
 				$hvr-brd-color: $color-dark);
@@ -109,7 +109,7 @@ form {
 				$brd-width: .4rem,
 				$brd-style: solid,
 				$brd-color: lighten($color-dark, 80%),
-				$brd-radius: 0.1rem,
+				$brd-radius: 3rem !important,
 				$hvr-bg: lighten($color-dark, 18%),
 				$hvr-color: $color-primary,
 				$hvr-brd-color: $color-dark);

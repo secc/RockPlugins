@@ -8,6 +8,7 @@
   @include size(4rem, 4rem);
   z-index: 9;
   border: solid 3px $color-dark;
+  border-radius: 3rem;
   background-color: $color-white;
   text-align: center;
   @include cubic-transition($delay: 0, $duration: 300ms, $property: (all));

@@ -39,7 +39,7 @@
 	$brd-width: .4rem,
 	$brd-style: solid,
 	$brd-color: $color-primary,
-	$brd-radius: 0.1rem,
+	$brd-radius: 3rem,
 	$hvr-bg: lighten($color-primary, 18%),
 	$hvr-color: $color-dark,
 	$hvr-brd-color: $color-primary);
@@ -53,7 +53,7 @@
 	$brd-width: .4rem,
 	$brd-style: solid,
 	$brd-color: $color-dark,
-	$brd-radius: 0.1rem,
+	$brd-radius: 3rem,
 	$hvr-bg: lighten($color-dark, 18%),
 	$hvr-color: $color-primary,
 	$hvr-brd-color: $color-dark);
@@ -67,7 +67,7 @@
 	$brd-width: .4rem,
 	$brd-style: solid,
 	$brd-color: transparent,
-	$brd-radius: 0.1rem,
+	$brd-radius: 3rem,
 	$hvr-bg: lighten($LightGreyColor, 20%),
 	$hvr-color: $color-dark,
 	$hvr-brd-color: transparent);
@@ -118,7 +118,7 @@
 	$brd-width: .4rem,
 	$brd-style: solid,
 	$brd-color: $color-dark,
-	$brd-radius: 0.1rem,
+	$brd-radius: 3rem,
 	$hvr-bg: $color-primary,
 	$hvr-color: $color-primary,
 	$hvr-brd-color: $color-dark
