@@ -705,5 +705,175 @@
             </div>
         </div>
 
+
+
+
+
+
+
+
+
+
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- DIVIDER ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-y-50--xs g-text-center--xs g-position--relative">
+            <hr style="border-color: #4D4D4D;position: relative;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+                Stories
+            </h4>
+        </div>
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- STORIES ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        <div class="fluid-container">
+            <section class="cards-section">
+                    <div class="isotope_wrap">
+                        <a href="{{ childPage.Id }}" {% if childPage.DisplayDescription != 'true' %} title="{{ childPage.Description }}"{% endif %}>
+                            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+                                <div class="clearfix card g-hor-divider__solid__t--doc-color-{{ forloop.index }}" style="border-width:5px; border-radius: 30px;">
+                                    <a href="/events/starting-point" class="eventCardLink">
+                                        <div class="img-hover">
+                                            <img src="/GetImage.ashx?id=1998421&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+                                        </div>
+                                    </a>
+                                    <div class="caption g-padding-x-50--xs g-padding-y-50--xs">
+                                        <h6 class="g-font-family--secondary" style="margin-bottom: 5px;">
+                                            Story Title
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="{{ childPage.Id }}" {% if childPage.DisplayDescription != 'true' %} title="{{ childPage.Description }}"{% endif %}>
+                            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+                                <div class="clearfix card g-hor-divider__solid__t--doc-color-{{ forloop.index }}" style="border-width:5px; border-radius: 30px;">
+                                    <a href="/events/starting-point" class="eventCardLink">
+                                        <div class="img-hover">
+                                            <img src="/GetImage.ashx?id=1999706&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+                                        </div>
+                                    </a>
+                                    <div class="caption g-padding-x-50--xs g-padding-y-50--xs">
+                                        <h6 class="g-font-family--secondary" style="margin-bottom: 5px;">
+                                            Story Title
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="{{ childPage.Id }}" {% if childPage.DisplayDescription != 'true' %} title="{{ childPage.Description }}"{% endif %}>
+                            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+                                <div class="clearfix card g-hor-divider__solid__t--doc-color-{{ forloop.index }}" style="border-width:5px; border-radius: 30px;">
+                                    <a href="/events/starting-point" class="eventCardLink">
+                                        <div class="img-hover">
+                                            <img src="/GetImage.ashx?id=1999706&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+                                        </div>
+                                    </a>
+                                    <div class="caption g-padding-x-50--xs g-padding-y-50--xs">
+                                        <h6 class="g-font-family--secondary" style="margin-bottom: 5px;">
+                                            Story Title
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+            </section>
+        </div>
+
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- DIVIDER ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-y-50--xs g-text-center--xs g-position--relative">
+            <hr style="border-color: #4D4D4D;position: relative;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+                Videos
+            </h4>
+        </div>
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- VIDEOS ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        <div class="fluid-container">
+            <section class="cards-section">
+                    <div class="isotope_wrap">
+                        <a href="{{ childPage.Id }}" {% if childPage.DisplayDescription != 'true' %} title="{{ childPage.Description }}"{% endif %}>
+                            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+                                <div class="clearfix card g-hor-divider__solid__t--doc-color-{{ forloop.index }}" style="border-width:5px; border-radius: 30px;">
+                                    <a href="/events/starting-point" class="eventCardLink">
+                                        <div class="img-hover">
+                                            <img src="/GetImage.ashx?id=1998421&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+                                        </div>
+                                    </a>
+                                    <div class="caption g-padding-x-50--xs g-padding-y-50--xs">
+                                        <h6 class="g-font-family--secondary" style="margin-bottom: 5px;">
+                                            Video Title
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="{{ childPage.Id }}" {% if childPage.DisplayDescription != 'true' %} title="{{ childPage.Description }}"{% endif %}>
+                            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+                                <div class="clearfix card g-hor-divider__solid__t--doc-color-{{ forloop.index }}" style="border-width:5px; border-radius: 30px;">
+                                    <a href="/events/starting-point" class="eventCardLink">
+                                        <div class="img-hover">
+                                            <img src="/GetImage.ashx?id=1999706&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+                                        </div>
+                                    </a>
+                                    <div class="caption g-padding-x-50--xs g-padding-y-50--xs">
+                                        <h6 class="g-font-family--secondary" style="margin-bottom: 5px;">
+                                            Video Title
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="{{ childPage.Id }}" {% if childPage.DisplayDescription != 'true' %} title="{{ childPage.Description }}"{% endif %}>
+                            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+                                <div class="clearfix card g-hor-divider__solid__t--doc-color-{{ forloop.index }}" style="border-width:5px; border-radius: 30px;">
+                                    <a href="/events/starting-point" class="eventCardLink">
+                                        <div class="img-hover">
+                                            <img src="/GetImage.ashx?id=1999706&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+                                        </div>
+                                    </a>
+                                    <div class="caption g-padding-x-50--xs g-padding-y-50--xs">
+                                        <h6 class="g-font-family--secondary" style="margin-bottom: 5px;">
+                                            Video Title
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+            </section>
+        </div>
+
+
     </div>
 </div>
+
+<script>
+    $(window).load(function() {
+        var isoOptions = {
+            percentPosition: true,
+            itemSelector: '.isotope_item',
+            layoutMode: 'masonry'
+        };
+        // Initialize Connection Opportunities Isotope
+        var $grid = $('.isotope_wrap').isotope(isoOptions);
+        // reveal all items after init
+        var $items = $grid.find('.isotope_item');
+        $grid.imagesLoaded( function() {
+        // init Isotope after all images have loaded
+        $grid.addClass('is-showing-items').isotope(isoOptions);
+        });
+    });
+</script>
