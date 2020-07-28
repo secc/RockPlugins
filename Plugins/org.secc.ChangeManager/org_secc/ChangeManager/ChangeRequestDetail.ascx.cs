@@ -302,6 +302,26 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 }
             }
 
+            // Attributes
+            if ( changeRecord.Property.IsNotNullOrWhiteSpace() )
+            {
+                PropertyInfo prop = targetEntity.GetType().GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
+                if ( prop == null )
+                {
+                    ( ( IHasAttributes ) targetEntity ).LoadAttributes();
+                    if ( targetEntity is IHasAttributes && ( ( IHasAttributes ) targetEntity ).Attributes.Keys.Contains( changeRecord.Property ) )
+                    {
+                        // Just set the attribute to the appropriate value and then pull the formatted value.
+                        ( ( IHasAttributes ) targetEntity ).SetAttributeValue( changeRecord.Property, changeRecord.OldValue );
+                        changeRecord.OldValue = ( ( IHasAttributes ) targetEntity ).AttributeValues[changeRecord.Property].ValueFormatted;
+
+                        ( ( IHasAttributes ) targetEntity ).SetAttributeValue( changeRecord.Property, changeRecord.NewValue );
+                        changeRecord.NewValue = ( ( IHasAttributes ) targetEntity ).AttributeValues[changeRecord.Property].ValueFormatted;
+                    }
+                }
+            }
+
+
             //Special Dispensation for the photo.
             if ( changeRecord.Property == "PhotoId" )
             {

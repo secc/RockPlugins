@@ -64,6 +64,24 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         Order = 11 )]
 
     [BooleanField( "Show Campus Selector", "Allows selection of primary campus.", false, order: 12 )]
+    [AttributeField(
+        "Person Attributes (adults)",
+        Key = AttributeKeys.PersonAttributesAdult,
+        EntityTypeGuid = Rock.SystemGuid.EntityType.PERSON,
+        Description = "The person attributes that should be displayed / edited for adults.",
+        IsRequired = false,
+        AllowMultiple = true,
+        Order = 13)]
+
+    [AttributeField(
+        "Person Attributes (children)",
+        Key = AttributeKeys.PersonAttributesChild,
+        EntityTypeGuid = Rock.SystemGuid.EntityType.PERSON,
+        Description = "The person attributes that should be displayed / edited for children.",
+        IsRequired = false,
+        AllowMultiple = true,
+        Order = 14)]
+
 
     public partial class CMPublicProfileEdit : RockBlock
     {
@@ -72,6 +90,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         {
             internal const string DisplayTerms = "DisplayTerms";
             internal const string TermsOfServiceText = "TermsOfServiceText";
+            internal const string PersonAttributesAdult = "PersonAttributesAdult";
+            internal const string PersonAttributesChild = "PersonAttributesChild";
         }
 
         protected static class PageParameterKeys
@@ -150,6 +170,33 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
                 pnlEdit.Visible = false;
                 nbNotAuthorized.Visible = true;
+            }
+        }
+
+        protected override void CreateChildControls()
+        {
+            base.EnsureChildControls();
+
+            var childGuid = Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid();
+            var person = GetPerson();
+
+            if ( person != null && person.Id != 0 )
+            {
+                List<Guid> attributeGuids = null;
+                if ( person.GetFamilyRole().Guid == childGuid )
+                {
+                    attributeGuids = GetAttributeValue( AttributeKeys.PersonAttributesChild ).SplitDelimitedValues().AsGuidList();
+                }
+                else
+                {
+                    attributeGuids = GetAttributeValue( AttributeKeys.PersonAttributesAdult ).SplitDelimitedValues().AsGuidList();
+                }
+                if ( attributeGuids != null && attributeGuids.Count > 0 )
+                {
+                    var attributeKeys = AttributeCache.All().Where( a => attributeGuids.Contains( a.Guid ) ).Select( a => a.Key ).ToList();
+                    person.LoadAttributes();
+                    Helper.AddEditControls( "", attributeKeys, person, phAttributes, this.BlockValidationGroup, true, null, numberOfColumns: 2 );
+                }
             }
         }
 
@@ -346,67 +393,76 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                             }
                         }
                     }
+                }
 
 
-                    // save family information
-                    if ( pnlAddress.Visible )
+                // save family information
+                if ( pnlAddress.Visible )
+                {
+                    var currentLocation = person.GetHomeLocation();
+                    Location location = new Location
                     {
-                        var currentLocation = person.GetHomeLocation();
-                        Location location = new Location
+                        Street1 = acAddress.Street1,
+                        Street2 = acAddress.Street2,
+                        City = acAddress.City,
+                        State = acAddress.State,
+                        PostalCode = acAddress.PostalCode,
+                    };
+                    var globalAttributesCache = GlobalAttributesCache.Get();
+                    location.Country = globalAttributesCache.OrganizationCountry;
+                    location.Country = string.IsNullOrWhiteSpace( location.Country ) ? "US" : location.Country;
+
+                    if ( ( currentLocation == null && location.Street1.IsNotNullOrWhiteSpace() ) ||
+                        ( currentLocation != null && currentLocation.Street1 != location.Street1 ) )
+                    {
+                        LocationService locationService = new LocationService( rockContext );
+                        locationService.Add( location );
+                        rockContext.SaveChanges();
+
+                        var previousLocationType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_PREVIOUS.AsGuid() );
+                        var homeLocationType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() );
+
+                        GroupLocation groupLocation = new GroupLocation
                         {
-                            Street1 = acAddress.Street1,
-                            Street2 = acAddress.Street2,
-                            City = acAddress.City,
-                            State = acAddress.State,
-                            PostalCode = acAddress.PostalCode,
+                            CreatedByPersonAliasId = CurrentPersonAliasId,
+                            ModifiedByPersonAliasId = CurrentPersonAliasId,
+                            GroupId = primaryFamily.Id,
+                            LocationId = location.Id,
+                            GroupLocationTypeValueId = homeLocationType.Id,
+                            IsMailingLocation = true,
+                            IsMappedLocation = true
                         };
-                        var globalAttributesCache = GlobalAttributesCache.Get();
-                        location.Country = globalAttributesCache.OrganizationCountry;
-                        location.Country = string.IsNullOrWhiteSpace( location.Country ) ? "US" : location.Country;
 
-                        if ( ( currentLocation == null && location.Street1.IsNotNullOrWhiteSpace() ) ||
-                            ( currentLocation != null && currentLocation.Street1 != location.Street1 ) )
+                        var newGroupLocation = familyChangeRequest.AddEntity( groupLocation, rockContext, true, location.ToString() );
+
+                        var homelocations = primaryFamily.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == homeLocationType.Id );
+                        foreach ( var homelocation in homelocations )
                         {
-                            LocationService locationService = new LocationService( rockContext );
-                            locationService.Add( location );
-                            rockContext.SaveChanges();
+                            familyChangeRequest.EvaluatePropertyChange(
+                                homelocation,
+                                "GroupLocationTypeValue",
+                                previousLocationType,
+                                true,
+                                homelocation.Location.ToString() );
 
-                            var previousLocationType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_PREVIOUS.AsGuid() );
-                            var homeLocationType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() );
-
-                            GroupLocation groupLocation = new GroupLocation
-                            {
-                                CreatedByPersonAliasId = CurrentPersonAliasId,
-                                ModifiedByPersonAliasId = CurrentPersonAliasId,
-                                GroupId = primaryFamily.Id,
-                                LocationId = location.Id,
-                                GroupLocationTypeValueId = homeLocationType.Id,
-                                IsMailingLocation = true,
-                                IsMappedLocation = true
-                            };
-
-                            var newGroupLocation = familyChangeRequest.AddEntity( groupLocation, rockContext, true, location.ToString() );
-
-                            var homelocations = primaryFamily.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == homeLocationType.Id );
-                            foreach ( var homelocation in homelocations )
-                            {
-                                familyChangeRequest.EvaluatePropertyChange(
-                                    homelocation,
-                                    "GroupLocationTypeValue",
-                                    previousLocationType,
-                                    true,
-                                    homelocation.Location.ToString() );
-
-                                familyChangeRequest.EvaluatePropertyChange(
-                                    homelocation,
-                                    "IsMailingLocation",
-                                    false,
-                                    true,
-                                    homelocation.Location.ToString() );
-                            }
+                            familyChangeRequest.EvaluatePropertyChange(
+                                homelocation,
+                                "IsMailingLocation",
+                                false,
+                                true,
+                                homelocation.Location.ToString() );
                         }
-
                     }
+                }
+
+                // Handle both Child and Adult attributes together here
+                var attributeGuids = GetAttributeValue( AttributeKeys.PersonAttributesAdult ).SplitDelimitedValues().AsGuidList();
+                attributeGuids.AddRange( GetAttributeValue( AttributeKeys.PersonAttributesChild ).SplitDelimitedValues().AsGuidList() );
+                if ( attributeGuids.Count > 0 )
+                {
+                    person.LoadAttributes();
+                    Helper.GetEditValues( phAttributes, person );
+                    changeRequest.EvaluateAttributes( person );
                 }
 
                 if ( changeRequest.ChangeRecords.Any()
@@ -762,107 +818,6 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 }
             }
 
-        }
-
-        /// <summary>
-        /// Gets the person attribute Guids.
-        /// </summary>
-        /// <param name="personId">The person identifier.</param>
-        /// <returns></returns>
-        private List<Guid> GetPersonAttributeGuids( int personId )
-        {
-            GroupMemberService groupMemberService = new GroupMemberService( new RockContext() );
-            List<Guid> attributeGuidList = new List<Guid>();
-            var adultGuid = Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid();
-            var childGuid = Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid();
-            var groupTypeGuid = Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid();
-
-            if ( groupMemberService.Queryable().Where( gm =>
-               gm.PersonId == personId &&
-               gm.Group.GroupType.Guid == groupTypeGuid &&
-               gm.GroupRole.Guid == adultGuid ).Any() )
-            {
-                attributeGuidList = GetAttributeValue( "PersonAttributes(adults)" ).SplitDelimitedValues().AsGuidList();
-            }
-            else
-            {
-                attributeGuidList = GetAttributeValue( "PersonAttributes(children)" ).SplitDelimitedValues().AsGuidList();
-            }
-
-            return attributeGuidList;
-        }
-
-        /// <summary>
-        /// Display Person Attribute on the Basis of Role
-        /// </summary>
-        /// <param name="selectedId">The id of the selected group identifier.</param>
-        private void DisplayPersonAttributeOnRoleType( int? selectedId )
-        {
-            GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( new RockContext() );
-            List<Guid> attributeGuidList = new List<Guid>();
-            var adultGuid = Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid();
-            var groupTypeGuid = Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid();
-
-            if ( selectedId.HasValue )
-            {
-                if ( groupTypeRoleService.Queryable().Where( gr =>
-                               gr.GroupType.Guid == groupTypeGuid &&
-                               gr.Guid == adultGuid &&
-                               gr.Id == selectedId ).Any() )
-                {
-                    attributeGuidList = GetAttributeValue( "PersonAttributes(adults)" ).SplitDelimitedValues().AsGuidList();
-                    ddlGradePicker.Visible = false;
-                    tbEmail.Required = GetAttributeValue( "RequireAdultEmailAddress" ).AsBoolean();
-                    _IsEditRecordAdult = true;
-                    BindPhoneNumbers();
-                }
-                else
-                {
-                    attributeGuidList = GetAttributeValue( "PersonAttributes(children)" ).SplitDelimitedValues().AsGuidList();
-                    ddlGradePicker.Visible = true;
-                    tbEmail.Required = false;
-                    _IsEditRecordAdult = false;
-                    BindPhoneNumbers();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Displays the edit attributes.
-        /// </summary>
-        /// <param name="item">The item.</param>
-        /// <param name="displayedAttributeGuids">The displayed attribute guids.</param>
-        /// <param name="phAttributes">The place holder attributes.</param>
-        /// <param name="pnlAttributes">The PNL attributes.</param>
-        /// <param name="setValue">a boolean that determines if the value should be preset.</param>
-        private void DisplayEditAttributes( Rock.Attribute.IHasAttributes item, List<Guid> displayedAttributeGuids, PlaceHolder phAttributes, Panel pnlAttributes, bool setValue )
-        {
-            phAttributes.Controls.Clear();
-            item.LoadAttributes();
-            var excludedAttributeList = item.Attributes.Where( a => !displayedAttributeGuids.Contains( a.Value.Guid ) ).Select( a => a.Value.Key ).ToList();
-
-            if ( item.Attributes != null && item.Attributes.Any() && displayedAttributeGuids.Any() )
-            {
-                pnlAttributes.Visible = true;
-                Helper.AddEditControls( item, phAttributes, setValue, BlockValidationGroup, excludedAttributeList, false, 2 );
-            }
-            else
-            {
-                pnlAttributes.Visible = false;
-            }
-        }
-
-        /// <summary>
-        /// Formats the phone number.
-        /// </summary>
-        /// <param name="countryCode">The country code.</param>
-        /// <param name="number">The number.</param>
-        /// <returns></returns>
-        protected string FormatPhoneNumber( object countryCode, object number )
-        {
-            string cc = countryCode as string ?? string.Empty;
-            string n = number as string ?? string.Empty;
-            return PhoneNumber.FormattedNumber( cc, n );
         }
 
         private Person GetPerson()
