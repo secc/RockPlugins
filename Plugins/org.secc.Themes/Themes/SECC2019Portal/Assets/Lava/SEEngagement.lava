@@ -1,6 +1,8 @@
 <div class="g-bg-color--gray-lightest">
     <div class="container g-padding-b-100--xs">
-        {% comment %} --------------------------------------------------------
+        {% comment %} 
+        {% include '/Themes/SECC2019Portal/Assets/Lava/SEEngagement.lava' %}
+        --------------------------------------------------------
         ------------------------ SE ENGAGEMENT HEADER ------------------------
         -------------------------------------------------------{% endcomment %}
         <div class="row g-margin-x-40--xs g-margin-x-0--md g-margin-y-50--xs g-margin-y-100--md g-display-flex--lg" style="background-color: #6771DC; border-radius: 30px">
@@ -39,10 +41,7 @@
                             <h6 class="uppercase g-font-weight--700">Total</h6>
                             <h3 class="g-font-weight--700" style="color: #6794DD;">33,897</h3>
                         </div>
-                        {[ amcharts chartwidth:'100%' chartheight:'280px' data-category:'site' data-value:'visitors' ]}
-                            [[ dataitem label:'SE Website' value:'276' ]] [[ enddataitem ]]
-                            [[ dataitem label:'Youtube' value:'492' ]] [[ enddataitem ]]
-                            [[ dataitem label:'Facebook' value:'3439' ]] [[ enddataitem ]]
+                        {[ amcharts chartwidth:'100%' chartheight:'280px' data-category:'site' data-value:'visitors' data-src:'/webhooks/Lava.ashx/AMcharts/test.json' ]}
                         {[ endamcharts ]}
                     </div>
                 </div>
@@ -502,14 +501,10 @@
                     <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                         <div class="col-md-12 g-padding-y-50--xs ">
 
-                            <script src="https://www.amcharts.com/lib/4/geodata/data/countries2.js"></script>
+                            <script src="https://cdn.amcharts.com/lib/4/geodata/usaLow.js"></script>
                             <div id="chartdivGivingByLocation"></div>
 
                             <style>
-                            body {
-                            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-                            }
-
                             #chartdivGivingByLocation {
                             width: 100%;
                             height: 500px;
@@ -517,139 +512,50 @@
                             </style>
 
                             <script>
-                            /**
-                            * ---------------------------------------
-                            * This demo was created using amCharts 4.
-                            * 
-                            * For more information visit:
-                            * https://www.amcharts.com/
-                            * 
-                            * Documentation is available at:
-                            * https://www.amcharts.com/docs/v4/
-                            * ---------------------------------------
-                            */
-
                             // Themes begin
                             am4core.useTheme(am4themes_animated);
                             // Themes end
 
-                            /*var continents = {
-                            "AF": 0,
-                            "AN": 1,
-                            "AS": 2,
-                            "EU": 3,
-                            "NA": 4,
-                            "OC": 5,
-                            "SA": 6
-                            }*/
-
                             // Create map instance
                             var chart = am4core.create("chartdivGivingByLocation", am4maps.MapChart);
+
+                            // Set map definition
+                            chart.geodata = am4geodata_worldLow;
+
+                            // Set projection
                             chart.projection = new am4maps.projections.Miller();
-
-                            // Create map polygon series for world map
-                            var worldSeries = chart.series.push(new am4maps.MapPolygonSeries());
-                            worldSeries.useGeodata = true;
-                            worldSeries.geodata = am4geodata_worldLow;
-                            worldSeries.exclude = ["AQ", "AF", "AS", "SA"];
-
-                            var worldPolygon = worldSeries.mapPolygons.template;
-                            worldPolygon.tooltipText = "{name}";
-                            worldPolygon.nonScalingStroke = true;
-                            worldPolygon.strokeOpacity = 0.5;
-                            worldPolygon.fill = am4core.color("#eee");
-                            worldPolygon.propertyFields.fill = "color";
-
-                            var hs = worldPolygon.states.create("hover");
-                            //hs.properties.fill = chart.colors.getIndex(9);
-                            hs.properties.fill = am4core.color("#6771DC");
-
-                            // Create country specific series (but hide it for now)
-                            var countrySeries = chart.series.push(new am4maps.MapPolygonSeries());
-                            countrySeries.useGeodata = true;
-                            countrySeries.hide();
-                            countrySeries.geodataSource.events.on("done", function(ev) {
-
-                            var data = [];
-                            for(var i = 0; i < ev.target.data.features.length; i++) {
-                                data.push({
-                                id: ev.target.data.features[i].id,
-                                color: '#000000',
-                                value: Math.round( Math.random() * 10000 )
-                                })
-                            }
-                            countrySeries.data = data;
-
-                            worldSeries.hide();
-                            countrySeries.show();
-                            });
-
-                            var countryPolygon = countrySeries.mapPolygons.template;
-                            countryPolygon.tooltipText = "{name}";
-                            countryPolygon.nonScalingStroke = true;
-                            countryPolygon.strokeOpacity = 0.5;
-                            countryPolygon.fill = am4core.color("#eee");
-
-                            var hs = countryPolygon.states.create("hover");
-                            //hs.properties.fill = chart.colors.getIndex(9);
-                            hs.properties.fill = am4core.color("#67B7DC");
-
-                            // Set up click events
-                            worldPolygon.events.on("hit", function(ev) {
-                            ev.target.series.chart.zoomToMapObject(ev.target);
-                            var map = ev.target.dataItem.dataContext.map;
-                            if (map) {
-                                ev.target.isHover = false;
-                                countrySeries.geodataSource.url = "https://www.amcharts.com/lib/4/geodata/json/" + map + ".json";
+                            chart.chartContainer.wheelable = false;
                             
-                                /*// Set up data for counties
-                                countrySeries.geodataSource.data["US-CO"] = [{
-                                "id": "US-CO",
-                                "name": "Colorado",
-                                "color": '#000000'
-                                }];*/
+                            // Series for World map
+                            var worldSeries = chart.series.push(new am4maps.MapPolygonSeries());
+                            worldSeries.exclude = ["AQ"];
+                            worldSeries.useGeodata = true;
 
-                                countrySeries.geodataSource.load();
-                            }
-                            });
+                            var polygonTemplate = worldSeries.mapPolygons.template;
+                            polygonTemplate.tooltipText = "{name}";
+                            polygonTemplate.fill = chart.colors.getIndex(0);
+                            polygonTemplate.nonScalingStroke = true;
 
-                            // Set up data for countries
-                            /*color: chart.colors.getIndex(continents[country.continent_code]),*/
-                            var data = [];
-                            for(var id in am4geodata_data_countries2) {
-                            if (am4geodata_data_countries2.hasOwnProperty(id)) {
-                                var country = am4geodata_data_countries2[id];
-                                if (country.maps.length) {
-                                if (id == "US") {
-                                    data.push({
-                                    id: id,
-                                    color: '#67B7DC',
-                                    map: country.maps[0]
-                                    });
-                                }
-                                }
-                            }
-                            }
-                            worldSeries.data = data;
+                            // Hover state
+                            var hs = polygonTemplate.states.create("hover");
+                            hs.properties.fill = am4core.color("#367B25");
+
+                            // Series for United States map
+                            var usaSeries = chart.series.push(new am4maps.MapPolygonSeries());
+                            usaSeries.geodata = am4geodata_usaLow;
+
+                            // Configure series
+                            var usPolygonTemplate = usaSeries.mapPolygons.template;
+                            usPolygonTemplate.tooltipText = "{name}";
+                            usPolygonTemplate.fill = am4core.color("#74B266");
+                            usPolygonTemplate.nonScalingStroke = true;
 
 
-                            // Zoom control
-                            chart.zoomControl = new am4maps.ZoomControl();
+                            // Create hover state and set alternative fill color
+                            var hs = usPolygonTemplate.states.create("hover");
+                            hs.properties.fill = am4core.color("#367B25");
 
-                            var homeButton = new am4core.Button();
-                            homeButton.events.on("hit", function() {
-                            worldSeries.show();
-                            countrySeries.hide();
-                            chart.goHome();
-                            });
-
-                            homeButton.icon = new am4core.Sprite();
-                            homeButton.padding(7, 5, 7, 5);
-                            homeButton.width = 30;
-                            homeButton.icon.path = "M16,8 L14,8 L14,16 L10,16 L10,10 L6,10 L6,16 L2,16 L2,8 L0,8 L8,0 L16,8 Z M16,8";
-                            homeButton.marginBottom = 10;
-                            homeButton.parent = chart.zoomControl;
-                            homeButton.insertBefore(chart.zoomControl.plusButton);
+                            usaSeries.exclude = ["US-CO", "US-AZ", "US-KY", "US-FL"];
                             </script>
 
                         </div>

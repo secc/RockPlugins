@@ -171,37 +171,44 @@
 	/************************************************/
 	{%- endcomment -%} 
 	{%- assign categories = data-category | Split:',' -%}
+	{%- assign dataUrl = data-src -%}
 	{%- assign category-labels = data-category-labels | Split:',' -%}
 	{%- assign categoryCount = categories | Size | Minus:1 -%}
 	{%- assign seriesData = '' -%}
-	{%- for dataitem in dataitems -%}
-		{%- capture itemData -%}
-			{	
-				{%- capture itemOptions -%}
-				{%- if categoryCount > 1 -%}
-					{%- assign values = dataitem.value | Split:',' -%}
-					{%- for i in (0..categoryCount) -%}
-						{%- if categories[i] != "date" -%}
-							"{{ categories[i] }}": "{{ values[i] }}",
-						{%- else -%}
-							"{{ categories[i] }}": new Date('{{ values[i] }}'),
-						{%- endif -%}
-					{%- endfor -%}
-				{%- else -%}
-					"{{ data-category }}": "{{ dataitem.label }}",
-					"{{ data-value }}": "{{ dataitem.value }}",
-				{%- endif -%}
-				{%- if dataitem.color == "auto" -%}"color": chart.colors.next(),{%- elseif dataitem.color != "" -%}"color": "{{ dataitem.color }}",{%- endif -%}
-				{%- if dataitem.bullet != "" -%}"bullet": "{{ dataitem.bullet }}",{%- endif -%}
-				{%- endcapture -%}
-				{{ itemOptions | ReplaceLast:',', '' }}
-			},
-		{%- endcapture -%}
-		{%- assign seriesData = seriesData | Append:itemData -%}
-	{%- endfor -%}
-	{%- assign seriesData = seriesData | ReplaceLast:',', '' -%}
+	{%- if dataUrl == "" -%}
+		{%- for dataitem in dataitems -%}
+			{%- capture itemData -%}
+				{	
+					{%- capture itemOptions -%}
+					{%- if categoryCount > 1 -%}
+						{%- assign values = dataitem.value | Split:',' -%}
+						{%- for i in (0..categoryCount) -%}
+							{%- if categories[i] != "date" -%}
+								"{{ categories[i] }}": "{{ values[i] }}",
+							{%- else -%}
+								"{{ categories[i] }}": new Date('{{ values[i] }}'),
+							{%- endif -%}
+						{%- endfor -%}
+					{%- else -%}
+						"{{ data-category }}": "{{ dataitem.label }}",
+						"{{ data-value }}": "{{ dataitem.value }}",
+					{%- endif -%}
+					{%- if dataitem.color == "auto" -%}"color": chart.colors.next(),{%- elseif dataitem.color != "" -%}"color": "{{ dataitem.color }}",{%- endif -%}
+					{%- if dataitem.bullet != "" -%}"bullet": "{{ dataitem.bullet }}",{%- endif -%}
+					{%- endcapture -%}
+					{{ itemOptions | ReplaceLast:',', '' }}
+				},
+			{%- endcapture -%}
+			{%- assign seriesData = seriesData | Append:itemData -%}
+		{%- endfor -%}
+		{%- assign seriesData = seriesData | ReplaceLast:',', '' -%}
+		chart.data = [{{ seriesData }}];
+	{%- else -%}
+		chart.dataSource.url = "{{ dataUrl }}";
+		chart.dataSource.parser = new am4core.JSONParser();
+		chart.dataSource.parser.options.emptyAs = 0;
+	{%- endif -%}
 	// Add data
-	chart.data = [{{ seriesData }}];
 
 	{%- if type == 'pie' or type == 'halfdonut' -%}
 		{%- comment -%} 
