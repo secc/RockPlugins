@@ -199,11 +199,6 @@
                                 Phone: {{ campus.PhoneNumber }}
                             </p>
                             {%  endif %}
-                            {% if CampusFacebookSlug != '' and campusSlug == "chapelinthewoods" %}
-                            <p class="g-font-weight--400 g-line-height--sm">
-                                Facebook Page: <a href="https://www.facebook.com/{{ CampusFacebookSlug }}" target="_blank">https://fb.me/{{ CampusFacebookSlug }}</a>
-                            </p>
-                            {%  endif %}
                         </address>
                         <a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1"
                            target="_blank"
