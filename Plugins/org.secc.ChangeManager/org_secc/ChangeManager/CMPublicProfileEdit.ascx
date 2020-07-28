@@ -49,10 +49,12 @@
                                         <Rock:YearPicker ID="ypGraduation" runat="server" Label="Graduation Year" Help="High School Graduation Year." />
                                     </div>
                                     <Rock:GradePicker ID="ddlGradePicker" runat="server" Label="Grade" UseAbbreviation="true" UseGradeOffsetAsValue="true" Visible="false" />
+                                    
                                 </div>
                             </div>
 
                             <Rock:CampusPicker ID="cpCampus" runat="server" Label="Campus" />
+                            <asp:PlaceHolder ID="phAttributes" runat="server"></asp:PlaceHolder>
                         </div>
                     </div>
                     <hr />
