@@ -204,13 +204,13 @@
         // create kmlLayer object from URL
 		var layers = {};
         layers['residential'] =  new google.maps.KmlLayer({
-          url: "https://southeastchristian.org/Webhooks/Lava.ashx/ministries/communityengagement/communitypastors/residential.kml",
+          url: "https://southeastchristian.org/Webhooks/Lava.ashx/ministries/communityengagement/communitypastors/07142020/residential.kml",
           suppressInfoWindows: true,
 		  preserveViewport: true,
           map: null
         });
         layers['nonresidential'] = new google.maps.KmlLayer({
-          url: "https://southeastchristian.org/Webhooks/Lava.ashx/ministries/communityengagement/communitypastors/nonresidential.kml",
+          url: "https://southeastchristian.org/Webhooks/Lava.ashx/ministries/communityengagement/communitypastors/07142020/nonresidential.kml",
           suppressInfoWindows: true,
 		  preserveViewport: true,
           map: null

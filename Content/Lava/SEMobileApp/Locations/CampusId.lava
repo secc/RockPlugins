@@ -56,7 +56,11 @@
                 "type":"navigation",
                 "style":"external",
                 "showBrowserControls": false,
+				{%- if campusSlug == "seonline" -%}
+				"contentUrl": "https://www.southeastchristian.org/online"
+				{%- else -%}
                 "contentUrl": "{{googleDir}}"
+				{%- endif -%}
             }]{%- endif -%}
 		}
         {%- assign comma = "," -%}

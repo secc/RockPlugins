@@ -105,6 +105,16 @@
                     <h6 class="text-center pull-left" style="width:25%;">
                         &nbsp;
                     </h6>
+                    {%- if campusSlug == "seonline" -%}
+                    <h6 class="text-center pull-left g-font-size-80--xs" style="vertical-align:bottom;width: 50%;white-space: normal;font-size: 0.7em;">
+                        <a class="uppercase se-btn--app-highlight uppercase g-letter-spacing--1 g-display-inline-block--xs"
+                           target="_blank"
+                           href="https://www.southeastchristian.org/online"
+                           style="vertical-align:bottom;">
+                           <strong>Watch Now</strong>
+                        </a>
+                    </h6>
+                    {%- else -%}
                     <h6 class="text-center pull-left g-font-size-80--xs" style="vertical-align:bottom;width: 50%;white-space: normal;font-size: 0.7em;">
                         <a class="uppercase se-btn--app-highlight uppercase g-letter-spacing--1 g-display-inline-block--xs"
                            target="_blank"
@@ -113,6 +123,7 @@
                            <strong>Get Directions</strong>
                         </a>
                     </h6>
+                    {%- endif -%}
                     <h6 class="text-center pull-left" style="width:25%;">
                         &nbsp;
                     </h6>

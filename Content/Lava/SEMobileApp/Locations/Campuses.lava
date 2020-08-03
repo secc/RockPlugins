@@ -31,10 +31,13 @@
 	    }
 	},
 	"items": [
+		  {%- assign comma = "" -%}
 	      {% assign campusesSorted = Campuses | Sort:'Order','Asc' %}
 	      {% for campus in campusesSorted sort:'Order','Asc' %}
+		  	{% assign publicCampus = campus | Attribute:'Public' %}
 	        {% assign campusSlug = campus | Attribute: 'Slug' %}
-	        {
+			{% if publicCampus == 'Yes' %}
+	        {{- comma -}}{
 				"images":[
 				    {"width": 668,
 					"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/location/{{campus.Guid}}?bgcolor=121212&mode=crop&s.roundcorners=10"}
@@ -44,7 +47,9 @@
 					"handler": "list",
 					"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/campus/{{campus.Id}}"
 				}]
-			}{%- if forloop.last -%}{%- else -%},{%- endif -%}
+			}
+			{%- assign comma = "," -%}
+			{% endif %}
           {% endfor %}
 	]
 }

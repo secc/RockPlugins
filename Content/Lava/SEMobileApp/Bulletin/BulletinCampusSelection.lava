@@ -30,9 +30,13 @@
 	    }
 	},
 	"items": [
+		  {%- assign comma = "" -%}
 	      {% assign campusesSorted = Campuses | Sort:'Order','Asc' %}
 	      {% for campus in campusesSorted sort:'Order','Asc' %}
+		  	{% assign publicCampus = campus | Attribute:'Public' %}
 	        {% assign campusSlug = campus | Attribute:'Slug' %}
+			{% if publicCampus == 'Yes' %}
+			{{- comma -}}
 	        {
 				"images":[
 				    {"width": 668,
@@ -43,7 +47,9 @@
 					"handler": "list",
 					"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/bulletin/campuses/{{campus.Guid}}"
 				}]
-			}{%- if forloop.last -%}{%- else -%},{%- endif -%}
+			}
+			{%- assign comma = "," -%}
+			{% endif %}
           {% endfor %}
 	]
 }
