@@ -304,7 +304,14 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 bool showCampus = GetAttributeValue( "ShowCampusSelector" ).AsBoolean();
                 if ( showCampus )
                 {
-                    familyChangeRequest.EvaluatePropertyChange( primaryFamily, "CampusId", cpCampus.SelectedCampusId );
+                    // Only update campus for adults
+                    GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( rockContext );
+                    var adultGuid = Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid();
+                    var adultRole = groupTypeRoleService.Get( adultGuid );
+                    if ( rblRole.SelectedValue.AsInteger() == adultRole.Id )
+                    { 
+                        familyChangeRequest.EvaluatePropertyChange( primaryFamily, "CampusId", cpCampus.SelectedCampusId );
+                    }
                 }
 
                 //Evaluate PhoneNumbers
@@ -668,7 +675,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 _IsEditRecordAdult = false;
                 tbEmail.Required = false;
                 // don't display campus selector to children.
-                cpCampus.Visible = false;
+                phCampus.Visible = false;
 
                 if ( person.GraduationYear.HasValue )
                 {
@@ -704,15 +711,17 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 bool requireEmail = GetAttributeValue( "RequireAdultEmailAddress" ).AsBoolean();
                 tbEmail.Required = requireEmail;
                 ddlGradePicker.Visible = false;
+
                 // show/hide campus selector
                 bool showCampus = GetAttributeValue( "ShowCampusSelector" ).AsBoolean();
-                cpCampus.Visible = showCampus;
+                phCampus.Visible = showCampus;
                 if ( showCampus )
                 {
                     cpCampus.Campuses = CampusCache.All( false );
-                    cpCampus.SetValue( person.GetCampus() );
+                    cpCampus.SetValue( person.GetCampus().Id );
                 }
             }
+
 
             tbEmail.Text = person.Email;
             rblEmailPreference.SelectedValue = person.EmailPreference.ConvertToString( false );
