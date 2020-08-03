@@ -50,7 +50,7 @@
     	</div>
     </div>
 {% else %}
-{{ 'SE!Kids Not Found' | SetPageTitle }}
+{{ 'SE!KIDS Not Found' | SetPageTitle }}
 <section>
     <div class="text-center g-padding-x-100--xs g-padding-y-100--xs">
         <br>

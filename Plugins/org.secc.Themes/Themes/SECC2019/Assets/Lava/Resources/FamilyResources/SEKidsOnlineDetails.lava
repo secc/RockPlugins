@@ -65,7 +65,7 @@
                         {{ '{% assign itemTitle = "' | Append:SEKidsItem.Title | Append: '" ' | Append: ending }}
                         {{ '{% assign itemGuid = "' | Append:SEKidsItem.Guid | Append: '" ' | Append: ending }}
                         {% raw %}
-                        {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{- itemImageGuid -}}' emailsubject:'{{- itemTitle -}}' emailbody:'Check out this SE!Kids video I found at Southeast Christian Church.' facebooktitle:'{{- itemTitle -}}' facebookog:'true' sharingguid:'{{- itemGuid -}}' ]}
+                        {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{- itemImageGuid -}}' emailsubject:'{{- itemTitle -}}' emailbody:'Check out this SE!KIDS video I found at Southeast Christian Church.' facebooktitle:'{{- itemTitle -}}' facebookog:'true' sharingguid:'{{- itemGuid -}}' ]}
                         {% endraw %}
                         <br />
                         <br />
@@ -75,7 +75,7 @@
     	</div>
     </div>
 {% else %}
-{{ 'SE!Kids Not Found' | SetPageTitle }}
+{{ 'SE!KIDS Not Found' | SetPageTitle }}
 <section>
     <div class="text-center g-padding-x-100--xs g-padding-y-100--xs">
         <br>
@@ -83,7 +83,7 @@
         <br>
         <br>
         <br>
-        <h5 class="uppercase g-letter-spacing--3">SE!Kids Not Found.</h5>
+        <h5 class="uppercase g-letter-spacing--3">SE!KIDS Not Found.</h5>
         <br>
         <h3 class="g-font-family--secondary">Please try again by looking at our <a href="https://www.southeastchristian.org/familyresources"><i>Family Resources</i>.</a></h3>
         <br>

@@ -110,7 +110,7 @@
 		{%- endcontentchannelitem -%}
 
 		{%- comment -%}
-        SE!Kids Checkin (if any)
+        SE!KIDS Checkin (if any)
         {%- endcomment -%}
         {%- contentchannelitem where:'Status == 2 && ContentChannelId == 73' sort:'Order' -%}
 			{%- assign itemCount = 0 -%}
@@ -142,7 +142,7 @@
 						{%- assign interY2 = intervalCuts | Plus:1 -%}
 						{%- for i in (0..1) -%}
 						{{- comma -}}{
-							"title": "{{campus.Name}} SE!Kids Checkin",
+							"title": "{{campus.Name}} SE!KIDS Checkin",
 							"images":[
 								{ "width":800, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/location/info/twoslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 							],"actions":[{
