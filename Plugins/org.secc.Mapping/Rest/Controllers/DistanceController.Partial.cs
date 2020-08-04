@@ -81,13 +81,13 @@ namespace org.secc.Mapping.Rest.Controllers
             var destinations = attributeValues
                 .Select( av => new Destination
                 {
-                    Entity = av,
-                    Location = locations.Where( l => l.Guid == av.Value.AsGuid() ).FirstOrDefault()
+                    EntityId = av.Id,
+                    LocationId = locations.Where( l => l.Guid == av.Value.AsGuid() ).Select( l => l.Id ).FirstOrDefault()
                 } )
-                .Where( d => d.Location != null && d.Entity != null )
+                .Where( d => d.LocationId.HasValue && d.EntityId.HasValue )
                 .ToList();
             var output = await BingDistanceMatrix.OrderDestinations( address, destinations );
-            return output.ToDictionary( d => ( ( AttributeValue ) d.Entity ).EntityId.ToString(), d => d.TravelDistance.ToString() );
+            return output.ToDictionary( d => d.EntityId.ToString(), d => d.TravelDistance.ToString() );
         }
 
         private async Task<object> GetGroupTypeDistances( int groupTypeId, string address )
@@ -97,7 +97,7 @@ namespace org.secc.Mapping.Rest.Controllers
 
             var groups = groupService.Queryable().Where( g => g.IsActive && !g.IsArchived && g.IsPublic && g.GroupTypeId == groupTypeId );
             var output = await GroupUtilities.GetGroupsDestinations( address, groups.AsQueryable<Group>(), rockContext );
-            return output.ToDictionary( d => ( ( IEntity ) d.Entity ).Id.ToString(), d => d.TravelDistance.ToString() );
+            return output.ToDictionary( d => d.EntityId.ToString(), d => d.TravelDistance.ToString() );
         }
 
         private async Task<object> GetChildGroupDistances( int parentGroupId, string address )
@@ -107,7 +107,7 @@ namespace org.secc.Mapping.Rest.Controllers
 
             var groups = groupService.Queryable().Where( g => g.IsActive && !g.IsArchived && g.IsPublic && g.ParentGroupId == parentGroupId );
             var output = await GroupUtilities.GetGroupsDestinations( address, groups, rockContext );
-            return output.ToDictionary( d => ( ( IEntity ) d.Entity ).Id.ToString(), d => d.TravelDistance.ToString() );
+            return output.ToDictionary( d => d.EntityId.ToString(), d => d.TravelDistance.ToString() );
         }
     }
 }

@@ -37,7 +37,7 @@ namespace org.secc.GroupManager.Rest.Controllers
             };
             var destinations = await Mapping.Utilities.GroupUtilities.GetGroupsDestinations( zipcode, groups, rockContext, meetingTypeIds );
 
-            return destinations.ToDictionary( d => ( ( IEntity ) d.Entity ).Id.ToString(), d => d.TravelDistance.ToString() );
+            return destinations.ToDictionary( d => d.EntityId.ToString(), d => d.TravelDistance.ToString() );
         }
     }
 }

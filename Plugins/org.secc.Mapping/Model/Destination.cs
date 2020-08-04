@@ -4,21 +4,29 @@ using System.Text;
 using Rock.Model;
 using Rock;
 using Rock.Data;
+using Rock.Web.UI.Controls;
 
 namespace org.secc.Mapping
 {
     public class Destination
     {
         [LavaInclude]
-        public object Entity { get; set; }
+        public int? EntityId { get; set; }
         private string _address = "";
         public string Address
         {
             get
             {
-                if ( Location != null )
+                if ( _address.IsNullOrWhiteSpace() )
                 {
-                    return Location.FormattedAddress;
+                    RockContext rockContext = new RockContext();
+                    LocationService locationService = new LocationService( rockContext );
+                    var location = locationService.Get( LocationId ?? 0 );
+
+                    if ( location != null )
+                    {
+                        _address = location.FormattedAddress;
+                    }
                 }
                 return _address;
             }
@@ -27,7 +35,8 @@ namespace org.secc.Mapping
                 _address = value;
             }
         }
-        public Location Location { get; set; }
+        public int? LocationId { get; set; }
+
         public double TravelDistance { get; set; }
         public double TravelDuration { get; set; }
         public bool IsCalculated { get; set; } = false;
