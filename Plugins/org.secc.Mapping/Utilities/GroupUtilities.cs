@@ -54,8 +54,8 @@ namespace org.secc.Mapping.Utilities
                 .DistinctBy( a => a.Group.Id )
                     .Select( a => new Destination
                     {
-                        Location = a.Location,
-                        Entity = a.Group
+                        LocationId = a.Location.Id,
+                        EntityId = a.Group.Id,
                     } )
                 .ToList();
 

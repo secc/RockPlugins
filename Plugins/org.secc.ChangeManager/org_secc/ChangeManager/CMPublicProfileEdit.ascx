@@ -52,8 +52,9 @@
                                     
                                 </div>
                             </div>
-
-                            <Rock:CampusPicker ID="cpCampus" runat="server" Label="Campus" />
+                            <asp:PlaceHolder ID="phCampus" runat="server">
+                                <Rock:CampusPicker ID="cpCampus" runat="server" Label="Campus" Help="Please note, this campus setting will be applied to ALL members of the family." />
+                            </asp:PlaceHolder>
                             <asp:PlaceHolder ID="phAttributes" runat="server"></asp:PlaceHolder>
                         </div>
                     </div>

@@ -12,13 +12,9 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Rock.Data;
-using Rock.Model;
 using Rock.Web.Cache;
 
 namespace org.secc.Mapping.Utilities
@@ -37,12 +33,12 @@ namespace org.secc.Mapping.Utilities
                 .Select( c => new Destination
                 {
                     Address = string.Format( "{0} {1} {2}, {3} {4}", c.Location.Street1, c.Location.Street2, c.Location.City, c.Location.State, c.Location.PostalCode ),
-                    Entity = c
+                    EntityId = c.Id
                 } )
                 .ToList();
 
             var distances = await BingDistanceMatrix.OrderDestinations( origin, campusDestinations );
-            return distances.Select( d => d.Entity as CampusCache ).ToList();
+            return distances.Select( d => CampusCache.Get( d.EntityId ?? 0 ) ).ToList();
         }
     }
 }
