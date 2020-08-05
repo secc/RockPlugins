@@ -59,6 +59,26 @@ namespace org.secc.FamilyCheckin
             var checkInState = GetCheckInState( entity, out errorMessages );
             if ( checkInState != null )
             {
+                KioskService kioskService = new KioskService( rockContext );
+                var kioskTypeId = kioskService.GetByClientName( checkInState.Kiosk.Device.Name ).KioskTypeId;
+                var kioskType = KioskTypeCache.Get( kioskTypeId.Value );
+                var campusId = kioskType.CampusId;
+                if ( campusId == null )
+                {
+                    var compatableKioskType = KioskTypeCache.All().Where( kt => kt.CampusId.HasValue && kt.CheckinTemplateId == kioskType.CheckinTemplateId ).FirstOrDefault();
+                    if ( compatableKioskType != null )
+                    {
+                        campusId = compatableKioskType.CampusId;
+                    }
+                    else
+                    {
+                        campusId = 0;
+                    }
+                }
+
+                campusId = GetCampusOrFamilyCampusId( campusId, checkInState.CheckIn.CurrentFamily.Group.CampusId );
+
+
                 AttendanceCode attendanceCode = null;
                 DateTime startDateTime = Rock.RockDateTime.Now;
                 DateTime today = startDateTime.Date;
@@ -130,7 +150,7 @@ namespace org.secc.FamilyCheckin
                                                 oldAttendance.DidAttend = false;
                                             }
                                             var attendance = attendanceService.AddOrUpdate( primaryAlias.Id, startDateTime.Date, group.Group.Id,
-                                                    location.Location.Id, schedule.Schedule.Id, location.CampusId,
+                                                    location.Location.Id, schedule.Schedule.Id, campusId ?? location.CampusId,
                                                     checkInState.Kiosk.Device.Id, checkInState.CheckIn.SearchType.Id,
                                                     checkInState.CheckIn.SearchValue, family.Group.Id, attendanceCode.Id );
 
@@ -176,22 +196,7 @@ namespace org.secc.FamilyCheckin
                         MobileCheckinRecordCache.CancelReservation( alreadyExistingMobileCheckin, true );
                     }
 
-                    KioskService kioskService = new KioskService( rockContext );
-                    var kioskTypeId = kioskService.GetByClientName( checkInState.Kiosk.Device.Name ).KioskTypeId;
-                    var kioskType = KioskTypeCache.Get( kioskTypeId.Value );
-                    var campusId = kioskType.CampusId;
-                    if ( campusId == null )
-                    {
-                        var compatableKioskType = KioskTypeCache.All().Where( kt => kt.CampusId.HasValue && kt.CheckinTemplateId == kioskType.CheckinTemplateId ).FirstOrDefault();
-                        if ( compatableKioskType != null )
-                        {
-                            campusId = compatableKioskType.CampusId;
-                        }
-                        else
-                        {
-                            campusId = 0;
-                        }
-                    }
+                    campusId = RollUpToParentCampus( campusId );
 
                     MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
                     var mobileCheckinRecord = new MobileCheckinRecord
@@ -221,6 +226,53 @@ namespace org.secc.FamilyCheckin
             }
             errorMessages.Add( $"Attempted to run {this.GetType().GetFriendlyTypeName()} in check-in, but the check-in state was null." );
             return false;
+        }
+
+        private int? RollUpToParentCampus( int? campusId )
+        {
+            if ( !campusId.HasValue )
+            {
+                return campusId;
+            }
+
+            var childCampus = CampusCache.Get( campusId.Value );
+
+            var nestedCampusType = DefinedTypeCache.Get( Constants.DEFINED_TYPE_NESTED_CAMPUSES );
+            var parentCampusValue = nestedCampusType.DefinedValues
+                .Where( dv => dv.GetAttributeValue( Constants.DEFINED_VALUE_ATTRIBUTE_CHILD_CAMPUS ).AsGuid() == childCampus.Guid )
+                .FirstOrDefault();
+
+            if ( parentCampusValue == null )
+            {
+                return campusId;
+            }
+
+            var parentCampusGuid = parentCampusValue.GetAttributeValue( Constants.DEFINED_VALUE_ATTRIBUTE_PARENT_CAMPUS ).AsGuid();
+            var parentCampus = CampusCache.Get( parentCampusGuid );
+            if ( parentCampus == null )
+            {
+                return campusId;
+            }
+
+            return parentCampus.Id;
+        }
+
+        private int? GetCampusOrFamilyCampusId( int? checkinCampusId, int? familyCampusId )
+        {
+            if ( checkinCampusId == null || familyCampusId == null )
+            {
+                return checkinCampusId;
+            }
+
+            var checkinCampus = CampusCache.Get( checkinCampusId.Value );
+            var familyCampus = CampusCache.Get( familyCampusId.Value );
+
+            var nestedCampusType = DefinedTypeCache.Get( Constants.DEFINED_TYPE_NESTED_CAMPUSES );
+            var useFamilyCampus = nestedCampusType.DefinedValues
+                .Where( dv => dv.GetAttributeValue( Constants.DEFINED_VALUE_ATTRIBUTE_PARENT_CAMPUS ).AsGuid() == checkinCampus.Guid )
+                .Where( dv => dv.GetAttributeValue( Constants.DEFINED_VALUE_ATTRIBUTE_CHILD_CAMPUS ).AsGuid() == familyCampus.Guid )
+                .Any();
+            return useFamilyCampus ? familyCampusId : checkinCampusId;
         }
     }
 }
