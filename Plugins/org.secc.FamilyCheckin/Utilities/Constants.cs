@@ -28,8 +28,10 @@ namespace org.secc.FamilyCheckin.Utilities
         public const string DEFINED_VALUE_ATTENDANCE_STATUS_WITH_PARENT = "25B4B1A5-9B20-4EDF-920B-A33098438FC3";
         public const string DEFINED_VALUE_MOBILE_NOT_ATTEND = "E1D5F3DB-A76F-43E7-8A76-57CF5B39120C";
         public const string DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES = "4A3255CE-9363-402C-9998-B2998B6712E0";
+        public const string DEFINED_TYPE_NESTED_CAMPUSES = "8C4E4C49-8AFB-4BDE-9DD0-E2253DF7E7B7";
+        public const string DEFINED_VALUE_ATTRIBUTE_PARENT_CAMPUS = "ParentCampus";
+        public const string DEFINED_VALUE_ATTRIBUTE_CHILD_CAMPUS = "ChildCampus";
         public const string LOCATION_ATTRIBUTE_ROOM_RATIO = "RoomRatio";
         public const string GROUP_ATTRIBUTE_LINK_LOCATIONS = "0A8723A4-4AEE-4D21-A32B-350845FC8FA9";
-
     }
 }
