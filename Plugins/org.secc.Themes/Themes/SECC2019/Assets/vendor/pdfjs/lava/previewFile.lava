@@ -1,10 +1,8 @@
-<meta charset="utf-8">
+{% comment %} <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta name="google" content="notranslate">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-
+<meta http-equiv="X-UA-Compatible" content="IE=edge"> {% endcomment %}
 <link rel="stylesheet" href="/Themes/SECC2019/Assets/vendor/pdfjs/web/viewer.css">
-
 <!-- This snippet is used in production (included from viewer.html) -->
 <link rel="resource" type="application/l10n" href="/Themes/SECC2019/Assets/vendor/pdfjs/web/locale/locale.properties">
 <script src="/Themes/SECC2019/Assets/vendor/pdfjs/build/pdf.js"></script>
@@ -41,13 +39,10 @@
     background-color: white;
 }
 </style>
-
 <!--<script>-->
 <!--  file = 'https://rockstaging.secc.org/GetFile.ashx/file.pdf?guid=387b48b8-2a37-45bb-9cdd-914c783f3ebe';-->
 <!--  validateFileURL(file);-->
 <!--</script>-->
-
-
 <div tabindex="1" class="loadingInProgress">
     <div id="outerContainer">
 

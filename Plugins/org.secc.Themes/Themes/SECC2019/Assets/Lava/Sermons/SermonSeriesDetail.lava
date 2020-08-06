@@ -404,30 +404,43 @@
 
             <div class="container g-padding-t-0--xs g-padding-x-0--xs">
     			<div class="row g-padding-y-60--xs g-padding-x-0--xs g-margin-x-0--xs">
-    				<div class="col-md-12 text-center g-padding-x-0--xs">
+    				<div class="col-md-12 text-center g-padding-x-20--xs">
     					<h1 class="g-font-size--jumbo-1 g-font-family--secondary">Series Resources</h1>
     				</div>
     			</div>
     			<div class="">
                     <style>
-                        @media only screen and (min-width : 480px) and (max-width: 780px) {
+                        @media only screen and (max-width: 780px) {
                             .rsc-title-brd {
-                                margin: 0px 20px 5px;
                                 border-bottom: 1px solid rgba(124, 124, 124, 0.18);
                             }
                         }
                         @media all and (min-width: 992px) {
                             .rsc-title {
-                                position: relative;
+                                position: absolute;
                                 top: 50%;
                                 transform: translateY(-50%);
+                            }
+                            .resourcePreview {
+                                /*width: 75%;
+                                left: 50%;
+                                transform: translate(-25%, 0px);*/
                             }
                         }
                         @media all and (min-width: 768px) {
                             .rsc-buttons {
-                                position: relative;
+                                position: absolute;
                                 top: 50%;
                                 transform: translateY(-50%);
+                                right: 0;
+                                display: inline-block;
+                            }
+                        }
+                        @media all and (max-width: 767px) {
+                            .rsc-buttons {
+                               position: relative;
+                               display: flex;
+                               width: 100%;
                             }
                         }
                         .sermon-resources-accordion .panel .panel-heading .panel-title {
@@ -447,42 +460,69 @@
                         .sermon-resources-accordion .panel .panel-collapse .panel-body {
                             padding: 20px !important;
                         }
+                        body.modal-open {
+                            overflow: auto;
+                        }
+                        .modal {
+                            overflow-y: auto;
+                        }
                     </style>
                     {% comment %}
                     Grab all "Studies" resources
                     {% endcomment %}
                     {%- if studiesStudiesIncluded == true -%}
-                    {[ faq columns:'1' autoheight:'true' accordionclass:'accordions-nostyle sermon-resources-accordion' collapsed:'false' ]}
-                        [[ item title:'Studies' ]]
-        				{%- for messages in itemChildItems -%}
-        					{%- assign resource = messages.ChildContentChannelItem -%}
-        					{%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
-                            {%- if resourceMediaFile.Guid != null -%}
-                                <div class="se-panel g-padding-x-40--xs g-padding-y-20--xs g-margin-b-30--xs g-color--dark">
-                                    <div class="row g-display-flex--md">
-                                        <div class="rsc-title-brd col-sm-6 g-padding-y-20--xs">
-                                            <h4 class="rsc-title g-font-weight--600 g-text-center--xs g-text-left--md">{{ resource.Title }}</h4>
-                                        </div>
-                                        <div class="col-sm-6 g-padding-y-20--xs g-text-right--lg">
-                                            {% comment %}
-                                            <a class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-50-percent--xs text-center g-display-inline-block--xs">
-                                                <i class="fas fa-search g-margin-r-10--xs"></i> <strong>Preview</strong>
-                                            </a>
-                                            <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" data-resource="{{ resourceMediaFile.FileName }}" class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-50-percent--xs text-center g-display-inline-block--xs" download>
-                                                <i class="fas fa-download g-margin-r-10--xs"></i> <strong>Download</strong>
-                                            </a>
-                                            {% endcomment %}
-                                            <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" data-resource="{{ resourceMediaFile.FileName }}" class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-100-percent--xs text-center g-display-inline-block--xs" download>
-                                                <i class="fas fa-download g-margin-r-10--xs"></i> <strong>Download</strong>
-                                            </a>
+                        {[ faq columns:'1' autoheight:'true' accordionclass:'accordions-nostyle sermon-resources-accordion' collapsed:'false' ]}
+                            [[ item title:'Studies' ]]
+                            {%- for messages in itemChildItems -%}
+                                {%- assign resource = messages.ChildContentChannelItem -%}
+                                {%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
+                                {%- if resourceMediaFile.Guid != null -%}
+                                    <div class="se-panel g-padding-x-40--xs g-padding-y-20--md g-margin-b-30--xs g-color--dark">
+                                        <div class="row g-display-flex--md">
+                                            <div class="rsc-title-brd col-sm-6 g-padding-y-40--xs">
+                                                <h5 class="rsc-title g-font-weight--600 g-text-center--xs g-text-left--md">{{ resource.Title }}</h5>
+                                            </div>
+                                            <div class="col-sm-6 g-padding-y-20--xs g-padding-y-40--md g-text-right--lg g-position--relative">
+                                                <div class="rsc-buttons g-width-100-percent--xs"><a type="button" data-rtitle="{{ resource.Title }}" data-rguid="{{ resourceMediaFile.Guid }}" class="resourceButtons btn g-letter-spacing--1 g-color--dark g-width-300--lg g-width-50-percent--xs text-center g-display-inline-block--xs" data-toggle="modal" data-target="#r{{ resourceMediaFile.Guid }}" style="white-space: nowrap; cursor: pointer;">
+                                                        <i class="fas fa-search g-margin-r-10--xs"></i> <strong>Preview</strong>
+                                                    </a><a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" data-resource="{{ resourceMediaFile.FileName }}" class="btn g-letter-spacing--1 g-color--dark g-width-300--lg g-width-50-percent--xs text-center g-display-inline-block--xs" style="white-space: nowrap;" download>
+                                                        <i class="fas fa-download g-margin-r-10--xs"></i> <strong>Download</strong>
+                                                    </a></div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            {%- endif -%}
-                        {%- endfor -%}
-                        [[ enditem ]]
-                    {[ endfaq ]}
+                                    <div class="modal fade resourcePreview" id="r{{ resourceMediaFile.Guid }}" tabindex="-1" role="dialog" aria-labelledby="resourcePreviewLabel">
+                                        <div class="modal-dialog modal-lg" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button type="button" class="close g-margin-y-0--xs g-margin-x-10--xs" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                    <h4 class="modal-title" id="resourcePreviewLabel">{{ resource.Title }}</h4>
+                                                </div>
+                                                <div id="loadFrame" class="modal-body g-padding-x-20--xs g-padding-y-20--xs g-bg-color--dark">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {%- endif -%}
+                            {%- endfor -%}
+                            [[ enditem ]]
+                        {[ endfaq ]}
+                        <script>
+                            $(document).on("click", ".resourceButtons", function () {
+                                var button = $(this);
+                                var modalTarget = button.data('target');
+                                var pdfGuid = button.data('rguid');
+                                var src = '/viewer?file=/GetFile.ashx%3Fguid%3D' + pdfGuid;
+                                var modal = $(modalTarget);
+                                var iframeHTML = '<iframe src="' + src + '" frameborder="0" height="600" marginheight="0" marginwidth="0" scrolling="no" width="100%"></iframe>';
+                                console.log(iframeHTML);
+                                modal.find('#loadFrame').html(iframeHTML);
+                            });                    
+                        </script>
                     {%- endif -%}
+
 
                     {% comment %}
                     Grab all "Reading Plans" or "Links" resources
@@ -497,8 +537,8 @@
                             {%- if resourceURL != "" -%}
                                 <div class="se-panel g-padding-x-40--xs g-padding-y-20--xs g-margin-b-30--xs g-color--dark">
                                     <div class="row g-display-flex--md">
-                                        <div class="rsc-title-brd col-sm-6 g-padding-y-20--xs">
-                                            <h4 class="rsc-title g-font-weight--600 g-text-center--xs g-text-left--md">{{ resource.Title }}</h4>
+                                        <div class="rsc-title-brd col-sm-6 g-padding-y-20--xs g-margin-x-20--md">
+                                            <h4 class="rsc-title g-font-weight--600 g-text-center--xs g-text-left--md">{{ resource.Title | Truncate:150}</h4>
                                         </div>
                                         <div class="col-sm-6 g-padding-y-20--xs g-text-right--lg">
                                             <a href="{{ resourceURL }}" data-resource="{{ resourceURL }}"  target="_blank" class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-100-percent--xs text-center g-display-inline-block--xs">
