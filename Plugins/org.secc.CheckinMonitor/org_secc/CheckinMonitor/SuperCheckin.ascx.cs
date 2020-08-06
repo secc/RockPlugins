@@ -296,22 +296,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 pnlAddPerson.Visible = false;
                 ltName.Text = checkinPerson.Person.FullName;
                 BuildPersonCheckinDetails();
-
-                if ( !GetAttributeValue( "AllowNonApproved" ).AsBoolean() )
-                {
-                    if ( !checkinPerson.Person.BirthDate.HasValue || ( checkinPerson.Person.Age > 12 && !IsApproved( checkinPerson.Person ) ) )
-                    {
-                        btnCheckin.Visible = false;
-                    }
-                    else
-                    {
-                        btnCheckin.Visible = true;
-                    }
-                }
-                else
-                {
-                    btnCheckin.Visible = true;
-                }
             }
         }
 
@@ -448,6 +432,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             var selectedPersonId = ( int ) ViewState["SelectedPersonId"];
             var checkinPerson = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People.Where( p => p.Person.Id == selectedPersonId ).FirstOrDefault();
+            var canWorkWithMinors = IsApproved( checkinPerson.Person );
 
             phCheckin.Controls.Clear();
 
@@ -459,10 +444,17 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var volunteerGroupIds = OccurrenceCache.GetVolunteerOccurrences().Select( o => o.GroupId ).ToList();
             var childGroupIds = OccurrenceCache.GetChildOccurrences().Select( o => o.GroupId ).ToList();
 
+
             foreach ( var groupType in checkinPerson.GroupTypes )
             {
                 //ignore group types with no non-excluded groups on non-super checkin
                 if ( !cbSuperCheckin.Checked && !groupType.Groups.Where( g => !g.ExcludedByFilter ).Any() )
+                {
+                    continue;
+                }
+
+                //ignore if requesting volunteer and cannot work with minors
+                if ( cbSuperCheckin.Checked && cbVolunteer.Checked && !canWorkWithMinors )
                 {
                     continue;
                 }
