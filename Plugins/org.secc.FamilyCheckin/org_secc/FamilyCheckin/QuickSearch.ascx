@@ -20,6 +20,11 @@
 
 
     Sys.Application.add_load(function () {
+        setInterval(function () { 
+            if (!document.hasFocus()) {
+                document.body.focus();
+            }
+        }, 1000)
 
         var captureSpecialKey = function (e) {
             $phoneNumber = $("input[id$='tbPhone']");
