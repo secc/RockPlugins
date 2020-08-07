@@ -6,7 +6,7 @@
 <ContentTemplate>
     <script src="/Plugins/org_secc/Reporting/Scripts/isotope.pkgd.min.js" ></script>
     <script>
-    $(window).load(function() {
+    function pageLoad() {
         // Initialize Isotope
         var $grid = $('.isotope_wrap').isotope({
             // options
@@ -14,7 +14,7 @@
             itemSelector: '.isotope_item',
             layoutMode: 'masonry'
         });
-    });
+    }
     </script>
     <div class="panel panel-block">
 
