@@ -1,0 +1,68 @@
+{
+	"header": {
+		"title": "Sermon Discussion"
+	},
+	"displayOptions":{
+		"style":"stacked",
+		"contentWidthRatio":1.0,
+	    "itemDisplayOptions":{
+			"indicatorAspectRatio":3.91767691,
+			"indicatorShadowEnabled":true,
+        	"maxWidth":1400,
+	        "textPosition": "none"
+	    },
+		"colors":{
+	        "brand":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+			"theme":{
+	            "primary":"#121212",
+				"block":"#262626",
+	            "blockAccent":"#262626",
+	            "secondaryAccent":"#FFFFFF",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "topBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "bottomBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "brandableElements":"{{colors:brand}}"
+	    }
+	},
+	"items": [
+		{%- assign discussionUrl = 'https://www.southeastchristian.org/sermondiscussion' -%}
+        {%- comment -%}
+        General Image
+        {%- endcomment -%}
+        {%- assign intervalCuts = 394.111111 -%}
+        {%- assign interY1 = 0 -%}
+        {%- assign interY2 = intervalCuts | Plus:1 -%}
+        {%- assign comma = "" -%}
+        {%- for i in (0..4) -%}
+        {{- comma -}}{
+			"title": "Sermon Discussion",
+            "images":[
+			    { "width":800, "url":"https://rock.secc.org/webhooks/ImageGenerator.ashx/discussionintro?width=1544&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+		    ]{%- if forloop.index == 3 -%},"actions":[{
+                "handler":"browser",
+				"type":"navigation",
+				"style":"internal",
+				"contentUrl": "{{discussionUrl}}"
+            }]{%- endif -%}
+		}
+        {%- assign comma = "," -%}
+		{%- if forloop.index ==  1 -%}
+			{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
+			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+		{%- else -%}
+			{%- assign interY1 = interY1 | Plus:intervalCuts -%}
+			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
+		{%- endif -%}
+        {%- endfor -%}
+    ]
+}
