@@ -14,6 +14,16 @@
 {%- if connectUrl == "" -%}
     {%- assign lineCount = lineCount | Plus:1 -%}
 {%- endif -%}
+{%- assign connectTitle = item | Attribute:'ConnectionTitle' -%}
+{%- assign connectTitle2 = item | Attribute:'ConnectionTitle2' -%}
+{%- assign connectTitle3 = item | Attribute:'ConnectionTitle3' -%}
+{%- assign connectInfo = item | Attribute:'ConnectInfo' -%}
+{%- assign connectUrl = item | Attribute:'ConnectURL' -%}
+{%- assign connectImageGuid = item | Attribute:'Image','RawValue' -%}
+{%- assign connectImageHeight = item | Attribute:'ImageHeight' -%}
+{%- if connectImageHeight == "" -%}
+    {%- assign connectImageHeight = '800' -%}
+{%- endif -%}
 <html>
     <head>
         <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/layout.css?v=637171650738055685"/>
@@ -26,11 +36,16 @@
             }
             .box {
               width: 1334px;
-              height:824px;
+              {%- if connectImageGuid != "" -%}
+              height: 1729px;
+              {%- else -%}
+              height: 824px;
+              {%- endif -%}
               background-color: #262626;
               background-repeat: no-repeat;
               background-size: contain;
               background-position: top;
+              overflow: hidden;
             }
             .box h4, .box h5, .box p {
               color: white;
@@ -51,7 +66,7 @@
             .content div h5,
             .content div h6,
             .content div small {
-                font-size: 45px !important;;
+                font-size: 50px !important;;
             }
             .block-with-text {
                 overflow: hidden;
@@ -63,43 +78,56 @@
                 position: absolute;
                 bottom: 0;
                 width: 100%;
-                padding: 50px;
-                font-size: 2.8em;
+                font-size: 3em;
                 color: white;
                 background-color: #28A5BB;
                 text-align: center;
                 font-weight: 600;
                 text-transform: uppercase;
+                {%- if connectImageGuid != "" -%}
+                border-radius: 120px 120px 0 0;
+                overflow: hidden;
+                {%- endif -%}
+            }
+            .more img {
+                {%- if connectImageGuid != "" -%}
+                border-radius: 120px 120px 0 0;
+                overflow: hidden;
+                {%- endif -%}
+            }
+            .more span {
+                    padding: 50px;
+                    position: relative;
+                    width: 100%;
+                    display: block;
             }
         </style>
     </head>
     <body>
         <div class="box">
             <div class="content-box g-position--relative">
-                {%- assign connectTitle = item | Attribute:'ConnectionTitle' -%}
-                {%- assign connectTitle2 = item | Attribute:'ConnectionTitle2' -%}
-                {%- assign connectTitle3 = item | Attribute:'ConnectionTitle3' -%}
-                {%- assign connectInfo = item | Attribute:'ConnectInfo' -%}
-                {%- assign connectUrl = item | Attribute:'ConnectURL' -%}
                 <div class="content">
                     {%- if connectTitle != "" -%}
-                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 45px; font-style: italic;">{{ connectTitle }}</h3>
+                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 50px; font-style: italic;">{{ connectTitle }}</h3>
                     {%- endif -%}
                     {%- if connectTitle2 != "" -%}
-                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 45px; font-style: italic;">{{ connectTitle2 }}</h3>
+                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 50px; font-style: italic;">{{ connectTitle2 }}</h3>
                     {%- endif -%}
                     {%- if connectTitle3 != "" -%}
-                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 45px; font-style: italic;">{{ connectTitle3 }}</h3>
+                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 50px; font-style: italic;">{{ connectTitle3 }}</h3>
                     {%- endif -%}
                     {%- if connectInfo != "" -%}
                     <div class="g-color--white g-padding-t-20--xs g-line-height block-with-text">{{ connectInfo }}</div>
                     {%- endif -%}
                 </div>
-                {%- if connectUrl != "" -%}
                 <div class="more">
-                    Learn More
+                    {%- if connectImageGuid != "" -%}
+                        <img class="img-responsive" src="{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx?Guid={{ connectImageGuid }}&mode=crop&height={{ connectImageHeight }}&width=1334&anchor=center&format=jpg&scale=both" style="width: 100%;">
+                    {% endif %}
+                    {%- if connectUrl != "" -%}
+                        <span>Learn More</span>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
     </body>

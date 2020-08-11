@@ -56,7 +56,7 @@
 		"style":"stacked",
 		"contentWidthRatio": 1.0,
 		"itemDisplayOptions": {
-			"indicatorAspectRatio":1.65,
+			"indicatorAspectRatio":1.652654867256637,
 			"indicatorShadowEnabled":true,
         	"maxWidth":1400,
 	        "textPosition": "none"
@@ -65,11 +65,11 @@
 	"items": [
         {
             "images":[
-                { "width":636, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/campusIntro/{{campus.Guid}}"  }
+                { "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/campusIntro/{{campus.Guid}}"  }
             ]
 	},{
             "images":[
-                { "width":636, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/campusFigures/{{campus.Guid}}"  }
+                { "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/campusFigures/{{campus.Guid}}"  }
             ]
 	}{%- assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger -%}
 	 {%- contentchannelitem where:'ContentChannelId == 70 && Status == 2' sort:'Order'  -%}{%- for item in contentchannelitemItems -%}
@@ -79,20 +79,51 @@
 				{%- assign itemCampuses = item | Attribute:'Campuses' -%}
 				{%- assign connectUrl = item | Attribute:'ConnectURL','RawValue' -%}
 					{% if itemCampuses contains campus.Name %}
-					,{
-			            "images": [
-			                { "width":636, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/connect/{{item.Guid}}?bgcolor=121212&mode=crop&s.roundcorners=20,20,20,20&margin=80,0,80,80"  }
-			            ]
-						{%- if connectUrl != "" -%}
-						,"actions": [{
-							"handler": "browser",
-							"style":"external",
-							"type":"navigation",
-							"showBrowserControls": true,
-							"contentUrl": "{{ connectUrl }}"
-						}]
+						{%- assign connectImageGuid = item | Attribute:'Image','RawValue' -%}
+						{%- if connectImageGuid == "" -%} 
+						,{
+							"images": [
+								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/connect/{{item.Guid}}?bgcolor=121212&mode=crop&s.roundcorners=20,20,20,20&margin=80,0,80,80"  }
+							]
+							{%- if connectUrl != "" -%}
+							,"actions": [{
+								"handler": "browser",
+								"style":"external",
+								"type":"navigation",
+								"showBrowserControls": true,
+								"contentUrl": "{{ connectUrl }}"
+							}]
+							{% endif %}
+						}
+						{%- else -%}
+						,{
+							"images": [
+								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/connect/{{item.Guid}}?bgcolor=121212&s.roundcorners=20,20,0,0&margin=80,0,80,0&width=1494&crop=(0,0,1494,904)&anchor=topcenter&format=jpg"  }
+							]
+							{%- if connectUrl != "" -%}
+							,"actions": [{
+								"handler": "browser",
+								"style":"external",
+								"type":"navigation",
+								"showBrowserControls": true,
+								"contentUrl": "{{ connectUrl }}"
+							}]
+							{% endif %}
+						},{
+							"images": [
+								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/connect/{{item.Guid}}?bgcolor=121212&s.roundcorners=0,0,20,20&margin=80,0,80,80&width=1494&crop=(0,905,1494,1729)&anchor=topcenter&format=jpg"  }
+							]
+							{%- if connectUrl != "" -%}
+							,"actions": [{
+								"handler": "browser",
+								"style":"external",
+								"type":"navigation",
+								"showBrowserControls": true,
+								"contentUrl": "{{ connectUrl }}"
+							}]
+							{% endif %}
+						}
 						{% endif %}
-			        }
 					{% endif %}
 			{% endif %}
 		{%- endfor -%}
