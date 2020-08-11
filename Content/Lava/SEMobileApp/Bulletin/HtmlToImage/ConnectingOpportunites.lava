@@ -66,7 +66,7 @@
             .content div h5,
             .content div h6,
             .content div small {
-                font-size: 50px !important;;
+                font-size: 45px !important;;
             }
             .block-with-text {
                 overflow: hidden;
@@ -108,13 +108,13 @@
             <div class="content-box g-position--relative">
                 <div class="content">
                     {%- if connectTitle != "" -%}
-                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 50px; font-style: italic;">{{ connectTitle }}</h3>
+                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 45px; font-style: italic;">{{ connectTitle }}</h3>
                     {%- endif -%}
                     {%- if connectTitle2 != "" -%}
-                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 50px; font-style: italic;">{{ connectTitle2 }}</h3>
+                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 45px; font-style: italic;">{{ connectTitle2 }}</h3>
                     {%- endif -%}
                     {%- if connectTitle3 != "" -%}
-                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 50px; font-style: italic;">{{ connectTitle3 }}</h3>
+                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 45px; font-style: italic;">{{ connectTitle3 }}</h3>
                     {%- endif -%}
                     {%- if connectInfo != "" -%}
                     <div class="g-color--white g-padding-t-20--xs g-line-height block-with-text">{{ connectInfo }}</div>
