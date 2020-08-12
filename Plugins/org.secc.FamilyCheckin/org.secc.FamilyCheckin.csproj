@@ -135,6 +135,7 @@
     <Compile Include="Rest\Handlers\SessionControllerHandler.cs" />
     <Compile Include="Rest\Handlers\SessionRouteHandler.cs" />
     <Compile Include="UI\CheckinGroupPicker.cs" />
+    <Compile Include="Utilities\CheckinLabelGen.cs" />
     <Compile Include="Utilities\Constants.cs" />
     <Compile Include="Utilities\KioskDeviceHelpers.cs" />
     <Compile Include="Utilities\LabelPrinter.cs" />

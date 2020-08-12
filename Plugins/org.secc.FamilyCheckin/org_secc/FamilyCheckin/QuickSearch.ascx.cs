@@ -15,9 +15,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Linq;
 using System.Web.UI;
-using Microsoft.AspNet.SignalR;
 using Newtonsoft.Json;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Exceptions;
@@ -41,6 +41,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [IntegerField( "Refresh Interval", "How often (seconds) should page automatically query server for new Check-in data", false, 10 )]
     [TextField( "Search Regex", "Regular Expression to run the search input through before sending it to the workflow. Useful for stripping off characters.", false )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.CHECKIN_SEARCH_TYPE, "Search Type", "The type of search to use for check-in (default is phone number).", true, false, Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER, order: 4 )]
+    [BinaryFileField( Rock.SystemGuid.BinaryFiletype.CHECKIN_LABEL, "Aggregated Label", "Binary file that is the parent pickup label", false )]
     [CodeEditorField( "Default Content", "Default content to display", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 12 )]
     [CodeEditorField( "No Mobile Checkin Record", "Message to display when there is no mobile checkin record.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 13, key: AttributeKeys.NoMobileCheckinRecord )]
     [CodeEditorField( "Expired Checkin Record", "Message to display when the check-in record has been exprired/deleted.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 13, key: AttributeKeys.ExpiredMobileCheckinRecord )]
@@ -359,7 +360,18 @@ if ($ActiveWhen.text() != '')
                     ShowWrongCampusSign( mobileCheckinRecord.Campus.Name, KioskType.Campus.Name );
                     return;
                 }
-                List<CheckInLabel> labels = JsonConvert.DeserializeObject<List<CheckInLabel>>( mobileCheckinRecord.SerializedCheckInState );
+
+                List<CheckInLabel> labels = null;
+
+                if ( mobileCheckinRecord.Attendances.Any( a => a.EndDateTime != null ) )
+                {
+                    var people = mobileCheckinRecord.Attendances.Select( a => a.PersonAlias.Person ).DistinctBy( p => p.Id ).ToList();
+                    labels = CheckinLabelGen.GenerateLabels( people, CurrentCheckInState.Kiosk.Device, GetAttributeValue( "AggregatedLabel" ).AsGuidOrNull() );
+                }
+                else
+                {
+                    labels = JsonConvert.DeserializeObject<List<CheckInLabel>>( mobileCheckinRecord.SerializedCheckInState );
+                }
 
                 LabelPrinter labelPrinter = new LabelPrinter()
                 {
@@ -404,6 +416,8 @@ if ($ActiveWhen.text() != '')
             {
             }
         }
+
+
 
         private void MobileCheckinMessage( string message, int secondsOpen = 10 )
         {

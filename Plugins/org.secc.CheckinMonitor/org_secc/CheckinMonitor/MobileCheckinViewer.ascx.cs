@@ -18,12 +18,12 @@ using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
-using Microsoft.AspNet.SignalR;
 using Newtonsoft.Json;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
+using Rock.Attribute;
 using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
@@ -35,6 +35,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [DisplayName( "Mobile Check-in Viewer" )]
     [Category( "SECC > Check-in" )]
     [Description( "Displays active mobile check-in records for printing." )]
+    [BinaryFileField( Rock.SystemGuid.BinaryFiletype.CHECKIN_LABEL, "Aggregated Label", "Binary file that is the parent pickup label", false )]
     public partial class MobileCheckinViewer : CheckInBlock
     {
         protected KioskTypeCache KioskType;
@@ -98,7 +99,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 {
                     Record = r,
                     Caption = g.Name,
-                    Attendances = r.Attendances
+                    Attendances = r.Attendances.Where(a => a.EndDateTime == null)
                 } )
                 .ToList()
                 .Select( r => new MCRPoco
@@ -161,7 +162,17 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     return;
                 }
 
-                List<CheckInLabel> labels = JsonConvert.DeserializeObject<List<CheckInLabel>>( mobileCheckinRecord.SerializedCheckInState );
+                List<CheckInLabel> labels = null;
+
+                if ( mobileCheckinRecord.Attendances.Any( a => a.EndDateTime != null ) )
+                {
+                    var people = mobileCheckinRecord.Attendances.Select( a => a.PersonAlias.Person ).DistinctBy( p => p.Id ).ToList();
+                    labels = CheckinLabelGen.GenerateLabels( people, CurrentCheckInState.Kiosk.Device, GetAttributeValue( "AggregatedLabel" ).AsGuidOrNull() );
+                }
+                else
+                {
+                    labels = JsonConvert.DeserializeObject<List<CheckInLabel>>( mobileCheckinRecord.SerializedCheckInState );
+                }
 
                 LabelPrinter labelPrinter = new LabelPrinter()
                 {

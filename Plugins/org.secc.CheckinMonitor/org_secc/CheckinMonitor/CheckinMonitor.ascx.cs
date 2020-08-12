@@ -20,6 +20,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using Humanizer;
 using org.secc.FamilyCheckin.Cache;
+using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
@@ -884,8 +885,21 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     locationId = newLocationId;
                 }
 
+                int? mobileCheckinRecordId = null;
+
                 if ( groupId != 0 && locationId != 0 )
                 {
+                    if ( attendanceRecord.Qualifier != null )
+                    {
+                        var mobileRecord = MobileCheckinRecordCache.All()
+                            .Where( r => r.Status == org.secc.FamilyCheckin.Model.MobileCheckinStatus.Active )
+                            .Where( r => r.AttendanceIds.Contains( attendanceRecord.Id ) ).FirstOrDefault();
+                        if ( mobileRecord != null )
+                        {
+                            mobileCheckinRecordId = mobileRecord.Id;
+                        }
+                    }
+
                     AttendanceOccurrence occurrence = GetOccurrence( _rockContext, attendanceRecord.StartDateTime, groupId, locationId, attendanceRecord.Occurrence.ScheduleId );
 
                     var newRecord = new Attendance
@@ -899,6 +913,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         DeviceId = LocalDeviceConfig.CurrentKioskId,
                         SearchValue = "MOVED IN OZ",
                         AttendanceCodeId = attendanceRecord.AttendanceCodeId,
+                        QualifierValueId = attendanceRecord.QualifierValueId
                     };
 
                     //Close all other attendance records for this person today at this schedule
@@ -919,6 +934,19 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                     attendanceService.Add( newRecord );
                     _rockContext.SaveChanges();
+
+                    if ( mobileCheckinRecordId.HasValue )
+                    {
+                        MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( _rockContext );
+                        var record = mobileCheckinRecordService.Get( mobileCheckinRecordId.Value );
+                        if ( record != null )
+                        {
+                            record.IsDirty = true;
+                            record.Attendances.Add( newRecord );
+                            _rockContext.SaveChanges();
+                            MobileCheckinRecordCache.Update( record.Id );
+                        }
+                    }
 
                     foreach ( var record in currentRecords )
                     {

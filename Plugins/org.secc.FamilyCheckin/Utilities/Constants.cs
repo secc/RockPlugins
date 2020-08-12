@@ -33,5 +33,6 @@ namespace org.secc.FamilyCheckin.Utilities
         public const string DEFINED_VALUE_ATTRIBUTE_CHILD_CAMPUS = "ChildCampus";
         public const string LOCATION_ATTRIBUTE_ROOM_RATIO = "RoomRatio";
         public const string GROUP_ATTRIBUTE_LINK_LOCATIONS = "0A8723A4-4AEE-4D21-A32B-350845FC8FA9";
+        public const string GROUP_TYPE_BREAKOUT_GROUSPS = "224A3D85-5276-4C33-9436-5FDA7DD24D14";
     }
 }
