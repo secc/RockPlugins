@@ -86,35 +86,33 @@
 </section>
 
 <section class="container">
-    <div class="row">
-        <div class="col-md-12">
-            {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
-            {% contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime Desc' %}
-                {% assign Items = contentchannelitemItems %}
-                {%- for series in Items -%}
-                    {%- assign startDateTime = series.StartDateTime | Date:'yyyyMMddHHmmss' -%}
-                    {%- assign endDateTime = series.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
-            		{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
-                        {%- contentchannelitem id:'{{ series.Id }}' -%}
-            				{%- assign seriesItem = contentchannelitem -%}
-            				{%- if seriesItem -%}
-                                {%- assign itemChildItems = seriesItem.ChildItems | Sort:'Priority' -%}
-                                {[ faq autoheight:'true' collapsed:'false' ]}
-                                {%- for item in itemChildItems -%}
-                                	{%- assign resource = item.ChildContentChannelItem -%}
-                                	{%- assign discussionHtml = resource | Attribute:'Discussion' -%}
-                                    {%- if discussionHtml != "" -%}
-                                        [[ item title:'{{ resource.Title }}' ]]
-                                            {{ discussionHtml }}
-                                        [[ enditem ]]
-                                    {%- endif -%}
-                                {%- endfor -%}
-                                {[ endfaq ]}
-                            {%- endif -%}
-            			{%- endcontentchannelitem %}
-                    {%- endif -%}
-                {%- endfor -%}
-            {% endcontentchannelitem %}
-        </div>
+    <div class="col-md-12">
+        {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+        {% contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime Desc' %}
+            {% assign Items = contentchannelitemItems %}
+            {%- for series in Items -%}
+                {%- assign startDateTime = series.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+                {%- assign endDateTime = series.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+        		{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+                    {%- contentchannelitem id:'{{ series.Id }}' -%}
+        				{%- assign seriesItem = contentchannelitem -%}
+        				{%- if seriesItem -%}
+                            {%- assign itemChildItems = seriesItem.ChildItems | Sort:'Priority' -%}
+                            {[ faq autoheight:'true' collapsed:'false' ]}
+                            {%- for item in itemChildItems -%}
+                            	{%- assign resource = item.ChildContentChannelItem -%}
+                            	{%- assign discussionHtml = resource | Attribute:'Discussion' -%}
+                                {%- if discussionHtml != "" -%}
+                                    [[ item title:'{{ resource.Title }}' ]]
+                                        {{ discussionHtml }}
+                                    [[ enditem ]]
+                                {%- endif -%}
+                            {%- endfor -%}
+                            {[ endfaq ]}
+                        {%- endif -%}
+        			{%- endcontentchannelitem %}
+                {%- endif -%}
+            {%- endfor -%}
+        {% endcontentchannelitem %}
     </div>
 </section>
