@@ -10,8 +10,8 @@
 </style>
 
 {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
-{% if Group.GroupTypeId == 60 %}
-    {% assign groupSeries = Group | Attribute:'NeighborhoodGroupContent','RawValue' | Split:',' %}
+{% assign groupSeries = Group | Attribute:'NeighborhoodGroupContent','RawValue' | Split:',' %}
+{% if groupSeries != "" %}
     
     {% for seriesGuid in groupSeries %}
         {%- contentchannelitem where:'Guid == "{{seriesGuid}}"' -%}
@@ -20,7 +20,54 @@
         {%- assign startDateTime = series.StartDateTime | Date:'yyyyMMddHHmmss' -%}
         {%- assign endDateTime = series.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
         {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
-        
+
+            <div class="container-fluid"  style="background-color: #f4f4f4; padding-top: 3rem; border-radius: 5px; margin-bottom:15px;">
+            {% assign seriesParallax = series | Attribute:'SeriesParallaxBackground','RawValue' %}
+            {% if seriesParallax != empty %}
+            <div id="seriesHero" class="g-bg-color--black g-padding-x-0--xs">
+                <img src="/GetImage.ashx?Guid={{ seriesParallax }}&amp;mode=crop&amp;width=1920&amp;height=575" class="img-responsive g-margin-x-auto--xs text-center">
+        	</div>
+            {% endif %}
+            <h1 class="series-title">
+                {{ series.Title }}
+            </h1>
+            <p class="series-dates">
+                Series Date:
+                <strong>{{ series.StartDateTime | Date:'M/d/yyyy' }}
+                    {% if series.StartDateTime != item.ExpireDateTime %}
+                    - {{ series.ExpireDateTime | Date:'M/d/yyyy' }}
+                    {% endif %}
+                </strong>
+            </p>
+            <br />
+            {{ series.Content }}
+
+            {% assign participantGuide = series | Attribute:'ParticipantGuide', 'Object' %}
+            {% assign leaderGuide = series | Attribute:'LeaderGuide', 'Object' %}
+            {% assign icebreakers = series | Attribute:'Icebreakers', 'Object' %}
+            {% if participantGuide != '' or leaderGuide != '' or icebreakers != ''  %}
+            <div class="resources">
+                <h5 class="post_title">Downloads &amp; Resources</h4>
+                <br />
+                <div class="list-group">
+
+                    {% if participantGuide != '' %}
+                        <a href="/GetFile.ashx?guid={{ participantGuide.Guid}}" class="list-group-item" download="{{ item.Title | Downcase | ToPascal }}_booklet.pdf"><i class="fa fa-download"></i> Download the booklet for this series</a>
+                    {% endif %}
+
+                    {% if leaderGuide != '' %}
+                        <a href="/GetFile.ashx?guid={{ leaderGuide.Guid}}" class="list-group-item" download="{{ item.Title | Downcase | ToPascal }}_leader_guide.pdf"><i class="fa fa-download"></i> Leader Guide</a>
+                    {% endif %}
+
+                    {% if icebreakers != '' %}
+                        <a href="/GetFile.ashx?guid={{ icebreakers.Guid}}" class="list-group-item" download="{{ item.Title | Downcase | ToPascal }}_icebreakers.pdf"><i class="fa fa-download"></i> Icebreakers</a>
+                    {% endif %}
+
+                </div>
+            </div>
+            {% endif %}
+            </div>
+
             {%- assign Items = series.ChildItems -%}
             {% comment %}
             *** start of items to iterate ***
