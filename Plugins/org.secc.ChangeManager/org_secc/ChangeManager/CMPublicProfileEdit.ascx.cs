@@ -71,7 +71,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         Description = "The person attributes that should be displayed / edited for adults.",
         IsRequired = false,
         AllowMultiple = true,
-        Order = 13)]
+        Order = 13 )]
 
     [AttributeField(
         "Person Attributes (children)",
@@ -80,7 +80,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         Description = "The person attributes that should be displayed / edited for children.",
         IsRequired = false,
         AllowMultiple = true,
-        Order = 14)]
+        Order = 14 )]
 
 
     public partial class CMPublicProfileEdit : RockBlock
@@ -309,7 +309,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     var adultGuid = Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid();
                     var adultRole = groupTypeRoleService.Get( adultGuid );
                     if ( rblRole.SelectedValue.AsInteger() == adultRole.Id )
-                    { 
+                    {
                         familyChangeRequest.EvaluatePropertyChange( primaryFamily, "CampusId", cpCampus.SelectedCampusId );
                     }
                 }
@@ -564,7 +564,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     if ( hfPhoneType != null &&
                         pnbPhone != null &&
                         cbSms != null &&
-                        cbUnlisted != null )
+                        cbUnlisted != null
+                        && pnbPhone.Number.IsNotNullOrWhiteSpace() )
                     {
 
                         int phoneNumberTypeId;
@@ -718,7 +719,11 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 if ( showCampus )
                 {
                     cpCampus.Campuses = CampusCache.All( false );
-                    cpCampus.SetValue( person.GetCampus().Id );
+                    var campus = person.GetCampus();
+                    if ( campus != null )
+                    {
+                        cpCampus.SetValue( person.GetCampus().Id );
+                    }
                 }
             }
 
