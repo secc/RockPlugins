@@ -23,6 +23,7 @@ using Rock.Model;
 using System;
 using Rock.Web.Cache;
 using System.Collections.Generic;
+using org.secc.FamilyCheckin.Utilities;
 
 namespace org.secc.Jobs
 {
@@ -47,6 +48,7 @@ namespace org.secc.Jobs
             AttendanceService attendanceService = new AttendanceService( rockContext );
             AttendanceOccurrenceService attendanceOccurrenceService = new AttendanceOccurrenceService( rockContext );
             GroupService groupService = new GroupService( rockContext );
+            PersonAliasService personAliasService = new PersonAliasService( rockContext );
 
             // Load the channel
             InteractionChannelCache channel = InteractionChannelCache.Get( dataMap.GetString( "InteractionChannel" ).AsGuid() );
@@ -56,6 +58,21 @@ namespace org.secc.Jobs
             var groupType = GroupTypeCache.Get( dataMap.GetString( "GroupType" ).AsGuid() );
             var groupLocations = groupService.GetByGroupTypeId( groupType.Id ).Where( g => g.IsActive == true ).SelectMany(g => g.GroupLocations).ToList();
             string operation = !string.IsNullOrWhiteSpace(dataMap.GetString( "Operation" )) ? dataMap.GetString( "Operation" ) : null;
+
+            //Create a nested campus list
+            Dictionary<int, int> nestedCampuses;
+            var nestedCampusDT = DefinedTypeCache.Get( Constants.DEFINED_TYPE_NESTED_CAMPUSES );
+            if (nestedCampusDT != null )
+            {
+                nestedCampuses = nestedCampusDT.DefinedValues
+                     .ToDictionary(
+                         v => CampusCache.Get( v.GetAttributeValue( Constants.DEFINED_VALUE_ATTRIBUTE_PARENT_CAMPUS ) ).Id,
+                         v => CampusCache.Get( v.GetAttributeValue( Constants.DEFINED_VALUE_ATTRIBUTE_CHILD_CAMPUS ) ).Id );
+            }
+            else
+            {
+                nestedCampuses = new Dictionary<int, int>();
+            }
 
             // Fetch the job so we can get the last run date/time
             int jobId = Convert.ToInt16( context.JobDetail.Description );
@@ -105,10 +122,11 @@ namespace org.secc.Jobs
                             var existingAttendees = attendanceOccurrenceService.Queryable().Where( ao => DbFunctions.TruncateTime( ao.OccurrenceDate ) == occurrence.Period.StartTime.Value.Date && ao.ScheduleId == schedule.Id && ao.GroupId == gl.GroupId && ao.LocationId == location.Id ).SelectMany(a => a.Attendees).Where(a => a.DidAttend == true ).Select( a => a.PersonAliasId );
                             foreach ( int personAliasId in peopleAttended.Except( existingAttendees ) )
                             {
+                                Attendance attendance;
                                 // Check to see if an occurrence exists already
                                 if ( occurrenceModel == null )
                                 {
-                                    var attendance = attendanceService.AddOrUpdate( personAliasId, occurrence.Period.StartTime.Value, gl.GroupId, location.Id, schedule.Id, gl.Group.CampusId );
+                                    attendance = attendanceService.AddOrUpdate( personAliasId, occurrence.Period.StartTime.Value, gl.GroupId, location.Id, schedule.Id, gl.Group.CampusId );
 
                                     attendance.EndDateTime = occurrence.Period?.EndTime?.Value;
                                     attendance.DidAttend = true;
@@ -117,7 +135,7 @@ namespace org.secc.Jobs
                                 }
                                 else
                                 {
-                                    Attendance attendance = new Attendance();
+                                    attendance = new Attendance();
                                     attendance.PersonAliasId = personAliasId;
                                     attendance.OccurrenceId = occurrenceModel.Id;
                                     attendance.StartDateTime = occurrence.Period.StartTime.Value;
@@ -125,6 +143,18 @@ namespace org.secc.Jobs
                                     attendance.DidAttend = true;
                                     attendance.CampusId = gl.Group.CampusId;
                                     attendanceService.Add( attendance );
+                                }
+
+                                if ( gl.Group.CampusId.HasValue && nestedCampuses.ContainsKey( gl.Group.CampusId.Value ) )
+                                {
+                                    var campusId = personAliasService.Queryable()
+                                        .Where( a => a.Id == personAliasId )
+                                        .Select( a => a.Person.PrimaryCampusId )
+                                        .FirstOrDefault();
+                                    if (campusId == nestedCampuses[gl.Group.CampusId.Value] )
+                                    {
+                                        attendance.CampusId = campusId;
+                                    }
                                 }
 
                                 newAttendance++;
