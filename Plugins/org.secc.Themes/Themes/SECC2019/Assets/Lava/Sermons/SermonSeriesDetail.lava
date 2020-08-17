@@ -538,7 +538,7 @@
                                 <div class="se-panel g-padding-x-40--xs g-padding-y-20--xs g-margin-b-30--xs g-color--dark">
                                     <div class="row g-display-flex--md">
                                         <div class="rsc-title-brd col-sm-6 g-padding-y-20--xs g-margin-x-20--md">
-                                            <h4 class="rsc-title g-font-weight--600 g-text-center--xs g-text-left--md">{{ resource.Title | Truncate:150}</h4>
+                                            <h4 class="rsc-title g-font-weight--600 g-text-center--xs g-text-left--md">{{ resource.Title | Truncate:150 }}</h4>
                                         </div>
                                         <div class="col-sm-6 g-padding-y-20--xs g-text-right--lg">
                                             <a href="{{ resourceURL }}" data-resource="{{ resourceURL }}"  target="_blank" class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-100-percent--xs text-center g-display-inline-block--xs">
