@@ -75,6 +75,10 @@
       <Project>{00EDCB8D-EF33-459C-AD62-02876BD24DFF}</Project>
       <Name>DotLiquid</Name>
     </ProjectReference>
+	<ProjectReference Include="..\org.secc.FamilyCheckin\org.secc.FamilyCheckin.csproj">
+      <Project>{3e94706b-c20e-413f-aafb-38af995fe033}</Project>
+      <Name>org.secc.FamilyCheckin</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
