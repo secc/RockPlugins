@@ -41,9 +41,9 @@ namespace org.secc.PersonMatch
                 //FirstName LastName and (DOB or email or phone or street address) are required. If not return an empty list.
                 if ( firstName.IsNullOrWhiteSpace() || lastName.IsNullOrWhiteSpace() ||
                     ( !birthDate.HasValue &&
-                        email.IsNotNullOrWhiteSpace() &&
-                        phone.IsNotNullOrWhiteSpace() &&
-                        street1.IsNotNullOrWhiteSpace() ) )
+                        email.IsNullOrWhiteSpace() &&
+                        phone.IsNullOrWhiteSpace() &&
+                        street1.IsNullOrWhiteSpace() ) )
                 {
                     if ( createNameless && ( email.IsNotNullOrWhiteSpace() || phone.IsNotNullOrWhiteSpace() ) )
                     {
