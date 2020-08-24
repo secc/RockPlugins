@@ -3150,9 +3150,16 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                         int FundID = 0;
                         int DeptID = 0;
                         int AcctID = 0;
+                        string ProjectID = null;
                         DateTime? FYStartDate = dgPaymentDetailCharges.DataKeys[dgi.RowIndex][3].ToString().AsDateTime();
                         decimal ChargeAmount = 0;
-                        string[] AcctPartArr = dgPaymentDetailCharges.DataKeys[dgi.RowIndex][2].ToString().Split(" ".ToCharArray())[0].Split("-".ToCharArray());
+
+                        var acctParts = dgPaymentDetailCharges.DataKeys[dgi.RowIndex][2].ToString().Split( " ".ToCharArray() );
+                        if ( acctParts.Length > 1)
+                        {
+                            ProjectID = acctParts[1];
+                        }
+                        string[] AcctPartArr = acctParts[0].Split("-".ToCharArray());
 
                         if (AcctPartArr.Length == 3)
                         {
@@ -3173,6 +3180,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                                                                         && c.FundID == FundID
                                                                         && c.DepartmentID == DeptID
                                                                         && c.AccountID == AcctID
+                                                                        && c.ProjectID == ProjectID
                                                                         && c.FYStartDate == FYStartDate.Value
                                                                         && c.Active).FirstOrDefault();
 
@@ -3185,6 +3193,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                                 Charge.FundID = FundID;
                                 Charge.DepartmentID = DeptID;
                                 Charge.AccountID = AcctID;
+                                Charge.ProjectID = ProjectID;
                                 Charge.FYStartDate = FYStartDate.Value;
                             }
                             if ( Charge.Amount != ChargeAmount )

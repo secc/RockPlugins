@@ -1110,7 +1110,7 @@ namespace org.secc.Purchasing
 
             using (PurchasingContext Context = ContextHelper.GetDBContext())
             {
-                foreach (PaymentData p in Context.PurchaseOrderDatas.FirstOrDefault(x => x.purchase_order_id == PurchaseOrderID).PaymentDatas)
+                foreach (PaymentData p in  Context.PurchaseOrderDatas.FirstOrDefault(x => x.purchase_order_id == PurchaseOrderID).PaymentDatas)
                 {
                     PaymentList.Add(new Payment(p));
                 }

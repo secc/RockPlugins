@@ -3618,6 +3618,8 @@ namespace org.secc.Purchasing.DataLayer
 		
 		private System.DateTime _fiscal_year_start;
 		
+		private string _project_id;
+		
 		private EntityRef<PaymentData> _PaymentData;
 		
 		private EntityRef<RequisitionData> _RequisitionData;
@@ -3654,6 +3656,8 @@ namespace org.secc.Purchasing.DataLayer
     partial void OnactiveChanged();
     partial void Onfiscal_year_startChanging(System.DateTime value);
     partial void Onfiscal_year_startChanged();
+    partial void Onproject_idChanging(string value);
+    partial void Onproject_idChanged();
     #endregion
 		
 		public PaymentChargeData()
@@ -3947,6 +3951,26 @@ namespace org.secc.Purchasing.DataLayer
 					this._fiscal_year_start = value;
 					this.SendPropertyChanged("fiscal_year_start");
 					this.Onfiscal_year_startChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_project_id", DbType="VarChar(50)")]
+		public string project_id
+		{
+			get
+			{
+				return this._project_id;
+			}
+			set
+			{
+				if ((this._project_id != value))
+				{
+					this.Onproject_idChanging(value);
+					this.SendPropertyChanging();
+					this._project_id = value;
+					this.SendPropertyChanged("project_id");
+					this.Onproject_idChanged();
 				}
 			}
 		}
