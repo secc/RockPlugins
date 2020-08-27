@@ -1,3 +1,10 @@
+<script>
+    $.fn.digits = function(){ 
+        return this.each(function(){ 
+            $(this).text( $(this).text().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,") ); 
+        })
+    }
+</script>
 <div class="g-bg-color--gray-lightest">
     <div class="container g-padding-b-100--xs">
         {% comment %} 
@@ -35,30 +42,56 @@
         <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
             <div class="col-lg-6">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Online Viewers</h4>
-                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
-                        <div class="g-center--xs g-text-center--xs" style="bottom: 45%;">
+                    
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Online Viewers <div class="pull-right"><a href="/page/2495?MetricCategoryId=78&ExpandedIds=C1592" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs g-position--relative" style="display: block;height: 100%;width: 100%;">
+                        <div class="g-center--xs g-text-center--xs">
                             <h6 class="uppercase g-font-weight--700">Total</h6>
-                            <h3 class="g-font-weight--700" style="color: #6794DD;">33,897</h3>
+                            <script>
+                            var OnlineViewersTotal = 0;
+                            $.getJSON( "/webhooks/Lava.ashx/se-engage/51/2020-06-07/chart.json", function( json ) {
+                                $.each(json, function(i, item) {
+                                    OnlineViewersTotal = OnlineViewersTotal + item.value;
+                                });
+                                //console.log('Total is:'+total);
+                                $('#OnlineViewersTotal').html(OnlineViewersTotal);
+                                $("#OnlineViewersTotal").digits();
+                            });
+                            </script>
+                            <h3 id="OnlineViewersTotal" class="g-font-weight--700" style="color: #6794DD;"></h3>
                         </div>
-                        {[ amcharts chartwidth:'100%' chartheight:'280px' data-category:'site' data-value:'visitors' data-src:'/webhooks/Lava.ashx/AMcharts/test.json' ]}
+                        {[ amcharts chartwidth:'100%' chartheight:'280px' data-category:'platform' data-value:'value' data-src:'/webhooks/Lava.ashx/se-engage/51/2020-06-07/chart.json' ]}
                         {[ endamcharts ]}
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>This engagement chart represents <i>ALL</i> online viewers that participated on YouTube, Facebook, and SE Church Online.</h6>
                     </div>
                 </div>
             </div>
             <div class="col-lg-6">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Engagements</h4>
-                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
-                        <div class="g-center--xs g-text-center--xs" style="bottom: 45%;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Engagements <div class="pull-right"><a href="/page/2495?MetricCategoryId=85&ExpandedIds=C1592%2CC1597" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs g-position--relative" style="display: block;height: 100%;width: 100%;">
+                        <div class="g-center--xs g-text-center--xs">
                             <h6 class="uppercase g-font-weight--700">Total</h6>
-                            <h3 class="g-font-weight--700" style="color: #6794DD;">4,207</h3>
+                            <script>
+                            var EngagementTotal = 0;
+                            $.getJSON( "/webhooks/Lava.ashx/se-engage/60/2020-06-07/chart.json", function( json ) {
+                                $.each(json, function(i, item) {
+                                    EngagementTotal = EngagementTotal + item.value;
+                                });
+                                //console.log('Total is:'+total);
+                                $('#EngagementTotal').html(EngagementTotal);
+                                $("#EngagementTotal").digits();
+                            });
+                            </script>
+                            <h3 id="EngagementTotal" class="g-font-weight--700" style="color: #6794DD;"></h3>
                         </div>
-                        {[ amcharts chartwidth:'100%' chartheight:'280px' data-category:'site' data-value:'visitors' ]}
-                            [[ dataitem label:'SE Website' value:'2101' ]] [[ enddataitem ]]
-                            [[ dataitem label:'Youtube' value:'1602' ]] [[ enddataitem ]]
-                            [[ dataitem label:'Facebook' value:'502' ]] [[ enddataitem ]]
+                        {[ amcharts chartwidth:'100%' chartheight:'280px' data-category:'platform' data-value:'value' data-src:'/webhooks/Lava.ashx/se-engage/60/2020-06-07/chart.json' ]}
                         {[ endamcharts ]}
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>This engagement chart represents only the viewers that participated <i>LIVE</i> on YouTube, Facebook, and SE Church Online (which also includes those watching from AppleTV and/or Roku).</h6>
                     </div>
                 </div>
             </div>
@@ -262,29 +295,34 @@
         <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
             <div class="col-lg-6">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Viewers Per Platform</h4>
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Viewers Per Platform <div class="pull-right"><a href="/Page/2495?MetricCategoryId=76&ExpandedIds=C1591" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
                     <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
                         <!-- BAR CHART -->
-                        {[ amcharts chartwidth:'100%' chartheight:'250px' data-value:'viewers' data-category:'socialmedia' type:'bar' ]}
-                            [[ dataitem label:'YouTube' value:'723' color:'auto' bullet:'https://rock.secc.org/content/externalsite/yt_logo_mono_light.svg' ]] [[ enddataitem ]]
-                            [[ dataitem label:'Vimeo' value:'280' color:'auto' bullet:'https://rock.secc.org/content/externalsite/Vimeo.svg' ]] [[ enddataitem ]]
+                        {[ amcharts chartwidth:'100%' chartheight:'250px' data-value:'value' data-category:'platform' type:'bar' data-src:'/webhooks/Lava.ashx/se-engage/52/2020-06-07/chart.json' ]}
                         {[ endamcharts ]}
                     </div>
                 </div>
             </div>
             <div class="col-lg-6">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Devices Across Platforms</h4>
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Devices Across Platforms <div class="pull-right"><a href="/Page/2495?MetricCategoryId=77&ExpandedIds=C1591" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
                     <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
                         <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 20%;left: 50%;transform: translate(-50%, -50%);">
                             <h6 class="uppercase g-font-weight--700">Total</h6>
-                            <h3 class="g-font-weight--700" style="color: #6794DD;">4,413</h3>
+                            <script>
+                            var devicesAcrossPlatsTotal = 0;
+                            $.getJSON( "/webhooks/Lava.ashx/se-engage/53/2020-06-07/chart.json", function( json ) {
+                                $.each(json, function(i, item) {
+                                    devicesAcrossPlatsTotal = devicesAcrossPlatsTotal + item.value;
+                                });
+                                //console.log('Total is:'+total);
+                                $('#devicesAcrossPlatsTotal').html(devicesAcrossPlatsTotal);
+                                $("#devicesAcrossPlatsTotal").digits();
+                            });
+                            </script>
+                            <h3 id="devicesAcrossPlatsTotal" class="g-font-weight--700" style="color: #6794DD;"></h3>
                         </div>
-                        {[ amcharts chartwidth:'100%' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
-                            [[ dataitem label:'Computer' value:'739' ]] [[ enddataitem ]]
-                            [[ dataitem label:'Mobile Phone' value:'1993' ]] [[ enddataitem ]]
-                            [[ dataitem label:'Tablet' value:'169' ]] [[ enddataitem ]]
-                            [[ dataitem label:'TV' value:'115' ]] [[ enddataitem ]]
+                        {[ amcharts chartwidth:'100%' chartheight:'250px' data-value:'value' data-category:'device type' type:'halfdonut' data-src:'/webhooks/Lava.ashx/se-engage/53/2020-06-07/chart.json' ]}
                         {[ endamcharts ]}
                     </div>
                 </div>
@@ -481,13 +519,17 @@
                     <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Giving Totals</h4>
                     <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                         <div class="col-md-12 g-padding-y-50--xs ">
-                            {[ amcharts data-category:'date,giving,units,online,average' data-category-labels:'Date,$ General Giving,$ Amount / Giving Unit,# of Giving Units,% of Online Giving' type:'linechart' legend:'on' ]}
+                           {[ amcharts data-category:'date,giving' data-category-labels:'Date,$ General Giving' type:'linechart' legend:'on' data-src:'/webhooks/Lava.ashx/se-engage/generalgiving/chart.json' ]}
+                            {[ endamcharts ]}
+                           {% comment %} 
+                           {[ amcharts data-category:'date,giving,units,online,average' data-category-labels:'Date,$ General Giving,$ Amount / Giving Unit,# of Giving Units,% of Online Giving' type:'linechart' legend:'on' ]}
                                 [[ dataitem value:'April 26 2020,987935,3712,73,266' ]][[ enddataitem ]]
                                 [[ dataitem value:'May 3 2020,1256557,4582,81,274' ]][[ enddataitem ]]
                                 [[ dataitem value:'May 10 2020,1060088,3708,66,286' ]][[ enddataitem ]]
                                 [[ dataitem value:'May 17 2020,1147240,4261,84,269' ]][[ enddataitem ]]
                                 [[ dataitem value:'May 24 2020,865035,3485,77,248' ]][[ enddataitem ]]
-                            {[ endamcharts ]}
+                            {[ endamcharts ]} 
+                            {% endcomment %}
                         </div>
                     </div>
                 </div>
@@ -577,34 +619,48 @@
         <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
             <div class="col-lg-6">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Downloads by Platform</h4>
-                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
-                        <div class="g-center--xs g-text-center--xs" style="bottom: 45%;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Downloads by Platform <div class="pull-right"><a href="/page/2495?MetricId=62&MetricCategoryId=87&ExpandedIds=C1596" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs g-position--relative" style="display: block;height: 100%;width: 100%;">
+                        <div class="g-center--xs g-text-center--xs">
                             <h6 class="uppercase g-font-weight--700">Total</h6>
-                            <h3 class="g-font-weight--700" style="color: #6794DD;">16,904</h3>
+                            <script>
+                            var downloadsByPlatTotal = 0;
+                            $.getJSON( "/webhooks/Lava.ashx/se-engage/62/2020-06-07/chart.json", function( json ) {
+                                $.each(json, function(i, item) {
+                                    downloadsByPlatTotal = downloadsByPlatTotal + item.value;
+                                });
+                                //console.log('Total is:'+total);
+                                $('#downloadsByPlatTotal').html(downloadsByPlatTotal);
+                                $("#downloadsByPlatTotal").digits();
+                            });
+                            </script>
+                            <h3 id="downloadsByPlatTotal" class="g-font-weight--700" style="color: #6794DD;"></h3>
                         </div>
-                        {[ amcharts chartwidth:'' chartheight:'280px' data-category:'platform' data-value:'visitors' ]}
-                            [[ dataitem label:'iOS' value:'10311' ]] [[ enddataitem ]]
-                            [[ dataitem label:'Android' value:'2736' ]] [[ enddataitem ]]
-                            [[ dataitem label:'Apple TV' value:'141' ]] [[ enddataitem ]]
-                            [[ dataitem label:'Roku' value:'365' ]] [[ enddataitem ]]
+                        {[ amcharts chartwidth:'' chartheight:'280px' data-category:'app platform' data-value:'value' data-src:'/webhooks/Lava.ashx/se-engage/62/2020-06-07/chart.json' ]}
                         {[ endamcharts ]}
                     </div>
                 </div>
             </div>
             <div class="col-lg-6">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Impressions by Platform</h4>
-                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
-                        <div class="g-center--xs g-text-center--xs" style="bottom: 45%;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Impressions by Platform <div class="pull-right"><a href="/page/2495?MetricCategoryId=88&ExpandedIds=C1596" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs g-position--relative" style="display: block;height: 100%;width: 100%;">
+                        <div class="g-center--xs g-text-center--xs">
                             <h6 class="uppercase g-font-weight--700">Total</h6>
-                            <h3 class="g-font-weight--700" style="color: #6794DD;">480,057</h3>
+                            <script>
+                            var impressionsByPlatTotal = 0;
+                            $.getJSON( "/webhooks/Lava.ashx/se-engage/63/2020-06-07/chart.json", function( json ) {
+                                $.each(json, function(i, item) {
+                                    impressionsByPlatTotal = impressionsByPlatTotal + item.value;
+                                });
+                                //console.log('Total is:'+total);
+                                $('#impressionsByPlatTotal').html(impressionsByPlatTotal);
+                                $("#impressionsByPlatTotal").digits();
+                            });
+                            </script>
+                            <h3 id="impressionsByPlatTotal" class="g-font-weight--700" style="color: #6794DD;"></h3>
                         </div>
-                        {[ amcharts chartwidth:'' chartheight:'280px' data-category:'platforms' data-value:'visitors' ]}
-                            [[ dataitem label:'iOS' value:'332846' ]] [[ enddataitem ]]
-                            [[ dataitem label:'Android' value:'134889' ]] [[ enddataitem ]]
-                            [[ dataitem label:'Apple TV' value:'1672' ]] [[ enddataitem ]]
-                            [[ dataitem label:'Roku' value:'10650' ]] [[ enddataitem ]]
+                        {[ amcharts chartwidth:'' chartheight:'280px' data-category:'app platform' data-value:'value' data-src:'/webhooks/Lava.ashx/se-engage/63/2020-06-07/chart.json' ]}
                         {[ endamcharts ]}
                     </div>
                 </div>

@@ -348,12 +348,17 @@
 		var series = chart.series.push(new am4charts.ColumnSeries());
 		series.dataFields.valueY = "{{ data-value }}";
 		series.dataFields.categoryX = "{{ data-category }}";
-		series.columns.template.propertyFields.fill = "color";
-		series.columns.template.propertyFields.stroke = "color";
+
+		// as by default columns of the same series are of the same color, we add adapter which takes colors from chart.colors color set
+		series.columns.template.adapter.add("fill", (fill, target) => {
+			return chart.colors.getIndex(target.dataItem.index);
+		});
+		//series.columns.template.propertyFields.fill = "color";
+		//series.columns.template.propertyFields.stroke = "color";
 		series.columns.template.column.cornerRadiusTopLeft = 15;
 		series.columns.template.column.cornerRadiusTopRight = 15;
 		series.columns.template.tooltipText = "{categoryX}: [bold]{valueY}[/b]";
-
+		
 		// Add bullets
 		var bullet = series.bullets.push(new am4charts.Bullet());
 		var image = bullet.createChild(am4core.Image);
@@ -361,13 +366,21 @@
 		image.verticalCenter = "bottom";
 		image.dy = 20;
 		image.y = am4core.percent(100);
-		image.propertyFields.href = "bullet";
+		image.adapter.add("href", function (href, target) {
+			var dataItem = target.dataItem;
+			if (dataItem.categories.categoryX == "YouTube") {
+				return "https://www.southeastchristian.org/content/externalsite/yt_logo_mono_light.svg";
+			}
+			if (dataItem.categories.categoryX == "Vimeo") {
+				return "https://www.southeastchristian.org/content/externalsite/Vimeo.svg";
+			}
+		})
 		image.tooltipText = series.columns.template.tooltipText;
-		image.propertyFields.fill = "color";
+		//image.propertyFields.fill = "color";
 		image.width = 100;
 		image.height = 75;
 		// image.filters.push(new am4core.DropShadowFilter());
-	
+
 	{%- elseif type == 'sidebar' -%}
 		{%- comment -%} 
 		/**************************************************/
