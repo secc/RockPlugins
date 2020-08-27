@@ -167,6 +167,7 @@
       <Column Name="date_modified" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
       <Column Name="fiscal_year_start" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
+      <Column Name="project_id" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
       <Association Name="PaymentData_PaymentChargeData" Member="PaymentData" ThisKey="payment_id" OtherKey="payment_id" Type="PaymentData" IsForeignKey="true" />
       <Association Name="RequisitionData_PaymentChargeData" Member="RequisitionData" ThisKey="requisition_id" OtherKey="requisition_id" Type="RequisitionData" IsForeignKey="true" />
     </Type>

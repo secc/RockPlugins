@@ -841,6 +841,7 @@ namespace org.secc.Purchasing
                             PaymentMethodName = pc.PaymentData.PaymentMethodData.name,
                             PurchaseOrderId = pc.PaymentData.purchase_order_id,
                             Account = string.Format( "{0}-{1}-{2}", pc.fund_id, pc.department_id, pc.account_id ),
+                            ProjectId = pc.project_id,
                             ChargeAmount = pc.amount,
                             VendorId = pc.PaymentData.PurchaseOrderData.vendor_id,
                             VendorName = pc.PaymentData.PurchaseOrderData.VendorData.vendor_name
@@ -1871,6 +1872,7 @@ namespace org.secc.Purchasing
         public string PaymentMethodName { get; set; }
         public int PurchaseOrderId { get; set; }
         public string Account { get; set; }
+        public string ProjectId { get; set; }
         public decimal ChargeAmount { get; set; }
         public int VendorId { get; set; }
         public string VendorName { get; set; }

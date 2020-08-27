@@ -956,9 +956,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 foreach ( CheckInPerson selectedPerson in selectedPeople )
                 {
-                    foreach ( var groupType in selectedPerson.GroupTypes.Where( gt => gt.Selected ) )
+                    foreach ( var groupType in selectedPerson.GroupTypes.Where( gt => gt.Selected && gt.Labels != null ) )
                     {
-
                         foreach ( var label in groupType.Labels )
                         {
                             var file = new BinaryFileService( _rockContext ).Get( label.FileGuid );

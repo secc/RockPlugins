@@ -427,6 +427,7 @@
                                 <Rock:RockBoundField HeaderText="Vendor" DataField="VendorName" />
                                 <Rock:RockBoundField HeaderText="Payment Method" DataField="PaymentMethodName" />
                                 <Rock:RockBoundField HeaderText="Account" DataField="Account" />
+                                <Rock:RockBoundField HeaderText="Project" DataField="ProjectId" />
                                 <Rock:RockBoundField HeaderText="Charge Amount" DataField="ChargeAmount" DataFormatString="{0:c}" />
                             </Columns>
                         </Rock:Grid>

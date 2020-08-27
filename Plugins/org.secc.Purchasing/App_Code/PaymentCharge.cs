@@ -45,6 +45,7 @@ namespace org.secc.Purchasing
         public int FundID { get; set; }
         public int DepartmentID { get; set; }
         public int AccountID { get; set; }
+        public string ProjectID { get; set; }
         public DateTime FYStartDate { get; set; }
         public decimal Amount { get; set; }
         public string CreatedByUserID { get; set; }
@@ -194,6 +195,7 @@ namespace org.secc.Purchasing
                     Data.fund_id = FundID;
                     Data.department_id = DepartmentID;
                     Data.account_id = AccountID;
+                    Data.project_id = ProjectID;
                     Data.fiscal_year_start = FYStartDate;
                     Data.amount = Amount;
                     Data.modified_by = uid;
@@ -255,6 +257,7 @@ namespace org.secc.Purchasing
             FundID = 0;
             DepartmentID = 0;
             AccountID = 0;
+            ProjectID = null;
             FYStartDate = new DateTime(DateTime.Now.Year, 1, 1);
             Amount = 0;
             CreatedByUserID = String.Empty;
@@ -298,6 +301,7 @@ namespace org.secc.Purchasing
                 FundID = data.fund_id;
                 DepartmentID = data.department_id;
                 AccountID = data.account_id;
+                ProjectID = data.project_id;
                 FYStartDate = data.fiscal_year_start;
                 Amount = data.amount;
                 CreatedByUserID = data.created_by;

@@ -57,12 +57,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [BooleanField( "Prevent Overcapacity Registrations", "When set to true, user cannot register for groups that are at capacity or whose default GroupTypeRole are at capacity. If only one spot is available, no spouses can be registered.", true, "", 12 )]
     [BooleanField( "Require Email", "Should email be required for registration?", true, key: REQUIRE_EMAIL_KEY )]
     [BooleanField( "Require Mobile Phone", "Should mobile phone numbers be required for registration?", false, key: REQUIRE_MOBILE_KEY )]
+    [BooleanField( "Require DOB", "Should DOB be required for registration?", false, key: REQUIRE_DOB )]
 
     public partial class PublishGroupRegistration : RockBlock
     {
         #region Fields
         private const string REQUIRE_EMAIL_KEY = "IsRequireEmail";
         private const string REQUIRE_MOBILE_KEY = "IsRequiredMobile";
+        private const string REQUIRE_DOB = "IsRequiredDOB";
 
         RockContext _rockContext = null;
         bool _showSpouse = false;
@@ -164,13 +166,24 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     }
                 }
 
-                //Use our custom person matching
+                // Try to find person by name/email 
+                if ( person == null )
+                {
+                    var personQuery = new PersonService.PersonMatchQuery( tbFirstName.Text.Trim(), tbLastName.Text.Trim(), tbEmail.Text.Trim(), pnCell.Text.Trim() );
+                    person = personService.FindPerson( personQuery, true );
+                    if ( person != null )
+                    {
+                        isMatch = true;
+                    }
+                }
+
+                // Check to see if this is a new person
                 if ( person == null )
                 {
                     var people = personService.GetByMatch(
                                             tbFirstName.Text.Trim(),
                                             tbLastName.Text.Trim(),
-                                            null,
+                                            dppDOB.SelectedDate,
                                             tbEmail.Text.Trim(),
                                             pnCell.Text.Trim(),
                                             acAddress.Street1,
@@ -179,11 +192,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                          // Make sure their email matches.  If it doesn't, we need to go ahead and create a new person to be matched later.
                          ( string.IsNullOrWhiteSpace( tbEmail.Text.Trim() ) ||
                          ( people.First().Email != null &&
-                         tbEmail.Text.ToLower().Trim() == people.First().Email.ToLower().Trim() ) )
+                         tbEmail.Text.ToLower().Trim() == people.First().Email.ToLower().Trim() ) ) &&
+
+                         // Make sure their DOB matches.  If it doesn't, we need to go ahead and create a new person to be matched later.
+                         ( !dppDOB.SelectedDate.HasValue ||
+                         ( people.First().BirthDate != null &&
+                         dppDOB.SelectedDate.Value == people.First().BirthDate ) )
                        )
                     {
                         person = people.First();
-                        family = person.GetFamily();
                     }
                     else
                     {
@@ -193,6 +210,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         person.FirstName = tbFirstName.Text.Trim();
                         person.LastName = tbLastName.Text.Trim();
                         person.Email = tbEmail.Text.Trim();
+                        if (dppDOB.SelectedDate.HasValue)
+                        {
+                            person.BirthDay = dppDOB.SelectedDate.Value.Day;
+                            person.BirthMonth = dppDOB.SelectedDate.Value.Month;
+                            person.BirthYear = dppDOB.SelectedDate.Value.Year;
+                        }
                         person.IsEmailActive = true;
                         person.EmailPreference = EmailPreference.EmailAllowed;
                         person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
@@ -286,13 +309,30 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                     if ( spouse == null ||
                         !tbSpouseFirstName.Text.Trim().Equals( spouse.FirstName.Trim(), StringComparison.OrdinalIgnoreCase ) ||
-                        !tbSpouseLastName.Text.Trim().Equals( spouse.LastName.Trim(), StringComparison.OrdinalIgnoreCase ) )
+                        !tbSpouseLastName.Text.Trim().Equals( spouse.LastName.Trim(), StringComparison.OrdinalIgnoreCase ) ||
+                         // Make sure their email matches.  If it doesn't, we need to go ahead and create a new person to be matched later.
+                         ( string.IsNullOrWhiteSpace( tbSpouseEmail.Text.Trim() ) ||
+                         ( spouse.Email != null &&
+                         tbSpouseEmail.Text.ToLower().Trim() != spouse.Email.ToLower().Trim() ) ) &&
+
+                         // Make sure their DOB matches.  If it doesn't, we need to go ahead and create a new person to be matched later.
+                         ( !dppSpouseDOB.SelectedDate.HasValue ||
+                         ( spouse.BirthDate != null &&
+                         dppSpouseDOB.SelectedDate.Value != spouse.BirthDate ) )
+                        )
                     {
                         spouse = new Person();
                         isSpouseMatch = false;
 
                         spouse.FirstName = tbSpouseFirstName.Text.FixCase();
                         spouse.LastName = tbSpouseLastName.Text.FixCase();
+
+                        if ( dppSpouseDOB.SelectedDate.HasValue )
+                        {
+                            spouse.BirthDay = dppSpouseDOB.SelectedDate.Value.Day;
+                            spouse.BirthMonth = dppSpouseDOB.SelectedDate.Value.Month;
+                            spouse.BirthYear = dppSpouseDOB.SelectedDate.Value.Year;
+                        }
 
                         spouse.ConnectionStatusValueId = _dvcConnectionStatus.Id;
                         spouse.RecordStatusValueId = _dvcRecordStatus.Id;
@@ -379,7 +419,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             message.FromName = _publishGroup.ConfirmationFromName;
             message.Subject = _publishGroup.ConfirmationSubject;
             message.Message = _publishGroup.ConfirmationBody;
-            message.AddRecipient( new RockEmailMessageRecipient( person, mergeObjects ) );
+            message.AddRecipient( new RecipientData( new CommunicationRecipient() { PersonAlias = person.PrimaryAlias }, mergeObjects ) );
             message.Send();
         }
 
@@ -423,6 +463,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 tbEmail.Required = GetAttributeValue( REQUIRE_EMAIL_KEY ).AsBoolean();
                 pnCell.Required = GetAttributeValue( REQUIRE_MOBILE_KEY ).AsBoolean();
+                dppDOB.Required = GetAttributeValue( REQUIRE_DOB ).AsBoolean();
+                dppSpouseDOB.Required = GetAttributeValue( REQUIRE_DOB ).AsBoolean();
 
                 string phoneLabel = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE ).Value;
                 phoneLabel = phoneLabel.Trim().EndsWith( "Phone" ) ? phoneLabel : phoneLabel + " Phone";
@@ -438,6 +480,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                     tbFirstName.Text = CurrentPerson.FirstName;
                     tbLastName.Text = CurrentPerson.LastName;
+                    dppDOB.SelectedDate = CurrentPerson.BirthDate;
                     tbEmail.Text = CurrentPerson.Email;
 
 
@@ -485,6 +528,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             tbSpouseFirstName.Text = spouse.FirstName;
                             tbSpouseLastName.Text = spouse.LastName;
                             tbSpouseEmail.Text = spouse.Email;
+                            dppSpouseDOB.SelectedDate = spouse.BirthDate;
 
                             var spouseCellPhone = spouse.PhoneNumbers
                                 .FirstOrDefault( n => n.NumberTypeValue.Guid.Equals( cellPhoneType ) );
