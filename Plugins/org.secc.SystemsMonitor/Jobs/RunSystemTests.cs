@@ -12,19 +12,17 @@
 // limitations under the License.
 // </copyright>
 //
-using System.Linq;
+using System;
+using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
+using System.Linq;
+using org.secc.SystemsMonitor.Model;
 using Quartz;
 using Rock;
 using Rock.Attribute;
+using Rock.Communication;
 using Rock.Data;
 using Rock.Model;
-using System.Collections.Generic;
-using org.secc.SystemsMonitor.Model;
-using System;
-using Rock.Communication;
-using Rock.Web.UI.Controls;
 
 namespace org.secc.Jobs
 {
