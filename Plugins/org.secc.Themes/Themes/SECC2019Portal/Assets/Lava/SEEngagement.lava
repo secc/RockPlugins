@@ -350,55 +350,25 @@
                         <div class="col-md-4 g-padding-y-50--xs ">
                             <!-- VIEWS -->
                             <div class="g-text-center--xs">
-                                <h6 class="uppercase g-font-weight--700">Views</h6>
+                                <h6 class="uppercase g-font-weight--700">Views <div class="g-padding-l-10--xs g-display-inline-block--xs"><a href="/page/2495?MetricCategoryId=80&amp;ExpandedIds=C1591%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div></h6>
                             </div>
-                            {[ amcharts chartwidth:'' chartheight:'300px' data-value:'online viewers' data-category:'campus' type:'radar' ]}
-                                [[ dataitem label:'Blankenbaker' value:'1019' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Indiana' value:'697' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Crestwood' value:'876' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Southwest' value:'822' ]] [[ enddataitem ]]
-                                [[ dataitem label:'La Grange' value:'1345' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Elizabethtown' value:'527' ]] [[ enddataitem ]]
-                                [[ dataitem label:'River Valley' value:'352' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Chapel in the Woods' value:'198' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Shelby County' value:'373' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Bullitt County' value:'507' ]] [[ enddataitem ]]
+                            {[ amcharts chartwidth:'' chartheight:'300px' data-value:'value' data-category:'campus' type:'radar' data-src:'/webhooks/Lava.ashx/se-engage/55/2020-06-07/chart.json' ]}
                             {[ endamcharts ]}
                         </div>
                         <div class="col-md-4 g-padding-y-50--xs ">
                             <!-- COMMENTS -->
                             <div class="g-text-center--xs">
-                                <h6 class="uppercase g-font-weight--700">COMMENTS</h6>
+                                <h6 class="uppercase g-font-weight--700">COMMENTS <div class="g-padding-l-10--xs g-display-inline-block--xs"><a href="/page/2495?MetricCategoryId=81&ExpandedIds=C1591%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div></h6>
                             </div>
-                            {[ amcharts chartwidth:'' chartheight:'300px' data-value:'online viewers' data-category:'campus' type:'radar' ]}
-                                [[ dataitem label:'Blankenbaker' value:'189' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Indiana' value:'60' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Crestwood' value:'377' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Southwest' value:'541' ]] [[ enddataitem ]]
-                                [[ dataitem label:'La Grange' value:'790' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Elizabethtown' value:'192' ]] [[ enddataitem ]]
-                                [[ dataitem label:'River Valley' value:'307' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Chapel in the Woods' value:'107' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Shelby County' value:'83' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Bullitt County' value:'109' ]] [[ enddataitem ]]
+                            {[ amcharts chartwidth:'' chartheight:'300px' data-value:'value' data-category:'campus' type:'radar' data-src:'/webhooks/Lava.ashx/se-engage/56/2020-06-07/chart.json' ]}
                             {[ endamcharts ]}
                         </div>
                         <div class="col-md-4 g-padding-y-50--xs ">
                             <!-- SHARES -->
                             <div class="g-text-center--xs">
-                                <h6 class="uppercase g-font-weight--700">SHARES</h6>
+                                <h6 class="uppercase g-font-weight--700">SHARES <div class="g-padding-l-10--xs g-display-inline-block--xs"><a href="/page/2495?MetricCategoryId=82&ExpandedIds=C1591%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div></h6>
                             </div>
-                            {[ amcharts chartwidth:'' chartheight:'300px' data-value:'online viewers' data-category:'campus' type:'radar' ]}
-                                [[ dataitem label:'Blankenbaker' value:'8' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Indiana' value:'3' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Crestwood' value:'2' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Southwest' value:'6' ]] [[ enddataitem ]]
-                                [[ dataitem label:'La Grange' value:'20' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Elizabethtown' value:'7' ]] [[ enddataitem ]]
-                                [[ dataitem label:'River Valley' value:'3' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Chapel in the Woods' value:'0' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Shelby County' value:'7' ]] [[ enddataitem ]]
-                                [[ dataitem label:'Bullitt County' value:'4' ]] [[ enddataitem ]]
+                            {[ amcharts chartwidth:'' chartheight:'300px' data-value:'value' data-category:'campus' type:'radar' data-src:'/webhooks/Lava.ashx/se-engage/57/2020-06-07/chart.json' ]}
                             {[ endamcharts ]}
                         </div>
                     </div>
@@ -520,7 +490,7 @@
                     <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                         <div class="col-md-12 g-padding-y-50--xs ">
                            {[ amcharts data-category:'date,giving' data-category-labels:'Date,$ General Giving' type:'linechart' legend:'on' data-src:'/webhooks/Lava.ashx/se-engage/generalgiving/chart.json' ]}
-                            {[ endamcharts ]}
+                           {[ endamcharts ]}
                            {% comment %} 
                            {[ amcharts data-category:'date,giving,units,online,average' data-category-labels:'Date,$ General Giving,$ Amount / Giving Unit,# of Giving Units,% of Online Giving' type:'linechart' legend:'on' ]}
                                 [[ dataitem value:'April 26 2020,987935,3712,73,266' ]][[ enddataitem ]]
@@ -548,8 +518,8 @@
 
                             <style>
                             #chartdivGivingByLocation {
-                            width: 100%;
-                            height: 500px;
+                                width: 100%;
+                                height: 500px;
                             }
                             </style>
 

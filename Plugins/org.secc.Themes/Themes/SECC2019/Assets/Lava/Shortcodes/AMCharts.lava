@@ -203,10 +203,63 @@
 		{%- endfor -%}
 		{%- assign seriesData = seriesData | ReplaceLast:',', '' -%}
 		chart.data = [{{ seriesData }}];
+		console.log(chart.data);
 	{%- else -%}
+		// Set up data source
 		chart.dataSource.url = "{{ dataUrl }}";
-		chart.dataSource.parser = new am4core.JSONParser();
+	
+		console.log(chart.dataSource.url);
+		/*chart.dataSource.parser = new am4core.JSONParser();
 		chart.dataSource.parser.options.emptyAs = 0;
+		chart.dataSource.parser.options.dateFields = "date";
+		chart.dataSource.events.on("parseended", function(ev) {
+			// parsed data is assigned to data source's `data` property
+			var data = ev.target.data;
+			console.log(data);
+		}); */
+
+		/*chart.data = [				{	
+													"date": new Date('April 26 2020'),
+								"giving": "987935",
+								"units": "3712",
+								"online": "73",
+								"average": "266",
+"color": "","bullet": ""
+				},
+				{	
+													"date": new Date('May 3 2020'),
+								"giving": "1256557",
+								"units": "4582",
+								"online": "81",
+								"average": "274",
+"color": "","bullet": ""
+				},
+				{	
+													"date": new Date('May 10 2020'),
+								"giving": "1060088",
+								"units": "3708",
+								"online": "66",
+								"average": "286",
+"color": "","bullet": ""
+				},
+				{	
+													"date": new Date('May 17 2020'),
+								"giving": "1147240",
+								"units": "4261",
+								"online": "84",
+								"average": "269",
+"color": "","bullet": ""
+				},
+				{	
+													"date": new Date('May 24 2020'),
+								"giving": "865035",
+								"units": "3485",
+								"online": "77",
+								"average": "248",
+"color": "","bullet": ""
+				}
+];*/
+
 	{%- endif -%}
 	// Add data
 
@@ -446,57 +499,61 @@
 		/************** LINECHART CHART CONFIG **************/
 		/****************************************************/
 		{%- endcomment -%} 
+		chart.events.on("beforedatavalidated", function(ev) {
+			chart.data.sort(function(a, b) {
+				return (new Date(a.date)) - (new Date(b.date));
+			});
+		});
+		
 		// Increase contrast by taking evey second color
 		chart.colors.step = 2;
 		// Create axes
 		var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
 		dateAxis.renderer.minGridDistance = 50;
 
-
 		// Create series
 		function createAxisAndSeries(field, name, opposite, bullet) {
-		var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-		if(chart.yAxes.indexOf(valueAxis) != 0){
-			valueAxis.syncWithAxis = chart.yAxes.getIndex(0);
-		}
-		
-		var series = chart.series.push(new am4charts.LineSeries());
-		series.dataFields.valueY = field;
-		series.dataFields.dateX = "date";
-		series.strokeWidth = 2;
-		series.yAxis = valueAxis;
-		series.name = name;
-		series.tooltipText = "{name}: [bold]{valueY}[/]";
-		series.tensionX = 0.8;
-		series.showOnInit = true;
-		
-		var interfaceColors = new am4core.InterfaceColorSet();
-		
-		switch(bullet) {
-			default:
-			var bullet = series.bullets.push(new am4charts.CircleBullet());
-			bullet.circle.stroke = interfaceColors.getFor("background");
-			bullet.circle.strokeWidth = 2;
-			break;
-		}
-		
-		valueAxis.renderer.line.strokeOpacity = 1;
-		valueAxis.renderer.line.strokeWidth = 2;
-		valueAxis.renderer.line.stroke = series.stroke;
-		valueAxis.renderer.labels.template.fill = series.stroke;
-		valueAxis.renderer.opposite = opposite;
+			var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+			if(chart.yAxes.indexOf(valueAxis) != 0){
+				valueAxis.syncWithAxis = chart.yAxes.getIndex(0);
+			}
+			
+			var series = chart.series.push(new am4charts.LineSeries());
+			series.dataFields.valueY = field;
+			series.dataFields.dateX = "date";
+			series.strokeWidth = 2;
+			series.yAxis = valueAxis;
+			series.name = name;
+			series.tooltipText = "{name}: [bold]{valueY}[/]";
+			series.tensionX = 0.8;
+			series.showOnInit = true;
+			
+			var interfaceColors = new am4core.InterfaceColorSet();
+			
+			switch(bullet) {
+				default:
+				var bullet = series.bullets.push(new am4charts.CircleBullet());
+				bullet.circle.stroke = interfaceColors.getFor("background");
+				bullet.circle.strokeWidth = 2;
+				break;
+			}
+			
+			valueAxis.renderer.line.strokeOpacity = 1;
+			valueAxis.renderer.line.strokeWidth = 2;
+			valueAxis.renderer.line.stroke = series.stroke;
+			valueAxis.renderer.labels.template.fill = series.stroke;
+			valueAxis.renderer.opposite = opposite;
 		}
 
-		{%- if categoryCount > 1 -%}
-			{%- for i in (1..categoryCount) -%}
+		{%- for i in (0..categoryCount) -%}
+			{%- if categories[i] != "date" -%}
 				createAxisAndSeries("{{ categories[i] }}", "{{ category-labels[i] }}", true, "circle");
-			{%- endfor -%}
-		{%- else -%}
-			createAxisAndSeries("{{ categories[i] }}", "{{ category-labels[i] }}", true, "circle");
-		{%- endif -%}
+			{%- endif -%}
+		{%- endfor -%}
 
 		// Add cursor
 		chart.cursor = new am4charts.XYCursor();
+
 	{%- endif -%}
 
 	{%- comment -%} 
