@@ -116,7 +116,7 @@
                             <br />
                             <h1 class="g-font-family--secondary g-font-size-150--lg g-font-size-80--xs g-text-shadow--black--soft">{{ campus.Name }}</h1>
                             <br />
-                            {% if campusSlug == "multination" %}   
+                            {% if campusSlug == "multination" or campusSlug == "beechmont" %}   
                                <h5 class="g-font-weight--600 g-text-shadow--black--soft"><strong>A Community Campus of Southeast Christian Church</strong></h1>
                             {% endif %}
                             <br />
@@ -189,7 +189,7 @@
                     <div class="g-ver-center--md g-text-center--xs g-text-left--md g-padding-l-40--md">
                         <h2 class="g-font-size--jumbo-2 g-font-family--secondary">Location</h2>
                         <p class="g-font-weight--400 g-line-height--sm g-margin-b-0--xs">
-                            {% if campusSlug == "multination" %}   
+                            {% if campusSlug == "multination" or campusSlug == "beechmont" %}   
                                 {{ campus.Name }}<br />
                             {% else %}
                                 Southeast Christian Church<br />
@@ -199,9 +199,7 @@
                         <address>
                             <p class="g-font-weight--400 g-line-height--sm">
                                 {{ campus.Location.Street1 }}<br />
-                                {% if campus.Location.Street2 != "" %}   
-                                    {{ campus.Location.Street2 }}<br />
-                                {% endif %}
+                                {%- if campus.Location.Street2 != "" -%}{{ campus.Location.Street2 }}<br />{%- endif -%}
                                 {{ campus.Location.City }}, {{ campus.Location.State }} {{ campus.Location.PostalCode }}<br />
                             </p>
                             {% if campus.PhoneNumber != '' %}
