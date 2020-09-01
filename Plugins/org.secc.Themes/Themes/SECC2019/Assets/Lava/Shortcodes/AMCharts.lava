@@ -311,6 +311,7 @@
 			pieSeries.hiddenState.properties.endAngle = -90;
 			pieSeries.hiddenState.properties.startAngle = -90;
 		{%- endif -%}
+		//hideIndicator{{ guidSmash }}()();
 	{%- elseif type == 'radar' -%}
 		{%- comment -%} 
 		/************************************************/
@@ -371,6 +372,7 @@
 
 		// Add cursor
 		chart.cursor = new am4charts.RadarCursor();
+		//hideIndicator{{ guidSmash }}()();
 	{%- elseif type == 'bar' -%}
 		{%- comment -%} 
 		/************************************************/
@@ -433,7 +435,7 @@
 		image.width = 100;
 		image.height = 75;
 		// image.filters.push(new am4core.DropShadowFilter());
-
+		//hideIndicator{{ guidSmash }}()();
 	{%- elseif type == 'sidebar' -%}
 		{%- comment -%} 
 		/**************************************************/
@@ -491,8 +493,8 @@
 			{%- endfor -%}
 		{%- else -%}
 			createSeries("{{ categories[i] }}", "{{ category-labels[i] }}");
-		{%- endif -%}
-
+		{%- endif -%}	
+		//hideIndicator{{ guidSmash }}()();
 	{%- elseif type == 'linechart' -%}
 		{%- comment -%} 
 		/****************************************************/
@@ -553,7 +555,7 @@
 
 		// Add cursor
 		chart.cursor = new am4charts.XYCursor();
-
+		//hideIndicator{{ guidSmash }}()();
 	{%- endif -%}
 
 	{%- comment -%} 
@@ -564,4 +566,51 @@
 	{%- if legend == 'on' -%}
 		chart.legend = new am4charts.Legend();
 	{%- endif -%}
+
+	chart.preloader.disabled = true;
+	{% assign guidSmash = id | Replace:'-','' %}
+	var indicator{{guidSmash}};
+
+	function showIndicator{{guidSmash}}() {
+	
+	if (!indicator{{guidSmash}}) {
+		indicator{{guidSmash}} = chart.tooltipContainer.createChild(am4core.Container);
+		indicator{{guidSmash}}.background.fill = am4core.color("#fff");
+		indicator{{guidSmash}}.background.fillOpacity = 0.8;
+		indicator{{guidSmash}}.width = am4core.percent(100);
+		indicator{{guidSmash}}.height = am4core.percent(100);
+
+		var indicator{{guidSmash}}Label = indicator{{guidSmash}}.createChild(am4core.Label);
+		indicator{{guidSmash}}Label.text = "Loading...";
+		indicator{{guidSmash}}Label.align = "center";
+		indicator{{guidSmash}}Label.valign = "middle";
+		indicator{{guidSmash}}Label.fontSize = 14;
+		indicator{{guidSmash}}Label.dy = 50;
+		
+		var loadingAnimation = indicator{{guidSmash}}.createChild(am4core.Image);
+		loadingAnimation.href = "https://www.southeastchristian.org/content/382.gif";
+		loadingAnimation.align = "center";
+		loadingAnimation.valign = "middle";
+		loadingAnimation.horizontalCenter = "middle";
+		loadingAnimation.verticalCenter = "middle";
+		loadingAnimation.scale = 1;
+	}
+	
+	indicator{{guidSmash}}.hide(0);
+	indicator{{guidSmash}}.show();
+	}
+
+	function hideIndicator{{guidSmash}}() {
+	indicator{{guidSmash}}.hide();
+	}
+
+	showIndicator{{guidSmash}}();
+
+	if (chart.dataSource.url) {
+		chart.dataSource.events.on("done", function(ev) {
+			hideIndicator{{guidSmash}}();
+		});
+	} else {
+		hideIndicator{{guidSmash}}();
+	}
 </script>

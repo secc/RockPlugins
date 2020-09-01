@@ -10,22 +10,24 @@
 {%- assign weekendDate = "Now" | SundayDate | DateAdd:subtractDays | Date:'yyyy-MM-dd' -%}
 {%- assign numberOfWeekendsToShow = 4 -%}
 [{%- for i in (0..numberOfWeekendsToShow) -%}{{- comma -}}
-{%- assign weekendDollarTotal = 0 -%}
-{%- campus where:'Public == true' -%}
-{%- for assignedCampus in campusItems -%}
-{%- assign campusId = assignedCampus.Id -%}
-{%- assign campusGeneralFund = 0 -%}
-{%- metricvalue where:'MetricId == 6 && MetricValueDateTime == "{{weekendDate}}"' -%}
-{%- for metricValue in  metricvalueItems -%}
-{%- if campusId == metricValue.MetricValuePartitions[0].EntityId -%}
-{%- assign campusGeneralFund = metricValue.YValue -%}
-{%- assign weekendDollarTotal = weekendDollarTotal | Plus:metricValue.YValue -%}
-{%- endif -%}
-{%- endfor -%}
-{%- endmetricvalue -%}
-{%- endfor -%}
-{%- endcampus -%}{
-    "date": "{{ weekendDate | Date:'MM/dd/yyyy' }}",
-    "giving": "{{ weekendDollarTotal }}"
-}{%- assign weekendDate = weekendDate | DateAdd:-7 | Date:'yyyy-MM-dd' -%}{%- assign comma = "," -%}
+    {%- assign weekendDollarTotal = 0 -%}
+    {%- campus where:'Public == true' -%}
+        {%- for assignedCampus in campusItems -%}
+            {%- assign campusId = assignedCampus.Id -%}
+            {%- assign campusGeneralFund = 0 -%}
+            {%- metricvalue where:'MetricId == 6 && MetricValueDateTime == "{{weekendDate}}"' -%}
+                {%- for metricValue in  metricvalueItems -%}
+                    {%- if campusId == metricValue.MetricValuePartitions[0].EntityId -%}
+                    {%- assign campusGeneralFund = metricValue.YValue -%}
+                    {%- assign weekendDollarTotal = weekendDollarTotal | Plus:metricValue.YValue -%}
+                    {%- endif -%}
+                {%- endfor -%}
+            {%- endmetricvalue -%}
+        {%- endfor -%}
+    {%- endcampus -%}{
+        "date": "{{ weekendDate | Date:'MMMM dd yyyy' }}",
+        "giving": "{{ weekendDollarTotal }}",
+        "color": "",
+        "bullet": ""
+    }{%- assign weekendDate = weekendDate | DateAdd:-7 | Date:'yyyy-MM-dd' -%}{%- assign comma = "," -%}
 {%- endfor -%}]
