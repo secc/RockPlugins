@@ -1,3 +1,4 @@
+{%- cache key:'subsplash-sermons-series-{{series}}' duration:'3600' -%}
 {%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
 {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
 {%- for series in contentchannelitemItems -%}
@@ -94,3 +95,4 @@
 }
 {%- endfor -%}
 {% endcontentchannelitem -%}
+{%- endcache -%}
