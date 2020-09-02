@@ -726,6 +726,10 @@ main {
 		&.live-stream::before {
 			background-image: url('../Assets/img/SE/Live-Stream.svg');
 		}
+		
+		&.bookstore::before {
+			background-image: url('../Assets/img/SE/Next%20Mag.svg');
+		}
 
 		&.starting-point::before {
 			background-image: url('../Assets/img/SE/membership.svg');
@@ -1102,6 +1106,9 @@ main {
 		.cd-nav-icons {
 			li {
 				/* set here number of columns - use width percentage */
+				&.se-5-column {
+					@include column(.20);
+				}
 				&.se-4-column {
 					@include column(.25);
 				}
