@@ -1,3 +1,11 @@
+{%- assign cacheSpecific = '' -%}
+{%- if Headers.sap-app-version >= '5.4.0' -%}
+	{%- assign cacheSpecific = 'subsplash-sermons-v2--series-' | Append:series -%}
+{%- else -%}
+	{%- assign cacheSpecific = 'subsplash-sermons-v1-series-' | Append:series -%}
+{%- endif -%}
+
+{%- cache key:'{{cacheSpecific}}' duration:'3600' -%}
 {%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
 {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
 {%- for series in contentchannelitemItems -%}
@@ -94,3 +102,4 @@
 }
 {%- endfor -%}
 {% endcontentchannelitem -%}
+{%- endcache -%}

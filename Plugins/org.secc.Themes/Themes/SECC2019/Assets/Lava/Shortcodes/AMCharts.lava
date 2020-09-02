@@ -203,10 +203,63 @@
 		{%- endfor -%}
 		{%- assign seriesData = seriesData | ReplaceLast:',', '' -%}
 		chart.data = [{{ seriesData }}];
+		console.log(chart.data);
 	{%- else -%}
+		// Set up data source
 		chart.dataSource.url = "{{ dataUrl }}";
-		chart.dataSource.parser = new am4core.JSONParser();
+	
+		console.log(chart.dataSource.url);
+		/*chart.dataSource.parser = new am4core.JSONParser();
 		chart.dataSource.parser.options.emptyAs = 0;
+		chart.dataSource.parser.options.dateFields = "date";
+		chart.dataSource.events.on("parseended", function(ev) {
+			// parsed data is assigned to data source's `data` property
+			var data = ev.target.data;
+			console.log(data);
+		}); */
+
+		/*chart.data = [				{	
+													"date": new Date('April 26 2020'),
+								"giving": "987935",
+								"units": "3712",
+								"online": "73",
+								"average": "266",
+"color": "","bullet": ""
+				},
+				{	
+													"date": new Date('May 3 2020'),
+								"giving": "1256557",
+								"units": "4582",
+								"online": "81",
+								"average": "274",
+"color": "","bullet": ""
+				},
+				{	
+													"date": new Date('May 10 2020'),
+								"giving": "1060088",
+								"units": "3708",
+								"online": "66",
+								"average": "286",
+"color": "","bullet": ""
+				},
+				{	
+													"date": new Date('May 17 2020'),
+								"giving": "1147240",
+								"units": "4261",
+								"online": "84",
+								"average": "269",
+"color": "","bullet": ""
+				},
+				{	
+													"date": new Date('May 24 2020'),
+								"giving": "865035",
+								"units": "3485",
+								"online": "77",
+								"average": "248",
+"color": "","bullet": ""
+				}
+];*/
+
 	{%- endif -%}
 	// Add data
 
@@ -258,6 +311,7 @@
 			pieSeries.hiddenState.properties.endAngle = -90;
 			pieSeries.hiddenState.properties.startAngle = -90;
 		{%- endif -%}
+		//hideIndicator{{ guidSmash }}()();
 	{%- elseif type == 'radar' -%}
 		{%- comment -%} 
 		/************************************************/
@@ -318,6 +372,7 @@
 
 		// Add cursor
 		chart.cursor = new am4charts.RadarCursor();
+		//hideIndicator{{ guidSmash }}()();
 	{%- elseif type == 'bar' -%}
 		{%- comment -%} 
 		/************************************************/
@@ -348,12 +403,17 @@
 		var series = chart.series.push(new am4charts.ColumnSeries());
 		series.dataFields.valueY = "{{ data-value }}";
 		series.dataFields.categoryX = "{{ data-category }}";
-		series.columns.template.propertyFields.fill = "color";
-		series.columns.template.propertyFields.stroke = "color";
+
+		// as by default columns of the same series are of the same color, we add adapter which takes colors from chart.colors color set
+		series.columns.template.adapter.add("fill", (fill, target) => {
+			return chart.colors.getIndex(target.dataItem.index);
+		});
+		//series.columns.template.propertyFields.fill = "color";
+		//series.columns.template.propertyFields.stroke = "color";
 		series.columns.template.column.cornerRadiusTopLeft = 15;
 		series.columns.template.column.cornerRadiusTopRight = 15;
 		series.columns.template.tooltipText = "{categoryX}: [bold]{valueY}[/b]";
-
+		
 		// Add bullets
 		var bullet = series.bullets.push(new am4charts.Bullet());
 		var image = bullet.createChild(am4core.Image);
@@ -361,13 +421,21 @@
 		image.verticalCenter = "bottom";
 		image.dy = 20;
 		image.y = am4core.percent(100);
-		image.propertyFields.href = "bullet";
+		image.adapter.add("href", function (href, target) {
+			var dataItem = target.dataItem;
+			if (dataItem.categories.categoryX == "YouTube") {
+				return "https://www.southeastchristian.org/content/externalsite/yt_logo_mono_light.svg";
+			}
+			if (dataItem.categories.categoryX == "Vimeo") {
+				return "https://www.southeastchristian.org/content/externalsite/Vimeo.svg";
+			}
+		})
 		image.tooltipText = series.columns.template.tooltipText;
-		image.propertyFields.fill = "color";
+		//image.propertyFields.fill = "color";
 		image.width = 100;
 		image.height = 75;
 		// image.filters.push(new am4core.DropShadowFilter());
-	
+		//hideIndicator{{ guidSmash }}()();
 	{%- elseif type == 'sidebar' -%}
 		{%- comment -%} 
 		/**************************************************/
@@ -425,65 +493,69 @@
 			{%- endfor -%}
 		{%- else -%}
 			createSeries("{{ categories[i] }}", "{{ category-labels[i] }}");
-		{%- endif -%}
-
+		{%- endif -%}	
+		//hideIndicator{{ guidSmash }}()();
 	{%- elseif type == 'linechart' -%}
 		{%- comment -%} 
 		/****************************************************/
 		/************** LINECHART CHART CONFIG **************/
 		/****************************************************/
 		{%- endcomment -%} 
+		chart.events.on("beforedatavalidated", function(ev) {
+			chart.data.sort(function(a, b) {
+				return (new Date(a.date)) - (new Date(b.date));
+			});
+		});
+		
 		// Increase contrast by taking evey second color
 		chart.colors.step = 2;
 		// Create axes
 		var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
 		dateAxis.renderer.minGridDistance = 50;
 
-
 		// Create series
 		function createAxisAndSeries(field, name, opposite, bullet) {
-		var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-		if(chart.yAxes.indexOf(valueAxis) != 0){
-			valueAxis.syncWithAxis = chart.yAxes.getIndex(0);
-		}
-		
-		var series = chart.series.push(new am4charts.LineSeries());
-		series.dataFields.valueY = field;
-		series.dataFields.dateX = "date";
-		series.strokeWidth = 2;
-		series.yAxis = valueAxis;
-		series.name = name;
-		series.tooltipText = "{name}: [bold]{valueY}[/]";
-		series.tensionX = 0.8;
-		series.showOnInit = true;
-		
-		var interfaceColors = new am4core.InterfaceColorSet();
-		
-		switch(bullet) {
-			default:
-			var bullet = series.bullets.push(new am4charts.CircleBullet());
-			bullet.circle.stroke = interfaceColors.getFor("background");
-			bullet.circle.strokeWidth = 2;
-			break;
-		}
-		
-		valueAxis.renderer.line.strokeOpacity = 1;
-		valueAxis.renderer.line.strokeWidth = 2;
-		valueAxis.renderer.line.stroke = series.stroke;
-		valueAxis.renderer.labels.template.fill = series.stroke;
-		valueAxis.renderer.opposite = opposite;
+			var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+			if(chart.yAxes.indexOf(valueAxis) != 0){
+				valueAxis.syncWithAxis = chart.yAxes.getIndex(0);
+			}
+			
+			var series = chart.series.push(new am4charts.LineSeries());
+			series.dataFields.valueY = field;
+			series.dataFields.dateX = "date";
+			series.strokeWidth = 2;
+			series.yAxis = valueAxis;
+			series.name = name;
+			series.tooltipText = "{name}: [bold]{valueY}[/]";
+			series.tensionX = 0.8;
+			series.showOnInit = true;
+			
+			var interfaceColors = new am4core.InterfaceColorSet();
+			
+			switch(bullet) {
+				default:
+				var bullet = series.bullets.push(new am4charts.CircleBullet());
+				bullet.circle.stroke = interfaceColors.getFor("background");
+				bullet.circle.strokeWidth = 2;
+				break;
+			}
+			
+			valueAxis.renderer.line.strokeOpacity = 1;
+			valueAxis.renderer.line.strokeWidth = 2;
+			valueAxis.renderer.line.stroke = series.stroke;
+			valueAxis.renderer.labels.template.fill = series.stroke;
+			valueAxis.renderer.opposite = opposite;
 		}
 
-		{%- if categoryCount > 1 -%}
-			{%- for i in (1..categoryCount) -%}
+		{%- for i in (0..categoryCount) -%}
+			{%- if categories[i] != "date" -%}
 				createAxisAndSeries("{{ categories[i] }}", "{{ category-labels[i] }}", true, "circle");
-			{%- endfor -%}
-		{%- else -%}
-			createAxisAndSeries("{{ categories[i] }}", "{{ category-labels[i] }}", true, "circle");
-		{%- endif -%}
+			{%- endif -%}
+		{%- endfor -%}
 
 		// Add cursor
 		chart.cursor = new am4charts.XYCursor();
+		//hideIndicator{{ guidSmash }}()();
 	{%- endif -%}
 
 	{%- comment -%} 
@@ -494,4 +566,51 @@
 	{%- if legend == 'on' -%}
 		chart.legend = new am4charts.Legend();
 	{%- endif -%}
+
+	chart.preloader.disabled = true;
+	{% assign guidSmash = id | Replace:'-','' %}
+	var indicator{{guidSmash}};
+
+	function showIndicator{{guidSmash}}() {
+	
+	if (!indicator{{guidSmash}}) {
+		indicator{{guidSmash}} = chart.tooltipContainer.createChild(am4core.Container);
+		indicator{{guidSmash}}.background.fill = am4core.color("#fff");
+		indicator{{guidSmash}}.background.fillOpacity = 0.8;
+		indicator{{guidSmash}}.width = am4core.percent(100);
+		indicator{{guidSmash}}.height = am4core.percent(100);
+
+		var indicator{{guidSmash}}Label = indicator{{guidSmash}}.createChild(am4core.Label);
+		indicator{{guidSmash}}Label.text = "Loading...";
+		indicator{{guidSmash}}Label.align = "center";
+		indicator{{guidSmash}}Label.valign = "middle";
+		indicator{{guidSmash}}Label.fontSize = 14;
+		indicator{{guidSmash}}Label.dy = 50;
+		
+		var loadingAnimation = indicator{{guidSmash}}.createChild(am4core.Image);
+		loadingAnimation.href = "https://www.southeastchristian.org/content/382.gif";
+		loadingAnimation.align = "center";
+		loadingAnimation.valign = "middle";
+		loadingAnimation.horizontalCenter = "middle";
+		loadingAnimation.verticalCenter = "middle";
+		loadingAnimation.scale = 1;
+	}
+	
+	indicator{{guidSmash}}.hide(0);
+	indicator{{guidSmash}}.show();
+	}
+
+	function hideIndicator{{guidSmash}}() {
+	indicator{{guidSmash}}.hide();
+	}
+
+	showIndicator{{guidSmash}}();
+
+	if (chart.dataSource.url) {
+		chart.dataSource.events.on("done", function(ev) {
+			hideIndicator{{guidSmash}}();
+		});
+	} else {
+		hideIndicator{{guidSmash}}();
+	}
 </script>

@@ -193,6 +193,7 @@
                 {% assign alert_template = item | Attribute:'AlertTemplate','RawValue' %}
                 {%- if alert_template == 1 -%}
                     {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
+                    {% comment %}
                     <a href="/online">
                     <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
                         <h5 class="g-font-family--secondary">{{ item.Title }}</h5>
@@ -221,6 +222,14 @@
                             </div>
                         </div>
                     </div>
+                    </a>
+                    {% endcomment %}
+                    <a href="/online">
+                        <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
+                            <img src="https://www.southeastchristian.org/Content/Dynamic/Campus/SEOnline/IMG_-3.jpg" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg action-image" style="margin-right: 0 !important;" />
+                            <h5 class="g-font-family--secondary g-margin-b-5--xs">{{ item.Title }}</h5>
+                            <h6 class="g-margin-b-0--xs g-line-height--normal action-content">{{ item.Content }}</h6>
+                        </div>
                     </a>
                 {%- elseif alert_template == 2 -%}
                     {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
