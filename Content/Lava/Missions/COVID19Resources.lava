@@ -46,7 +46,7 @@
                         <option value="allNeeds" data-shortcode="SE" data-need="">Serve</option>
 						{% tag where:'CategoryId == 1413' %}
 						   {% for tag in tagItems %}
-						   		{% assign respondTagsOnly = "Medical Professionals|Meals|Elderly or vulnerable|Other|Prayer" %}
+						   		{% assign respondTagsOnly = "Children or students|Addiction-prison-homelessness|Women and mothers|Internationals and refugees|Medical-legal-housing-basic assistance|Prayer" %}
 								{% if respondTagsOnly contains tag.Name %}
 						        <option value="{{ tag.Id }}" data-need="{{ tag.Id }}">
 						            {{ tag.Name }}
@@ -152,12 +152,15 @@
 									</div>
 									<div>
                                         <h6>
-                                            <small class="uppercase g-font-weight--700">location</small><br />
-                                            {{ item | Attribute:'Location','Street1' }}<br />
-                                            {{ item | Attribute:'Location','City' }}, {{ item | Attribute:'Location','State' }} {{ item | Attribute:'Location','PostalCode' }}
-											<br />
-											<br />
-											<h5 class="uppercase g-display-none--xs distance-miles text-center g-font-weight--700 g-hor-divider__solid__t--black-opacity-lighter g-padding-t-20--xs"></h5>
+											{% assign location = item | Attribute:'Location','City' %}
+											{% if location != '' %}
+												<small class="uppercase g-font-weight--700">location</small><br />
+												{{ item | Attribute:'Location','Street1' }}<br />
+												{{ item | Attribute:'Location','City' }}, {{ item | Attribute:'Location','State' }} {{ item | Attribute:'Location','PostalCode' }}
+												<br />
+												<br />
+												<h5 class="uppercase g-display-none--xs distance-miles text-center g-font-weight--700 g-hor-divider__solid__t--black-opacity-lighter g-padding-t-20--xs"></h5>
+											{% endif %}	
 										</h6>
                                     </div>
                                 </div>
