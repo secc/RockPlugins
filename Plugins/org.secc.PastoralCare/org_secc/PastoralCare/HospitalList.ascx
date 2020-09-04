@@ -15,13 +15,16 @@
 
             <div class="panel panel-block">
                 <div class="panel-heading">
-                    <h1 class="panel-title"><i class="fa fa-hospital-o"></i> Hospitalization List</h1>
+                    <h1 class="panel-title"><i class="fa fa-hospital-o"></i> Hospitalization List <asp:Literal runat="server" ID="ltCampus" /></h1>
                 </div>
-                
+                <Rock:GridFilter runat="server" ID ="fReport" OnApplyFilterClick="fReport_ApplyFilterClick">
+                    <Rock:CampusPicker runat="server" ID="pCampus" Label="Campus" />
+                </Rock:GridFilter>
                 <Rock:Grid ID="gReport" runat="server" AllowSorting="true" EmptyDataText="No Results" DataKeyNames="Id" OnRowSelected="gReport_RowSelected">
                     <Columns>
                         <Rock:RockBoundField DataField="Hospital" HeaderText="Hospital" SortExpression="Hospital"></Rock:RockBoundField>
                         <Rock:PersonField DataField="PersonToVisit" HeaderText="Person To Visit" SortExpression="Person.LastName" />
+                        <Rock:PersonField DataField="Campus" HeaderText="Campus" SortExpression="Person.PrimaryCampus.Name" />
                         <Rock:RockBoundField DataField="Age" HeaderText="Age" SortExpression="Age"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Room" HeaderText="Room" SortExpression="Room"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="NotifiedBy" HeaderText="Notified By" SortExpression="NotifiedByRoom"></Rock:RockBoundField>

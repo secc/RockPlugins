@@ -69,24 +69,29 @@
 
             <ul class="cd-nav-icons is-hidden">
                 <li class="go-back arrow"><a class="arrow">Menu</a></li>
-                <li class="se-4-column border-right">
+                <li class="se-5-column border-right">
                     <a class="cd-nav-item sermons" href="/sermons">
                         <h3>Sermons</h3>
                     </a>
                 </li>
-                <li class="se-4-column border-right">
+                <li class="se-5-column border-right">
                     <a class="cd-nav-item resources" href="/resources">
                         <h3>Resources</h3>
                     </a>
                 </li>
-                <li class="se-4-column border-right">
+                <li class="se-5-column border-right">
                     <a class="cd-nav-item stoies" href="/stories">
                         <h3>Stories</h3>
                     </a>
                 </li>
-                <li class="se-4-column">
+                <li class="se-5-column border-right">
                     <a class="cd-nav-item live-stream" href="/southeast-online">
                         <h3>Live Stream</h3>
+                    </a>
+                </li>
+                <li class="se-5-column">
+                    <a class="cd-nav-item bookstore" href="{{ 'Global' | Attribute:'BookStoreLink','RawValue' }}" target="_blank">
+                        <h3>Bookstore</h3>
                     </a>
                 </li>
             </ul>

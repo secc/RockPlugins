@@ -1,0 +1,33 @@
+{%- assign today = 'Now' | Date:'dddd' -%}
+{%- assign comma = "" -%}
+{%- assign subtractDays = -14 -%}
+{%- if today == "Saturday" or today == "Sunday" -%}
+    {%- assign subtractDays = -7 -%}
+{%- endif -%}
+{%- assign sundayBefore = "Now" | SundayDate | DateAdd:subtractDays | Date:'dd' -%}
+{%- assign satSubtractDays = subtractDays | Plus:-1 -%}
+{%- assign saturdayBefore = "Now" | SundayDate | DateAdd:satSubtractDays | Date:'dd' -%}
+{%- assign weekendDate = "Now" | SundayDate | DateAdd:subtractDays | Date:'yyyy-MM-dd' -%}
+{%- assign numberOfWeekendsToShow = 4 -%}
+[{%- for i in (0..numberOfWeekendsToShow) -%}{{- comma -}}
+    {%- assign weekendDollarTotal = 0 -%}
+    {%- campus where:'Public == true' -%}
+        {%- for assignedCampus in campusItems -%}
+            {%- assign campusId = assignedCampus.Id -%}
+            {%- assign campusGeneralFund = 0 -%}
+            {%- metricvalue where:'MetricId == 6 && MetricValueDateTime == "{{weekendDate}}"' -%}
+                {%- for metricValue in  metricvalueItems -%}
+                    {%- if campusId == metricValue.MetricValuePartitions[0].EntityId -%}
+                    {%- assign campusGeneralFund = metricValue.YValue -%}
+                    {%- assign weekendDollarTotal = weekendDollarTotal | Plus:metricValue.YValue -%}
+                    {%- endif -%}
+                {%- endfor -%}
+            {%- endmetricvalue -%}
+        {%- endfor -%}
+    {%- endcampus -%}{
+        "date": "{{ weekendDate | Date:'MMMM dd yyyy' }}",
+        "giving": "{{ weekendDollarTotal }}",
+        "color": "",
+        "bullet": ""
+    }{%- assign weekendDate = weekendDate | DateAdd:-7 | Date:'yyyy-MM-dd' -%}{%- assign comma = "," -%}
+{%- endfor -%}]
