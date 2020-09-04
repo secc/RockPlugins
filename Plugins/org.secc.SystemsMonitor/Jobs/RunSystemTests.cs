@@ -72,8 +72,10 @@ namespace org.secc.Jobs
                 SendNotifications( alarms, systemCommunication, notificationGroup );
                 context.Result = string.Format( $"Ran {count} test{( count != 1 ? "s" : "" )}. Alarms: {string.Join( ", ", alarms )}" );
             }
-
-            context.Result = string.Format( $"Ran {count} test{( count != 1 ? "s" : "" )}." );
+            else
+            {
+                context.Result = string.Format( $"Ran {count} test{( count != 1 ? "s" : "" )}." );
+            }
 
         }
 

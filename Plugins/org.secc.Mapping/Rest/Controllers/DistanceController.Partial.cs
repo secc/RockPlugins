@@ -81,7 +81,7 @@ namespace org.secc.Mapping.Rest.Controllers
             var destinations = attributeValues
                 .Select( av => new Destination
                 {
-                    EntityId = av.Id,
+                    EntityId = av.EntityId,
                     LocationId = locations.Where( l => l.Guid == av.Value.AsGuid() ).Select( l => l.Id ).FirstOrDefault()
                 } )
                 .Where( d => d.LocationId.HasValue && d.EntityId.HasValue )

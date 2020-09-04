@@ -212,8 +212,8 @@ namespace RockWeb.Plugins.org_secc.CMS
             }
             RockContext rockContext = new RockContext();
 
-            //Workflow assigned to the person
-            var workflowCount = new WorkflowActionService( rockContext ).GetActiveForms( CurrentPerson ).Where( a => a.CreatedDateTime > lastChecked.Value ).Count();
+            //Any workflow assigned to the person where we have active forms.
+            var workflowCount = new WorkflowActionService( rockContext ).GetActiveForms( CurrentPerson ).Where( a => a.CreatedDateTime > lastChecked.Value ).DistinctBy(a => a.Activity.WorkflowId).Count();
 
             //Connections - If a new connecion was made, a connection was just transfered, or a future followup just came up
             DateTime midnightToday = RockDateTime.Today.AddDays( 1 );
