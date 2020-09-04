@@ -1,5 +1,39 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="ContributionStatementGenerator.ascx.cs" Inherits="RockWeb.Plugins.org_secc.Finance.ContributionStatementGenerator" %>
 
+<script src="/SignalR/hubs"></script>
+<script type="text/javascript">
+    $(function ()
+    {
+        var proxy = $.connection.rockMessageHub;
+
+        proxy.client.receiveNotification = function (name, message, results)
+        {
+            if (name == '<%=this.SignalRNotificationKey %>') {
+                $('#<%=pnlProgress.ClientID%>').show();
+
+                if (message) {
+                    $('#<%=lProgressMessage.ClientID %>').html(message);
+                }
+
+                if (results) {
+                    $('#<%=lProgressResults.ClientID %>').html(results);
+                }
+            }
+        }
+
+        proxy.client.showButtons = function (name, visible)
+        {
+            if (name == '<%=this.SignalRNotificationKey %>') {
+
+            }
+        }
+
+        $.connection.hub.start().done(function ()
+        {
+            // hub started... do stuff here if you want to let the user know something
+        });
+    })
+</script>
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>
         <asp:Panel ID="pnlGivingUnitList" runat="server" class="panel panel-block">
@@ -54,8 +88,19 @@
             <div class="panel-heading">
                 <h1 class="panel-title"><i class="fa fa-file-pdf"></i> Contribution Statement Generator Progress</h1>
             </div>
-            <div class="panel-body">
-                <asp:Panel runat="server" CssClass="alert alert-success" ID="pnlProgressText" />
+            <div class="panel-body">               
+                <asp:Panel ID="pnlProgress" runat="server" CssClass="js-messageContainer">
+                    <strong>Progress</strong><br />
+                    <div class="alert alert-info">
+                        <asp:Label ID="lProgressMessage" CssClass="js-progressMessage" runat="server" Text="Starting . . . " />
+                    </div>
+                    <div class="hidden">
+                        <strong>Details</strong><br />
+                        <div class="alert alert-info">
+                            <pre><asp:Label ID="lProgressResults" CssClass="js-progressResults" runat="server" /></pre>
+                        </div>
+                    </div>
+                </asp:Panel>
             </div>
         </asp:Panel>
     </ContentTemplate>

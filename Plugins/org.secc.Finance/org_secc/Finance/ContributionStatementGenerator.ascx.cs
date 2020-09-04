@@ -27,6 +27,11 @@ using Rock.Attribute;
 using org.secc.Finance.Utility;
 using Rock.Web.Cache;
 using System.Data.SqlTypes;
+using System.Threading.Tasks;
+using System.Diagnostics;
+using Microsoft.AspNet.SignalR;
+using Rock.Web;
+using System.Collections.Concurrent;
 
 namespace RockWeb.Plugins.org_secc.Finance
 {
@@ -42,6 +47,27 @@ namespace RockWeb.Plugins.org_secc.Finance
 
     public partial class ContributionStatementGenerator : Rock.Web.UI.RockBlock
     {
+
+
+        /// <summary>
+        /// This holds the reference to the RockMessageHub SignalR Hub context.
+        /// </summary>
+        private IHubContext _hubContext = GlobalHost.ConnectionManager.GetHubContext<RockMessageHub>();
+
+
+        /// <summary>
+        /// Gets the signal r notification key.
+        /// </summary>
+        /// <value>
+        /// The signal r notification key.
+        /// </value>
+        public string SignalRNotificationKey
+        {
+            get
+            {
+                return string.Format( "ContributionStatementGenerator_BlockId:{0}_SessionId:{1}", this.BlockId, Session.SessionID );
+            }
+        }
         #region Base Control Methods
 
         //  overrides of the base RockBlock methods (i.e. OnInit, OnLoad)
@@ -53,6 +79,8 @@ namespace RockWeb.Plugins.org_secc.Finance
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
+
+            RockPage.AddScriptLink( "~/Scripts/jquery.signalR-2.2.0.min.js", fingerprint: false );
 
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.BlockUpdated += Block_BlockUpdated;
@@ -149,26 +177,7 @@ namespace RockWeb.Plugins.org_secc.Finance
 
         protected void btnGenerate_Click( object sender, EventArgs e )
         {
-            var reviewDataView = GetAttributeValue( "DefaultReviewDataView" ).AsGuidOrNull();
-            var statementGeneratorWorkflow = GetAttributeValue( "StatementGeneratorWorkflow" ).AsGuid();
-
-            foreach ( GivingGroup givingGroup in GetSelectedGivingUnits() )
-            {
-                // Setup the attribute values
-                var workflowAttributeValues = new Dictionary<string, string>();
-                if ( reviewDataView.HasValue )
-                {
-                    workflowAttributeValues.Add( "ReviewDataView", reviewDataView.ToString() );
-                }
-                workflowAttributeValues.Add( "Version", tbVersion.Text );
-                workflowAttributeValues.Add( "StatementDateRange", drpStatementDate.LowerValue.Value.ToString( "s" ) + "," + drpStatementDate.UpperValue.Value.ToString( "s" ) );
-                workflowAttributeValues.Add( "GivingId", givingGroup.GivingId );
-
-                var transaction = new Rock.Transactions.LaunchWorkflowTransaction( statementGeneratorWorkflow, "Contribution Statement for " + givingGroup.GivingGroupName );
-                transaction.WorkflowAttributeValues = workflowAttributeValues;
-                Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
-            }
-            pnlProgressText.Controls.Add( new Label() { Text = GetSelectedGivingUnits().Count() + " contribution statement generation requests submitted." } );
+            StartWorkflows();
             pnlProgressBar.Visible = true;
             pnlSettings.Visible = false;
 
@@ -273,6 +282,132 @@ namespace RockWeb.Plugins.org_secc.Finance
         }
         #endregion
 
+
+        Dictionary<string, string> results = new Dictionary<string, string>() { { "Success", "" }, { "Fail", "" } };
+
+        /// <summary>
+        /// Starts the Statement Generator Workflows.
+        /// </summary>
+        private void StartWorkflows()
+        {
+            long totalMilliseconds = 0;
+            var total = GetSelectedGivingUnits().Count();
+            int j = 0;
+
+            ConcurrentBag<GivingGroup> givingGroups = new ConcurrentBag<GivingGroup>();
+            foreach ( GivingGroup givingGroup in GetSelectedGivingUnits() )
+            {
+                givingGroups.Add( givingGroup );
+            }
+            var list = GetSelectedGivingUnits().ToList();
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            var reviewDataView = GetAttributeValue( "DefaultReviewDataView" ).AsGuidOrNull();
+            var statementGeneratorWorkflow = WorkflowTypeCache.Get( GetAttributeValue( "StatementGeneratorWorkflow" ).AsGuid() );
+
+
+            List<Task> taskList = new List<Task>();
+
+            for ( int i = 0; i < 10; i++ )
+            {
+                taskList.Add( new Task( () =>
+                {
+
+
+                    GivingGroup givingGroup;
+                    while ( givingGroups.TryTake( out givingGroup ) )
+                    {
+                        // Setup the attribute values
+                        var workflowAttributeValues = new Dictionary<string, string>();
+                        if ( reviewDataView.HasValue )
+                        {
+                            workflowAttributeValues.Add( "ReviewDataView", reviewDataView.ToString() );
+                        }
+                        workflowAttributeValues.Add( "Version", tbVersion.Text );
+                        workflowAttributeValues.Add( "StatementDateRange", drpStatementDate.LowerValue.Value.ToString( "s" ) + "," + drpStatementDate.UpperValue.Value.ToString( "s" ) );
+                        workflowAttributeValues.Add( "GivingId", givingGroup.GivingId );
+
+                        using ( var rockContext = new RockContext() )
+                        {
+                            OnProgress( "Activating contribution statement generation request " + j + " of " + total );
+                            var workflow = Rock.Model.Workflow.Activate( statementGeneratorWorkflow, "Contribution Statement for " + givingGroup.GivingGroupName, rockContext );
+                            var workflowService = new WorkflowService( rockContext );
+
+                            foreach ( var keyVal in workflowAttributeValues )
+                            {
+                                workflow.SetAttributeValue( keyVal.Key, keyVal.Value );
+                            }
+                            List<string> workflowErrors;
+                            new Rock.Model.WorkflowService( rockContext ).Process( workflow, null, out workflowErrors );
+
+                            /*
+                            workflowService.Add( workflow );
+                            //results.Add( "Contribution Statement for " + givingGroup.GivingGroupName, workflow.AttributeValues.Count + " Attribute Values" );
+                            rockContext.SaveChanges();
+                            workflow.SaveAttributeValues( rockContext );
+                            */
+
+                            //var transaction = new Rock.Transactions.LaunchWorkflowTransaction( statementGeneratorWorkflow, "Contribution Statement for " + givingGroup.GivingGroupName );
+                            //transaction.WorkflowAttributeValues = workflowAttributeValues;
+                            //Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+                        }
+                        j++;
+                    }
+                } ) );
+            }
+                       
+
+            Task.WhenAll( taskList ).ContinueWith( ( t ) =>
+            {
+
+                stopwatch.Stop();
+
+                totalMilliseconds = stopwatch.ElapsedMilliseconds;
+
+                if ( t.IsFaulted )
+                {
+                    foreach ( var exception in t.Exception.InnerExceptions )
+                    {
+                        LogException( exception );
+                    }
+
+                    OnProgress( "ERROR: " + t.Exception.Message );
+                } 
+                else
+                {
+                    OnProgress( string.Format( "{0} {1} Complete: [{2}ms]", total, " contribution statement generation requests were generated.", totalMilliseconds ) );
+                }
+
+            } );
+
+            Task.Factory.StartNew( () => taskList.ForEach( task => task.Start() ) );
+
+        }
+
+
+        /// <summary>
+        /// Handles the ProgressChanged event of the BackgroundWorker control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="ProgressChangedEventArgs"/> instance containing the event data.</param>
+        private void OnProgress( object e )
+        {
+
+            string progressMessage = string.Empty;
+            DescriptionList progressResults = new DescriptionList();
+            if ( e is string )
+            {
+                progressMessage = e.ToString();
+            }
+
+            foreach ( var result in results )
+            {
+                progressResults.Add( result.Key, result.Value );
+            }
+            _hubContext.Clients.All.receiveNotification( this.SignalRNotificationKey, progressMessage, progressResults.Html.ConvertCrLfToHtmlBr() );
+
+        }
 
     }
 
