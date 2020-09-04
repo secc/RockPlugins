@@ -1,0 +1,87 @@
+{% assign array = child-items | UnescapeDataString | FromJSON %}
+{% assign childItemsSize = array | Size %}
+{% if childItemsSize > 0 %}
+
+    {[ faq columns:'1' autoheight:'true' accordionclass:'accordions-nostyle sermon-resources-accordion' collapsed:'false' ]}
+        [[ item title:'{{ title }}' ]]
+            {%- for resource in array -%}
+            
+                {%- assign resourceTitle = resource.Title -%}
+                {%- assign resourceURL = resource.AttributeValues.ResourceURL.Value -%}
+                {%- assign ResourceURLText = resource.AttributeValues.ResourceURLText.Value -%}
+                {%- assign recommendedReading = resource.AttributeValues.RecommendedReading.Value -%}
+                {%- assign resourceMediaFile = resource.AttributeValues.ResourceFile -%}
+                {%- assign embedCode = resource.AttributeValues.EmbedCode.Value -%}
+
+                <div class="se-panel g-padding-x-40--xs g-padding-y-20--md g-margin-b-30--xs g-color--dark">
+                    <div class="row g-display-flex--md">
+                        <div class="rsc-title-brd col-sm-6 g-padding-y-40--xs">
+                            <h5 class="rsc-title g-font-weight--600 g-text-center--xs g-text-left--md">{{ resourceTitle | Truncate:150 }}</h5>
+                        </div>
+                        <div class="col-sm-6 g-padding-y-20--xs g-padding-y-40--md g-text-right--lg g-position--relative">
+                            <div class="rsc-buttons g-width-100-percent--xs">
+                                {% if resourceURL != null %}
+                                    <a href="{{ resourceURL }}" data-resource="{{ resourceURL }}"  target="_blank" class="btn g-letter-spacing--1 g-color--dark g-width-300--lg g-width-100-percent--xs text-center g-display-inline-block--xs" style="white-space: nowrap;">
+                                        <i class="fas fa-link g-margin-r-10--xs"></i>
+                                        <strong>
+                                            {%- if ResourceURLText != "" -%}
+                                                {{ ResourceURLText }}
+                                            {%- else -%}
+                                                Link
+                                            {%- endif -%}
+                                        </strong>
+                                    </a>
+                                {% endif %}
+                                {%- if resourceMediaFile.Value != null -%}
+                                    <a type="button" data-rtitle="{{ resource.Title }}" data-rguid="{{ resourceMediaFile.Value }}" class="resourceButtons btn g-letter-spacing--1 g-color--dark g-width-300--lg g-width-50-percent--xs text-center g-display-inline-block--xs" data-toggle="modal" data-target="#r{{ resourceMediaFile.Value }}" style="white-space: nowrap; cursor: pointer;">
+                                        <i class="fas fa-search g-margin-r-10--xs"></i><strong>Preview</strong>
+                                    </a>
+                                    <a href="/GetFile.ashx?guid={{ resourceMediaFile.Value }}" data-resource="{{ resourceMediaFile.ValueFormatted }}" class="btn g-letter-spacing--1 g-color--dark g-width-300--lg g-width-50-percent--xs text-center g-display-inline-block--xs" style="white-space: nowrap;" download>
+                                        <i class="fas fa-download g-margin-r-10--xs"></i> <strong>Download</strong>
+                                    </a>
+                                {%- endif -%}
+
+                                {%- if embedCode != null -%}
+                                    <a href="/sermons/{{series-slug}}/{{resource.ItemGlobalKey}}" data-resource="/sermons/{{series-slug}}/{{resource.ItemGlobalKey}}" class="btn g-letter-spacing--1 g-color--dark g-width-300--lg g-width-100-percent--xs text-center g-display-inline-block--xs" style="white-space: nowrap;">
+                                        <i class="fas fa-video g-margin-r-10--xs"></i>
+                                        <strong>Watch</strong>
+                                    </a>
+                                {%- endif -%}
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {%- if resourceMediaFile.Value != null -%}
+                <div class="modal fade resourcePreview" id="r{{ resourceMediaFile.Value }}" tabindex="-1" role="dialog" aria-labelledby="resourcePreviewLabel">
+                    <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close g-margin-y-0--xs g-margin-x-10--xs" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <h4 class="modal-title" id="resourcePreviewLabel">{{ resourceTitle }}</h4>
+                            </div>
+                            <div id="loadFrame" class="modal-body g-padding-x-20--xs g-padding-y-20--xs g-bg-color--dark">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {%- endif -%}
+
+            {%- endfor -%}  
+        [[ enditem ]]
+    {[ endfaq ]}
+    <script>
+        $(document).on("click", ".resourceButtons", function () {
+            var button = $(this);
+            var modalTarget = button.data('target');
+            var pdfGuid = button.data('rguid');
+            var src = '/viewer?file=/GetFile.ashx%3Fguid%3D' + pdfGuid;
+            var modal = $(modalTarget);
+            var iframeHTML = '<iframe src="' + src + '" frameborder="0" height="600" marginheight="0" marginwidth="0" scrolling="no" width="100%"></iframe>';
+            modal.find('#loadFrame').html(iframeHTML);
+        });                    
+    </script>
+{% endif %}

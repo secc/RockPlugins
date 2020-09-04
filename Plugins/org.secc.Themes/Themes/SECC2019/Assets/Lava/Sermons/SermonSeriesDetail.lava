@@ -105,27 +105,69 @@
                         <li><a href="#Sermons">Sermons</a></li>
                         {%- endif -%}
                         {%- assign resourcesCount = 0 -%}
-                        {%- assign studiesStudiesIncluded = false -%}
-            			{%- assign studiesReadingPlansIncluded = false -%}
-            			{%- assign studiesMediaIncluded = false -%}
-                    	{%- assign itemChildItems = series.ChildItems | Sort:'Priority' -%}
+                        {%- assign itemChildItems = series.ChildItems | Sort:'Priority' -%}
+
+                        {% assign recommendedReadingJSONArray = "" %}
+                        {% assign downloadsJSONArray = "" %}
+                        {% assign linksJSONArray = "" %}
+                        {% assign videosJSONArray = "" %}
+
                     	{%- for messages in itemChildItems reversed -%}
                     		{%- assign message = messages.ChildContentChannelItem -%}
                     		{%- assign videoImageGuid = message | Attribute:'Image','RawValue' -%}
                     		{%- if message.ContentChannelId != "23" -%}
-                    			{%- assign resourcesCount = resourcesCount | Plus:1 -%}
-                                {%- assign resource = message -%}
-                				{%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
-                				{%- assign resourceURL = resource | Attribute:'ResourceURL','RawValue' -%}
-                				{%- assign embedCode = resource | Attribute:'EmbedCode','RawValue' -%}
-                                {%- if resourceMediaFile.Guid != null -%}
-                                    {%- assign studiesStudiesIncluded = true -%}
-                                {%- elseif resourceURL != "" -%}
-                                    {%- assign studiesReadingPlansIncluded = true -%}
-                                {%- elseif embedCode != "" -%}
-                                    {%- assign studiesMediaIncluded = true -%}
-                                {%- endif -%%}
+                                {% comment %} init & reset values each loop {% endcomment %}
+                                {%- assign childItemJSON = "" -%} 
+                                {%- assign recommendedReading = "" -%}
+                                {%- assign resourceMediaFile = "" -%}
+                                {%- assign resourceURL = "" -%}
+                                {%- assign embedCode = "" -%}
+
+                                {%- assign childItemJSON = message | ToJSON -%}
+                                {%- assign recommendedReading = message | Attribute:'RecommendedReading' -%}
+                                {%- assign resourceMediaFile = message | Attribute:'ResourceFile','Object' -%}
+                                {%- assign resourceURL = message | Attribute:'ResourceURL','RawValue' -%}
+                                {%- assign embedCode = message | Attribute:'EmbedCode','RawValue' -%}
+                                {%- assign resourcesCount = resourcesCount | Plus:1 -%}
+
+                                {% comment %} **** Check first if Recommended Reading is Checked ***** {% endcomment %}
+                                {% if recommendedReading == "Yes" %}
+                                    {% comment %} Recommended Reading Array {% endcomment %}
+                                    {% if recommendedReadingJSONArray != "" %}
+                                        {% assign recommendedReadingJSONArray = recommendedReadingJSONArray | Append: "," %}
+                                    {% endif %}
+                                    {% assign recommendedReadingJSONArray = recommendedReadingJSONArray | Append: childItemJSON %}
+                                {% else %}
+                                    {% comment %} **** If it's not, then include resources by type ***** {% endcomment %}
+
+                                    {% comment %} PDFs/Downloads Array {% endcomment %}
+                                    {%- if resourceMediaFile.Guid != null -%}
+                                        {% if downloadsJSONArray != "" %}
+                                            {% assign downloadsJSONArray = downloadsJSONArray | Append: "," %}
+                                        {% endif %}
+                                        {% assign downloadsJSONArray = downloadsJSONArray | Append: childItemJSON %}
+                                    {%- endif -%}
+
+                                    {% comment %} Links Array {% endcomment %}
+                                    {%- if resourceURL != "" -%}
+                                        {% if linksJSONArray != "" %}
+                                            {% assign linksJSONArray = linksJSONArray | Append: "," %}
+                                        {% endif %}
+                                        {% assign linksJSONArray = linksJSONArray | Append: childItemJSON %}
+                                    {%- endif -%}
+
+                                    {% comment %} Videos Array {% endcomment %}
+                                    {%- if embedCode != "" -%}
+                                        {% if videosJSONArray != "" %}
+                                            {% assign videosJSONArray = videosJSONArray | Append: "," %}
+                                        {% endif %}
+                                        {% assign videosJSONArray = videosJSONArray | Append: childItemJSON %}
+                                    {%- endif -%}
+
+                                {%- endif -%}
+
                     		{%- endif -%}
+                            
                     	{%- endfor -%}
                         {%- if resourcesCount != 0 -%}
     					<li><a href="#Resources">Resources</a></li>
@@ -467,126 +509,31 @@
                             overflow-y: auto;
                         }
                     </style>
+
+                    {% comment %}
+                    Display all "Recommended Reading"
+                    {% endcomment %}
+                    {% assign recommendedReadingJSONArray = "[" | Append: recommendedReadingJSONArray | Append: "]" %}
+                    {[ sermonresources title:'Recommended Reading' child-items:'{{ recommendedReadingJSONArray | EscapeDataString }}' ]}
+
                     {% comment %}
                     Grab all "Studies" resources
                     {% endcomment %}
-                    {%- if studiesStudiesIncluded == true -%}
-                        {[ faq columns:'1' autoheight:'true' accordionclass:'accordions-nostyle sermon-resources-accordion' collapsed:'false' ]}
-                            [[ item title:'Studies' ]]
-                            {%- for messages in itemChildItems -%}
-                                {%- assign resource = messages.ChildContentChannelItem -%}
-                                {%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
-                                {%- if resourceMediaFile.Guid != null -%}
-                                    <div class="se-panel g-padding-x-40--xs g-padding-y-20--md g-margin-b-30--xs g-color--dark">
-                                        <div class="row g-display-flex--md">
-                                            <div class="rsc-title-brd col-sm-6 g-padding-y-40--xs">
-                                                <h5 class="rsc-title g-font-weight--600 g-text-center--xs g-text-left--md">{{ resource.Title }}</h5>
-                                            </div>
-                                            <div class="col-sm-6 g-padding-y-20--xs g-padding-y-40--md g-text-right--lg g-position--relative">
-                                                <div class="rsc-buttons g-width-100-percent--xs"><a type="button" data-rtitle="{{ resource.Title }}" data-rguid="{{ resourceMediaFile.Guid }}" class="resourceButtons btn g-letter-spacing--1 g-color--dark g-width-300--lg g-width-50-percent--xs text-center g-display-inline-block--xs" data-toggle="modal" data-target="#r{{ resourceMediaFile.Guid }}" style="white-space: nowrap; cursor: pointer;">
-                                                        <i class="fas fa-search g-margin-r-10--xs"></i> <strong>Preview</strong>
-                                                    </a><a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" data-resource="{{ resourceMediaFile.FileName }}" class="btn g-letter-spacing--1 g-color--dark g-width-300--lg g-width-50-percent--xs text-center g-display-inline-block--xs" style="white-space: nowrap;" download>
-                                                        <i class="fas fa-download g-margin-r-10--xs"></i> <strong>Download</strong>
-                                                    </a></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal fade resourcePreview" id="r{{ resourceMediaFile.Guid }}" tabindex="-1" role="dialog" aria-labelledby="resourcePreviewLabel">
-                                        <div class="modal-dialog modal-lg" role="document">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <button type="button" class="close g-margin-y-0--xs g-margin-x-10--xs" data-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                    <h4 class="modal-title" id="resourcePreviewLabel">{{ resource.Title }}</h4>
-                                                </div>
-                                                <div id="loadFrame" class="modal-body g-padding-x-20--xs g-padding-y-20--xs g-bg-color--dark">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {%- endif -%}
-                            {%- endfor -%}
-                            [[ enditem ]]
-                        {[ endfaq ]}
-                        <script>
-                            $(document).on("click", ".resourceButtons", function () {
-                                var button = $(this);
-                                var modalTarget = button.data('target');
-                                var pdfGuid = button.data('rguid');
-                                var src = '/viewer?file=/GetFile.ashx%3Fguid%3D' + pdfGuid;
-                                var modal = $(modalTarget);
-                                var iframeHTML = '<iframe src="' + src + '" frameborder="0" height="600" marginheight="0" marginwidth="0" scrolling="no" width="100%"></iframe>';
-                                console.log(iframeHTML);
-                                modal.find('#loadFrame').html(iframeHTML);
-                            });                    
-                        </script>
-                    {%- endif -%}
-
+                    {% assign downloadsJSONArray = "[" | Append: downloadsJSONArray | Append: "]" %}
+                    {[ sermonresources title:'Studies' child-items:'{{ downloadsJSONArray | EscapeDataString }}' ]}
 
                     {% comment %}
                     Grab all "Reading Plans" or "Links" resources
                     {% endcomment %}
-                    {%- if studiesReadingPlansIncluded == true -%}
-                    {[ faq columns:'1' autoheight:'true' accordionclass:'accordions-nostyle sermon-resources-accordion' collapsed:'false' ]}
-                        [[ item title:'Reading Plans' ]]
-                        {%- for messages in itemChildItems -%}
-        					{%- assign resource = messages.ChildContentChannelItem -%}
-        					{%- assign resourceURL = resource | Attribute:'ResourceURL','RawValue' -%}
-        					{%- assign ResourceURLText = resource | Attribute:'ResourceURLText','RawValue' -%}
-                            {%- if resourceURL != "" -%}
-                                <div class="se-panel g-padding-x-40--xs g-padding-y-20--xs g-margin-b-30--xs g-color--dark">
-                                    <div class="row g-display-flex--md">
-                                        <div class="rsc-title-brd col-sm-6 g-padding-y-20--xs g-margin-x-20--md">
-                                            <h4 class="rsc-title g-font-weight--600 g-text-center--xs g-text-left--md">{{ resource.Title | Truncate:150 }}</h4>
-                                        </div>
-                                        <div class="col-sm-6 g-padding-y-20--xs g-text-right--lg">
-                                            <a href="{{ resourceURL }}" data-resource="{{ resourceURL }}"  target="_blank" class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-100-percent--xs text-center g-display-inline-block--xs">
-                                                <i class="fas fa-link g-margin-r-10--xs"></i>
-                                                <strong>
-                                                    {%- if ResourceURLText != "" -%}
-                                                        {{ ResourceURLText }}
-                                                    {%- else -%}
-                                                        Link
-                                                    {%- endif -%}
-                                                </strong>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            {%- endif -%}
-                        {%- endfor -%}
-                        [[ enditem ]]
-                    {[ endfaq ]}
-                    {%- endif -%}
+                    {% assign linksJSONArray = "[" | Append: linksJSONArray | Append: "]" %}
+                    {[ sermonresources title:'Reading Plans' child-items:'{{ linksJSONArray | EscapeDataString }}' ]}
+
                     {% comment %}
                     Grab all "Media" resources
                     {% endcomment %}
-                    {%- if studiesMediaIncluded == true -%}
-                    {[ faq columns:'1' autoheight:'true' accordionclass:'accordions-nostyle sermon-resources-accordion' collapsed:'false']}
-                        [[ item title:'Media' ]]
-                        {%- for messages in itemChildItems -%}
-        					{%- assign resource = messages.ChildContentChannelItem -%}
-        					{%- assign embedCode = resource | Attribute:'EmbedCode','RawValue' -%}
-                            {%- if embedCode != "" -%}
-                                <div class="se-panel g-padding-x-40--xs g-padding-y-20--xs g-margin-b-30--xs g-color--dark">
-                                    <div class="row g-display-flex--md">
-                                        <div class="rsc-title-brd col-sm-6 g-padding-y-20--xs">
-                                            <h4 class="rsc-title g-font-weight--600 g-text-center--xs g-text-left--md">{{ resource.Title }}</h4>
-                                        </div>
-                                        <div class="col-sm-6 g-padding-y-20--xs g-text-right--lg">
-                                            <a href="/sermons/{{slug}}/{{resource.PrimarySlug}}" class="rsc-buttons g-letter-spacing--1 g-color--dark g-width-300--lg g-width-100-percent--xs text-center g-display-inline-block--xs">
-                                                <i class="fas fa-video g-margin-r-10--xs"></i>
-                                                <strong>Watch</strong>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            {%- endif -%}
-                        {%- endfor -%}
-                        [[ enditem ]]
-                    {[ endfaq ]}
-                    {%- endif -%}
+                    {% assign videosJSONArray = "[" | Append: videosJSONArray | Append: "]" %}
+                    {[ sermonresources title:'Media' child-items:'{{ videosJSONArray | EscapeDataString }}' series-slug:'{{slug}}' ]}
+
     			</div>
             </div>
 		</div>
