@@ -59,8 +59,8 @@
         if ($('#co_action_counter_container').length) {
 
             var co_days, co_goLive, co_hours, co_intervalId, co_minutes, co_seconds;
-            // Your churchonline.org url
-            var co_churchUrl = "https://southeastchristian.churchonline.org"
+										
+																			
 
             co_goLive = function() {
               $("#co_action_counter_loader").hide();
@@ -71,11 +71,21 @@
             };
             co_loadCountdown = function(data){
               var co_seconds_till;
-              if (data.response.item.isLive) {
+			  var now = new Date();
+			  try {
+			      var startTimeString = data.data.currentOrganization.servicesConnection.services[0].startTime;
+			      var startTime = new Date(startTimeString);
+			      var endTime = new Date(data.data.currentOrganization.servicesConnection.services[0].endTime);
+			  } catch {
+			      // If we don't get service times, just bail
+			      return;
+			  }
+			  // If we are in between the start and end times then it's LIVE!
+              if (startTime < now && now < endTime) {
                 return co_goLive();
               } else {
                 // Parse ISO 8601 date string
-                date = data.response.item.eventStartTime.match(/^(\d{4})-0?(\d+)-0?(\d+)[T ]0?(\d+):0?(\d+):0?(\d+)Z$/)
+                date = startTimeString.match(/^(\d{4})-0?(\d+)-0?(\d+)[T ]0?(\d+):0?(\d+):0?(\d+)Z$/)
                 dateString = date[2] + "/" + date[3] + "/" + date[1] + " " + date[4] + ":" + date[5] + ":" + date[6] + " +0000"
                 co_seconds_till = ((new Date(dateString)) - (new Date())) / 1000;
                 co_days = Math.floor(co_seconds_till / 86400);
@@ -113,7 +123,7 @@
             co_minutes = void 0;
             co_seconds = void 0;
             co_intervalId = void 0;
-            co_eventUrl = co_churchUrl + "/api/v1/events/current"
+            co_eventUrl = "/webhooks/Lava.ashx/seonline/services";
             msie = /msie/.test(navigator.userAgent.toLowerCase())
             if (msie && window.XDomainRequest) {
                 var xdr = new XDomainRequest();
@@ -193,7 +203,7 @@
                 {% assign alert_template = item | Attribute:'AlertTemplate','RawValue' %}
                 {%- if alert_template == 1 -%}
                     {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
-                    {% comment %}
+								 
                     <a href="/online">
                     <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
                         <h5 class="g-font-family--secondary">{{ item.Title }}</h5>
@@ -223,14 +233,14 @@
                         </div>
                     </div>
                     </a>
-                    {% endcomment %}
-                    <a href="/online">
-                        <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
-                            <img src="https://www.southeastchristian.org/Content/Dynamic/Campus/SEOnline/IMG_-3.jpg" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg action-image" style="margin-right: 0 !important;" />
-                            <h5 class="g-font-family--secondary g-margin-b-5--xs">{{ item.Title }}</h5>
-                            <h6 class="g-margin-b-0--xs g-line-height--normal action-content">{{ item.Content }}</h6>
-                        </div>
-                    </a>
+									
+									  
+																												  
+																																																																																																									  
+																									   
+																													 
+							  
+						
                 {%- elseif alert_template == 2 -%}
                     {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
                     <a href="/locations">

@@ -37,8 +37,8 @@ namespace org.secc.Jobs
             JobDataMap dataMap = context.JobDetail.JobDataMap;
             var rockContext = new RockContext();
 
-            var systemCommunication = dataMap.GetString( "Notification Communication" ).AsGuid();
-            var notificationGroup = dataMap.GetString( "Notification Group" ).AsGuid();
+            var systemCommunication = dataMap.GetString( "NotificationCommunication" ).AsGuid();
+            var notificationGroup = dataMap.GetString( "NotificationGroup" ).AsGuid();
 
             SystemTestService systemTestService = new SystemTestService( rockContext );
             SystemTestHistoryService systemTestHistoryService = new SystemTestHistoryService( rockContext );
@@ -54,7 +54,7 @@ namespace org.secc.Jobs
             {
                 var cutOffDate = RockDateTime.Now.AddMinutes( test.RunIntervalMinutes.Value * -1 );
                 var histories = systemTestHistoryService.Queryable()
-                    .Where( h => h.CreatedDateTime > cutOffDate ).Any();
+                    .Where( h => h.SystemTestId == test.Id && h.CreatedDateTime > cutOffDate ).Any();
                 if ( !histories )
                 {
                     count++;
