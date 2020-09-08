@@ -1,170 +1,290 @@
-{%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
-{%- for series in contentchannelitemItems -%}
-{
-	"header": {
-		"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
-		"style": "featured",
-		"items": [{
-			"images":[
-                { "width":320, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=110&height=110"  },
-                { "width":720, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=720&height=720" },
-                { "width":1080, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=1080&height=1080" },
-                { "width":1920, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=1920&height=1920" }
-		    ]
-		}]
-	},
-	"displayOptions": {
-		"style":"stacked",
-		"contentWidthRatio": 1.0,
-		"itemDisplayOptions": {
-			"indicatorAspectRatio":3.66,
-			"indicatorShadowEnabled":true,
-        	"maxWidth":1400,
-	        "textPosition": "none"
-		}
-    },
-    "items": [
-		{%- assign comma = "" -%}
-		{%- assign resourcesCount = 0 -%}
-		{%- assign studiesStudiesIncluded = false -%}
-		{%- assign studiesReadingPlansIncluded = false -%}
-		{%- assign studiesMediaIncluded = false -%}
-		{%- assign itemChildItems = series.ChildItems | Sort:'Priority' -%}
-		{%- for messages in itemChildItems reversed -%}
-			{%- assign message = messages.ChildContentChannelItem -%}
-			{%- assign videoImageGuid = message | Attribute:'Image','RawValue' -%}
-			{%- if message.ContentChannelId != "23" -%}
-				{%- assign resourcesCount = resourcesCount | Plus:1 -%}
-				{%- assign resource = message -%}
-				{%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
-				{%- assign resourceURL = resource | Attribute:'ResourceURL','RawValue' -%}
-				{%- assign embedCode = resource | Attribute:'EmbedCode','RawValue' -%}
-				{%- if resourceMediaFile.Guid != null -%}
-					{%- assign studiesStudiesIncluded = true -%}
-				{%- elseif resourceURL != "" -%}
-					{%- assign studiesReadingPlansIncluded = true -%}
-				{%- elseif embedCode != "" -%}
-					{%- assign studiesMediaIncluded = true -%}
-				{%- endif -%}
-			{%- endif -%}
-		{%- endfor -%}
-		{%- if resourcesCount != 0 -%}
-			
-			{% comment %}
-			Grab all "Studies" resources
-			{% endcomment %}
-			{%- if studiesStudiesIncluded == true -%}
-				{{ comma }}
-				{
-					"images":[
-						{%- assign Title = "Studies" | Escape | EscapeDataString -%}
-						{%- assign Body = "Find related studies below." | Escape | EscapeDataString -%}
-						{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
-					]
-				}
-				{%- for messages in itemChildItems -%}
-					{%- assign resource = messages.ChildContentChannelItem -%}
-					{%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
-					{%- if resourceMediaFile.Guid != null -%}
-						,{
-							"title": "{{ resource.Title }}",
-							"subtitle": "Download",
-							"images":[
-								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
-							],
-							"actions": [{
-								"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
-								"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
-								"type":"navigation",
-								"showBrowserControls": true,
-								"contentUrl": "https://www.southeastchristian.org/GetFile.ashx?guid={{ resourceMediaFile.Guid }}"
-							}]
-						}
-					{%- endif -%}
-				{%- endfor -%}
-				{%- assign comma = "," -%}
-			{%- endif -%}
+{%- assign cacheOS = '' -%}
+{%- if Headers.sap-device-os == 'Android' -%}
+	{%- assign cacheOS = 'subsplash-sermons-android-resources--' | Append:series -%}
+{%- else -%}
+	{%- assign cacheOS = 'subsplash-sermons-ios-resources--' | Append:series -%}
+{%- endif -%}
+{%- cache key:'{{cacheOS}}' duration:'3600' -%}
 
-			{% comment %}
-			Grab all "Reading Plans" or "Links" resources
-			{% endcomment %}
-			{%- if studiesReadingPlansIncluded == true -%}
-				{{ comma }}
-				{
-					"images":[
-						{%- assign Title = "Reading Plans" | Escape | EscapeDataString -%}
-						{%- assign Body = "Grow spiritually with a daily devotion." | Escape | EscapeDataString -%}
-						{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
-					]
-				}
-				{%- for messages in itemChildItems -%}
-					{%- assign resource = messages.ChildContentChannelItem -%}
-					{%- assign resourceURL = resource | Attribute:'ResourceURL','RawValue' -%}
-					{%- assign ResourceURLText = resource | Attribute:'ResourceURLText','RawValue' -%}
-					{%- if resourceURL != "" -%}
-						,{
-							"title": "{{ resource.Title }}",
-							"subtitle": "{%- if ResourceURLText != "" -%}{{ ResourceURLText }}{%- else -%}Link{%- endif -%}",
-							"images":[
-								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
-							],
-							"actions": [{
-								"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
-								"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
-								"type":"navigation",
-								"showBrowserControls": true,
-								"contentUrl": "{{ resourceURL }}"
-							}]
-						}
-					{%- endif -%}
-				{%- endfor -%}
-				{%- assign comma = "," -%}
-			{%- endif -%}
-
-			{% comment %}
-			Grab all "Media" resources
-			{% endcomment %}
-			{%- if studiesMediaIncluded == true -%}
-				{{ comma }}
-				{
-					"images":[
-						{%- assign Title = "Media" | Escape | EscapeDataString -%}
-						{%- assign Body = "See other related videos, links, or testimonies." | Escape | EscapeDataString -%}
-						{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
-					]
-				}
-				{%- for messages in itemChildItems -%}
-					{%- assign resource = messages.ChildContentChannelItem -%}
-					{%- assign embedCode = resource | Attribute:'EmbedCode','RawValue' -%}
-					{%- if embedCode != "" -%}
-						,{
-							"title": "{{ resource.Title }}",
-							"subtitle": "Watch",
-							"images":[
-								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
-							],
-							"actions": [{
-								"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
-								"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
-								"type":"navigation",
-								"showBrowserControls": true,
-								"contentUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}sermons/{{slug}}/{{resource.PrimarySlug}}"
-							}]
-						}
-					{%- endif -%}
-				{%- endfor -%}
-				{%- assign comma = "," -%}
-			{%- endif -%}
-
-			{{ comma }}
-			{
+	{%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
+	{%- for series in contentchannelitemItems -%}
+	{
+		"header": {
+			"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+			"style": "featured",
+			"items": [{
 				"images":[
-					{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank121212.jpg"  }
+					{ "width":320, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=110&height=110"  },
+					{ "width":720, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=720&height=720" },
+					{ "width":1080, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=1080&height=1080" },
+					{ "width":1920, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121212&width=1920&height=1920" }
 				]
+			}]
+		},
+		"displayOptions": {
+			"style":"stacked",
+			"contentWidthRatio": 1.0,
+			"itemDisplayOptions": {
+				"indicatorAspectRatio":3.66,
+				"indicatorShadowEnabled":true,
+				"maxWidth":1400,
+				"textPosition": "none"
 			}
-			
-		{%- endif -%}
-    ]
-}
-{%- endfor -%}
-{%- endcontentchannelitem -%}
+		},
+		"items": [
+			{%- assign comma = "" -%}
+			{%- assign resourcesCount = 0 -%}
+			{%- assign itemChildItems = series.ChildItems | Sort:'Priority' -%}
+			{%- assign recommendedReadingJSONArray = "" -%}
+			{%- assign downloadsJSONArray = "" -%}
+			{%- assign linksJSONArray = "" -%}
+			{%- assign videosJSONArray = "" -%}
+			{%- comment -%}{%- for messages in itemChildItems reversed -%}
+				{%- assign message = messages.ChildContentChannelItem -%}
+				{%- assign videoImageGuid = message | Attribute:'Image','RawValue' -%}
+				{%- if message.ContentChannelId != "23" -%}
+					{%- assign resourcesCount = resourcesCount | Plus:1 -%}
+					{%- assign resource = message -%}
+					{%- assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' -%}
+					{%- assign resourceURL = resource | Attribute:'ResourceURL','RawValue' -%}
+					{%- assign embedCode = resource | Attribute:'EmbedCode','RawValue' -%}
+					{%- if resourceMediaFile.Guid != null -%}
+						{%- assign studiesStudiesIncluded = true -%}
+					{%- elseif resourceURL != "" -%}
+						{%- assign studiesReadingPlansIncluded = true -%}
+					{%- elseif embedCode != "" -%}
+						{%- assign studiesMediaIncluded = true -%}
+					{%- endif -%}
+				{%- endif -%}
+			{%- endfor -%}{%- endcomment -%}
+			{%- for messages in itemChildItems reversed -%}
+				{%- assign message = messages.ChildContentChannelItem -%}
+				{%- assign videoImageGuid = message | Attribute:'Image','RawValue' -%}
+				{%- if message.ContentChannelId != "23" -%}
+					{% comment %} init & reset values each loop {% endcomment %}
+					{%- assign childItemJSON = "" -%} 
+					{%- assign recommendedReading = "" -%}
+					{%- assign resourceMediaFile = "" -%}
+					{%- assign resourceURL = "" -%}
+					{%- assign embedCode = "" -%}
+
+					{%- assign childItemJSON = message | ToJSON -%}
+					{%- assign recommendedReading = message | Attribute:'RecommendedReading' -%}
+					{%- assign resourceMediaFile = message | Attribute:'ResourceFile','Object' -%}
+					{%- assign resourceURL = message | Attribute:'ResourceURL','RawValue' -%}
+					{%- assign embedCode = message | Attribute:'EmbedCode','RawValue' -%}
+					{%- assign resourcesCount = resourcesCount | Plus:1 -%}
+
+					{%- comment -%} **** Check first if Recommended Reading is Checked ***** {%- endcomment -%}
+					{%- if recommendedReading == "Yes" -%}
+						{%- comment -%} Recommended Reading Array {%- endcomment -%}
+						{%- if recommendedReadingJSONArray != "" -%}
+							{%- assign recommendedReadingJSONArray = recommendedReadingJSONArray | Append: "," -%}
+						{%- endif -%}
+						{%- assign recommendedReadingJSONArray = recommendedReadingJSONArray | Append: childItemJSON -%}
+					{%- else -%}
+						{%- comment -%} **** If it's not, then include resources by type ***** {%- endcomment -%}
+
+						{% comment %} PDFs/Downloads Array {% endcomment %}
+						{%- if resourceMediaFile.Guid != null -%}
+							{%- if downloadsJSONArray != "" -%}
+								{%- assign downloadsJSONArray = downloadsJSONArray | Append: "," -%}
+							{%- endif -%}
+							{%- assign downloadsJSONArray = downloadsJSONArray | Append: childItemJSON -%}
+						{%- endif -%}
+
+						{% comment %} Links Array {% endcomment %}
+						{%- if resourceURL != "" -%}
+							{%- if linksJSONArray != "" -%}
+								{% assign linksJSONArray = linksJSONArray | Append: "," -%}
+							{%- endif -%}
+							{%- assign linksJSONArray = linksJSONArray | Append: childItemJSON -%}
+						{%- endif -%}
+
+						{% comment %} Videos Array {% endcomment %}
+						{%- if embedCode != "" -%}
+							{%- if videosJSONArray != "" -%}
+								{%- assign videosJSONArray = videosJSONArray | Append: "," -%}
+							{%- endif -%}
+							{%- assign videosJSONArray = videosJSONArray | Append: childItemJSON -%}
+						{%- endif -%}
+
+					{%- endif -%}
+				{%- endif -%}
+			{%- endfor -%}
+
+			{%- if resourcesCount != 0 -%}
+
+				{%- comment -%}
+					Display all "Recommended Reading" (downloads and/or links)
+				{%- endcomment -%}
+				{%- assign recommendedReadingArray = "[" | Append: recommendedReadingJSONArray | Append: "]" | FromJSON -%}
+				{%- assign childItemsSize = recommendedReadingArray | Size -%}
+				{%- if childItemsSize > 0 -%}
+					{{ comma }}{
+					"images":[
+							{%- assign Title = "Recommended Reading" | Escape | EscapeDataString -%}
+							{%- assign Body = "" | Escape | EscapeDataString -%}
+							{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+						]
+					}
+					{%- for resource in recommendedReadingArray -%}
+						{%- assign resourceURL = resource.AttributeValues.ResourceURL.Value -%}
+						{%- assign ResourceURLText = resource.AttributeValues.ResourceURLText.Value -%}
+						{%- assign resourceMediaFile = resource.AttributeValues.ResourceFile -%}
+						{%- if resourceURL != null -%}
+							,{
+								"title": "{{ resource.Title }}",
+								"subtitle": "{%- if ResourceURLText != "" -%}{{ ResourceURLText }}{%- else -%}Link{%- endif -%}",
+								"images":[
+									{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+								],
+								"actions": [{
+									"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
+									"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
+									"type":"navigation",
+									"showBrowserControls": true,
+									"contentUrl": "{{ resourceURL }}"
+								}]
+							}
+						{%- endif -%}
+						{%- if resourceMediaFile.Value != null -%}
+							,{
+								"title": "{{ resource.Title }}",
+								"subtitle": "Download",
+								"images":[
+									{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+								],
+								"actions": [{
+									"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
+									"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
+									"type":"navigation",
+									"showBrowserControls": true,
+									"contentUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetFile.ashx?guid={{ resourceMediaFile.Value }}"
+								}]
+							}
+						{%- endif -%}
+					{%- endfor -%}
+					{%- assign comma = "," -%} 
+				{%- endif -%}
+
+				{% comment %}
+				*** Grab all "Studies" resources (downloads)
+				{% endcomment %}
+				{%- assign downloadsArray = "[" | Append: downloadsJSONArray | Append: "]" | FromJSON -%}
+				{%- assign childItemsSize = downloadsArray | Size -%}
+				{%- if childItemsSize > 0 -%}
+					{{ comma }}{
+					"images":[
+							{%- assign Title = "Studies" | Escape | EscapeDataString -%}
+							{%- assign Body = "Find related studies below." | Escape | EscapeDataString -%}
+							{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+						]
+					}
+					{%- for resource in downloadsArray -%}
+						{%- assign resourceMediaFile = resource.AttributeValues.ResourceFile -%}
+						{%- if resourceMediaFile.Value != null -%}
+							,{
+								"title": "{{ resource.Title }}",
+								"subtitle": "Download",
+								"images":[
+									{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+								],
+								"actions": [{
+									"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
+									"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
+									"type":"navigation",
+									"showBrowserControls": true,
+									"contentUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetFile.ashx?guid={{ resourceMediaFile.Value }}"
+								}]
+							}
+						{%- endif -%}
+					{%- endfor -%}
+					{%- assign comma = "," -%} 
+				{%- endif -%}
+
+				{% comment %}
+				*** Grab all "Reading Plans" or "Links" resources
+				{% endcomment %}
+				{%- assign linksArray = "[" | Append: linksJSONArray | Append: "]" | FromJSON -%}
+				{%- assign childItemsSize = linksArray | Size -%}
+				{%- if childItemsSize > 0 -%}
+					{{ comma }}{
+					"images":[
+							{%- assign Title = "Reading Plans" | Escape | EscapeDataString -%}
+							{%- assign Body = "Grow spiritually with a daily devotion." | Escape | EscapeDataString -%}
+							{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+						]
+					}
+					{%- for resource in linksArray -%}
+						{%- assign resourceURL = resource.AttributeValues.ResourceURL.Value -%}
+						{%- assign ResourceURLText = resource.AttributeValues.ResourceURLText.Value -%}
+						{%- if resourceURL != null -%}
+							,{
+								"title": "{{ resource.Title }}",
+								"subtitle": "{%- if ResourceURLText != "" -%}{{ ResourceURLText }}{%- else -%}Link{%- endif -%}",
+								"images":[
+									{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+								],
+								"actions": [{
+									"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
+									"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
+									"type":"navigation",
+									"showBrowserControls": true,
+									"contentUrl": "{{ resourceURL }}"
+								}]
+							}
+						{%- endif -%}
+					{%- endfor -%}
+					{%- assign comma = "," -%} 
+				{%- endif -%}
+
+				{% comment %}
+				*** Grab all "Media" resources
+				{% endcomment %}
+				{%- assign videosArray = "[" | Append: videosJSONArray | Append: "]" | FromJSON -%}
+				{%- assign childItemsSize = videosArray | Size -%}
+				{%- if childItemsSize > 0 -%}
+					{{ comma }}{
+					"images":[
+							{%- assign Title = "Media" | Escape | EscapeDataString -%}
+							{%- assign Body = "See other related videos, links, or testimonies." | Escape | EscapeDataString -%}
+							{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+						]
+					}
+					{%- for resource in videosArray -%}
+						{%- assign embedCode = resource.AttributeValues.EmbedCode.Value -%}
+						{%- if embedCode != null -%}
+							,{
+								"title": "{{ resource.Title }}",
+								"subtitle": "Watch",
+								"images":[
+									{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+								],
+								"actions": [{
+									"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
+									"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
+									"type":"navigation",
+									"showBrowserControls": true,
+									"contentUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}sermons/{{series.PrimarySlug}}/{{resource.ItemGlobalKey}}"
+								}]
+							}
+						{%- endif -%}
+					{%- endfor -%}
+					{%- assign comma = "," -%} 
+				{%- endif -%}
+				
+				{{ comma }}
+				{
+					"images":[
+						{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}/Content/SubSplash/SermonBlank121212.jpg"  }
+					]
+				}
+
+			{%- endif -%}
+		]
+	}
+	{%- endfor -%}
+	{%- endcontentchannelitem -%}
+
+{%- endcache -%}
