@@ -15,7 +15,7 @@
     {% campus where:'Public == true' %}
         {% for campus in campusItems %}
             {% assign campusSlug = campus | Attribute: 'Slug' %}
-            {% if campus.Name == pageParamCampus or campusSlug == pageParamCampus %}
+            {% if campus.Name == pageParamCampus or campus.ShortCode == pageParamCampus or campusSlug == pageParamCampus %}
                 {% assign pageParamCampusId = campus.Id %}
             {% endif %}
         {% endfor %}
@@ -55,7 +55,7 @@
         {% if filterByMinistry == null or ministryIsContained == true %}
     		{% assign registrationLink = '/groups/oncampus/details/' | Append:publishGroup.Slug %}
     		{% assign contactLink = '/groups/oncampus/contact/' | Append:publishGroup.Guid %}
-    		<div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-day="{{ publishGroup.WeeklyDayOfWeek}}">
+    		<div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-day="{{ publishGroup.WeeklyDayOfWeek}}" data-online="{{ publishGroup | Attribute: 'IsOnlineGroup', 'RawValue'}}">
                 <div class="clearfix card">
 					<div class="img-hover">
 						<img src="/GetImage.ashx?id={{ publishGroup.ImageId }}&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
