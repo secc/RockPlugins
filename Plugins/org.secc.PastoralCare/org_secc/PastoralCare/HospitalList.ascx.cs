@@ -61,27 +61,11 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
     public partial class HospitalList : RockBlock
     {
         #region Control Methods
-
-        /// <summary>
-        /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
-        /// </summary>
-        /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
-        protected override void OnLoad( EventArgs e )
+        protected override void OnInit( EventArgs e )
         {
-            base.OnLoad( e );
-
-            if ( string.IsNullOrWhiteSpace( GetAttributeValue( "HospitalAdmissionWorkflow" ) ) )
-            {
-                ShowMessage( "Block not configured. Please configure to use.", "Configuration Error", "panel panel-danger" );
-                return;
-            }
+            base.OnInit( e );
 
             gReport.GridRebind += gReport_GridRebind;
-
-            if ( !Page.IsPostBack )
-            {
-                BindGrid();
-            }
             gReport.Actions.ShowAdd = true;
             gReport.Actions.AddButton.Text = "<i class=\"fa fa-plus\" Title=\"Add Hospitalization\"></i>";
             gReport.Actions.AddButton.Enabled = true;
@@ -103,8 +87,31 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 ScriptManager.GetCurrent( this.Page ).RegisterPostBackControl( excel );
             }
         }
+        /// <summary>
+        /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
+        /// </summary>
+        /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
+        protected override void OnLoad( EventArgs e )
+        {
+            base.OnLoad( e );
 
+            if ( string.IsNullOrWhiteSpace( GetAttributeValue( "HospitalAdmissionWorkflow" ) ) )
+            {
+                ShowMessage( "Block not configured. Please configure to use.", "Configuration Error", "panel panel-danger" );
+                return;
+            }
 
+            if ( !Page.IsPostBack )
+            {
+                var campusId = GetBlockUserPreference( "Campus" ).AsIntegerOrNull();
+                if ( campusId.HasValue )
+                {
+                    pCampus.SelectedCampusId = campusId;
+                }
+
+                BindGrid();
+            }
+        }
 
         /// <summary>
         /// Handles the GridRebind event of the gReport control.
@@ -128,6 +135,17 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             using ( RockContext rockContext = new RockContext() )
             {
                 var qry = GetQuery( rockContext );
+
+                var campus = CampusCache.Get( pCampus.SelectedCampusId ?? 0 );
+                if ( campus != null )
+                {
+                    qry = qry.Where( p => p.Campus == campus.Name );
+                    ltCampus.Text = string.Format( " ({0})", campus.Name );
+                }
+                else
+                {
+                    ltCampus.Text = "";
+                }
 
                 SortProperty sortProperty = gReport.SortProperty;
                 if ( sortProperty != null )
@@ -156,12 +174,21 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             using ( RockContext rockContext = new RockContext() )
             {
                 var newQry = GetQuery( rockContext );
+
+                string title = "Hospital Report";
+
+                var campus = CampusCache.Get( pCampus.SelectedCampusId ?? 0 );
+                if ( campus != null )
+                {
+                    newQry = newQry.Where( p => p.Campus == campus.Name );
+                    title = title + string.Format( " ({0})", campus.Name );
+                }
+
                 var hospitals = newQry.Select( q => q.Hospital ).DistinctBy( h => h ).ToList();
 
                 // create default settings
                 string filename = gReport.ExportFilename;
                 string workSheetName = "List";
-                string title = "Hospital Report";
 
                 ExcelPackage excel = new ExcelPackage();
                 excel.Workbook.Properties.Title = title;
@@ -299,7 +326,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
                         SetExcelValue( worksheet.Cells[rowCounter, 5], patient.PersonToVisit.ConnectionStatusValue );
 
-                        SetExcelValue( worksheet.Cells[rowCounter, 6], patient.AdmitDate.HasValue?patient.AdmitDate.Value.Date.ToShortDateString():"" );
+                        SetExcelValue( worksheet.Cells[rowCounter, 6], patient.AdmitDate.HasValue ? patient.AdmitDate.Value.Date.ToShortDateString() : "" );
 
                         SetExcelValue( worksheet.Cells[rowCounter, 7], patient.Room );
                         rowCounter++;
@@ -453,7 +480,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
                     // Find the summary activity and activate it.
                     WorkflowActivityType workflowActivityType = workflow.WorkflowType.ActivityTypes.Where( at => at.Name.Contains( "Summary" ) ).FirstOrDefault();
-                    WorkflowActivity workflowActivity = WorkflowActivity.Activate( WorkflowActivityTypeCache.Get(workflowActivityType.Id, rockContext), workflow, rockContext );
+                    WorkflowActivity workflowActivity = WorkflowActivity.Activate( WorkflowActivityTypeCache.Get( workflowActivityType.Id, rockContext ), workflow, rockContext );
 
                 }
                 rockContext.SaveChanges();
@@ -461,6 +488,20 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             BindGrid();
         }
 
+        protected void fReport_ApplyFilterClick( object sender, EventArgs e )
+        {
+            var campusId = pCampus.SelectedCampusId;
+            if ( campusId.HasValue )
+            {
+                SetBlockUserPreference( "Campus", campusId.ToString() );
+            }
+            else
+            {
+                DeleteBlockUserPreference( "Campus" );
+            }
+
+            BindGrid();
+        }
 
         /// <summary>
         /// Formats the export value.
@@ -491,7 +532,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
         private IQueryable<HospitalRow> GetQuery( RockContext rockContext )
         {
-            
+
             var contextEntity = this.ContextEntity();
 
             var workflowService = new WorkflowService( rockContext );
@@ -593,6 +634,16 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     }
                     return new Person();
                 } )(),
+                Campus = new Func<string>( () =>
+                {
+                    PersonAlias pa = personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() );
+                    if ( pa != null )
+                    {
+                        var campus = pa.Person.GetCampus();
+                        return campus != null ? campus.Name : "[Unknown]";
+                    }
+                    return "[Unknown]";
+                } )(),
                 Age = new Func<int?>( () =>
                 {
                     PersonAlias pa = personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() );
@@ -607,7 +658,8 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 AdmitDate = w.AttributeValues.Where( av => av.AttributeKey == "AdmitDate" ).Select( av => av.ValueAsDateTime ).FirstOrDefault(),
                 Description = w.AttributeValues.Where( av => av.AttributeKey == "VisitationRequestDescription" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                 Visits = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Count(),
-                LastVisitor = new Func<string>( () => {
+                LastVisitor = new Func<string>( () =>
+                {
                     var visitor = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Select( va => va.AttributeValues.Where( av => av.AttributeKey == "Visitor" ).LastOrDefault() ).LastOrDefault();
                     if ( visitor != null )
                     {
@@ -626,7 +678,8 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             return newQry;
         }
 
-        public class HospitalRow {
+        public class HospitalRow
+        {
 
             public int Id { get; set; }
             public Workflow Workflow { get; set; }
@@ -636,12 +689,13 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             public string HospitalPhone { get; set; }
             public string NotifiedBy { get; set; }
             public Person PersonToVisit { get; set; }
+            public string Campus { get; set; }
             public int? Age { get; set; }
             public string Room { get; set; }
             public DateTime? AdmitDate { get; set; }
             public string Description { get; set; }
             public int Visits { get; set; }
-            public string LastVisitor  { get; set; }
+            public string LastVisitor { get; set; }
             public string LastVisitDate { get; set; }
             public string LastVisitNotes { get; set; }
             public string DischargeDate { get; set; }
