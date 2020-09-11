@@ -1,30 +1,123 @@
+{% cache key:'webook-onepoint-videoposts' duration:'3600' %}
+<style>
+.swiper-slide-clip {
+  position:relative;
+  display: block;
+}
+#player {
+  position:relative;
+  border-radius: 10px;
+  overflow: hidden;
+}
+#video-swiper.swiper-container {
+  border-radius: 10px;
+}
+#video-swiper.swiper-container .swiper-wrapper .swiper-slide {
+  border-radius: 10px;
+  overflow: hidden;
+}
+#loadMainVideo:before {
+  position: absolute;
+  content: '';
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+}
+#video-swiper.swiper-container {
+  padding: 0px;
+}
+#video-swiper.swiper-container .swiper-wrapper .swiper-slide a {
+  display: block;
+  position: relative;
+  height: 100%;
+  z-index: 999;
+}
+#asyc-loading-videos,
+#asyc-loading-main-player {
+  display: none;
+}
+#asyc-loading-videos.active,
+#asyc-loading-main-player.active {
+  z-index: 100;
+  display: block;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  left: 0px;
+  top: 0px;
+  border-radius: 10px;
+}
+#asyc-loading-videos.active span,
+#asyc-loading-main-player.active span {
+    color: white;
+    font-weight: 600;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+    text-align: center;
+    width: 100%;
+    font-size: 2rem;
+}
+#asyc-loading-videos.active span svg,
+#asyc-loading-main-player.active span svg {
+    width: 100px;
+    height: 100px;
+    margin: 20px;
+    display: inline-block;
+}
+</style>
 <div class="container g-padding-y-50--xs g-padding-y-140--sm">
 	<div class="row">
     <div class="col-md-8">
       <div id="player">
-      {% assign firstItem = Items | First %}
-      {[ vimeo id:'{{firstItem | Attribute:'VimeoID'}}' ]}
+        <div id="asyc-loading-main-player" class="active">
+          <span>
+            <svg version="1.1" id="L9" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 100 100" enable-background="new 0 0 0 0" xml:space="preserve">
+              <path fill="#fff" d="M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50">
+                <animateTransform attributeName="transform" attributeType="XML" type="rotate" dur="1s" from="0 50 50" to="360 50 50" repeatCount="indefinite"></animateTransform>
+              </path>
+            </svg>
+          </span>
+        </div>
+        {% assign firstItem = Items | First %}
+        <div class="embed-responsive embed-responsive-16by9">
+          <script>
+          var videoPosts = {};
+          $.getJSON( "/Webhooks/Lava.ashx/onepoint-videos/1", function( json ) {
+              $.each(json.OnePointUpdateVideos, function(i, videoPost){
+                  videoPosts[i] = videoPost;
+              });
+              $('#loadMainVideo').html('<iframe id="loadMainIframeVideo" class="embed-responsive-item" src="" data-src="https://player.vimeo.com/video/'+ videoPosts[0].VimeoId +'?autoplay=0&autoplay=0&loop=0&title=0&byline=0&portrait=0&controls=1" frameborder="0" allowfullscreen></iframe>');
+              initMainIframe();
+          });
+          function initMainIframe() {
+              var vidDefer = document.getElementById('loadMainIframeVideo');
+              if(vidDefer.getAttribute('data-src')) {
+                vidDefer.setAttribute('src',vidDefer.getAttribute('data-src'));
+              } 
+              $('#asyc-loading-main-player').removeClass('active');
+          }
+          </script>
+          <div id="loadMainVideo"></div>
+        </div>
       </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-4 g-padding-t-40--xs g-padding-t-0--lg">
       <div id="video-swiper" class="swiper-container">
-          <div class="swiper-wrapper">
-          {% for post in Items %}
-            <div class="swiper-slide">
-			  <div class="swiper-slide-clip">
-				<iframe src="" data-src="https://player.vimeo.com/video/{{post | Attribute:'VimeoID'}}?autoplay=0&autoplay=0&loop=0&title=0&byline=0&portrait=0&controls=0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" frameborder="0"></iframe>
-				<div class="video-overlay">
-				  <a href="{{LinkedPages.DetailPage}}/{{post.Id}}" class="episode-button">
-					  <div class="slide_content">
-						  <h2>{{ post.Title }}</h2>
-						  <p>{{ post.Content|StripHtml|Truncate:142 }}</p>
-					  </div>
-				  </a>
-				</div>
-			  </div>
-            </div>
-          {% endfor %}
+          <div id="asyc-loading-videos" class="active">
+          <span>
+            <svg version="1.1" id="L9" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 100 100" enable-background="new 0 0 0 0" xml:space="preserve">
+              <path fill="#fff" d="M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50">
+                <animateTransform attributeName="transform" attributeType="XML" type="rotate" dur="1s" from="0 50 50" to="360 50 50" repeatCount="indefinite"></animateTransform>
+              </path>
+            </svg>
+          </span>
           </div>
+          <div class="swiper-wrapper"></div>
           <div class="video-swiper-button-prev swiper-nav-button swiper-button-prev"></div>
           <div class="video-swiper-button-next swiper-nav-button swiper-button-next"></div>
       </div>
@@ -38,18 +131,22 @@
 <!-- Initialize Swiper -->
 <script type="text/javascript">
 function load_iframes() {
-	var vidDefer = document.getElementsByTagName('iframe');
-	for (var i=0; i<vidDefer.length; i++) {
-		if(vidDefer[i].getAttribute('data-src')) {
-			vidDefer[i].setAttribute('src',vidDefer[i].getAttribute('data-src'));
-		} 
-	} 
+  setTimeout(function(){  
+    var vidDefer = document.getElementsByTagName('iframe');
+    for (var i=0; i<vidDefer.length; i++) {
+      if(vidDefer[i].getAttribute('data-src')) {
+        vidDefer[i].setAttribute('src',vidDefer[i].getAttribute('data-src'));
+      } 
+    }
+  }, 250); 
 }
 $(document).ready(function() {
   var swiper = new Swiper('#video-swiper', {
-    slidesPerView: 'auto',
+    slidesPerView: 2,
     //centeredSlides: true,
     //loop: true,
+    calculateHeight:true,
+    observerUpdate: true,
     initialSlide: 1,
     direction: 'vertical',
     watchSlidesProgress: true,
@@ -80,13 +177,119 @@ $(document).ready(function() {
       }
     }
   });
-  
+
+  /***********************************************************************/
+  /****************** Load Videos As Needed *******************/
+  /***********************************************************************/
+  let processing = false;
+  let vidoPostContinueMakingRequests = true;
+  let videosOffset = 1;
+
+  swiper.on('reachEnd', function () {
+    if (processing == false && vidoPostContinueMakingRequests == true) {
+        loadPostVideos(jQuery, swiper);
+    }
+  });
+
+  function loadPostVideos($, swiper) {
+    console.log("processing");
+    if (processing == false) {
+      processing = true; // initilize processing until complete
+      $('#asyc-loading-videos').addClass('active');
+      $.ajax( {
+        url: '/Webhooks/Lava.ashx/onepoint-videos/'+videosOffset,
+        async: true,
+        error: function(data) {
+          console.log('Error:');
+          console.log(data);
+        },
+        success: function(data) {
+          console.log(data);
+          $.each(data.OnePointUpdateVideos, function(i, videoPost){
+
+              let $videoSwipper = $('div#video-swiper div.swiper-wrapper');
+
+              let videoStartDate = new Date(videoPost.Date),
+                  locale = "en-us",
+                  s_day = videoStartDate.getDate(),
+                  s_month = videoStartDate.toLocaleString(locale, { month: "long" }),
+                  s_year = videoStartDate.getFullYear();
+
+              var descriptionContent = videoPost.Description;
+              
+              var $elem = $('<div></div>', {
+                            "class": "swiper-slide"
+                            }).append(
+                            $('<div></div>', {
+                              "class": "swiper-slide-clip"
+                            }).append(
+
+                                $('<iframe/>', {
+                                      "src": 'https://player.vimeo.com/video/'+ videoPost.VimeoId + '?autoplay=0&autoplay=0&loop=0&title=0&byline=0&portrait=0&controls=0',
+                                      "data-src": 'https://player.vimeo.com/video/'+ videoPost.VimeoId + '?autoplay=0&autoplay=0&loop=0&title=0&byline=0&portrait=0&controls=0',
+                                      "webkitallowfullscreen": '',
+                                      "mozallowfullscreen": '',
+                                      "allowfullscreen": '',
+                                      "frameborder": "0"
+                                }).add(
+                                    $('<div></div>', {
+                                      "id": "videoInfo" + videoPost.Id,
+                                      "class": "video-overlay"
+                                    }).append(  
+                                      $('<a/>', {
+                                        "href": '{{LinkedPages.DetailPage}}/' + videoPost.Id,
+                                        "class": 'episode-button'
+                                      }).append(
+                                        $('<div/>', {
+                                          "class": 'slide_content',
+                                        }).html(function() {
+                                            var box =  "<h2>";
+                                                box +=   videoPost.Name;
+                                                box += "</h2>";
+                                                box += "<p>";
+                                                box +=   descriptionContent;
+                                                box += "</p>";
+                                                return box;
+                                        })
+                                      )
+                                    )
+                                )
+
+                            )
+                        );
+              console.log($elem);
+              swiper.appendSlide($elem);
+              //$videoSwipper.append( $elem );
+          });
+          swiper.update();
+          if (videosOffset == 1) {
+            swiper.slideTo(1)
+          } 
+          videosOffset += 1;
+          //$("#loading-animation").hide();
+          processing = false; // reset back to false to allow more requests
+          $('#asyc-loading-videos').removeClass('active');
+          console.log("processing is over");
+          if (data.OnePointUpdateVideos.length == 0) {
+            vidoPostContinueMakingRequests = false;
+          }
+        }
+      });
+    }
+  }
+  // initialize on load
+  loadPostVideos(jQuery, swiper);
+
+  /**********************************************************************/
+  /****************** Webhook calls for Notifications *******************/
+  /**********************************************************************/
   var iframe = document.querySelector('iframe');
   var player = new Vimeo.Player(iframe);
-
   player.on('play', function() {
-	$.post( "/Webhooks/Lava.ashx/onepoint/vieweditem/{{firstItem.Id}}", function( data ) {});
+    $.post( "/Webhooks/Lava.ashx/onepoint/vieweditem/{{firstItem.Id}}", function( data ) {});
   });
+  
   load_iframes();
 });
 </script>
+{% endcache %}
