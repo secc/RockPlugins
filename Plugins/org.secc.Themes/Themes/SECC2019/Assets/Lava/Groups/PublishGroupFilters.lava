@@ -90,7 +90,7 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-xs-12 col-sm-12 col-md-10 col-md-offset-1">
+        <div class="col-xs-12 col-sm-12">
             <div class="filterbox">
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
@@ -98,7 +98,8 @@
                         <p class="g-font-weight--400 g-line-height--sm">Find a group that interests you by selecting a campus and/or ministry. Click on the image to see more details or to register.</p>
                         <br />
                     </div>
-                    <div class="col-xs-12 col-md-4 g-padding-y-40--md" >
+					
+                    <div class="col-xs-12 col-md-3 g-padding-y-40--md" >
                         <select class="select2-campuses" name="campus">
                         <option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
                         {% for campus in Campuses %}
@@ -111,7 +112,8 @@
                         {% endfor %}
                         </select>
                     </div>
-					<div class="col-xs-12 col-md-4 g-padding-y-40--md" tabindex="0" >
+					
+					<div class="col-xs-12 col-md-3 g-padding-y-40--md" tabindex="0" >
 						<span class="se-dropdown" data-toggle="dropdown-content" data-reveal="daysOfTheWeek" aria-expanded="false" data-control="#groupFilters">
 							Meets On<span class="g-font-weight--100" id="dayOfTheWeekText"></span>
 							<span class="arrow" role="presentation"><b role="presentation"></b></span>
@@ -127,7 +129,8 @@
 							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Saturday" data-toggle="tooltip" data-placement="bottom" title="Saturday">S</a>
 						</div>
 					</div>
-                    <div class="col-xs-12 col-md-4 g-padding-y-20--xs g-padding-y-40--sm" >
+					
+                    <div class="col-xs-12 col-md-3 g-padding-y-20--xs g-padding-y-40--sm" >
                         <select class="select2-ministries" name="minitry">
                         <option value="allMinistries">All Ministries</option>
 
@@ -144,6 +147,11 @@
                         {% enddefinedvalue %}
                         </select>
                     </div>
+					
+					<div class="col-xs-12 col-md-3 g-padding-y-50--md" tabindex="0" >
+						<a class="button se-btn se-btn--tag uppercase no-transitions" id="groupType"
+						data-filter="True" data-toggle="tooltip" data-placement="bottom" title="Show Only Groups That Meet Online">Online Group</a>
+					</div>
                 </div>
 
             </div>
@@ -239,9 +247,16 @@ $(document).ready(function() {
 		  buildDaysFilters(filterValue);
 		  runFilters();
 		});
-
 		
-		
+	$groupType = $('#groupType').on( 'click', function(e) {
+		  e.preventDefault();
+		  var $this = $( this );
+		  var filterValue = $this.attr('data-filter');
+		  $this.toggleClass('active');
+		  buildGroupTypeFilter(filterValue);
+		  runFilters();
+		});
+	
 	
 	// hide descriptions
 	$('.readmore_dates').readmore({
@@ -310,6 +325,26 @@ $(document).ready(function() {
 			}
 			console.log(days_selected);
 		 }
+		 
+		 var groupType_selected = [];
+		 function buildGroupTypeFilter(isOnline) {
+			if (~groupType_selected.indexOf(isOnline)) {
+				// remove from array (toggling)
+				groupType_selected.splice($.inArray(isOnline, groupType_selected),1);
+			} else {
+				// add to array
+				if (isOnline != '' && isOnline != undefined) {
+					groupType_selected.push(isOnline);
+				}
+			}
+			if (groupType_selected.length > 0){
+				$('#groupTypeText').html( ' Online' );
+			}
+			else{
+			$('#groupTypeText').html( '' );
+			}
+			console.log(days_selected);
+		 }
 
 		 function runFilters() {
 			 var filterSelectors = 'div';
@@ -319,8 +354,12 @@ $(document).ready(function() {
 				 filterSelectors += filterStringify(days_selected, 'day');
 				 filterSelectors += ',';
 			 }
-
-			
+			 
+			  // if online is selected
+			  if (groupType_selected.length != 0) {
+				 filterSelectors += filterStringify(groupType_selected, 'online');
+				 filterSelectors += ',';
+			 }
 
 			 // remove the very last comma.
 			 var lastChar = filterSelectors.slice(-1);
