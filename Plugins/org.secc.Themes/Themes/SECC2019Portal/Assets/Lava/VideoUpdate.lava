@@ -236,7 +236,7 @@ $(document).ready(function() {
                                       "class": "video-overlay"
                                     }).append(  
                                       $('<a/>', {
-                                        "href": '{{LinkedPages.DetailPage}}/' + videoPost.Id,
+                                        "href": '{{LinkedPages.DetailPage}}/news/' + videoPost.Id,
                                         "class": 'episode-button'
                                       }).append(
                                         $('<div/>', {
