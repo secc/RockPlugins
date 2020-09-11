@@ -1,33 +1,31 @@
-{% cache key:'webook-onepoint-updatevideo-{{page}}' duration:'0' %}
-    {%- if page != empty -%}
-        {%- assign pageNumber = page -%}
-    {%- else -%}
-        {%- assign pageNumber = 1 -%}
-    {%- endif -%}
-    {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
-    {%- assign setNumber = 5 -%}
-    {%- assign offset = pageNumber | Minus:1 | Times: setNumber -%}
-    {%- contentchannelitem where:'ContentChannelId == 51' sort:'StartDateTime desc' offset:'{{offset}}' limit:'{{setNumber}}'  -%}
-    {"OnePointUpdateVideos":
-        [
-            {%- assign itemComma = '' -%}
-            {%- for item in contentchannelitemItems -%}
-                {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
-                {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
-                {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
-                    {%- assign vimeoId = item | Attribute:'VimeoID', 'RawValue' -%}
-                    {{itemComma}}
-                    {
-                        "Id": {{item.Id}},
-                        "Name":"{{item.Title | Replace:'"','\"'}}",
-                        "Description":"{{ item.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','<br>' | UrlDecode | StripHtml | Truncate:142 }}",
-                        "Date":"{{item.StartDateTime}}",
-                        "VimeoId": "{{vimeoId}}"
-                    }
-                    {%- assign itemComma = ',' -%}
-                {%- endif -%}
-            {%- endfor -%}
-        ]
-    }
-    {% endcontentchannelitem -%}
-{% endcache %}
+{%- if page != empty -%}
+    {%- assign pageNumber = page -%}
+{%- else -%}
+    {%- assign pageNumber = 1 -%}
+{%- endif -%}
+{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+{%- assign setNumber = 5 -%}
+{%- assign offset = pageNumber | Minus:1 | Times: setNumber -%}
+{%- contentchannelitem where:'ContentChannelId == 51' sort:'StartDateTime desc' offset:'{{offset}}' limit:'{{setNumber}}'  -%}
+{"OnePointUpdateVideos":
+    [
+        {%- assign itemComma = '' -%}
+        {%- for item in contentchannelitemItems -%}
+            {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+            {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+            {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+                {%- assign vimeoId = item | Attribute:'VimeoID', 'RawValue' -%}
+                {{itemComma}}
+                {
+                    "Id": {{item.Id}},
+                    "Name":"{{item.Title | Replace:'"','\"'}}",
+                    "Description":"{{ item.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','<br>' | UrlDecode | StripHtml | Truncate:142 }}",
+                    "Date":"{{item.StartDateTime}}",
+                    "VimeoId": "{{vimeoId}}"
+                }
+                {%- assign itemComma = ',' -%}
+            {%- endif -%}
+        {%- endfor -%}
+    ]
+}
+{% endcontentchannelitem -%}

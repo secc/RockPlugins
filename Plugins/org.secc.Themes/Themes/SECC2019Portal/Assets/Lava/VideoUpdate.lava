@@ -1,4 +1,3 @@
-{% cache key:'webook-onepoint-videoposts' duration:'3600' %}
 <style>
 .swiper-slide-clip {
   position:relative;
@@ -292,4 +291,3 @@ $(document).ready(function() {
   load_iframes();
 });
 </script>
-{% endcache %}
