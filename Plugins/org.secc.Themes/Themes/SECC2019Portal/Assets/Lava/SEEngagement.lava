@@ -380,17 +380,21 @@
             <div class="col-md-6">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
                     <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Facebook</h4>
-                    <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
-                            <h6 class="uppercase g-font-weight--700"><i class="fab fa-3x fa-facebook g-padding-b-10--xs"></i><br>Total Followers</h6>
-                            <h3 class="g-font-weight--700" style="color: #6794DD;">51,022</h3>
-                        </div>
+                    {% comment %} <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
+                        <h6 class="uppercase g-font-weight--700"><i class="fab fa-3x fa-facebook g-padding-b-10--xs"></i><br>Total Followers</h6>
+                        <h3 class="g-font-weight--700" style="color: #6794DD;">51,022</h3>
+                    </div> {% endcomment %}
                     <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
-                        {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
+                        <span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>Total Followers</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;">51,022</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>New Followers</strong>: <h3 class="g-font-weight--700" style="color: #626DD2;">237</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>Page Reach</strong>: <h3 class="g-font-weight--700" style="color: #6450AC;">102,800</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>Post Engagement</strong>: <h3 class="g-font-weight--700" style="color: #BD62D1;">41,400</h3></span>
+                        {% comment %} {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
                             [[ dataitem label:'Total Followers' value:'51022' ]] [[ enddataitem ]]
                             [[ dataitem label:'New Followers' value:'237' ]] [[ enddataitem ]]
                             [[ dataitem label:'Page Reach' value:'102800' ]] [[ enddataitem ]]
                             [[ dataitem label:'Post Engagement' value:'41400' ]] [[ enddataitem ]]
-                        {[ endamcharts ]}
+                        {[ endamcharts ]} {% endcomment %}
                     </div>
                 </div>
             </div>
@@ -398,15 +402,18 @@
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
                     <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Instagram</h4>
                     <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
-                        <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
+                        <span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>Total Followers</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;">21,651</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>New Followers</strong>: <h3 class="g-font-weight--700" style="color: #626DD2;">67</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>Accounts Reached</strong>: <h3 class="g-font-weight--700" style="color: #6450AC;">13,778</h3></span>
+                        {% comment %} <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
                             <h6 class="uppercase g-font-weight--700"><i class="fab fa-3x fa-instagram g-padding-b-10--xs"></i><br>Total Followers</h6>
                             <h3 class="g-font-weight--700" style="color: #6794DD;">21,651</h3>
-                        </div>
-                        {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' legend:'off' ]}
+                        </div> {% endcomment %}
+                        {% comment %} {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' legend:'off' ]}
                             [[ dataitem label:'Total Followers' value:'21651' ]] [[ enddataitem ]]
                             [[ dataitem label:'New Followers' value:'67' ]] [[ enddataitem ]]
                             [[ dataitem label:'Accounts Reached' value:'13778' ]] [[ enddataitem ]]
-                        {[ endamcharts ]}
+                        {[ endamcharts ]} {% endcomment %}
                     </div>
                 </div>
             </div>
@@ -416,32 +423,39 @@
             <div class="col-md-6">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
                     <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Twitter</h4>
-                    <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
-                            <h6 class="uppercase g-font-weight--700"><i class="fab fa-3x fa-twitter g-padding-b-10--xs"></i><br>Total Followers</h6>
-                            <h3 class="g-font-weight--700" style="color: #6794DD;">14,426</h3>
-                        </div>
+                    {% comment %} <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
+                        <h6 class="uppercase g-font-weight--700"><i class="fab fa-3x fa-twitter g-padding-b-10--xs"></i><br>Total Followers</h6>
+                        <h3 class="g-font-weight--700" style="color: #6794DD;">14,426</h3>
+                    </div> {% endcomment %}
                     <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
-                        {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
+                        <span class="g-width-50-percent--xs g-display-inline-block--xs ">
+                            <strong>Total Followers</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;">14,426</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs ">
+                            <strong>Engagements</strong>:<br /><h6>(Retweets, Favorites,Replies)</h6> <h3 class="g-font-weight--700" style="color: #626DD2;">351</h3>
+                        </span>{%- comment -%} {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
                             [[ dataitem label:'Total Followers' value:'21651' ]] [[ enddataitem ]]
                             [[ dataitem label:'Engagements (Retweets, Favorites,Replies)' value:'351' ]] [[ enddataitem ]]
-                        {[ endamcharts ]}
-                    </div>
+                        {[ endamcharts ]} {%- endcomment -%}</div>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
                     <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">YouTube</h4>
                     <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
-                        <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
+                        <span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>Views</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;">23,100</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>Watch Time</strong>: <h3 class="g-font-weight--700" style="color: #626DD2;">9,600 hours</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>New Subscribers</strong>: <h3 class="g-font-weight--700" style="color: #6450AC;">207</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>Total Subscribers</strong>: <h3 class="g-font-weight--700" style="color: #BD62D1;">2</h3></span>
+                        {% comment %} <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
                             <h6 class="uppercase g-font-weight--700"><i class="fab fa-3x fa-youtube g-padding-b-10--xs"></i><br>Total Followers</h6>
                             <h3 class="g-font-weight--700" style="color: #6794DD;">23,100</h3>
-                        </div>
-                        {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
+                        </div> {% endcomment %}
+                        {% comment %} {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
                             [[ dataitem label:'Views' value:'23100' ]] [[ enddataitem ]]
                             [[ dataitem label:'Watch Time (hours)' value:'9600' ]] [[ enddataitem ]]
                             [[ dataitem label:'New Subscribers' value:'207' ]] [[ enddataitem ]]
                             [[ dataitem label:'Total Subscribers' value:'18987' ]] [[ enddataitem ]]
-                        {[ endamcharts ]}
+                        {[ endamcharts ]} {% endcomment %}
                     </div>
                 </div>
             </div>
@@ -452,19 +466,95 @@
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
                     <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Campus Facebook Pages</h4>
                     <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
-                        <div class="col-md-12 g-padding-y-50--xs ">
-                            {[ amcharts chartheight:'500px;' data-category:'campus,total,new,weekly' data-category-labels:'Campus,Total Followers,New Followers,Weekly Post Reach' type:'sidebar' ]}
-                                [[ dataitem value:'Blankenbaker,1844,76,9677' ]] [[ enddataitem ]]
-                                [[ dataitem value:'Indiana,3714,16,4902' ]] [[ enddataitem ]]
-                                [[ dataitem value:'Crestwood,3674,22,5222' ]] [[ enddataitem ]]
-                                [[ dataitem value:'Southwest,4133,15,4505' ]] [[ enddataitem ]]
-                                [[ dataitem value:'La Grange,2206,15,5898' ]] [[ enddataitem ]]
-                                [[ dataitem value:'Elizabethtown,2461,10,5295' ]] [[ enddataitem ]]
-                                [[ dataitem value:'River Valley,1013,21,1823' ]] [[ enddataitem ]]
-                                [[ dataitem value:'Chapel in the Woods,458,18,1173' ]] [[ enddataitem ]]
-                                [[ dataitem value:'Shelby County,739,12,2888' ]] [[ enddataitem ]]
-                                [[ dataitem value:'Bullitt  County,1298,26,2875' ]] [[ enddataitem ]]
-                            {[ endamcharts ]}
+                        <script>
+                        // Campus Facebook Pages
+                        var loadFile = function (filePath, done) {
+                            var xhr = new XMLHttpRequest();
+                            xhr.onload = function () { return done(this.responseText) }
+                            xhr.open("GET", filePath, true);
+                            xhr.send();
+                        }
+                        let requestFollowersURL = '/webhooks/Lava.ashx/se-engage/58/2020-06-07/chart.json';
+                        let requestReachURL = '/webhooks/Lava.ashx/se-engage/59/2020-06-07/chart.json';
+                        var myFiles = [requestFollowersURL, requestReachURL];
+                        var jsonData = [];
+                        // loop through each file
+                        let itemsProcessed = 0;
+                        myFiles.forEach(function (file, i) {
+                            loadFile(file, function (responseText) {
+                                let feed = JSON.parse(responseText);
+                                jsonData = jsonData.concat(feed);
+                                itemsProcessed++;
+                                if(itemsProcessed === myFiles.length) {
+                                    callback();
+                                }
+                            })
+                        });
+                        // display each result after loading it
+                        let campusFBPages;
+                        function callback () { 
+                            //console.log('all done'); 
+                            // group the data by campus
+                            campusFBPages = jsonData.reduce((r, a) => {
+                                r[a.campus] = [...r[a.campus] || [], a];
+                                return r;
+                            }, {});
+                            for (const campus in campusFBPages) {
+                                $('#campusFacebookPages').append(
+                                    $('<span></span>', {
+                                    "class": "col-md-4 g-padding-b-30--xs",
+                                    "id": "campusFacebook"+campus.replace(/\s+/g, '')
+                                    }).append(
+                                        $('<h4 class="uppercase g-font-weight--800" style="color: #6794DD;">'+ campus +'</h4>')
+                                    )
+                                )
+                                for (const item in campusFBPages[campus]) {
+                                   console.log(campusFBPages[campus][item]['follower category']);
+                                   if (campusFBPages[campus][item]['follower category'] != undefined) {
+                                       $('#campusFacebook'+campus.replace(/\s+/g, '')).append(
+                                           '<strong>'+ campusFBPages[campus][item]['follower category'] +'</strong>: '
+                                           + '<span class="g-font-weight--700" style="color: #6794DD;">'+ campusFBPages[campus][item]['value'] +'</span><br />'
+                                       )
+                                   } else {
+                                       $('#campusFacebook'+campus.replace(/\s+/g, '')).append('<strong>Weekly Post Reach</strong>: '
+                                       + '<span class="g-font-weight--700" style="color: #6794DD;">'
+                                       + campusFBPages[campus][item]['value'] +'</span><br />');
+                                   }
+                                }
+                            }
+                        }
+                        </script>
+                        <div id="campusFacebookPages" class="col-md-12 g-padding-y-50--xs ">
+                        {% comment %} <span class="col-md-4 g-padding-b-10--xs">
+                            <h4 class="uppercase g-font-weight--800" style="color: #6794DD;">Blankenbaker</h4>
+                            <strong>Total Followers</strong>: <span class="g-font-weight--700" style="color: #6794DD;">1,844</span><br />
+                            <strong>New Followers</strong>: <span class="g-font-weight--700" style="color: #6794DD;">76</span><br />
+                            <strong>Weekly Post Reach</strong>: <span class="g-font-weight--700" style="color: #6794DD;">9,677</span>
+                        </span>
+                        <span class="col-md-4 g-padding-b-10--xs">
+                            <h4 class="uppercase g-font-weight--800" style="color: #6794DD;">Indiana</h4>
+                            <strong>Total Followers</strong>: <span class="g-font-weight--700" style="color: #6794DD;">3,714</span><br />
+                            <strong>New Followers</strong>: <span class="g-font-weight--700" style="color: #6794DD;">16</span><br />
+                            <strong>Weekly Post Reach</strong>: <span class="g-font-weight--700" style="color: #6794DD;">4,902</span>
+                        </span>
+                        <span class="col-md-4 g-padding-b-10--xs">
+                            <h4 class="uppercase g-font-weight--800" style="color: #6794DD;">Crestwood</h4>
+                            <strong>Total Followers</strong>: <span class="g-font-weight--700" style="color: #6794DD;">3,674</span><br />
+                            <strong>New Followers</strong>: <span class="g-font-weight--700" style="color: #6794DD;">22</span><br />
+                            <strong>Weekly Post Reach</strong>: <span class="g-font-weight--700" style="color: #6794DD;">5,222</span>
+                        </span>     {% endcomment %}
+                        {% comment %} {[ amcharts chartheight:'500px;' data-category:'campus,total,new,weekly' data-category-labels:'Campus,Total Followers,New Followers,Weekly Post Reach' type:'sidebar' ]}
+                            [[ dataitem value:'Blankenbaker,1844,76,9677' ]] [[ enddataitem ]]
+                            [[ dataitem value:'Indiana,3714,16,4902' ]] [[ enddataitem ]]
+                            [[ dataitem value:'Crestwood,3674,22,5222' ]] [[ enddataitem ]]
+                            [[ dataitem value:'Southwest,4133,15,4505' ]] [[ enddataitem ]]
+                            [[ dataitem value:'La Grange,2206,15,5898' ]] [[ enddataitem ]]
+                            [[ dataitem value:'Elizabethtown,2461,10,5295' ]] [[ enddataitem ]]
+                            [[ dataitem value:'River Valley,1013,21,1823' ]] [[ enddataitem ]]
+                            [[ dataitem value:'Chapel in the Woods,458,18,1173' ]] [[ enddataitem ]]
+                            [[ dataitem value:'Shelby County,739,12,2888' ]] [[ enddataitem ]]
+                            [[ dataitem value:'Bullitt  County,1298,26,2875' ]] [[ enddataitem ]]
+                        {[ endamcharts ]} {% endcomment %}
                         </div>
                     </div>
                 </div>
