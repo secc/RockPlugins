@@ -70,13 +70,13 @@
             </div>
             <div class="col-lg-6">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Engagements <div class="pull-right"><a href="/page/2495?MetricCategoryId=85&ExpandedIds=C1592%2CC1597" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Engagements <div class="pull-right"><a href="/page/2495?MetricCategoryId=89&ExpandedIds=C1592%2CC1591%2CC1597" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
                     <div class="g-padding-x-50--xs g-padding-y-50--xs g-position--relative" style="display: block;height: 100%;width: 100%;">
                         <div class="g-center--xs g-text-center--xs">
                             <h6 class="uppercase g-font-weight--700">Total</h6>
                             <script>
                             var EngagementTotal = 0;
-                            $.getJSON( "/webhooks/Lava.ashx/se-engage/60/2020-06-07/chart.json", function( json ) {
+                            $.getJSON( "/webhooks/Lava.ashx/se-engage/64/2020-06-07/chart.json", function( json ) {
                                 $.each(json, function(i, item) {
                                     EngagementTotal = EngagementTotal + item.value;
                                 });
@@ -87,7 +87,7 @@
                             </script>
                             <h3 id="EngagementTotal" class="g-font-weight--700" style="color: #6794DD;"></h3>
                         </div>
-                        {[ amcharts chartwidth:'100%' chartheight:'280px' data-category:'platform' data-value:'value' data-src:'/webhooks/Lava.ashx/se-engage/60/2020-06-07/chart.json' ]}
+                        {[ amcharts chartwidth:'100%' chartheight:'280px' data-category:'platform' data-value:'value' data-src:'/webhooks/Lava.ashx/se-engage/64/2020-06-07/chart.json' ]}
                         {[ endamcharts ]}
                     </div>
                     <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
@@ -342,6 +342,205 @@
         {% comment %} ------------------------------------------------------------------
         ---------------------------- SOCIAL MEDIA ENGAGEMENT ---------------------------
         --------------------------------------------------------------- {% endcomment %}
+        <script>
+        $(document).ready(function() {
+            // facebook
+            let facebookFollowersTotal = 0;
+            let facebookFollowersNew = 0;
+            let facebookReached = 0;
+            // instagram
+            let instagramFollowersTotal = 0;
+            let instagramFollowersNew = 0;
+            let instagramReached = 0;
+            // twitter
+            let twitterFollowersTotal = 0;
+            // youtube
+            let youtubeSubscribersTotal = 0;
+            let youtubeSubscribersNew = 0;   
+            let youtubeViews = 0; 
+
+            var loadFile = function (filePath, done) {
+                var xhr = new XMLHttpRequest();
+                xhr.onload = function () { return done(this.responseText) }
+                xhr.open("GET", filePath, true);
+                xhr.send();
+            }
+            let requestFollowersURL = '/webhooks/Lava.ashx/se-engage/58/2020-06-07/chart.json';
+            let requestReachURL = '/webhooks/Lava.ashx/se-engage/59/2020-06-07/chart.json';
+            var myFiles = [requestFollowersURL, requestReachURL];
+            var jsonData = [];
+            // loop through each file
+            let itemsProcessed = 0;
+            myFiles.forEach(function (file, i) {
+                loadFile(file, function (responseText) {
+                    let feed = JSON.parse(responseText);
+                    jsonData = jsonData.concat(feed);
+                    itemsProcessed++;
+                    if(itemsProcessed === myFiles.length) {
+                        callback();
+                    }
+                })
+            });
+            // display each result after loading it
+            let campusFBPages;
+            function callback () { 
+                // group the data by campus
+                campusFBPages = jsonData.reduce((r, a) => {
+                    r[a.campus] = [...r[a.campus] || [], a];
+                    return r;
+                }, {});
+                for (const campus in campusFBPages) {
+                    if (campus != "undefined") {
+                        // For Facebook
+                        $('#campusFacebookPages').append(
+                            $('<span></span>', {
+                            "class": "g-width-400--xs g-padding-b-30--xs g-display-inline-block--xs",
+                            "id": "campusFacebook"+campus.replace(/\s+/g, '')
+                            }).append(
+                                $('<h4 class="g-font-weight--800" style="color: #6794DD;">'+ campus +'</h4>')
+                            )
+                        )
+                        for (const item in campusFBPages[campus]) {
+                            if (campusFBPages[campus][item]['platform'] == "Facebook" || campusFBPages[campus][item]['social media platform'] == "Facebook") {
+                                console.log(campusFBPages[campus][item]['follower category']);
+                                // see if the follower category is total or new followers
+                                if (campusFBPages[campus][item]['follower category'] != undefined) {
+                                    if (campusFBPages[campus][item]['follower category'].indexOf("New") !== -1) {
+                                        // new followers
+                                        $('#campusFacebook'+campus.replace(/\s+/g, '')).append(
+                                            '<div class="g-padding-r-10--xs g-display-inline-block--xs"><a href="/page/280?MetricCategoryId=83&amp;ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div>'
+                                            + '<span class="se-pill"><strong>'+ campusFBPages[campus][item]['follower category'] +'</strong>: '
+                                            + '<span class="g-font-weight--700" style="color: #6450AC;">'+ campusFBPages[campus][item]['value'].toLocaleString() +'</span></span><br />'
+                                        ) 
+                                    } else {
+                                        // total followers
+                                        $('#campusFacebook'+campus.replace(/\s+/g, '')).append(
+                                            '<div class="g-padding-r-10--xs g-display-inline-block--xs"><a href="/page/280?MetricCategoryId=83&amp;ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div>'
+                                            + '<span class="se-pill"><strong>'+ campusFBPages[campus][item]['follower category'] +'</strong>: '
+                                            + '<span class="g-font-weight--700" style="color: #6794DD;">'+ campusFBPages[campus][item]['value'].toLocaleString() +'</span></span><br />'
+                                        )
+                                    }
+                                } else {
+                                    // weekly post enagement
+                                    $('#campusFacebook'+campus.replace(/\s+/g, '')).append(
+                                    '<div class="g-padding-r-10--xs g-display-inline-block--xs"><a href="/page/280?MetricCategoryId=84&amp;ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div>'
+                                    + '<span class="se-pill"><strong>Weekly Post Reach</strong>: '
+                                    + '<span class="g-font-weight--700" style="color: #BD62D1;">'
+                                    + campusFBPages[campus][item]['value'].toLocaleString() +'</span></span><br />');
+                                }
+                            }
+                        }
+                    } else {
+                        // for the 'undefined', we will use these #s as the main #s.
+                        for (const item in campusFBPages[campus]) {
+                            // facebook
+                            if (campusFBPages[campus][item]['platform'] == "Facebook" || campusFBPages[campus][item]['social media platform'] == "Facebook") {
+                                // see if the follower category is total or new followers
+                                if (campusFBPages[campus][item]['follower category'] != undefined) {
+                                    if (campusFBPages[campus][item]['follower category'].indexOf("New") !== -1) {
+                                        // new followers
+                                        facebookFollowersNew += campusFBPages[campus][item]['value']; 
+                                    } else {
+                                        // total followers
+                                        facebookFollowersTotal += campusFBPages[campus][item]['value'];
+                                    }
+                                } else {
+                                    // weekly post enagement
+                                    facebookReached += campusFBPages[campus][item]['value'];
+                                }
+                            }
+                            // Instagram
+                            if (campusFBPages[campus][item]['platform'] == "Instagram" || campusFBPages[campus][item]['social media platform'] == "Instagram") {
+                                // see if the follower category is total or new followers
+                                if (campusFBPages[campus][item]['follower category'] != undefined) {
+                                    if (campusFBPages[campus][item]['follower category'].indexOf("New") !== -1) {
+                                        // new followers
+                                        instagramFollowersNew += campusFBPages[campus][item]['value']; 
+                                    } else {
+                                        // total followers
+                                        instagramFollowersTotal += campusFBPages[campus][item]['value'];
+                                    }
+                                } else {
+                                    // weekly post enagement
+                                    instagramReached += campusFBPages[campus][item]['value'];
+                                }
+                            }
+                            // Twitter
+                            if (campusFBPages[campus][item]['platform'] == "Twitter" || campusFBPages[campus][item]['social media platform'] == "Twitter") {
+                                // see if the follower category is total or new followers
+                                if (campusFBPages[campus][item]['follower category'] != undefined) {
+                                    if (campusFBPages[campus][item]['follower category'].indexOf("New") == -1) {
+                                        // total followers
+                                        twitterFollowersTotal += campusFBPages[campus][item]['value'];
+                                    }
+                                }
+                            }
+                            // YouTube
+                            //let youtubeSubscribersTotal = 0;
+                            //let youtubeSubscribersNew = 0;   
+                            //let youtubeViews = 0; 
+                            if (campusFBPages[campus][item]['platform'] == "YouTube" || campusFBPages[campus][item]['social media platform'] == "YouTube") {
+                                // see if the follower category is total or new followers
+                                if (campusFBPages[campus][item]['follower category'] != undefined) {
+                                    if (campusFBPages[campus][item]['follower category'].indexOf("New") !== -1) {
+                                        // new followers
+                                        youtubeSubscribersNew += campusFBPages[campus][item]['value']; 
+                                    } else {
+                                        // total followers
+                                        youtubeSubscribersTotal += campusFBPages[campus][item]['value'];
+                                    }
+                                } else {
+                                    // views
+                                    youtubeViews += campusFBPages[campus][item]['value'];
+                                }
+                            }
+                        }
+                    }
+                }
+                // load facebook metrics
+                $('#seFacebookTotalFollowers').html(facebookFollowersTotal.toLocaleString());
+                $('#seFacebookNewFollowers').html(facebookFollowersNew.toLocaleString());
+                $('#seFacebookPageReach').html(facebookReached.toLocaleString());
+                // load instagram metrics
+                $('#seInstagramTotalFollowers').html(instagramFollowersTotal.toLocaleString());
+                $('#seInstagramNewFollowers').html(instagramFollowersNew.toLocaleString());
+                $('#seInstagramReached').html(instagramReached.toLocaleString());
+                // load twitter metrics
+                $('#seTwitterTotalFollowers').html(twitterFollowersTotal.toLocaleString());
+                // load youtube metrics
+                $('#seYouTubeTotalFollowers').html(youtubeSubscribersTotal.toLocaleString());
+                $('#seYouTubeNewFollowers').html(youtubeSubscribersNew.toLocaleString());
+                $('#seYouTubeReached').html(youtubeViews.toLocaleString());
+            }
+
+            // Load Engagements
+            var facebookPostEnagement = 0;
+            var twitterEngagements = 0;
+            $.getJSON( "/webhooks/Lava.ashx/se-engage/60/2020-06-07/chart.json", function( json ) {
+                $.each(json, function(i, item) {
+                    if (item.platform == "Facebook") {
+                        facebookPostEnagement += item.value;
+                    } else if (item.platform == "Twitter") {
+                        twitterEngagements += item.value;
+                    }
+                });
+                $('#seFacebookPostEngagement').html(facebookPostEnagement.toLocaleString());
+                $("#seTwitterEngagements").html(twitterEngagements.toLocaleString());
+            });
+
+            // Load Watch Time
+            var youtubeWatchTime = 0;
+            $.getJSON( "/webhooks/Lava.ashx/se-engage/61/2020-06-07/chart.json", function( json ) {
+                $.each(json, function(i, item) {
+                    if (item['video platform'] == "YouTube") {
+                        youtubeWatchTime += item.value;
+                    }
+                });
+                $('#seYouTubeWatchTime').html(youtubeWatchTime.toLocaleString() + ' hours');
+            });
+        });
+        </script>
+
         <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
             <div class="col-lg-12">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
@@ -380,15 +579,28 @@
             <div class="col-md-6">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
                     <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Facebook</h4>
-                    {% comment %} <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
-                        <h6 class="uppercase g-font-weight--700"><i class="fab fa-3x fa-facebook g-padding-b-10--xs"></i><br>Total Followers</h6>
-                        <h3 class="g-font-weight--700" style="color: #6794DD;">51,022</h3>
-                    </div> {% endcomment %}
                     <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
-                        <span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>Total Followers</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;">51,022</h3>
-                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>New Followers</strong>: <h3 class="g-font-weight--700" style="color: #626DD2;">237</h3>
-                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>Page Reach</strong>: <h3 class="g-font-weight--700" style="color: #6450AC;">102,800</h3>
-                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>Post Engagement</strong>: <h3 class="g-font-weight--700" style="color: #BD62D1;">41,400</h3></span>
+                        <span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/280?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Total Followers</strong>: 
+                            <h3 class="g-font-weight--700" style="color: #6794DD;" id="seFacebookTotalFollowers">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/280?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>New Followers</strong>: <h3 class="g-font-weight--700" style="color: #626DD2;" id="seFacebookNewFollowers">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/280?MetricCategoryId=84&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Page Reach</strong>: <h3 class="g-font-weight--700" style="color: #6450AC;" id="seFacebookPageReach">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/280?MetricCategoryId=85&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Post Engagement</strong>: <h3 class="g-font-weight--700" style="color: #BD62D1;" id="seFacebookPostEngagement">---</h3></span>
                         {% comment %} {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
                             [[ dataitem label:'Total Followers' value:'51022' ]] [[ enddataitem ]]
                             [[ dataitem label:'New Followers' value:'237' ]] [[ enddataitem ]]
@@ -402,9 +614,21 @@
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
                     <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Instagram</h4>
                     <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
-                        <span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>Total Followers</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;">21,651</h3>
-                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>New Followers</strong>: <h3 class="g-font-weight--700" style="color: #626DD2;">67</h3>
-                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>Accounts Reached</strong>: <h3 class="g-font-weight--700" style="color: #6450AC;">13,778</h3></span>
+                        <span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/280?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Total Followers</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;" id="seInstagramTotalFollowers">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/280?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>New Followers</strong>: <h3 class="g-font-weight--700" style="color: #626DD2;" id="seInstagramNewFollowers">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/280?MetricCategoryId=84&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Accounts Reached</strong>: <h3 class="g-font-weight--700" style="color: #6450AC;" id="seInstagramReached">---</h3></span>
                         {% comment %} <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
                             <h6 class="uppercase g-font-weight--700"><i class="fab fa-3x fa-instagram g-padding-b-10--xs"></i><br>Total Followers</h6>
                             <h3 class="g-font-weight--700" style="color: #6794DD;">21,651</h3>
@@ -429,9 +653,15 @@
                     </div> {% endcomment %}
                     <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
                         <span class="g-width-50-percent--xs g-display-inline-block--xs ">
-                            <strong>Total Followers</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;">14,426</h3>
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/280?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Total Followers</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;" id="seTwitterTotalFollowers">---</h3>
                         </span><span class="g-width-50-percent--xs g-display-inline-block--xs ">
-                            <strong>Engagements</strong>:<br /><h6>(Retweets, Favorites,Replies)</h6> <h3 class="g-font-weight--700" style="color: #626DD2;">351</h3>
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/280?MetricCategoryId=85&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Engagements</strong>:<br /><h6>(Retweets, Favorites,Replies)</h6> <h3 class="g-font-weight--700" style="color: #626DD2;" id="seTwitterEngagements">---</h3>
                         </span>{%- comment -%} {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
                             [[ dataitem label:'Total Followers' value:'21651' ]] [[ enddataitem ]]
                             [[ dataitem label:'Engagements (Retweets, Favorites,Replies)' value:'351' ]] [[ enddataitem ]]
@@ -442,10 +672,26 @@
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
                     <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">YouTube</h4>
                     <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
-                        <span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>Views</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;">23,100</h3>
-                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>Watch Time</strong>: <h3 class="g-font-weight--700" style="color: #626DD2;">9,600 hours</h3>
-                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>New Subscribers</strong>: <h3 class="g-font-weight--700" style="color: #6450AC;">207</h3>
-                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs"><strong>Total Subscribers</strong>: <h3 class="g-font-weight--700" style="color: #BD62D1;">2</h3></span>
+                        <span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/280?MetricCategoryId=84&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Views</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;" id="seYouTubeReached">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/280?MetricCategoryId=86&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Watch Time</strong>: <h3 class="g-font-weight--700" style="color: #626DD2;" id="seYouTubeWatchTime">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/280?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>New Subscribers</strong>: <h3 class="g-font-weight--700" style="color: #6450AC;" id="seYouTubeNewFollowers">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/280?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Total Subscribers</strong>: <h3 class="g-font-weight--700" style="color: #BD62D1;" id="seYouTubeTotalFollowers">---</h3></span>
                         {% comment %} <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
                             <h6 class="uppercase g-font-weight--700"><i class="fab fa-3x fa-youtube g-padding-b-10--xs"></i><br>Total Followers</h6>
                             <h3 class="g-font-weight--700" style="color: #6794DD;">23,100</h3>
@@ -466,83 +712,15 @@
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
                     <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Campus Facebook Pages</h4>
                     <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
-                        <script>
-                        // Campus Facebook Pages
-                        var loadFile = function (filePath, done) {
-                            var xhr = new XMLHttpRequest();
-                            xhr.onload = function () { return done(this.responseText) }
-                            xhr.open("GET", filePath, true);
-                            xhr.send();
+                        <style>
+                        span.se-pill {
+                            background-color: #f5f5f5;
+                            padding: 10px 15px;
+                            line-height: 4.5rem;
+                            border-radius: 30px;
                         }
-                        let requestFollowersURL = '/webhooks/Lava.ashx/se-engage/58/2020-06-07/chart.json';
-                        let requestReachURL = '/webhooks/Lava.ashx/se-engage/59/2020-06-07/chart.json';
-                        var myFiles = [requestFollowersURL, requestReachURL];
-                        var jsonData = [];
-                        // loop through each file
-                        let itemsProcessed = 0;
-                        myFiles.forEach(function (file, i) {
-                            loadFile(file, function (responseText) {
-                                let feed = JSON.parse(responseText);
-                                jsonData = jsonData.concat(feed);
-                                itemsProcessed++;
-                                if(itemsProcessed === myFiles.length) {
-                                    callback();
-                                }
-                            })
-                        });
-                        // display each result after loading it
-                        let campusFBPages;
-                        function callback () { 
-                            //console.log('all done'); 
-                            // group the data by campus
-                            campusFBPages = jsonData.reduce((r, a) => {
-                                r[a.campus] = [...r[a.campus] || [], a];
-                                return r;
-                            }, {});
-                            for (const campus in campusFBPages) {
-                                $('#campusFacebookPages').append(
-                                    $('<span></span>', {
-                                    "class": "col-md-4 g-padding-b-30--xs",
-                                    "id": "campusFacebook"+campus.replace(/\s+/g, '')
-                                    }).append(
-                                        $('<h4 class="uppercase g-font-weight--800" style="color: #6794DD;">'+ campus +'</h4>')
-                                    )
-                                )
-                                for (const item in campusFBPages[campus]) {
-                                   console.log(campusFBPages[campus][item]['follower category']);
-                                   if (campusFBPages[campus][item]['follower category'] != undefined) {
-                                       $('#campusFacebook'+campus.replace(/\s+/g, '')).append(
-                                           '<strong>'+ campusFBPages[campus][item]['follower category'] +'</strong>: '
-                                           + '<span class="g-font-weight--700" style="color: #6794DD;">'+ campusFBPages[campus][item]['value'] +'</span><br />'
-                                       )
-                                   } else {
-                                       $('#campusFacebook'+campus.replace(/\s+/g, '')).append('<strong>Weekly Post Reach</strong>: '
-                                       + '<span class="g-font-weight--700" style="color: #6794DD;">'
-                                       + campusFBPages[campus][item]['value'] +'</span><br />');
-                                   }
-                                }
-                            }
-                        }
-                        </script>
+                        </style>
                         <div id="campusFacebookPages" class="col-md-12 g-padding-y-50--xs ">
-                        {% comment %} <span class="col-md-4 g-padding-b-10--xs">
-                            <h4 class="uppercase g-font-weight--800" style="color: #6794DD;">Blankenbaker</h4>
-                            <strong>Total Followers</strong>: <span class="g-font-weight--700" style="color: #6794DD;">1,844</span><br />
-                            <strong>New Followers</strong>: <span class="g-font-weight--700" style="color: #6794DD;">76</span><br />
-                            <strong>Weekly Post Reach</strong>: <span class="g-font-weight--700" style="color: #6794DD;">9,677</span>
-                        </span>
-                        <span class="col-md-4 g-padding-b-10--xs">
-                            <h4 class="uppercase g-font-weight--800" style="color: #6794DD;">Indiana</h4>
-                            <strong>Total Followers</strong>: <span class="g-font-weight--700" style="color: #6794DD;">3,714</span><br />
-                            <strong>New Followers</strong>: <span class="g-font-weight--700" style="color: #6794DD;">16</span><br />
-                            <strong>Weekly Post Reach</strong>: <span class="g-font-weight--700" style="color: #6794DD;">4,902</span>
-                        </span>
-                        <span class="col-md-4 g-padding-b-10--xs">
-                            <h4 class="uppercase g-font-weight--800" style="color: #6794DD;">Crestwood</h4>
-                            <strong>Total Followers</strong>: <span class="g-font-weight--700" style="color: #6794DD;">3,674</span><br />
-                            <strong>New Followers</strong>: <span class="g-font-weight--700" style="color: #6794DD;">22</span><br />
-                            <strong>Weekly Post Reach</strong>: <span class="g-font-weight--700" style="color: #6794DD;">5,222</span>
-                        </span>     {% endcomment %}
                         {% comment %} {[ amcharts chartheight:'500px;' data-category:'campus,total,new,weekly' data-category-labels:'Campus,Total Followers,New Followers,Weekly Post Reach' type:'sidebar' ]}
                             [[ dataitem value:'Blankenbaker,1844,76,9677' ]] [[ enddataitem ]]
                             [[ dataitem value:'Indiana,3714,16,4902' ]] [[ enddataitem ]]
