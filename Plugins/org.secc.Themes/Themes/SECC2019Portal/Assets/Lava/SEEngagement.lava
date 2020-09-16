@@ -295,7 +295,7 @@
         <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
             <div class="col-lg-6">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Viewers Per Platform <div class="pull-right"><a href="/Page/2495?MetricCategoryId=76&ExpandedIds=C1591" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Viewers Per Platform <div class="pull-right"><a href="/page/2495?MetricCategoryId=76&ExpandedIds=C1591" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
                     <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
                         <!-- BAR CHART -->
                         {[ amcharts chartwidth:'100%' chartheight:'250px' data-value:'value' data-category:'platform' type:'bar' data-src:'/webhooks/Lava.ashx/se-engage/52/2020-06-07/chart.json' ]}
@@ -305,7 +305,7 @@
             </div>
             <div class="col-lg-6">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Devices Across Platforms <div class="pull-right"><a href="/Page/2495?MetricCategoryId=77&ExpandedIds=C1591" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Devices Across Platforms <div class="pull-right"><a href="/page/2495?MetricCategoryId=77&ExpandedIds=C1591" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
                     <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
                         <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 20%;left: 50%;transform: translate(-50%, -50%);">
                             <h6 class="uppercase g-font-weight--700">Total</h6>
@@ -408,14 +408,14 @@
                                     if (campusFBPages[campus][item]['follower category'].indexOf("New") !== -1) {
                                         // new followers
                                         $('#campusFacebook'+campus.replace(/\s+/g, '')).append(
-                                            '<div class="g-padding-r-10--xs g-display-inline-block--xs"><a href="/page/280?MetricCategoryId=83&amp;ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div>'
+                                            '<div class="g-padding-r-10--xs g-display-inline-block--xs"><a href="/page/2495?MetricCategoryId=83&amp;ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div>'
                                             + '<span class="se-pill"><strong>'+ campusFBPages[campus][item]['follower category'] +'</strong>: '
                                             + '<span class="g-font-weight--700" style="color: #6450AC;">'+ campusFBPages[campus][item]['value'].toLocaleString() +'</span></span><br />'
                                         ) 
                                     } else {
                                         // total followers
                                         $('#campusFacebook'+campus.replace(/\s+/g, '')).append(
-                                            '<div class="g-padding-r-10--xs g-display-inline-block--xs"><a href="/page/280?MetricCategoryId=83&amp;ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div>'
+                                            '<div class="g-padding-r-10--xs g-display-inline-block--xs"><a href="/page/2495?MetricCategoryId=83&amp;ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div>'
                                             + '<span class="se-pill"><strong>'+ campusFBPages[campus][item]['follower category'] +'</strong>: '
                                             + '<span class="g-font-weight--700" style="color: #6794DD;">'+ campusFBPages[campus][item]['value'].toLocaleString() +'</span></span><br />'
                                         )
@@ -423,7 +423,7 @@
                                 } else {
                                     // weekly post enagement
                                     $('#campusFacebook'+campus.replace(/\s+/g, '')).append(
-                                    '<div class="g-padding-r-10--xs g-display-inline-block--xs"><a href="/page/280?MetricCategoryId=84&amp;ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div>'
+                                    '<div class="g-padding-r-10--xs g-display-inline-block--xs"><a href="/page/2495?MetricCategoryId=84&amp;ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div>'
                                     + '<span class="se-pill"><strong>Weekly Post Reach</strong>: '
                                     + '<span class="g-font-weight--700" style="color: #BD62D1;">'
                                     + campusFBPages[campus][item]['value'].toLocaleString() +'</span></span><br />');
@@ -582,23 +582,23 @@
                     <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
                         <span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
                             <div class="g-padding-r-10--xs g-display-inline-block--xs">
-                                <a href="/page/280?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                                <a href="/page/2495?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
                             </div>
                             <strong>Total Followers</strong>: 
                             <h3 class="g-font-weight--700" style="color: #6794DD;" id="seFacebookTotalFollowers">---</h3>
                         </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
                             <div class="g-padding-r-10--xs g-display-inline-block--xs">
-                                <a href="/page/280?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                                <a href="/page/2495?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
                             </div>
                             <strong>New Followers</strong>: <h3 class="g-font-weight--700" style="color: #626DD2;" id="seFacebookNewFollowers">---</h3>
                         </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
                             <div class="g-padding-r-10--xs g-display-inline-block--xs">
-                                <a href="/page/280?MetricCategoryId=84&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                                <a href="/page/2495?MetricCategoryId=84&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
                             </div>
                             <strong>Page Reach</strong>: <h3 class="g-font-weight--700" style="color: #6450AC;" id="seFacebookPageReach">---</h3>
                         </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
                             <div class="g-padding-r-10--xs g-display-inline-block--xs">
-                                <a href="/page/280?MetricCategoryId=85&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                                <a href="/page/2495?MetricCategoryId=85&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
                             </div>
                             <strong>Post Engagement</strong>: <h3 class="g-font-weight--700" style="color: #BD62D1;" id="seFacebookPostEngagement">---</h3></span>
                         {% comment %} {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
@@ -616,17 +616,17 @@
                     <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
                         <span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
                             <div class="g-padding-r-10--xs g-display-inline-block--xs">
-                                <a href="/page/280?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                                <a href="/page/2495?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
                             </div>
                             <strong>Total Followers</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;" id="seInstagramTotalFollowers">---</h3>
                         </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
                             <div class="g-padding-r-10--xs g-display-inline-block--xs">
-                                <a href="/page/280?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                                <a href="/page/2495?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
                             </div>
                             <strong>New Followers</strong>: <h3 class="g-font-weight--700" style="color: #626DD2;" id="seInstagramNewFollowers">---</h3>
                         </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
                             <div class="g-padding-r-10--xs g-display-inline-block--xs">
-                                <a href="/page/280?MetricCategoryId=84&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                                <a href="/page/2495?MetricCategoryId=84&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
                             </div>
                             <strong>Accounts Reached</strong>: <h3 class="g-font-weight--700" style="color: #6450AC;" id="seInstagramReached">---</h3></span>
                         {% comment %} <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
@@ -654,12 +654,12 @@
                     <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
                         <span class="g-width-50-percent--xs g-display-inline-block--xs ">
                             <div class="g-padding-r-10--xs g-display-inline-block--xs">
-                                <a href="/page/280?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                                <a href="/page/2495?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
                             </div>
                             <strong>Total Followers</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;" id="seTwitterTotalFollowers">---</h3>
                         </span><span class="g-width-50-percent--xs g-display-inline-block--xs ">
                             <div class="g-padding-r-10--xs g-display-inline-block--xs">
-                                <a href="/page/280?MetricCategoryId=85&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                                <a href="/page/2495?MetricCategoryId=85&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
                             </div>
                             <strong>Engagements</strong>:<br /><h6>(Retweets, Favorites,Replies)</h6> <h3 class="g-font-weight--700" style="color: #626DD2;" id="seTwitterEngagements">---</h3>
                         </span>{%- comment -%} {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
@@ -674,22 +674,22 @@
                     <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
                         <span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
                             <div class="g-padding-r-10--xs g-display-inline-block--xs">
-                                <a href="/page/280?MetricCategoryId=84&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                                <a href="/page/2495?MetricCategoryId=84&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
                             </div>
                             <strong>Views</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;" id="seYouTubeReached">---</h3>
                         </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
                             <div class="g-padding-r-10--xs g-display-inline-block--xs">
-                                <a href="/page/280?MetricCategoryId=86&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                                <a href="/page/2495?MetricCategoryId=86&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
                             </div>
                             <strong>Watch Time</strong>: <h3 class="g-font-weight--700" style="color: #626DD2;" id="seYouTubeWatchTime">---</h3>
                         </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
                             <div class="g-padding-r-10--xs g-display-inline-block--xs">
-                                <a href="/page/280?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                                <a href="/page/2495?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
                             </div>
                             <strong>New Subscribers</strong>: <h3 class="g-font-weight--700" style="color: #6450AC;" id="seYouTubeNewFollowers">---</h3>
                         </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
                             <div class="g-padding-r-10--xs g-display-inline-block--xs">
-                                <a href="/page/280?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                                <a href="/page/2495?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
                             </div>
                             <strong>Total Subscribers</strong>: <h3 class="g-font-weight--700" style="color: #BD62D1;" id="seYouTubeTotalFollowers">---</h3></span>
                         {% comment %} <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
