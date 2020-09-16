@@ -129,9 +129,9 @@ namespace RockWeb.Plugins.org_secc.Communication
             var groups = groupService.Queryable()
                 .Where( g => g.GroupTypeId == communicationListGroupTypeId && g.IsPublic && g.IsActive && !g.IsArchived )
                 .ToList()
-                .Select(g => new GroupPoco
+                .Select( g => new GroupPoco
                 {
-                    Id= g.Id,
+                    Id = g.Id,
                     Name = g.Name,
                     Description = g.Description,
                     Members = g.ActiveMembers().Count()
@@ -201,7 +201,8 @@ namespace RockWeb.Plugins.org_secc.Communication
             var communication = new Rock.Model.Communication
             {
                 IsBulkCommunication = true,
-                Status = CommunicationStatus.Transient
+                Status = CommunicationStatus.Transient,
+                SenderPersonAliasId = CurrentPersonAliasId
             };
 
             foreach ( var person in members.Select( m => m.Person ).ToList() )
