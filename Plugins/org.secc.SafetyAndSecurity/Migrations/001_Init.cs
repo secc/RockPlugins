@@ -45,7 +45,6 @@ namespace org.secc.SafetyAndSecurity.Migrations
                     Id = c.Int( nullable: false, identity: true ),
                     AlertNotificationId = c.Int( nullable: false ),
                     Message = c.String(),
-                    CommunicationId = c.Int( nullable: false ),
                     CreatedDateTime = c.DateTime(),
                     ModifiedDateTime = c.DateTime(),
                     CreatedByPersonAliasId = c.Int(),
@@ -59,11 +58,9 @@ namespace org.secc.SafetyAndSecurity.Migrations
                 .PrimaryKey( t => t.Id )
                 .ForeignKey( "dbo._org_secc_SafetyAndSecurity_AlertNotification", t => t.AlertNotification_Id )
                 .ForeignKey( "dbo._org_secc_SafetyAndSecurity_AlertNotification", t => t.AlertNotificationId, cascadeDelete: true )
-                .ForeignKey( "dbo.Communication", t => t.CommunicationId )
                 .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
                 .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
                 .Index( t => t.AlertNotificationId )
-                .Index( t => t.CommunicationId )
                 .Index( t => t.CreatedByPersonAliasId )
                 .Index( t => t.ModifiedByPersonAliasId )
                 .Index( t => t.Guid, unique: true )

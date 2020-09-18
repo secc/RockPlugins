@@ -12,22 +12,18 @@
 // limitations under the License.
 // </copyright>
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using org.secc.SafetyAndSecurity.Model;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.UI;
-using Rock.Web.UI.Controls;
 using Rock.Web.Cache;
-using System.Web.UI.HtmlControls;
-using org.secc.SafetyAndSecurity.Model;
-using DocumentFormat.OpenXml.Office2010.Excel;
+using Rock.Web.UI;
 
 namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
 {
@@ -55,11 +51,13 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
     public partial class CampusLockDownAlerts : RockBlock
     {
         public bool IsActive { get; private set; }
+
+
         #region Control Methods
 
         protected override void OnInit( EventArgs e )
         {
-            base.OnInit( e );               
+            base.OnInit( e );
         }
 
 
@@ -76,10 +74,10 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
             if ( !Page.IsPostBack )
             {
                 BindRepeater();
-                
+
             }
 
-            
+
 
 
 
@@ -99,10 +97,19 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
                 .OrderBy( a => a.CreatedDateTime )
                 .ToList();
 
-
+            
             rNotifications.DataSource = alerts;
             rNotifications.DataBind();
         }
+
+        /*private string GetAudience( int audienceValueId )
+        {
+            var definedTypeGuid = GetAttributeValue( "DefinedType" ).AsGuid();
+            var definedType = DefinedTypeCache.Get( definedTypeGuid );
+            
+
+            return null;
+        }*/
 
         protected void ItemBound( object sender, RepeaterItemEventArgs args )
         {
@@ -128,7 +135,7 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
                 rNotificationsMessages.DataBind();
             }
 
-           
+
         }
         #endregion
 
@@ -152,62 +159,97 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
 
         protected void AllClear_Click( object sender, CommandEventArgs e )
         {
-            if (e.CommandName == "AllClear_Click")
+            if ( e.CommandName == "AllClear_Click" )
             {
-                int index;
-                bool bIsConverted = int.TryParse( e.CommandArgument.ToString(), out index );
 
-                RockContext rockContext = new RockContext();
-
-                AlertNotificationService alertNotificationService = new AlertNotificationService( rockContext );
-                AlertMessageService alertMessageService = new AlertMessageService( rockContext );
-
-                var alert = alertNotificationService
-                    .Get( index );
-                
-               alert.IsActive = false;
-               
-
-                rockContext.SaveChanges();
-
-                BindRepeater();
-
+                ShowMessageModal( e.CommandArgument.ToString(), true );
             }
         }
+
+
 
         protected void SendUpdate_Click( object sender, CommandEventArgs e )
         {
             if ( e.CommandName == "SendUpdate_Click" )
             {
-                string AlertID;
-                AlertID = e.CommandArgument.ToString();
-                hfAlertID.Value = AlertID;
+                ShowMessageModal( e.CommandArgument.ToString(), false );
             }
-            tbAlertMessage.Text = "";
-            mdSendUpdate.Show();
 
         }
 
+        private void ShowMessageModal( string alertId, bool isAllClear )
+        {
+            hfAllClear.Value = isAllClear.ToString();
+            hfAlertID.Value = alertId;
+            tbAlertMessage.Text = "";
+            mdSendUpdate.Show();
+            if ( isAllClear )
+            {
+                mdSendUpdate.Title = "Send All Clear";
+                tbAlertMessage.Required = false;
+            }
+            else
+            {
+                mdSendUpdate.Title = "Send Update";
+                tbAlertMessage.Required = true;
+            }
+            
+
+        }
+
+        
+
         protected void mdSendUpdate_SendClick( object sender, EventArgs e )
         {
-            RockContext rockContext = new RockContext();
-            AlertMessageService alertMessageService = new AlertMessageService( rockContext );
+            int alertID = hfAlertID.Value.AsInteger();
 
-            string message = tbAlertMessage.Text.Trim();
-
-            int AlertID = Int32.Parse( hfAlertID.Value );
-            alertMessageService.Add( new AlertMessage
+            if ( tbAlertMessage.Text.IsNotNullOrWhiteSpace() )
             {
-                AlertNotificationId = AlertID,
-                Message = message,
-                CommunicationId = 40558,
-            } );
+                RockContext rockContext = new RockContext();
+                AlertMessageService alertMessageService = new AlertMessageService( rockContext );
+                AlertNotificationService alertNotificationService = new AlertNotificationService( rockContext );
 
-            rockContext.SaveChanges();
 
+                var alert = alertNotificationService
+                    .Get( alertID );
+
+                var alertMessage = new AlertMessage
+                {
+                    AlertNotification = alert,
+                    Message = tbAlertMessage.Text,
+                    
+                };
+
+                alertMessageService.Add( alertMessage );
+
+                rockContext.SaveChanges();
+
+                alertMessage.SendCommunication( GlobalAttributesCache.Value( "DefaultSMSFromNumber" ).AsGuid() );
+            }
+
+
+            if ( hfAllClear.Value.AsBoolean() )
+            {
+                ClearAlert( alertID );
+            }
             mdSendUpdate.Hide();
 
             BindRepeater();
+        }
+
+        private void ClearAlert( int alertNotificationId )
+        {
+            RockContext rockContext = new RockContext();
+
+            AlertNotificationService alertNotificationService = new AlertNotificationService( rockContext );
+            AlertMessageService alertMessageService = new AlertMessageService( rockContext );
+
+            var alert = alertNotificationService
+                .Get( alertNotificationId );
+
+            alert.IsActive = false;
+
+            rockContext.SaveChanges();
         }
     }
 

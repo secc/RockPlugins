@@ -54,24 +54,27 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
 
     #region Block Settings
     [TextField(
-        name: "Standard Alert Title",
-        description: "Default title of an alert",
+        name: "Lockdown Alert Title",
+        description: "Default title of a lockdown alert",
         required: false,
-        defaultValue: "Alert",
+        defaultValue: "Lockdown Alert",
         order: 0,
-        key: "StandardTitle" )]
+        key: "LockdownTitle" )]
     [MemoField(
-        name: "Standard Alert Message",
-        description: "Message that will be delivered when standard alert is sent",
+        name: "Lockdown Alert Message",
+        description: "Message that will be delivered when a lockdown alert is sent",
         required: false,
-        defaultValue: "This is the Standard Alert Message",
+        defaultValue: "Lock down the campus",
         order: 1,
-        key: "StandardAlert" )]
-   
-    [DataViewField(
-        name: "DataView",
-        description: "The DataView to use for the review process.",
-        required: false )]
+        key: "LockdownAlert" )]
+
+    [DefinedTypeField(
+        name: "Defined Type",
+        description: "The Defined Value to use for audience selection.",
+        required: true )]
+
+    [DefinedValueField( Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM, "From", "The number to originate message from (configured under Admin Tools > Communications > SMS Phone Numbers).", true, false, "", "", 0 )]
+
 
     #endregion Block Settings
 
@@ -109,8 +112,8 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
 
             if ( !Page.IsPostBack )
             {
-                lMessage.Text = GetAttributeValue( "StandardAlert" );
-                lAlertTitle.Text = GetAttributeValue( "StandardTitle" );
+                lMessage.Text = GetAttributeValue( "LockdownAlert" );
+                lAlertTitle.Text = GetAttributeValue( "LockdownTitle" );
 
                 if ( GetAttributeValue( "DataView" ).IsNotNullOrWhiteSpace() )
                 {
@@ -161,7 +164,51 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
 
         protected void btnStaff_Click( object sender, EventArgs e )
         {
-            GetStaff();
+            var campus = bddlCampus.SelectedValueAsInt();
+
+            CreateAlert( GetAudience( false, campus ) );
+
+        }
+
+        protected void btnStaffVol_Click( object sender, EventArgs e )
+        {
+            var campus = bddlCampus.SelectedValueAsInt();
+
+            CreateAlert( GetAudience( true, campus ) );
+
+        }
+
+        private DefinedValueCache GetAudience( bool hasVolunteer, int? campusId )
+        {
+
+            var campusObj = CampusCache.Get( campusId ?? 0 );
+            var campusGuid = campusObj.Guid;
+
+            var definedTypeGuid = GetAttributeValue( "DefinedType" ).AsGuid();
+            var definedType = DefinedTypeCache.Get( definedTypeGuid );
+            var definedValues = definedType.DefinedValues;
+
+            foreach ( var definedValue in definedValues )
+            {
+                var definedValueCampusGuid = definedValue.GetAttributeValue( "Campus" ).AsGuid();
+                bool definedValueHasVolunteer = definedValue.GetAttributeValue( "HasVolunteer" ).AsBoolean();
+                if ( campusGuid == definedValueCampusGuid && definedValueHasVolunteer == hasVolunteer )
+                {
+                    return definedValue;
+                }
+            }
+
+            return null;
+        }
+
+        private void CreateAlert( DefinedValueCache audience )
+        {
+            if ( audience == null )
+            {
+                maPopup.Show( "The audience is not defined.", ModalAlertType.Information );
+                return;
+
+            }
 
             RockContext rockContext = new RockContext();
 
@@ -169,39 +216,43 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
             AlertMessageService alertMessageService = new AlertMessageService( rockContext );
 
             int alertTypeId = 31480;
-            int alertAudienceId = 31476;
 
             var alertnotification = new AlertNotification
             {
                 Title = lAlertTitle.Text,
                 AlertNotificationTypeValueId = alertTypeId,
-                AudienceValueId = alertAudienceId,
+                AudienceValueId = audience.Id,
                 IsActive = true,
             };
-
-
 
             alertNotificationService.Add( alertnotification );
 
             rockContext.SaveChanges();
 
-
-
-            alertMessageService.Add( new AlertMessage
+            var alertMessage = new AlertMessage
             {
                 AlertNotificationId = alertnotification.Id,
                 Message = lMessage.Text,
-                CommunicationId = 40558,
-            } );
+                
+            };
+
+            alertMessageService.Add( alertMessage );
+
 
             rockContext.SaveChanges();
+
+
+
+
+            alertMessage.SendCommunication( GetAttributeValue( "From" ).AsGuid() );
+
+            mdCustomMessage.Hide();
+            mdLockdownAlert.Hide();
+
+            maPopup.Show( "The LockDown message has been sent.", ModalAlertType.Information );
         }
 
-        protected void btnStaffVol_Click( object sender, EventArgs e )
-        {
-            //GetCheckedInVolunteers( 1 );
 
-        }
         protected void bddlCampus_SelectionChanged( object sender, EventArgs e )
         {
             SetBlockUserPreference( "Campus", bddlCampus.SelectedValue );
@@ -214,17 +265,15 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
         protected void mdCustomMessage_SaveClick( object sender, EventArgs e )
         {
             string message = tbAlertMessage.Text.Trim();
-            //           if ( message.IsNullOrWhiteSpace() )
-            //           {
-            //               hfCustomMessage.Value = " " ;
-            //               return;
-            //           }
             string title = tbAlertName.Text.Trim();
 
             lMessage.Text = message;
             lAlertTitle.Text = title;
 
-            mdCustomMessage.Hide();
+            var campus = bddlCampus.SelectedValueAsInt();
+
+            CreateAlert( GetAudience( cbCustomMessageIncludeVols.Checked, campus ) );
+
         }
 
         /// <summary>
@@ -256,31 +305,11 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
         #region Methods
 
 
-        private void GetStaff()
-        {
 
-            SendMessage( "Staff", lMessage.Text );
-        }
 
-        private void SendMessage( string send, string msg )
-        {
-            maPopup.Show( "The LockDown message has been sent to all " + send + ".  " + msg, ModalAlertType.Information );
-
-        }
 
         #endregion
-        protected class VolunteerByCampus
-        {
-            public Person VolunteerPerson { get; set; }
-            public Campus CampusId { get; set; }
 
-        }
-
-        protected class Staff
-        {
-            public Person StaffPerson { get; set; }
-
-        }
         /// <summary>
         /// Campus Item
         /// </summary>
@@ -303,12 +332,21 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
             public int Id { get; set; }
         }
 
+        protected void btnLockdownAlert_Click( object sender, EventArgs e )
+        {
+            mdLockdownAlert.Show();
+        }
 
-
-
-        protected void btnEdit_Click( object sender, EventArgs e )
+        protected void btnCustomAlert_Click( object sender, EventArgs e )
         {
             mdCustomMessage.Show();
         }
+
+
+        protected void mdLockdownAlert_SaveClick( object sender, EventArgs e )
+        {
+            mdLockdownAlert.Hide();
+        }
+
     }
 }

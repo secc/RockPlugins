@@ -38,11 +38,12 @@
     <ContentTemplate>
 
 
-        <Rock:ModalDialog ID="mdSendUpdate" runat="server" Title="Send Update Message" OnSaveClick="mdSendUpdate_SendClick"  SaveButtonText="Send">
+        <Rock:ModalDialog ID="mdSendUpdate" runat="server" Title="Send Update" OnSaveClick="mdSendUpdate_SendClick"  SaveButtonText="Send">
             <Content>
                 <%-- multi-line textbox --%>
-                <Rock:RockTextBox ID="tbAlertMessage" runat="server" CssClass="js-sms-text-message" TextMode="MultiLine" Rows="3" Placeholder="Type a message" Required="false"  ValidateRequestMode="Disabled" />
+                <Rock:RockTextBox ID="tbAlertMessage" Label="Message" runat="server" CssClass="js-sms-text-message" TextMode="MultiLine" Rows="3" Placeholder="Type a message" Required="false"  ValidateRequestMode="Disabled" />
                 <asp:HiddenField ID="hfAlertID" runat="server" Value="" />
+                <asp:HiddenField ID="hfAllClear" runat="server" Value="" />
             </Content>
         </Rock:ModalDialog>
 
@@ -51,7 +52,7 @@
 
 
         <div class="panel-heading">
-                    <i class="fas fa-shield-alt"></i>
+                    <i class="fas fa-shield-alt" style="padding-right:1em;"></i>
                     Active Notifications
       
                 </div>
@@ -59,16 +60,19 @@
         <asp:Repeater ID="rNotifications" runat="server" OnItemDataBound="ItemBound">
             <ItemTemplate>
                 <asp:HiddenField ID="hfAlertNotificationId" runat="server" Value='<%# Eval("Id") %>' />
+                
                 <div class="panel panel-default alert-panel">
                     <div class="panel-heading" role="tab" id='heading1-id-<%# Eval("Id") %>'>
 
                         <h4 class="panel-title panel-flex">
                             <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion-id-active-notifications" href='#collapse1-id-<%# Eval("Id") %>' aria-expanded="false" aria-controls="collapse1" class=""><asp:Literal Text='<%# Eval("Title") %>' runat="server" /></a></h4>   
-                        <p class="panel-flex"><asp:Literal Text='<%# Eval("CreatedDateTime") %>' runat="server" /></p>   
-                        <p class="panel-flex"><asp:Literal Text='<%# Eval("CreatedByPersonAlias.Person.FullName") %>' runat="server" /></p>
+                        <p class="panel-flex"><asp:Literal Text='<%# Eval("AudienceValue.Value") %>' runat="server" /></p>
+                        <p class="panel-flex"><asp:Literal Text='<%# Eval("CreatedDateTime") %>' runat="server" /></p>
+                        <p class="panel-flex">Created By: <asp:Literal Text='<%# Eval("CreatedByPersonAlias.Person.FullName") %>' runat="server" /></p>
                         <p class="panel-flex">
-                            <asp:LinkButton CssClass="btn btn-danger" ID="SendUpdate" runat="server" CommandName="SendUpdate_Click" OnCommand="SendUpdate_Click" CommandArgument='<%# Eval("Id") %>' Text="Send Update" />
-                            <asp:LinkButton CssClass="btn btn-success" ID="AllClear" runat="server" CommandName="AllClear_Click" CommandArgument='<%# Eval("Id") %>' OnCommand="AllClear_Click" OnClientClick="Rock.dialogs.confirmPreventOnCancel( event, 'Are you sure you wish to send an All Clear for this alert?');" Text="All Clear" /></p>
+                            <asp:LinkButton CssClass="btn btn-danger" ID="SendUpdate" runat="server" CommandName="SendUpdate_Click" CommandArgument='<%# Eval("Id") %>' OnCommand="SendUpdate_Click" Text="Send Update" CausesValidation="false"/>
+                            <asp:LinkButton CssClass="btn btn-success" ID="AllClear" runat="server" CommandName="AllClear_Click" CommandArgument='<%# Eval("Id") %>' OnCommand="AllClear_Click" Text="All Clear" CausesValidation="false" />
+                        </p>
                     </div>
                     <div id='collapse1-id-<%# Eval("Id") %>' class="panel-collapse collapse" role="tabpanel" aria-labelledby='heading1-id-<%# Eval("Id") %>' aria-expanded="true" style="">
                         <div class="panel-body">

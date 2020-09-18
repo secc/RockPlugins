@@ -43,21 +43,48 @@
         left: 50%;
         transform: translate(-50%, -50%);
     }
+    .CampusDropdown {
+        position:absolute;
+        right:50px;
+        width:200px;
+    }
 </style>
 
 
 
 <asp:UpdatePanel ID="upCampus" runat="server">
     <ContentTemplate>
-        <Rock:ModalDialog ID="mdCustomMessage" runat="server" Title="Create Lockdown Alert" OnSaveClick="mdCustomMessage_SaveClick"  SaveButtonText="Save">
+        <Rock:ModalDialog ID="mdLockdownAlert" runat="server" Title="Send Lockdown Alert" OnSaveClick="mdLockdownAlert_SaveClick" SaveButtonText="Cancel" SaveButtonCssClass="btn btn-link" CancelLinkVisible="false">
+            <Content>
+                <%-- show current alert title and message --%>
+                 <div class="panel-body" style="text-align:center;">
+                            <Rock:RockLiteral ID="lAlertTitle" Label="Alert Title" runat="server" />
+                            <Rock:RockLiteral ID="lMessage" Label="Alert Message" runat="server" />
+                        </div>
+
+                <%-- send buttons --%>
+                <div style="text-align: center">
+                        <asp:LinkButton ID="btnStaffVol" runat="server" Width="300"
+                            OnClick="btnStaffVol_Click"  Text="Staff & Volunteers" CssClass="btn btn-default buttonClass" />
+
+                        <asp:LinkButton ID="btnStaff" runat="server" Width="300"
+                            OnClick="btnStaff_Click"  Text="Staff Only" CssClass="btn btn-default buttonClass" />
+                    </div>
+            </Content>
+        </Rock:ModalDialog>
+
+        <Rock:ModalDialog ID="mdCustomMessage" runat="server" Title="Create Lockdown Alert" SaveButtonText="Send" OnSaveClick="mdCustomMessage_SaveClick">
             <Content>
                 <%-- single-line textbox --%>
-                <p>Alert Name:</p>
-                <Rock:RockTextBox ID="tbAlertName" runat="server" CssClass="js-sms-text-message" Placeholder="Type Alert Name" Required="false"  ValidateRequestMode="Disabled" />
+                <Rock:RockTextBox Label="Alert Title" ID="tbAlertName" runat="server" Placeholder="Type Alert Title" Required="true" />
 
                 <%-- multi-line textbox --%>
-                <p>Message:</p>
-                <Rock:RockTextBox ID="tbAlertMessage" runat="server" CssClass="js-sms-text-message" TextMode="MultiLine" Rows="3" Placeholder="Type a message" Required="false"  ValidateRequestMode="Disabled" />
+                <Rock:RockTextBox Label="Alert Message" ID="tbAlertMessage" runat="server" TextMode="MultiLine" Placeholder="Type a message" Required="true" />
+
+                <%-- select audience --%>
+                <Rock:RockCheckBox ID="cbCustomMessageIncludeVols" Label="Include Volunteers" Text="Yes" runat="server" />
+
+                
             </Content>
         </Rock:ModalDialog>
 
@@ -100,37 +127,29 @@
         <asp:Panel runat="server" ID="pnlMain" Visible="true">
             <div class="panel panel-block">
                 <div class="panel-heading">
-                    <i class="fas fa-shield-alt"></i>
+                    <i class="fas fa-shield-alt" style="padding-right:1em;"></i>
                     <asp:Label ID="lbLockDown" runat="server" Text="Lock Down Protocol" />
-                    <Rock:ButtonDropDownList ID="bddlCampus" runat="server" FormGroupCssClass="panel-options pull-right"
-                        Title="Campus" SelectionStyle="Checkmark" OnSelectionChanged="bddlCampus_SelectionChanged" DataTextField="Name" DataValueField="Id" />
+                    <Rock:ButtonDropDownList ID="bddlCampus" runat="server" FormGroupCssClass="panel-options pull-right CampusDropdown"
+                        Title="Campus" SelectionStyle="Checkmark" OnSelectionChanged="bddlCampus_SelectionChanged" DataTextField="Name" DataValueField="Id" AutoPostBack="true" />
                 </div>
                 <div class="panel-body">
                     <div class="text-center">
-                        <div class="alert alert-warning" role="alert">
-                            You are about to send a <strong>Lock Down Alert</strong> for <span style="font-weight: 700; text-decoration: underline;">
-                                <asp:Label ID="lCampusTitle" runat="server" /></span>! 
+                        <div>
+                            <h2><asp:Label ID="lCampusTitle" runat="server" /></h2>
+                            <div style="display: inline-block;">
                         </div>
-                        <div style="display: inline-block;">
-                            <Rock:RockLiteral ID="lAlertTitle" runat="server" />
-                            <i>
-                                <Rock:RockLiteral ID="lMessage" runat="server" /></i>
                         </div>
-                        <div style="display: inline-block;">
-                            <asp:LinkButton ID="btnEdit" runat="server" Title="Edit Message" CssClass="btn btn-sm btn-square btn-default " OnClick="btnEdit_Click">
-                            <i class="fa fa-pencil"></i> </asp:LinkButton>
-                        </div>
+                       
+                        
 
                     </div>
                     <br />
                     <div style="text-align: center">
-                        <asp:LinkButton ID="btnStaffVol" runat="server" Width="300"
-                            OnClick="btnStaffVol_Click"  Text="Staff & Volunteers" CssClass="btn btn-default buttonClass" />
+                        <asp:LinkButton ID="btnLockdownAlert" runat="server" Width="300"
+                            OnClick="btnLockdownAlert_Click"  Text="Lockdown Alert" CssClass="btn btn-default buttonClass" />
 
-                        <asp:LinkButton ID="btnStaff" runat="server" Width="300"
-                            OnClick="btnStaff_Click"  Text="Staff" CssClass="btn btn-default buttonClass" />
-                        <br />
-                        <br />
+                        <asp:LinkButton ID="btnCustomAlert" runat="server" Width="300"
+                            OnClick="btnCustomAlert_Click"  Text="Custom Alert" CssClass="btn btn-default buttonClass" />
                     </div>
                 </div>
             </div>
