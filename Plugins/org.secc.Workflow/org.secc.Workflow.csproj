@@ -41,6 +41,15 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)Rock\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
+    <Reference Include="FFmpeg.NET, Version=3.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)packages\xFFmpeg.NET.3.4.0\lib\netstandard2.0\FFmpeg.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="Magick.NET-Q16-AnyCPU, Version=7.21.1.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)packages\Magick.NET-Q16-AnyCPU.7.21.1\lib\net40\Magick.NET-Q16-AnyCPU.dll</HintPath>
+    </Reference>
+    <Reference Include="Magick.NET.Core, Version=4.1.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)packages\Magick.NET.Core.4.1.0\lib\net40\Magick.NET.Core.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.IdentityModel.Logging, Version=1.1.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\Microsoft.IdentityModel.Logging.1.1.2\lib\net451\Microsoft.IdentityModel.Logging.dll</HintPath>
     </Reference>
@@ -84,6 +93,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CMS\ClearCacheTags.cs" />
+    <Compile Include="Media\ImageMontage.cs" />
+    <Compile Include="Media\FFmpeg.cs" />
     <Compile Include="Person\GetPersonFromFields.cs" />
     <Compile Include="Person\PersonAddHistory.cs" />
     <Compile Include="Registrations\AutoApplyDiscountCode.cs" />
@@ -107,7 +118,9 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Workflow.dll" "$(SolutionDir)RockWeb\bin"
+    <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\FFmpeg.NET.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(ProjectDir)bin\Debug\Magick*" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Workflow.dll" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"</PostBuildEvent>
   </PropertyGroup>
 </Project>
