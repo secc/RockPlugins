@@ -76,10 +76,13 @@
             {% contentchannelitem where:'ContentChannelId == 68' sort:'Order' %}
                {% for item in contentchannelitemItems %}
 
+			   		{% assign covidApplicable = item | Attribute:'COVID19' %}
                     {% assign phone = item | Attribute:'Phone' %}
                     {% assign website_url = item | Attribute:'Website','RawValue' %}
                     {% assign se_address = item | Attribute:'Location' %}
                     {% assign se_recognition = item | Attribute:'SoutheastRecognition' %}
+
+					{% if covidApplicable == "No" or covidApplicable == "Both" %}                    
                     <div class="isotope_item col-sm-12 col-md-6 col-lg-4"
                          data-groupid="{{item.Id}}"
                          data-need="{% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}{% for tag in taggeditemItems %}{%- if forloop.first -%}{%- else -%},{%- endif -%}{{ tag.Tag.Id }}{% endfor %}{% endtaggeditem %}"
@@ -159,6 +162,7 @@
                             </div>
                         </div>
                     </div>
+					{% endif %}
 
                 {% endfor %}
             {% endcontentchannelitem %}
