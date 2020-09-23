@@ -72,7 +72,7 @@
 					// Use a proxy'ed JS object
 					var self = new Proxy(this, imageHandler);
 					self.defaultInitImgResult = true;
-					self.image.src = "/Content/0N2A1494.jpg";
+					self.image.bgImage = 'url("/Content/0N2A1494.jpg")';
 
 					// save default user styles
 					var curStyle = self.$item.getAttribute('style');
@@ -82,7 +82,7 @@
 
 					// set new background
 					self.css(self.$item, {
-						'background-image': 'url("/Content/0N2A1494.jpg")',
+						'background-image': self.image.bgImage,
 						'background-position': 'center',
 						'background-size': 'cover',
 						'transition': 'opacity .25s ease-in-out',

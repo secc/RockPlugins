@@ -62,24 +62,24 @@ Note: Do to this javascript requirements of this shortcode you will need to do a
 {% assign speed = speed | AsInteger %}
 
 {% if speed > 0 -%}
-    {% assign speed = speed | Times:'.01' -%}
-    {% assign speed = speed | Plus:'1' -%}
+    {% assign speed = speed | DividedBy:100 -%}
+    {% assign speed = speed | Plus:1 -%}
 {% elseif speed == 0 -%}
     {% assign speed = 1 -%}
 {% else -%}
-    {% assign speed = speed | Times:'.02' -%}
-    {% assign speed = speed | Plus:'1' -%}
+    {% assign speed = speed | DividedBy:50 -%}
+    {% assign speed = speed | Plus:1 -%}
 {% endif -%}
 
 {% if videourl != '' -%}
-    <div id="{{ id }}" class="jarallax {{addclass}}" data-img-size="{{ imgsize }}" data-jarallax-video="{{ videourl }}" data-type="{{ type }}" data-keep-img='true' data-speed="{{ speed }}" data-img-position="{{ position }}" data-z-index="{{ bodyZindex }}" data-video-start-time="{{ videostarttime }}" data-video-end-time="{{ videoendtime }}" >
+    <div id="{{ id }}" class="jarallax {{addclass}}" data-img-size="{{ imgsize }}" data-jarallax-video="{{ videourl }}" data-type="{{ type }}" data-keep-img='true' data-speed="{{ speed | ToString | Replace:',', '.' }}" data-img-position="{{ position }}" data-z-index="{{ bodyZindex }}" data-video-start-time="{{ videostarttime }}" data-video-end-time="{{ videoendtime }}" >
         {% if image != "" -%}
             {% comment %}
             <img class="jarallax-img" src="{{ image | Escape }}" alt="">
             {% endcomment %}
         {% endif -%}
 {% else -%}
-    <div id="{{ id }}" data-jarallax class="jarallax {{addclass}}" data-img-size="{{ imgsize }}" data-type="{{ type }}" data-speed="{{ speed }}" data-img-position="{{ position }}" data-object-position="{{ position }}" data-background-position="{{ position }}" data-zindex="{{ bodyZindex }}">
+    <div id="{{ id }}" data-jarallax class="jarallax {{addclass}}" data-img-size="{{ imgsize }}" data-type="{{ type }}" data-speed="{{ speed | ToString | Replace:',', '.' }}" data-img-position="{{ position }}" data-object-position="{{ position }}" data-background-position="{{ position }}" data-zindex="{{ bodyZindex }}">
     <img class="jarallax-img" src="{{ image | Escape }}" alt="">
 {% endif -%}
 
@@ -120,7 +120,6 @@ Note: Do to this javascript requirements of this shortcode you will need to do a
             {string: navigator.userAgent, subString: "Firefox", identity: "Firefox"},
             {string: navigator.userAgent, subString: "Opera", identity: "Opera"},
             {string: navigator.userAgent, subString: "OPR", identity: "Opera"},
-
             {string: navigator.userAgent, subString: "Chrome", identity: "Chrome"},
             {string: navigator.userAgent, subString: "Safari", identity: "Safari"}
         ]

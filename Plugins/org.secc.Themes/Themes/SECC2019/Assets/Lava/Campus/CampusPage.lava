@@ -1,7 +1,3 @@
-{{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax.js' | AddScriptLink }}
-{{ 'https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js' | AddScriptLink }}
-{{ 'https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.3/jarallax-video.js' | AddScriptLink }}
-
 {% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
 {% cache key:'{{pageParamCampus}}' duration:'3600' tags:'2019CampusLandingPage' %}
 
@@ -85,7 +81,7 @@
                         // Use a proxy'ed JS object
                         var self = new Proxy(this, imageHandler);
                         self.defaultInitImgResult = true;
-                        self.image.src = "/GetImage.ashx?Guid={{ HeroImage.Guid }}";
+                        self.image.bgImage = 'url("/GetImage.ashx?Guid={{ HeroImage.Guid }}")';
 
                         // save default user styles
                         var curStyle = self.$item.getAttribute('style');
@@ -95,7 +91,7 @@
 
                         // set new background
                         self.css(self.$item, {
-                            'background-image': 'url("/GetImage.ashx?Guid={{ HeroImage.Guid }}")',
+                            'background-image': self.image.bgImage,
                             'background-position': '{{ HeroImagePosition }}',
                             'background-size': 'cover',
                             'transition': 'opacity .25s ease-in-out',
