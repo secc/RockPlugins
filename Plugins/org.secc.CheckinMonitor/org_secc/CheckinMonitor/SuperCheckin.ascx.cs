@@ -1312,6 +1312,7 @@ try{{
                                      && a.Occurrence.Group != null
                                      && a.Occurrence.Schedule != null
                                      && a.Occurrence.Location != null
+                                     && a.QualifierValueId == null
                                     )
                                     .Select( a => a.Occurrence.Group.GroupTypeId )
                                     .ToList();
