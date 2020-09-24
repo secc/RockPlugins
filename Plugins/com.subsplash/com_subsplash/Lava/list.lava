@@ -1,0 +1,69 @@
+{
+    "header":{
+        "title":"Home"
+    },
+    "displayOptions":{
+        "style":"stacked",
+        "contentWidthRatio":9.5,
+        "itemDisplayOptions":{
+            "indicatorAspectRatio":2.47407,
+            "textPosition":"none"
+        },
+        "colors":{
+            "brand":{
+                "primary":"#121212",
+                "primaryAccent":"#FFFFFF"
+            },
+            "theme":{
+                "primary":"#121212",
+                "primaryAccent":"#FFFFFF"
+            },
+            "topBar":{
+                "primary":"#121212",
+                "primaryAccent":"#FFFFFF"
+            },
+            "bottomBar":{
+                "primary":"#121212",
+                "primaryAccent":"#FFFFFF"
+            },
+            "brandableElements":"{{colors:brand}}"
+        }
+    },
+    "items":[  
+		{%- contentchannelitem where:'ItemGlobalKey == "{{ItemGlobalKey}}"' -%}   
+			{%- assign channelitem = contentchannelitem | First -%}   
+			{{channelitem.Id}}
+			{%- assign childItemsSorted = contentchannelitem.ChildItems | Sort:"Order" -%}   
+			{%- assign comma = "" -%}   
+			{%- for item in childItemsSorted -%}    
+				{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}    
+				{%- assign slug = item.ChildContentChannelItem.PrimarySlug -%}    
+				{%- assign startDateTime = item.ChildContentChannelItem.StartDateTime | Date:'yyyyMMddHHmmss' -%}    
+				{%- assign endDateTime = item.ChildContentChannelItem.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}    
+				{%- assign title = item.ChildContentChannelItem.Title -%}    {%- assign subtitle = item.ChildContentChannelItem | Attribute:'Subtitle' -%}    
+				{%- assign imageGuid = item.ChildContentChannelItem | Attribute:'Image','RawValue' -%}    
+				{%- assign actionJson = item.ChildContentChannelItem | Attribute:'Action' -%}    
+				{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}      
+					{%- comment -%} Start: Banner Item{%- endcomment -%}      
+						{%- if Headers.sap-device-os == 'Android' -%}       
+							{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}      
+						{%- endif -%}      
+						{{ comma }}      
+						{       
+							"images":[{
+									"width": 668,        
+									"url":"{ { 'Global' | Attribute:'MobileApplicationRoot' } }/ GetImage.ashx ? guid ={ { item.ChildContentChannelItem.Guid } }"
+								}],
+							{%- if actionJson != "" -%}
+								"actions":[{{actionJson}}], 
+							{%- endif -%}
+							"title": "{{ title }}",
+							"subtitle": "{{ subtitle }}"
+						}
+						{%- assign comma = "," -%}      
+					{%- comment -%} End: Banner Item{%- endcomment -%}     
+				{%- endif -%}      
+			{%- endfor %}  
+		{%- endcontentchannelitem %}  
+	]
+}

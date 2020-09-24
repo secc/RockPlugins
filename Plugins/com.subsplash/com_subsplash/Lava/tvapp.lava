@@ -1,0 +1,75 @@
+{%- cache key:''subsplash-tvapp-home'' duration:''60'' -%}
+{
+{% contentchannelitem where:''ContentChannelId == 74'' sort:''Order'' %}
+{%- assign itemCount = contentchannelitemItems | Size -%}
+{%- assign nowDateTime = ''Now'' | Date:''yyyyMMddHHmmss'' -%}
+{%- if itemCount > 0 -%}
+    "header": {         "title":"Home",         "style":"featured",         "sapid":"home",         "items": [
+    {%- assign num = 0 -%}
+    {%- assign comma = "" -%}
+    {% for item in contentchannelitemItems %}
+        {%- assign startDateTime = item.StartDateTime | Date:''yyyyMMddHHmmss'' -%}
+        {%- assign endDateTime = item.ExpireDateTime | Date:''yyyyMMddHHmmss'' | Default:''99999999999999'' -%}
+        {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+            {{ comma }}
+            {                     "images":[                         { "width":720, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ item | Attribute:''Image'',''RawValue'' }}.jpg?guid={{ item | Attribute:''Image'',''RawValue'' }}&width=720" }                     ],                     "title": "{{ - item.Title | Replace:''"'',''\"'' - }}",                     "subtitle": "{{ - item | Attribute:''Subtitle'' | Replace:''"'',''\"'' - }}",                     "actions": [{                         "handler": "detail",                         "url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/home/{{ item.Guid }}"                     }]                 }
+            {%- assign num = num | Plus:1 -%}
+            {%- assign comma = "," -%}
+        {%- endif -%}
+    {%- endfor -%}
+    {%- if num == 0 -%}
+        {%- comment -%}
+            *** if no items are to show, then just show the latest sermon.
+        {%- endcomment -%}
+        {%- contentchannelitem where:''ContentChannelId == 24'' sort:''StartDateTime desc'' limit:''1'' -%}
+        {%- assign comma = "" -%}
+        {%- assign mostRecentSermon = contentchannelitemItems | First -%}
+        {%- for seriesChild in mostRecentSermon.ChildItems reversed -%}
+            {%- assign sermon = seriesChild.ChildContentChannelItem -%}
+            {%- if sermon.ContentChannelId == "23" -%}
+                {{ comma }}
+                {                                 "images":[                                     { "width":720, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ sermon | Attribute:''Image'', ''RawValue'' }}.jpg?guid={{ sermon | Attribute:''Image'', ''RawValue'' }}&width=720" },                                     { "width":1080, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ sermon | Attribute:''Image'', ''RawValue'' }}.jpg?guid={{ sermon | Attribute:''Image'', ''RawValue'' }}&width=1080" },                                     { "width":1920, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ sermon | Attribute:''Image'', ''RawValue'' }}.jpg?guid={{ sermon | Attribute:''Image'', ''RawValue'' }}&width=1920" }                                 ],                                 "title": "Recent Sermon",                                 "subtitle": "{{ sermon.Title | Replace:''"'',''\"'' }}
+                -
+                {{ sermon.Content | Replace:''"'',''\"'' | UrlEncode | Replace:''%0A'','''' | UrlDecode }}",                                 "actions": [{                                     "handler": "detail",                                     "url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/sermon/{{ sermon.Id }}"                                 }]                             }
+                {%- break -%}
+            {%- endif -%}
+        {%- endfor -%}
+        {% endcontentchannelitem -%}
+    {%- endif -%}
+    ]     },
+{%- endif -%}
+{% endcontentchannelitem %}
+{% comment %}
+    "header": {         "title": "Recent Sermons",         "style": "featured",         "sapid": "home",         "items": [             {%- contentchannelitem where:''ContentChannelId == 24'' sort:''StartDateTime desc'' limit:''1'' -%}                 {%- assign comma = "" -%}                 {%- assign mostRecentSermon = contentchannelitemItems | First -%}                 {%- for seriesChild in mostRecentSermon.ChildItems reversed -%}                     {%- assign sermon = seriesChild.ChildContentChannelItem -%}                     {%- if sermon.ContentChannelId == "23" -%}                         {{ comma }}                         {                             "images":[                                 { "width":720, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ sermon | Attribute:''Image'', ''RawValue'' }}.jpg?guid={{ sermon | Attribute:''Image'', ''RawValue'' }}&width=720" },                                 { "width":1080, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ sermon | Attribute:''Image'', ''RawValue'' }}.jpg?guid={{ sermon | Attribute:''Image'', ''RawValue'' }}&width=1080" },                                 { "width":1920, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ sermon | Attribute:''Image'', ''RawValue'' }}.jpg?guid={{ sermon | Attribute:''Image'', ''RawValue'' }}&width=1920" }                             ],                             "title": "Recent Sermon",                             "subtitle": "{{ sermon.Title | Replace:''"'',''\"'' }} - {{ sermon.Content | Replace:''"'',''\"'' | UrlEncode | Replace:''%0A'','''' | UrlDecode }}",                             "actions": [{                                 "handler": "detail",                                 "url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/sermon/{{ sermon.Id }}"                             }]                         }                         {%- break -%}                     {%- endif -%}                 {%- endfor -%}             {% endcontentchannelitem -%}         ]     },
+{% endcomment %}
+{%- assign comma = "" -%}
+{%- contentchannelitem where:''ContentChannelId == 24'' sort:''StartDateTime desc'' offset:''{{ offset }}'' limit:''120'' -%}
+"items": [
+{%- assign nowDateTime = ''Now'' | Date:''yyyyMMddHHmmss'' -%}
+{%- for item in contentchannelitemItems -%}
+    {%- assign startDateTime = item.StartDateTime | Date:''yyyyMMddHHmmss'' -%}
+    {%- assign endDateTime = item.ExpireDateTime | Date:''yyyyMMddHHmmss'' | Default:''99999999999999'' -%}
+    {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+        {{ comma }}
+        {             "images":[
+        {%- assign seriesImageGuid = item | Attribute:''Image'', ''RawValue'' -%}
+        {%- if seriesImageGuid != empty -%}
+            { "width":720, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ item | Attribute:''Image'', ''RawValue'' }}.jpg?guid={{ item | Attribute:''Image'', ''RawValue'' }}&width=720" },                     { "width":1080, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ item | Attribute:''Image'', ''RawValue'' }}.jpg?guid={{ item | Attribute:''Image'', ''RawValue'' }}&width=1080" },                     { "width":1920, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ item | Attribute:''Image'', ''RawValue'' }}.jpg?guid={{ item | Attribute:''Image'', ''RawValue'' }}&width=1920" }
+        {%- else -%}
+            {%- for child in item.ChildItems -%}
+                {%- assign seriesImage = child.ChildContentChannelItem | Attribute:''Image'' -%}
+                {%- assign seriesImageGuid = child.ChildContentChannelItem | Attribute:''Image'',''RawValue'' -%}
+                {%- if seriesImage != empty -%}
+                    { "width":720, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ seriesImageGuid }}.jpg?guid={{ seriesImageGuid }}&width=720" },                         { "width":1080, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ seriesImageGuid }}.jpg?guid={{ seriesImageGuid }}&width=1080" },                         { "width":1920, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ seriesImageGuid }}.jpg?guid={{ seriesImageGuid }}&width=1920" }
+                    {%- break -%}
+                {%- endif %}
+            {%- endfor -%}
+        {%- endif -%}
+        ],    "position": "{{ forloop.index }}",    "title": "{{ item.Title | Replace:''"'',''\"'' }}",    "subtitle": "{{ item.Content  | Replace:''"'',''\"'' | UrlEncode | Replace:''%0A'','''' | UrlDecode | StripHtml }}",    "actions": [{     "handler": "list",     "url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/series/{{ item.Id }}"    }]   }
+        {%- assign comma = "," -%}
+    {%- endif -%}
+{%- endfor -%}
+]
+{% endcontentchannelitem -%}
+}
+{% endcache %}

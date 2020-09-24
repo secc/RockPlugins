@@ -1,19 +1,24 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="PushNotification.ascx.cs" Inherits="RockWeb.Plugins.com_subsplash.Communication.PushNotification" %>
 
-<script>
-    //Sys.WebForms.PageRequestManager.getInstance().add_endRequest(scrollToGrid);
-    function scrollToResults() {
-        
-            $('html, body').animate({
-                scrollTop: $('.js-pnl-result')
-            }, 'fast');
-        
-    }
-</script>
+<asp:UpdatePanel ID="upNotifications" runat="server" Visible="false">
+    <ContentTemplate>
+        <Rock:NotificationBox ID="nbAlert" runat="server" NotificationBoxType="Danger" />
+    </ContentTemplate>
+</asp:UpdatePanel>
+
 
 <asp:UpdatePanel ID="upPanel" runat="server">
     <ContentTemplate>
-
+        <script>
+            //Sys.WebForms.PageRequestManager.getInstance().add_endRequest(scrollToGrid);
+            function scrollToResults() {
+        
+                    $('html, body').animate({
+                        scrollTop: $('.js-pnl-result')
+                    }, 'fast');
+        
+            }
+        </script>
         <asp:Panel ID="pnlEditForm" runat="server">
             <div class="panel panel-block">
                 <div class="panel-heading">

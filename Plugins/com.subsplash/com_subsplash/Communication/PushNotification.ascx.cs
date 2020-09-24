@@ -217,13 +217,16 @@ namespace RockWeb.Plugins.com_subsplash.Communication
 
             nbTestResult.Visible = false;
             pnlMessage.Visible = false;
+            upNotifications.Visible = false;
+            upPanel.Visible = true;
 
             if ( !GetAttributeValue( "Transport" ).AsGuidOrNull().HasValue )
             {
-                
+                upNotifications.Visible = true;
+                upPanel.Visible = false;
+                nbAlert.Text = "This block must be configured by selecting the Subsplash push notification communication transport.";
             }
-
-            if ( Page.IsPostBack )
+            else if ( Page.IsPostBack )
             {
                 LoadMediumControl( false );
             }
@@ -302,10 +305,13 @@ namespace RockWeb.Plugins.com_subsplash.Communication
         /// <param name="e">An <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnPreRender( EventArgs e )
         {
-            BindRecipients();
-            if (!IsPostBack)
+            if ( GetAttributeValue( "Transport" ).AsGuidOrNull().HasValue )
             {
-                BindTopics();
+                BindRecipients();
+                if (!IsPostBack)
+                {
+                    BindTopics();
+                }
             }
         }
 

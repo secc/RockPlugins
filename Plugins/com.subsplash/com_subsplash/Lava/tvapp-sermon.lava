@@ -1,0 +1,17 @@
+{%- cache key:''subsplash-tvapp-{{ id }}'' duration:''3600'' -%}
+{%- contentchannelitem where:''ContentChannelId == 23 && Id == {{ id }}'' sort:''StartDateTime desc'' -%}
+{%- for sermon in contentchannelitemItems -%}
+    {  "header": {   "title": "{{ sermon.Title | Replace:''"'',''\"'' }}"  },  "sapid":"{{ sermon.Guid }}",  "images": [{ "width":1080, "url":"https://www.southeastchristian.org/GetImage.ashx/{{ sermon | Attribute:''Image'', ''RawValue'' }}.jpg?guid={{ sermon | Attribute:''Image'', ''RawValue'' }}&width=1080"}],  "media": [      {
+    {%- assign fullServiceUrl = sermon | Attribute:''FullServiceVideoUrl'' -%}
+    {%- if fullServiceUrl != "" -%}
+        "url":"{{ fullServiceUrl }}",             "format":"mp4"
+    {%- else -%}
+        "url":"{{ sermon | Attribute:''VimeoDownloadUrl'' }}",             "format":"mp4"
+    {%- endif -%}
+    },   {    "url":"https://www.southeastchristian.org/GetFile.ashx/{{ message.ChildContentChannelItem | Attribute:''Audio'', ''RawValue'' }}.mp3?guid={{ sermon | Attribute:''Audio'', ''RawValue'' }}",    "format":"mp3"   }],  "title": "{{ sermon.Title | Replace:''"'',''\"'' }}",  "body":"
+    {%- if fullServiceUrl != "" -%}[{{ sermon | Attribute:''SermonStart'' | Replace:''"'',''\"'' | UrlEncode | Replace:''%0A'','''' | UrlDecode | Append:''] '' }}
+    {%- endif -%}
+    {{ sermon.Content | Replace:''"'',''\"'' | UrlEncode | Replace:''%0A'','''' | UrlDecode }}" }
+{%- endfor -%}
+{% endcontentchannelitem -%}
+{%- endcache -%}
