@@ -117,6 +117,7 @@
     <Compile Include="Migrations\005_KioskCategories.cs" />
     <Compile Include="Migrations\004_Touchless.cs" />
     <Compile Include="Migrations\002_Message.cs" />
+    <Compile Include="Migrations\013_GroupFilterAttributes.cs" />
     <Compile Include="Migrations\012_CheckinCampusFamilyDT.cs" />
     <Compile Include="Migrations\011_KioskTypeTheme.cs" />
     <Compile Include="Migrations\010_AttendanceQualifiers.cs" />

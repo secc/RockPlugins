@@ -16,8 +16,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
+using Amazon.S3.Model.Internal.MarshallTransformations;
 using Newtonsoft.Json;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Exceptions;
@@ -36,6 +38,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [DisplayName( "QuickSearch" )]
     [Category( "SECC > Check-in" )]
     [Description( "QuickSearch block for helping parents find their family quickly." )]
+    [TextField( "Person Search Activity", key: AttributeKeys.PersonSearchActivityName, required: false, order: 3, defaultValue: "Person Search" )]
+    [TextField( "Save Attendance Activity", key: AttributeKeys.SaveAttendanceActivtyName, required: false, order: 3, defaultValue: "Save Attendance" )]
     [IntegerField( "Minimum Phone Number Length", "Minimum length for phone number searches (defaults to 4).", false, 4 )]
     [IntegerField( "Maximum Phone Number Length", "Maximum length for phone number searches (defaults to 10).", false, 10 )]
     [IntegerField( "Refresh Interval", "How often (seconds) should page automatically query server for new Check-in data", false, 10 )]
@@ -46,7 +50,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [CodeEditorField( "No Mobile Checkin Record", "Message to display when there is no mobile checkin record.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 13, key: AttributeKeys.NoMobileCheckinRecord )]
     [CodeEditorField( "Expired Checkin Record", "Message to display when the check-in record has been exprired/deleted.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 13, key: AttributeKeys.ExpiredMobileCheckinRecord )]
     [CodeEditorField( "Already Completed Checkin Record", "Message to display when the check-in record has been deleted.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 14, key: AttributeKeys.AlreadyCompleteCheckinRecord )]
-    [CodeEditorField( "Completing Checkin Record", "Message to display when completing the check-in record.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 15, key: AttributeKeys.CompletingMobileCheckin )]
+    [CodeEditorField( "Completing Checkin Record", "Message to display when completing the mobile check-in record.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 15, key: AttributeKeys.CompletingMobileCheckin )]
+    [CodeEditorField( "Fast Pass Not Found", "Message to display when a fast pass QR code fails to find a person.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 16, key: AttributeKeys.FastPassNotFound )]
+    [CodeEditorField( "Already Checked In", "Message to display when a fast pass person is already checked in.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 17, key: AttributeKeys.AlreadyCheckedIn )]
+    [CodeEditorField( "No Checkin Available", "Message to display when a fast pass person has no check-in options.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 18, key: AttributeKeys.NoCheckinAvailable )]
+    [CodeEditorField( "Fast Pass Complete", "Message to display when a fast pass person has completed check-in.", CodeEditorMode.Html, CodeEditorTheme.Rock, 200, true, "", "", 20, key: AttributeKeys.FastPassComplete )]
     public partial class QuickSearch : CheckInBlock
     {
 
@@ -57,6 +65,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             internal const string AlreadyCompleteCheckinRecord = "AlreadyCompleteCheckinRecord";
             internal const string WrongCampusMessage = "WrongCampusMessage";
             internal const string CompletingMobileCheckin = "CompletingMobileCheckin";
+            //Fastpass attributes
+            internal const string PersonSearchActivityName = "PersonSearchActivityName";
+            internal const string SaveAttendanceActivtyName = "SaveAttendanceActivityName";
+            internal const string FastPassNotFound = "FastPassNotFound";
+            internal const string AlreadyCheckedIn = "AlreadyCheckedIn";
+            internal const string NoCheckinAvailable = "NoCheckinAvailable";
+            internal const string FastPassComplete = "FastPassComplete";
         }
 
         protected int minLength;
@@ -319,7 +334,115 @@ if ($ActiveWhen.text() != '')
 
         protected void btnMobileCheckin_Click( object sender, EventArgs e )
         {
-            MobileCheckin( hfMobileAccessKey.Value );
+            if ( hfMobileAccessKey.Value.StartsWith( "MCR" ) )
+            {
+                MobileCheckin( hfMobileAccessKey.Value );
+            }
+            else if ( hfMobileAccessKey.Value.StartsWith( "PFP" ) )
+            {
+                FastPassCheckin( hfMobileAccessKey.Value.Substring( 3 ) );
+            }
+        }
+
+        private void FastPassCheckin( string accessKey )
+        {
+            try
+            {
+                CurrentCheckInState.CheckIn.SearchType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_SCANNED_ID );
+                CurrentCheckInState.CheckIn.SearchValue = accessKey;
+                CurrentCheckInState.CheckIn.ConfirmSingleFamily = false;
+                CurrentCheckInState.CheckIn.UserEnteredSearch = false;
+
+                string workflowActivity = GetAttributeValue( "WorkflowActivity" );
+                List<string> errors = new List<string>();
+                bool test = ProcessActivity( workflowActivity, out errors );
+
+                if ( !CurrentCheckInState.CheckIn.Families.Any() || !CurrentCheckInState.CheckIn.CheckedInByPersonAliasId.HasValue )
+                {
+                    MobileCheckinMessage( GetAttributeValue( AttributeKeys.FastPassNotFound ) );
+                    return;
+                }
+
+                CurrentCheckInState.CheckIn.Families.FirstOrDefault().Selected = true;
+                test = ProcessActivity( GetAttributeValue( AttributeKeys.PersonSearchActivityName ), out errors );
+
+                RockContext rockContext = new RockContext();
+                PersonAliasService personAliasService = new PersonAliasService( rockContext );
+                var personId = personAliasService.Queryable().AsNoTracking()
+                    .Where( pa => pa.Id == CurrentCheckInState.CheckIn.CheckedInByPersonAliasId.Value )
+                    .Select( pa => pa.PersonId )
+                    .FirstOrDefault();
+
+                var person = CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Person.Id == personId ).FirstOrDefault();
+                var selected = false;
+
+                if (person == null )
+                {
+                    MobileCheckinMessage( GetAttributeValue( AttributeKeys.NoCheckinAvailable ), 4 );
+                    return;
+                }
+
+                foreach ( var gt in person.GroupTypes.OrderByDescending( gt => gt.PreSelected ) )
+                {
+                    foreach ( var g in gt.Groups.OrderByDescending( g => g.PreSelected ) )
+                    {
+                        foreach ( var l in g.Locations.OrderByDescending( l => l.PreSelected ) )
+                        {
+                            foreach ( var s in l.Schedules )
+                            {
+                                s.Selected = true;
+                                l.Selected = true;
+                                g.Selected = true;
+                                gt.Selected = true;
+                                selected = true;
+                            }
+                            if ( selected )
+                            {
+                                break;
+                            }
+                        }
+                        if ( selected )
+                        {
+                            break;
+
+                        }
+                    }
+                    if ( selected )
+                    {
+                        break;
+                    }
+                }
+
+                if ( !selected )
+                {
+                    if ( person.GroupTypes.SelectMany( gt => gt.Groups ).Any() )
+                    {
+                        MobileCheckinMessage( GetAttributeValue( AttributeKeys.AlreadyCheckedIn ), 4 );
+                    }
+                    else
+                    {
+                        MobileCheckinMessage( GetAttributeValue( AttributeKeys.NoCheckinAvailable ), 4 );
+                    }
+                    return;
+                }
+
+                test = ProcessActivity( GetAttributeValue( AttributeKeys.SaveAttendanceActivtyName ), out errors );
+
+                LabelPrinter labelPrinter = new LabelPrinter()
+                {
+                    Request = Request,
+                    Labels = person.GroupTypes.Where( gt => gt.Labels != null ).SelectMany( gt => gt.Labels ).ToList()
+                };
+
+                labelPrinter.PrintNetworkLabels();
+                var script = labelPrinter.GetClientScript();
+                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
+                MobileCheckinMessage( GetAttributeValue( AttributeKeys.FastPassComplete ), 2 );
+            }
+            catch (Exception e )
+            {
+                LogException( e );
+            }
         }
 
         private void MobileCheckin( string accessKey )

@@ -23,7 +23,18 @@ namespace org.secc.QRManager.Lava
             return $"<img src='{url}' width='{width}'>";
         }
 
-        private static string GetURL( object input )
+        public static string PersonalFastPassUrl( object input )
+        {
+            return GetURL( input, prefix: "PFP" );
+        }
+
+        public static string PersonalFastPassImage( object input, int width = 300 )
+        {
+            var url = GetURL( input, prefix: "PFP" );
+            return $"<img src='{url}' width='{width}'>";
+        }
+
+        private static string GetURL( object input, string prefix = "", string suffix = "" )
         {
             RockContext rockContext = new RockContext();
             Person person;
@@ -53,8 +64,8 @@ namespace org.secc.QRManager.Lava
             {
                 return "";
             }
-            var key = GetSearchKey( person, rockContext );
-            
+            var key = prefix + GetSearchKey( person, rockContext ) + suffix;
+
             var url = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot", rockContext ).EnsureTrailingForwardslash();
             return $"{url}api/qr/{key}";
         }
@@ -63,7 +74,7 @@ namespace org.secc.QRManager.Lava
         {
             var alternateIdSearchTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_SEARCH_KEYS_ALTERNATE_ID.AsGuid() ).Id;
             var searchKey = person.GetPersonSearchKeys( rockContext ).Where( k => k.SearchTypeValueId == alternateIdSearchTypeValueId ).FirstOrDefault();
-            if (searchKey !=null )
+            if ( searchKey != null )
             {
                 return searchKey.SearchValue;
             }

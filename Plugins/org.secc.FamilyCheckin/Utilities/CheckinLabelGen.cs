@@ -273,7 +273,7 @@ namespace org.secc.FamilyCheckin.Utilities
             if ( allBreakoutGroups == null || !allBreakoutGroups.Any() )
             {
                 //If the cache is empty, fill it up!
-                Guid breakoutGroupTypeGuid = Constants.GROUP_TYPE_BREAKOUT_GROUSPS.AsGuid();
+                Guid breakoutGroupTypeGuid = Constants.GROUP_TYPE_BREAKOUT_GROUPS.AsGuid();
                 var breakoutGroups = new GroupService( rockContext )
                     .Queryable( "Members" )
                     .AsNoTracking()

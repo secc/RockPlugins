@@ -28,27 +28,6 @@ namespace org.secc.QRManager.Rest.Controllers
         [System.Web.Http.Route( "api/qr/{code}" )]
         public HttpResponseMessage GetEntityGuid( string code )
         {
-            if ( code.StartsWith( "MCR" ) )
-            {
-                var mobileCheckinRecord = MobileCheckinRecordCache.GetByAccessKey( code );
-                if ( mobileCheckinRecord == null )
-                {
-                    throw new Exception( "Invalid Key" );
-                }
-            }
-            else
-            {
-                //Check to see if is a person's search key
-                RockContext rockContext = new RockContext();
-                PersonSearchKeyService personSearchKeyService = new PersonSearchKeyService( rockContext );
-                var key = personSearchKeyService.Queryable().Where( k => k.SearchValue == code );
-                if ( !key.Any() )
-                {
-                    throw new Exception( "Invalid Key" );
-                }
-
-            }
-
             var qr = GenerateQR( code );
             if ( qr == null )
             {

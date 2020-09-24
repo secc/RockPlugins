@@ -20,7 +20,7 @@
 
 
     Sys.Application.add_load(function () {
-        setInterval(function () { 
+        setInterval(function () {
             if (!document.hasFocus()) {
                 document.body.focus();
             }
@@ -71,6 +71,9 @@
                 }
                 else if (char === "M") { // The first charater will be an "M" if it is a mobile checkin record access key
                     keybuffer = "M";
+                }
+                else if (char === "P") { // The first charater will be an "P" if it is a Personal FastPass
+                    keybuffer = "P";
                 }
                 else if (["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].indexOf(char) > -1) {
                     $phoneNumber = $("input[id$='tbPhone']");
@@ -281,6 +284,7 @@
             return;
         }
         $('#hfMobileAccessKey').val(keybuffer);
+        keybuffer = "";
         showMobileDialog("<center><br><br><h2>Loading...</h2>Please wait. We are looking up your check-in record.</center>")
         window.location = "javascript:__doPostBack('<%= btnMobileCheckin.UniqueID %>', 'Click')";
     }

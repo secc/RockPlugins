@@ -16,12 +16,16 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Data.Entity;
 using System.Linq;
+using DotLiquid.Util;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
+using Rock.Web.UI.Controls;
 using Rock.Workflow;
 using Rock.Workflow.Action.CheckIn;
 
@@ -34,7 +38,6 @@ namespace org.secc.FamilyCheckin
     [Description( "Removes or excludes checkin groups that require the member to be in a particular group" )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Filter Groups By Membership" )]
-    [AttributeField( Rock.SystemGuid.EntityType.GROUP, "Group Membership Group Attribute", "Select the attribute used to filter membership group.", true, false, "6f1ff463-e857-4755-b0b7-461e8c183789", order: 2 )]
     [CustomDropdownListField( "Check Requirements", "How should group member reqirements be checked?", "0^Don\'t Check,1^Check Required Only,2^ Check Required and Warning", true, "0", order: 4 )]
     [BooleanField( "Remove", "Select 'Yes' if groups should be be removed.  Select 'No' if they should just be marked as excluded.", true, order: 5 )]
     public class FilterGroupsByMembership : CheckInActionComponent
@@ -57,17 +60,25 @@ namespace org.secc.FamilyCheckin
                 return false;
             }
 
-            var groupIdAttributeKey = string.Empty;
-            var groupIdAttributeGuid = GetAttributeValue( action, "GroupMembershipGroupAttribute" ).AsGuid();
-            if ( groupIdAttributeGuid != Guid.Empty )
+            var groupAttributeKey = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_MEMBERSHIP_GROUP ).Key;
+            var checkRequirementsKey = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_CHECK_REQUIREMENTS ).Key;
+            var memberRoleAttributeKey = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_MEMBER_ROLE ).Key;
+
+            bool allowInactive = false;
+
+            if ( checkInState.CheckInType != null )
             {
-                groupIdAttributeKey = AttributeCache.Get( groupIdAttributeGuid ).Key;
+                allowInactive = !checkInState.CheckInType.PreventInactivePeople;
             }
 
             var family = checkInState.CheckIn.CurrentFamily;
             if ( family != null )
             {
+                GroupService groupService = new GroupService( rockContext );
                 GroupMemberService groupMemberService = new GroupMemberService( rockContext );
+                GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( rockContext );
+
+
                 var remove = GetAttributeValue( action, "Remove" ).AsBoolean();
 
                 foreach ( var person in family.People )
@@ -78,56 +89,113 @@ namespace org.secc.FamilyCheckin
                     }
                     foreach ( var groupType in person.GroupTypes.ToList() )
                     {
+                        var groupsToCheck = groupType.Groups
+                            .Where( g => g.Group.AttributeValues.ContainsKey( groupAttributeKey ) )
+                            .Select( g => g.Group.AttributeValues[groupAttributeKey].Value )
+                            .Where( s => s.IsNotNullOrWhiteSpace() )
+                            .Select( s => s.AsGuid() );
+
+                        if ( !groupsToCheck.Any() )
+                        {
+                            //There are no groups to search here. Don't remove any and move on
+                            continue;
+                        }
+
+                        var groupMemberQry = groupMemberService.Queryable().AsNoTracking()
+                            .Where( gm => gm.PersonId == person.Person.Id );
+                        if ( !allowInactive )
+                        {
+                            groupMemberQry = groupMemberQry.Where( gm => gm.GroupMemberStatus == GroupMemberStatus.Active );
+                        }
+
+                        //Check all the groups at once. This turns many little requests into one medium request.
+                        var qry = groupService.Queryable().AsNoTracking()
+                            .Where( g => groupsToCheck.Contains( g.Guid ) )
+                            .Join( groupMemberQry,
+                            g => g.Id,
+                            gm => gm.GroupId,
+                            ( g, gm ) => new
+                            {
+                                g.Guid,
+                                gm.GroupRole.IsLeader
+                            } );
+
+                        var validGroups = qry.ToList();
+
                         foreach ( var group in groupType.Groups.ToList() )
                         {
-                            var groupGuid = group.Group.GetAttributeValue( groupIdAttributeKey ).AsGuidOrNull();
-                            if ( groupGuid.HasValue )
+                            var groupGuid = group.Group.GetAttributeValue( groupAttributeKey ).AsGuid();
+                            if ( groupGuid == Guid.Empty )
                             {
-                                bool allowInactive = false;
+                                //There is no group to check... do not remove check-in group
+                                continue;
+                            }
+                            var cannotCheckin = false;
 
-                                if ( checkInState.CheckInType != null )
-                                {
-                                    allowInactive = !checkInState.CheckInType.PreventInactivePeople;
-                                }
+                            var role = group.Group.GetAttributeValue( memberRoleAttributeKey );
 
-                                var groupmembers = groupMemberService.GetByGroupGuid( groupGuid.Value )
-                                    .Where( gm => gm.PersonId == person.Person.Id
-                                    && ( gm.GroupMemberStatus == GroupMemberStatus.Active || allowInactive ) );
+                            switch ( role )
+                            {
 
-                                var state = GetAttributeValue( action, "CheckRequirements" );
-
-                                switch ( state )
-                                {
-                                    case "0":
-                                        break;
-                                    case "1":
-                                        groupmembers = groupmembers.Where(
-                                            gm => !gm.GroupMemberRequirements.Where(
-                                                r => r.RequirementFailDateTime != null )
-                                            .Any()
-                                            );
-                                        break;
-                                    case "2":
-                                        groupmembers = groupmembers.Where(
-                                            gm => !gm.GroupMemberRequirements.Where(
-                                                r => r.RequirementFailDateTime != null || r.RequirementWarningDateTime != null )
-                                            .Any() );
-                                        break;
-                                }
-
-                                if ( !groupmembers.Any() )
-                                {
-                                    if ( remove )
+                                case "0": // Any
+                                    if ( !validGroups.Where( g => g.Guid == groupGuid ).Any() )
                                     {
-                                        groupType.Groups.Remove( group );
+                                        cannotCheckin = true;
                                     }
-                                    else
+                                    break;
+                                case "1": //Leaders Only
+                                    if ( !validGroups.Where( g => g.Guid == groupGuid && g.IsLeader ).Any() )
                                     {
-                                        group.ExcludedByFilter = true;
+                                        cannotCheckin = true;
                                     }
+                                    break;
+                                case "2": //Non Leaders
+                                    if ( !validGroups.Where( g => g.Guid == groupGuid && !g.IsLeader ).Any() )
+                                    {
+                                        cannotCheckin = true;
+                                    }
+                                    break;
+                            }
+
+                            if ( !cannotCheckin )
+                            {
+                                //Check the group requirements to see if this person passes
+                                var requirement = group.Group.GetAttributeValue( checkRequirementsKey );
+
+                                switch ( requirement )
+                                {
+                                    case "0": //No requirement
+                                        break;
+                                    case "1": //Required Only
+                                        cannotCheckin = !groupMemberService.GetByGroupGuid( groupGuid )
+                                            .Where( gm => gm.PersonId == person.Person.Id && ( gm.GroupMemberStatus == GroupMemberStatus.Active || allowInactive ) )
+                                            .Where( gm => !gm.GroupMemberRequirements.Where( r => r.RequirementFailDateTime != null )
+                                            .Any() )
+                                            .Any();
+                                        break;
+                                    case "2": //Required And Warning
+                                        cannotCheckin = !groupMemberService.GetByGroupGuid( groupGuid )
+                                            .Where( gm => gm.PersonId == person.Person.Id && ( gm.GroupMemberStatus == GroupMemberStatus.Active || allowInactive ) )
+                                            .Where( gm => !gm.GroupMemberRequirements.Where( r => r.RequirementFailDateTime != null || r.RequirementWarningDateTime != null )
+                                            .Any() )
+                                            .Any();
+                                        break;
+                                }
+                            }
+
+                            if ( cannotCheckin )
+                            {
+                                if ( remove )
+                                {
+                                    groupType.Groups.Remove( group );
+                                }
+                                else
+                                {
+                                    group.ExcludedByFilter = true;
                                 }
                             }
                         }
+
                     }
                 }
             }

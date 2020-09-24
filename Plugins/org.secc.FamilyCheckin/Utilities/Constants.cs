@@ -13,6 +13,8 @@
 // </copyright>
 //
 
+using Rock.Model;
+
 namespace org.secc.FamilyCheckin.Utilities
 {
     public static class Constants
@@ -33,6 +35,22 @@ namespace org.secc.FamilyCheckin.Utilities
         public const string DEFINED_VALUE_ATTRIBUTE_CHILD_CAMPUS = "ChildCampus";
         public const string LOCATION_ATTRIBUTE_ROOM_RATIO = "RoomRatio";
         public const string GROUP_ATTRIBUTE_LINK_LOCATIONS = "0A8723A4-4AEE-4D21-A32B-350845FC8FA9";
-        public const string GROUP_TYPE_BREAKOUT_GROUSPS = "224A3D85-5276-4C33-9436-5FDA7DD24D14";
+        public const string GROUP_ATTRIBUTE_MEMBERSHIP_GROUP = "22C7D86E-ABEA-4DFB-A83C-FC18100C9834";
+        public const string GROUP_ATTRIBUTE_CHECK_REQUIREMENTS = "5B779E7F-C305-4883-B845-ACA7425D8922";
+        public const string GROUP_ATTRIBUTE_MEMBER_ROLE = "A9B650BF-1F9B-4670-BEEE-51577EBCAA0A";
+        public const string GROUP_ATTRIBUTE_ATTENDANCE_ON_GROUP = "42F9C881-EF80-452E-819D-B02BBC0F1229";
+        public const string GROUP_TYPE_BREAKOUT_GROUPS = "224A3D85-5276-4C33-9436-5FDA7DD24D14";
+
+        //GroupType Filters
+        public const string GROUP_TYPE_BY_BASE = "6E7AD783-7614-4721-ABC1-35842113EF59";
+        public const string GROUP_TYPE_BY_CHILDREN_CHECKIN_BASE = "5398A1C2-F422-4ADC-A48B-B9EFFE3598AD";
+        public const string GROUP_TYPE_BY_AGE = "0572A5FE-20A4-4BF1-95CD-C71DB5281392";
+        public const string GROUP_TYPE_BY_ABILITY_LEVEL = "13A6139D-EEEC-412D-8572-773ECA1939CC";
+        public const string GROUP_TYPE_BY_GRADE = "4F9565A7-DD5A-41C3-B4E8-13F0B872B10B";
+        public const string GROUP_TYPE_BY_BIRTHDAY = "3600C17B-1D92-4929-B7B7-BBC156F2D47A";
+        public const string GROUP_TYPE_BY_SPECIAL_NEEDS = "D941EA54-AA6D-4B45-A2E0-ADBD68D61C8C";
+        public const string GROUP_TYPE_BY_MEMBERSHIP = "2098AE58-58D4-4CEF-8D40-C2657D2E7A6A";
+        public const string GROUP_TYPE_BY_DATAVIEW = "722D1D26-AD6A-4800-8F86-2AAB521A2FFD";
+        public const string GROUP_TYPE_BY_TEXT = "374F4210-20D9-4DC9-B2ED-7B12D1EA3406";
     }
 }

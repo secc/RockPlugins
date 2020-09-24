@@ -132,7 +132,7 @@ namespace org.secc.FamilyCheckin
                                         var primaryAlias = personAliasService.GetPrimaryAlias( person.Person.Id );
                                         if ( primaryAlias != null )
                                         {
-
+                                            int groupId = ActualGroupId( group.Group );
                                             // If a like attendance service exists close it before creating another one.
                                             var oldAttendance = attendanceService.Queryable()
                                             .Where( a =>
@@ -140,7 +140,7 @@ namespace org.secc.FamilyCheckin
                                                 a.StartDateTime < tomorrow &&
                                                 a.Occurrence.LocationId == location.Location.Id &&
                                                 a.Occurrence.ScheduleId == schedule.Schedule.Id &&
-                                                a.Occurrence.GroupId == group.Group.Id &&
+                                                a.Occurrence.GroupId == groupId &&
                                                 a.PersonAlias.PersonId == person.Person.Id )
                                             .FirstOrDefault();
 
@@ -149,7 +149,7 @@ namespace org.secc.FamilyCheckin
                                                 oldAttendance.EndDateTime = Rock.RockDateTime.Now;
                                                 oldAttendance.DidAttend = false;
                                             }
-                                            var attendance = attendanceService.AddOrUpdate( primaryAlias.Id, startDateTime.Date, group.Group.Id,
+                                            var attendance = attendanceService.AddOrUpdate( primaryAlias.Id, startDateTime.Date, groupId,
                                                     location.Location.Id, schedule.Schedule.Id, campusId ?? location.CampusId,
                                                     checkInState.Kiosk.Device.Id, checkInState.CheckIn.SearchType.Id,
                                                     checkInState.CheckIn.SearchValue, family.Group.Id, attendanceCode.Id );
@@ -228,6 +228,27 @@ namespace org.secc.FamilyCheckin
             return false;
         }
 
+        private int ActualGroupId( Group group )
+        {
+            var useActualGroupKey = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_ATTENDANCE_ON_GROUP ).Key;
+            var useActualGroup = group.GetAttributeValue( useActualGroupKey ).AsBoolean();
+
+            if ( useActualGroup )
+            {
+                var membershipGroupKey = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_MEMBERSHIP_GROUP ).Key;
+                var membershipGroupGuid = group.GetAttributeValue( membershipGroupKey ).AsGuid();
+                RockContext rockContext = new RockContext();
+                GroupService groupService = new GroupService( rockContext );
+                var actualGroup = groupService.GetNoTracking( membershipGroupGuid );
+                if (actualGroup != null )
+                {
+                    return actualGroup.Id;
+                }
+            }
+
+            return group.Id;
+        }
+
         private int? RollUpToParentCampus( int? campusId )
         {
             if ( !campusId.HasValue )
@@ -266,6 +287,11 @@ namespace org.secc.FamilyCheckin
 
             var checkinCampus = CampusCache.Get( checkinCampusId.Value );
             var familyCampus = CampusCache.Get( familyCampusId.Value );
+
+            if ( checkinCampus == null || familyCampus == null )
+            {
+                return checkinCampusId;
+            }
 
             var nestedCampusType = DefinedTypeCache.Get( Constants.DEFINED_TYPE_NESTED_CAMPUSES );
             var useFamilyCampus = nestedCampusType.DefinedValues
