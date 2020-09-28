@@ -376,7 +376,7 @@ if ($ActiveWhen.text() != '')
                 var person = CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Person.Id == personId ).FirstOrDefault();
                 var selected = false;
 
-                if (person == null )
+                if ( person == null )
                 {
                     MobileCheckinMessage( GetAttributeValue( AttributeKeys.NoCheckinAvailable ), 4 );
                     return;
@@ -439,7 +439,7 @@ if ($ActiveWhen.text() != '')
                 ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
                 MobileCheckinMessage( GetAttributeValue( AttributeKeys.FastPassComplete ), 2 );
             }
-            catch (Exception e )
+            catch ( Exception e )
             {
                 LogException( e );
             }
@@ -502,10 +502,6 @@ if ($ActiveWhen.text() != '')
                     Labels = labels
                 };
 
-                labelPrinter.PrintNetworkLabels();
-                var script = labelPrinter.GetClientScript();
-                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
-
                 foreach ( var attendance in mobileCheckinRecord.Attendances )
                 {
                     if ( attendance.QualifierValueId == mobileDidAttendId )
@@ -534,9 +530,14 @@ if ($ActiveWhen.text() != '')
                 }
                 MobileCheckinRecordCache.Update( mobileCheckinRecord.Id );
                 MobileCheckinMessage( GetAttributeValue( AttributeKeys.CompletingMobileCheckin ), 5 );
+
+                labelPrinter.PrintNetworkLabels();
+                var script = labelPrinter.GetClientScript();
+                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
             }
             catch ( Exception e )
             {
+                LogException( new Exception( "There was an issue completing a mobile check-in record. See Inner Exception for details", e ) );
             }
         }
 
