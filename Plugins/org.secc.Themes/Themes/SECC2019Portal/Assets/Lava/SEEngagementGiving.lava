@@ -1,3 +1,4 @@
+{%- assign MetricDateTime = MetricDateTime | Date:'yyyy-MM-dd' -%}
 {%- assign today = 'Now' | Date:'dddd' -%}
 {%- assign comma = "" -%}
 {%- assign subtractDays = -14 -%}
@@ -8,6 +9,10 @@
 {%- assign satSubtractDays = subtractDays | Plus:-1 -%}
 {%- assign saturdayBefore = "Now" | SundayDate | DateAdd:satSubtractDays | Date:'dd' -%}
 {%- assign weekendDate = "Now" | SundayDate | DateAdd:subtractDays | Date:'yyyy-MM-dd' -%}
+{%- assign dateDiff = MetricDateTime | DateDiff:weekendDate,'d' -%}
+{%- if dateDiff >= 0 -%}
+{%- assign weekendDate = MetricDateTime | SundayDate | Date:'yyyy-MM-dd' -%}
+{% endif %}
 {%- assign numberOfWeekendsToShow = 4 -%}
 [{%- for i in (0..numberOfWeekendsToShow) -%}{{- comma -}}
     {%- assign weekendDollarTotal = 0 -%}
