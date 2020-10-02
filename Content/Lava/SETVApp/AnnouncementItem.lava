@@ -10,7 +10,11 @@
 	"images": [{ "width":1080, "url":"https://app.secc.org/GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}&width=720"}],
 	"media": [
 	    {
-    		"url":"{{- item | Attribute:'VideoURL','RawValue' -}}",
+		{%- assign videoUrl = item | Attribute:'VideoURL','RawValue' -%}
+		{%- if videoUrl contains 'm3u8' -%}
+			{%- capture videoUrl -%}https://www.southeastchristian.org/webhooks/lava.ashx/streaming/{{item.Guid}}.m3u8{% endcapture %}
+		{%- endif -%}
+    		"url":"{{videoUrl}}",
             "format":"{{- item | Attribute:'VideoType' -}}"
         }],
 	"title": "{{- item.Title | Replace:'"','\"'  -}}{% if subtitleSize > 0 %}: {{ item | Attribute:'Subtitle' | Replace:'"','\"'  }}{% endif %}",

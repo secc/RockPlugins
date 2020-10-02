@@ -10,9 +10,13 @@
 	"media": [
 	    {
         {%- assign fullServiceUrl = sermon | Attribute:'FullServiceVideoUrl' -%}
+        {%- assign videoStreamingUrl = sermon | Attribute:'VimeoStreamingUrl' -%}
         {%- if fullServiceUrl != "" -%}
     		"url":"{{fullServiceUrl}}",
             "format":"mp4"
+        {%- elseif videoStreamingUrl != "" -%}
+            "url":"https://www.southeastchristian.org/webhooks/lava.ashx/streaming/{{sermon.Guid}}.m3u8",
+            "format":"m3u8"
         {%- else -%}
             "url":"{{sermon | Attribute:'VimeoDownloadUrl'}}",
             "format":"mp4"
