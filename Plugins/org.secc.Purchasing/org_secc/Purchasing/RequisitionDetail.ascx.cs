@@ -532,6 +532,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 RequisitionID = 0;
                 LoadRequisitionTypes();
+                BindMinistryList();
                 LoadRequisition();
 
                 hfExpeditedShippingDays.Value = ExpeditedShippingWindowDaysSetting;
@@ -712,7 +713,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     LoadItemDetailModal(Argument);
                     break;
                 case "loadpurchaseorder":
-                    ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "LoadPOPopup" + DateTime.Now.Ticks, "window.open(\"/page/" + PageCache.Read( PurchaseOrderDetailPageSetting.AsGuid() ).Id + "?poid=" + Argument.ToString() + "\",\"_blank\");", true);
+                    ScriptManager.RegisterStartupScript(upMain, upMain.GetType(), "LoadPOPopup" + DateTime.Now.Ticks, "window.open(\"/page/" + PageCache.Get( PurchaseOrderDetailPageSetting.AsGuid() ).Id + "?poid=" + Argument.ToString() + "\",\"_blank\");", true);
                     break;
                 case "viewpolist":
                     ShowItemPurchaseOrdersModal(Argument);
@@ -751,7 +752,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     {
                         if (UserCanEdit)
                         {
-                            sb.AppendFormat("<a href=\"/page/{0}?poid={1}\" target=\"_blank\">{2}</a>", PageCache.Read( PurchaseOrderDetailPageSetting.AsGuid() ).Id, Item.PONumbers[i], Item.PONumbers[i]);
+                            sb.AppendFormat("<a href=\"/page/{0}?poid={1}\" target=\"_blank\">{2}</a>", PageCache.Get( PurchaseOrderDetailPageSetting.AsGuid() ).Id, Item.PONumbers[i], Item.PONumbers[i]);
                         }
                         else
                         {
@@ -1399,6 +1400,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     ddlType.SelectedValue = "";
                     ddlType.Text = CurrentRequisition.RequisitionType.Value;
                 }
+
+                if ( ddlMinistry.Items.FindByValue( CurrentRequisition.MinistryLUID.ToString() ) != null )
+                { 
+                    ddlMinistry.SelectedValue = CurrentRequisition.MinistryLUID.ToString();
+                }
+
                 SetRequester(CurrentRequisition.RequesterID);
 
 
@@ -1585,6 +1592,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 txtTitle.ReadOnly = true;
                 txtDeliverTo.AddCssClass("nothing");
                 txtDeliverTo.ReadOnly = true;
+                ddlMinistry.Enabled = false;
+                ddlMinistry.AddCssClass( "nothing" );
             }
 
             if (UserCanEdit)
@@ -1696,6 +1705,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     HasChanged = true;
                 if (!HasChanged && txtDeliverTo.Text != CurrentRequisition.DeliverTo)
                     HasChanged = true;
+                if ( !HasChanged && ddlMinistry.SelectedValue != CurrentRequisition.MinistryLUID.ToString() )
+                    HasChanged = true;
                 if (CurrentRequisition.PreferredVendor != null)
                 {
                     if (!HasChanged && ucVendorSelect.VendorID != CurrentRequisition.PreferredVendor.VendorID)
@@ -1758,14 +1769,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             UpdatePreferredVendor();
             
 
-            if ( CurrentRequisition.MinistryLUID == 0 )
+            if ( CurrentRequisition.MinistryLUID == 0 || CurrentRequisition.MinistryLUID != ddlMinistry.SelectedValue.AsInteger() )
             {
-                   CurrentRequisition.Requester.LoadAttributes();
-                   var MinistryAttribute = CurrentRequisition.Requester.AttributeValues.Where( x => x.Key == MinistryAreaAttribute.Key ).FirstOrDefault();
+                CurrentRequisition.Requester.LoadAttributes();
+                var MinistryAttribute = CurrentRequisition.Requester.AttributeValues.Where( x => x.Key == MinistryAreaAttribute.Key ).FirstOrDefault();
 
                 if (MinistryAttribute.Value != null )
                 {
-                    CurrentRequisition.MinistryLUID = DefinedValueCache.Get( MinistryAttribute.Value.Value.AsGuid() ).Id;
+                    CurrentRequisition.MinistryLUID = ddlMinistry.SelectedValue.AsInteger();
                 }
             }
 
@@ -2113,6 +2124,32 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ddlItemCompany.DataTextField = "Name";
             ddlItemCompany.DataBind();
         }
+
+
+        private void BindMinistryList()
+        {
+            AttributeService attributeService = new AttributeService( new RockContext() );
+
+            Rock.Model.Attribute ministryAttribute = attributeService.Get( MinistryAreaAttribute.Guid );
+
+            if ( ministryAttribute != null )
+            {
+                ddlMinistry.Items.Clear();
+                CurrentPerson.LoadAttributes();
+                var ministryGuids = CurrentPerson.AttributeValues[MinistryAreaAttribute.Key ].Value.Split( ',' ).AsGuidList();
+                ddlMinistry.DataSource = DefinedValueCache.All().Where( dv => ministryGuids.Contains( dv.Guid ) ).OrderBy( l => l.Value );
+
+                ddlMinistry.DataTextField = "Value";
+                ddlMinistry.DataValueField = "Id";
+                ddlMinistry.DataBind();
+                if ( ministryGuids.Count > 1 )
+                {
+                    ddlMinistry.Items.Insert( 0, new ListItem( "", "" ) );
+                    ddlMinistry.SelectedValue = "";
+                }
+            }
+        }
+
 
         private void ClearItemDetailModal()
         {
@@ -2837,7 +2874,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 PersonAlias requester = personAliasService.Get(CurrentRequisition.RequesterID);
                 foreach(int roleId in BetaRequesterNotificationOverrideRolesSetting)
                 {
-                    if (Rock.Security.Role.Read(roleId).IsPersonInRole(requester.Person.Guid)) {
+                    if (RoleCache.Get(roleId).IsPersonInRole(requester.Person.Guid)) {
                         isInBetaGroup = true;
                     }
                 }
@@ -3303,7 +3340,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 HyperLink hLinkPO = (HyperLink)e.Item.FindControl("hlPurchaseOrderID");
                 Label lblPO = (Label)e.Item.FindControl("lblPurchaseOrderID");
                 hLinkPO.Text = POID.ToString();
-                hLinkPO.NavigateUrl = string.Format("~/page/{0}?poid={1}", PageCache.Read( PurchaseOrderDetailPageSetting.AsGuid() ).Id, POID);
+                hLinkPO.NavigateUrl = string.Format("~/page/{0}?poid={1}", PageCache.Get( PurchaseOrderDetailPageSetting.AsGuid() ).Id, POID);
                 lblPO.Text = POID.ToString();
 
                 if (UserCanEdit)

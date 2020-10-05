@@ -170,9 +170,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if (ministryAttribute != null)
             {
-                
+
                 ddlMinistry.Items.Clear();
-                ddlMinistry.DataSource = definedTypeService.Get( ministryAttribute.AttributeQualifiers.Where( aq => aq.Key == "definedtype" ).FirstOrDefault().Value.AsInteger() ).DefinedValues.OrderBy(l => l.Value);
+                if (!UserCanEdit)
+                {
+                    CurrentPerson.LoadAttributes();
+                    var ministryGuids = CurrentPerson.AttributeValues[AttributeCache.Get( MinistryAreaAttributeIDSetting ).Key].Value.Split( ',' ).AsGuidList();
+                    ddlMinistry.DataSource = DefinedValueCache.All().Where( dv => ministryGuids.Contains( dv.Guid ) ).OrderBy( l => l.Value );
+                }
+                else
+                {
+                    ddlMinistry.DataSource = definedTypeService.Get( ministryAttribute.AttributeQualifiers.Where( aq => aq.Key == "definedtype" ).FirstOrDefault().Value.AsInteger() ).DefinedValues.OrderBy( l => l.Value );
+
+                }
                 ddlMinistry.DataTextField = "Value";
                 ddlMinistry.DataValueField = "Id";
                 ddlMinistry.DataBind();
@@ -390,19 +400,24 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             bool skipLocation = false;
             if ( MinistryAreaAttributeIDSetting != null)
             {
-                var ministryValue = DefinedValueCache.Get( CurrentPerson.AttributeValues[AttributeCache.Get( MinistryAreaAttributeIDSetting ).Key].Value );
-                if (ministryValue != null ) {
-                    Filter.Add("MyMinistryID", ministryValue.Id.ToString());
+                List<Guid> ministryGuids = CurrentPerson.AttributeValues[AttributeCache.Get( MinistryAreaAttributeIDSetting ).Key].Value.Split( ',' ).AsGuidList();
+                var ministryValues = DefinedValueCache.All().Where( dv => ministryGuids.Contains( dv.Guid ) );
+                if (ministryValues.Count() > 0 ) {
+                    Filter.Add("MyMinistryIDs", ministryValues.Select(mv => mv.Id.ToString()).JoinStrings(","));
                 }
 
                 // If the current person is in the security group, skip the location lookup
-                var groupGuid = ministryValue.GetAttributeValue( "ChurchWidePurchasingSecurityGroup" ).AsGuidOrNull();
-                if ( groupGuid.HasValue )
+                foreach(var ministryValue in ministryValues)
                 {
-                    GroupService groupService = new GroupService( new RockContext() );
-                    Group group = groupService.Get( groupGuid.Value );
-                    skipLocation = group.Members.Where( gm => gm.PersonId == CurrentPerson.Id ).Any();
+                    var groupGuid = ministryValue.GetAttributeValue( "ChurchWidePurchasingSecurityGroup" ).AsGuidOrNull();
+                    if ( groupGuid.HasValue )
+                    {
+                        GroupService groupService = new GroupService( new RockContext() );
+                        Group group = groupService.Get( groupGuid.Value );
+                        skipLocation = skipLocation || group.Members.Where( gm => gm.PersonId == CurrentPerson.Id ).Any();
+                    }
                 }
+                
             }
 
             if ( MinistryLocationAttributeIDSetting != null && !skipLocation )
@@ -507,7 +522,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             hfFilterSubmittedBy.Visible = isEditor;
             chkShowInactive.Visible = isEditor;
-            ddlMinistry.Visible = isEditor;
+            CurrentPerson.LoadAttributes();
+            ddlMinistry.Visible = isEditor || CurrentPerson.AttributeValues[AttributeCache.Get( MinistryAreaAttributeIDSetting ).Key].Value.Split( ',' ).Count() > 0;
             ddlLocation.Visible = isEditor;
             pnlRequester.Visible = isEditor;
         }

@@ -708,6 +708,7 @@ namespace org.secc.Purchasing
                     {
                         int MyMinistryID = 0;
                         int MyLocationID = 0;
+                        List<int> MyMinistryIds;
 
                         var query2 = Query;
 
@@ -721,6 +722,36 @@ namespace org.secc.Purchasing
                             }
 
                             ListItems.AddRange(query2.Where( r => !ListItems.Select( li => li.RequisitionID ).Contains( r.RequisitionId ) )
+                                                         .Select( q => new RequisitionListItem
+                                                         {
+                                                             RequisitionID = q.RequisitionId,
+                                                             Title = q.Title,
+                                                             RequesterID = q.RequesterId,
+                                                             RequesterLastFirst = q.RequesterLastFirst,
+                                                             Status = q.Status,
+                                                             RequisitionType = q.TypeName,
+                                                             ItemCount = q.ItemCount,
+                                                             NoteCount = q.NoteCount,
+                                                             AttachmentCount = q.AttachmentCount,
+                                                             DateCreated = q.DateCreated,
+                                                             DateSubmitted = q.DateSubmitted,
+                                                             IsExpedited = q.IsExpedited,
+                                                             IsApproved = q.IsApproved,
+                                                             IsAccepted = q.IsAccepted
+                                                         } ) );
+                        }
+
+                        if ( filter.ContainsKey( "MyMinistryIDs" ) )
+                        { 
+                            MyMinistryIds = Array.ConvertAll(filter["MyMinistryIDs"].Split(','), s=>int.Parse(s)).ToList<int>();
+                            query2 = query2.Where( q => q.MinistryLUID.HasValue && MyMinistryIds.Contains( q.MinistryLUID.Value ) );
+
+                            if ( filter.ContainsKey( "MyLocationID" ) && int.TryParse( filter["MyLocationID"], out MyLocationID ) )
+                            {
+                                query2 = query2.Where( q => q.LocationLUID == MyLocationID );
+                            }
+
+                            ListItems.AddRange( query2.Where( r => !ListItems.Select( li => li.RequisitionID ).Contains( r.RequisitionId ) )
                                                          .Select( q => new RequisitionListItem
                                                          {
                                                              RequisitionID = q.RequisitionId,
@@ -1474,7 +1505,7 @@ namespace org.secc.Purchasing
                 Person person = personAliasService.Get(personID).Person;
                 person.LoadAttributes();
                 CreatedBy.LoadAttributes();
-                return person.GetAttributeValue(attribute).Equals(CreatedBy.GetAttributeValue(attribute));
+                return person.GetAttributeValue(attribute).Contains(CreatedBy.GetAttributeValue(attribute));
             }
 
             return false;
@@ -1488,7 +1519,7 @@ namespace org.secc.Purchasing
                 person.LoadAttributes();
                 Person requester = personAliasService.Get(RequesterID).Person;
                 requester.LoadAttributes();
-                return person.GetAttributeValue(attribute).Equals(requester.GetAttributeValue(attribute));
+                return person.GetAttributeValue(attribute).Contains(requester.GetAttributeValue(attribute));
             }
 
             return false;
