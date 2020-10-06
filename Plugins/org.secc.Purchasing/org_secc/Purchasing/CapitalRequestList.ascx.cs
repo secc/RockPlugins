@@ -130,19 +130,20 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             CurrentPerson.LoadAttributes();
             if ( GetAttributeValue( "MinistryAttribute" ).AsGuidOrNull() != null )
             {
-                var attributeValue = CurrentPerson.AttributeValues[AttributeCache.Read( GetAttributeValue( "MinistryAttribute" ).AsGuid() ).Key];
-                if ( attributeValue != null && !string.IsNullOrEmpty( attributeValue.Value ) )
-                {
-                    filter.Add( "MinistryId", DefinedValueCache.Read( attributeValue.Value ).Id.ToString() );
 
+                List<Guid> ministryGuids = CurrentPerson.AttributeValues[AttributeCache.Get( GetAttributeValue( "MinistryAttribute" ).AsGuid() ).Key].Value.Split( ',' ).AsGuidList();
+                var ministryValues = DefinedValueCache.All().Where( dv => ministryGuids.Contains( dv.Guid ) );
+                if ( ministryValues.Count() > 0 )
+                {
+                    filter.Add( "MinistryIds", ministryValues.Select( mv => mv.Id.ToString() ).JoinStrings( "," ) );
                 }
             }
             if ( GetAttributeValue( "LocationAttribute" ).AsGuidOrNull() != null )
             {
-                var attributeValue = CurrentPerson.AttributeValues[AttributeCache.Read( GetAttributeValue( "LocationAttribute" ).AsGuid() ).Key];
+                var attributeValue = CurrentPerson.AttributeValues[AttributeCache.Get( GetAttributeValue( "LocationAttribute" ).AsGuid() ).Key];
                 if ( attributeValue != null && !string.IsNullOrEmpty( attributeValue.Value ) )
                 {
-                    filter.Add( "MyLocationId", DefinedValueCache.Read( attributeValue.Value ).Id.ToString() );
+                    filter.Add( "MyLocationId", DefinedValueCache.Get( attributeValue.Value ).Id.ToString() );
                 }
             }
             //filter.Add( "FinanceApprover", UserIsFinanceApprover().ToString() );
@@ -324,7 +325,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             LoadMinistryList();
             LoadFiscalYearList();
             //SetRequesterFilter( 0 );
-            ddlMinistry.Visible = UserCanEdit;
+
+            CurrentPerson.LoadAttributes();
+            ddlMinistry.Visible = UserCanEdit || CurrentPerson.AttributeValues[ AttributeCache.Get( GetAttributeValue( "MinistryAttribute" ).AsGuid() ).Key ].Value.Split( ',' ).Count() > 0;
             ddlSCCLocation.Visible = UserCanEdit;
             requester.Visible = UserCanEdit;
             txtGLAccount.Visible = UserCanEdit;
@@ -377,9 +380,20 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if ( String.IsNullOrEmpty( GetAttributeValue( "MinistryAreaLookupType" ) ) )
                 return;
-            var ministries = DefinedTypeCache.Get( GetAttributeValue( "MinistryAreaLookupType" ).AsGuid() ).DefinedValues
-                                .Where( l => l.IsActive  )
-                                .OrderBy( l => l.Value );
+
+            IEnumerable<DefinedValueCache> ministries;
+            if ( !UserCanEdit )
+            {
+                CurrentPerson.LoadAttributes();
+                var ministryGuids = CurrentPerson.AttributeValues[ AttributeCache.Get( GetAttributeValue( "MinistryAttribute" ).AsGuid() ).Key ].Value.Split( ',' ).AsGuidList();
+                ministries = DefinedValueCache.All().Where( dv => ministryGuids.Contains( dv.Guid ) ).OrderBy( l => l.Value );
+            }
+            else
+            {
+                ministries = DefinedTypeCache.Get( GetAttributeValue( "MinistryAreaLookupType" ).AsGuid() ).DefinedValues
+                                    .Where( l => l.IsActive )
+                                    .OrderBy( l => l.Value );
+            }
 
             ddlMinistry.DataSource = ministries;
             ddlMinistry.DataValueField = "Id";

@@ -167,7 +167,9 @@ namespace org.secc.Purchasing
             {
                 if ( mCreatedByPerson == null && !String.IsNullOrWhiteSpace( CreatedByUserId ) )
                 {
-                    mCreatedByPerson = userLoginService.GetByUserName( CreatedByUserId ).Person;
+                    var userLogin = userLoginService.GetByUserName( CreatedByUserId );
+                    if ( userLogin != null)
+                        mCreatedByPerson = userLogin.Person;
                 }
 
                 return mCreatedByPerson;
@@ -356,7 +358,7 @@ namespace org.secc.Purchasing
             List<CapitalRequestListItem> listItems = new List<CapitalRequestListItem>();
 
             int currentPersonId = 0;
-            int currentMinistryId = 0;
+            List<int> currentMinistryIds = new List<int>();
             int currentLocationId = 0;
             string currentUserId = null;
             bool isFinanceApprover = false;
@@ -372,9 +374,9 @@ namespace org.secc.Purchasing
             }
 
 
-            if ( filter.ContainsKey( "MinistryId" ) )
+            if ( filter.ContainsKey( "MinistryIds" ) )
             {
-                int.TryParse( filter["MinistryId"], out currentMinistryId );
+                currentMinistryIds = Array.ConvertAll( filter["MinistryIds"].Split( ',' ), s => int.Parse( s ) ).ToList<int>();
             }
 
             if ( filter.ContainsKey( "MyLocationId" ) )
@@ -595,7 +597,7 @@ namespace org.secc.Purchasing
                     bool showMinistry = false;
                     if ( bool.TryParse( filter["Show_Ministry"], out showMinistry ) && showMinistry )
                     {
-                        listItems.AddRange( query.Where( q => q.RequestingMinistryLUID == currentMinistryId )
+                        listItems.AddRange( query.Where( q => currentMinistryIds.Contains( q.RequestingMinistryLUID ) )
                                                 .Where( q => !listItems.Select( l => l.CapitalRequestId ).Contains( q.CapitalRequestId ) )
                                                 .ToList() );
                     }

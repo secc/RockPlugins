@@ -76,7 +76,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                return bool.Parse(GetAttributeValue("AllowMinistrySelection"));
+                bool allowMinistrySetting = bool.Parse(GetAttributeValue("AllowMinistrySelection"));
+
+                CurrentPerson.LoadAttributes();
+                var ministryGuids = CurrentPerson.AttributeValues[ AttributeCache.Get( MinistryAreaPersonAttributeSetting ).Key ].Value.Split( ',' ).AsGuidList();
+
+                return allowMinistrySetting || ministryGuids.Count > 1 || UserCanEdit;
             }
         }
 
@@ -794,6 +799,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     hasChanged = true;
                 }
+                if ( !hasChanged && CurrentCapitalRequest.MinistryLUID != ddlRequestingMinistry.SelectedValue.AsInteger() )
+                {
+                    hasChanged = true;
+                }
                 if ( !hasChanged && CurrentCapitalRequest.MinistryLUID.ToString() != hfRequestingMinistry.Value )
                 {
                     hasChanged = true;
@@ -891,21 +900,23 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             if (LocationAttributeSetting.HasValue) { 
                 CurrentPerson.LoadAttributes();
-                Guid dv = CurrentPerson.GetAttributeValue(AttributeCache.Read(LocationAttributeSetting.Value).Key).AsGuid();
-                return DefinedValueCache.Read(dv).Id;
+                Guid dv = CurrentPerson.GetAttributeValue(AttributeCache.Get(LocationAttributeSetting.Value).Key).AsGuid();
+                return DefinedValueCache.Get(dv).Id;
             }
             return 0;
         }
 
-        private int GetCurrentUsersMinistryArea()
+        private List<int> GetCurrentUsersMinistryAreas()
         {
             CurrentPerson.LoadAttributes();
-            if ( MinistryAreaPersonAttributeSetting != null && AttributeCache.Read( MinistryAreaPersonAttributeSetting ) != null && CurrentPerson.GetAttributeValue( AttributeCache.Read( MinistryAreaPersonAttributeSetting ).Key ) != null)
+            if ( MinistryAreaPersonAttributeSetting != null && AttributeCache.Get( MinistryAreaPersonAttributeSetting ) != null && CurrentPerson.GetAttributeValue( AttributeCache.Get( MinistryAreaPersonAttributeSetting ).Key ) != null)
             {
-                Guid dv = CurrentPerson.GetAttributeValue( AttributeCache.Read( MinistryAreaPersonAttributeSetting ).Key ).AsGuid();
-                return DefinedValueCache.Read( dv ).Id;
+
+                List<Guid> ministryGuids = CurrentPerson.AttributeValues[AttributeCache.Get( MinistryAreaPersonAttributeSetting ).Key].Value.Split( ',' ).AsGuidList();
+                var ministryValues = DefinedValueCache.All().Where( dv => ministryGuids.Contains( dv.Guid ) );
+                return ministryValues.Select( mv => mv.Id ).ToList();
             }
-            return 0;
+            return new List<int>();
         }
 
         private void LoadApprovalRequests()
@@ -1016,11 +1027,22 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             ddlRequestingMinistry.Items.Clear();
 
-            ddlRequestingMinistry.DataSource = DefinedTypeCache.Get(MinistryAreaLookupTypeSetting)
-                .DefinedValues
-                .Select(l => new { l.Id, l.Value })
-                .OrderBy(l => l.Value)
-                .ToList();
+            if (UserCanEdit)
+            {
+                ddlRequestingMinistry.DataSource = DefinedTypeCache.Get(MinistryAreaLookupTypeSetting)
+                    .DefinedValues
+                    .Select(l => new { l.Id, l.Value })
+                    .OrderBy(l => l.Value)
+                    .ToList();
+            }
+            else
+            {
+                CurrentPerson.LoadAttributes();
+                var ministryGuids = CurrentPerson.AttributeValues[AttributeCache.Get( MinistryAreaPersonAttributeSetting ).Key].Value.Split( ',' ).AsGuidList();
+                ddlRequestingMinistry.DataSource = DefinedValueCache.All().Where( dv => ministryGuids.Contains( dv.Guid ) ).OrderBy( l => l.Value );
+
+            }
+
             ddlRequestingMinistry.DataValueField = "Id";
             ddlRequestingMinistry.DataTextField = "Value";
             ddlRequestingMinistry.DataBind();
@@ -1522,9 +1544,16 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtOngoingCost.Text = null;
             SetRequesterEdit( 0 );            
 
-            int currentUsersMinistry = GetCurrentUsersMinistryArea();
-            hfRequestingMinistry.Value = currentUsersMinistry.ToString();
-            ddlRequestingMinistry.SelectedValue = currentUsersMinistry.ToString();
+            var currentUsersMinistries = GetCurrentUsersMinistryAreas();
+            if ( currentUsersMinistries.Count > 1)
+            {
+                ddlRequestingMinistry.SelectedValue = "0";
+            }
+            else
+            {
+                hfRequestingMinistry.Value = currentUsersMinistries.First().ToString();
+                ddlRequestingMinistry.SelectedValue = currentUsersMinistries.First().ToString();
+            }
 
             if ( LocationLookupTypeSetting.HasValue )
             {
@@ -1554,8 +1583,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             lOtherInitialCost.Text = "&nbsp;";
             lOngoingCosts.Text = "&nbsp;";
             lRequester.Text = CurrentPerson.FullName;
-            if (GetCurrentUsersMinistryArea() > 0) {
-                lRequestingMinistry.Text = DefinedValueCache.Get(GetCurrentUsersMinistryArea()).Value;
+            if (GetCurrentUsersMinistryAreas().Count > 0) {
+                lRequestingMinistry.Text = DefinedValueCache.Get(GetCurrentUsersMinistryAreas().First()).Value;
             }
 
             if ( LocationLookupTypeSetting.HasValue )
@@ -1950,7 +1979,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return true;
             }
 
-            if ( CurrentCapitalRequest.MinistryLUID == GetCurrentUsersMinistryArea() )
+            if ( GetCurrentUsersMinistryAreas().Contains( CurrentCapitalRequest.MinistryLUID ))
             {
                 return true;
             }
@@ -1995,7 +2024,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
             //CurrentPerson is in Requesting Ministry
-            if ( CurrentCapitalRequest.MinistryLUID == GetCurrentUsersMinistryArea() )
+            if ( GetCurrentUsersMinistryAreas().Contains( CurrentCapitalRequest.MinistryLUID ) )
             {
                 return true;
             }
@@ -2098,7 +2127,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             var pendingMinistryApprovalStatus = DefinedValueCache.Get(  CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID  );
 
             //User is Creator and request hasn't been sent for approval and is not closed
-            if (CurrentPerson.PrimaryAliasId == CurrentCapitalRequest.RequesterId || CurrentPerson.PrimaryAliasId == CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId)
+            if (CurrentPerson.PrimaryAliasId == CurrentCapitalRequest.RequesterId || ( CurrentCapitalRequest.CreatedByPerson != null && CurrentPerson.PrimaryAliasId == CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId ) )
             {
 
                 if (!CurrentCapitalRequest.Status.AttributeValues["IsClosed"].Value.AsBoolean() && CurrentCapitalRequest.Status.Order < pendingMinistryApprovalStatus.Order)
@@ -2108,7 +2137,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 }
             }
 
-            if ( CurrentCapitalRequest.MinistryLUID == GetCurrentUsersMinistryArea() )
+            if ( GetCurrentUsersMinistryAreas().Contains( CurrentCapitalRequest.MinistryLUID ) )
             {
                 if (!CurrentCapitalRequest.Status.AttributeValues["IsClosed"].Value.AsBoolean() && CurrentCapitalRequest.Status.Order < pendingMinistryApprovalStatus.Order)
                 {
@@ -2217,7 +2246,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
             //User is Creator
-            if (CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId == CurrentPerson.PrimaryAliasId)
+            if ( CurrentCapitalRequest.CreatedByPerson != null && CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId == CurrentPerson.PrimaryAliasId)
             {
                 return true;
             }
@@ -2229,7 +2258,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
             // User is in Requesting Ministry
-            if ( CurrentCapitalRequest.MinistryLUID == GetCurrentUsersMinistryArea() )
+            if ( GetCurrentUsersMinistryAreas().Contains( CurrentCapitalRequest.MinistryLUID ) )
             {
                 return true;
             }
@@ -2263,7 +2292,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return false;
             }
 
-            if (CurrentCapitalRequest.RequesterId == CurrentPerson.PrimaryAliasId || CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId == CurrentPerson.PrimaryAliasId)
+            if (CurrentCapitalRequest.RequesterId == CurrentPerson.PrimaryAliasId || ( CurrentCapitalRequest.CreatedByPerson != null && CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId == CurrentPerson.PrimaryAliasId) )
             {
                 return true;
             }
