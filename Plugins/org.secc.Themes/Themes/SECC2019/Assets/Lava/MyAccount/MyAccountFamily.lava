@@ -35,7 +35,7 @@
 						{% if isAdult -%}
 							<span class="g-position--absolute g-padding-y-20--xs g-padding-x-15--xs" style="right: 0px;top: 6px;z-index:100;">
 								<a href="/MyAccount/Edit/{{ person.Guid }}" title="Change Account Info" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
-									<i class="fas fa-user-cog"></i>
+									<i class="fas fa-user-edit"></i>
 								</a>
 							</span>
 						{% endif -%}

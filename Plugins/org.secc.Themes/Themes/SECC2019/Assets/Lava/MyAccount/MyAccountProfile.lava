@@ -11,16 +11,50 @@
         <span class="g-position--absolute g-padding-y-20--xs g-padding-x-15--xs" style="right: 0px;top: 6px;z-index:100;">
             {%if isAdult -%}
 			<a href="/MyAccount/Edit/{{ Person.Guid }}" title="Change Account Info" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
-                <i class="fas fa-user-cog"></i>
+                <i class="fas fa-user-edit"></i>
             </a>
 			{% endif -%}
         </span>
 
         <div class="fluid-container">
             <div class="col-md-5 g-padding-x-80--xs g-padding-y-80--xs">
-                <a href="/MyAccount/Edit/{{ Person.Guid }}">
-                    <img src="{{ Person.PhotoUrl }}" title="Change Image" class="img-responsive img-circle" style="margin: 0 auto;">
-                </a>
+                <div class="g-width-100-percent--xs g-position--relative g-display-block--xs text-center">
+                    {%if isAdult -%}
+                    <a href="/MyAccount/Edit/{{ Person.Guid }}">
+                    {% endif -%}
+                        <div class="g-display-inline-block--xs g-margin-x-auto--xs g-position--relative">
+                            <img src="{{ Person.PhotoUrl }}" title="Change Image" class="img-responsive img-circle">
+                            {%if isAdult -%}
+                            <style>
+                            #changePhoto {
+                                position: absolute;
+                                right: 7.5%;
+                                display: inline-block;
+                                bottom: 7.5%;
+                                background-color: white;
+                                width: 60px;
+                                height: 60px;
+                                border-radius: 100%;
+                                border: 2px solid black;
+                                text-align: center;
+                                line-height: 60px;
+                                font-size: 28px;
+                                color: #4c4c4c;
+                                transition: all .2s ease-out;
+                            }
+                            #changePhoto:hover {
+                                color: #000;
+                            }
+                            </style>
+                            <span id="changePhoto">
+                                <i class="fas fa-camera-retro"></i>
+                            </span>
+                            {% endif -%}
+                        </div>
+                    {%if isAdult -%}
+                    </a>
+                    {% endif -%}
+                </div>
             </div>
             <div class="col-md-7 g-padding-b-80--xs g-padding-t-80--lg">
                 <h3 class="g-font-weight--700 g-padding-b-20--xs">
