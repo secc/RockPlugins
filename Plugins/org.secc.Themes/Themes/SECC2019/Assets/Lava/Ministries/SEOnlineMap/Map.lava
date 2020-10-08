@@ -116,9 +116,18 @@
         -webkit-transform-origin: center;
     }
     #iw_container {
+        max-width: 250px;
         display: block !important;
         position: relative !important;
         text-align: center !important;
+    }
+    #fbBtn {
+        color:#1877F2; 
+        border-color:#1877F2;
+    }
+    #fbBtn:hover {
+        color:#fff; 
+        background-color:#1877F2;
     }
     /**
     * ----------------------------------------
@@ -299,9 +308,19 @@
                 var lng = latLng.lng().toString();
                 console.log('Element Object:',e);
                 // Creating the content to be inserted in the infowindow
-                var contentString = '<div id="iw_container">' +
+                let facebookConnectString = '';
+                if (markerClicked.location_facebookUrl != '') {
+                    var location = markerClicked.location_id.split(/[\s,]+/);
+                    facebookConnectString = '<br /><hr /><p>Connect with a group near you in the ' + 
+                        location[location.length-1] + ' Facebook Group</p>' +
+                        '<a id="fbBtn" href="' + markerClicked.location_facebookUrl + '" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--600 g-margin-x-auto--xs">'+
+                        '<i class="fab fa-facebook"></i> Join the Group'+
+                        '</a>';
+                }
+                var contentString = '<div id="iw_container" class="g-padding-t-15--xs g-padding-l-15--xs">' +
                         '<div class="iw_title text-center">'+ markerClicked.location_id +'<br /></div><br />' +
-                        '<a href="' + markerClicked.location_facebookUrl + '" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--600 g-margin-x-auto--xs">Say Hi!</a>' +
+                        '<a href="' + markerClicked.location_facebookUrl + '" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--600 g-margin-x-auto--xs"><i class="fas fa-envelope"></i> Say Hi!</a>' +
+                        facebookConnectString +
                         '</div>' +
                     '</div>';
                 var infowindow = new google.maps.InfoWindow({
@@ -318,7 +337,13 @@
                             this.getPanes().markerLayer.id='markerLayer';
                         };
                 myoverlay.setMap(map1);
-                map1.panTo(latLng);
+                let latLngAdj;
+                if ($( document ).width() > 768) {
+                    latLngAdj = new google.maps.LatLng((latLng.lat()) , (latLng.lng()));
+                } else {
+                    latLngAdj = new google.maps.LatLng((latLng.lat() + 4) , (latLng.lng()));
+                }
+                map1.panTo(latLngAdj);
                 clusterMarkers.push(marker);
                 infowindow.open(map1, marker);
             }
@@ -339,8 +364,9 @@
             /*
             * Depending on the alert bar, change the values below to better center the
             * markers if needed
-            *if ($( document ).width() > 768) {
-                //map1.setCenter(new google.maps.LatLng((map.getCenter().lat()) , (map.getCenter().lng() - .5)));
+            *
+            if ($( document ).width() > 768) {
+             map1.setCenter(new google.maps.LatLng((map.getCenter().lat()+ 2) , (map.getCenter().lng())));
             }*/
 
             $(".add-your-spot--close").click(function () {
