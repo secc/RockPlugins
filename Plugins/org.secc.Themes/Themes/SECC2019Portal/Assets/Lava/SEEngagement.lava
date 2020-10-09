@@ -170,7 +170,7 @@
                         {[ endamcharts ]}
                     </div>
                     <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
-                        <h6>This engagement chart represents <i>ALL</i> online viewers that participated on YouTube, Facebook, and SE Church Online.</h6>
+                        <h6>This chart indicates the total number of SE Online viewers, including the percentage watching on Facebook, YouTube, and the Southeast website (which also includes those viewing via the Southeast App on Apple TV or Roku).</h6>
                     </div>
                 </div>
             </div>
@@ -201,7 +201,7 @@
                         {[ endamcharts ]}
                     </div>
                     <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
-                        <h6>This engagement chart represents only the viewers that participated <i>LIVE</i> on YouTube, Facebook, and SE Church Online (which also includes those watching from AppleTV and/or Roku).</h6>
+                        <h6>This chart indicates the total number of SE Online viewers who participated live on Facebook, YouTube, and the Southeast website (which also includes those viewing via the SE App on Apple TV or Roku).</h6>
                     </div>
                 </div>
             </div>
@@ -386,6 +386,9 @@
                         }];
                         </script>
                     </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>This map shows the unique locations of SE Online viewers from around the world.</h6>
+                    </div>
                 </div>
             </div>
         </div>
@@ -424,6 +427,9 @@
                         {[ amcharts chartwidth:'100%' chartheight:'250px' data-value:'value' data-category:'platform' type:'bar' data-src:'/webhooks/Lava.ashx/se-engage/52/{{ pageParamWeekendDate }}/chart.json' ]}
                         {[ endamcharts ]}
                     </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>This chart indicates the number of SE!KIDS Online viewers via YouTube and Vimeo.</h6>
+                    </div>
                 </div>
             </div>
             <div class="col-lg-6">
@@ -452,6 +458,9 @@
                         </div>
                         {[ amcharts chartwidth:'100%' chartheight:'250px' data-value:'value' data-category:'device type' type:'halfdonut' data-src:'/webhooks/Lava.ashx/se-engage/53/{{ pageParamWeekendDate }}/chart.json' ]}
                         {[ endamcharts ]}
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>This chart indicates the percentage of SE!KIDS Online viewers by device, including computers, mobile phones, tablets, and TVs.</h6>
                     </div>
                 </div>
             </div>
@@ -738,6 +747,9 @@
                             [[ dataitem label:'Post Engagement' value:'41400' ]] [[ enddataitem ]]
                         {[ endamcharts ]} {% endcomment %}
                     </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>Above are engagement numbers—total followers, new followers, page reach, and post engagement—for the Southeast Christian Church Facebook page.</h6>
+                    </div>
                 </div>
             </div>
             <div class="col-md-6">
@@ -769,6 +781,9 @@
                             [[ dataitem label:'Accounts Reached' value:'13778' ]] [[ enddataitem ]]
                         {[ endamcharts ]} {% endcomment %}
                     </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>Above are engagement numbers—total followers, new followers, and accounts reached—for the Southeast Christian Church Instagram page.</h6>
+                    </div>
                 </div>
             </div>
         </div>
@@ -796,6 +811,9 @@
                             [[ dataitem label:'Total Followers' value:'21651' ]] [[ enddataitem ]]
                             [[ dataitem label:'Engagements (Retweets, Favorites,Replies)' value:'351' ]] [[ enddataitem ]]
                         {[ endamcharts ]} {%- endcomment -%}</div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>Above are engagement numbers—total followers and engagements (retweets, favorites, and replies)—for the Southeast Christian Church Twitter account.</h6>
+                    </div>
                 </div>
             </div>
             <div class="col-md-6">
@@ -833,6 +851,9 @@
                             [[ dataitem label:'Total Subscribers' value:'18987' ]] [[ enddataitem ]]
                         {[ endamcharts ]} {% endcomment %}
                     </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>Above are engagement numbers—views, hours watched, new subscribers, and total subscribers—for the Southeast Christian Church YouTube page.</h6>
+                    </div>
                 </div>
             </div>
         </div>
@@ -864,6 +885,9 @@
                             [[ dataitem value:'Bullitt  County,1298,26,2875' ]] [[ enddataitem ]]
                         {[ endamcharts ]} {% endcomment %}
                         </div>
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>Above are engagement numbers—weekly post reach, total followers, and new followers—for each Southeast Christian Church campus Facebook page.</h6>
                     </div>
                 </div>
             </div>
@@ -899,6 +923,9 @@
                             {[ endamcharts ]} 
                             {% endcomment %}
                         </div>
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>This chart shows general giving totals.</h6>
                     </div>
                 </div>
             </div>
@@ -1009,6 +1036,9 @@
                         {[ amcharts chartwidth:'' chartheight:'280px' data-category:'app platform' data-value:'value' data-src:'/webhooks/Lava.ashx/se-engage/62/{{ pageParamWeekendDate }}/chart.json' ]}
                         {[ endamcharts ]}
                     </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>This chart indicates the total number of downloads of the Southeast App, including the percentage by platform (iOS, Android, Apple TV, and Roku).</h6>
+                    </div>
                 </div>
             </div>
             <div class="col-lg-6">
@@ -1032,6 +1062,9 @@
                         </div>
                         {[ amcharts chartwidth:'' chartheight:'280px' data-category:'app platform' data-value:'value' data-src:'/webhooks/Lava.ashx/se-engage/63/{{ pageParamWeekendDate }}/chart.json' ]}
                         {[ endamcharts ]}
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>This chart indicates the total number of impressions of the Southeast App, including the percentage by platform (iOS, Android, Apple TV, and Roku).</h6>
                     </div>
                 </div>
             </div>
