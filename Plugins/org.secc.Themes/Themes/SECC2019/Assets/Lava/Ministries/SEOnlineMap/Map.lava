@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
 <script src="https://unpkg.com/@google/markerclustererplus@4.0.1/dist/markerclustererplus.min.js"></script>
 <style>
     /* override browser default */
@@ -67,6 +68,13 @@
         -webkit-transition: all .6s ease-in-out;
         transition: all .6s ease-in-out;
         margin-bottom: 60px;
+    }
+    @media (max-width: 767px) {
+        /* hide initially */
+        .add-your-spot {
+            right: -200vw;
+            z-index: 0;
+        }
     }
     .add-your-spot--close {
         cursor: pointer;
@@ -230,8 +238,9 @@
             // set of coordinates.
             let clusterMarkers = [];
             let clusterMarkersInfo = [];
+            var currentMark;
             var catIcon = {
-                url: '/Content/ExternalSite/SEOnlineMap/MarkerSpot.svg',
+                url: '/Content/ExternalSite/SEOnlineMap/MarkerSpot2.svg',
                 size: new google.maps.Size(50, 50),
                 scaledSize: new google.maps.Size(50, 50),
                 origin: new google.maps.Point(0,0)
@@ -263,13 +272,14 @@
                         console.log('clicked!');
                         /* delete marker if already clicked */
                         placeMarkerAndPanTo(this, e, map1);
+                        currentMark = this;
                     });
                     
                 }
                 var clusterStyles = [
                     {
                         textColor: 'white',
-                        url: 'https://www.southeastchristian.org/Content/ExternalSite/SEOnlineMap/m1.svg',
+                        url: '/Content/ExternalSite/SEOnlineMap/m1.svg',
                         height: 60,
                         width: 60,
                         textSize:20,
@@ -285,8 +295,6 @@
                 // Add a marker clusterer to manage the markers.
                 const markerCluster = new MarkerClusterer(map1, clusterMarkers, mcOptions);
             }
-
-            
             // Removes the markers from the map, but keeps them in the array.
             function resetNewMarkers() {
                 for (var i = 0; i < clusterMarkers.length; i++) {
@@ -337,11 +345,16 @@
                             this.getPanes().markerLayer.id='markerLayer';
                         };
                 myoverlay.setMap(map1);
+
+                google.maps.event.addListener(infowindow,'closeclick',function(){
+                    deleteMarkers(); // remove existing clicks if any
+                });
+
                 let latLngAdj;
                 if ($( document ).width() > 768) {
-                    latLngAdj = new google.maps.LatLng((latLng.lat()) , (latLng.lng()));
-                } else {
                     latLngAdj = new google.maps.LatLng((latLng.lat() + 4) , (latLng.lng()));
+                } else {
+                    latLngAdj = new google.maps.LatLng((latLng.lat() + 3) , (latLng.lng()));
                 }
                 map1.panTo(latLngAdj);
                 clusterMarkers.push(marker);
@@ -372,12 +385,21 @@
             $(".add-your-spot--close").click(function () {
                 $(".add-to-story--condensed").removeClass('goodbye');
                 $(".add-your-spot").addClass('goodbye');
+                $(".add-your-spot").css('right','-200vw');
             });
 
             $(".add-to-story--condensed").click(function () {
                 $(".add-to-story--condensed").addClass('goodbye');
                 $(".add-your-spot").removeClass('goodbye');
+                $(".add-your-spot").css('right','2em');
             });
+            
+            if ($( document ).width() < 768) {
+                // also load the page with the popup form closed
+                $(".add-to-story--condensed").removeClass('goodbye');
+                $(".add-your-spot").addClass('goodbye');
+                console.log('Nice job');
+            }
             
         });
     </script>
