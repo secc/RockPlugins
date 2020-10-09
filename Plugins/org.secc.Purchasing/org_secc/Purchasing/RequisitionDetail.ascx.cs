@@ -2135,14 +2135,25 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( ministryAttribute != null )
             {
                 ddlMinistry.Items.Clear();
-                CurrentPerson.LoadAttributes();
-                var ministryGuids = CurrentPerson.AttributeValues[MinistryAreaAttribute.Key ].Value.Split( ',' ).AsGuidList();
-                ddlMinistry.DataSource = DefinedValueCache.All().Where( dv => ministryGuids.Contains( dv.Guid ) ).OrderBy( l => l.Value );
 
+                IEnumerable<DefinedValueCache> values = null;
+
+                if ( !UserCanEdit )
+                {
+                    CurrentPerson.LoadAttributes();
+                    var ministryGuids = CurrentPerson.AttributeValues[MinistryAreaAttribute.Key].Value.Split( ',' ).AsGuidList();
+                    values = DefinedValueCache.All().Where( dv => ministryGuids.Contains( dv.Guid ) ).OrderBy( l => l.Value );
+                }
+                else
+                {
+                    values = DefinedTypeCache.Get( ministryAttribute.AttributeQualifiers.Where( aq => aq.Key == "definedtype" ).FirstOrDefault().Value.AsInteger() ).DefinedValues.OrderBy( l => l.Value );
+                }
+
+                ddlMinistry.DataSource = values;
                 ddlMinistry.DataTextField = "Value";
                 ddlMinistry.DataValueField = "Id";
                 ddlMinistry.DataBind();
-                if ( ministryGuids.Count > 1 )
+                if ( values.Count() > 1 )
                 {
                     ddlMinistry.Items.Insert( 0, new ListItem( "", "" ) );
                     ddlMinistry.SelectedValue = "";
