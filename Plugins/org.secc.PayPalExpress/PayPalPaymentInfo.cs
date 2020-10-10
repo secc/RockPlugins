@@ -40,7 +40,7 @@ namespace org.secc.PayPalExpress
         /// </summary>
         public override DefinedValueCache CurrencyTypeValue
         {
-            get { return DefinedValueCache.Read(new Guid(PayPalExpress.Gateway.CURRENCY_TYPE_PAYPAL)); }
+            get { return DefinedValueCache.Get(new Guid(PayPalExpress.Gateway.CURRENCY_TYPE_PAYPAL)); }
         }
 
     }

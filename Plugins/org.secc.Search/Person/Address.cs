@@ -75,8 +75,8 @@ namespace org.secc.Search.Person
             Guid groupTypefamilyGuid = new Guid( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
             Guid homeAddressTypeGuid = new Guid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME );
             Guid previousAddressTypeGuid = new Guid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_PREVIOUS );
-            var homeAddressTypeValueId = Rock.Web.Cache.DefinedValueCache.Read( homeAddressTypeGuid, rockContext ).Id;
-            var previousAddressTypeValueId = Rock.Web.Cache.DefinedValueCache.Read( previousAddressTypeGuid, rockContext ).Id;
+            var homeAddressTypeValueId = Rock.Web.Cache.DefinedValueCache.Get( homeAddressTypeGuid, rockContext ).Id;
+            var previousAddressTypeValueId = Rock.Web.Cache.DefinedValueCache.Get( previousAddressTypeGuid, rockContext ).Id;
 
             var service = new GroupMemberService( rockContext );
             return service.Queryable()

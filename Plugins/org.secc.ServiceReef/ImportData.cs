@@ -84,12 +84,12 @@ namespace org.secc.ServiceReef
                 String SRApiKey = Encryption.DecryptString(dataMap.GetString("ServiceReefAPIKey"));
                 String SRApiSecret = Encryption.DecryptString(dataMap.GetString("ServiceReefAPISecret"));
                 String SRApiUrl = dataMap.GetString("ServiceReefAPIURL");
-                DefinedValueCache transactionSource = DefinedValueCache.Read(dataMap.GetString("TransactionSource").AsGuid(), dbContext);
-                DefinedValueCache connectionStatus = DefinedValueCache.Read(dataMap.GetString("ConnectionStatus").AsGuid(), dbContext);
-                DefinedValueCache contribution = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION);
+                DefinedValueCache transactionSource = DefinedValueCache.Get(dataMap.GetString("TransactionSource").AsGuid(), dbContext);
+                DefinedValueCache connectionStatus = DefinedValueCache.Get( dataMap.GetString("ConnectionStatus").AsGuid(), dbContext);
+                DefinedValueCache contribution = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION);
 
                 // Setup some lookups
-                DefinedTypeCache creditCards = DefinedTypeCache.Read(Rock.SystemGuid.DefinedType.FINANCIAL_CREDIT_CARD_TYPE.AsGuid(), dbContext);
+                DefinedTypeCache creditCards = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.FINANCIAL_CREDIT_CARD_TYPE.AsGuid(), dbContext);
                 DefinedTypeCache tenderType = DefinedTypeCache.Get(Rock.SystemGuid.DefinedType.FINANCIAL_CURRENCY_TYPE.AsGuid(), dbContext);
                 FinancialAccount specialFund = accountService.Get(dataMap.GetString("Account").AsGuid());
                 FinancialGateway gateway = financialGatewayService.Get(dataMap.GetString("FinancialGateway").AsGuid());
@@ -279,12 +279,12 @@ namespace org.secc.ServiceReef
                                             {
                                                 person.Email = result.Email.Trim();
                                             }
-                                            person.RecordTypeValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid()).Id;
+                                            person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid()).Id;
                                             person.ConnectionStatusValueId = connectionStatus.Id;
-                                            person.RecordStatusValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid()).Id;
+                                            person.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid()).Id;
                                             Group family = PersonService.SaveNewPerson(person, dbContext);
                                             GroupLocation location = new GroupLocation();
-                                            location.GroupLocationTypeValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME).Id;
+                                            location.GroupLocationTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME).Id;
                                             location.Location = new Location()
                                             {
                                                 Street1 = result.Address.Address1,

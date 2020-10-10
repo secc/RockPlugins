@@ -169,6 +169,8 @@ namespace org.secc.RoomScanner.Utilities
                     CategoryId = 4
                 };
                 historyService.Add( history );
+                //HistoryService.SaveChanges( rockContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON, person.Id, memberChanges, newFamily.Name, typeof( Group ), newFamily.Id, false, null, SOURCE_OF_CHANGE );
+
             }
         }
 

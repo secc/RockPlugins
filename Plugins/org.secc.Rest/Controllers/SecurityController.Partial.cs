@@ -21,20 +21,20 @@ using Rock.Rest;
 using System.Web;
 using System.Collections.Generic;
 using org.secc.Rest.Handlers;
-
+using System.Web.SessionState;
 
 namespace org.secc.Rest.Controllers
 {
     /// <summary>
     /// TaggedItems REST API
     /// </summary>
-    public partial class SecurityController : ApiController, IHasCustomRoutes
+    public partial class SecurityController : ApiController, IHasCustomHttpRoutes
     {
         /// <summary>
         /// Add Custom route for flushing cached attributes
         /// </summary>
         /// <param name="routes"></param>
-        public void AddRoutes( System.Web.Routing.RouteCollection routes )
+        public void AddRoutes( HttpRouteCollection routes )
         {
             routes.MapHttpRoute(
                 name: "security",
@@ -43,7 +43,8 @@ namespace org.secc.Rest.Controllers
                 {
                     controller = "security",
                     param = RouteParameter.Optional
-                } ).RouteHandler = new SessionRouteHandler();
+                },
+                SessionStateBehavior.Required );
             routes.MapHttpRoute(
                 name: "securityNoParam",
                 routeTemplate: "api/People/{action}",
@@ -51,7 +52,8 @@ namespace org.secc.Rest.Controllers
                 {
                     controller = "security",
                     param = RouteParameter.Optional
-                } ).RouteHandler = new SessionRouteHandler();
+                },
+                SessionStateBehavior.Required );
         }
 
         /// <summary>

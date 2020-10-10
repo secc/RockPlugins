@@ -35,13 +35,13 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
     /// <summary>
     /// TaggedItems REST API
     /// </summary>
-    public partial class FamilyCheckinController : ApiController, IHasCustomRoutes
+    public partial class FamilyCheckinController : ApiController, IHasCustomHttpRoutes
     {
         /// <summary>
         /// Add Custom route for flushing cached attributes
         /// </summary>
         /// <param name="routes"></param>
-        public void AddRoutes( System.Web.Routing.RouteCollection routes )
+        public void AddRoutes( HttpRouteCollection routes )
         {
             routes.MapHttpRoute(
                 name: "FamiliesByPhone",
@@ -51,7 +51,8 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                     controller = "familycheckin",
                     entityqualifier = RouteParameter.Optional,
                     entityqualifiervalue = RouteParameter.Optional
-                } ).RouteHandler = new SessionRouteHandler();
+                },
+                SessionStateBehavior.Required );
         }
 
         /// <summary>

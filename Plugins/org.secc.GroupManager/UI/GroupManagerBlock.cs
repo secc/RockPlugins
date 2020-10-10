@@ -68,7 +68,7 @@ namespace org.secc.GroupManager
             LoadSession( rockContext );
 
             GroupType FilterGroupType = new GroupTypeService( rockContext )
-                .Get( GlobalAttributesCache.Read().GetValue( "FilterGroupType" ).AsGuid() );
+                .Get( GlobalAttributesCache.Get().GetValue( "FilterGroupType" ).AsGuid() );
 
             //If this group type inherits Filter Group
             if ( CurrentGroup != null && FilterGroupType != null

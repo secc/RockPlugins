@@ -75,7 +75,7 @@ namespace org.secc.Search.Person
             var rockContext = new RockContext();
             var aService = new AttributeService(rockContext);
             var avService = new AttributeValueService( rockContext );
-            var personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
+            var personEntityTypeId = EntityTypeCache.Get( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
             var attribute = aService.Queryable().Where( a => a.Key == "GivingEnvelopeNumber" && a.EntityTypeId == personEntityTypeId ).FirstOrDefault();
             if (attribute != null)
             {

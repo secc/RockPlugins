@@ -124,16 +124,16 @@ namespace org.secc.PDF
             Rock.Model.Attribute newAttribute = new Rock.Model.Attribute();
             newAttribute.Key = name;
             newAttribute.Name = name;
-            newAttribute.FieldTypeId = FieldTypeCache.Read( new Guid( Rock.SystemGuid.FieldType.TEXT ) ).Id;
+            newAttribute.FieldTypeId = FieldTypeCache.Get( new Guid( Rock.SystemGuid.FieldType.TEXT ) ).Id;
             newAttribute.Order = 0;
             newAttribute.AttributeQualifiers.Add( new AttributeQualifier() { Key = "ispassword", Value = "False" } );
-            newAttribute.EntityTypeId = EntityTypeCache.Read( action.Activity.Workflow.GetType() ).Id;
+            newAttribute.EntityTypeId = EntityTypeCache.Get( action.Activity.Workflow.GetType() ).Id;
             newAttribute.EntityTypeQualifierColumn = "WorkflowTypeId";
             newAttribute.EntityTypeQualifierValue = action.Activity.Workflow.WorkflowType.Id.ToString();
             AttributeService attributeService = new AttributeService( rockContext );
             attributeService.Add( newAttribute );
             rockContext.SaveChanges();
-            AttributeCache.FlushEntityAttributes();
+            AttributeCache.RemoveEntityAttributes();
 
             action.Activity.Workflow.LoadAttributes();
         }

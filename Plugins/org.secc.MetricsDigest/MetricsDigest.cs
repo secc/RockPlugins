@@ -36,7 +36,7 @@ namespace org.secc.Jobs
     [CategoryField( "Schedule Categories", "The schedule categories to use for list of service times.  Note that this requires a campus attribute to be selected below.", true, "Rock.Model.Schedule" )]
     [AttributeField( Rock.SystemGuid.EntityType.SCHEDULE, "Campus Attribute", "The campus attribute to use for filtering the schedules" )]
     [GroupField( "Notification Group", "The group of people to notify about the metric entry progress", true )]
-    [SystemEmailField( "Email", "The email to send to the connectors", true )]
+    [SystemCommunicationField( "Email", "The email to send to the connectors", true )]
 
     [DisallowConcurrentExecution]
     public class MetricsDigest : IJob
@@ -124,7 +124,7 @@ namespace org.secc.Jobs
                 message.AdditionalMergeFields = mergeFields;
                 foreach ( GroupMember member in notificationGroup.Members )
                 {
-                    message.AddRecipient( member.Person.Email );
+                    message.AddRecipient( RockEmailMessageRecipient.CreateAnonymous(member.Person.Email, mergeFields) );
                     recipients++;
                 }
                 message.SendSeperatelyToEachRecipient = true;
@@ -153,7 +153,7 @@ namespace org.secc.Jobs
                     foreach ( Guid categoryGuid in categoryGuids )
                     {
 
-                        var scheduleCategory = CategoryCache.Read( categoryGuid );
+                        var scheduleCategory = CategoryCache.Get( categoryGuid );
                         if ( scheduleCategory != null && campus != null )
                         {
                             var schedules = new ScheduleService( rockContext )
@@ -168,7 +168,7 @@ namespace org.secc.Jobs
                             // Check to see if the event was applicable the week for which we are entering data
                             foreach ( var schedule in schedules )
                             {
-                                var occurrences = ScheduleICalHelper.GetOccurrences( schedule.Schedule.GetCalenderEvent(), dateRange.Start.Value, dateRange.End.Value );
+                                var occurrences = ScheduleICalHelper.GetOccurrences( schedule.Schedule.GetCalendarEvent(), dateRange.Start.Value, dateRange.End.Value );
                                 if ( occurrences.Count > 0 )
                                 {
                                     services.Add( schedule.Schedule );
@@ -191,7 +191,7 @@ namespace org.secc.Jobs
                     }
                 }
             }
-            return services.OrderBy( s => s.NextStartDateTime.HasValue ? s.NextStartDateTime.Value.Ticks : s.EffectiveEndDate.HasValue ? s.EffectiveEndDate.Value.Ticks : 0 ).ToList();
+            return services.OrderBy( s => s.GetNextStartDateTime( RockDateTime.Now ).HasValue ? s.GetNextStartDateTime( RockDateTime.Now ).Value.Ticks : s.EffectiveEndDate.HasValue ? s.EffectiveEndDate.Value.Ticks : 0 ).ToList();
         }
 
     }
