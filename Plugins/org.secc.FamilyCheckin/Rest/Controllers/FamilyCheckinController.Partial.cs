@@ -20,6 +20,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Http;
+using System.Web.Routing;
 using System.Web.SessionState;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Rest.Handlers;
@@ -43,7 +44,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
         /// <param name="routes"></param>
         public void AddRoutes( HttpRouteCollection routes )
         {
-            routes.MapHttpRoute(
+            RouteTable.Routes.MapHttpRoute( 
                 name: "FamiliesByPhone",
                 routeTemplate: "api/org.secc/familycheckin/{action}/{param}",
                 defaults: new
@@ -51,8 +52,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                     controller = "familycheckin",
                     entityqualifier = RouteParameter.Optional,
                     entityqualifiervalue = RouteParameter.Optional
-                },
-                SessionStateBehavior.Required );
+                } ).RouteHandler = new SessionRouteHandler();
         }
 
         /// <summary>

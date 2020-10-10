@@ -21,7 +21,7 @@ using Rock.Rest;
 using System.Web;
 using System.Collections.Generic;
 using org.secc.Rest.Handlers;
-using System.Web.SessionState;
+using System.Web.Routing;
 
 namespace org.secc.Rest.Controllers
 {
@@ -36,24 +36,22 @@ namespace org.secc.Rest.Controllers
         /// <param name="routes"></param>
         public void AddRoutes( HttpRouteCollection routes )
         {
-            routes.MapHttpRoute(
+            RouteTable.Routes.MapHttpRoute(
                 name: "security",
                 routeTemplate: "api/People/{action}/{param}",
                 defaults: new
                 {
                     controller = "security",
                     param = RouteParameter.Optional
-                },
-                SessionStateBehavior.Required );
-            routes.MapHttpRoute(
+                } ).RouteHandler = new SessionRouteHandler();
+            RouteTable.Routes.MapHttpRoute(
                 name: "securityNoParam",
                 routeTemplate: "api/People/{action}",
                 defaults: new
                 {
                     controller = "security",
                     param = RouteParameter.Optional
-                },
-                SessionStateBehavior.Required );
+                } ).RouteHandler = new SessionRouteHandler();
         }
 
         /// <summary>
