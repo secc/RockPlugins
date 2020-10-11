@@ -94,7 +94,7 @@ PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN'>
             }
             if ( cbGlobal.Checked )
             {
-                pdfWorkflowObject.MergeObjects.Add( "GlobalAttributes", GlobalAttributesCache.Read() );
+                pdfWorkflowObject.MergeObjects.Add( "GlobalAttributes", GlobalAttributesCache.Get() );
             }
 
 
