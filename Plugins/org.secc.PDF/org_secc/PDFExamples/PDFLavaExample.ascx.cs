@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -106,7 +106,7 @@ PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN'>
                 var workflowType = workflowTypeService.Get( workflowTypeGuid );
                 if ( workflowType != null )
                 {
-                    var workflow = Workflow.Activate( workflowType, "PDFLavaWorkflow" );
+                    var workflow = Workflow.Activate( WorkflowTypeCache.Get( workflowType.Id ), "PDFLavaWorkflow" );
 
                     List<string> workflowErrors;
                     var workflowService = new WorkflowService( workflowRockContext );
@@ -114,7 +114,7 @@ PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN'>
                     var activityType = workflowType.ActivityTypes.Where( a => a.Name == workflowActivity ).FirstOrDefault();
                     if ( activityType != null )
                     {
-                        WorkflowActivity.Activate( activityType, workflow, workflowRockContext );
+                        WorkflowActivity.Activate( WorkflowActivityTypeCache.Get( activityType.Id ), workflow, workflowRockContext );
                         if ( workflowService.Process( workflow, pdfWorkflowObject, out workflowErrors ) )
                         {
                             //success
@@ -125,11 +125,11 @@ PUBLIC '-//W3C//DTD XHTML 1.0 Strict//EN'>
 
             RockContext rockContext = new RockContext();
             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
-            pdfWorkflowObject.RenderedPDF.FileName = "LavaGeneratedPDF.pdf";
-            binaryFileService.Add( pdfWorkflowObject.RenderedPDF );
+            pdfWorkflowObject.PDF.FileName = "LavaGeneratedPDF.pdf";
+            binaryFileService.Add( pdfWorkflowObject.PDF );
             rockContext.SaveChanges();
 
-            Response.Redirect( pdfWorkflowObject.RenderedPDF.Path );
+            Response.Redirect( pdfWorkflowObject.PDF.Path );
         }
 
         private Dictionary<string, object> GetMergeFields()
