@@ -419,7 +419,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             message.FromName = _publishGroup.ConfirmationFromName;
             message.Subject = _publishGroup.ConfirmationSubject;
             message.Message = _publishGroup.ConfirmationBody;
-            message.AddRecipient( new RecipientData( new CommunicationRecipient() { PersonAlias = person.PrimaryAlias }, mergeObjects ) );
+            message.AddRecipient( new RockEmailMessageRecipient ( person, mergeObjects ) );
             message.Send();
         }
 

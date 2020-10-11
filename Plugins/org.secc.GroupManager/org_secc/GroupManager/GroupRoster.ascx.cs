@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -218,10 +218,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     AddRecepients( communication, cbSMSSendToParents.Checked );
 
-                    communication.MediumEntityTypeId = EntityTypeCache.Read( "Rock.Communication.Medium.Sms" ).Id;
-                    communication.MediumData.Clear();
-                    communication.MediumData.Add( "TextMessage", tbMessage.Text );
-                    communication.MediumData.Add( "From", CurrentGroup.GetAttributeValue( "TextMessageFrom" ) );
+                    communication.SMSMessage = tbMessage.Text;
+                    communication.SMSFromDefinedValueId = DefinedValueCache.Get( CurrentGroup.GetAttributeValue( "TextMessageFrom" ).AsGuid() ).Id;
 
                     communication.Status = CommunicationStatus.Approved;
                     communication.ReviewedDateTime = RockDateTime.Now;
@@ -268,15 +266,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 if ( communication != null )
                 {
                     AddRecepients( communication, cbEmailSendToParents.Checked );
-
-                    communication.MediumEntityTypeId = EntityTypeCache.Read( "Rock.Communication.Medium.Email" ).Id;
-                    communication.MediumData.Clear();
+                    communication.FromEmail = GetSafeSender( CurrentPerson.Email );
+                    communication.FromName = CurrentPerson.FullName;
+                    communication.ReplyToEmail = CurrentPerson.Email;
+                    communication.Message = tbBody.Text;
                     communication.Subject = tbSubject.Text;
-                    communication.MediumData.Add( "FromName", CurrentPerson.FullName );
-
-                    communication.MediumData.Add( "FromAddress", GetSafeSender( CurrentPerson.Email ) );
-                    communication.MediumData.Add( "ReplyTo", CurrentPerson.Email );
-                    communication.MediumData.Add( "TextMessage", tbBody.Text );
 
                     communication.Status = CommunicationStatus.Approved;
                     communication.ReviewedDateTime = RockDateTime.Now;
@@ -298,7 +292,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private string GetSafeSender( string email )
         {
-            var safeDomains = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.COMMUNICATION_SAFE_SENDER_DOMAINS.AsGuid() ).DefinedValues.Select( v => v.Value ).ToList();
+            var safeDomains = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.COMMUNICATION_SAFE_SENDER_DOMAINS.AsGuid() ).DefinedValues.Select( v => v.Value ).ToList();
             var emailParts = email.Split( new char[] { '@' }, StringSplitOptions.RemoveEmptyEntries );
             if ( emailParts.Length != 2 || !safeDomains.Contains( emailParts[1], StringComparer.OrdinalIgnoreCase ) )
             {
@@ -313,14 +307,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
                 else
                 {
-                    return GlobalAttributesCache.Read().GetValue( "OrganizationEmail" );
+                    return GlobalAttributesCache.Get().GetValue( "OrganizationEmail" );
                 }
             }
             if ( !string.IsNullOrWhiteSpace( email ) )
             {
                 return email;
             }
-            return GlobalAttributesCache.Read().GetValue( "OrganizationEmail" );
+            return GlobalAttributesCache.Get().GetValue( "OrganizationEmail" );
         }
 
         protected void btnCancel_Click( object sender, EventArgs e )

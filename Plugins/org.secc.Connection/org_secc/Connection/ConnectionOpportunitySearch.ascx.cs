@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -239,7 +239,7 @@ namespace org.secc.Connection
                 var mergeFields = new Dictionary<string, object>();
                 mergeFields.Add( "CurrentPerson", CurrentPerson );
 				mergeFields.Add( "Campuses", CampusCache.All());
-                mergeFields.Add( "CampusContext", RockPage.GetCurrentContext( EntityTypeCache.Read( "Rock.Model.Campus" ) ) as Campus );
+                mergeFields.Add( "CampusContext", RockPage.GetCurrentContext( EntityTypeCache.Get( "Rock.Model.Campus" ) ) as Campus );
                 var pageReference = new PageReference( GetAttributeValue( "DetailPage" ), null );
                 mergeFields.Add( "DetailPage", BuildDetailPageUrl(pageReference.BuildUrl()) );
 
@@ -342,7 +342,7 @@ namespace org.secc.Connection
                 }
                 else if ( GetAttributeValue( "EnableCampusContext" ).AsBoolean() )
                 {
-                    var campusEntityType = EntityTypeCache.Read( "Rock.Model.Campus" );
+                    var campusEntityType = EntityTypeCache.Get( "Rock.Model.Campus" );
                     var contextCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
 
                     if ( contextCampus != null )
@@ -367,7 +367,7 @@ namespace org.secc.Connection
                             .OrderBy( a => a.Order )
                             .ThenBy( a => a.Name ) )
                         {
-                            AvailableAttributes.Add( AttributeCache.Read( attributeModel ) );
+                            AvailableAttributes.Add( AttributeCache.Get( attributeModel ) );
                         }
                     }
 

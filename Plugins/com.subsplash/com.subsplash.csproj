@@ -144,7 +144,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R "$(ProjectDir)Webhooks\*" "$(SolutionDir)RockWeb\Webhooks\"
-mkdir "$(SolutionDir)RockWeb\Plugins\com_subsplash"
+mkdir -p "$(SolutionDir)RockWeb\Plugins\com_subsplash"
 xcopy /Y /R /E /I "$(ProjectDir)com_subsplash" "$(SolutionDir)RockWeb\Plugins\com_subsplash"
 xcopy /Y /R "$(ProjectDir)bin\Debug\com.subsplash.dll" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
   </PropertyGroup>

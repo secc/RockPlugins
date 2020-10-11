@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -78,10 +78,10 @@ namespace RockWeb.Plugins.org_secc.Administration
             foreach ( var member in destLWYA.Members )
             {
                 var attendances = attendanceService.Queryable()
-                    .Where( a => a.PersonAlias.PersonId == member.PersonId && a.GroupId == sourceLWYA.Id );
+                    .Where( a => a.PersonAlias.PersonId == member.PersonId && a.Occurrence.GroupId == sourceLWYA.Id );
                 foreach ( var attendance in attendances )
                 {
-                    attendance.GroupId = destLWYA.Id;
+                    attendance.Occurrence.GroupId = destLWYA.Id;
                 }
             }
             rockContext.SaveChanges();

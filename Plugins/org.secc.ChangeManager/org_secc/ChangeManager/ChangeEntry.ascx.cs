@@ -73,10 +73,16 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
         private void BindDropDown()
         {
-            ddlTitle.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_TITLE.AsGuid() ), true );
-            ddlSuffix.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
+            ddlTitle.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_TITLE.AsGuid() ).Id;
+            ddlTitle.Items.Insert( 0, new ListItem() );
+
+            ddlSuffix.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ).Id;
+            ddlSuffix.Items.Insert( 0, new ListItem() );
+
             ddlGender.BindToEnum<Gender>( true );
-            ddlMaritalStatus.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_MARITAL_STATUS.AsGuid() ), true );
+            ddlMaritalStatus.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_MARITAL_STATUS.AsGuid() ).Id;
+            ddlMaritalStatus.Items.Insert( 0, new ListItem() );
+
         }
 
         private void DisplayForm( Person person )

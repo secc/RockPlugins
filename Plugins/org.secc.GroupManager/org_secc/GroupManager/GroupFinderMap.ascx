@@ -131,7 +131,7 @@
                                             Help="Should a map be displayed that shows the location of each group?" ValidationGroup="GroupFinderSettings" />
                                         <Rock:Toggle ID="cbShowFamilies" runat="server" Label="Show Families" Text="Yes" OnCssClass="btn-success" OffCssClass="btn-danger"
                                             Help="Should families be shown on the map?" ValidationGroup="GroupFinderSettings" />
-                                        <Rock:RockDropDownList ID="ddlMapStyle" runat="server" Label="Map Style"
+                                        <Rock:DefinedValuePicker ID="ddlMapStyle" runat="server" Label="Map Style"
                                             Help="The map theme that should be used for styling the map." ValidationGroup="GroupFinderSettings" />
                                         <Rock:Toggle ID="cbLargeMap" runat="server" Label="Large Map" Help="Set map to full width"
                                             OnCssClass="btn-success" OffCssClass="btn-danger" />

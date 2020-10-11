@@ -137,7 +137,7 @@ namespace org.secc.PDF
                 Guid guid = GetAttributeValue( action, "PDFOutput" ).AsGuid();
                 if ( !guid.IsEmpty() )
                 {
-                    var attribute = AttributeCache.Read( guid, rockContext );
+                    var attribute = AttributeCache.Get( guid, rockContext );
                     if ( attribute != null )
                     {
                         SetWorkflowAttributeValue( action, guid, renderedPDF.Guid.ToString() );

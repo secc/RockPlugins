@@ -40,14 +40,14 @@
                         </div>
                         <div class="col-md-10">
                             <div class="col-md-6">
-                                <Rock:RockDropDownList runat="server" ID="ddlTitle" Label="Title" SourceTypeName="Rock.Model.Person" PropertyName="Title" />
+                                <Rock:DefinedValuePicker runat="server" ID="ddlTitle" Label="Title" SourceTypeName="Rock.Model.Person" PropertyName="Title" />
                                 <Rock:DataTextBox runat="server" ID="tbFirstName" SourceTypeName="Rock.Model.Person" PropertyName="FirstName" />
                                 <Rock:DataTextBox runat="server" ID="tbLastName" SourceTypeName="Rock.Model.Person" PropertyName="LastName" />
                             </div>
                             <div class="col-md-6">
                                 <Rock:DataTextBox runat="server" ID="tbNickName" SourceTypeName="Rock.Model.Person" PropertyName="NickName" />
                                 <Rock:DataTextBox runat="server" ID="tbMiddleName" SourceTypeName="Rock.Model.Person" PropertyName="MiddleName" />
-                                <Rock:RockDropDownList runat="server" ID="ddlSuffix" Label="Suffix" SourceTypeName="Rock.Model.Person" PropertyName="Suffix" />
+                                <Rock:DefinedValuePicker runat="server" ID="ddlSuffix" Label="Suffix" SourceTypeName="Rock.Model.Person" PropertyName="Suffix" />
                             </div>
                         </div>
                     </div>
@@ -113,7 +113,7 @@
                                         <Rock:DataDropDownList runat="server" ID="ddlGender" SourceTypeName="Rock.Model.Person" PropertyName="Gender" />
                                     </div>
                                     <div class="col-md-8">
-                                        <Rock:RockDropDownList runat="server" ID="ddlMaritalStatus" Label="Marital Status" SourceTypeName="Rock.Model.Person" PropertyName="MaritalStatus" />
+                                        <Rock:DefinedValuePicker runat="server" ID="ddlMaritalStatus" Label="Marital Status" SourceTypeName="Rock.Model.Person" PropertyName="MaritalStatus" />
                                     </div>
                                     <div class="col-md-4">
                                         <Rock:DatePicker runat="server" ID="dpAnniversaryDate" SourceTypeName="Rock.Model.Person" PropertyName="AnniversaryDate" />

@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -28,8 +28,6 @@ using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 using Newtonsoft.Json;
 using Rock.Web.UI;
-using Rock.Web.Cache;
-using System.Data.Entity;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
@@ -133,7 +131,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 return;
             }
 
-            _groupType = GroupTypeCache.Read( GetAttributeValue( "GroupType" ).AsGuid() );
+            _groupType = GroupTypeCache.Get( GetAttributeValue( "GroupType" ).AsGuid() );
 
             var groups = LoadGroups();
             //if we load the groups and there are too many we need to stop because the logic needs a person
@@ -311,8 +309,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 lopAddress.AllowedPickerModes = modes;
             }
 
-            var meetingLocationDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_MEETING_LOCATION );
-            var homeLocationDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME );
+            var meetingLocationDv = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_MEETING_LOCATION );
+            var homeLocationDv = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME );
 
             var groupLocation = _group.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == meetingLocationDv.Id || gl.GroupLocationTypeValueId == homeLocationDv.Id || gl.GroupLocationTypeValueId == null ).FirstOrDefault();
             if ( groupLocation != null )
@@ -499,8 +497,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     // Disassociate the old address(es)
                     GroupLocationService groupLocationService = new GroupLocationService( _rockContext );
-                    var meetingLocationDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_MEETING_LOCATION );
-                    var homeLocationDv = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME );
+                    var meetingLocationDv = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_MEETING_LOCATION );
+                    var homeLocationDv = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME );
 
                     groupLocationService.DeleteRange( group.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == meetingLocationDv.Id || gl.GroupLocationTypeValueId == homeLocationDv.Id || gl.GroupLocationTypeValueId == null ) );
                     group.GroupLocations.Add( new GroupLocation() { LocationId = lopAddress.Location.Id, GroupLocationTypeValueId = meetingLocationDv.Id } );
@@ -585,11 +583,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
             var workflowTypeService = new WorkflowTypeService( _rockContext );
-            WorkflowType workflowType = null;
+            WorkflowTypeCache workflowType = null;
             Guid? workflowTypeGuid = GetAttributeValue( "Workflow" ).AsGuidOrNull();
             if ( workflowTypeGuid.HasValue )
             {
-                workflowType = workflowTypeService.Get( workflowTypeGuid.Value );
+                workflowType = WorkflowTypeCache.Get( workflowTypeGuid.Value );
             }
             GroupMember currentGroupMember = group.Members.Where( gm => gm.PersonId == _person.Id ).FirstOrDefault();
             if ( currentGroupMember != null && workflowType != null && ( workflowType.IsActive ?? true ) )

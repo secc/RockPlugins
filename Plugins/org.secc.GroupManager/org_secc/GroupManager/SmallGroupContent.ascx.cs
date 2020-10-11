@@ -296,8 +296,8 @@ $('#updateProgress').show();
 
             SaveAttributeValues();
 
-            FlushCacheItem( CONTENT_CACHE_KEY + ChannelGuid );
-            FlushCacheItem( TEMPLATE_CACHE_KEY + ChannelGuid );
+            RemoveCacheItem( CONTENT_CACHE_KEY + ChannelGuid );
+            RemoveCacheItem( TEMPLATE_CACHE_KEY + ChannelGuid );
 
             mdEdit.Hide();
             pnlEditModal.Visible = false;
@@ -385,7 +385,7 @@ $('#updateProgress').show();
                 }
             }
 
-            DefinedTypeCache defindedTypeCache = DefinedTypeCache.Read( "81717CA0-4403-4F5A-92AB-1F6328F01254".AsGuid() );
+            DefinedTypeCache defindedTypeCache = DefinedTypeCache.Get( "81717CA0-4403-4F5A-92AB-1F6328F01254".AsGuid() );
             ddlTypes.DataSource = defindedTypeCache.DefinedValues;
             ddlTypes.DataValueField = "Guid";
             ddlTypes.DataTextField = "Value";
@@ -666,8 +666,7 @@ $('#updateProgress').show();
                 int? cacheDuration = GetAttributeValue( "CacheDuration" ).AsInteger();
                 if ( cacheDuration > 0 )
                 {
-                    var cacheItemPolicy = new CacheItemPolicy { AbsoluteExpiration = DateTimeOffset.Now.AddSeconds( cacheDuration.Value ) };
-                    AddCacheItem( TEMPLATE_CACHE_KEY + ChannelGuid, template, cacheItemPolicy );
+                    AddCacheItem( TEMPLATE_CACHE_KEY + ChannelGuid, template, cacheDuration.Value );
                 }
             }
 
@@ -857,9 +856,8 @@ $('#updateProgress').show();
                             int? cacheDuration = GetAttributeValue( "CacheDuration" ).AsInteger();
                             if ( cacheDuration > 0 )
                             {
-                                var cacheItemPolicy = new CacheItemPolicy { AbsoluteExpiration = DateTimeOffset.Now.AddSeconds( cacheDuration.Value ) };
                                 string contentItemCache = PageParameter( "Item" ) ?? "";
-                                AddCacheItem( CONTENT_CACHE_KEY + ChannelGuid + contentItemCache, items, cacheItemPolicy );
+                                AddCacheItem( CONTENT_CACHE_KEY + ChannelGuid + contentItemCache, items, cacheDuration.Value );
                             }
                         }
 
@@ -971,7 +969,7 @@ $('#updateProgress').show();
         {
             if ( channel != null )
             {
-                var entityTypeCache = EntityTypeCache.Read( ITEM_TYPE_NAME );
+                var entityTypeCache = EntityTypeCache.Get( ITEM_TYPE_NAME );
                 if ( entityTypeCache != null )
                 {
                     var entityType = entityTypeCache.GetEntityType();
@@ -984,7 +982,7 @@ $('#updateProgress').show();
                             f.AttributeGuid.HasValue )
                         .ToList() )
                     {
-                        var attribute = AttributeCache.Read( entityField.AttributeGuid.Value );
+                        var attribute = AttributeCache.Get( entityField.AttributeGuid.Value );
                         if ( attribute != null &&
                             attribute.EntityTypeQualifierColumn == "ContentChannelTypeId" &&
                             attribute.EntityTypeQualifierValue.AsInteger() != channel.ContentChannelTypeId )
@@ -1017,7 +1015,7 @@ $('#updateProgress').show();
                         {
                             if ( !entityFields.Any( f => f.AttributeGuid.Equals( attribute.Guid ) ) )
                             {
-                                Rock.Reporting.EntityHelper.AddEntityFieldForAttribute( entityFields, attribute );
+                                Rock.Reporting.EntityHelper.AddEntityFieldsForAttributeList( entityFields, new List<AttributeCache>() { attribute } );
                             }
                         }
 

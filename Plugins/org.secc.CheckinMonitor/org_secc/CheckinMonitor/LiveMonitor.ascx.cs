@@ -24,7 +24,6 @@ using Rock.Web.UI.Controls;
 using System.Collections.Generic;
 using Rock.CheckIn;
 using Rock.Attribute;
-using org.secc.FamilyCheckin.Utilities;
 using Rock.Web.UI;
 using System.Data.Entity;
 using System.Diagnostics;
@@ -38,7 +37,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
     public partial class LiveMonitor : RockBlock
     {
-        KioskCountUtility kioskCountUtility;
 
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.

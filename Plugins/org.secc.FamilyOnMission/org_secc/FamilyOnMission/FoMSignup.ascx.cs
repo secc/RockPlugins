@@ -113,7 +113,7 @@ namespace RockWeb.Plugins.org_secc.FamilyOnMission
 
                         memberGroup.LoadAttributes();
                         var trackGuid = memberGroup.GetAttributeValue( "Track" );
-                        var track = DefinedValueCache.Read( trackGuid.AsGuid() );
+                        var track = DefinedValueCache.Get( trackGuid.AsGuid() );
                         var trackImage = "";
                         var trackAbout = "";
                         var itemTrack = "";
@@ -158,7 +158,7 @@ namespace RockWeb.Plugins.org_secc.FamilyOnMission
 
                     item.LoadAttributes();
                     var trackGuid = item.GetAttributeValue( "Track" );
-                    var track = DefinedValueCache.Read( trackGuid.AsGuid() );
+                    var track = DefinedValueCache.Get( trackGuid.AsGuid() );
                     var trackImage = "";
                     var trackAbout = "";
                     var itemTrack = "";

@@ -29,7 +29,7 @@ namespace org.secc.PastoralCare.Migrations
         public override void Up()
         {
             // Make sure this is unique
-            if ( DefinedTypeCache.Read( new Guid("0913F7A9-A2BF-479C-96EC-6CDB56310A83") ) == null )
+            if ( DefinedTypeCache.Get( new Guid("0913F7A9-A2BF-479C-96EC-6CDB56310A83") ) == null )
             { 
                 RockMigrationHelper.AddDefinedType( "Global", "Hospitals", "Hospital List", "0913F7A9-A2BF-479C-96EC-6CDB56310A83", @"" );
                 RockMigrationHelper.AddDefinedTypeAttribute( "0913F7A9-A2BF-479C-96EC-6CDB56310A83", "9C204CD0-1233-41C5-818A-C5DA439445AA", "City", "Qualifier2", "", 0, "", "CEDC60C1-0F9E-4FE2-BE62-41716813C968" );

@@ -13,8 +13,8 @@
                         <asp:ListItem Text="True" Value="true"></asp:ListItem>
                         <asp:ListItem Text="False" Value="false"></asp:ListItem>
                     </Rock:RockRadioButtonList>
-                    <Rock:RockDropDownList ID="ddldevicetype" runat="server" Label="Personal Device Type" />
-                    <Rock:RockDropDownList ID="ddlplatform" runat="server" Label="Platform" />
+                    <Rock:DefinedValuePicker ID="ddldevicetype" runat="server" Label="Personal Device Type" />
+                    <Rock:DefinedValuePicker ID="ddlplatform" runat="server" Label="Platform" />
                     <Rock:RockTextBox ID="tbdeviceuniqueid" runat="server" Label="Device Unique Identifier" />
                     <Rock:RockTextBox ID="tbdeviceversion" runat="server" Label="Device Version" />
                     <Rock:RockTextBox ID="tbmaddress" runat="server" Label="MAC Address" />

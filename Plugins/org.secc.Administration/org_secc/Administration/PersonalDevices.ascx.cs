@@ -303,10 +303,11 @@ namespace RockWeb.Plugins.org_secc.Administration
             {
                 rblnotifications.SetValue( "false" );
             }
-
-            ddldevicetype.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_TYPE ), true );
+            ddldevicetype.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_TYPE ).Id;
+            ddldevicetype.Items.Insert( 0, new ListItem() );
             ddldevicetype.SetValue( personalDevice.PersonalDeviceTypeValueId );
-            ddlplatform.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_PLATFORM ), true );
+            ddlplatform.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_PLATFORM ).Id;
+            ddlplatform.Items.Insert( 0, new ListItem() );
             ddlplatform.SetValue( personalDevice.PlatformValueId );
             tbdeviceuniqueid.Text = personalDevice.DeviceUniqueIdentifier;
             tbdeviceversion.Text = personalDevice.DeviceVersion;

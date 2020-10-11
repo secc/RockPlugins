@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -292,7 +292,7 @@ namespace org.secc.PayPalExpress
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void btnAddAccount_SelectionChanged(object sender, EventArgs e)
+        protected new void btnAddAccount_SelectionChanged(object sender, EventArgs e)
         {
             btnAddAccount = ((ButtonDropDownList)RockTransactionEntry.FindControl("btnAddAccount"));
             var selected = AvailableAccounts.Where(a => a.Id == (btnAddAccount.SelectedValueAsId() ?? 0)).ToList();
@@ -305,7 +305,7 @@ namespace org.secc.PayPalExpress
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void btnPaymentInfoNext_Click(object sender, EventArgs e)
+        protected new void btnPaymentInfoNext_Click(object sender, EventArgs e)
         {
             if (hfMyPaymentTab.Value == "PayPalExpress") {
 
@@ -443,7 +443,7 @@ namespace org.secc.PayPalExpress
             Guid? transactionEntityTypeGuid = GetAttributeValue( "TransactionEntityType" ).AsGuidOrNull();
             if ( transactionEntityTypeGuid.HasValue )
             {
-                var transactionEntityType = EntityTypeCache.Read( transactionEntityTypeGuid.Value );
+                var transactionEntityType = EntityTypeCache.Get( transactionEntityTypeGuid.Value );
                 if ( transactionEntityType != null )
                 {
                     var entityId = this.PageParameter( this.GetAttributeValue( "EntityIdParam" ) ).AsIntegerOrNull();
@@ -521,7 +521,7 @@ namespace org.secc.PayPalExpress
             if (GetAttributeValue("AllowScheduled").AsBoolean())
             {
                 // If a one-time gift was selected for today's date, then treat as a onetime immediate transaction (not scheduled)
-                int oneTimeFrequencyId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_ONE_TIME).Id;
+                int oneTimeFrequencyId = DefinedValueCache.Get(Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_ONE_TIME).Id;
                 if (btnFrequency.SelectedValue == oneTimeFrequencyId.ToString() && dtpStartDate.SelectedDate <= RockDateTime.Today)
                 {
                     // one-time immediate payment
@@ -529,7 +529,7 @@ namespace org.secc.PayPalExpress
                 }
 
                 var schedule = new PaymentSchedule();
-                schedule.TransactionFrequencyValue = DefinedValueCache.Read(btnFrequency.SelectedValueAsId().Value);
+                schedule.TransactionFrequencyValue = DefinedValueCache.Get(btnFrequency.SelectedValueAsId().Value);
                 if (dtpStartDate.SelectedDate.HasValue && dtpStartDate.SelectedDate > RockDateTime.Today)
                 {
                     schedule.StartDate = dtpStartDate.SelectedDate.Value;
@@ -679,7 +679,7 @@ namespace org.secc.PayPalExpress
             transaction.TransactionDateTime = RockDateTime.Now;
             transaction.FinancialGatewayId = financialGateway.Id;
 
-            var txnType = DefinedValueCache.Read( this.GetAttributeValue( "TransactionType" ).AsGuidOrNull() ?? Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION.AsGuid() );
+            var txnType = DefinedValueCache.Get( this.GetAttributeValue( "TransactionType" ).AsGuidOrNull() ?? Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION.AsGuid() );
             transaction.TransactionTypeValueId = txnType.Id;
 
             transaction.Summary = paymentInfo.Comment1;
@@ -693,7 +693,7 @@ namespace org.secc.PayPalExpress
             Guid sourceGuid = Guid.Empty;
             if ( Guid.TryParse( GetAttributeValue( "Source" ), out sourceGuid ) )
             {
-                var source = DefinedValueCache.Read( sourceGuid );
+                var source = DefinedValueCache.Get( sourceGuid );
                 if ( source != null )
                 {
                     transaction.SourceTypeValueId = source.Id;
@@ -744,7 +744,7 @@ namespace org.secc.PayPalExpress
             transaction.BatchId = batch.Id;
             transaction.LoadAttributes( rockContext );
 
-            var allowedTransactionAttributes = GetAttributeValue( "AllowedTransactionAttributesFromURL" ).Split( ',' ).AsGuidList().Select( x => AttributeCache.Read( x ).Key );
+            var allowedTransactionAttributes = GetAttributeValue( "AllowedTransactionAttributesFromURL" ).Split( ',' ).AsGuidList().Select( x => AttributeCache.Get( x ).Key );
 
             foreach ( KeyValuePair<string, AttributeValueCache> attr in transaction.AttributeValues )
             {
@@ -779,7 +779,7 @@ namespace org.secc.PayPalExpress
             {
                 // Queue a transaction to send reciepts
                 var newTransactionIds = new List<int> { transactionId };
-                var sendPaymentRecieptsTxn = new Rock.Transactions.SendPaymentReciepts(recieptEmail.Value, newTransactionIds);
+                var sendPaymentRecieptsTxn = new Rock.Transactions.SendPaymentReceipts( recieptEmail.Value, newTransactionIds );
                 Rock.Transactions.RockQueue.TransactionQueue.Enqueue(sendPaymentRecieptsTxn);
             }
         }
@@ -819,7 +819,7 @@ namespace org.secc.PayPalExpress
                         !string.IsNullOrWhiteSpace(paymentInfo.LastName))
                     {
                         // Same logic as CreatePledge.ascx.cs
-                        var personMatches = personService.GetByMatch(paymentInfo.FirstName, paymentInfo.LastName, paymentInfo.Email);
+                        var personMatches = personService.FindPersons(paymentInfo.FirstName, paymentInfo.LastName, paymentInfo.Email);
                         if (personMatches.Count() == 1)
                         {
                             person = personMatches.FirstOrDefault();
@@ -832,8 +832,8 @@ namespace org.secc.PayPalExpress
 
                     if (person == null)
                     {
-                        DefinedValueCache dvcConnectionStatus = DefinedValueCache.Read(GetAttributeValue("ConnectionStatus").AsGuid());
-                        DefinedValueCache dvcRecordStatus = DefinedValueCache.Read(GetAttributeValue("RecordStatus").AsGuid());
+                        DefinedValueCache dvcConnectionStatus = DefinedValueCache.Get(GetAttributeValue("ConnectionStatus").AsGuid());
+                        DefinedValueCache dvcRecordStatus = DefinedValueCache.Get(GetAttributeValue("RecordStatus").AsGuid());
 
                         // Create Person
                         person = new Person();
@@ -841,7 +841,7 @@ namespace org.secc.PayPalExpress
                         person.LastName = paymentInfo.LastName;
                         person.IsEmailActive = true;
                         person.EmailPreference = EmailPreference.EmailAllowed;
-                        person.RecordTypeValueId = DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid()).Id;
+                        person.RecordTypeValueId = DefinedValueCache.Get(Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid()).Id;
                         if (dvcConnectionStatus != null)
                         {
                             person.ConnectionStatusValueId = dvcConnectionStatus.Id;
@@ -866,7 +866,7 @@ namespace org.secc.PayPalExpress
 
                 if (GetAttributeValue("DisplayPhone").AsBooleanOrNull() ?? false && !String.IsNullOrEmpty(paymentInfo.Phone))
                 {
-                    var numberTypeId = DefinedValueCache.Read(new Guid(Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME)).Id;
+                    var numberTypeId = DefinedValueCache.Get(new Guid(Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME)).Id;
                     var phone = person.PhoneNumbers.FirstOrDefault(p => p.NumberTypeValueId == numberTypeId);
                     if (phone == null)
                     {

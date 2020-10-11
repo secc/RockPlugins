@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -86,9 +86,9 @@ namespace RockWeb.Plugins.org_secc.Finance
 
         private int? _binaryFileId = null;
         private IHubContext _hubContext = GlobalHost.ConnectionManager.GetHubContext<RockMessageHub>();
-        private static int _transactionTypeContributionId = Rock.Web.Cache.DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION.AsGuid() ).Id;
-        private static int _currencyTypeCheck = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_CHECK.AsGuid() ).Id;
-        private static int _currencyTypeCash = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_CASH.AsGuid() ).Id;
+        private static int _transactionTypeContributionId = Rock.Web.Cache.DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION.AsGuid() ).Id;
+        private static int _currencyTypeCheck = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_CHECK.AsGuid() ).Id;
+        private static int _currencyTypeCash = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_CASH.AsGuid() ).Id;
         private decimal _totalAmount = 0.0M;
 
         protected string signalREventName = "tellerImport";
