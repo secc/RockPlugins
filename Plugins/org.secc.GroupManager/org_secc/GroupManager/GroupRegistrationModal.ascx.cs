@@ -340,7 +340,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         /// <param name="cbSms">The cb SMS.</param>
         /// <param name="phoneTypeGuid">The phone type unique identifier.</param>
         /// <param name="changes">The changes.</param>
-        private void SetPhoneNumber( RockContext rockContext, Person person, PhoneNumberBox pnbNumber, RockCheckBox cbSms, Guid phoneTypeGuid, List<string> changes )
+        private void SetPhoneNumber( RockContext rockContext, Person person, PhoneNumberBox pnbNumber, RockCheckBox cbSms, Guid phoneTypeGuid, History.HistoryChangeList changes )
         {
             var phoneType = DefinedValueCache.Get( phoneTypeGuid );
             if ( phoneType != null )

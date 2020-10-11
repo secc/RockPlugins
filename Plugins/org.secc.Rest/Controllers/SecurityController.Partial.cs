@@ -38,7 +38,7 @@ namespace org.secc.Rest.Controllers
         {
             RouteTable.Routes.MapHttpRoute(
                 name: "security",
-                routeTemplate: "api/People/{action}/{param}",
+                routeTemplate: "api/org.secc/People/{action}/{param}",
                 defaults: new
                 {
                     controller = "security",
@@ -46,7 +46,7 @@ namespace org.secc.Rest.Controllers
                 } ).RouteHandler = new SessionRouteHandler();
             RouteTable.Routes.MapHttpRoute(
                 name: "securityNoParam",
-                routeTemplate: "api/People/{action}",
+                routeTemplate: "api/org.secc/People/{action}",
                 defaults: new
                 {
                     controller = "security",

@@ -55,121 +55,125 @@ namespace org.secc.RoomScanner.Utilities
 
         public static void AddExitHistory( RockContext rockContext, Location location, Attendance attendeeAttendance, bool isSubroom )
         {
-            HistoryService historyService = new HistoryService( rockContext );
-            var summary = string.Format( "Exited <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );
+
+            var summary = string.Format( "{0}</span> at <span class=\"field-name\">{1}", location.Name, Rock.RockDateTime.Now );
             if ( isSubroom )
             {
-                summary += string.Format( " (a subroom of <span class=\"field-name\">{0}</span>)", location.ParentLocation.Name );
+                summary += string.Format( "</span> (a subroom of <span class=\"field-name\">{0})", location.ParentLocation.Name );
             }
 
-            History history = new History()
-            {
-                EntityTypeId = personEntityTypeId,
-                EntityId = attendeeAttendance.PersonAlias.PersonId,
-                RelatedEntityTypeId = locationEntityTypeId,
-                RelatedEntityId = location.Id,
-                Verb = "Exit",
-                Summary = summary,
-                Caption = "Exited Location",
-                RelatedData = GetHostInfo(),
-                CategoryId = 4
-            };
+            var changes = new History.HistoryChangeList();
+            changes.AddCustom( "Exit", History.HistoryChangeType.Record.ToString(), summary.Truncate(250) );
+            changes.First().Caption = "Exited Location";
+            changes.First().RelatedEntityTypeId = locationEntityTypeId;
+            changes.First().RelatedEntityId = location.Id;
+            changes.First().RelatedData = GetHostInfo();
 
-            historyService.Add( history );
+            HistoryService.SaveChanges(
+                rockContext,
+                typeof( Rock.Model.Person ),
+                CategoryCache.Get(4).Guid,
+                attendeeAttendance.PersonAlias.PersonId,
+                changes,
+                true
+            );
+
             AttendanceCache.RemoveWithParent( attendeeAttendance.PersonAlias.PersonId );
         }
 
 
         public static void AddMoveHistory( RockContext rockContext, Location location, Attendance attendeeAttendance, bool isSubroom )
         {
-            HistoryService historyService = new HistoryService( rockContext );
-            var moveSummary = string.Format( "Moved to and Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );
+            var moveSummary = string.Format( "{0}</span> at <span class=\"field-name\">{1}", location.Name, Rock.RockDateTime.Now );
             if ( isSubroom )
             {
-                moveSummary += string.Format( " (a subroom of <span class=\"field-name\">{0}</span>)", location.ParentLocation.Name );
+                moveSummary += string.Format( "</span> (a subroom of <span class=\"field-name\">{0})", location.ParentLocation.Name );
             }
 
-            History moveHistory = new History()
-            {
-                EntityTypeId = personEntityTypeId,
-                EntityId = attendeeAttendance.PersonAlias.PersonId,
-                RelatedEntityTypeId = locationEntityTypeId,
-                RelatedEntityId = location.Id,
-                Verb = "Entry",
-                Summary = moveSummary,
-                Caption = "Moved To Location",
-                RelatedData = GetHostInfo(),
-                CategoryId = 4
-            };
+            var changes = new History.HistoryChangeList();
+            changes.AddCustom( "Entry", History.HistoryChangeType.Record.ToString(), moveSummary.Truncate( 250 ) );
+            changes.First().Caption = "Moved To Location";
+            changes.First().RelatedEntityTypeId = locationEntityTypeId;
+            changes.First().RelatedEntityId = location.Id;
+            changes.First().RelatedData = GetHostInfo();
 
-            historyService.Add( moveHistory );
+            HistoryService.SaveChanges(
+                rockContext,
+                typeof( Rock.Model.Person ),
+                CategoryCache.Get( 4 ).Guid,
+                attendeeAttendance.PersonAlias.PersonId,
+                changes,
+                true
+            );
         }
 
         public static void AddEntranceHistory( RockContext rockContext, Location location, Attendance attendeeAttendance, bool isSubroom )
         {
-            HistoryService historyService = new HistoryService( rockContext );
-            var summary = string.Format( "Entered <span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}</span>", location.Name, Rock.RockDateTime.Now );
+            var summary = string.Format( "<span class=\"field-name\">{0}</span> at <span class=\"field-name\">{1}", location.Name, Rock.RockDateTime.Now );
             if ( isSubroom )
             {
-                summary += string.Format( " (a subroom of <span class=\"field-name\">{0}</span>)", location.ParentLocation.Name );
+                summary += string.Format( "</span> (a subroom of <span class=\"field-name\">{0})", location.ParentLocation.Name );
             }
 
-            History history = new History()
-            {
-                EntityTypeId = personEntityTypeId,
-                EntityId = attendeeAttendance.PersonAlias.PersonId,
-                RelatedEntityTypeId = locationEntityTypeId,
-                RelatedEntityId = location.Id,
-                Verb = "Entry",
-                Summary = summary,
-                Caption = "Entered Location",
-                RelatedData = GetHostInfo(),
-                CategoryId = 4
-            };
+            var changes = new History.HistoryChangeList();
+            changes.AddCustom( "Entry", History.HistoryChangeType.Record.ToString(), summary.Truncate( 250 ) );
+            changes.First().Caption = "Entered Location";
+            changes.First().RelatedEntityTypeId = locationEntityTypeId;
+            changes.First().RelatedEntityId = location.Id;
+            changes.First().RelatedData = GetHostInfo();
 
-            historyService.Add( history );
+            HistoryService.SaveChanges(
+                rockContext,
+                typeof( Rock.Model.Person ),
+                CategoryCache.Get( 4 ).Guid,
+                attendeeAttendance.PersonAlias.PersonId,
+                changes,
+                true
+            );
+
         }
 
         public static void AddWithParentHistory( RockContext rockContext, Person person )
         {
-            HistoryService historyService = new HistoryService( rockContext );
-            var summary = string.Format( "Moved to be with Parent at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
+            var summary = string.Format( "</span> to be with Parent at <span class=\"field-name\">{0}", Rock.RockDateTime.Now );
 
-            History history = new History()
-            {
-                EntityTypeId = personEntityTypeId,
-                EntityId = person.Id,
-                Verb = "Moved",
-                Summary = summary,
-                Caption = "Moved be with Parent",
-                RelatedData = GetHostInfo(),
-                CategoryId = 4
-            };
-            historyService.Add( history );
+            var changes = new History.HistoryChangeList();
+            changes.AddCustom( "Moved", History.HistoryChangeType.Record.ToString(), summary.Truncate( 250 ) );
+            changes.First().Caption = "Moved be with Parent";
+            changes.First().RelatedData = GetHostInfo();
+
+            HistoryService.SaveChanges(
+                rockContext,
+                typeof( Rock.Model.Person ),
+                CategoryCache.Get( 4 ).Guid,
+                person.Id,
+                changes,
+                true
+            );
             AttendanceCache.SetWithParent( person.Id );
         }
 
 
         public static void AddReturnToRoomHistory( RockContext rockContext, Person person )
         {
-            HistoryService historyService = new HistoryService( rockContext );
             if ( AttendanceCache.IsWithParent( person.Id ) )
             {
                 AttendanceCache.RemoveWithParent( person.Id );
-                var summary = string.Format( "Returned from Parent at <span class=\"field-name\">{0}</span>", Rock.RockDateTime.Now );
+                var summary = string.Format( "</span>from Parent at <span class=\"field-name\">{0}", Rock.RockDateTime.Now );
 
-                History history = new History()
-                {
-                    EntityTypeId = personEntityTypeId,
-                    EntityId = person.Id,
-                    Verb = "Returned",
-                    Summary = summary,
-                    Caption = "Returned from Parent",
-                    RelatedData = GetHostInfo(),
-                    CategoryId = 4
-                };
-                historyService.Add( history );
-                //HistoryService.SaveChanges( rockContext, typeof( Person ), Rock.SystemGuid.Category.HISTORY_PERSON, person.Id, memberChanges, newFamily.Name, typeof( Group ), newFamily.Id, false, null, SOURCE_OF_CHANGE );
+                var changes = new History.HistoryChangeList();
+                changes.AddCustom( "Returned", History.HistoryChangeType.Record.ToString(), summary.Truncate( 250 ) );
+                changes.First().Caption = "Returned from Parent";
+                changes.First().RelatedData = GetHostInfo();
+
+                HistoryService.SaveChanges(
+                    rockContext,
+                    typeof( Rock.Model.Person ),
+                    CategoryCache.Get( 4 ).Guid,
+                    person.Id,
+                    changes,
+                    true
+                );
 
             }
         }

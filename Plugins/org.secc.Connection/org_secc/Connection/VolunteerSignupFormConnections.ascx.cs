@@ -316,7 +316,7 @@ namespace org.secc.Connection
                     // If there is a valid person with a primary alias, continue
                     if ( person != null && person.PrimaryAliasId.HasValue )
                     {
-                        var changes = new List<string>();
+                        var changes = new History.HistoryChangeList();
 
                         if ( pnHome.Visible )
                         {
@@ -642,7 +642,7 @@ namespace org.secc.Connection
             }
         }
 
-        private void SavePhone( PhoneNumberBox phoneNumberBox, Person person, Guid phoneTypeGuid, List<string> changes )
+        private void SavePhone( PhoneNumberBox phoneNumberBox, Person person, Guid phoneTypeGuid, History.HistoryChangeList changes )
         {
             var numberType = DefinedValueCache.Get( phoneTypeGuid );
             if ( numberType != null )
