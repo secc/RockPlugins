@@ -29,7 +29,7 @@ namespace org.secc.PastoralCare.Migrations
         public override void Up()
         {
             // Make sure this is unique
-            if ( DefinedTypeCache.Read( new Guid("0913F7A9-A2BF-479C-96EC-6CDB56310A83") ) == null )
+            if ( DefinedTypeCache.Get( new Guid("0913F7A9-A2BF-479C-96EC-6CDB56310A83") ) == null )
             { 
                 RockMigrationHelper.AddDefinedType( "Global", "Hospitals", "Hospital List", "0913F7A9-A2BF-479C-96EC-6CDB56310A83", @"" );
                 RockMigrationHelper.AddDefinedTypeAttribute( "0913F7A9-A2BF-479C-96EC-6CDB56310A83", "9C204CD0-1233-41C5-818A-C5DA439445AA", "City", "Qualifier2", "", 0, "", "CEDC60C1-0F9E-4FE2-BE62-41716813C968" );
@@ -50,7 +50,7 @@ namespace org.secc.PastoralCare.Migrations
             }
 
             // Make sure this is unique
-            if ( DefinedTypeCache.Read( new Guid( "4573E600-4E00-4BE9-BA92-D17093C735D6" ) ) == null )
+            if ( DefinedTypeCache.Get( new Guid( "4573E600-4E00-4BE9-BA92-D17093C735D6" ) ) == null )
             {
                 RockMigrationHelper.AddDefinedType( "Global", "Nursing Homes", "Nursing Home List", "4573E600-4E00-4BE9-BA92-D17093C735D6", @"" );
                 RockMigrationHelper.AddDefinedTypeAttribute( "4573E600-4E00-4BE9-BA92-D17093C735D6", "9C204CD0-1233-41C5-818A-C5DA439445AA", "City", "Qualifier2", "", 0, "", "CEDC60C1-0F9E-4FE2-BE62-41716813C969" );
@@ -70,7 +70,7 @@ namespace org.secc.PastoralCare.Migrations
                 RockMigrationHelper.AddDefinedValueAttributeValue( "0997ACB6-A4B4-4766-B573-3C44D14DF343", "D97EC9DE-5D6A-42FD-B4CE-0516FD5455F7", @"John Adams" );
             }
             // Make sure to clear the Rock Cache so the defined type above will be there
-            RockMemoryCache.Clear();
+            RockCache.ClearAllCachedItems();
         }
         public override void Down()
         {

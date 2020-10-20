@@ -17,15 +17,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using Avalanche;
-using Avalanche.Attribute;
-using Avalanche.Models;
-using Newtonsoft.Json;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 using Rock.Web.UI;
 
 namespace RockWeb.Plugins.GroupManager

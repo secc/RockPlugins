@@ -81,23 +81,27 @@ namespace org.secc.Workflow.Person
                 var caption = GetAttributeValue( action, "Caption" ).ResolveMergeFields( mergeFields );
                 var summary = GetAttributeValue( action, "Summary" ).ResolveMergeFields( mergeFields );
                 var verb = GetAttributeValue( action, "Verb" ).ResolveMergeFields( mergeFields );
-                HistoryService historyService = new HistoryService( rockContext );
-                History history = new History
-                {
-                    Caption = caption,
-                    Summary = summary,
-                    Verb = verb,
-                    EntityId = person.Id,
-                    EntityTypeId = entityTypeId.Value,
-                    CategoryId = category.Id
-                };
+
+
+                var personChanges = new History.HistoryChangeList();
+
+                personChanges.AddCustom( verb, History.HistoryChangeType.Record.ToString(), summary.Truncate(250) );
+                personChanges.First().Caption = caption;
+
                 if ( action?.Activity?.Workflow != null && action.Activity.WorkflowId != 0 )
                 {
-                    history.RelatedEntityTypeId = workflowEntityTypeId;
-                    history.RelatedEntityId = action.Activity.WorkflowId;
+                    personChanges.First().RelatedEntityTypeId = workflowEntityTypeId;
+                    personChanges.First().RelatedEntityId = action.Activity.WorkflowId;
                 }
-                historyService.Add( history );
-                rockContext.SaveChanges();
+
+                HistoryService.SaveChanges(
+                    rockContext,
+                    typeof( Rock.Model.Person ),
+                    category.Guid,
+                    person.Id,
+                    personChanges,
+                    true
+                );
 
                 return true;
             }

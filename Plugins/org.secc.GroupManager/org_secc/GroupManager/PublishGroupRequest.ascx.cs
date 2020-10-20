@@ -151,7 +151,7 @@ namespace RockWeb.Plugins.GroupManager
                 ddlStatus.Visible = false;
             }
 
-            ddlAudience.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.MARKETING_CAMPAIGN_AUDIENCE_TYPE.AsGuid() ) );
+            ddlAudience.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.MARKETING_CAMPAIGN_AUDIENCE_TYPE.AsGuid() ).Id;
             ddlDayOfWeek.BindToEnum<DayOfWeek>( true );
 
             var groupPageId = PageCache.Get( Rock.SystemGuid.Page.GROUP_VIEWER.AsGuid() ).Id;

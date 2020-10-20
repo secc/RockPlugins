@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -169,8 +169,8 @@ namespace RockWeb.Plugins.org_secc.LessInclude
 
             SavePageFile(themeCSS, "theme.css");
 
-            FlushCacheItem(blockId + "bootstrap.css");
-            FlushCacheItem(blockId + "theme.css");
+            RemoveCacheItem(blockId + "bootstrap.css");
+            RemoveCacheItem( blockId + "theme.css");
         }
         
         private void SavePageFile(string content, string fileName)

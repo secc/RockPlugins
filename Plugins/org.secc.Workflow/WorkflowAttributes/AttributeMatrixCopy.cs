@@ -82,7 +82,7 @@ namespace org.secc.Workflow.WorkflowAttributes
 
 
                 // Now store the target attribute
-                var targetAttribute = AttributeCache.Read( GetActionAttributeValue( action, "TargetAttributeMatrix" ).AsGuid(), rockContext );
+                var targetAttribute = AttributeCache.Get( GetActionAttributeValue( action, "TargetAttributeMatrix" ).AsGuid(), rockContext );
                 if ( targetAttribute.EntityTypeId == new Rock.Model.Workflow().TypeId )
                 {
                     action.Activity.Workflow.SetAttributeValue( targetAttribute.Key, targetMatrix.Guid.ToString() );

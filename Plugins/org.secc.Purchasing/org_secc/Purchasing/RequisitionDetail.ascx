@@ -299,14 +299,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-xs-4">
-                                    <div class="form-group required">
-                                        <label class="control-label">Ministry:</label>
-                                        <div>
-                                            <Rock:RockDropDownList ID="ddlMinistry" runat="server" Required="true" />
-                                        </div>
-                                    </div>
-                                </div>
+
                                 <div class="col-xs-4">
                                     <Rock:RockTextBox Label="Deliver To:" Required="true" ID="txtDeliverTo" runat="server" Text="Deliver To" />
                                 </div>
@@ -330,6 +323,14 @@
                                             </asp:LinkButton>
                                             <asp:Button ID="btnVendorModalShow" runat="server" Text="..." CssClass="btn btn-default hidden-print"
                                                 OnClick="btnVendorModalShow_click" CausesValidation="false"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-4">
+                                    <div class="form-group required">
+                                        <label class="control-label">Ministry:</label>
+                                        <div>
+                                            <Rock:RockDropDownList ID="ddlMinistry" runat="server" Required="true" />
                                         </div>
                                     </div>
                                 </div>

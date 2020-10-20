@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>org.secc.Microframe</RootNamespace>
     <AssemblyName>org.secc.Microframe</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -97,11 +98,9 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Microframe.dll" "$(SolutionDir)RockWeb\Bin"
-xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Microframe.pdb" "$(SolutionDir)RockWeb\Bin"
-xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
-
-</PostBuildEvent>
+    <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
+xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Microframe.dll" "$(SolutionDir)RockWeb\Bin"
+xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Microframe.pdb" "$(SolutionDir)RockWeb\Bin"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

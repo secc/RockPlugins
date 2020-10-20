@@ -51,7 +51,7 @@ namespace org.secc.PDF
             MergeObjects.Add( "Activity", activity );
             foreach ( var attribute in activity.AttributeValues )
             {
-                var a = AttributeCache.Read( attribute.Value.AttributeId );
+                var a = AttributeCache.Get( attribute.Value.AttributeId );
                 if ( a != null && a.FieldType.Field is IEntityFieldType )
                 {
                     MergeObjects.Add( attribute.Key, ( ( IEntityFieldType ) a.FieldType.Field ).GetEntity( attribute.Value.Value ) );
@@ -66,7 +66,7 @@ namespace org.secc.PDF
             MergeObjects.Add( "Workflow", workflow );
             foreach ( var attribute in workflow.AttributeValues )
             {
-                var a = AttributeCache.Read( attribute.Value.AttributeId );
+                var a = AttributeCache.Get( attribute.Value.AttributeId );
                 if ( a != null && a.FieldType.Field is IEntityFieldType )
                 {
                     MergeObjects.Add( attribute.Key, ( ( IEntityFieldType ) a.FieldType.Field ).GetEntity( attribute.Value.Value ) );

@@ -158,7 +158,7 @@
                     <Rock:RockTextBox ID="tbAdult1LastName" runat="server" Label="Last Name" />
                 </div>
                 <div class="col-xs-12 col-sm-2">
-                    <Rock:RockDropDownList ID="ddlAdult1Suffix" runat="server" Label="Suffix" CssClass="input-width-md" />
+                    <Rock:DefinedValuePicker ID="ddlAdult1Suffix" runat="server" Label="Suffix" CssClass="input-width-md" />
                 </div>
                 <div class="col-xs-8 col-sm-6">
                     <Rock:PhoneNumberBox ID="pnbAdult1Phone" Required="true" ValidationGroup="NewFamily" runat="server" Label="Phone Number"></Rock:PhoneNumberBox>
@@ -179,7 +179,7 @@
                     <Rock:RockTextBox ID="tbAdult2LastName" runat="server" Label="Last Name" />
                 </div>
                 <div class="col-xs-12 col-sm-2">
-                    <Rock:RockDropDownList ID="ddlAdult2Suffix" runat="server" Label="Suffix" CssClass="input-width-md" />
+                    <Rock:DefinedValuePicker ID="ddlAdult2Suffix" runat="server" Label="Suffix" CssClass="input-width-md" />
                 </div>
                 <div class="col-xs-8 col-sm-6">
                     <Rock:PhoneNumberBox ID="pnbAdult2Phone" runat="server" Label="Phone Number"></Rock:PhoneNumberBox>
@@ -289,7 +289,7 @@
                                 <Rock:RockTextBox ID="tbNewPersonLastName" runat="server" Label="Last Name" />
                             </div>
                             <div class="col-xs-12 col-sm-4">
-                                <Rock:RockDropDownList ID="ddlNewPersonSuffix" runat="server" Label="Suffix" CssClass="input-width-md" />
+                                <Rock:DefinedValuePicker ID="ddlNewPersonSuffix" runat="server" Label="Suffix" CssClass="input-width-md" />
                             </div>
                             <div class="col-xs-12 col-sm-6">
                                 <Rock:RockRadioButtonList ID="rblNewPersonGender" runat="server" Label="Gender" RepeatDirection="Horizontal" />

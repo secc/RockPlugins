@@ -1,5 +1,5 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="TransactionEntry.ascx.cs" Inherits="org.secc.PayPalExpress.TransactionEntry" %>
-<%@ Register Src="~/Blocks/Finance/TransactionEntry.ascx" TagName="TransactionEntry" TagPrefix="Rock" %>
+<%@ Register Src="~/Blocks/Finance/TransactionEntry.ascx" TagName="TransactionEntry" TagPrefix="RockTransaction" %>
 
 <asp:HiddenField ID="hfMyPaymentTab" runat="server" />
 

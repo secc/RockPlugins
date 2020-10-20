@@ -20,6 +20,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Http;
+using System.Web.Routing;
 using System.Web.SessionState;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Rest.Handlers;
@@ -35,15 +36,15 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
     /// <summary>
     /// TaggedItems REST API
     /// </summary>
-    public partial class FamilyCheckinController : ApiController, IHasCustomRoutes
+    public partial class FamilyCheckinController : ApiController, IHasCustomHttpRoutes
     {
         /// <summary>
         /// Add Custom route for flushing cached attributes
         /// </summary>
         /// <param name="routes"></param>
-        public void AddRoutes( System.Web.Routing.RouteCollection routes )
+        public void AddRoutes( HttpRouteCollection routes )
         {
-            routes.MapHttpRoute(
+            RouteTable.Routes.MapHttpRoute( 
                 name: "FamiliesByPhone",
                 routeTemplate: "api/org.secc/familycheckin/{action}/{param}",
                 defaults: new

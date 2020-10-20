@@ -137,8 +137,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void BuildNewFamilyControls()
         {
-            ddlAdult1Suffix.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
-            ddlAdult2Suffix.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
+            ddlAdult1Suffix.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ).Id;
+            ddlAdult1Suffix.Items.Insert( 0, new ListItem() );
+            ddlAdult2Suffix.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ).Id;
+            ddlAdult2Suffix.Items.Insert( 0, new ListItem() );
 
             pnbAdult1Phone.Text = CurrentCheckInState.CheckIn.SearchValue.AsDouble().ToString();
 
@@ -595,7 +597,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             pnlPersonInformation.Visible = false;
             pnlAddPerson.Visible = true;
 
-            ddlNewPersonSuffix.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ), true );
+            ddlNewPersonSuffix.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSON_SUFFIX.AsGuid() ).Id;
+            ddlNewPersonSuffix.Items.Insert( 0, new ListItem() );
 
             tbNewPersonFirstName.Text = "";
             tbNewPersonLastName.Text = "";

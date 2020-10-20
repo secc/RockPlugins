@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -28,6 +28,7 @@ using Rock.Data;
 using Rock.Model;
 using org.secc.PDF;
 using Rock.Attribute;
+using Rock.Web.Cache;
 
 namespace RockWeb.Plugins.org_secc.PDFExamples
 {
@@ -103,7 +104,7 @@ namespace RockWeb.Plugins.org_secc.PDFExamples
                     var workflowType = workflowTypeService.Get( workflowTypeGuid );
                     if ( workflowType != null )
                     {
-                        var workflow = Workflow.Activate( workflowType, pdf.FileName ); 
+                        var workflow = Workflow.Activate( WorkflowTypeCache.Get(workflowType.Id), pdf.FileName ); 
 
                         List<string> workflowErrors;
                         var workflowService = new WorkflowService( workflowRockContext );
@@ -111,7 +112,7 @@ namespace RockWeb.Plugins.org_secc.PDFExamples
                         var activityType = workflowType.ActivityTypes.Where( a => a.Name == workflowActivity ).FirstOrDefault();
                         if ( activityType != null )
                         {
-                            WorkflowActivity.Activate( activityType, workflow, workflowRockContext );
+                            WorkflowActivity.Activate( WorkflowActivityTypeCache.Get( activityType.Id ), workflow, workflowRockContext );
                             if ( workflowService.Process( workflow, pdfEntity, out workflowErrors ) )
                             {
                                 //success

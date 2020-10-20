@@ -39,11 +39,11 @@ namespace org.secc.ConnectionCards.Utilities
                 using ( MemoryStream ms = new MemoryStream( inputFile.DatabaseData.Content ) )
                 {
                     rasterizer.Open( ms );
-                    for ( int pageNumber = 1; pageNumber <= rasterizer.PageCount; pageNumber++ )
+                    if (rasterizer.PageCount > 0 )
                     {
                         string filename = "ImageConvertedPDF.png";
 
-                        Image img = rasterizer.GetPage( desired_x_dpi, desired_y_dpi, pageNumber );
+                        Image img = rasterizer.GetPage( desired_x_dpi, desired_y_dpi, 1 );
                         using ( MemoryStream m = new MemoryStream() )
                         {
                             img.Save( m, ImageFormat.Png );

@@ -67,7 +67,7 @@ namespace org.secc.PayPalExpress
             get
             {
                 var values = new List<DefinedValueCache>();
-                values.Add(DefinedValueCache.Read(Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_ONE_TIME));
+                values.Add(DefinedValueCache.Get(Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_ONE_TIME));
                 return values;
             }
         }

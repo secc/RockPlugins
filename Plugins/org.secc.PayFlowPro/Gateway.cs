@@ -257,7 +257,7 @@ namespace org.secc.PayFlowPro
                 var transactionIdParams = new Dictionary<string, string>();
                 transactionIdParams.Add( "transaction_id", string.Empty );
 
-                var creditCardTypes = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.FINANCIAL_CREDIT_CARD_TYPE.AsGuid() ).DefinedValues;
+                var creditCardTypes = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.FINANCIAL_CREDIT_CARD_TYPE.AsGuid() ).DefinedValues;
 
                 foreach ( DataRow recurringBillingRow in recurringBillingTable.Rows )
                 {
@@ -299,11 +299,11 @@ namespace org.secc.PayFlowPro
                         payment.CreditCardTypeValue = creditCardTypes.Where( t => t.Value == tenderType ).FirstOrDefault();
                         if ( payment.CreditCardTypeValue != null)
                         {
-                            payment.CurrencyTypeValue = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_CREDIT_CARD );
+                            payment.CurrencyTypeValue = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_CREDIT_CARD );
                         }
                         else
                         {
-                            payment.CurrencyTypeValue = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_ACH );
+                            payment.CurrencyTypeValue = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_ACH );
                         }
                         if (!string.IsNullOrEmpty(email))
                         {

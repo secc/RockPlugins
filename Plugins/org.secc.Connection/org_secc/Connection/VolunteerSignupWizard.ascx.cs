@@ -1028,7 +1028,7 @@ namespace org.secc.Connection
             {
                 List<int> scheduleIds = ( ( SchedulePicker ) ( ( Control ) sender ).Parent ).SelectedValues.Select( i => i.AsInteger() ).ToList();
                 ScheduleService scheduleService = new ScheduleService( new RockContext() );
-                partition.PartitionValue = String.Join( ",", scheduleService.GetByIds( scheduleIds ).ToList().OrderBy( s => s.NextStartDateTime ).Select( s => s.Guid.ToString() ) );
+                partition.PartitionValue = String.Join( ",", scheduleService.GetByIds( scheduleIds ).ToList().OrderBy( s => s.GetNextStartDateTime( RockDateTime.Now ) ).Select( s => s.Guid.ToString() ) );
             }
             SaveViewState();
         }

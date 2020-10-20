@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -386,7 +386,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             return new List<Group>();
         }
 
-        protected void lbEdit_Click( object sender, EventArgs e )
+        protected new void lbEdit_Click( object sender, EventArgs e )
         {
             hfEditMode.Value = "1";
             ShowEdit();

@@ -129,7 +129,7 @@ We are sorry, we dected more than one person with your number in our records.
 
             if ( userLogin == null )
             {
-                var entityTypeId = EntityTypeCache.Read( "Avalanche.Security.Authentication.PhoneNumber" ).Id;
+                var entityTypeId = EntityTypeCache.Get( "Avalanche.Security.Authentication.PhoneNumber" ).Id;
 
                 userLogin = new UserLogin()
                 {
@@ -148,8 +148,8 @@ We are sorry, we dected more than one person with your number in our records.
 
             rockContext.SaveChanges();
 
-            var recipients = new List<RecipientData>();
-            recipients.Add( new RecipientData( PhoneNumber ) );
+            var recipients = new List<RockMessageRecipient>();
+            recipients.Add( RockSMSMessageRecipient.CreateAnonymous( PhoneNumber, null ) );
 
             var smsMessage = new RockSMSMessage();
             smsMessage.SetRecipients( recipients );
@@ -158,10 +158,10 @@ We are sorry, we dected more than one person with your number in our records.
             Guid? fromGuid = GetAttributeValue( "From" ).AsGuidOrNull();
             if ( fromGuid.HasValue )
             {
-                var fromValue = DefinedValueCache.Read( fromGuid.Value, rockContext );
+                var fromValue = DefinedValueCache.Get( fromGuid.Value, rockContext );
                 if ( fromValue != null )
                 {
-                    smsMessage.FromNumber = DefinedValueCache.Read( fromValue.Id );
+                    smsMessage.FromNumber = DefinedValueCache.Get( fromValue.Id );
                 }
             }
 

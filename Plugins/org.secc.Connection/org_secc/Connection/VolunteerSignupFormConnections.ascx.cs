@@ -74,8 +74,8 @@ namespace org.secc.Connection
     {
         #region Fields
 
-        DefinedValueCache _homePhone = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME );
-        DefinedValueCache _cellPhone = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE );
+        DefinedValueCache _homePhone = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME );
+        DefinedValueCache _cellPhone = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE );
         
         private List<ConnectionRoleRequest> _roleRequests = null;
         List<ConnectionRoleRequest> RoleRequests
@@ -269,7 +269,7 @@ namespace org.secc.Connection
                         }
                         else
                         {
-                            personMatches = personService.GetByMatch( firstName, lastName, email ).ToList();
+                            personMatches = personService.FindPersons( firstName, lastName, email ).ToList();
                             if ( bpBirthdate.Visible )
                             {
                                 personMatches = personMatches.Where( p => p.BirthDate == birthdate ).ToList();
@@ -289,8 +289,8 @@ namespace org.secc.Connection
                     if ( person == null )
                     {
                         // If a match was not found, create a new person
-                        var dvcConnectionStatus = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() );
-                        var dvcRecordStatus = DefinedValueCache.Read( GetAttributeValue( "RecordStatus" ).AsGuid() );
+                        var dvcConnectionStatus = DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() );
+                        var dvcRecordStatus = DefinedValueCache.Get( GetAttributeValue( "RecordStatus" ).AsGuid() );
 
                         person = new Person();
                         person.FirstName = firstName;
@@ -299,7 +299,7 @@ namespace org.secc.Connection
                         person.SetBirthDate(birthdate);
                         person.Email = email;
                         person.EmailPreference = EmailPreference.EmailAllowed;
-                        person.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                        person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
                         if ( dvcConnectionStatus != null )
                         {
                             person.ConnectionStatusValueId = dvcConnectionStatus.Id;
@@ -316,7 +316,7 @@ namespace org.secc.Connection
                     // If there is a valid person with a primary alias, continue
                     if ( person != null && person.PrimaryAliasId.HasValue )
                     {
-                        var changes = new List<string>();
+                        var changes = new History.HistoryChangeList();
 
                         if ( pnHome.Visible )
                         {
@@ -488,12 +488,12 @@ namespace org.secc.Connection
                 {
                     if ( PageParameter( "Campus" ).AsGuidOrNull().HasValue )
                     {
-                        cpCampus.SetValue( CampusCache.Read( PageParameter( "Campus" ).AsGuid() ).Id );
-                        ltCampus.Text = CampusCache.Read( PageParameter( "Campus" ).AsGuid() ).Name;
+                        cpCampus.SetValue( CampusCache.Get( PageParameter( "Campus" ).AsGuid() ).Id );
+                        ltCampus.Text = CampusCache.Get( PageParameter( "Campus" ).AsGuid() ).Name;
                     } else
                     {
                         cpCampus.SetValue( PageParameter( "CampusId" ).AsInteger() );
-                        ltCampus.Text = CampusCache.Read( PageParameter( "CampusId" ).AsInteger() ).Name;
+                        ltCampus.Text = CampusCache.Get( PageParameter( "CampusId" ).AsInteger() ).Name;
                     }
                     cpCampus.CssClass = "hidden";
                     cpCampus.Label = null;
@@ -603,7 +603,7 @@ namespace org.secc.Connection
                     // set the campus to the context
                     if ( GetAttributeValue( "EnableCampusContext" ).AsBoolean() )
                     {
-                        var campusEntityType = EntityTypeCache.Read( "Rock.Model.Campus" );
+                        var campusEntityType = EntityTypeCache.Get( "Rock.Model.Campus" );
                         var contextCampus = RockPage.GetCurrentContext( campusEntityType ) as Campus;
 
                         if ( contextCampus != null )
@@ -642,9 +642,9 @@ namespace org.secc.Connection
             }
         }
 
-        private void SavePhone( PhoneNumberBox phoneNumberBox, Person person, Guid phoneTypeGuid, List<string> changes )
+        private void SavePhone( PhoneNumberBox phoneNumberBox, Person person, Guid phoneTypeGuid, History.HistoryChangeList changes )
         {
-            var numberType = DefinedValueCache.Read( phoneTypeGuid );
+            var numberType = DefinedValueCache.Get( phoneTypeGuid );
             if ( numberType != null )
             {
                 var phone = person.PhoneNumbers.FirstOrDefault( p => p.NumberTypeValueId == numberType.Id );
