@@ -1,0 +1,32 @@
+eqfeed_callback(
+{
+    type: "FeatureCollection",
+    features: [
+        {%- assign comma = "" -%}
+        {%- person dataview:'3227' sort:'LastName' -%}
+        {%- for person in personItems -%}
+            {% assign lat =  person | Address:'Home','[[Latitude]]' %}
+            {% assign lng =  person | Address:'Home','[[Longitude]]' %}
+            {{ comma }}{
+                type: "Feature",
+                properties: {
+                    mag: 5.4,
+                    place: "{{ person.FirstName }} {{ person.LastName | Truncate:2,'.' }}",
+                    url: "http://earthquake.usgs.gov/earthquakes/eventpage/usc000csx3"
+                },
+                geometry: {
+                    type: "Point"
+                    {% if personalHome != '' %}
+                    ,coordinates: [
+                        {{ lng | Split:'.' | First }}.{{ lng | Split:'.' | Last | Truncate:2,'' }},
+                        {{ lat | Split:'.' | First }}.{{ lat | Split:'.' | Last | Truncate:2,'' }}
+                    ]
+                    {% endif %}
+                }
+            }
+            {%- assign comma = "," -%}
+        {%- endfor -%}
+        {%- endperson -%}
+    ]
+}
+);

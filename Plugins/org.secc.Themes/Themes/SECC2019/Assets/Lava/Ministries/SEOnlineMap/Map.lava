@@ -67,7 +67,8 @@
         border-radius: 20px;
         -webkit-transition: all .6s ease-in-out;
         transition: all .6s ease-in-out;
-        margin-bottom: 60px;
+        /* margin-bottom: 60px; */
+        margin: 2rem 2rem 60px 2rem;
     }
     @media (max-width: 767px) {
         /* hide initially */
@@ -175,40 +176,16 @@
 	<div class="row">
 		<div class="col-sm-12 g-padding-x-0--xs">
             <div id="SEOnlineMap" class="google-maps"></div>
-            <div class="add-your-spot g-width-550--md">
+            <div class="add-your-spot g-width-550--md g-width-90-percent--xs">
                 <a class="add-your-spot--close text-center" aria-label="Close">
                     <i class="fal fa-times g-color--white" aria-hidden="true"></i>
                 </a>
                 <div class="entry-header">
-                    <h5 class="entry-title g-font-weight--700">Put yourself on the map.</h5>
+                    <h5 class="entry-title g-font-weight--700">Welcome to our SE Online Map!</h5>
+                    <p>If you would like to add yourself into the map, please click on the button below!</p>
                 </div>
-                <div class="entry-body">
-                    <form>
-                        <div class="prayerInput form-check">
-                            <label class="form-check-label" for="exampleFirstName">First Name</label>
-                            <input class="form-control" type="text" placeholder="Enter First Name">
-                        </div>
-                        <div class="prayerInput form-check">
-                            <label class="form-check-label" for="exampleLastName">Last Name</label>
-                            <input class="form-control" type="text" placeholder="Enter Last Name">
-                        </div>
-                        <div class="prayerInput form-check">
-                            <label class="form-check-label" for="exampleCheck1">Phone</label>
-                            <input class="form-control" type="text" placeholder="Enter Phone Number">
-                        </div>
-                        <div class="prayerInput form-check">
-                            <label for="exampleInputEmail1">Email address</label>
-                            <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
-                            <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
-                        </div>
-                        <div class="prayerInput form-check">
-                            <input type="checkbox" class="form-check-input" id="exampleCheck1">
-                            <label class="form-check-label g-display-inline-block--xs" for="exampleCheck1">Agree to SE terms</label>
-                        </div>
-                    </form>
-                </div>
-                <div class="entry-footer">
-                    <button type="button" class="btn btn-primary pull-right">Submit</button>
+                <div class="entry-body text-center">
+                    <a href="/page/2550" type="submit" class="btn btn-primary btn-block"><i class="fa fa-plus"></i> Add Yourself</a>
                 </div>
             </div>
 
@@ -231,7 +208,8 @@
 </div>
 <script type="text/javascript">
         $(document).ready(function() {
-            var loadJsonURL = 'https://developers.google.com/maps/documentation/javascript/examples/json/earthquake_GeoJSONP.js';
+            //var loadJsonURL = 'https://developers.google.com/maps/documentation/javascript/examples/json/earthquake_GeoJSONP.js';
+            var loadJsonURL = '/webhooks/Lava.ashx/se-online-map.js';
             map1 = loadMap("SEOnlineMap", loadJsonURL);
 
             // Loop through the results array and place a marker for each
@@ -239,6 +217,8 @@
             let clusterMarkers = [];
             let clusterMarkersInfo = [];
             var currentMark;
+            //declare infowindow in global space
+            var infowindow = new google.maps.InfoWindow();
             var catIcon = {
                 url: '/Content/ExternalSite/SEOnlineMap/MarkerSpot2.svg',
                 size: new google.maps.Size(50, 50),
@@ -256,7 +236,6 @@
                         icon: catIcon,
                         optimized: false,
                         id: clusterMarkers.length,
-                        title: ""+clusterMarkers.length+"",
                         location_id: results.features[i].properties.place,
                         location_facebookUrl: results.features[i].properties.url,
                         location_sayHiUrl: results.features[i].properties.url
@@ -269,10 +248,8 @@
                         };
                     myoverlay.setMap(map1);
                     marker.addListener('click', function(e) {
-                        console.log('clicked!');
-                        /* delete marker if already clicked */
                         placeMarkerAndPanTo(this, e, map1);
-                        currentMark = this;
+                        currentMark = marker;
                     });
                     
                 }
@@ -295,85 +272,38 @@
                 // Add a marker clusterer to manage the markers.
                 const markerCluster = new MarkerClusterer(map1, clusterMarkers, mcOptions);
             }
-            // Removes the markers from the map, but keeps them in the array.
-            function resetNewMarkers() {
-                for (var i = 0; i < clusterMarkers.length; i++) {
-                    clusterMarkers[i].setMap(null);
-                }
-            }
-            // Deletes all markers in the new marker array by removing references to them.
-            function deleteMarkers() {
-                resetNewMarkers();
-                clusterMarkers = [];
-            }
-            deleteMarkers(); // remove existing clicks if any
+
             function placeMarkerAndPanTo(markerClicked, e, map1) {
                 const latLng = e.latLng;
-                console.log('Marker', e);
-                deleteMarkers(); // remove existing clicks if any
                 var geocoder = new google.maps.Geocoder;
                 var lat = latLng.lat().toString();
                 var lng = latLng.lng().toString();
-                console.log('Element Object:',e);
-                // Creating the content to be inserted in the infowindow
                 let facebookConnectString = '';
                 if (markerClicked.location_facebookUrl != '') {
                     var location = markerClicked.location_id.split(/[\s,]+/);
-                    facebookConnectString = '<br /><hr /><p>Connect with a group near you in the ' + 
-                        location[location.length-1] + ' Facebook Group</p>' +
-                        '<a id="fbBtn" href="' + markerClicked.location_facebookUrl + '" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--600 g-margin-x-auto--xs">'+
-                        '<i class="fab fa-facebook"></i> Join the Group'+
+                    facebookConnectString = '<hr class="g-margin-y-20--xs" /><h5 class="g-font-size-24--xs">Connect with a group near you in the SE Facebook Groups</h5>' +
+                        '<a id="fbBtn" target="_blank" href="' + markerClicked.location_facebookUrl + '" class="uppercase se-btn btn-sm se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--600 g-margin-x-auto--xs">'+
+                        '<i class="fab fa-facebook"></i> Join a Group'+
                         '</a>';
                 }
                 var contentString = '<div id="iw_container" class="g-padding-t-15--xs g-padding-l-15--xs">' +
-                        '<div class="iw_title text-center">'+ markerClicked.location_id +'<br /></div><br />' +
-                        '<a href="' + markerClicked.location_facebookUrl + '" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--600 g-margin-x-auto--xs"><i class="fas fa-envelope"></i> Say Hi!</a>' +
+                        '<div class="iw_title text-center g-padding-b-20--xs g-font-weight--700 g-font-size-32--xs">'+ markerClicked.location_id +'</div>' +
+                        '<a target="_blank" href="' + markerClicked.location_facebookUrl + '" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--600 g-margin-x-auto--xs"><i class="fas fa-envelope"></i> Say Hi!</a>' +
                         facebookConnectString +
                         '</div>' +
                     '</div>';
-                var infowindow = new google.maps.InfoWindow({
-                    content: contentString
-                });
-                var marker = new google.maps.Marker({
-                    position: latLng,
-                    icon: catIcon,
-                    map: map1,
-                    optimized: false
-                });
-                var myoverlay = new google.maps.OverlayView();
-                        myoverlay.draw = function () {
-                            this.getPanes().markerLayer.id='markerLayer';
-                        };
-                myoverlay.setMap(map1);
-
-                google.maps.event.addListener(infowindow,'closeclick',function(){
-                    deleteMarkers(); // remove existing clicks if any
-                });
-
+                infowindow.setContent(contentString);
                 let latLngAdj;
-                if ($( document ).width() > 768) {
-                    latLngAdj = new google.maps.LatLng((latLng.lat() + 4) , (latLng.lng()));
+                latLngAdj = new google.maps.LatLng((latLng.lat()) , (latLng.lng()));
+                /*if ($( document ).width() > 768) {
+                    latLngAdj = new google.maps.LatLng((latLng.lat() + 1) , (latLng.lng()));
                 } else {
                     latLngAdj = new google.maps.LatLng((latLng.lat() + 3) , (latLng.lng()));
-                }
+                }*/
                 map1.panTo(latLngAdj);
-                clusterMarkers.push(marker);
-                infowindow.open(map1, marker);
+                infowindow.open(map1, markerClicked);
             }
 
-            /*
-            * Another optional way to load the markers via jQuery 
-            *
-            *$.each(window.eqfeed_callback, function (results) {
-                var coords = results.features[i].geometry.coordinates;
-                var latLng = new google.maps.LatLng(coords[1],coords[0]);
-                var marker = new google.maps.Marker({
-                    position: latLng,
-                    map: map1
-                });
-                clusterMarkers.push(marker);
-            });*/
-            
             /*
             * Depending on the alert bar, change the values below to better center the
             * markers if needed
@@ -383,22 +313,21 @@
             }*/
 
             $(".add-your-spot--close").click(function () {
+                $(".add-your-spot").css('right','-200vw');
                 $(".add-to-story--condensed").removeClass('goodbye');
                 $(".add-your-spot").addClass('goodbye');
-                $(".add-your-spot").css('right','-200vw');
             });
 
             $(".add-to-story--condensed").click(function () {
                 $(".add-to-story--condensed").addClass('goodbye');
                 $(".add-your-spot").removeClass('goodbye');
-                $(".add-your-spot").css('right','2em');
+                $(".add-your-spot").css('right','0px');
             });
             
             if ($( document ).width() < 768) {
                 // also load the page with the popup form closed
                 $(".add-to-story--condensed").removeClass('goodbye');
                 $(".add-your-spot").addClass('goodbye');
-                console.log('Nice job');
             }
             
         });
