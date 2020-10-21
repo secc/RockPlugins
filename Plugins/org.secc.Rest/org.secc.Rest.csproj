@@ -81,6 +81,7 @@
     <Compile Include="Controllers\GroupMemberExtensionsController.Partial.cs" />
     <Compile Include="Controllers\GroupExtensionsController.Partial.cs" />
     <Compile Include="Controllers\PeopleExtensionsController.Partial.cs" />
+    <Compile Include="Controllers\AccountController.Partial.cs" />
     <Compile Include="Controllers\SecurityController.Partial.cs" />
     <Compile Include="Controllers\SermonController.Partial.cs" />
     <Compile Include="Handlers\SessionControllerHandler.cs" />
@@ -110,6 +111,10 @@
     <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
       <Project>{8F8C2A79-24F4-4157-8B99-45F75FA85799}</Project>
       <Name>Rock</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\org.secc.OAuth\org.secc.OAuth.csproj">
+      <Project>{E43836AD-ABCD-4347-ACA1-DC30BC410350}</Project>
+      <Name>org.secc.OAuth</Name>
     </ProjectReference>
     <ProjectReference Include="..\org.secc.PersonMatch\org.secc.PersonMatch.csproj">
       <Project>{26cc0ba6-968b-4464-9992-d1d3510af9ab}</Project>
