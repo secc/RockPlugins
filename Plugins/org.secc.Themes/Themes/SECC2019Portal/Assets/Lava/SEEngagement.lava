@@ -905,13 +905,13 @@
         {% comment %} -------------------------------------------------------------
         ---------------------------------- GIVING ---------------------------------
         ---------------------------------------------------------- {% endcomment %}
-        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative" id="GivingTotals">
             <div class="col-lg-12">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
                     <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Giving Totals</h4>
                     <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                         <div class="col-md-12 g-padding-y-50--xs ">
-                           {[ amcharts data-category:'date,giving' data-category-labels:'Date,$ General Giving' type:'linechart' legend:'on' data-src:'/webhooks/Lava.ashx/se-engage/generalgiving/{{ pageParamWeekendDate }}/chart.json' ]}
+                           {[ amcharts data-category:'date,giving,givingUnits,average,percentOnlineGiving' data-category-labels:'Date,$ General Giving,# of Giving Units,$ Amount / Giving Unit,% of Online Giving' type:'linechart' legend:'on' data-src:'/webhooks/Lava.ashx/se-engage/generalgiving/{{ pageParamWeekendDate }}/chart.json' ]}
                            {[ endamcharts ]}
                            {% comment %} 
                            {[ amcharts data-category:'date,giving,units,online,average' data-category-labels:'Date,$ General Giving,$ Amount / Giving Unit,# of Giving Units,% of Online Giving' type:'linechart' legend:'on' ]}
@@ -931,7 +931,6 @@
             </div>
         </div>
 
-        {% comment %}
         <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
             <div class="col-lg-12">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
@@ -950,50 +949,84 @@
                             </style>
 
                             <script>
-                            // Themes begin
-                            am4core.useTheme(am4themes_animated);
-                            // Themes end
-
-                            // Create map instance
-                            var chart = am4core.create("chartdivGivingByLocation", am4maps.MapChart);
-
-                            // Set map definition
-                            chart.geodata = am4geodata_worldLow;
-
-                            // Set projection
-                            chart.projection = new am4maps.projections.Miller();
-                            chart.chartContainer.wheelable = false;
-                            
-                            // Series for World map
-                            var worldSeries = chart.series.push(new am4maps.MapPolygonSeries());
-                            worldSeries.exclude = ["AQ"];
-                            worldSeries.useGeodata = true;
-
-                            var polygonTemplate = worldSeries.mapPolygons.template;
-                            polygonTemplate.tooltipText = "{name}";
-                            polygonTemplate.fill = chart.colors.getIndex(0);
-                            polygonTemplate.nonScalingStroke = true;
-
-                            // Hover state
-                            var hs = polygonTemplate.states.create("hover");
-                            hs.properties.fill = am4core.color("#367B25");
-
-                            // Series for United States map
-                            var usaSeries = chart.series.push(new am4maps.MapPolygonSeries());
-                            usaSeries.geodata = am4geodata_usaLow;
-
-                            // Configure series
-                            var usPolygonTemplate = usaSeries.mapPolygons.template;
-                            usPolygonTemplate.tooltipText = "{name}";
-                            usPolygonTemplate.fill = am4core.color("#74B266");
-                            usPolygonTemplate.nonScalingStroke = true;
-
-
-                            // Create hover state and set alternative fill color
-                            var hs = usPolygonTemplate.states.create("hover");
-                            hs.properties.fill = am4core.color("#367B25");
-
-                            usaSeries.exclude = ["US-CO", "US-AZ", "US-KY", "US-FL"];
+                            $.getJSON( "/webhooks/Lava.ashx/se-engage/givinglocations/{{ pageParamWeekendDate }}/chart.json", function( json ) {
+                                var countries = json.filter(function (givinglocation) {
+                                      return givinglocation.LocationType === "Countries";
+                                    });
+                                countriesArray = countries.shift().Locations.split(",").map(function(item) { return {'id':`${item.trim()}`, 'value':100}; });
+                                var states = json.filter(function (givinglocation) {
+                                        return givinglocation.LocationType === "States";
+                                    });
+                                statesArray = states.shift().Locations.split(",").map(function(item) { return {'id':`US-${item.trim()}`, 'value':100};});
+                                
+                                // Themes begin
+                                am4core.useTheme(am4themes_animated);
+                                // Themes end
+    
+                                // Create map instance
+                                var chart = am4core.create("chartdivGivingByLocation", am4maps.MapChart);
+    
+                                // Set map definition
+                                chart.geodata = am4geodata_worldLow;
+    
+                                // Set projection
+                                chart.projection = new am4maps.projections.Miller();
+                                chart.chartContainer.wheelable = false;
+                                
+                                // Series for World map
+                                var worldSeries = chart.series.push(new am4maps.MapPolygonSeries());
+                                //worldSeries.include = countriesArray;
+                                worldSeries.exclude = ["AQ"];
+                                worldSeries.useGeodata = true;
+    
+                                var polygonTemplate = worldSeries.mapPolygons.template;
+                                polygonTemplate.tooltipText = "{name}";
+                                polygonTemplate.fill = chart.colors.getIndex(0);
+                                polygonTemplate.nonScalingStroke = true;
+    
+                                // Add heat rule
+                                worldSeries.heatRules.push({
+                                  "property": "fill",
+                                  "target": worldSeries.mapPolygons.template,
+                                  "min": chart.colors.getIndex(0),
+                                  "max": am4core.color("#367B25")
+                                });
+                                
+                                // Add expectancy data
+                                worldSeries.data = countriesArray;
+                                
+                                // Hover state
+                                var hs = polygonTemplate.states.create("hover");
+                                hs.properties.fill = am4core.color("#367B25");
+    
+                                // Series for United States map
+                                var usaSeries = chart.series.push(new am4maps.MapPolygonSeries());
+                                usaSeries.geodata = am4geodata_usaLow;
+    
+                                // Configure series
+                                var usPolygonTemplate = usaSeries.mapPolygons.template;
+                                usPolygonTemplate.tooltipText = "{name}";
+                                usPolygonTemplate.fill = chart.colors.getIndex(0);//am4core.color("#74B266");
+                                usPolygonTemplate.nonScalingStroke = true;
+    
+    
+                                // Create hover state and set alternative fill color
+                                var hs = usPolygonTemplate.states.create("hover");
+                                hs.properties.fill = am4core.color("#367B25");
+    
+                                //usaSeries.exclude = ["US-CO", "US-AZ", "US-KY", "US-FL"];
+                                
+                                // Add heat rule
+                                usaSeries.heatRules.push({
+                                  "property": "fill",
+                                  "target": usaSeries.mapPolygons.template,
+                                  "min": chart.colors.getIndex(0),
+                                  "max": am4core.color("#367B25")
+                                });
+                                
+                                // Add expectancy data
+                                usaSeries.data = statesArray;
+                            });
                             </script>
 
                         </div>
@@ -1001,7 +1034,6 @@
                 </div>
             </div>
         </div>
-        {% endcomment %}
 
         {% comment %} --------------------------------------------------
         ---------------------------- DIVIDER ---------------------------
