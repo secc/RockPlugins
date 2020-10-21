@@ -7,7 +7,7 @@ using Rock.Plugin;
 
 namespace org.secc.Microframe.Migrations
 {
-    [MigrationNumber( 2, "1.7.0" )]
+    [MigrationNumber( 2, "1.8.0" )]
     class PagesMigration : Migration
     {
         public override void Up()

@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -210,7 +210,7 @@ namespace RockWeb.Plugins.org_secc.Microframe
             {
                 sign = new Sign { Id = 0 };
                 lActionTitle.Text = ActionTitle.Add( Sign.FriendlyTypeName ).FormatAsHtmlTitle();
-                tbPort.Text = "9107";
+                sign.Port = "9107";
             }
 
             hfSignId.Value = sign.Id.ToString();
@@ -219,10 +219,12 @@ namespace RockWeb.Plugins.org_secc.Microframe
             tbPIN.Text = sign.PIN;
             tbDescription.Text = sign.Description;
             tbIPAddress.Text = sign.IPAddress;
-            if ( sign.Id != 0 )
+
+            if ( sign.Port.IsNullOrWhiteSpace() )
             {
-                tbPort.Text = sign.Port;
+                sign.Port = "9107";
             }
+            tbPort.Text = sign.Port;
 
             // render UI based on Authorized and IsSystem
             bool readOnly = false;

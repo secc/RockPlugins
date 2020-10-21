@@ -24,6 +24,13 @@ namespace org.secc.DevLib.Extensions.Migration
             migration.Sql( mini.GetMigrationSql( migration.SqlConnection ) );
         }
 
+        public static void AddPrimaryKey( this Rock.Plugin.Migration migration, string table, string[] columns, string name = null, bool clustered = true, object anonymousArguments = null )
+        {
+            var mini = new MiniMigration();
+            mini.AddPrimaryKey( table, columns, name, clustered, anonymousArguments );
+            migration.Sql( mini.GetMigrationSql( migration.SqlConnection ) );
+        }
+
         public static void AddForeignKey( this Rock.Plugin.Migration migration, string dependentTable, string dependentColumn, string principalTable, string principalColumn = null, bool cascadeDelete = false, string name = null, object anonymousArguments = null )
         {
             var mini = new MiniMigration();
@@ -58,6 +65,11 @@ namespace org.secc.DevLib.Extensions.Migration
         internal new void AddPrimaryKey( string table, string column, string name = null, bool clustered = true, object anonymousArguments = null )
         {
             base.AddPrimaryKey( table, column, name, clustered, anonymousArguments );
+        }
+
+        internal new void AddPrimaryKey( string table, string[] columns, string name = null, bool clustered = true, object anonymousArguments = null )
+        {
+            base.AddPrimaryKey( table, columns, name, clustered, anonymousArguments );
         }
 
         internal new void AddForeignKey( string dependentTable, string dependentColumn, string principalTable, string principalColumn = null, bool cascadeDelete = false, string name = null, object anonymousArguments = null )
