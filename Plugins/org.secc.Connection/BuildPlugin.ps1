@@ -35,13 +35,13 @@ if ($ValidThemePath -eq $True) {
     xcopy /Y /R /E /I "Themes" "bin\$pluginName\content\Plugins\Themes"
 }
 
-# Output everything to the deletefile.txt
+# Output everything to the deletefile.lst
 $currentDir = Get-Item "bin\$pluginName\content\"
 $deleteFiles = "";
 ForEach($file in (Get-ChildItem -Path "bin\$pluginName\content" –Recurse -File)) {
     $deleteFiles = $deleteFiles+$file.FullName.Replace($currentDir,"")+"`r`n";
 }
-$deleteFiles | Out-File "bin\$pluginName\uninstall\deletefile.txt"
+$deleteFiles | Out-File "bin\$pluginName\uninstall\deletefile.lst"
 
 
 # Zip it all up and name it appropriately
