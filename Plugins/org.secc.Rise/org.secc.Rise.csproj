@@ -96,7 +96,6 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Rise.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Rise.pdb" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"</PostBuildEvent>
+xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Rise.pdb" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
   </PropertyGroup>
 </Project>
