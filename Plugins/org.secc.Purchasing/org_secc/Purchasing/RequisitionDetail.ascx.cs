@@ -2400,7 +2400,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if (CurrentRequisition.Approvals.Where(app => app.ApproverID == approverID).Count() > 0)
             {
                 a = CurrentRequisition.Approvals.Where(app => app.ApproverID == approverID).FirstOrDefault();
-                a.ApprovalStatusLUID = PendingApprovalStatusLUID;
+                if ( a.ApproverID == CurrentPerson.PrimaryAliasId )
+                {
+                    a.ApprovalStatusLUID = ApprovedStatusLUID;
+                }
+                else
+                {
+                    a.ApprovalStatusLUID = PendingApprovalStatusLUID;
+                }
                 a.DateApproved = DateTime.MinValue;
                 a.Active = true;
             }
