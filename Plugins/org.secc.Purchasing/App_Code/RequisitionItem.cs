@@ -455,6 +455,15 @@ namespace org.secc.Purchasing
             {
                 ValErrors.Add("Account", "Account not found.");
             }
+            else if ( !apiClient.GetLocations().Any( l => l.Id == FundID ) )
+            {
+                ValErrors.Add( "Account", "Account not found (Location does not exist)." );
+            }
+            else if ( !apiClient.GetDepartments().Any( d => d.Id == DepartmentID ) )
+            {
+                ValErrors.Add( "Account", "Account not found (Department does not exist)." );
+            }
+
 
             if ( Account?.RequireProject == "true" && string.IsNullOrWhiteSpace( ProjectId ) )
             {

@@ -103,16 +103,14 @@ namespace org.secc.Purchasing
         {
             get
             {
-                string jsonSettings = Rock.Security.Encryption.DecryptString( GlobalAttributesCache.Get().GetValue( "IntacctAPISettings" ) );
-                ApiClient api = JsonConvert.DeserializeObject<ApiClient>( jsonSettings );
 
                 // Fetch the account
-                mAccount = api.GetGLAccounts().Where( a => a.AccountNo == AccountID ).FirstOrDefault();
+                mAccount = ApiClient.GetGLAccounts().Where( a => a.AccountNo == AccountID ).FirstOrDefault();
 
                 // Now verify that the location and department are valid
                 if ( mAccount != null )
                 {
-                    var restrictedData = api.GetDimensionRestrictedData( mAccount );
+                    var restrictedData = ApiClient.GetDimensionRestrictedData( mAccount );
 
                     // If we get here with no data, then the restricted data is just not available so go ahead and allow it
                     if ( restrictedData.Count > 0 )
@@ -133,11 +131,26 @@ namespace org.secc.Purchasing
             }
         }
 
+        private ApiClient _apiClient;
+        [XmlIgnore]
+        public ApiClient ApiClient
+        {
+            get
+            {
+                if ( _apiClient == null)
+                {
+
+                    string jsonSettings = Rock.Security.Encryption.DecryptString( GlobalAttributesCache.Get().GetValue( "IntacctAPISettings" ) );
+                    _apiClient = JsonConvert.DeserializeObject<ApiClient>( jsonSettings );
+                }
+                return _apiClient;
+            }
+        }
 
 
         #endregion
 
-        #region Constructor
+            #region Constructor
         public PaymentCharge()
         {
             Init();
@@ -339,10 +352,26 @@ namespace org.secc.Purchasing
                 ValErrors.Add("AccountID", "Account ID must be greater than 0.");
 
             // Only validate the account id if the amount is not zero
-            if (Amount != 0 && CompanyID > 0 && FundID > 0 && DepartmentID > 0 && AccountID > 0 && (Account == null || Account.AccountNo <= 0))
-                ValErrors.Add("AccountID", "Account not found");
-
-            if ((Payment.PaymentAmount > 0 && Amount < 0) || (Payment.PaymentAmount < 0 && Amount > 0))
+            if ( Amount != 0 && CompanyID > 0 && FundID > 0 && DepartmentID > 0 && AccountID > 0 )
+            {
+                if ( Account == null || Account.AccountNo <= 0 )
+                {
+                    ValErrors.Add( "AccountID", "Account not found" );
+                } 
+                else 
+                {
+                    // Make sure they exist
+                    if ( !ApiClient.GetLocations().Any( l => l.Id == FundID ) )
+                    {
+                        ValErrors.Add( "AccountID", "Account not found (Location does not exist)." );
+                    }
+                    if ( !ApiClient.GetDepartments().Any( d => d.Id == DepartmentID ) )
+                    {
+                        ValErrors.Add( "AccountID", "Account not found (Department does not exist)." );
+                    }
+                }
+            }
+                if ((Payment.PaymentAmount > 0 && Amount < 0) || (Payment.PaymentAmount < 0 && Amount > 0))
             {
                 ValErrors.Add("Charge Amount", "Charge Amount is not valid.");
             }

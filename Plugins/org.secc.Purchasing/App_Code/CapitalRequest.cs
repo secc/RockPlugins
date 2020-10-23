@@ -1348,6 +1348,17 @@ namespace org.secc.Purchasing
                 // Now verify that the location and department are valid
                 if ( account != null )
                 {
+                    // Make sure they exist
+                    if ( !apiClient.GetLocations().Any( l => l.Id == GLFundId ) )
+                    {
+                        valErrors.Add( "General Ledger Account", "General ledger account is not valid (Location does not exist)." );
+                    }
+                    if ( !apiClient.GetDepartments().Any( d => d.Id == GLDepartmentId ) )
+                    {
+                        valErrors.Add( "General Ledger Account", "General ledger account is not valid (Department does not exist)." );
+                    }
+
+
                     var restrictedData = apiClient.GetDimensionRestrictedData( account );
 
                     // If we get here with no data, then the restricted data is just not available so go ahead and allow it
@@ -1368,7 +1379,7 @@ namespace org.secc.Purchasing
                 
                 if ( account == null )
                 {
-                    valErrors.Add( "General Ledger Account", "General Ledger Account is not valid." );
+                    valErrors.Add( "General Ledger Account", "General ledger account is not valid." );
                 }
 
 
