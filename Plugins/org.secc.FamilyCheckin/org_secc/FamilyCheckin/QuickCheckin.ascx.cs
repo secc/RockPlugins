@@ -18,12 +18,16 @@ using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using Newtonsoft.Json;
+using OpenXmlPowerTools;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Exceptions;
+using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
+using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
@@ -91,6 +95,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             mdChoose.Header.Visible = false;
             mdChoose.Footer.Visible = false;
+            mdMCR.Header.Visible = false;
+            mdMCR.Footer.Visible = false;
             mdAddPerson.Header.Visible = false;
             mdAddPerson.Footer.Visible = false;
         }
@@ -99,7 +105,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             base.OnLoad( e );
 
-            if ( CurrentCheckInState == null )
+            if ( CurrentCheckInState == null || CurrentCheckInState.CheckIn == null )
             {
                 LogException( new CheckInStateLost( "Lost check-in state on load." ) );
                 NavigateToPreviousPage();
@@ -122,6 +128,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 if ( Session["modalPerson"] != null )
                 {
                     Session.Remove( "modalSchedule" );
+                }
+
+                if ( FamilyHasMRC() )
+                {
+                    ShowActiveMobileCheckin();
+                    return;
                 }
 
                 string workflowActivity = GetAttributeValue( "WorkflowActivity" );
@@ -229,6 +241,34 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
         }
 
+        private bool FamilyHasMRC()
+        {
+            if ( CurrentCheckInState.CheckIn.CurrentFamily == null )
+            { return false; }
+
+            var activeMCR = MobileCheckinRecordCache.GetActiveByFamilyGroupId( CurrentCheckInState.CheckIn.CurrentFamily.Group.Id );
+            if ( activeMCR == null )
+            { return false; }
+
+            var kioskTypeCookie = this.Page.Request.Cookies["KioskTypeId"];
+            if ( kioskTypeCookie != null )
+            {
+                var kioskType = KioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
+                if ( kioskType == null || kioskType.CampusId == null || kioskType.CampusId == activeMCR.CampusId )
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void ShowActiveMobileCheckin()
+        {
+            pnlMain.Visible = false;
+            mdMCR.Show();
+            var mcr = MobileCheckinRecordCache.GetActiveByFamilyGroupId( CurrentCheckInState.CheckIn.CurrentFamily.Group.Id );
+        }
+
         #endregion
 
         #region Draw Logic
@@ -285,14 +325,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                     //deselect any selected unselected schedules
                     var unselectedSchedules = CurrentCheckInState
-                         .CheckIn
-                         .CurrentFamily
-                         .People
-                         .SelectMany( p => p.GroupTypes )
-                         .SelectMany( gt => gt.Groups )
-                         .SelectMany( g => g.Locations )
-                         .SelectMany( l => l.Schedules.Where( sc => sc.Selected && !selectedSchedules.Contains( sc.Schedule.Id ) ) )
-                         .ToList();
+                 .CheckIn
+                 .CurrentFamily
+                 .People
+                 .SelectMany( p => p.GroupTypes )
+                 .SelectMany( gt => gt.Groups )
+                 .SelectMany( g => g.Locations )
+                 .SelectMany( l => l.Schedules.Where( sc => sc.Selected && !selectedSchedules.Contains( sc.Schedule.Id ) ) )
+                 .ToList();
                     foreach ( var unselectedSchedule in unselectedSchedules )
                     {
                         unselectedSchedule.Selected = false;
@@ -1142,7 +1182,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                             if ( roomSchedule.Schedule.Guid == schedule.Schedule.Guid )
                             {
                                 roomSchedule.Selected = false;
-                                if ( locationLinkAttribute !=null && group.Group.GetAttributeValue( locationLinkAttribute.Key ).AsBoolean() )
+                                if ( locationLinkAttribute != null && group.Group.GetAttributeValue( locationLinkAttribute.Key ).AsBoolean() )
                                 {
                                     room.Selected = false;
                                 }
@@ -1436,6 +1476,133 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             return true;
         }
 
+        protected void btnCompleteMCR_Click( object sender, EventArgs e )
+        {
+            ltNoneFound.Text = "<h1>Please Wait...</h1><h4>We're loading your check-in labels now. They should be arriving shortly.</h4>";
+            btnNoCheckin.Visible = false;
+            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "completeMCR", "completeMCR();", true );
+            mdMCR.Hide();
+            pnlMain.Visible = false;
+            pnlNoCheckin.Visible = true;
+        }
+
+        protected void btnCompleteMCRActual_Click( object sender, EventArgs e )
+        {
+            RockContext rockContext = new RockContext();
+            MobileCheckinRecordService mobileCheckinRecordService = new MobileCheckinRecordService( rockContext );
+
+            var mcr = MobileCheckinRecordCache.GetActiveByFamilyGroupId( CurrentCheckInState.CheckIn.CurrentFamily.Group.Id );
+            if ( mcr == null ) // someone could have already completed checkin
+            {
+                NavigateToPreviousPage();
+                return;
+            }
+
+            var mobileCheckinRecord = mobileCheckinRecordService.Get( mcr.Id );
+
+            try
+            {
+                if ( mobileCheckinRecord == null )
+                {
+                    NavigateToPreviousPage();
+                    return;
+                }
+
+                KioskTypeCache kioskType = null;
+                var kioskTypeCookie = this.Page.Request.Cookies["KioskTypeId"];
+                if ( kioskTypeCookie != null )
+                {
+                    kioskType = KioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
+                }
+
+                if ( kioskType.CampusId.HasValue && kioskType.CampusId != 0 && kioskType.CampusId != mobileCheckinRecord.CampusId )
+                {
+                    NavigateToPreviousPage();
+                    return;
+                }
+
+                List<CheckInLabel> labels = null;
+
+                if ( mobileCheckinRecord.Attendances.Any( a => a.EndDateTime != null ) )
+                {
+                    var people = mobileCheckinRecord.Attendances.Select( a => a.PersonAlias.Person ).DistinctBy( p => p.Id ).ToList();
+                    labels = CheckinLabelGen.GenerateLabels( people, CurrentCheckInState.Kiosk.Device, GetAttributeValue( "AggregatedLabel" ).AsGuidOrNull() );
+                }
+                else
+                {
+                    labels = JsonConvert.DeserializeObject<List<CheckInLabel>>( mobileCheckinRecord.SerializedCheckInState );
+                }
+
+                LabelPrinter labelPrinter = new LabelPrinter()
+                {
+                    Request = Request,
+                    Labels = labels
+                };
+
+                var mobileDidAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_DID_ATTEND ).Id;
+                var mobileNotAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_NOT_ATTEND ).Id;
+
+                foreach ( var attendance in mobileCheckinRecord.Attendances )
+                {
+                    if ( attendance.QualifierValueId == mobileDidAttendId )
+                    {
+                        attendance.DidAttend = true;
+                        attendance.QualifierValueId = null;
+                        attendance.StartDateTime = Rock.RockDateTime.Now;
+                    }
+                    else if ( attendance.QualifierValueId == mobileNotAttendId )
+                    {
+                        attendance.DidAttend = false;
+                        attendance.QualifierValueId = null;
+                    }
+                    attendance.Note = "Completed mobile check-in at: " + CurrentCheckInState.Kiosk.Device.Name;
+                }
+
+                mobileCheckinRecord.Status = MobileCheckinStatus.Complete;
+
+                rockContext.SaveChanges();
+
+                //wait until we successfully save to update cache
+                foreach ( var attendance in mobileCheckinRecord.Attendances )
+                {
+                    AttendanceCache.AddOrUpdate( attendance );
+
+                }
+                MobileCheckinRecordCache.Update( mobileCheckinRecord.Id );
+
+                labelPrinter.PrintNetworkLabels();
+                var script = labelPrinter.GetClientScript();
+                ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "addLabelScript", script, true );
+            }
+            catch ( Exception ex )
+            {
+                ltNoneFound.Text = "<h1>Error.</h1><h4>There was an issue while trying to complete you check-in. Please see an attendant for assistance.</h4>";
+                LogException( new Exception( "There was an issue completing a mobile check-in record. See Inner Exception for details", ex ) );
+            }
+            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "navigatePrevious", "navigatePrevious();", true );
+        }
+
+        protected void btnCancelMCR_Click( object sender, EventArgs e )
+        {
+            ltNoneFound.Text = "<h1>Please Wait...</h1><h4>We're canceling your mobile check-in reservation. The session will continue shortly.</h4>";
+            btnNoCheckin.Visible = false;
+            ScriptManager.RegisterStartupScript( upContent, upContent.GetType(), "cancelMCR", "cancelMCR();", true );
+            mdMCR.Hide();
+            pnlMain.Visible = false;
+            pnlNoCheckin.Visible = true;
+        }
+
+        protected void btnCancelMCRActual_Click( object sender, EventArgs e )
+        {
+            var mcr = MobileCheckinRecordCache.GetActiveByFamilyGroupId( CurrentCheckInState.CheckIn.CurrentFamily.Group.Id );
+            MobileCheckinRecordCache.CancelReservation( mcr, true );
+            NavigateToCurrentPage();
+        }
+
+        protected void btnNavigatePrevious_Click( object sender, EventArgs e )
+        {
+            NavigateToPreviousPage();
+        }
 
         private void ProcessLabels()
         {
