@@ -210,17 +210,8 @@
                     <li>
                         <a href="/ministries/care">Care</a>
                     </li>
-                    <li class="has-children">
-                        <a class="arrow">Missions</a>
-                        <ul class="is-hidden">
-                            <li class="go-back arrow"><a class="arrow">Missions</a></li>
-                            <li><a href="/missions/">Missions Overview</a></li>
-                            <li><a href="/ministries/missions/mission-partners">Mission Partners</a></li>
-                            <li><a href="/ministries/missions/education-partners/">Education Partners</a></li>
-                            <li><a href="/ministries/missions/church-plants">Church Plants</a></li>
-                            <li><a href="/ministries/missions/trips">Mission Trips</a></li>
-                            <li><a href="/ministries/missions/lifebridge">LifeBridge</a></li>
-                        </ul>
+                    <li>
+                        <a href="/missions">Missions</a>
                     </li>
                     <li>
                         <a href="/ministries/sports-fitness">Sports & Fitness</a>

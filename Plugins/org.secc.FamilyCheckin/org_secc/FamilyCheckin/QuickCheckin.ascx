@@ -44,6 +44,18 @@
         )
     }
 
+    var completeMCR = function () {
+        __doPostBack("<%= btnCompleteMCRActual.UniqueID%>", "OnClick");
+    }
+
+    var cancelMCR = function () {
+        __doPostBack("<%= btnCancelMCRActual.UniqueID%>", "OnClick");
+    }
+
+    var navigatePrevious = function () {
+        setTimeout(function () { __doPostBack("<%= btnNavigatePrevious.UniqueID%>", "OnClick"); }, 4000)
+    }
+
 </script>
 
 <asp:UpdatePanel ID="upContent" runat="server">
@@ -51,6 +63,23 @@
         <asp:Label runat="server" ID="lStyle" />
         <Rock:ModalAlert runat="server" ID="maAlert"></Rock:ModalAlert>
         <asp:HiddenField runat="server" ID="hfCull" />
+        <Rock:ModalDialog ID="mdMCR" CssClass="modal" runat="server">
+            <Content>
+                <h1>Complete Mobile Check-in</h1>
+                <h4>It looks like you have a mobile check-in ready.<br />
+                    You can finish checking in or cancel your reservation and start a new check-in.
+                </h4>
+                <br />
+                <br />
+                <asp:LinkButton Text="<br>Complete Check-in<br><br>" CssClass="btn btn-primary btn-lg btn-block" runat="server"
+                    CausesValidation="false" ID="btnCompleteMCR" OnClick="btnCompleteMCR_Click" />
+                <br />
+                <br />
+                <asp:LinkButton Text="Cancel And Start New Check-in" CssClass="btn btn-danger " runat="server"
+                    CausesValidation="false" ID="btnCancelMCR" OnClick="btnCancelMCR_Click" />
+            </Content>
+        </Rock:ModalDialog>
+
         <asp:Panel ID="pnlMain" runat="server" Style="margin-top: 10px;">
             <Rock:ModalDialog ID="mdChoose" CssClass="modal" runat="server">
                 <Content>
@@ -101,7 +130,7 @@
             </div>
         </asp:Panel>
         <asp:Panel runat="server" ID="pnlNoCheckin" class="text-center alert alert-warning" Visible="false" Style="margin-top: 100px">
-            <asp:Literal runat="server" Id="ltNoneFound"/>
+            <asp:Literal runat="server" ID="ltNoneFound" />
             <Rock:BootstrapButton runat="server" ID="btnNoCheckin" OnClick="btnNoCheckin_Click" Text="<span class='center'>OK</span>" CssClass="btn btn-primary btn-lg pull-right"></Rock:BootstrapButton>
             <br />
             <br />
@@ -109,5 +138,8 @@
         <div id="success" class="text-center alert alert-success successModal">
             <asp:Literal runat="server" ID="ltCompletion" />
         </div>
+        <asp:LinkButton runat="server" Text="_" ID="btnCompleteMCRActual" CssClass="hidden" OnClick="btnCompleteMCRActual_Click" />
+        <asp:LinkButton runat="server" Text="_" ID="btnCancelMCRActual" CssClass="hidden" OnClick="btnCancelMCRActual_Click" />
+        <asp:LinkButton runat="server" Text="_" ID="btnNavigatePrevious" CssClass="hidden" OnClick="btnNavigatePrevious_Click" />
     </ContentTemplate>
 </asp:UpdatePanel>

@@ -1,0 +1,58 @@
+<section id="Testimonies">
+    <div class="fluid-container" style="padding: 0px; margin: 0px;">
+        <div class="row" style="padding: 0px; margin: 0px;">
+            <div class="col-md-12" style="padding: 0px; margin: 0px;">
+                {% comment %} ------------------------------------------------------
+                ---------------------------- Testimonies ---------------------------
+                --------------------------------------------------- {% endcomment %}
+                {% contentchannelitem where:'ContentChannelId == 83' sort:'Order' limit:'3' %}
+                {% assign Items = contentchannelitemItems %}
+                {% endcontentchannelitem %}
+                {% assign itemCount = Items | Size %}
+                {% if itemCount > 0 %}
+                    {[ simpleimagecarousel sliderscount:'2' fade:'false' ]}  
+                        {% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger %}
+                        {% for item in Items %}
+                            {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
+                            {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsInteger %}
+                            {% if itemStartDateTime <= currentDateTime %}
+                                {% if itemExpireDateTime > currentDateTime or itemExpireDateTime == null %}
+                                    {% comment %} -------------------------------------------------------------------------
+                                    ---------------------------- Item hasn't exipired. Show it! ---------------------------
+                                    ----------------------------------------------------------------------- {% endcomment %}
+                                    {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
+                                    {% assign SubTitle = item | Attribute:'subtitle','RawValue' %}
+                                    {% assign Link = item | Attribute:'storylink','RawValue' %}
+                                    {% assign Type = item | Attribute:'storytype','RawValue' %}
+                                    <div class="item">
+                                        <div class="container">
+                                            <div class="row g-padding-x-40--xs g-padding-y-150--xs g-display-flex--lg">
+                                                <div class="col-lg-6 col-md-6 col-md-push-6 clearfix text-center">
+                                                    <img src="/GetImage.ashx?Guid={{ ImageGuid }}" alt="{{ item.Title }}" class="img-responsive img-circle" style="margin: 0 auto; width: 500px">
+                                                </div>
+                                                <div class="col-lg-6 col-md-6 col-md-pull-6 clearfix g-padding-t-60--xs">
+                                                    <div class="g-padding-l-60--md g-padding-t-40--xs g-width-100-percent--xs g-center--lg">
+                                                        <h5 class="quote">
+                                                            <span class="starting-quote"></span>
+                                                            {{ item.Content }}
+                                                            <span class="ending-quote"></span>
+                                                            <br />
+                                                            <a href="{{ Link }}" class="g-color--black" target="_blank"><strong>{{ Type }}</strong></a>
+                                                        </h5>
+                                                        <br />
+                                                        <h3><b>{{ item.Title }}</b></h3>
+                                                        <p class="text-uppercase">{{ SubTitle }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    {[ endsimpleimagecarousel ]}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
