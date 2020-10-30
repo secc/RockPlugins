@@ -31,6 +31,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using org.secc.PersonMatch;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Cryptography;
+using System.Numerics;
 
 namespace org.secc.Rest.Controllers
 {
@@ -84,7 +86,7 @@ namespace org.secc.Rest.Controllers
                 {
                     var mobilePhone = matchPerson.First().PhoneNumbers.Where( pn => pn.NumberTypeValueId == DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id ).FirstOrDefault();
                     // The emails MUST match for security
-                    if ( matchPerson.First().Email == person.Email && ( mobilePhone == null || mobilePhone.Number.Right(10) == account.MobileNumber.Right( 10 ) ) )
+                    if ( matchPerson.First().Email == account.EmailAddress && ( mobilePhone == null || mobilePhone.Number.Right(10) == account.MobileNumber.Right( 10 ) ) )
                     {
                         person = matchPerson.First();
 
@@ -170,7 +172,11 @@ namespace org.secc.Rest.Controllers
                     // Send an email to confirm the account.
                     if ( userLogin.IsConfirmed != true )
                     {
+
+                        // For mobile we will make a custom/short confirmation code
+                        var mobileConfirmationCode = new BigInteger( MD5.Create().ComputeHash( userLogin.Guid.ToByteArray() ) ).ToString().Right( 6 );
                         var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, person );
+                        mergeFields.Add( "MobileConfirmationCode", mobileConfirmationCode );
                         mergeFields.Add( "ConfirmAccountUrl", GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash() + "ConfirmAccount" );
                         mergeFields.Add( "Person", userLogin.Person );
                         mergeFields.Add( "User", userLogin );
@@ -218,12 +224,18 @@ namespace org.secc.Rest.Controllers
                 var rockContext = new Rock.Data.RockContext();
                 UserLoginService userLoginService = new UserLoginService( rockContext );
                 UserLogin user = userLoginService.GetByConfirmationCode( confirmationCode );
+                if (user == null)
+                {
+                    var unconfirmedAccounts = userLoginService.Queryable().Where( ul => ul.IsConfirmed == false ).ToList();
+                    user = unconfirmedAccounts.FirstOrDefault( ul => new BigInteger( MD5.Create().ComputeHash( ul.Guid.ToByteArray() ) ).ToString().Right( 6 ) == confirmationCode );
+                }
                 if ( user != null )
                 {
                     user.IsConfirmed = true;
                     rockContext.SaveChanges();
                     return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new StandardResponse() { Message = "Account has been confirmed", Result = StandardResponse.ResultCode.Success } );
                 }
+
                 return ControllerContext.Request.CreateResponse( HttpStatusCode.InternalServerError, new StandardResponse() { Message = "Error confirming account.", Result = StandardResponse.ResultCode.Error } );
 
             }
@@ -238,6 +250,7 @@ namespace org.secc.Rest.Controllers
         /// </summary>
         /// <returns>A list of family members.</returns>
         [Route( "api/account/family" )]
+        [HttpGet]
         [Authorize]
         public HttpResponseMessage Family()
         {
@@ -352,6 +365,7 @@ namespace org.secc.Rest.Controllers
         /// </summary>
         /// <returns>A Profile object</returns>
         [Route( "api/account/profile" )]
+        [HttpGet]
         [Authorize]
         public HttpResponseMessage GetProfile()
         {
