@@ -72,7 +72,7 @@
                         </div>
                         <div class="row">
                             <div class="col-sm-6 col-md-8">
-                                <Rock:PhoneNumberBox runat="server" Label="Phone" Required="true" ID="pnbPhone" />
+                                <Rock:PhoneNumberBox runat="server" Label=" Mobile Phone" Required="true" ID="pnbPhone" />
                             </div>
                             <div class="col-sm-6 col-md-4">
                                 <Rock:DatePicker runat="server" Label="Date of Birth" Required="true" ID="dpBirthday" StartView="decade" />
@@ -97,7 +97,7 @@
                         </div>
                         <div class="row">
                             <div class="col-sm-6 col-md-8">
-                                <Rock:PhoneNumberBox runat="server" Label="Phone" Required="false" ID="pnbPhone2" />
+                                <Rock:PhoneNumberBox runat="server" Label="Mobile Phone" Required="false" ID="pnbPhone2" />
                             </div>
                             <div class="col-sm-6 col-md-4">
                                 <Rock:DatePicker runat="server" Label="Date of Birth" Required="false" ID="dpBirthday2" StartView="decade" />
