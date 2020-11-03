@@ -12,13 +12,26 @@
 // limitations under the License.
 // </copyright>
 //
-using Newtonsoft.Json;
 
-namespace org.secc.Rise.Response
+namespace org.secc.Rise.Migrations
 {
-    public abstract class RiseBase
+    using System.Collections.Generic;
+    using org.secc.Rise.Utilities;
+    using Rock.Plugin;
+
+    [MigrationNumber( 3, "1.10.2" )]
+    public partial class PersonAttribute : Migration
     {
-        [JsonProperty( "id" )]
-        public string Id { get; set; }
+        public override void Up()
+        {
+            RockMigrationHelper.AddOrUpdatePersonAttributeByGuid( Rock.SystemGuid.FieldType.TEXT, new List<string>(), "Rise Id", "Rise Id",
+                Constants.PERSON_ATTRIBUTE_KEY_RISEID, "fa fa-chalkboard", "The user's id in Rise.", 0, "", Constants.PERSON_ATTRIBUTE_RISEID );
+        }
+
+
+        public override void Down()
+        {
+
+        }
     }
 }

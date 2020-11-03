@@ -12,13 +12,28 @@
 // limitations under the License.
 // </copyright>
 //
-using Newtonsoft.Json;
+using System.Linq;
+using org.secc.Rise.Data;
+using Rock;
+using Rock.Data;
 
-namespace org.secc.Rise.Response
+namespace org.secc.Rise.Model
 {
-    public abstract class RiseBase
+    public class CourseService : RiseService<Course>
     {
-        [JsonProperty( "id" )]
-        public string Id { get; set; }
+        public CourseService( RockContext context ) : base( context )
+        {
+        }
+
+        public Course GetByCourseId( string courseId )
+        {
+            return Queryable().Where( c => c.CourseId == courseId ).FirstOrDefault();
+        }
+
+        public Course GetByUrl( string url )
+        {
+            return Queryable().Where( c => c.Url == url ).FirstOrDefault();
+        }
     }
+
 }
