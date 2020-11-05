@@ -214,7 +214,28 @@ namespace RockWeb.Plugins.org_secc.Rise
                 return;
             }
 
+            RockContext rockContext = new RockContext();
+            CourseService courseService = new CourseService( rockContext );
+            GroupService groupService = new GroupService( rockContext );
 
+            var course = GetCourse( courseService );
+            var group = groupService.Get( groupId.Value );
+
+            if ( !course.EnrolledGroups.Select( g => g.Id ).Contains( groupId.Value ) )
+            {
+                course.EnrolledGroups.Add( group );
+                rockContext.SaveChanges();
+            }
+
+            //The async code in the client doesn't play nice with Web Forms ¯\_(ツ)_/¯
+            Task.Run( () =>
+            {
+                var riseClient = new RiseClient();
+                riseClient.Enroll( course, group );
+            } );
+
+            mdEnrollGroup.Hide();
+            BindGrid();
 
         }
     }
