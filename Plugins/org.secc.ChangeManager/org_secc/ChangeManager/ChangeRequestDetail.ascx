@@ -8,6 +8,7 @@
             <div class="panel-body">
                 <Rock:NotificationBox runat="server" Text="Warning: This is as change to someone on the blacklist. Please check changes with great care."
                     NotificationBoxType="Warning" Visible="false" ID="nbBlacklistWarning" />
+                 <Rock:NotificationBox runat="server" NotificationBoxType="Validation" Visible="false" ID="nbError" Title="Could not complete request." />
                 <asp:HiddenField runat="server" ID="hfChangeId" />
                 <div class="col-md-12">
                     <Rock:Grid runat="server" ID="gRecords" DataKeyNames="Id">

@@ -474,6 +474,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     changeRequest.EvaluateAttributes( person );
                 }
 
+                List<string> errors;
+
                 if ( changeRequest.ChangeRecords.Any()
                 || ( !familyChangeRequest.ChangeRecords.Any() && tbComments.Text.IsNotNullOrWhiteSpace() ) )
                 {
@@ -482,7 +484,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     changeRequestService.Add( changeRequest );
                     rockContext.SaveChanges();
 
-                    changeRequest.CompleteChanges( rockContext );
+                    changeRequest.CompleteChanges( rockContext, out errors );
                 }
 
                 if ( familyChangeRequest.ChangeRecords.Any() )
@@ -491,7 +493,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
                     changeRequestService.Add( familyChangeRequest );
                     rockContext.SaveChanges();
-                    familyChangeRequest.CompleteChanges( rockContext );
+                    familyChangeRequest.CompleteChanges( rockContext, out errors );
                 }
             }
             else
@@ -603,7 +605,9 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
                 changeRequestService.Add( changeRequest );
                 rockContext.SaveChanges();
-                changeRequest.CompleteChanges( rockContext );
+
+                List<string> errors;
+                changeRequest.CompleteChanges( rockContext, out errors );
             }
 
             NavigateToParentPage();
