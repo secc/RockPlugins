@@ -18,6 +18,12 @@ using System.Web.Routing;
 using System.Linq;
 using Rock;
 using System.Data.Entity;
+using Rock.Lava.Shortcodes;
+using DotLiquid;
+using Rock.Web.Cache;
+using AngleSharp.Css.Values;
+using System.Data.Entity.Core.Objects;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 
 namespace RockWeb.Plugins.org_secc.CMS
 {
@@ -55,6 +61,30 @@ namespace RockWeb.Plugins.org_secc.CMS
                     break;
                 }
             }
+
+            // Check to see if we have any missing shortcodes
+            var outOfDate = RockDateTime.Now.AddMinutes( -30 );
+            var sc = new LavaShortcodeService( new Rock.Data.RockContext() ).Queryable().Where( l => l.CreatedDateTime > outOfDate || l.ModifiedDateTime > outOfDate ).ToList();
+            if ( sc.Count > 0 )
+            {
+                nbNotification.NotificationBoxType = Rock.Web.UI.Controls.NotificationBoxType.Warning;
+                nbNotification.Text = "Shortcodes were out-of-date.  Running register shortcodes. " + sc.Count;
+                 foreach ( var code in sc )
+                {
+                    // register shortcode
+                    if ( code.TagType == TagType.Block )
+                    {
+                        Template.RegisterShortcode<DynamicShortcodeBlock>( code.TagName );
+                    }
+                    else
+                    {
+                        Template.RegisterShortcode<DynamicShortcodeInline>( code.TagName );
+                    }
+                }
+
+                LavaShortcodeCache.Clear();
+            }
+            
         }
         protected void ReRegisterRoutes()
         {
