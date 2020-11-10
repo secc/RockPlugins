@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.Remoting.Activation;
-using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using Newtonsoft.Json;
 using org.secc.Rise.Components;
 using org.secc.Rise.Response;
@@ -21,6 +19,19 @@ namespace org.secc.Rise
     public static class ClientManager
     {
         const string rootUrl = "https://api.rise.com";
+
+        public static string ApiKey
+        {
+            get
+            {
+                var component = ( xAPIComponent ) xAPIContainer.Instance.Dictionary
+               .Where( c => c.Value.Value.EntityType.Name == typeof( RiseComponent ).FullName )
+               .Select( c => c.Value.Value )
+               .FirstOrDefault();
+
+                return component.GetAttributeValue( "APIKey" );
+            }
+        }
 
         private static List<string> _paginableProperties;
         public static List<string> PaginableProperties
@@ -47,39 +58,40 @@ namespace org.secc.Rise
         }
 
 
-        internal static T Get<T>( string id )
+        internal static T Get<T>( string id, Dictionary<string, string> parameters = null )
         {
-            var resourse = GetAsync<T>( id );
+            var resourse = GetAsync<T>( id, parameters );
             Task.WaitAll( resourse );
             return resourse.Result;
         }
 
-        internal static async Task<T> GetAsync<T>( string id )
+        internal static async Task<T> GetAsync<T>( string id, Dictionary<string, string> parameters = null )
         {
-            return await GetResource<T>( id );
+            return await GetResource<T>( id, parameters );
         }
 
-        internal static IEnumerable<T> GetSet<T>()
+        internal static IEnumerable<T> GetSet<T>( Dictionary<string, string> parameters = null )
         {
-            return GetPagenatedResource<T>( GetUrl<T>() );
+            return GetPagenatedResource<T>( GetUrl<T>(), parameters );
         }
 
-        internal static IEnumerable<T> GetSet<T>( string id )
+
+        internal static IEnumerable<T> GetSet<T>( string id, Dictionary<string, string> parameters = null )
         {
-            return GetPagenatedResource<T>( GetUrl<T>( id ) );
+            return GetPagenatedResource<T>( GetUrl<T>( id ), parameters );
         }
 
-        internal static IEnumerable<T> GetSet<T>( RiseBase riseObject )
+        internal static IEnumerable<T> GetSet<T>( RiseBase riseObject, Dictionary<string, string> parameters = null )
         {
-            return GetPagenatedResource<T>( GetUrl<T>( riseObject ) );
+            return GetPagenatedResource<T>( GetUrl<T>( riseObject ), parameters );
         }
 
-        private static IEnumerable<T> GetPagenatedResource<T>( string url )
+        private static IEnumerable<T> GetPagenatedResource<T>( string url, Dictionary<string, string> parameters = null )
         {
             while ( !string.IsNullOrWhiteSpace( url ) )
             {
-                var call = MakeApiCall( url );
-                Task.WaitAll( call );
+                var call = ApiGet( url, parameters );
+                call.Wait();
                 var pagination = JsonConvert.DeserializeObject<Pagination<T>>( call.Result, new PaginationJsonConverter<T>() );
                 url = pagination.NextUrl;
                 foreach ( var resource in pagination.Resources )
@@ -89,28 +101,84 @@ namespace org.secc.Rise
             }
         }
 
-        private static async Task<T> GetResource<T>( string id )
+        private static async Task<T> GetResource<T>( string id, Dictionary<string, string> parameters = null )
         {
-            var response = await MakeApiCall( GetUrl<T>( id ) );
+            var response = await ApiGet( GetUrl<T>( id ), parameters );
             return JsonConvert.DeserializeObject<T>( response );
         }
 
 
-        private static async Task<string> MakeApiCall( string resource )
+        private static async Task<string> ApiGet( string resource, Dictionary<string, string> parameters = null )
         {
-            var component = ( xAPIComponent ) xAPIContainer.Instance.Dictionary
-               .Where( c => c.Value.Value.EntityType.Name == typeof(RiseComponent).Name )
-               .Select( c => c.Value.Value )
-               .FirstOrDefault();
-
-            var apiKey = component.GetAttributeValue( "APIKey" );
+            if ( parameters != null )
+            {
+                string delimitor = "?";
+                foreach ( KeyValuePair<string, string> parm in parameters )
+                {
+                    resource += delimitor + HttpUtility.UrlEncode( parm.Key ) + "=" + HttpUtility.UrlEncode( parm.Value );
+                    delimitor = "&";
+                }
+            }
 
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add( "Authorization", "Bearer " + apiKey );
+            client.DefaultRequestHeaders.Add( "Authorization", "Bearer " + ApiKey );
             client.DefaultRequestHeaders.Add( "Rise-API-Version", "2020-07-16" );
             return await client.GetStringAsync( resource );
         }
+
+        public static T Post<T>( Dictionary<string, string> parameters )
+        {
+            var resource = GetUrl<T>();
+            var result = ApiPost<T>( resource, parameters );
+            result.Wait();
+            return JsonConvert.DeserializeObject<T>( result.Result );
+        }
+
+        internal static async Task<string> ApiPost<T>( string resource, Dictionary<string, string> parameters )
+        {
+            var content = new StringContent( JsonConvert.SerializeObject( parameters ),Encoding.UTF8, "application/json" );
+
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add( "Authorization", "Bearer " + ApiKey );
+            client.DefaultRequestHeaders.Add( "Rise-API-Version", "2020-07-16" );
+            var result = await client.PostAsync( resource, content );
+            return await result.Content.ReadAsStringAsync();
+        }
+
+        internal static void Delete<T>( RiseBase riseBase, string childId )
+        {
+            var resource = GetUrl<T>( riseBase, childId );
+            ApiDelete( resource );
+        }
+
+        private static void ApiDelete( string resource )
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add( "Authorization", "Bearer " + ApiKey );
+            client.DefaultRequestHeaders.Add( "Rise-API-Version", "2020-07-16" );
+            var result = client.DeleteAsync( resource );
+            result.Wait();
+        }
+
+        internal static void Put<T>( RiseBase riseBase, string childId )
+        {
+            var resource = GetUrl<T>( riseBase, childId );
+            ApiPut( resource );
+        }
+
+        private static void ApiPut( string resource )
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add( "Authorization", "Bearer " + ApiKey );
+            client.DefaultRequestHeaders.Add( "Rise-API-Version", "2020-07-16" );
+            var result = client.PutAsync( resource, new StringContent( "" ) );
+            result.Wait();
+        }
+
 
         private static string GetUrl<T>()
         {
@@ -133,6 +201,11 @@ namespace org.secc.Rise
             }
 
             return $"{rootUrl}/{urlAttribute.UrlValue}/{riseBase.Id}/{GetUrlForType<T>()}";
+        }
+
+        private static string GetUrl<T>( RiseBase riseBase, string childId )
+        {
+            return $"{GetUrl<T>( riseBase )}/{childId}";
         }
 
         private static string GetUrlForType<T>()

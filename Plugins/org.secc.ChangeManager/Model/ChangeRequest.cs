@@ -1,23 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Data.Common;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure.Interception;
 using System.Data.Entity.ModelConfiguration;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
-using DotLiquid.Util;
-using org.secc.ChangeManager.Data;
 using org.secc.ChangeManager.Utilities;
 using Rock;
 using Rock.Attribute;
-using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
@@ -86,30 +78,33 @@ namespace org.secc.ChangeManager.Model
             System.Reflection.MethodInfo getMethod = entityService.GetType().GetMethod( "Get", new Type[] { typeof( int ) } );
             var mergeObjectEntity = getMethod.Invoke( entityService, new object[] { EntityId } ) as Rock.Data.IEntity;
 
-            this.Name = mergeObjectEntity != null ? mergeObjectEntity.ToString() : "Unknown Entity" ;
+            this.Name = mergeObjectEntity != null ? mergeObjectEntity.ToString() : "Unknown Entity";
         }
 
         #endregion
 
         #region Methods
 
-        public void CompleteChanges( RockContext rockContext = null )
+        public void CompleteChanges( out List<string> errors )
         {
+            CompleteChanges( new RockContext(), out errors );
+        }
+
+        public void CompleteChanges( RockContext rockContext, out List<string> errors )
+        {
+            errors = new List<string>();
+
             SecurityChangeDetail securityChangeDetail = new SecurityChangeDetail
             {
                 ChangeRequestId = this.Id,
                 ChangeDetails = new List<string>()
             };
 
-            if ( rockContext == null )
-            {
-                rockContext = new RockContext();
-            }
             using ( var dbContextTransaction = rockContext.Database.BeginTransaction() )
             {
                 try
                 {
-                    IEntity entity = GetEntity( EntityTypeId, EntityId, rockContext );
+                    IEntity entity = GetEntity( EntityTypeId, EntityId, rockContext, errors );
 
                     //Make changes
                     foreach ( var changeRecord in ChangeRecords.Where( r => r.WasApplied != true && r.IsRejected == false ) )
@@ -121,12 +116,12 @@ namespace org.secc.ChangeManager.Model
                                 !( changeRecord.RelatedEntityId == 0 || changeRecord.Action == ChangeRecordAction.Create ) )
                             {
                                 //existing entity
-                                targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext );
+                                targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, errors );
                             }
                             else
                             {
                                 //new entity
-                                targetEntity = CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.NewValue, rockContext );
+                                targetEntity = CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.NewValue, rockContext, errors );
                                 changeRecord.RelatedEntityId = targetEntity.Id;
 
                                 //if we add a phone number add that to the change list
@@ -136,7 +131,6 @@ namespace org.secc.ChangeManager.Model
                                     var numberType = DefinedValueCache.GetValue( number.NumberTypeValueId.Value );
                                     securityChangeDetail.ChangeDetails.Add( string.Format( "Added {0} phone number {1}", numberType, number.NumberFormatted ) );
                                 }
-
                             }
                         }
 
@@ -150,11 +144,11 @@ namespace org.secc.ChangeManager.Model
                         //Remove records marked as delete
                         if ( changeRecord.Action == ChangeRecordAction.Delete )
                         {
-                            DeleteEntity( targetEntity, rockContext );
+                            DeleteEntity( targetEntity, rockContext, errors );
                         }
                         else if ( changeRecord.Action == ChangeRecordAction.Attribute )
                         {
-                            UpdateAttribute( targetEntity, changeRecord.Property, changeRecord.NewValue, rockContext );
+                            UpdateAttribute( targetEntity, changeRecord.Property, changeRecord.NewValue, rockContext, errors );
                         }
                         else if ( changeRecord.Property.IsNotNullOrWhiteSpace() )
                         {
@@ -176,7 +170,7 @@ namespace org.secc.ChangeManager.Model
                             }
                             else
                             {
-                                SetProperty( targetEntity, prop, changeRecord.NewValue );
+                                SetProperty( targetEntity, prop, changeRecord.NewValue, errors );
                             }
                         }
                         changeRecord.WasApplied = true;
@@ -218,13 +212,13 @@ namespace org.secc.ChangeManager.Model
                             if ( changeRecord.RelatedEntityId.HasValue && changeRecord.Action != ChangeRecordAction.Create )
                             {
                                 //existing entity
-                                targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext );
+                                targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, errors );
                             }
                             else
                             {
                                 //This was a created entity that we must now murder in cold blood.
-                                targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext );
-                                DeleteEntity( targetEntity, rockContext );
+                                targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, errors );
+                                DeleteEntity( targetEntity, rockContext, errors );
                                 changeRecord.WasApplied = false;
                                 continue;
                             }
@@ -233,18 +227,18 @@ namespace org.secc.ChangeManager.Model
                         //Undelete
                         if ( changeRecord.RelatedEntityTypeId.HasValue && changeRecord.Action == ChangeRecordAction.Delete )
                         {
-                            targetEntity = CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.OldValue, rockContext );
+                            targetEntity = CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.OldValue, rockContext, errors );
                             changeRecord.RelatedEntityId = targetEntity.Id;
                         }
                         else if ( changeRecord.Action == ChangeRecordAction.Attribute )
                         {
-                            UpdateAttribute( targetEntity, changeRecord.Property, changeRecord.OldValue, rockContext );
+                            UpdateAttribute( targetEntity, changeRecord.Property, changeRecord.OldValue, rockContext, errors );
                         }
                         //Property changes
                         else if ( changeRecord.Property.IsNotNullOrWhiteSpace() )
                         {
                             PropertyInfo prop = targetEntity?.GetType()?.GetProperty( changeRecord.Property, BindingFlags.Public | BindingFlags.Instance );
-                            if ( targetEntity == null ||  prop == null )
+                            if ( targetEntity == null || prop == null )
                             {
                                 //Entity was probably deleted after the change request
                                 continue;
@@ -266,15 +260,30 @@ namespace org.secc.ChangeManager.Model
                             }
                             else
                             {
-                                SetProperty( targetEntity, prop, changeRecord.OldValue );
+                                SetProperty( targetEntity, prop, changeRecord.OldValue, errors );
                             }
                         }
                         changeRecord.WasApplied = false;
                     }
 
 
-                    rockContext.SaveChanges();
-                    dbContextTransaction.Commit();
+                    try
+                    {
+                        rockContext.SaveChanges();
+                    }
+                    catch ( Exception e )
+                    {
+                        errors.AddRange( e.Messages() );
+                    }
+
+                    if ( errors.Any() )
+                    {
+                        dbContextTransaction.Rollback();
+                    }
+                    else
+                    {
+                        dbContextTransaction.Commit();
+                    }
 
                     if ( entity.GetType()?.BaseType == typeof( Person ) && securityChangeDetail.ChangeDetails.Any() )
                     {
@@ -287,12 +296,20 @@ namespace org.secc.ChangeManager.Model
                 catch ( Exception e )
                 {
                     dbContextTransaction.Rollback();
-                    throw new Exception( "Exception occured durring saving changes.", e );
+                    errors.AddRange( e.Messages() );
+                }
+                finally
+                {
+                    if ( errors.Any() )
+                    {
+                        ExceptionLogService.LogException( new Exception( "Error while completing change request: " + Id.ToString(),
+                            new Exception( string.Join( " *** ", errors ) ) ) );
+                    }
                 }
             }
         }
 
-        private void UpdateAttribute( IEntity targetEntity, string attributeKey, string value, RockContext rockContext )
+        private void UpdateAttribute( IEntity targetEntity, string attributeKey, string value, RockContext rockContext, List<string> errors )
         {
             //Sometimes we can get change requests on deleted items.
             if ( targetEntity == null )
@@ -300,117 +317,156 @@ namespace org.secc.ChangeManager.Model
                 return;
             }
 
-            if ( !( targetEntity is IHasAttributes ) )
+            try
             {
-                return;
-            }
-            var ihaEntity = targetEntity as IHasAttributes;
-            ihaEntity.LoadAttributes( rockContext );
 
-            ihaEntity.SetAttributeValue( attributeKey, value );
-            ihaEntity.SaveAttributeValues( rockContext );
+                if ( !( targetEntity is IHasAttributes ) )
+                {
+                    return;
+                }
+                var ihaEntity = targetEntity as IHasAttributes;
+                ihaEntity.LoadAttributes( rockContext );
+
+                ihaEntity.SetAttributeValue( attributeKey, value );
+                ihaEntity.SaveAttributeValues( rockContext );
+            }
+            catch ( Exception e )
+            {
+                errors.AddRange( e.Messages() );
+            }
         }
 
-        private void DeleteEntity( IEntity targetEntity, RockContext dbContext )
+        private void DeleteEntity( IEntity targetEntity, RockContext dbContext, List<string> errors )
         {
-            //Sometimes we can get change requests on deleted items.
-            if ( targetEntity == null )
+            try
             {
-                return;
-            }
+                //Sometimes we can get change requests on deleted items.
+                if ( targetEntity == null )
+                {
+                    return;
+                }
 
-            var entityTypeCache = EntityTypeCache.Get( targetEntity.TypeId );
-            var entityType = entityTypeCache.GetEntityType();
-            var entityService = Reflection.GetServiceForEntityType( entityType, dbContext );
-            MethodInfo deleteMethodInfo = entityService.GetType().GetMethod( "Delete" );
-            object[] parametersArray = new object[] { targetEntity };
-            deleteMethodInfo.Invoke( entityService, parametersArray );
-            dbContext.SaveChanges();
+                var entityTypeCache = EntityTypeCache.Get( targetEntity.TypeId );
+                var entityType = entityTypeCache.GetEntityType();
+                var entityService = Reflection.GetServiceForEntityType( entityType, dbContext );
+                MethodInfo deleteMethodInfo = entityService.GetType().GetMethod( "Delete" );
+                object[] parametersArray = new object[] { targetEntity };
+                deleteMethodInfo.Invoke( entityService, parametersArray );
+                dbContext.SaveChanges();
+            }
+            catch ( Exception e )
+            {
+                errors.AddRange( e.Messages() );
+            }
         }
 
-        public static IEntity CreateNewEntity( int entityTypeId, string newValue, RockContext dbContext, bool addToDatabase = true )
+
+        public static IEntity CreateNewEntity( int entityTypeId, string newValue, RockContext dbContext, List<string> errors, bool addToDatabase = true )
         {
-            var entityTypeCache = EntityTypeCache.Get( entityTypeId );
-            var entityType = entityTypeCache.GetEntityType();
-            var dyn = newValue.FromJsonOrNull<Dictionary<string, object>>();
-            var entity = ( ( IEntity ) Activator.CreateInstance( entityType ) );
-            foreach ( var key in dyn.Keys )
+            try
             {
-                var prop = entity.GetType().GetProperty( key );
-                SetProperty( entity, prop, dyn[key].ToStringSafe() );
-            }
+                var entityTypeCache = EntityTypeCache.Get( entityTypeId );
+                var entityType = entityTypeCache.GetEntityType();
+                var dyn = newValue.FromJsonOrNull<Dictionary<string, object>>();
+                var entity = ( ( IEntity ) Activator.CreateInstance( entityType ) );
+                foreach ( var key in dyn.Keys )
+                {
+                    var prop = entity.GetType().GetProperty( key );
+                    SetProperty( entity, prop, dyn[key].ToStringSafe(), errors );
+                }
 
-            var entityService = Reflection.GetServiceForEntityType( entityType, dbContext );
-            MethodInfo addMethodInfo = entityService.GetType().GetMethod( "Add" );
-            object[] parametersArray = new object[] { entity };
+                var entityService = Reflection.GetServiceForEntityType( entityType, dbContext );
+                MethodInfo addMethodInfo = entityService.GetType().GetMethod( "Add" );
+                object[] parametersArray = new object[] { entity };
 
-            if ( !addToDatabase )
-            {
+                if ( !addToDatabase )
+                {
+                    return entity;
+                }
+
+                entity.Id = 0;
+                addMethodInfo.Invoke( entityService, parametersArray );
+                dbContext.SaveChanges();
+
                 return entity;
             }
-
-            entity.Id = 0;
-            addMethodInfo.Invoke( entityService, parametersArray );
-            dbContext.SaveChanges();
-
-            return entity;
-        }
-
-        public static void SetProperty( IEntity entity, PropertyInfo prop, string newValue )
-        {
-            if ( entity == null || prop == null )
+            catch ( Exception e )
             {
-                return;
-            }
-
-            MethodInfo setter = prop.GetSetMethod();
-            if ( setter == null )
-            {
-                return;
-            }
-
-            if ( prop.PropertyType == typeof( string ) )
-            {
-                setter.Invoke( entity, new object[] { newValue } );
-            }
-            else if ( prop.PropertyType == typeof( int? ) )
-            {
-                setter.Invoke( entity, new object[] { newValue.AsIntegerOrNull() } );
-            }
-            else if ( ( prop.PropertyType == typeof( int ) ) )
-            {
-                setter.Invoke( entity, new object[] { newValue.AsInteger() } );
-            }
-            else if ( prop.PropertyType == typeof( DateTime? ) || prop.PropertyType == typeof( DateTime ) )
-            {
-                setter.Invoke( entity, new object[] { newValue.AsDateTime() } );
-            }
-            else if ( prop.PropertyType.IsEnum )
-            {
-                setter.Invoke( entity, new object[] { newValue.AsInteger() } );
-            }
-            else if ( prop.PropertyType == typeof( bool ) )
-            {
-                setter.Invoke( entity, new object[] { newValue.AsBoolean() } );
+                errors.AddRange( e.Messages() );
+                return null;
             }
         }
 
-        public static IEntity GetEntity( int entityTypeId, int entityId, RockContext dbContext )
+        public static void SetProperty( IEntity entity, PropertyInfo prop, string newValue, List<string> errors )
         {
-            var entityTypeCache = EntityTypeCache.Get( entityTypeId );
-            var entityType = entityTypeCache.GetEntityType();
-            var entityService = Reflection.GetServiceForEntityType( entityType, dbContext );
-            MethodInfo queryableMethodInfo = entityService.GetType().GetMethod( "Queryable", new Type[] { } );
-            IQueryable<IEntity> entityQuery = queryableMethodInfo.Invoke( entityService, null ) as IQueryable<IEntity>;
-            var entity = entityQuery.Where( x => x.Id == entityId ).FirstOrDefault();
-
-            if ( entity != null && entity.TypeName == "Rock.Model.PersonAlias" )
+            try
             {
-                //The entity is person alias switch to person
-                entity = ( ( PersonAlias ) entity ).Person;
-            }
+                if ( entity == null || prop == null )
+                {
+                    return;
+                }
 
-            return entity;
+                MethodInfo setter = prop.GetSetMethod();
+                if ( setter == null )
+                {
+                    return;
+                }
+
+                if ( prop.PropertyType == typeof( string ) )
+                {
+                    setter.Invoke( entity, new object[] { newValue } );
+                }
+                else if ( prop.PropertyType == typeof( int? ) )
+                {
+                    setter.Invoke( entity, new object[] { newValue.AsIntegerOrNull() } );
+                }
+                else if ( ( prop.PropertyType == typeof( int ) ) )
+                {
+                    setter.Invoke( entity, new object[] { newValue.AsInteger() } );
+                }
+                else if ( prop.PropertyType == typeof( DateTime? ) || prop.PropertyType == typeof( DateTime ) )
+                {
+                    setter.Invoke( entity, new object[] { newValue.AsDateTime() } );
+                }
+                else if ( prop.PropertyType.IsEnum )
+                {
+                    setter.Invoke( entity, new object[] { newValue.AsInteger() } );
+                }
+                else if ( prop.PropertyType == typeof( bool ) )
+                {
+                    setter.Invoke( entity, new object[] { newValue.AsBoolean() } );
+                }
+            }
+            catch ( Exception e )
+            {
+                errors.AddRange( e.Messages() );
+            }
+        }
+
+        public static IEntity GetEntity( int entityTypeId, int entityId, RockContext dbContext, List<string> errors )
+        {
+            try
+            {
+                var entityTypeCache = EntityTypeCache.Get( entityTypeId );
+                var entityType = entityTypeCache.GetEntityType();
+                var entityService = Reflection.GetServiceForEntityType( entityType, dbContext );
+                MethodInfo queryableMethodInfo = entityService.GetType().GetMethod( "Queryable", new Type[] { } );
+                IQueryable<IEntity> entityQuery = queryableMethodInfo.Invoke( entityService, null ) as IQueryable<IEntity>;
+                var entity = entityQuery.Where( x => x.Id == entityId ).FirstOrDefault();
+
+                if ( entity != null && entity.TypeName == "Rock.Model.PersonAlias" )
+                {
+                    //The entity is person alias switch to person
+                    entity = ( ( PersonAlias ) entity ).Person;
+                }
+
+                return entity;
+            }
+            catch ( Exception e )
+            {
+                errors.AddRange( e.Messages() );
+                return null;
+            }
         }
         #endregion
 

@@ -417,7 +417,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( rockContext );
 
                     var roleId = groupTypeRoleService.Get( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ).Id;
-                    if ( insertPerson.Age.HasValue && insertPerson.Age.Value > 17 )
+                    if ( insertPerson.Age.HasValue && insertPerson.Age.Value < 18 )
                     {
                         roleId = groupTypeRoleService.Get( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() ).Id;
                     }
@@ -441,7 +441,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             }
 
             bool autoApply = CanAutoApply( person );
-
+            List<string> errors;
 
             if ( changeRequest.ChangeRecords.Any()
             || ( !familyChangeRequest.ChangeRecords.Any() && tbComments.Text.IsNotNullOrWhiteSpace() ) )
@@ -452,7 +452,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 rockContext.SaveChanges();
                 if ( autoApply )
                 {
-                    changeRequest.CompleteChanges( rockContext );
+                    changeRequest.CompleteChanges( rockContext, out errors );
                 }
 
                 changeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull() );
@@ -466,7 +466,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 rockContext.SaveChanges();
                 if ( autoApply )
                 {
-                    familyChangeRequest.CompleteChanges( rockContext );
+                    familyChangeRequest.CompleteChanges( rockContext, out errors );
                 }
                 familyChangeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull() );
             }

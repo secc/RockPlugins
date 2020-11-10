@@ -249,7 +249,8 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                         ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
                         changeRequestService.Add( changeRequest );
                         rockContext.SaveChanges();
-                        changeRequest.CompleteChanges( rockContext );
+                        List<string> errors;
+                        changeRequest.CompleteChanges( rockContext, out errors );
                     }
                 }
                 else if ( ViewMode == VIEW_MODE_ORDER && _canAdministrate )

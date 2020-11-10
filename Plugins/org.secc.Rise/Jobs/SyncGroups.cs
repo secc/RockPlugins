@@ -12,13 +12,20 @@
 // limitations under the License.
 // </copyright>
 //
-using Newtonsoft.Json;
+using Quartz;
 
-namespace org.secc.Rise.Response
+namespace org.secc.Rise
 {
-    public abstract class RiseBase
+    [DisallowConcurrentExecution]
+    public class SyncGroups : IJob
     {
-        [JsonProperty( "id" )]
-        public string Id { get; set; }
+        public void Execute( IJobExecutionContext context )
+        {
+            JobDataMap dataMap = context.JobDetail.JobDataMap;
+            RiseClient riseClient = new RiseClient();
+            var i = riseClient.SyncAllGroups();
+            context.Result = $"Synced {i} groups";
+        }
+
     }
 }
