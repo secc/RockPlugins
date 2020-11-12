@@ -148,7 +148,7 @@ a.aspNetDisabled {
 .form-group.required {
   .control-label:after {
     margin-left: 4px;
-    font-family: FontAwesome, 'Font Awesome 5 Pro';
+    font-family: 'Font Awesome 5 Pro', FontAwesome;
     font-size: 6px;
     color: $required-field-color;
     vertical-align: super;
