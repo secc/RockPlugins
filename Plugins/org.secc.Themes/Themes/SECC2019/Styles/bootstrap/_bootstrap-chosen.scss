@@ -785,7 +785,7 @@
 
 .chosen-container-multi .chosen-choices .search-choice {
   position: relative;
-  padding: 4px 24px 4px 4px;
+  padding: 5px 24px 4px 4px;
   margin: 5px 0 0 8px;
   font-size: 12px;
   line-height: 1;
@@ -802,8 +802,8 @@
 
 .chosen-container-multi .chosen-choices .search-choice .search-choice-close:after {
   position: absolute;
-  top: 3px;
-  right: 1px;
+  top: -1px;
+  right: -1px;
   display: inline-block;
   width: 16px;
   height: 16px;
