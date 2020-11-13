@@ -29,23 +29,20 @@
 // </copyright>
 //
 using System;
-using System.ComponentModel;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using Newtonsoft.Json;
+using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using Rock;
-using Attribute = Rock.Model.Attribute;
-using Rock.Security;
-using Rock.Web.Cache;
-using Newtonsoft.Json;
 
 namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
 {
@@ -115,12 +112,16 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
                 gWorkflows.DataKeyNames = new string[] { "Id" };
                 gWorkflows.GridRebind += gWorkflows_GridRebind;
 
-                gWorkflows.Actions.ShowBulkUpdate = true;
-                gWorkflows.Actions.BulkUpdateClick += Actions_BulkUpdateClick;
-
                 gWorkflows.Actions.ShowExcelExport = false;
                 gWorkflows.Actions.ShowMergeTemplate = false;
 
+                LinkButton btnBulk = new LinkButton
+                {
+                    Text = "<i class='fa fa-truck fa-fw'></i>",
+                    CssClass = "btn-bulk-update btn btn-default btn-sm"
+                };
+                btnBulk.Click +=Actions_BulkUpdateClick;
+                gWorkflows.Actions.Controls.Add( btnBulk );
 
                 if ( !string.IsNullOrWhiteSpace( _workflowType.WorkTerm ) )
                 {
@@ -162,7 +163,7 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
             EntitySetService entitySetService = new EntitySetService( rockContext );
             EntitySet entitySet = new EntitySet
             {
-                EntityTypeId = EntityTypeCache.GetId( typeof( Workflow ) ),
+                EntityTypeId = EntityTypeCache.GetId( typeof( Rock.Model.Workflow ) ),
                 ExpireDateTime = RockDateTime.Now.AddDays( 1 )
             };
             entitySetService.Add( entitySet );
@@ -393,7 +394,7 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
             AvailableAttributes = new List<AttributeCache>();
             if ( _workflowType != null )
             {
-                int entityTypeId = new Workflow().TypeId;
+                int entityTypeId = new Rock.Model.Workflow().TypeId;
                 string workflowQualifier = _workflowType.Id.ToString();
                 foreach ( var attributeModel in new AttributeService( new RockContext() ).Queryable()
                     .Where( a =>
@@ -593,7 +594,7 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
                     }
                 }
 
-                IQueryable<Workflow> workflows = null;
+                IQueryable<Rock.Model.Workflow> workflows = null;
 
                 var sortProperty = gWorkflows.SortProperty;
                 if ( sortProperty != null )
@@ -633,7 +634,7 @@ namespace RockWeb.Plugins.org_secc.WorkFlowUpdate
 
                 gWorkflows.ObjectList = workflowObjectQry.ToList().ToDictionary( k => k.Id.ToString(), v => v as object );
 
-                gWorkflows.EntityTypeId = EntityTypeCache.Get<Workflow>().Id;
+                gWorkflows.EntityTypeId = EntityTypeCache.Get<Rock.Model.Workflow>().Id;
                 var qryGrid = workflows.Select( w => new
                 {
                     w.Id,
