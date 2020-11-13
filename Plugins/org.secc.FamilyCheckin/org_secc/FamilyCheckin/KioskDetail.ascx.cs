@@ -126,6 +126,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 kiosk.PrinterDeviceId = ddlPrinter.SelectedValueAsInt();
                 kiosk.PrintFrom = ( PrintFrom ) System.Enum.Parse( typeof( PrintFrom ), ddlPrintFrom.SelectedValue );
 
+                if ( tbAccessKey.Text.IsNullOrWhiteSpace() )
+                {
+                    kiosk.AccessKey = Guid.NewGuid().ToString();
+                }
+                else
+                {
+                    kiosk.AccessKey = tbAccessKey.Text;
+                }
 
                 rockContext.SaveChanges();
 
@@ -204,6 +212,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             tbName.ReadOnly = readOnly;
             tbDescription.ReadOnly = readOnly;
+
+            tbAccessKey.Text = kiosk.AccessKey;
+            if ( tbAccessKey.Text.IsNullOrWhiteSpace() )
+            {
+                tbAccessKey.Text = Guid.NewGuid().ToString();
+            }
 
             btnSave.Visible = !readOnly;
             BindDropDownList( kiosk );

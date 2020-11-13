@@ -36,6 +36,9 @@
 
                     <div class="row">
                         <div class="col-md-12">
+                            <Rock:RockTextBox runat="server" ID="tbAccessKey" Label="AccessKey" />
+                        </div>
+                        <div class="col-md-12">
                             <Rock:CategoryPicker runat="server" ID="pCategory" Label="Category" />
                         </div>
                     </div>
