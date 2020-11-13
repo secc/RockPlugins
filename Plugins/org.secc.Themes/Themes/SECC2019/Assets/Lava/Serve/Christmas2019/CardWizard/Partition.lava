@@ -80,7 +80,7 @@
 						{% endif %}
 						<style>
 						.check input:checked + .icon-box {
-						    background: #19b3c0 !important;
+						    background: #EDBA61 !important;
 						}
 						</style>
 						{% include '~~/Assets/Lava/Serve/Christmas2019/CardWizard/PartitionList.lava' %}
