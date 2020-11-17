@@ -254,39 +254,45 @@ namespace org.secc.OAuth
                                 }
                                 else
                                 {
+                                    context.Rejected();
                                     context.SetError( "Authentication Error", "All scopes are not authorized for this user." );
                                 }
                             }
                             if ( !userLogin.IsConfirmed ?? true )
                             {
+                                context.Rejected();
                                 context.SetError( "Authentication Error", "Account email is unconfirmed." );
                             }
                             if ( userLogin.IsLockedOut ?? false )
                             {
+                                context.Rejected();
                                 context.SetError( "Authentication Error", "Account is locked." );
                             }
                         }
                         else
                         {
+                            context.Rejected();
                             context.SetError( "Authentication Error", "Invalid Username/Password." );
                         }
                     }
                     else
                     {
+                        context.Rejected();
                         context.SetError( "Authentication Error", "Invalid Authentication Configuration." );
                     }
                 }
                 else
                 {
+                    context.Rejected();
                     context.SetError( "Authentication Error", "Invalid Username/Password." );
                 }
             }
             else
             {
+                context.Rejected();
                 context.SetError( "Authentication Error", "Invalid Username/Password." );
             }
 
-            context.Rejected();
             return System.Threading.Tasks.Task.FromResult( 0 );
         }
 
@@ -356,6 +362,7 @@ namespace org.secc.OAuth
             }
             catch ( System.Security.Authentication.AuthenticationException authEx )
             {
+                context.Rejected();
                 context.SetError( "Authentication Error", authEx.Message );
             }
 
