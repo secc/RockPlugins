@@ -105,7 +105,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
             var changeRecords = changeRequest.ChangeRecords.ToList();
 
-            var entity = ChangeRequest.GetEntity( changeRequest.EntityTypeId, changeRequest.EntityId, rockContext );
+            var errors = new List<string>();
+            var entity = ChangeRequest.GetEntity( changeRequest.EntityTypeId, changeRequest.EntityId, rockContext, errors );
 
             foreach ( var changeRecord in changeRecords )
             {
@@ -192,8 +193,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
         private void FormatValues( int entityTypeId, IEntity targetEntity, ChangeRecord changeRecord, RockContext rockContext )
         {
-            
-
+            var errors = new List<string>();
             //Get the target Entity
             if ( changeRecord.RelatedEntityId.HasValue
                     && changeRecord.RelatedEntityId.Value != 0
@@ -204,18 +204,18 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 switch ( changeRecord.Action )
                 {
                     case ChangeRecordAction.Create:
-                        targetEntity = ChangeRequest.CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.NewValue, rockContext, false );
+                        targetEntity = ChangeRequest.CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.NewValue, rockContext, errors, false );
                         break;
                     case ChangeRecordAction.Delete:
-                        targetEntity = ChangeRequest.CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.OldValue, rockContext, false );
+                        targetEntity = ChangeRequest.CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.OldValue, rockContext, errors, false );
                         break;
                     default:
-                        targetEntity = ChangeRequest.GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext );
+                        targetEntity = ChangeRequest.GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, errors );
                         break;
                 }
             }
 
-            if (targetEntity == null )
+            if ( targetEntity == null )
             {
                 return;
             }
@@ -256,7 +256,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                             var eleProp = entity.GetType().GetProperty( key );
                             if ( eleProp != null )
                             {
-                                ChangeRequest.SetProperty( entity, eleProp, dyn[key].ToStringSafe() );
+                                ChangeRequest.SetProperty( entity, eleProp, dyn[key].ToStringSafe(), errors );
                             }
                         }
                         if ( entity != null )
@@ -291,7 +291,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                             var eleProp = entity.GetType().GetProperty( key );
                             if ( eleProp != null )
                             {
-                                ChangeRequest.SetProperty( entity, eleProp, dyn[key].ToStringSafe() );
+                                ChangeRequest.SetProperty( entity, eleProp, dyn[key].ToStringSafe(), errors );
                             }
                         }
                         if ( entity != null )
@@ -385,13 +385,23 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
             var changeRequest = changeRequestService.Get( hfChangeId.ValueAsInt() );
             changeRequest.ApproverComment = tbApproverComment.Text;
-            changeRequest.CompleteChanges( new RockContext() );
 
-            changeRequest.IsComplete = true;
-            changeRequest.ApproverAliasId = CurrentPersonAliasId ?? 0;
-            rockContext.SaveChanges();
-            changeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull() );
-            NavigateToParentPage();
+            List<string> errors;
+            changeRequest.CompleteChanges( new RockContext(), out errors );
+
+            if ( errors.Any() )
+            {
+                nbError.Visible = true;
+                nbError.Text = "<ul>" + string.Join( "", errors.Select( ex => string.Format( "<li>{0}</li>", ex ) )) + "</ul>";
+            }
+            else
+            {
+                changeRequest.IsComplete = true;
+                changeRequest.ApproverAliasId = CurrentPersonAliasId ?? 0;
+                rockContext.SaveChanges();
+                changeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull() );
+                NavigateToParentPage();
+            }
         }
     }
 }

@@ -112,6 +112,7 @@
     <Compile Include="Jobs\RemoveExpiredMobileReservations.cs" />
     <Compile Include="Jobs\ResetGroupLocationSchedules.cs" />
     <Compile Include="Migrations\001_Init.cs" />
+    <Compile Include="Migrations\014_AccessKey.cs" />
     <Compile Include="Migrations\007_SearchType.cs" />
     <Compile Include="Migrations\006_KioskNameIndex.cs" />
     <Compile Include="Migrations\005_KioskCategories.cs" />

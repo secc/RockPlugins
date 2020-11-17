@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Rock.Data;
 
-namespace org.secc.xAPI.Data
+namespace org.secc.Rise.Data
 {
-    public class xAPIService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
+    public class RiseService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
     {
-        public xAPIService( RockContext context )
+        public RiseService( RockContext context )
             : base( context )
         {
         }

@@ -12,7 +12,6 @@
 // limitations under the License.
 // </copyright>
 //
-
 namespace org.secc.xAPI.Migrations
 {
     using System;

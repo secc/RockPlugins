@@ -334,7 +334,7 @@
 
   .panel-title:before {
     margin-right: 4px;
-    font-family: FontAwesome;
+    font-family: 'Font Awesome 5 Pro', FontAwesome;
     font-weight: normal;
     content: $fa-var-cubes;
   }
@@ -342,7 +342,7 @@
 
 .workflow-action {
   .workflow-action-name:before {
-    font-family: FontAwesome;
+    font-family: 'Font Awesome 5 Pro', FontAwesome;
     font-weight: normal;
     content: $fa-var-cube;
   }
@@ -402,7 +402,7 @@
 
           &:before {
             margin-top: 6px;
-            font-family: FontAwesome;
+            font-family: 'Font Awesome 5 Pro', FontAwesome;
             font-size: 20px;
             content: $fa-var-chevron-up;
           }

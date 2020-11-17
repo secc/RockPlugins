@@ -52,5 +52,8 @@ namespace org.secc.FamilyCheckin.Utilities
         public const string GROUP_TYPE_BY_MEMBERSHIP = "2098AE58-58D4-4CEF-8D40-C2657D2E7A6A";
         public const string GROUP_TYPE_BY_DATAVIEW = "722D1D26-AD6A-4800-8F86-2AAB521A2FFD";
         public const string GROUP_TYPE_BY_TEXT = "374F4210-20D9-4DC9-B2ED-7B12D1EA3406";
+
+        //Cookies
+        public const string COOKIE_KIOSK_NAME = "kioskName";
     }
 }

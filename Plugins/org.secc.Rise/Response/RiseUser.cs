@@ -1,10 +1,26 @@
-﻿using System;
+﻿// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting.Activation;
-using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
+using org.secc.Rise.Utilities;
+using Rock;
+using Rock.Data;
+using Rock.Model;
+using Rock.Web.Cache;
 
 namespace org.secc.Rise.Response
 {
@@ -48,5 +64,69 @@ namespace org.secc.Rise.Response
             }
         }
 
+        public void SyncGroupMembership()
+        {
+            SyncGroupMembership( GetRockPerson() );
+
+        }
+
+        public void SyncGroupMembership( Person person )
+        {
+            var riseGroups = Groups;
+            person.LoadAttributes();
+
+            RockContext rockContext = new RockContext();
+            GroupMemberService groupMemberService = new GroupMemberService( rockContext );
+            var grouptypeId = GroupTypeCache.Get( Constants.GROUPTYPE_RISE ).Id;
+
+            var groups = groupMemberService.Queryable()
+                .Where( gm => gm.PersonId == person.Id
+                    && gm.Group.GroupTypeId == grouptypeId )
+                .Select( gm => gm.Group )
+                .ToList();
+
+            //Not fast. Fix if needed.
+            groups.ForEach( g => g.LoadAttributes() );
+
+            var groupsToRemove = riseGroups
+               .Where( r => !groups.Select( g => g.GetAttributeValue( Constants.GROUP_ATTRIBUTE_KEY_RISEID ) ).Contains( r.Id ) )
+               .ToList();
+
+            foreach ( var riseGroup in groupsToRemove )
+            {
+                ClientManager.Delete<RiseUser>( riseGroup, Id );
+            }
+
+            var groupsToAdd = groups
+                .Where( g => !riseGroups.Select( r => r.Id ).Contains( g.GetAttributeValue( Constants.GROUP_ATTRIBUTE_KEY_RISEID ) ) )
+                .ToList();
+
+
+            foreach ( var group in groupsToAdd )
+            {
+                var riseGroup = new RiseGroup { Id = group.GetAttributeValue( Constants.GROUP_ATTRIBUTE_KEY_RISEID ) };
+                ClientManager.Put<RiseUser>( riseGroup, person.GetAttributeValue( Constants.PERSON_ATTRIBUTE_KEY_RISEID ) );
+            }
+        }
+
+        public Person GetRockPerson()
+        {
+            RockContext rockContext = new RockContext();
+            AttributeValueService attribueValueService = new AttributeValueService( rockContext );
+
+            var attributeId = AttributeCache.Get( Constants.PERSON_ATTRIBUTE_RISEID ).Id;
+
+            var attributeValue = attribueValueService.Queryable()
+                .Where( av => av.AttributeId == attributeId && av.Value == this.Id )
+                .FirstOrDefault();
+
+            if ( attributeValue == null )
+            {
+                return null;
+            }
+
+            PersonService personService = new PersonService( rockContext );
+            return personService.Get( attributeValue.EntityId ?? 0 );
+        }
     }
 }

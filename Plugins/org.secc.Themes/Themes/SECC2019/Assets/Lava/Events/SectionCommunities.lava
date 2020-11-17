@@ -1,0 +1,296 @@
+<style>
+:root {
+  --worship-1: #7AB7E4;
+  --worship-2: #163F5F;
+  --worship-3: #9ABC83;
+  --worship-4: #3DADA2;
+  --worship-5: #F2B65E;
+  --worship-6: #F5D55B;
+  --worship-7: #EE3F2A;
+  --worship-8: #4A7C50;
+  --worship-9: #69C9D2;
+  --worship-10: #57508D;
+  --worship-11: #F06363;
+  --worship-12: #F9A41A;
+  --worship-13: #1D649B;
+}
+#worshipcenter .s100 {
+    border-color: var(--worship-1) !important;
+}
+#worshipcenter .s101,
+#worshipcenter .s102 {
+    border-color: var(--worship-2) !important;
+}
+#worshipcenter .s103 {
+    border-color: var(--worship-3) !important;
+}
+#worshipcenter .s104,
+#worshipcenter .s105,
+#worshipcenter .s106 {
+    border-color: var(--worship-4) !important;
+}
+#worshipcenter .s107 {
+    border-color: var(--worship-5) !important;
+}
+#worshipcenter .s108,
+#worshipcenter .s109,
+#worshipcenter .s110 {
+    border-color: var(--worship-6) !important;
+}
+#worshipcenter .s111 {
+    border-color: var(--worship-7) !important;
+}
+#worshipcenter .s112,
+#worshipcenter .s113 {
+    border-color: var(--worship-8) !important;
+}
+#worshipcenter .s202,
+#worshipcenter .s302,
+#worshipcenter .s303 {
+    border-color: var(--worship-9) !important;
+}
+#worshipcenter .s304,
+#worshipcenter .s305,
+#worshipcenter .s306 {
+    border-color: var(--worship-10) !important;
+}
+#worshipcenter .s307,
+#worshipcenter .s308,
+#worshipcenter .s309,
+#worshipcenter .s310 {
+    border-color: var(--worship-11) !important;
+}
+#worshipcenter .s311,
+#worshipcenter .s312,
+#worshipcenter .s313 {
+    border-color: var(--worship-12) !important;
+}
+#worshipcenter .s215,
+#worshipcenter .s314,
+#worshipcenter .s315 {
+    border-color: var(--worship-13) !important;
+}
+#worshipcenter img.personImage {
+    border: 5px solid #000;
+    border-radius: 100%;
+}
+
+#worshipcenter .s100:after {
+    background-color: var(--worship-1) !important;
+}
+#worshipcenter .s101:after,
+#worshipcenter .s102:after {
+    background-color: var(--worship-2) !important;
+}
+#worshipcenter .s103:after {
+    background-color: var(--worship-3) !important;
+}
+#worshipcenter .s104:after,
+#worshipcenter .s105:after,
+#worshipcenter .s106:after {
+    background-color: var(--worship-4) !important;
+}
+#worshipcenter .s107:after {
+    background-color: var(--worship-5) !important;
+}
+#worshipcenter .s108:after,
+#worshipcenter .s109:after,
+#worshipcenter .s110:after {
+    background-color: var(--worship-6) !important;
+}
+#worshipcenter .s111:after {
+    background-color: var(--worship-7) !important;
+}
+#worshipcenter .s112:after,
+#worshipcenter .s113:after {
+    background-color: var(--worship-8) !important;
+}
+#worshipcenter .s202:after,
+#worshipcenter .s302:after,
+#worshipcenter .s303:after {
+    background-color: var(--worship-9) !important;
+}
+#worshipcenter .s304:after,
+#worshipcenter .s305:after,
+#worshipcenter .s306:after {
+    background-color: var(--worship-10) !important;
+}
+#worshipcenter .s307:after,
+#worshipcenter .s308:after,
+#worshipcenter .s309:after,
+#worshipcenter .s310:after {
+    background-color: var(--worship-11) !important; 
+}
+#worshipcenter .s311:after,
+#worshipcenter .s312:after,
+#worshipcenter .s313:after {
+    background-color: var(--worship-12) !important;
+}
+#worshipcenter .s215:after,
+#worshipcenter .s314:after,
+#worshipcenter .s315:after {
+    background-color: var(--worship-13) !important;
+}
+#worshipcenter span {
+    position: relative;
+    padding-bottom: 2px;
+    display:inline-block;
+}
+#worshipcenter span:after {
+    content:'';
+    position:absolute;
+    bottom:0;
+    left:0;
+    right:0;
+    background: #000;
+    height:4px;
+    border-radius:20px;
+}
+.hide {
+    display: none;
+}
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #000000;
+}
+</style>
+
+<section id="SectionCommunities">
+    <div class="container g-margin-y-150--xs">
+        <div class="row g-padding-b-50--xs">
+            <div class="col-sm-12 col-lg-8 col-lg-offset-2">
+
+                <div class="col-md-8 col-md-push-4">
+                    <h3 class="g-font-weight--700">Find a Section Community</h3>
+                    <p>Find a Section Community by selecting a service time. Click on a section leader below to get connected and learn more.</p>
+                </div>
+
+                <div class="col-md-4 col-md-pull-8">
+                    <select class="select2-service" name="ministry" value-group="ministry">
+                        <option></option>
+                        {% schedule where:'CategoryId == 337 && IsActive == true' sort:'Order' %}
+                            {% for item in scheduleItems %}
+                                <option value="{{item.Guid}}">{{item.Name}}</option>
+                            {% endfor %}
+                        {% endschedule %}
+                    </select>
+                </div>
+                
+            </div>
+        </div>
+
+        <div class="row g-margin-y-50--xs">
+            <div id="worshipcenter" class="col-md-5 col-md-push-7 g-padding-x-40--xs g-padding-x-10--md">
+                <div style="border: 1px solid black;">
+                    <h4 class="g-font-family--secondary g-bg-color--dark g-color--white g-padding-x-50--xs g-padding-y-30--xs text-center">Section Community Leaders</h4>
+                    <div id="leaders-container" class="g-padding-y-40--xs">
+                        <div class="row g-margin-x-0--xs">
+                            <div class="col-xs-12 g-padding-x-0--xs">
+                                <table class="g-width-100-percent--xs">
+                                    <tbody id="leaders"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div id="infoMessage"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-7 col-md-pull-5">
+                <img src="/Content/Serve/SectionCommunities/Main_Level.svg">
+                <img src="/Content/Serve/SectionCommunities/Upper_Level.svg">
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+let worshipSections = new Set([{% definedvalue where:'DefinedTypeId == 333' %}{{definedvalueItems | Join:','}}{% enddefinedvalue %}]);
+let leaderObjs = new Set();
+{%- groupmember where:'GroupId == 1094398' limit:30 -%}
+{%- for member in groupmemberItems -%}
+    const person_{{forloop.index}} = {
+        fullName: "{{ member.Person.FullName }}",
+        guid: "{{ member.Person.Guid }}",
+        photo: "{{ member.Person.PhotoUrl }}&amp;width=250&amp;mode=crop",
+        serviceTimes: "{{ member | Attribute:'ServiceTimes','RawValue' }}",
+        sanctuarySections: "{{member | Attribute:'SectionsAssigned'}}"
+    };
+    leaderObjs.add(person_{{forloop.index}});
+{%- endfor -%}
+{%- endgroupmember -%}
+
+$(document).ready(function() {
+    /////////////// Initialize Leaders ////////////////
+    displayLeaders();
+    /////////////// Initialize Select2 ////////////////
+    $('.select2-service').select2({
+        placeholder: 'Select a Service',
+        minimumResultsForSearch: Infinity
+    });
+    $('.select2-service').on('select2:select', function (e) {
+        // prevent from submiting default form action
+        e.preventDefault();
+        // pull in lava ID
+        var data = e.params.data;
+        runSelection(data);
+    });
+
+    function runSelection(selectedTime) {
+        let filteredLeaders;
+        if (selectedTime.id != 'all') {
+            filteredLeaders = new Set([...leaderObjs].filter(leader => {
+                if (leader.serviceTimes.includes(selectedTime.id))
+                    return leader })
+            );
+        } else {
+            filteredLeaders = leaderObjs;
+        }
+        displayLeaders(filteredLeaders);
+    }
+});
+
+function displayLeaders(setOfLeaders) {
+    if (setOfLeaders) {
+        $('#leaders-container').slideUp("400", function() {
+            let sections = new Set(worshipSections);
+
+            $('#leaders').empty();
+            $('#infoMessage').empty();
+            for (leader of setOfLeaders) {
+                const leaderHtml = `
+                <tr>
+                    <td class="g-padding-x-20--xs g-text-right--xs">
+                        <img src="${leader.photo}" class="personImage img-responsive g-width-100-percent--xs g-width-150--xs pull-right s${leader.sanctuarySections.replaceAll(', ',' s')}" style="border-radius:100%;">
+                    </td>
+                    <td class="g-padding-x-20--xs g-text-left--xs" style="max-width:200px;">
+                        <p class="g-margin-b-0--xs g-padding-y-40--xs">
+                            <strong>${leader.fullName}</strong><br>
+                            Sections ${ leader.sanctuarySections.split(',').map(section => {
+                                return ` <span class="s${section.trim()}">${section.trim()}</span>`
+                            }) }<br>
+                            <a href="/sectioncommunities/contact/${leader.guid}" target="_blank" class="uppercase g-font-weight--700 g-font-size-20--xs g-color--dark">
+                                <i class="fa fa-envelope g-font-size-32--xs g-padding-r-10--xs" style="vertical-align: middle;"></i>Contact
+                            </a>
+                        </p>
+                    </td>
+                </tr>`;
+                $('#leaders').append(leaderHtml);
+                const sectionsTaken = leader.sanctuarySections.split(',');
+                for (section of sectionsTaken) {
+                    sections.delete(parseInt(section.trim(), 10));
+                }
+            }
+            if ([...sections].length > 0) {
+                $('#infoMessage').append(
+                    '<p class="text-left g-padding-t-40--xs g-padding-x-40--xs">The following sections are not yet assigned: '+
+                        [...sections].map(section => {
+                            return ` <span class="s${section}">${section}</span>`
+                        })+'</p>');
+            }
+            $('#leaders-container').slideDown();
+            sections.clear();
+        });
+    } else {
+        $('#infoMessage').append('<p class="text-center g-padding-y-40--xs g-padding-x-40--xs">Please select a service from the dropdown menu above.</p>');
+    }
+}
+</script>

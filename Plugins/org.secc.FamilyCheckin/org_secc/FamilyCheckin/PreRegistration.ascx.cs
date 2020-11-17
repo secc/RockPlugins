@@ -244,7 +244,8 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
     {
         // Setup the Rock context
         var rockContext = new RockContext();
-
+        var groupLocationService = new GroupLocationService( rockContext );
+        Group family = null;
         List<Child> children = ( ( List<Child> ) ViewState["Children"] );
         PersonService personService = new PersonService( rockContext );
         var matchingPeople = personService.GetByMatch( tbFirstname.Text, tbLastName.Text, dpBirthday.SelectedDate, ebEmail.Text, pnbPhone.Text, acAddress.Street1, acAddress.PostalCode );
@@ -276,6 +277,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 {
                     // If we get here, it's time to create a new family member
                     var newChild = child.SaveAsPerson( matchingPeople.FirstOrDefault().GetFamily().Id, rockContext );
+                    family = newChild.GetFamily();
                 }
             }
             rockContext.SaveChanges();
@@ -288,7 +290,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         }
         else
         {
-            DefinedValueCache homePhone = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME );
+            DefinedValueCache mobilePhone = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE );
 
             // Create the adult
             Person adult = new Person();
@@ -303,10 +305,10 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             adult.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
             adult.ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
             adult.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
-            adult.UpdatePhoneNumber( homePhone.Id, pnbPhone.CountryCode, pnbPhone.Number, false, false, rockContext );
+            adult.UpdatePhoneNumber( mobilePhone.Id, pnbPhone.CountryCode, pnbPhone.Number, false, false, rockContext );
             adult.Email = ebEmail.Text;
 
-            Group family = PersonService.SaveNewPerson( adult, rockContext, cpCampus.SelectedCampusId );
+            family = PersonService.SaveNewPerson( adult, rockContext, cpCampus.SelectedCampusId );
 
             if ( !string.IsNullOrWhiteSpace( tbFirstName2.Text ) )
             {
@@ -322,7 +324,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 adult2.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
                 adult2.ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
                 adult2.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
-                adult2.UpdatePhoneNumber( homePhone.Id, pnbPhone2.CountryCode, pnbPhone2.Number, false, false, rockContext );
+                adult2.UpdatePhoneNumber( mobilePhone.Id, pnbPhone2.CountryCode, pnbPhone2.Number, false, false, rockContext );
                 adult2.Email = ebEmail2.Text;
 
                 PersonService.AddPersonToFamily( adult2, true, family.Id, 3, rockContext );
@@ -333,14 +335,84 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             {
                 child.SaveAsPerson( family.Id, rockContext );
             }
+     
+ 
 
-            rockContext.SaveChanges();
+            //rockContext.SaveChanges();
             var personWorkflowGuid = GetAttributeValue( "PersonWorkflow" );
             if ( !string.IsNullOrWhiteSpace( personWorkflowGuid ) )
             {
                 adult.PrimaryAlias.LaunchWorkflow( new Guid( GetAttributeValue( "PersonWorkflow" ) ), adult.ToString() + " Pre-Registration", new Dictionary<string, string>() { { "ExtraInformation", tbExtraInformation.Text } } );
             }
         }
+        // Save the family address
+        var homeLocationType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() );
+        if ( homeLocationType != null )
+        {
+            
+            // Find a location record for the address that was entered
+            var loc = new Location();
+            acAddress.GetValues( loc );
+            if ( acAddress.Street1.IsNotNullOrWhiteSpace() && loc.City.IsNotNullOrWhiteSpace() )
+            {
+                loc = new LocationService( rockContext ).Get(
+                    loc.Street1, loc.Street2, loc.City, loc.State, loc.PostalCode, loc.Country, family, true );
+            }
+            else
+            {
+                loc = null;
+            }
+
+ 
+            if ( !groupLocationService.Queryable()
+                .Where( gl =>
+                    gl.GroupId == family.Id &&
+                    gl.GroupLocationTypeValueId == homeLocationType.Id &&
+                    gl.LocationId == loc.Id )
+                .Any() )
+            {
+                var groupType = GroupTypeCache.Get( family.GroupTypeId );
+                var prevLocationType = groupType.LocationTypeValues.FirstOrDefault( l => l.Guid.Equals( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_PREVIOUS.AsGuid() ) );
+                    if ( prevLocationType != null )
+                    {
+                        foreach ( var prevLoc in groupLocationService.Queryable( "Location,GroupLocationTypeValue" )
+                            .Where( gl =>
+                                gl.GroupId == family.Id &&
+                                gl.GroupLocationTypeValueId == homeLocationType.Id ) )
+                        {
+                            prevLoc.GroupLocationTypeValueId = prevLocationType.Id;
+                            prevLoc.IsMailingLocation = false;
+                            prevLoc.IsMappedLocation = false;
+                        }
+                    }
+                
+
+                string addressChangeField = homeLocationType.Value;
+
+                var groupLocation = groupLocationService.Queryable()
+                    .Where( gl =>
+                        gl.GroupId == family.Id &&
+                        gl.LocationId == loc.Id )
+                    .FirstOrDefault();
+                if ( groupLocation == null )
+                {
+                    groupLocation = new GroupLocation();
+                    groupLocation.Location = loc;
+                    groupLocation.IsMailingLocation = true;
+                    groupLocation.IsMappedLocation = true;
+                    groupLocation.LocationId = loc.Id;
+                    groupLocation.GroupId = family.Id;
+                    groupLocationService.Add( groupLocation );
+
+                }
+                groupLocation.GroupLocationTypeValueId = homeLocationType.Id;
+
+               
+            }
+
+            rockContext.SaveChanges();
+        }
+
     }
 
 

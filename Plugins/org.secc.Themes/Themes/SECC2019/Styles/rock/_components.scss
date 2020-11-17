@@ -1571,7 +1571,7 @@ fieldset .actions {
         margin-top: -20px;
         margin-left: 42px;
         margin-left: -12px;
-        font-family: FontAwesome;
+        font-family: 'Font Awesome 5 Pro', FontAwesome;
         font-size: 28px;
         color: darken( $input-group-addon-bg, 15%);
         content: '\f016';
@@ -2271,7 +2271,7 @@ ul.list-group-panel, .panel-collapse {
   transition: 1s;
 
   &:before {
-    font-family: FontAwesome;
+    font-family: 'Font Awesome 5 Pro', FontAwesome;
     content: $fa-var-star;
   }
 

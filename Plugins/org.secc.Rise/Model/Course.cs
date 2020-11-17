@@ -11,10 +11,10 @@ namespace org.secc.Rise.Model
 {
     [Table( "_org_secc_Rise_Course" )]
     [DataContract]
-    public class Course : Model<Course>
+    public class Course : Model<Course>, IRockEntity
     {
         [DataMember]
-        [MaxLength(200)]
+        [MaxLength( 200 )]
         [Index]
         public string Url { get; set; }
 
