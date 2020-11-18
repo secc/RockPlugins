@@ -156,11 +156,12 @@ namespace org.secc.Rest.Controllers
 
                     PersonService.SaveNewPerson( person, rockContext );
                 }
+                UserLogin userLogin = null;
 
-                if ( !string.IsNullOrEmpty( account.Username ) && UserLoginService.IsPasswordValid( account.Password ) )
-                { 
+                if ( !string.IsNullOrWhiteSpace( account.Username ) && UserLoginService.IsPasswordValid( account.Password ) )
+                {
                     // Create the user login (only require confirmation if we didn't match the person)
-                    var userLogin = UserLoginService.Create(
+                    userLogin = UserLoginService.Create(
                         rockContext,
                         person,
                         AuthenticationServiceType.Internal,
@@ -168,28 +169,48 @@ namespace org.secc.Rest.Controllers
                         account.Username,
                         account.Password,
                         confirmed );
+                }
+                else if ( !string.IsNullOrWhiteSpace( account.EmailAddress ) && !confirmed )
+                {
+                    userLogin = userLoginService.Queryable()
+                        .Where( u => u.UserName == ( "SMS_" + person.Id.ToString() ) )
+                        .FirstOrDefault();
 
-                    // Send an email to confirm the account.
-                    if ( userLogin.IsConfirmed != true )
+                    // Create an unconfirmed SMS user login if does not exist
+                    if ( userLogin == null )
                     {
+                        var entityTypeId = EntityTypeCache.Get( "Rock.Security.ExternalAuthentication.SMSAuthentication" ).Id;
 
-                        // For mobile we will make a custom/short confirmation code
-                        var mobileConfirmationCode = new BigInteger( MD5.Create().ComputeHash( userLogin.Guid.ToByteArray() ) ).ToString().Right( 6 );
-                        var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, person );
-                        mergeFields.Add( "MobileConfirmationCode", mobileConfirmationCode );
-                        mergeFields.Add( "ConfirmAccountUrl", GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash() + "ConfirmAccount" );
-                        mergeFields.Add( "Person", userLogin.Person );
-                        mergeFields.Add( "User", userLogin );
-
-                        var recipients = new List<RockEmailMessageRecipient>();
-                        recipients.Add( new RockEmailMessageRecipient( userLogin.Person, mergeFields ) );
-
-                        var message = new RockEmailMessage( Rock.SystemGuid.SystemCommunication.SECURITY_CONFIRM_ACCOUNT.AsGuid() );
-                        message.SetRecipients( recipients );
-                        message.AppRoot = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash();
-                        message.CreateCommunicationRecord = false;
-                        message.Send();
+                        userLogin = new UserLogin()
+                        {
+                            UserName = "SMS_" + person.Id.ToString(),
+                            EntityTypeId = entityTypeId,
+                            IsConfirmed = false,
+                            PersonId = person.Id
+                        };
+                        userLoginService.Add( userLogin );
                     }
+                }
+                // Send an email to confirm the account.
+                if ( userLogin != null && userLogin.IsConfirmed != true )
+                {
+
+                    // For mobile we will make a custom/short confirmation code
+                    var mobileConfirmationCode = new BigInteger( MD5.Create().ComputeHash( userLogin.Guid.ToByteArray() ) ).ToString().Right( 6 );
+                    var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, person );
+                    mergeFields.Add( "MobileConfirmationCode", mobileConfirmationCode );
+                    mergeFields.Add( "ConfirmAccountUrl", GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash() + "ConfirmAccount" );
+                    mergeFields.Add( "Person", userLogin.Person );
+                    mergeFields.Add( "User", userLogin );
+
+                    var recipients = new List<RockEmailMessageRecipient>();
+                    recipients.Add( new RockEmailMessageRecipient( userLogin.Person, mergeFields ) );
+
+                    var message = new RockEmailMessage( Rock.SystemGuid.SystemCommunication.SECURITY_CONFIRM_ACCOUNT.AsGuid() );
+                    message.SetRecipients( recipients );
+                    message.AppRoot = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash();
+                    message.CreateCommunicationRecord = false;
+                    message.Send();
                 }
 
                 rockContext.SaveChanges();
