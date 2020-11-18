@@ -483,23 +483,6 @@ namespace org.secc.Connection
                     cpCampus.SetValue( campuses.First().Id );
                 }
 
-                if ( (!string.IsNullOrEmpty( PageParameter( "CampusId" ) ) && opportunity.ConnectionOpportunityCampuses.Any( o => o.CampusId == PageParameter( "CampusId" ).AsInteger() ))
-                    || ( !string.IsNullOrEmpty( PageParameter( "Campus" ) ) && opportunity.ConnectionOpportunityCampuses.Any( o => o.Campus.Guid == PageParameter( "Campus" ).AsGuidOrNull() ) ) )
-                {
-                    if ( PageParameter( "Campus" ).AsGuidOrNull().HasValue )
-                    {
-                        cpCampus.SetValue( CampusCache.Get( PageParameter( "Campus" ).AsGuid() ).Id );
-                        ltCampus.Text = CampusCache.Get( PageParameter( "Campus" ).AsGuid() ).Name;
-                    } else
-                    {
-                        cpCampus.SetValue( PageParameter( "CampusId" ).AsInteger() );
-                        ltCampus.Text = CampusCache.Get( PageParameter( "CampusId" ).AsInteger() ).Name;
-                    }
-                    cpCampus.CssClass = "hidden";
-                    cpCampus.Label = null;
-                    ltCampus.Visible = true;
-                }
-
                 pnlSignup.Visible = true;
 
                 if ( !string.IsNullOrWhiteSpace( opportunity.IconCssClass ) )
@@ -593,7 +576,7 @@ namespace org.secc.Connection
                     }
 
                     var campus = registrant.GetCampus();
-                    if ( campus != null )
+                    if ( campus != null  )
                     {
                         cpCampus.SelectedCampusId = campus.Id;
                     }
@@ -611,6 +594,24 @@ namespace org.secc.Connection
                             cpCampus.SelectedCampusId = contextCampus.Id;
                         }
                     }
+                }
+
+                if ( ( !string.IsNullOrEmpty( PageParameter( "CampusId" ) ) && opportunity.ConnectionOpportunityCampuses.Any( o => o.CampusId == PageParameter( "CampusId" ).AsInteger() ) )
+                    || ( !string.IsNullOrEmpty( PageParameter( "Campus" ) ) && opportunity.ConnectionOpportunityCampuses.Any( o => o.Campus.Guid == PageParameter( "Campus" ).AsGuidOrNull() ) ) )
+                {
+                    if ( PageParameter( "Campus" ).AsGuidOrNull().HasValue )
+                    {
+                        cpCampus.SetValue( CampusCache.Get( PageParameter( "Campus" ).AsGuid() ).Id );
+                        ltCampus.Text = CampusCache.Get( PageParameter( "Campus" ).AsGuid() ).Name;
+                    }
+                    else
+                    {
+                        cpCampus.SetValue( PageParameter( "CampusId" ).AsInteger() );
+                        ltCampus.Text = CampusCache.Get( PageParameter( "CampusId" ).AsInteger() ).Name;
+                    }
+                    cpCampus.CssClass = "hidden";
+                    cpCampus.Label = null;
+                    ltCampus.Visible = true;
                 }
 
 
