@@ -42,6 +42,15 @@ namespace org.secc.Rise.Response
             }
         }
 
+        public void AddMember( string userId )
+        {
+            ClientManager.Put<RiseUser>( this, userId );
+        }
+
+        public void RemoveMember( string userId )
+        {
+            ClientManager.Delete<RiseUser>( this, userId );
+        }
 
         public void SyncGroupMembers()
         {
@@ -89,12 +98,17 @@ namespace org.secc.Rise.Response
             }
         }
 
-        private Group GetRockGroup()
+        public Group GetRockGroup()
         {
-            RockContext rockContext = new RockContext();
+            return GetRockGroup( new GroupService( new RockContext() ) );
+        }
+
+        public Group GetRockGroup( GroupService groupService )
+        {
+            RockContext rockContext = ( RockContext ) groupService.Context;
             AttributeValueService attribueValueService = new AttributeValueService( rockContext );
 
-            var attributeId = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_KEY_RISEID ).Id;
+            var attributeId = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_RISEID ).Id;
 
             var attributeValue = attribueValueService.Queryable()
                 .Where( av => av.AttributeId == attributeId && av.Value == this.Id )
@@ -105,7 +119,6 @@ namespace org.secc.Rise.Response
                 return null;
             }
 
-            GroupService groupService = new GroupService( rockContext );
             return groupService.Get( attributeValue.EntityId ?? 0 );
         }
     }

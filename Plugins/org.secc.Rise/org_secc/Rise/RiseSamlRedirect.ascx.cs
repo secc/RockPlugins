@@ -33,9 +33,6 @@ using org.secc.Rise;
 
 namespace RockWeb.Plugins.org_secc.Rise
 {
-    /// <summary>
-    /// Displays currently logged in user's name along with options to Login, Logout, or manage account.
-    /// </summary>
     [DisplayName( "Rise SAML Redirect" )]
     [Category( "SECC > Rise" )]
     [Description( "Posts the user back to Rise with SAML login" )]

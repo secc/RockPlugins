@@ -12,11 +12,16 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting.Activation;
 using Newtonsoft.Json;
+using org.secc.PersonMatch;
+using org.secc.Rise.Components;
 using org.secc.Rise.Utilities;
+using org.secc.xAPI.Component;
+using org.secc.xAPI.Model;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -67,7 +72,6 @@ namespace org.secc.Rise.Response
         public void SyncGroupMembership()
         {
             SyncGroupMembership( GetRockPerson() );
-
         }
 
         public void SyncGroupMembership( Person person )
@@ -113,6 +117,7 @@ namespace org.secc.Rise.Response
         {
             RockContext rockContext = new RockContext();
             AttributeValueService attribueValueService = new AttributeValueService( rockContext );
+            PersonService personService = new PersonService( rockContext );
 
             var attributeId = AttributeCache.Get( Constants.PERSON_ATTRIBUTE_RISEID ).Id;
 
@@ -120,13 +125,81 @@ namespace org.secc.Rise.Response
                 .Where( av => av.AttributeId == attributeId && av.Value == this.Id )
                 .FirstOrDefault();
 
-            if ( attributeValue == null )
+            if ( attributeValue != null )
             {
-                return null;
+                var person = personService.Get( attributeValue.EntityId ?? 0 );
+                if ( person != null )
+                {
+                    return person;
+                }
             }
 
-            PersonService personService = new PersonService( rockContext );
-            return personService.Get( attributeValue.EntityId ?? 0 );
+            var people = personService.GetByMatch( FirstName, LastName, null, Email );
+            if ( people.Count() == 1 )
+            {
+                var person = people.FirstOrDefault();
+
+                person.LoadAttributes();
+                person.SetAttributeValue( Constants.PERSON_ATTRIBUTE_KEY_RISEID, Id );
+                person.SaveAttributeValue( Constants.PERSON_ATTRIBUTE_KEY_RISEID );
+
+                SaveUserCreated( person );
+
+                return person;
+            }
+            else //Webprospect 
+            {
+                var person = new Person
+                {
+                    FirstName = FirstName,
+                    NickName = FirstName,
+                    LastName = LastName,
+                    Email = Email,
+                    EmailPreference = EmailPreference.EmailAllowed,
+                    RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id,
+                    ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT ).Id,
+                    RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING ).Id,
+                };
+
+                personService.Add( person );
+                PersonService.SaveNewPerson( person, rockContext );
+                rockContext.SaveChanges();
+
+                person.LoadAttributes();
+                person.SetAttributeValue( Constants.PERSON_ATTRIBUTE_KEY_RISEID, Id );
+                person.SaveAttributeValue( Constants.PERSON_ATTRIBUTE_KEY_RISEID );
+
+                SaveUserCreated( person );
+
+                return person;
+            }
+        }
+
+        internal void SaveUserCreated( Person person )
+        {
+            RockContext rockContext = new RockContext();
+            ExperienceService experienceService = new ExperienceService( rockContext );
+
+            var verb = xAPI.Utilities.VerbHelper.GetOrCreateVerb( "http://activitystrea.ms/schema/1.0/join" );
+
+            var experience = new Experience
+            {
+                PersonAliasId = person.PrimaryAliasId ?? 0,
+                VerbValueId = verb.Id,
+                xObject = new ExperienceObject
+                {
+                    EntityTypeId = EntityTypeCache.Get( typeof( xAPIComponent ) ).Id,
+                    ObjectId = EntityTypeCache.Get( typeof( RiseComponent ) ).Id.ToString()
+                },
+                Result = new ExperienceResult
+                {
+                    WasSuccess = true,
+                    IsComplete = true
+                }
+            };
+
+            experienceService.Add( experience );
+            rockContext.SaveChanges();
         }
     }
 }

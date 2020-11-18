@@ -12,21 +12,13 @@
 // limitations under the License.
 // </copyright>
 //
-using Rock.Data;
+using Newtonsoft.Json;
 
-namespace org.secc.xAPI.Data
+namespace org.secc.Rise.Response.Event
 {
-    public class xAPIService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
+    public class UserCreatedData
     {
-        public xAPIService( RockContext context )
-            : base( context )
-        {
-        }
-
-        public virtual bool CanDelete( T item, out string errorMessage )
-        {
-            errorMessage = string.Empty;
-            return true;
-        }
+        [JsonProperty( "user" )]
+        public RiseUser User { get; set; }
     }
 }

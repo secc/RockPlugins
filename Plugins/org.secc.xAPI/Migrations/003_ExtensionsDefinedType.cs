@@ -24,22 +24,21 @@ namespace org.secc.xAPI.Migrations
     using Rock;
     using Rock.Plugin;
 
-    [MigrationNumber( 1, "1.10.2" )]
-    public partial class VerbDefinedType : Migration
+    [MigrationNumber( 3, "1.10.2" )]
+    public partial class ExtensionsDefinedType : Migration
     {
         public override void Up()
         {
             RockMigrationHelper.AddDefinedType( "Learning Management",
-                "xAPI Verbs", "A list of verbs from the xAPI verb registry. (https://registry.tincanapi.com/)",
-                Constants.DEFINED_TYPE_VERBS );
-            RockMigrationHelper.AddDefinedTypeAttribute( Constants.DEFINED_TYPE_VERBS, Rock.SystemGuid.FieldType.TEXT,
-                "Name", Constants.DEFINED_VALUE_VERBS_ATTRIBUTE_KEY_NAME, "The human readable name for the verb.", 0, true, "",
-                 false, true, Constants.DEFINED_VALUE_VERBS_ATTRIBUTE_GUID_NAME );
+                "xAPI Extensions", "A list of extensions from the xAPI extension registry. (https://registry.tincanapi.com/)",
+                Constants.DEFINED_TYPE_EXTENSIONS );
+            RockMigrationHelper.AddDefinedTypeAttribute( Constants.DEFINED_TYPE_EXTENSIONS, Rock.SystemGuid.FieldType.TEXT,
+                "Name", Constants.DEFINED_VALUE_EXTENSIONS_ATTRIBUTE_KEY_NAME, "The human readable name for the extension.", 0, true, "",
+                 false, true, Constants.DEFINED_VALUE_EXTENSIONS_ATTRIBUTE_GUID_NAME );
 
-            //I would like to thank Moores Law for making the following code possible.
-            var verbJson = File.ReadAllText( HostingEnvironment.MapPath( "~/Plugins/org_secc/xAPI/verbList.json" ) );
-            verbJson = verbJson.Replace( "en-us", "en-US" ).Replace( "en-Us", "en-US" );
-            dynamic dyn = verbJson.FromJsonDynamic();
+            var extensionsJson = File.ReadAllText( HostingEnvironment.MapPath( "~/Plugins/org_secc/xAPI/extensionList.json" ) );
+            extensionsJson = extensionsJson.Replace( "en-us", "en-US" ).Replace( "en-Us", "en-US" );
+            dynamic dyn = extensionsJson.FromJsonDynamic();
             foreach ( var obj in dyn )
             {
                 try
@@ -52,8 +51,8 @@ namespace org.secc.xAPI.Migrations
 
                     //use a deterministic guid just in case (this isn't standard)
                     Guid guid = GenerateGuid( uri );
-                    RockMigrationHelper.AddDefinedValue( Constants.DEFINED_TYPE_VERBS, uri, description, guid.ToString() );
-                    RockMigrationHelper.AddDefinedValueAttributeValue( guid.ToString(), Constants.DEFINED_VALUE_VERBS_ATTRIBUTE_GUID_NAME, name );
+                    RockMigrationHelper.AddDefinedValue( Constants.DEFINED_TYPE_EXTENSIONS, uri, description, guid.ToString() );
+                    RockMigrationHelper.AddDefinedValueAttributeValue( guid.ToString(), Constants.DEFINED_VALUE_EXTENSIONS_ATTRIBUTE_GUID_NAME, name );
                 }
                 catch ( Exception e )
                 {

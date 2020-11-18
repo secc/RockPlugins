@@ -18,10 +18,11 @@
             <div class="panel-body">
 
                 <div class="grid grid-panel">
-                    <Rock:Grid ID="gList" runat="server" AllowSorting="true" OnRowSelected="gList_RowSelected" DataKeyNames="Id">
+                    <Rock:Grid ID="gList" runat="server" AllowSorting="true" OnRowSelected="gList_RowSelected" DataKeyNames="Id" OnRowDataBound="gList_RowDataBound">
                         <Columns>
                             <Rock:RockBoundField DataField="Name" HeaderText="Course" SortExpression="Name" />
-                            <Rock:RockBoundField DataField="Url" HeaderText="Url" SortExpression="Url" />
+                            <Rock:BoolField DataField="AvailableToAll" HeaderText="Available To All" />
+                            <Rock:RockLiteralField ID="lCategories" HeaderText="Categories" />
                         </Columns>
                     </Rock:Grid>
                 </div>

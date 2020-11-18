@@ -21,9 +21,6 @@ namespace org.secc.Rise.Response
     [Url( "invitations" )]
     public class RiseInvitation : RiseBase
     {
-        [JsonProperty( "id" )]
-        public string Id { get; set; }
-
         [JsonProperty( "email" )]
         public string Email { get; set; }
 

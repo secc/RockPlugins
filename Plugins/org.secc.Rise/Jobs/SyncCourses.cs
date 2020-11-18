@@ -16,9 +16,13 @@ using Quartz;
 
 namespace org.secc.Rise
 {
+    /// <summary>Synces All Courses</summary>
+    /// <seealso cref="Quartz.IJob" />
     [DisallowConcurrentExecution]
     public class SyncCourses : IJob
     {
+        /// <summary>Executes the specified context.</summary>
+        /// <param name="context">The context.</param>
         public void Execute( IJobExecutionContext context )
         {
             JobDataMap dataMap = context.JobDetail.JobDataMap;

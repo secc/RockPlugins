@@ -101,6 +101,9 @@ namespace RockWeb.Plugins.org_secc.Rise
 
             ltName.Text = course.Name;
             ltUrl.Text = course.Url;
+            cbLibrary.Checked = course.AvailableToAll ?? false;
+
+            pCategories.SetValues( course.Categories );
 
             course.LoadAttributes();
             phAttributes.Controls.Clear();
@@ -156,12 +159,38 @@ namespace RockWeb.Plugins.org_secc.Rise
 
         protected void btnSave_Click( object sender, EventArgs e )
         {
-            var course = GetCourse();
-            if ( course != null )
+            RockContext rockContext = new RockContext();
+            CourseService courseService = new CourseService( rockContext );
+
+            var course = GetCourse( courseService );
+
+            if ( course == null )
             {
-                course.LoadAttributes();
-                Rock.Attribute.Helper.GetEditValues( phAttributes, course );
+                NavigateToParentPage();
             }
+
+            course.LoadAttributes();
+            Rock.Attribute.Helper.GetEditValues( phAttributes, course );
+            course.AvailableToAll = cbLibrary.Checked;
+
+            var toRemove = course.Categories.Where( c => !pCategories.SelectedValuesAsInt().Contains( c.Id ) ).ToList();
+            foreach ( var item in toRemove )
+            {
+                course.Categories.Remove( item );
+            }
+
+            var categoryIds = pCategories.SelectedValuesAsInt().ToList();
+            var currentIds = course.Categories.Select( ca => ca.Id ).ToList();
+            var toAdd = new CategoryService( rockContext )
+                .GetByIds( categoryIds )
+                .Where( c => !currentIds.Contains( c.Id ) )
+                .ToList();
+            foreach ( var item in toAdd )
+            {
+                course.Categories.Add( item );
+            }
+
+            rockContext.SaveChanges();
             course.SaveAttributeValues();
 
             NavigateToParentPage();

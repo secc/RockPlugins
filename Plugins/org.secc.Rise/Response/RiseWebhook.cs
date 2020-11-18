@@ -12,37 +12,39 @@
 // limitations under the License.
 // </copyright>
 //
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Remoting.Activation;
 using Newtonsoft.Json;
-using Rock.Data;
-using org.secc.Rise.Model;
+using Humanizer;
 
 namespace org.secc.Rise.Response
 {
-    [Url( "courses" )]
+    [Url( "webhooks" )]
 
-    public class RiseCourse : RiseBase
+    public class RiseWebhook : RiseBase
     {
-        [JsonProperty( "title" )]
-        public string Title { get; set; }
+        [JsonProperty( "targetUrl" )]
+        public string TargetUrl { get; set; }
+
+        [JsonProperty( "events" )]
+        public List<string> Events { get; set; }
+
+        [JsonProperty( "sharedSecret" )]
+        public string SharedSecret { get; set; }
+
+        [JsonProperty( "apiVersion" )]
+        public string ApiVersion { get; set; }
 
         [JsonProperty( "url" )]
         public string Url { get; set; }
 
-        public Course GetRockCourse()
+        public string EventsFormatted
         {
-            return GetRockCourse( new CourseService( new RockContext() ) );
-        }
-
-        public Course GetRockCourse( CourseService courseService )
-        {
-            var course = courseService.GetByCourseId( Id );
-            if ( course == null )
+            get
             {
-                RiseClient riseClient = new RiseClient();
-                course = riseClient.SyncCourse( this, courseService );
+                return string.Join( ", ", Events.Select( e => e.Humanize() ) );
             }
-            return course;
         }
     }
 }

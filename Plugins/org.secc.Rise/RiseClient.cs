@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
+using org.secc.Rise.Components;
 using org.secc.Rise.Model;
 using org.secc.Rise.Response;
 using org.secc.Rise.Utilities;
+using org.secc.xAPI.Component;
+using org.secc.xAPI.Model;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -29,26 +33,36 @@ namespace org.secc.Rise
             var riseCourses = ClientManager.GetSet<RiseCourse>();
             foreach ( var riseCourse in riseCourses )
             {
-                RockContext rockContext = new RockContext();
-                CourseService courseService = new CourseService( rockContext );
-
-                var course = courseService.GetByCourseId( riseCourse.Id );
-                if ( course.IsNull() )
-                {
-                    course = new Course();
-
-                    courseService.Add( course );
-                }
-
-                course.Name = riseCourse.Title;
-                course.Url = riseCourse.Url;
-                course.CourseId = riseCourse.Id;
-
-                rockContext.SaveChanges();
-
+                SyncCourse( riseCourse );
                 i++;
             }
             return i;
+        }
+
+        public Course SyncCourse( RiseCourse riseCourse )
+        {
+            return SyncCourse( riseCourse, new CourseService( new RockContext() ) );
+        }
+
+        public Course SyncCourse( RiseCourse riseCourse, CourseService courseService )
+        {
+            RockContext rockContext = ( RockContext ) courseService.Context;
+
+            var course = courseService.GetByCourseId( riseCourse.Id );
+            if ( course.IsNull() )
+            {
+                course = new Course();
+
+                courseService.Add( course );
+            }
+
+            course.Name = riseCourse.Title;
+            course.Url = riseCourse.Url;
+            course.CourseId = riseCourse.Id;
+
+            rockContext.SaveChanges();
+
+            return course;
         }
 
         public bool SyncPerson( Person person )
@@ -80,7 +94,6 @@ namespace org.secc.Rise
 
         private RiseUser QueryForUser( Person person )
         {
-
             var users = ClientManager.GetSet<RiseUser>( new Dictionary<string, string> { { "email", person.Email } } );
             foreach ( var user in users )
             {
@@ -89,6 +102,9 @@ namespace org.secc.Rise
                 {
                     person.SetAttributeValue( Constants.PERSON_ATTRIBUTE_KEY_RISEID, user.Id );
                     person.SaveAttributeValue( Constants.PERSON_ATTRIBUTE_KEY_RISEID );
+
+                    user.SaveUserCreated( person );
+
                     return user;
                 }
             }
@@ -138,7 +154,7 @@ namespace org.secc.Rise
 
         private RiseGroup CreateNewRiseGroup( Group group )
         {
-            var riseGroup = ClientManager.Post<RiseGroup>( new Dictionary<string, string> { { "name", group.Name } } );
+            var riseGroup = ClientManager.Post<RiseGroup>( new Dictionary<string, object> { { "name", group.Name } } );
 
             group.SetAttributeValue( Constants.GROUP_ATTRIBUTE_KEY_RISEID, riseGroup.Id );
             group.SaveAttributeValue( Constants.GROUP_ATTRIBUTE_KEY_RISEID );
@@ -185,6 +201,34 @@ namespace org.secc.Rise
             var riseCourse = GetCourse( course );
 
             ClientManager.Delete<RiseGroup>( riseCourse, riseGroup.Id );
+        }
+
+        #endregion
+
+        #region Webhooks
+
+        public IEnumerable<RiseWebhook> GetWebhooks()
+        {
+            return ClientManager.GetSet<RiseWebhook>();
+        }
+
+        public void DeleteWebhook( string id )
+        {
+            ClientManager.Delete<RiseWebhook>( id );
+        }
+
+        public void CreateWebhook( string url, List<string> events )
+        {
+
+            var parameters = new Dictionary<string, object>
+            {
+                { "targetUrl", url},
+                { "events", events },
+                { "sharedSecret", ClientManager.SharedSecret },
+                { "apiVersion", Constants.API_VERSION }
+            };
+
+            ClientManager.Post<RiseWebhook>( parameters );
         }
 
         #endregion

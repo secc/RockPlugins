@@ -19,17 +19,26 @@ using Rock.Data;
 
 namespace org.secc.Rise.Model
 {
+    /// <summary></summary>
+    /// <seealso cref="org.secc.Rise.Data.RiseService{org.secc.Rise.Model.Course}" />
     public class CourseService : RiseService<Course>
     {
         public CourseService( RockContext context ) : base( context )
         {
         }
 
+        /// <summary>Gets the by course identifier.</summary>
+        /// <param name="courseId">The course identifier.</param>
+        /// <returns>Course</returns>
         public Course GetByCourseId( string courseId )
         {
             return Queryable().Where( c => c.CourseId == courseId ).FirstOrDefault();
         }
 
+
+        /// <summary>Gets the by URL.</summary>
+        /// <param name="url">The URL.</param>
+        /// <returns>Course</returns>
         public Course GetByUrl( string url )
         {
             return Queryable().Where( c => c.Url == url ).FirstOrDefault();

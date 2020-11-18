@@ -15,33 +15,24 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using Humanizer;
 using org.secc.Rise;
-using org.secc.Rise.Model;
 using Rock;
-using Rock.Attribute;
-using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
 using Rock.Web.UI;
-using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.Rise
 {
-    [DisplayName( "Course List" )]
-    [Category( "SECC > Rise" )]
-    [Description( "Displays list of synced courses." )]
 
-    [LinkedPage(
-        "Detail Page",
-        Description = "Course detail page.",
-        Key = AttributeKeys.DETAIL_PAGE )]
-    public partial class CourseList : RockBlock, ICustomGridColumns
+    [DisplayName( "Rise Webhooks" )]
+    [Category( "SECC > Rise" )]
+    [Description( "Block for displaying and editing webhooks." )]
+    public partial class RiseWebhooks : RockBlock
     {
-        private class AttributeKeys
-        {
-            public const string DETAIL_PAGE = "DetailPage";
-        }
 
         #region Base Control Methods
 
@@ -59,6 +50,14 @@ namespace RockWeb.Plugins.org_secc.Rise
             // this event gets fired after block settings are updated. it's nice to repaint the screen if these settings would alter it
             this.BlockUpdated += Block_BlockUpdated;
             this.AddConfigurationUpdateTrigger( upnlContent );
+
+            gList.Actions.ShowAdd = true;
+            gList.Actions.AddClick += Actions_AddClick;
+        }
+
+        private void Actions_AddClick( object sender, EventArgs e )
+        {
+            mdAddWebhook.Show();
         }
 
         /// <summary>
@@ -71,9 +70,13 @@ namespace RockWeb.Plugins.org_secc.Rise
 
             if ( !Page.IsPostBack )
             {
+                BindDropDowns();
                 BindGrid();
+                PrepopulateUrl();
             }
         }
+
+
 
         #endregion
 
@@ -88,7 +91,7 @@ namespace RockWeb.Plugins.org_secc.Rise
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void Block_BlockUpdated( object sender, EventArgs e )
         {
-
+            BindGrid();
         }
 
         /// <summary>
@@ -110,52 +113,63 @@ namespace RockWeb.Plugins.org_secc.Rise
         /// </summary>
         private void BindGrid()
         {
-            RockContext rockContext = new RockContext();
-            CourseService courseService = new CourseService( rockContext );
-
-            var qry = courseService.Queryable( "Categories" ).OrderBy( c => c.Name );
-
-            var sortProperty = gList.SortProperty;
-            if ( gList.AllowSorting && sortProperty != null )
+            //Async code does not work in the webforms main thread.
+            var task = Task.Run( () =>
             {
-                qry = qry.Sort( sortProperty );
-            }
-            else
-            {
-                qry = qry.OrderBy( c => c.Name );
-            }
+                RiseClient riseClient = new RiseClient();
+                var webhooks = riseClient.GetWebhooks().ToList();
+                gList.DataSource = webhooks;
+            } );
+            task.Wait( 1000 * 10 );
 
-            gList.SetLinqDataSource( qry );
             gList.DataBind();
+        }
+
+        private void BindDropDowns()
+        {
+            var eventTypes = org.secc.Rise.Utilities.Constants.WEBHOOK_EVENTS
+                .ToDictionary( e => e, e => e.Humanize() );
+            ddlEventType.DataSource = eventTypes;
+            ddlEventType.DataBind();
         }
 
         #endregion
 
-        protected void gList_RowSelected( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        protected void btnDelete_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
-            NavigateToLinkedPage( AttributeKeys.DETAIL_PAGE, new Dictionary<string, string> { { "CourseId", e.RowKeyValue.ToString() } } );
-        }
-
-        protected void btnSync_Click( object sender, EventArgs e )
-        {
-            System.Threading.Tasks.Task.Run( () =>
+            var id = ( string ) e.RowKeyValue;
+            var task = Task.Run( () =>
             {
                 RiseClient riseClient = new RiseClient();
-                var i = riseClient.SyncCourses();
+                riseClient.DeleteWebhook( id );
             } );
+            task.Wait( 1000 * 10 );
 
-            maSync.Show( string.Format( "Syncing courses has begun in the background." ), Rock.Web.UI.Controls.ModalAlertType.Information );
+            BindGrid();
         }
 
-        protected void gList_RowDataBound( object sender, System.Web.UI.WebControls.GridViewRowEventArgs e )
+        protected void mdAddWebhook_SaveClick( object sender, EventArgs e )
         {
-            var field = ( Literal ) e.Row.FindControl( "lCategories" );
-
-            if ( field != null )
+            var task = Task.Run( () =>
             {
-                field.Text = string.Join( ", ", ( ( Course ) e.Row.DataItem ).Categories.Select( c => c.Name ).OrderBy( c => c ).ToList() );
-            }
+                RiseClient riseClient = new RiseClient();
+                riseClient.CreateWebhook( tbUrl.Text, new List<string> { ddlEventType.SelectedValue } );
+            } );
+            task.Wait( 1000 * 10 );
+            mdAddWebhook.Hide();
+            BindGrid();
+        }
 
+        protected void ddlEventType_SelectedIndexChanged( object sender, EventArgs e )
+        {
+            PrepopulateUrl();
+        }
+
+        private void PrepopulateUrl()
+        {
+            var eventType = ddlEventType.SelectedValue.Split( '.' ); // <-- looks like a face
+            var externalUrl = GlobalAttributesCache.Value( "PublicApplicationRoot" ).EnsureTrailingForwardslash();
+            tbUrl.Text = string.Format( "{0}api/lms/rise/{1}/{2}", externalUrl, eventType[0], eventType[1] );
         }
     }
 }

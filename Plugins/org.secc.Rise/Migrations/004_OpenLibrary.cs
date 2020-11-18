@@ -12,21 +12,25 @@
 // limitations under the License.
 // </copyright>
 //
-using Rock.Data;
 
-namespace org.secc.xAPI.Data
+namespace org.secc.Rise.Migrations
 {
-    public class xAPIService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
+    using org.secc.DevLib.Extensions.Migration;
+    using Rock.Plugin;
+    [MigrationNumber( 4, "1.10.2" )]
+    public partial class OpenLibrary : Migration
     {
-        public xAPIService( RockContext context )
-            : base( context )
+        public override void Up()
         {
+            AddColumn( "dbo._org_secc_Rise_Course", "AvailableToAll", c => c.Boolean( true ) );
+            this.CreateIndex( "dbo._org_secc_Rise_Course", "AvailableToAll" );
         }
 
-        public virtual bool CanDelete( T item, out string errorMessage )
+
+
+        public override void Down()
         {
-            errorMessage = string.Empty;
-            return true;
+
         }
     }
 }

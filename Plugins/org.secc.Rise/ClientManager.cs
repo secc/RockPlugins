@@ -11,6 +11,7 @@ using System.Web;
 using Newtonsoft.Json;
 using org.secc.Rise.Components;
 using org.secc.Rise.Response;
+using org.secc.Rise.Utilities;
 using org.secc.xAPI.Component;
 using Rock;
 
@@ -18,8 +19,6 @@ namespace org.secc.Rise
 {
     public static class ClientManager
     {
-        const string rootUrl = "https://api.rise.com";
-
         public static string ApiKey
         {
             get
@@ -29,7 +28,22 @@ namespace org.secc.Rise
                .Select( c => c.Value.Value )
                .FirstOrDefault();
 
-                return component.GetAttributeValue( "APIKey" );
+                return component.GetAttributeValue( Constants.COMPONENT_ATTRIBUTE_KEY_APIKEY );
+            }
+        }
+
+        public static string SharedSecret
+        {
+            get
+            {
+                var component = ( xAPIComponent ) xAPIContainer.Instance.Dictionary
+               .Where( c => c.Value.Value.EntityType.Name == typeof( RiseComponent ).FullName )
+               .Select( c => c.Value.Value )
+               .FirstOrDefault();
+
+                var secret = component.GetAttributeValue( Constants.COMPONENT_ATTRIBUTE_KEY_SHAREDSECRET );
+
+                return secret.Substring( 0, Math.Min( 50, secret.Length ) );
             }
         }
 
@@ -91,7 +105,7 @@ namespace org.secc.Rise
             while ( !string.IsNullOrWhiteSpace( url ) )
             {
                 var call = ApiGet( url, parameters );
-                call.Wait();
+                call.Wait( 1000 * 10 );
                 var pagination = JsonConvert.DeserializeObject<Pagination<T>>( call.Result, new PaginationJsonConverter<T>() );
                 url = pagination.NextUrl;
                 foreach ( var resource in pagination.Resources )
@@ -123,28 +137,34 @@ namespace org.secc.Rise
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add( "Authorization", "Bearer " + ApiKey );
-            client.DefaultRequestHeaders.Add( "Rise-API-Version", "2020-07-16" );
+            client.DefaultRequestHeaders.Add( "Rise-API-Version", Constants.API_VERSION );
             return await client.GetStringAsync( resource );
         }
 
-        public static T Post<T>( Dictionary<string, string> parameters )
+        public static T Post<T>( Dictionary<string, object> parameters )
         {
             var resource = GetUrl<T>();
             var result = ApiPost<T>( resource, parameters );
-            result.Wait();
+            result.Wait(1000 * 10);
             return JsonConvert.DeserializeObject<T>( result.Result );
         }
 
-        internal static async Task<string> ApiPost<T>( string resource, Dictionary<string, string> parameters )
+        internal static async Task<string> ApiPost<T>( string resource, Dictionary<string, object> parameters )
         {
-            var content = new StringContent( JsonConvert.SerializeObject( parameters ),Encoding.UTF8, "application/json" );
+            var content = new StringContent( JsonConvert.SerializeObject( parameters ), Encoding.UTF8, "application/json" );
 
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add( "Authorization", "Bearer " + ApiKey );
-            client.DefaultRequestHeaders.Add( "Rise-API-Version", "2020-07-16" );
+            client.DefaultRequestHeaders.Add( "Rise-API-Version", Constants.API_VERSION );
             var result = await client.PostAsync( resource, content );
             return await result.Content.ReadAsStringAsync();
+        }
+
+        internal static void Delete<T>( string id )
+        {
+            var resource = GetUrl<T>( id );
+            ApiDelete( resource );
         }
 
         internal static void Delete<T>( RiseBase riseBase, string childId )
@@ -158,9 +178,9 @@ namespace org.secc.Rise
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add( "Authorization", "Bearer " + ApiKey );
-            client.DefaultRequestHeaders.Add( "Rise-API-Version", "2020-07-16" );
+            client.DefaultRequestHeaders.Add( "Rise-API-Version", Constants.API_VERSION );
             var result = client.DeleteAsync( resource );
-            result.Wait();
+            result.Wait( 1000 * 10 );
         }
 
         internal static void Put<T>( RiseBase riseBase, string childId )
@@ -174,20 +194,20 @@ namespace org.secc.Rise
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add( "Authorization", "Bearer " + ApiKey );
-            client.DefaultRequestHeaders.Add( "Rise-API-Version", "2020-07-16" );
+            client.DefaultRequestHeaders.Add( "Rise-API-Version", Constants.API_VERSION );
             var result = client.PutAsync( resource, new StringContent( "" ) );
-            result.Wait();
+            result.Wait( 1000 * 10 );
         }
 
 
         private static string GetUrl<T>()
         {
-            return $"{rootUrl}/{GetUrlForType<T>()}";
+            return $"{Constants.URL_BASE}/{GetUrlForType<T>()}";
         }
 
         private static string GetUrl<T>( string id )
         {
-            return $"{rootUrl}/{GetUrlForType<T>()}/{id}";
+            return $"{Constants.URL_BASE}/{GetUrlForType<T>()}/{id}";
         }
 
         private static string GetUrl<T>( RiseBase riseBase )
@@ -200,7 +220,7 @@ namespace org.secc.Rise
                 throw new Exception( $"Resource for {type.Name} does not have defined url." );
             }
 
-            return $"{rootUrl}/{urlAttribute.UrlValue}/{riseBase.Id}/{GetUrlForType<T>()}";
+            return $"{Constants.URL_BASE}/{urlAttribute.UrlValue}/{riseBase.Id}/{GetUrlForType<T>()}";
         }
 
         private static string GetUrl<T>( RiseBase riseBase, string childId )

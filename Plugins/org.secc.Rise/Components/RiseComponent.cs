@@ -14,20 +14,36 @@
 //
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using org.secc.Rise.Utilities;
 using org.secc.xAPI.Component;
 using Rock.Attribute;
 
 namespace org.secc.Rise.Components
 {
+    /// <summary>Rise implementation of the xAPI Component</summary>
+    /// <seealso cref="org.secc.xAPI.Component.xAPIComponent" />
     [Export( typeof( xAPIComponent ) )]
     [ExportMetadata( "ComponentName", "Rise Component" )]
     [Description( "Rise LMS" )]
 
-    [TextField( "API Key", "The api key for Rise.", order: 0 )]
+    [TextField( "API Key",
+        Description = "The api key for Rise.",
+        Order = 1,
+        Key = Constants.COMPONENT_ATTRIBUTE_KEY_APIKEY )]
+    [TextField( "Shared Secret",
+        Description = "The shared secret for validating webhook events",
+        Order = 2,
+        Key = Constants.COMPONENT_ATTRIBUTE_KEY_SHAREDSECRET )]
+
+    
     public class RiseComponent : xAPIComponent
     {
+        /// <summary>Gets the name.</summary>
+        /// <value>The name.</value>
         public override string Name => "Rise";
 
-        public override string Icon => "fa fa-grin";
+        /// <summary>Gets the icon.</summary>
+        /// <value>The icon.</value>
+        public override string Icon => "fa fa-chalkboard";
     }
 }
