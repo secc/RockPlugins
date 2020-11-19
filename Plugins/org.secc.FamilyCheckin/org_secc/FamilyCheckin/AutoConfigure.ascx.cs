@@ -22,6 +22,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using DotLiquid.Util;
 using org.secc.FamilyCheckin.Cache;
+using org.secc.FamilyCheckin.Migrations;
 using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
@@ -71,12 +72,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 if ( kiosk != null )
                 {
                     SetKiosk( kiosk, false );
+                    return;
                 }
 
                 kiosk = GetKioskFromCookie();
                 if ( kiosk != null )
                 {
                     SetKiosk( kiosk );
+                    return;
                 }
 
                 if ( GetAttributeValue( AttributeKeys.LegacyMode ).AsBoolean() )
@@ -108,6 +111,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     var ip = Rock.Web.UI.RockPage.GetClientIpAddress();
                     var kiosk = GetOrCreateKiosk( System.Net.Dns.GetHostEntry( ip ).HostName );
                     SetKiosk( kiosk );
+                    return;
                 }
                 catch
                 {
@@ -204,8 +208,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
 
             var cookieKey = Encryption.DecryptString( kioskNameCookie.Value );
-            return new KioskService( new RockContext() ).Queryable().AsNoTracking().Where( k => k.AccessKey == cookieKey ).FirstOrDefault();
 
+            return new KioskService( new RockContext() ).Queryable().AsNoTracking().Where( k => k.AccessKey == cookieKey ).FirstOrDefault();
         }
 
         private void ShowManual()
@@ -231,9 +235,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             var kiosk = kioskService.GetByClientName( kioskName );
             if ( kiosk == null )
             {
-                kiosk = new Kiosk();
-                kiosk.Description = "Automatically created Kiosk";
+                kiosk = new Kiosk
+                {
+                    Name = kioskName,
+                    Description = "Automatically created Kiosk"
+                };
                 kioskService.Add( kiosk );
+
             }
             if ( kioskTypeId != 0 )
             {
@@ -241,6 +249,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
             kiosk.CategoryId = CategoryCache.GetId( Constants.KIOSK_CATEGORY_STATION.AsGuid() );
             rockContext.SaveChanges();
+
+            //Fresh version with new context.
+            kiosk = new KioskService( new RockContext() ).Get( kiosk.Id );
+
             return kiosk;
         }
 
