@@ -17,7 +17,10 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
+using System.Linq;
 using System.Runtime.Serialization;
+using org.secc.Rise.Response;
+using org.secc.xAPI.Model;
 using Rock.Data;
 using Rock.Model;
 
@@ -77,6 +80,96 @@ namespace org.secc.Rise.Model
             set { _enrolledGroups = value; }
         }
         private ICollection<Group> _enrolledGroups;
+
+
+        public ExperienceObject GetExperienceObject()
+        {
+            return GetExperienceObject( new RockContext() );
+        }
+
+        public ExperienceObject GetExperienceObject( RockContext rockContext )
+        {
+            ExperienceObjectService experienceObjectService = new ExperienceObjectService( rockContext );
+
+            var experienceObject = experienceObjectService.Get( this );
+
+            return experienceObject;
+        }
+
+        internal void SyncCompletions()
+        {
+            var xObject = GetExperienceObject();
+            var reports = ClientManager.GetSet<RiseCourseReport>( this.CourseId );
+            foreach ( var report in reports )
+            {
+                var person = RiseUser.GetPerson( report.UserId );
+
+                if ( person == null )
+                {
+                    RiseClient riseClient = new RiseClient();
+                    person = riseClient.GetUser( report.UserId ).GetRockPerson();
+                }
+
+                if ( person != null )
+                {
+                    var contextExtensions = new Dictionary<string, string> { { "http://id.tincanapi.com/extension/duration", report.Duration } };
+                    UpdateCourseStatus( xObject, person, report.Status == "Complete", report.QuizScorePercent, contextExtensions );
+                }
+            }
+        }
+
+        public void UpdateCourseStatus( Person person, bool complete, int? quizScorePercent, Dictionary<string, string> contextExtensions )
+        {
+            UpdateCourseStatus( this.GetExperienceObject(), person, complete, quizScorePercent, contextExtensions );
+        }
+
+        public static void UpdateCourseStatus( ExperienceObject xObject, Person person, bool complete, int? quizScorePercent, Dictionary<string, string> contextExtensions )
+        {
+            RockContext rockContext = new RockContext();
+            ExperienceService experienceService = new ExperienceService( rockContext );
+            ExperienceQualifierService experienceQualifierService = new ExperienceQualifierService( rockContext );
+
+            var experience = experienceService.Queryable()
+                .Where( e => e.PersonAlias.PersonId == person.Id
+                    && e.xObjectId == xObject.Id )
+                .FirstOrDefault();
+
+            if ( experience == null )
+            {
+                experience = new Experience
+                {
+                    PersonAliasId = person.PrimaryAliasId ?? 0,
+                    VerbValueId = xAPI.Utilities.VerbHelper.GetOrCreateVerb( "http://activitystrea.ms/schema/1.0/complete" ).Id,
+                    xObjectId = xObject.Id,
+                    Result = new ExperienceResult
+                    {
+                        IsComplete = complete,
+                        WasSuccess = complete
+                    }
+                };
+                experienceService.Add( experience );
+            }
+            else
+            {
+                experience.Result.IsComplete = complete;
+                experience.Result.WasSuccess = complete;
+            }
+            rockContext.SaveChanges();
+
+            if ( quizScorePercent.HasValue )
+            {
+                var score = experience.Result.AddQualifier( "score" );
+                score.AddQualifier( "percent", quizScorePercent.Value.ToString() );
+            }
+
+            var context = experience.AddQualifier( "context" );
+            var extensions = context.AddQualifier( "extensions" );
+
+            foreach ( var extension in contextExtensions )
+            {
+                extensions.AddQualifier( extension.Key, extension.Value );
+            }
+        }
     }
 
     public partial class CourseConfiguration : EntityTypeConfiguration<Course>

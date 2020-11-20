@@ -12,8 +12,11 @@
 // limitations under the License.
 // </copyright>
 //
+using System.Linq;
 using org.secc.xAPI.Data;
+using Rock;
 using Rock.Data;
+using Rock.Web.Cache;
 
 namespace org.secc.xAPI.Model
 {
@@ -21,6 +24,37 @@ namespace org.secc.xAPI.Model
     {
         public ExperienceObjectService( RockContext context ) : base( context )
         {
+        }
+
+        public ExperienceObject Get( IEntity entity )
+        {
+            var entityType = EntityTypeCache.Get( entity.GetType() );
+
+            if ( entityType == null )
+            {
+                return null;
+            }
+
+            var xObj = Queryable()
+                .Where( x => x.EntityTypeId == entityType.Id && x.ObjectId == entity.Id.ToString() )
+                .FirstOrDefault();
+
+            if ( xObj == null ) // Create 
+            {
+                RockContext rockContext = new RockContext();
+                ExperienceObjectService experienceObjectService = new ExperienceObjectService( rockContext );
+                var xObject = new ExperienceObject
+                {
+                    EntityTypeId = entityType.Id,
+                    ObjectId = entity.Id.ToString()
+                };
+                experienceObjectService.Add( xObject );
+                rockContext.SaveChanges();
+
+                xObj = Get( entity );
+            }
+
+            return xObj;
         }
     }
 

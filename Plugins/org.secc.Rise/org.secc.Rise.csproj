@@ -71,6 +71,8 @@
     <Compile Include="Controllers\RiseController.cs" />
     <Compile Include="Data\RiseContext.cs" />
     <Compile Include="Data\RiseService.cs" />
+    <Compile Include="Jobs\SyncCourseCompletion.cs" />
+    <Compile Include="Jobs\SyncUsers.cs" />
     <Compile Include="Jobs\SyncGroups.cs" />
     <Compile Include="Jobs\SyncCourses.cs" />
     <Compile Include="Migrations\005_WebhookEvents.cs" />
@@ -93,6 +95,7 @@
     <Compile Include="Response\Event\UserCreatedEvent.cs" />
     <Compile Include="Response\Event\EnrollmentsCreatedEvent.cs" />
     <Compile Include="Response\Event\WebhookEventBase.cs" />
+    <Compile Include="Response\Reports\RiseCourseReport.cs" />
     <Compile Include="Response\RiseBase.cs" />
     <Compile Include="Response\RiseWebhook.cs" />
     <Compile Include="Response\RiseCourse.cs" />

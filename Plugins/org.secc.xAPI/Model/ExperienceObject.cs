@@ -23,7 +23,7 @@ namespace org.secc.xAPI.Model
 {
     [Table( "_org_secc_xAPI_ExperienceObject" )]
     [DataContract]
-    public class ExperienceObject : Model<ExperienceObject>, IRockEntity
+    public class ExperienceObject : QualifiableModel<ExperienceObject>, IRockEntity
     {
         [DataMember]
         [Index]
@@ -33,7 +33,7 @@ namespace org.secc.xAPI.Model
         public virtual EntityType EntityType { get; set; }
 
         [DataMember]
-        [MaxLength(200)]
+        [MaxLength( 200 )]
         [Index]
         public string ObjectId { get; set; }
     }

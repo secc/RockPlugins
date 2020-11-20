@@ -61,7 +61,10 @@ namespace org.secc.Rise
                     {
                         riseTypes.Add( type );
                     }
-                    _paginableProperties = new List<string>();
+                    _paginableProperties = new List<string>
+                    {
+                        "learners","sessions" //these a special cases for reporting
+                    };
                     foreach ( var type in riseTypes )
                     {
                         _paginableProperties.Add( GetUrlForType( type ) );
@@ -145,7 +148,7 @@ namespace org.secc.Rise
         {
             var resource = GetUrl<T>();
             var result = ApiPost<T>( resource, parameters );
-            result.Wait(1000 * 10);
+            result.Wait( 1000 * 10 );
             return JsonConvert.DeserializeObject<T>( result.Result );
         }
 

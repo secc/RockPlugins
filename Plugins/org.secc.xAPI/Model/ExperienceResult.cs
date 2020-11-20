@@ -21,7 +21,7 @@ namespace org.secc.xAPI.Model
 {
     [Table( "_org_secc_xAPI_ExperienceResult" )]
     [DataContract]
-    public class ExperienceResult : Model<ExperienceResult>, IRockEntity
+    public class ExperienceResult : QualifiableModel<ExperienceResult>, IRockEntity
     {
         /// <summary>
         /// Gets or sets a value indicating whether this instance is complete.

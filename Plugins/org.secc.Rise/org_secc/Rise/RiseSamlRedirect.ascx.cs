@@ -16,20 +16,19 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml;
+using Microsoft.AspNet.SignalR;
+using org.secc.Rise;
+using org.secc.Rise.Utilities;
+using org.secc.Security.SAML2;
 using Rock;
 using Rock.Attribute;
-using System.Text;
-using System.Security.Cryptography.X509Certificates;
-using System.Xml;
-using System.IO;
-using org.secc.Security.SAML2;
 using Rock.Data;
 using Rock.Model;
-using org.secc.Rise.Utilities;
-using Humanizer;
-using Microsoft.AspNet.SignalR;
-using System.Threading.Tasks;
-using org.secc.Rise;
 
 namespace RockWeb.Plugins.org_secc.Rise
 {
@@ -264,7 +263,7 @@ namespace RockWeb.Plugins.org_secc.Rise
             var response = SAML20Assertion.CreateSAML20Response(
                 GetAttributeValue( AttributeKey.Issuer ),
                 60 * 24 * GetAttributeValue( AttributeKey.DaysValid ).AsInteger(),
-                GetAttributeValue(AttributeKey.Audience),
+                GetAttributeValue( AttributeKey.Audience ),
                 CurrentPerson.Email,
                 GetAttributeValue( AttributeKey.RequestUrl ),
                 attributeStatements,

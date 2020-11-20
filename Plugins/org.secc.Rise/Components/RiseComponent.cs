@@ -35,7 +35,7 @@ namespace org.secc.Rise.Components
         Order = 2,
         Key = Constants.COMPONENT_ATTRIBUTE_KEY_SHAREDSECRET )]
 
-    
+
     public class RiseComponent : xAPIComponent
     {
         /// <summary>Gets the name.</summary>

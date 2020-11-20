@@ -12,7 +12,6 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting.Activation;
@@ -115,29 +114,20 @@ namespace org.secc.Rise.Response
 
         public Person GetRockPerson()
         {
-            RockContext rockContext = new RockContext();
-            AttributeValueService attribueValueService = new AttributeValueService( rockContext );
-            PersonService personService = new PersonService( rockContext );
+            Person person = GetPerson( this.Id );
 
-            var attributeId = AttributeCache.Get( Constants.PERSON_ATTRIBUTE_RISEID ).Id;
-
-            var attributeValue = attribueValueService.Queryable()
-                .Where( av => av.AttributeId == attributeId && av.Value == this.Id )
-                .FirstOrDefault();
-
-            if ( attributeValue != null )
+            if ( person != null )
             {
-                var person = personService.Get( attributeValue.EntityId ?? 0 );
-                if ( person != null )
-                {
-                    return person;
-                }
+                return person;
             }
+
+            RockContext rockContext = new RockContext();
+            PersonService personService = new PersonService( rockContext );
 
             var people = personService.GetByMatch( FirstName, LastName, null, Email );
             if ( people.Count() == 1 )
             {
-                var person = people.FirstOrDefault();
+                person = people.FirstOrDefault();
 
                 person.LoadAttributes();
                 person.SetAttributeValue( Constants.PERSON_ATTRIBUTE_KEY_RISEID, Id );
@@ -149,7 +139,7 @@ namespace org.secc.Rise.Response
             }
             else //Webprospect 
             {
-                var person = new Person
+                person = new Person
                 {
                     FirstName = FirstName,
                     NickName = FirstName,
@@ -200,6 +190,35 @@ namespace org.secc.Rise.Response
 
             experienceService.Add( experience );
             rockContext.SaveChanges();
+
+            var context = experience.AddQualifier( "context" );
+            var experiences = context.AddQualifier( "experiences" );
+            experiences.AddQualifier(
+                xAPI.Utilities.ExtensionHelper.GetOrCreateExtension( "http://id.tincanapi.com/extension/datetime" ),
+                RockDateTime.Now.ToString() );
+        }
+
+        public static Person GetPerson( string riseUserId )
+        {
+            RockContext rockContext = new RockContext();
+            AttributeValueService attribueValueService = new AttributeValueService( rockContext );
+            PersonService personService = new PersonService( rockContext );
+
+            var attributeId = AttributeCache.Get( Constants.PERSON_ATTRIBUTE_RISEID ).Id;
+
+            var attributeValue = attribueValueService.Queryable()
+                .Where( av => av.AttributeId == attributeId && av.Value == riseUserId )
+                .FirstOrDefault();
+
+            if ( attributeValue != null )
+            {
+                var person = personService.Get( attributeValue.EntityId ?? 0 );
+                if ( person != null )
+                {
+                    return person;
+                }
+            }
+            return null;
         }
     }
 }

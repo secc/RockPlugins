@@ -12,25 +12,24 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
-using Newtonsoft.Json;
+using Quartz;
 
-namespace org.secc.Rise.Response.Event
+namespace org.secc.Rise
 {
-    public class WebhookEventBase
+    /// <summary>Syncs people to Rise</summary>
+    /// <seealso cref="Quartz.IJob" />
+    [DisallowConcurrentExecution]
+    public class SyncUsers : IJob
     {
-        [JsonProperty( "id" )]
-        public string Id { get; set; }
-
-        [JsonProperty( "type" )]
-        public string EventType { get; set; }
-
-        [JsonProperty( "createdAt" )]
-        public DateTime CreatedAt { get; set; }
-
-        public DateTime CreatedAtServerTime
+        /// <summary>Executes the specified context.</summary>
+        /// <param name="context">The context.</param>
+        public void Execute( IJobExecutionContext context )
         {
-            get => TimeZoneInfo.ConvertTime( CreatedAt, Rock.RockDateTime.OrgTimeZoneInfo );
+            JobDataMap dataMap = context.JobDetail.JobDataMap;
+            RiseClient riseClient = new RiseClient();
+            var i = riseClient.SyncAllUsers();
+            context.Result = $"Synced {i} people";
         }
+
     }
 }
