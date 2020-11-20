@@ -1,0 +1,24 @@
+{% comment %}
+// WIP
+{
+    "blocks": [{
+        "type": "text",
+        "props": {
+            "content": "Find the related resouces below!",
+            "markdown": true,
+            "topSpacing": "medium",
+            "bottomSpacing": "small",
+            "align":"center"
+        },
+        {
+            "type": "button",
+            "props": {
+                "content": "Find the related resouces below!",
+                "markdown": true,
+                "topSpacing": "medium",
+                "bottomSpacing": "small",
+                "align":"center"
+        }
+    }]
+}
+{% endcomment %}

@@ -1,0 +1,27 @@
+{%- contentchannelitem where:'ContentChannelId == 106 && Id == {{id}}' -%}
+{%- for item in contentchannelitemItems -%}
+{
+	"header": {
+		"title": "{{- item.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode -}}"
+	},
+    "items": [
+        {
+            "title": "Devotion",
+            "actions": [{
+                "handler": "internalBrowser",
+                "type":"navigation",
+                "showBrowserControls": false,
+                "contentUrl": "{{- item | Attribute:'SubSplashPageURL','RawValue' -}}"
+            }]
+        },
+        {
+            "title": "Resources",
+            "actions": [{
+                "handler": "list",
+                "url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/advent/{{item.Id}}/resources"
+            }]
+        }
+    ]
+}
+{%- endfor -%}
+{% endcontentchannelitem -%}
