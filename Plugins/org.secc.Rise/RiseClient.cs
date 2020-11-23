@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
-using org.secc.Rise.Components;
 using org.secc.Rise.Model;
 using org.secc.Rise.Response;
 using org.secc.Rise.Utilities;
-using org.secc.xAPI.Component;
-using org.secc.xAPI.Model;
 using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
-using Rock.Web.UI.Controls;
 
 namespace org.secc.Rise
 {
@@ -62,7 +56,21 @@ namespace org.secc.Rise
 
             rockContext.SaveChanges();
 
+            course.GetExperienceObject(); //make sure we have the xObject in the DB
+
             return course;
+        }
+
+        public int SyncAllUsers()
+        {
+            var i = 0;
+            var users = GetUsers();
+            foreach ( var user in users )
+            {
+                user.GetRockPerson();
+                i++;
+            }
+            return i;
         }
 
         public bool SyncPerson( Person person )

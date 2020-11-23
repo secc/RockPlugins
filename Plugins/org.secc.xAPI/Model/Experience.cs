@@ -12,21 +12,17 @@
 // limitations under the License.
 // </copyright>
 //
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
-using System.Linq;
 using System.Runtime.Serialization;
-using Rock;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 
 namespace org.secc.xAPI.Model
 {
     [Table( "_org_secc_xAPI_Experience" )]
     [DataContract]
-    public class Experience : Model<Experience>, IRockEntity
+    public class Experience : QualifiableModel<Experience>, IRockEntity
     {
         [DataMember]
         [Index]
@@ -55,26 +51,6 @@ namespace org.secc.xAPI.Model
 
         [LavaInclude]
         public virtual ExperienceResult Result { get; set; }
-
-        public List<ExperienceQualifier> GetQualifiers()
-        {
-            RockContext rockContext = new RockContext();
-            ExperienceQualifierService experienceQualifierService = new ExperienceQualifierService( rockContext );
-
-            var entityTypeId = EntityTypeCache.Get( typeof( Experience ) ).Id;
-            return experienceQualifierService.Queryable().Where( q => q.EntityTypeId == entityTypeId && q.ParentId == Id ).ToList();
-        }
-
-        public ExperienceQualifier GetQualifier( string qualifierKey )
-        {
-            RockContext rockContext = new RockContext();
-            ExperienceQualifierService experienceQualifierService = new ExperienceQualifierService( rockContext );
-
-            var entityTypeId = EntityTypeCache.Get( typeof( Experience ) ).Id;
-            return experienceQualifierService.Queryable()
-                .Where( q => q.EntityTypeId == entityTypeId && q.ParentId == Id && q.Key == qualifierKey )
-                .FirstOrDefault();
-        }
     }
 
     public partial class ExperienceConfiguration : EntityTypeConfiguration<Experience>
