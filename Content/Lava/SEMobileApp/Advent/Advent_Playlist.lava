@@ -1,0 +1,14 @@
+{%- contentchannelitem where:'ContentChannelId == 85 && Id == {{id}}' -%}
+{%- for item in contentchannelitemItems -%}
+{
+    "playlist": [{
+        "title": "{{item.Title | Replace:'"','\"'}}",
+        "media": [{
+            "url": "{{item | Attribute:'Vimeo', 'RawValue'}}",
+            "format": "mp4",
+            "downloadable": false
+        }]
+    }]
+}
+{%- endfor -%}
+{% endcontentchannelitem -%}

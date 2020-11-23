@@ -14,7 +14,7 @@
     },
 	"items": [
         {%- assign comma = "" -%}
-        {%- contentchannelitem where:'ContentChannelId == 106' sort:'StartDateTime desc' -%}
+        {%- contentchannelitem where:'ContentChannelId == 85' sort:'StartDateTime desc' -%}
             {%- assign Items = contentchannelitemItems -%}
         {%- endcontentchannelitem -%}
         {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
@@ -45,9 +45,9 @@
                         }]
                     {%- else -%}
                         "actions": [{
-                            "handler": "internalBrowser",
+                            "handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
                             "type":"navigation",
-                            "showBrowserControls": false,
+                            "showBrowserControls": true,
                             "contentUrl": "{{- item | Attribute:'SubSplashPageURL','RawValue' -}}"
                         }]
                     {%- endif -%}
