@@ -185,7 +185,7 @@
                     <p>If you would like to add yourself into the map, please click on the button below!</p>
                 </div>
                 <div class="entry-body text-center">
-                    <a href="/page/2550" type="submit" class="btn btn-primary btn-block"><i class="fa fa-plus"></i> Add Yourself</a>
+                    <a href="/seonline-map/add" type="submit" class="btn btn-primary btn-block"><i class="fa fa-plus"></i> Add Yourself</a>
                 </div>
             </div>
 
