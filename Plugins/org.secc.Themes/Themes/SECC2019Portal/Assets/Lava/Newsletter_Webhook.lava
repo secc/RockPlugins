@@ -1,0 +1,32 @@
+{%- if page != empty -%}
+    {%- assign pageNumber = page -%}
+{%- else -%}
+    {%- assign pageNumber = 1 -%}
+{%- endif -%}
+{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+{%- assign setNumber = 5 -%}
+{%- assign offset = pageNumber | Minus:1 | Times: setNumber -%}
+{%- contentchannelitem dataview:'3285' sort:'StartDateTime desc' offset:'{{offset}}' limit:'{{setNumber}}' -%}
+{"OnePointUpdateNewsletter":
+    [
+        {%- assign itemComma = '' -%}
+        {%- for item in contentchannelitemItems -%}
+            {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+            {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+            {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+                {{itemComma}}
+                {
+                    "Id": {{item.Id}},
+                    "Name":"{{item.Title | Replace:'"','\"'}}",
+                    "Description":"{{ item.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','<br>' | UrlDecode | StripHtml | Truncate:142 }}",
+                    "Date":"{{item.StartDateTime}}",
+                    {%- if item.ContentChannelId == 51 -%}
+                    "VimeoId": "{{item | Attribute:'VimeoID', 'RawValue'}}"
+                    {%- endif -%}
+                }
+                {%- assign itemComma = ',' -%}
+            {%- endif -%}
+        {%- endfor -%}
+    ]
+}
+{% endcontentchannelitem -%}
