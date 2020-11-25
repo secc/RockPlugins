@@ -42,7 +42,6 @@ using Rock.Web.UI.Controls;
 using Rock.Security;
 using System.Web.UI.WebControls;
 using iTextSharp.text.pdf;
-using iTextSharp.text;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Web;
@@ -60,6 +59,7 @@ namespace RockWeb.Plugins.org_secc.Finance
 
     [LinkedPage("Detail Page")]
     [BinaryFileTypeField]
+    [CustomDropdownListField( "Document Type", "The document type for contribution statements.", "SELECT Guid as Value,Name as Text FROM DocumentType", Key = "DocumentType" )]
     [CustomEnhancedListField("Print & Mail Dataviews", "Any dataviews which indicate people/businesses for who statements will be mailed.", "SELECT Guid as Value,Name as Text FROM DataView", Key="PrintAndMail")]
     public partial class ContributionStatementList : RockBlock, ICustomGridColumns
     {
@@ -101,24 +101,8 @@ namespace RockWeb.Plugins.org_secc.Finance
         {
             RockContext rockContext = new RockContext();
             rockContext.Database.CommandTimeout = 180;
-
-            var fileIds = rockContext.Database.SqlQuery<int>( @"
-                select Id from (
-	                select distinct bf.Id, bf.FileName, av.Value from person p 
-		                inner join attributevalue av on p.GivingId = av.Value and av.AttributeId = 86048
-		                inner join BinaryFile bf on bf.Id = av.EntityId
-		                where p.id in (
-		                select EntityId from DataViewPersistedValue where DataViewId = 2699
-		                union
-		                select EntityId from DataViewPersistedValue where DataViewId = 2697
-                 )
-                ) tmp where
-                 tmp.filename like '%2019 Annual%';" ).ToList();
-
-            //var files = GetBinaryFiles();
-
-            BinaryFileService binaryFileService = new BinaryFileService( rockContext );
-            var files = binaryFileService.Queryable().Where( bf => fileIds.Contains( bf.Id ) ).ToList().OrderBy( bf => bf.FileName.Right( bf.FileName.Length - bf.FileName.IndexOf( " - " ) ) );
+            
+            var files = GetBinaryFiles().Select( d => d.BinaryFile );
 
             PdfImportedPage importedPage;
 
@@ -193,6 +177,7 @@ namespace RockWeb.Plugins.org_secc.Finance
         protected void fBinaryFile_ApplyFilterClick( object sender, EventArgs e )
         {
             fBinaryFile.SaveUserPreference( "File Name", tbName.Text );
+            fBinaryFile.SaveUserPreference( "Person", ppPerson.SelectedValue.ToString() );
             fBinaryFile.SaveUserPreference( "Statement Delivery Preference", cbDeliveryPreference.SelectedValues.JoinStrings( "" ) );
 
             BindGrid();
@@ -275,8 +260,22 @@ namespace RockWeb.Plugins.org_secc.Finance
         {
             if ( !Page.IsPostBack )
             {
+                // Set the default filter value for file name
                 tbName.Text = fBinaryFile.GetUserPreference( "File Name" );
-                
+
+                // Set the filter value for Person
+                var personId = fBinaryFile.GetUserPreference( "Person" ).AsIntegerOrNull();
+                if ( personId.HasValue )
+                {
+                    var person = new PersonService( new RockContext() ).Get( personId.Value );
+                    ppPerson.SetValue( person );
+                }
+                else
+                {
+                    ppPerson.SetValue( null );
+                }
+
+                // Set up the filter for statement delivery preference
                 var statementDeliveryPreference = new List<ListItem>();
                 statementDeliveryPreference.Add( new ListItem( "Electronic" ) );
                 statementDeliveryPreference.Add( new ListItem( "Print & Mail" ) );
@@ -287,7 +286,7 @@ namespace RockWeb.Plugins.org_secc.Finance
             }            
         }
 
-        private List<BinaryFileWrapper> GetBinaryFiles()
+        private List<DocumentData> GetBinaryFiles()
         {
             Guid binaryFileTypeGuid = binaryFileType != null ? binaryFileType.Guid : Guid.NewGuid();
             RockContext context = new RockContext();
@@ -295,91 +294,134 @@ namespace RockWeb.Plugins.org_secc.Finance
             var attributeService = new AttributeService( context );
             var attributeValueService = new AttributeValueService( context );
             var personAliasService = new PersonAliasService( context );
+            var personService = new PersonService( context );
+            var documentService = new DocumentService( context );
 
-            string binaryFileId = binaryFileType != null ? binaryFileType.Id.ToString() : "0";
-            var attributeIds = attributeService.Queryable()
-                .Where( a => a.EntityTypeQualifierColumn == "BinaryFileTypeId" && a.EntityTypeQualifierValue == binaryFileId )
-                .Select( a => a.Id ).ToList();
+            // If the document type is not set
+            if ( string.IsNullOrWhiteSpace(GetAttributeValue( "DocumentType" ) ) )
+            {
+                return null;
+            }
 
-            var queryable = binaryFileService.Queryable().Where( f => f.BinaryFileType.Guid == binaryFileTypeGuid )
-                .GroupJoin( attributeValueService.Queryable(),
-                    obj => obj.Id,
-                    av => av.EntityId.Value,
-                    ( obj, avs ) => new BinaryFileWrapper() { BinaryFile = obj, AttributeValues = avs.Where( av => attributeIds.Contains( av.AttributeId ) ) } );
+            int documentTypeId = DocumentTypeCache.Get( GetAttributeValue( "DocumentType" ).AsGuid() ).Id;
 
-            var sortProperty = gBinaryFile.SortProperty;
+            var documentQuery = documentService.Queryable( "BinaryFile" ).Where( d => d.DocumentTypeId == documentTypeId );
+
+            // Add any query filters here
             string name = fBinaryFile.GetUserPreference( "File Name" );
             if ( !string.IsNullOrWhiteSpace( name ) )
             {
-                queryable = queryable.Where( f => f.BinaryFile.FileName.Contains( name ) );
+                documentQuery = documentQuery.Where( d => d.BinaryFile.FileName.Contains( name ) );
             }
 
-            if ( sortProperty != null && sortProperty.Property != "PersonNames" && sortProperty.Property != "PersonNames" )
-            {
-                queryable = queryable.Sort( sortProperty );
-            }
-            else
-            {
-                queryable = queryable.OrderBy( d => d.BinaryFile.FileName );
-            }
-            var list = queryable.ToList();
+            var personQuery = personService.Queryable();
 
-            // Set all the PersonIds;
-            foreach ( var document in list )
-            {
-                document.PersonIds.AddRange(
-                    document.AttributeValues.Where( a => a.Attribute.Key == "PersonIds" ).Where( v => !string.IsNullOrWhiteSpace( v.Value ) ).Select( v => v.Value ).FirstOrDefault().SplitDelimitedValues().AsIntegerList()
-                );
+            // Filter for a specific Person
+            if ( ppPerson.SelectedValue.HasValue && ppPerson.SelectedValue.Value > 0 ) {
+                string givingId = personService.Queryable().Where(a => a.Id == ppPerson.SelectedValue ).Select(p => p.GivingId ).FirstOrDefault();
+                personQuery = personQuery.Where( p => p.GivingId == givingId );
             }
 
-            if ( sortProperty != null && sortProperty.Property == "PersonNames" )
-            {
-                if ( sortProperty.Direction == SortDirection.Ascending )
-                {
-                    list = list.OrderBy( l => l.Persons.FirstOrDefault().LastName ).ToList();
-                }
-                else
-                {
-                    list = list.OrderByDescending( l => l.Persons.FirstOrDefault().LastName ).ToList();
-                }
-            }
+            var documents = documentQuery
+                    .Join( personQuery,
+                        obj => obj.EntityId,
+                        p => p.Id,
+                        ( obj, p ) => new { Document = obj, Person = p } )
+                    .GroupBy(obj => obj.Document.BinaryFile.Id);
+
+
+            List<DocumentData> list = documents.Select(d => new DocumentData() { BinaryFile = d.FirstOrDefault().Document.BinaryFile, People = d.Select( p => p.Person ).ToList() }).ToList();
+
 
             List<Guid?> dataviews = GetAttributeValue( "PrintAndMail" ).SplitDelimitedValues().AsGuidOrNullList();
-			if ( list.Count() > 0 ) {
-				if ( dataviews != null && dataviews.Count > 0 )
-				{
-					var dataViewService = new DataViewService( context );
-					foreach ( var dataviewguid in dataviews )
-					{
-						List<string> errorMessages = new List<string>();
-						list.FirstOrDefault().MailPersonIds.AddRange( dataViewService.Get( dataviewguid.Value ).GetQuery( null, null, out errorMessages ).OfType<Rock.Model.Person>().Select( p => p.Id ).ToList() );
-					}
-				}
-			}
+            if ( list.Count() > 0 )
+            {
+                if ( dataviews != null && dataviews.Count > 0 )
+                {
+                    var dataViewService = new DataViewService( context );
+                    foreach ( var dataviewguid in dataviews )
+                    {
+                        List<string> errorMessages = new List<string>();
+                        list.FirstOrDefault().MailPersonIds.AddRange( dataViewService.Get( dataviewguid.Value ).GetQuery( null, null, out errorMessages ).OfType<Rock.Model.Person>().Select( p => p.Id ).ToList() );
+                    }
+                }
+            }
 
+            // Apply the Statement Delivery Preference filter
+            if ( cbDeliveryPreference.SelectedValue == "Electronic" )
+            {
+                list = list.Where( l => !l.MailPersonIds.Intersect( l.People.Select( p => p.Id ) ).Any() ).ToList();
+            }
+            else if ( cbDeliveryPreference.SelectedValue == "Print & Mail" )
+            {
+                list = list.Where( l => l.MailPersonIds.Intersect( l.People.Select( p => p.Id ) ).Any() ).ToList();
+            }
+
+
+            var sortProperty = gBinaryFile.SortProperty;
+            // Sort by Person Name
             if ( sortProperty != null && sortProperty.Property == "PersonNames" )
             {
                 if ( sortProperty.Direction == SortDirection.Ascending )
                 {
-                    list = list.OrderBy( l => l.Persons.FirstOrDefault().LastName ).ToList();
+                    list = list.OrderBy( l => l.People.FirstOrDefault().LastName ).ToList();
                 }
                 else
                 {
-                    list = list.OrderByDescending( l => l.Persons.FirstOrDefault().LastName ).ToList();
+                    list = list.OrderByDescending( l => l.People.FirstOrDefault().LastName ).ToList();
                 }
             }
-
-            if ( fBinaryFile.GetUserPreference( "Statement Delivery Preference" ) == "Electronic" )
+            // Sort by Person Name
+            else if ( sortProperty != null && sortProperty.Property == "GivingId" )
             {
-                list = list.Where( l => !l.MailPersonIds.Contains( l.Persons.Select( p => p.Id ).FirstOrDefault() ) ).ToList();
+                if ( sortProperty.Direction == SortDirection.Ascending )
+                {
+                    list = list.OrderBy( l => l.People.FirstOrDefault().GivingId ).ToList();
+                }
+                else
+                {
+                    list = list.OrderByDescending( l => l.People.FirstOrDefault().GivingId ).ToList();
+                }
             }
-            else if ( fBinaryFile.GetUserPreference( "Statement Delivery Preference" ) == "Print & Mail" )
+            // Sort by Delivery Preference
+            else if ( sortProperty != null && sortProperty.Property == "StatementDelivery" )
             {
-                list = list.Where( l => l.MailPersonIds.Contains( l.Persons.Select( p => p.Id ).FirstOrDefault() ) ).ToList();
+                if ( sortProperty.Direction == SortDirection.Ascending )
+                {
+                    list = list.OrderBy( l => l.StatementDelivery ).ToList();
+                }
+                else
+                {
+                    list = list.OrderByDescending( l => l.StatementDelivery ).ToList();
+                }
+            }
+            // Sort by LastModified
+            else if ( sortProperty != null && sortProperty.Property == "ModifiedDateTime" )
+            {
+                if ( sortProperty.Direction == SortDirection.Ascending )
+                {
+                    list = list.OrderBy( l => l.BinaryFile.ModifiedDateTime ).ToList();
+                }
+                else
+                {
+                    list = list.OrderByDescending( l => l.BinaryFile.ModifiedDateTime ).ToList();
+                }
+            }
+            // Sort by Giving Id
+            else
+            {
+                if ( sortProperty == null || sortProperty.Direction == SortDirection.Ascending )
+                {
+                    list = list.OrderBy( d => d.BinaryFile.FileName ).ToList();
+                }
+                else
+                {
+                    list = list.OrderByDescending( d => d.BinaryFile.FileName ).ToList();
+
+                }
             }
 
             return list;
-
         }
 
         /// <summary>
@@ -393,55 +435,28 @@ namespace RockWeb.Plugins.org_secc.Finance
 
         #endregion
 
-        public class PersonData
+        public class DocumentData : ILiquidizable
         {
-            public int Id { get; set; }
-            public int AliasPersonId { get; set; }
-            public string NickName { get; set; }
-            public string LastName { get; set; }
-            public string FullName {
-                get
-                {
-                    return NickName + " " + LastName;
-                }
-            }
-            public DateTime? BirthDate { get; set; }
+            private static List<int> mailPersonIds = new List<int>();
+
+            public BinaryFile BinaryFile { get; set; }
+            public List<Person> People { get; set; }
 
 
-            public int? Age
+            public int Id
             {
                 get
                 {
-                    return Person.GetAge( this.BirthDate );
-                }
-            }
-
-        }
-
-        public class BinaryFileWrapper : ILiquidizable
-        {
-            private static List<int> personIds = new List<int>();
-            private static List<int> mailPersonIds = new List<int>();
-            private static List<PersonData> people;
-
-            public int Id {
-                get {
                     return BinaryFile.Id;
                 }
             }
 
-            public string GivingId {
+            public string GivingId
+            {
                 get
                 {
-                    return AttributeValues.Where( a => a.Attribute.Key == "GivingId" ).Select( v => v.Value ).FirstOrDefault();
+                    return People.First().GivingId;
                 }
-            }
-
-            public BinaryFile BinaryFile { get; set; }
-
-            public List<int> PersonIds
-            {
-                get { return personIds; }
             }
 
             public List<int> MailPersonIds
@@ -449,56 +464,11 @@ namespace RockWeb.Plugins.org_secc.Finance
                 get { return mailPersonIds; }
             }
 
-            public String StatementDelivery
+            public string StatementDelivery
             {
                 get
                 {
-                    return People.Select( p => p.Id ).Intersect( MailPersonIds ).Any()?"Print & Mail":"Electronic";
-                }
-            }
-
-            public IEnumerable<AttributeValue> AttributeValues { get; set; }
-
-            private List<PersonData> AllPeople
-            {
-                get { return people; }
-            }
-
-            private List<PersonData> People
-            {
-                get
-                {
-                    if ( people == null || personIds.Distinct().Except( people.Select( p => p.AliasPersonId ) ).Any() )
-                    {
-                        RockContext context = new RockContext();
-                        PersonAliasService personAliasService = new PersonAliasService( context );
-                        people = new List<PersonData>();
-                        for ( int i = 0; i < personIds.Count; i += 10000 )
-                        {
-                            var smallPersonIds = personIds.GetRange( i, Math.Min( 10000, personIds.Count - i ) );
-
-                            var peopleQuery = personAliasService.Queryable( "Person" ).Where( pa => smallPersonIds.Contains( pa.AliasPersonId.Value ) )
-                                .Select( pa => new PersonData() { Id = pa.Person.Id, AliasPersonId = pa.AliasPersonId.Value, NickName = pa.Person.NickName, LastName = pa.Person.LastName, BirthDate = pa.Person.BirthDate } );
-                            people.AddRange(peopleQuery.ToList());
-                        }
-                    }
-                    if ( people != null )
-                    {
-                        var strings = AttributeValues.Where( a => a.Attribute.Key == "PersonIds" ).Select( v => v.Value.Split( '|' ) ).FirstOrDefault();
-                        if (strings != null)
-                        {
-                            return people.Where( pa => strings.AsIntegerList().Contains( pa.AliasPersonId ) ).DistinctBy(pa => pa.Id).ToList();
-                        }
-                    }
-                    return new List<PersonData>();
-                }
-            }
-
-            public List<PersonData> Persons
-            {
-                get
-                {
-                    return People.OrderByDescending( pa => pa.Age ).ToList();
+                    return People.Select( p => p.Id ).Intersect( MailPersonIds ).Any() ? "Print & Mail" : "Electronic";
                 }
             }
 
@@ -506,8 +476,7 @@ namespace RockWeb.Plugins.org_secc.Finance
             {
                 get
                 {
-                    var tmp = AttributeValues.Where( a => a.Attribute.Key == "PersonIds" );
-                    return People.OrderByDescending(pa => pa.Age).Select( pa => pa.FullName ).JoinStrings( ", " );
+                    return People.OrderByDescending( pa => pa.Age ).Select( pa => pa.FullName ).JoinStrings( ", " );
                 }
             }
 
