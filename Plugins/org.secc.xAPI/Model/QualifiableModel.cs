@@ -18,7 +18,7 @@ namespace org.secc.xAPI.Model
             RockContext rockContext = new RockContext();
             ExperienceQualifierService experienceQualifierService = new ExperienceQualifierService( rockContext );
 
-            var entityTypeId = EntityTypeCache.Get( typeof( Experience ) ).Id;
+            var entityTypeId = EntityTypeCache.Get( this.TypeId ).Id;
             return experienceQualifierService.Queryable().Where( q => q.EntityTypeId == entityTypeId && q.ParentId == Id ).ToList();
         }
 
@@ -31,7 +31,7 @@ namespace org.secc.xAPI.Model
         {
             ExperienceQualifierService experienceQualifierService = new ExperienceQualifierService( rockContext );
 
-            var entityTypeId = EntityTypeCache.Get( typeof( Experience ) ).Id;
+            var entityTypeId = EntityTypeCache.Get( this.TypeId ).Id;
             return experienceQualifierService.Queryable()
                 .Where( q => q.EntityTypeId == entityTypeId && q.ParentId == Id && q.Key == qualifierKey )
                 .FirstOrDefault();

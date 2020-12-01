@@ -34,7 +34,7 @@ namespace org.secc.Rise
             CourseService courseService = new CourseService( rockContext );
             var skip = 0;
 
-            Course course = courseService.Queryable().AsNoTracking().FirstOrDefault();
+            Course course = courseService.Queryable().AsNoTracking().OrderBy( c => c.Id ).FirstOrDefault();
 
             while ( course != null )
             {
@@ -42,7 +42,7 @@ namespace org.secc.Rise
 
                 course.SyncCompletions();
 
-                course = courseService.Queryable().AsNoTracking().Skip( skip ).FirstOrDefault();
+                course = courseService.Queryable().AsNoTracking().OrderBy( c => c.Id ).Skip( skip ).FirstOrDefault();
             }
             context.Result = $"Synced {skip} courses";
         }
