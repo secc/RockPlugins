@@ -7,16 +7,18 @@ eqfeed_callback(
         {%- for person in personItems -%}
             {% assign lat =  person | Address:'Home','[[Latitude]]' %}
             {% assign lng =  person | Address:'Home','[[Longitude]]' %}
+            {% if lng != '' && lng != '' %}
             {{ comma }}{
                 type: "Feature",
                 properties: {
                     mag: 5.4,
                     place: "{{ person.FirstName }} {{ person.LastName | Truncate:2,'.' }}",
-                    url: "http://earthquake.usgs.gov/earthquakes/eventpage/usc000csx3"
+                    url: "https://www.facebook.com/SoutheastChristianOnline",
+                    sayhiurl: "/seonline-map/sayhi/{{person.Guid}}"
                 },
                 geometry: {
                     type: "Point"
-                    {% if personalHome != '' %}
+                    {% if lng != '' && lng != '' %}
                     ,coordinates: [
                         {{ lng | Split:'.' | First }}.{{ lng | Split:'.' | Last | Truncate:2,'' }},
                         {{ lat | Split:'.' | First }}.{{ lat | Split:'.' | Last | Truncate:2,'' }}
@@ -25,6 +27,7 @@ eqfeed_callback(
                 }
             }
             {%- assign comma = "," -%}
+            {% endif %}
         {%- endfor -%}
         {%- endperson -%}
     ]

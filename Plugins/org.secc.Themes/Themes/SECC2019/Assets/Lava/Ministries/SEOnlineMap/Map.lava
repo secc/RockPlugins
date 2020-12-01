@@ -238,7 +238,7 @@
                         id: clusterMarkers.length,
                         location_id: results.features[i].properties.place,
                         location_facebookUrl: results.features[i].properties.url,
-                        location_sayHiUrl: results.features[i].properties.url
+                        location_sayHiUrl: results.features[i].properties.sayhiurl
                     });
                     clusterMarkers.push(marker);
                     clusterMarkersInfo.push(results);
@@ -288,7 +288,7 @@
                 }
                 var contentString = '<div id="iw_container" class="g-padding-t-15--xs g-padding-l-15--xs">' +
                         '<div class="iw_title text-center g-padding-b-20--xs g-font-weight--700 g-font-size-32--xs">'+ markerClicked.location_id +'</div>' +
-                        '<a target="_blank" href="' + markerClicked.location_facebookUrl + '" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--600 g-margin-x-auto--xs"><i class="fas fa-envelope"></i> Say Hi!</a>' +
+                        '<a target="_blank" href="' + markerClicked.location_sayHiUrl + '" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--600 g-margin-x-auto--xs"><i class="fas fa-envelope"></i> Say Hi!</a>' +
                         facebookConnectString +
                         '</div>' +
                     '</div>';
