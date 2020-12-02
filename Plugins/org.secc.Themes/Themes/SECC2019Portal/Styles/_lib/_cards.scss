@@ -1,0 +1,101 @@
+@import '../../../SECC2019/Styles/bootstrap/mixins/vendor-prefixes';
+
+
+.card-v2 {
+    &.hide-on-load {
+        opacity: 0; // hide card when loaded, then display with isotope
+    }
+    &.no-image {
+        .card-body {
+            margin-left: auto;
+            margin-right: auto;
+            padding-top: auto;
+            height: 100%;
+            margin-top: auto;
+        }
+    }
+    --card-body-offset: 15px; // push the content up to hide top right/left border radius
+    display: block;
+    
+    @include transition(all .3s ease);
+    @media (max-width: 768px) {
+        padding: 15px;
+        margin-left: 0px;
+        margin-right: 0px;
+    }
+    &:hover {
+        @include transition(all .3s ease);
+    }
+
+    .card-body {  
+        margin-left: var(--card-body-offset);
+        margin-right: var(--card-body-offset);
+        padding-top: var(--card-body-offset);
+        height: calc(100% + var(--card-body-offset));
+        margin-top: calc(-1 * var(--card-body-offset));
+        position: relative;
+        z-index: 1;
+        flex-grow: 1;
+        background-color: hsla(0, 0%, 100%, 1);
+        border-radius: var(--card-body-offset);
+        //border: 1px solid rgba(124, 124, 124, 0.68);
+        box-shadow: 0px 0px 2px 1px rgba(0, 0, 0, 0.10);
+
+        &--flex {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        footer {
+            margin-top: auto;
+        }
+    }
+
+    &--featured {
+        @extend .card-v2;
+        display: flex;
+        flex-direction: column;
+
+        @media (min-width: 64rem) {
+            display: grid;
+            grid-template-columns: .75fr 1fr;
+            
+            &.no-image {
+                display: block;
+                grid-template-columns: auto;
+            }
+
+            .card-body {
+                padding-top: auto;
+                height: auto;
+                padding-left: var(--card-body-offset);
+                margin-left: calc(-1 * var(--card-body-offset));
+                margin-top: var(--card-body-offset);
+                margin-bottom: var(--card-body-offset);
+                margin-right: 0px;
+            }
+        }
+    }
+    
+    .img-spotlight {
+        position: relative;
+        z-index: 2;
+        display: block;
+        overflow: hidden;
+        background-color: white;
+        text-decoration: none;
+        color: inherit;
+        transition: .3s;
+        border-radius: 20px;
+
+        img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            -o-object-fit: cover;
+            object-fit: cover;
+        }
+    }
+    
+}
