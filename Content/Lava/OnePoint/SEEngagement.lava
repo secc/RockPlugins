@@ -36,7 +36,7 @@
                     <h5 class="g-color--primary g-display-inline-block--xs">Scroll down to see the latest metrics, or select a weekend below to see past metrics.</h5>
                     <br />
                     {%- assign currentDate = 'Now' | Date:'MM/dd/yyyy' -%}
-                    {%- assign startingDate = '9/12/2020' -%}
+                    {%- assign startingDate = '10/24/2020' -%}
                     {%- assign sinceStartingWeek =  startingDate | DateDiff:currentDate,'d' | DividedBy:7 | Floor -%}
                     {%- assign weeklyCount = sinceStartingWeek | AtMost:52 -%}
                     <style>
