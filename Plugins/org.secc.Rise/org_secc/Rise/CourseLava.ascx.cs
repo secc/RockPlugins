@@ -108,7 +108,7 @@ namespace RockWeb.Plugins.org_secc.Rise
                 }
             }
 
-            List<Course> courses = EnrollmentHelper.GetPersonCourses( CurrentPerson, categories );
+            List<EnrollmentHelper.CourseResult> courses = EnrollmentHelper.GetPersonCourses( CurrentPerson, categories );
 
             var mergeFields = LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
             mergeFields.Add( "Courses", courses );

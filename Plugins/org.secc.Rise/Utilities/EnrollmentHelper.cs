@@ -13,10 +13,13 @@
 // </copyright>
 //
 
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Runtime.Serialization;
 using org.secc.Rise.Model;
+using org.secc.xAPI.Model;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
@@ -29,7 +32,7 @@ namespace org.secc.Rise.Utilities
         /// <summary>Gets the person courses.</summary>
         /// <param name="person">The person.</param>
         /// <returns></returns>
-        public static List<Course> GetPersonCourses( Person person )
+        public static List<CourseResult> GetPersonCourses( Person person )
         {
             return GetPersonCourses( person, new List<CategoryCache>() );
         }
@@ -38,7 +41,7 @@ namespace org.secc.Rise.Utilities
         /// <param name="person">The person.</param>
         /// <param name="categories">The categories.</param>
         /// <returns></returns>
-        public static List<Course> GetPersonCourses( Person person, List<CategoryCache> categories )
+        public static List<CourseResult> GetPersonCourses( Person person, List<CategoryCache> categories )
         {
             if ( person == null )
             {
@@ -77,17 +80,37 @@ namespace org.secc.Rise.Utilities
                 ( c, av ) => new { Course = c, AttributeValues = av } )
                 .ToList();
 
-            var courses = new List<Course>();
+            // Get the Experiences
+            int[] personAliasIds = person.Aliases.Select( a => a.Id ).ToArray();
+            string[] courseIds = mixedResults.Select( m => m.Course.Id.ToString() ).ToArray();
+
+            ExperienceService experienceService = new ExperienceService( rockContext );
+            var experiences = experienceService.Queryable("xObject").Where( e => personAliasIds.Contains( e.PersonAliasId ) && courseIds.Contains( e.xObject.ObjectId ) ).ToList();
+
+            var courses = new List<CourseResult>();
             foreach ( var result in mixedResults )
             {
-                var course = result.Course;
-                course.AttributeValues = result.AttributeValues.ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
-                course.Attributes = result.AttributeValues.ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
-
-                courses.Add( course );
+                var courseResult = new CourseResult();
+                courseResult.Course = result.Course;
+                courseResult.Course.AttributeValues = result.AttributeValues.ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
+                courseResult.Course.Attributes = result.AttributeValues.ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
+                courseResult.Experiences = experiences.Where( e => e.xObject != null && e.xObject.ObjectId == result.Course.Id.ToString() ).ToList();
+                courses.Add( courseResult );
             }
 
             return courses;
         }
+
+        [DataContract]
+        [Serializable]
+        public class CourseResult : DotLiquid.Drop
+        {
+            [DataMember]
+            public Course Course { get; set; }
+
+            [DataMember]
+            public List<Experience> Experiences { get; set; }
+        }
     }
+
 }

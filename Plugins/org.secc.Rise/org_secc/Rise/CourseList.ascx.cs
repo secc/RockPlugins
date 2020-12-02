@@ -36,11 +36,17 @@ namespace RockWeb.Plugins.org_secc.Rise
         "Detail Page",
         Description = "Course detail page.",
         Key = AttributeKeys.DETAIL_PAGE )]
+
+    [LinkedPage(
+        "Report Page",
+        Description = "Page for course reports.",
+        Key = AttributeKeys.REPORT_PAGE )]
     public partial class CourseList : RockBlock, ICustomGridColumns
     {
         private class AttributeKeys
         {
             public const string DETAIL_PAGE = "DetailPage";
+            public const string REPORT_PAGE = "ReportPage";
         }
 
         #region Base Control Methods
@@ -156,6 +162,11 @@ namespace RockWeb.Plugins.org_secc.Rise
                 field.Text = string.Join( ", ", ( ( Course ) e.Row.DataItem ).Categories.Select( c => c.Name ).OrderBy( c => c ).ToList() );
             }
 
+        }
+
+        protected void lbReport_Click( object sender, RowEventArgs e )
+        {
+            NavigateToLinkedPage( AttributeKeys.REPORT_PAGE, new Dictionary<string, string> { { "CourseId", e.RowKeyId.ToString() } } );
         }
     }
 }
