@@ -1097,9 +1097,7 @@ function(item) {
             var attendanceOccurences = new List<AttendanceOccurrence>();
             foreach ( var group in groups )
             {
-                var location = group.GroupLocations.Select( l => l.LocationId ).ToList();
-                location.Add( 0 );
-                attendanceOccurences.AddRange( GetGroupOccurrences( attendanceOccurrenceService, group, startDate, endDate, location ) );
+                attendanceOccurences.AddRange( GetGroupOccurrences( attendanceOccurrenceService, group, startDate, endDate ) );
             }
 
             var qryAttendance = attendanceOccurences.Select( o => o ).ToList();
@@ -1258,11 +1256,11 @@ function(item) {
             return result;
         }
 
-        private IEnumerable<AttendanceOccurrence> GetGroupOccurrences( AttendanceOccurrenceService attendanceOccurrenceService, Group group, DateTime? startDate, DateTime? endDate, List<int> locations )
+        private IEnumerable<AttendanceOccurrence> GetGroupOccurrences( AttendanceOccurrenceService attendanceOccurrenceService, Group group, DateTime? startDate, DateTime? endDate )
         {
             return attendanceOccurrenceService
                 .Queryable()
-                .Where( ao => ao.GroupId == group.Id && ao.OccurrenceDate >= startDate && ao.OccurrenceDate <= endDate && locations.Contains( ao.LocationId ?? 0 ) )
+                .Where( ao => ao.GroupId == group.Id && ao.OccurrenceDate >= startDate && ao.OccurrenceDate <= endDate )
                 .ToList();
         }
 
