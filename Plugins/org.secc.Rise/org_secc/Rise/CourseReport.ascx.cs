@@ -96,10 +96,12 @@ namespace RockWeb.Plugins.org_secc.Rise
         private List<CourseData> GetData( Course course )
         {
             var xObj = course.GetExperienceObject();
+            var completionValueId = org.secc.xAPI.Utilities.VerbHelper.GetOrCreateVerb( "http://activitystrea.ms/schema/1.0/complete" ).Id;
+
             RockContext rockContext = new RockContext();
             ExperienceService experienceService = new ExperienceService( rockContext );
             var experiences = experienceService.Queryable( "PersonAlias.Person,Result" )
-                .Where( x => x.xObjectId == xObj.Id )
+                .Where( x => x.xObjectId == xObj.Id && x.VerbValueId == completionValueId )
                 .ToList();
 
             var data = course.EnrolledGroups
