@@ -34,14 +34,14 @@ namespace org.secc.Rise.Utilities
         /// <returns></returns>
         public static List<CourseResult> GetPersonCourses( Person person )
         {
-            return GetPersonCourses( person, new List<CategoryCache>() );
+            return GetPersonCourses( person, null );
         }
 
         /// <summary>Gets the person courses.</summary>
         /// <param name="person">The person.</param>
         /// <param name="categories">The categories.</param>
         /// <returns></returns>
-        public static List<CourseResult> GetPersonCourses( Person person, List<CategoryCache> categories )
+        public static List<CourseResult> GetPersonCourses( Person person, List<CategoryCache> categories, bool enrolledOnly = true )
         {
             if ( person == null )
             {
@@ -60,24 +60,28 @@ namespace org.secc.Rise.Utilities
 
             var qry = courseService.Queryable().AsNoTracking();
 
-            if ( categories.Any() )
+            if ( categories != null && categories.Any() )
             {
                 var categoryIds = categories.Select( ca => ca.Id ).ToList();
                 qry = qry.Where( c => c.Categories.Any( ca => categoryIds.Contains( ca.Id ) ) );
             }
 
-            var riseGroupType = GroupTypeCache.Get( Constants.GROUPTYPE_RISE );
-            var riseGroups = groupMemberService.Queryable().AsNoTracking()
-                .Where( gm => gm.PersonId == person.Id && gm.Group.GroupTypeId == riseGroupType.Id )
-                .Select( gm => gm.GroupId );
+            if ( enrolledOnly )
+            {
+                var riseGroupType = GroupTypeCache.Get( Constants.GROUPTYPE_RISE );
+                var riseGroups = groupMemberService.Queryable().AsNoTracking()
+                    .Where( gm => gm.PersonId == person.Id && gm.Group.GroupTypeId == riseGroupType.Id )
+                    .Select( gm => gm.GroupId );
 
-            qry = qry.Where( c => c.AvailableToAll == true || c.EnrolledGroups.Any( g => riseGroups.Contains( g.Id ) ) );
+                qry = qry.Where( c => c.AvailableToAll == true || c.EnrolledGroups.Any( g => riseGroups.Contains( g.Id ) ) );
+            }
 
             var mixedResults = qry.GroupJoin(
                 attributeValueQry,
                 c => c.Id,
                 av => av.EntityId,
                 ( c, av ) => new { Course = c, AttributeValues = av } )
+                .OrderBy( m => m.Course.Name )
                 .ToList();
 
             // Get the Experiences
@@ -85,7 +89,7 @@ namespace org.secc.Rise.Utilities
             string[] courseIds = mixedResults.Select( m => m.Course.Id.ToString() ).ToArray();
 
             ExperienceService experienceService = new ExperienceService( rockContext );
-            var experiences = experienceService.Queryable("xObject").Where( e => personAliasIds.Contains( e.PersonAliasId ) && courseIds.Contains( e.xObject.ObjectId ) ).ToList();
+            var experiences = experienceService.Queryable( "xObject" ).Where( e => personAliasIds.Contains( e.PersonAliasId ) && courseIds.Contains( e.xObject.ObjectId ) ).ToList();
 
             var courses = new List<CourseResult>();
             foreach ( var result in mixedResults )
@@ -102,7 +106,6 @@ namespace org.secc.Rise.Utilities
         }
 
         [DataContract]
-        [Serializable]
         public class CourseResult : DotLiquid.Drop
         {
             [DataMember]

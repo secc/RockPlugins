@@ -18,6 +18,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Web;
+using System.Web.Security;
 using Microsoft.AspNet.Identity;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
@@ -74,6 +75,22 @@ namespace org.secc.OAuth
                     catch ( System.Web.HttpException )
                     {
                         // Just eat this exception.  It's thrown when headers have already been sent
+                    }
+                } 
+                else if ( !string.IsNullOrWhiteSpace( context.Authentication?.User?.Identity?.Name ) )
+                {
+                    // Make sure the Forms ticket isn't expired
+                    var ticket = FormsAuthentication.Decrypt( context.Request.Cookies[cookieName] );
+                    if ( ticket == null || ticket.Expired )
+                    {
+                        try
+                        {
+                            Rock.Security.Authorization.SetAuthCookie( context.Authentication.User.Identity.Name, false, false );
+                        }
+                        catch ( System.Web.HttpException )
+                        {
+                            // Just eat this exception.  It's thrown when headers have already been sent
+                        }
                     }
                 }
 

@@ -119,7 +119,7 @@ namespace org.secc.Rise
             return null;
         }
 
-        public bool SyncAllGroups()
+        public int SyncAllGroups()
         {
             var riseGroupType = GroupTypeCache.Get( Constants.GROUPTYPE_RISE );
 
@@ -133,12 +133,11 @@ namespace org.secc.Rise
             {
                 var riseGroup = GetOrCreateGroup( group );
                 riseGroup.SyncGroupMembers( group );
-                //Handle course enrolments???
             }
 
             //Handle groups that have been deleted in Rock...
 
-            return true;
+            return groups.Count();
         }
 
         public RiseGroup GetOrCreateGroup( Group group )
