@@ -13,22 +13,17 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Web.UI;
-using System.Web.UI.WebControls;
 using org.secc.Rise.Model;
-using org.secc.Rise.Response.Event;
 using org.secc.xAPI.Model;
 using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Reporting;
-using Rock.Transactions;
 using Rock.Web.UI.Controls;
 
 namespace org.secc.Rise.Reporting.DataFilter

@@ -1,0 +1,123 @@
+{%- assign nowDateTime = 'Now' | Date:'yyyy-MM-dd HH:mm:ss' -%}
+{%- assign setNumber = 5 -%}
+{%- contentchannelitem dataview:'3285' where:'StartDateTime <= "{{nowDateTime}}" && EndDateTime >= "{{nowDateTime}}"' sort:'StartDateTime desc' limit:'{{setNumber}}' -%}
+
+<style>
+#loading-animation {
+    display: none;
+}
+@media (max-width: 768px) {
+    .isotope_wrap .isotope_item {
+        padding-bottom: 0px;
+    }
+}
+</style>
+
+<div class="fluid-container" style="background-color: #f5f5f5;">
+<div class="container g-padding-y-50--xs g-padding-y-100--md">
+  <div class="row g-padding-x-60--xs">
+    <div class="col-md-12">
+        <h1 class="g-font-family--secondary">Latest News</h1>
+    </div>
+  </div>
+  <div class="isotope_wrap g-padding-t-40--md">
+    
+    <div class="isotope_sizer col-xs-12 col-md-6 col-lg-4"></div>
+
+    {% for item in contentchannelitemItems %}
+        {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
+        {% assign VimeoId = item | Attribute:'VimeoID', 'RawValue' %}
+        
+        {% if forloop.index == 1 %}
+        <div class="isotope_item col-xs-12">
+            <div class="card-v2--featured {% if ImageGuid == '' %}no-image{% endif %}">
+                {% if ImageGuid != "" %}
+                <a href="#" class="img-spotlight">
+                    <img src="/GetImage.ashx?Guid={{ ImageGuid }}&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+                </a>    
+                {% endif %}
+                <div class="card-body g-overflow--hidden">
+                    <div class="card-body--flex">
+                        <div class="caption g-padding-x-30--xs g-padding-y-30--xs">
+                            <h6 class="uppercase g-padding-b-10--xs g-font-weight--700">{{ item.StartDateTime | Date:'MMM dd, yyyy' }}</h6>
+                            <h4 class="g-font-family--secondary g-padding-r-60--xs g-font-weight--600" style="margin-bottom: 5px;">{{ item.Title }}</h4>
+                            <div class="readmore_dates">
+                                {{ item.Content | StripHtml | truncatewords:30 }}
+                            </div>
+                        </div><!-- END: caption -->
+                        <footer class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lightest">
+                            <a href="#" class='eventCardLink link--hover-underscore'>
+                                <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs"><i class="fas fa-heart"></i> 106</h6>
+                            </a>
+                        </footer>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="isotope_item col-xs-12 col-md-6 col-lg-4">
+            <div class="card-v2 {% if ImageGuid == '' %}no-image{% endif %}">
+                
+                {% if ImageGuid != "" %}
+                <a href="#" class="img-spotlight">
+                    <img src="/GetImage.ashx?Guid={{ ImageGuid }}&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+                </a>    
+                {% endif %}
+                <div class="clearfix card-body">
+                    <div class="card-body--flex">
+                        <div class="caption g-padding-x-30--xs g-padding-y-30--xs g-overflow--hidden">
+                            <h6 class="uppercase g-padding-b-10--xs g-font-weight--700">{{ item.StartDateTime | Date:'MMM dd, yyyy' }}</h6>
+                            <h4 class="g-font-family--secondary g-padding-r-60--xs g-font-weight--600" style="margin-bottom: 5px;">{{ item.Title }}</h4>
+                            <div class="readmore_dates">
+                                {{ item.Content | StripHtml | truncatewords:30 }}
+                            </div>
+                        </div>
+                        <footer class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lightest">
+                            <a href="#" class='eventCardLink link--hover-underscore'>
+                                <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs"><i class="fas fa-heart"></i> 106</h6>
+                            </a>
+                        </footer>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+
+    </div>
+  </div>    
+</div>
+
+{%- endcontentchannelitem -%}
+
+<div class="text-center">
+    <a class="btn btn-doors" id="loadNews" onclick="getMoreNews(jQuery);">
+        Show More News <i class="fa fa-chevron-down"></i>
+    </a>
+    <br />
+    <br />
+    <br />
+    <img id="loading-animation" src="/Content/ExternalSite/WebImages/loading.gif" />
+</div>
+
+
+<script>
+$(window).load(function() {
+    // Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+         // options
+         //percentPosition: true,
+         itemSelector: '.isotope_item',
+         percentPosition: true,
+         masonry: {
+            // set to the element
+            columnWidth: '.isotope_sizer'
+          }
+    });
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.addClass('is-showing-items')
+    .isotope( 'revealItemElements', $items );
+});
+</script>

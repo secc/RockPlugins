@@ -3,17 +3,14 @@
 {%- else -%}
     {%- assign pageNumber = 1 -%}
 {%- endif -%}
-{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+{%- assign nowDateTime = 'Now' | Date:'yyyy-MM-dd HH:mm:ss' -%}
 {%- assign setNumber = 5 -%}
 {%- assign offset = pageNumber | Minus:1 | Times: setNumber -%}
-{%- contentchannelitem dataview:'3285' sort:'StartDateTime desc' offset:'{{offset}}' limit:'{{setNumber}}' -%}
+{%- contentchannelitem dataview:'3285' where:'StartDateTime <= "{{nowDateTime}}" && EndDateTime >= "{{nowDateTime}}"' sort:'StartDateTime desc' offset:'{{offset}}' limit:'{{setNumber}}' -%}
 {"OnePointUpdateNewsletter":
     [
         {%- assign itemComma = '' -%}
         {%- for item in contentchannelitemItems -%}
-            {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
-            {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
-            {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
                 {{itemComma}}
                 {
                     "Id": {{item.Id}},
@@ -25,7 +22,6 @@
                     {%- endif -%}
                 }
                 {%- assign itemComma = ',' -%}
-            {%- endif -%}
         {%- endfor -%}
     ]
 }

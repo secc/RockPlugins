@@ -88,6 +88,7 @@
     <Compile Include="PaginationJsonConverter.cs" />
     <Compile Include="Reporting\DataFilter\IncompleteCourseFilter.cs" />
     <Compile Include="Reporting\DataFilter\CompleteCourseFilter.cs" />
+    <Compile Include="Reporting\DataSelect\HasCompletedCourse.cs" />
     <Compile Include="Response\Event\CourseCompletedEvent.cs" />
     <Compile Include="Response\Event\CourseCompletedData.cs" />
     <Compile Include="Response\Event\CourseSubmittedEvent.cs" />
@@ -143,9 +144,7 @@
       <Name>Rock</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Reporting\DataSelect\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
