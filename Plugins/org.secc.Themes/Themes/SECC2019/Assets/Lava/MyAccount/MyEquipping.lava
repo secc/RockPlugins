@@ -1,0 +1,55 @@
+<style>
+.card-max-w {
+    max-width: 300px;
+}
+</style>
+<section>
+<h5 class="g-padding-l-60--xs g-font-weight--600">Connection</h5>
+{[ swiperjs ]}
+    [[ item ]]
+        <div class="event-calendar g-margin-b-5--xs">
+            <div class="card card-max-w">
+                <a href="/events/starting-point" class="eventCardLink">
+                    <div class="img-hover">
+                        <img src="https://southeastchristian.org/GetImage.ashx?id=1998421&amp;w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+                    </div>
+                </a> 
+                <div class="g-padding-x-30--xs g-padding-y-30--xs text-left">
+                    <h5 class="g-padding-b-0--xs g-font-weight--600">Starting Point</h5>
+                </div>
+            </div>
+        </div>
+    [[ enditem ]]
+
+    [[ item ]]
+        <div class="event-calendar g-margin-b-5--xs">
+            <div class="card card-max-w">
+                <a href="/events/membership" class="eventCardLink">
+                    <div class="img-hover">
+                        <img src="https://www.southeastchristian.org/GetImage.ashx?id=1999706&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+                    </div>
+                </a> 
+                <div class="g-padding-x-30--xs g-padding-y-30--xs text-left">
+                    <h5 class="g-padding-b-0--xs g-font-weight--600">Membership</h5>
+                </div>
+            </div>
+        </div>
+    [[ enditem ]]
+
+    [[ item ]]
+        <div class="event-calendar g-margin-b-5--xs">
+            <div class="card card-max-w">
+                <a href="/events/forever-treasure" class="eventCardLink">
+                    <div class="img-hover">
+                        <img src="https://www.southeastchristian.org/GetImage.ashx?id=2025461&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+                    </div>
+                </a> 
+                <div class="g-padding-x-30--xs g-padding-y-30--xs text-left">
+                    <h5 class="g-padding-b-0--xs g-font-weight--600">Forever Treasure</h5>
+                </div>
+            </div>
+        </div>
+    [[ enditem ]]
+    
+{[ endswiperjs ]}
+</section>
