@@ -1,6 +1,7 @@
+{% comment %}{% include '/Themes/SECC2019/Assets/Lava/MyAccount/MobileAccountNav.lava' %}{% endcomment %}
 {% assign currentPage = 'Global' | Page:'Path' %}
-<link rel="stylesheet" href="/Themes/SECC2019/Scripts/swiperjs/swiper-bundle.min.css">
-<script src="/Themes/SECC2019/Scripts/swiperjs/swiper-bundle.min.js"></script>
+{{ '/Themes/SECC2019/Scripts/swiperjs/swiper-bundle.min.css' | AddCssLink }}
+{{ '/Themes/SECC2019/Scripts/swiperjs/swiper-bundle.min.js' | AddScriptLink }}
 
 <section class="g-display-block--xs g-display-block--sm g-display-none--md">
 <style>
@@ -72,6 +73,12 @@
     <!-- Additional required wrapper -->
     <div class="swiper-wrapper">
         <!-- Slides -->
+        <div class="swiper-slide {% if currentPage == '/MyEquipping' %} active {% endif %}">
+            <div clas="swipter-menu-item">
+                <a href="/MyEquipping"><i class="fal fa-user-circle fa-2x" style="vertical-align: middle"></i> 
+                <br />Equipping</a>
+            </div>
+        </div>
         <div class="swiper-slide {% if currentPage == '/MyAccount' %} active {% endif %}">
             <div clas="swipter-menu-item">
                 <a href="/MyAccount"><i class="fal fa-user-circle fa-2x" style="vertical-align: middle"></i> 
