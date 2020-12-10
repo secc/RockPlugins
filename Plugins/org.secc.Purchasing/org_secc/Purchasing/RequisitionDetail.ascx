@@ -413,7 +413,7 @@
                                     <ItemTemplate>
                                         <asp:LinkButton ID="lbResubmit" runat="server" Visible="false" Text="Resubmit" CommandName="resubmit" CssClass="btn btn-default" />
                                         <asp:LinkButton ID="lbApprove" runat="server" Visible="false" Text="Approve" CommandName="approve" CssClass="btn btn-default" />
-                                        <asp:LinkButton ID="lbApproveForward" runat="server" Visible="false" Text="Approve & Forward" CommandName="approveForward" CssClass="btn btn-default" />
+                                        <asp:LinkButton ID="lbApproveForward" runat="server" Visible="false" Text="Approve & Add Another Approver" CommandName="approveForward" CssClass="btn btn-default" />
                                         <asp:LinkButton ID="lbDeny" runat="server" Visible="false" Text="Decline" CommandName="decline" CssClass="btn btn-default" />
                                         <asp:LinkButton ID="lbRemove" runat="server" CommandName="Remove" Visible="false" class="btn btn-default">
                                             <i class="fa fa-remove"></i>
