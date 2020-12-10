@@ -9,7 +9,7 @@
         <a href="/my-classes"><i class="fal fa-users-class fa-2x"></i> Classes</a>
     </li>  {% endcomment %}
     <li {% if currentPage == '/my-classes' %} class="active" {% endif %}>
-        <a href="/MyEquipping"><i class="fal fa-users-class fa-2x"></i> Equipping</a>
+        <a href="/MyEquipping"><i class="fal fa-shovel fa-2x"></i> Equipping</a>
     </li>
     <li {% if currentPage == '/MyGiving' %} class="active" {% endif %}>
         <a href="/MyGiving"><i class="fal fa-heart fa-2x"></i> Giving</a>

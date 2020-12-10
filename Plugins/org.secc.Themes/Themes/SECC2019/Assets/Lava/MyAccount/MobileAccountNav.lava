@@ -75,7 +75,7 @@
         <!-- Slides -->
         <div class="swiper-slide {% if currentPage == '/MyEquipping' %} active {% endif %}">
             <div clas="swipter-menu-item">
-                <a href="/MyEquipping"><i class="fal fa-user-circle fa-2x" style="vertical-align: middle"></i> 
+                <a href="/MyEquipping"><i class="fal fa-shovel fa-2x" style="vertical-align: middle"></i> 
                 <br />Equipping</a>
             </div>
         </div>
