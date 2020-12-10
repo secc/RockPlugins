@@ -2136,17 +2136,22 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 ddlMinistry.Items.Clear();
 
-                IEnumerable<DefinedValueCache> values = null;
+                List<DefinedValueCache> values = new List<DefinedValueCache>();
 
                 if ( !UserCanEdit )
                 {
                     CurrentPerson.LoadAttributes();
                     var ministryGuids = CurrentPerson.AttributeValues[MinistryAreaAttribute.Key].Value.Split( ',' ).AsGuidList();
-                    values = DefinedValueCache.All().Where( dv => ministryGuids.Contains( dv.Guid ) ).OrderBy( l => l.Value );
+                    values = DefinedValueCache.All().Where( dv => ministryGuids.Contains( dv.Guid ) ).OrderBy( l => l.Value ).ToList();
                 }
                 else
                 {
-                    values = DefinedTypeCache.Get( ministryAttribute.AttributeQualifiers.Where( aq => aq.Key == "definedtype" ).FirstOrDefault().Value.AsInteger() ).DefinedValues.OrderBy( l => l.Value );
+                    values = DefinedTypeCache.Get( ministryAttribute.AttributeQualifiers.Where( aq => aq.Key == "definedtype" ).FirstOrDefault().Value.AsInteger() ).DefinedValues.OrderBy( l => l.Value ).ToList();
+                }
+                // Make sure the current requisition's ministry is in the list
+                if ( CurrentRequisition.MinistryLUID > 0 && !values.Any(dv => dv.Id == CurrentRequisition.MinistryLUID ) )
+                {
+                    values.Add( DefinedValueCache.Get( CurrentRequisition.MinistryLUID ) );
                 }
 
                 ddlMinistry.DataSource = values;
