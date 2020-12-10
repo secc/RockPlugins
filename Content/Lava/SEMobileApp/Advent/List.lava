@@ -21,6 +21,7 @@
         {%- for item in Items -%}
             {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
             {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+            {%- assign video = item | Attribute:'Vimeo', 'RawValue' -%}
             {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
 				{%- assign resourcesCount = 0 -%}
 				{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
@@ -36,7 +37,7 @@
                     "images":[
                         { "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/advent/devotional-button/{{-item.Guid-}}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,80,80,0"  }
                     ],
-                    {%- if resourcesCount != 0 -%}
+                    {%- if resourcesCount != 0 or video != '' -%}
                         {%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/advent/tab/" | Append:item.Id -%}
 					    "actions": [{
                             "handler": "subtabs",
