@@ -2149,7 +2149,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     values = DefinedTypeCache.Get( ministryAttribute.AttributeQualifiers.Where( aq => aq.Key == "definedtype" ).FirstOrDefault().Value.AsInteger() ).DefinedValues.OrderBy( l => l.Value ).ToList();
                 }
                 // Make sure the current requisition's ministry is in the list
-                if ( CurrentRequisition.MinistryLUID > 0 && !values.Any(dv => dv.Id == CurrentRequisition.MinistryLUID ) )
+                if ( CurrentRequisition != null && CurrentRequisition.MinistryLUID > 0 && !values.Any(dv => dv.Id == CurrentRequisition.MinistryLUID ) )
                 {
                     values.Add( DefinedValueCache.Get( CurrentRequisition.MinistryLUID ) );
                 }
