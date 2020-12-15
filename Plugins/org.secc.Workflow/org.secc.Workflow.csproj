@@ -93,6 +93,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CMS\ClearCacheTags.cs" />
+    <Compile Include="Communication\SendSms.cs" />
     <Compile Include="Media\ImageMontage.cs" />
     <Compile Include="Media\FFmpeg.cs" />
     <Compile Include="Person\GetPersonFromFields.cs" />
@@ -109,7 +110,6 @@
     <Compile Include="WorkflowControl\DeleteVisitActivity.cs" />
     <Compile Include="WorkflowControl\ReActivateActivity.cs" />
     <Compile Include="WorkflowControl\ActivateWorkflowWithLava.cs" />
-    <Compile Include="WorkflowControl\SendSms.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
