@@ -1,0 +1,569 @@
+{% assign pageParamWeekendDate = 'Global' | PageParameter:'weekendDate' %}
+{%- assign currentDay = 'Now' | Date:'dddd' -%}
+{%- assign subtractDays = -14 -%}
+{%- if today == "Saturday" or today == "Sunday" -%}
+    {%- assign subtractDays = -7 -%}
+{%- endif -%}
+
+{% assign selectedCampus = null %}
+{% for campus in Campuses %}
+	{% assign campusName = campus.Name | Downcase | Replace:" ",""  %}
+	{% if campus.Id == pageParamCampusId or campusName == pageParamCampus %}
+		{% assign selectedCampus = campus %}
+		{% break %}
+	{% endif %}
+{% endfor %}
+
+<style>
+   .select2-container--default .select2-selection--single .select2-selection__rendered {
+        color: #ffffff;
+   }
+   .select2-container--default .select2-selection--single {
+        background-color: transparent;
+        border: 3px solid #ffffff;
+        border-radius: 40px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow b:before {
+        border-color: #fff;
+    }
+    .select2-container--open .select2-dropdown--above,
+    .select2-container--open .select2-dropdown--below {
+        border-radius: 7px;
+    }
+</style>
+
+<div class="container-fluid g-padding-x-0--xs g-padding-y-0--xs">
+    {% comment %}
+    ----------------------------------------------------------------------
+    ------------------------ SE ENGAGEMENT HEADER ------------------------
+    -------------------------------------------------------{% endcomment %}
+    <div class="row g-margin-x-0--xs g-margin-b-50--xs g-display-flex--lg" style="background-color: #6771DC; border-radius: 30px">
+        <div class="g-padding-y-150--xs g-padding-x-75--xs col-md-12 col-lg-5" style="background-color: #67B7DC;border-radius: 30px;">
+            <div class="g-width-100-percent--xs">
+                <img src="/Content/Ministries/SEEngage.svg" class="img-responsive g-margin-x-auto--xs g-center--xs g-padding-x-40--xs">
+            </div>
+        </div>
+        <div class="col-lg-7 col-md-12 g-position--relative">
+
+            <div class="g-width-100-percent--xs g-padding-x-60--xs g-padding-y-60--xs g-center--lg g-position--relative">
+                <h5 class="g-color--primary">Here you’ll find a snapshot of our latest engagement numbers. Whether it’s how many people tuned in to SE Online, the number of followers and interactions on our social media platforms, or the latest giving total and where those dollars are coming from throughout the world, it’s all here—all at a glance.</h5>
+                <br />
+                {%- assign currentDate = 'Now' | Date:'MM/dd/yyyy' -%}
+                {%- assign startingDate = '10/24/2020' -%}
+                {%- assign sinceStartingWeek =  startingDate | DateDiff:currentDate,'d' | DividedBy:7 | Floor -%}
+                {%- assign weeklyCount = sinceStartingWeek | AtMost:52 -%}
+        
+                <select class="select2-campuses select-css g-width-350--xs g-margin-t-20--xs" name="campus" data-control="#groupFilters">
+                    {% assign selectedCampus = 'Global' | PageParameter:'campus' | Downcase | Replace:" ","" %}
+                    <option value="allCampuses" data-shortcode="SE" data-campus="" {% if selectedCampus == null %} selected="selected"{% endif %}>Select a Campus</option>
+                    {% for campus in Campuses %}
+                        {% assign publicCampus = campus | Attribute:'Public' %}
+                        {% if publicCampus == 'Yes' %}
+                            {% assign campusName = campus.Name | Downcase | Replace:" ","" %}
+                            <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campusName }}"{% if selectedCampus == campusName %} selected="selected"{% endif %}>
+                                {{ campus.Name }}
+                            </option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+
+                <select class="select2-weekend select-css g-width-350--xs g-margin-t-20--xs" id="selectWeekend">
+                    {% assign weekendParam = 'Global' | PageParameter:'weekend' | Downcase  %}
+                    {% for i in (1..weeklyCount) %}
+                    {%- assign weekendDate = "Now"  | SundayDate | DateAdd:subtractDays | Date:'yyyy-MM-dd' -%}
+                    <option value="{{ weekendDate }}" {% if weekendParam == weekendDate %}selected="selected"{% endif %}>{{ weekendDate | Date:'MMM. dd, yyyy' }}</option>
+                    {%- assign subtractDays = subtractDays | Minus:7 -%}
+                    {% endfor %}
+                </select>
+
+            </div>
+
+        </div>
+    </div>
+    
+    {% comment %} --------------------------------------------------
+    ---------------------------- DIVIDER ---------------------------
+    ------------------------------------------------ {% endcomment %}
+    <div class="row g-padding-x-40--xs g-margin-x-0--xs g-margin-b-50--xs g-text-center--xs g-position--relative">
+        <hr style="border-color: #4D4D4D;position: relative;">
+        <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
+            {% comment %} BLANKENBAKER CAMPUS SCORECARD {% endcomment %}
+            Select a Campus
+        </h4>
+    </div>
+
+    <style>
+    .metric-icon {
+        display: block;
+        background-color: #6771DC;
+        border-radius: 50%;
+        width: 15rem;
+        height: 15rem;
+        position: relative;
+        margin: 10px auto;
+    }
+    .metric-num {
+        color: #67B7DC !important;
+    }
+    </style>
+    <div class="row g-margin-x-0--xs g-margin-x-0--md g-position--relative">
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Worship Attendance</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <div class="metric-icon">
+                            <span class="img-responsive g-margin-x-auto--xs g-center--xs g-width-70-percent--xs">
+                            {[ vivus svg:'/Content/Ministries/church2.svg' fill:'#ffffff' duration:'50' ]}
+                            </span>
+                        </div>
+                        
+                        <h1 class="metric-num g-font-weight--800">
+                            9,849
+                        </h1>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Serving</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <div class="metric-icon">
+                            <span class="img-responsive g-margin-t-10--xs g-margin-x-auto--xs g-center--xs g-width-70-percent--xs">
+                            {[ vivus svg:'/Content/Ministries/serving.svg' fill:'#ffffff' duration:'50' ]}
+                            </span>
+                        </div>
+                        
+                        <h1 class="metric-num g-font-weight--800">
+                            649
+                        </h1>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Baptisms</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <div class="metric-icon">
+                            <span class="img-responsive g-margin-x-auto--xs g-center--xs g-width-70-percent--xs">
+                            {[ vivus svg:'/Content/Ministries/baptism.svg' fill:'#ffffff' duration:'50' ]}
+                            </span>
+                        </div>
+                        
+                        <h1 class="metric-num g-font-weight--800">
+                            19
+                        </h1>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-margin-x-0--xs g-margin-x-0--md g-position--relative">
+        <div class="col-lg-4 col-lg-offset-2">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Group Attendance</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <div class="metric-icon">
+                            <span class="img-responsive g-margin-x-auto--xs g-center--xs g-width-70-percent--xs">
+                            {[ vivus svg:'/Content/Ministries/groups.svg' fill:'#ffffff' duration:'50' ]}
+                            </span>
+                        </div>
+                        
+                        <h1 class="metric-num g-font-weight--800">
+                            3,805
+                        </h1>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Giving</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <div class="metric-icon">
+                            <span class="img-responsive g-margin-x-auto--xs g-center--xs g-width-70-percent--xs">
+                            {[ vivus svg:'/Content/Ministries/Giving.svg' fill:'#ffffff' duration:'50' ]}
+                            </span>
+                        </div>
+                        
+                        <h1 class="metric-num g-font-weight--800">
+                            997,545
+                        </h1>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+    {% comment %} --------------------------------------------------
+    ---------------------------- DIVIDER ---------------------------
+    ------------------------------------------------ {% endcomment %}
+    <div class="row g-padding-x-0--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
+        <hr style="border-color: #4D4D4D;position: relative;">
+        <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
+            Worship Attendance
+        </h4>
+    </div>
+
+    <div class="row g-margin-x-0--xs g-margin-x-0--md g-position--relative">
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Week of 11/1/2020</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <h1 class="metric-num g-font-weight--800">
+                            27,035 
+                        </h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Current Year to Date Average</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <h1 class="metric-num g-font-weight--800">
+                            27,235
+                        </h1>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- 2019 Average</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <h1 class="metric-num g-font-weight--800">
+                            1,532 <i class="fas fa-arrow-alt-circle-down" style="color: #DC6967;"></i>
+                        </h1>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {% comment %} --------------------------------------------------
+    ---------------------------- DIVIDER ---------------------------
+    ------------------------------------------------ {% endcomment %}
+    <div class="row g-padding-x-40--xs g-margin-x-0--xs g-margin-b-50--xs g-text-center--xs g-position--relative">
+        <hr style="border-color: #4D4D4D;position: relative;">
+        <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
+            Serving
+        </h4>
+    </div>
+
+    <div class="row g-margin-x-0--xs g-position--relative">
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Number Engaged</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <h1 class="metric-num g-font-weight--800">
+                            649
+                        </h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Previous Year End Number Engaged</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <h1 class="metric-num g-font-weight--800">
+                            723
+                        </h1>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- 2019 Average</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <h1 class="metric-num g-font-weight--800">
+                            74 <i class="fas fa-arrow-alt-circle-down" style="color: #DC6967;"></i>
+                        </h1>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {% comment %} --------------------------------------------------
+    ---------------------------- DIVIDER ---------------------------
+    ------------------------------------------------ {% endcomment %}
+    <div class="row g-padding-x-40--xs g-margin-x-0--xs g-margin-b-50--xs g-text-center--xs g-position--relative">
+        <hr style="border-color: #4D4D4D;position: relative;">
+        <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
+            Baptisms
+        </h4>
+    </div>
+
+    <div class="row g-margin-x-0--xs g-position--relative">
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Week of 11/1/2020</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <h1 class="metric-num g-font-weight--800">
+                            19
+                        </h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Year to Date</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <h1 class="metric-num g-font-weight--800">
+                            390
+                        </h1>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- 2019 Average</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <h1 class="metric-num g-font-weight--800">
+                            632 <i class="fas fa-arrow-alt-circle-up" style="color: #A0DC67;"></i>
+                        </h1>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {% comment %} --------------------------------------------------
+    ---------------------------- DIVIDER ---------------------------
+    ------------------------------------------------ {% endcomment %}
+    <div class="row g-padding-x-40--xs g-margin-x-0--xs g-margin-b-50--xs g-text-center--xs g-position--relative">
+        <hr style="border-color: #4D4D4D;position: relative;">
+        <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
+            Group Attendance
+        </h4>
+    </div>
+
+    <div class="row g-margin-x-0--xs g-position--relative">
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Number Engaged</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+                        <h1 class="metric-num g-font-weight--800">
+                            3,805
+                        </h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Previous Year End Number Engaged</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <h1 class="metric-num g-font-weight--800">
+                            3,539
+                        </h1>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- 2019 Average</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <h1 class="metric-num g-font-weight--800">
+                            266 <i class="fas fa-arrow-alt-circle-up" style="color: #A0DC67;"></i>
+                        </h1>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {% comment %} --------------------------------------------------
+    ---------------------------- DIVIDER ---------------------------
+    ------------------------------------------------ {% endcomment %}
+    <div class="row g-padding-x-40--xs g-margin-x-0--xs g-margin-b-50--xs g-text-center--xs g-position--relative">
+        <hr style="border-color: #4D4D4D;position: relative;">
+        <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
+            Giving
+        </h4>
+    </div>
+
+    <div class="row g-margin-x-0--xs g-position--relative">
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Week of 11/1/2020</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+                        <h1 class="metric-num g-font-weight--800">
+                            $997,545
+                        </h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Current Year to Date Average</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+                        <h1 class="metric-num g-font-weight--800">
+                            $1,196,543
+                        </h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- 2019 Average</h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+                        <h1 class="metric-num g-font-weight--800">
+                            $92,356 <i class="fas fa-arrow-alt-circle-up" style="color: #A0DC67;"></i>
+                        </h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+// Load Existing Params
+loadQueryStringParam();
+function loadQueryStringParam() {
+    function parseQueryString() {
+        var str = window.location.search;
+        var objURL = {};
+        str.replace(
+            new RegExp( "([^?=&]+)(=([^&]*))?", "g" ),
+            function( $0, $1, $2, $3, $4 ){
+                objURL[ $1 ] = $3;
+            }
+        );
+        return objURL;
+    };
+    var params = parseQueryString();
+    if (params) {
+        $("select.select2-campuses option[value='"+params["campusId"]+"']").attr("selected","selected");
+        $("select.select2-weekend option[value='"+params["weekend"]+"']").attr("selected","selected");
+    }
+}
+function updatePath(key, value) {    
+    baseUrl = [location.protocol, '//', location.host].join('');
+    parts = location.pathname.split('/');
+    // Set some defaults;
+    parts[1] = 'campus-scorecard';
+    parts[2] = parts[2]||'southeast';
+    parts[3] = parts[3]||'';
+    if (parts[3] == '') {
+        parts.pop();
+    }
+    // Set default part one of Events
+    if (key == 'campus') {
+        parts[2] = value||'southeast';
+    }
+    if (key == 'weekend') {
+        parts[3] = value||'all';
+    }
+    window.history.pushState({}, '', baseUrl + parts.join('/'));
+    console.log("key: " + key);
+    console.log( "value:" + value );
+    console.log( "parts:" + parts );
+    return parts.join( '/' );
+}
+
+$('.select2-campuses').select2({
+    placeholder: 'Location'
+});
+$('.select2-campuses').on('select2:select', function (e) {
+    e.preventDefault();
+    var campus_selected = e.params.data;
+    var newPath = updatePath('campus',$(campus_selected.element).data('campus'));
+});
+
+$('.select2-weekend').select2({
+    placeholder: 'Weekend'
+});
+$('.select2-weekend').on('select2:select', function (e) {
+    e.preventDefault();
+    var weekend_selected = e.params.data;
+    var newPath = updatePath('weekend',$(weekend_selected.element).val());
+});
+
+</script>
