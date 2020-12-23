@@ -20,6 +20,7 @@ using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Security;
 using System.Xml;
 using Microsoft.AspNet.SignalR;
 using org.secc.Rise;
@@ -89,7 +90,7 @@ namespace RockWeb.Plugins.org_secc.Rise
     [BooleanField( "Show Debug",
         Description = "Should administrators be shown a debug menu before being forwarded to Rise?",
         Key = AttributeKey.ShowDebug,
-        DefaultValue = "False",
+        DefaultValue = "True",
         Order = 8 )]
     public partial class RiseSamlRedirect : Rock.Web.UI.RockBlock
     {
@@ -151,9 +152,40 @@ namespace RockWeb.Plugins.org_secc.Rise
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
+            if (Context.Request.Form.Count > 0
+                && Context.Request.Form["SAMLRequest"] != null
+                && Context.Request.Form["Relay"] == null )
+            {
+                RelayRedirect();
+                return;
+            }
+            // Store the Relay State and the SAML Request in the Session
+            if ( Context.Request.Form.Count > 0
+                && Context.Request.Form["SAMLRequest"] != null
+                && Context.Request.Form["RelayState"] != null
+                && Context.Request.Form["Relay"] != null )
+            {
+                Session.Add( string.Format( "RiseSAMLRedirect_BlockId:{0}_SAMLRequest", this.BlockId ), Context.Request.Form["SAMLRequest"]);
+                Session.Add( string.Format( "RiseSAMLRedirect_BlockId:{0}_RelayState", this.BlockId ), Context.Request.Form["RelayState"] );
+            }
+
+            if ( CurrentPerson == null )
+            {
+                var site = RockPage.Layout.Site;
+                if ( site.LoginPageId.HasValue )
+                {
+                    site.RedirectToLoginPage( true );
+                }
+                else
+                {
+                    FormsAuthentication.RedirectToLoginPage();
+                }
+                return;
+            }
 
             if ( !Page.IsPostBack )
             {
+
                 if ( CurrentPerson.Email.IsNullOrWhiteSpace() )
                 {
                     //The user does not have an email address and we cannot continue
@@ -279,8 +311,10 @@ namespace RockWeb.Plugins.org_secc.Rise
             byte[] data = System.Convert.FromBase64String( response );
             var xml = System.Text.ASCIIEncoding.ASCII.GetString( data );
 
-            xml = FormatXML( xml );
-
+            if (xml.IsNotNullOrWhiteSpace())
+            {
+                xml = FormatXML( xml );
+            }
 
             ltDebug.Text = "If you had not been an administrator you would have had the following code posted to " + GetAttributeValue( AttributeKey.PostUrl ) + " <pre>" + xml.EncodeHtml() + "</pre>";
         }
@@ -319,7 +353,7 @@ namespace RockWeb.Plugins.org_secc.Rise
             }
             catch ( XmlException )
             {
-                // Handle the exception
+                // Handle the exception . . . Or don't ¯\_(ツ)_/¯
             }
 
             mStream.Close();
@@ -336,6 +370,30 @@ namespace RockWeb.Plugins.org_secc.Rise
             sb.AppendFormat( "<body onload='document.forms[0].submit()'>" );
             sb.AppendFormat( "<form action='{0}' method='post'>", GetAttributeValue( AttributeKey.PostUrl ) );
             sb.AppendFormat( "<input type='hidden' name='SAMLResponse' value='{0}'>", response );
+            if (Session[string.Format( "RiseSAMLRedirect_BlockId:{0}_RelayState", this.BlockId )] != null )
+            {
+                sb.AppendFormat( "<input type='hidden' name='RelayState' value='{0}'>", Session[string.Format( "RiseSAMLRedirect_BlockId:{0}_RelayState", this.BlockId )] );
+            }
+            sb.Append( "</form>" );
+            sb.Append( "</body>" );
+            sb.Append( "</html>" );
+            Response.Write( sb.ToString() );
+            Response.End();
+        }
+
+
+        private void RelayRedirect( )
+        {
+            Response.Clear();
+            var sb = new System.Text.StringBuilder();
+            sb.Append( "<html>" );
+            sb.Append( "<body onload='document.forms[0].submit()'>" );
+            sb.Append( "<form method='post'>" );
+            sb.Append( "<input type='hidden' name='Relay' value='True'>" );
+            foreach ( string key in Context.Request.Form.Keys )
+            {
+                sb.AppendFormat( "<input type='hidden' name='{0}' value='{1}'>", key, Context.Request.Form[key] );
+            }
             sb.Append( "</form>" );
             sb.Append( "</body>" );
             sb.Append( "</html>" );
