@@ -131,7 +131,7 @@ namespace RockWeb.Plugins.org_secc.Security
             var bindaryFileData = binaryFile.DatabaseData;
             var binaryData = bindaryFileData.Content;
 
-            X509Certificate2 signingCert = new X509Certificate2( binaryData, GetAttributeValue( AttributeKey.CertificatePassword ) );
+            X509Certificate2 signingCert = new X509Certificate2( binaryData, GetAttributeValue( AttributeKey.CertificatePassword ), X509KeyStorageFlags.Exportable );
 
             var attributeStatements = new Dictionary<string, string> {
                 {"FirstName", CurrentPerson.FirstName },
