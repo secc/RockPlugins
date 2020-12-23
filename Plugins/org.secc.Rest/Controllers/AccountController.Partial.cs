@@ -286,12 +286,12 @@ namespace org.secc.Rest.Controllers
                 }
 
                 List<FamilyMemberProfile> familyMembers = new List<FamilyMemberProfile>();
-                // Add the current person
 
                 FamilyMemberProfile familyMember = new FamilyMemberProfile();
                 foreach ( GroupMember member in currentUser.Person.GetFamilyMembers( true ) )
                 {
                     familyMember = new FamilyMemberProfile();
+                    familyMember.IsCurrentPerson = member.PersonId == currentUser.PersonId;
                     familyMember.FamilyRole = member.GroupRole.Name;
                     familyMember.FullName = member.Person.FullName;
                     familyMember.PersonId = member.Person.Id;
@@ -593,6 +593,10 @@ namespace org.secc.Rest.Controllers
         public class FamilyMemberProfile
         {
             public int PersonId { get; set; }
+            /// <summary>
+            /// This flag indicates that this is the current authenticated person
+            /// </summary>
+            public bool IsCurrentPerson { get; set; }
             public string FamilyRole { get; set; }
             public string FullName { get; set; }
             public Profile Profile { get; set; }
