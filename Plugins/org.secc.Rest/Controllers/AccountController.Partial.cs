@@ -41,6 +41,7 @@ namespace org.secc.Rest.Controllers
     /// </summary>
     public partial class AccountController : ApiController
     {
+        const int MINIMUM_AGE = 13;
 
         [Route( "api/account/create" )]
         [Authorize]
@@ -60,16 +61,24 @@ namespace org.secc.Rest.Controllers
                 // Validate the Model
                 if ( !string.IsNullOrEmpty( account.Username ) )
                 {
-                    
+                    // Make sure the username is unique
                     UserLogin user = userLoginService.GetByUserName( account.Username );
                     if ( user != null )
                     {
                         ModelState.AddModelError( "Account.Username", "Username already exists" );
                     }
 
+                    // Make sure the password is valid
                     if ( !UserLoginService.IsPasswordValid( account.Password ) )
                     {
                         ModelState.AddModelError( "Account.Password", UserLoginService.FriendlyPasswordRules() );
+                    }
+
+                    // Make sure this person meets the minimum age requirement
+                    var birthday = account.Birthdate ?? Rock.RockDateTime.Today;
+                    if ( RockDateTime.Today.AddYears( MINIMUM_AGE * -1 ) < birthday )
+                    {
+                        ModelState.AddModelError( "Account.Birthdate", string.Format( "We are sorry, you must be at least {0} years old to create an account.", MINIMUM_AGE ) );
                     }
                 }
                 if ( !ModelState.IsValid )
