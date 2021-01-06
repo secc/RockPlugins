@@ -17,23 +17,23 @@
 	    },
 		"colors":{
 	        "brand":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#121212"
 	        },
 			"theme":{
-	            "primary":"#121212",
+	            "primary":"#FFF",
 				"block":"#262626",
 	            "blockAccent":"#262626",
-	            "secondaryAccent":"#FFFFFF",
-	            "primaryAccent":"#FFFFFF"
+	            "secondaryAccent":"#121212",
+	            "primaryAccent":"#121212"
 	        },
 	        "topBar":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#121212"
 	        },
 	        "bottomBar":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#121212"
 	        },
 	        "brandableElements":"{{colors:brand}}"
 	    }
@@ -51,7 +51,7 @@
         {{- comma -}}{
 			"title": "SE!KIDS Check-in",
             "images":[
-			    { "width":800, "url":"https://app.secc.org/webhooks/ImageGenerator.ashx/checkin?width=1544&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+			    { "width":800, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/checkin?width=1544&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 		    ]{%- if forloop.index == 3 or forloop.index == 9 or forloop.index == 10 -%},"actions":[{
                 "handler":"browser",
 				"type":"navigation",
