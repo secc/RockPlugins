@@ -330,5 +330,20 @@
                 $(".add-your-spot").addClass('goodbye');
             }
             
+			// Attempt to get location access and zoom the map appropriately
+            if (navigator.geolocation) {
+			  navigator.geolocation.getCurrentPosition(
+				(position) => {
+				  const pos = {
+					lat: position.coords.latitude,
+					lng: position.coords.longitude,
+				  };
+				  map.setCenter(pos);
+				  map.setZoom(10);
+				},
+				() => {
+				}
+			  );
+			}
         });
     </script>

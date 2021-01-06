@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Xml;
@@ -29,8 +30,14 @@ namespace org.secc.Security.SAML2
             //SignedXml signedXML = new SignedXml(XMLSerializedSAMLResponse);
             SignedXml signedXML = new SignedXml( xeAssertion );
 
-            signedXML.SigningKey = SigningCert.PrivateKey;
-            signedXML.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
+            // Export private key from cert.PrivateKey and import into a PROV_RSA_AES provider:
+            var exportedKeyMaterial = SigningCert.PrivateKey.ToXmlString( /* includePrivateParameters = */ true );
+            var key = new RSACryptoServiceProvider( new CspParameters( 24 /* PROV_RSA_AES */) );
+            key.PersistKeyInCsp = false;
+            key.FromXmlString( exportedKeyMaterial );
+
+            signedXML.SigningKey = key;
+            signedXML.SignedInfo.SignatureMethod = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256";
 
             Reference reference = new Reference();
             reference.Uri = ReferenceURI;
