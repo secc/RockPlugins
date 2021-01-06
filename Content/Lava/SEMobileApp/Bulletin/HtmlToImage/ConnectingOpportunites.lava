@@ -32,7 +32,7 @@
             html, body {
               margin: 0px;
               padding: 0px;
-              background-color: #121212;
+              background-color: #ffffff;
             }
             .box {
               width: 1334px;
@@ -41,14 +41,14 @@
               {%- else -%}
               height: 824px;
               {%- endif -%}
-              background-color: #262626;
+              background-color: #e7e7e7;
               background-repeat: no-repeat;
               background-size: contain;
               background-position: top;
               overflow: hidden;
             }
             .box h4, .box h5, .box p {
-              color: white;
+              color: #000;
             }
             .content{
               padding: 5em 5em 5em 5em;
@@ -82,7 +82,7 @@
                 color: white;
                 background-color: #28A5BB;
                 text-align: center;
-                font-weight: 600;
+                font-weight: 700;
                 text-transform: uppercase;
                 {%- if connectImageGuid != "" -%}
                 border-radius: 120px 120px 0 0;
@@ -108,16 +108,16 @@
             <div class="content-box g-position--relative">
                 <div class="content">
                     {%- if connectTitle != "" -%}
-                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 45px; font-style: italic;">{{ connectTitle }}</h3>
+                	<h3 class="g-color--dark g-line-height g-font-weight--700" style="font-size: 45px; font-style: italic;">{{ connectTitle }}</h3>
                     {%- endif -%}
                     {%- if connectTitle2 != "" -%}
-                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 45px; font-style: italic;">{{ connectTitle2 }}</h3>
+                	<h3 class="g-color--dark g-line-height g-font-weight--700" style="font-size: 45px; font-style: italic;">{{ connectTitle2 }}</h3>
                     {%- endif -%}
                     {%- if connectTitle3 != "" -%}
-                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 45px; font-style: italic;">{{ connectTitle3 }}</h3>
+                	<h3 class="g-color--dark g-line-height g-font-weight--700" style="font-size: 45px; font-style: italic;">{{ connectTitle3 }}</h3>
                     {%- endif -%}
                     {%- if connectInfo != "" -%}
-                    <div class="g-color--white g-padding-t-20--xs g-line-height block-with-text">{{ connectInfo }}</div>
+                    <div class="g-color--dark g-padding-t-20--xs g-line-height block-with-text">{{ connectInfo }}</div>
                     {%- endif -%}
                 </div>
                 <div class="more">

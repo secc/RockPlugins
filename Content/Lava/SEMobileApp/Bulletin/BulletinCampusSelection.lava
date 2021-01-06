@@ -9,25 +9,25 @@
 	        "indicatorAspectRatio":1,
 	        "textPosition":"none"
 	    },
-		"colors":{
-	        "brand":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
-	        },
-	        "theme":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
-	        },
-	        "topBar":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
-	        },
-	        "bottomBar":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
-	        },
-	        "brandableElements":"{{colors:brand}}"
-	    }
+		"colors": {
+            "brand": {
+                "primary": "#FFFFFF",
+                "primaryAccent": "#121212"
+            },
+            "theme": {
+                "primary": "#FFFFFF",
+                "primaryAccent": "#121212"
+            },
+            "topBar": {
+                "primary": "#FFFFFF",
+                "primaryAccent": "#121212"
+            },
+            "bottomBar": {
+                "primary": "#FFFFFF",
+                "primaryAccent": "#121212"
+            },
+            "brandableElements":"{{colors:brand}}"
+        }
 	},
 	"items": [
 		  {%- assign comma = "" -%}
@@ -40,7 +40,7 @@
 	        {
 				"images":[
 				    {"width": 668,
-					"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/location/{{campus.Guid}}?bgcolor=121212&mode=crop&s.roundcorners=10"}
+					"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/location/{{campus.Guid}}?bgcolor=ffffff&mode=crop&s.roundcorners=10"}
 					],
 				"title":"{{campus.Name}}",
 				"actions": [{

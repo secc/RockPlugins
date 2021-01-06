@@ -24,20 +24,20 @@
 				"displayOptions":{
 					"colors": {
 						"brand":{
-							"primary":"#121212",
-							"primaryAccent":"#FFFFFF"
+							"primary":"#FFF",
+							"primaryAccent":"#121212"
 						},
 						"theme":{
-							"primary":"#121212",
-							"primaryAccent":"#FFFFFF"
+							"primary":"#FFF",
+							"primaryAccent":"#121212"
 						},
 						"topBar":{
-							"primary":"#121212",
-							"primaryAccent":"#FFFFFF"
+							"primary":"#FFF",
+							"primaryAccent":"#121212"
 						},
 						"bottomBar":{
-							"primary":"#121212",
-							"primaryAccent":"#FFFFFF"
+							"primary":"#FFF",
+							"primaryAccent":"#121212"
 						}
 					}
 				},

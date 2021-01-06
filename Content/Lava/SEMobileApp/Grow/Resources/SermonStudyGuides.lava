@@ -11,20 +11,20 @@
 	    },
 		"colors":{
 	        "brand":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#121212"
 	        },
 	        "theme":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#121212"
 	        },
 	        "topBar":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#121212"
 	        },
 	        "bottomBar":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#121212"
 	        },
 	        "brandableElements":"{{colors:brand}}"
 	    }
@@ -51,7 +51,7 @@
 						"subtitle": "{{- series.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  -}}",
 			            "images":[{
 							"width": 667,
-							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/grow/resources/listcard/{{- series.Guid -}}?mode=crop&s.roundcorners=20&bgcolor=121212"
+							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/grow/resources/listcard/{{- series.Guid -}}?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"
 						}],
 						"actions": [{
 							"handler": "{{- itemActionHandler -}}",

@@ -9,20 +9,20 @@
             html, body {
               margin: 0px;
               padding: 0px;
-              background-color: #262626;
+              background-color: #ffffff;
             }
             .box {
               /* margin: 0px 60px; */
               width: 1494px;
               height: 904px;
-              background-color: #121212;
+              background-color: #ffffff;
               border-radius: 0px 0px 0px 0px;
               background-repeat: no-repeat;
               background-size: contain;
               background-position: top;
             }
             .box h4, .box h5, .box p {
-              color: white;
+              color: #000;
             }
             .content {
                 overflow: hidden;
@@ -46,7 +46,7 @@
                 padding-left: 5em;
             }
             .connectTitle {
-                border-top: 3px solid #262626;
+                border-top: 3px solid #a6a6a6;
                 font-size: 4.0em;
                 padding: 60px 80px;
             }
@@ -65,7 +65,7 @@
         <div class="box">
             <div class="content">
                 <div class="content-container g-padding-t-150--xs">
-                    <h1 class="resourceTitle g-font-weight--600 g-color--white g-line-height">Welcome to Southeast Christian Church {{ campus.Name }} Campus</h1>
+                    <h1 class="resourceTitle g-font-weight--600 g-color--dark g-line-height">Welcome to Southeast Christian Church {{ campus.Name }} Campus</h1>
                     <p class="resourceInfo">{{ campus.Description }}</p>
                 </div>
                 <div class="content-container-connect">
@@ -83,7 +83,7 @@
                     {%- assign satSubtractDays = subtractDays | Plus:-1 -%}
                     {% assign saturdayBefore = "Now" | SundayDate | DateAdd:satSubtractDays | Date:'dd' %}
                     {% assign weekendDate = "Now" | SundayDate | DateAdd:subtractDays | Date:'MMMM SAT-SUN, 2020' | Replace:'SAT',saturdayBefore | Replace:'SUN',sundayBefore %}
-                    <h1 class="connectTitle g-font-weight--600 g-color--white g-line-height">Facts & Figures<br /><small class="g-color--white g-font-weight--500 uppercase">{{ weekendDate }}</small></h1>
+                    <h1 class="connectTitle g-font-weight--600 g-color--dark g-line-height">Facts & Figures<br /><small class="g-color--dark g-font-weight--500 uppercase">{{ weekendDate }}</small></h1>
                 </div>
             </div>
         </div>

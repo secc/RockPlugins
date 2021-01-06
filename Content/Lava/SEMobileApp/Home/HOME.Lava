@@ -2,33 +2,33 @@
 	"header": {
 		"title": "Home"
 	},
-	"displayOptions":{
-		"style":"stacked",
-		"contentWidthRatio":9.5,
-	    "itemDisplayOptions":{
-	        "indicatorAspectRatio":2.47407,
-	        "textPosition": "none"
-	    },
-		"colors":{
-	        "brand":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
-	        },
-	        "theme":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
-	        },
-	        "topBar":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
-	        },
-	        "bottomBar":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
-	        },
-	        "brandableElements":"{{colors:brand}}"
-	    }
-	},
+	"displayOptions": {
+        "style": "stacked",
+        "contentWidthRatio": 9.5,
+        "itemDisplayOptions": {
+            "indicatorAspectRatio": 2.47407,
+            "textPosition": "none"
+        },
+        "colors": {
+            "brand": {
+                "primary": "#FFFFFF",
+                "primaryAccent": "#121212"
+            },
+            "theme": {
+                "primary": "#FFFFFF",
+                "primaryAccent": "#121212"
+            },
+            "topBar": {
+                "primary": "#FFFFFF",
+                "primaryAccent": "#121212"
+            },
+            "bottomBar": {
+                "primary": "#FFFFFF",
+                "primaryAccent": "#121212"
+            },
+            "brandableElements": ""
+        }
+    },
 	"items": [
 	{%- contentchannelitem Id:'2087' -%}
 		{%- assign childItemsSorted = contentchannelitem.ChildItems | Sort:"Order" -%}
@@ -78,7 +78,7 @@
 						{
 							"images":[
 								{"width": 668,
-								"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+								"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"}
 								]
 							{%- if actionJson != "" -%}
 							,"actions":[{
@@ -101,7 +101,7 @@
 						{
 							"images":[
 								{"width": 668,
-								"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+								"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"}
 								]
 							{%- if actionJson != "" -%}
 							,"actions":[{
@@ -125,7 +125,7 @@
 					{
 						"images":[
 							{"width": 668,
-							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"}
 							]
 						{%- if actionJson != "" -%}
 						,"actions":[{

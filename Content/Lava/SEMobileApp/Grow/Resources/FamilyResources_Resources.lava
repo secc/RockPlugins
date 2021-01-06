@@ -62,7 +62,7 @@
 								"title": "{{ resource.Title }}",
 								"subtitle": "Download PDF",
 								"images":[
-									{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+									{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=FFFFFF&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 								],
 								"actions": [{
 									"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
@@ -90,7 +90,7 @@
 			{{ comma }}
 			{
 				"images":[
-					{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank121212.jpg"  }
+					{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlankFFFFFF.jpg"  }
 				]
 			}
     ]

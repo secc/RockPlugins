@@ -12,20 +12,20 @@
 	    },
 		"colors":{
 	        "brand":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#121212"
 	        },
 	        "theme":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#121212"
 	        },
 	        "topBar":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#121212"
 	        },
 	        "bottomBar":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#121212"
 	        },
 	        "brandableElements":"{{colors:brand}}"
 	    }
@@ -48,7 +48,7 @@
 				  {
 					  "images":[
 						  {"width": 668,
-						  "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/grow/resources/{{ item.ChildContentChannelItem.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=10"}
+						  "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/grow/resources/{{ item.ChildContentChannelItem.Guid }}?bgcolor=FFF&mode=crop&s.roundcorners=10"}
 						  ]
 					  {%- if actionJson != "" -%}
 					  ,"actions":[{

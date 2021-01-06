@@ -15,23 +15,23 @@
 	    },
 		"colors":{
 	        "brand":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#121212"
 	        },
 			"theme":{
-	            "primary":"#121212",
+	            "primary":"#FFF",
 				"block":"#262626",
 	            "blockAccent":"#262626",
-	            "secondaryAccent":"#FFFFFF",
-	            "primaryAccent":"#FFFFFF"
+	            "secondaryAccent":"#121212",
+	            "primaryAccent":"#121212"
 	        },
 	        "topBar":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#121212"
 	        },
 	        "bottomBar":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#121212"
 	        },
 	        "brandableElements":"{{colors:brand}}"
 	    }

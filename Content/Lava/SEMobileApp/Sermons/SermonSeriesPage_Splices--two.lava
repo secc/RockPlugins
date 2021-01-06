@@ -13,23 +13,23 @@
 	    },
 		"colors":{
 	        "brand":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#E7E7E7"
 	        },
 			"theme":{
-	            "primary":"#121212",
+	            "primary":"#FFF",
 				"block":"#262626",
 	            "blockAccent":"#262626",
-	            "secondaryAccent":"#FFFFFF",
-	            "primaryAccent":"#FFFFFF"
+	            "secondaryAccent":"#E7E7E7",
+	            "primaryAccent":"#E7E7E7"
 	        },
 	        "topBar":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#E7E7E7"
 	        },
 	        "bottomBar":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
+	            "primary":"#FFF",
+	            "primaryAccent":"#E7E7E7"
 	        },
 	        "brandableElements":"{{colors:brand}}"
 	    }
@@ -67,13 +67,13 @@
 		            "images":[
 						{%- assign seriesImageGuid = item | Attribute:'Image', 'RawValue' -%}
 						{%- if seriesImageGuid != empty -%}
-							{ "width":748, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=628&height=353&mode=crop&s.roundcorners=20,20,0,0&bgcolor=121212&format=png&margin=60,87,60,0&anchor=topcenter"  }
+							{ "width":748, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=628&height=353&mode=crop&s.roundcorners=20,20,0,0&bgcolor=ffffff&format=png&margin=60,87,60,0&anchor=topcenter"  }
 						{%- else -%}
 							{%- for child in item.ChildItems -%}
 							{%- assign seriesImage = child.ChildContentChannelItem | Attribute:'Image' -%}
 							{%- assign seriesImageGuid = child.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
 							{%- if seriesImage != empty -%}
-							{ "width":748, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=628&height=353&mode=crop&s.roundcorners=20,20,0,0&bgcolor=121212&format=png&margin=60,87,60,0&anchor=topcenter"  }
+							{ "width":748, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{seriesImageGuid}}.jpg?guid={{seriesImageGuid}}&width=628&height=353&mode=crop&s.roundcorners=20,20,0,0&bgcolor=ffffff&format=png&margin=60,87,60,0&anchor=topcenter"  }
 							{%- break -%}
 							{%- endif %}
 							{%- endfor -%}

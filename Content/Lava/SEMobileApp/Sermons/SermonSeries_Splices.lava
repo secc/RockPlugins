@@ -33,8 +33,8 @@
 		},
 		"colors":{
 			"brand":{
-            "primary":"#121212",
-            "primaryAccent":"#000000"
+            "primary":"#fff",
+            "primaryAccent":"#121212"
 	        }
 	    }
     },
@@ -57,7 +57,7 @@
 				"title": "{{sermon.Title | Replace:'"','\"'}}",
 				"subtitle": "{{ sermon | Attribute:'Speaker' | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }} {{ '&bull;' | HtmlDecode }} {{ sermon.StartDateTime | Date:'MMMM d, yyyy' }}",
 				"images":[
-					{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/button/{{sermon.Guid}}?bgcolor=121314&mode=crop&s.roundcorners=40&margin=80,80,80,0"  }
+					{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/button/{{sermon.Guid}}?bgcolor=FFFFFF&mode=crop&s.roundcorners=40&margin=80,80,80,0"  }
 				],
 				"actions": [{
 					{%- if Headers.sap-app-version >= '5.4.0' -%}
@@ -95,7 +95,7 @@
 		{%- endif -%}
 		,{
 			"images":[
-				{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank121212.jpg"  }
+				{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlankFFFFFF.jpg"  }
 			]
 		}
     ]

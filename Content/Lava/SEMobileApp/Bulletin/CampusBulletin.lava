@@ -83,7 +83,7 @@
 						{%- if connectImageGuid == "" -%} 
 						,{
 							"images": [
-								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/connect/{{item.Guid}}?bgcolor=121212&mode=crop&s.roundcorners=20,20,20,20&margin=80,0,80,80"  }
+								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/connect/{{item.Guid}}?bgcolor=fff&mode=crop&s.roundcorners=20,20,20,20&margin=80,0,80,80"  }
 							]
 							{%- if connectUrl != "" -%}
 							,"actions": [{
@@ -98,7 +98,7 @@
 						{%- else -%}
 						,{
 							"images": [
-								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/connect/{{item.Guid}}?bgcolor=121212&s.roundcorners=20,20,0,0&margin=80,0,80,0&width=1494&crop=(0,0,1494,904)&anchor=topcenter&format=jpg"  }
+								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/connect/{{item.Guid}}?bgcolor=fff&s.roundcorners=20,20,0,0&margin=80,0,80,0&width=1494&crop=(0,0,1494,904)&anchor=topcenter&format=jpg"  }
 							]
 							{%- if connectUrl != "" -%}
 							,"actions": [{
@@ -111,7 +111,7 @@
 							{% endif %}
 						},{
 							"images": [
-								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/connect/{{item.Guid}}?bgcolor=121212&s.roundcorners=0,0,20,20&margin=80,0,80,80&width=1494&crop=(0,905,1494,1729)&anchor=topcenter&format=jpg"  }
+								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/connect/{{item.Guid}}?bgcolor=fff&s.roundcorners=0,0,20,20&margin=80,0,80,80&width=1494&crop=(0,905,1494,1729)&anchor=topcenter&format=jpg"  }
 							]
 							{%- if connectUrl != "" -%}
 							,"actions": [{

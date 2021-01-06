@@ -18,13 +18,13 @@
             html, body {
               margin: 0px;
               padding: 0px;
-              background-color: #121212;
+              background-color: #ffffff;
             }
             .box {
               /* margin: 0px 60px; */
               width: 1334px;
               height: 528px;
-              background-color: #262626;
+              background-color: #e7e7e7;
               border-radius: 0px 0px 0px 0px;
               background-repeat: no-repeat;
               background-size: contain;
@@ -62,7 +62,7 @@
             <div class="thumb">
             </div>
             <div class="content g-position--relative">
-                <h1 class="resourceTitle pull-left g-padding-x-150--xs g-width-100-percent--xs g-center--xs g-font-weight--600 g-color--white">
+                <h1 class="resourceTitle pull-left g-padding-x-150--xs g-width-100-percent--xs g-center--xs g-font-weight--600 g-color--dark">
                     <div class="truncate-info">{{ item.Title }}</div>{%- if smallPrint != "" -%}<small class="g-padding-t-40--xs" style="color:grey; font-weight: 500; position:relative;">{{ smallPrint }}</small>{%- endif -%}
                 </h1>
             </div>

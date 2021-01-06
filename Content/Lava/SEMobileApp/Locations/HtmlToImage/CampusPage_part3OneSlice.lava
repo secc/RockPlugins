@@ -9,14 +9,14 @@
             html, body {
               margin: 0px;
               padding: 0px;
-              background-color: #121212;
+              background-color: #fff;
               color: white;
               height: 574.666666666666667;
               overflow-y: hidden;
             }
-            a,p,h1,h2,h3,h4,h5,h6,span,div {
+            /*a,p,h1,h2,h3,h4,h5,h6,span,div {
                 color: white !important;
-            }
+            }*/
             #CampusBody {
                 position: relative;
                 width: 100%;

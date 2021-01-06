@@ -9,20 +9,20 @@
             html, body {
               margin: 0px;
               padding: 0px;
-              background-color: #262626;
+              background-color: #ffffff;
             }
             .box {
               /* margin: 0px 60px; */
               width: 1494px;
               height: 904px;
-              background-color: #121212;
+              background-color: #ffffff;
               border-radius: 0px 0px 0px 0px;
               background-repeat: no-repeat;
               background-size: contain;
               background-position: top;
             }
             .box h4, .box h5, .box p {
-              color: white;
+              color: #000;
             }
             .content {
                 overflow: hidden;
@@ -46,7 +46,7 @@
                 padding-left: 5em;
             }
             .connectTitle {
-                border-top: 3px solid #262626;
+                border-top: 3px solid #a6a6a6;
                 font-size: 4.0em;
                 padding: 60px 80px;
             }
@@ -133,37 +133,37 @@
             <div class="content">
                 <div class="content-container">
                     <div class="g-margin-b-50--xs g-display-inline-block--xs" style="width: 100%;">
-                        <div class="text-center g-overflow--hidden g-bg-color--2020-seapp-grey pull-left"
+                        <div class="text-center g-overflow--hidden g-bg-color--gray-lightest pull-left"
                             style="border-radius:3.5em; width: 47.5%; margin: 0 1.25%;">
-                            <h1 class="g-color--white g-bg-color--2020-seapp-blue-dark g-padding-y-70--xs
+                            <h1 class="g-color--dark g-bg-color--2020-seapp-blue-dark g-font-weight--800 g-color--white uppercase g-padding-y-70--xs
                                 g-padding-x-50--xs g-font-weight--600">
                                 Church-Wide Attendance</h1>
-                            <h1 class="g-color--white g-padding-y-60--xs g-font-size-130--xs g-font-weight--700">{{ total | Format:'#,##0' }}</h1>
+                            <h1 class="g-color--dark g-padding-y-60--xs g-font-size-130--xs g-font-weight--700">{{ total | Format:'#,##0' }}</h1>
                         </div>
-                        <div class="text-center g-overflow--hidden g-bg-color--2020-seapp-grey pull-left"
+                        <div class="text-center g-overflow--hidden g-bg-color--gray-lightest pull-left"
                             style="border-radius:3.5em; width: 47.5%; margin: 0 1.25%;">
-                            <h1 class="g-color--white g-bg-color--2020-seapp-blue-dark g-padding-y-70--xs
+                            <h1 class="g-color--dark g-bg-color--2020-seapp-blue-dark g-font-weight--800 g-color--white uppercase g-padding-y-70--xs
                                 g-padding-x-50--xs g-font-weight--600">Campus Attendance</h1>
-                            <h1 class="g-color--white g-padding-y-60--xs g-font-size-130--xs g-font-weight--700">{{ campusTotal | Format:'#,##0' }}</h1>
+                            <h1 class="g-color--dark g-padding-y-60--xs g-font-size-130--xs g-font-weight--700">{{ campusTotal | Format:'#,##0' }}</h1>
                         </div>
                     </div>
                     <div class="g-margin-b-50--xs g-display-inline-block--xs" style="width: 100%;">
-                        <div class="text-center g-overflow--hidden g-bg-color--2020-seapp-grey pull-left"
+                        <div class="text-center g-overflow--hidden g-bg-color--gray-lightest pull-left"
                             style="border-radius:3.5em; width: 47.5%; margin: 0 1.25%;">
-                            <h1 class="g-color--white g-bg-color--2020-seapp-blue-dark g-padding-y-70--xs
+                            <h1 class="g-color--dark g-bg-color--2020-seapp-blue-dark g-font-weight--800 g-color--white uppercase g-padding-y-70--xs
                                 g-padding-x-50--xs g-font-weight--600">Campus General Offering</h1>
-                            <h1 class="g-color--white g-padding-y-60--xs g-font-size-130--xs g-font-weight--700">{{ campusGeneralFund | FormatAsCurrency }}</h1>
+                            <h1 class="g-color--dark g-padding-y-60--xs g-font-size-130--xs g-font-weight--700">{{ campusGeneralFund | FormatAsCurrency }}</h1>
                         </div>
-                        <div class="text-center g-overflow--hidden g-bg-color--2020-seapp-grey pull-left"
+                        <div class="text-center g-overflow--hidden g-bg-color--gray-lightest pull-left"
                             style="border-radius:3.5em; width: 47.5%; margin: 0 1.25%;">
-                            <h1 class="g-color--white g-bg-color--2020-seapp-blue-dark g-padding-y-70--xs
+                            <h1 class="g-color--dark g-bg-color--2020-seapp-blue-dark g-font-weight--800 g-color--white uppercase g-padding-y-70--xs
                                 g-padding-x-50--xs g-font-weight--600">Campus Building Fund</h1>
-                            <h1 class="g-color--white g-padding-y-60--xs g-font-size-130--xs g-font-weight--700">{{ campusBuildingFund | FormatAsCurrency }}</h1>
+                            <h1 class="g-color--dark g-padding-y-60--xs g-font-size-130--xs g-font-weight--700">{{ campusBuildingFund | FormatAsCurrency }}</h1>
                         </div>
                     </div>
                 </div>
                 <div class="content-container-connect">
-                    <h1 class="connectTitle g-font-weight--600 g-color--white g-line-height">Connecting Opportunities</h1>
+                    <h1 class="connectTitle g-font-weight--600 g-color--dark g-line-height">Connecting Opportunities</h1>
                 </div>
             </div>
         </div>

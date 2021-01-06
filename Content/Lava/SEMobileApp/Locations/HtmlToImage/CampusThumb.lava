@@ -23,7 +23,7 @@
               background-size: cover;
             }
             .box::after {
-                background-color: rgba(0, 0, 0, 0.6);
+                background-color: rgba(0, 0, 0, 0.3);
                 top: 0;
                 left: 0;
                 width: 100%;
@@ -59,7 +59,7 @@
         <div class="box">
             <div class="overlay">
                 <div class="middle">
-                    <h1 class="g-font-family--secondary" style="font-size: 6.2em;">{{ campus.Name }}</h1>
+                    <h1 class="g-font-weight--800 g-color--white g-line-height uppercase g-letter-spacing--3" style="font-size: 5.5em;">{{ campus.Name }}</h1>
                 </div>
             </div>
         </div>
