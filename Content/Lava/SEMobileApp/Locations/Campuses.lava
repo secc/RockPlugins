@@ -1,3 +1,10 @@
+{%- assign cacheOS = '' -%}
+{%- if Headers.sap-device-os == 'Android' -%}
+	{%- assign cacheOS = 'Android' -%}
+{%- else -%}
+	{%- assign cacheOS = 'iOS' -%}
+{%- endif -%}
+{%- cache key:'{{cacheOS}}' duration:'3600' -%}
 {
 	"header": {
 		"title": "Location"
@@ -40,7 +47,11 @@
 	        {{- comma -}}{
 				"images":[
 				    {"width": 668,
+					{% if cacheOS == 'iOS' %}
 					"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/location/{{campus.Guid}}?bgcolor=ffffff&mode=crop&s.roundcorners=10"}
+					{% else %}
+					"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/location/{{campus.Guid}}?bgcolor=ffffff&mode=crop"}
+					{% endif %}
 					],
 				"title":"{{campus.Name}}",
 				"actions": [{
@@ -53,3 +64,4 @@
           {% endfor %}
 	]
 }
+{%- endcache -%}

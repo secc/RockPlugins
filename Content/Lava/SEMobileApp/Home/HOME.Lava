@@ -1,3 +1,10 @@
+{%- assign cacheOS = '' -%}
+{%- if Headers.sap-device-os == 'Android' -%}
+	{%- assign cacheOS = 'Android' -%}
+{%- else -%}
+	{%- assign cacheOS = 'iOS' -%}
+{%- endif -%}
+{%- cache key:'{{cacheOS}}' duration:'3600' -%}
 {
 	"header": {
 		"title": "Home"
@@ -56,7 +63,11 @@
 					{
 						"images":[
 							{"width": 668,
+							{%- if cacheOS == 'iOS' -%}
 							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+							{%- else -%}
+							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&bgcolor=121212"}
+							{%- endif -%}
 							]
 						{%- if actionJson != "" -%}
 						,"actions":[{
@@ -78,7 +89,11 @@
 						{
 							"images":[
 								{"width": 668,
+								{%- if cacheOS == 'iOS' -%}
 								"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"}
+								{%- else -%}
+								"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&bgcolor=FFFFFF"}
+								{%- endif -%}
 								]
 							{%- if actionJson != "" -%}
 							,"actions":[{
@@ -101,7 +116,11 @@
 						{
 							"images":[
 								{"width": 668,
+								{%- if cacheOS == 'iOS' -%}
 								"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"}
+								{%- else -%}
+								"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&bgcolor=FFFFFF"}
+								{%- endif -%}
 								]
 							{%- if actionJson != "" -%}
 							,"actions":[{
@@ -125,7 +144,11 @@
 					{
 						"images":[
 							{"width": 668,
+							{%- if cacheOS == 'iOS' -%}
 							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"}
+							{%- else -%}
+							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&bgcolor=FFFFFF"}
+							{%- endif -%}
 							]
 						{%- if actionJson != "" -%}
 						,"actions":[{
@@ -144,3 +167,4 @@
 	{%- endcontentchannelitem %}
 	]
 }
+{%- endcache -%}
