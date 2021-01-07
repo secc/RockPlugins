@@ -136,67 +136,69 @@ namespace org.secc.ServiceReef
                                     processed++;
                                     continue;
                                 }
-                                FinancialAccount trip = null;
-                                // Make sure we have a sub-account to go with this transaction
-                                if (result.EventId > 0)
-                                {
-                                    trip = trips.Where(t => t.GlCode == result.EventCode && t.Url == result.EventUrl).FirstOrDefault();
-                                }
-                                if (trip == null)
-                                {
-                                    if (result.EventCode == null)
-                                    {
-                                        warnings += "Event Code is missing on the Service Reef Trip for ServiceReef transaction Id: " + result.TransactionId + Environment.NewLine;
-                                        processed++;
-                                        continue;
-                                    }
-
-                                    // Create the trip subaccount
-                                    FinancialAccount tripFA = new FinancialAccount();
-                                    tripFA.Name = result.EventName;
-                                    // Name is limited to 50
-                                    if ( tripFA.Name.Length > 50 )
-                                    {
-                                        tripFA.Name = tripFA.Name.Substring( 0, 50 );
-                                    }
-                                    tripFA.Description = "Service Reef Event.  Name: " + result.EventName + " ID: " + result.EventId;
-                                    tripFA.GlCode = result.EventCode;
-                                    tripFA.Url = result.EventUrl;
-                                    tripFA.PublicName = result.EventName;
-                                    // Public Name is limited to 50
-                                    if (tripFA.PublicName.Length > 50) {
-                                        tripFA.PublicName = tripFA.PublicName.Substring(0, 50);
-                                    }
-                                    tripFA.IsTaxDeductible = true;
-                                    tripFA.IsPublic = false;
-                                    tripFA.ParentAccountId = specialFund.Id;
-                                    tripFA.Order = specialFund.Order+1;
-                                    tripFA.AccountTypeValueId = serviceReefAccountType.Id;
-                                    // Figure out what order it should be;
-                                    foreach (FinancialAccount tmpTrip in trips)
-                                    {
-                                        if (tmpTrip.Name.CompareTo(tripFA.Name) < 0)
-                                        {
-                                            tripFA.Order++;
-                                        }
-                                    }
-
-                                    financialAccountService.Add(tripFA);
-
-                                    // Now save the trip
-                                    dbContext.SaveChanges();
-                                    // Increment all the rest of the Orders
-                                    financialAccountService.Queryable().Where(fa => fa.Order >= tripFA.Order && fa.Id != tripFA.Id).ToList().ForEach(c => c.Order++);
-                                    dbContext.SaveChanges();
-                                    trips = financialAccountService.Queryable().Where(fa => fa.ParentAccountId == specialFund.Id).OrderBy(fa => fa.Order).ToList();
-                                    trip = tripFA;
-                                }
 
                                 FinancialTransaction tran = financialTransactionService.Queryable().Where(tx => tx.TransactionCode == result.PaymentProcessorTransactionId).FirstOrDefault();
 
                                 // We haven't processed this before so get busy!
                                 if (tran == null)
                                 {
+                                    FinancialAccount trip = null;
+                                    // Make sure we have a sub-account to go with this transaction
+                                    if ( result.EventId > 0 )
+                                    {
+                                        trip = trips.Where( t => t.GlCode == result.EventCode && t.Url == result.EventUrl ).FirstOrDefault();
+                                    }
+                                    if ( trip == null )
+                                    {
+                                        if ( result.EventCode == null )
+                                        {
+                                            warnings += "Event Code is missing on the Service Reef Trip for ServiceReef transaction Id: " + result.TransactionId + Environment.NewLine;
+                                            processed++;
+                                            continue;
+                                        }
+
+                                        // Create the trip subaccount
+                                        FinancialAccount tripFA = new FinancialAccount();
+                                        tripFA.Name = result.EventName;
+                                        // Name is limited to 50
+                                        if ( tripFA.Name.Length > 50 )
+                                        {
+                                            tripFA.Name = tripFA.Name.Substring( 0, 50 );
+                                        }
+                                        tripFA.Description = "Service Reef Event.  Name: " + result.EventName + " ID: " + result.EventId;
+                                        tripFA.GlCode = result.EventCode;
+                                        tripFA.Url = result.EventUrl;
+                                        tripFA.PublicName = result.EventName;
+                                        // Public Name is limited to 50
+                                        if ( tripFA.PublicName.Length > 50 )
+                                        {
+                                            tripFA.PublicName = tripFA.PublicName.Substring( 0, 50 );
+                                        }
+                                        tripFA.IsTaxDeductible = true;
+                                        tripFA.IsPublic = false;
+                                        tripFA.ParentAccountId = specialFund.Id;
+                                        tripFA.Order = specialFund.Order + 1;
+                                        tripFA.AccountTypeValueId = serviceReefAccountType.Id;
+                                        // Figure out what order it should be;
+                                        foreach ( FinancialAccount tmpTrip in trips )
+                                        {
+                                            if ( tmpTrip.Name.CompareTo( tripFA.Name ) < 0 )
+                                            {
+                                                tripFA.Order++;
+                                            }
+                                        }
+
+                                        financialAccountService.Add( tripFA );
+
+                                        // Now save the trip
+                                        dbContext.SaveChanges();
+                                        // Increment all the rest of the Orders
+                                        financialAccountService.Queryable().Where( fa => fa.Order >= tripFA.Order && fa.Id != tripFA.Id ).ToList().ForEach( c => c.Order++ );
+                                        dbContext.SaveChanges();
+                                        trips = financialAccountService.Queryable().Where( fa => fa.ParentAccountId == specialFund.Id ).OrderBy( fa => fa.Order ).ToList();
+                                        trip = tripFA;
+                                    }
+
                                     tran = new FinancialTransaction();
                                     tran.FinancialPaymentDetail = new FinancialPaymentDetail();
                                     if (result.Type == "CreditCard")
