@@ -1,6 +1,6 @@
 {% assign pageParamWeekendDate = 'Global' | PageParameter:'weekendDate' %}
 {%- assign currentDay = 'Now' | Date:'dddd' -%}
-{%- assign subtractDays = -14 -%}
+{%- assign subtractDays = -7 -%}
 {%- if today == "Saturday" or today == "Sunday" -%}
     {%- assign subtractDays = -7 -%}
 {%- endif -%}
@@ -30,6 +30,9 @@
     .select2-container--open .select2-dropdown--below {
         border-radius: 7px;
     }
+	a.help {
+		color: #fff;
+	}
 </style>
 
 <div class="container-fluid g-padding-x-0--xs g-padding-y-0--xs">
@@ -224,7 +227,7 @@
     <div class="row g-margin-x-0--xs g-margin-x-0--md g-position--relative">
         <div class="col-lg-4">
             <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Week of <span class="weekend-date"></span></h5>
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Week of <span class="weekend-date"></span> <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="The total of all worship attendance for the week selected via the filter."><i class="fa fa-info-circle"></i></a></h5>
                 <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                     <div class="col-md-12 g-padding-y-50--xs text-center">
 
@@ -236,7 +239,7 @@
 
         <div class="col-lg-4">
             <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Current Year to Date Average</h5>
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Current Year to Date Average <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="A Weekly average of worship attendance for the Year being viewed since January 1st."><i class="fa fa-info-circle"></i></a></h5>
                 <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                     <div class="col-md-12 g-padding-y-50--xs text-center">
 
@@ -249,7 +252,8 @@
 
         <div class="col-lg-4">
             <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- <span class="last-year"></span> Average</h5>
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- <span class="last-year"></span> Average <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="The comparison of the current year weekly average to the weekly average realized in the prior year from Jan. 1st to Dec. 31st.		
+		"><i class="fa fa-info-circle"></i></a></h5>
                 <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                     <div class="col-md-12 g-padding-y-50--xs text-center">
 
@@ -260,60 +264,8 @@
             </div>
         </div>
     </div>
-
-
-    {% comment %} --------------------------------------------------
-    ---------------------------- DIVIDER ---------------------------
-    ------------------------------------------------ {% endcomment %}
-    <div class="row g-padding-x-40--xs g-margin-x-0--xs g-margin-b-50--xs g-text-center--xs g-position--relative">
-        <hr style="border-color: #4D4D4D;position: relative;">
-        <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
-            Serving
-        </h4>
-    </div>
-
-    <div class="row g-margin-x-0--xs g-position--relative">
-        <div class="col-lg-4">
-            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Number Engaged</h5>
-                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
-                    <div class="col-md-12 g-padding-y-50--xs text-center">
-
-                        <h1 class="metric-num g-font-weight--800" id="Serving-WeeklyTotal"></h1>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Previous Year End Number Engaged</h5>
-                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
-                    <div class="col-md-12 g-padding-y-50--xs text-center">
-
-                        <h1 class="metric-num g-font-weight--800" id="Serving-LastYearAverage"></h1>
-                        
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- <span class="last-year"></span> Average</h5>
-                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
-                    <div class="col-md-12 g-padding-y-50--xs text-center">
-
-                        <h1 class="metric-num g-font-weight--800" id="Serving-LastYearDifference"></i>
-                        </h1>
-                        
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
+	
+	
     {% comment %} --------------------------------------------------
     ---------------------------- DIVIDER ---------------------------
     ------------------------------------------------ {% endcomment %}
@@ -327,7 +279,7 @@
     <div class="row g-margin-x-0--xs g-position--relative">
         <div class="col-lg-4">
             <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Week of <span class="weekend-date"></span></h5>
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Week of <span class="weekend-date"></span> <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="The total of all baptisms for the week selected via the filter."><i class="fa fa-info-circle"></i></a></h5>
                 <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                     <div class="col-md-12 g-padding-y-50--xs text-center">
 
@@ -339,7 +291,7 @@
 
         <div class="col-lg-4">
             <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Year to Date</h5>
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Year to Date <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="The total number of baptisms performed for the Year beginning Jan. 1st."><i class="fa fa-info-circle"></i></a></h5>
                 <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                     <div class="col-md-12 g-padding-y-50--xs text-center">
 
@@ -352,7 +304,7 @@
 
         <div class="col-lg-4">
             <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- <span class="last-year"></span> Average</h5>
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- <span class="last-year"></span> Average <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="The comparison of the current year weekly average to the weekly average realized in the prior year from Jan. 1st to Dec. 31st."><i class="fa fa-info-circle"></i></a></h5>
                 <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                     <div class="col-md-12 g-padding-y-50--xs text-center">
 
@@ -378,7 +330,7 @@
     <div class="row g-margin-x-0--xs g-position--relative">
         <div class="col-lg-4">
             <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Number Engaged</h5>
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Number Engaged <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="The total of all group participation for the week selected via the filter."><i class="fa fa-info-circle"></i></a></h5>
                 <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                     <div class="col-md-12 g-padding-y-50--xs text-center">
                         <h1 class="metric-num g-font-weight--800" id="Groups-WeeklyTotal"></h1>
@@ -389,11 +341,11 @@
 
         <div class="col-lg-4">
             <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Previous Year End Number Engaged</h5>
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Current Year to Date Average <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="A Weekly average of group participation for the Year being viewed since January 1st."><i class="fa fa-info-circle"></i></a></h5>
                 <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                     <div class="col-md-12 g-padding-y-50--xs text-center">
 
-                        <h1 class="metric-num g-font-weight--800" id="Groups-LastYearAverage"></h1>
+                        <h1 class="metric-num g-font-weight--800" id="Groups-YearToDateAverage"></h1>
                         
                     </div>
                 </div>
@@ -402,11 +354,63 @@
 
         <div class="col-lg-4">
             <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- <span class="last-year"></span> Average</h5>
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- <span class="last-year"></span> Average <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="The comparison of the current year weekly average to the weekly average realized in the prior year from Jan. 1st to Dec. 31st."><i class="fa fa-info-circle"></i></a></h5>
                 <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                     <div class="col-md-12 g-padding-y-50--xs text-center">
 
                         <h1 class="metric-num g-font-weight--800" id="Groups-LastYearDifference"></h1>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {% comment %} --------------------------------------------------
+    ---------------------------- DIVIDER ---------------------------
+    ------------------------------------------------ {% endcomment %}
+    <div class="row g-padding-x-40--xs g-margin-x-0--xs g-margin-b-50--xs g-text-center--xs g-position--relative">
+        <hr style="border-color: #4D4D4D;position: relative;">
+        <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
+            Serving
+        </h4>
+    </div>
+
+    <div class="row g-margin-x-0--xs g-position--relative">
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Number Engaged <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="The total of all serving participation for the week selected via the filter."><i class="fa fa-info-circle"></i></a></h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <h1 class="metric-num g-font-weight--800" id="Serving-WeeklyTotal"></h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Current Year to Date Average <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="A Weekly average of serving participation for the Year being viewed since January 1st."><i class="fa fa-info-circle"></i></a></h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <h1 class="metric-num g-font-weight--800" id="Serving-YearToDateAverage"></h1>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- <span class="last-year"></span> Average <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="The comparison of the current year weekly average to the weekly average realized in the prior year from Jan. 1st to Dec. 31st."><i class="fa fa-info-circle"></i></a></h5>
+                <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                    <div class="col-md-12 g-padding-y-50--xs text-center">
+
+                        <h1 class="metric-num g-font-weight--800" id="Serving-LastYearDifference"></i>
+                        </h1>
                         
                     </div>
                 </div>
@@ -428,7 +432,7 @@
     <div class="row g-margin-x-0--xs g-position--relative">
         <div class="col-lg-4">
             <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Week of <span class="weekend-date"></span></h5>
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Week of <span class="weekend-date"></span> <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="The total of all giving for the week selected via the filter."><i class="fa fa-info-circle"></i></a></h5>
                 <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                     <div class="col-md-12 g-padding-y-50--xs text-center">
                         <h1 class="metric-num g-font-weight--800" id="Giving-WeeklyTotal"></h1>
@@ -439,7 +443,7 @@
 
         <div class="col-lg-4">
             <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Current Year to Date Average</h5>
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">Current Year to Date Average <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="The amount of giving that was realized during the same week in the previous year."><i class="fa fa-info-circle"></i></a></h5>
                 <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                     <div class="col-md-12 g-padding-y-50--xs text-center">
                         <h1 class="metric-num g-font-weight--800" id="Giving-YearToDateAverage"></h1>
@@ -450,7 +454,7 @@
 
         <div class="col-lg-4">
             <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- <span class="last-year"></span> Average</h5>
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- <span class="last-year"></span> Average <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="The comparison of the Current YTD total giving vs. the YTD total giving for the same week in the prior year."><i class="fa fa-info-circle"></i></a></h5>
                 <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                     <div class="col-md-12 g-padding-y-50--xs text-center">
                         <h1 class="metric-num g-font-weight--800" id="Giving-LastYearDifference"></h1>
