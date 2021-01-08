@@ -811,7 +811,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             return communication;
         }
 
-        private void AddRecipients( Communication communication, bool sendParents, int mediumEntityTypeId )
+        private void AddRecipients( Rock.Model.Communication communication, bool sendParents, int mediumEntityTypeId )
         {
             //List to keep from sending multiple messages
             List<int> addedIds = new List<int>();
