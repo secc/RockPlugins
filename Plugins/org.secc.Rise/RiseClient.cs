@@ -121,12 +121,12 @@ namespace org.secc.Rise
 
         public int SyncAllGroups()
         {
-            var riseGroupType = GroupTypeCache.Get( Constants.GROUPTYPE_RISE );
+            var riseGroupTypeId = Constants.GetRiseGroupTypeId();
 
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
             var groups = groupService.Queryable()
-                .Where( g => g.GroupTypeId == riseGroupType.Id )
+                .Where( g => g.GroupTypeId == riseGroupTypeId )
                 .ToList();
 
             foreach ( var group in groups )
