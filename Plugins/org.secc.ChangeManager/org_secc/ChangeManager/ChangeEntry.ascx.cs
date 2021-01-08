@@ -12,26 +12,19 @@
 // limitations under the License.
 // </copyright>
 using System;
-using System.ComponentModel;
-using Rock;
-using Rock.Model;
-using Rock.Security;
-using System.Web.UI;
-using Rock.Web.Cache;
-using Rock.Web.UI;
-using System.Web;
-using Rock.Data;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Web.UI;
 using System.Web.UI.WebControls;
 using org.secc.ChangeManager.Model;
-using System.Reflection;
-using Newtonsoft.Json;
-using System.ComponentModel.DataAnnotations;
-using System.Dynamic;
-using Rock.Web.UI.Controls;
 using org.secc.ChangeManager.Utilities;
+using Rock;
 using Rock.Attribute;
+using Rock.Data;
+using Rock.Model;
+using Rock.Web.Cache;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.ChangeManager
 {
@@ -47,8 +40,25 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         "Data View of people who should never have their data automatically updated such as staff members, VIPs or other people you wish to have reviewed before updating.",
         false, key: "BlacklistDataView", order: 2 )]
     [WorkflowTypeField( "Workflow", "Workflow to run after a change request is made.", order: 3 )]
+    [BooleanField( "Simple Mode",
+        Description = "Shows only a box for requests.",
+        DefaultBooleanValue = false,
+        Order = 4,
+        Key = AttributeKey.SimpleMode
+        )]
+
     public partial class ChangeEntry : Rock.Web.UI.RockBlock
     {
+        private static class AttributeKey
+        {
+            public const string AutoApply = "AutoApply";
+            public const string ApprovedDataView = "ApprovedDataView";
+            public const string BlacklistDataView = "BlacklistDataView";
+            public const string Workflow = "Workflow";
+            public const string SimpleMode = "SimpleMode";
+        }
+
+
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
         /// </summary>
@@ -65,10 +75,24 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 }
                 else
                 {
-                    BindDropDown();
-                    DisplayForm( person );
+                    if ( GetAttributeValue( AttributeKey.SimpleMode ).AsBoolean() )
+                    {
+                        DisplaySimple( person );
+                    }
+                    else
+                    {
+                        BindDropDown();
+                        DisplayForm( person );
+                    }
+
                 }
             }
+        }
+
+        private void DisplaySimple( Person person )
+        {
+            pnlSimple.Visible = true;
+            ltPersonName.Text = person.FullName;
         }
 
         private void BindDropDown()
@@ -87,6 +111,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
         private void DisplayForm( Person person )
         {
+            pnlMain.Visible = true;
+
             ddlTitle.SetValue( person.TitleValueId );
             iuPhoto.BinaryFileId = person.PhotoId;
             tbNickName.Text = person.NickName;
@@ -222,13 +248,13 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 var groupMember = person.PrimaryFamily.Members.Where( gm => gm.PersonId == person.Id ).FirstOrDefault();
                 if ( groupMember != null )
                 {
-                    GroupTypeRole groupTypeRole;
+                    GroupTypeRole groupTypeRole = null;
                     GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( rockContext );
                     if ( ddlFamilyRole.SelectedValue == "A" )
                     {
                         groupTypeRole = groupTypeRoleService.Get( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() );
                     }
-                    else
+                    else if ( ddlFamilyRole.SelectedValue == "C" )
                     {
                         groupTypeRole = groupTypeRoleService.Get( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() );
                     }
@@ -594,6 +620,28 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 return notice;
             }
             return string.Empty;
+        }
+
+        protected void lbSimpleSave_Click( object sender, EventArgs e )
+        {
+            RockContext rockContext = new RockContext();
+            var person = GetPerson();
+            var personAliasEntityType = EntityTypeCache.Get( typeof( PersonAlias ) );
+            var changeRequest = new ChangeRequest
+            {
+                EntityTypeId = personAliasEntityType.Id,
+                EntityId = person.PrimaryAliasId ?? 0,
+                RequestorAliasId = CurrentPersonAliasId ?? 0,
+                RequestorComment = tbSimpleRequest.Text
+            };
+
+            ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
+            changeRequestService.Add( changeRequest );
+            rockContext.SaveChanges();
+
+            pnlSimple.Visible = false;
+            pnlDone.Visible = true;
+            btnDone.Visible = false;
         }
     }
 }
