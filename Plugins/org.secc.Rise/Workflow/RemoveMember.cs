@@ -77,7 +77,7 @@ namespace org.secc.Rise.Workflow
                 return false;
             }
 
-            if ( group.GroupTypeId != Constants.GetRiseGroupTypeId();)
+            if ( group.GroupTypeId != GroupTypeCache.Get( Constants.GROUPTYPE_RISE ).Id )
             {
                 action.AddLogEntry( "Group was not a Rise group type.", true );
                 return false;

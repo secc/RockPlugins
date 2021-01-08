@@ -13,10 +13,6 @@
 // </copyright>
 //
 using System.Collections.Generic;
-using Rock;
-using Rock.Data;
-using Rock.Model;
-using Rock.Web.Cache;
 
 namespace org.secc.Rise.Utilities
 {
@@ -49,22 +45,5 @@ namespace org.secc.Rise.Utilities
             EVENT_ENROLLMENTS_CREATED,
             EVENT_USER_CREATED
         };
-
-        /// <summary>
-        /// Returns the rise grouptype id from cache with fallback for the cache failing
-        /// </summary>
-        /// <returns></returns>
-        public static int GetRiseGroupTypeId()
-        {
-            var riseGroupType = GroupTypeCache.Get( Constants.GROUPTYPE_RISE );
-            if ( riseGroupType != null )
-            {
-                return riseGroupType.Id;
-            }
-
-            //Fall back when cache fails. Eventually cache will get fixed.
-            GroupTypeService groupTypeService = new GroupTypeService( new RockContext() );
-            return groupTypeService.Get( Constants.GROUPTYPE_RISE.AsGuid() ).Id;
-        }
     }
 }

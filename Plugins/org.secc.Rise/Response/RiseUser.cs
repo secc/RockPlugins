@@ -80,7 +80,7 @@ namespace org.secc.Rise.Response
 
             RockContext rockContext = new RockContext();
             GroupMemberService groupMemberService = new GroupMemberService( rockContext );
-            var grouptypeId = Constants.GetRiseGroupTypeId();
+            var grouptypeId = GroupTypeCache.Get( Constants.GROUPTYPE_RISE ).Id;
 
             var groups = groupMemberService.Queryable()
                 .Where( gm => gm.PersonId == person.Id
