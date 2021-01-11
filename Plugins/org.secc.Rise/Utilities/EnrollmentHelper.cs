@@ -68,9 +68,9 @@ namespace org.secc.Rise.Utilities
 
             if ( enrolledOnly )
             {
-                var riseGroupType = GroupTypeCache.Get( Constants.GROUPTYPE_RISE );
+                var riseGroupTypeId = Constants.GetRiseGroupTypeId();
                 var riseGroups = groupMemberService.Queryable().AsNoTracking()
-                    .Where( gm => gm.PersonId == person.Id && gm.Group.GroupTypeId == riseGroupType.Id )
+                    .Where( gm => gm.PersonId == person.Id && gm.Group.GroupTypeId == riseGroupTypeId )
                     .Select( gm => gm.GroupId );
 
                 qry = qry.Where( c => c.AvailableToAll == true || c.EnrolledGroups.Any( g => riseGroups.Contains( g.Id ) ) );

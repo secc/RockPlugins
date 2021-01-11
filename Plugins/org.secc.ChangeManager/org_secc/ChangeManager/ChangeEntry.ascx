@@ -13,8 +13,6 @@
                 isDirty = true;
             })
     });
-
-
 </script>
 
 <asp:UpdatePanel runat="server" ID="upContent">
@@ -24,7 +22,7 @@
             <div class="panel-heading">
                 <h3 class="panel-title">Person Update</h3>
             </div>
-            <asp:Panel runat="server" ID="pnlMain">
+            <asp:Panel runat="server" ID="pnlMain" Visible="false">
                 <div class="panel-body">
                     <asp:HiddenField runat="server" ID="hfPersonId" />
                     <div class="row">
@@ -154,11 +152,24 @@
                     <asp:LinkButton runat="server" ID="btnSave" Text="Save" CssClass="btn btn-primary pull-right btn-save"
                         OnClick="btnSave_Click" OnClientClick=";" />
             </asp:Panel>
+
+            <asp:Panel runat="server" ID="pnlSimple" Visible="false">
+                <div class="panel-body">
+                    <h3>
+                        <asp:Literal runat="server" ID="ltPersonName" />
+                    </h3>
+                    <Rock:RockTextBox runat="server" ID="tbSimpleRequest" Label="What would you like us to change?" TextMode="MultiLine" Height="200" />
+                    <asp:LinkButton runat="server" ID="lbSimpleSave" Text="Save" CssClass="btn btn-primary pull-right btn-save"
+                        OnClick="lbSimpleSave_Click" OnClientClick=";" />
+                </div>
+            </asp:Panel>
+
             <asp:Panel runat="server" ID="pnlNoPerson" Visible="false" CssClass="row">
                 <div class="col-md-10" style="margin-left: 10px">
                     <Rock:PersonPicker runat="server" ID="pPerson" Label="Person" OnSelectPerson="pPerson_SelectPerson" />
                 </div>
             </asp:Panel>
+
             <asp:Panel runat="server" ID="pnlDone" CssClass="text-center" Visible="false">
                 <h3>Success!</h3>
                 Your changes have been submitted. Pending review, they will be applied.
