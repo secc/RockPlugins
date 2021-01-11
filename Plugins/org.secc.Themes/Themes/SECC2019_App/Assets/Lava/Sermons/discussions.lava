@@ -1,0 +1,118 @@
+<style>
+    .panel.panel-default {
+        border-radius: 20px !important;
+        overflow: hidden !important;
+    }
+    .panel-heading, .panel-body {
+        background-color: #212121 !important;
+    }
+    .accordions-1 .panel .panel-heading {
+        padding: 25px !important;
+    }
+    .accordions-1 .panel .panel-collapse .panel-body {
+        padding: 25px !important;
+        border-top: none !important;
+    }
+    .accordions-1 .panel .panel-heading::before {
+        border-color: #828282;
+        right: 12.5%;
+    }
+    .panel-title {
+        font-size: 1.5rem !important;
+        padding-right: 65px !important;
+    }
+    #SiteFooter {
+        display: none !important;
+    }
+    .discussionContainer p,
+    .discussionContainer li,
+    .discussionContainer div {
+        font-size: 1.25rem !important;
+    }
+</style>
+
+{{ "Sermon Discussion" | SetPageTitle }}
+{%- contentchannelitem where:'ContentChannelId == 24 && Status == 2' sort:'StartDateTime Desc' -%}
+{%- assign headerSeries = "" -%}
+{%- for item in contentchannelitemItems -%}
+	{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
+	{%- for messages in itemChildItems -%}
+		{%- assign message = messages.ChildContentChannelItem -%}
+		{%- if message.ContentChannelId == "23" -%}
+			{%- assign headerSeries = item -%}
+			{%- break -%}
+		{%- endif -%}
+	{%- endfor -%}
+	{%- if headerSeries != "" -%}
+		{%- break -%}
+	{%- endif -%}
+{%- endfor -%}
+{%- endcontentchannelitem -%}
+{% assign seriesImageGuid = headerSeries | Attribute:'Image','RawValue' -%}
+<section>
+    <style>
+        #seriesHero {
+            overflow: hidden;
+        }
+        #seriesHero img {
+            width: 100%;
+            margin: 0 auto;
+            max-width: 1920px;
+        }
+        @media(max-width:600px){
+            #seriesHero img {
+                width: 600px;
+                position: relative;
+                left: 50%;
+                transform: translate(-50%, 0px);
+                margin: 0 auto;
+                max-width: none;
+            }
+    	}
+    </style>
+	<div id="seriesHero" class="g-bg-color--black g-padding-x-0--xs">
+        <img src="/GetImage.ashx?Guid={{ seriesImageGuid }}&amp;mode=crop&amp;width=1920&amp;height=575" class="img-responsive g-margin-x-auto--xs text-center">
+	</div>
+	<div class="container">
+        <div class="row g-padding-y-40--xs g-padding-x-40--xs">
+            <div class="col-xs-12">
+                <h4 class="g-font-family--secondary g-padding-b-5--xs">Sermon Discussion</h4>
+            </div>
+            <div class="col-xs-12">
+                <h6 class="g-line-height">Explore the weekend sermon further with a group study. Join others in prayer and discussion, reflecting on the sermon and Scripture, while creating action steps to apply what you learned.</h6>
+            </div>
+        </div>
+	</div>
+</section>
+
+<section class="container">
+    <div class="col-md-12">
+        {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+        {% contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime Desc' %}
+            {% assign Items = contentchannelitemItems %}
+            {%- for series in Items -%}
+                {%- assign startDateTime = series.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+                {%- assign endDateTime = series.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+        		{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+                    {%- contentchannelitem id:'{{ series.Id }}' -%}
+        				{%- assign seriesItem = contentchannelitem -%}
+        				{%- if seriesItem -%}
+                            {%- assign itemChildItems = seriesItem.ChildItems | Sort:'Priority' -%}
+                            {[ faq autoheight:'true' collapsed:'false' ]}
+                            {%- for item in itemChildItems -%}
+                            	{%- assign resource = item.ChildContentChannelItem -%}
+                            	{%- assign discussionHtml = resource | Attribute:'Discussion' -%}
+                                {%- if discussionHtml != "" -%}
+                                    [[ item title:'{{ resource.Title }}' ]]
+                                        {{ discussionHtml }}
+                                    [[ enditem ]]
+                                {%- endif -%}
+                            {%- endfor -%}
+                            {[ endfaq ]}
+                        {%- endif -%}
+        			{%- endcontentchannelitem %}
+                {%- endif -%}
+            {%- endfor -%}
+        {% endcontentchannelitem %}
+    </div>
+</section>

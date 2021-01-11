@@ -1,0 +1,71 @@
+.cd-main-header {
+  display: none !important;
+}
+/*body {
+	background-color: #fff;
+}*/
+#PageBody {
+  top: 0px !important;
+  /*background-color: #fff;
+  color: #000000;
+  p, h1, h2, h3, h4, h5, h6, a, div, span {
+      color: #000;
+  }*/
+}
+div.card {
+    background-color: #e7e7e7 !important;
+    box-shadow: none !important;
+}
+#SiteFooter {
+  clear:both;
+  background-color: #e7e7e7;
+  section.signoff {
+      background-color: #e7e7e7 !important;
+      display: block !important;
+  }
+}
+.partners {
+  display: none !important;
+}
+.footer-menu {
+  display: none !important;
+}
+.s-back-to-top {
+  display: none !important;
+}
+.se-brand-logo,.event-icon {
+    path, polygon, rect {
+        fill: #000;
+    }
+}
+.se-mobile-app_hide {
+    display: none !important;
+}
+
+.panel,
+.panel-default,
+.panel-body,
+.panel-heading {
+    background-color: #e7e7e7 !important;
+    box-shadow: none !important;
+}
+.panel-body {
+    border-top: 2px solid #e7e7e7 !important;
+}
+.panel-block {
+    border-top-color: rgba($LightGrayColor, 0.8) !important;
+    border-color: rgba($LightGrayColor, 0.8) !important;
+}
+.panel-block > .panel-heading {
+    color: $LightGrayColor;
+    background-color: rgba($LightGrayColor, 0.8) !important;
+    border-color: rgba($LightGrayColor, 0.8) !important;
+}
+.input-group-addon {
+    background-color: rgba($LightGrayColor, 0.6) !important;
+    border: none !important;
+    text-rendering: optimizeLegibility;
+}
+.form-group.required .control-label:after {
+    text-rendering: optimizeLegibility; /* fixes fontawesome rendering on OSX*/
+}

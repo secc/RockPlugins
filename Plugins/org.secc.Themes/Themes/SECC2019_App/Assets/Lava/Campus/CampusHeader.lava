@@ -1,0 +1,144 @@
+{% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
+
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
+{% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
+    {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+    {% campus where:'Public == true' %}
+        {% for campus in campusItems %}
+            {% assign campusSlug = campus | Attribute: 'Slug' %}
+            {% if campus.Name == pageParamCampus or campusSlug == pageParamCampus %}
+                {% assign pageParamCampus = campus %}
+            {% endif %}
+        {% endfor %}
+    {% endcampus %}
+{% endif %}
+
+{% assign campus = pageParamCampus %}
+{% assign campusSlug = campus | Attribute:'Slug' %}
+{% assign HeroImage = campus | Attribute:'HeroImage','Object' %}
+{% assign HeroImagePosition = campus | Attribute:'HeroImagePosition','Object' %}
+{% assign CampusImageThumb = campus | Attribute:'CampusThumbnail','Object' %}
+{% assign WorshipImage = campus | Attribute:'WorshipServiceImage','Object' %}
+{% assign WorshipImagePosition = campus | Attribute:'WorshipServiceImagePosition','Object' %}
+{% assign CampusSubMenuItems = campus | Attribute:'CampusSubMenu' %}
+{% assign CampusVideo = campus | Attribute:'CampusVideo' %}
+{% assign CampusEmail = campus | Attribute:'Email' %}
+{% assign CampusFacebookSlug = campus | Attribute:'FacebookSlug' %}
+{% assign CampusVimeoId = campus | Attribute:'VimeoID' %}
+{% assign CampusLongitude = campus | Attribute:'Longitude' %}
+{% assign CampusLatitude = campus | Attribute:'Latitude' %}
+
+{% if campusSlug != "" %}
+
+     {{ campus.Name | Append: ' Campus' | SetPageTitle }}
+
+    <style>
+    #CampusImage {
+        background: no-repeat 50% url("https://www.southeastchristian.org/GetImage.ashx?Guid={{ CampusImageThumb.Guid }}");
+        background-size: cover;
+        position: relative;
+        width: 100%;
+        margin: 0 auto;
+        min-height: 300px;
+        max-width: 800px;
+    }
+    #CampusImage:after {
+        top: 0;
+        left: 0;
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        background-image: -webkit-linear-gradient(180deg, rgba(18, 18, 18, 0) 50%, rgba(18, 18, 18, 0.8) 75%, rgba(18, 18, 18, 1) 100%) !important;
+        background-image: -o-linear-gradient(180deg, rgba(18, 18, 18, 0) 50%, rgba(18, 18, 18, 0.8) 75%, rgba(18, 18, 18, 1) 100%) !important;
+        background-image: linear-gradient(180deg, rgba(18, 18, 18, 0) 50%, rgba(18, 18, 18, 0.8) 75%, rgba(18, 18, 18, 1) 100%) !important;
+        background-repeat: repeat-x !important;
+    }
+    .campus-actions-items {
+        position: absolute;
+        z-index: 2;
+        bottom: 0;
+        text-align: center;
+        width: 100%;
+    }
+    </style>
+    <section id="CampusImage">
+        <!-- Campus Image -->
+        <div class="campus-actions-items" style="bottom: -10%;">
+            <!-- Campus Title - Secondary Font -->
+            <h3 class="g-font-family--secondary g-padding-b-20--xs">{{ campus.Name }} Campus</h3>
+            <!-- My Campus -->
+
+            <!-- Get Directions, button -->
+            <div style="width:100%;">
+                <h6 class="text-center pull-left" style="width:25%;">
+                    &nbsp;
+                    {% comment %}
+                    {% assign CampusEmail = campus | Attribute:'Email' %}
+                    <a href="mailto:{{ CampusEmail }}" id="mycampus" class="pull-right g-letter-spacing--1 g-padding-y-5--xs g-display-inline-block--xs">
+                       <i class="fa fa-envelope g-padding-b-10--xs"></i><br />
+                       Contact
+                    </a>
+                    <a id="mycampus" class="pull-right g-letter-spacing--1 g-padding-y-5--xs g-display-inline-block--xs">
+                       <i class="fa fa-plus g-padding-b-10--xs"></i><br />
+                       My Campus
+                    </a>
+                    <script>
+                    $('a#mycampus').click(function(){
+                        $(this).find('i').toggleClass('fa-plus').toggleClass('fa-check');
+                    });
+                    </script>
+                    {% endcomment %}
+                </h6>
+                <h6 class="text-center pull-left" style="vertical-align:bottom;width: 50%;white-space: normal;font-size: 0.7em;">
+                    <a class="uppercase se-btn--app-highlight uppercase g-letter-spacing--1 g-display-inline-block--xs"
+                       target="_blank"
+                       href="https://maps.google.com/?saddr=Current+Location&daddr={{campus.Location.Street1 | | Replace:' ','+' }}+{{campus.Location.City}}+{{campus.Location.State}}+{{campus.Location.PostalCode}}"
+                       style="vertical-align:bottom;">
+                       <strong>Get Directions</strong>
+                    </a>
+                </h6>
+                <h6 class="text-center pull-left" style="width:25%;">
+                    &nbsp;
+                    {% comment %}
+                    <a href="tel:{{ campus.PhoneNumber }}" class="pull-left g-letter-spacing--1 g-padding-y-5--xs g-display-inline-block--xs">
+                       <i class="far fa-phone g-padding-b-10--xs"></i><br />
+                       Phone
+                    </a>
+                    {% endcomment %}
+                </h6>
+            </div>
+        </div>
+    </section>
+
+{% else %}
+
+    <!-- Campus Param Invalid -->
+    <section>
+        <div class="text-center g-padding-x-100--xs g-padding-y-100--xs">
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <h5 class="uppercase g-letter-spacing--3">Campus Not Found.</h5>
+            <br />
+            <h3 class="g-font-family--secondary">Please try again by selecting a campus from "Locations".</h3>
+            <br />
+            <h5>"For the Son of Man came to seek and to save the lost." Luke 19:10</h5>
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+        </div>
+    </section>
+    <script>
+        $(document).ready(function() {
+                $('.cd-main-header').removeClass('transparent-menu-enabled').removeClass('transparent-header');
+                $('.cd-main-content').removeClass('transparent-content');
+        });
+    </script>
+{% endif %}
