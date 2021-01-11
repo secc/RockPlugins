@@ -131,6 +131,16 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             else
             {
                 ddlFamilyRole.SelectedValue = person.GetFamilyRole().Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ? "A" : "C";
+
+                var familyMemberRole = person.GetFamilyMembers( true )
+                    .Where( m => person.Id == m.PersonId )
+                    .Select(m => m.GroupRole )
+                    .FirstOrDefault();
+
+                if ( familyMemberRole != null)
+                {
+                    ddlFamilyRole.SelectedValue = familyMemberRole.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ? "A" : "C";
+                } 
             }
 
 
