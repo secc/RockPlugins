@@ -1,0 +1,93 @@
+{% assign Title = QueryString.Title %}
+{% assign Body = QueryString.Body %}
+{% assign Image = QueryString.Image %}
+<html>
+
+<head>
+    <link rel="stylesheet"
+        href="https://www.southeastchristian.org/Themes/SECC2019/Styles/layout.css?v=637171650738055685" />
+    <link rel="stylesheet"
+        href="https://www.southeastchristian.org/Themes/SECC2019/Styles/main.css?v=637171650775243506" />
+    <link rel="stylesheet" href="https://use.typekit.net/yil3yld.css">
+    <style>
+        html,
+        body {
+            margin: 0px;
+            padding: 0px;
+            background-color: #121212;
+        }
+
+        .box {
+            /* margin: 0px 60px; */
+            width: 1334px;
+            height: 375px;
+            background-color: #FFFFFF;
+            border-radius: 0px 0px 0px 0px;
+            background-repeat: no-repeat;
+            background-size: contain;
+            background-position: top;
+        }
+
+        .box h4,
+        .box h5,
+        .box p {
+            color: white;
+        }
+
+        .content {
+            padding: 2em 5em 2em 5em;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .connection-icon {
+            width: 220px;
+            height: 220px;
+            border-radius: 100%;
+            background-color: #76B4BF;
+            position: absolute;
+            content: '';
+            display: block;
+            top: 50%;
+            left: 50px;
+            -webkit-transform: translate(50px, -50%);
+            -ms-transform: translate(50px, -50%);
+            transform: translate(50px, -50%);
+        }
+        .connection-icon img {
+            width: 160px;
+            height: 160px;
+            position: absolute;
+            display: block;
+            top: 50%;
+            left: 50%;
+            -webkit-transform: translate(-50%, -50%);
+            -ms-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box">
+        <div class="content">
+            <span class="connection-icon">
+                {% if Image != null %}
+                <img src="{{ Image | UnescapeDataString | HtmlDecode }}" />
+                {% endif%}
+            </span>
+            <h1 class="g-font-family--primary g-font-weight--700 g-color--dark g-line-height" style="font-size: 4.5em;top: 50%;position: absolute;
+                                        -webkit-transform: translate(320px, -50%); 
+                                        -ms-transform: translate(320px, -50%); 
+                                        transform: translate(320px, -50%); letter-spacing:
+                                        0.5rem;">{{ Title | UnescapeDataString | HtmlDecode }}
+                <br /><small class="g-font-family--secondary g-font-weight--600"
+                    style="letter-spacing: normal; top:-10px; position:
+                    relative;">{{ Body | UnescapeDataString | HtmlDecode }}</small>
+            </h1>
+        </div>
+    </div>
+</body>
+
+</html>

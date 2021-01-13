@@ -1,0 +1,126 @@
+{
+    "blocks": [{
+        "type": "mediaBanner",
+        "props": {
+            "posterImageUrl": "https://pbs.twimg.com/media/EewDirxUMAA8O_Y.jpg",
+            "bannerBackgroundUrl": "",
+            "averageColor": "#606060",
+            "vibrantColor": "#606060"
+        }
+    }, {
+        "type": "text",
+        "props": {
+            "content": "Get Connected",
+            "h1": true
+        }
+    }, {
+        "type": "text",
+        "props": {
+            "content": "The best day ever!!",
+            "subtitle": true,
+            "topSpacing": "small"
+        }
+    }, {
+        "type": "text",
+        "props": {
+            "content": "One more thing.",
+            "body1": true,
+            "format": true,
+            "topSpacing": "small"
+        }
+    }, {
+        "type": "image",
+        "props": {
+            "imageRadius": "large",
+            "topSpacing": "medium",
+            "bottomSpacing": "small",
+            "horizontalSpacing": "large",
+            "shadowEnabled": false,
+            "imageUrl": "https://www.southeastchristian.org/Content/SubSplash/SermonBlankFFFFFF.jpg"
+        }
+    }, {
+        "type": "image",
+        "props": {
+            "imageRadius": "large",
+            "topSpacing": "medium",
+            "bottomSpacing": "small",
+            "horizontalSpacing": "large",
+            "shadowEnabled": true,
+            "imageUrl": "https://www.southeastchristian.org/Content/SubSplash/SermonBlankFFFFFF.jpg",
+            "action": {
+                "handler": "list",
+                "url": "https://rockstaging.secc.org/webhooks/SubSplash.ashx/prayer"
+            }
+        }
+    }, {
+        "type": "image",
+        "props": {
+            "imageRadius": "large",
+            "topSpacing": "medium",
+            "bottomSpacing": "small",
+            "horizontalSpacing": "large",
+            "shadowEnabled": true,
+            "imageUrl": "https://www.southeastchristian.org/Content/SubSplash/SermonBlankFFFFFF.jpg",
+            "action": {
+                "handler": "list",
+                "url": "https://rockstaging.secc.org/webhooks/SubSplash.ashx/prayer"
+            }
+        }
+    }, {
+        "type": "list",
+        "props": {
+            "listStyle": "grid",
+            "itemStyle": "square",
+            "topSpacing": "large",
+            "bottomSpacing": "large",
+            "horizontal": true,
+            "title": "Title",
+            "data": [
+                {
+                    "title": "New Media Title",
+                    "subtitle": "New Media Subtitle",
+                    "image": "https://pbs.twimg.com/media/EewDirxUMAA8O_Y.jpg",
+                    "action": {
+                        "handler": "browser",
+                        "contentUrl": "https://www.spacex.com",
+                        "style": "internal"
+                    }
+                },{
+                    "title": "New Media Title",
+                    "subtitle": "New Media Subtitle",
+                    "image": "https://pbs.twimg.com/media/EewDirxUMAA8O_Y.jpg",
+                    "action": {
+                        "handler": "browser",
+                        "contentUrl": "https://www.spacex.com",
+                        "style": "internal"
+                    }
+                },{
+                    "title": "New Media Title",
+                    "subtitle": "New Media Subtitle",
+                    "image": "https://pbs.twimg.com/media/EewDirxUMAA8O_Y.jpg",
+                    "action": {
+                        "handler": "browser",
+                        "contentUrl": "https://www.spacex.com",
+                        "style": "internal"
+                    }
+                },{
+                    "title": "New Media Title",
+                    "subtitle": "New Media Subtitle",
+                    "image": "https://pbs.twimg.com/media/EewDirxUMAA8O_Y.jpg",
+                    "action": {
+                        "handler": "browser",
+                        "contentUrl": "https://www.spacex.com",
+                        "style": "internal"
+                    }
+                }
+            ]
+        }
+    }, {
+        "type": "text",
+        "props": {
+            "content": "# Ohhhh yeaaaaah",
+            "markdown": true,
+            "topSpacing": "medium"
+        }
+    }]
+}
