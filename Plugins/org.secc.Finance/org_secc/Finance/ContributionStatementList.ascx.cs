@@ -314,7 +314,7 @@ namespace RockWeb.Plugins.org_secc.Finance
                 documentQuery = documentQuery.Where( d => d.BinaryFile.FileName.Contains( name ) );
             }
 
-            var personQuery = personService.Queryable();
+            var personQuery = personService.Queryable( true );
 
             // Filter for a specific Person
             if ( ppPerson.SelectedValue.HasValue && ppPerson.SelectedValue.Value > 0 ) {
