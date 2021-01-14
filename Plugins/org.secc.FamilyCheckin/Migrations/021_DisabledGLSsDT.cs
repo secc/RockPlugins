@@ -17,19 +17,18 @@ namespace org.secc.FamilyCheckin.Migrations
     using Rock.Plugin;
     using org.secc.DevLib.Extensions.Migration;
     using org.secc.FamilyCheckin.Utilities;
-    using System;
 
-    [MigrationNumber( 13, "1.10.2" )]
-    public partial class GroupFilterAttributes : Migration
+    [MigrationNumber( 21, "1.10.2" )]
+    public partial class DisabledGLSsDT : Migration
     {
         public override void Up()
         {
-
+            RockMigrationHelper.AddDefinedType( "Check-in", "Disabled GroupLocationSchedules", "Group location schedules that are disabled through the oz screen.", "4A3255CE-9363-402C-9998-B2998B6712E0", @"" );
         }
 
         public override void Down()
         {
-
+            RockMigrationHelper.DeleteDefinedType( "4A3255CE-9363-402C-9998-B2998B6712E0" ); // Disabled GroupLocationSchedules
         }
     }
 }
