@@ -84,6 +84,9 @@ namespace org.secc.FamilyCheckin.Cache
         public bool IsVolunteer { get; set; }
 
         [DataMember]
+        public bool IsChildren { get; set; }
+
+        [DataMember]
         public bool WithParent { get; set; }
 
 
@@ -230,6 +233,7 @@ namespace org.secc.FamilyCheckin.Cache
                 LocationId = attendance.Occurrence.LocationId,
                 ScheduleId = attendance.Occurrence.ScheduleId,
                 IsVolunteer = OccurrenceCache.GetVolunteerOccurrences().Select( o => o.GroupId ).Contains( attendance.Occurrence.GroupId ?? 0 ),
+                IsChildren = OccurrenceCache.GetChildrenOccurrences().Select( o => o.GroupId ).Contains( attendance.Occurrence.GroupId ?? 0 ),
                 WithParent = false
             };
 

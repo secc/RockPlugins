@@ -92,6 +92,9 @@ namespace org.secc.FamilyCheckin.Cache
         public bool IsVolunteer { get; set; }
 
         [DataMember]
+        public bool IsChildren { get; set; }
+
+        [DataMember]
         public int? SoftRoomThreshold { get; set; }
 
         [DataMember]
@@ -244,6 +247,9 @@ namespace org.secc.FamilyCheckin.Cache
             AttributeValueService attributeValueService = new AttributeValueService( new RockContext() );
             var volunteerGroupIds = attributeValueService.Queryable().AsNoTracking()
                 .Where( av => av.AttributeId == volAttribute.Id && av.Value == "True" ).Select( av => av.EntityId.Value ).ToList();
+            var childrenGroupIds = attributeValueService.Queryable().AsNoTracking()
+                .Where( av => av.AttributeId == volAttribute.Id && av.Value == "False" ).Select( av => av.EntityId.Value ).ToList();
+
 
             OccurrenceCache occurrenceCache = new OccurrenceCache
             {
@@ -263,6 +269,7 @@ namespace org.secc.FamilyCheckin.Cache
                 FirmRoomThreshold = groupLocation.Location.FirmRoomThreshold,
                 IsActive = groupLocation.Schedules.Select( s => s.Id ).Contains( scheduleId ),
                 IsVolunteer = volunteerGroupIds.Contains( groupLocation.GroupId ),
+                IsChildren = childrenGroupIds.Contains( groupLocation.GroupId ),
             };
 
             var location = groupLocation.Location;
@@ -277,9 +284,30 @@ namespace org.secc.FamilyCheckin.Cache
             return All().Where( o => o.IsVolunteer ).ToList();
         }
 
-        public static List<OccurrenceCache> GetChildOccurrences()
+        public static List<OccurrenceCache> GetNonVolunteerOccurrences()
         {
             return All().Where( o => !o.IsVolunteer ).ToList();
+        }
+
+        public static List<OccurrenceCache> GetChildrenOccurrences()
+        {
+            return All().Where( o => o.IsChildren ).ToList();
+        }
+
+        public static List<OccurrenceCache> GetNonChildrenOccurrences()
+        {
+            return All().Where( o => !o.IsChildren ).ToList();
+        }
+
+        public static List<OccurrenceCache> GetUnlabledOccurrences()
+        {
+            return All().Where( o => !o.IsChildren && !o.IsVolunteer ).ToList();
+        }
+
+        [Obsolete("Use GetChildrenOccurrences")]
+        public static List<OccurrenceCache> GetChildOccurrences()
+        {
+            return GetChildrenOccurrences();
         }
 
         internal static OccurrenceCache GetByOccurrence( AttendanceOccurrence occurrence )
