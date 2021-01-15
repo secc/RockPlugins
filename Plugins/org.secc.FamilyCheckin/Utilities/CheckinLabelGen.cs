@@ -196,9 +196,9 @@ namespace org.secc.FamilyCheckin.Utilities
             List<string> labelCodes = new List<string>();
             foreach ( var person in people )
             {
-                var applicableAttendances = AttendanceCache.All().Where( p => p.PersonId == person.Id );
-                //only if they are checked in to somewhere that is not a volunteer
-                if ( applicableAttendances.Any( a => !a.IsVolunteer ) )
+                var applicableAttendances = AttendanceCache.All().Where( a => a.PersonId == person.Id );
+                //only if they are checked in to somewhere that is marked as children
+                if ( applicableAttendances.Any( a => a.IsChildren ) )
                 {
                     var newestAttendance = applicableAttendances.OrderByDescending( a => a.CreatedDateTime ).FirstOrDefault();
                     labelCodes.Add( $"{newestAttendance.Code}-{person.FormatAge()}" );

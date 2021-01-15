@@ -77,7 +77,10 @@ namespace org.secc.FamilyCheckin
                 }
 
                 campusId = GetCampusOrFamilyCampusId( campusId, checkInState.CheckIn.CurrentFamily.Group.CampusId );
-
+                if (campusId == 0 )
+                {
+                    campusId = CampusCache.All().FirstOrDefault().Id;
+                }
 
                 AttendanceCode attendanceCode = null;
                 DateTime startDateTime = Rock.RockDateTime.Now;
