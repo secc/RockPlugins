@@ -20,7 +20,7 @@
                 background-repeat: no-repeat;
                 background-size: contain;
                 background-position: top;
-                background: url("{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}&s.alpha=0.6&bgcolor=FFFFFF");
+                background: url("{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}&s.alpha=0.6&bgcolor=000000");
                 position: relative;
             }
             .box h4, .box h5, .box p {
@@ -46,8 +46,8 @@
     <body>
         <div class="box g-bg-parallax-color--black--20">
             <div class="content text-center">
-                	<h1 class="g-font-weight--800 g-color--white g-line-height uppercase g-letter-spacing--3" style="font-size: 4.5em;">{{ item.Title }}</h1>
-                    <h3 class="g-color--white g-line-height g-font-weight--500 g-font-family--secondary g-letter-spacing--1" style="font-size: 5rem;">{{ item | Attribute:'Subtitle' }}</h3>
+                	<h1 class="g-font-weight--800 g-color--white g-line-height uppercase g-letter-spacing--3" style="font-size: 4.5em; letter-spacing: 0.6rem;">{{ item.Title }}</h1>
+                    <h3 class="g-color--white g-line-height g-font-weight--600 g-font-family--secondary g-letter-spacing--1" style="font-size: 5rem;">{{ item | Attribute:'Subtitle' }}</h3>
             </div>
         </div>
     </body>

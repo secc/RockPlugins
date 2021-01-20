@@ -1,0 +1,43 @@
+{
+	"header": {
+		"title": "Home"
+	},
+    "displayOptions": {
+        "colors": {
+            "brand": {
+                "primary": "#000000",
+                "primaryAccent": "#000000"
+            },
+            "theme": {
+                "primary": "#000000",
+                "primaryAccent": "#000000"
+            },
+            "topBar": {
+                "primary": "#000000",
+                "primaryAccent": "#000000"
+            },
+            "bottomBar": {
+                "primary": "#000000",
+                "primaryAccent": "#000000"
+            },
+            "brandableElements": "#000000"
+        }
+    },
+    "items": [
+        {
+            "title": "Home",
+            "actions": [{
+                "handler": "list",
+                "url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/home"
+            }]
+        },
+        {
+            "title": "This Weekend",
+            "actions": [{
+				"handler": "blockPage",
+                "topBarStyle": "default",
+				"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/weekend"
+			}]
+        }
+    ]
+}

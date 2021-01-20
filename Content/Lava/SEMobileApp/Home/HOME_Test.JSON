@@ -1,0 +1,170 @@
+{
+    "header": {
+        "title": "Home"
+    },
+    "displayOptions": {
+        "style": "stacked",
+        "contentWidthRatio": 9.5,
+        "itemDisplayOptions": {
+            "indicatorAspectRatio": 2.47407,
+            "textPosition": "none"
+        },
+        "colors": {
+            "brand": {
+                "primary": "#FFFFFF",
+                "primaryAccent": "#121212"
+            },
+            "theme": {
+                "primary": "#FFFFFF",
+                "primaryAccent": "#121212"
+            },
+            "topBar": {
+                "primary": "#FFFFFF",
+                "primaryAccent": "#121212"
+            },
+            "bottomBar": {
+                "primary": "#FFFFFF",
+                "primaryAccent": "#121212"
+            },
+            "brandableElements": ""
+        }
+    },
+    "items": [
+        {
+            "images": [
+                {
+                    "width": 668,
+                    "url": "https://rock.secc.org/Webhooks/ImageGenerator.ashx/homeimage/e534f1f6-f353-4a7c-968d-bfbc4a944feb?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"
+                }
+            ],
+            "actions": [
+                {
+                    "handler": "list",
+                    "url": "https://rockstaging.secc.org/webhooks/SubSplash.ashx/advent/list"
+                }
+            ],
+            "title": "",
+            "subtitle": ""
+        },
+        {
+            "images": [
+                {
+                    "width": 668,
+                    "url": "https://app.secc.org/Webhooks/ImageGenerator.ashx/homeimage/89d28ab0-128c-40ec-b5a3-0fec7aaf1922?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"
+                }
+            ],
+            "actions": [
+                {
+                    "handler": "browser",
+                    "type": "navigation",
+                    "style": "internal",
+                    "contentUrl": "https://www.southeastchristian.org/regather?theme=SECC2019_Child_Invert"
+                }
+            ],
+            "title": "Regathering:",
+            "subtitle": "What to Expect"
+        },
+        {
+            "images": [
+                {
+                    "width": 668,
+                    "url": "https://rock.secc.org/Webhooks/ImageGenerator.ashx/homeimage/a761a196-5116-4976-a9b6-9aca4ce175f4?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"
+                }
+            ],
+            "actions": [
+                {
+                    "handler": "browser",
+                    "type": "navigation",
+                    "style": "internal",
+                    "contentUrl": "https://rockstaging.secc.org/mobilecheckin",
+                    "authProviderId": "ccaf1fb2-03e0-4093-8f97-f8f60f125ddc"
+                }
+            ],
+            "title": "SE!Kids Check-in",
+            "subtitle": "Securely check in your child"
+        },
+        {
+            "images": [
+                {
+                    "width": 668,
+                    "url": "https://app.secc.org/Webhooks/ImageGenerator.ashx/homeimage/7920ef12-f1be-42a7-97fa-0a49dd615382?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"
+                }
+            ],
+            "actions": [
+                {
+                    "handler": "list",
+                    "url": "https://rockstaging.secc.org/webhooks/Subsplash.ashx/sermons/1"
+                }
+            ],
+            "title": "Sermons",
+            "subtitle": "Check out our latest sermon series"
+        },
+        {
+            "images": [
+                {
+                    "width": 668,
+                    "url": "https://app.secc.org/Webhooks/ImageGenerator.ashx/homeimage/2de8d580-f4fe-4514-9d26-4d63a4d23239?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"
+                }
+            ],
+            "actions": [
+                {
+                    "handler": "browser",
+                    "type": "navigation",
+                    "style": "internal",
+                    "contentUrl": "https://www.southeastchristian.org/connect?theme=SECC2019_Child_Invert",
+                    "authProviderId": "ccaf1fb2-03e0-4093-8f97-f8f60f125ddc"
+                }
+            ],
+            "title": "Connect",
+            "subtitle": "We'd like to connect with you"
+        },
+        {
+            "images": [
+                {
+                    "width": 668,
+                    "url": "https://app.secc.org/Webhooks/ImageGenerator.ashx/homeimage/4690d840-2f19-4998-b838-3e4a121b0855?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"
+                }
+            ],
+            "actions": [
+                {
+                    "handler": "list",
+                    "url": "https://rockstaging.secc.org/webhooks/SubSplash.ashx/prayer"
+                }
+            ],
+            "title": "Prayer",
+            "subtitle": "How can we pray for you?"
+        },
+        {
+            "images": [
+                {
+                    "width": 668,
+                    "url": "https://app.secc.org/Webhooks/ImageGenerator.ashx/homeimage/5fa6d485-15f5-4340-94cb-30e8262a7d67?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"
+                }
+            ],
+            "actions": [
+                {
+                    "handler": "list",
+                    "url": "https://rockstaging.secc.org/webhooks/SubSplash.ashx/bulletin/campuses"
+                }
+            ],
+            "title": "Bulletin",
+            "subtitle": "See what's happening at our church"
+        },
+        {
+            "images": [
+                {
+                    "width": 668,
+                    "url": "https://rock.secc.org/Webhooks/ImageGenerator.ashx/homeimage/0a6738e3-3425-4107-8b00-b9ea68aafcf3?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"
+                }
+            ],
+            "actions": [
+                {
+                    "handler": "list",
+                    "url": "https://rock.secc.org/webhooks/SubSplash.ashx/sermondiscussion"
+                }
+            ],
+            "title": "Sermon Discussion",
+            "subtitle": "Explore the sermon with a group study"
+        }
+    ]
+}

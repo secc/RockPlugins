@@ -6,44 +6,23 @@
 {%- endif -%}
 {%- cache key:'{{cacheOS}}' duration:'3600' -%}
 {
-	"header": {
-		"title": "Home"
-	},
-	"displayOptions": {
-        "style": "stacked",
-        "contentWidthRatio": 9.5,
-        "itemDisplayOptions": {
-            "indicatorAspectRatio": 2.47407,
-            "textPosition": "none"
-        },
-        "colors": {
-            "brand": {
-                "primary": "#FFFFFF",
-                "primaryAccent": "#121212"
-            },
-            "theme": {
-                "primary": "#FFFFFF",
-                "primaryAccent": "#121212"
-            },
-            "topBar": {
-                "primary": "#FFFFFF",
-                "primaryAccent": "#121212"
-            },
-            "bottomBar": {
-                "primary": "#FFFFFF",
-                "primaryAccent": "#121212"
-            },
-            "brandableElements": ""
+	"blocks": [
+	{
+        "type": "image",
+        "props": {
+            "aspectRatio": 1.75829384,
+            "bottomSpacing": "small",
+			"horizontalSpacing": "none",
+            "imageUrl": "https://www.southeastchristian.org/content/mobileapp/welcome_home2.jpg"
         }
     },
-	"items": [
 	{%- contentchannelitem Id:'2087' -%}
 		{%- assign childItemsSorted = contentchannelitem.ChildItems | Sort:"Order" -%}
 		{%- assign comma = "" -%}
 		{%- for item in childItemsSorted -%}
 			{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
 			{%- assign today = 'Now' | Date:'dddd' -%}
-			{%- assign streamBannerShowDays = 'Sunday' -%}
+			{%- assign streamBannerShowDays = 'Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday' -%}
 			{%- assign bulletinOneShowDays = 'Saturday|Sunday' -%}
 			{%- assign bulletinTwoShowDays = 'Monday|Tuesday|Wednesday|Thursday|Friday' -%}
 			{%- assign slug = item.ChildContentChannelItem.PrimarySlug -%}
@@ -53,6 +32,8 @@
 			{%- assign subtitle = item.ChildContentChannelItem | Attribute:'Subtitle' -%}
 			{%- assign imageGuid = item.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
 			{%- assign actionJson = item.ChildContentChannelItem | Attribute:'Action' -%}
+			{%- assign generateImage = item.ChildContentChannelItem | Attribute:'GenerateImage' -%}
+			{%- assign layoutType = item.ChildContentChannelItem | Attribute:'LayoutType','RawValue' -%}
 			{%- if slug == "streaming-now-1" or slug == "bulletin-1" or slug == "bulletin-2" or slug == "sekids-check-in-1" or slug == "sekids-check-in-2" -%}
 				{%- if slug == "streaming-now-1" and streamBannerShowDays contains today -%}
 					{%- comment -%} Start: Banner Item{%- endcomment -%}
@@ -61,79 +42,58 @@
 					{%- endif -%}
 					{{ comma }}
 					{
-						"images":[
-							{"width": 668,
-							{%- if cacheOS == 'iOS' -%}
-							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+						"type": "image",
+						"props": {
+							"aspectRatio": {{ layoutType }},
+							"imageRadius": "large",
+							"topSpacing": "medium",
+							"shadowEnabled": true,
+							{%- if generateImage == 'Yes' -%}
+							"imageUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}"
 							{%- else -%}
-							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&bgcolor=121212"}
+							"imageUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{item.ChildContentChannelItem | Attribute:'Image','RawValue'}}.jpg?guid={{item.ChildContentChannelItem | Attribute:'Image','RawValue'}}"
 							{%- endif -%}
-							]
-						{%- if actionJson != "" -%}
-						,"actions":[{
-							{{-actionJson-}}
-						}],
+							{%- if actionJson != "" -%}
+							,"action": {
+								{{-actionJson-}}
+							}
+							{%- endif -%}
+						},
 						"title": "{{ title }}",
 						"subtitle": "{{ subtitle }}"
-						{%- endif -%}
 					}
 					{%- assign comma = "," -%}
 					{%- comment -%} End: Banner Item{%- endcomment -%}
-				{%- elseif slug == "bulletin-1" or slug == "sekids-check-in-1" -%}
-					{% if bulletinOneShowDays contains today %}
-						{%- comment -%} Start: Banner Item{%- endcomment -%}
-						{%- if Headers.sap-device-os == 'Android' -%}
-							{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
-						{%- endif -%}
-						{{ comma }}
-						{
-							"images":[
-								{"width": 668,
-								{%- if cacheOS == 'iOS' -%}
-								"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"}
-								{%- else -%}
-								"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&bgcolor=FFFFFF"}
-								{%- endif -%}
-								]
-							{%- if actionJson != "" -%}
-							,"actions":[{
-								{{-actionJson-}}
-							}],
-							"title": "{{ title }}",
-							"subtitle": "{{ subtitle }}"
-							{%- endif -%}
-						}
-						{%- assign comma = "," -%}
-						{%- comment -%} End: Banner Item{%- endcomment -%}
-					{%- endif -%}
-				{%- elseif slug == "bulletin-2" or slug == "sekids-check-in-2" -%}
-					{% if bulletinTwoShowDays contains today %}
-						{%- comment -%} Start: Banner Item{%- endcomment -%}
-						{%- if Headers.sap-device-os == 'Android' -%}
-							{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
-						{%- endif -%}
-						{{ comma }}
-						{
-							"images":[
-								{"width": 668,
-								{%- if cacheOS == 'iOS' -%}
-								"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"}
-								{%- else -%}
-								"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&bgcolor=FFFFFF"}
-								{%- endif -%}
-								]
-							{%- if actionJson != "" -%}
-							,"actions":[{
-								{{-actionJson-}}
-							}],
-							"title": "{{ title }}",
-							"subtitle": "{{ subtitle }}"
-							{%- endif -%}
-						}
-						{%- assign comma = "," -%}
-						{%- comment -%} End: Banner Item{%- endcomment -%}
-					{%- endif -%}
 				{%- endif -%}
+			{%- elseif layoutType == "19.0857143" -%}
+				{%- comment -%} Start: Banner Item{%- endcomment -%}
+					{%- if Headers.sap-device-os == 'Android' -%}
+						{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
+					{%- endif -%}
+					{{ comma }}
+					{
+						"type": "image",
+						"props": {
+							"aspectRatio": {{ item.ChildContentChannelItem | Attribute:'LayoutType','RawValue' }},
+							"imageRadius": "large",
+							"topSpacing": "small",
+							"shadowEnabled": true,
+							{%- if generateImage == 'Yes' -%}
+							"imageUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}"
+							{%- else -%}
+							"imageUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{item.ChildContentChannelItem | Attribute:'Image','RawValue'}}.jpg?guid={{item.ChildContentChannelItem | Attribute:'Image','RawValue'}}"
+							{%- endif -%}
+							{%- if actionJson != "" -%}
+							,"action": {
+								{{-actionJson-}}
+							}
+							{%- endif -%}
+						},
+						"title": "{{ title }}",
+						"subtitle": "{{ subtitle }}"
+					}
+					{%- assign comma = "," -%}
+					{%- comment -%} End: Banner Item{%- endcomment -%}
 			{%- else -%}
 				{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
 					{%- comment -%} Start: Banner Item{%- endcomment -%}
@@ -142,21 +102,25 @@
 					{%- endif -%}
 					{{ comma }}
 					{
-						"images":[
-							{"width": 668,
-							{%- if cacheOS == 'iOS' -%}
-							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=FFFFFF"}
+						"type": "image",
+						"props": {
+							"aspectRatio": {{ item.ChildContentChannelItem | Attribute:'LayoutType','RawValue' }},
+							"imageRadius": "large",
+							"topSpacing": "medium",
+							"shadowEnabled": true,
+							{%- if generateImage == 'Yes' -%}
+							"imageUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}"
 							{%- else -%}
-							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&bgcolor=FFFFFF"}
+							"imageUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{item.ChildContentChannelItem | Attribute:'Image','RawValue'}}.jpg?guid={{item.ChildContentChannelItem | Attribute:'Image','RawValue'}}"
 							{%- endif -%}
-							]
-						{%- if actionJson != "" -%}
-						,"actions":[{
-							{{-actionJson-}}
-						}],
+							{%- if actionJson != "" -%}
+							,"action": {
+								{{-actionJson-}}
+							}
+							{%- endif -%}
+						},
 						"title": "{{ title }}",
 						"subtitle": "{{ subtitle }}"
-						{%- endif -%}
 					}
 					{%- assign comma = "," -%}
 					{%- comment -%} End: Banner Item{%- endcomment -%}
