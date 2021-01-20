@@ -11,8 +11,8 @@
         })
     }
 </script>
-<div class="g-bg-color--gray-lightest">
-    <div class="container g-padding-y-100--xs">
+<div>
+    <div class="">
         {% comment %} 
         {% include '/Themes/SECC2019Portal/Assets/Lava/SEEngagement.lava' %}
         {% endcomment %}
@@ -133,7 +133,7 @@
         ------------------------------------------------ {% endcomment %}
         <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
             <hr style="border-color: #4D4D4D;position: relative;">
-            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
                 SE ONLINE ENGAGEMENT
             </h4>
         </div>
@@ -398,7 +398,7 @@
         ------------------------------------------------ {% endcomment %}
         <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
             <hr style="border-color: #4D4D4D;position: relative;">
-            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
                 SE!KIDS ONLINE ENGAGEMENT
             </h4>
         </div>
@@ -471,7 +471,7 @@
         ------------------------------------------------ {% endcomment %}
         <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
             <hr style="border-color: #4D4D4D;position: relative;">
-            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
                 SOCIAL MEDIA ENGAGEMENT
             </h4>
         </div>
@@ -898,7 +898,7 @@
         ------------------------------------------------ {% endcomment %}
         <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
             <hr style="border-color: #4D4D4D;position: relative;">
-            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
                 GIVING
             </h4>
         </div>
@@ -1040,7 +1040,7 @@
         ------------------------------------------------ {% endcomment %}
         <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
             <hr style="border-color: #4D4D4D;position: relative;">
-            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
                 SE APP
             </h4>
         </div>
@@ -1109,7 +1109,7 @@
         {% comment %}
         <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-y-50--xs g-text-center--xs g-position--relative">
             <hr style="border-color: #4D4D4D;position: relative;">
-            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
                 Stories
             </h4>
         </div>
@@ -1182,7 +1182,7 @@
         ------------------------------------------------ {% endcomment %}
         <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-y-50--xs g-text-center--xs g-position--relative">
             <hr style="border-color: #4D4D4D;position: relative;">
-            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
                 Videos
             </h4>
         </div>
