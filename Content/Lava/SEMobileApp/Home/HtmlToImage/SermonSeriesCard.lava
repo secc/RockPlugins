@@ -37,6 +37,7 @@
                 /* margin: 0px 60px; */
                 width: 1336px;
                 height: 1080px;
+                overflow: hidden;
                 background-color: #FFF;
                 border-radius: 0px 0px 0px 0px;
                 background-repeat: no-repeat;
@@ -46,7 +47,7 @@
                 background:
                 url("{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}&mode=crop&width=1336&height=800");
                 background-repeat: no-repeat;
-                border: 1px dashed red;
+                /*border: 1px dashed red;*/
             }
             .play {
                     background-image: url(https://www.southeastchristian.org/Content/MobileApp/play.svg);
@@ -80,7 +81,7 @@
         <div class="box">
             <div class="content">
                 <h1 class="g-font-weight--800 g-color--dark g-line-height uppercase g-letter-spacing--3"
-                    style="font-size: 4.5em;">SERMONS</h1>
+                    style="font-size: 4.5em; letter-spacing: 0.6rem;">SERMONS</h1>
                 <h3 class="g-color--dark g-line-height g-font-weight--500 g-font-family--secondary g-letter-spacing--1"
                     style="font-size: 5rem;">Check out our latest sermon series</h3>
                 <span class="play"></span>
