@@ -23,7 +23,6 @@ using org.secc.Rise.Utilities;
 using Rock;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 using Rock.Web.UI;
 
 namespace RockWeb.Plugins.org_secc.Rise
@@ -69,7 +68,7 @@ namespace RockWeb.Plugins.org_secc.Rise
                 Rock.Attribute.Helper.AddEditControls( course, phAttributes, false );
             }
 
-            var groupTypeId = GroupTypeCache.Get( Constants.GROUPTYPE_RISE ).Id;
+            var groupTypeId = Constants.GetRiseGroupTypeId();
             pGroup.IncludedGroupTypeIds = new List<int> { groupTypeId };
 
             gGroups.Actions.ShowAdd = true;

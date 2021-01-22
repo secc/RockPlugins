@@ -290,6 +290,8 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     //Person header
                     worksheet.Cells[rowCounter, 1].Value = "Name";
 
+                    worksheet.Cells[rowCounter, 2].Value = "Campus";
+
                     worksheet.Cells[rowCounter, 3].Value = "Age";
 
                     worksheet.Cells[rowCounter, 4].Value = "M/F";
@@ -315,10 +317,8 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     foreach ( var patient in patients )
                     {
                         SetExcelValue( worksheet.Cells[rowCounter, 1], patient.PersonToVisit.FullName );
-                        using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 2] )
-                        {
-                            r.Merge = true;
-                        }
+
+                        SetExcelValue( worksheet.Cells[rowCounter, 2], patient.PersonToVisit.GetCampus() );
 
                         SetExcelValue( worksheet.Cells[rowCounter, 3], patient.PersonToVisit.FormatAge() );
 
