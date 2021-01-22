@@ -392,3 +392,84 @@ section:not(.row):not(.highlighted-section):not(.with-header):not(.footer-menu):
 
 	img { width: 100%; }
 }
+
+/* 
+Credits to: https: //codyhouse.co/blog/post/css-diagonal-containers
+*/
+:root {
+    --diagonal-hero-offset: 80px;
+}
+@media screen and (max-width: 750px) {
+    :root {
+        --diagonal-hero-offset: 40px;
+    }
+}
+
+.hero--r-diagonal,
+.hero--l-diagonal,
+.hero--rl-diagonal,
+.hero--lr-diagonal,
+.hero--tr-diagonal,
+.hero--tl-diagonal,
+.hero--bl-diagonal,
+.hero--br-diagonal
+    {
+    position: relative;
+    background-color: transparent;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(red, 0.5);
+        // background-size: cover;
+        // background: url('') no-repeat center center;
+    }
+
+    .hero__content {
+        position: relative;
+        z-index: 1;
+    }
+}
+
+@supports (clip-path: none) {
+    .hero--r-diagonal::before,
+    .hero--l-diagonal::before,
+    .hero--rl-diagonal::before,
+    .hero--lr-diagonal::before,
+    .hero--tr-diagonal::before,
+    .hero--tl-diagonal::before,
+    .hero--bl-diagonal::before,
+    .hero--br-diagonal::before {
+        height: calc(100% + var(--diagonal-hero-offset) * 2);
+        top: calc(var(--diagonal-hero-offset) * -1);
+    }
+    .hero--r-diagonal::before {
+        clip-path: polygon(0% 0%, 100% var(--diagonal-hero-offset), 100% 100%, 0% calc(100% - var(--diagonal-hero-offset)));
+    }
+    .hero--l-diagonal::before {
+        clip-path: polygon(0% var(--diagonal-hero-offset), 100% 0%, 100% calc(100% - var(--diagonal-hero-offset)), 0% 100%);
+    }
+    .hero--rl-diagonal::before {
+        clip-path: polygon(0% 0%, 100% var(--diagonal-hero-offset), 100% calc(100% - var(--diagonal-hero-offset)), 0% 100%);
+    }
+    .hero--lr-diagonal::before {
+        clip-path: polygon(0% var(--diagonal-hero-offset), 100% 0%, 100% 100%, 0% calc(100% - var(--diagonal-hero-offset)));
+    }
+    .hero--tr-diagonal::before {
+         clip-path: polygon(0% 0%, 100% var(--diagonal-hero-offset), 100% 100%, 0 100%);
+    }
+    .hero--tl-diagonal::before {
+        clip-path: polygon(0% var(--diagonal-hero-offset), 100% 0%, 100% 100%, 0 100%);
+    }
+    .hero--br-diagonal::before {
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0% calc(100% - var(--diagonal-hero-offset)));
+    }
+
+    .hero--bl-diagonal::before {
+        clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--diagonal-hero-offset)), 0% 100%);
+    }
+}

@@ -1,0 +1,48 @@
+<section>
+	{[ wow animate:'fadeIn' duration:'.3s' delay:'0.3s' ]}
+	<div class="menu-switch g-bg-color--gray-lightest g-padding-b-50--xs" style="background-image: url('/Content/Media/Unleashed/Unleashed_header.jpg'); height:70vh; background-size: cover; background-position: center center;">
+    
+        <div class="parallax-logo g-center--xs text-center g-position--relative" style="max-width: inherit;padding: 0px;">
+            <h1 class="g-font-weight--700 g-font-size-100--xs g-font-size-180--md g-color--white">unleashed</h1><h1>
+            <!--<a href="javascript:void(0)" class="js-modal-video" data-video-id="395474760"></a>-->
+            <!--<br>-->
+            <!--<a href="javascript:void(0)" class="js-modal-video text-center" data-video-id="395474760">-->
+            <!--    <h3>-->
+            <!--        WATCH-->
+            <!--        <div class="play">-->
+            <!--			<svg version="1.1" id="play" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" height="75px" width="75px" viewBox="0 0 100 100" enable-background="new 0 0 100 100" xml:space="preserve">-->
+            <!--              <path class="stroke-solid" fill="none" stroke="white" d="M49.9,2.5C23.6,2.8,2.1,24.4,2.5,50.4C2.9,76.5,24.7,98,50.3,97.5c26.4-0.6,47.4-21.8,47.2-47.7-->
+            <!--                C97.3,23.7,75.7,2.3,49.9,2.5"></path>-->
+            <!--              <path class="stroke-dotted" fill="none" stroke="white" d="M49.9,2.5C23.6,2.8,2.1,24.4,2.5,50.4C2.9,76.5,24.7,98,50.3,97.5c26.4-0.6,47.4-21.8,47.2-47.7-->
+            <!--                C97.3,23.7,75.7,2.3,49.9,2.5"></path>-->
+            <!--              <path class="icon" fill="white" d="M38,69c-1,0.5-1.8,0-1.8-1.1V32.1c0-1.1,0.8-1.6,1.8-1.1l34,18c1,0.5,1,1.4,0,1.9L38,69z"></path>-->
+            <!--            </svg>-->
+            <!--        </div>-->
+            <!--        Video-->
+            <!--    </h3>-->
+            <!--</a>-->
+        </h1></div>
+ 
+    </div>
+    {[ endwow ]}
+    <div class="page-menu" style="background-color: #FAFBF9;">
+		<div class="container-fluid text-center" style="padding: 0;">
+			<nav class="page-nav text-center">
+				<ul class="list-inline">
+					<li><a href="#Conference">Conference</a></li>
+					<li><a href="#Book">Book</a></li>
+					<li><a href="#Series">Series</a></li>
+					<li><a href="#Study">Group Study</a></li>
+					<li><a href="#App">App</a></li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+    <script>
+    var scroll = new SmoothScroll('div.page-menu a[href*="#"]', {
+        speed: 500, // Integer. How fast to complete the scroll in milliseconds
+        easing: 'easeInOutCubic', // Easing pattern to use
+        header: '.cd-main-header'
+    });
+    </script>
+</section>

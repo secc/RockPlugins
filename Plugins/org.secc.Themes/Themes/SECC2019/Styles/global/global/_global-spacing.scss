@@ -296,7 +296,7 @@
 .g-margin-b-2--xs { margin-bottom: .125rem; }
 .g-margin-b-4--xs { margin-bottom: .25rem; }
 
-@for $i from 0 through 30 {
+@for $i from 0 through 50 {
   .g-margin-b-#{$i * 5}--xs {
     margin-bottom: ($i * .3125rem);
   }
@@ -309,7 +309,7 @@
 	.g-margin-b-2--sm { margin-bottom: .125rem; }
 	.g-margin-b-4--sm { margin-bottom: .25rem; }
 
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-margin-b-#{$i * 5}--sm {
 	    margin-bottom: ($i * .3125rem);
 	  }
@@ -323,7 +323,7 @@
 	.g-margin-b-2--md { margin-bottom: .125rem; }
 	.g-margin-b-4--md { margin-bottom: .25rem; }
 
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-margin-b-#{$i * 5}--md {
 	    margin-bottom: ($i * .3125rem);
 	  }
@@ -338,7 +338,7 @@
 	.g-margin-b-2--lg { margin-bottom: .125rem; }
 	.g-margin-b-4--lg { margin-bottom: .25rem; }
 
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-margin-b-#{$i * 5}--lg {
 	    margin-bottom: ($i * .3125rem);
 	  }
@@ -353,7 +353,7 @@
   Margin Top
 ------------------------------------*/
 
-@for $i from 0 through 30 {
+@for $i from 0 through 50 {
   .g-margin-t-#{$i * 5}--xs {
     margin-top: ($i * .3125rem);
   }
@@ -361,7 +361,7 @@
 
 /* Small screen / phone */
 @include media-breakpoint-up(sm) {
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-margin-t-#{$i * 5}--sm {
 	    margin-top: ($i * .3125rem);
 	  }
@@ -370,7 +370,7 @@
 
 /* Medium screen / tablet */
 @include media-breakpoint-up(md) {
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-margin-t-#{$i * 5}--md {
 	    margin-top: ($i * .3125rem);
 	  }
@@ -379,7 +379,7 @@
 
 /* Extra large screen / wide desktop */
 @include media-breakpoint-up(lg) {
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-margin-t-#{$i * 5}--lg {
 	    margin-top: ($i * .3125rem);
 	  }
@@ -516,7 +516,7 @@
     margin-bottom: auto !important;
 }
 
-@for $i from 0 through 30 {
+@for $i from 0 through 50 {
   .g-margin-y-#{$i * 5}--xs {
     margin-top: ($i * .3125rem) !important;
     margin-bottom: ($i * .3125rem) !important;
@@ -525,7 +525,7 @@
 
 /* Small screen / phone */
 @include media-breakpoint-up(sm) {
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-margin-y-#{$i * 5}--sm {
 	    margin-top: ($i * .3125rem) !important;
 	    margin-bottom: ($i * .3125rem) !important;
@@ -535,7 +535,7 @@
 
 /* Medium screen / tablet */
 @include media-breakpoint-up(md) {
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-margin-y-#{$i * 5}--md {
 	    margin-top: ($i * .3125rem) !important;
 	    margin-bottom: ($i * .3125rem) !important;
@@ -545,7 +545,7 @@
 
 /* Extra large screen / wide desktop */
 @include media-breakpoint-up(lg) {
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-margin-y-#{$i * 5}--lg {
 	    margin-top: ($i * .3125rem) !important;
 	    margin-bottom: ($i * .3125rem) !important;
@@ -758,7 +758,7 @@
   Padding Bottom
 ------------------------------------*/
 
-@for $i from 0 through 30 {
+@for $i from 0 through 50 {
   .g-padding-b-#{$i * 5}--xs {
     padding-bottom: ($i * .3125rem);
   }
@@ -766,7 +766,7 @@
 
 /* Small screen / phone */
 @include media-breakpoint-up(sm) {
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-padding-b-#{$i * 5}--sm {
 	    padding-bottom: ($i * .3125rem);
 	  }
@@ -775,7 +775,7 @@
 
 /* Medium screen / tablet */
 @include media-breakpoint-up(md) {
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-padding-b-#{$i * 5}--md {
 	    padding-bottom: ($i * .3125rem);
 	  }
@@ -784,7 +784,7 @@
 
 /* Extra large screen / wide desktop */
 @include media-breakpoint-up(lg) {
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-padding-b-#{$i * 5}--lg {
 	    padding-bottom: ($i * .3125rem);
 	  }
@@ -795,7 +795,7 @@
   Padding Top
 ------------------------------------*/
 
-@for $i from 0 through 30 {
+@for $i from 0 through 50 {
   .g-padding-t-#{$i * 5}--xs {
     padding-top: ($i * .3125rem);
   }
@@ -803,7 +803,7 @@
 
 /* Small screen / phone */
 @include media-breakpoint-up(sm) {
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-padding-t-#{$i * 5}--sm {
 	    padding-top: ($i * .3125rem);
 	  }
@@ -812,7 +812,7 @@
 
 /* Medium screen / tablet */
 @include media-breakpoint-up(md) {
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-padding-t-#{$i * 5}--md {
 	    padding-top: ($i * .3125rem);
 	  }
@@ -821,7 +821,7 @@
 
 /* Extra large screen / wide desktop */
 @include media-breakpoint-up(lg) {
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-padding-t-#{$i * 5}--lg {
 	    padding-top: ($i * .3125rem);
 	  }
@@ -875,7 +875,7 @@
   Padding Y (top & bottom)
 ------------------------------------*/
 
-@for $i from 0 through 30 {
+@for $i from 0 through 50 {
   .g-padding-y-#{$i * 5}--xs {
     padding-top: ($i * .3125rem);
     padding-bottom: ($i * .3125rem);
@@ -884,7 +884,7 @@
 
 /* Small screen / phone */
 @include media-breakpoint-up(sm) {
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-padding-y-#{$i * 5}--sm {
 	    padding-top: ($i * .3125rem);
 	    padding-bottom: ($i * .3125rem);
@@ -894,7 +894,7 @@
 
 /* Medium screen / tablet */
 @include media-breakpoint-up(md) {
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-padding-y-#{$i * 5}--md {
 	    padding-top: ($i * .3125rem);
 	    padding-bottom: ($i * .3125rem);
@@ -904,7 +904,7 @@
 
 /* Extra large screen / wide desktop */
 @include media-breakpoint-up(lg) {
-	@for $i from 0 through 30 {
+	@for $i from 0 through 50 {
 	  .g-padding-y-#{$i * 5}--lg {
 	    padding-top: ($i * .3125rem);
 	    padding-bottom: ($i * .3125rem);

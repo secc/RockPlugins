@@ -107,6 +107,28 @@
 	}
 }
 
+.se-btn--unleashed {
+	@extend .se-btn;
+	@include btn-style($color: #fff,
+		$padding: 1.2rem 2rem,
+		$bg: #EB4F40,
+		$brd-width: .4rem,
+		$brd-style: solid,
+		$brd-color: transparent,
+		$brd-radius: 3rem);
+
+	&.active {
+		color: $color-primary;
+		background-color: #EB4F40;;
+	}
+
+	&.no-transitions {
+		transition-duration: none !important;
+		transition-property: none !important;
+		transition-timing-function: none !important;
+	}
+}
+
 /* ---- 2.1 Defualt Buttons ---- */
 .btn {
 	/*@include btn-style(

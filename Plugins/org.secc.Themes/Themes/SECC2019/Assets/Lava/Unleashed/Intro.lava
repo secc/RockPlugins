@@ -1,0 +1,23 @@
+<style>
+    #Intro.hero--bl-diagonal:before {
+        background-color: #0A1B35;
+        background-size: cover;
+        background-image: url(/Content/Media/Unleashed/UnleashedConcept.jpg);
+        background-repeat: no-repeat;
+        background-position: center center;
+    }
+</style>
+<section id="Intro" class="hero--bl-diagonal g-margin-b-80--xs g-margin-b-150--lg">
+    <div class="container g-padding-y-50--xs g-padding-y-150--lg g-padding-x-40--xs">
+        <div class="row g-padding-y-75--md hero__content">
+            <div class="col-md-offset-1 col-md-10 g-padding-y-40--xs text-center">
+                {[ wow animate:'fadeInUp' duration:'.8s' delay:'0.3s' ]}
+                 <h1 class="visible-xs visible-sm visible-md g-font-size-50--xs g-font-size-50--md g-font-size-70--lg g-font-family--secondary g-font-weight--600 g-color--white g-padding-b-20--xs">We’re unleashing the full force of the church to love people one at a time.</h1>
+                 
+                <h1 class="hidden-xs hidden-sm hidden-md g-font-size-30--xs g-font-size-40--md g-font-size-70--lg g-font-family--secondary g-font-weight--600 g-color--white g-padding-b-20--xs">We’re unleashing the full force of the church
+                <br><span class="g-display-block--xs g-padding-t-40--xs g-letter-spacing--3 g-font-size-50--xs g-font-size-50--md g-font-size-80--lg g-font-family--primary g-font-weight--700 uppercase  g-color--white">to love people one at a time.</span></h1>
+                {[ endwow ]}
+            </div>
+        </div>
+    </div>
+</section>
