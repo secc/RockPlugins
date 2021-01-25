@@ -53,6 +53,11 @@ namespace org.secc.EMS
         {
         }
 
+        public override string ToString()
+        {
+            return $"{ActivityName} in {LocationName} from {TimeBookingStart} to {TimeBookingEnd}";
+        }
+
         public DateTime TimeBookingStart { get; set; }
         public DateTime TimeBookingEnd { get; set; }
         public DateTime TimeEventStart { get; set; }

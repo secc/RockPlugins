@@ -183,7 +183,7 @@ namespace RockWeb.Plugins.org_secc.EMS
             if ( errorMessage == string.Empty && webEvents != null )
             {
                 if ( webEvents.Count != 0 )
-                    gScroll.DataSource = webEvents;
+                    gScroll.DataSource = webEvents.DistinctBy( e => e.ToString() ).ToList();
                 else
                 {
                     gScroll.DataSource = null;
