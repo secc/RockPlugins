@@ -66,6 +66,7 @@
       <HintPath>$(SolutionDir)\packages\Security.Cryptography.1.7.2\lib\net35\Security.Cryptography.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web" />
@@ -77,29 +78,39 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="APIClient.cs" />
+    <Compile Include="Jobs\ImportMembers.cs" />
+    <Compile Include="Migrations\006_FamilyAttribute.cs" />
+    <Compile Include="Utilities\APIClient.cs" />
+    <Compile Include="Components\LeagueAppsSettings.cs" />
     <Compile Include="Contracts\Member.cs" />
     <Compile Include="Contracts\Programs.cs" />
     <Compile Include="Contracts\Registrations.cs" />
-    <Compile Include="HTMLConvertor.cs" />
-    <Compile Include="ImportData.cs" />
+    <Compile Include="Utilities\Constants.cs" />
+    <Compile Include="Utilities\HTMLConvertor.cs" />
+    <Compile Include="Jobs\ImportData.cs" />
     <Compile Include="Migrations\003_CreateGenderType.cs" />
     <Compile Include="Migrations\001_CreateDefinedTypes.cs" />
     <Compile Include="Migrations\004_CreateGenderDefinedValues .cs" />
     <Compile Include="Migrations\002_CreateDefinedValues.cs" />
     <Compile Include="Migrations\005_CreateAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\LeagueAppsHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\org.secc.DevLib\org.secc.DevLib.csproj">
+      <Project>{a6e9c252-af5b-4fa6-bce1-91a5540cbfb4}</Project>
+      <Name>org.secc.DevLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\org.secc.PersonMatch\org.secc.PersonMatch.csproj">
       <Project>{26cc0ba6-968b-4464-9992-d1d3510af9ab}</Project>
       <Name>org.secc.PersonMatch</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.LeagueApps.*" "$(SolutionDir)RockWeb\bin"

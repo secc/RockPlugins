@@ -15,7 +15,7 @@
 
 namespace org.secc.LeagueApps.Contracts
 {
-    class Registrations
+    public class Registrations
     {
             public int userId { get; set; }
             public string team { get; set; }

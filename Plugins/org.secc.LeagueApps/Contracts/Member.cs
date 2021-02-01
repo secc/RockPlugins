@@ -18,19 +18,24 @@ using Newtonsoft.Json;
 
 namespace org.secc.LeagueApps.Contracts
 {
-    class Member
+    public class Member
     {
         public int userId { get; set; }
+        public long lastUpdated { get; set; }
+        public int groupId { get; set; }
         public string email { get; set; }
         public string firstName { get; set; }
         public string lastName { get; set; }
         private DateTime? _birthDate = null;
         [JsonConverter( typeof( MillisecondEpochConverter ) )]
-        public DateTime? birthDate {
-            get {
+        public DateTime? birthDate
+        {
+            get
+            {
                 return _birthDate;
             }
-            set {
+            set
+            {
                 if ( value.HasValue )
                 {
                     _birthDate = value.Value.Date;
