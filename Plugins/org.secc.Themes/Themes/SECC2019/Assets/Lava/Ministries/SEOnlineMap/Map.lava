@@ -267,7 +267,7 @@
                 var mcOptions = {
                     gridSize: 60,
                     styles: clusterStyles,
-                    maxZoom: 15
+                    maxZoom: 10
                 };
                 // Add a marker clusterer to manage the markers.
                 const markerCluster = new MarkerClusterer(map1, clusterMarkers, mcOptions);

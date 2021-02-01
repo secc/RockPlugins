@@ -185,12 +185,14 @@ var styleOptions =[
         ]
     }
 ];
+var zoom = 4;
 var createMap = function(containerId)
 {   
     map = new google.maps.Map(document.getElementById(containerId), {
         center: {lat: 38.1596835, lng: -84.9802525},
         gestureHandling: 'cooperative',
-        zoom: 4,
+        zoom: zoom,
+        maxZoom: zoom + 8,
         //gestureHandling: 'greedy',
         disableDefaultUI: true, // a way to quickly hide all controls
         mapTypeControl: false,
