@@ -291,17 +291,6 @@ a.button.active .resource-icon.groups {
 	</div>
 </div>
 
-<div class="container">
-	<div class="row g-padding-x-50--xs g-padding-t-50--xs g-padding-b-150--xs">
-	    <div class="col-md-8 col-md-offset-2">
-            <h5 class="g-font-weight--500 g-padding-b-15--xs" style="text-align: left; ">Southeast Christian Church is happy to share resources that we have created in-house with others working to build God's Kingdom. We hereby grant permission for the use of our resources within the following guidelines and restrictions:
-                <br>
-            </h5>
-            <ul><li style="text-align: left;"><span style="font-size: 18px; font-weight: normal;">Please do not share directly with others. Instead, point others to our website.&nbsp;</span></li><li style="text-align: left;"><span style="font-size: 18px; font-weight: normal;">We are providing these free of charge, therefore no content may be used for profit.&nbsp;</span></li><li style="text-align: left;"><span style="font-size: 18px; font-weight: normal;">Please do not repost as your own content.&nbsp;</span></li></ul>
-        </div>
-    </div>
-</div>
-
 <script>
 $(document).ready(function() {
     // Re-Initialize Isotope

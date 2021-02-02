@@ -13,33 +13,18 @@
 // </copyright>
 //
 // <copyright>
-// Copyright by the Spark Development Network
-//
-// Licensed under the Rock Community License (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.rockrms.com/license
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-// </copyright>
-//
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Web.UI;
-
+using org.secc.EMS;
 using Rock;
+using Rock.Attribute;
 using Rock.Model;
 using Rock.Web.UI;
-using org.secc.EMS;
-using Rock.Attribute;
 
 namespace RockWeb.Plugins.org_secc.EMS
 {
@@ -95,7 +80,7 @@ namespace RockWeb.Plugins.org_secc.EMS
 
             if ( !Page.IsPostBack )
             {
-		        gScroll.PageSize = 5000;
+                gScroll.PageSize = 5000;
                 BindFilter();
                 BindGrid();
             }
@@ -198,7 +183,7 @@ namespace RockWeb.Plugins.org_secc.EMS
             if ( errorMessage == string.Empty && webEvents != null )
             {
                 if ( webEvents.Count != 0 )
-                    gScroll.DataSource = webEvents;
+                    gScroll.DataSource = webEvents.DistinctBy( e => e.ToString() ).ToList();
                 else
                 {
                     gScroll.DataSource = null;
@@ -208,7 +193,7 @@ namespace RockWeb.Plugins.org_secc.EMS
             {
                 if ( errorMessage != string.Empty )
                     throw new Exception( "Error occurred retrieving events from EMS", new System.Exception( errorMessage ) );
-                    gScroll.DataSource = null;
+                gScroll.DataSource = null;
             }
             gScroll.DataBind();
         }

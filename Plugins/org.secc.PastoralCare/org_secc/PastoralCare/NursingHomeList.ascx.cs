@@ -39,7 +39,7 @@ using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using OfficeOpenXml;
-using OfficeOpenXml.Style;
+using OfficeOpenXml.Style; 
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -61,6 +61,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
     [DefinedTypeField( "Nursing Home List" )]
 
     [GroupField( "Volunteer Group", "Group to use for list of Volunteers on the Excel export. If omitted, volunteers will not be displayed.", false, "", "", 0 )]
+    [BooleanField( "Display Pastoral Minister", "Should the Pastoral Minister be dislayed on the report. Defaults to True",true,"",1)]
     public partial class NursingHomeList : RockBlock
     {
         #region Control Methods
@@ -164,6 +165,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 string filename = gReport.ExportFilename;
                 string workSheetName = "List";
                 string title = "Nursing Home Residents List";
+                bool displayMinister = ( GetAttributeValue( "DisplayPastoralMinister" ).AsBoolean() );
 
                 ExcelPackage excel = new ExcelPackage();
                 excel.Workbook.Properties.Title = title;
@@ -259,18 +261,21 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                         r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 34, 41, 55 ) );
                     }
                     rowCounter++;
-
-                    worksheet.Cells[rowCounter, 1].Value = "Pastoral Minister: " + nursingHomeInfo.PastoralMinister;
-                    using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 15] )
+ 
+                    if ( displayMinister)
                     {
-                        r.Merge = true;
-                        r.Style.Font.SetFromFont( new Font( "Calibri", 15, FontStyle.Regular ) );
-                        r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
-                        r.Style.Font.Color.SetColor( Color.White );
-                        r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-                        r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 34, 41, 55 ) );
+                        worksheet.Cells[rowCounter, 1].Value = "Pastoral Minister: " + nursingHomeInfo.PastoralMinister;
+                        using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 15] )
+                        {
+                            r.Merge = true;
+                            r.Style.Font.SetFromFont( new Font( "Calibri", 15, FontStyle.Regular ) );
+                            r.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Left;
+                            r.Style.Font.Color.SetColor( Color.White );
+                            r.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                            r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 34, 41, 55 ) );
+                        }
+                        rowCounter++;
                     }
-                    rowCounter++;
             
                     if ( nursingHomeInfo.Volunteers.IsNotNullOrWhiteSpace() )
                     {
