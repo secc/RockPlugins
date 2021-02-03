@@ -1,10 +1,12 @@
 <section id="Conference">
     <div class="container g-padding-y-50--xs g-padding-x-40--xs">
-        <div class="row g-padding-y-75--md">
-            <div class="col-md-offset-1 col-md-10 g-padding-b-0--xs g-padding-b-40--md text-center">
-                <h1 class="g-font-size-50--xs g-font-size-50--md g-font-size-80--lg g-font-family--secondary g-font-weight--800 g-padding-b-20--xs"><i>Unleashed</i> Conference
-                <br><span class="g-display-block--xs g-padding-t-40--xs g-letter-spacing--8 g-font-size-30--xs g-font-size-50--md g-font-size-60--lg g-font-family--primary g-font-weight--600 uppercase">Join Us Online Saturday, March 6, 2021</span></h1>
+        <div class="row g-padding-t-75--xs g-padding-y-75--lg">
+            {[ wow animate:'fadeIn' duration:'.8s' delay:'0.3s' ]}
+            <div class="col-md-offset-1 col-md-10 g-padding-b-0--xs g-padding-b-40--lg text-center">
+                <h1 class="g-font-size-60--xs g-font-size-70--md g-font-size-80--lg g-font-family--secondary g-font-weight--800 g-padding-b-20--xs"><i>Unleashed</i> Conference
+                <br><span class="g-display-block--xs g-padding-t-40--xs g-letter-spacing--8 g-font-size-30--xs g-font-size-30--md g-font-size-40--lg g-font-family--primary g-font-weight--600 uppercase">Saturday, March 6 • 8:30 a.m.-12:30 p.m. • Online</h1>
             </div>
+            {[ endwow ]}
         </div>
     </div>
 </section>
@@ -16,19 +18,23 @@
             <div class="container">
                 <div class="row g-padding-y-50--xs">
                     <div class="col-md-6 col-lg-offset-1 col-lg-5 clearfix text-center">
+                        {[ wow animate:'fadeInLeft' duration:'.8s' delay:'0.3s' ]}
                         <span class="g-padding-x-50--md g-width-100-percent--xs g-position--relative g-display-block--xs g-margin-x-auto--xs" style="max-width: 500px">
-                            <img class="g-center--lg img-responsive" src="/Content/Media/Unleashed/brooke-cagle-RnDGGnMEOao-unsplash.jpg" style="top: 200px;border-radius: 20px;" />
+                            <img class="g-center--lg img-responsive" src="/Content/Media/Unleashed/brooke-cagle-RnDGGnMEOao-unsplash.jpg" style="top: 200px;border-radius: 20px; z-index: 10;" />
                         </span>
+                        {[ endwow ]}
                     </div>
-                    <div class="col-md-6 col-lg-5 clearfix g-padding-y-30--xs g-padding-y-60--md">
+                    <div class="col-md-6 col-lg-5 clearfix g-padding-y-30--xs g-padding-y-100--lg">
+                        {[ wow animate:'fadeIn' duration:'.8s' delay:'0.3s' ]}
                         <div class="g-padding-l-60--md g-padding-t-40--xs g-width-100-percent--xs">
-                            <h5 class="g-line-height g-font-weight--700">The <i>UNLEASHED</i> Conference brings people together to help explore more opportunities in how, when, and where they can be unleashed. The event will kick off with a worship night on Friday, March 5 and will offer virtual and possible in-person sessions on Saturday, March 6. There will be live studio hosts and online chat, video stories, breakout sessions, and a virtual exhibit hall to explore partners and opportunities.</h5>
+                            <h5 class="g-line-height g-font-weight--600">Explore how, when, and where you can be unleashed during this engaging online event featuring live studio hosts and online chat, video stories, breakout sessions, and a virtual exhibit hall where you can learn about partners and serving opportunities!</h5>
                                 <br>
                                 <br>
-                                <a href="#" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1">
-                                <strong>Register Now</strong>
-                            </a>
+                                <a href="https://unleashed.causemachine.com/events/unleashed-conference" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" target="_blank">
+                                   <strong>Register Now</strong>
+                                </a>
                         </div>
+                        {[ endwow ]}
                     </div>
                 </div>
             </div>
