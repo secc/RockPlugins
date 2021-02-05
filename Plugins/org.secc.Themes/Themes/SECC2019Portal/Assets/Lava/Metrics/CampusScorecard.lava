@@ -49,7 +49,7 @@
         <div class="col-lg-7 col-md-12 g-position--relative">
 
             <div class="g-width-100-percent--xs g-padding-x-60--xs g-padding-y-60--xs g-center--lg g-position--relative">
-                <h5 class="g-color--primary">Here you’ll find a snapshot of our latest engagement numbers. Whether it’s how many people tuned in to SE Online, the number of followers and interactions on our social media platforms, or the latest giving total and where those dollars are coming from throughout the world, it’s all here—all at a glance.</h5>
+                <h5 class="g-color--primary">{{ headerCopy }}</h5>
                 <br />
                 {%- assign currentDate = 'Now' | Date:'MM/dd/yyyy' -%}
                 {%- assign startingDate = '10/24/2020' -%}
