@@ -250,6 +250,22 @@
                         <h6 class="g-margin-b-0--xs g-line-height--normal action-content">We have multiple locations but one mission: <i>Connecting people to Jesus and one another.</i> Learn more about what to expect on your visit.</h6>
                     </div>
                     </a>
+                {%- elseif alert_template == 3 -%}
+                    {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
+                    {% assign defaultImageGuid = item | Attribute:'DefaultImage','RawValue' %}
+                    {% assign defaultURL = item | Attribute:'DefaultURL','RawValue' %}
+                    {% assign defaultContent = item | Attribute:'DefaultContent' %}
+                    {%- if defaultURL != "" -%}
+                    <a href="{{ defaultURL }}">
+                    <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
+                        {% if defaultImageGuid != '' %}
+                        <img src="/GetImage.ashx?Guid={{ defaultImageGuid }}&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg action-image" style="margin-right: 0 !important;" />
+                        {% endif %}
+                        <h5 class="g-font-family--secondary g-margin-b-5--xs">{{ item.Title }}</h5>
+                        <h6 class="g-margin-b-0--xs g-line-height--normal action-content">{{ item.Content }}</h6>
+                    </div>
+                    </a>
+                    {%- endif -%}
                 {%- else -%}
                     {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
                     {% assign defaultImageGuid = item | Attribute:'DefaultImage','RawValue' %}
