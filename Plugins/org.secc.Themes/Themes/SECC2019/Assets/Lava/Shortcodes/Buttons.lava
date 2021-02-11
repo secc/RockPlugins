@@ -1,0 +1,39 @@
+
+{% comment %}
+*********************************** NAME ***************************************
+Southeast Buttons
+
+*********************************** TagType ************************************
+Inline
+
+*********************************** TAG NAME ***********************************
+se-buttons
+
+*********************************** DESCRIPTION ********************************
+This shortcode is to pull together a southeast button that is styled within the 2019 Rock Theme.
+
+********************************* DOCUMENTATION ********************************
+{[ sebutton title:'Title of the Button' href:'' type:'dark/light' target:'' addclasses:'' ]}
+
+************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
+{% endcomment %}
+
+{% comment %} Light Button {% endcomment %}
+{% if type == "light" %}
+<a href="{{ href }}" class="uppercase se-btn se-btn--primary-brd uppercase g-letter-spacing--3 {{ addclasses }}" {%- if target != "" -%}target="{{target}}"{%- endif -%}>
+    <strong>{{ title }}</strong>
+</a>
+{% elseif type == "dark" %}
+{% comment %} Dark {% endcomment %}
+<a href="{{ href }}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 {{ addclasses }}" {%- if target != "" -%}target="{{target}}"{%- endif -%}>
+    <strong>{{ title }}</strong>
+</a>
+{% endif %}
+
+{% comment %}
+************************ PARAMETERS ********************
+title    - Title Undefined
+href     - #
+type     - dark (default), light
+target   -
+{% endcomment %}
