@@ -941,6 +941,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         var record = mobileCheckinRecordService.Get( mobileCheckinRecordId.Value );
                         if ( record != null )
                         {
+                            foreach ( var pastAttendanceRecord  in currentRecords )
+                            {
+                                record.Attendances.Remove( pastAttendanceRecord );
+                            }
                             record.IsDirty = true;
                             record.Attendances.Add( newRecord );
                             _rockContext.SaveChanges();
