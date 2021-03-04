@@ -1,0 +1,96 @@
+.cardify {
+
+    &.hide-on-load {
+        opacity: 0; // hide card when loaded, then display with isotope
+    }
+
+    .card-v2 {
+        padding: 30px;
+        border-radius: 8px;
+        margin-left: 10px;
+        margin-right: 10px;
+        background-color: rgba(239, 239, 239, 0.5);
+        @include transition(all .3s ease);
+        @media (max-width: 768px) {
+            padding: 15px;
+            margin-left: 0px;
+            margin-right: 0px;
+            background-color: rgba(239, 239, 239, 0.5);
+            //-webkit-box-shadow: 0 3px 12px 2px hsla(0, 0%, 78%, 1);
+            //box-shadow: 0 3px 12px 2px hsla(0, 0%, 78%, .5);
+        }
+        &:hover {
+            background-color: rgba(239, 239, 239, 0.5);
+            //-webkit-box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
+            //box-shadow: 0 22px 43px rgba(0, 0, 0, 0.15);
+            //transform: translateY(-10px);
+            @include transition(all .3s ease);
+        }
+    }
+
+    .img-hover {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        z-index: 3;
+
+        img {
+            z-index: -1;
+            background-color: white;
+            position: relative;
+            @include transition(all .3s ease);
+            @include scale(1.06);
+        }
+
+        img:hover {
+            // -webkit-backface-visibility: hidden;
+            // backface-visibility: hidden;
+            @include scale(1.01);
+        }
+
+        .event-photo-title {
+            width: 100%;
+            text-align: center;
+            color: white;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+
+            h1 {
+                letter-spacing: 2px;
+                transform: translate(-50%, -50%);
+
+                @media (max-width: 768px) {
+                    font-size: 3rem;
+                    line-height: 2.5rem;
+                }
+
+                @media (min-width: 769px) and (max-width: 992px) {
+                    font-size: 1.2rem;
+                    line-height: 1rem;
+                }
+
+                @media (min-width: 993px) and (max-width: 1200px) {
+                    font-size: 1.5rem;
+                    line-height: 1.5rem;
+                }
+
+                @media (min-width: 1201px) {
+                    font-size: 3rem;
+                    line-height: 2.5rem;
+                }
+            }
+
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                small {
+                    color: white;
+                }
+            }
+        }
+    }
+}
