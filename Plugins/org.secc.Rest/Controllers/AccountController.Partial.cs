@@ -95,7 +95,7 @@ namespace org.secc.Rest.Controllers
                 {
                     var mobilePhone = matchPerson.First().PhoneNumbers.Where( pn => pn.NumberTypeValueId == DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id ).FirstOrDefault();
                     // The emails MUST match for security
-                    if ( matchPerson.First().Email == account.EmailAddress && ( mobilePhone == null || mobilePhone.Number.Right(10) == account.MobileNumber.Right( 10 ) ) )
+                    if ( matchPerson.First().Email == account.EmailAddress && ( mobilePhone == null || mobilePhone.Number.Right( 10 ) == account.MobileNumber.Right( 10 ) ) )
                     {
                         person = matchPerson.First();
 
@@ -118,7 +118,7 @@ namespace org.secc.Rest.Controllers
                 }
 
                 // If we don't have a match, create a new web prospect
-                if (!confirmed )
+                if ( !confirmed )
                 {
                     DefinedValueCache dvcConnectionStatus = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() );
                     DefinedValueCache dvcRecordStatus = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() );
@@ -224,9 +224,11 @@ namespace org.secc.Rest.Controllers
 
                 rockContext.SaveChanges();
 
-                return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new StandardResponse() { 
-                    Message = string.Format("Account has been created.{0}", confirmed?"": " An email has been sent to confirm the email address." ), 
-                    Result = StandardResponse.ResultCode.Success } 
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new StandardResponse()
+                {
+                    Message = string.Format( "Account has been created.{0}", confirmed ? "" : " An email has been sent to confirm the email address." ),
+                    Result = StandardResponse.ResultCode.Success
+                }
                 );
 
             }
@@ -254,7 +256,7 @@ namespace org.secc.Rest.Controllers
                 var rockContext = new Rock.Data.RockContext();
                 UserLoginService userLoginService = new UserLoginService( rockContext );
                 UserLogin user = userLoginService.GetByConfirmationCode( confirmationCode );
-                if (user == null)
+                if ( user == null )
                 {
                     var unconfirmedAccounts = userLoginService.Queryable().Where( ul => ul.IsConfirmed == false ).ToList();
                     user = unconfirmedAccounts.FirstOrDefault( ul => new BigInteger( MD5.Create().ComputeHash( ul.Guid.ToByteArray() ) ).ToString().Right( 6 ) == confirmationCode );
@@ -297,7 +299,7 @@ namespace org.secc.Rest.Controllers
                 List<FamilyMemberProfile> familyMembers = new List<FamilyMemberProfile>();
 
                 FamilyMemberProfile familyMember = new FamilyMemberProfile();
-                foreach ( GroupMember member in currentUser.Person.GetFamilyMembers( true ) )
+                foreach ( GroupMember member in currentUser.Person.PrimaryFamily.Members )
                 {
                     familyMember = new FamilyMemberProfile();
                     familyMember.IsCurrentPerson = member.PersonId == currentUser.PersonId;
@@ -362,7 +364,7 @@ namespace org.secc.Rest.Controllers
                     resultsDictionary.Add( "Users", users );
                     results.Add( resultsDictionary );
                 }
-                var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields(null, null );
+                var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, null );
 
                 // If we found matching accounts that have the ability to be reset, go ahead and send the email
                 if ( results.Count > 0 && hasAccountWithPasswordResetAbility )
@@ -377,7 +379,8 @@ namespace org.secc.Rest.Controllers
                     response.Result = StandardResponse.ResultCode.Success;
                     response.Message = "Forgot password email has been sent successfully.";
                 }
-                else                 {
+                else
+                {
                     // the person either has no user accounts or none of them are allowed to have their passwords reset (Facebook/Google/SMS/etc)
                     response.Result = StandardResponse.ResultCode.Error;
                     response.Message = "No accounts associated with this email address are able to be reset via email.";
@@ -427,12 +430,17 @@ namespace org.secc.Rest.Controllers
         [Authorize]
         public HttpResponseMessage SMSLogin( [FromBody] string phoneNumber )
         {
-
             OAuthContext oAuthContext = new OAuthContext();
             ClientService clientService = new ClientService( oAuthContext );
-            var clientId = HttpContext.Current.User.Identity.Name;
+            var clientId = HttpContext.Current?.User?.Identity?.Name;
+
+            if ( clientId.IsNullOrWhiteSpace() )
+            {
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden );
+            }
+
             Client oAuthClient = clientService.GetByApiKey( clientId.AsGuid() );
-            if ( oAuthClient.Active )
+            if ( oAuthClient != null && oAuthClient.Active )
             {
                 Rock.Data.RockContext rockContext = new Rock.Data.RockContext();
                 var smsAuth = ( SMSAuthentication ) Rock.Security.AuthenticationContainer.GetComponent( "Rock.Security.ExternalAuthentication.SMSAuthentication" );
@@ -466,6 +474,7 @@ namespace org.secc.Rest.Controllers
                     {
                         loginResponse.Result = SMSLoginResponse.ResultCode.NoMatch;
                         loginResponse.Message = "There was an issue with your request";
+                        return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, loginResponse );
                     }
 
                     // Check the age of the person
@@ -476,11 +485,13 @@ namespace org.secc.Rest.Controllers
                         {
                             loginResponse.Result = SMSLoginResponse.ResultCode.Error;
                             loginResponse.Message = string.Format( "We could not determine your age. You must be at least {0} years old to log in.", minimumAge );
+                            return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, loginResponse );
                         }
                         if ( person.Age.Value < minimumAge )
                         {
                             loginResponse.Result = SMSLoginResponse.ResultCode.Error;
                             loginResponse.Message = string.Format( "You must be at least {0} years old to log in.", minimumAge );
+                            return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, loginResponse );
                         }
                     }
 
@@ -497,6 +508,11 @@ namespace org.secc.Rest.Controllers
                         loginResponse.Result = SMSLoginResponse.ResultCode.Error;
                         loginResponse.Message = "An unknown error occurred.";
                     }
+                }
+                else
+                {
+                    loginResponse.Result = SMSLoginResponse.ResultCode.Error;
+                    loginResponse.Message = "An unknown error occurred.";
                 }
 
                 return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, loginResponse );
