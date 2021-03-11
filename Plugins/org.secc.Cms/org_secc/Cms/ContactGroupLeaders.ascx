@@ -9,11 +9,11 @@
             
            <Rock:RockTextBox ID="tbFirstName" runat="server" Label="First Name" Required="true" />
            <Rock:RockTextBox ID="tbLastName" runat="server" Label="Last Name" Required="false" />
-           <Rock:EmailBox ID="tbEmail" runat="server" Label="Email" Required="false" />
-           <Rock:RockTextBox ID="tbMessage" runat="server" Label="Message" Textmode="MultiLine" Rows="5" Required="false" />
+           <Rock:EmailBox ID="tbEmail" runat="server" Label="Email" Required="true" />
+           <Rock:RockTextBox ID="tbMessage" runat="server" Label="Message" Textmode="MultiLine" Rows="5" Required="true" />
 
             <div id="divCaptchaWrap" runat="server">
-             <Rock:Captcha ID="cpCaptcha" runat="server" Required="false" Label="Verification" Visible="true"  />
+             <Rock:Captcha ID="cpCaptcha" runat="server" Required="true" Label="Verification" Visible="true"  />
             </div>
             <asp:Literal ID="Literal1" runat="server" />
 
