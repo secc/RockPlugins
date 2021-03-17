@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Runtime.Serialization;
+using org.secc.Rise.Helpers;
 using org.secc.Rise.Model;
 using org.secc.xAPI.Model;
 using Rock.Data;
@@ -58,7 +59,7 @@ namespace org.secc.Rise.Utilities
             var attributeValueQry = attributeValueService.Queryable().AsNoTracking()
                 .Where( av => av.Attribute.EntityTypeId == courseEntityTypeId );
 
-            var qry = courseService.Queryable().AsNoTracking();
+            var qry = courseService.Queryable( "Categories" ).AsNoTracking();
 
             if ( categories != null && categories.Any() )
             {
@@ -80,7 +81,7 @@ namespace org.secc.Rise.Utilities
                 attributeValueQry,
                 c => c.Id,
                 av => av.EntityId,
-                ( c, av ) => new { Course = c, AttributeValues = av } )
+                ( c, av ) => new { Course = c, AttributeValues = av, Categories = c.Categories } )
                 .OrderBy( m => m.Course.Name )
                 .ToList();
 
@@ -99,21 +100,14 @@ namespace org.secc.Rise.Utilities
                 courseResult.Course.AttributeValues = result.AttributeValues.ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
                 courseResult.Course.Attributes = result.AttributeValues.ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
                 courseResult.Experiences = experiences.Where( e => e.xObject != null && e.xObject.ObjectId == result.Course.Id.ToString() ).ToList();
+                courseResult.CategoryIds = result.Categories.Select( c => c.Id ).ToList();
                 courses.Add( courseResult );
             }
 
             return courses;
         }
 
-        [DataContract]
-        public class CourseResult : DotLiquid.Drop
-        {
-            [DataMember]
-            public Course Course { get; set; }
-
-            [DataMember]
-            public List<Experience> Experiences { get; set; }
-        }
+       
     }
 
 }

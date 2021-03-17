@@ -142,7 +142,6 @@ namespace RockWeb.Plugins.org_secc.Rise
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-            RockPage.AddScriptLink( "~/Scripts/jquery.signalR-2.2.0.min.js", fingerprint: false );
         }
 
         /// <summary>
@@ -152,7 +151,7 @@ namespace RockWeb.Plugins.org_secc.Rise
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-            if (Context.Request.Form.Count > 0
+            if ( Context.Request.Form.Count > 0
                 && Context.Request.Form["SAMLRequest"] != null
                 && Context.Request.Form["Relay"] == null )
             {
@@ -165,7 +164,7 @@ namespace RockWeb.Plugins.org_secc.Rise
                 && Context.Request.Form["RelayState"] != null
                 && Context.Request.Form["Relay"] != null )
             {
-                Session.Add( string.Format( "RiseSAMLRedirect_BlockId:{0}_SAMLRequest", this.BlockId ), Context.Request.Form["SAMLRequest"]);
+                Session.Add( string.Format( "RiseSAMLRedirect_BlockId:{0}_SAMLRequest", this.BlockId ), Context.Request.Form["SAMLRequest"] );
                 Session.Add( string.Format( "RiseSAMLRedirect_BlockId:{0}_RelayState", this.BlockId ), Context.Request.Form["RelayState"] );
             }
 
@@ -194,62 +193,18 @@ namespace RockWeb.Plugins.org_secc.Rise
 
                 CurrentPerson.LoadAttributes();
 
-                if ( CurrentPerson.GetAttributeValue( Constants.PERSON_ATTRIBUTE_KEY_RISEID ).IsNotNullOrWhiteSpace()
-                    || PageParameter( PageParameterKeys.BackgroundReqest ).AsBoolean() )
-                {
-                    RedirectToResponse();
-                }
-                else
-                {
-                    SetUpAccount();
-                }
+                RedirectToResponse();
             }
         }
 
-        private void SetUpAccount()
-        {
-            pnlCreateAccount.Visible = true;
-
-            //Load iframe in background
-            var url = Request.RawUrl;
-            if ( url.Contains( "?" ) )
-            {
-                url += "&" + PageParameterKeys.BackgroundReqest + "=true";
-            }
-            else
-            {
-                url += "?" + PageParameterKeys.BackgroundReqest + "=true";
-            }
-
-            ifBackground.Attributes.Add( "src", url );
-
-            Task.Run( () =>
-            {
-                var i = 0;
-                while ( i < 10 )
-                {
-                    i++;
-
-                    Task.Delay( 10 * 1000 ).Wait(); //try every 10 seconds
-
-                    RiseClient riseClient = new RiseClient();
-                    if ( riseClient.SyncPerson( CurrentPerson ) )
-                    {
-                        _hubContext.Clients.All.receiveNotification( this.SignalRNotificationKey, "success" );
-                        return;
-                    }
-
-                }
-                _hubContext.Clients.All.receiveNotification( this.SignalRNotificationKey, "fail" );
-            } );
-        }
 
         private void RedirectToResponse()
         {
             var response = GetResponse();
 
             if ( UserCanAdministrate
-                && !PageParameter( "Continue" ).AsBoolean()
+                && !PageParameter( PageParameterKeys.Continue ).AsBoolean()
+                && !PageParameter( PageParameterKeys.BackgroundReqest ).AsBoolean()
                 && GetAttributeValue( AttributeKey.ShowDebug ).AsBoolean() == true )
             {
                 DisplayData( response );
@@ -311,7 +266,7 @@ namespace RockWeb.Plugins.org_secc.Rise
             byte[] data = System.Convert.FromBase64String( response );
             var xml = System.Text.ASCIIEncoding.ASCII.GetString( data );
 
-            if (xml.IsNotNullOrWhiteSpace())
+            if ( xml.IsNotNullOrWhiteSpace() )
             {
                 xml = FormatXML( xml );
             }
@@ -370,7 +325,7 @@ namespace RockWeb.Plugins.org_secc.Rise
             sb.AppendFormat( "<body onload='document.forms[0].submit()'>" );
             sb.AppendFormat( "<form action='{0}' method='post'>", GetAttributeValue( AttributeKey.PostUrl ) );
             sb.AppendFormat( "<input type='hidden' name='SAMLResponse' value='{0}'>", response );
-            if (Session[string.Format( "RiseSAMLRedirect_BlockId:{0}_RelayState", this.BlockId )] != null )
+            if ( Session[string.Format( "RiseSAMLRedirect_BlockId:{0}_RelayState", this.BlockId )] != null )
             {
                 sb.AppendFormat( "<input type='hidden' name='RelayState' value='{0}'>", Session[string.Format( "RiseSAMLRedirect_BlockId:{0}_RelayState", this.BlockId )] );
             }
@@ -382,7 +337,7 @@ namespace RockWeb.Plugins.org_secc.Rise
         }
 
 
-        private void RelayRedirect( )
+        private void RelayRedirect()
         {
             Response.Clear();
             var sb = new System.Text.StringBuilder();

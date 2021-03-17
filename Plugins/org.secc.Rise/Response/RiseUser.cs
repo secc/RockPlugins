@@ -13,6 +13,7 @@
 // </copyright>
 //
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Runtime.Remoting.Activation;
 using Newtonsoft.Json;
@@ -206,19 +207,16 @@ namespace org.secc.Rise.Response
 
             var attributeId = AttributeCache.Get( Constants.PERSON_ATTRIBUTE_RISEID ).Id;
 
-            var attributeValue = attribueValueService.Queryable()
+            var avEntities = attribueValueService.Queryable().AsNoTracking()
                 .Where( av => av.AttributeId == attributeId && av.Value == riseUserId )
+                .Select( av => av.EntityId );
+
+
+            var person = personService.Queryable().AsNoTracking()
+                .Where( p => avEntities.Contains( p.Id ) )
                 .FirstOrDefault();
 
-            if ( attributeValue != null )
-            {
-                var person = personService.Get( attributeValue.EntityId ?? 0 );
-                if ( person != null )
-                {
-                    return person;
-                }
-            }
-            return null;
+            return person;
         }
     }
 }

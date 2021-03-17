@@ -71,6 +71,8 @@
     <Compile Include="Controllers\RiseController.cs" />
     <Compile Include="Data\RiseContext.cs" />
     <Compile Include="Data\RiseService.cs" />
+    <Compile Include="Helpers\CategoryCourses.cs" />
+    <Compile Include="Helpers\CourseResult.cs" />
     <Compile Include="Jobs\SyncCourseCompletion.cs" />
     <Compile Include="Jobs\SyncUsers.cs" />
     <Compile Include="Jobs\SyncGroups.cs" />

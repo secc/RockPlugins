@@ -14,7 +14,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Web.UI;
+using org.secc.Rise.Helpers;
 using org.secc.Rise.Model;
 using org.secc.Rise.Utilities;
 using Rock;
@@ -44,9 +46,16 @@ namespace RockWeb.Plugins.org_secc.Rise
         Order = 1,
         Key = AttributeKeys.Lava )]
 
+    [CodeEditorField( "Default Lava",
+        Description = "Lava to render when the user does not yet have a Rise id",
+        EditorMode = Rock.Web.UI.Controls.CodeEditorMode.Lava,
+        Order = 2,
+        IsRequired = false,
+        Key = AttributeKeys.Default )]
+
     [LavaCommandsField( "Enabled Commands",
         Description = "Enabled commands for above lava,",
-        Order = 2,
+        Order = 3,
         IsRequired = false,
         Key = AttributeKeys.EnabledCommands )]
 
@@ -58,6 +67,7 @@ namespace RockWeb.Plugins.org_secc.Rise
         {
             internal const string Categories = "Categories";
             internal const string Lava = "Lava";
+            internal const string Default = "Default";
             internal const string EnabledCommands = "EnabledCommands";
         }
 
@@ -97,9 +107,32 @@ namespace RockWeb.Plugins.org_secc.Rise
 
         private void ShowDetails()
         {
-            var courseGuids = GetAttributeValues( AttributeKeys.Categories );
+            CurrentPerson.LoadAttributes();
+
+            if ( CurrentPerson.GetAttributeValue( Constants.PERSON_ATTRIBUTE_KEY_RISEID ).IsNullOrWhiteSpace()
+                && GetAttributeValue( AttributeKeys.Default ).IsNotNullOrWhiteSpace() )
+            {
+                ShowDefault();
+            }
+            else
+            {
+                ShowCourses();
+            }
+
+        }
+
+        private void ShowDefault()
+        {
+            var mergeFields = LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
+            ltContent.Text = GetAttributeValue( AttributeKeys.Default )
+                .ResolveMergeFields( mergeFields, CurrentPerson, GetAttributeValue( AttributeKeys.EnabledCommands ) );
+        }
+
+        private void ShowCourses()
+        {
+            var categoryGuids = GetAttributeValues( AttributeKeys.Categories );
             var categories = new List<CategoryCache>();
-            foreach ( var guid in courseGuids )
+            foreach ( var guid in categoryGuids )
             {
                 var category = CategoryCache.Get( guid );
                 if ( category != null )
@@ -108,10 +141,24 @@ namespace RockWeb.Plugins.org_secc.Rise
                 }
             }
 
-            List<EnrollmentHelper.CourseResult> courses = EnrollmentHelper.GetPersonCourses( CurrentPerson, categories );
+            List<CourseResult> courses = EnrollmentHelper.GetPersonCourses( CurrentPerson, categories );
+
+            var categoryCourses = new List<CategoryCourseResults>();
+            foreach ( var category in categories )
+            {
+                var categoryCourse = new CategoryCourseResults
+                {
+                    Category = category,
+                    CourseResults = courses.Where( c => c.CategoryIds.Contains( category.Id ) ).ToList()
+                };
+                categoryCourses.Add( categoryCourse );
+            }
+
+            categoryCourses = categoryCourses.OrderBy( c => c.Category.Order ).ToList();
 
             var mergeFields = LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
             mergeFields.Add( "Courses", courses );
+            mergeFields.Add( "CategoryCourseResults", categoryCourses );
 
             ltContent.Text = GetAttributeValue( AttributeKeys.Lava )
                 .ResolveMergeFields( mergeFields, CurrentPerson, GetAttributeValue( AttributeKeys.EnabledCommands ) );
