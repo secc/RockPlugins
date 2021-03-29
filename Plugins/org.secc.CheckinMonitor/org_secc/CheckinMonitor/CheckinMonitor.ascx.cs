@@ -794,21 +794,24 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 var definedValueService = new DefinedValueService( _rockContext );
                 var value = groupLocation.Id.ToString() + "|" + schedule.Id.ToString();
 
-                var definedValue = new DefinedValue() { Id = 0 };
-                definedValue.Value = value;
-                definedValue.Description = string.Format( "Deactivated {0} for schedule {1} at {2}", groupLocation.ToString(), schedule.Name, Rock.RockDateTime.Now.ToString() );
-                definedValue.DefinedTypeId = definedType.Id;
-                definedValue.IsSystem = false;
-                var orders = definedValueService.Queryable()
-                       .Where( d => d.DefinedTypeId == definedType.Id )
-                       .Select( d => d.Order )
-                       .ToList();
+                if ( !definedType.DefinedValues.Where( dv => dv.Value == value ).Any() )
+                {
+                    var definedValue = new DefinedValue() { Id = 0 };
+                    definedValue.Value = value;
+                    definedValue.Description = string.Format( "Deactivated {0} for schedule {1} at {2}", groupLocation.ToString(), schedule.Name, Rock.RockDateTime.Now.ToString() );
+                    definedValue.DefinedTypeId = definedType.Id;
+                    definedValue.IsSystem = false;
+                    var orders = definedValueService.Queryable()
+                           .Where( d => d.DefinedTypeId == definedType.Id )
+                           .Select( d => d.Order )
+                           .ToList();
 
-                definedValue.Order = orders.Any() ? orders.Max() + 1 : 0;
+                    definedValue.Order = orders.Any() ? orders.Max() + 1 : 0;
 
-                definedValueService.Add( definedValue );
+                    definedValueService.Add( definedValue );
 
-                _rockContext.SaveChanges();
+                    _rockContext.SaveChanges();
+                }
             }
         }
 
@@ -941,7 +944,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         var record = mobileCheckinRecordService.Get( mobileCheckinRecordId.Value );
                         if ( record != null )
                         {
-                            foreach ( var pastAttendanceRecord  in currentRecords )
+                            foreach ( var pastAttendanceRecord in currentRecords )
                             {
                                 record.Attendances.Remove( pastAttendanceRecord );
                             }
