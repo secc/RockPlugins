@@ -34,7 +34,12 @@ namespace org.secc.Rise
             CourseService courseService = new CourseService( rockContext );
             var skip = 0;
 
-            Course course = courseService.Queryable().AsNoTracking().OrderBy( c => c.Id ).FirstOrDefault();
+            Course course = courseService.Queryable()
+                .AsNoTracking()
+                .Where( c => c.IsArchived != true )
+                .OrderBy( c => c.Id )
+                .FirstOrDefault();
+
 
             while ( course != null )
             {

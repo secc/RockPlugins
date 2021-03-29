@@ -18,6 +18,8 @@
                     <i class="fa fa-chalkboard"></i>
                     <asp:Literal ID="ltName" runat="server" />
                 </h1>
+                <span class="label label-type" title="">
+                    <asp:Literal ID="lIsArchived" runat="server" /></span>
             </div>
             <div class="panel-body">
                 <Rock:RockLiteral runat="server" ID="ltUrl" Label="Url" />

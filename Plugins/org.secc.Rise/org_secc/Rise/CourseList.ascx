@@ -22,6 +22,7 @@
                         <Columns>
                             <Rock:RockBoundField DataField="Name" HeaderText="Course" SortExpression="Name" />
                             <Rock:BoolField DataField="AvailableToAll" HeaderText="Available To All" />
+                            <Rock:BoolField DataField="IsArchived" HeaderText="Archived" />
                             <Rock:RockLiteralField ID="lCategories" HeaderText="Categories" />
                             <Rock:LinkButtonField ID="lbReport" Text="<i class='fa fa-file'></i>" CssClass="btn btn-default" OnClick="lbReport_Click" HeaderText="Report"/>
                         </Columns>

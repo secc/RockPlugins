@@ -102,6 +102,11 @@ namespace RockWeb.Plugins.org_secc.Rise
             ltUrl.Text = course.Url;
             cbLibrary.Checked = course.AvailableToAll ?? false;
 
+            if ( course.IsArchived == true )
+            {
+                lIsArchived.Text = "Archived";
+            }
+
             pCategories.SetValues( course.Categories );
 
             course.LoadAttributes();

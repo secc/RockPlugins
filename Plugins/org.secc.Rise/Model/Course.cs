@@ -19,6 +19,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.Serialization;
 using org.secc.Rise.Response;
 using org.secc.xAPI.Model;
@@ -62,6 +63,9 @@ namespace org.secc.Rise.Model
         [DataMember]
         public bool? AvailableToAll { get; set; }
 
+        [DataMember]
+        public bool? IsArchived { get; set; } = false;
+
         /// <summary>Gets or sets the categories.</summary>
         /// <value>The categories.</value>
         [LavaInclude]
@@ -99,24 +103,57 @@ namespace org.secc.Rise.Model
 
         internal void SyncCompletions()
         {
-            var xObject = GetExperienceObject();
-            var reports = ClientManager.GetSet<RiseCourseReport>( this.CourseId );
-            foreach ( var report in reports )
+            try
             {
-                var person = RiseUser.GetPerson( report.UserId );
-
-                if ( person == null )
+                var xObject = GetExperienceObject();
+                var reports = ClientManager.GetSet<RiseCourseReport>( this.CourseId );
+                foreach ( var report in reports )
                 {
-                    RiseClient riseClient = new RiseClient();
-                    person = riseClient.GetUser( report.UserId ).GetRockPerson();
+                    var person = RiseUser.GetPerson( report.UserId );
+
+                    if ( person == null )
+                    {
+                        RiseClient riseClient = new RiseClient();
+                        person = riseClient.GetUser( report.UserId ).GetRockPerson();
+                    }
+
+                    if ( person != null )
+                    {
+                        var contextExtensions = new Dictionary<string, string> { { "http://id.tincanapi.com/extension/duration", report.Duration } };
+                        UpdateCourseStatus( xObject, person, report.Status == "Complete", report.QuizScorePercent, contextExtensions );
+                    }
                 }
 
-                if ( person != null )
+            }
+            catch ( System.AggregateException e )
+            {
+                if ( e.InnerException != null
+                    && e.InnerException is HttpRequestException
+                    && e.InnerException.Message.Contains( "404" ) )
                 {
-                    var contextExtensions = new Dictionary<string, string> { { "http://id.tincanapi.com/extension/duration", report.Duration } };
-                    UpdateCourseStatus( xObject, person, report.Status == "Complete", report.QuizScorePercent, contextExtensions );
+                    ArchiveCourse();
+                }
+                else
+                {
+                    ExceptionLogService.LogException( new Exception( "Could not sync course completions.", e ) );
                 }
             }
+            catch ( Exception e )
+            {
+                ExceptionLogService.LogException( new Exception( "Could not sync course completions.", e ) );
+            }
+        }
+
+        private void ArchiveCourse()
+        {
+            RockContext rockContext = new RockContext();
+            CourseService courseService = new CourseService( rockContext );
+            var course = courseService.Get( Id );
+            if ( course != null )
+            {
+                course.IsArchived = true;
+            }
+            rockContext.SaveChanges();
         }
 
         public void UpdateCourseStatus( Person person, bool complete, int? quizScorePercent, Dictionary<string, string> contextExtensions )

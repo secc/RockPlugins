@@ -141,7 +141,9 @@ namespace RockWeb.Plugins.org_secc.Rise
                 }
             }
 
-            List<CourseResult> courses = EnrollmentHelper.GetPersonCourses( CurrentPerson, categories );
+            List<CourseResult> courses = EnrollmentHelper.GetPersonCourses( CurrentPerson, categories )
+                .Where( c => c.Course.IsArchived != true )
+                .ToList();
 
             var categoryCourses = new List<CategoryCourseResults>();
             foreach ( var category in categories )

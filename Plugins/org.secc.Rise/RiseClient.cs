@@ -25,11 +25,22 @@ namespace org.secc.Rise
         {
             var i = 0;
             var riseCourses = ClientManager.GetSet<RiseCourse>();
+
+            List<string> syncedCourseIds = new List<string>();
+
             foreach ( var riseCourse in riseCourses )
             {
                 SyncCourse( riseCourse );
+                syncedCourseIds.Add( riseCourse.Id );
                 i++;
             }
+
+            RockContext rockContext = new RockContext();
+            CourseService courseService = new CourseService( rockContext );
+            var coursesToArchive = courseService.Queryable().Where( c => !syncedCourseIds.Contains( c.CourseId ) ).ToList();
+            coursesToArchive.ForEach( c => c.IsArchived = true );
+            rockContext.SaveChanges();
+
             return i;
         }
 
@@ -53,6 +64,7 @@ namespace org.secc.Rise
             course.Name = riseCourse.Title;
             course.Url = riseCourse.Url;
             course.CourseId = riseCourse.Id;
+            course.IsArchived = false;
 
             rockContext.SaveChanges();
 
