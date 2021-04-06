@@ -55,7 +55,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BaptismStandardDateUpdate.cs" />
     <Compile Include="CompleteWorkflows.cs" />
     <Compile Include="FrontPorchDeviceRemoval.cs" />
     <Compile Include="RemoveDevicesFromPersons.cs" />
