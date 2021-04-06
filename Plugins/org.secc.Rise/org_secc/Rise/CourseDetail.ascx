@@ -7,8 +7,8 @@
             OnSaveClick="mdEnrollGroup_SaveClick" SaveButtonText="Enroll">
             <Content>
                 <Rock:NotificationBox runat="server" NotificationBoxType="Warning" Title="Warning"
-                    Text="After enrolling a group in a course, all group members will be send an email from Rise notifying them of the new enrollment." />
-                <Rock:GroupPicker runat="server" ID="pGroup" Label="Group" />
+                    Text="After enrolling a group in a course, all group members will be sent an email from Rise notifying them of the new enrollment." />
+                <Rock:RockDropDownList runat="server" ID="ddlGroups" Label="Group" DataValueField="Id" DataTextField="Name" />
             </Content>
         </Rock:ModalDialog>
 

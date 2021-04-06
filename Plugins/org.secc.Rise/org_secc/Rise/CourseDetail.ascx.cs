@@ -14,6 +14,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.UI;
@@ -67,9 +68,6 @@ namespace RockWeb.Plugins.org_secc.Rise
                 course.LoadAttributes();
                 Rock.Attribute.Helper.AddEditControls( course, phAttributes, false );
             }
-
-            var groupTypeId = Constants.GetRiseGroupTypeId();
-            pGroup.IncludedGroupTypeIds = new List<int> { groupTypeId };
 
             gGroups.Actions.ShowAdd = true;
             gGroups.Actions.AddClick += gGroups_AddClick;
@@ -207,7 +205,21 @@ namespace RockWeb.Plugins.org_secc.Rise
 
         private void gGroups_AddClick( object sender, EventArgs e )
         {
-            pGroup.SetValue( null );
+            var course = GetCourse();
+
+            var groupTypeId = Constants.GetRiseGroupTypeId();
+            RockContext rockContext = new RockContext();
+            GroupService groupService = new GroupService( rockContext );
+
+            var groups = groupService.Queryable().AsNoTracking().Where( g => g.GroupTypeId == groupTypeId ).ToList();
+            groups = groups
+                .Where( g => !course.EnrolledGroups.Select( eg => eg.Id ).Contains( g.Id ) )
+                .OrderBy( g => g.Name )
+                .ToList();
+
+            ddlGroups.DataSource = groups;
+            ddlGroups.DataBind();
+
             mdEnrollGroup.Show();
         }
 
@@ -241,7 +253,8 @@ namespace RockWeb.Plugins.org_secc.Rise
 
         protected void mdEnrollGroup_SaveClick( object sender, EventArgs e )
         {
-            var groupId = pGroup.SelectedValueAsId();
+            var groupId = ddlGroups.SelectedValueAsId();
+
             if ( !groupId.HasValue )
             {
                 return;
@@ -269,7 +282,6 @@ namespace RockWeb.Plugins.org_secc.Rise
 
             mdEnrollGroup.Hide();
             BindGrid();
-
         }
     }
 }
