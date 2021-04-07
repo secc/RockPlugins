@@ -125,19 +125,6 @@ namespace org.secc.Rise.Model
                 }
 
             }
-            catch ( System.AggregateException e )
-            {
-                if ( e.InnerException != null
-                    && e.InnerException is HttpRequestException
-                    && e.InnerException.Message.Contains( "404" ) )
-                {
-                    ArchiveCourse();
-                }
-                else
-                {
-                    ExceptionLogService.LogException( new Exception( "Could not sync course completions.", e ) );
-                }
-            }
             catch ( Exception e )
             {
                 ExceptionLogService.LogException( new Exception( "Could not sync course completions.", e ) );
