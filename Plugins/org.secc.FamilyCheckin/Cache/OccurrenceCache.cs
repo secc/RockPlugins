@@ -16,13 +16,11 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Data;
 using Rock.Model;
-using Rock.ServiceObjects.GeoCoder;
 using Rock.Web.Cache;
 
 namespace org.secc.FamilyCheckin.Cache
@@ -304,7 +302,7 @@ namespace org.secc.FamilyCheckin.Cache
             return All().Where( o => !o.IsChildren && !o.IsVolunteer ).ToList();
         }
 
-        [Obsolete("Use GetChildrenOccurrences")]
+        [Obsolete( "Use GetChildrenOccurrences" )]
         public static List<OccurrenceCache> GetChildOccurrences()
         {
             return GetChildrenOccurrences();
@@ -352,36 +350,35 @@ namespace org.secc.FamilyCheckin.Cache
                 }
             }
 
-            
+
             var dtDisabled = DefinedTypeCache.Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES );
-            foreach (var dtD in dtDisabled.DefinedValues)
+            foreach ( var dvInstance in dtDisabled.DefinedValues )
             {
-                if (keys.Contains(dtD.Value))
-                { 
-                    RemoveDisabledGroupLocationSchedule(dtD);
+                if ( keys.Contains( dvInstance.Value ) )
+                {
+                    RemoveDisabledGroupLocationSchedule( dvInstance );
                 }
-                else 
-                { 
-                    keys.Add(dtD.Value); 
+                else
+                {
+                    keys.Add( dvInstance.Value );
                 }
             }
 
             return keys;
         }
 
-        private static void RemoveDisabledGroupLocationSchedule(DefinedValueCache definedValueCache)
+        private static void RemoveDisabledGroupLocationSchedule( DefinedValueCache definedValueCache )
         {
-            using (RockContext _rockContext = new RockContext())
+            using ( RockContext _rockContext = new RockContext() )
             {
-
-                var definedValueService = new DefinedValueService(_rockContext);
-                var definedValue = definedValueService.Get(definedValueCache.Id);
-                if (definedValue == null)
+                var definedValueService = new DefinedValueService( _rockContext );
+                var definedValue = definedValueService.Get( definedValueCache.Id );
+                if ( definedValue == null )
                 {
                     return;
                 }
 
-                definedValueService.Delete(definedValue);
+                definedValueService.Delete( definedValue );
                 _rockContext.SaveChanges();
                 DefinedValueCache.Clear();
             }
