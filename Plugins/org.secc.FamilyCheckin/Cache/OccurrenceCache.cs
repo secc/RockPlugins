@@ -352,11 +352,39 @@ namespace org.secc.FamilyCheckin.Cache
                 }
             }
 
-
+            
             var dtDisabled = DefinedTypeCache.Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES );
-            keys.AddRange( dtDisabled.DefinedValues.Select( dv => dv.Value ) );
+            foreach (var dtD in dtDisabled.DefinedValues)
+            {
+                if (keys.Contains(dtD.Value))
+                { 
+                    RemoveDisabledGroupLocationSchedule(dtD);
+                }
+                else 
+                { 
+                    keys.Add(dtD.Value); 
+                }
+            }
 
             return keys;
+        }
+
+        private static void RemoveDisabledGroupLocationSchedule(DefinedValueCache definedValueCache)
+        {
+            using (RockContext _rockContext = new RockContext())
+            {
+
+                var definedValueService = new DefinedValueService(_rockContext);
+                var definedValue = definedValueService.Get(definedValueCache.Id);
+                if (definedValue == null)
+                {
+                    return;
+                }
+
+                definedValueService.Delete(definedValue);
+                _rockContext.SaveChanges();
+                DefinedValueCache.Clear();
+            }
         }
 
         public static void AddOrUpdate( OccurrenceCache occurrenceCache )
