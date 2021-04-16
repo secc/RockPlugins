@@ -13,11 +13,8 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using org.secc.LeagueApps.Contracts;
 using org.secc.PersonMatch;
 using Rock;
@@ -31,6 +28,11 @@ namespace org.secc.LeagueApps.Utilities
     {
         public static Group GetFamilyByApiId( int leagueAppsGroupId )
         {
+            if ( leagueAppsGroupId < 1 )
+            {
+                return null;
+            }
+
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
 
@@ -210,9 +212,12 @@ namespace org.secc.LeagueApps.Utilities
                     groupLocation.IsMappedLocation = true;
                     family.CampusId = CampusCache.All().FirstOrDefault().Id;
                     family.GroupLocations.Add( groupLocation );
-                    family.LoadAttributes();
-                    family.SetAttributeValue( Constants.LeagueAppsFamilyId, member.groupId );
-                    family.SaveAttributeValues();
+                    if ( member.groupId > 0 )
+                    {
+                        family.LoadAttributes();
+                        family.SetAttributeValue( Constants.LeagueAppsFamilyId, member.groupId );
+                        family.SaveAttributeValues();
+                    }
                 }
 
                 rockContext.SaveChanges();
