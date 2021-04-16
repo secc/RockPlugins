@@ -184,6 +184,10 @@ namespace org.secc.FamilyCheckin
                                         }
 
                                         addLabel( checkInLabel, checkInState, groupType, group, rockContext );
+
+                                        //Save that we just checked in the student's medications
+                                        person.Person.SetAttributeValue( Utilities.Constants.PERSON_ATTRIBUTE_KEY_LASTMEDICATIONCHECKIN, Rock.RockDateTime.Today );
+                                        person.Person.SaveAttributeValue( Utilities.Constants.PERSON_ATTRIBUTE_KEY_LASTMEDICATIONCHECKIN );
                                     }
                                 }
                             }

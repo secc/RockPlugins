@@ -112,6 +112,7 @@
     <Compile Include="Jobs\RemoveExpiredMobileReservations.cs" />
     <Compile Include="Jobs\ResetGroupLocationSchedules.cs" />
     <Compile Include="Migrations\001_Init.cs" />
+    <Compile Include="Migrations\030_LastMedicationCheckinAttribute.cs" />
     <Compile Include="Migrations\027_MoveGroupTypes.cs" />
     <Compile Include="Migrations\026_MobileCheckinPages.cs" />
     <Compile Include="Migrations\025_SuperCheckinPages.cs" />

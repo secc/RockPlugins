@@ -41,6 +41,9 @@ namespace org.secc.FamilyCheckin.Utilities
         public const string GROUP_ATTRIBUTE_ATTENDANCE_ON_GROUP = "42F9C881-EF80-452E-819D-B02BBC0F1229";
         public const string GROUP_TYPE_BREAKOUT_GROUPS = "224A3D85-5276-4C33-9436-5FDA7DD24D14";
 
+        public const string PERSON_ATTRIBUTE_LASTMEDICATIONCHECKIN = "2B670150-E45D-4E31-A3F6-B5F29B292A62";
+        public const string PERSON_ATTRIBUTE_KEY_LASTMEDICATIONCHECKIN = "LastMedicationCheckin";
+
         //GroupType Filters
         public const string GROUP_TYPE_BY_BASE = "6E7AD783-7614-4721-ABC1-35842113EF59";
         public const string GROUP_TYPE_BY_CHILDREN_CHECKIN_BASE = "5398A1C2-F422-4ADC-A48B-B9EFFE3598AD";

@@ -28,19 +28,65 @@ using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+using org.secc.FamilyCheckin.Utilities;
 
 namespace RockWeb.Blocks.Reporting.NextGen
 {
     [DisplayName( "Medication Dispense" )]
     [Category( "SECC > Reporting > NextGen" )]
     [Description( "Tool for noting when medications should be given out." )]
-    [DefinedTypeField( "Medication Schedule Defined Type", "Defined type which contain the values for the possible times to give medication.", key: "DefinedType" )]
-    [TextField( "Group Ids", "Comma separated list of group ids." )]
-    [TextField( "Medication Matrix Key", "The attribute key for the medication schedule matrix." )]
-    [NoteTypeField( "NoteType", "Medication Note Type", false, "Rock.Model.Person" )]
-    [TextField( "Group Member Attribute Filter", "Group member filter to sort group by.", false )]
+
+    [DefinedTypeField( "Medication Schedule Defined Type",
+        Description = "Defined type which contain the values for the possible times to give medication.",
+        Order = 0,
+        Key = "DefinedType" )]
+
+    [TextField( "Group Ids",
+        Description = "Comma separated list of group ids.",
+        Order = 1,
+        Key = AttributeKey.GroupIds
+        )]
+
+    [TextField( "Medication Matrix Key",
+        Description = "The attribute key for the medication schedule matrix.",
+        Order = 2,
+        Key = AttributeKey.MedicationMatrixKey
+        )]
+
+    [IntegerField( "Days Since Medication Checkin",
+        Description = "The maximum number of days since the last medication checkin in order to appear",
+        DefaultIntegerValue = 14,
+        Order = 3,
+        Key = AttributeKey.Days
+        )]
+
+    [NoteTypeField( "NoteType",
+        "Medication Note Type",
+        false,
+        "Rock.Model.Person",
+        order: 4,
+        key: AttributeKey.NoteType )]
+
+    [TextField( "Group Member Attribute Filter",
+        Description = "Group member filter to sort group by.",
+        Order = 5,
+        IsRequired = false,
+        Key = AttributeKey.GroupMemberAttributeFilter
+        )]
+
+
     public partial class MedicationDispense : RockBlock
     {
+        private static class AttributeKey
+        {
+            internal const string MedicationScheduleDT = "DefinedType";
+            internal const string GroupIds = "GroupIds";
+            internal const string MedicationMatrixKey = "MedicationMatrixKey";
+            internal const string NoteType = "NoteType";
+            internal const string GroupMemberAttributeFilter = "GroupMemberAttributeFilter";
+            internal const string Days = "Days";
+        }
+
         List<MedicalItem> medicalItems = new List<MedicalItem>();
 
 
@@ -175,6 +221,11 @@ namespace RockWeb.Blocks.Reporting.NextGen
         {
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
+            AttributeMatrixService attributeMatrixService = new AttributeMatrixService( rockContext );
+            AttributeValueService attributeValueService = new AttributeValueService( rockContext );
+            AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
+            NoteService noteService = new NoteService( rockContext );
+
             var groupIdStrings = GetAttributeValue( "GroupIds" ).SplitDelimitedValues();
             var groupIds = new List<int>();
             foreach ( var id in groupIdStrings )
@@ -195,7 +246,19 @@ namespace RockWeb.Blocks.Reporting.NextGen
             var groupMemberEntityid = EntityTypeCache.GetId<Rock.Model.GroupMember>().Value;
             var key = GetAttributeValue( "MedicationMatrixKey" );
 
-            var groupMembers = groups.SelectMany( g => g.Members );
+            var days = GetAttributeValue( AttributeKey.Days ).AsIntegerOrNull() ?? 14;
+            var cutoffDate = Rock.RockDateTime.Today.AddDays( -days );
+
+            var lastMedicationCheckinAttribute = AttributeCache.Get( Constants.PERSON_ATTRIBUTE_LASTMEDICATIONCHECKIN.AsGuid() );
+
+
+            var allowedPersonIds = attributeValueService.GetByAttributeId( lastMedicationCheckinAttribute.Id )
+                .Where( av => av.ValueAsDateTime != null && av.ValueAsDateTime >= cutoffDate )
+                .Select( av => av.EntityId );
+
+            var groupMembers = groups
+                .SelectMany( g => g.Members )
+                .Where( gm => allowedPersonIds.Contains( gm.PersonId ) );
 
             AttributeService attributeService = new AttributeService( rockContext );
 
@@ -225,11 +288,6 @@ namespace RockWeb.Blocks.Reporting.NextGen
             }
 
             var attributeMatrixItemEntityId = EntityTypeCache.GetId<AttributeMatrixItem>();
-
-            AttributeValueService attributeValueService = new AttributeValueService( rockContext );
-            AttributeMatrixService attributeMatrixService = new AttributeMatrixService( rockContext );
-            AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
-            NoteService noteService = new NoteService( rockContext );
 
             var qry = groupMembers
                 .Join(
