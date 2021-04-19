@@ -19,7 +19,6 @@ using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Newtonsoft.Json;
-using OpenXmlPowerTools;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Exceptions;
 using org.secc.FamilyCheckin.Model;
@@ -443,6 +442,28 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         /// <param name="hgcRow"></param>
         private void DisplayPersonCheckinAreas( CheckInPerson checkInPerson, Panel hgcRow )
         {
+            //Insure that all locations are linked properly from historical preselect
+            var locationLinkAttribute = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() );
+
+            foreach ( var grouptype in checkInPerson.GroupTypes.Where( gt => gt.Selected ).ToList() )
+            {
+                foreach ( var group in grouptype.Groups.Where( g => g.Selected ).ToList() )
+                {
+                    foreach ( var location in group.Locations.Where( l => l.Selected ).ToList() )
+                    {
+                        if ( locationLinkAttribute != null && group.Group.GetAttributeValue( locationLinkAttribute.Key ).AsBoolean() )
+                        {
+                            //It may seem weird to loop through a list of selected and then test if selected
+                            //The location may have deselected in a previous loop
+                            if ( location.Selected )
+                            {
+                                LinkLocations( checkInPerson, group, location );
+                            }
+                        }
+                    }
+                }
+            }
+
             List<CheckInSchedule> personSchedules = GetCheckinSchedules( checkInPerson );
 
             foreach ( var schedule in personSchedules )
@@ -1305,6 +1326,17 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         /// <param name="checkinPerson">CheckInPerson</param>
         private void EnsureGroupSelected( CheckInPerson checkinPerson )
         {
+            //Only run if someone has nothing selected
+            if ( checkinPerson
+                .GroupTypes.Where( gt => gt.Selected )
+                .SelectMany( gt => gt.Groups.Where( g => g.Selected ) )
+                .SelectMany( g => g.Locations.Where( l => l.Selected ) )
+                .SelectMany( l => l.Schedules.Where( s => s.Selected ) )
+                .Any() )
+            {
+                return;
+            }
+
             var checkinSchedules = GetCheckinSchedules( checkinPerson );
             var volunteerGroupIds = OccurrenceCache.GetVolunteerOccurrences().Select( o => o.GroupId );
             foreach ( var checkinSchedule in checkinSchedules )
