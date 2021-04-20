@@ -1,4 +1,17 @@
-﻿using System;
+﻿// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -65,6 +78,9 @@ namespace org.secc.ChangeManager.Model
         }
         private ICollection<ChangeRecord> _changeRecords;
 
+        [DataMember]
+        public int? FamilyGroupOfPersonAliasId { get; set; }
+
         #region Overrides
 
         public override void PreSaveChanges( Rock.Data.DbContext dbContext, EntityState state )
@@ -79,6 +95,20 @@ namespace org.secc.ChangeManager.Model
             var mergeObjectEntity = getMethod.Invoke( entityService, new object[] { EntityId } ) as Rock.Data.IEntity;
 
             this.Name = mergeObjectEntity != null ? mergeObjectEntity.ToString() : "Unknown Entity";
+
+            //If this is a family group save the head of household in case of family merge
+            if ( FamilyGroupOfPersonAliasId == null
+                && mergeObjectEntity != null
+                && mergeObjectEntity is Group
+                && ( ( Group ) mergeObjectEntity ).GroupTypeId == GroupTypeCache.GetId( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() )
+                )
+            {
+                var headOfHousehold = GroupServiceExtensions.HeadOfHousehold( ( ( Group ) mergeObjectEntity ).Members.AsQueryable() );
+                if ( headOfHousehold != null )
+                {
+                    FamilyGroupOfPersonAliasId = headOfHousehold.PrimaryAliasId;
+                }
+            }
         }
 
         #endregion
@@ -104,7 +134,7 @@ namespace org.secc.ChangeManager.Model
             {
                 try
                 {
-                    IEntity entity = GetEntity( EntityTypeId, EntityId, rockContext, errors );
+                    IEntity entity = GetEntity( EntityTypeId, EntityId, rockContext, FamilyGroupOfPersonAliasId, errors );
 
                     //Make changes
                     foreach ( var changeRecord in ChangeRecords.Where( r => r.WasApplied != true && r.IsRejected == false ) )
@@ -116,7 +146,7 @@ namespace org.secc.ChangeManager.Model
                                 !( changeRecord.RelatedEntityId == 0 || changeRecord.Action == ChangeRecordAction.Create ) )
                             {
                                 //existing entity
-                                targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, errors );
+                                targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, null, errors );
                             }
                             else
                             {
@@ -212,12 +242,12 @@ namespace org.secc.ChangeManager.Model
                             if ( changeRecord.RelatedEntityId.HasValue && changeRecord.Action != ChangeRecordAction.Create )
                             {
                                 //existing entity
-                                targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, errors );
+                                targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, null, errors );
                             }
                             else
                             {
                                 //This was a created entity that we must now murder in cold blood.
-                                targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, errors );
+                                targetEntity = GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, null, errors );
                                 DeleteEntity( targetEntity, rockContext, errors );
                                 changeRecord.WasApplied = false;
                                 continue;
@@ -443,7 +473,7 @@ namespace org.secc.ChangeManager.Model
             }
         }
 
-        public static IEntity GetEntity( int entityTypeId, int entityId, RockContext dbContext, List<string> errors )
+        public static IEntity GetEntity( int entityTypeId, int entityId, RockContext dbContext, int? familyGroupOfPersonAliasId, List<string> errors )
         {
             try
             {
@@ -458,6 +488,20 @@ namespace org.secc.ChangeManager.Model
                 {
                     //The entity is person alias switch to person
                     entity = ( ( PersonAlias ) entity ).Person;
+                }
+
+                //If the group is missing, but we know it's head of household we can get the group it replaced
+                if ( entity == null && entityTypeCache.Id == EntityTypeCache.Get( typeof( Group ) ).Id && familyGroupOfPersonAliasId.HasValue )
+                {
+                    var familyGroupTypeId = GroupTypeCache.GetFamilyGroupType().Id;
+
+                    GroupMemberService groupMemberService = new GroupMemberService( dbContext );
+
+                    entity = groupMemberService.Queryable()
+                        .Where( gm => gm.Person.Aliases.Select( a => a.Id ).Contains( familyGroupOfPersonAliasId ?? 0 ) )
+                        .Select( gm => gm.Group )
+                        .Where( g => g.GroupTypeId == familyGroupTypeId )
+                        .FirstOrDefault();
                 }
 
                 return entity;

@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.Caching;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using org.secc.ChangeManager.Model;
@@ -26,7 +25,6 @@ using org.secc.ChangeManager.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
-using Rock.Field.Types;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web.Cache;
@@ -228,7 +226,7 @@ namespace RockWeb.Blocks.Crm.PersonDetail
                         RequestorAliasId = CurrentPersonAliasId ?? 0
                     };
 
-                foreach ( int attributeId in AttributeList )
+                    foreach ( int attributeId in AttributeList )
                     {
                         var attribute = AttributeCache.Get( attributeId );
 

@@ -56,10 +56,8 @@
   <ItemGroup>
     <Compile Include="Data\ChangeManagerContext.cs" />
     <Compile Include="Data\ChangeManagerService.cs" />
-    <Compile Include="Migrations\201906041752132_Init.cs" />
-    <Compile Include="Migrations\201906041752132_Init.Designer.cs">
-      <DependentUpon>201906041752132_Init.cs</DependentUpon>
-    </Compile>
+    <Compile Include="Migrations\002_FamilyGroupOfPerson.cs" />
+    <Compile Include="Migrations\001_Init.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\BasicEntity.cs" />
     <Compile Include="Model\ChangeRequestService.cs" />
@@ -83,11 +81,6 @@
       <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Migrations\201906041752132_Init.resx">
-      <DependentUpon>201906041752132_Init.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

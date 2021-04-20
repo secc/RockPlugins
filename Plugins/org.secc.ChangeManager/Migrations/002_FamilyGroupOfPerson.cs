@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -11,21 +11,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-using Rock.Data;
-
-namespace org.secc.ChangeManager.Data
+namespace org.secc.ChangeManager.Migrations
 {
-    public class ChangeManagerService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
+    using System;
+    using Rock.Plugin;
+
+    [MigrationNumber( 2, "1.10.2" )]
+    public partial class FamilyGroupOfPerson : Migration
     {
-        public ChangeManagerService( RockContext context )
-           : base( context )
+        public override void Up()
         {
+            AddColumn( "_org_secc_ChangeManager_ChangeRequest", "FamilyGroupOfPersonAliasId", i => i.Int( true ) );
         }
 
-        public virtual bool CanDelete( T item, out string errorMessage )
+        public override void Down()
         {
-            errorMessage = string.Empty;
-            return true;
+            DropColumn( "_org_secc_ChangeManager_ChangeRequest", "FamilyGroupOfPersonAliasId" );
         }
     }
 }

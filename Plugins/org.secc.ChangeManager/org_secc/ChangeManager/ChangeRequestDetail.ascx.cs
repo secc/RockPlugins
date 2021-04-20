@@ -12,18 +12,18 @@
 // limitations under the License.
 // </copyright>
 using System;
-using System.ComponentModel;
-using Rock;
-using Rock.Model;
-using System.Web.UI;
-using Rock.Web.Cache;
-using Rock.Data;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
+using System.Web.UI;
 using System.Web.UI.WebControls;
 using org.secc.ChangeManager.Model;
-using System.Reflection;
+using Rock;
 using Rock.Attribute;
+using Rock.Data;
+using Rock.Model;
+using Rock.Web.Cache;
 
 namespace RockWeb.Plugins.org_secc.ChangeManager
 {
@@ -106,7 +106,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             var changeRecords = changeRequest.ChangeRecords.ToList();
 
             var errors = new List<string>();
-            var entity = ChangeRequest.GetEntity( changeRequest.EntityTypeId, changeRequest.EntityId, rockContext, errors );
+            var entity = ChangeRequest.GetEntity( changeRequest.EntityTypeId, changeRequest.EntityId, rockContext, changeRequest.FamilyGroupOfPersonAliasId, errors );
 
             foreach ( var changeRecord in changeRecords )
             {
@@ -210,7 +210,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                         targetEntity = ChangeRequest.CreateNewEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.OldValue, rockContext, errors, false );
                         break;
                     default:
-                        targetEntity = ChangeRequest.GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, errors );
+                        targetEntity = ChangeRequest.GetEntity( changeRecord.RelatedEntityTypeId.Value, changeRecord.RelatedEntityId.Value, rockContext, null, errors );
                         break;
                 }
             }
@@ -392,7 +392,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             if ( errors.Any() )
             {
                 nbError.Visible = true;
-                nbError.Text = "<ul>" + string.Join( "", errors.Select( ex => string.Format( "<li>{0}</li>", ex ) )) + "</ul>";
+                nbError.Text = "<ul>" + string.Join( "", errors.Select( ex => string.Format( "<li>{0}</li>", ex ) ) ) + "</ul>";
             }
             else
             {
