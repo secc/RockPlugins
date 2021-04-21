@@ -155,9 +155,6 @@
 
                 <div class="extralinks border-right">
                     <li>
-                        <a href="/ministries/single">Single</a>
-                    </li>
-                    <li>
                         <a href="/ministries/college-age">College Age</a>
                     </li>
                     <li class="has-children">
