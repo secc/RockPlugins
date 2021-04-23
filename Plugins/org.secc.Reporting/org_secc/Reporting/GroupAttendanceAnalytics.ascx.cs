@@ -1483,6 +1483,7 @@ function(item) {
                         {
                             case ChartGroupBy.Week:
                                 summaryDate = ( DateTime ) row[1];
+                                summaryDate = summaryDate.SundayDate();
                                 break;
                             case ChartGroupBy.Day:
                                 summaryDate = ( DateTime ) row[4];
@@ -2239,6 +2240,7 @@ function(item) {
                         case ChartGroupBy.Week:
                             boolFromArrayField.HeaderText = summaryDate.ToShortDateString();
                             break;
+
                         case ChartGroupBy.Day:
                             boolFromArrayField.HeaderText = summaryDate.ToShortDateString();
                             break;
@@ -2335,9 +2337,9 @@ function(item) {
 
             // Attendance is grouped by Sunday dates between the start/end dates.
             // The possible dates (columns) should be calculated the same way.
-            var startSunday = dateRange.Start.Value;
+            var startSunday = dateRange.Start.Value.SundayDate();
             var endDate = dateRange.End.Value;
-            var endSunday = endDate;
+            var endSunday = endDate.SundayDate();
             if ( endSunday > endDate )
             {
                 endSunday = endSunday.AddDays( -7 );
