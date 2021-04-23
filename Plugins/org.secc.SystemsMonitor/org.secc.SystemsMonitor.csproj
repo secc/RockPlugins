@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Component\LavaMatchExpression.cs" />
+    <Compile Include="Component\ServerIsUp.cs" />
     <Compile Include="Component\SQLMatchExpression.cs" />
     <Compile Include="Controllers\SystemTestController.cs" />
     <Compile Include="Data\SystemsMonitorContext.cs" />
