@@ -96,7 +96,7 @@
                         {% definedvalue where:'DefinedTypeId == 7' sort:'Value' %}
                          {% for definedValueItem in definedvalueItems %}
                             {% if Person.MaritalStatusValueId == definedValueItem.Id %}
-                                {{ definedValueItem.Value }} ({{ Person.AnniversaryDate | Date:'M/d' }})
+                                {{ definedValueItem.Value }} {% if Person.AnniversaryDate != null %} ({{ Person.AnniversaryDate | Date:'M/d' }}){% endif %}
                             {% endif %}
     					 {% endfor %}
     					{% enddefinedvalue %}
