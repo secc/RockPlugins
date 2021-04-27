@@ -27,7 +27,7 @@ namespace org.secc.SystemsMonitor.Controllers
         [Authenticate]
         [HttpGet]
         [System.Web.Http.Route( "api/systemtest/runtest/{id}" )]
-        public string RunTest( int id )
+        public IHttpActionResult RunTest( int id )
         {
             RockContext rockContext = new RockContext();
             SystemTestService systemTestService = new SystemTestService( rockContext );
@@ -35,10 +35,10 @@ namespace org.secc.SystemsMonitor.Controllers
             var result = test.Run();
             if ( result.Passed )
             {
-                return "Passed";
+                return Ok( "Passed" );
             }
             //if we fail throw an exception for a 500 status
-            throw new Exception( "Failed" );
+            return InternalServerError( new Exception( "System Test Failed" ) );
         }
 
     }

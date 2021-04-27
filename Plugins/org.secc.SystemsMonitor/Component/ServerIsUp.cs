@@ -50,8 +50,8 @@ namespace org.secc.SystemsMonitor.Component
             try
             {
                 WebClientEx webClient = new WebClientEx
-                { 
-                    Timeout = test.GetAttributeValue( "Timeout" ).AsInteger() 
+                {
+                    Timeout = test.GetAttributeValue( "Timeout" ).AsInteger()
                 };
                 var response = webClient.OpenRead( test.GetAttributeValue( "Url" ) );
 
@@ -60,9 +60,8 @@ namespace org.secc.SystemsMonitor.Component
                     Passed = true
                 };
             }
-            catch ( Exception e )
+            catch
             {
-                ExceptionLogService.LogException( e );
                 return new SystemTestResult
                 {
                     Passed = false,
@@ -70,7 +69,7 @@ namespace org.secc.SystemsMonitor.Component
                 };
             }
 
-           
+
         }
 
         public class WebClientEx : WebClient
