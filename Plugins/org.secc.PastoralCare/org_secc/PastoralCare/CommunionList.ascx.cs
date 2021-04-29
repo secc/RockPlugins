@@ -408,8 +408,8 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 SetExcelValue( worksheet.Cells[rowCounter, 4], ( row.Location != "Home" ? row.Location + "\r\n" : "" )
                     + row.Address + ( !string.IsNullOrEmpty( row.Room ) ? "\r\nRoom: " + row.Room : "" )
                     + ( !string.IsNullOrWhiteSpace( row.FacilityNumber ) ? "\r\n" + row.FacilityNumber : "" ) );
-                SetExcelValue( worksheet.Cells[rowCounter, 5], ( !string.IsNullOrEmpty( row.City ) ? row.City : "" ) );
-                SetExcelValue( worksheet.Cells[rowCounter, 6], ( !string.IsNullOrEmpty( row.State ) ? row.State : "" ) );
+                SetExcelValue( worksheet.Cells[rowCounter, 5], ( row.City ) );
+                SetExcelValue( worksheet.Cells[rowCounter, 6], ( row.State ) );
                 SetExcelValue( worksheet.Cells[rowCounter, 7], phoneNumberService.GetByPersonId( row.Person.Id ).Where( p => p.NumberTypeValue.Guid == homePhone ).Select( p => p.NumberFormatted ).FirstOrDefault() );
                 SetExcelValue( worksheet.Cells[rowCounter, 8], row.Description );
                 worksheet.Cells[rowCounter, 8].Style.WrapText = true;
