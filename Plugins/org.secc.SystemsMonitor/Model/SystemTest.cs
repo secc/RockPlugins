@@ -12,6 +12,7 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
 using System.Linq;
@@ -45,6 +46,9 @@ namespace org.secc.SystemsMonitor.Model
         public AlarmCondition AlarmCondition { get; set; } = AlarmCondition.Never;
 
         [DataMember]
+        public AlarmNotification? AlarmNotification { get; set; }
+
+        [DataMember]
         public int? AlarmScore { get; set; }
 
         public SystemTestResult Run()
@@ -64,7 +68,8 @@ namespace org.secc.SystemsMonitor.Model
             {
                 SystemTestId = Id,
                 Score = result.Score,
-                Passed = result.Passed
+                Passed = result.Passed,
+                Message = result.Message
             };
 
             systemTestHistoryService.Add( history );
@@ -97,6 +102,13 @@ namespace org.secc.SystemsMonitor.Model
         Fail = 1,
         ScoreAbove = 2,
         ScoreBelow = 3,
+    }
+
+    [Flags]
+    public enum AlarmNotification
+    {
+        Email = 1,
+        SMS = 2
     }
 
     public partial class SystemTestConfiguration : EntityTypeConfiguration<SystemTest>

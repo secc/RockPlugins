@@ -69,8 +69,10 @@
     <Compile Include="Controllers\SystemTestController.cs" />
     <Compile Include="Data\SystemsMonitorContext.cs" />
     <Compile Include="Data\SystemsMonitorService.cs" />
+    <Compile Include="Helpers\TestResult.cs" />
     <Compile Include="Jobs\RunSystemTests.cs" />
     <Compile Include="Migrations\001_Init.cs" />
+    <Compile Include="Migrations\002_AlarmNotification.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\SystemTestHistory.cs" />
     <Compile Include="Model\SystemTestService.cs" />

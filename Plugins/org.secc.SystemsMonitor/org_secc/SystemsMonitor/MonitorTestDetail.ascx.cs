@@ -71,6 +71,7 @@ namespace RockWeb.Plugins.org_secc.SystemsMonitor
             if ( !Page.IsPostBack )
             {
                 BindDropDown();
+                BindAlarmNotificationDropDown();
                 SystemTest monitorTest = GetMonitorTest();
                 if ( monitorTest != null && monitorTest.Id != 0 )
                 {
@@ -81,6 +82,11 @@ namespace RockWeb.Plugins.org_secc.SystemsMonitor
                     tbName.Text = monitorTest.Name;
                     tbInterval.Text = monitorTest.RunIntervalMinutes.ToString();
                     ddlAlarmCondition.SetValue( Convert.ToInt32( monitorTest.AlarmCondition ).ToString() );
+                    foreach ( ListItem item in cblAlarmNotification.Items )
+                    {
+                        var alarmcondition = ( AlarmNotification ) item.Value.AsInteger();
+                        item.Selected = ( alarmcondition & monitorTest.AlarmNotification ) ==  ( AlarmNotification ) Enum.Parse( typeof( AlarmNotification ), item.Text );
+                    }
                     monitorTest.LoadAttributes();
                     Rock.Attribute.Helper.AddEditControls( monitorTest, phAttributes, true, "", exclude: _attributeExclusion );
                 }
@@ -88,8 +94,11 @@ namespace RockWeb.Plugins.org_secc.SystemsMonitor
                 {
                     ddlComponent.Required = true;
                 }
+
             }
         }
+
+
 
         private SystemTest GetMonitorTest()
         {
@@ -178,6 +187,13 @@ namespace RockWeb.Plugins.org_secc.SystemsMonitor
             }
         }
 
+        private void BindAlarmNotificationDropDown()
+        {
+            
+            cblAlarmNotification.BindToEnum<AlarmNotification>();
+            
+        }
+
         protected void btnSave_Click( object sender, EventArgs e )
         {
             RockContext rockContext = new RockContext();
@@ -201,6 +217,17 @@ namespace RockWeb.Plugins.org_secc.SystemsMonitor
             monitorTest.Name = tbName.Text;
             monitorTest.RunIntervalMinutes = tbInterval.Text.AsIntegerOrNull();
             monitorTest.AlarmCondition = ddlAlarmCondition.SelectedValueAsEnum<AlarmCondition>();
+
+            var selectedNotificationValues = new List<int>();
+            foreach ( ListItem item in cblAlarmNotification.Items )
+            {
+                if ( item.Selected )
+                {
+                    selectedNotificationValues.Add( item.Value.AsInteger() );
+                }
+            }
+            monitorTest.AlarmNotification = ( AlarmNotification ) selectedNotificationValues.Sum();
+
             rockContext.SaveChanges();
 
             monitorTest.LoadAttributes();

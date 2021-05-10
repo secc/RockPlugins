@@ -15,12 +15,16 @@
                     AutoPostBack="true" OnSelectedIndexChanged="ddlComponent_SelectedIndexChanged" />
                 <Rock:RockTextBox runat="server" ID="tbName" Label="Test Name" Required="true" />
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <Rock:RockTextBox runat="server" ID="tbInterval" Label="Test Interval" Help="Frequency of testing in minutes." />
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <Rock:RockDropDownList runat="server" ID="ddlAlarmCondition"
                             Label="Alarm Condition" DataTextField="Value" DataValueField="Key" />
+                    </div>
+                    <div class="col-md-4">
+                        <Rock:RockCheckBoxList runat="server" ID="cblAlarmNotification"
+                            Label="Alarm Notification" DataTextField="Value" DataValueField="Key" RepeatDirection="Horizontal" />
                     </div>
                 </div>
                 <asp:PlaceHolder runat="server" ID="phAttributes" />
