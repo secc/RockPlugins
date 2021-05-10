@@ -33,23 +33,19 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Entity;
-using System.Data.SqlClient;
+using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using System.Drawing;
-using System.Xml.Linq;
 using OfficeOpenXml;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using Rock.Web.Cache;
 
 namespace RockWeb.Plugins.org_secc.PastoralCare
 {
@@ -167,7 +163,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 var qry = tqry.ToList();
 
 
-                List<DefinedValueCache> facilities = DefinedTypeCache.All().Where( dv => dv.Guid == hospitalList || dv.Guid == nursingHomeList ).SelectMany(dv => dv.DefinedValues).ToList();
+                List<DefinedValueCache> facilities = DefinedTypeCache.All().Where( dv => dv.Guid == hospitalList || dv.Guid == nursingHomeList ).SelectMany( dv => dv.DefinedValues ).ToList();
 
                 var newQry = qry.Select( w => new CommunionData
                 {
@@ -296,7 +292,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             if ( facility != null )
             {
                 DefinedValueCache dv = facilities.Where( h => h.Guid == facility.AsGuid() ).FirstOrDefault();
-                if (dv != null)
+                if ( dv != null )
                 {
                     return dv.AttributeValues["Qualifier5"].ValueFormatted;
                 }
@@ -396,7 +392,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             int columnCounter = 0;
 
             // print headings
-            foreach ( String column in new List<String>() { "Zip", "Name", "Campus", "Address", "Phone", "Notes" } )
+            foreach ( String column in new List<String>() { "Zip", "Name", "Campus", "Address", "City", "State", "Phone", "Notes" } )
             {
                 columnCounter++;
                 worksheet.Cells[3, columnCounter].Value = column.SplitCase();
@@ -409,13 +405,15 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 SetExcelValue( worksheet.Cells[rowCounter, 1], row.PostalCode.Length > 5 ? row.PostalCode.Substring( 0, 5 ) : row.PostalCode );
                 SetExcelValue( worksheet.Cells[rowCounter, 2], row.Person.FullName );
                 SetExcelValue( worksheet.Cells[rowCounter, 3], row.Campus );
-                SetExcelValue( worksheet.Cells[rowCounter, 4], ( row.Location != "Home" ? row.Location + "\r\n" : "" ) 
-                    + row.Address + ( !string.IsNullOrEmpty( row.Room ) ? "\r\nRoom: " + row.Room : "" ) 
+                SetExcelValue( worksheet.Cells[rowCounter, 4], ( row.Location != "Home" ? row.Location + "\r\n" : "" )
+                    + row.Address + ( !string.IsNullOrEmpty( row.Room ) ? "\r\nRoom: " + row.Room : "" )
                     + ( !string.IsNullOrWhiteSpace( row.FacilityNumber ) ? "\r\n" + row.FacilityNumber : "" ) );
-                SetExcelValue( worksheet.Cells[rowCounter, 5], phoneNumberService.GetByPersonId( row.Person.Id ).Where( p => p.NumberTypeValue.Guid == homePhone ).Select( p => p.NumberFormatted ).FirstOrDefault() );
-                SetExcelValue( worksheet.Cells[rowCounter, 6], row.Description );
-                worksheet.Cells[rowCounter, 6].Style.WrapText = true;
-                
+                SetExcelValue( worksheet.Cells[rowCounter, 5], ( row.City ) );
+                SetExcelValue( worksheet.Cells[rowCounter, 6], ( row.State ) );
+                SetExcelValue( worksheet.Cells[rowCounter, 7], phoneNumberService.GetByPersonId( row.Person.Id ).Where( p => p.NumberTypeValue.Guid == homePhone ).Select( p => p.NumberFormatted ).FirstOrDefault() );
+                SetExcelValue( worksheet.Cells[rowCounter, 8], row.Description );
+                worksheet.Cells[rowCounter, 8].Style.WrapText = true;
+
                 rowCounter++;
             }
             var range = worksheet.Cells[3, 1, rowCounter, columnCounter];
@@ -492,7 +490,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             // Set all the column widths
             worksheet.Column( 2 ).Width = 20;
             worksheet.Column( 4 ).Width = 30;
-            worksheet.Column( 6 ).Width = 45;
+            worksheet.Column( 8 ).Width = 45;
 
             // add alternating highlights
 
