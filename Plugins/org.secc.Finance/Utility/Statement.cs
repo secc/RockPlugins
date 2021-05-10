@@ -27,183 +27,202 @@ namespace org.secc.Finance.Utility
 {
     public class Statement
     {
-        public static void AddMergeFields(Dictionary<string,object> mergeFields, Person targetPerson, DateRange dateRange, List<Guid> excludedCurrencyTypes, List<Guid> accountGuids = null)
+        public static void AddMergeFields( Dictionary<string, object> mergeFields, Person targetPerson, DateRange dateRange, List<Guid> excludedCurrencyTypes, List<Guid> accountGuids = null )
         {
 
             RockContext rockContext = new RockContext();
 
-            FinancialTransactionDetailService financialTransactionDetailService = new FinancialTransactionDetailService(rockContext);
+            FinancialTransactionDetailService financialTransactionDetailService = new FinancialTransactionDetailService( rockContext );
 
             // fetch all the possible PersonAliasIds that have this GivingID to help optimize the SQL
-            var personAliasIds = new PersonAliasService(rockContext).Queryable().Where(a => a.Person.GivingId == targetPerson.GivingId).Select(a => a.Id).ToList();
+            var personAliasIds = new PersonAliasService( rockContext ).Queryable().Where( a => a.Person.GivingId == targetPerson.GivingId ).Select( a => a.Id ).ToList();
 
             // get the transactions for the person or all the members in the person's giving group (Family)
             var qry = financialTransactionDetailService.Queryable().AsNoTracking()
-                        .Where(t => t.Transaction.AuthorizedPersonAliasId.HasValue && personAliasIds.Contains(t.Transaction.AuthorizedPersonAliasId.Value));
+                        .Where( t => t.Transaction.AuthorizedPersonAliasId.HasValue && personAliasIds.Contains( t.Transaction.AuthorizedPersonAliasId.Value ) );
 
-            qry = qry.Where(t => t.Transaction.TransactionDateTime.Value >= dateRange.Start && t.Transaction.TransactionDateTime.Value <= dateRange.End);
+            qry = qry.Where( t => t.Transaction.TransactionDateTime.Value >= dateRange.Start && t.Transaction.TransactionDateTime.Value <= dateRange.End );
 
-            if (accountGuids == null)
+            if ( accountGuids == null )
             {
-                qry = qry.Where(t => t.Account.IsTaxDeductible);
+                qry = qry.Where( t => t.Account.IsTaxDeductible );
             }
             else
             {
-                qry = qry.Where(t => accountGuids.Contains(t.Account.Guid));
+                qry = qry.Where( t => accountGuids.Contains( t.Account.Guid ) );
             }
             var excludedQry = qry;
-            if (excludedCurrencyTypes.Count > 0)
+            if ( excludedCurrencyTypes.Count > 0 )
             {
-                qry = qry.Where(t => !excludedCurrencyTypes.Contains(t.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid));
-                excludedQry = excludedQry.Where(t => excludedCurrencyTypes.Contains(t.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid));
-                excludedQry = excludedQry.OrderByDescending(t => t.Transaction.TransactionDateTime);
+                qry = qry.Where( t => !excludedCurrencyTypes.Contains( t.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid ) );
+                excludedQry = excludedQry.Where( t => excludedCurrencyTypes.Contains( t.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid ) );
+                excludedQry = excludedQry.OrderByDescending( t => t.Transaction.TransactionDateTime );
             }
 
-            qry = qry.OrderByDescending(t => t.Transaction.TransactionDateTime);
+            qry = qry.OrderByDescending( t => t.Transaction.TransactionDateTime );
 
-            mergeFields.Add("StatementStartDate", dateRange.Start?.ToShortDateString());
-            mergeFields.Add("StatementEndDate", dateRange.End?.ToShortDateString());
+            mergeFields.Add( "StatementStartDate", dateRange.Start?.ToShortDateString() );
+            mergeFields.Add( "StatementEndDate", dateRange.End?.ToShortDateString() );
 
-            var familyGroupTypeId = GroupTypeCache.Get(Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY).Id;
-            var groupMemberQry = new GroupMemberService(rockContext).Queryable(true).Where(m => m.Group.GroupTypeId == familyGroupTypeId);
+            var familyGroupTypeId = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY ).Id;
+            var groupMemberQry = new GroupMemberService( rockContext ).Queryable( true ).Where( m => m.Group.GroupTypeId == familyGroupTypeId );
+
+            int recordTypeValueIdBusiness = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_BUSINESS.AsGuid() ).Id;
 
             // get giving group members in order by family role (adult -> child) and then gender (male -> female)
-            var givingGroup = new PersonService(rockContext).Queryable(true).AsNoTracking()
-                                    .Where(p => p.GivingId == targetPerson.GivingId)
+            var givingGroup = new PersonService( rockContext ).Queryable( true ).AsNoTracking()
+                                    .Where( p => p.GivingId == targetPerson.GivingId )
                                     .GroupJoin(
                                         groupMemberQry,
                                         p => p.Id,
                                         m => m.PersonId,
-                                        (p, m) => new { p, m })
-                                    .SelectMany(x => x.m.DefaultIfEmpty(), (y, z) => new { Person = y.p, GroupMember = z })
-                                    .Select(p => new { FirstName = p.Person.NickName, LastName = p.Person.LastName, FamilyRoleOrder = p.GroupMember.GroupRole.Order, Gender = p.Person.Gender, PersonId = p.Person.Id })
-                                    .DistinctBy(p => p.PersonId)
-                                    .OrderBy(p => p.FamilyRoleOrder).ThenBy(p => p.Gender)
+                                        ( p, m ) => new { p, m } )
+                                    .SelectMany( x => x.m.DefaultIfEmpty(), ( y, z ) => new { Person = y.p, GroupMember = z } )
+                                    .Select( p => new
+                                    {
+                                        FirstName = p.Person.NickName,
+                                        LastName = p.Person.LastName,
+                                        FamilyRoleOrder = p.GroupMember.GroupRole.Order,
+                                        Gender = p.Person.Gender,
+                                        PersonId = p.Person.Id,
+                                        IsBusiness = p.Person.RecordTypeValueId == recordTypeValueIdBusiness
+                                    } )
+                                    .DistinctBy( p => p.PersonId )
+                                    .OrderBy( p => p.FamilyRoleOrder ).ThenBy( p => p.Gender )
                                     .ToList();
 
             string salutation = string.Empty;
 
-            if (givingGroup.GroupBy(g => g.LastName).Count() == 1)
+            if ( givingGroup.FirstOrDefault() != null && givingGroup.FirstOrDefault().IsBusiness )
             {
-                salutation = string.Join(", ", givingGroup.Select(g => g.FirstName)) + " " + givingGroup.FirstOrDefault().LastName;
-                if (salutation.Contains(","))
-                {
-                    salutation = salutation.ReplaceLastOccurrence(",", " &");
-                }
+                //If it's a business use the last name
+                salutation = givingGroup.FirstOrDefault().LastName;
             }
             else
             {
-                salutation = string.Join(", ", givingGroup.Select(g => g.FirstName + " " + g.LastName));
-                if (salutation.Contains(","))
+                if ( givingGroup.GroupBy( g => g.LastName ).Count() == 1 )
                 {
-                    salutation = salutation.ReplaceLastOccurrence(",", " &");
+                    salutation = string.Join( ", ", givingGroup.Select( g => g.FirstName ) ) + " " + givingGroup.FirstOrDefault().LastName;
+                    if ( salutation.Contains( "," ) )
+                    {
+                        salutation = salutation.ReplaceLastOccurrence( ",", " &" );
+                    }
+                }
+                else
+                {
+                    salutation = string.Join( ", ", givingGroup.Select( g => g.FirstName + " " + g.LastName ) );
+                    if ( salutation.Contains( "," ) )
+                    {
+                        salutation = salutation.ReplaceLastOccurrence( ",", " &" );
+                    }
                 }
             }
-            mergeFields.Add("Salutation", salutation);
+
+            mergeFields.Add( "Salutation", salutation );
 
             var mailingAddress = targetPerson.GetMailingLocation();
-            if (mailingAddress != null)
+            if ( mailingAddress != null )
             {
-                mergeFields.Add("StreetAddress1", mailingAddress.Street1);
-                mergeFields.Add("StreetAddress2", mailingAddress.Street2);
-                mergeFields.Add("City", mailingAddress.City);
-                mergeFields.Add("State", mailingAddress.State);
-                mergeFields.Add("PostalCode", mailingAddress.PostalCode);
-                mergeFields.Add("Country", mailingAddress.Country);
+                mergeFields.Add( "StreetAddress1", mailingAddress.Street1 );
+                mergeFields.Add( "StreetAddress2", mailingAddress.Street2 );
+                mergeFields.Add( "City", mailingAddress.City );
+                mergeFields.Add( "State", mailingAddress.State );
+                mergeFields.Add( "PostalCode", mailingAddress.PostalCode );
+                mergeFields.Add( "Country", mailingAddress.Country );
             }
             else
             {
-                mergeFields.Add("StreetAddress1", string.Empty);
-                mergeFields.Add("StreetAddress2", string.Empty);
-                mergeFields.Add("City", string.Empty);
-                mergeFields.Add("State", string.Empty);
-                mergeFields.Add("PostalCode", string.Empty);
-                mergeFields.Add("Country", string.Empty);
+                mergeFields.Add( "StreetAddress1", string.Empty );
+                mergeFields.Add( "StreetAddress2", string.Empty );
+                mergeFields.Add( "City", string.Empty );
+                mergeFields.Add( "State", string.Empty );
+                mergeFields.Add( "PostalCode", string.Empty );
+                mergeFields.Add( "Country", string.Empty );
             }
 
-            var transactionDetails = qry.GroupJoin(new AttributeValueService(rockContext).Queryable(),
+            var transactionDetails = qry.GroupJoin( new AttributeValueService( rockContext ).Queryable(),
                 ft => ft.Id,
                 av => av.Id,
-                (obj, av) => new { Transaction = obj, AttributeValues = av })
+                ( obj, av ) => new { Transaction = obj, AttributeValues = av } )
                 .ToList()
-                .Select(obj =>
-                {
-                    obj.Transaction.Attributes = obj.AttributeValues.Select(av2 => AttributeCache.Get(av2.Attribute)).ToDictionary(k => k.Key, v => v);
-                    obj.Transaction.AttributeValues = obj.AttributeValues.Select(av2 => new AttributeValueCache(av2)).ToDictionary(k => k.AttributeKey, v => v);
-                    return obj.Transaction;
-                });
+                .Select( obj =>
+                 {
+                     obj.Transaction.Attributes = obj.AttributeValues.Select( av2 => AttributeCache.Get( av2.Attribute ) ).ToDictionary( k => k.Key, v => v );
+                     obj.Transaction.AttributeValues = obj.AttributeValues.Select( av2 => new AttributeValueCache( av2 ) ).ToDictionary( k => k.AttributeKey, v => v );
+                     return obj.Transaction;
+                 } );
 
-            mergeFields.Add("TransactionDetails", transactionDetails);
+            mergeFields.Add( "TransactionDetails", transactionDetails );
 
 
-            if (excludedCurrencyTypes.Count > 0)
+            if ( excludedCurrencyTypes.Count > 0 )
             {
-                mergeFields.Add("ExcludedTransactionDetails", excludedQry.ToList());
+                mergeFields.Add( "ExcludedTransactionDetails", excludedQry.ToList() );
             }
-            mergeFields.Add("AccountSummary", qry.GroupBy(t => new { t.Account.Name, t.Account.PublicName, t.Account.Description })
-                                                .Select(s => new AccountSummary
+            mergeFields.Add( "AccountSummary", qry.GroupBy( t => new { t.Account.Name, t.Account.PublicName, t.Account.Description } )
+                                                .Select( s => new AccountSummary
                                                 {
                                                     AccountName = s.Key.Name,
                                                     PublicName = s.Key.PublicName,
                                                     Description = s.Key.Description,
-                                                    Total = s.Sum(a => a.Amount),
-                                                    Order = s.Max(a => a.Account.Order)
-                                                })
-                                                .OrderBy(s => s.Order));
+                                                    Total = s.Sum( a => a.Amount ),
+                                                    Order = s.Max( a => a.Account.Order )
+                                                } )
+                                                .OrderBy( s => s.Order ) );
             // pledge information
-            var pledges = new FinancialPledgeService(rockContext).Queryable().AsNoTracking()
-                                .Where(p => p.PersonAliasId.HasValue && personAliasIds.Contains(p.PersonAliasId.Value)
-                                   && p.StartDate <= dateRange.End && p.EndDate >= dateRange.Start)
-                                .GroupBy(p => p.Account)
-                                .Select(g => new PledgeSummary
+            var pledges = new FinancialPledgeService( rockContext ).Queryable().AsNoTracking()
+                                .Where( p => p.PersonAliasId.HasValue && personAliasIds.Contains( p.PersonAliasId.Value )
+                                    && p.StartDate <= dateRange.End && p.EndDate >= dateRange.Start )
+                                .GroupBy( p => p.Account )
+                                .Select( g => new PledgeSummary
                                 {
                                     AccountId = g.Key.Id,
                                     AccountName = g.Key.Name,
                                     PublicName = g.Key.PublicName,
-                                    AmountPledged = g.Sum(p => p.TotalAmount),
-                                    PledgeStartDate = g.Min(p => p.StartDate),
-                                    PledgeEndDate = g.Max(p => p.EndDate)
-                                })
+                                    AmountPledged = g.Sum( p => p.TotalAmount ),
+                                    PledgeStartDate = g.Min( p => p.StartDate ),
+                                    PledgeEndDate = g.Max( p => p.EndDate )
+                                } )
                                 .ToList();
 
             // add detailed pledge information
-            foreach (var pledge in pledges)
+            foreach ( var pledge in pledges )
             {
                 var adjustedPledgeEndDate = pledge.PledgeEndDate.Value.Date;
 
-                if (adjustedPledgeEndDate != DateTime.MaxValue.Date)
+                if ( adjustedPledgeEndDate != DateTime.MaxValue.Date )
                 {
-                    adjustedPledgeEndDate = adjustedPledgeEndDate.AddDays(1);
+                    adjustedPledgeEndDate = adjustedPledgeEndDate.AddDays( 1 );
                 }
 
-                if (adjustedPledgeEndDate > dateRange.End)
+                if ( adjustedPledgeEndDate > dateRange.End )
                 {
                     adjustedPledgeEndDate = dateRange.End.Value;
                 }
 
-                if (adjustedPledgeEndDate > RockDateTime.Now)
+                if ( adjustedPledgeEndDate > RockDateTime.Now )
                 {
                     adjustedPledgeEndDate = RockDateTime.Now;
                 }
 
-                pledge.AmountGiven = new FinancialTransactionDetailService(rockContext).Queryable()
-                                            .Where(t =>
-                                                t.AccountId == pledge.AccountId
-                                                && t.Transaction.AuthorizedPersonAliasId.HasValue && personAliasIds.Contains(t.Transaction.AuthorizedPersonAliasId.Value)
-                                                && t.Transaction.TransactionDateTime >= pledge.PledgeStartDate
-                                                && t.Transaction.TransactionDateTime < adjustedPledgeEndDate)
-                                            .Sum(t => (decimal?)t.Amount) ?? 0;
+                pledge.AmountGiven = new FinancialTransactionDetailService( rockContext ).Queryable()
+                                            .Where( t =>
+                                                 t.AccountId == pledge.AccountId
+                                                 && t.Transaction.AuthorizedPersonAliasId.HasValue && personAliasIds.Contains( t.Transaction.AuthorizedPersonAliasId.Value )
+                                                 && t.Transaction.TransactionDateTime >= pledge.PledgeStartDate
+                                                 && t.Transaction.TransactionDateTime < adjustedPledgeEndDate )
+                                            .Sum( t => ( decimal? ) t.Amount ) ?? 0;
 
-                pledge.AmountRemaining = (pledge.AmountGiven > pledge.AmountPledged) ? 0 : (pledge.AmountPledged - pledge.AmountGiven);
+                pledge.AmountRemaining = ( pledge.AmountGiven > pledge.AmountPledged ) ? 0 : ( pledge.AmountPledged - pledge.AmountGiven );
 
-                if (pledge.AmountPledged > 0)
+                if ( pledge.AmountPledged > 0 )
                 {
-                    var test = (double)pledge.AmountGiven / (double)pledge.AmountPledged;
-                    pledge.PercentComplete = (int)((pledge.AmountGiven * 100) / pledge.AmountPledged);
+                    var test = ( double ) pledge.AmountGiven / ( double ) pledge.AmountPledged;
+                    pledge.PercentComplete = ( int ) ( ( pledge.AmountGiven * 100 ) / pledge.AmountPledged );
                 }
             }
 
-            mergeFields.Add("Pledges", pledges);
+            mergeFields.Add( "Pledges", pledges );
         }
     }
 
