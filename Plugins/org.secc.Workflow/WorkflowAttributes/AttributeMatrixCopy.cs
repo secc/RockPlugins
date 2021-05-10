@@ -76,7 +76,7 @@ namespace org.secc.Workflow.WorkflowAttributes
                         targetItem.SetAttributeValue( attribute.Key, attribute.Value.Value );
                     }
                     targetMatrix.AttributeMatrixItems.Add( targetItem );
-                    rockContext.SaveChanges();
+                    rockContext.SaveChanges( true );
                     targetItem.SaveAttributeValues( rockContext );
                 }
 
