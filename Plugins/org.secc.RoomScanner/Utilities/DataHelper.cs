@@ -70,7 +70,7 @@ namespace org.secc.RoomScanner.Utilities
             changes.First().RelatedData = GetHostInfo();
 
             HistoryService.SaveChanges(
-                rockContext,
+                new RockContext(),
                 typeof( Rock.Model.Person ),
                 CategoryCache.Get(4).Guid,
                 attendeeAttendance.PersonAlias.PersonId,
