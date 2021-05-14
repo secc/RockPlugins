@@ -121,6 +121,27 @@ namespace org.secc.Finance.Utility
             mergeFields.Add( "Salutation", salutation );
 
             var mailingAddress = targetPerson.GetMailingLocation();
+
+
+            //Sometimes we have an address that isn't a mailing address but still need it
+            //This is the fallback if there is no mailing address
+            if ( mailingAddress == null )
+            {
+                var homeAddressGuid = Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuidOrNull();
+                var workAddressGuid = Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_WORK.AsGuidOrNull();
+                if ( homeAddressGuid.HasValue && workAddressGuid.HasValue )
+                {
+                    var homeAddressDv = DefinedValueCache.Get( homeAddressGuid.Value );
+                    var workAddressDv = DefinedValueCache.Get( workAddressGuid.Value );
+                    var family = targetPerson.GetFamilies();
+                    var mailingLocations = family.SelectMany( f => f.GroupLocations )
+                         .Where( l => l.GroupLocationTypeValueId == homeAddressDv.Id || l.GroupLocationTypeValueId == workAddressDv.Id )
+                         .OrderBy( l => l.IsMappedLocation ? 0 : 1 )
+                          .ThenBy( l => l.GroupLocationTypeValueId == homeAddressDv.Id ? 0 : 1 );
+                    mailingAddress = mailingLocations.Select( l => l.Location ).FirstOrDefault();
+                }
+            }
+
             if ( mailingAddress != null )
             {
                 mergeFields.Add( "StreetAddress1", mailingAddress.Street1 );
