@@ -7,7 +7,7 @@ using org.secc.SystemsMonitor.Model;
 
 namespace org.secc.SystemsMonitor.Helpers
 {
-    class TestResult
+    class TestResult : DotLiquid.Drop
     {
         public string Name { get; set; }
 
