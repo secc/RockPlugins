@@ -31,7 +31,7 @@ namespace org.secc.OAuth.Rest.Controllers
     /// <summary>
     /// REST API for OAuth
     /// </summary>
-    public partial class OAuthController :  ApiController, IHasCustomHttpRoutes
+    public partial class OAuthController : ApiController, IHasCustomHttpRoutes
     {
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace org.secc.OAuth.Rest.Controllers
             // Web API configuration and services
             // Configure Web API to use only bearer token authentication.
             config.SuppressDefaultHostAuthentication();
-            config.Filters.Add(new HostAuthenticationFilter(OAuthDefaults.AuthenticationType));
+            config.Filters.Add( new HostAuthenticationFilter( OAuthDefaults.AuthenticationType ) );
 
             // Web API routes
             config.MapHttpAttributeRoutes();
@@ -57,83 +57,108 @@ namespace org.secc.OAuth.Rest.Controllers
                     controller = "profile",
                     entityqualifier = RouteParameter.Optional,
                     entityqualifiervalue = RouteParameter.Optional
-                });
-            
+                } );
+
         }
-        
+
         /// <summary>
-        /// Get a person's profile (person) information from Rock
+        /// Get a person's profile (person) username
         /// </summary>
         /// <returns>A Profile object</returns>
-        [System.Web.Http.Route("api/oauth/profile")]
-        public HttpResponseMessage GetProfile()
+        [System.Web.Http.Route( "api/oauth/userlogin" )]
+        public HttpResponseMessage GetUserLogin()
         {
             try
             {
-                ClaimsIdentity id = (ClaimsIdentity)User.Identity;
-
-                if (id == null || id.Claims.Where(c => c.Type == "urn:oauth:scope").Where(c => c.Value.ToLower() == "profile").Count() == 0)
-                {
-                    return ControllerContext.Request.CreateResponse(HttpStatusCode.Forbidden, "Forbidden");
-                }
                 var currentUser = UserLoginService.GetCurrentUser();
 
-                if (currentUser == null)
+                if ( currentUser == null )
                 {
-                    return ControllerContext.Request.CreateResponse(HttpStatusCode.NotFound);
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.NotFound );
                 }
 
-                return ControllerContext.Request.CreateResponse(HttpStatusCode.OK, new Profile(currentUser.Person));
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new Dictionary<string, string> { { "Value", currentUser.UserName } } );
 
             }
             catch
             {
-                return ControllerContext.Request.CreateResponse(HttpStatusCode.InternalServerError, "Internal Server Error");
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.InternalServerError, "Internal Server Error" );
             }
         }
-        
+
+        /// <summary>
+        /// Get a person's profile (person) information from Rock
+        /// </summary>
+        /// <returns>A Profile object</returns>
+        [System.Web.Http.Route( "api/oauth/profile" )]
+        public HttpResponseMessage GetProfile()
+        {
+            try
+            {
+                ClaimsIdentity id = ( ClaimsIdentity ) User.Identity;
+
+                if ( id == null || id.Claims.Where( c => c.Type == "urn:oauth:scope" ).Where( c => c.Value.ToLower() == "profile" ).Count() == 0 )
+                {
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
+                }
+                var currentUser = UserLoginService.GetCurrentUser();
+
+                if ( currentUser == null )
+                {
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.NotFound );
+                }
+
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new Profile( currentUser.Person ) );
+
+            }
+            catch
+            {
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.InternalServerError, "Internal Server Error" );
+            }
+        }
+
         /// <summary>
         /// Get a person's family information from Rock
         /// </summary>
         /// <returns>A list of family members.</returns>
-        [System.Web.Http.Route("api/oauth/family")]
+        [System.Web.Http.Route( "api/oauth/family" )]
         public HttpResponseMessage GetFamily()
         {
             try
             {
-                ClaimsIdentity id = (ClaimsIdentity)User.Identity;
+                ClaimsIdentity id = ( ClaimsIdentity ) User.Identity;
 
-                if (id == null || id.Claims.Where(c => c.Type == "urn:oauth:scope").Where(c => c.Value.ToLower() == "family").Count() == 0)
+                if ( id == null || id.Claims.Where( c => c.Type == "urn:oauth:scope" ).Where( c => c.Value.ToLower() == "family" ).Count() == 0 )
                 {
-                    return ControllerContext.Request.CreateResponse(HttpStatusCode.Forbidden, "Forbidden");
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
                 }
                 var currentUser = UserLoginService.GetCurrentUser();
 
-                if (currentUser == null)
+                if ( currentUser == null )
                 {
-                    return ControllerContext.Request.CreateResponse(HttpStatusCode.NotFound);
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.NotFound );
                 }
 
                 List<FamilyMemberProfile> familyMembers = new List<FamilyMemberProfile>();
                 // Add the current person
 
                 FamilyMemberProfile familyMember = new FamilyMemberProfile();
-                foreach (GroupMember member in currentUser.Person.GetFamilyMembers(true))
+                foreach ( GroupMember member in currentUser.Person.GetFamilyMembers( true ) )
                 {
-                     familyMember = new FamilyMemberProfile();
+                    familyMember = new FamilyMemberProfile();
                     familyMember.FamilyRole = member.GroupRole.Name;
                     familyMember.FullName = member.Person.FullName;
                     familyMember.PersonId = member.Person.Id;
-                    familyMember.Profile = new OAuthController.Profile(member.Person);
-                    familyMembers.Add(familyMember);
+                    familyMember.Profile = new OAuthController.Profile( member.Person );
+                    familyMembers.Add( familyMember );
                 }
 
-                return ControllerContext.Request.CreateResponse(HttpStatusCode.OK, familyMembers);
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, familyMembers );
 
             }
             catch
             {
-                return ControllerContext.Request.CreateResponse(HttpStatusCode.InternalServerError, "Internal Server Error");
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.InternalServerError, "Internal Server Error" );
             }
         }
 
@@ -154,7 +179,7 @@ namespace org.secc.OAuth.Rest.Controllers
 
             public Profile() { }
 
-            public Profile(Person p)
+            public Profile( Person p )
             {
 
                 PersonId = p.Id;
@@ -164,7 +189,7 @@ namespace org.secc.OAuth.Rest.Controllers
                 Gender = p.Gender.ToString();
                 Birthdate = p.BirthDate;
                 EmailAddress = p.Email;
-                PreviousPersonIDs = p.Aliases.AsQueryable().Where(pa => pa.Id != pa.Person.PrimaryAliasId).Select(pa => pa.AliasPersonId.Value).ToList();
+                PreviousPersonIDs = p.Aliases.AsQueryable().Where( pa => pa.Id != pa.Person.PrimaryAliasId ).Select( pa => pa.AliasPersonId.Value ).ToList();
             }
         }
 

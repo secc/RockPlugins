@@ -13,7 +13,6 @@
 // </copyright>
 //
 using System;
-using System.Collections.Concurrent;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
@@ -32,7 +31,6 @@ using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
-using Rock.Security.ExternalAuthentication;
 using Rock.Web.Cache;
 
 namespace org.secc.OAuth
@@ -66,17 +64,17 @@ namespace org.secc.OAuth
             {
                 await next();
                 var cookieName = System.Web.Security.FormsAuthentication.FormsCookieName;
-                if ( !string.IsNullOrWhiteSpace(context.Authentication?.User?.Identity?.Name) && context.Request.Cookies[cookieName] == null )
+                if ( !string.IsNullOrWhiteSpace( context.Authentication?.User?.Identity?.Name ) && context.Request.Cookies[cookieName] == null )
                 {
                     try
                     {
                         Rock.Security.Authorization.SetAuthCookie( context.Authentication.User.Identity.Name, false, false );
-                    } 
+                    }
                     catch ( System.Web.HttpException )
                     {
                         // Just eat this exception.  It's thrown when headers have already been sent
                     }
-                } 
+                }
                 else if ( !string.IsNullOrWhiteSpace( context.Authentication?.User?.Identity?.Name ) )
                 {
                     // Make sure the Forms ticket isn't expired
@@ -106,7 +104,6 @@ namespace org.secc.OAuth
                             HttpContext.Current.Response.Cookies.Add( cookie );
                         }
                     }
-
                 }
             } );
 
@@ -177,7 +174,7 @@ namespace org.secc.OAuth
         #endregion
 
         #region Authentication Token Provider
-        
+
         private void CreateAuthenticationCode( AuthenticationTokenCreateContext context )
         {
             context.SetToken( Guid.NewGuid().ToString( "n" ) + Guid.NewGuid().ToString( "n" ) );
@@ -212,23 +209,8 @@ namespace org.secc.OAuth
             {
                 var rockContext = new RockContext();
                 var userLoginService = new UserLoginService( rockContext );
-                //Older Avalanche Clients use __PHONENUMBER__+1 prefix vs the newer SMS_ prefix
-                //This makes sure we are using the new ROCK external sms authentication
-                var userName = context.UserName.Replace( "__PHONENUMBER__+1", "SMS_" );
+                var userName = context.UserName;
 
-                //SMS login does not use the phone number as the username.
-                //Instead we need to change it to use the person's id.
-                if ( userName.StartsWith( "SMS_" ) )
-                {
-                    string error;
-                    var smsAuthentication = new SMSAuthentication();
-                    var person = smsAuthentication.GetNumberOwner( userName.Split( '_' ).Last(), rockContext, out error );
-                    if ( person != null )
-                    {
-                        userName = string.Format( "SMS_{0}", person.Id );
-                    }
-                    //If we cannot find a person, do nothing and just pass through the existing username
-                }
                 var userLogin = userLoginService.GetByUserName( userName );
                 if ( userLogin != null && userLogin.EntityType != null )
                 {
