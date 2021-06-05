@@ -19,6 +19,7 @@ using System.Security.Claims;
 using System.Web;
 using Microsoft.AspNet.Identity;
 using Microsoft.Owin.Security;
+using Newtonsoft.Json;
 using org.secc.OAuth.Data;
 using org.secc.OAuth.Model;
 using Rock;
@@ -75,6 +76,16 @@ namespace RockWeb.Plugins.org_secc.OAuth
             internal const string RejectedAuthenticationPage = "RejectedAuthenticationPage";
         }
 
+        internal static class PageParameterKeys
+        {
+            internal const string ClientId = "client_id";
+        }
+
+        internal static class CookieKeys
+        {
+            internal const string OAuthQueryString = "OAuthQueryString";
+        }
+
 
         Dictionary<string, string> OAuthSettings
         {
@@ -115,7 +126,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
                     {
                         OAuthContext context = new OAuthContext();
                         ClientService clientService = new ClientService( context );
-                        Client OAuthClient = clientService.GetByApiKey( PageParameter( "client_id" ).AsGuid() );
+                        Client OAuthClient = clientService.GetByApiKey( PageParameter( PageParameterKeys.ClientId ).AsGuid() );
                         if ( OAuthClient != null && OAuthClient.Active == true )
                         {
                             ClientScopeService clientScopeService = new ClientScopeService( context );
@@ -168,21 +179,26 @@ namespace RockWeb.Plugins.org_secc.OAuth
             var scopes = ( Request.QueryString.Get( "scope" ) ?? "" ).Split( ' ' );
             bool scopesApproved = false;
 
+            //The user is logged in but does not have OAuth identity
             if ( CurrentUser != null && identity == null )
             {
                 CreateOAuthIdentity( authentication );
                 Response.Redirect( Request.RawUrl, true );
             }
+            //The user is not logged in and does not have OAuth identity
             else if ( identity == null )
             {
                 authentication.Challenge( DefaultAuthenticationTypes.ApplicationCookie );
-                Response.Redirect( OAuthSettings["OAuthLoginPath"] + "?ReturnUrl=" + Server.UrlEncode( Request.RawUrl ), true );
+                //Send them off to log in
+                StoreQueryStringCookie();
+                Response.Redirect( OAuthSettings["OAuthLoginPath"], true );
             }
+            //The user has an OAuth identity
             else
             {
                 OAuthContext context = new OAuthContext();
                 ClientService clientService = new ClientService( context );
-                Client OAuthClient = clientService.GetByApiKey( PageParameter( "client_id" ).AsGuid() );
+                Client OAuthClient = clientService.GetByApiKey(PageParameter(PageParameterKeys.ClientId).AsGuid() );
                 if ( OAuthClient != null )
                 {
                     ClientScopeService clientScopeService = new ClientScopeService( context );
@@ -224,6 +240,23 @@ namespace RockWeb.Plugins.org_secc.OAuth
                     throw new Exception( "Invalid Client ID for OAuth authentication." );
                 }
             }
+        }
+
+        private void StoreQueryStringCookie()
+        {
+            var queryString = Request.QueryString;
+            Dictionary<string, string> queryDict = new Dictionary<string, string>();
+
+            foreach ( var key in queryString.AllKeys )
+            {
+                queryDict.Add( key, queryString[key] );
+            }
+
+            var serializedQuery = JsonConvert.SerializeObject( queryDict );
+
+            HttpCookie clientCookie = new HttpCookie( CookieKeys.OAuthQueryString );
+            clientCookie.Value = serializedQuery;
+            this.Page.Response.Cookies.Set( clientCookie );
         }
 
         private bool IsAuthenticationNotPermitted()

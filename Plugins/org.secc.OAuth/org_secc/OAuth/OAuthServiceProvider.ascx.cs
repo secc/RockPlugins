@@ -22,7 +22,7 @@ using Rock.Attribute;
 using Rock.Model;
 using Rock.Web.UI;
 
-namespace RockWeb.Plugins.org_secc.Security
+namespace RockWeb.Plugins.org_secc.OAuth
 {
     /// <summary>
     /// Prompts user for login credentials.
@@ -42,10 +42,6 @@ namespace RockWeb.Plugins.org_secc.Security
     [TextField( "Authorization URI",
         Key = AttributeKeys.AuthorizationURI,
         Order = 1 )]
-
-    [TextField( "Token URI",
-        Key = AttributeKeys.TokenURI,
-        Order = 2 )]
 
     [TextField( "Token URI",
         Key = AttributeKeys.TokenURI,
