@@ -31,7 +31,7 @@ namespace org.secc.OAuth
             var authServer = new AuthorizationServerDescription
             {
                 AuthorizationEndpoint = new Uri( authorizationEndpoint ),
-                TokenEndpoint = new Uri( tokenEndpoint ),
+                TokenEndpoint = new Uri( tokenEndpoint )
             };
 
             webServerClient = new WebServerClient( authServer, clientId, clientSecret );
@@ -68,9 +68,9 @@ namespace org.secc.OAuth
 
         }
 
-        public void SendAuthRequest( HttpContext context )
+        public void SendAuthRequest( HttpContext context, Uri returnTo = null )
         {
-            var userAuth = webServerClient.PrepareRequestUserAuthorization();
+            var userAuth = webServerClient.PrepareRequestUserAuthorization( returnTo: returnTo );
             userAuth.Send( context );
         }
 

@@ -132,9 +132,10 @@ namespace RockWeb.Plugins.org_secc.OAuth
                    client.ApiKey.ToString(),
                    client.ApiSecret.ToString() );
 
-                oauthClient.SendAuthRequest( Context );
+                oauthClient.SendAuthRequest( Context, new Uri( client.CallbackUrl ) );
                 Response.End();
             }
+
         }
 
         private Client GetClient()
