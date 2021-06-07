@@ -95,6 +95,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
                 Response.Redirect( returnurl, true );
             }
 
+
             //If we have redirect cookie store it and reload the page for a clear url
             if ( returnurl.IsNotNullOrWhiteSpace() )
             {
@@ -117,8 +118,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
                     client.ApiKey.ToString(),
                     client.ApiSecret.ToString() );
 
-                var requestWrapper = new HttpRequestWrapper( Request );
-                var userLogin = oauthClient.GetUser( requestWrapper, GetAttributeValue( AttributeKeys.UserLoginEndpoint ) );
+                var userLogin = oauthClient.GetUser( code, client, GetAttributeValue( AttributeKeys.TokenURI ), GetAttributeValue( AttributeKeys.UserLoginEndpoint ) );
 
                 Login( userLogin );
             }
@@ -148,7 +148,6 @@ namespace RockWeb.Plugins.org_secc.OAuth
 
         private void Login( UserLogin userLogin )
         {
-
             Rock.Security.Authorization.SetAuthCookie( userLogin.UserName, true, false );
 
             string callback = null;
@@ -165,6 +164,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
                 callback = "/";
             }
             Response.Redirect( callback, true );
+
         }
 
         #endregion

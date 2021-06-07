@@ -13,10 +13,14 @@
 // </copyright>
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Web;
 using DotNetOpenAuth.OAuth2;
 using Newtonsoft.Json;
+using org.secc.OAuth.Model;
+using org.secc.OAuth.Utilities;
 using Rock.Data;
 using Rock.Model;
 
@@ -24,7 +28,8 @@ namespace org.secc.OAuth
 {
     public class OAuthClient
     {
-        WebServerClient webServerClient;
+        WebServerClient _webServerClient;
+
 
         public OAuthClient( string authorizationEndpoint, string tokenEndpoint, string clientId, string clientSecret )
         {
@@ -34,21 +39,33 @@ namespace org.secc.OAuth
                 TokenEndpoint = new Uri( tokenEndpoint )
             };
 
-            webServerClient = new WebServerClient( authServer, clientId, clientSecret );
+            _webServerClient = new WebServerClient( authServer, clientId, clientSecret );
         }
 
-        public UserLogin GetUser( HttpRequestBase request, string endPoint )
+        public UserLogin GetUser( string code, Client client, string tokenEndpoint, string userLoginEndpoint )
         {
             try
             {
-                var authState = webServerClient.ProcessUserAuthorization( request );
+                var keysCombined = System.Text.Encoding.UTF8.GetBytes( $"{client.ApiKey.ToString()}:{client.ApiSecret.ToString()}" );
+                var auth = System.Convert.ToBase64String( keysCombined );
 
-                var accessToken = authState.AccessToken;
+                WebClient webclient = new WebClient();
+                webclient.Headers.Add( HttpRequestHeader.Authorization, "Basic " + auth );
+                webclient.Headers[HttpRequestHeader.ContentType] = "application/x-www-form-urlencoded";
+                webclient.Headers["Cache-Control"] = "no-store,no-cache";
+                var reqparm = new System.Collections.Specialized.NameValueCollection();
+                reqparm.Add( "code", code );
+                reqparm.Add( "grant_type", "authorization_code" );
+                reqparm.Add( "redirect_uri", client.CallbackUrl );
+                byte[] responsebytes = webclient.UploadValues( tokenEndpoint, "POST", reqparm );
+                string responsebody = Encoding.UTF8.GetString( responsebytes );
 
-                var authorizingHandler = webServerClient.CreateAuthorizingHandler( accessToken );
+                var tokens = JsonConvert.DeserializeObject<TokenResponse>( responsebody );
 
-                var client = new HttpClient( authorizingHandler );
-                var body = client.GetStringAsync( new Uri( endPoint ) ).Result;
+                var authorizingHandler = _webServerClient.CreateAuthorizingHandler( tokens.AccessToken );
+
+                var httpClient = new HttpClient( authorizingHandler );
+                var body = httpClient.GetStringAsync( new Uri( userLoginEndpoint ) ).Result;
 
                 var data = JsonConvert.DeserializeObject<Dictionary<string, string>>( body );
 
@@ -63,6 +80,7 @@ namespace org.secc.OAuth
             }
             catch ( Exception ex )
             {
+                ExceptionLogService.LogException( new Exception( "Exception Getting OAuth Token", ex ) );
                 return null;
             }
 
@@ -70,7 +88,7 @@ namespace org.secc.OAuth
 
         public void SendAuthRequest( HttpContext context, Uri returnTo = null )
         {
-            var userAuth = webServerClient.PrepareRequestUserAuthorization( returnTo: returnTo );
+            var userAuth = _webServerClient.PrepareRequestUserAuthorization( returnTo: returnTo );
             userAuth.Send( context );
         }
 
