@@ -66,6 +66,12 @@ namespace RockWeb.Plugins.org_secc.OAuth
         Order = 3,
         Key = AttributeKeys.RejectedAuthenticationPage )]
 
+    [TextField( "Acceptable Domain",
+        Description = "Domain (eg auth.example.com ) that the user will be redirected to if not used. Helpful for older systems that use the wrong url.",
+        Order = 4,
+        IsRequired = false,
+        Key = AttributeKeys.AcceptableDomain )]
+
     public partial class Authorize : Rock.Web.UI.RockBlock
     {
         internal static class AttributeKeys
@@ -74,6 +80,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
             internal const string RestrictedSecurityGroups = "RestrictedSecurityGroups";
             internal const string ApprovedAuthenticationProviders = "ApprovedAuthenticationProviders";
             internal const string RejectedAuthenticationPage = "RejectedAuthenticationPage";
+            internal const string AcceptableDomain = "AcceptableDomain";
         }
 
         internal static class PageParameterKeys
@@ -108,6 +115,8 @@ namespace RockWeb.Plugins.org_secc.OAuth
             {
                 throw new Exception( "OAuth requires SSL." );
             }
+
+            CheckAcceptableDomain();
 
             // Log the user out
             if ( !String.IsNullOrEmpty( PageParameter( "OAuthLogout" ) ) )
@@ -150,6 +159,23 @@ namespace RockWeb.Plugins.org_secc.OAuth
                         }
                     }
                 }
+            }
+        }
+
+        private void CheckAcceptableDomain()
+        {
+            var acceptableDomain = GetAttributeValue( AttributeKeys.AcceptableDomain );
+
+            if ( acceptableDomain.IsNullOrWhiteSpace() )
+            {
+                return;
+            }
+
+            var currentDomain = Request.Url.Host;
+            if ( currentDomain.ToLower() != acceptableDomain.ToLower() )
+            {
+                var newUrl = "https://" + acceptableDomain + Request.RawUrl;
+                Response.Redirect( newUrl, true );
             }
         }
 
@@ -198,7 +224,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
             {
                 OAuthContext context = new OAuthContext();
                 ClientService clientService = new ClientService( context );
-                Client OAuthClient = clientService.GetByApiKey(PageParameter(PageParameterKeys.ClientId).AsGuid() );
+                Client OAuthClient = clientService.GetByApiKey( PageParameter( PageParameterKeys.ClientId ).AsGuid() );
                 if ( OAuthClient != null )
                 {
                     ClientScopeService clientScopeService = new ClientScopeService( context );
@@ -278,11 +304,13 @@ namespace RockWeb.Plugins.org_secc.OAuth
 
             if ( isMember )
             {
-                var permittedAuthMethods = GetAttributeValues( AttributeKeys.ApprovedAuthenticationProviders );
+                var permittedAuthMethods = GetAttributeValues( AttributeKeys.ApprovedAuthenticationProviders ).ToList();
                 if ( !permittedAuthMethods.Select( m => m.AsGuid() ).Contains( CurrentUser.EntityType.Guid ) )
                 {
+                    LogException( new Exception( "User Tried Non Valid Method Of Auth", new Exception( "Permitted: " + string.Join( ",", permittedAuthMethods ) + " | Tried: " + CurrentUser.EntityType.Guid ) ) );
                     return true;
                 }
+
             }
             return false;
         }
