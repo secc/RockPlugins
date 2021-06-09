@@ -21,7 +21,7 @@ using Rock.Model;
 using Rock.Security;
 using Rock.Web.UI;
 
-namespace RockWeb.Plugins.org_secc.Security
+namespace RockWeb.Plugins.org_secc.oAuth
 {
     /// <summary>
     /// Prompts user for login credentials.
