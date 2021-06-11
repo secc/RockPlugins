@@ -56,7 +56,10 @@ namespace RockWeb.Plugins.org_secc.CMS
     [LinkedPage( "My Settings Page", "Page for user to view their settings (if blank option will not be displayed)", false )]
     [LinkedPage( "My Dashboard Page", "Page for user to view their dashboard (if blank option will not be displayed)", false )]
     [KeyValueListField( "Logged In Page List", "List of pages to show in the dropdown when the user is logged in. The link field takes Lava with the CurrentPerson merge fields. Place the text 'divider' in the title field to add a divider.", false, "", "Title", "Link" )]
+
     [BooleanField( "Enable Notifications", "Display a notification of new workflows or connections." )]
+
+    [LinkedPage( "Logout Page", "Page for logging out of Rock", required:false )]
 
     public partial class LoginStatus : Rock.Web.UI.RockBlock
     {
@@ -213,7 +216,7 @@ namespace RockWeb.Plugins.org_secc.CMS
             RockContext rockContext = new RockContext();
 
             //Any workflow assigned to the person where we have active forms.
-            var workflowCount = new WorkflowActionService( rockContext ).GetActiveForms( CurrentPerson ).Where( a => a.CreatedDateTime > lastChecked.Value ).DistinctBy(a => a.Activity.WorkflowId).Count();
+            var workflowCount = new WorkflowActionService( rockContext ).GetActiveForms( CurrentPerson ).Where( a => a.CreatedDateTime > lastChecked.Value ).DistinctBy( a => a.Activity.WorkflowId ).Count();
 
             //Connections - If a new connecion was made, a connection was just transfered, or a future followup just came up
             DateTime midnightToday = RockDateTime.Today.AddDays( 1 );
@@ -252,6 +255,14 @@ namespace RockWeb.Plugins.org_secc.CMS
             }
             else
             {
+                var logoutPage = GetAttributeValue( "LogoutPage" );
+                if ( logoutPage.IsNotNullOrWhiteSpace() )
+                {
+                    NavigateToLinkedPage( "LogoutPage" );
+                    return;
+                }
+
+
                 if ( CurrentUser != null )
                 {
                     var transaction = new Rock.Transactions.UserLastActivityTransaction();
