@@ -70,8 +70,8 @@
       <Column Name="fund_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="department_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
       <Column Name="account_id" Type="System.Int32" DbType="Int NOT NULL" CanBeNull="false" />
-      <Column Name="created_by" Type="System.String" DbType="VarChar(25) NOT NULL" CanBeNull="false" />
-      <Column Name="modified_by" Type="System.String" DbType="VarChar(25)" CanBeNull="true" />
+      <Column Name="created_by" Type="System.String" DbType="VarChar(50) NOT NULL" CanBeNull="false" />
+      <Column Name="modified_by" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
       <Column Name="date_created" Type="System.DateTime" DbType="DateTime NOT NULL" CanBeNull="false" />
       <Column Name="date_modified" Type="System.DateTime" DbType="DateTime" CanBeNull="true" />
       <Column Name="active" Type="System.Boolean" DbType="Bit NOT NULL" CanBeNull="false" />
