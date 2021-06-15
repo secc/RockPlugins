@@ -252,7 +252,22 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 changeRequest.EvaluatePropertyChange( person, "TitleValue", DefinedValueCache.Get( ddlTitle.SelectedValueAsInt() ?? 0 ) );
                 changeRequest.EvaluatePropertyChange( person, "FirstName", tbFirstName.Text );
                 changeRequest.EvaluatePropertyChange( person, "NickName", tbNickName.Text );
-                changeRequest.EvaluatePropertyChange( person, "LastName", tbLastName.Text );
+                var lastNameRecord = changeRequest.EvaluatePropertyChange( person, "LastName", tbLastName.Text );
+
+                //Store the person's old last name as a previous name
+                if ( lastNameRecord != null )
+                {
+                    changeRequest.AddEntity( new PersonPreviousName
+                    {
+                        LastName = person.LastName,
+                        PersonAliasId = person.PrimaryAliasId ?? 0,
+                        CreatedByPersonAliasId = CurrentPersonAliasId,
+                        ModifiedByPersonAliasId = CurrentPersonAliasId
+                    },
+                    rockContext,
+                    true );
+                }
+
                 changeRequest.EvaluatePropertyChange( person, "SuffixValue", DefinedValueCache.Get( ddlSuffix.SelectedValueAsInt() ?? 0 ) );
 
                 var birthMonth = person.BirthMonth;
