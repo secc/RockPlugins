@@ -30,8 +30,8 @@
                     </div>
                     <div class="col-lg-6" runat="server" visible="false" id="divDataView">
                         <div class="row">
-                            <div class="col-md-3">
-                                <Rock:DataViewPicker ID="dvpDataViewPicker" runat="server" Label="Data View" Help="Select a dataview to launch a workflow for each person." AutoPostBack="true" OnSelectedIndexChanged="dvpDataViewPicker_SelectedIndexChanged" EntityTypeId="15" />
+                            <div class="col-md-3">                               
+                                <Rock:DataViewItemPicker ID="dvItemPicker" runat="server" Label="Data View" Help="Select a dataview to launch a workflow for each person." AutoPostBack="true" OnSelectItem="dvItemPicker_SelectItem" EntityTypeId="15" />
                             </div>
                             <div class="col-md-9">
                                 <Rock:DataDropDownList ID="ddlEntities" runat="server" Label="Person (optional)" Help="Select a specific person from the dataview to use to launch the workflow." SourceTypeName="Rock.Model.Person, Rock" Required="false" Visible="false" DataValueField="Id" DataTextField="EntityStringValue" PropertyName="FullName" />
