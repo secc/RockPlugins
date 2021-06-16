@@ -96,7 +96,7 @@ namespace org.secc.Jobs
                             {
                                 var dataView = new DataViewService( rockContext ).Get( dataViewGuid.Value );
                                 
-                                var entityList = dataView.GetQuery( new DataViewGetQueryArgs { SortProperty = null, DatabaseTimeoutSeconds = commandTimeout } );
+                                var entityList = dataView.GetQuery( null, commandTimeout, out errors );
                                 foreach(IEntity entity in entityList)
                                 {
                                     var workflow = Workflow.Activate( workflowType, workflowType.Name );

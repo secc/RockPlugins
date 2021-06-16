@@ -199,16 +199,16 @@ namespace RockWeb.Plugins.org_secc.Workflow
                         litOutput.Text += "Launching workflow for " + person.FullName + "<br />";
                         person.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, person.FullName );
                     }
-                    else if ( dvItemPicker.SelectedValueAsInt().HasValue && dvItemPicker.SelectedValueAsInt() > 0 )
+                    else if ( dvpDataViewPicker.SelectedValueAsInt().HasValue && dvpDataViewPicker.SelectedValueAsInt() > 0 )
                     {
                         DataViewService dataViewService = new DataViewService( rockContext );
 
-                        var dataview = dataViewService.Get( dvItemPicker.SelectedValueAsInt().Value );
+                        var dataview = dataViewService.Get( dvpDataViewPicker.SelectedValueAsInt().Value );
                         var errors = new List<string>();
 
                         if ( dataview.EntityType.Guid == new Guid( Rock.SystemGuid.EntityType.PERSON ) )
                         {
-                            IQueryable<Person> entities = ( IQueryable<Person> ) dataview.GetQuery( new DataViewGetQueryArgs() );
+                            IQueryable<Person> entities = ( IQueryable<Person> ) dataview.GetQuery( null, null, out errors );
 
                             foreach ( Person person in entities )
                             {
@@ -247,23 +247,18 @@ namespace RockWeb.Plugins.org_secc.Workflow
             gmpGroupMemberPicker.Visible = true;
         }
 
-
-        protected void dvItemPicker_SelectItem( object sender, EventArgs e )
+        protected void dvpDataViewPicker_SelectedIndexChanged( object sender, EventArgs e )
         {
-            if(!dvItemPicker.SelectedValueAsId().HasValue)
-            {
-                return;
-            }
             ddlEntities.Visible = true;
-
             using ( var rockContext = new RockContext() )
             {
+                var errors = new List<string>();
                 DataViewService dataViewService = new DataViewService( rockContext );
-                var dataview = dataViewService.Get( dvItemPicker.SelectedValueAsId().Value );
+                var dataview = dataViewService.Get( dvpDataViewPicker.SelectedValue.AsInteger() );
 
-                if ( dataview.EntityType.Guid == new Guid( Rock.SystemGuid.EntityType.PERSON ) )
+                if ( dataview.EntityType.Guid == new Guid(Rock.SystemGuid.EntityType.PERSON) )
                 {
-                    List<Person> people = ( ( IQueryable<Person> ) dataview.GetQuery( new DataViewGetQueryArgs() { SortProperty = null, DatabaseTimeoutSeconds = null } )).OrderBy( p => p.LastName ).ToList();
+                    List<Person> people = (( IQueryable<Person> ) dataview.GetQuery( null, null, out errors )).OrderBy(p => p.LastName).ToList();
                     Person emptyPerson = new Person { Id = -1, FirstName = "All People" };
                     people.Insert( 0, emptyPerson );
                     ddlEntities.DataSource = people;
