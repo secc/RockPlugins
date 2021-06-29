@@ -143,15 +143,11 @@ namespace org.secc.ServiceReef
                                 // We haven't processed this before so get busy!
                                 if ( tran == null )
                                 {
-                                    var glCode = "";
-                                    //Either service reef randomly changed their code
-                                    //Or someone started adding random data to the GL codes 
-                                    //Doesn't matter SECC IT will clean up the mess
-                                    
-                                    var codes = result.EventCode.Split( ' ' );
-                                    if ( codes.Length > 0 )
+                                    var glCode = result.EventCode;
+
+                                    if ( glCode.Length > 50 )
                                     {
-                                        glCode = codes[0];
+                                        glCode = glCode.Substring( 0, 50 );
                                     }
 
                                     FinancialAccount trip = null;
