@@ -2,7 +2,7 @@
 				{% assign partitionSize = partition.Partitions | Size %}
 				{%- assign spotsLeft = definedType.Limit | Minus: definedType.Filled -%}
 				<div class="col-sm-6 col-md-4" style="margin-bottom: 20px;">
-					{% if spotsLeft > 0 and definedType.Limit > 0 %}
+					{% if definedType.Limit == null or spotsLeft > 0 and definedType.Limit > 0 %}
 						{% if partitionSize > 0 %}
 							<a href="#" onclick="doSlide('#{{divId}}_{{definedType.Value}}'); return false;">
 						{% else %}
@@ -18,7 +18,7 @@
 								<span>{{ definedType.Entity.Description }}</span>
 							</div>
 						</div>
-					{% if spotsLeft > 0 and definedType.Limit > 0 %}
+					{% if definedType.Limit == null or spotsLeft > 0 and definedType.Limit > 0 %}
 						</a>
 					{% endif %}
                 </div>
