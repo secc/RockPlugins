@@ -383,7 +383,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         {
                             Person = member.Key.FullNameReversed,
                             GroupMemberId = member.Key.Id,
-                            //GroupMember = member.FirstOrDefault().Person,
+                            GroupMember = member.Key.Members.FirstOrDefault(),
                             PersonId = member.Key.Id,
                             FilterAttribute = member.FirstOrDefault().FilterValue,
                         };
