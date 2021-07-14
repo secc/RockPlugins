@@ -38,7 +38,10 @@
       <HintPath>$(SolutionDir)\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="ImageResizer, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\ImageResizer.4.0.5\lib\net45\ImageResizer.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\ImageResizer.4.2.5\lib\net45\ImageResizer.dll</HintPath>
+    </Reference>
+    <Reference Include="ImageResizer.Plugins.SimpleFilters, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\ImageResizer.Plugins.SimpleFilters.4.2.5\lib\net45\ImageResizer.Plugins.SimpleFilters.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Azure.CognitiveServices.Vision.Face, Version=2.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\Microsoft.Azure.CognitiveServices.Vision.Face.2.7.0-preview.1\lib\net452\Microsoft.Azure.CognitiveServices.Vision.Face.dll</HintPath>
@@ -105,6 +108,10 @@ xcopy /Y /R "$(ProjectDir)bin\Debug\Microsoft.IdentityModel.Clients.ActiveDirect
 xcopy /Y /R "$(ProjectDir)bin\Debug\Microsoft.Rest.ClientRuntime.Azure.dll" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R "$(ProjectDir)bin\Debug\Microsoft.Rest.ClientRuntime.dll" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R "$(ProjectDir)Webhooks\ImageGenerator.ashx" "$(SolutionDir)RockWeb\Webhooks"
-xcopy /Y /R /E /I /C "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"</PostBuildEvent>
+xcopy /Y /R /E /I /C "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
+xcopy /Y /R "$(ProjectDir)bin\Debug\ImageResizer.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(ProjectDir)bin\Debug\ImageResizer.xml" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(ProjectDir)bin\Debug\ImageResizer.Plugins.SimpleFilters.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(ProjectDir)bin\Debug\ImageResizer.Plugins.SimpleFilters.xml" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
   </PropertyGroup>
 </Project>
