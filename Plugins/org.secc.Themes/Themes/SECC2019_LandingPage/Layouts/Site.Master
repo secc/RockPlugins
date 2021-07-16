@@ -37,6 +37,9 @@
     <script src="<%# ResolveRockUrl("~/Themes/SECC2019/Scripts/select2/select2.full.min.js" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js" ) %>" ></script>
 
+    <!-- Font Awesome Kit -->
+    <script src="https://kit.fontawesome.com/7faca2d070.js" crossorigin="anonymous"></script>
+
     <asp:ContentPlaceHolder ID="head" runat="server"></asp:ContentPlaceHolder>
 
 </head>
