@@ -562,24 +562,6 @@ $drawer-bg: $panel-heading-bg;
   &:hover {
     background-color: darken($btn-default-bg, 10%);
   }
-
-  &.facebook:before {
-    margin-right: 12px;
-    font-family: 'Font Awesome 5 Pro', FontAwesome;
-    content: $fa-var-facebook;
-  }
-
-  &.google:before {
-    margin-right: 12px;
-    font-family: 'Font Awesome 5 Pro', FontAwesome;
-    content: $fa-var-google;
-  }
-
-  &.twitter:before {
-    margin-right: 12px;
-    font-family: 'Font Awesome 5 Pro', FontAwesome;
-    content: $fa-var-twitter;
-  }
 }
 
 
