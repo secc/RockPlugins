@@ -60,7 +60,6 @@
     <Compile Include="RemoveDevicesFromPersons.cs" />
     <Compile Include="SetFirstAttendanceDate.cs" />
     <Compile Include="PushPayDownloadCheckNumbers.cs" />
-    <Compile Include="MigrateHistorySummaryDataSECC.cs" />
     <Compile Include="StoreAttendanceFromInteraction.cs" />
     <Compile Include="CloseDeseasedPastoralWorkflows.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
