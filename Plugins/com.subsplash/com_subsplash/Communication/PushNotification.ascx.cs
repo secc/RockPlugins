@@ -1,12 +1,15 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Text;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
+using com.subsplash.Model;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using RestSharp;
 using Rock;
 using Rock.Attribute;
 using Rock.Communication;
@@ -15,13 +18,8 @@ using Rock.Model;
 using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI;
-using Rock.Web.UI.Controls.Communication;
 using Rock.Web.UI.Controls;
-using System.Data.Entity;
-using RestSharp;
-using Newtonsoft.Json;
-using com.subsplash.Model;
-using Newtonsoft.Json.Linq;
+using Rock.Web.UI.Controls.Communication;
 
 namespace RockWeb.Plugins.com_subsplash.Communication
 {
@@ -53,7 +51,7 @@ namespace RockWeb.Plugins.com_subsplash.Communication
 
         protected int? CommunicationId
         {
-            get { return (int?)ViewState["CommunicationId"] ?? PageParameter( "CommunicationId" ).AsIntegerOrNull(); }
+            get { return ( int? ) ViewState["CommunicationId"] ?? PageParameter( "CommunicationId" ).AsIntegerOrNull(); }
             set { ViewState["CommunicationId"] = value; }
         }
 
@@ -220,7 +218,7 @@ namespace RockWeb.Plugins.com_subsplash.Communication
 
             if ( !GetAttributeValue( "Transport" ).AsGuidOrNull().HasValue )
             {
-                
+
             }
 
             if ( Page.IsPostBack )
@@ -303,7 +301,7 @@ namespace RockWeb.Plugins.com_subsplash.Communication
         protected override void OnPreRender( EventArgs e )
         {
             BindRecipients();
-            if (!IsPostBack)
+            if ( !IsPostBack )
             {
                 BindTopics();
             }
@@ -362,9 +360,9 @@ namespace RockWeb.Plugins.com_subsplash.Communication
                     if ( Person != null )
                     {
                         var HasPersonalDevice = new PersonalDeviceService( context ).Queryable()
-                            .Where( pd => 
-                                pd.PersonAliasId.HasValue && 
-                                pd.PersonAliasId == Person.PrimaryAliasId && 
+                            .Where( pd =>
+                                pd.PersonAliasId.HasValue &&
+                                pd.PersonAliasId == Person.PrimaryAliasId &&
                                 pd.NotificationsEnabled )
                             .Any();
                         Recipients.Add( new Recipient( Person, Person.PhoneNumbers.Any( a => a.IsMessagingEnabled ), HasPersonalDevice, CommunicationRecipientStatus.Pending ) );
@@ -610,9 +608,9 @@ namespace RockWeb.Plugins.com_subsplash.Communication
 
 
                         bool inactiveApprove = GetAttributeValue( "InactiveRecipientsRequireApproval" ).AsBoolean();
-                        if ( CheckApprovalRequired( communication.Recipients.Count()) && !IsUserAuthorized( "Approve" ) 
-                            || ( inactiveApprove && inactiveRecipientCount > 0 && !IsUserAuthorized( "Approve" ) ))
-                       {
+                        if ( CheckApprovalRequired( communication.Recipients.Count() ) && !IsUserAuthorized( "Approve" )
+                            || ( inactiveApprove && inactiveRecipientCount > 0 && !IsUserAuthorized( "Approve" ) ) )
+                        {
                             communication.Status = CommunicationStatus.PendingApproval;
                             message = "Communication has been submitted for approval.";
                         }
@@ -958,7 +956,7 @@ namespace RockWeb.Plugins.com_subsplash.Communication
                     // Redirect to new communication
                     if ( CurrentPageReference.Parameters.ContainsKey( "CommunicationId" ) )
                     {
-                        CurrentPageReference.Parameters[ "CommunicationId" ] = newCommunication.Id.ToString();
+                        CurrentPageReference.Parameters["CommunicationId"] = newCommunication.Id.ToString();
                     }
                     else
                     {
@@ -1274,7 +1272,7 @@ namespace RockWeb.Plugins.com_subsplash.Communication
                 {
                     foreach ( var template in new CommunicationTemplateService( new RockContext() )
                         .Queryable().AsNoTracking()
-                        .Where(a => a.IsActive )
+                        .Where( a => a.IsActive )
                         .OrderBy( t => t.Name ) )
                     {
                         if ( template.IsAuthorized( Authorization.VIEW, CurrentPerson ) )
@@ -1339,9 +1337,9 @@ namespace RockWeb.Plugins.com_subsplash.Communication
             var topic = GetTopics().Select( t => new
             {
                 t.Title,
-                Id = (Guid?)t.Id
+                Id = ( Guid? ) t.Id
             } ).ToList();
-            topic.Insert( 0, new { Title = "Select One", Id = (Guid?)null } );
+            topic.Insert( 0, new { Title = "Select One", Id = ( Guid? ) null } );
 
             rddlTopics.DataSource = topic;
             rddlTopics.DataTextField = "Title";
@@ -1476,7 +1474,7 @@ namespace RockWeb.Plugins.com_subsplash.Communication
                     ( ( RockTextBox ) mediumControl.FindControl( string.Format( "tbTextTitle_{0}", mediumControl.ID ) ) ).Required = true;
                 }
 
-                
+
 
                 return mediumControl;
             }
@@ -1737,7 +1735,7 @@ namespace RockWeb.Plugins.com_subsplash.Communication
 
             GetMediumData();
 
-            foreach( var recipient in communication.Recipients )
+            foreach ( var recipient in communication.Recipients )
             {
                 recipient.MediumEntityTypeId = MediumEntityTypeId;
             }
@@ -1828,14 +1826,14 @@ namespace RockWeb.Plugins.com_subsplash.Communication
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="communication">The communication.</param>
-        private void ShowResult( string message, Rock.Model.Communication communication, NotificationBoxType notificationType = NotificationBoxType.Success)
+        private void ShowResult( string message, Rock.Model.Communication communication, NotificationBoxType notificationType = NotificationBoxType.Success )
         {
             ShowStatus( communication );
 
             pnlEdit.Visible = false;
 
             nbResult.Text = message;
-            
+
             nbResult.NotificationBoxType = notificationType;
 
             CurrentPageReference.Parameters.AddOrReplace( "CommunicationId", communication.Id.ToString() );
@@ -1892,7 +1890,7 @@ namespace RockWeb.Plugins.com_subsplash.Communication
 
                 var response = client.Execute( sendPush );
 
-                
+
                 notification = JsonConvert.DeserializeObject<com.subsplash.Model.Notification>(
                     response.Content,
                     new JsonSerializerSettings
@@ -2113,7 +2111,7 @@ namespace RockWeb.Plugins.com_subsplash.Communication
         {
             var topic = GetTopics().FirstOrDefault( t => t.Id == rddlTopics.SelectedValueAsGuid() );
             var count = topic != null ? topic.NumSubscribers : 0;
-            lNumTopicSubscribers.Text = String.Format( "{0:#,0}", count) + ( count == 1 ? " Subscriber" : " Subscribers" );
+            lNumTopicSubscribers.Text = String.Format( "{0:#,0}", count ) + ( count == 1 ? " Subscriber" : " Subscribers" );
         }
     }
 }

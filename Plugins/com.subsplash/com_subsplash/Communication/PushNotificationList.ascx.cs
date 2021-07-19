@@ -6,23 +6,18 @@ using System.Linq;
 using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
+using Newtonsoft.Json;
+using RestSharp;
 using Rock;
 using Rock.Attribute;
-using Rock.Constants;
+using Rock.Communication;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
 using Rock.Utility;
-using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using RestSharp;
-using Newtonsoft.Json;
-using com.subsplash.Model;
-using Newtonsoft.Json.Linq;
-using Rock.Communication;
 
 namespace RockWeb.Plugins.com_subsplash.Communication
 {
@@ -218,7 +213,7 @@ namespace RockWeb.Plugins.com_subsplash.Communication
                             var pushNotificationRequest = new RestRequest( "notifications/{id}", Method.GET );
                             pushNotificationRequest.AddHeader( "Content-Type", "application/json" );
                             pushNotificationRequest.AddHeader( "Authorization", "Bearer " + Encryption.DecryptString( transport.GetAttributeValue( "JWTToken" ) ) );
-                            pushNotificationRequest.AddParameter("id", communicationItem.ForeignGuid.ToString(), ParameterType.UrlSegment );
+                            pushNotificationRequest.AddParameter( "id", communicationItem.ForeignGuid.ToString(), ParameterType.UrlSegment );
                             pushNotificationRequest.RequestFormat = DataFormat.Json;
 
                             var response = client.Get( pushNotificationRequest );
@@ -235,7 +230,8 @@ namespace RockWeb.Plugins.com_subsplash.Communication
                             if ( notification.SentCount > 0 )
                             {
                                 lRecipients.Text = "<span class=\"badge badge-info\" title=\"Sent\" data-toggle=\"tooltip\" style=\"display: inline-block\">" + notification.SentCount + "</span>";
-                            } else
+                            }
+                            else
                             {
                                 lRecipients.Text = "<span class=\"badge badge-none\" title=\"Pending\" data-toggle=\"tooltip\" style=\"display:inline-block\">" + notification.Embedded.Topics.Select( t => t.NumSubscribers ).FirstOrDefault() + "</span>";
 
@@ -369,7 +365,7 @@ namespace RockWeb.Plugins.com_subsplash.Communication
         private void SetFilter()
         {
             tbSubject.Text = rFilter.GetUserPreference( "Subject" );
-            
+
             ddlStatus.BindToEnum<CommunicationStatus>();
             // Replace the Transient status with an empty value (need an empty one, and don't need transient value)
             ddlStatus.Items[0].Text = string.Empty;
