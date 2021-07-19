@@ -386,7 +386,7 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static void AddOrUpdate( OccurrenceCache occurrenceCache )
         {
-            UpdateCacheItem( occurrenceCache.AccessKey, occurrenceCache, TimeSpan.MaxValue );
+            UpdateCacheItem( occurrenceCache.AccessKey, occurrenceCache );
         }
 
 
@@ -543,7 +543,7 @@ namespace org.secc.FamilyCheckin.Cache
 
                 if ( heal )
                 {
-                    UpdateCacheItem( freshCache.AccessKey, freshCache, TimeSpan.MaxValue );
+                    UpdateCacheItem( freshCache.AccessKey, freshCache );
                 }
             }
         }
