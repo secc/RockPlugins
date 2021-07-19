@@ -318,39 +318,46 @@ namespace RockWeb.Plugins.org_secc.Finance
                     GivingGroup givingGroup;
                     while ( givingGroups.TryTake( out givingGroup ) )
                     {
-                        // Setup the attribute values
-                        var workflowAttributeValues = new Dictionary<string, string>();
-                        if ( reviewDataView.HasValue )
+                        try
                         {
-                            workflowAttributeValues.Add( "ReviewDataView", reviewDataView.ToString() );
-                        }
-                        workflowAttributeValues.Add( "Version", tbVersion.Text );
-                        workflowAttributeValues.Add( "StatementDateRange", drpStatementDate.LowerValue.Value.ToString( "s" ) + "," + drpStatementDate.UpperValue.Value.ToString( "s" ) );
-                        workflowAttributeValues.Add( "GivingId", givingGroup.GivingId );
-
-                        using ( var rockContext = new RockContext() )
-                        {
-                            OnProgress( "Activating contribution statement generation request " + j + " of " + total );
-                            var workflow = Rock.Model.Workflow.Activate( statementGeneratorWorkflow, "Contribution Statement for " + givingGroup.GivingGroupName, rockContext );
-                            var workflowService = new WorkflowService( rockContext );
-
-                            foreach ( var keyVal in workflowAttributeValues )
+                            // Setup the attribute values
+                            var workflowAttributeValues = new Dictionary<string, string>();
+                            if ( reviewDataView.HasValue )
                             {
-                                workflow.SetAttributeValue( keyVal.Key, keyVal.Value );
+                                workflowAttributeValues.Add( "ReviewDataView", reviewDataView.ToString() );
                             }
-                            List<string> workflowErrors;
-                            new Rock.Model.WorkflowService( rockContext ).Process( workflow, null, out workflowErrors );
+                            workflowAttributeValues.Add( "Version", tbVersion.Text );
+                            workflowAttributeValues.Add( "StatementDateRange", drpStatementDate.LowerValue.Value.ToString( "s" ) + "," + drpStatementDate.UpperValue.Value.ToString( "s" ) );
+                            workflowAttributeValues.Add( "GivingId", givingGroup.GivingId );
 
-                            /*
-                            workflowService.Add( workflow );
-                            //results.Add( "Contribution Statement for " + givingGroup.GivingGroupName, workflow.AttributeValues.Count + " Attribute Values" );
-                            rockContext.SaveChanges();
-                            workflow.SaveAttributeValues( rockContext );
-                            */
+                            using ( var rockContext = new RockContext() )
+                            {
+                                OnProgress( "Activating contribution statement generation request " + j + " of " + total );
+                                var workflow = Rock.Model.Workflow.Activate( statementGeneratorWorkflow, "Contribution Statement for " + givingGroup.GivingGroupName, rockContext );
+                                var workflowService = new WorkflowService( rockContext );
 
-                            //var transaction = new Rock.Transactions.LaunchWorkflowTransaction( statementGeneratorWorkflow, "Contribution Statement for " + givingGroup.GivingGroupName );
-                            //transaction.WorkflowAttributeValues = workflowAttributeValues;
-                            //Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+                                foreach ( var keyVal in workflowAttributeValues )
+                                {
+                                    workflow.SetAttributeValue( keyVal.Key, keyVal.Value );
+                                }
+                                List<string> workflowErrors;
+                                new Rock.Model.WorkflowService( rockContext ).Process( workflow, null, out workflowErrors );
+
+                                /*
+                                workflowService.Add( workflow );
+                                //results.Add( "Contribution Statement for " + givingGroup.GivingGroupName, workflow.AttributeValues.Count + " Attribute Values" );
+                                rockContext.SaveChanges();
+                                workflow.SaveAttributeValues( rockContext );
+                                */
+
+                                //var transaction = new Rock.Transactions.LaunchWorkflowTransaction( statementGeneratorWorkflow, "Contribution Statement for " + givingGroup.GivingGroupName );
+                                //transaction.WorkflowAttributeValues = workflowAttributeValues;
+                                //Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+                            }
+                        }
+                        catch (Exception ex )
+                        {
+                            LogException( new Exception( "Could not generate contribution", new Exception( "GivingId: " + givingGroup!=null ?  givingGroup.GivingId : "[Unknown]",  ex) ) );
                         }
                         j++;
                     }
