@@ -113,6 +113,10 @@
       <Project>{8F8C2A79-24F4-4157-8B99-45F75FA85799}</Project>
       <Name>Rock</Name>
     </ProjectReference>
+    <ProjectReference Include="..\org.secc.Authentication\org.secc.Authentication.csproj">
+      <Project>{a480481f-1735-4cff-baf5-207aea57e425}</Project>
+      <Name>org.secc.Authentication</Name>
+    </ProjectReference>
     <ProjectReference Include="..\org.secc.OAuth\org.secc.OAuth.csproj">
       <Project>{E43836AD-ABCD-4347-ACA1-DC30BC410350}</Project>
       <Name>org.secc.OAuth</Name>
