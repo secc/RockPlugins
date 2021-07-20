@@ -154,7 +154,7 @@
                     After this time, you can still check-in, but reservations may be released if rooms fill.
                     <br />
                     <br />
-                    <asp:LinkButton Text="Cancel My Check-in Reservation" runat="server" ID="btnCancelReseration"
+                    <asp:LinkButton Text="Cancel My Check-in Reservation" runat="server" ID="btnCancelReservation"
                         OnClick="btnCancelReservation_Click" CssClass="se-btn se-btn--app-highlight" />
                 </div>
             </div>
