@@ -78,6 +78,30 @@
             transform: translate(24px, 0);
         }
     }
+
+    @media screen and (orientation:portrait) {
+        .qr-code {
+            margin: auto;
+            padding: 1em;
+            width: 50%; 
+        }
+
+    }
+    @media screen and (orientation:landscape) {
+        .qr-code {
+            float: left;
+            height: 50%;
+            padding: 1em 3em;
+            width: 50%;
+        }
+        .check-in-text{
+            float: right;
+            padding: 10% 0;
+            width: 50%;
+        }
+
+    }
+
 </style>
 
 <script>
@@ -118,19 +142,21 @@
         </asp:Panel>
 
         <asp:Panel runat="server" ID="pnlQr" Visible="false">
-            <asp:Literal runat="server" ID="ltCodeInstructions" />
-            <br />
-            <asp:Image runat="server" ID="iQr" CssClass="img-responsive" Style="width: 50%; margin: auto;" />
-            <br />
-            <div class="text-center">
-                Your check-in place will be held until <b>
-                    <asp:Literal runat="server" ID="ltValidUntil" /></b>.
-                <br />
-                After this time, you can still check-in, but reservations may be released if rooms fill.
-                <br />
-                <br />
-                <asp:LinkButton Text="Cancel My Check-in Reservation" runat="server" ID="btnCancelReseration"
-                    OnClick="btnCancelReseration_Click" CssClass="se-btn se-btn--app-highlight" />
+            <div class="row">
+                <asp:Literal runat="server" ID="ltCodeInstructions" />
+                <div class="qr-code">
+                    <asp:Image runat="server" ID="iQr" CssClass="img-responsive" />
+                </div>
+                <div class="text-center check-in-text">
+                    Your check-in place will be held until <b>
+                        <asp:Literal runat="server" ID="ltValidUntil" /></b>.
+                    <br />
+                    After this time, you can still check-in, but reservations may be released if rooms fill.
+                    <br />
+                    <br />
+                    <asp:LinkButton Text="Cancel My Check-in Reservation" runat="server" ID="btnCancelReseration"
+                        OnClick="btnCancelReservation_Click" CssClass="se-btn se-btn--app-highlight" />
+                </div>
             </div>
         </asp:Panel>
 

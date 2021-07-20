@@ -558,7 +558,7 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             ltAttendance.Text = attendanceData.ToString();
         }
 
-        protected void btnCancelReseration_Click( object sender, EventArgs e )
+        protected void btnCancelReservation_Click( object sender, EventArgs e )
         {
             var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( currentPerson.PrimaryFamilyId ?? 0 );
             if ( mobileCheckinRecord == null )
