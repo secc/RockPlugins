@@ -102,7 +102,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             RockPage.AddScriptLink( "~/scripts/jquery.countdown.min.js" );
             RockPage.AddScriptLink( "~/Scripts/jquery.signalR-2.2.0.min.js", fingerprint: false );
 
-            btnCancelReseration.Attributes["onclick"] = "javascript: return Rock.dialogs.confirmDelete(event, 'check-in reservation');";
+            btnCancelReservation.Attributes["onclick"] = "javascript: return Rock.dialogs.confirmDelete(event, 'check-in reservation');";
         }
 
         protected override void OnLoad( EventArgs e )
@@ -558,7 +558,7 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             ltAttendance.Text = attendanceData.ToString();
         }
 
-        protected void btnCancelReseration_Click( object sender, EventArgs e )
+        protected void btnCancelReservation_Click( object sender, EventArgs e )
         {
             var mobileCheckinRecord = MobileCheckinRecordCache.GetActiveByFamilyGroupId( currentPerson.PrimaryFamilyId ?? 0 );
             if ( mobileCheckinRecord == null )
