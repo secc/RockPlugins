@@ -1519,13 +1519,6 @@ fieldset .actions {
       width: 100%;
       font-size: 13px;
       color: $input-color;
-
-      &:before {
-        padding-right: .25em;
-        content: $fa-var-upload;
-
-        @include fa-icon();
-      }
     }
   }
 
@@ -1630,13 +1623,6 @@ fieldset .actions {
       padding: 0 .5em;
       font-size: 13px;
       color: $input-color;
-
-      &:before {
-        padding-right: .25em;
-        content: $fa-var-upload;
-
-        @include fa-icon();
-      }
     }
   }
 
@@ -2270,19 +2256,11 @@ ul.list-group-panel, .panel-collapse {
   opacity: .4;
   transition: 1s;
 
-  &:before {
-    font-family: 'Font Awesome 5 Pro', FontAwesome;
-    content: $fa-var-star;
-  }
 
   &.following {
     color: #fff;
     background-color: $panel-following-active-bg;
     opacity: 1;
-
-    &:before {
-      content: $fa-var-star;
-    }
   }
 }
 
