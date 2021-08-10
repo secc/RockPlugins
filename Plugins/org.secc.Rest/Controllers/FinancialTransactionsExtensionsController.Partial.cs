@@ -32,15 +32,11 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Web.Http;
 using Rock;
 using Rock.Data;
-using Rock.Financial;
 using Rock.Model;
 using Rock.Rest.Filters;
-using Rock.Security;
 
 namespace org.secc.Rest.Controllers
 {
@@ -50,7 +46,7 @@ namespace org.secc.Rest.Controllers
     public class FinancialTransactionsExtensionsController : Rock.Rest.ApiControllerBase
     {
 
-        public const string NONCASH = "F64662E7-0E12-4604-BBB0-DB774AC3C830" ;
+        public const string NONCASH = "F64662E7-0E12-4604-BBB0-DB774AC3C830";
 
         /// <summary>
         /// Gets the contribution transactions.
@@ -61,7 +57,7 @@ namespace org.secc.Rest.Controllers
         [Authenticate, Secured]
         [HttpPost]
         [System.Web.Http.Route( "api/secc/FinancialTransactions/GetContributionTransactions/{groupId}" )]
-        public DataSet GetContributionTransactions( int groupId, [FromBody]ContributionStatementOptions options )
+        public DataSet GetContributionTransactions( int groupId, [FromBody] ContributionStatementOptions options )
         {
             return GetContributionTransactions( groupId, null, options );
         }
@@ -77,7 +73,7 @@ namespace org.secc.Rest.Controllers
         [Authenticate, Secured]
         [HttpPost]
         [System.Web.Http.Route( "api/secc/FinancialTransactions/GetContributionTransactions/{groupId}/{personId}" )]
-        public DataSet GetContributionTransactions( int groupId, int? personId, [FromBody]ContributionStatementOptions options )
+        public DataSet GetContributionTransactions( int groupId, int? personId, [FromBody] ContributionStatementOptions options )
         {
             RockContext rockContext = new RockContext();
             FinancialTransactionService financialTransactionService = new FinancialTransactionService( rockContext );
@@ -113,27 +109,27 @@ namespace org.secc.Rest.Controllers
             {
                 qry = qry.Where( a => a.TransactionDetails.Any( x => options.AccountIds.Contains( x.AccountId ) ) );
             }
-            
 
-            var selectQry = qry.Where(a => a.FinancialPaymentDetail == null ||
-                                            (a.FinancialPaymentDetail != null && a.FinancialPaymentDetail.CurrencyTypeValue == null) || 
-                                            ( a.FinancialPaymentDetail != null  && a.FinancialPaymentDetail.CurrencyTypeValue != null  && a.FinancialPaymentDetail.CurrencyTypeValue.Guid != new Guid(NONCASH))
+
+            var selectQry = qry.Where( a => a.FinancialPaymentDetail == null ||
+                                             ( a.FinancialPaymentDetail != null && a.FinancialPaymentDetail.CurrencyTypeValue == null ) ||
+                                             ( a.FinancialPaymentDetail != null && a.FinancialPaymentDetail.CurrencyTypeValue != null && a.FinancialPaymentDetail.CurrencyTypeValue.Guid != new Guid( NONCASH ) )
                                      ).Select( a => new
-            {
-                a.TransactionDateTime,
-                a.TransactionCode,
-                CurrencyTypeValueName = a.FinancialPaymentDetail != null ? a.FinancialPaymentDetail.CurrencyTypeValue.Value : string.Empty,
-                a.Summary,
-                Details = a.TransactionDetails.Select( d => new
-                {
-                    d.AccountId,
-                    AccountName = d.Account.Name,
-                    ParentAccountId = d.Account != null?d.Account.ParentAccountId:null,
-                    ParentAccountName = d.Account != null && d.Account.ParentAccount != null ? d.Account.ParentAccount.Name : null,
-                    d.Summary,
-                    d.Amount
-                } ).OrderBy( x => x.AccountName ),
-            } ).OrderBy( a => a.TransactionDateTime );
+                                     {
+                                         a.TransactionDateTime,
+                                         a.TransactionCode,
+                                         CurrencyTypeValueName = a.FinancialPaymentDetail != null ? a.FinancialPaymentDetail.CurrencyTypeValue.Value : string.Empty,
+                                         a.Summary,
+                                         Details = a.TransactionDetails.Select( d => new
+                                         {
+                                             d.AccountId,
+                                             AccountName = d.Account.Name,
+                                             ParentAccountId = d.Account != null ? d.Account.ParentAccountId : null,
+                                             ParentAccountName = d.Account != null && d.Account.ParentAccount != null ? d.Account.ParentAccount.Name : null,
+                                             d.Summary,
+                                             d.Amount
+                                         } ).OrderBy( x => x.AccountName ),
+                                     } ).OrderBy( a => a.TransactionDateTime );
 
             DataTable dataTable = new DataTable( "contribution_transactions" );
             dataTable.Columns.Add( "TransactionDateTime", typeof( DateTime ) );
@@ -155,8 +151,8 @@ namespace org.secc.Rest.Controllers
                 detailTable.Columns.Add( "Amount", typeof( decimal ) );
 
                 // remove any Accounts that were not included (in case there was a mix of included and not included accounts in the transaction) and group them
-                var transactionDetails = fieldItems.Details.Where( a => options.AccountIds.Contains( a.AccountId ) ).GroupBy(d => d.ParentAccountId ?? d.ParentAccountId).ToList();
-                
+                var transactionDetails = fieldItems.Details.Where( a => options.AccountIds.Contains( a.AccountId ) ).GroupBy( d => d.ParentAccountId ?? d.ParentAccountId ).ToList();
+
                 foreach ( var detail in transactionDetails )
                 {
                     var detailArray = new object[] {
@@ -187,7 +183,7 @@ namespace org.secc.Rest.Controllers
 
             return dataSet;
         }
-        
+
         /// <summary>
         ///
         /// </summary>

@@ -15,9 +15,6 @@
 namespace org.secc.FamilyCheckin.Migrations
 {
     using Rock.Plugin;
-    using org.secc.DevLib.Extensions.Migration;
-    using org.secc.FamilyCheckin.Utilities;
-    using System;
 
     [MigrationNumber( 13, "1.10.2" )]
     public partial class GroupFilterAttributes : Migration

@@ -15,7 +15,6 @@
 namespace org.secc.FamilyCheckin.Migrations
 {
     using Rock.Plugin;
-    using org.secc.DevLib.Extensions.Migration;
 
     [MigrationNumber( 11, "1.10.2" )]
     public partial class KioksTypeTheme : Migration

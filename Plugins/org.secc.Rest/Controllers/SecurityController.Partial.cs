@@ -13,15 +13,15 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
+using System.Web.Routing;
+using org.secc.Rest.Handlers;
 using Rock.Model;
 using Rock.Rest;
-using System.Web;
-using System.Collections.Generic;
-using org.secc.Rest.Handlers;
-using System.Web.Routing;
 
 namespace org.secc.Rest.Controllers
 {

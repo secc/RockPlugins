@@ -15,8 +15,6 @@
 namespace org.secc.FamilyCheckin.Migrations
 {
     using Rock.Plugin;
-    using org.secc.DevLib.Extensions.Migration;
-    using org.secc.FamilyCheckin.Utilities;
 
     [MigrationNumber( 24, "1.10.2" )]
     public partial class FamilyCheckinPages : Migration
@@ -27,21 +25,21 @@ namespace org.secc.FamilyCheckin.Migrations
             RockMigrationHelper.AddLayout( "FB2A03C3-D5E9-4DBA-A56F-90311DD8BF13", "Checkin", "Checkin", "", "8A87FF45-C694-43B5-9494-0B2D6A71FFA1" ); // Site:Family Checkin
             RockMigrationHelper.AddLayout( "FB2A03C3-D5E9-4DBA-A56F-90311DD8BF13", "FullWidth", "Full Width", "", "F497DC5C-877E-4D7C-A984-D58B636F63B5" ); // Site:Family Checkin
             // Page: Family Checkin Home Page
-            RockMigrationHelper.AddPage("","F497DC5C-877E-4D7C-A984-D58B636F63B5","Family Checkin Home Page","","4159825D-B2CE-4BC1-A5DB-917020059E89",""); // Site:Family Checkin
+            RockMigrationHelper.AddPage( "", "F497DC5C-877E-4D7C-A984-D58B636F63B5", "Family Checkin Home Page", "", "4159825D-B2CE-4BC1-A5DB-917020059E89", "" ); // Site:Family Checkin
             // Page: Admin
-            RockMigrationHelper.AddPage("4159825D-B2CE-4BC1-A5DB-917020059E89","8A87FF45-C694-43B5-9494-0B2D6A71FFA1","Admin","","F2F82210-0149-4F67-AD28-B618F3158E95",""); // Site:Family Checkin
+            RockMigrationHelper.AddPage( "4159825D-B2CE-4BC1-A5DB-917020059E89", "8A87FF45-C694-43B5-9494-0B2D6A71FFA1", "Admin", "", "F2F82210-0149-4F67-AD28-B618F3158E95", "" ); // Site:Family Checkin
             // Page: QuickSearch
-            RockMigrationHelper.AddPage("4159825D-B2CE-4BC1-A5DB-917020059E89","8A87FF45-C694-43B5-9494-0B2D6A71FFA1","QuickSearch","","ABF839C7-8A7B-4F51-9D33-63AA841EAD38",""); // Site:Family Checkin
+            RockMigrationHelper.AddPage( "4159825D-B2CE-4BC1-A5DB-917020059E89", "8A87FF45-C694-43B5-9494-0B2D6A71FFA1", "QuickSearch", "", "ABF839C7-8A7B-4F51-9D33-63AA841EAD38", "" ); // Site:Family Checkin
             // Page: QuickCheckin  
-            RockMigrationHelper.AddPage("4159825D-B2CE-4BC1-A5DB-917020059E89","8A87FF45-C694-43B5-9494-0B2D6A71FFA1","QuickCheckin","","71959598-BE24-4A51-9DB6-CC34993B523D",""); // Site:Family Checkin
+            RockMigrationHelper.AddPage( "4159825D-B2CE-4BC1-A5DB-917020059E89", "8A87FF45-C694-43B5-9494-0B2D6A71FFA1", "QuickCheckin", "", "71959598-BE24-4A51-9DB6-CC34993B523D", "" ); // Site:Family Checkin
             // Page: Super Search Lite 
-            RockMigrationHelper.AddPage("4159825D-B2CE-4BC1-A5DB-917020059E89","F497DC5C-877E-4D7C-A984-D58B636F63B5","Super Search Lite","","A9E89AD5-AEB1-4F3F-8DF4-525EEB077561",""); // Site:Family Checkin
+            RockMigrationHelper.AddPage( "4159825D-B2CE-4BC1-A5DB-917020059E89", "F497DC5C-877E-4D7C-A984-D58B636F63B5", "Super Search Lite", "", "A9E89AD5-AEB1-4F3F-8DF4-525EEB077561", "" ); // Site:Family Checkin
             // Page: Super Checkin Lite 
-            RockMigrationHelper.AddPage("4159825D-B2CE-4BC1-A5DB-917020059E89","F497DC5C-877E-4D7C-A984-D58B636F63B5","Super Checkin Lite","","C539F927-06A8-40F7-A262-4166D168E8D6",""); // Site:Family Checkin
+            RockMigrationHelper.AddPage( "4159825D-B2CE-4BC1-A5DB-917020059E89", "F497DC5C-877E-4D7C-A984-D58B636F63B5", "Super Checkin Lite", "", "C539F927-06A8-40F7-A262-4166D168E8D6", "" ); // Site:Family Checkin
             // Page: Mobile Check-ins 
-            RockMigrationHelper.AddPage("4159825D-B2CE-4BC1-A5DB-917020059E89","F497DC5C-877E-4D7C-A984-D58B636F63B5","Mobile Check-ins","","47C8C26F-353D-45A8-8F16-7C09FA606AD3",""); // Site:Family Checkin
+            RockMigrationHelper.AddPage( "4159825D-B2CE-4BC1-A5DB-917020059E89", "F497DC5C-877E-4D7C-A984-D58B636F63B5", "Mobile Check-ins", "", "47C8C26F-353D-45A8-8F16-7C09FA606AD3", "" ); // Site:Family Checkin
             // Page: Scanner Config   
-            RockMigrationHelper.AddPage("4159825D-B2CE-4BC1-A5DB-917020059E89","F497DC5C-877E-4D7C-A984-D58B636F63B5","Scanner Config","","908A0960-DF24-42DD-941E-64F8DCEE7EFC",""); // Site:Family Checkin
+            RockMigrationHelper.AddPage( "4159825D-B2CE-4BC1-A5DB-917020059E89", "F497DC5C-877E-4D7C-A984-D58B636F63B5", "Scanner Config", "", "908A0960-DF24-42DD-941E-64F8DCEE7EFC", "" ); // Site:Family Checkin
             RockMigrationHelper.AddPageRoute( "F2F82210-0149-4F67-AD28-B618F3158E95", "familycheckin" );
             RockMigrationHelper.AddPageRoute( "A9E89AD5-AEB1-4F3F-8DF4-525EEB077561", "supercheckinlite" );
             RockMigrationHelper.UpdateBlockType( "QuickSearch", "QuickSearch block for helping parents find their family quickly.", "~/Plugins/org_secc/FamilyCheckin/QuickSearch.ascx", "SECC > Check-in", "315A175F-C682-4810-9F33-1BDB93904A4E" ); //Block Type: QuickSearch

@@ -233,7 +233,7 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
             {
                 AlertNotificationId = alertnotification.Id,
                 Message = lMessage.Text,
-                
+
             };
 
             alertMessageService.Add( alertMessage );

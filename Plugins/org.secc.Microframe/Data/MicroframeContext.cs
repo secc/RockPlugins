@@ -12,8 +12,8 @@
 // limitations under the License.
 // </copyright>
 //
-using org.secc.Microframe.Model;
 using System.Data.Entity;
+using org.secc.Microframe.Model;
 
 namespace org.secc.Microframe.Data
 {

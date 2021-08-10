@@ -34,7 +34,7 @@ namespace org.secc.Workflow.SignatureDocument
     [WorkflowAttribute( "Applies To Attribute", "The person attribute that this signature is/was assigned to.", true, "", "", 5, "AppliesTo", new string[] { "Rock.Field.Types.PersonFieldType" } )]
     [WorkflowAttribute( "Signed By Attribute", "The person attribute that this signature is/was assigned to.", true, "", "", 6, "SignedBy", new string[] { "Rock.Field.Types.PersonFieldType" } )]
     [WorkflowAttribute( "Document", "The attribute containing the document to store as a Signature Document.", true, "", "", 0, null, new string[] { "Rock.Field.Types.BinaryFileFieldType", "Rock.Field.Types.FileFieldType" } )]
-    [CustomDropdownListField( "Signature Document Template", "The template of the signature document.", "select Id as Value, Name as Text from SignatureDocumentTemplate;", true, key:"DocumentTemplateId" )]
+    [CustomDropdownListField( "Signature Document Template", "The template of the signature document.", "select Id as Value, Name as Text from SignatureDocumentTemplate;", true, key: "DocumentTemplateId" )]
     class StoreSignedDocument : ActionComponent
     {
 
@@ -49,7 +49,7 @@ namespace org.secc.Workflow.SignatureDocument
             // Get all the attribute values
             var mergeFields = GetMergeFields( action );
             int documentTemplateId = GetAttributeValue( action, "DocumentTemplateId", true ).AsInteger();
-            Guid documentGuid = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "Document" ).AsGuid() ).AsGuid();
+            Guid documentGuid = action.GetWorkflowAttributeValue( GetActionAttributeValue( action, "Document" ).AsGuid() ).AsGuid();
             BinaryFile binaryFile = binaryfileService.Get( documentGuid );
             string documentKey = GetAttributeValue( action, "DocumentKey", true ).ResolveMergeFields( mergeFields );
             string documentName = GetAttributeValue( action, "DocumentName", true ).ResolveMergeFields( mergeFields );
@@ -57,7 +57,7 @@ namespace org.secc.Workflow.SignatureDocument
             Guid appliesTo = GetAttributeValue( action, "AppliesTo", true ).AsGuid();
             Guid signedBy = GetAttributeValue( action, "SignedBy", true ).AsGuid();
 
-            if ( binaryFile != null)
+            if ( binaryFile != null )
             {
                 // Create the signature document
                 Rock.Model.SignatureDocument document = new Rock.Model.SignatureDocument();

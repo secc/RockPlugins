@@ -15,14 +15,13 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using Rock.Data;
-using Rock.Model;
-using Rock.Workflow;
-using Rock.Attribute;
 using RestSharp;
 using Rock;
-using System.Linq;
+using Rock.Attribute;
+using Rock.Data;
+using Rock.Model;
 using Rock.Web.Cache;
+using Rock.Workflow;
 
 namespace org.secc.SafetyAndSecurity
 {
@@ -33,7 +32,7 @@ namespace org.secc.SafetyAndSecurity
     [WorkflowAttribute( "Person", "The person to add to MinistrySafe.", true, "", "", 0, null, new string[] { "Rock.Field.Types.PersonFieldType" } )]
     [WorkflowAttribute( "MinistrySafe URL", "The attribute to save the MinistrySafe direct login URL.", true, "", "", 0, null, new string[] { "Rock.Field.Types.TextFieldType" } )]
     [WorkflowAttribute( "MinistrySafe URL", "The attribute to save the MinistrySafe direct login URL.", true, "", "", 0, null, new string[] { "Rock.Field.Types.TextFieldType" } )]
-    [ValueListField( "MinistrySafe Tags", "The tags to set when the user is uploaded to MinistrySafe.", false)]
+    [ValueListField( "MinistrySafe Tags", "The tags to set when the user is uploaded to MinistrySafe.", false )]
     class MinistrySafeRequest : ActionComponent
     {
 
@@ -41,7 +40,7 @@ namespace org.secc.SafetyAndSecurity
         {
             errorMessages = new List<string>();
 
-            var personAliasGuid = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "Person" ).AsGuid() ).AsGuidOrNull();
+            var personAliasGuid = action.GetWorkflowAttributeValue( GetActionAttributeValue( action, "Person" ).AsGuid() ).AsGuidOrNull();
             if ( personAliasGuid.HasValue )
             {
                 PersonAliasService personAliasService = new PersonAliasService( new RockContext() );
@@ -53,20 +52,21 @@ namespace org.secc.SafetyAndSecurity
                 var post = new RestRequest( "/users", Method.POST );
                 post.AddHeader( "Authorization", "Token token=" + GlobalAttributesCache.Value( "MinistrySafeAPIToken" ) );
                 post.AddJsonBody( new
+                {
+                    user = new MinistrySafeUser()
                     {
-                        user = new MinistrySafeUser() {
-                            external_id = personAlias.Id.ToString(),
-                            first_name = personAlias.Person.NickName,
-                            last_name = personAlias.Person.LastName,
-                            email = personAlias.Person.Email
-                        },
-                        tags = string.Join( ",", GetActionAttributeValue( action, "MinistrySafeTags" ).Trim( '|' ).Split( '|' ) )
-                    }
+                        external_id = personAlias.Id.ToString(),
+                        first_name = personAlias.Person.NickName,
+                        last_name = personAlias.Person.LastName,
+                        email = personAlias.Person.Email
+                    },
+                    tags = string.Join( ",", GetActionAttributeValue( action, "MinistrySafeTags" ).Trim( '|' ).Split( '|' ) )
+                }
                 );
                 var execution = client.Execute<bool>( post );
-                
-                if (execution.Data == true)
-                { 
+
+                if ( execution.Data == true )
+                {
                     var request = new RestRequest( "/users/{ExternalId}", Method.GET );
                     request.AddHeader( "Authorization", "Token token=" + GlobalAttributesCache.Value( "MinistrySafeAPIToken" ) );
                     request.AddUrlSegment( "ExternalId", personAlias.Id.ToString() );
@@ -86,7 +86,7 @@ namespace org.secc.SafetyAndSecurity
         }
 
         private class MinistrySafeUser
-        { 
+        {
             public string email { get; set; }
             public string employee_id { get; set; }
             public string external_id { get; set; }

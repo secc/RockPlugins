@@ -16,7 +16,7 @@ using Rock.Plugin;
 
 namespace org.secc.LeagueApps.Migrations
 {
-    [MigrationNumber(2, "1.0.2")]
+    [MigrationNumber( 2, "1.0.2" )]
     class CreateDefinedValues : Migration
     {
         /// <summary>
@@ -117,25 +117,25 @@ namespace org.secc.LeagueApps.Migrations
             );
         }
 
-    /// <summary>
-    /// The commands to undo a migration from a specific version
-    /// </summary>
-    public override void Down()
+        /// <summary>
+        /// The commands to undo a migration from a specific version
+        /// </summary>
+        public override void Down()
         {
-            RockMigrationHelper.DeleteDefinedValue("46cefe70-1d37-493b-8582-5a0a97bc9370");
-            RockMigrationHelper.DeleteDefinedValue("b6fa2d52-5fd9-48c6-98fd-3c14784dd83e");
-            RockMigrationHelper.DeleteDefinedValue("009adb76-9a30-4763-a86f-e62dea0a24eb");
-            RockMigrationHelper.DeleteDefinedValue("03cceb5d-2c85-4f72-95f8-29fe4361c594");
-            RockMigrationHelper.DeleteDefinedValue("00553266-f10a-48c1-b6d3-b52d569091ff");
-            RockMigrationHelper.DeleteDefinedValue("11bac8f5-752e-4f4f-a8d0-72586ab3566f");
-            RockMigrationHelper.DeleteDefinedValue("bf75c1c5-2b35-46b1-846c-9459d6fc6f9c");
-            RockMigrationHelper.DeleteDefinedValue("f1a25704-f955-4bca-b3a9-e88a504c2c9f");
-            RockMigrationHelper.DeleteDefinedValue("22522520-c47e-4a3f-9c36-167426aa0136");
+            RockMigrationHelper.DeleteDefinedValue( "46cefe70-1d37-493b-8582-5a0a97bc9370" );
+            RockMigrationHelper.DeleteDefinedValue( "b6fa2d52-5fd9-48c6-98fd-3c14784dd83e" );
+            RockMigrationHelper.DeleteDefinedValue( "009adb76-9a30-4763-a86f-e62dea0a24eb" );
+            RockMigrationHelper.DeleteDefinedValue( "03cceb5d-2c85-4f72-95f8-29fe4361c594" );
+            RockMigrationHelper.DeleteDefinedValue( "00553266-f10a-48c1-b6d3-b52d569091ff" );
+            RockMigrationHelper.DeleteDefinedValue( "11bac8f5-752e-4f4f-a8d0-72586ab3566f" );
+            RockMigrationHelper.DeleteDefinedValue( "bf75c1c5-2b35-46b1-846c-9459d6fc6f9c" );
+            RockMigrationHelper.DeleteDefinedValue( "f1a25704-f955-4bca-b3a9-e88a504c2c9f" );
+            RockMigrationHelper.DeleteDefinedValue( "22522520-c47e-4a3f-9c36-167426aa0136" );
 
-            RockMigrationHelper.DeleteDefinedValue("1a03c95b-fc59-466f-80ab-861fcbcf589e");
-            RockMigrationHelper.DeleteDefinedValue("1b3526ab-80c3-4b42-8978-d22acb6c703a");
-            RockMigrationHelper.DeleteDefinedValue("f34cc715-da42-4ca2-abec-25cd22dc337d");
-            RockMigrationHelper.DeleteDefinedValue("0e5dec46-8f3a-402f-b8b3-aa4c62fd1d3d");
+            RockMigrationHelper.DeleteDefinedValue( "1a03c95b-fc59-466f-80ab-861fcbcf589e" );
+            RockMigrationHelper.DeleteDefinedValue( "1b3526ab-80c3-4b42-8978-d22acb6c703a" );
+            RockMigrationHelper.DeleteDefinedValue( "f34cc715-da42-4ca2-abec-25cd22dc337d" );
+            RockMigrationHelper.DeleteDefinedValue( "0e5dec46-8f3a-402f-b8b3-aa4c62fd1d3d" );
         }
     }
 }

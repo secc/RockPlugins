@@ -16,16 +16,16 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.IO;
+using System.Linq;
+using Newtonsoft.Json.Linq;
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Workflow;
-using System.IO;
 using Rock.SignNow;
-using Newtonsoft.Json.Linq;
-using Rock.Attribute;
 using Rock.Web.Cache;
-using System.Linq;
+using Rock.Workflow;
 
 namespace org.secc.SignNowWorkflow
 {
@@ -44,14 +44,14 @@ namespace org.secc.SignNowWorkflow
             errorMessages = new List<string>();
 
             // Check to see if the action's activity does not yet have the the 'InviteLink' attribute.
-            string signNowDocumentId = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid() );
+            string signNowDocumentId = action.GetWorkflowAttributeValue( GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid() );
             if ( string.IsNullOrEmpty( signNowDocumentId ) )
             {
                 errorMessages.Add( "A sign now document is required to complete this action" );
                 return false;
             }
 
-            Guid documentGuid = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "Document" ).AsGuid() ).AsGuid();
+            Guid documentGuid = action.GetWorkflowAttributeValue( GetActionAttributeValue( action, "Document" ).AsGuid() ).AsGuid();
 
 
             PersonAliasService personAliasService = new PersonAliasService( rockContext );
@@ -73,7 +73,7 @@ namespace org.secc.SignNowWorkflow
             {
                 // Download the file
                 string tempPath = Path.GetTempPath();
-                string tempFileName = (String)document["document_name"];
+                string tempFileName = ( String ) document["document_name"];
                 var result = SignNowSDK.Document.Download( token, signNowDocumentId, tempPath, tempFileName );
 
                 // Put it into the workflow attribute
@@ -85,20 +85,20 @@ namespace org.secc.SignNowWorkflow
                     signedPDF.MimeType = "application/pdf";
                     signedPDF.FileName = tempFileName;
                     signedPDF.IsTemporary = false;
-                    binaryfileService.Add(signedPDF);
+                    binaryfileService.Add( signedPDF );
 
                     // Update the file type if necessary
                     Guid binaryFileTypeGuid = Guid.Empty;
 
-                    var destinationAttribute = AttributeCache.Get(GetActionAttributeValue(action, "Document").AsGuid(), rockContext);
+                    var destinationAttribute = AttributeCache.Get( GetActionAttributeValue( action, "Document" ).AsGuid(), rockContext );
                     var binaryFileTypeQualifier = destinationAttribute.QualifierValues["binaryFileType"];
-                    if (!String.IsNullOrWhiteSpace(binaryFileTypeQualifier.Value))
+                    if ( !String.IsNullOrWhiteSpace( binaryFileTypeQualifier.Value ) )
                     {
-                        if (binaryFileTypeQualifier.Value != null)
+                        if ( binaryFileTypeQualifier.Value != null )
                         {
                             binaryFileTypeGuid = binaryFileTypeQualifier.Value.AsGuid();
 
-                            signedPDF.BinaryFileTypeId = new BinaryFileTypeService(rockContext).Get(binaryFileTypeGuid).Id;
+                            signedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( binaryFileTypeGuid ).Id;
                         }
                     }
                     signedPDF.DatabaseData = new BinaryFileData();
@@ -107,19 +107,19 @@ namespace org.secc.SignNowWorkflow
                     rockContext.SaveChanges();
 
                     // Now store the attribute
-                    if (destinationAttribute.EntityTypeId == new Workflow().TypeId)
+                    if ( destinationAttribute.EntityTypeId == new Workflow().TypeId )
                     {
-                        action.Activity.Workflow.SetAttributeValue(destinationAttribute.Key, signedPDF.Guid.ToString());
+                        action.Activity.Workflow.SetAttributeValue( destinationAttribute.Key, signedPDF.Guid.ToString() );
                     }
-                    else if (destinationAttribute.EntityTypeId == new WorkflowActivity().TypeId)
+                    else if ( destinationAttribute.EntityTypeId == new WorkflowActivity().TypeId )
                     {
-                        action.Activity.SetAttributeValue(destinationAttribute.Key, signedPDF.Guid.ToString());
+                        action.Activity.SetAttributeValue( destinationAttribute.Key, signedPDF.Guid.ToString() );
                     }
                 }
                 else
                 {
                     signedPDF.FileName = tempFileName;
-                    signedPDF.DatabaseData.Content = File.ReadAllBytes(tempPath + tempFileName + ".pdf");
+                    signedPDF.DatabaseData.Content = File.ReadAllBytes( tempPath + tempFileName + ".pdf" );
                 }
 
                 // Delete the file when we are done:

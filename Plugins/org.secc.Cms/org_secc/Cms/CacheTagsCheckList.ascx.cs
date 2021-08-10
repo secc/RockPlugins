@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 
 //
@@ -14,18 +14,16 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using Rock.Data;
-using Rock.Model;
-using Rock.Web.UI;
-using Rock.Attribute;
-using System.Collections.Generic;
 using Rock;
+using Rock.Attribute;
+using Rock.Model;
 using Rock.Web.Cache;
-using System.Text;
+using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.Cms
@@ -36,8 +34,8 @@ namespace RockWeb.Plugins.org_secc.Cms
     [DisplayName( "Cache Tags Check List" )]
     [Category( "SECC > CMS" )]
     [Description( "A simple block to list checkboxes to clear cache" )]
-    [DefinedValueField( Rock.SystemGuid.DefinedType.CACHE_TAGS, "Cache Tags", "Cached tags are used to link cached content so that it can be expired as a group", allowMultiple:true )]
-  
+    [DefinedValueField( Rock.SystemGuid.DefinedType.CACHE_TAGS, "Cache Tags", "Cached tags are used to link cached content so that it can be expired as a group", allowMultiple: true )]
+
     public partial class CacheTagsCheckList : RockBlock
     {
         #region Fields
@@ -48,7 +46,7 @@ namespace RockWeb.Plugins.org_secc.Cms
 
         #region Properties
 
-     
+
 
         #endregion
 
@@ -76,12 +74,12 @@ namespace RockWeb.Plugins.org_secc.Cms
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-           
+
             if ( !Page.IsPostBack )
             {
                 GetCacheTags();
                 LoadPreferences();
-            }            
+            }
         }
 
         #endregion
@@ -104,7 +102,7 @@ namespace RockWeb.Plugins.org_secc.Cms
         {
             var checkboxempty = cbl.SelectedValues;
 
-            if ( checkboxempty.Count>0 )
+            if ( checkboxempty.Count > 0 )
             {
                 RockCache.RemoveForTags( GetSelectedValues() );
                 DisplayNotification( nbMessage, string.Format( "Removed cached items tagged with \"{0}\".", GetSelectedValues() ), NotificationBoxType.Success );
@@ -147,7 +145,7 @@ namespace RockWeb.Plugins.org_secc.Cms
             {
                 cbl.Items.Add( DefinedValueCache.Get( tag.AsGuid() ).Value );
 
-            }           
+            }
         }
 
         protected void Save()

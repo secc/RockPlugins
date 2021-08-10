@@ -17,7 +17,7 @@ using Rock.Plugin;
 
 namespace org.secc.LeagueApps.Migrations
 {
-    [MigrationNumber(6, "1.0.5")]
+    [MigrationNumber( 6, "1.0.5" )]
     class FamilyAttribute : Migration
     {
         /// <summary>
@@ -36,16 +36,16 @@ namespace org.secc.LeagueApps.Migrations
                 false
                 );
 
-            
+
 
         }
 
-    /// <summary>
-    /// The commands to undo a migration from a specific version
-    /// </summary>
-    public override void Down()
+        /// <summary>
+        /// The commands to undo a migration from a specific version
+        /// </summary>
+        public override void Down()
         {
-         
+
         }
     }
 }

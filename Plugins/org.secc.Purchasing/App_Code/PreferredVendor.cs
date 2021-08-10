@@ -13,9 +13,6 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
 
 namespace org.secc.Purchasing
@@ -36,8 +33,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mVendor == null && VendorID > 0)
-                    mVendor = new Vendor(VendorID);
+                if ( mVendor == null && VendorID > 0 )
+                    mVendor = new Vendor( VendorID );
                 return mVendor;
             }
         }
@@ -48,16 +45,16 @@ namespace org.secc.Purchasing
             Init();
         }
 
-        public PreferredVendor(int vendorID)
+        public PreferredVendor( int vendorID )
         {
             Init();
-            LoadFromVendor(vendorID);
+            LoadFromVendor( vendorID );
         }
         #endregion
 
-        public void LoadFromVendor(int vendorID)
+        public void LoadFromVendor( int vendorID )
         {
-            Vendor v = new Vendor(vendorID);
+            Vendor v = new Vendor( vendorID );
             VendorID = v.VendorID;
             Name = v.VendorName;
             Address = v.Address;
@@ -67,7 +64,7 @@ namespace org.secc.Purchasing
 
         #region Private
 
-        private void Load(Vendor v)
+        private void Load( Vendor v )
         {
             VendorID = v.VendorID;
             Name = v.VendorName;

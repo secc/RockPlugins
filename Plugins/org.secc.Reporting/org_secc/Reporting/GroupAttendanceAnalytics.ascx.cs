@@ -438,7 +438,7 @@ catch{{ }}
         /// Gets the type of the selected template group (Check-In Type)
         /// </summary>
         /// <returns></returns>
-        private List<GroupType> GetSelectedGroupTypes()
+        private List<GroupTypeCache> GetSelectedGroupTypes()
         {
             if ( !_isGroupSpecific )
             {
@@ -447,8 +447,7 @@ catch{{ }}
                 {
                     var groupTypeService = new GroupTypeService( _rockContext );
 
-                    var groupTypes = groupTypeService
-                        .Queryable().AsNoTracking()
+                    var groupTypes = GroupTypeCache.All()
                         .Where( t => groupTypeGuids.Contains( t.Guid ) )
                         .OrderBy( t => t.Order )
                         .ThenBy( t => t.Name )
@@ -456,7 +455,7 @@ catch{{ }}
 
                     foreach ( var groupType in groupTypes.ToList() )
                     {
-                        foreach ( var childGroupType in groupTypeService.GetAllAssociatedDescendentsOrdered( groupType.Id ) )
+                        foreach ( var childGroupType in groupTypeService.GetCheckinAreaDescendants( groupType.Id ) )
                         {
                             if ( !groupTypes.Any( t => t.Id == childGroupType.Id ) )
                             {
@@ -472,13 +471,13 @@ catch{{ }}
                     if ( ddlAttendanceType.SelectedGroupTypeId.HasValue )
                     {
                         return new GroupTypeService( _rockContext )
-                            .GetAllAssociatedDescendentsOrdered( ddlAttendanceType.SelectedGroupTypeId.Value )
+                            .GetCheckinAreaDescendants( ddlAttendanceType.SelectedGroupTypeId.Value )
                             .ToList();
                     }
                 }
             }
 
-            return new List<GroupType>();
+            return new List<GroupTypeCache>();
         }
 
         /// <summary>
@@ -1720,7 +1719,7 @@ function(item) {
                         var errorMessages = new List<string>();
                         var dvPersonService = new PersonService( _rockContext );
                         ParameterExpression paramExpression = dvPersonService.ParameterExpression;
-                        Expression whereExpression = dataView.GetExpression( dvPersonService, paramExpression, out errorMessages );
+                        Expression whereExpression = dataView.GetExpression( dvPersonService, paramExpression );
 
                         SortProperty sort = null;
                         var dataViewPersonIdQry = dvPersonService

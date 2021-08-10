@@ -81,11 +81,15 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\DotLiquid\DotLiquid.csproj">
-      <Project>{cb9372cd-9c1d-47ab-92d8-702d4d68324f}</Project>
+    <ProjectReference Include="..\..\..\Rock12\DotLiquid\DotLiquid.csproj">
+      <Project>{00edcb8d-ef33-459c-ad62-02876bd24dff}</Project>
       <Name>DotLiquid</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
+    <ProjectReference Include="..\..\..\Rock12\Rock\Rock.csproj">
+      <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
+      <Name>Rock</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\stephenl\source\repos\Rock12\\Rock\Rock.csproj">
       <Project>{8f8c2a79-24f4-4157-8b99-45f75fa85799}</Project>
       <Name>Rock</Name>
     </ProjectReference>

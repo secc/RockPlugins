@@ -15,8 +15,6 @@
 namespace org.secc.FamilyCheckin.Migrations
 {
     using Rock.Plugin;
-    using org.secc.DevLib.Extensions.Migration;
-    using org.secc.FamilyCheckin.Utilities;
 
     [MigrationNumber( 25, "1.10.2" )]
     public partial class SuperCheckinPages : Migration
@@ -27,25 +25,25 @@ namespace org.secc.FamilyCheckin.Migrations
             RockMigrationHelper.AddLayout( "7D5718BE-D285-4235-9246-BD9CFA57DB59", "Checkin", "Checkin", "", "9E8E6D3B-1977-4D48-8CC0-0442717EEFFE" ); // Site:Super Checkin
             RockMigrationHelper.AddLayout( "7D5718BE-D285-4235-9246-BD9CFA57DB59", "FullWidth", "Full Width", "", "4BB26D3D-0B21-488A-8BC1-B76536C85693" ); // Site:Super Checkin
             // Page: Super Checkin Home Page
-            RockMigrationHelper.AddPage("","4BB26D3D-0B21-488A-8BC1-B76536C85693","Super Checkin Home Page","","EBAC52D5-15FE-495D-A517-D1581241D4B8",""); // Site:Super Checkin
+            RockMigrationHelper.AddPage( "", "4BB26D3D-0B21-488A-8BC1-B76536C85693", "Super Checkin Home Page", "", "EBAC52D5-15FE-495D-A517-D1581241D4B8", "" ); // Site:Super Checkin
             // Page: Admin            
-            RockMigrationHelper.AddPage("EBAC52D5-15FE-495D-A517-D1581241D4B8","4BB26D3D-0B21-488A-8BC1-B76536C85693","Admin","","15E6506E-54EB-4C37-8384-C5C9378BF08E",""); // Site:Super Checkin
+            RockMigrationHelper.AddPage( "EBAC52D5-15FE-495D-A517-D1581241D4B8", "4BB26D3D-0B21-488A-8BC1-B76536C85693", "Admin", "", "15E6506E-54EB-4C37-8384-C5C9378BF08E", "" ); // Site:Super Checkin
             // Page: Super Search  
-            RockMigrationHelper.AddPage("EBAC52D5-15FE-495D-A517-D1581241D4B8","4BB26D3D-0B21-488A-8BC1-B76536C85693","Super Search","","4ADDA171-D5ED-4EE2-B4CB-ECE507BA283F",""); // Site:Super Checkin
+            RockMigrationHelper.AddPage( "EBAC52D5-15FE-495D-A517-D1581241D4B8", "4BB26D3D-0B21-488A-8BC1-B76536C85693", "Super Search", "", "4ADDA171-D5ED-4EE2-B4CB-ECE507BA283F", "" ); // Site:Super Checkin
             // Page: Super Checkin         
-            RockMigrationHelper.AddPage("EBAC52D5-15FE-495D-A517-D1581241D4B8","4BB26D3D-0B21-488A-8BC1-B76536C85693","Super Checkin","","0616F4DD-5449-4D85-B573-FDD07A155453",""); // Site:Super Checkin
+            RockMigrationHelper.AddPage( "EBAC52D5-15FE-495D-A517-D1581241D4B8", "4BB26D3D-0B21-488A-8BC1-B76536C85693", "Super Checkin", "", "0616F4DD-5449-4D85-B573-FDD07A155453", "" ); // Site:Super Checkin
             // Page: OZ Screen           
-            RockMigrationHelper.AddPage("EBAC52D5-15FE-495D-A517-D1581241D4B8","4BB26D3D-0B21-488A-8BC1-B76536C85693","OZ Screen","","4330FAF3-31F1-43A5-B1B0-6BB9742DE10E",""); // Site:Super Checkin
+            RockMigrationHelper.AddPage( "EBAC52D5-15FE-495D-A517-D1581241D4B8", "4BB26D3D-0B21-488A-8BC1-B76536C85693", "OZ Screen", "", "4330FAF3-31F1-43A5-B1B0-6BB9742DE10E", "" ); // Site:Super Checkin
             // Page: Quick Search    
-            RockMigrationHelper.AddPage("EBAC52D5-15FE-495D-A517-D1581241D4B8","9E8E6D3B-1977-4D48-8CC0-0442717EEFFE","Quick Search","","749C2FD3-6C6F-4CD6-B531-AB08AE7B1370",""); // Site:Super Checkin
+            RockMigrationHelper.AddPage( "EBAC52D5-15FE-495D-A517-D1581241D4B8", "9E8E6D3B-1977-4D48-8CC0-0442717EEFFE", "Quick Search", "", "749C2FD3-6C6F-4CD6-B531-AB08AE7B1370", "" ); // Site:Super Checkin
             // Page: Quick Checkin  
-            RockMigrationHelper.AddPage("EBAC52D5-15FE-495D-A517-D1581241D4B8","9E8E6D3B-1977-4D48-8CC0-0442717EEFFE","Quick Checkin","","129259FB-BA3D-4C5A-9457-5D69ABB967C8",""); // Site:Super Checkin
+            RockMigrationHelper.AddPage( "EBAC52D5-15FE-495D-A517-D1581241D4B8", "9E8E6D3B-1977-4D48-8CC0-0442717EEFFE", "Quick Checkin", "", "129259FB-BA3D-4C5A-9457-5D69ABB967C8", "" ); // Site:Super Checkin
             // Page: Child ID Signs  
-            RockMigrationHelper.AddPage("EBAC52D5-15FE-495D-A517-D1581241D4B8","4BB26D3D-0B21-488A-8BC1-B76536C85693","Child ID Signs","","836A9BE7-3C63-4799-8D7D-D7508436D20F",""); // Site:Super Checkin
+            RockMigrationHelper.AddPage( "EBAC52D5-15FE-495D-A517-D1581241D4B8", "4BB26D3D-0B21-488A-8BC1-B76536C85693", "Child ID Signs", "", "836A9BE7-3C63-4799-8D7D-D7508436D20F", "" ); // Site:Super Checkin
             // Page: Check-In Data Error Workflow      
-            RockMigrationHelper.AddPage("0616F4DD-5449-4D85-B573-FDD07A155453","4BB26D3D-0B21-488A-8BC1-B76536C85693","Check-In Data Error Workflow","","7B6A4CF4-1D8C-48D9-8731-9DD5D20880FC",""); // Site:Super Checkin
+            RockMigrationHelper.AddPage( "0616F4DD-5449-4D85-B573-FDD07A155453", "4BB26D3D-0B21-488A-8BC1-B76536C85693", "Check-In Data Error Workflow", "", "7B6A4CF4-1D8C-48D9-8731-9DD5D20880FC", "" ); // Site:Super Checkin
             // Page: Active Mobile Check-ins         
-            RockMigrationHelper.AddPage("EBAC52D5-15FE-495D-A517-D1581241D4B8","4BB26D3D-0B21-488A-8BC1-B76536C85693","Active Mobile Check-ins","","2BDCBBE7-6FBD-4149-881D-F800DE50952F",""); // Site:Super Checkin
+            RockMigrationHelper.AddPage( "EBAC52D5-15FE-495D-A517-D1581241D4B8", "4BB26D3D-0B21-488A-8BC1-B76536C85693", "Active Mobile Check-ins", "", "2BDCBBE7-6FBD-4149-881D-F800DE50952F", "" ); // Site:Super Checkin
             RockMigrationHelper.AddPageRoute( "15E6506E-54EB-4C37-8384-C5C9378BF08E", "supercheckin" );
             RockMigrationHelper.UpdateBlockType( "QuickSearch", "QuickSearch block for helping parents find their family quickly.", "~/Plugins/org_secc/FamilyCheckin/QuickSearch.ascx", "SECC > Check-in", "315A175F-C682-4810-9F33-1BDB93904A4E" ); //Block Type: QuickSearch
             RockMigrationHelper.UpdateBlockType( "QuickCheckin", "QuickCheckin block for helping parents check in their family quickly.", "~/Plugins/org_secc/FamilyCheckin/QuickCheckin.ascx", "SECC > Check-in", "AF961217-4223-4F03-9658-11DAB4B24DCD" ); //Block Type: QuickCheckin

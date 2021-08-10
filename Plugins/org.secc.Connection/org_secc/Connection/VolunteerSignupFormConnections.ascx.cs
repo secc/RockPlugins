@@ -34,7 +34,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Web.UI;
-using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
@@ -57,26 +56,26 @@ namespace org.secc.Connection
     [BooleanField( "Display Home Phone", "Whether to display home phone", true, "", 0 )]
     [BooleanField( "Display Mobile Phone", "Whether to display mobile phone", true, "", 1 )]
     [BooleanField( "Display Birthdate", "Whether to display birthdate", true, "", 2 )]
-    [BooleanField("Display Comments", "Whether to display the comments box", true, "", 3)]
-    [TextField("Connect Button Text", "The wording that should be used for the connect button", true, "Connect", "", 4 )]
+    [BooleanField( "Display Comments", "Whether to display the comments box", true, "", 3 )]
+    [TextField( "Connect Button Text", "The wording that should be used for the connect button", true, "Connect", "", 4 )]
     [CodeEditorField( "Lava Template", "Lava template to use to display the response message.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"{% include '~~/Assets/Lava/OpportunityResponseMessage.lava' %}", "", 5 )]
     [BooleanField( "Enable Debug", "Display a list of merge fields available for lava.", false, "", 6 )]
     [BooleanField( "Enable Campus Context", "If the page has a campus context it's value will be used as a filter", true, "", 7 )]
     [DefinedValueField( "2E6540EA-63F0-40FE-BE50-F2A84735E600", "Connection Status", "The connection status to use for new individuals (default: 'Web Prospect'.)", true, false, "368DD475-242C-49C4-A42C-7278BE690CC2", "", 8 )]
     [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 9 )]
-    [TextField( "Group Member Attribute Keys - URL", "The key of any group member attributes that you would like to be set via the URL.  Enter as comma separated values.", false, key: "UrlKeys", order: 10)]
+    [TextField( "Group Member Attribute Keys - URL", "The key of any group member attributes that you would like to be set via the URL.  Enter as comma separated values.", false, key: "UrlKeys", order: 10 )]
     [TextField( "Group Member Attribute Keys - Form", "The key of the group member attributes to show an edit control for on the opportunity signup.  Enter as comma separated values.", false, key: "FormKeys", order: 11 )]
     [BooleanField( "Display Add Another", "Whether to display the \"Connect and Add Another\" button", false, "", 12 )]
     [TextField( "Comment label text", "The wording that should be used for the comment box title", true, "Comments", "", 13 )]
     [BooleanField( "Comments Required", "Whether the comment are required", true, "", 14 )]
-     
+
     public partial class VolunteerSignupFormConnections : RockBlock, IDetailBlock
     {
         #region Fields
 
         DefinedValueCache _homePhone = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME );
         DefinedValueCache _cellPhone = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE );
-        
+
         private List<ConnectionRoleRequest> _roleRequests = null;
         List<ConnectionRoleRequest> RoleRequests
         {
@@ -118,7 +117,7 @@ namespace org.secc.Connection
                 }
 
                 // Handle any situation where we have a 0 role id
-                if (_roleRequests.Any(rr => rr.GroupId > 0 && rr.GroupTypeRoleId == 0))
+                if ( _roleRequests.Any( rr => rr.GroupId > 0 && rr.GroupTypeRoleId == 0 ) )
                 {
                     GroupService groupService = new GroupService( new RockContext() );
                     foreach ( var roleRequest in _roleRequests )
@@ -141,7 +140,7 @@ namespace org.secc.Connection
                         }
                     }
                 }
-                
+
 
                 return _roleRequests;
             }
@@ -257,10 +256,10 @@ namespace org.secc.Connection
                             .FirstOrDefault( c => c.FullName == "org.secc.PersonMatch" ) != null )
                         {
                             var assembly = Assembly.Load( "org.secc.PersonMatch" );
-                            if (assembly != null) 
+                            if ( assembly != null )
                             {
-                                Type type = assembly.GetExportedTypes().Where(et => et.FullName == "org.secc.PersonMatch.Extension" ).FirstOrDefault();
-                                if ( type != null)
+                                Type type = assembly.GetExportedTypes().Where( et => et.FullName == "org.secc.PersonMatch.Extension" ).FirstOrDefault();
+                                if ( type != null )
                                 {
                                     var matchMethod = type.GetMethod( "GetByMatch" );
                                     personMatches = ( ( IEnumerable<Person> ) matchMethod.Invoke( null, new object[] { personService, firstName, lastName, birthdate, email, null, null, null } ) ).ToList();
@@ -276,8 +275,8 @@ namespace org.secc.Connection
                             }
                         }
 
-                        if ( personMatches.Count() == 1 && 
-                            personMatches.First().Email != null && 
+                        if ( personMatches.Count() == 1 &&
+                            personMatches.First().Email != null &&
                             email.ToLower().Trim() == personMatches.First().Email.ToLower().Trim() )
                         {
                             // If one person with same name and email address exists, use that person
@@ -296,7 +295,7 @@ namespace org.secc.Connection
                         person.FirstName = firstName;
                         person.LastName = lastName;
                         person.IsEmailActive = true;
-                        person.SetBirthDate(birthdate);
+                        person.SetBirthDate( birthdate );
                         person.Email = email;
                         person.EmailPreference = EmailPreference.EmailAllowed;
                         person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
@@ -329,7 +328,7 @@ namespace org.secc.Connection
                         }
 
                         // Save the DOB
-                        if (bpBirthdate.Visible && bpBirthdate.SelectedDate.HasValue && bpBirthdate.SelectedDate != person.BirthDate)
+                        if ( bpBirthdate.Visible && bpBirthdate.SelectedDate.HasValue && bpBirthdate.SelectedDate != person.BirthDate )
                         {
                             person.BirthDay = bpBirthdate.SelectedDate.Value.Day;
                             person.BirthMonth = bpBirthdate.SelectedDate.Value.Month;
@@ -384,12 +383,12 @@ namespace org.secc.Connection
 
                             }
 
-                            var connectionAttributes = GetGroupMemberAttributes( rockContext, RepeaterIndex);
+                            var connectionAttributes = GetGroupMemberAttributes( rockContext, RepeaterIndex );
 
                             if ( connectionAttributes != null && connectionAttributes.Keys.Any() )
                             {
                                 var connectionDictionary = new Dictionary<string, string>();
-                                foreach(var kvp in connectionAttributes )
+                                foreach ( var kvp in connectionAttributes )
                                 {
                                     connectionDictionary.Add( kvp.Key, kvp.Value.Value );
                                 }
@@ -418,12 +417,13 @@ namespace org.secc.Connection
                         lResponseMessage.Text = GetAttributeValue( "LavaTemplate" ).ResolveMergeFields( mergeFields );
                         lResponseMessage.Visible = true;
 
-                        if ((( LinkButton )sender).Text == "Connect and Add Another")
+                        if ( ( ( LinkButton ) sender ).Text == "Connect and Add Another" )
                         {
                             ShowDetail( opportunityId, true );
                             AddGroupMemberAttributes( rockContext );
                             pnlSignup.Visible = true;
-                        } else
+                        }
+                        else
                         {
                             pnlSignup.Visible = false;
                         }
@@ -494,8 +494,8 @@ namespace org.secc.Connection
                 mergeFields.Add( "CurrentPerson", CurrentPerson );
                 lTitle.Text = opportunity.Name;
                 btnConnect.Text = GetAttributeValue( "ConnectButtonText" );
-                
-                
+
+
 
                 divHome.Visible = pnHome.Visible = GetAttributeValue( "DisplayHomePhone" ).AsBoolean();
                 divMobile.Visible = pnMobile.Visible = GetAttributeValue( "DisplayMobilePhone" ).AsBoolean();
@@ -509,7 +509,7 @@ namespace org.secc.Connection
                 }
 
                 // If any of these aren't showing then set the width to be a bit wider on the columns
-                if ( !(divHome.Visible && divMobile.Visible && divBirthdate.Visible ))
+                if ( !( divHome.Visible && divMobile.Visible && divBirthdate.Visible ) )
                 {
                     divHome.RemoveCssClass( "col-md-4" );
                     divHome.AddCssClass( "col-md-6" );
@@ -576,7 +576,7 @@ namespace org.secc.Connection
                     }
 
                     var campus = registrant.GetCampus();
-                    if ( campus != null  )
+                    if ( campus != null )
                     {
                         cpCampus.SelectedCampusId = campus.Id;
                     }
@@ -619,7 +619,7 @@ namespace org.secc.Connection
                 rptGroupRoleAttributes.DataSource = RoleRequests;
                 rptGroupRoleAttributes.DataBind();
                 int repeaterIndex = 0;
-                foreach (ConnectionRoleRequest roleRequest in RoleRequests)
+                foreach ( ConnectionRoleRequest roleRequest in RoleRequests )
                 {
                     if ( opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == roleRequest.GroupTypeRoleId || gc.GroupMemberRole.Guid.ToString() == roleRequest.GroupTypeRole ).Any() )
                     {
@@ -634,7 +634,7 @@ namespace org.secc.Connection
 
 
                 // show debug info
- 
+
                 if ( GetAttributeValue( "EnableDebug" ).AsBoolean() && IsUserAuthorized( Authorization.EDIT ) )
                 {
                     lDebug.Visible = true;
@@ -701,7 +701,7 @@ namespace org.secc.Connection
                 }
                 var viewStateAttributes = new List<Dictionary<string, string>>();
                 var RepeaterIndex = 0;
-                foreach(var roleRequest in RoleRequests)
+                foreach ( var roleRequest in RoleRequests )
                 {
                     var hdnGroupId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupId" ) ) );
                     var phAttributes = ( ( PlaceHolder ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "phAttributes" ) ) );
@@ -729,7 +729,7 @@ namespace org.secc.Connection
                         var viewStateAttribute = new Dictionary<string, string>();
                         foreach ( string urlKey in urlKeys )
                         {
-                            if ( roleRequest.Attributes != null && roleRequest.Attributes.ContainsKey(urlKey) && !string.IsNullOrEmpty( roleRequest.Attributes[ urlKey ] ) && groupMember.Attributes.ContainsKey( urlKey ) )
+                            if ( roleRequest.Attributes != null && roleRequest.Attributes.ContainsKey( urlKey ) && !string.IsNullOrEmpty( roleRequest.Attributes[urlKey] ) && groupMember.Attributes.ContainsKey( urlKey ) )
                             {
                                 groupMember.SetAttributeValue( urlKey, roleRequest.Attributes[urlKey] );
                                 viewStateAttribute.Add( urlKey, roleRequest.Attributes[urlKey] );
@@ -737,8 +737,8 @@ namespace org.secc.Connection
                         }
                         viewStateAttributes.Add( viewStateAttribute );
 
-                        Helper.AddDisplayControls( groupMember, phAttributes, groupMember.Attributes.Where( a => !urlKeys.Contains( a.Key )).Select(a => a.Key).ToList(), true, false );
-                        Helper.AddEditControls( "", formKeys, groupMember, phAttributes,  tbLastName.ValidationGroup,  false, new List<String>() );
+                        Helper.AddDisplayControls( groupMember, phAttributes, groupMember.Attributes.Where( a => !urlKeys.Contains( a.Key ) ).Select( a => a.Key ).ToList(), true, false );
+                        Helper.AddEditControls( "", formKeys, groupMember, phAttributes, tbLastName.ValidationGroup, false, new List<String>() );
 
                     }
                     RepeaterIndex++;
@@ -749,7 +749,7 @@ namespace org.secc.Connection
         }
 
 
-        private Dictionary<string, AttributeValueCache> GetGroupMemberAttributes( RockContext rockContext = null, int RepeaterIndex = 0)
+        private Dictionary<string, AttributeValueCache> GetGroupMemberAttributes( RockContext rockContext = null, int RepeaterIndex = 0 )
         {
             // Group
             if ( RoleRequests.Count > 0 )

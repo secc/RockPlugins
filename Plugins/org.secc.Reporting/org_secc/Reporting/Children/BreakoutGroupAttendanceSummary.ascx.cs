@@ -19,17 +19,14 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Web.UI;
 using System.Web.UI.WebControls;
 using OfficeOpenXml;
-using OfficeOpenXml.Style;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
-using Rock.Web.UI.Controls;
 
 namespace RockWeb.Blocks.Reporting.Children
 {
@@ -40,7 +37,7 @@ namespace RockWeb.Blocks.Reporting.Children
     [Category( "SECC > Reporting > Children" )]
     [Description( "A filterable and sortable list of breakout groups." )]
     [GroupField( "Breakout Parent Group", "Parent group of group types" )]
-    [GroupTypeField( "Check-in Group Type", "The group type to use for selecting the checkin group (grade).")]
+    [GroupTypeField( "Check-in Group Type", "The group type to use for selecting the checkin group (grade)." )]
     [TextField( "Schedule IDs", "Coma separated list of the Ids of schedules." )]
     public partial class BreakoutGroupAttendanceSummary : RockBlock
     {
@@ -51,12 +48,12 @@ namespace RockWeb.Blocks.Reporting.Children
         /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
-            if (!IsPostBack)
+            if ( !IsPostBack )
             {
                 GroupService groupService = new GroupService( new RockContext() );
 
                 var groupTypeGuid = GetAttributeValue( "Check-inGroupType" ).AsGuidOrNull();
-                if (groupTypeGuid.HasValue)
+                if ( groupTypeGuid.HasValue )
                 {
                     int groupTypeId = GroupTypeCache.Get( groupTypeGuid.Value ).Id;
                     var groups = groupService.Queryable().Where( g => g.GroupTypeId == groupTypeId ).ToList().Select( g => new ListItem( g.Name, g.Id.ToString() ) ).ToList();
@@ -79,7 +76,7 @@ namespace RockWeb.Blocks.Reporting.Children
 
             //get all the breakout groups where we have members
             var breakoutGroups = gQry.ToList()
-                .Where( g => g.Members.Any(gm => gm.GroupMemberStatus == GroupMemberStatus.Active ) )
+                .Where( g => g.Members.Any( gm => gm.GroupMemberStatus == GroupMemberStatus.Active ) )
                 .OrderBy( g => g.Schedule.Id )
                 .ThenBy( g => g.Name )
                 .ToList();
@@ -161,10 +158,11 @@ namespace RockWeb.Blocks.Reporting.Children
             {
                 group.LoadAttributes();
                 var scheduleName = "Unknown";
-                if ( group.Schedule != null && group.Schedule.GetCalendarEvent() != null &&
-                     group.Schedule.GetCalendarEvent().DTStart != null && group.Schedule.GetCalendarEvent().DTStart.Value != null &&
-                     group.Schedule.GetCalendarEvent().DTStart.Value.TimeOfDay != null ) {
-                     scheduleName = group.Schedule.GetCalendarEvent().DTStart.Value.TimeOfDay.ToTimeString();
+                if ( group.Schedule != null && group.Schedule.GetICalEvent() != null &&
+                     group.Schedule.GetICalEvent().DtStart != null && group.Schedule.GetICalEvent().DtStart.Value != null &&
+                     group.Schedule.GetICalEvent().DtStart.Value.TimeOfDay != null )
+                {
+                    scheduleName = group.Schedule.GetICalEvent().DtStart.Value.TimeOfDay.ToTimeString();
                 }
                 var name = string.Format( "{0} {1}", scheduleName, group.GetAttributeValue( "Letter" ) );
                 columns0.Add( name );

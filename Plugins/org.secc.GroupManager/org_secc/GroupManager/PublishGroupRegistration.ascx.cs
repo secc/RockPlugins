@@ -21,18 +21,15 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using org.secc.GroupManager.Model;
+using org.secc.PersonMatch;
 using Rock;
 using Rock.Attribute;
 using Rock.Communication;
-using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
-using Rock.Security;
-using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using org.secc.PersonMatch;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
@@ -210,7 +207,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         person.FirstName = tbFirstName.Text.Trim();
                         person.LastName = tbLastName.Text.Trim();
                         person.Email = tbEmail.Text.Trim();
-                        if (dppDOB.SelectedDate.HasValue)
+                        if ( dppDOB.SelectedDate.HasValue )
                         {
                             person.BirthDay = dppDOB.SelectedDate.Value.Day;
                             person.BirthMonth = dppDOB.SelectedDate.Value.Month;
@@ -419,7 +416,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             message.FromName = _publishGroup.ConfirmationFromName;
             message.Subject = _publishGroup.ConfirmationSubject;
             message.Message = _publishGroup.ConfirmationBody;
-            message.AddRecipient( new RockEmailMessageRecipient ( person, mergeObjects ) );
+            message.AddRecipient( new RockEmailMessageRecipient( person, mergeObjects ) );
             message.Send();
         }
 

@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -31,18 +31,16 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
+using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
-using Rock.Attribute;
-using System.Data.Entity;
 
 namespace RockWeb.Plugins.org_secc.Reporting
 {
@@ -148,7 +146,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
         protected void rptrSelection_ItemCommand( object source, RepeaterCommandEventArgs e )
         {
-            switch( e.CommandName )
+            switch ( e.CommandName )
             {
                 case "Campus":
                     _selectedCampusId = e.CommandArgument.ToString().AsIntegerOrNull();
@@ -193,8 +191,8 @@ namespace RockWeb.Plugins.org_secc.Reporting
             {
                 Schedule schedule = e.Item.DataItem as Schedule;
 
-                int campusEntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Campus ) ).Id;
-                int scheduleEntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Schedule ) ).Id;
+                int campusEntityTypeId = EntityTypeCache.Get( typeof( Rock.Model.Campus ) ).Id;
+                int scheduleEntityTypeId = EntityTypeCache.Get( typeof( Rock.Model.Schedule ) ).Id;
 
                 int? campusId = bddlCampus.SelectedValueAsInt();
                 int? scheduleId = schedule.Id;
@@ -256,11 +254,11 @@ namespace RockWeb.Plugins.org_secc.Reporting
                     }
                 }
 
-            rptrServiceMetric.DataSource = serviceMetricValues;
-            rptrServiceMetric.DataBind();
+                rptrServiceMetric.DataSource = serviceMetricValues;
+                rptrServiceMetric.DataBind();
 
+            }
         }
-    }
 
         /// <summary>
         /// Handles the Click event of the btnSave control.
@@ -269,8 +267,8 @@ namespace RockWeb.Plugins.org_secc.Reporting
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnSave_Click( object sender, EventArgs e )
         {
-            int campusEntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Campus ) ).Id;
-            int scheduleEntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Schedule ) ).Id;
+            int campusEntityTypeId = EntityTypeCache.Get( typeof( Rock.Model.Campus ) ).Id;
+            int scheduleEntityTypeId = EntityTypeCache.Get( typeof( Rock.Model.Schedule ) ).Id;
 
             int? campusId = bddlCampus.SelectedValueAsInt();
             //int? scheduleId = bddlService.SelectedValueAsInt();
@@ -330,7 +328,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                         }
                     }
 
-                    foreach( RepeaterItem service in rptrService.Items )
+                    foreach ( RepeaterItem service in rptrService.Items )
                     {
                         var hfScheduleId = service.FindControl( "hfScheduleId" ) as HiddenField;
                         int scheduleId = hfScheduleId.ValueAsInt();
@@ -341,7 +339,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                             var hfMetricIId = item.FindControl( "hfMetricId" ) as HiddenField;
                             var nbMetricValue = item.FindControl( "nbMetricValue" ) as NumberBox;
 
-                            if ( hfMetricIId != null && nbMetricValue != null && !string.IsNullOrEmpty(nbMetricValue.Text) )
+                            if ( hfMetricIId != null && nbMetricValue != null && !string.IsNullOrEmpty( nbMetricValue.Text ) )
                             {
                                 int metricId = hfMetricIId.ValueAsInt();
                                 var metric = new MetricService( rockContext ).Get( metricId );
@@ -497,7 +495,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
             bddlWeekend.SetValue( _selectedWeekend.Value.ToString( "o" ) );
 
             // Load service times
-            foreach( var service in GetServices( CampusCache.Read( _selectedCampusId.Value ) ) )
+            foreach ( var service in GetServices( CampusCache.Get( _selectedCampusId.Value ) ) )
             {
                 //bddlService.Items.Add( new ListItem( service.Name, service.Id.ToString() ) );
             }
@@ -554,10 +552,10 @@ namespace RockWeb.Plugins.org_secc.Reporting
         /// Gets the services.
         /// </summary>
         /// <returns></returns>
-        private List<Schedule> GetServices( CampusCache campus = null)
+        private List<Schedule> GetServices( CampusCache campus = null )
         {
             var services = new List<Schedule>();
-            if (!string.IsNullOrWhiteSpace(GetAttributeValue( "ScheduleCategories" )))
+            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "ScheduleCategories" ) ) )
             {
                 List<Guid> categoryGuids = GetAttributeValue( "ScheduleCategories" ).Split( ',' ).Select( g => g.AsGuid() ).ToList();
                 string campusAttributeGuid = GetAttributeValue( "CampusAttribute" );
@@ -569,7 +567,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                     foreach ( Guid categoryGuid in categoryGuids )
                     {
 
-                        var scheduleCategory = CategoryCache.Read( categoryGuid );
+                        var scheduleCategory = CategoryCache.Get( categoryGuid );
                         if ( scheduleCategory != null && campus != null )
                         {
                             var schedules = new ScheduleService( rockContext )
@@ -584,10 +582,10 @@ namespace RockWeb.Plugins.org_secc.Reporting
                             // Check to see if the event was applicable the week for which we are entering data
                             foreach ( var schedule in schedules )
                             {
-                                var occurrences = ScheduleICalHelper.GetOccurrences( schedule.Schedule.GetCalenderEvent(), weekend.Value.Date.AddDays( -6 ), weekend.Value.Date.AddDays(1) );
-                                if ( occurrences.Count > 0)
+                                var occurrences = InetCalendarHelper.GetOccurrences( schedule.Schedule.iCalendarContent, weekend.Value.Date.AddDays( -6 ), weekend.Value.Date.AddDays( 1 ) );
+                                if ( occurrences.Count > 0 )
                                 {
-                                    services.Add(schedule.Schedule );
+                                    services.Add( schedule.Schedule );
                                 }
                             }
 
@@ -607,7 +605,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                     }
                 }
             }
-            return services.OrderBy(s => s.NextStartDateTime.HasValue?s.NextStartDateTime.Value.Ticks : s.EffectiveEndDate.HasValue?s.EffectiveEndDate.Value.Ticks:0).ToList();
+            return services.OrderBy( s => s.GetNextStartDateTime( RockDateTime.Now ).HasValue ? s.GetNextStartDateTime( RockDateTime.Now ).Value.Ticks : s.EffectiveEndDate.HasValue ? s.EffectiveEndDate.Value.Ticks : 0 ).ToList();
         }
 
         /// <summary>
@@ -617,23 +615,23 @@ namespace RockWeb.Plugins.org_secc.Reporting
         {
             var metricCategoryList = new List<MetricCategory>();
 
-            int campusEntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Campus ) ).Id;
-            int scheduleEntityTypeId = EntityTypeCache.Read( typeof( Rock.Model.Schedule ) ).Id;
+            int campusEntityTypeId = EntityTypeCache.Get( typeof( Rock.Model.Campus ) ).Id;
+            int scheduleEntityTypeId = EntityTypeCache.Get( typeof( Rock.Model.Schedule ) ).Id;
 
             int? campusId = bddlCampus.SelectedValueAsInt();
             //int? scheduleId = bddlService.SelectedValueAsInt();
             DateTime? weekend = bddlWeekend.SelectedValue.AsDateTime();
 
             // If we changed the campus, make sure we reload the services
-            if (campusId != _selectedCampusId)
+            if ( campusId != _selectedCampusId )
             {
                 _selectedCampusId = GetBlockUserPreference( "CampusId" ).AsIntegerOrNull();
                 SaveViewState();
                 //bddlService.Items.Clear();
                 // Load service times
-                foreach ( var service in GetServices( CampusCache.Read( campusId.Value ) ) )
+                foreach ( var service in GetServices( CampusCache.Get( campusId.Value ) ) )
                 {
-                //    bddlService.Items.Add( new ListItem( service.Name, service.Id.ToString() ) );
+                    //    bddlService.Items.Add( new ListItem( service.Name, service.Id.ToString() ) );
                 }
                 //bddlService.SetValue( _selectedServiceId.Value );
             }
@@ -664,13 +662,14 @@ namespace RockWeb.Plugins.org_secc.Reporting
                             SchedulePartitionId = m.MetricPartitions.Where( p => p.EntityTypeId.HasValue && p.EntityTypeId.Value == scheduleEntityTypeId ).Select( p => p.Id ).FirstOrDefault(),
                             CategoryName = m.MetricCategories.Select( c => c.Category.Name ).FirstOrDefault()
                         } );
-                    foreach ( var metric in metrics.OrderBy(m => m.CategoryName).ThenBy(m => m.Title))
+                    foreach ( var metric in metrics.OrderBy( m => m.CategoryName ).ThenBy( m => m.Title ) )
                     {
                         MetricCategory category = null;
-                        if ( metricCategoryList.Any(mct => mct.CategoryName == metric.CategoryName ) )
+                        if ( metricCategoryList.Any( mct => mct.CategoryName == metric.CategoryName ) )
                         {
                             category = metricCategoryList.Where( mct => mct.CategoryName == metric.CategoryName ).FirstOrDefault();
-                        } else
+                        }
+                        else
                         {
                             category = new MetricCategory() { CategoryName = metric.CategoryName, Metrics = new List<Metric>() };
                             metricCategoryList.Add( category );
@@ -707,10 +706,10 @@ namespace RockWeb.Plugins.org_secc.Reporting
             }
             rptrMetricCategory.DataSource = metricCategoryList;
             rptrMetricCategory.DataBind();
-            
+
             if ( campusId.HasValue )
-            { 
-                rptrService.DataSource = GetServices( CampusCache.Read( campusId.Value ) );
+            {
+                rptrService.DataSource = GetServices( CampusCache.Get( campusId.Value ) );
                 rptrService.DataBind();
                 rptrService.Visible = rptrService.Items.Count > 0;
             }
@@ -732,7 +731,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
         {
             CommandName = commandName;
             CommandArg = commandArg;
-            OptionText = optionText;   
+            OptionText = optionText;
         }
     }
 

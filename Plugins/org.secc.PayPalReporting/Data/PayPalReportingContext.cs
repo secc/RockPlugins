@@ -12,8 +12,8 @@
 // limitations under the License.
 // </copyright>
 //
-using org.secc.PayPalReporting.Model;
 using System.Data.Entity;
+using org.secc.PayPalReporting.Model;
 
 namespace org.secc.PayPalReporting.Data
 {
@@ -47,13 +47,13 @@ namespace org.secc.PayPalReporting.Data
         /// More control over caching is provided through use of the DbModelBuilder and DbContextFactory
         /// classes directly.
         /// </remarks>
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        protected override void OnModelCreating( DbModelBuilder modelBuilder )
         {
             // we don't want this context to create a database or look for EF Migrations, do set the Initializer to null
-            Database.SetInitializer<PayPalReportingContext>(new NullDatabaseInitializer<PayPalReportingContext>());
+            Database.SetInitializer<PayPalReportingContext>( new NullDatabaseInitializer<PayPalReportingContext>() );
 
-            Rock.Data.ContextHelper.AddConfigurations(modelBuilder);
-            modelBuilder.Configurations.AddFromAssembly(System.Reflection.Assembly.GetExecutingAssembly());
+            Rock.Data.ContextHelper.AddConfigurations( modelBuilder );
+            modelBuilder.Configurations.AddFromAssembly( System.Reflection.Assembly.GetExecutingAssembly() );
         }
 
     }

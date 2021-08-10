@@ -17,14 +17,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-
+using org.secc.PersonMatch;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Workflow;
-using org.secc.PersonMatch;
 
 namespace org.secc.Workflow.Person.Action
 {
@@ -216,7 +215,7 @@ namespace org.secc.Workflow.Person.Action
                                 Guid? unlistedValueGuid = unlistedValue.AsGuidOrNull();
                                 if ( unlistedValueGuid.HasValue )
                                 {
-                                    unlistedValue = action.GetWorklowAttributeValue( unlistedValueGuid.Value );
+                                    unlistedValue = action.GetWorkflowAttributeValue( unlistedValueGuid.Value );
                                 }
                                 else
                                 {
@@ -229,7 +228,7 @@ namespace org.secc.Workflow.Person.Action
                                 Guid? smsEnabledValueGuid = smsEnabledValue.AsGuidOrNull();
                                 if ( smsEnabledValueGuid.HasValue )
                                 {
-                                    smsEnabledValue = action.GetWorklowAttributeValue( smsEnabledValueGuid.Value );
+                                    smsEnabledValue = action.GetWorkflowAttributeValue( smsEnabledValueGuid.Value );
                                 }
                                 else
                                 {

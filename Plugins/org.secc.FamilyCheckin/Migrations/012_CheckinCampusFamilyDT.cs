@@ -14,10 +14,8 @@
 //
 namespace org.secc.FamilyCheckin.Migrations
 {
-    using Rock.Plugin;
-    using org.secc.DevLib.Extensions.Migration;
     using org.secc.FamilyCheckin.Utilities;
-    using System;
+    using Rock.Plugin;
 
     [MigrationNumber( 12, "1.10.2" )]
     public partial class CheckinCampusFamilyDT : Migration

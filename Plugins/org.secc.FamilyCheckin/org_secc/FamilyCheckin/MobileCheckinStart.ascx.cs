@@ -179,7 +179,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             //Next try personal preference
             if ( kioskType == null )
             {
-                var campusId = PersonService.GetUserPreference(currentPerson, UserPreferenceKeys.PreferredCampusId ).AsIntegerOrNull();
+                var campusId = PersonService.GetUserPreference( currentPerson, UserPreferenceKeys.PreferredCampusId ).AsIntegerOrNull();
                 kioskType = KioskTypeCache.All().Where( k => k.IsMobile && k.CampusId == campusId ).FirstOrDefault();
             }
 
@@ -370,7 +370,7 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
 
         private void ActivateCheckIn()
         {
-            CurrentCheckInState = new CheckInState( LocalDeviceConfig.CurrentKioskId.Value, LocalDeviceConfig.CurrentCheckinTypeId, LocalDeviceConfig.CurrentGroupTypeIds );
+            CurrentCheckInState = new CheckInState( LocalDeviceConfig );
             var userloginCheckinSearchValue = DefinedValueCache.Get( org.secc.FamilyCheckin.Utilities.Constants.CHECKIN_SEARCH_TYPE_USERLOGIN );
             CurrentCheckInState.CheckIn.SearchType = userloginCheckinSearchValue;
             CurrentCheckInState.CheckIn.SearchValue = currentUser.UserName;

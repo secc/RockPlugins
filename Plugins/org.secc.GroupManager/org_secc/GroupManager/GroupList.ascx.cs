@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -12,19 +12,17 @@
 // limitations under the License.
 // </copyright>
 //
-using Rock.Data;
-using Rock.Model;
-using Rock.Web.UI;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI.WebControls;
-using Rock.Web.UI.Controls;
-using System.Collections.Generic;
+using org.secc.GroupManager;
 using Rock;
 using Rock.Attribute;
-using org.secc.GroupManager;
-using System.Web;
+using Rock.Data;
+using Rock.Model;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
@@ -63,7 +61,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 groups.AddRange( new GroupTypeService( rockContext ).Queryable()
                     .Where( gt => gt.Guid == groupTypeGuid )
-                    .SelectMany( gt => gt.Groups.Where(g => g.IsActive) )
+                    .SelectMany( gt => gt.Groups.Where( g => g.IsActive ) )
                     .Where( g => groupIds.Contains( g.Id ) )
                     );
             }

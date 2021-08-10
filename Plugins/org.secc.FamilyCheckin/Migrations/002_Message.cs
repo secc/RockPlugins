@@ -21,12 +21,12 @@ namespace org.secc.FamilyCheckin.Migrations
     {
         public override void Up()
         {
-            AddColumn("dbo._org_secc_FamilyCheckin_KioskType", "Message", c => c.String());
+            AddColumn( "dbo._org_secc_FamilyCheckin_KioskType", "Message", c => c.String() );
         }
-        
+
         public override void Down()
         {
-            DropColumn("dbo._org_secc_FamilyCheckin_KioskType", "Message");
+            DropColumn( "dbo._org_secc_FamilyCheckin_KioskType", "Message" );
         }
     }
 }

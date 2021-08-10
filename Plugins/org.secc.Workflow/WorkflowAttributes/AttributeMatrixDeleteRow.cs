@@ -12,15 +12,14 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Linq;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using System.Linq;
 using Rock.Workflow;
 
 namespace org.secc.Workflow.WorkflowAttributes
@@ -42,8 +41,8 @@ namespace org.secc.Workflow.WorkflowAttributes
             errorMessages = new List<string>();
 
             // Get all the attribute values
-            var attributeMatrixGuid = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "AttributeMatrix" ).AsGuid() ).AsGuidOrNull();
-            var itemGuid = GetActionAttributeValue( action, "ItemGuid" ).ResolveMergeFields(GetMergeFields(action)).AsGuidOrNull();
+            var attributeMatrixGuid = action.GetWorkflowAttributeValue( GetActionAttributeValue( action, "AttributeMatrix" ).AsGuid() ).AsGuidOrNull();
+            var itemGuid = GetActionAttributeValue( action, "ItemGuid" ).ResolveMergeFields( GetMergeFields( action ) ).AsGuidOrNull();
 
             if ( attributeMatrixGuid.HasValue && itemGuid.HasValue )
             {
@@ -52,7 +51,7 @@ namespace org.secc.Workflow.WorkflowAttributes
 
                 AttributeMatrixItem item = matrix.AttributeMatrixItems.Where( i => i.Guid == itemGuid.Value ).FirstOrDefault();
 
-                if (item != null)
+                if ( item != null )
                 {
                     matrix.AttributeMatrixItems.Remove( item );
                     attributeMatrixItemService.Delete( item );

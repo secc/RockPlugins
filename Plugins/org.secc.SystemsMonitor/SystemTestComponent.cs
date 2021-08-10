@@ -31,6 +31,6 @@ namespace org.secc.SystemsMonitor
                 AlarmCondition.ScoreBelow
             };
         }
-        
+
     }
 }

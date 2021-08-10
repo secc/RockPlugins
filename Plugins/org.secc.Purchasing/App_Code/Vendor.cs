@@ -15,9 +15,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Serialization;
 using System.Text;
-using System.Data.SqlClient;
+using System.Xml.Serialization;
 using org.secc.Purchasing.DataLayer;
 using org.secc.Purchasing.Enums;
 using Rock.Model;
@@ -26,7 +25,7 @@ using Rock.Model;
 namespace org.secc.Purchasing
 {
     [Serializable]
-    public class Vendor: PurchasingBase
+    public class Vendor : PurchasingBase
     {
         #region Fields
         private Person mCreatedByPerson = null;
@@ -79,14 +78,14 @@ namespace org.secc.Purchasing
         }
 
         [XmlIgnore]
-        public Person CreatedByPerson 
+        public Person CreatedByPerson
         {
             get
             {
-                if (mCreatedByPerson == null && !String.IsNullOrEmpty(CreatedByUser))
+                if ( mCreatedByPerson == null && !String.IsNullOrEmpty( CreatedByUser ) )
                 {
-                       
-                    mCreatedByPerson = userLoginService.GetByUserName(CreatedByUser).Person;
+
+                    mCreatedByPerson = userLoginService.GetByUserName( CreatedByUser ).Person;
                 }
 
                 return mCreatedByPerson;
@@ -94,12 +93,12 @@ namespace org.secc.Purchasing
         }
 
         [XmlIgnore]
-        public Person ModifiedByPerson 
+        public Person ModifiedByPerson
         {
             get
             {
-                if (mModifiedByPerson == null && !String.IsNullOrEmpty(ModifiedByUser))
-                    mModifiedByPerson = userLoginService.GetByUserName(ModifiedByUser).Person;
+                if ( mModifiedByPerson == null && !String.IsNullOrEmpty( ModifiedByUser ) )
+                    mModifiedByPerson = userLoginService.GetByUserName( ModifiedByUser ).Person;
 
                 return mModifiedByPerson;
             }
@@ -109,13 +108,13 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (!mHasPurchaseOrders.HasValue)
+                if ( !mHasPurchaseOrders.HasValue )
                 {
-                    using (PurchasingContext Context = ContextHelper.GetDBContext())
+                    using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                     {
                         mHasPurchaseOrders = Context.VendorDatas
-                                            .Where(v => v.vendor_id == this.VendorID)
-                                            .Select(v => v.PurchaseOrderDatas.Count() > 0).Single();
+                                            .Where( v => v.vendor_id == this.VendorID )
+                                            .Select( v => v.PurchaseOrderDatas.Count() > 0 ).Single();
                     }
                 }
                 return mHasPurchaseOrders.Value;
@@ -127,8 +126,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mPurchaseOrders == null)
-                    mPurchaseOrders = PurchaseOrder.LoadByVendor(this.VendorID);
+                if ( mPurchaseOrders == null )
+                    mPurchaseOrders = PurchaseOrder.LoadByVendor( this.VendorID );
                 return mPurchaseOrders;
             }
             set
@@ -141,13 +140,13 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (!mHasRequisitions.HasValue)
+                if ( !mHasRequisitions.HasValue )
                 {
                     using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                     {
                         mHasRequisitions = Context.VendorDatas
-                                            .Where( v => v.vendor_id == this.VendorID)
-                                            .Select(v => v.RequisitionDatas.Count() > 0).Single();
+                                            .Where( v => v.vendor_id == this.VendorID )
+                                            .Select( v => v.RequisitionDatas.Count() > 0 ).Single();
                     }
                 }
                 return mHasRequisitions.Value;
@@ -159,8 +158,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mRequisitions == null)
-                    mRequisitions = Requisition.LoadByVendor(this.VendorID);
+                if ( mRequisitions == null )
+                    mRequisitions = Requisition.LoadByVendor( this.VendorID );
                 return mRequisitions;
 
             }
@@ -177,30 +176,30 @@ namespace org.secc.Purchasing
             Initialize();
         }
 
-        public Vendor(int vendorID)
+        public Vendor( int vendorID )
         {
-            Load(vendorID, 1);
+            Load( vendorID, 1 );
         }
 
-        public Vendor(int vendorID, int organizationID)
+        public Vendor( int vendorID, int organizationID )
         {
-            Load(vendorID, organizationID);
+            Load( vendorID, organizationID );
         }
 
-        public Vendor(Guid vendorGUID)
+        public Vendor( Guid vendorGUID )
         {
-            Load(vendorGUID);
+            Load( vendorGUID );
         }
 
-        public Vendor(VendorData v)
+        public Vendor( VendorData v )
         {
-            Load(v);
+            Load( v );
         }
         #endregion
 
         #region Public
 
-        public static List<Vendor> LoadByName(string vName, bool activeOnly)
+        public static List<Vendor> LoadByName( string vName, bool activeOnly )
         {
             try
             {
@@ -219,14 +218,14 @@ namespace org.secc.Purchasing
                     return vendorQuery.Select( v => new Vendor( v ) ).ToList();
                 }
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
 
-                throw new VendorException("An error has occurred when loading the vendor list by name.", ex);
+                throw new VendorException( "An error has occurred when loading the vendor list by name.", ex );
             }
         }
 
-        public static List<Vendor> LoadVendors(bool activeOnly)
+        public static List<Vendor> LoadVendors( bool activeOnly )
         {
             List<Vendor> VendorList = new List<Vendor>();
             try
@@ -244,73 +243,73 @@ namespace org.secc.Purchasing
                     return VendorQuery.Select( v => new Vendor( v ) ).ToList();
                 }
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
 
-                throw new VendorException("An error has occurred when loading the vendor list.", ex);
+                throw new VendorException( "An error has occurred when loading the vendor list.", ex );
             }
 
 
         }
 
-        public static void Delete(int vendorID, string uid)
+        public static void Delete( int vendorID, string uid )
         {
-            Delete(vendorID, 1, uid);
+            Delete( vendorID, 1, uid );
         }
 
-        public static void Delete(int vendorID, int organizationID, string uid)
+        public static void Delete( int vendorID, int organizationID, string uid )
         {
-            Vendor OriginalVendor = new Vendor(vendorID, organizationID);
+            Vendor OriginalVendor = new Vendor( vendorID, organizationID );
 
             try
             {
-                if (vendorID <= 0)
-                    throw new ArgumentException("Vendor ID is required to perform delete.", "VendorID");
-                if (organizationID <= 0)
-                    throw new ArgumentNullException("Organization ID is required to perform delete", "OrganizationID");
-                if (String.IsNullOrEmpty(uid))
-                    throw new ArgumentNullException("User ID is required to perform delete.", "uid");
+                if ( vendorID <= 0 )
+                    throw new ArgumentException( "Vendor ID is required to perform delete.", "VendorID" );
+                if ( organizationID <= 0 )
+                    throw new ArgumentNullException( "Organization ID is required to perform delete", "OrganizationID" );
+                if ( String.IsNullOrEmpty( uid ) )
+                    throw new ArgumentNullException( "User ID is required to perform delete.", "uid" );
 
-                using (PurchasingContext context = ContextHelper.GetDBContext())
+                using ( PurchasingContext context = ContextHelper.GetDBContext() )
                 {
-                    VendorData Data = context.VendorDatas.Where(x => x.vendor_id == vendorID && x.organization_id == organizationID).FirstOrDefault();
-                    context.VendorDatas.DeleteOnSubmit(Data);
+                    VendorData Data = context.VendorDatas.Where( x => x.vendor_id == vendorID && x.organization_id == organizationID ).FirstOrDefault();
+                    context.VendorDatas.DeleteOnSubmit( Data );
 
                     context.SubmitChanges();
                 }
 
-                OriginalVendor.SaveHistory(HistoryType.DELETE, null, uid); 
+                OriginalVendor.SaveHistory( HistoryType.DELETE, null, uid );
 
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
-                throw new VendorException("An error has occurred while deleting vendor.", ex);
+                throw new VendorException( "An error has occurred while deleting vendor.", ex );
             }
 
 
         }
 
-        public int Save(string uid)
+        public int Save( string uid )
         {
             Vendor OriginalVendor = null;
             HistoryType ht;
 
-            Dictionary<string,string> ValErrors = new Dictionary<string, string>();
-            if (!Validated(ref ValErrors))
+            Dictionary<string, string> ValErrors = new Dictionary<string, string>();
+            if ( !Validated( ref ValErrors ) )
             {
-                throw new VendorNotValidException("Was not able to validate vendor.", ValErrors);
+                throw new VendorNotValidException( "Was not able to validate vendor.", ValErrors );
             }
 
 
-            using (PurchasingContext Context = ContextHelper.GetDBContext())
+            using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
                 VendorData Data;
 
-                if (VendorID > 0)
+                if ( VendorID > 0 )
                 {
-                    OriginalVendor = new Vendor(VendorID, OrganizationID);
+                    OriginalVendor = new Vendor( VendorID, OrganizationID );
                     ht = HistoryType.UPDATE;
-                    Data = Context.VendorDatas.Where(x => x.vendor_id == VendorID && x.organization_id == OrganizationID).FirstOrDefault();
+                    Data = Context.VendorDatas.Where( x => x.vendor_id == VendorID && x.organization_id == OrganizationID ).FirstOrDefault();
                 }
                 else
                 {
@@ -324,22 +323,22 @@ namespace org.secc.Purchasing
 
                 Data.vendor_name = VendorName;
 
-                if (Address == null || String.IsNullOrEmpty(Address.StreetAddress))
+                if ( Address == null || String.IsNullOrEmpty( Address.StreetAddress ) )
                     Data.address = null;
                 else
                     Data.address = Address.ToArenaFormat();
 
-                if (Phone == null || String.IsNullOrEmpty(Phone.Number))
+                if ( Phone == null || String.IsNullOrEmpty( Phone.Number ) )
                     Data.phone = null;
                 else
                     Data.phone = Phone.ToArenaFormat();
 
-                if (String.IsNullOrEmpty(WebAddress))
+                if ( String.IsNullOrEmpty( WebAddress ) )
                     Data.web_address = null;
                 else
                     Data.web_address = WebAddress;
 
-                if (String.IsNullOrEmpty(Terms))
+                if ( String.IsNullOrEmpty( Terms ) )
                     Data.terms = null;
                 else
                     Data.terms = Terms;
@@ -348,28 +347,28 @@ namespace org.secc.Purchasing
                 Data.date_modified = DateTime.Now;
                 Data.active = Active;
 
-                if (VendorID == 0)
-                    Context.VendorDatas.InsertOnSubmit(Data);
+                if ( VendorID == 0 )
+                    Context.VendorDatas.InsertOnSubmit( Data );
 
                 try
                 {
                     Context.SubmitChanges();
                 }
-                catch (System.Data.Linq.ChangeConflictException ex)
+                catch ( System.Data.Linq.ChangeConflictException ex )
                 {
                     StringBuilder sb = new StringBuilder();
-                    foreach (System.Data.Linq.ObjectChangeConflict c in Context.ChangeConflicts)
+                    foreach ( System.Data.Linq.ObjectChangeConflict c in Context.ChangeConflicts )
                     {
-                        sb.AppendFormat("Table {0} ID: {1}", Context.Mapping.GetTable(c.Object.GetType()), ((VendorData)c.Object).vendor_id);
+                        sb.AppendFormat( "Table {0} ID: {1}", Context.Mapping.GetTable( c.Object.GetType() ), ( ( VendorData ) c.Object ).vendor_id );
 
                     }
-                    throw new Exception(sb.ToString(), ex);
+                    throw new Exception( sb.ToString(), ex );
                 }
 
 
-                Load(Data);
+                Load( Data );
             }
-            SaveHistory(ht, OriginalVendor, uid);
+            SaveHistory( ht, OriginalVendor, uid );
             return VendorID;
         }
 
@@ -397,31 +396,31 @@ namespace org.secc.Purchasing
             Active = true;
         }
 
-        private void Load(Guid guid)
+        private void Load( Guid guid )
         {
             using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
                 VendorData Data = Context.VendorDatas.FirstOrDefault( v => v.vendor_guid == guid );
             }
-            
+
         }
 
-        private void Load(int vendorId, int organizationId)
+        private void Load( int vendorId, int organizationId )
         {
-            using (PurchasingContext Context = ContextHelper.GetDBContext())
+            using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
                 VendorData Data = Context.VendorDatas.Where( v => v.organization_id == organizationId ).Where( v => v.vendor_id == vendorId ).FirstOrDefault();
 
-                Load(Data);
+                Load( Data );
             }
         }
 
-        private void Load(VendorData data)
+        private void Load( VendorData data )
         {
-            Initialize(); 
-            if(data != null)
+            Initialize();
+            if ( data != null )
             {
-                VendorID= data.vendor_id;
+                VendorID = data.vendor_id;
                 VendorName = data.vendor_name;
                 VendorGUID = data.vendor_guid;
                 OrganizationID = data.organization_id;
@@ -429,14 +428,14 @@ namespace org.secc.Purchasing
                 mCreatedByUser = data.created_by;
                 DateModified = data.date_modified;
                 ModifiedByUser = data.modified_by;
-                if(!String.IsNullOrEmpty(data.address))
+                if ( !String.IsNullOrEmpty( data.address ) )
                 {
-                    Address = new Helpers.Address(data.address);
+                    Address = new Helpers.Address( data.address );
                 }
 
-                if(!String.IsNullOrEmpty(data.phone))
+                if ( !String.IsNullOrEmpty( data.phone ) )
                 {
-                    Phone = new Helpers.PhoneNumber(data.phone);
+                    Phone = new Helpers.PhoneNumber( data.phone );
                 }
 
                 WebAddress = data.web_address;
@@ -445,45 +444,45 @@ namespace org.secc.Purchasing
             }
         }
 
-        private bool Validated(ref Dictionary<string, string> ValErrors)
+        private bool Validated( ref Dictionary<string, string> ValErrors )
         {
- 
-            if(String.IsNullOrEmpty(VendorName))
-                ValErrors.Add("Vendor Name", "Vendor Name is required.");
-            if (VendorID > 0 && VendorGUID == Guid.Empty)
-                ValErrors.Add("Vendor GUID", "Vendor GUID is required.");
 
-            return (ValErrors.Count == 0);
+            if ( String.IsNullOrEmpty( VendorName ) )
+                ValErrors.Add( "Vendor Name", "Vendor Name is required." );
+            if ( VendorID > 0 && VendorGUID == Guid.Empty )
+                ValErrors.Add( "Vendor GUID", "Vendor GUID is required." );
+
+            return ( ValErrors.Count == 0 );
         }
 
 
-        private void SaveHistory(HistoryType ht, Vendor v, string uid)
+        private void SaveHistory( HistoryType ht, Vendor v, string uid )
         {
             History h = new History();
             h.ObjectTypeName = this.GetType().ToString();
             h.ChangeType = ht;
             h.Active = true;
             h.OrganizationID = OrganizationID;
-            switch (ht)
+            switch ( ht )
             {
                 case HistoryType.ADD:
                     h.Identifier = VendorID;
                     h.OriginalXML = null;
-                    h.UpdatedXML = Serialize(this);
+                    h.UpdatedXML = Serialize( this );
                     break;
                 case HistoryType.UPDATE:
                     h.Identifier = VendorID;
-                    h.OriginalXML = v.Serialize(this);
-                    h.UpdatedXML = Serialize(this);
+                    h.OriginalXML = v.Serialize( this );
+                    h.UpdatedXML = Serialize( this );
                     break;
                 case HistoryType.DELETE:
                     h.Identifier = VendorID;
-                    h.OriginalXML = Serialize(this);
+                    h.OriginalXML = Serialize( this );
                     h.UpdatedXML = null;
                     break;
             }
 
-            h.Save(uid);
+            h.Save( uid );
         }
 
 
@@ -496,10 +495,10 @@ namespace org.secc.Purchasing
         private Dictionary<string, string> mInvalidProperties = null;
 
         public VendorNotValidException() { }
-        public VendorNotValidException(string message) : base(message) { }
+        public VendorNotValidException( string message ) : base( message ) { }
 
-        public VendorNotValidException(string message, Dictionary<string, string> invalidProps)
-            : base(message)
+        public VendorNotValidException( string message, Dictionary<string, string> invalidProps )
+            : base( message )
         {
             mInvalidProperties = invalidProps;
         }
@@ -517,14 +516,14 @@ namespace org.secc.Purchasing
             get
             {
                 string msg = base.Message;
-                if (mInvalidProperties.Count > 0)
+                if ( mInvalidProperties.Count > 0 )
                 {
 
                     System.Text.StringBuilder sb = new StringBuilder();
-                    sb.AppendLine("The following fields are not valid:");
-                    foreach (KeyValuePair<string, string> kvp in InvalidProperties)
+                    sb.AppendLine( "The following fields are not valid:" );
+                    foreach ( KeyValuePair<string, string> kvp in InvalidProperties )
                     {
-                        sb.Append(kvp.Key + " - " + kvp.Value);
+                        sb.Append( kvp.Key + " - " + kvp.Value );
                     }
 
                     msg += "\n" + sb.ToString();
@@ -534,11 +533,11 @@ namespace org.secc.Purchasing
             }
         }
 
-        public VendorNotValidException(string message, Exception inner) : base(message, inner) { }
+        public VendorNotValidException( string message, Exception inner ) : base( message, inner ) { }
         protected VendorNotValidException(
           System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context)
-            : base(info, context) { }
+          System.Runtime.Serialization.StreamingContext context )
+            : base( info, context ) { }
 
     }
 
@@ -546,11 +545,11 @@ namespace org.secc.Purchasing
     public class VendorException : Exception
     {
         public VendorException() { }
-        public VendorException(string message) : base(message) { }
-        public VendorException(string message, Exception inner) : base(message, inner) { }
+        public VendorException( string message ) : base( message ) { }
+        public VendorException( string message, Exception inner ) : base( message, inner ) { }
         protected VendorException(
           System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context)
-            : base(info, context) { }
+          System.Runtime.Serialization.StreamingContext context )
+            : base( info, context ) { }
     }
 }

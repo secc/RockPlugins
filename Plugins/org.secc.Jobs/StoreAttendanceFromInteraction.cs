@@ -12,25 +12,25 @@
 // limitations under the License.
 // </copyright>
 //
-using System.Linq;
+using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
+using System.Linq;
+using org.secc.FamilyCheckin.Utilities;
 using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using System;
 using Rock.Web.Cache;
-using System.Collections.Generic;
-using org.secc.FamilyCheckin.Utilities;
 
 namespace org.secc.Jobs
 {
-    [InteractionChannelField( "Interaction Channel", "The interaction channel which contains the interactions.", true, Rock.SystemGuid.InteractionChannel.WIFI_PRESENCE ) ]
-    [KeyValueListField( "Component Campus Mapping", "A mapping between component and campus (use the campus name).", true, "", "Component Name", "Campus") ]
+    [InteractionChannelField( "Interaction Channel", "The interaction channel which contains the interactions.", true, Rock.SystemGuid.InteractionChannel.WIFI_PRESENCE )]
+    [KeyValueListField( "Component Campus Mapping", "A mapping between component and campus (use the campus name).", true, "", "Component Name", "Campus" )]
     [TextField( "Operation", "The interaction operation to use for populating attendance.", false, "Present" )]
-    [GroupTypeField( "Group Type", "The group type to use for logging attendance against (The campus, and Location Schedules on on active groups of this type will be used).", true) ]
+    [GroupTypeField( "Group Type", "The group type to use for logging attendance against (The campus, and Location Schedules on on active groups of this type will be used).", true )]
     [SlidingDateRangeField( "Date Range", "The date range in which the interactions were made.", true, "Last|365|Day||" )]
     [DisallowConcurrentExecution]
     public class StoreAttendanceFromInteraction : IJob
@@ -56,13 +56,13 @@ namespace org.secc.Jobs
             // Setup 
             int campusLocationTypeId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.LOCATION_TYPE_CAMPUS ).Id;
             var groupType = GroupTypeCache.Get( dataMap.GetString( "GroupType" ).AsGuid() );
-            var groupLocations = groupService.GetByGroupTypeId( groupType.Id ).Where( g => g.IsActive == true ).SelectMany(g => g.GroupLocations).ToList();
-            string operation = !string.IsNullOrWhiteSpace(dataMap.GetString( "Operation" )) ? dataMap.GetString( "Operation" ) : null;
+            var groupLocations = groupService.GetByGroupTypeId( groupType.Id ).Where( g => g.IsActive == true ).SelectMany( g => g.GroupLocations ).ToList();
+            string operation = !string.IsNullOrWhiteSpace( dataMap.GetString( "Operation" ) ) ? dataMap.GetString( "Operation" ) : null;
 
             //Create a nested campus list
             Dictionary<int, int> nestedCampuses;
             var nestedCampusDT = DefinedTypeCache.Get( Constants.DEFINED_TYPE_NESTED_CAMPUSES );
-            if (nestedCampusDT != null )
+            if ( nestedCampusDT != null )
             {
                 nestedCampuses = nestedCampusDT.DefinedValues
                      .ToDictionary(
@@ -84,11 +84,11 @@ namespace org.secc.Jobs
             DateRange dateRange = Rock.Web.UI.Controls.SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( dataMap.GetString( "DateRange" ) ?? "-1||" );
 
             // Flip the component campus mapping around and translate to ids
-            Dictionary<int, List<int>> campusComponentIds= new Dictionary<int, List<int>>();
-            foreach( CampusCache campus in CampusCache.All() )
+            Dictionary<int, List<int>> campusComponentIds = new Dictionary<int, List<int>>();
+            foreach ( CampusCache campus in CampusCache.All() )
             {
                 var componentNames = componentCampusMapping.Where( ccm => ccm.Value == campus.Name ).Select( c => c.Key.ToLower() );
-                campusComponentIds[ campus.Id ] = componentService.Queryable().Where( cs => componentNames.Contains( cs.Name.ToLower() ) && cs.ChannelId == channel.Id ).Select( c => c.Id ).ToList();
+                campusComponentIds[campus.Id] = componentService.Queryable().Where( cs => componentNames.Contains( cs.Name.ToLower() ) && cs.InteractionChannelId == channel.Id ).Select( c => c.Id ).ToList();
             }
 
             foreach ( GroupLocation gl in groupLocations )
@@ -100,7 +100,7 @@ namespace org.secc.Jobs
 
                     foreach ( Schedule schedule in gl.Schedules )
                     {
-                        var occurrences = schedule.GetOccurrences( dateRange.Start.Value, dateRange.End.Value );
+                        var occurrences = schedule.GetICalOccurrences( dateRange.Start.Value );
                         foreach ( var occurrence in occurrences )
                         {
                             DateTime startDate = occurrence.Period.StartTime.Value;
@@ -119,7 +119,7 @@ namespace org.secc.Jobs
                             var occurrenceModel = attendanceOccurrenceService.Get( occurrence.Period.StartTime.Value.Date, gl.GroupId, location.Id, schedule.Id );
 
                             // Make sure we don't already have an attendance Record
-                            var existingAttendees = attendanceOccurrenceService.Queryable().Where( ao => DbFunctions.TruncateTime( ao.OccurrenceDate ) == occurrence.Period.StartTime.Value.Date && ao.ScheduleId == schedule.Id && ao.GroupId == gl.GroupId && ao.LocationId == location.Id ).SelectMany(a => a.Attendees).Where(a => a.DidAttend == true ).Select( a => a.PersonAliasId );
+                            var existingAttendees = attendanceOccurrenceService.Queryable().Where( ao => DbFunctions.TruncateTime( ao.OccurrenceDate ) == occurrence.Period.StartTime.Value.Date && ao.ScheduleId == schedule.Id && ao.GroupId == gl.GroupId && ao.LocationId == location.Id ).SelectMany( a => a.Attendees ).Where( a => a.DidAttend == true ).Select( a => a.PersonAliasId );
                             foreach ( int personAliasId in peopleAttended.Except( existingAttendees ) )
                             {
                                 Attendance attendance;
@@ -151,7 +151,7 @@ namespace org.secc.Jobs
                                         .Where( a => a.Id == personAliasId )
                                         .Select( a => a.Person.PrimaryCampusId )
                                         .FirstOrDefault();
-                                    if (campusId == nestedCampuses[gl.Group.CampusId.Value] )
+                                    if ( campusId == nestedCampuses[gl.Group.CampusId.Value] )
                                     {
                                         attendance.CampusId = campusId;
                                     }

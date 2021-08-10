@@ -16,14 +16,14 @@ using System.Collections.Generic;
 
 namespace org.secc.Attributes.Helpers
 {
-    public class KeyValueList : List<KeyValuePair<string, string>> 
-    { 
-        public  KeyValuePair<string, string> Add( string key, string value )
+    public class KeyValueList : List<KeyValuePair<string, string>>
+    {
+        public KeyValuePair<string, string> Add( string key, string value )
         {
             var kv = new KeyValuePair<string, string>( key, value );
             this.Add( kv );
             return kv;
         }
-        
+
     }
 }

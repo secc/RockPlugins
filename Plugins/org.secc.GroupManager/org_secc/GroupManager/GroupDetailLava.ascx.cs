@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -12,30 +12,21 @@
 // limitations under the License.
 // </copyright>
 //
-using Rock.Data;
-using Rock.Model;
-using Rock.Web.UI;
 using System;
-using System.ComponentModel;
-using System.Linq;
-using System.Web.UI;
-using System.Web.UI.WebControls;
-using Rock.Web.Cache;
-using Rock.Web.UI.Controls;
 using System.Collections.Generic;
+using System.ComponentModel;
+using org.secc.GroupManager;
 using Rock;
 using Rock.Attribute;
-using Rock.Security;
-using System.Text;
-using DotLiquid;
-using org.secc.GroupManager;
+using Rock.Model;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
     [DisplayName( "Group Detail Lava" )]
     [Category( "SECC > Groups" )]
     [Description( "Displays information about the group with Lava." )]
-    [CodeEditorField("Lava", "Lava to display", CodeEditorMode.Lava)]
+    [CodeEditorField( "Lava", "Lava to display", CodeEditorMode.Lava )]
 
     public partial class GroupDetailLava : GroupManagerBlock
     {
@@ -47,10 +38,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 NavigateToHomePage();
                 return;
             }
-            Dictionary<string, object> MergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields(RockPage, CurrentPerson);
+            Dictionary<string, object> MergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
             MergeFields.Add( "Group", CurrentGroup );
 
-            ltLava.Text = GetAttributeValue( "Lava" ).ResolveMergeFields( MergeFields );          
+            ltLava.Text = GetAttributeValue( "Lava" ).ResolveMergeFields( MergeFields );
         }
 
     }

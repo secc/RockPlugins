@@ -17,14 +17,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-
+using Rock;
 using Rock.Attribute;
 using Rock.Communication;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Workflow;
-using Rock;
 
 namespace RockWeb.Plugins.org_secc.Communication
 {
@@ -69,14 +68,14 @@ namespace RockWeb.Plugins.org_secc.Communication
             // Get the From value. Can be in the form of Text, Phone Number, Person or Defined type 
             string fromValue = string.Empty;
             int? fromId = null;
-         
+
             fromValue = GetAttributeValue( action, "From", true );
 
-           
+
             if ( !string.IsNullOrWhiteSpace( fromValue ) )
             {
 
-                      
+
                 Guid? fromGuid = fromValue.AsGuidOrNull();
 
                 DefinedTypeCache smsPhoneNumbers = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM );
@@ -88,7 +87,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                     {
                         fromValue = PhoneNumber.CleanNumber( fromValue );
                         fromGuid = smsPhoneNumbers.DefinedValues.Where( dv => dv.Value.Right( 10 ) == fromValue.Right( 10 ) ).Select( dv => dv.Guid ).FirstOrDefault();
-                        if ( fromGuid == Guid.Empty)
+                        if ( fromGuid == Guid.Empty )
                         {
                             action.AddLogEntry( "Invalid sending number: Person or valid SMS phone number not found", true );
                         }
@@ -96,6 +95,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                     catch ( Exception e )
                     {
                         action.AddLogEntry( "Invalid sending number: Person or valid SMS phone number not found", true );
+                        ExceptionLogService.LogException( e );
                     }
                 }
 
@@ -115,149 +115,149 @@ namespace RockWeb.Plugins.org_secc.Communication
 
             }
 
-                    // Get the recipients, Can be in the form of Text, Phone Number, Person, Group or Security role
-                    var recipients = new List<RockSMSMessageRecipient>();
-                    string toValue = GetAttributeValue( action, "To" );
-                    Guid guid = toValue.AsGuid();
-                    if ( !guid.IsEmpty() )
+            // Get the recipients, Can be in the form of Text, Phone Number, Person, Group or Security role
+            var recipients = new List<RockSMSMessageRecipient>();
+            string toValue = GetAttributeValue( action, "To" );
+            Guid guid = toValue.AsGuid();
+            if ( !guid.IsEmpty() )
+            {
+                var attribute = AttributeCache.Get( guid, rockContext );
+                if ( attribute != null )
+                {
+                    string toAttributeValue = action.GetWorkflowAttributeValue( guid );
+                    if ( !string.IsNullOrWhiteSpace( toAttributeValue ) )
                     {
-                        var attribute = AttributeCache.Get( guid, rockContext );
-                        if ( attribute != null )
+                        switch ( attribute.FieldType.Class )
                         {
-                            string toAttributeValue = action.GetWorklowAttributeValue( guid );
-                            if ( !string.IsNullOrWhiteSpace( toAttributeValue ) )
-                            {
-                                switch ( attribute.FieldType.Class )
+                            case "Rock.Field.Types.TextFieldType":
+                            case "Rock.Field.Types.PhoneNumberFieldType":
                                 {
-                                    case "Rock.Field.Types.TextFieldType":
-                                    case "Rock.Field.Types.PhoneNumberFieldType":
-                                        {
-                                            var smsNumber = toAttributeValue;
-                                            smsNumber = PhoneNumber.CleanNumber( smsNumber );
-                                            recipients.Add( RockSMSMessageRecipient.CreateAnonymous( smsNumber, mergeFields ) );
-                                            break;
-                                        }
-                                    case "Rock.Field.Types.PersonFieldType":
-                                        {
-                                            Guid personAliasGuid = toAttributeValue.AsGuid();
-                                            if ( !personAliasGuid.IsEmpty() )
-                                            {
-                                                var phoneNumber = new PersonAliasService( rockContext ).Queryable()
-                                                    .Where( a => a.Guid.Equals( personAliasGuid ) )
-                                                    .SelectMany( a => a.Person.PhoneNumbers )
-                                                    .Where( p => p.IsMessagingEnabled )
-                                                    .FirstOrDefault();
-
-                                                if ( phoneNumber == null )
-                                                {
-                                                    action.AddLogEntry( "Invalid Recipient: Person or valid SMS phone number not found", true );
-                                                }
-                                                else
-                                                {
-                                                    var person = new PersonAliasService( rockContext ).GetPerson( personAliasGuid );
-
-                                                    var recipient = new RockSMSMessageRecipient( person, phoneNumber.ToSmsNumber(), mergeFields );
-                                                    recipients.Add( recipient );
-                                                    recipient.MergeFields.Add( recipient.PersonMergeFieldKey, person );
-                                                }
-                                            }
-                                            break;
-                                        }
-
-                                    case "Rock.Field.Types.GroupFieldType":
-                                    case "Rock.Field.Types.SecurityRoleFieldType":
-                                        {
-                                            int? groupId = toAttributeValue.AsIntegerOrNull();
-                                            Guid? groupGuid = toAttributeValue.AsGuidOrNull();
-                                            IQueryable<GroupMember> qry = null;
-
-                                            // Handle situations where the attribute value is the ID
-                                            if ( groupId.HasValue )
-                                            {
-                                                qry = new GroupMemberService( rockContext ).GetByGroupId( groupId.Value );
-                                            }
-
-                                            // Handle situations where the attribute value stored is the Guid
-                                            else if ( groupGuid.HasValue )
-                                            {
-                                                qry = new GroupMemberService( rockContext ).GetByGroupGuid( groupGuid.Value );
-                                            }
-                                            else
-                                            {
-                                                action.AddLogEntry( "Invalid Recipient: No valid group id or Guid", true );
-                                            }
-
-                                            if ( qry != null )
-                                            {
-                                                foreach ( var person in qry
-                                                    .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
-                                                    .Select( m => m.Person ) )
-                                                {
-                                                    var phoneNumber = person.PhoneNumbers
-                                                        .Where( p => p.IsMessagingEnabled )
-                                                        .FirstOrDefault();
-                                                    if ( phoneNumber != null )
-                                                    {
-                                                        var recipientMergeFields = new Dictionary<string, object>( mergeFields );
-                                                        var recipient = new RockSMSMessageRecipient( person, phoneNumber.ToSmsNumber(), recipientMergeFields );
-                                                        recipients.Add( recipient );
-                                                        recipient.MergeFields.Add( recipient.PersonMergeFieldKey, person );
-                                                    }
-                                                }
-                                            }
-                                            break;
-                                        }
+                                    var smsNumber = toAttributeValue;
+                                    smsNumber = PhoneNumber.CleanNumber( smsNumber );
+                                    recipients.Add( RockSMSMessageRecipient.CreateAnonymous( smsNumber, mergeFields ) );
+                                    break;
                                 }
-                            }
+                            case "Rock.Field.Types.PersonFieldType":
+                                {
+                                    Guid personAliasGuid = toAttributeValue.AsGuid();
+                                    if ( !personAliasGuid.IsEmpty() )
+                                    {
+                                        var phoneNumber = new PersonAliasService( rockContext ).Queryable()
+                                            .Where( a => a.Guid.Equals( personAliasGuid ) )
+                                            .SelectMany( a => a.Person.PhoneNumbers )
+                                            .Where( p => p.IsMessagingEnabled )
+                                            .FirstOrDefault();
+
+                                        if ( phoneNumber == null )
+                                        {
+                                            action.AddLogEntry( "Invalid Recipient: Person or valid SMS phone number not found", true );
+                                        }
+                                        else
+                                        {
+                                            var person = new PersonAliasService( rockContext ).GetPerson( personAliasGuid );
+
+                                            var recipient = new RockSMSMessageRecipient( person, phoneNumber.ToSmsNumber(), mergeFields );
+                                            recipients.Add( recipient );
+                                            recipient.MergeFields.Add( recipient.PersonMergeFieldKey, person );
+                                        }
+                                    }
+                                    break;
+                                }
+
+                            case "Rock.Field.Types.GroupFieldType":
+                            case "Rock.Field.Types.SecurityRoleFieldType":
+                                {
+                                    int? groupId = toAttributeValue.AsIntegerOrNull();
+                                    Guid? groupGuid = toAttributeValue.AsGuidOrNull();
+                                    IQueryable<GroupMember> qry = null;
+
+                                    // Handle situations where the attribute value is the ID
+                                    if ( groupId.HasValue )
+                                    {
+                                        qry = new GroupMemberService( rockContext ).GetByGroupId( groupId.Value );
+                                    }
+
+                                    // Handle situations where the attribute value stored is the Guid
+                                    else if ( groupGuid.HasValue )
+                                    {
+                                        qry = new GroupMemberService( rockContext ).GetByGroupGuid( groupGuid.Value );
+                                    }
+                                    else
+                                    {
+                                        action.AddLogEntry( "Invalid Recipient: No valid group id or Guid", true );
+                                    }
+
+                                    if ( qry != null )
+                                    {
+                                        foreach ( var person in qry
+                                            .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
+                                            .Select( m => m.Person ) )
+                                        {
+                                            var phoneNumber = person.PhoneNumbers
+                                                .Where( p => p.IsMessagingEnabled )
+                                                .FirstOrDefault();
+                                            if ( phoneNumber != null )
+                                            {
+                                                var recipientMergeFields = new Dictionary<string, object>( mergeFields );
+                                                var recipient = new RockSMSMessageRecipient( person, phoneNumber.ToSmsNumber(), recipientMergeFields );
+                                                recipients.Add( recipient );
+                                                recipient.MergeFields.Add( recipient.PersonMergeFieldKey, person );
+                                            }
+                                        }
+                                    }
+                                    break;
+                                }
                         }
                     }
-                    else
-                    {
-                        if ( !string.IsNullOrWhiteSpace( toValue ) )
-                        {
-                            recipients.Add( RockSMSMessageRecipient.CreateAnonymous( toValue.ResolveMergeFields( mergeFields ), mergeFields ) );
-                        }
-                    }
-
-                    // Get the message from the Message attribute.
-                    // NOTE: Passing 'true' as the checkWorkflowAttributeValue will also check the workflow AttributeValue
-                    // which allows us to remove the unneeded code.
-                    string message = GetAttributeValue( action, "Message", checkWorkflowAttributeValue: true );
-
-                    // Add the attachment (if one was specified)
-                    var attachmentBinaryFileGuid = GetAttributeValue( action, "Attachment", true ).AsGuidOrNull();
-                    BinaryFile binaryFile = null;
-
-                    if ( attachmentBinaryFileGuid.HasValue && attachmentBinaryFileGuid != Guid.Empty )
-                    {
-                        binaryFile = new BinaryFileService( rockContext ).Get( attachmentBinaryFileGuid.Value );
-                    }
-
-                    // Send the message
-                    if ( recipients.Any() && ( !string.IsNullOrWhiteSpace( message ) || binaryFile != null ) )
-                    {
-                        var smsMessage = new RockSMSMessage();
-                        smsMessage.SetRecipients( recipients );
-                        smsMessage.FromNumber = DefinedValueCache.Get( fromId.Value );
-                        smsMessage.Message = message;
-                        smsMessage.CreateCommunicationRecord = GetAttributeValue( action, "SaveCommunicationHistory" ).AsBoolean();
-                        smsMessage.communicationName = action.ActionTypeCache.Name;
-
-                        if ( binaryFile != null )
-                        {
-                            smsMessage.Attachments.Add( binaryFile );
-                        }
-
-                        smsMessage.Send();
-                    }
-                    else
-                    {
-                        action.AddLogEntry( "Warning: No text or attachment was supplied so nothing was sent.", true );
-                    }
-
-                    return true;
-                
+                }
             }
-        
+            else
+            {
+                if ( !string.IsNullOrWhiteSpace( toValue ) )
+                {
+                    recipients.Add( RockSMSMessageRecipient.CreateAnonymous( toValue.ResolveMergeFields( mergeFields ), mergeFields ) );
+                }
+            }
+
+            // Get the message from the Message attribute.
+            // NOTE: Passing 'true' as the checkWorkflowAttributeValue will also check the workflow AttributeValue
+            // which allows us to remove the unneeded code.
+            string message = GetAttributeValue( action, "Message", checkWorkflowAttributeValue: true );
+
+            // Add the attachment (if one was specified)
+            var attachmentBinaryFileGuid = GetAttributeValue( action, "Attachment", true ).AsGuidOrNull();
+            BinaryFile binaryFile = null;
+
+            if ( attachmentBinaryFileGuid.HasValue && attachmentBinaryFileGuid != Guid.Empty )
+            {
+                binaryFile = new BinaryFileService( rockContext ).Get( attachmentBinaryFileGuid.Value );
+            }
+
+            // Send the message
+            if ( recipients.Any() && ( !string.IsNullOrWhiteSpace( message ) || binaryFile != null ) )
+            {
+                var smsMessage = new RockSMSMessage();
+                smsMessage.SetRecipients( recipients );
+                smsMessage.FromNumber = DefinedValueCache.Get( fromId.Value );
+                smsMessage.Message = message;
+                smsMessage.CreateCommunicationRecord = GetAttributeValue( action, "SaveCommunicationHistory" ).AsBoolean();
+                smsMessage.communicationName = action.ActionTypeCache.Name;
+
+                if ( binaryFile != null )
+                {
+                    smsMessage.Attachments.Add( binaryFile );
+                }
+
+                smsMessage.Send();
+            }
+            else
+            {
+                action.AddLogEntry( "Warning: No text or attachment was supplied so nothing was sent.", true );
+            }
+
+            return true;
+
+        }
+
     }
 }

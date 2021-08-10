@@ -1,25 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
-using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
 using Rock;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
-using Rock.Web.UI.Controls;
-using Rock.Attribute;
-using Rock.Web.UI;
-using CSScriptLibrary;
-using OpenXmlPowerTools;
-using Rock.Workflow.Action;
-using DocumentFormat.OpenXml.InkML;
-using Nest;
 using Rock.Security;
+using Rock.Web.Cache;
+using Rock.Web.UI;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.Communication
 {
@@ -247,8 +238,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
                 if ( dataView != null && dataView.IsAuthorized( Authorization.VIEW, CurrentPerson ) )
                 {
-                    List<string> errorMessages;
-                    var dvQuery = dataView.GetQuery( null, rockContext, 60, out errorMessages );
+                    var dvQuery = dataView.GetQuery( new DataViewGetQueryArgs { DbContext = rockContext, DatabaseTimeoutSeconds = 60 } );
                     qry = qry.Where( m => dvQuery.Select( p => p.Id ).Contains( m.PersonId ) );
                 }
 

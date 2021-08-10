@@ -2,21 +2,14 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Threading;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using Amazon.S3.Model.Internal.MarshallTransformations;
-using DocumentFormat.OpenXml.Office2010.ExcelAc;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using OpenXmlPowerTools;
 using org.secc.SystemsMonitor;
 using org.secc.SystemsMonitor.Model;
 using Rock;
-using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.UI;
-using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.SystemsMonitor
 {
@@ -85,7 +78,7 @@ namespace RockWeb.Plugins.org_secc.SystemsMonitor
                     foreach ( ListItem item in cblAlarmNotification.Items )
                     {
                         var alarmcondition = ( AlarmNotification ) item.Value.AsInteger();
-                        item.Selected = ( alarmcondition & monitorTest.AlarmNotification ) ==  ( AlarmNotification ) Enum.Parse( typeof( AlarmNotification ), item.Text );
+                        item.Selected = ( alarmcondition & monitorTest.AlarmNotification ) == ( AlarmNotification ) Enum.Parse( typeof( AlarmNotification ), item.Text );
                     }
                     monitorTest.LoadAttributes();
                     Rock.Attribute.Helper.AddEditControls( monitorTest, phAttributes, true, "", exclude: _attributeExclusion );
@@ -189,9 +182,9 @@ namespace RockWeb.Plugins.org_secc.SystemsMonitor
 
         private void BindAlarmNotificationDropDown()
         {
-            
+
             cblAlarmNotification.BindToEnum<AlarmNotification>();
-            
+
         }
 
         protected void btnSave_Click( object sender, EventArgs e )

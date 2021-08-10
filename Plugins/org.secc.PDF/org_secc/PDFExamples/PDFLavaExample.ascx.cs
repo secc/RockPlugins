@@ -14,21 +14,16 @@
 //
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
 using System.ComponentModel;
-
+using System.Linq;
+using System.Web.UI;
+using org.secc.PDF;
 using Rock;
-using Rock.Web.UI;
-using System.Web.UI.HtmlControls;
-using Rock.Web.UI.Controls;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using org.secc.PDF;
-using Rock.Attribute;
 using Rock.Web.Cache;
+using Rock.Web.UI;
 
 namespace RockWeb.Plugins.org_secc.PDFExamples
 {

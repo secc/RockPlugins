@@ -15,7 +15,7 @@
 namespace org.secc.ConnectionsDigest.Migrations
 {
     using Rock.Plugin;
-    [MigrationNumber(1, "1.7.0")]
+    [MigrationNumber( 1, "1.7.0" )]
     public partial class InitialCreate : Rock.Plugin.Migration
     {
         public override void Up()
@@ -175,7 +175,7 @@ namespace org.secc.ConnectionsDigest.Migrations
 {{ ''Global'' | Attribute:''EmailFooter'' }}',
                        '10059716-8B49-46EA-BEDF-AE388DE9F7FF',
                        (SELECT Id FROM Category WHERE NAME = 'Plugins')
-            );");
+            );" );
         }
 
         public override void Down()

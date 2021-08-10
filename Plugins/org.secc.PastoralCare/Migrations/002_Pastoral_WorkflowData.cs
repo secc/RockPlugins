@@ -12,11 +12,6 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Rock;
 using Rock.Plugin;
 using Rock.Web.Cache;
@@ -28,7 +23,7 @@ namespace org.secc.PastoralCare.Migrations
     {
         public override void Up()
         {
-            RockMigrationHelper.UpdateCategory( "C9F3C4A5-1526-474D-803F-D6C7A45CBBAE", "Pastoral Care", "fa fa-heartbeat", "Pastoral Care", "549AA5EB-6506-47EA-BD9A-00AAC00F1C73");
+            RockMigrationHelper.UpdateCategory( "C9F3C4A5-1526-474D-803F-D6C7A45CBBAE", "Pastoral Care", "fa fa-heartbeat", "Pastoral Care", "549AA5EB-6506-47EA-BD9A-00AAC00F1C73" );
 
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( "36005473-BD5D-470B-B28D-98E6D7ED808D", "1EDAFDED-DFE6-4334-B019-6EECBA89E05A", "Active", "Active", "Should Service be used?", 0, @"False", "0A800013-51F7-4902-885A-5BE215D67D3D" ); // Rock.Workflow.Action.SetWorkflowName:Active  
             RockMigrationHelper.UpdateWorkflowActionEntityAttribute( "36005473-BD5D-470B-B28D-98E6D7ED808D", "3B1D93D7-9414-48F9-80E5-6A3FC8F94C20", "Text Value|Attribute Value", "NameValue", "The value to use for the workflow's name. <span class='tip tip-lava'></span>", 1, @"", "93852244-A667-4749-961A-D47F88675BE4" ); // Rock.Workflow.Action.SetWorkflowName:Text Value|Attribute Value  

@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -15,15 +15,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
+using System.Web.UI;
 using Rock;
-using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
-using System.Linq;
-using org.secc.OAuth.Model;
-using org.secc.OAuth.Data;
-using System.Web.UI;
 
 namespace RockWeb.Plugins.org_secc.RoomScanner
 {
@@ -35,7 +32,7 @@ namespace RockWeb.Plugins.org_secc.RoomScanner
     [Description( "Report to show where children were located." )]
     public partial class RoomReport : Rock.Web.UI.RockBlock
     {
-        private static int personEntityTypeId = EntityTypeCache.Read( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
+        private static int personEntityTypeId = EntityTypeCache.Get( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
         protected override void OnLoad( EventArgs e )
         {
             if ( !Page.IsPostBack )
@@ -169,7 +166,7 @@ class RoomEvent
 
     public void AddEvent( History history )
     {
-        Events.Add( history.Summary );
+        Events.Add( history.SummaryHtml );
     }
 
     public override string ToString()

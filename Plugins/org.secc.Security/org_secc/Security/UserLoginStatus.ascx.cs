@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -32,11 +32,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Web.Security;
-using System.Linq;
 using Rock;
 using Rock.Attribute;
 using Rock.Security;
-using System.Text;
 
 namespace RockWeb.Plugins.org_secc.Security
 {
@@ -50,13 +48,13 @@ namespace RockWeb.Plugins.org_secc.Security
     [LinkedPage( "My Account Page", "Page for user to manage their account (if blank will use 'MyAccount' page route)", false )]
     [LinkedPage( "My Profile Page", "Page for user to view their person profile (if blank option will not be displayed)", false )]
     [LinkedPage( "My Settings Page", "Page for user to view their settings (if blank option will not be displayed)", false )]
-    
+
     public partial class UserLoginStatus : Rock.Web.UI.RockBlock
     {
 
         private const String LOGIN_TEXT = "Login";
         private const String LOGOUT_TEXT = "Logout";
-        
+
         #region Base Control Methods
 
         /// <summary>
@@ -68,7 +66,7 @@ namespace RockWeb.Plugins.org_secc.Security
             base.OnInit( e );
 
             var myAccountUrl = LinkedPageUrl( "MyAccountPage" );
-            
+
             if ( !string.IsNullOrWhiteSpace( myAccountUrl ) )
             {
                 MyAccountLink.NavigateUrl = myAccountUrl;
@@ -91,7 +89,7 @@ namespace RockWeb.Plugins.org_secc.Security
             var currentPerson = CurrentPerson;
             if ( currentPerson != null )
             {
-                
+
                 PersonName.InnerText = currentPerson.FullName;
                 PersonEmail.InnerText = currentPerson.Email;
 
@@ -102,10 +100,10 @@ namespace RockWeb.Plugins.org_secc.Security
                     MyAccountItem.Visible = false;
                     MyProfileItem.Visible = false;
                 }
-                
+
                 var queryParams = new Dictionary<string, string>();
                 queryParams.Add( "PersonId", currentPerson.Id.ToString() );
-                
+
                 var myProfileUrl = LinkedPageUrl( "MyProfilePage", queryParams );
                 if ( !string.IsNullOrWhiteSpace( myProfileUrl ) )
                 {
@@ -118,7 +116,7 @@ namespace RockWeb.Plugins.org_secc.Security
                 }
 
                 LoginLogout.Text = LOGOUT_TEXT;
-            
+
             }
             else
             {
@@ -167,8 +165,8 @@ namespace RockWeb.Plugins.org_secc.Security
 
                 // After logging out check to see if an anonymous user is allowed to view the current page.  If so
                 // redirect back to the current page, otherwise redirect to the site's default page
-                var currentPage = Rock.Web.Cache.PageCache.Read( RockPage.PageId );
-                if ( currentPage != null && currentPage.IsAuthorized(Authorization.VIEW, null))
+                var currentPage = Rock.Web.Cache.PageCache.Get( RockPage.PageId );
+                if ( currentPage != null && currentPage.IsAuthorized( Authorization.VIEW, null ) )
                 {
                     Response.Redirect( CurrentPageReference.BuildUrl() );
                     Context.ApplicationInstance.CompleteRequest();

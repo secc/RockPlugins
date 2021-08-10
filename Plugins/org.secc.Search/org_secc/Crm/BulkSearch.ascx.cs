@@ -13,17 +13,13 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Web.UI;
 using System.Web.UI.WebControls;
 using Rock;
-using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
-using Rock.Security;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -74,10 +70,10 @@ namespace RockWeb.Plugins.org_secc.Search
 
             // Handle all the phone numbers
             var emails = tbNumbers.Text.Split( new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries )
-                .Where(e => Regex.IsMatch( e,
-                        @"^(?("")("".+?(?<!\\)""@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))" +
-                        @"(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-0-9a-z]*[0-9a-z]*\.)+[a-z0-9][\-a-z0-9]{0,22}[a-z0-9]))$",
-                        RegexOptions.IgnoreCase )
+                .Where( e => Regex.IsMatch( e,
+                         @"^(?("")("".+?(?<!\\)""@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))" +
+                         @"(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-0-9a-z]*[0-9a-z]*\.)+[a-z0-9][\-a-z0-9]{0,22}[a-z0-9]))$",
+                         RegexOptions.IgnoreCase )
                 ).Select( e => e.ToLower() ).ToList();
 
             // Handle the Phone Numbers
@@ -85,9 +81,9 @@ namespace RockWeb.Plugins.org_secc.Search
                 .Where( e => Regex.IsMatch( e,
                          @"^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$",
                         RegexOptions.IgnoreCase )
-                ).Select(n => Regex.Replace( n, "[^0-9]", "" )).ToList();
+                ).Select( n => Regex.Replace( n, "[^0-9]", "" ) ).ToList();
 
-            var people = personService.Queryable().Where( p => p.PhoneNumbers.Any(pn => numbers.Contains( pn.Number ) ) || emails.Contains( p.Email.ToLower() ) )
+            var people = personService.Queryable().Where( p => p.PhoneNumbers.Any( pn => numbers.Contains( pn.Number ) ) || emails.Contains( p.Email.ToLower() ) )
                 .DistinctBy( p => p.Id )
                 .ToList();
 

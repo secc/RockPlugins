@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -16,13 +16,13 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
+using org.secc.Microframe.Model;
 using Rock;
 using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web.UI;
-using org.secc.Microframe.Model;
 
 namespace RockWeb.Plugins.org_secc.Microframe
 {

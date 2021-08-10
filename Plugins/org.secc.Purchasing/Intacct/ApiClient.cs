@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using org.secc.Purchasing.Intacct.Api;
@@ -55,18 +53,18 @@ namespace org.secc.Purchasing.Intacct
             requestBody.Control.Password = SenderPassword;
             if ( includeSession )
             {
-                if (string.IsNullOrWhiteSpace( Session ) )
+                if ( string.IsNullOrWhiteSpace( Session ) )
                 {
                     StartApiSession();
                 }
 
                 requestBody.Operation.Authentication.SessionId = Session;
-            } 
+            }
 
             return requestBody;
         }
 
-        private void CheckResponse(IRestResponse response)
+        private void CheckResponse( IRestResponse response )
         {
             var xmlDeserializer = new RestSharp.Deserializers.XmlDeserializer();
             var responseObj = xmlDeserializer.Deserialize<Response>( response );
@@ -82,7 +80,7 @@ namespace org.secc.Purchasing.Intacct
                 {
                     errorMessage += " " + responseObj?.ErrorMessage?.Error?.Description2;
                 }
-                
+
                 throw new Exception( errorMessage );
             }
 
@@ -256,9 +254,10 @@ namespace org.secc.Purchasing.Intacct
                 var xmlDeserializer = new RestSharp.Deserializers.XmlDeserializer();
                 var auth = xmlDeserializer.Deserialize<Authentication>( response );
 
-                CacheTimeout = DateTime.Now.AddHours(2);
+                CacheTimeout = DateTime.Now.AddHours( 2 );
 
-                RockCache.AddOrUpdate( cacheKey, null, apiSession, CacheTimeout, INTACCT_CACHE_TAG ); ;
+                RockCache.AddOrUpdate( cacheKey, null, apiSession, CacheTimeout, INTACCT_CACHE_TAG );
+                ;
             }
             Session = apiSession.SessionId;
         }

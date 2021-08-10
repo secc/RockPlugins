@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -14,9 +14,7 @@
 //
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -24,7 +22,6 @@ using org.secc.Purchasing;
 using org.secc.Purchasing.Helpers;
 
 using Rock;
-using Rock.Web.UI;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
@@ -55,8 +52,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                if (ViewState["ucVendorSelect_IsNew"] != null)
-                    mIsNew = bool.Parse(ViewState["ucVendorSelect_IsNew"].ToString());
+                if ( ViewState["ucVendorSelect_IsNew"] != null )
+                    mIsNew = bool.Parse( ViewState["ucVendorSelect_IsNew"].ToString() );
                 return mIsNew;
             }
             set
@@ -75,25 +72,25 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             set
             {
                 mIsReadOnly = value;
-                EnableTextboxes(value);
+                EnableTextboxes( value );
             }
         }
 
         public int VendorID
         {
-            get 
+            get
             {
-                if (ViewState[ "ucVendorSelect_VendorID"] != null)
-                    mVendorId = int.Parse(ViewState["ucVendorSelect_VendorID"].ToString());
-                return mVendorId; 
+                if ( ViewState["ucVendorSelect_VendorID"] != null )
+                    mVendorId = int.Parse( ViewState["ucVendorSelect_VendorID"].ToString() );
+                return mVendorId;
             }
             set
             {
                 mVendorId = value;
-                if (mVendorId == -1)
-                    ViewState.Remove("ucVendorSelect_VendorID");
+                if ( mVendorId == -1 )
+                    ViewState.Remove( "ucVendorSelect_VendorID" );
                 else
-                    ViewState["ucVendorSelect_VendorID"]= value;
+                    ViewState["ucVendorSelect_VendorID"] = value;
                 IsNew = false;
             }
         }
@@ -101,34 +98,34 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                if (String.IsNullOrEmpty(mVendorName) && ViewState[ "ucVendorSelect_VendorName"] != null)
-                    mVendorName = ViewState[ "ucVendorSelect_VendorName"].ToString();
+                if ( String.IsNullOrEmpty( mVendorName ) && ViewState["ucVendorSelect_VendorName"] != null )
+                    mVendorName = ViewState["ucVendorSelect_VendorName"].ToString();
                 return mVendorName;
             }
             set
             {
                 mVendorName = value;
-                if (!String.IsNullOrEmpty(value))
-                    ViewState[ "ucVendorSelect_VendorName"] = value;
+                if ( !String.IsNullOrEmpty( value ) )
+                    ViewState["ucVendorSelect_VendorName"] = value;
                 else
-                    ViewState.Remove("ucVendorSelect_VendorName");
+                    ViewState.Remove( "ucVendorSelect_VendorName" );
                 IsNew = false;
             }
         }
 
         public string VendorAddress
         {
-            get 
+            get
             {
-                if (String.IsNullOrEmpty(mVendorAddress) && ViewState["ucVendorSelect_VendorAddress"] != null)
+                if ( String.IsNullOrEmpty( mVendorAddress ) && ViewState["ucVendorSelect_VendorAddress"] != null )
                     mVendorAddress = ViewState["ucVendorSelect_VendorAddress"].ToString();
-                return mVendorAddress; 
+                return mVendorAddress;
             }
             set
             {
                 mVendorAddress = value;
-                if (String.IsNullOrEmpty(mVendorAddress))
-                    ViewState.Remove("ucVendorSelect_VendorAddress");
+                if ( String.IsNullOrEmpty( mVendorAddress ) )
+                    ViewState.Remove( "ucVendorSelect_VendorAddress" );
                 else
                     ViewState["ucVendorSelect_VendorAddress"] = value;
                 IsNew = false;
@@ -137,17 +134,17 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         public string VendorPhone
         {
-            get 
+            get
             {
-                if (String.IsNullOrEmpty(mVendorPhone) && ViewState["ucVendorSelect_VendorPhone"] != null)
-                    mVendorPhone = ViewState["ucVendorSelect_VendorPhone"].ToString(); 
+                if ( String.IsNullOrEmpty( mVendorPhone ) && ViewState["ucVendorSelect_VendorPhone"] != null )
+                    mVendorPhone = ViewState["ucVendorSelect_VendorPhone"].ToString();
                 return mVendorPhone;
             }
             set
             {
                 mVendorPhone = value;
-                if (String.IsNullOrEmpty(mVendorPhone))
-                    ViewState.Remove("ucVendorSelect_VendorPhone");
+                if ( String.IsNullOrEmpty( mVendorPhone ) )
+                    ViewState.Remove( "ucVendorSelect_VendorPhone" );
                 else
                     ViewState["ucVendorSelect_VendorPhone"] = value;
                 IsNew = false;
@@ -155,17 +152,17 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         }
         public string VendorWebAddress
         {
-            get 
+            get
             {
-                if (String.IsNullOrEmpty(mVendorWebAddress) && ViewState["ucVendorSelect_VendorWebAddress"] != null)
-                    mVendorWebAddress = ViewState["ucVendorSelect_VendorWebAddress"].ToString(); 
-                return mVendorWebAddress; 
+                if ( String.IsNullOrEmpty( mVendorWebAddress ) && ViewState["ucVendorSelect_VendorWebAddress"] != null )
+                    mVendorWebAddress = ViewState["ucVendorSelect_VendorWebAddress"].ToString();
+                return mVendorWebAddress;
             }
             set
             {
                 mVendorWebAddress = value;
-                if (String.IsNullOrEmpty(mVendorWebAddress))
-                    ViewState.Remove("ucVendorSelect_VendorWebAddress");
+                if ( String.IsNullOrEmpty( mVendorWebAddress ) )
+                    ViewState.Remove( "ucVendorSelect_VendorWebAddress" );
                 else
                     ViewState["ucVendorSelect_VendorWebAddress"] = value;
                 IsNew = false;
@@ -174,35 +171,35 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
 
         #region Page Events
-        protected void Page_Load(object sender, EventArgs e)
+        protected void Page_Load( object sender, EventArgs e )
         {
-            if (!Page.IsPostBack)
+            if ( !Page.IsPostBack )
             {
-                BuildVendorList(); 
+                BuildVendorList();
             }
         }
 
 
-        protected void ddlVendor_SelectedIndexChanged(object sender, EventArgs e)
+        protected void ddlVendor_SelectedIndexChanged( object sender, EventArgs e )
         {
-            DropDownList VendorDDL = (DropDownList)sender;
+            DropDownList VendorDDL = ( DropDownList ) sender;
             int vID = 0;
 
-            if (!int.TryParse(VendorDDL.SelectedValue, out vID))
+            if ( !int.TryParse( VendorDDL.SelectedValue, out vID ) )
                 return;
             ClearTextFields();
 
-            switch (vID)
+            switch ( vID )
             {
                 case -1:
-                    EnableTextboxes(false);
+                    EnableTextboxes( false );
                     break;
                 case 0:
-                    EnableTextboxes(true);
+                    EnableTextboxes( true );
                     break;
                 default:
-                    LoadVendor(vID);
-                    EnableTextboxes(false);
+                    LoadVendor( vID );
+                    EnableTextboxes( false );
                     break;
             }
         }
@@ -214,48 +211,48 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         public void Show()
         {
             ClearTextFields();
-            if (!IsNew)
+            if ( !IsNew )
             {
-                LoadVendor(VendorID);
+                LoadVendor( VendorID );
             }
             else
             {
-                if (ddlVendor.Items.FindByValue("-1") != null)
+                if ( ddlVendor.Items.FindByValue( "-1" ) != null )
                     ddlVendor.SelectedValue = "-1";
                 ClearProperties();
-                EnableTextboxes(false);
+                EnableTextboxes( false );
             }
 
-            if (IsReadOnly)
+            if ( IsReadOnly )
             {
-                ScriptManager.RegisterStartupScript(this, typeof(UserControl), "DisableVendorDropDown", "disableVendorDropdown(" + IsReadOnly.ToString().ToLower() + ");", true);
+                ScriptManager.RegisterStartupScript( this, typeof( UserControl ), "DisableVendorDropDown", "disableVendorDropdown(" + IsReadOnly.ToString().ToLower() + ");", true );
             }
         }
 
         public void Reset()
         {
             ClearTextFields();
-            SetStatusMessage(String.Empty);
-            if (!IsNew)
-                LoadVendor(VendorID);
+            SetStatusMessage( String.Empty );
+            if ( !IsNew )
+                LoadVendor( VendorID );
             else
-                EnableTextboxes(false);
+                EnableTextboxes( false );
         }
 
         public bool Update()
         {
             bool updateSuccessful = false;
             Dictionary<string, string> ValErrors = Validate();
-            if (ValErrors.Count != 0)
+            if ( ValErrors.Count != 0 )
             {
                 System.Text.StringBuilder sb = new System.Text.StringBuilder();
-                sb.Append("<ul type=\"disc\">");
-                foreach (KeyValuePair<string, string> item in ValErrors)
+                sb.Append( "<ul type=\"disc\">" );
+                foreach ( KeyValuePair<string, string> item in ValErrors )
                 {
-                    sb.AppendFormat("<li>{0}-{1}</li>", item.Key, item.Value);
+                    sb.AppendFormat( "<li>{0}-{1}</li>", item.Key, item.Value );
                 }
-                sb.AppendFormat("</ul>");
-                SetStatusMessage(sb.ToString());
+                sb.AppendFormat( "</ul>" );
+                SetStatusMessage( sb.ToString() );
             }
             else
             {
@@ -269,7 +266,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             ClearProperties();
             ClearTextFields();
-            EnableTextboxes(false);
+            EnableTextboxes( false );
         }
 
         #endregion
@@ -282,18 +279,18 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             ddlVendor.DataValueField = "VendorID";
             ddlVendor.DataTextField = "VendorName";
-            ddlVendor.DataSource = Vendor.LoadVendors(true).OrderBy(x => x.VendorName);
+            ddlVendor.DataSource = Vendor.LoadVendors( true ).OrderBy( x => x.VendorName );
             ddlVendor.DataBind();
 
-            ddlVendor.Items.Insert(0, new ListItem("--Select---", "-1"));
-            
-            if(CanAddNewVendor)
-                ddlVendor.Items.Insert(1, new ListItem("[New Vendor]", "0"));
+            ddlVendor.Items.Insert( 0, new ListItem( "--Select---", "-1" ) );
+
+            if ( CanAddNewVendor )
+                ddlVendor.Items.Insert( 1, new ListItem( "[New Vendor]", "0" ) );
         }
 
         private void ClearProperties()
         {
-       
+
             VendorID = -1;
             VendorName = String.Empty;
             VendorAddress = String.Empty;
@@ -315,9 +312,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             //ddlVendor.SelectedValue = "-1";
         }
 
-        private void EnableTextboxes(bool enabled)
+        private void EnableTextboxes( bool enabled )
         {
-            if (enabled && IsReadOnly)
+            if ( enabled && IsReadOnly )
                 enabled = false;
 
             txtName.ReadOnly = !enabled;
@@ -332,20 +329,20 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             //ScriptManager.RegisterStartupScript(this, typeof(UserControl), "SetReadOnly", "setReadOnly(" + (!enabled).ToString().ToLower() + ");", true);
         }
 
-        private void LoadVendor(int vID)
+        private void LoadVendor( int vID )
         {
-            
-            if (vID > 0)
+
+            if ( vID > 0 )
             {
-                Vendor v = new Vendor(vID);
-                EnableTextboxes(false);
-                
-                if (ddlVendor.SelectedValue != vID.ToString() && ddlVendor.Items.FindByValue(vID.ToString()) != null)
+                Vendor v = new Vendor( vID );
+                EnableTextboxes( false );
+
+                if ( ddlVendor.SelectedValue != vID.ToString() && ddlVendor.Items.FindByValue( vID.ToString() ) != null )
                     ddlVendor.SelectedValue = vID.ToString();
 
                 txtName.Text = v.VendorName;
 
-                if (v.Address != null)
+                if ( v.Address != null )
                 {
                     txtAddress.Text = v.Address.StreetAddress;
                     txtCity.Text = v.Address.City;
@@ -353,50 +350,50 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     txtZip.Text = v.Address.PostalCode;
                 }
 
-                if (v.Phone != null)
+                if ( v.Phone != null )
                 {
                     txtVendorPhone.Text = v.Phone.Number;
 
-                    if (!String.IsNullOrEmpty(v.Phone.Extension))
+                    if ( !String.IsNullOrEmpty( v.Phone.Extension ) )
                         txtVendorPhoneExt.Text = v.Phone.Extension;
                 }
 
-                if (!String.IsNullOrEmpty(v.WebAddress))
+                if ( !String.IsNullOrEmpty( v.WebAddress ) )
                     txtWebAddress.Text = v.WebAddress;
             }
-            else if (VendorID == 0)
+            else if ( VendorID == 0 )
             {
-                EnableTextboxes(true);
-                if (ddlVendor.SelectedValue != "0")
+                EnableTextboxes( true );
+                if ( ddlVendor.SelectedValue != "0" )
                     ddlVendor.SelectedValue = "0";
 
                 txtName.Text = VendorName;
 
-                if (!String.IsNullOrEmpty(VendorAddress) && new Address(VendorAddress).IsValid())
+                if ( !String.IsNullOrEmpty( VendorAddress ) && new Address( VendorAddress ).IsValid() )
                 {
-                    Address a = new Address(VendorAddress);
+                    Address a = new Address( VendorAddress );
                     txtAddress.Text = a.StreetAddress;
                     txtCity.Text = a.City;
                     txtState.Text = a.State;
                     txtZip.Text = a.PostalCode;
                 }
 
-                if (!String.IsNullOrEmpty(VendorPhone) && new PhoneNumber(VendorPhone).IsValid())
+                if ( !String.IsNullOrEmpty( VendorPhone ) && new PhoneNumber( VendorPhone ).IsValid() )
                 {
-                    PhoneNumber p = new PhoneNumber(VendorPhone);
+                    PhoneNumber p = new PhoneNumber( VendorPhone );
                     txtVendorPhone.Text = p.Number;
-                    if (!String.IsNullOrEmpty(p.Extension))
+                    if ( !String.IsNullOrEmpty( p.Extension ) )
                         txtVendorPhoneExt.Text = p.Extension;
                 }
 
-                if (!String.IsNullOrEmpty(VendorWebAddress))
+                if ( !String.IsNullOrEmpty( VendorWebAddress ) )
                     txtWebAddress.Text = VendorWebAddress;
             }
         }
 
-        private void SetStatusMessage(string msg)
+        private void SetStatusMessage( string msg )
         {
-            lblStatus.Visible = !String.IsNullOrEmpty(msg);
+            lblStatus.Visible = !String.IsNullOrEmpty( msg );
             lblStatus.InnerHtml = msg;
 
         }
@@ -404,42 +401,42 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private void UpdateProperties()
         {
             int vID = 0;
-            if (!int.TryParse(ddlVendor.SelectedValue, out vID))
+            if ( !int.TryParse( ddlVendor.SelectedValue, out vID ) )
                 return;
             ClearProperties();
-            switch (vID)
+            switch ( vID )
             {
                 case -1:
                     break;
                 case 0:
                     VendorID = 0;
                     VendorName = txtName.Text.Trim();
-                    if (!String.IsNullOrEmpty(txtAddress.Text) && !string.IsNullOrEmpty(txtCity.Text) && !string.IsNullOrEmpty(txtState.Text) && !string.IsNullOrEmpty(txtZip.Text))
-                        VendorAddress = new Address(txtAddress.Text, txtCity.Text, txtState.Text, txtZip.Text).ToArenaFormat();
+                    if ( !String.IsNullOrEmpty( txtAddress.Text ) && !string.IsNullOrEmpty( txtCity.Text ) && !string.IsNullOrEmpty( txtState.Text ) && !string.IsNullOrEmpty( txtZip.Text ) )
+                        VendorAddress = new Address( txtAddress.Text, txtCity.Text, txtState.Text, txtZip.Text ).ToArenaFormat();
                     else
                         VendorAddress = String.Empty;
 
-                    if (!String.IsNullOrEmpty(txtVendorPhone.Text))
-                        VendorPhone = new PhoneNumber(txtVendorPhone.Text, txtVendorPhoneExt.Text).ToArenaFormat();
+                    if ( !String.IsNullOrEmpty( txtVendorPhone.Text ) )
+                        VendorPhone = new PhoneNumber( txtVendorPhone.Text, txtVendorPhoneExt.Text ).ToArenaFormat();
                     else
                         VendorPhone = String.Empty;
 
-                    if (!String.IsNullOrEmpty(txtWebAddress.Text))
+                    if ( !String.IsNullOrEmpty( txtWebAddress.Text ) )
                         VendorWebAddress = txtWebAddress.Text;
                     else
                         VendorWebAddress = String.Empty;
                     break;
                 default:
-                    Vendor v = new Vendor(vID);
-                    if (v.VendorID > 0)
+                    Vendor v = new Vendor( vID );
+                    if ( v.VendorID > 0 )
                     {
                         VendorID = v.VendorID;
                         VendorName = v.VendorName;
-                        if (v.Address != null)
+                        if ( v.Address != null )
                             VendorAddress = v.Address.ToArenaFormat();
-                        if (v.Phone != null)
+                        if ( v.Phone != null )
                             VendorPhone = v.Phone.ToArenaFormat();
-                        if (!String.IsNullOrEmpty(v.WebAddress))
+                        if ( !String.IsNullOrEmpty( v.WebAddress ) )
                             VendorWebAddress = v.WebAddress;
                     }
                     break;
@@ -447,7 +444,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         }
 
-        private Dictionary<string,string> Validate()
+        private Dictionary<string, string> Validate()
         {
             Dictionary<string, string> ValErrors = new Dictionary<string, string>();
             bool StopProcessing = false;
@@ -458,24 +455,28 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             //    ValErrors.Add("Vendor Selection", "Please select a vendor from the list or [New Vendor]");
             //}
             int vID = 0;
-            if (!StopProcessing && int.TryParse(ddlVendor.SelectedValue, out vID))
+            if ( !StopProcessing && int.TryParse( ddlVendor.SelectedValue, out vID ) )
             {
-                if (vID > 0 && (new Vendor(vID)).VendorID <= 0) {
+                if ( vID > 0 && ( new Vendor( vID ) ).VendorID <= 0 )
+                {
                     //Invalid existing vendor selected
-                    ValErrors.Add("Vendor Selection", "Selected Vendor not found.");
-                } else if (vID == 0 && !String.IsNullOrEmpty(txtName.Text.Trim())) {
-                    var existingVendor = ddlVendor.Items.OfType<ListItem>().FirstOrDefault(v => v.Text.Trim().ToLower() == txtName.Text.Trim().ToLower());
+                    ValErrors.Add( "Vendor Selection", "Selected Vendor not found." );
+                }
+                else if ( vID == 0 && !String.IsNullOrEmpty( txtName.Text.Trim() ) )
+                {
+                    var existingVendor = ddlVendor.Items.OfType<ListItem>().FirstOrDefault( v => v.Text.Trim().ToLower() == txtName.Text.Trim().ToLower() );
                     //New vendor entered & it already exists
-                    if (existingVendor != null) {
+                    if ( existingVendor != null )
+                    {
                         ddlVendor.SelectedValue = existingVendor.Value;
-                        ddlVendor_SelectedIndexChanged(ddlVendor, null);
-                        ValErrors.Add("Vendor Name", "Vendor with this name already exists and has been selected for you. Press Update to save the vendor selection.");
+                        ddlVendor_SelectedIndexChanged( ddlVendor, null );
+                        ValErrors.Add( "Vendor Name", "Vendor with this name already exists and has been selected for you. Press Update to save the vendor selection." );
                     }
                 }
             }
 
-            if (!StopProcessing && String.IsNullOrEmpty(txtName.Text))
-                ValErrors.Add("Vendor Name", "Vendor Name is required when choosing a new vendor.");
+            if ( !StopProcessing && String.IsNullOrEmpty( txtName.Text ) )
+                ValErrors.Add( "Vendor Name", "Vendor Name is required when choosing a new vendor." );
 
             //if (!StopProcessing && !String.IsNullOrEmpty(txtAddress.Text.Trim()))
             //    foreach (KeyValuePair<string, string> valError in (new Address(txtAddress.Text.Trim())).Validate())
@@ -485,35 +486,35 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             //    foreach (KeyValuePair<string, string> valError in (new PhoneNumber(txtVendorPhone.Text.Trim())).Validate())
             //        ValErrors.Add(valError.Key, valError.Value);
 
-            if (!StopProcessing && (!String.IsNullOrEmpty(txtAddress.Text) || !String.IsNullOrEmpty(txtCity.Text) || !String.IsNullOrEmpty(txtState.Text) || !String.IsNullOrEmpty(txtZip.Text)))
+            if ( !StopProcessing && ( !String.IsNullOrEmpty( txtAddress.Text ) || !String.IsNullOrEmpty( txtCity.Text ) || !String.IsNullOrEmpty( txtState.Text ) || !String.IsNullOrEmpty( txtZip.Text ) ) )
             {
-                if (String.IsNullOrEmpty(txtAddress.Text))
-                    ValErrors.Add("Street Address", "Street Address is required when entering a Vendor's Address");
-                if (string.IsNullOrEmpty(txtCity.Text))
-                    ValErrors.Add("City", "City is required when entering a Vendor's Address");
+                if ( String.IsNullOrEmpty( txtAddress.Text ) )
+                    ValErrors.Add( "Street Address", "Street Address is required when entering a Vendor's Address" );
+                if ( string.IsNullOrEmpty( txtCity.Text ) )
+                    ValErrors.Add( "City", "City is required when entering a Vendor's Address" );
 
-                if (String.IsNullOrEmpty(txtState.Text))
-                    ValErrors.Add("State", "State is required when entering a Vendor's Address");
-                else if (!System.Text.RegularExpressions.Regex.IsMatch(txtState.Text, @"^[a-zA-Z]{2}$"))
+                if ( String.IsNullOrEmpty( txtState.Text ) )
+                    ValErrors.Add( "State", "State is required when entering a Vendor's Address" );
+                else if ( !System.Text.RegularExpressions.Regex.IsMatch( txtState.Text, @"^[a-zA-Z]{2}$" ) )
                 {
-                    ValErrors.Add("State", "State is not formatted properly. Please use 2 character abbreviation.");
+                    ValErrors.Add( "State", "State is not formatted properly. Please use 2 character abbreviation." );
                 }
 
-                if (String.IsNullOrEmpty(txtZip.Text))
-                    ValErrors.Add("Zip Code", "Zip Code is required when entering a Vendor's Address");
+                if ( String.IsNullOrEmpty( txtZip.Text ) )
+                    ValErrors.Add( "Zip Code", "Zip Code is required when entering a Vendor's Address" );
             }
 
-            if (!StopProcessing && (!String.IsNullOrEmpty(txtVendorPhone.Text) || !String.IsNullOrEmpty(txtVendorPhoneExt.Text)))
+            if ( !StopProcessing && ( !String.IsNullOrEmpty( txtVendorPhone.Text ) || !String.IsNullOrEmpty( txtVendorPhoneExt.Text ) ) )
             {
-                PhoneNumber P = new PhoneNumber(txtVendorPhone.Text, txtVendorPhoneExt.Text);
-                foreach (KeyValuePair<string, string> valError in P.Validate())
-                    ValErrors.Add(valError.Key, valError.Value);
+                PhoneNumber P = new PhoneNumber( txtVendorPhone.Text, txtVendorPhoneExt.Text );
+                foreach ( KeyValuePair<string, string> valError in P.Validate() )
+                    ValErrors.Add( valError.Key, valError.Value );
             }
 
             StopProcessing = true;
 
-            if (!StopProcessing && !String.IsNullOrEmpty(txtWebAddress.Text) && !System.Text.RegularExpressions.Regex.IsMatch(txtWebAddress.Text, @"^((http|ftp|https):\/\/)?[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?$"))
-                ValErrors.Add("Web Address", "Web Address must be in http://www.domain.com or www.domain.com format.");
+            if ( !StopProcessing && !String.IsNullOrEmpty( txtWebAddress.Text ) && !System.Text.RegularExpressions.Regex.IsMatch( txtWebAddress.Text, @"^((http|ftp|https):\/\/)?[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?$" ) )
+                ValErrors.Add( "Web Address", "Web Address must be in http://www.domain.com or www.domain.com format." );
             return ValErrors;
         }
 

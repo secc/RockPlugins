@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -30,15 +30,11 @@
 //
 using System;
 using System.ComponentModel;
-using Rock.Model;
-using Rock.Security;
 using System.Web.UI;
 using Rock;
-using Rock.Web.Cache;
-using Rock.Web.UI;
-using System.Web;
-using System.Web.UI.WebControls;
 using Rock.Attribute;
+using Rock.Model;
+using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.CMS

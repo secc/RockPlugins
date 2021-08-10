@@ -17,22 +17,17 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
+using org.secc.GroupManager.Model;
 using Rock;
 using Rock.Attribute;
 using Rock.Communication;
 using Rock.Data;
 using Rock.Model;
-using Rock.Security;
-using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 using Group = Rock.Model.Group;
-using org.secc.GroupManager.Model;
 
 namespace RockWeb.Plugins.org_secc.Cms
 {
@@ -165,7 +160,7 @@ namespace RockWeb.Plugins.org_secc.Cms
             PublishGroup publishGroup = null;
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
 
-            List<RecipientData> recipients = new List<RecipientData>();
+            List<RockMessageRecipient> recipients = new List<RockMessageRecipient>();
 
             // get person from url
             if ( PageParameter( "PersonGuid" ).IsNotNullOrWhiteSpace() )
@@ -176,7 +171,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                     var personAlias = personAliasService.Get( personGuid.Value );
                     if ( personAlias != null )
                     {
-                        recipients.Add( new RecipientData( new CommunicationRecipient { PersonAlias = personAlias }, mergeFields ) );
+                        recipients.Add( new RockMessageRecipient( new CommunicationRecipient { PersonAlias = personAlias }, mergeFields ) );
                     }
                 }
             }

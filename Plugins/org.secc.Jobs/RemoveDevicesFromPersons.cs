@@ -12,23 +12,21 @@
 // limitations under the License.
 // </copyright>
 //
-using System.Linq;
+using System;
+using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
+using System.Linq;
+using System.Net;
 using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using System.Collections.Generic;
-using System;
-using System.Net;
-using System.IO;
 using Rock.Web.Cache;
 
 namespace org.secc.Jobs
 {
-    [DataViewField( "DataView", "DataView of peope to remove the devices from.", true, "", "Rock.Model.Person" )]
+    [DataViewField( "DataView", "DataView of people to remove the devices from.", true, "", "Rock.Model.Person" )]
 
     [DisallowConcurrentExecution]
     public class RemoveDevicesFromPersons : IJob
@@ -46,7 +44,7 @@ namespace org.secc.Jobs
             var items = dataService
                 .Get( dv );
             List<string> list = new List<string>();
-            var qry = items.GetQuery( null, null, out _ );
+            var qry = items.GetQuery( new DataViewGetQueryArgs() );
             var personalDeviceService = new PersonalDeviceService( rockContext );
             var persons = ( ( IQueryable<Person> ) qry ).Select( p => p.Id ).ToList();
             var devices = personalDeviceService.Queryable()

@@ -16,12 +16,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Web;
 using System.Web.UI;
-using System.Web.UI.WebControls;
 using System.Web.UI.HtmlControls;
-
-
+using System.Web.UI.WebControls;
+using org.secc.Purchasing;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -29,32 +27,31 @@ using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using org.secc.Purchasing;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
 
-    [DisplayName("Capital Request Detail")]
-    [Category("SECC > Purchasing")]
-    [Description("Capital Request Detail page (display/edit a single CR).")]
-    [LinkedPage("List Page", "The page that displays the capital request list.", true)]
-    [LinkedPage("Person Detail Page", "Person Detail Page", false)]
-    [BooleanField("Allow Ministry Selection", "A true/false flag that indicates if the user is able to select the requesting ministry. The default value is true.", false, "Summary Settings")]
-    [BooleanField("Allow Requester Selection", "A true/false flag that indicates if the user is able to change the requester. The default value is true.", true, "Summary Settings")]
-    [DefinedTypeField("Location Lookup Type", "The lookup type that contains the location values. If no value is provided, the location filed will not be visible.", false, "", "Summary Settings")]
-    [AttributeField(Rock.SystemGuid.EntityType.PERSON, "Location Attribute", " Location Attribute.", false, false, null, "Summary Settings")]
-    [DefinedTypeField("Ministry Area Lookup Type", "The lookup type that the ministry area values are pulled from. The default value is \"Internal Departments\".", false, "BBA23298-F3E8-4477-8DD9-7CC8DF01AE7B","Summary Settings")]
-    [AttributeField(Rock.SystemGuid.EntityType.PERSON, "Ministry Area Person Attribute", "The Id of the person attribute that stores the user's Ministry Area.", false, false, null, "Summary Settings")]
-    [AttributeField(Rock.SystemGuid.EntityType.PERSON, "Position Person Attribute", "The Id of the person attribute that stores the user's job position.", false, false, null, "Staff Selector")]
-    [TextField("Default Title", "The default title for the capital request.", false, "", "Summary Settings")]
-    [IntegerField("Minimum Required Bids", "The minimum number of bids that are required for a capital request to be submitted for Ministry Approval. Default is 1.", false, 0, "Bid Settings")]
-    [BinaryFileTypeField("Quote Document Type", "The document type that is used for quotes.", true, null, "Bid Settings")]
-    [SystemCommunicationField("Ministry Approval Notification Template", "The email template that is used to notify the ministry approver that they have a capital request waiting for their approval.", true, "", "Approval")]
-    [SystemCommunicationField("Finance Approval Notification Template", "The email template that is used to notify the finance approver that they have a capital request waiting for their approval.", true, "", "Approval")]
-    [GroupField("Finance Approver Tag", "The tag that contains the list of individuals who can approve capital requests.", true, null, "Approval")]
-    [SystemCommunicationField("Approved Notification Template", "The email template that is used to notify the requester that the capital request has been approved.", true, "", "Approval")]
-    [SystemCommunicationField("Returned Notification Template", "The email template that is used to notify the requester that the capital request has been returned/denied by a requester.", true, "", "Approval")]
-    [LinkedPage("Requisition Detail Page", "The page to use to display the detail of the requisition.", true, null, "Requisition")]
+    [DisplayName( "Capital Request Detail" )]
+    [Category( "SECC > Purchasing" )]
+    [Description( "Capital Request Detail page (display/edit a single CR)." )]
+    [LinkedPage( "List Page", "The page that displays the capital request list.", true )]
+    [LinkedPage( "Person Detail Page", "Person Detail Page", false )]
+    [BooleanField( "Allow Ministry Selection", "A true/false flag that indicates if the user is able to select the requesting ministry. The default value is true.", false, "Summary Settings" )]
+    [BooleanField( "Allow Requester Selection", "A true/false flag that indicates if the user is able to change the requester. The default value is true.", true, "Summary Settings" )]
+    [DefinedTypeField( "Location Lookup Type", "The lookup type that contains the location values. If no value is provided, the location filed will not be visible.", false, "", "Summary Settings" )]
+    [AttributeField( Rock.SystemGuid.EntityType.PERSON, "Location Attribute", " Location Attribute.", false, false, null, "Summary Settings" )]
+    [DefinedTypeField( "Ministry Area Lookup Type", "The lookup type that the ministry area values are pulled from. The default value is \"Internal Departments\".", false, "BBA23298-F3E8-4477-8DD9-7CC8DF01AE7B", "Summary Settings" )]
+    [AttributeField( Rock.SystemGuid.EntityType.PERSON, "Ministry Area Person Attribute", "The Id of the person attribute that stores the user's Ministry Area.", false, false, null, "Summary Settings" )]
+    [AttributeField( Rock.SystemGuid.EntityType.PERSON, "Position Person Attribute", "The Id of the person attribute that stores the user's job position.", false, false, null, "Staff Selector" )]
+    [TextField( "Default Title", "The default title for the capital request.", false, "", "Summary Settings" )]
+    [IntegerField( "Minimum Required Bids", "The minimum number of bids that are required for a capital request to be submitted for Ministry Approval. Default is 1.", false, 0, "Bid Settings" )]
+    [BinaryFileTypeField( "Quote Document Type", "The document type that is used for quotes.", true, null, "Bid Settings" )]
+    [SystemCommunicationField( "Ministry Approval Notification Template", "The email template that is used to notify the ministry approver that they have a capital request waiting for their approval.", true, "", "Approval" )]
+    [SystemCommunicationField( "Finance Approval Notification Template", "The email template that is used to notify the finance approver that they have a capital request waiting for their approval.", true, "", "Approval" )]
+    [GroupField( "Finance Approver Tag", "The tag that contains the list of individuals who can approve capital requests.", true, null, "Approval" )]
+    [SystemCommunicationField( "Approved Notification Template", "The email template that is used to notify the requester that the capital request has been approved.", true, "", "Approval" )]
+    [SystemCommunicationField( "Returned Notification Template", "The email template that is used to notify the requester that the capital request has been returned/denied by a requester.", true, "", "Approval" )]
+    [LinkedPage( "Requisition Detail Page", "The page to use to display the detail of the requisition.", true, null, "Requisition" )]
     public partial class CapitalRequestDetail : RockBlock
     {
         #region Fields
@@ -67,7 +64,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                return GetAttributeValue("ListPage").AsGuid();
+                return GetAttributeValue( "ListPage" ).AsGuid();
 
             }
         }
@@ -76,20 +73,20 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                bool allowMinistrySetting = bool.Parse(GetAttributeValue("AllowMinistrySelection"));
+                bool allowMinistrySetting = bool.Parse( GetAttributeValue( "AllowMinistrySelection" ) );
 
                 CurrentPerson.LoadAttributes();
-                var ministryGuids = CurrentPerson.AttributeValues[ AttributeCache.Get( MinistryAreaPersonAttributeSetting ).Key ].Value.Split( ',' ).AsGuidList();
+                var ministryGuids = CurrentPerson.AttributeValues[AttributeCache.Get( MinistryAreaPersonAttributeSetting ).Key].Value.Split( ',' ).AsGuidList();
 
                 return allowMinistrySetting || ministryGuids.Count > 1 || UserCanEdit;
             }
         }
 
-       public bool AllowRequesterSelectionSetting
+        public bool AllowRequesterSelectionSetting
         {
             get
             {
-                return bool.Parse(GetAttributeValue("AllowRequesterSelection"));
+                return bool.Parse( GetAttributeValue( "AllowRequesterSelection" ) );
             }
         }
 
@@ -97,7 +94,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                return GetAttributeValue("LocationLookupType").AsGuidOrNull();
+                return GetAttributeValue( "LocationLookupType" ).AsGuidOrNull();
             }
         }
 
@@ -105,7 +102,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                return GetAttributeValue("LocationAttribute").AsGuidOrNull();
+                return GetAttributeValue( "LocationAttribute" ).AsGuidOrNull();
             }
         }
 
@@ -115,39 +112,39 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                return GetAttributeValue( "MinistryAreaLookupType").AsGuid();
+                return GetAttributeValue( "MinistryAreaLookupType" ).AsGuid();
             }
         }
 
-       public Guid MinistryAreaPersonAttributeSetting
+        public Guid MinistryAreaPersonAttributeSetting
         {
             get
             {
-                return GetAttributeValue("MinistryAreaPersonAttribute").AsGuid();
+                return GetAttributeValue( "MinistryAreaPersonAttribute" ).AsGuid();
             }
         }
 
-       public Guid PositionPersonAttributeSetting
+        public Guid PositionPersonAttributeSetting
         {
             get
             {
-                return GetAttributeValue("PositionPersonAttribute").AsGuid();
+                return GetAttributeValue( "PositionPersonAttribute" ).AsGuid();
             }
         }
 
-        public string PersonDetailPageSetting 
-        { 
-            get 
+        public string PersonDetailPageSetting
+        {
+            get
             {
-                return GetAttributeValue("PersonDetailPage") ?? "7";
-            } 
+                return GetAttributeValue( "PersonDetailPage" ) ?? "7";
+            }
         }
 
         public string DefaultTitleSetting
         {
             get
             {
-                return GetAttributeValue("DefaultTitle")??"New Request";
+                return GetAttributeValue( "DefaultTitle" ) ?? "New Request";
             }
         }
 
@@ -155,15 +152,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                return GetAttributeValue("MinimumRequiredBids").AsIntegerOrNull() ?? 1;
+                return GetAttributeValue( "MinimumRequiredBids" ).AsIntegerOrNull() ?? 1;
             }
         }
-        
+
         public Guid QuoteDocumentTypeSetting
         {
             get
             {
-                return GetAttributeValue("QuoteDocumentType").AsGuid();
+                return GetAttributeValue( "QuoteDocumentType" ).AsGuid();
             }
         }
 
@@ -171,7 +168,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                return GetAttributeValue("MinistryApprovalNotificationTemplate").AsGuidOrNull();
+                return GetAttributeValue( "MinistryApprovalNotificationTemplate" ).AsGuidOrNull();
             }
         }
 
@@ -179,7 +176,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                return GetAttributeValue("FinanceApprovalNotificationTemplate").AsGuidOrNull();
+                return GetAttributeValue( "FinanceApprovalNotificationTemplate" ).AsGuidOrNull();
             }
         }
 
@@ -187,8 +184,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                GroupService groupService = new GroupService(new RockContext());
-                return groupService.Get(GetAttributeValue("FinanceApproverTag").AsGuid());
+                GroupService groupService = new GroupService( new RockContext() );
+                return groupService.Get( GetAttributeValue( "FinanceApproverTag" ).AsGuid() );
 
             }
         }
@@ -197,7 +194,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                return GetAttributeValue("ApprovedNotificationTemplate").AsGuidOrNull();
+                return GetAttributeValue( "ApprovedNotificationTemplate" ).AsGuidOrNull();
 
             }
         }
@@ -206,7 +203,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                return GetAttributeValue("ReturnedNotificationTemplate").AsGuidOrNull();
+                return GetAttributeValue( "ReturnedNotificationTemplate" ).AsGuidOrNull();
             }
         }
 
@@ -215,8 +212,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             get
             {
 
-                PageService pageService = new PageService(new Rock.Data.RockContext());
-                return "~/page/" + pageService.Get(new Guid(GetAttributeValue("RequisitionDetailPage"))).Id;
+                PageService pageService = new PageService( new Rock.Data.RockContext() );
+                return "~/page/" + pageService.Get( new Guid( GetAttributeValue( "RequisitionDetailPage" ) ) ).Id;
             }
         }
 
@@ -229,28 +226,28 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             get
             {
                 int requestID = 0;
-                string vsKeyName = string.Format( "{0}_CERId", BlockId);
+                string vsKeyName = string.Format( "{0}_CERId", BlockId );
 
                 if ( ViewState[vsKeyName] == null )
                 {
                     if ( !String.IsNullOrEmpty( Request.QueryString["CER"] ) )
                     {
-                        if(int.TryParse( Request.QueryString["CER"], out requestID ))
+                        if ( int.TryParse( Request.QueryString["CER"], out requestID ) )
                         {
                             ViewState[vsKeyName] = requestID;
                         }
-                        
+
                     }
                 }
                 else
                 {
-                    requestID = (int)ViewState[vsKeyName];
+                    requestID = ( int ) ViewState[vsKeyName];
                 }
                 return requestID;
             }
             set
             {
-                string vsKey = string.Format("{0}_CERId", BlockId);
+                string vsKey = string.Format( "{0}_CERId", BlockId );
                 ViewState[vsKey] = value;
             }
         }
@@ -259,11 +256,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                if ( ( mCapitalRequest == null && CERId > 0 ) || 
+                if ( ( mCapitalRequest == null && CERId > 0 ) ||
                     ( CERId > 0 && mCapitalRequest != null && mCapitalRequest.CapitalRequestId != CERId ) )
                 {
-                    mCapitalRequest = new CapitalRequest(CERId);
-                    mCapitalRequest.Status.LoadAttributes();
+                    mCapitalRequest = new CapitalRequest( CERId );
                     mCapitalRequest.CurrentPerson = CurrentPerson;
                 }
 
@@ -304,13 +300,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 LoadMinistryAreaList();
                 LoadLocationList();
                 LoadVendorList();
-                LoadRequest(); 
+                LoadRequest();
             }
         }
 
         protected void lbMenuItem_Click( object sender, EventArgs e )
         {
-            if (sender is ButtonDropDownList )
+            if ( sender is ButtonDropDownList )
             {
                 ButtonDropDownList bddl = ( ButtonDropDownList ) sender;
 
@@ -333,12 +329,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                         break;
                 }
 
-                
+
 
             }
-            if (sender is LinkButton)
-            { 
-                LinkButton lb = (LinkButton)sender;
+            if ( sender is LinkButton )
+            {
+                LinkButton lb = ( LinkButton ) sender;
 
                 switch ( lb.CommandName.ToLower() )
                 {
@@ -413,7 +409,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             LoadApprovalRequests();
         }
-        protected void grdApprovalRequests_RowCommand(object source, GridViewCommandEventArgs e)
+        protected void grdApprovalRequests_RowCommand( object source, GridViewCommandEventArgs e )
         {
             int approvalId = 0;
 
@@ -437,13 +433,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     break;
             }
         }
-        protected void grdApprovalRequests_RowDataBound(object sender, GridViewRowEventArgs e)
+        protected void grdApprovalRequests_RowDataBound( object sender, GridViewRowEventArgs e )
         {
-            if (e.Row.RowType == DataControlRowType.DataRow)
+            if ( e.Row.RowType == DataControlRowType.DataRow )
             {
                 bool canApprove = false;
                 bool canRemove = false;
-                ApprovalListItem a = (ApprovalListItem)e.Row.DataItem;
+                ApprovalListItem a = ( ApprovalListItem ) e.Row.DataItem;
 
                 if ( a.ApprovalTypeLUID != Approval.FinanceApprovalTypeLUID() && a.ApproverId == CurrentPerson.PrimaryAliasId && a.ApprovalStatusLUID == Approval.PendingApprovalStatusLUID() )
                 {
@@ -454,15 +450,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     canApprove = true;
                 }
 
-                if (a.ApprovalTypeLUID != Approval.FinanceApprovalTypeLUID() && a.CreatedByPersonId == CurrentPerson.PrimaryAliasId && a.ApprovalStatusLUID == Approval.NotSubmittedStatusLUID())
+                if ( a.ApprovalTypeLUID != Approval.FinanceApprovalTypeLUID() && a.CreatedByPersonId == CurrentPerson.PrimaryAliasId && a.ApprovalStatusLUID == Approval.NotSubmittedStatusLUID() )
                 {
                     canRemove = true;
                 }
 
 
-                LinkButton lbApprove = (LinkButton)e.Row.FindControl("lbApprove");
-                LinkButton lbReturn = (LinkButton)e.Row.FindControl("lbReturn");
-                LinkButton lbRemove = (LinkButton)e.Row.FindControl("lbRemove");
+                LinkButton lbApprove = ( LinkButton ) e.Row.FindControl( "lbApprove" );
+                LinkButton lbReturn = ( LinkButton ) e.Row.FindControl( "lbReturn" );
+                LinkButton lbRemove = ( LinkButton ) e.Row.FindControl( "lbRemove" );
 
                 lbApprove.Visible = canApprove;
                 lbApprove.CommandArgument = a.ApprovalId.ToString();
@@ -481,7 +477,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             LoadBids();
         }
-        protected void grdBids_RowCommand(object source, GridViewCommandEventArgs e)
+        protected void grdBids_RowCommand( object source, GridViewCommandEventArgs e )
         {
             int bidID = 0;
             if ( !int.TryParse( e.CommandArgument.ToString(), out bidID ) )
@@ -504,19 +500,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     break;
             }
         }
-        protected void grdBids_RowDataBound(object sender, GridViewRowEventArgs e)
+        protected void grdBids_RowDataBound( object sender, GridViewRowEventArgs e )
         {
-            if (e.Row.RowType == DataControlRowType.DataRow)
+            if ( e.Row.RowType == DataControlRowType.DataRow )
             {
                 // Display the company name in italics.
                 e.Row.Cells[1].Text = "<i>" + e.Row.Cells[1].Text + "</i>";
 
-                var bid = (CapitalRequestBidListItem)e.Row.DataItem;
+                var bid = ( CapitalRequestBidListItem ) e.Row.DataItem;
                 bool canEdit = UserCanEditBids();
-                LinkButton lbEdit = (LinkButton)e.Row.FindControl("lbEdit");
-                LinkButton lbRemove = (LinkButton)e.Row.FindControl("lbRemove");
-                LinkButton lbSetPreferred = (LinkButton)e.Row.FindControl("lbSetPreferred");
-                HtmlGenericControl  imgSelectPreferred = (HtmlGenericControl )e.Row.FindControl("imgPreferredSelection");
+                LinkButton lbEdit = ( LinkButton ) e.Row.FindControl( "lbEdit" );
+                LinkButton lbRemove = ( LinkButton ) e.Row.FindControl( "lbRemove" );
+                LinkButton lbSetPreferred = ( LinkButton ) e.Row.FindControl( "lbSetPreferred" );
+                HtmlGenericControl imgSelectPreferred = ( HtmlGenericControl ) e.Row.FindControl( "imgPreferredSelection" );
 
                 Control imgIsPreferred = e.Row.FindControl( "imgIsPreferred" );
 
@@ -527,11 +523,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     lbSetPreferred.Visible = true;
                     lbSetPreferred.CommandArgument = bid.BidID.ToString();
-                    imgSelectPreferred.AddCssClass(bid.IsPreferredBid ? "fa fa-check-square-o" : "fa fa-square-o");
+                    imgSelectPreferred.AddCssClass( bid.IsPreferredBid ? "fa fa-check-square-o" : "fa fa-square-o" );
                 }
                 else
                 {
-                    if(bid.IsPreferredBid)
+                    if ( bid.IsPreferredBid )
                     {
                         imgIsPreferred.Visible = true;
                     }
@@ -612,7 +608,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         protected void btnRequisitionAddSave_Click( object sender, EventArgs e )
         {
-            int requesterId = 0;
             SetAddRequisitionErrorMessage( null );
             try
             {
@@ -635,12 +630,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
             catch ( RequisitionException rEx )
             {
-                if(rEx.InnerException == null || rEx.InnerException.GetType() != typeof(RequisitionNotValidException))
+                if ( rEx.InnerException == null || rEx.InnerException.GetType() != typeof( RequisitionNotValidException ) )
                 {
                     throw rEx;
                 }
 
-                RequisitionNotValidException rnvEx = (RequisitionNotValidException)rEx.InnerException;
+                RequisitionNotValidException rnvEx = ( RequisitionNotValidException ) rEx.InnerException;
 
                 System.Text.StringBuilder sb = new System.Text.StringBuilder();
                 sb.Append( "An error occurred while saving requisition. The following fields are invalid." );
@@ -700,7 +695,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             approvalReq.ApprovalStatusLUID = Approval.ApprovedStatusLUID();
             approvalReq.DateApproved = DateTime.Now;
 
-            
+
 
             if ( approvalReq.ApprovalTypeLUID != Approval.FinanceApprovalTypeLUID() )
             {
@@ -719,11 +714,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     RequestFinanceApproval();
                 }
-                
+
             }
             else
             {
-                approvalReq.ApproverID = CurrentPerson.PrimaryAliasId??0;
+                approvalReq.ApproverID = CurrentPerson.PrimaryAliasId ?? 0;
                 approvalReq.Save( CurrentUser.UserName );
                 CurrentCapitalRequest.ChangeStatus( CapitalRequest.LOOKUP_STATUS_OPEN_GUID, CurrentUser.UserName );
                 CurrentCapitalRequest.SendApprovedNotification( RequestApprovedNotificationTemplateSetting, GetCERLink() );
@@ -795,7 +790,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     hasChanged = true;
                 }
-                if (!hasChanged && CurrentCapitalRequest.RequesterId != prsnRequester.StaffPersonAliasId)
+                if ( !hasChanged && CurrentCapitalRequest.RequesterId != prsnRequester.StaffPersonAliasId )
                 {
                     hasChanged = true;
                 }
@@ -815,8 +810,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     hasChanged = true;
                 }
-                
-                if(!hasChanged && CurrentCapitalRequest.GLAccountNumberFormatted != txtGLAccount.Text)
+
+                if ( !hasChanged && CurrentCapitalRequest.GLAccountNumberFormatted != txtGLAccount.Text )
                 {
                     hasChanged = true;
                 }
@@ -836,7 +831,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             SetSummaryError( null );
             var openRequisitions = CurrentCapitalRequest.Requisitions
                                     .Where( r => r.Active )
-                                    .Where(r => !r.Status.AttributeValues["IsClosed"].Value.AsBoolean())
+                                    .Where( r => !r.Status.AttributeValues["IsClosed"].Value.AsBoolean() )
                                     .Count();
 
             if ( openRequisitions > 0 )
@@ -883,7 +878,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         }
 
         private void ConfigureRequisitionGrid()
-        {   pnlRequisition.Visible = false;
+        {
+            pnlRequisition.Visible = false;
             grdRequisitions.Visible = false;
             grdRequisitions.ItemType = "Requisition";
             grdRequisitions.AllowSorting = false;
@@ -892,16 +888,17 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private string GetCERLink()
         {
-            return GlobalAttributesCache.Value("InternalApplicationRoot").ReplaceLastOccurrence("/", "") +
+            return GlobalAttributesCache.Value( "InternalApplicationRoot" ).ReplaceLastOccurrence( "/", "" ) +
                 "/page/" + CurrentPageReference.PageId + "?CER=" + CurrentCapitalRequest.CapitalRequestId;
         }
 
         private int GetCurrentUsersLocation()
         {
-            if (LocationAttributeSetting.HasValue) { 
+            if ( LocationAttributeSetting.HasValue )
+            {
                 CurrentPerson.LoadAttributes();
-                Guid dv = CurrentPerson.GetAttributeValue(AttributeCache.Get(LocationAttributeSetting.Value).Key).AsGuid();
-                return DefinedValueCache.Get(dv).Id;
+                Guid dv = CurrentPerson.GetAttributeValue( AttributeCache.Get( LocationAttributeSetting.Value ).Key ).AsGuid();
+                return DefinedValueCache.Get( dv ).Id;
             }
             return 0;
         }
@@ -909,7 +906,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private List<int> GetCurrentUsersMinistryAreas()
         {
             CurrentPerson.LoadAttributes();
-            if ( MinistryAreaPersonAttributeSetting != null && AttributeCache.Get( MinistryAreaPersonAttributeSetting ) != null && CurrentPerson.GetAttributeValue( AttributeCache.Get( MinistryAreaPersonAttributeSetting ).Key ) != null)
+            if ( MinistryAreaPersonAttributeSetting != null && AttributeCache.Get( MinistryAreaPersonAttributeSetting ) != null && CurrentPerson.GetAttributeValue( AttributeCache.Get( MinistryAreaPersonAttributeSetting ).Key ) != null )
             {
 
                 List<Guid> ministryGuids = CurrentPerson.AttributeValues[AttributeCache.Get( MinistryAreaPersonAttributeSetting ).Key].Value.Split( ',' ).AsGuidList();
@@ -932,19 +929,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                                     .Where( a => a.Active )
                                     .OrderBy( a => a.ApprovalType.Order )
                                     .Select( a => new ApprovalListItem()
-                                            {
-                                                ApprovalId = a.ApprovalID,
-                                                ApprovalTypeLUID = a.ApprovalTypeLUID,
-                                                ApprovalTypeName = a.ApprovalType != null ? a.ApprovalType.Value : null,
-                                                ApproverId = a.Approver != null ? (int?)a.Approver.PrimaryAliasId : null,
-                                                ApproverFullName = a.Approver != null ? a.Approver.FullName : null,
-                                                ApprovalStatusLUID = a.ApprovalStatusLUID,
-                                                ApprovalStatusName = a.ApprovalStatus != null ? a.ApprovalStatus.Value : null,
-                                                DateApprovedString = a.DateApproved > DateTime.MinValue ? a.DateApproved.ToShortDateString()+ " " + a.DateApproved.ToShortTimeString() : "(not approved)",
-                                                LastComment = a.ApprovalStatusLUID == Approval.ApprovedStatusLUID() ? String.Empty : 
+                                    {
+                                        ApprovalId = a.ApprovalID,
+                                        ApprovalTypeLUID = a.ApprovalTypeLUID,
+                                        ApprovalTypeName = a.ApprovalType != null ? a.ApprovalType.Value : null,
+                                        ApproverId = a.Approver != null ? ( int? ) a.Approver.PrimaryAliasId : null,
+                                        ApproverFullName = a.Approver != null ? a.Approver.FullName : null,
+                                        ApprovalStatusLUID = a.ApprovalStatusLUID,
+                                        ApprovalStatusName = a.ApprovalStatus != null ? a.ApprovalStatus.Value : null,
+                                        DateApprovedString = a.DateApproved > DateTime.MinValue ? a.DateApproved.ToShortDateString() + " " + a.DateApproved.ToShortTimeString() : "(not approved)",
+                                        LastComment = a.ApprovalStatusLUID == Approval.ApprovedStatusLUID() ? String.Empty :
                                                     a.GetLastNote(),
-                                                CreatedByPersonId = a.CreatedBy.PrimaryAliasId.Value
-                                            } );
+                                        CreatedByPersonId = a.CreatedBy.PrimaryAliasId.Value
+                                    } );
 
             if ( approvalRequests.Count() == 0 )
             {
@@ -970,7 +967,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private void LoadBids()
         {
             ConfigureBidGrid();
-           
+
             if ( CurrentCapitalRequest == null || CurrentCapitalRequest.CapitalRequestId <= 0 )
             {
                 return;
@@ -1011,7 +1008,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 ddlSCCLocation.DataSource = DefinedTypeCache.Get( LocationLookupTypeSetting.Value )
                                                     .DefinedValues
-                                                    .OrderBy(l => l.Order)
+                                                    .OrderBy( l => l.Order )
                                                     .Select( l => new { l.Id, l.Value } )
                                                     .ToList();
 
@@ -1027,12 +1024,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             ddlRequestingMinistry.Items.Clear();
 
-            if (UserCanEdit)
+            if ( UserCanEdit )
             {
-                ddlRequestingMinistry.DataSource = DefinedTypeCache.Get(MinistryAreaLookupTypeSetting)
+                ddlRequestingMinistry.DataSource = DefinedTypeCache.Get( MinistryAreaLookupTypeSetting )
                     .DefinedValues
-                    .Select(l => new { l.Id, l.Value })
-                    .OrderBy(l => l.Value)
+                    .Select( l => new { l.Id, l.Value } )
+                    .OrderBy( l => l.Value )
                     .ToList();
             }
             else
@@ -1049,7 +1046,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             ddlRequestingMinistry.Items.Insert( 0, new ListItem( "[Select]", "0" ) );
         }
-        
+
         private void LoadRequest()
         {
             SetRequestError( null );
@@ -1067,7 +1064,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 LoadSummary( true );
             }
-            else if( CurrentCapitalRequest.CapitalRequestId == CERId)
+            else if ( CurrentCapitalRequest.CapitalRequestId == CERId )
             {
                 LoadSummary( false );
                 LoadBids();
@@ -1079,7 +1076,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     SetRequestError( "This Capital Request is not active." );
                 }
 
-                if (CurrentCapitalRequest.Status.AttributeValues["IsClosed"].Value.AsBoolean())
+                if ( CurrentCapitalRequest.Status.AttributeValues["IsClosed"].Value.AsBoolean() )
                 {
                     SetRequestError( string.Format( "This Capital Request is {0}.", CurrentCapitalRequest.Status.Value ) );
                 }
@@ -1100,19 +1097,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                                 .Where( r => r.Active )
                                 .Where( r => r.StatusLUID != Requisition.CancelledLUID() )
                                 .Select( r => new RequisitionListItem()
-                                        {
-                                            RequisitionID = r.RequisitionID,
-                                            Title = r.Title,
-                                            RequesterID = r.Requester.PrimaryAliasId.Value,
-                                            RequesterName = r.Requester.FullName,
-                                            RequesterLastFirst = string.Format( "{0}, {1}", r.Requester.LastName, r.Requester.NickName ),
-                                            Status = r.Status.Value,
-                                            RequisitionType = r.RequisitionType.Value,
-                                            DateSubmitted = r.DateSubmitted,
-                                            IsApproved = r.IsApproved,
-                                            IsAccepted = r.DateAccepted > DateTime.MinValue,
-                                            CurrentChargeTotal = r.Charges.Where( c => c.Active ).Sum( c => c.Amount )
-                                        } )
+                                {
+                                    RequisitionID = r.RequisitionID,
+                                    Title = r.Title,
+                                    RequesterID = r.Requester.PrimaryAliasId.Value,
+                                    RequesterName = r.Requester.FullName,
+                                    RequesterLastFirst = string.Format( "{0}, {1}", r.Requester.LastName, r.Requester.NickName ),
+                                    Status = r.Status.Value,
+                                    RequisitionType = r.RequisitionType.Value,
+                                    DateSubmitted = r.DateSubmitted,
+                                    IsApproved = r.IsApproved,
+                                    IsAccepted = r.DateAccepted > DateTime.MinValue,
+                                    CurrentChargeTotal = r.Charges.Where( c => c.Active ).Sum( c => c.Amount )
+                                } )
                                 .OrderBy( r => r.RequisitionID );
 
 
@@ -1152,13 +1149,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             bool approverCanBeSet = true;
 
-            if(CurrentCapitalRequest != null)
+            if ( CurrentCapitalRequest != null )
             {
 
-                DefinedValueCache MinistryApprovalLU = DefinedValueCache.Get(CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID);
+                DefinedValueCache MinistryApprovalLU = DefinedValueCache.Get( CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID );
                 approverCanBeSet = CurrentCapitalRequest.Status.Order < MinistryApprovalLU.Order;
             }
-            
+
 
             ddlRequestingMinistry.Visible = AllowMinistrySelectionSetting;
             divRequestingMinistry.Visible = AllowMinistrySelectionSetting;
@@ -1175,7 +1172,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ddlVendorList.DataTextField = "VendorName";
             ddlVendorList.DataBind();
 
-            ddlVendorList.Items.Insert( 0, new ListItem( "[Select]", "0" ));
+            ddlVendorList.Items.Insert( 0, new ListItem( "[Select]", "0" ) );
             ddlVendorList.Items.Insert( 1, new ListItem( "[Not Listed]", "-1" ) );
         }
 
@@ -1225,7 +1222,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtQuotedPrice.Text = string.Format( "{0:N2}", bid.BidAmount );
             docQuote.BinaryFileId = bid.QuoteBlobID;
             cbPreferredBid.Checked = bid.IsPreferredBid;
-           
+
         }
 
         private void PopulateSummaryEditFields()
@@ -1248,7 +1245,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 txtOngoingCost.Text = CurrentCapitalRequest.OngoingMaintenanceCost.ToString( "N2" );
             }
 
-            if ( CurrentCapitalRequest.RequesterId > 0  )
+            if ( CurrentCapitalRequest.RequesterId > 0 )
             {
                 SetRequesterEdit( CurrentCapitalRequest.RequesterId );
             }
@@ -1291,7 +1288,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void PopulateSummaryViewFields()
         {
-            if(CurrentCapitalRequest == null)
+            if ( CurrentCapitalRequest == null )
             {
                 return;
             }
@@ -1404,7 +1401,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             int notCompletedMinistryApprovalCount = CurrentCapitalRequest.ApprovalRequests
                                             .Where( a => a.Active )
                                             .Where( a => a.ApprovalTypeLUID != Approval.FinanceApprovalTypeLUID() )
-                                            .Where( a => a.ApprovalStatusLUID == Approval.NotSubmittedStatusLUID() || a.ApprovalStatusLUID == Approval.NotApprovedStatusLUID())
+                                            .Where( a => a.ApprovalStatusLUID == Approval.NotSubmittedStatusLUID() || a.ApprovalStatusLUID == Approval.NotApprovedStatusLUID() )
                                             .Count();
 
             int notApprovedFinanceApprovalCount = CurrentCapitalRequest.ApprovalRequests
@@ -1416,8 +1413,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             bool requestSent = false;
             if ( notCompletedMinistryApprovalCount > 0 )
             {
-                requestSent =  RequestMinistryApproval();
-            } else { 
+                requestSent = RequestMinistryApproval();
+            }
+            else
+            {
                 requestSent = RequestFinanceApproval();
             }
 
@@ -1425,7 +1424,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 LoadRequest();
             }
-            
+
 
         }
 
@@ -1435,12 +1434,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             try
             {
                 CurrentCapitalRequest.ChangeStatus( CapitalRequest.LOOKUP_STATUS_PENDING_FINANCE_APPROVAL_GUID, CurrentUser.UserName );
-                CurrentCapitalRequest.RequestFinanceApproval(FinanceApprovalNotificationTemplateSetting, FinanceApproverGroup.Id, CurrentUser.UserName, GetCERLink());
-                
+                CurrentCapitalRequest.RequestFinanceApproval( FinanceApprovalNotificationTemplateSetting, FinanceApproverGroup.Id, CurrentUser.UserName, GetCERLink() );
+
             }
             catch ( RequisitionException rEx )
             {
-                if ( CurrentCapitalRequest.StatusLUID == DefinedValueCache.Get( CapitalRequest.LOOKUP_STATUS_PENDING_FINANCE_APPROVAL_GUID ).Id)
+                if ( CurrentCapitalRequest.StatusLUID == DefinedValueCache.Get( CapitalRequest.LOOKUP_STATUS_PENDING_FINANCE_APPROVAL_GUID ).Id )
                 {
                     CurrentCapitalRequest.ChangeStatus( CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID, CurrentUser.UserName );
                 }
@@ -1454,7 +1453,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 sb.Append( "An error occurred while saving the capital request." );
                 sb.Append( "<ul type=\"disc\">" );
 
-                foreach ( var item in ((RequisitionNotValidException)rEx.InnerException).InvalidProperties )
+                foreach ( var item in ( ( RequisitionNotValidException ) rEx.InnerException ).InvalidProperties )
                 {
                     sb.AppendFormat( "<li>{0}-{1}</li>", item.Key, item.Value );
                 }
@@ -1465,7 +1464,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 requestSent = false;
             }
             return requestSent;
-            
+
         }
 
         private bool RequestMinistryApproval()
@@ -1480,7 +1479,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             catch ( RequisitionException rEx )
             {
                 if ( CurrentCapitalRequest.StatusLUID ==
-                DefinedValueCache.Get( CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID ).Id)
+                DefinedValueCache.Get( CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID ).Id )
                 {
                     CurrentCapitalRequest.ChangeStatus( CapitalRequest.LOOKUP_STATUS_NEW_GUID, CurrentUser.UserName );
                 }
@@ -1494,7 +1493,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 sb.Append( "An error occurred while saving the capital request." );
                 sb.Append( "<ul type=\"disc\">" );
 
-                foreach ( var item in ( (RequisitionNotValidException)rEx.InnerException ).InvalidProperties )
+                foreach ( var item in ( ( RequisitionNotValidException ) rEx.InnerException ).InvalidProperties )
                 {
                     sb.AppendFormat( "<li>{0}-{1}</li>", item.Key, item.Value );
                 }
@@ -1542,10 +1541,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtProjectCost.Text = null;
             txtInitialCost.Text = null;
             txtOngoingCost.Text = null;
-            SetRequesterEdit( 0 );            
+            SetRequesterEdit( 0 );
 
             var currentUsersMinistries = GetCurrentUsersMinistryAreas();
-            if ( currentUsersMinistries.Count > 1)
+            if ( currentUsersMinistries.Count > 1 )
             {
                 ddlRequestingMinistry.SelectedValue = "0";
             }
@@ -1562,9 +1561,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
 
-            lStatusEdit.Text = DefinedTypeCache.Get(new Guid(CapitalRequest.STATUS_LOOKUP_TYPE_GUID))
+            lStatusEdit.Text = DefinedTypeCache.Get( new Guid( CapitalRequest.STATUS_LOOKUP_TYPE_GUID ) )
                 .DefinedValues
-                .OrderBy(l => l.Order)
+                .OrderBy( l => l.Order )
                 .FirstOrDefault()
                 .Value;
             lDateRequestedEdit.Text = DateTime.Now.ToShortDateString();
@@ -1583,16 +1582,17 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             lOtherInitialCost.Text = "&nbsp;";
             lOngoingCosts.Text = "&nbsp;";
             lRequester.Text = CurrentPerson.FullName;
-            if (GetCurrentUsersMinistryAreas().Count > 0) {
-                lRequestingMinistry.Text = DefinedValueCache.Get(GetCurrentUsersMinistryAreas().First()).Value;
+            if ( GetCurrentUsersMinistryAreas().Count > 0 )
+            {
+                lRequestingMinistry.Text = DefinedValueCache.Get( GetCurrentUsersMinistryAreas().First() ).Value;
             }
 
             if ( LocationLookupTypeSetting.HasValue )
             {
-                if (GetCurrentUsersLocation() > 0)
+                if ( GetCurrentUsersLocation() > 0 )
                 {
                     pnlSCCLocationView.Visible = true;
-                    lSCCLocation.Text = DefinedValueCache.Get(GetCurrentUsersLocation()).Value;
+                    lSCCLocation.Text = DefinedValueCache.Get( GetCurrentUsersLocation() ).Value;
                 }
             }
             else
@@ -1601,7 +1601,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 lSCCLocation.Text = "&nbsp;";
             }
 
-            
+
             lStatus.Text = DefinedTypeCache.Get( new Guid( CapitalRequest.STATUS_LOOKUP_TYPE_GUID ) )
                 .DefinedValues
                 .OrderBy( l => l.Order )
@@ -1642,14 +1642,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             CurrentCapitalRequest.ChangeStatus( CapitalRequest.LOOKUP_STATUS_RETURNED_TO_REQUESTER_GUID, CurrentUser.UserName );
             CurrentCapitalRequest.RefreshApprovalRequests();
-            
+
             CurrentCapitalRequest.SendReturnToRequesterNotification( RequestReturnedNotificationTemplateSetting, approval.ApprovalID, GetCERLink() );
             LoadRequest();
         }
 
         private void ReturnToList()
         {
-            NavigateToPage(ListPageSetting, null);
+            NavigateToPage( ListPageSetting, null );
         }
 
         private bool SaveBid()
@@ -1692,9 +1692,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
                 bid.VendorContactName = txtVendorContactName.Text.Trim();
 
-                if (!String.IsNullOrWhiteSpace(txtVendorContactPhone.Text))
+                if ( !String.IsNullOrWhiteSpace( txtVendorContactPhone.Text ) )
                 {
-                    bid.VendorContactPhone = new org.secc.Purchasing.Helpers.PhoneNumber(PhoneNumber.CleanNumber(txtVendorContactPhone.Text), txtVendorContactPhoneExtension.Text);
+                    bid.VendorContactPhone = new org.secc.Purchasing.Helpers.PhoneNumber( PhoneNumber.CleanNumber( txtVendorContactPhone.Text ), txtVendorContactPhoneExtension.Text );
                 }
                 else
                 {
@@ -1708,11 +1708,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     bid.BidAmount = quotePrice;
                 }
-                if (docQuote.BinaryFileId.HasValue) {
+                if ( docQuote.BinaryFileId.HasValue )
+                {
                     // Set the temporary flag to 0
                     RockContext context = new RockContext();
-                    BinaryFileService bfs = new BinaryFileService(context);
-                    var file = bfs.Get(docQuote.BinaryFileId.Value);
+                    BinaryFileService bfs = new BinaryFileService( context );
+                    var file = bfs.Get( docQuote.BinaryFileId.Value );
                     file.IsTemporary = false;
                     context.SaveChanges();
 
@@ -1739,7 +1740,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 sb.Append( "An error has occurred while saving bid." );
                 sb.Append( "<ul>" );
 
-                foreach ( var item in ( (RequisitionNotValidException)rEx.InnerException ).InvalidProperties )
+                foreach ( var item in ( ( RequisitionNotValidException ) rEx.InnerException ).InvalidProperties )
                 {
                     sb.AppendFormat( "<li>{0} - {1}</li>", item.Key, item.Value );
                 }
@@ -1748,7 +1749,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 SetBidErrorMessage( sb.ToString() );
                 return false;
             }
-           
+
         }
 
         private bool SaveCapitalRequestSummary()
@@ -1770,25 +1771,26 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 CurrentCapitalRequest.ProjectDescription = txtDescription.Text.Trim();
 
                 decimal projectCost = 0;
-                if ( String.IsNullOrWhiteSpace(txtProjectCost.Text) || decimal.TryParse( txtProjectCost.Text.Trim(), out projectCost ) )
+                if ( String.IsNullOrWhiteSpace( txtProjectCost.Text ) || decimal.TryParse( txtProjectCost.Text.Trim(), out projectCost ) )
                 {
                     CurrentCapitalRequest.PurchaseCost = projectCost;
                 }
 
                 decimal installCost = 0;
-                if ( String.IsNullOrWhiteSpace(txtInitialCost.Text) ||  decimal.TryParse( txtInitialCost.Text.Trim(), out installCost ) )
+                if ( String.IsNullOrWhiteSpace( txtInitialCost.Text ) || decimal.TryParse( txtInitialCost.Text.Trim(), out installCost ) )
                 {
                     CurrentCapitalRequest.InstallationCost = installCost;
                 }
-                
+
 
                 decimal ongoingCost = 0;
-                if ( String.IsNullOrWhiteSpace(txtOngoingCost.Text) ||  decimal.TryParse( txtOngoingCost.Text.Trim(), out ongoingCost ) )
+                if ( String.IsNullOrWhiteSpace( txtOngoingCost.Text ) || decimal.TryParse( txtOngoingCost.Text.Trim(), out ongoingCost ) )
                 {
                     CurrentCapitalRequest.OngoingMaintenanceCost = ongoingCost;
                 }
 
-                if (prsnRequester.StaffPersonAliasId.HasValue) CurrentCapitalRequest.RequesterId = prsnRequester.StaffPersonAliasId.Value;
+                if ( prsnRequester.StaffPersonAliasId.HasValue )
+                    CurrentCapitalRequest.RequesterId = prsnRequester.StaffPersonAliasId.Value;
 
                 int requestingMinistry = 0;
                 if ( int.TryParse( hfRequestingMinistry.Value.Trim(), out requestingMinistry ) && requestingMinistry > 0 )
@@ -1803,13 +1805,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 }
 
                 DateTime dateRequested = DateTime.MinValue;
-                if ( String.IsNullOrWhiteSpace(hfDateRequestedEdit.Value) || ( DateTime.TryParse( hfDateRequestedEdit.Value.Trim(), out dateRequested ) && dateRequested > DateTime.MinValue ) )
+                if ( String.IsNullOrWhiteSpace( hfDateRequestedEdit.Value ) || ( DateTime.TryParse( hfDateRequestedEdit.Value.Trim(), out dateRequested ) && dateRequested > DateTime.MinValue ) )
                 {
                     CurrentCapitalRequest.RequestedOn = dateRequested;
                 }
 
                 DateTime inServiceDate = DateTime.MinValue;
-                if ( String.IsNullOrWhiteSpace(txtInServiceDate.Text) || ( DateTime.TryParse( txtInServiceDate.Text.Trim(), out inServiceDate ) && inServiceDate > DateTime.MinValue ) )
+                if ( String.IsNullOrWhiteSpace( txtInServiceDate.Text ) || ( DateTime.TryParse( txtInServiceDate.Text.Trim(), out inServiceDate ) && inServiceDate > DateTime.MinValue ) )
                 {
                     CurrentCapitalRequest.AnticipatedInserviceDate = inServiceDate;
                 }
@@ -1856,7 +1858,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     System.Text.StringBuilder sb = new System.Text.StringBuilder();
                     sb.Append( "An error occurred while saving the capital request." );
                     sb.Append( "<ul type=\"disc\">" );
-                    foreach ( var prop in ((RequisitionNotValidException)rEx.InnerException).InvalidProperties )
+                    foreach ( var prop in ( ( RequisitionNotValidException ) rEx.InnerException ).InvalidProperties )
                     {
                         sb.AppendFormat( "<li>{0} - {1}</li>", prop.Key, prop.Value );
                     }
@@ -1870,7 +1872,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                     throw rEx;
                 }
             }
- 
+
         }
 
         private void SetAddRequisitionErrorMessage( string message )
@@ -1914,10 +1916,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private void SetRequesterEdit( int requesterId )
         {
 
-            if (requesterId > 0)
+            if ( requesterId > 0 )
             {
-                PersonAliasService personAliasService = new PersonAliasService(new Rock.Data.RockContext());
-                Person requester = personAliasService.Get(requesterId).Person;
+                PersonAliasService personAliasService = new PersonAliasService( new Rock.Data.RockContext() );
+                Person requester = personAliasService.Get( requesterId ).Person;
                 prsnRequester.StaffPerson = requester.PrimaryAlias;
             }
             else
@@ -1927,7 +1929,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         }
 
 
-        private void SetSummaryError(string errorMessage)
+        private void SetSummaryError( string errorMessage )
         {
             lSummaryError.InnerHtml = errorMessage;
             lSummaryError.Visible = !String.IsNullOrWhiteSpace( errorMessage );
@@ -1959,7 +1961,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return false;
             }
 
-            if(CurrentCapitalRequest.StatusLUID != DefinedValueCache.Get(new Guid(CapitalRequest.LOOKUP_STATUS_OPEN_GUID)).Id)
+            if ( CurrentCapitalRequest.StatusLUID != DefinedValueCache.Get( new Guid( CapitalRequest.LOOKUP_STATUS_OPEN_GUID ) ).Id )
             {
                 return false;
             }
@@ -1969,17 +1971,17 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return false;
             }
 
-            if (CurrentCapitalRequest.Requester.PrimaryAliasId == CurrentPerson.PrimaryAliasId)
+            if ( CurrentCapitalRequest.Requester.PrimaryAliasId == CurrentPerson.PrimaryAliasId )
             {
                 return true;
             }
 
-            if (CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId == CurrentPerson.PrimaryAliasId)
+            if ( CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId == CurrentPerson.PrimaryAliasId )
             {
                 return true;
             }
 
-            if ( GetCurrentUsersMinistryAreas().Contains( CurrentCapitalRequest.MinistryLUID ))
+            if ( GetCurrentUsersMinistryAreas().Contains( CurrentCapitalRequest.MinistryLUID ) )
             {
                 return true;
             }
@@ -2005,20 +2007,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
             // CER is closed
-            CurrentCapitalRequest.Status.LoadAttributes();
-            if (CurrentCapitalRequest.Status.AttributeValues["IsClosed"].Value.AsBoolean())
+            if ( CurrentCapitalRequest.Status.AttributeValues["IsClosed"].Value.AsBoolean() )
             {
                 return false;
             }
 
             //Created by Person is current person
-            if (CurrentCapitalRequest.CreatedByPerson != null && CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId == CurrentPerson.PrimaryAliasId)
+            if ( CurrentCapitalRequest.CreatedByPerson != null && CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId == CurrentPerson.PrimaryAliasId )
             {
                 return true;
             }
 
             //Requester is current person
-            if (CurrentCapitalRequest.Requester != null && CurrentCapitalRequest.Requester.PrimaryAliasId == CurrentPerson.PrimaryAliasId)
+            if ( CurrentCapitalRequest.Requester != null && CurrentCapitalRequest.Requester.PrimaryAliasId == CurrentPerson.PrimaryAliasId )
             {
                 return true;
             }
@@ -2030,7 +2031,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
             //CurrentPerson is editor
-            if (UserCanEdit)
+            if ( UserCanEdit )
             {
                 return true;
             }
@@ -2059,7 +2060,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                                         .Where( r => r.StatusLUID != Requisition.CancelledLUID() )
                                         .Count();
 
-            if(activeRequisitions == 0)
+            if ( activeRequisitions == 0 )
             {
                 return true;
             }
@@ -2080,7 +2081,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
 
-            if (!UserCanEdit)
+            if ( !UserCanEdit )
             {
                 return false;
             }
@@ -2088,7 +2089,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             int openStatusLUID = DefinedValueCache.Get( CapitalRequest.LOOKUP_STATUS_OPEN_GUID ).Id;
             int openRequisitionCount = CurrentCapitalRequest.Requisitions
                                         .Where( r => r.Active )
-                                        .Where(r => !r.Status.AttributeValues["IsClosed"].Value.AsBoolean())
+                                        .Where( r => !r.Status.AttributeValues["IsClosed"].Value.AsBoolean() )
                                         .Count();
 
             int activeRequisitionCount = CurrentCapitalRequest.Requisitions
@@ -2109,7 +2110,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if ( mUserCanEdit != null )
             {
-                return (bool)mUserCanEdit;
+                return ( bool ) mUserCanEdit;
             }
 
             if ( CurrentCapitalRequest == null || !CurrentCapitalRequest.Active )
@@ -2118,35 +2119,35 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
             //User has Edit rights
-            if (UserCanEdit & !CurrentCapitalRequest.Status.AttributeValues["IsClosed"].Value.AsBoolean())
+            if ( UserCanEdit & !CurrentCapitalRequest.Status.AttributeValues["IsClosed"].Value.AsBoolean() )
             {
                 mUserCanEdit = true;
-                return (bool)mUserCanEdit;
+                return ( bool ) mUserCanEdit;
             }
 
-            var pendingMinistryApprovalStatus = DefinedValueCache.Get(  CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID  );
+            var pendingMinistryApprovalStatus = DefinedValueCache.Get( CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID );
 
             //User is Creator and request hasn't been sent for approval and is not closed
-            if (CurrentPerson.PrimaryAliasId == CurrentCapitalRequest.RequesterId || ( CurrentCapitalRequest.CreatedByPerson != null && CurrentPerson.PrimaryAliasId == CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId ) )
+            if ( CurrentPerson.PrimaryAliasId == CurrentCapitalRequest.RequesterId || ( CurrentCapitalRequest.CreatedByPerson != null && CurrentPerson.PrimaryAliasId == CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId ) )
             {
 
-                if (!CurrentCapitalRequest.Status.AttributeValues["IsClosed"].Value.AsBoolean() && CurrentCapitalRequest.Status.Order < pendingMinistryApprovalStatus.Order)
+                if ( !CurrentCapitalRequest.Status.AttributeValues["IsClosed"].Value.AsBoolean() && CurrentCapitalRequest.Status.Order < pendingMinistryApprovalStatus.Order )
                 {
                     mUserCanEdit = true;
-                    return (bool)mUserCanEdit;
+                    return ( bool ) mUserCanEdit;
                 }
             }
 
             if ( GetCurrentUsersMinistryAreas().Contains( CurrentCapitalRequest.MinistryLUID ) )
             {
-                if (!CurrentCapitalRequest.Status.AttributeValues["IsClosed"].Value.AsBoolean() && CurrentCapitalRequest.Status.Order < pendingMinistryApprovalStatus.Order)
+                if ( !CurrentCapitalRequest.Status.AttributeValues["IsClosed"].Value.AsBoolean() && CurrentCapitalRequest.Status.Order < pendingMinistryApprovalStatus.Order )
                 {
                     mUserCanEdit = true;
-                    return (bool)mUserCanEdit;
+                    return ( bool ) mUserCanEdit;
                 }
             }
             mUserCanEdit = false;
-            return (bool)mUserCanEdit;
+            return ( bool ) mUserCanEdit;
         }
 
         private bool UserCanReopen()
@@ -2156,14 +2157,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return false;
             }
 
-            DefinedValueCache closedStatus = DefinedValueCache.Get(  CapitalRequest.LOOKUP_STATUS_CLOSED_GUID );
+            DefinedValueCache closedStatus = DefinedValueCache.Get( CapitalRequest.LOOKUP_STATUS_CLOSED_GUID );
 
             if ( CurrentCapitalRequest.StatusLUID != closedStatus.Id )
             {
                 return false;
             }
 
-            if ( UserCanEdit)
+            if ( UserCanEdit )
             {
                 return true;
             }
@@ -2206,7 +2207,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return false;
             }
 
-            if(!CurrentCapitalRequest.Active)
+            if ( !CurrentCapitalRequest.Active )
             {
                 return false;
             }
@@ -2223,7 +2224,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return false;
             }
 
-            if ( UserCanEditSummary() && CurrentCapitalRequest.Status.Order < DefinedValueCache.Get(  CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID  ).Order )
+            if ( UserCanEditSummary() && CurrentCapitalRequest.Status.Order < DefinedValueCache.Get( CapitalRequest.LOOKUP_STATUS_PENDING_MINISTRY_APPROVAL_GUID ).Order )
             {
                 return true;
             }
@@ -2240,13 +2241,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
             //User is Requester
-            if (CurrentCapitalRequest.Requester.PrimaryAliasId == CurrentPerson.PrimaryAliasId)
+            if ( CurrentCapitalRequest.Requester.PrimaryAliasId == CurrentPerson.PrimaryAliasId )
             {
                 return true;
             }
 
             //User is Creator
-            if ( CurrentCapitalRequest.CreatedByPerson != null && CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId == CurrentPerson.PrimaryAliasId)
+            if ( CurrentCapitalRequest.CreatedByPerson != null && CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId == CurrentPerson.PrimaryAliasId )
             {
                 return true;
             }
@@ -2264,7 +2265,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
             //User is an approver
-            if (CurrentCapitalRequest.ApprovalRequests.Where(a => a.Active).Where(a => a.ApproverID == CurrentPerson.PrimaryAliasId).Count() > 0)
+            if ( CurrentCapitalRequest.ApprovalRequests.Where( a => a.Active ).Where( a => a.ApproverID == CurrentPerson.PrimaryAliasId ).Count() > 0 )
             {
                 return true;
             }
@@ -2292,7 +2293,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return false;
             }
 
-            if (CurrentCapitalRequest.RequesterId == CurrentPerson.PrimaryAliasId || ( CurrentCapitalRequest.CreatedByPerson != null && CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId == CurrentPerson.PrimaryAliasId) )
+            if ( CurrentCapitalRequest.RequesterId == CurrentPerson.PrimaryAliasId || ( CurrentCapitalRequest.CreatedByPerson != null && CurrentCapitalRequest.CreatedByPerson.PrimaryAliasId == CurrentPerson.PrimaryAliasId ) )
             {
                 return true;
             }
@@ -2305,7 +2306,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             bool UserIsMinistryApprover = CurrentCapitalRequest.ApprovalRequests.Where( a => a.Active )
                                             .Where( a => a.ApprovalTypeLUID == Approval.MinistryApprovalTypeLUID() )
                                             .Where( a => a.ApprovalStatusLUID == Approval.PendingApprovalStatusLUID() )
-                                            .Where(a => a.Approver.PrimaryAliasId == CurrentPerson.PrimaryAliasId).Count() > 0;
+                                            .Where( a => a.Approver.PrimaryAliasId == CurrentPerson.PrimaryAliasId ).Count() > 0;
 
             if ( UserIsMinistryApprover )
             {
@@ -2321,10 +2322,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if ( ViewState[viewStateKey] != null )
             {
-                return (bool)ViewState[viewStateKey];
+                return ( bool ) ViewState[viewStateKey];
             }
 
-            Boolean isApprover = FinanceApproverGroup.Members.Where(m => m.GroupMemberStatus == GroupMemberStatus.Active && m.Person.Id == CurrentPerson.Id ).Count() > 0;
+            Boolean isApprover = FinanceApproverGroup.Members.Where( m => m.GroupMemberStatus == GroupMemberStatus.Active && m.Person.Id == CurrentPerson.Id ).Count() > 0;
 
             ViewState[viewStateKey] = isApprover;
 
@@ -2368,6 +2369,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             upMain.Update();
         }
-}
+    }
 }
 

@@ -1,4 +1,4 @@
-﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="CacheTagsCheckList.ascx.cs" Inherits="RockWeb.Plugins.org_secc.CMS.CacheTagsCheckList" %>
+﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="CacheTagsCheckList.ascx.cs" Inherits="RockWeb.Plugins.org_secc.Cms.CacheTagsCheckList" %>
 
 <asp:UpdatePanel ID="upnlContent" runat="server">
     <ContentTemplate>

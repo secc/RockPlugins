@@ -34,11 +34,8 @@ using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Runtime.Caching;
-using System.Text;
 using System.Web;
 using System.Web.UI;
-using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 using DotLiquid;
 
@@ -1130,19 +1127,19 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 if ( ( GetAttributeValue( "ShowFamilies" ).AsBoolean() || GetAttributeValue( "ShowFamilyGrid" ).AsBoolean() ) && searchLocation.GeoPoint != null )
                 {
 
-                    int familyGroupTypeId = new GroupTypeService(rockContext).Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid()).Id;
+                    int familyGroupTypeId = new GroupTypeService( rockContext ).Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() ).Id;
 
-                   families = groupService.Queryable( "GroupLocations.Location Members.Person.PhoneNumbers" )
-                        .Where( g =>
-                        g.IsActive
-                        && g.GroupTypeId == familyGroupTypeId
-                        && ( g.GroupLocations.Where(
-                            gl =>
-                            gl.GroupLocationTypeValueId == homeAddressDv.Id && gl.IsMappedLocation
-                            && gl.Location.GeoPoint.Distance( searchLocation.GeoPoint ) <= metersRange
-                            )
-                        ).Any()
-                    ).ToList();
+                    families = groupService.Queryable( "GroupLocations.Location Members.Person.PhoneNumbers" )
+                         .Where( g =>
+                         g.IsActive
+                         && g.GroupTypeId == familyGroupTypeId
+                         && ( g.GroupLocations.Where(
+                             gl =>
+                             gl.GroupLocationTypeValueId == homeAddressDv.Id && gl.IsMappedLocation
+                             && gl.Location.GeoPoint.Distance( searchLocation.GeoPoint ) <= metersRange
+                             )
+                         ).Any()
+                     ).ToList();
 
 
                     //Limit by connection statuses if needed
@@ -1320,10 +1317,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     mergeFields.Add( "Fences", new Dictionary<string, object>() );
                 }
-                
+
                 mergeFields.Add( "Groups", groups );
 
-                mergeFields.Add( "Distances", distances.Select(d => new { GroupId = d.Key, Distance = d.Value }) );
+                mergeFields.Add( "Distances", distances.Select( d => new { GroupId = d.Key, Distance = d.Value } ) );
 
                 Dictionary<string, object> linkedPages = new Dictionary<string, object>();
                 linkedPages.Add( "GroupDetailPage", LinkedPageUrl( "GroupDetailPage", null ) );
@@ -1402,7 +1399,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     Name = f.Name,
                     Members = f.Members.Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
                         .OrderByDescending( m => m.Person.AgePrecise )
-                        .Select( m => m.Person.Age!=null ? string.Format( "{0}: {1}", m.Person.NickName, m.Person.Age ) : m.Person.NickName )
+                        .Select( m => m.Person.Age != null ? string.Format( "{0}: {1}", m.Person.NickName, m.Person.Age ) : m.Person.NickName )
                         .Aggregate( ( current, next ) => current + ", " + next ),
                     Address = f.GroupLocations.Where( gl => gl.GroupLocationTypeValueId == homeAddressDv.Id ).First().Location.FormattedAddress,
                     CellPhone = f.Members

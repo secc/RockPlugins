@@ -13,15 +13,10 @@
 // </copyright>
 //
 using Rock.Plugin;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace org.secc.PayPalReporting.Migrations
 {
-    [MigrationNumber(1, "1.0.1")]
+    [MigrationNumber( 1, "1.0.1" )]
     class CreateDb : Migration
     {
         /// <summary>
@@ -29,7 +24,7 @@ namespace org.secc.PayPalReporting.Migrations
         /// </summary>
         public override void Up()
         {
-            Sql(@"
+            Sql( @"
             CREATE TABLE [dbo].[_org_secc_PayPalReporting_Transaction](
 	            [Id] [int] IDENTITY(1,1) NOT NULL,
 	            [GatewayTransactionId] [nvarchar](255) NOT NULL,
@@ -101,23 +96,23 @@ namespace org.secc.PayPalReporting.Migrations
                    [ForeignId],
                    [ForeignGuid]) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 
-            ");
+            " );
 
 
         }
 
-    /// <summary>
-    /// The commands to undo a migration from a specific version
-    /// </summary>
-    public override void Down()
+        /// <summary>
+        /// The commands to undo a migration from a specific version
+        /// </summary>
+        public override void Down()
         {
-            Sql(@"
+            Sql( @"
             ALTER TABLE [dbo].[_org_secc_PayPalReporting_Transaction] DROP CONSTRAINT [DF_org_secc_PayPalReporting_Transaction_IsZeroFee]
             ALTER TABLE [dbo].[_org_secc_PayPalReporting_Transaction] DROP CONSTRAINT [FK_dbo._org_secc_PayPalReporting_Transaction_dbo.PersonAlias_CreatedByPersonAliasId]
             ALTER TABLE [dbo].[_org_secc_PayPalReporting_Transaction] DROP CONSTRAINT [FK_dbo._org_secc_PayPalReporting_Transaction_dbo.PersonAlias_ModifiedByPersonAliasId]
             DROP INDEX DROP INDEX [dbo].[_org_secc_PayPalReporting_Transaction].[IDX__org_secc_PayPalReporting_Transaction_TenderType]
             DROP TABLE [dbo].[_org_secc_PayPalReporting_Transaction]
-            ");
+            " );
         }
     }
 }

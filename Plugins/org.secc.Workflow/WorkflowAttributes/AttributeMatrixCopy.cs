@@ -12,7 +12,6 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
@@ -41,8 +40,8 @@ namespace org.secc.Workflow.WorkflowAttributes
             errorMessages = new List<string>();
 
             // Get all the attribute values
-            var sourceMatrixAttributeGuid = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "SourceAttributeMatrix" ).AsGuid() ).AsGuidOrNull();
-            var targetMatrixAttributeGuid = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "TargetAttributeMatrix" ).AsGuid() ).AsGuidOrNull();
+            var sourceMatrixAttributeGuid = action.GetWorkflowAttributeValue( GetActionAttributeValue( action, "SourceAttributeMatrix" ).AsGuid() ).AsGuidOrNull();
+            var targetMatrixAttributeGuid = action.GetWorkflowAttributeValue( GetActionAttributeValue( action, "TargetAttributeMatrix" ).AsGuid() ).AsGuidOrNull();
 
             if ( sourceMatrixAttributeGuid.HasValue )
             {

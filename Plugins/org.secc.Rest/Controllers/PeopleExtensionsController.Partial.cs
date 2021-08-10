@@ -16,13 +16,11 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-
-using Rock;
 using System.Web.Http;
+using org.secc.PersonMatch;
 using Rock.Data;
 using Rock.Model;
 using Rock.Rest.Filters;
-using org.secc.PersonMatch;
 
 namespace org.secc.Rest.Controllers
 {
@@ -37,49 +35,51 @@ namespace org.secc.Rest.Controllers
         /// </summary>
         /// <returns>The id of the matching or new person</returns>
         [Authenticate, Secured]
-        [System.Web.Http.Route("api/People/MatchOrCreatePerson")]
+        [System.Web.Http.Route( "api/People/MatchOrCreatePerson" )]
         [HttpPost]
-        public int MatchOrCreatePerson(PersonMatch personMatch)
+        public int MatchOrCreatePerson( PersonMatch personMatch )
         {
-            try {
+            try
+            {
                 Person person = personMatch.person;
                 Location location = personMatch.location;
                 RockContext context = new RockContext();
-                PersonService personService = new PersonService(context);
-                var matchPerson = personService.GetByMatch(person.FirstName, person.LastName, person.BirthDate, person.Email, person.PhoneNumbers.Select(pn => pn.Number).FirstOrDefault(), location.Street1, location.PostalCode);
-                if (matchPerson != null && matchPerson.Count() > 0)
+                PersonService personService = new PersonService( context );
+                var matchPerson = personService.GetByMatch( person.FirstName, person.LastName, person.BirthDate, person.Email, person.PhoneNumbers.Select( pn => pn.Number ).FirstOrDefault(), location.Street1, location.PostalCode );
+                if ( matchPerson != null && matchPerson.Count() > 0 )
                 {
                     return matchPerson.FirstOrDefault().Id;
                 }
                 else
-                { 
-                    personService.Add(person);
+                {
+                    personService.Add( person );
                     context.SaveChanges();
                     return person.Id;
                 }
-            } catch (Exception e)
+            }
+            catch ( Exception e )
             {
-                GenerateResponse(HttpStatusCode.InternalServerError, e.Message);
+                GenerateResponse( HttpStatusCode.InternalServerError, e.Message );
                 throw e;
             }
         }
-        
+
         /// <summary>
         /// Generates the response.
         /// </summary>
         /// <param name="code">The code.</param>
         /// <param name="message">The message.</param>
         /// <exception cref="System.Web.Http.HttpResponseException"></exception>
-        private void GenerateResponse(HttpStatusCode code, string message = null)
+        private void GenerateResponse( HttpStatusCode code, string message = null )
         {
-            var response = new HttpResponseMessage(code);
+            var response = new HttpResponseMessage( code );
 
-            if (!string.IsNullOrWhiteSpace(message))
+            if ( !string.IsNullOrWhiteSpace( message ) )
             {
-                response.Content = new StringContent(message);
+                response.Content = new StringContent( message );
             }
 
-            throw new HttpResponseException(response);
+            throw new HttpResponseException( response );
         }
 
         public class PersonMatch

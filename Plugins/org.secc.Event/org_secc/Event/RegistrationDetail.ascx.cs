@@ -761,9 +761,9 @@ namespace RockWeb.Plugins.org_secc.Event
 
                 using ( var rockContext = new RockContext() )
                 {
-                    ddlCurrencyType.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.FINANCIAL_CURRENCY_TYPE.AsGuid(), rockContext ), true );
-                    ddlCreditCardType.BindToDefinedType( DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.FINANCIAL_CREDIT_CARD_TYPE.AsGuid(), rockContext ), true );
-                    ddlCreditCardType.Visible = false;
+                    dvpCurrencyType.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.FINANCIAL_CURRENCY_TYPE.AsGuid(), rockContext ).Id;
+                    dvpCreditCardType.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.FINANCIAL_CREDIT_CARD_TYPE.AsGuid(), rockContext ).Id;
+                    dvpCreditCardType.Visible = false;
                 }
 
                 pnlCosts.Visible = false;
@@ -834,7 +834,7 @@ namespace RockWeb.Plugins.org_secc.Event
                     lbSubmitPayment.Visible = true;
                     aStep2Submit.Visible = false;
 
-                    var threeStepGateway = component as ThreeStepGatewayComponent;
+                    var threeStepGateway = component as IThreeStepGatewayComponent;
                     bool using3StepGateway = ( threeStepGateway != null );
                     phCCDetails.Visible = !using3StepGateway;
                     if ( using3StepGateway )
@@ -1225,7 +1225,7 @@ namespace RockWeb.Plugins.org_secc.Event
             if ( workflowGuid != null )
             {
                 var workflowId = WorkflowTypeCache.Get( workflowGuid.Value ).Id;
-                Response.Redirect( string.Format( "/WorkflowEntry/{0}?RegistrationId={1}",  workflowId, Registration.Id ) );
+                Response.Redirect( string.Format( "/WorkflowEntry/{0}?RegistrationId={1}", workflowId, Registration.Id ) );
             }
         }
         #endregion
@@ -1247,11 +1247,11 @@ namespace RockWeb.Plugins.org_secc.Event
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void ddlCurrencyType_SelectedIndexChanged( object sender, EventArgs e )
+        protected void dvpCurrencyType_SelectedIndexChanged( object sender, EventArgs e )
         {
-            int? currencyType = ddlCurrencyType.SelectedValueAsInt();
+            int? currencyType = dvpCurrencyType.SelectedValueAsInt();
             var creditCardCurrencyType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_CREDIT_CARD );
-            ddlCreditCardType.Visible = currencyType.HasValue && currencyType.Value == creditCardCurrencyType.Id;
+            dvpCreditCardType.Visible = currencyType.HasValue && currencyType.Value == creditCardCurrencyType.Id;
         }
 
         #endregion
@@ -1789,7 +1789,7 @@ namespace RockWeb.Plugins.org_secc.Event
                     return false;
                 }
 
-                var threeStepGateway = gateway as ThreeStepGatewayComponent;
+                var threeStepGateway = gateway as IThreeStepGatewayComponent;
 
                 if ( registration == null || registration.RegistrationInstance == null || !registration.RegistrationInstance.AccountId.HasValue || registration.RegistrationInstance.Account == null )
                 {
@@ -1875,7 +1875,7 @@ namespace RockWeb.Plugins.org_secc.Event
             return transaction;
         }
 
-        private bool ProcessStep1( ThreeStepGatewayComponent gateway, RockContext rockContext, PaymentInfo paymentInfo, decimal amount, History.HistoryChangeList registrationChanges, out string errorMessage )
+        private bool ProcessStep1( IThreeStepGatewayComponent gateway, RockContext rockContext, PaymentInfo paymentInfo, decimal amount, History.HistoryChangeList registrationChanges, out string errorMessage )
         {
             paymentInfo.IPAddress = GetClientIpAddress();
             paymentInfo.AdditionalParameters = gateway.GetStep1Parameters( ResolveRockUrlIncludeRoot( "~/GatewayStep2Return.aspx" ) );
@@ -1892,10 +1892,10 @@ namespace RockWeb.Plugins.org_secc.Event
 
         private bool ProcessStep3( string resultQueryString, RockContext rockContext, Registration registration, int? personAliasId, decimal amount, out string errorMessage )
         {
-            ThreeStepGatewayComponent gateway = null;
+            IThreeStepGatewayComponent gateway = null;
             if ( RegistrationTemplateState != null && RegistrationTemplateState.FinancialGateway != null )
             {
-                gateway = RegistrationTemplateState.FinancialGateway.GetGatewayComponent() as ThreeStepGatewayComponent;
+                gateway = RegistrationTemplateState.FinancialGateway.GetGatewayComponent() as IThreeStepGatewayComponent;
             }
 
             if ( gateway == null )
@@ -1967,8 +1967,8 @@ namespace RockWeb.Plugins.org_secc.Event
         {
             var transaction = new FinancialTransaction();
             transaction.FinancialPaymentDetail = new FinancialPaymentDetail();
-            transaction.FinancialPaymentDetail.CurrencyTypeValueId = ddlCurrencyType.SelectedValueAsInt();
-            transaction.FinancialPaymentDetail.CreditCardTypeValueId = ddlCreditCardType.SelectedValueAsInt();
+            transaction.FinancialPaymentDetail.CurrencyTypeValueId = dvpCurrencyType.SelectedValueAsInt();
+            transaction.FinancialPaymentDetail.CreditCardTypeValueId = dvpCreditCardType.SelectedValueAsInt();
             transaction.TransactionCode = tbTransactionCode.Text;
 
             registrationChanges.AddChange( History.HistoryVerb.Add, History.HistoryChangeType.Record, string.Format( "Manual payment of {0}.", amount.FormatAsCurrency() ) );

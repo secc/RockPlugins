@@ -13,10 +13,10 @@
 // </copyright>
 using System;
 using System.ComponentModel;
-using Rock.Model;
 using System.Web;
-using Rock.Attribute;
 using Rock;
+using Rock.Attribute;
+using Rock.Model;
 
 namespace RockWeb.Plugins.org_secc.OAuth
 {
@@ -26,7 +26,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
     [DisplayName( "OAuth Logout" )]
     [Category( "SECC > Security" )]
     [Description( "Logs a user out of Rock/OAuth." )]
-    [BooleanField("Enabled", "Enabled or disabled.  This is helpful for editing the page!", true)]
+    [BooleanField( "Enabled", "Enabled or disabled.  This is helpful for editing the page!", true )]
     public partial class Logout : Rock.Web.UI.RockBlock
     {
         /// <summary>
@@ -37,17 +37,17 @@ namespace RockWeb.Plugins.org_secc.OAuth
         {
             base.OnInit( e );
 
-            if (GetAttributeValue("Enabled").AsBoolean())
+            if ( GetAttributeValue( "Enabled" ).AsBoolean() )
             {
                 var authentication = HttpContext.Current.GetOwinContext().Authentication;
-                authentication.SignOut("OAuth");
-                if (CurrentUser != null)
+                authentication.SignOut( "OAuth" );
+                if ( CurrentUser != null )
                 {
-                    Response.Redirect(Request.RawUrl + (Request.RawUrl.Contains("?") ? "&" : "?") + "logout=true");
+                    Response.Redirect( Request.RawUrl + ( Request.RawUrl.Contains( "?" ) ? "&" : "?" ) + "logout=true" );
                 }
             }
 
         }
-        
+
     }
 }

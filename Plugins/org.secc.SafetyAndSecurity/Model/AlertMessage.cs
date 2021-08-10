@@ -51,9 +51,7 @@ namespace org.secc.SafetyAndSecurity.Model
             var dataViewService = new DataViewService( rockContext );
             var dataView = dataViewService.Get( dataViewGuid );
 
-            int timeout = 30;
-            List<string> errorMessages;
-            var qry = dataView.GetQuery( null, timeout, out errorMessages );
+            var qry = dataView.GetQuery( new DataViewGetQueryArgs { DatabaseTimeoutSeconds = 30 } );
             var recipients = qry.Select( e => ( Person ) e );
 
             return recipients;
@@ -62,7 +60,7 @@ namespace org.secc.SafetyAndSecurity.Model
         {
             // Get the From value
             var fromValue = DefinedValueCache.Get( fromDefinedValue );
-            
+
 
             // Get the recipients
             var recipients = this.GetRecipients();
@@ -75,14 +73,14 @@ namespace org.secc.SafetyAndSecurity.Model
             {
                 var smsMessage = new RockSMSMessage();
                 smsMessage.FromNumber = fromValue;
-                smsMessage.Message = $"{(this.AlertNotification.Title != null ? this.AlertNotification.Title + ": " : "")}{message}";
+                smsMessage.Message = $"{( this.AlertNotification.Title != null ? this.AlertNotification.Title + ": " : "" )}{message}";
                 smsMessage.CreateCommunicationRecord = true;
                 smsMessage.communicationName = this.AlertNotification?.Title ?? "Alert Notification Message";
 
-                foreach (var person in recipients.ToList())
+                foreach ( var person in recipients.ToList() )
                 {
                     var mergeObject = new Dictionary<string, object> { { "Person", person } };
-                    smsMessage.AddRecipient( new RockEmailMessageRecipient(person, mergeObject) );
+                    smsMessage.AddRecipient( new RockEmailMessageRecipient( person, mergeObject ) );
                 }
 
                 smsMessage.Send();

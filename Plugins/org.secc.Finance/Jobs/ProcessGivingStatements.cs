@@ -16,14 +16,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
 using Quartz;
-
-using Rock.Model;
-using Rock.Data;
-using Rock.Web.Cache;
-using Rock.Attribute;
 using Rock;
+using Rock.Attribute;
+using Rock.Data;
+using Rock.Model;
+using Rock.Web.Cache;
 
 namespace org.secc.Finance.Jobs
 {
@@ -32,7 +30,7 @@ namespace org.secc.Finance.Jobs
     /// Job to process the persisted active giving statement workflows
     /// </summary>
     [WorkflowTypeField( "Statement Generator Workflow", "", false, true, "", "Workflow" )]
-    [TextField ("Workflow Activity Name", "The name of the PDF generation activity within the Statement Generator Workflow", true)]
+    [TextField( "Workflow Activity Name", "The name of the PDF generation activity within the Statement Generator Workflow", true )]
     [DisallowConcurrentExecution]
     public class ProcessGivingStatements : IJob
     {
@@ -70,65 +68,65 @@ namespace org.secc.Finance.Jobs
             var processingErrors = new List<string>();
             var exceptionMsgs = new List<string>();
 
-            var statementGeneratorWorkflowGuid = dataMap.GetString("StatementGeneratorWorkflow").AsGuidOrNull();
-            var workflowActivityName = dataMap.GetString("WorkflowActivityName");
-            
-            if (statementGeneratorWorkflowGuid != null && !string.IsNullOrWhiteSpace( workflowActivityName ))
-            {
-                var statementGeneratorWorkflowType = WorkflowTypeCache.Get(statementGeneratorWorkflowGuid.Value );
-                var activityType = statementGeneratorWorkflowType.ActivityTypes.Where(at => at.Name == workflowActivityName).FirstOrDefault();
+            var statementGeneratorWorkflowGuid = dataMap.GetString( "StatementGeneratorWorkflow" ).AsGuidOrNull();
+            var workflowActivityName = dataMap.GetString( "WorkflowActivityName" );
 
-                foreach (var workflowId in new WorkflowService( new RockContext() ).GetActive()
-                    .Where(w => w.WorkflowTypeId == statementGeneratorWorkflowType.Id && w.Status == "Pending" )
+            if ( statementGeneratorWorkflowGuid != null && !string.IsNullOrWhiteSpace( workflowActivityName ) )
+            {
+                var statementGeneratorWorkflowType = WorkflowTypeCache.Get( statementGeneratorWorkflowGuid.Value );
+                var activityType = statementGeneratorWorkflowType.ActivityTypes.Where( at => at.Name == workflowActivityName ).FirstOrDefault();
+
+                foreach ( var workflowId in new WorkflowService( new RockContext() ).GetActive()
+                    .Where( w => w.WorkflowTypeId == statementGeneratorWorkflowType.Id && w.Status == "Pending" )
                     .Select( w => w.Id )
                     .ToList() )
+                {
+                    try
                     {
-                        try
+                        // create a new rockContext and service for every workflow to prevent a build-up of Context.ChangeTracker.Entries()
+                        var rockContext = new RockContext();
+
+                        var workflowService = new WorkflowService( rockContext );
+                        var workflow = workflowService.Queryable().FirstOrDefault( a => a.Id == workflowId );
+                        if ( workflow != null )
                         {
-                            // create a new rockContext and service for every workflow to prevent a build-up of Context.ChangeTracker.Entries()
-                            var rockContext = new RockContext();
-
-                            var workflowService = new WorkflowService( rockContext );
-                            var workflow = workflowService.Queryable().FirstOrDefault( a => a.Id == workflowId );
-                            if ( workflow != null )
+                            var workflowType = workflow.WorkflowTypeCache;
+                            if ( workflowType != null )
                             {
-                                var workflowType = workflow.WorkflowTypeCache;
-                                if ( workflowType != null )
+                                try
                                 {
-                                    try
-                                    {
-                                        // Create a new PDF Generation Activity
-                                        WorkflowActivity.Activate(activityType, workflow, rockContext);
+                                    // Create a new PDF Generation Activity
+                                    WorkflowActivity.Activate( activityType, workflow, rockContext );
 
-                                        var errorMessages = new List<string>();
+                                    var errorMessages = new List<string>();
 
-                                        var processed = workflowService.Process( workflow, out errorMessages );
-                                        if ( processed )
-                                        {
-                                            workflowsProcessed++;
-                                        }
-                                        else
-                                        {
-                                            workflowErrors++;
-                                            processingErrors.Add( string.Format( "{0} [{1}] - {2} [{3}]: {4}", workflowType.Name, workflowType.Id, workflow.Name, workflow.Id, errorMessages.AsDelimited( ", " ) ) );
-                                        }
-                                    }
-                                    catch ( Exception ex )
+                                    var processed = workflowService.Process( workflow, out errorMessages );
+                                    if ( processed )
                                     {
-                                        string workflowDetails = string.Format( "{0} [{1}] - {2} [{3}]", workflowType.Name, workflowType.Id, workflow.Name, workflow.Id );
-                                        exceptionMsgs.Add( workflowDetails + ": " + ex.Message );
-                                        throw new Exception( "Exception occurred processing workflow: " + workflowDetails, ex );
+                                        workflowsProcessed++;
                                     }
+                                    else
+                                    {
+                                        workflowErrors++;
+                                        processingErrors.Add( string.Format( "{0} [{1}] - {2} [{3}]: {4}", workflowType.Name, workflowType.Id, workflow.Name, workflow.Id, errorMessages.AsDelimited( ", " ) ) );
+                                    }
+                                }
+                                catch ( Exception ex )
+                                {
+                                    string workflowDetails = string.Format( "{0} [{1}] - {2} [{3}]", workflowType.Name, workflowType.Id, workflow.Name, workflow.Id );
+                                    exceptionMsgs.Add( workflowDetails + ": " + ex.Message );
+                                    throw new Exception( "Exception occurred processing workflow: " + workflowDetails, ex );
                                 }
                             }
                         }
-
-                        catch ( Exception ex )
-                        {
-                            ExceptionLogService.LogException( ex, null );
-                            workflowExceptions++;
-                        }
                     }
+
+                    catch ( Exception ex )
+                    {
+                        ExceptionLogService.LogException( ex, null );
+                        workflowExceptions++;
+                    }
+                }
 
             }
 

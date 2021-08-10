@@ -28,7 +28,7 @@ namespace org.secc.Workflow.CMS
             var cacheTagsGuid = cacheTagsAttributeValue.AsGuidOrNull();
             if ( cacheTagsGuid != null )
             {
-                cacheTags = action.GetWorklowAttributeValue( cacheTagsGuid.Value );
+                cacheTags = action.GetWorkflowAttributeValue( cacheTagsGuid.Value );
             }
             else
             {

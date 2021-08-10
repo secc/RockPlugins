@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -12,23 +12,24 @@
 // limitations under the License.
 // </copyright>
 //
-using org.secc.PayPalReporting.Model;
 using System;
 using System.ComponentModel;
+using org.secc.PayPalReporting.Model;
 using Rock;
 
-namespace RockWeb.Plugins.org_secc.PayPalReporting { 
+namespace RockWeb.Plugins.org_secc.PayPalReporting
+{
 
-    [DisplayName("PayPal Reporting Transaction")]
-    [Category("SECC > Finance")]
-    [Description("Provides a way to view and edit transactions in the Custom PayPal Reporting table.")]
+    [DisplayName( "PayPal Reporting Transaction" )]
+    [Category( "SECC > Finance" )]
+    [Description( "Provides a way to view and edit transactions in the Custom PayPal Reporting table." )]
     public partial class Transaction : Rock.Web.UI.RockBlock
     {
         int transactionId = 0;
-        protected void Page_Load(object sender, EventArgs e)
+        protected void Page_Load( object sender, EventArgs e )
         {
-            transactionId = PageParameter("TransactionId").AsInteger();
-            if (transactionId > 0)
+            transactionId = PageParameter( "TransactionId" ).AsInteger();
+            if ( transactionId > 0 )
             {
                 ShowDetail();
             }
@@ -38,8 +39,8 @@ namespace RockWeb.Plugins.org_secc.PayPalReporting {
         {
             pnlDetails.Visible = true;
             btnSave.Visible = false;
-            TransactionService transactionService = new TransactionService(new org.secc.PayPalReporting.Data.PayPalReportingContext());
-            org.secc.PayPalReporting.Model.Transaction txn = transactionService.Get(transactionId);
+            TransactionService transactionService = new TransactionService( new org.secc.PayPalReporting.Data.PayPalReportingContext() );
+            org.secc.PayPalReporting.Model.Transaction txn = transactionService.Get( transactionId );
             lGatewayTransactionId.Text = txn.GatewayTransactionId;
             lMerchantTransactionId.Text = txn.MerchantTransactionId;
             lBillingFirstName.Text = txn.BillingFirstName;
@@ -55,15 +56,15 @@ namespace RockWeb.Plugins.org_secc.PayPalReporting {
             lIsZeroFee.Text = txn.IsZeroFee.ToString();
         }
 
-        protected void Edit_Click(object sender, EventArgs e)
+        protected void Edit_Click( object sender, EventArgs e )
         {
             pnlDetails.Visible = false;
             btnEdit.Visible = false;
             pnlEdit.Visible = true;
             btnSave.Visible = true;
 
-            TransactionService transactionService = new TransactionService(new org.secc.PayPalReporting.Data.PayPalReportingContext());
-            org.secc.PayPalReporting.Model.Transaction txn = transactionService.Get(transactionId);
+            TransactionService transactionService = new TransactionService( new org.secc.PayPalReporting.Data.PayPalReportingContext() );
+            org.secc.PayPalReporting.Model.Transaction txn = transactionService.Get( transactionId );
             hdnTransactionId.Value = txn.Id.ToString();
             tbGatewayTransactionId.Text = txn.GatewayTransactionId;
             tbMerchantTransactionId.Text = txn.MerchantTransactionId;
@@ -80,12 +81,12 @@ namespace RockWeb.Plugins.org_secc.PayPalReporting {
             tbIsZeroFee.Checked = txn.IsZeroFee;
         }
 
-        protected void Save_Click(object sender, EventArgs e)
+        protected void Save_Click( object sender, EventArgs e )
         {
 
             var dbContext = new org.secc.PayPalReporting.Data.PayPalReportingContext();
-            TransactionService transactionService = new TransactionService(dbContext);
-            org.secc.PayPalReporting.Model.Transaction txn = transactionService.Get(hdnTransactionId.Value.AsInteger());
+            TransactionService transactionService = new TransactionService( dbContext );
+            org.secc.PayPalReporting.Model.Transaction txn = transactionService.Get( hdnTransactionId.Value.AsInteger() );
             txn.GatewayTransactionId = tbGatewayTransactionId.Text;
             txn.MerchantTransactionId = tbMerchantTransactionId.Text;
             txn.BillingFirstName = tbBillingFirstName.Text;

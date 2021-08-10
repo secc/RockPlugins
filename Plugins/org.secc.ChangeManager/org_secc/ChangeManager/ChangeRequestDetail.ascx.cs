@@ -180,8 +180,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 var dv = dataViewService.Get( blackListDV.Value );
                 if ( dv != null )
                 {
-                    List<string> errorMessages;
-                    var qry = ( IQueryable<Person> ) dv.GetQuery( null, 30, out errorMessages );
+                    var qry = ( IQueryable<Person> ) dv.GetQuery( new DataViewGetQueryArgs { DatabaseTimeoutSeconds = 30 } );
 
                     if ( qry.Where( p => relatedPersonIds.Contains( p.Id ) ).Any() )
                     {

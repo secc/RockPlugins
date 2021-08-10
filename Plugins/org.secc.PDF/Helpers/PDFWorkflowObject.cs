@@ -12,16 +12,12 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.ComponentModel.Composition;
 using Rock;
-using Rock.Model;
-using DotLiquid;
 using Rock.Data;
-using Rock.Web.Cache;
 using Rock.Field;
+using Rock.Model;
+using Rock.Web.Cache;
 
 namespace org.secc.PDF
 {

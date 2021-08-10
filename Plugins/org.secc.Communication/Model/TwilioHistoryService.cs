@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using org.secc.Communication.Data;
 using Rock;
 using Rock.Data;
@@ -54,7 +49,7 @@ namespace org.secc.Communication.Model
             {
                 return TwilioDirection.OutboundApi;
             }
-            else if ( direction == "outbound-call")
+            else if ( direction == "outbound-call" )
             {
                 return TwilioDirection.OutboundCall;
             }
@@ -75,7 +70,7 @@ namespace org.secc.Communication.Model
         private TwilioStatus GetStatus( MessageResource.StatusEnum stat )
         {
             var status = stat.ToString();
-            if ( status == "delivered")
+            if ( status == "delivered" )
             {
                 return TwilioStatus.Delivered;
             }

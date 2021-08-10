@@ -17,9 +17,9 @@ namespace org.secc.LeagueApps.Contracts
 {
     public class Registrations
     {
-            public int userId { get; set; }
-            public string team { get; set; }
-            public string role { get; set; }
-            
+        public int userId { get; set; }
+        public string team { get; set; }
+        public string role { get; set; }
+
     }
 }

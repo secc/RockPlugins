@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -34,17 +34,19 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Web.UI.WebControls;
+using Newtonsoft.Json;
 using org.secc.Sass;
 using Rock;
+using Rock.Attribute;
 using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
-using Rock.Utility;
 using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+using Attribute = Rock.Model.Attribute;
 using Site = Rock.Model.Site;
 
 namespace RockWeb.Plugins.org_secc.Sass
@@ -53,10 +55,38 @@ namespace RockWeb.Plugins.org_secc.Sass
     /// 
     /// </summary>
     [DisplayName( "Site Detail" )]
-    [Category( "SECC > CMS" )]
-    [Description( "Displays the details of a specific site. (Modified to compile with SASS)" )]
+    [Category( "CMS" )]
+    [Description( "Displays the details of a specific site." )]
+
+    [BinaryFileTypeField( "Default File Type",
+        Key = AttributeKey.DefaultFileType,
+        Description = "The default file type to use while uploading Favicon",
+        IsRequired = true,
+        DefaultValue = Rock.SystemGuid.BinaryFiletype.DEFAULT, // this was previously defaultBinaryFileTypeGuid which maps to base default value
+        Category = "",
+        Order = 0 )]
+
     public partial class SiteDetail : RockBlock, IDetailBlock
     {
+        #region Attribute Keys
+        private static class AttributeKey
+        {
+            public const string DefaultFileType = "DefaultFileType";
+        }
+        #endregion
+
+        #region Properties
+
+        /// <summary>
+        /// Gets or sets the state of the page attributes.
+        /// </summary>
+        /// <value>
+        /// The state of the page attributes.
+        /// </value>
+        private List<Attribute> PageAttributesState { get; set; }
+
+        #endregion
+
         #region Base Control Methods
 
         /// <summary>
@@ -68,6 +98,13 @@ namespace RockWeb.Plugins.org_secc.Sass
             base.OnInit( e );
 
             btnDelete.Attributes["onclick"] = string.Format( "javascript: return Rock.dialogs.confirmDelete(event, '{0}');", Rock.Model.Site.FriendlyTypeName );
+
+            gPageAttributes.DataKeyNames = new string[] { "Guid" };
+            gPageAttributes.Actions.ShowAdd = true;
+            gPageAttributes.Actions.AddClick += gPageAttributes_Add;
+            gPageAttributes.EmptyDataText = Server.HtmlEncode( None.Text );
+            gPageAttributes.GridRebind += gPageAttributes_GridRebind;
+            gPageAttributes.GridReorder += gPageAttributes_GridReorder;
         }
 
         /// <summary>
@@ -80,8 +117,174 @@ namespace RockWeb.Plugins.org_secc.Sass
 
             if ( !Page.IsPostBack )
             {
-                ShowDetail( PageParameter( "siteId" ).AsInteger() );
+                ShowDetail( PageParameter( "SiteId" ).AsInteger() );
             }
+
+            if ( dlgPageAttribute.Visible )
+            {
+                HideSecondaryBlocks( true );
+            }
+        }
+
+        /// <summary>
+        /// Restores the view-state information from a previous user control request that was saved by the <see cref="M:System.Web.UI.UserControl.SaveViewState" /> method.
+        /// </summary>
+        /// <param name="savedState">An <see cref="T:System.Object" /> that represents the user control state to be restored.</param>
+        protected override void LoadViewState( object savedState )
+        {
+            base.LoadViewState( savedState );
+
+            var json = ViewState["PageAttributesState"] as string;
+            if ( string.IsNullOrWhiteSpace( json ) )
+            {
+                PageAttributesState = new List<Attribute>();
+            }
+            else
+            {
+                PageAttributesState = JsonConvert.DeserializeObject<List<Attribute>>( json );
+            }
+        }
+
+        /// <summary>
+        /// Saves any user control view-state changes that have occurred since the last page postback.
+        /// </summary>
+        /// <returns>
+        /// Returns the user control's current view state. If there is no view state associated with the control, it returns null.
+        /// </returns>
+        protected override object SaveViewState()
+        {
+            var jsonSetting = new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                ContractResolver = new Rock.Utility.IgnoreUrlEncodedKeyContractResolver()
+            };
+
+            ViewState["PageAttributesState"] = JsonConvert.SerializeObject( PageAttributesState, Formatting.None, jsonSetting );
+
+            return base.SaveViewState();
+        }
+
+        #endregion
+
+        #region PageAttributes Grid and Picker
+
+        /// <summary>
+        /// Handles the Add event of the gPageAttributes control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void gPageAttributes_Add( object sender, EventArgs e )
+        {
+            gPageAttributes_ShowEdit( Guid.Empty );
+        }
+
+        /// <summary>
+        /// Handles the Edit event of the gPageAttributes control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="RowEventArgs"/> instance containing the event data.</param>
+        protected void gPageAttributes_Edit( object sender, RowEventArgs e )
+        {
+            Guid attributeGuid = ( Guid ) e.RowKeyValue;
+            gPageAttributes_ShowEdit( attributeGuid );
+        }
+
+        /// <summary>
+        /// gs the page attributes show edit.
+        /// </summary>
+        /// <param name="attributeGuid">The attribute unique identifier.</param>
+        protected void gPageAttributes_ShowEdit( Guid attributeGuid )
+        {
+            Attribute attribute;
+            if ( attributeGuid.Equals( Guid.Empty ) )
+            {
+                attribute = new Attribute();
+                attribute.FieldTypeId = FieldTypeCache.Get( Rock.SystemGuid.FieldType.TEXT ).Id;
+                edtPageAttributes.ActionTitle = ActionTitle.Add( "attribute for pages of site " + tbSiteName.Text );
+            }
+            else
+            {
+                attribute = PageAttributesState.First( a => a.Guid.Equals( attributeGuid ) );
+                edtPageAttributes.ActionTitle = ActionTitle.Edit( "attribute for pages of site " + tbSiteName.Text );
+            }
+
+            var reservedKeyNames = new List<string>();
+            PageAttributesState.Where( a => !a.Guid.Equals( attributeGuid ) ).Select( a => a.Key ).ToList().ForEach( a => reservedKeyNames.Add( a ) );
+            edtPageAttributes.ReservedKeyNames = reservedKeyNames.ToList();
+
+            edtPageAttributes.SetAttributeProperties( attribute, typeof( Rock.Model.Page ) );
+
+            dlgPageAttribute.Show();
+            HideSecondaryBlocks( true );
+        }
+
+        /// <summary>
+        /// Handles the GridReorder event of the gPageAttributes control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="GridReorderEventArgs"/> instance containing the event data.</param>
+        protected void gPageAttributes_GridReorder( object sender, GridReorderEventArgs e )
+        {
+            new AttributeService( new RockContext() ).Reorder( PageAttributesState, e.OldIndex, e.NewIndex );
+            BindPageAttributesGrid();
+        }
+
+        /// <summary>
+        /// Handles the Delete event of the gPageAttributes control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="RowEventArgs"/> instance containing the event data.</param>
+        protected void gPageAttributes_Delete( object sender, RowEventArgs e )
+        {
+            Guid attributeGuid = ( Guid ) e.RowKeyValue;
+            PageAttributesState.RemoveEntity( attributeGuid );
+
+            BindPageAttributesGrid();
+        }
+
+        /// <summary>
+        /// Handles the GridRebind event of the gPageAttributes control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void gPageAttributes_GridRebind( object sender, EventArgs e )
+        {
+            BindPageAttributesGrid();
+        }
+
+        /// <summary>
+        /// Handles the SaveClick event of the dlgPageAttribute control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void dlgPageAttribute_SaveClick( object sender, EventArgs e )
+        {
+#pragma warning disable 0618 // Type or member is obsolete
+            var attribute = SaveChangesToStateCollection( edtPageAttributes, PageAttributesState );
+#pragma warning restore 0618 // Type or member is obsolete
+
+            // Controls will show warnings
+            if ( !attribute.IsValid )
+            {
+                return;
+            }
+
+            BindPageAttributesGrid();
+
+            dlgPageAttribute.Hide();
+        }
+
+        /// <summary>
+        /// Binds the page attributes grid.
+        /// </summary>
+        private void BindPageAttributesGrid()
+        {
+            gPageAttributes.AddCssClass( "attribute-grid" );
+            int order = 0;
+            PageAttributesState.OrderBy( a => a.Order ).ToList().ForEach( a => a.Order = order++ );
+
+            gPageAttributes.DataSource = PageAttributesState.OrderBy( a => a.Order ).ThenBy( a => a.Name ).ToList();
+            gPageAttributes.DataBind();
         }
 
         #endregion
@@ -110,7 +313,6 @@ namespace RockWeb.Plugins.org_secc.Sass
             btnEdit.Visible = true;
             pnlDeleteConfirm.Visible = false;
         }
-
         /// <summary>
         /// Handles the Click event of the btnCompileTheme control.
         /// </summary>
@@ -133,7 +335,7 @@ namespace RockWeb.Plugins.org_secc.Sass
             }
             else
             {
-                mdThemeCompile.Show( string.Format("An error occurred compiling the theme {0}. Message: {1}.", site.Theme, messages), ModalAlertType.Warning );
+                mdThemeCompile.Show( string.Format( "An error occurred compiling the theme {0}. Message: {1}.", site.Theme, messages ), ModalAlertType.Warning );
             }
         }
 
@@ -151,27 +353,15 @@ namespace RockWeb.Plugins.org_secc.Sass
             Site site = siteService.Get( hfSiteId.Value.AsInteger() );
             LayoutService layoutService = new LayoutService( rockContext );
             PageService pageService = new PageService( rockContext );
-            PageViewService pageViewService = new PageViewService( rockContext );
 
             if ( site != null )
             {
                 var sitePages = new List<int> {
                     site.DefaultPageId ?? -1,
                     site.LoginPageId ?? -1,
-                    site.RegistrationPageId ?? -1, 
+                    site.RegistrationPageId ?? -1,
                     site.PageNotFoundPageId ?? -1
                 };
-
-                foreach ( var pageView in pageViewService
-                    .Queryable()
-                    .Where( t =>
-                        t.Page != null &&
-                        t.Page.Layout != null &&
-                        t.Page.Layout.SiteId == site.Id ) )
-                {
-                    pageView.Page = null;
-                    pageView.PageId = null;
-                }
 
                 var pageQry = pageService.Queryable( "Layout" )
                     .Where( t =>
@@ -197,8 +387,6 @@ namespace RockWeb.Plugins.org_secc.Sass
                 siteService.Delete( site );
 
                 rockContext.SaveChanges();
-
-                SiteCache.Flush( site.Id );
             }
 
             NavigateToParentPage();
@@ -228,6 +416,7 @@ namespace RockWeb.Plugins.org_secc.Sass
             if ( Page.IsValid )
             {
                 var rockContext = new RockContext();
+                PageService pageService = new PageService( rockContext );
                 SiteService siteService = new SiteService( rockContext );
                 SiteDomainService siteDomainService = new SiteDomainService( rockContext );
                 bool newSite = false;
@@ -263,16 +452,42 @@ namespace RockWeb.Plugins.org_secc.Sass
                 site.ErrorPage = tbErrorPage.Text;
                 site.GoogleAnalyticsCode = tbGoogleAnalytics.Text;
                 site.RequiresEncryption = cbRequireEncryption.Checked;
+                site.EnabledForShortening = cbEnableForShortening.Checked;
                 site.EnableMobileRedirect = cbEnableMobileRedirect.Checked;
                 site.MobilePageId = ppMobilePage.PageId;
                 site.ExternalUrl = tbExternalURL.Text;
                 site.AllowedFrameDomains = tbAllowedFrameDomains.Text;
                 site.RedirectTablets = cbRedirectTablets.Checked;
                 site.EnablePageViews = cbEnablePageViews.Checked;
-                site.PageViewRetentionPeriodDays = nbPageViewRetentionPeriodDays.Text.AsIntegerOrNull();
-
+                site.IsActive = cbIsActive.Checked;
                 site.AllowIndexing = cbAllowIndexing.Checked;
+                site.IsIndexEnabled = cbEnableIndexing.Checked;
+                site.IndexStartingLocation = tbIndexStartingLocation.Text;
+                site.EnableExclusiveRoutes = cbEnableExclusiveRoutes.Checked;
+
                 site.PageHeaderContent = cePageHeaderContent.Text;
+
+                avcAttributes.GetEditValues( site );
+                // only save if everything saves:
+                rockContext.WrapTransaction( () =>
+                {
+                    rockContext.SaveChanges();
+                    site.SaveAttributeValues();
+                } );
+
+                int? existingIconId = null;
+                if ( site.FavIconBinaryFileId != imgSiteIcon.BinaryFileId )
+                {
+                    existingIconId = site.FavIconBinaryFileId;
+                    site.FavIconBinaryFileId = imgSiteIcon.BinaryFileId;
+                }
+
+                int? existingLogoId = null;
+                if ( site.SiteLogoBinaryFileId != imgSiteLogo.BinaryFileId )
+                {
+                    existingLogoId = site.SiteLogoBinaryFileId;
+                    site.SiteLogoBinaryFileId = imgSiteLogo.BinaryFileId;
+                }
 
                 var currentDomains = tbSiteDomains.Text.SplitDelimitedValues().ToList<string>();
                 site.SiteDomains = site.SiteDomains ?? new List<SiteDomain>();
@@ -284,6 +499,7 @@ namespace RockWeb.Plugins.org_secc.Sass
                     siteDomainService.Delete( domain );
                 }
 
+                int order = 0;
                 foreach ( string domain in currentDomains )
                 {
                     SiteDomain sd = site.SiteDomains.Where( d => d.Domain == domain ).FirstOrDefault();
@@ -294,6 +510,7 @@ namespace RockWeb.Plugins.org_secc.Sass
                         sd.Guid = Guid.NewGuid();
                         site.SiteDomains.Add( sd );
                     }
+                    sd.Order = order++;
                 }
 
                 if ( !site.DefaultPageId.HasValue && !newSite )
@@ -312,6 +529,32 @@ namespace RockWeb.Plugins.org_secc.Sass
                 {
                     rockContext.SaveChanges();
 
+                    SaveAttributes( new Page().TypeId, "SiteId", site.Id.ToString(), PageAttributesState, rockContext );
+
+                    if ( existingIconId.HasValue )
+                    {
+                        BinaryFileService binaryFileService = new BinaryFileService( rockContext );
+                        var binaryFile = binaryFileService.Get( existingIconId.Value );
+                        if ( binaryFile != null )
+                        {
+                            // marked the old images as IsTemporary so they will get cleaned up later
+                            binaryFile.IsTemporary = true;
+                            rockContext.SaveChanges();
+                        }
+                    }
+
+                    if ( existingLogoId.HasValue )
+                    {
+                        BinaryFileService binaryFileService = new BinaryFileService( rockContext );
+                        var binaryFile = binaryFileService.Get( existingLogoId.Value );
+                        if ( binaryFile != null )
+                        {
+                            // marked the old images as IsTemporary so they will get cleaned up later
+                            binaryFile.IsTemporary = true;
+                            rockContext.SaveChanges();
+                        }
+                    }
+
                     if ( newSite )
                     {
                         Rock.Security.Authorization.CopyAuthorization( RockPage.Layout.Site, site, rockContext, Authorization.EDIT );
@@ -320,12 +563,31 @@ namespace RockWeb.Plugins.org_secc.Sass
                     }
                 } );
 
-                SiteCache.Flush( site.Id );
+                // add/update for the InteractionChannel for this site and set the RetentionPeriod
+                var interactionChannelService = new InteractionChannelService( rockContext );
+                int channelMediumWebsiteValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.INTERACTIONCHANNELTYPE_WEBSITE.AsGuid() ).Id;
+                var interactionChannelForSite = interactionChannelService.Queryable()
+                    .Where( a => a.ChannelTypeMediumValueId == channelMediumWebsiteValueId && a.ChannelEntityId == site.Id ).FirstOrDefault();
+
+                if ( interactionChannelForSite == null )
+                {
+                    interactionChannelForSite = new InteractionChannel();
+                    interactionChannelForSite.ChannelTypeMediumValueId = channelMediumWebsiteValueId;
+                    interactionChannelForSite.ChannelEntityId = site.Id;
+                    interactionChannelService.Add( interactionChannelForSite );
+                }
+
+                interactionChannelForSite.Name = site.Name;
+                interactionChannelForSite.RetentionDuration = nbPageViewRetentionPeriodDays.Text.AsIntegerOrNull();
+                interactionChannelForSite.ComponentEntityTypeId = EntityTypeCache.Get<Rock.Model.Page>().Id;
+
+                rockContext.SaveChanges();
+
 
                 // Create the default page is this is a new site
                 if ( !site.DefaultPageId.HasValue && newSite )
                 {
-                    var siteCache = SiteCache.Read( site.Id );
+                    var siteCache = SiteCache.Get( site.Id );
 
                     // Create the layouts for the site, and find the first one
                     LayoutService.RegisterLayouts( Request.MapPath( "~" ), siteCache );
@@ -340,7 +602,6 @@ namespace RockWeb.Plugins.org_secc.Sass
 
                     if ( layout != null )
                     {
-                        var pageService = new PageService( rockContext );
                         var page = new Page();
                         page.LayoutId = layout.Id;
                         page.PageTitle = siteCache.Name + " Home Page";
@@ -361,15 +622,42 @@ namespace RockWeb.Plugins.org_secc.Sass
                         site.DefaultPageId = page.Id;
 
                         rockContext.SaveChanges();
-
-                        SiteCache.Flush( site.Id );
                     }
                 }
 
                 var qryParams = new Dictionary<string, string>();
-                qryParams["siteId"] = site.Id.ToString();
+                qryParams["SiteId"] = site.Id.ToString();
 
                 NavigateToPage( RockPage.Guid, qryParams );
+            }
+        }
+
+        /// <summary>
+        /// Saves the attributes.
+        /// </summary>
+        /// <param name="entityTypeId">The entity type identifier.</param>
+        /// <param name="qualifierColumn">The qualifier column.</param>
+        /// <param name="qualifierValue">The qualifier value.</param>
+        /// <param name="viewStateAttributes">The view state attributes.</param>
+        /// <param name="rockContext">The rock context.</param>
+        private void SaveAttributes( int entityTypeId, string qualifierColumn, string qualifierValue, List<Attribute> viewStateAttributes, RockContext rockContext )
+        {
+            // Get the existing attributes for this entity type and qualifier value
+            var attributeService = new AttributeService( rockContext );
+            var attributes = attributeService.GetByEntityTypeQualifier( entityTypeId, qualifierColumn, qualifierValue, true );
+
+            // Delete any of those attributes that were removed in the UI
+            var selectedAttributeGuids = viewStateAttributes.Select( a => a.Guid );
+            foreach ( var attr in attributes.Where( a => !selectedAttributeGuids.Contains( a.Guid ) ) )
+            {
+                attributeService.Delete( attr );
+                rockContext.SaveChanges();
+            }
+
+            // Update the Attributes that were assigned in the UI
+            foreach ( var attributeState in viewStateAttributes )
+            {
+                Helper.SaveAttributeEdits( attributeState, entityTypeId, qualifierColumn, qualifierValue, rockContext );
             }
         }
 
@@ -391,6 +679,16 @@ namespace RockWeb.Plugins.org_secc.Sass
                 var site = new SiteService( new RockContext() ).Get( hfSiteId.Value.AsInteger() );
                 ShowReadonlyDetails( site );
             }
+        }
+
+        /// <summary>
+        /// Handles the CheckedChanged event of the cbEnableIndexing control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        protected void cbEnableIndexing_CheckedChanged( object sender, EventArgs e )
+        {
+            SetControlsVisiblity();
         }
 
         /// <summary>
@@ -454,9 +752,19 @@ namespace RockWeb.Plugins.org_secc.Sass
                 // hide the panel drawer that show created and last modified dates
                 pdAuditDetails.Visible = false;
             }
+            else
+            {
+                if ( site.DefaultPageId.HasValue )
+                {
+                    lVisitSite.Text = string.Format( @"<a href=""{0}{1}"" target=""_blank""><span class=""label label-info"">Visit Site</span></a>", ResolveRockUrl( "~/page/" ), site.DefaultPageId );
+                }
+            }
+
+            Guid fileTypeGuid = GetAttributeValue( AttributeKey.DefaultFileType ).AsGuid();
+            imgSiteIcon.BinaryFileTypeGuid = fileTypeGuid;
 
             // set theme compile button
-            if ( ! new RockTheme(site.Theme ).AllowsCompile) 
+            if ( !new RockTheme( site.Theme ).AllowsCompile )
             {
                 btnCompileTheme.Enabled = false;
                 btnCompileTheme.Text = "Theme Doesn't Support Compiling";
@@ -506,7 +814,7 @@ namespace RockWeb.Plugins.org_secc.Sass
         /// <summary>
         /// Shows the edit details.
         /// </summary>
-        /// <param name="group">The group.</param>
+        /// <param name="site">The site.</param>
         private void ShowEditDetails( Rock.Model.Site site )
         {
             if ( site.Id == 0 )
@@ -532,6 +840,11 @@ namespace RockWeb.Plugins.org_secc.Sass
 
             ddlTheme.Enabled = !site.IsSystem;
             ddlTheme.SetValue( site.Theme );
+
+            imgSiteIcon.BinaryFileId = site.FavIconBinaryFileId;
+            imgSiteLogo.BinaryFileId = site.SiteLogoBinaryFileId;
+
+            cbIsActive.Checked = site.IsActive;
 
             if ( site.DefaultPageRoute != null )
             {
@@ -589,9 +902,10 @@ namespace RockWeb.Plugins.org_secc.Sass
 
             tbErrorPage.Text = site.ErrorPage;
 
-            tbSiteDomains.Text = string.Join( "\n", site.SiteDomains.Select( dom => dom.Domain ).ToArray() );
+            tbSiteDomains.Text = string.Join( "\n", site.SiteDomains.OrderBy( d => d.Order ).Select( d => d.Domain ).ToArray() );
             tbGoogleAnalytics.Text = site.GoogleAnalyticsCode;
             cbRequireEncryption.Checked = site.RequiresEncryption;
+            cbEnableForShortening.Checked = site.EnabledForShortening;
 
             cbEnableMobileRedirect.Checked = site.EnableMobileRedirect;
             ppMobilePage.SetValue( site.MobilePage );
@@ -599,14 +913,48 @@ namespace RockWeb.Plugins.org_secc.Sass
             tbAllowedFrameDomains.Text = site.AllowedFrameDomains;
             cbRedirectTablets.Checked = site.RedirectTablets;
             cbEnablePageViews.Checked = site.EnablePageViews;
-            nbPageViewRetentionPeriodDays.Text = site.PageViewRetentionPeriodDays.ToString();
+
+            int channelMediumWebsiteValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.INTERACTIONCHANNELTYPE_WEBSITE.AsGuid() ).Id;
+            var interactionChannelForSite = new InteractionChannelService( new RockContext() ).Queryable()
+                .Where( a => a.ChannelTypeMediumValueId == channelMediumWebsiteValueId && a.ChannelEntityId == site.Id ).FirstOrDefault();
+
+            if ( interactionChannelForSite != null )
+            {
+                nbPageViewRetentionPeriodDays.Text = interactionChannelForSite.RetentionDuration.ToString();
+            }
+
+            cbEnableIndexing.Checked = site.IsIndexEnabled;
+            tbIndexStartingLocation.Text = site.IndexStartingLocation;
+            cbEnableExclusiveRoutes.Checked = site.EnableExclusiveRoutes;
+
+            // disable the indexing features if indexing on site is disabled
+            var siteEntityType = EntityTypeCache.Get( "Rock.Model.Site" );
+            if ( siteEntityType != null && !siteEntityType.IsIndexingEnabled )
+            {
+                cbEnableIndexing.Visible = false;
+            }
+
+            var attributeService = new AttributeService( new RockContext() );
+            var siteIdQualifierValue = site.Id.ToString();
+            PageAttributesState = attributeService.GetByEntityTypeId( new Page().TypeId, true ).AsQueryable()
+                .Where( a =>
+                    a.EntityTypeQualifierColumn.Equals( "SiteId", StringComparison.OrdinalIgnoreCase ) &&
+                    a.EntityTypeQualifierValue.Equals( siteIdQualifierValue ) )
+                .OrderBy( a => a.Order )
+                .ThenBy( a => a.Name )
+                .ToList();
+            BindPageAttributesGrid();
+
             SetControlsVisiblity();
+
+            site.LoadAttributes();
+            avcAttributes.AddEditControls( site, Rock.Security.Authorization.EDIT, CurrentPerson );
         }
 
         /// <summary>
         /// Shows the readonly details.
         /// </summary>
-        /// <param name="group">The group.</param>
+        /// <param name="site">The site.</param>
         private void ShowReadonlyDetails( Rock.Model.Site site )
         {
             SetEditMode( false );
@@ -617,7 +965,7 @@ namespace RockWeb.Plugins.org_secc.Sass
             lSiteDescription.Text = site.Description;
 
             DescriptionList descriptionList = new DescriptionList();
-            descriptionList.Add( "Domain(s)", site.SiteDomains.Select( d => d.Domain ).ToList().AsDelimited( ", " ) );
+            descriptionList.Add( "Domain(s)", site.SiteDomains.OrderBy( d => d.Order ).Select( d => d.Domain ).ToList().AsDelimited( ", " ) );
             descriptionList.Add( "Theme", site.Theme );
             descriptionList.Add( "Default Page", site.DefaultPageRoute );
             lblMainDetails.Text = descriptionList.Html;
@@ -636,7 +984,7 @@ namespace RockWeb.Plugins.org_secc.Sass
         }
 
         /// <summary>
-        /// Sets the controls visiblity.
+        /// Sets the controls visibility.
         /// </summary>
         private void SetControlsVisiblity()
         {
@@ -650,6 +998,48 @@ namespace RockWeb.Plugins.org_secc.Sass
 
         #endregion
 
-        
+        #region Obsolete Code
+
+        /// <summary>
+        /// Add or update the saved state of an Attribute using values from the AttributeEditor.
+        /// Non-editable system properties of the existing Attribute state are preserved.
+        /// </summary>
+        /// <param name="editor">The AttributeEditor that holds the updated Attribute values.</param>
+        /// <param name="attributeStateCollection">The stored state collection.</param>
+        [RockObsolete( "1.11" )]
+        [Obsolete( "This method is required for backward-compatibility - new blocks should use the AttributeEditor.SaveChangesToStateCollection() extension method instead." )]
+        private Rock.Model.Attribute SaveChangesToStateCollection( AttributeEditor editor, List<Rock.Model.Attribute> attributeStateCollection )
+        {
+            // Load the editor values into a new Attribute instance.
+            Rock.Model.Attribute attribute = new Rock.Model.Attribute();
+
+            editor.GetAttributeProperties( attribute );
+
+            // Get the stored state of the Attribute, and copy the values of the non-editable properties.
+            var attributeState = attributeStateCollection.Where( a => a.Guid.Equals( attribute.Guid ) ).FirstOrDefault();
+
+            if ( attributeState != null )
+            {
+                attribute.Order = attributeState.Order;
+                attribute.CreatedDateTime = attributeState.CreatedDateTime;
+                attribute.CreatedByPersonAliasId = attributeState.CreatedByPersonAliasId;
+                attribute.ForeignGuid = attributeState.ForeignGuid;
+                attribute.ForeignId = attributeState.ForeignId;
+                attribute.ForeignKey = attributeState.ForeignKey;
+
+                attributeStateCollection.RemoveEntity( attribute.Guid );
+            }
+            else
+            {
+                // Set the Order of the new entry as the last item in the collection.
+                attribute.Order = attributeStateCollection.Any() ? attributeStateCollection.Max( a => a.Order ) + 1 : 0;
+            }
+
+            attributeStateCollection.Add( attribute );
+
+            return attribute;
+        }
+
+        #endregion
     }
 }

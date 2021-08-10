@@ -16,17 +16,11 @@ using System;
 using System.Collections.Generic;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using Rock.Model;
-using Rock.Field;
-using Rock.Reporting;
-using Rock.Web.UI.Controls;
-using Rock;
-using Rock.Web.Cache;
 using org.secc.Attributes.Controls;
-using Rock.Data;
-using System.Data.SqlClient;
-using System.Linq;
 using org.secc.Attributes.Helpers;
+using Rock;
+using Rock.Field;
+using Rock.Web.UI.Controls;
 
 namespace org.secc.Attributes.FieldTypes
 {

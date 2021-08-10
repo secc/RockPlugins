@@ -60,7 +60,7 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if ( string.IsNullOrWhiteSpace( VendorContactName ) && VendorContactPhone == null  && string.IsNullOrWhiteSpace( VendorContactEmail ) )
+                if ( string.IsNullOrWhiteSpace( VendorContactName ) && VendorContactPhone == null && string.IsNullOrWhiteSpace( VendorContactEmail ) )
                 {
                     return "(not provided)";
                 }
@@ -135,7 +135,7 @@ namespace org.secc.Purchasing
             {
                 if ( mCreatedBy == null && !String.IsNullOrEmpty( CreatedByUser ) )
                 {
-                    mCreatedBy = userLoginService.GetByUserName(CreatedByUser).Person;
+                    mCreatedBy = userLoginService.GetByUserName( CreatedByUser ).Person;
                 }
 
                 return mCreatedBy;
@@ -149,7 +149,7 @@ namespace org.secc.Purchasing
             {
                 if ( mModifiedBy == null && !String.IsNullOrEmpty( ModifiedByUser ) )
                 {
-                    mModifiedBy =  userLoginService.GetByUserName(ModifiedByUser).Person;
+                    mModifiedBy = userLoginService.GetByUserName( ModifiedByUser ).Person;
                 }
 
                 return mModifiedBy;
@@ -163,7 +163,7 @@ namespace org.secc.Purchasing
             {
                 if ( mQuoteBlob == null && QuoteBlobID > 0 )
                 {
-                    mQuoteBlob = new BinaryFileService(new Rock.Data.RockContext()).Queryable().Where(f => f.Id == QuoteBlobID).FirstOrDefault();
+                    mQuoteBlob = new BinaryFileService( new Rock.Data.RockContext() ).Queryable().Where( f => f.Id == QuoteBlobID ).FirstOrDefault();
 
                 }
 
@@ -194,10 +194,10 @@ namespace org.secc.Purchasing
 
         public static int GetDocumentTypeID()
         {
-            return new BinaryFileTypeService(new Rock.Data.RockContext()).Queryable().Where(t => t.Guid == Guid.Parse(DocumentTypeGuidValue)).Select(t =>t.Id).FirstOrDefault();
+            return new BinaryFileTypeService( new Rock.Data.RockContext() ).Queryable().Where( t => t.Guid == Guid.Parse( DocumentTypeGuidValue ) ).Select( t => t.Id ).FirstOrDefault();
         }
 
-        public static List<CapitalRequestBid> LoadByCapitalRequest(int capitalRequestID)
+        public static List<CapitalRequestBid> LoadByCapitalRequest( int capitalRequestID )
         {
             using ( PurchasingContext context = ContextHelper.GetDBContext() )
             {
@@ -206,11 +206,11 @@ namespace org.secc.Purchasing
                     .Select( b => new CapitalRequestBid( b ) ).ToList();
             }
         }
-        
+
         #endregion
 
         #region Public Methods
-        public void Save(string userID)
+        public void Save( string userID )
         {
             try
             {
@@ -227,7 +227,7 @@ namespace org.secc.Purchasing
                 {
                     CapitalRequestBidData data = null;
 
-                    
+
 
                     if ( BidID > 0 )
                     {
@@ -289,7 +289,7 @@ namespace org.secc.Purchasing
                     data.modified_by = userID;
                     data.date_modified = DateTime.Now;
 
-                    if(BidID == 0)
+                    if ( BidID == 0 )
                     {
                         data.created_by = userID;
                         data.date_created = DateTime.Now;
@@ -336,7 +336,7 @@ namespace org.secc.Purchasing
             Active = true;
         }
 
-        private void Load(int bidID)
+        private void Load( int bidID )
         {
             using ( PurchasingContext context = ContextHelper.GetDBContext() )
             {
@@ -358,7 +358,7 @@ namespace org.secc.Purchasing
 
                 if ( data.vendor_id != null )
                 {
-                    VendorID = (int)data.vendor_id;
+                    VendorID = ( int ) data.vendor_id;
 
                     VendorName = Vendor.VendorName;
                 }

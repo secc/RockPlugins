@@ -23,8 +23,8 @@ namespace org.secc.Imaging.Components
     [ExportMetadata( "ComponentName", "Microsoft Face" )]
     [Description( "Settings for Microsoft Face." )]
 
-    [TextField ("Endpoint")]
-    [TextField( "Subscription Key", key:"SubscriptionKey" )]
+    [TextField( "Endpoint" )]
+    [TextField( "Subscription Key", key: "SubscriptionKey" )]
 
 
     public class MicrosoftFaceSettings : SettingsComponent

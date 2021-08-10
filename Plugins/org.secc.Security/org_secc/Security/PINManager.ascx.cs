@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -82,7 +82,7 @@ namespace RockWeb.Plugins.org_secc.Security
 
         private void DisplayPINs()
         {
-            int pinEntityId = EntityTypeCache.Read( "Rock.Security.Authentication.PINAuthentication" ).Id;
+            int pinEntityId = EntityTypeCache.Get( "Rock.Security.Authentication.PINAuthentication" ).Id;
 
             RockContext rockContext = new RockContext();
             var userLoginEntity = new EntityTypeService( rockContext ).Get( pinEntityId );
@@ -120,7 +120,7 @@ namespace RockWeb.Plugins.org_secc.Security
                     {
                         foreach ( var purposeId in purposeIds )
                         {
-                            var dvPurpose = DefinedValueCache.Read( purposeId.AsInteger() );
+                            var dvPurpose = DefinedValueCache.Get( purposeId.AsInteger() );
                             if ( dvPurpose != null )
                             {
                                 purpose.Add( dvPurpose.Value );
@@ -160,7 +160,7 @@ namespace RockWeb.Plugins.org_secc.Security
         private void BindCheckBoxList()
         {
             var definedTypeGuid = GetAttributeValue( "PurposeDefinedType" ).AsGuid();
-            var definedType = DefinedTypeCache.Read( definedTypeGuid );
+            var definedType = DefinedTypeCache.Get( definedTypeGuid );
             cblPurpose.DataSource = definedType.DefinedValues;
             cblPurpose.DataTextField = "Value";
             cblPurpose.DataValueField = "Id";
@@ -184,7 +184,7 @@ namespace RockWeb.Plugins.org_secc.Security
 
                 //Check to see if non-PIN is trying to be edited
                 //This should never be hit, but let's make sure
-                if ( pin.EntityTypeId != EntityTypeCache.Read( "Rock.Security.Authentication.PINAuthentication" ).Id )
+                if ( pin.EntityTypeId != EntityTypeCache.Get( "Rock.Security.Authentication.PINAuthentication" ).Id )
                 {
                     LogException( new Exception( "Atempted edit on non-PIN in PIN manager" ) );
                     return;
@@ -236,7 +236,7 @@ namespace RockWeb.Plugins.org_secc.Security
         {
             RockContext rockContext = new RockContext();
 
-            int pinEntityId = EntityTypeCache.Read( "Rock.Security.Authentication.PINAuthentication" ).Id;
+            int pinEntityId = EntityTypeCache.Get( "Rock.Security.Authentication.PINAuthentication" ).Id;
             var userLoginEntity = new EntityTypeService( rockContext ).Get( pinEntityId );
             var userAuthorized = userLoginEntity.IsAuthorized( Authorization.ADMINISTRATE, CurrentPerson );
             if ( !userAuthorized )
@@ -322,7 +322,7 @@ namespace RockWeb.Plugins.org_secc.Security
             {
                 RockContext rockContext = new RockContext();
 
-                int pinEntityId = EntityTypeCache.Read( "Rock.Security.Authentication.PINAuthentication" ).Id;
+                int pinEntityId = EntityTypeCache.Get( "Rock.Security.Authentication.PINAuthentication" ).Id;
                 var userLoginEntity = new EntityTypeService( rockContext ).Get( pinEntityId );
                 var userAuthorized = userLoginEntity.IsAuthorized( Authorization.ADMINISTRATE, CurrentPerson );
                 if ( !userAuthorized )

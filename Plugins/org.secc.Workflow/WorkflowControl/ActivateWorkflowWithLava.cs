@@ -16,13 +16,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-
+using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Attribute;
 using Rock.Web.Cache;
 using Rock.Workflow;
-using Rock;
 
 namespace org.secc.Workflow.WorkflowControl
 {
@@ -104,7 +103,7 @@ namespace org.secc.Workflow.WorkflowControl
             foreach ( var keyPair in sourceKeyMap )
             {
                 string value = keyPair.Value;
-                if ( value.HasMergeFields())
+                if ( value.HasMergeFields() )
                 {
                     value = keyPair.Value.ResolveMergeFields( mergeFields );
                 }

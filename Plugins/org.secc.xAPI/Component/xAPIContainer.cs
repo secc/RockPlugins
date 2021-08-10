@@ -15,10 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using org.secc.xAPI.Model;
-using Rock.Data;
 using Rock.Extension;
-using Rock.Web.Cache;
 
 namespace org.secc.xAPI.Component
 {
@@ -40,7 +37,7 @@ namespace org.secc.xAPI.Component
         {
             get { return instance.Value; }
         }
-       
+
         /// <summary>
         /// Gets the component with the matching Entity Type Name.
         /// </summary>

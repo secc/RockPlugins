@@ -16,12 +16,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Data.Entity;
-using System.Linq;
 using System.Reflection;
 using System.Web.UI;
-using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -38,7 +34,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
     [Category( "SECC > Workflow" )]
     [Description( "Block for launching workflows for a single entity using querystring parameters." )]
     [EntityTypeField( "Entity Type", "The entity type to use when loading the entity by Id." )]
-    [WorkflowTypeField ("Workflow Type", "The workflow type to launch for the given entity." )]
+    [WorkflowTypeField( "Workflow Type", "The workflow type to launch for the given entity." )]
     public partial class WorkflowEntityLaunch : RockBlock
     {
         /// <summary>
@@ -70,7 +66,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
                     nbInformation.Text = "Please configure the block before using it.<br />";
                     nbInformation.NotificationBoxType = Rock.Web.UI.Controls.NotificationBoxType.Danger;
 
-                } 
+                }
                 else if ( !entityId.HasValue || entityId <= 0 )
                 {
                     nbInformation.Text += "Please pass the EntityId as a page parameter.<br />";
@@ -107,8 +103,8 @@ namespace RockWeb.Plugins.org_secc.Workflow
                         Dictionary<String, String> attributes = new Dictionary<String, String>();
                         if ( entity.TypeName == "Rock.Model.GroupMember" )
                         {
-                            attributes.Add( "Group", ( ( GroupMember ) entity).Group.Guid.ToString() );
-                            attributes.Add( "Person", ( ( GroupMember ) entity).Person.PrimaryAlias.Guid.ToString() );
+                            attributes.Add( "Group", ( ( GroupMember ) entity ).Group.Guid.ToString() );
+                            attributes.Add( "Person", ( ( GroupMember ) entity ).Person.PrimaryAlias.Guid.ToString() );
                         }
 
                         // Get the service and launch the workflow!
@@ -118,7 +114,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
                         var service = Reflection.GetServiceForEntityType( entityType, Reflection.GetDbContextForEntityType( entityType ) );
 
                         MethodInfo getMethod = service.GetType().GetMethod( "Get", new Type[] { typeof( int ) } );
-                        MethodInfo launchWorkflowMethod = entity.GetType().GetMethod( "LaunchWorkflow", new Type[] { typeof( int ),  typeof( string ), typeof( Dictionary<string, string> ) } );
+                        MethodInfo launchWorkflowMethod = entity.GetType().GetMethod( "LaunchWorkflow", new Type[] { typeof( int ), typeof( string ), typeof( Dictionary<string, string> ) } );
                         if ( launchWorkflowMethod != null )
                         {
                             litOutput.Text = "Launching workflow for " + entity.ToString() + "<br />";

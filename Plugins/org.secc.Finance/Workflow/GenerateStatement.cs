@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Data.Entity;
 using System.Linq;
 using org.secc.Finance.Utility;
 using Rock;
@@ -33,13 +32,13 @@ namespace org.secc.Finance.Workflow
     [Description( "Generate a giving statement." )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Generate Giving Statement" )]
-    [WorkflowAttribute("Person", "The person for whom to generate a statement.", fieldTypeClassNames: new string[] { "Rock.Field.Types.PersonFieldType" })]
-    [WorkflowTextOrAttribute("Start Date", "Start Date Attribute", "The start date to use when fetching the transactions for the statement.", fieldTypeClassNames: new string[] { "Rock.Field.Types.DateFieldType" }, key:"StartDate")]
-    [WorkflowTextOrAttribute("End Date", "End Date", "The end date to use when when fetching the transactions for the statement.", fieldTypeClassNames: new string[] { "Rock.Field.Types.DateFieldType" }, key: "EndDate")]
-    [CodeEditorField("Lava Template", "The Lava template to use for the contribution statement.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 500, true)]
-    [DefinedValueField(Rock.SystemGuid.DefinedType.FINANCIAL_CURRENCY_TYPE, "Excluded Currency Types", "Select the currency types you would like to excluded.", false, true)]
-    [AccountsField("Accounts", "A selection of accounts to include on the statement. If none are selected all accounts that are tax-deductible will be uses.", false)]
-    [WorkflowAttribute("Statement HTML", "The attribute to store the results (HTML).", true, fieldTypeClassNames: new string[] { "Rock.Field.Types.HtmlFieldType", "Rock.Field.Types.MemoFieldType", "Rock.Field.Types.CodeEditorFieldType", "Rock.Field.Types.TextFieldType" })]
+    [WorkflowAttribute( "Person", "The person for whom to generate a statement.", fieldTypeClassNames: new string[] { "Rock.Field.Types.PersonFieldType" } )]
+    [WorkflowTextOrAttribute( "Start Date", "Start Date Attribute", "The start date to use when fetching the transactions for the statement.", fieldTypeClassNames: new string[] { "Rock.Field.Types.DateFieldType" }, key: "StartDate" )]
+    [WorkflowTextOrAttribute( "End Date", "End Date", "The end date to use when when fetching the transactions for the statement.", fieldTypeClassNames: new string[] { "Rock.Field.Types.DateFieldType" }, key: "EndDate" )]
+    [CodeEditorField( "Lava Template", "The Lava template to use for the contribution statement.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 500, true )]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.FINANCIAL_CURRENCY_TYPE, "Excluded Currency Types", "Select the currency types you would like to excluded.", false, true )]
+    [AccountsField( "Accounts", "A selection of accounts to include on the statement. If none are selected all accounts that are tax-deductible will be uses.", false )]
+    [WorkflowAttribute( "Statement HTML", "The attribute to store the results (HTML).", true, fieldTypeClassNames: new string[] { "Rock.Field.Types.HtmlFieldType", "Rock.Field.Types.MemoFieldType", "Rock.Field.Types.CodeEditorFieldType", "Rock.Field.Types.TextFieldType" } )]
 
     class GenerateStatement : ActionComponent
     {
@@ -49,44 +48,44 @@ namespace org.secc.Finance.Workflow
             errorMessages = new List<string>();
 
             // Get the startdate/enddate
-            DateTime? startDate = GetAttributeValue(action, "StartDate", true).ResolveMergeFields(mergeFields).AsDateTime();
-            DateTime? endDate = GetAttributeValue(action, "EndDate", true).ResolveMergeFields(mergeFields).AsDateTime();
+            DateTime? startDate = GetAttributeValue( action, "StartDate", true ).ResolveMergeFields( mergeFields ).AsDateTime();
+            DateTime? endDate = GetAttributeValue( action, "EndDate", true ).ResolveMergeFields( mergeFields ).AsDateTime();
 
             // Now set the person
-            PersonAliasService personAliasService = new PersonAliasService(rockContext);
-            PersonAlias targetPersonAlias = personAliasService.Get(GetAttributeValue(action, "Person", true).AsGuid());
+            PersonAliasService personAliasService = new PersonAliasService( rockContext );
+            PersonAlias targetPersonAlias = personAliasService.Get( GetAttributeValue( action, "Person", true ).AsGuid() );
 
 
             // get excluded currency types setting
             List<Guid> excludedCurrencyTypes = new List<Guid>();
-            if (GetAttributeValue(action, "ExcludedCurrencyTypes").IsNotNullOrWhiteSpace())
+            if ( GetAttributeValue( action, "ExcludedCurrencyTypes" ).IsNotNullOrWhiteSpace() )
             {
-                excludedCurrencyTypes = GetAttributeValue(action, "ExcludedCurrencyTypes").Split(',').Select(Guid.Parse).ToList();
+                excludedCurrencyTypes = GetAttributeValue( action, "ExcludedCurrencyTypes" ).Split( ',' ).Select( Guid.Parse ).ToList();
             }
 
             List<Guid> accountGuids = null;
-            if (!string.IsNullOrWhiteSpace(GetAttributeValue(action, "Accounts")))
+            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( action, "Accounts" ) ) )
             {
-                accountGuids = GetAttributeValue(action, "Accounts").Split(',').Select(Guid.Parse).ToList();
+                accountGuids = GetAttributeValue( action, "Accounts" ).Split( ',' ).Select( Guid.Parse ).ToList();
             }
 
             // Add all the merge fields from the Statement Utility
-            Statement.AddMergeFields(mergeFields, targetPersonAlias.Person, new DateRange(startDate, endDate), excludedCurrencyTypes, accountGuids);
+            Statement.AddMergeFields( mergeFields, targetPersonAlias.Person, new DateRange( startDate, endDate ), excludedCurrencyTypes, accountGuids );
 
-            var template = GetAttributeValue(action, "LavaTemplate");
+            var template = GetAttributeValue( action, "LavaTemplate" );
 
-            string output = template.ResolveMergeFields(mergeFields);
+            string output = template.ResolveMergeFields( mergeFields );
 
 
             // Now store the target attribute
-            var targetAttribute = AttributeCache.Get(GetActionAttributeValue(action, "StatementHTML").AsGuid(), rockContext);
-            if (targetAttribute.EntityTypeId == new Rock.Model.Workflow().TypeId)
+            var targetAttribute = AttributeCache.Get( GetActionAttributeValue( action, "StatementHTML" ).AsGuid(), rockContext );
+            if ( targetAttribute.EntityTypeId == new Rock.Model.Workflow().TypeId )
             {
-                action.Activity.Workflow.SetAttributeValue(targetAttribute.Key, output);
+                action.Activity.Workflow.SetAttributeValue( targetAttribute.Key, output );
             }
-            else if (targetAttribute.EntityTypeId == new WorkflowActivity().TypeId)
+            else if ( targetAttribute.EntityTypeId == new WorkflowActivity().TypeId )
             {
-                action.Activity.SetAttributeValue(targetAttribute.Key, output);
+                action.Activity.SetAttributeValue( targetAttribute.Key, output );
             }
             return true;
         }
@@ -217,5 +216,5 @@ namespace org.secc.Finance.Workflow
         /// </value>
         public int Order { get; set; }
     }
-#endregion
+    #endregion
 }

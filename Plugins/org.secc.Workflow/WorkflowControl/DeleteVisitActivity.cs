@@ -24,7 +24,6 @@ using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 using Rock.Workflow;
 
 namespace org.secc.Workflow.WorkflowControl
@@ -62,11 +61,11 @@ namespace org.secc.Workflow.WorkflowControl
 
             WorkflowActivity activity = action.Activity.Workflow.Activities.Where( a => a.Id == activityToDelete ).FirstOrDefault();
 
-             
+
             if ( activity != null )
             {
 
-               
+
                 action.AddLogEntry( activityToDelete.ToString() );
                 WorkflowActivityService workflowActivityService = new WorkflowActivityService( rockContext );
                 workflowActivityService.Delete( activity );
@@ -75,7 +74,7 @@ namespace org.secc.Workflow.WorkflowControl
             {
                 errorMessages.Add( string.Format( "'{0}' is not valid", activity ) );
             }
-           
+
 
             List<string> workflowErrorMessages = new List<string>();
             errorMessages.AddRange( workflowErrorMessages );

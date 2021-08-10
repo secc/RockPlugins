@@ -15,8 +15,6 @@
 namespace org.secc.FamilyCheckin.Migrations
 {
     using Rock.Plugin;
-    using org.secc.DevLib.Extensions.Migration;
-    using org.secc.FamilyCheckin.Utilities;
 
     [MigrationNumber( 23, "1.10.2" )]
     public partial class KioskTypePages : Migration
@@ -24,13 +22,13 @@ namespace org.secc.FamilyCheckin.Migrations
         public override void Up()
         {
             // Page: Kiosk Types
-            RockMigrationHelper.AddPage("66C5DD58-094C-4FF9-9AFB-44801FCFCC2D","D65F783D-87A9-4CC9-8110-E83466A0EADB","Kiosk Types","","ED359351-07B1-4317-B461-0A1C9986097D","fa fa-hand-pointer-o"); // Site:Rock RMS
+            RockMigrationHelper.AddPage( "66C5DD58-094C-4FF9-9AFB-44801FCFCC2D", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Kiosk Types", "", "ED359351-07B1-4317-B461-0A1C9986097D", "fa fa-hand-pointer-o" ); // Site:Rock RMS
             // Page: Kiosks
-            RockMigrationHelper.AddPage("66C5DD58-094C-4FF9-9AFB-44801FCFCC2D","D65F783D-87A9-4CC9-8110-E83466A0EADB","Kiosks","","79B0B175-53FE-46E0-B17B-5DBF8D7342EB","fa fa-power-off"); // Site:Rock RMS
+            RockMigrationHelper.AddPage( "66C5DD58-094C-4FF9-9AFB-44801FCFCC2D", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Kiosks", "", "79B0B175-53FE-46E0-B17B-5DBF8D7342EB", "fa fa-power-off" ); // Site:Rock RMS
             // Page: Kiosk Type Detail
-            RockMigrationHelper.AddPage("ED359351-07B1-4317-B461-0A1C9986097D","D65F783D-87A9-4CC9-8110-E83466A0EADB","Kiosk Type Detail","","87189860-B632-4257-A960-A1EA4C06B329","fa fa-hand-pointer-o"); // Site:Rock RMS
+            RockMigrationHelper.AddPage( "ED359351-07B1-4317-B461-0A1C9986097D", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Kiosk Type Detail", "", "87189860-B632-4257-A960-A1EA4C06B329", "fa fa-hand-pointer-o" ); // Site:Rock RMS
             // Page: Kiosk Detail
-            RockMigrationHelper.AddPage("79B0B175-53FE-46E0-B17B-5DBF8D7342EB","D65F783D-87A9-4CC9-8110-E83466A0EADB","Kiosk Detail","","BAE5FEEE-2608-4872-BD50-C86A18CE8441","fa fa-power-off"); // Site:Rock RMS
+            RockMigrationHelper.AddPage( "79B0B175-53FE-46E0-B17B-5DBF8D7342EB", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Kiosk Detail", "", "BAE5FEEE-2608-4872-BD50-C86A18CE8441", "fa fa-power-off" ); // Site:Rock RMS
             RockMigrationHelper.UpdateBlockType( "Kiosk Detail", "Displays the details of the given device.", "~/Plugins/org_secc/FamilyCheckin/KioskDetail.ascx", "SECC > Check-in", "DF7DF5AF-2501-4E21-B1CC-F4F3F2E070B8" );
             RockMigrationHelper.UpdateBlockType( "Kiosk List", "Lists all the kiosks.", "~/Plugins/org_secc/FamilyCheckin/KioskList.ascx", "SECC > Check-in", "6DD6580D-7710-43B1-BE07-4EA9E9409F3A" );
             RockMigrationHelper.UpdateBlockType( "Kiosk Type Detail", "Displays the details of the given device.", "~/Plugins/org_secc/FamilyCheckin/KioskTypeDetail.ascx", "SECC > Check-in", "C8A43A82-222F-49A1-AA1C-98F8774CBCF4" );

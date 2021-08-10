@@ -16,17 +16,13 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
-using Rock;
-
-using Rock.Model;
-using Rock.Web.UI;
-using Rock.Web.UI.Controls;
 using org.secc.Purchasing.DataLayer;
+using Rock;
+using Rock.Model;
 using Rock.Web.Cache;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
@@ -109,7 +105,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 return mDefaultLabel;
             }
             set
-            { 
+            {
                 mDefaultLabel = value;
             }
         }
@@ -144,13 +140,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                if (mStaffPerson != null && mStaffPerson.Id == StaffPersonAliasId)
+                if ( mStaffPerson != null && mStaffPerson.Id == StaffPersonAliasId )
                 {
                     return mStaffPerson;
                 }
-                else if (StaffPersonAliasId.HasValue) { 
-                    PersonAliasService personAliasService = new PersonAliasService(new Rock.Data.RockContext());
-                    mStaffPerson = personAliasService.Get(StaffPersonAliasId.Value);
+                else if ( StaffPersonAliasId.HasValue )
+                {
+                    PersonAliasService personAliasService = new PersonAliasService( new Rock.Data.RockContext() );
+                    mStaffPerson = personAliasService.Get( StaffPersonAliasId.Value );
                     return mStaffPerson;
                 }
                 return null;
@@ -158,7 +155,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             set
             {
                 mStaffPerson = value;
-                if (value != null)
+                if ( value != null )
                 {
                     StaffPersonAliasId = mStaffPerson.Id;
                     lblRequesterName.Text = mStaffPerson.Person.FullName;
@@ -212,27 +209,29 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         #region Page Events
 
-        protected override void OnInit(EventArgs e)
+        protected override void OnInit( EventArgs e )
         {
-            
-            base.OnInit(e);
+
+            base.OnInit( e );
         }
 
-        protected void Page_Load(object sender, EventArgs e)
+        protected void Page_Load( object sender, EventArgs e )
         {
-            if (StaffPerson != null)
+            if ( StaffPerson != null )
             {
                 lblRequesterName.Text = StaffPerson.Person.FullName;
                 btnRemoveRequester.Visible = true;
-            } else {
+            }
+            else
+            {
                 lblRequesterName.Text = DefaultLabel;
                 btnRemoveRequester.Visible = false;
             }
         }
 
-        protected void btnSubmit_Click(object sender, EventArgs e)
+        protected void btnSubmit_Click( object sender, EventArgs e )
         {
-                SearchStaff();
+            SearchStaff();
             /*string CmdName = ((HtmlAnchor)sender).CommandName;
 
             switch (CmdName.ToLower())
@@ -252,22 +251,22 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             btnRemoveRequester.Visible = false;
         }
 
-        protected void btnCancel_click(object sender, EventArgs e)
+        protected void btnCancel_click( object sender, EventArgs e )
         {
             mpStaffSearch.Hide();
         }
 
-        protected void dgSearchResults_ReBind(object sender, EventArgs e)
+        protected void dgSearchResults_ReBind( object sender, EventArgs e )
         {
             BindStaffMemberList();
         }
 
-        protected void dgSearchResults_ItemDataBound(object sender, DataGridItemEventArgs e)
+        protected void dgSearchResults_ItemDataBound( object sender, DataGridItemEventArgs e )
         {
-            if (e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem)
+            if ( e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem )
             {
-                DataRowView dataItem = (DataRowView)e.Item.DataItem;
-                PlaceHolder ph = (PlaceHolder)e.Item.FindControl("phPersonName");
+                DataRowView dataItem = ( DataRowView ) e.Item.DataItem;
+                PlaceHolder ph = ( PlaceHolder ) e.Item.FindControl( "phPersonName" );
                 /*PersonLabel personLbl = new PersonLabel();
                 personLbl.PersonName = dataItem["full_name_last_first"].ToString();
                 personLbl.PersonGUID = dataItem["person_guid"].ToString();
@@ -282,19 +281,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 Label personLbl = new Label();
                 personLbl.Text = dataItem["full_name_last_first"].ToString();
 
-                ph.Controls.Add(personLbl);
+                ph.Controls.Add( personLbl );
 
-                CheckBox ckBox = (CheckBox)e.Item.FindControl("chkItem");
-                RadioButton rButton = (RadioButton)e.Item.FindControl("rdoItem");
+                CheckBox ckBox = ( CheckBox ) e.Item.FindControl( "chkItem" );
+                RadioButton rButton = ( RadioButton ) e.Item.FindControl( "rdoItem" );
 
                 ckBox.Visible = AllowMultipleSelections;
                 rButton.Visible = !AllowMultipleSelections;
                 rButton.GroupName = "SelectPeople";
 
             }
-            else if (e.Item.ItemType == ListItemType.Header)
+            else if ( e.Item.ItemType == ListItemType.Header )
             {
-                CheckBox ckBoxHeader = (CheckBox)e.Item.FindControl("chkAllItems");
+                CheckBox ckBoxHeader = ( CheckBox ) e.Item.FindControl( "chkAllItems" );
                 ckBoxHeader.Visible = AllowMultipleSelections;
             }
         }
@@ -308,13 +307,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             Visible = true;
             Dictionary<string, string> ValErrors = ValidatePreReqs();
-            if (ValErrors.Count > 0)
-                throw new org.secc.Purchasing.RequisitionNotValidException("Staff Search Properties are not valid.", ValErrors);
+            if ( ValErrors.Count > 0 )
+                throw new org.secc.Purchasing.RequisitionNotValidException( "Staff Search Properties are not valid.", ValErrors );
             BindMinistryAreaList();
-            SetMode(StaffPickerMode.Search);
+            SetMode( StaffPickerMode.Search );
             mpStaffSearch.Show();
             dgSearchResults.Visible = false;
-            
+
         }
         #endregion
 
@@ -324,12 +323,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ddlMinistry.Items.Clear();
             ddlMinistry.DataValueField = "Guid";
             ddlMinistry.DataTextField = "Value";
-            ddlMinistry.DataSource = GetMinistryAreas().OrderBy(x => x.Value);
+            ddlMinistry.DataSource = GetMinistryAreas().OrderBy( x => x.Value );
             ddlMinistry.DataBind();
 
-            if (ddlMinistry.Items.Count > 0)
+            if ( ddlMinistry.Items.Count > 0 )
             {
-                ddlMinistry.Items.Insert(0, new ListItem("<All>", "0"));
+                ddlMinistry.Items.Insert( 0, new ListItem( "<All>", "0" ) );
                 ddlMinistry.SelectedValue = "0";
             }
         }
@@ -345,32 +344,32 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private List<DefinedValueCache> GetMinistryAreas()
         {
 
-            AttributeService attributeService = new AttributeService(new Rock.Data.RockContext());
-            Rock.Model.Attribute ministryArea = attributeService.Get(MinistryAreaAttributeGuid.Value);
+            AttributeService attributeService = new AttributeService( new Rock.Data.RockContext() );
+            Rock.Model.Attribute ministryArea = attributeService.Get( MinistryAreaAttributeGuid.Value );
 
-            return DefinedTypeCache.Get(ministryArea.AttributeQualifiers.Where(aq => aq.Key == "definedtype").Select(aq => aq.Value).FirstOrDefault().AsInteger()).DefinedValues.ToList();
+            return DefinedTypeCache.Get( ministryArea.AttributeQualifiers.Where( aq => aq.Key == "definedtype" ).Select( aq => aq.Value ).FirstOrDefault().AsInteger() ).DefinedValues.ToList();
         }
 
         private string GetSelectedStaffPersonIDs()
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
             string Delim = ",";
-            foreach (GridViewRow item in dgSearchResults.Rows)
+            foreach ( GridViewRow item in dgSearchResults.Rows )
             {
-                if (item.RowType == DataControlRowType.DataRow)
+                if ( item.RowType == DataControlRowType.DataRow )
                 {
-                    if (AllowMultipleSelections)
+                    if ( AllowMultipleSelections )
                     {
-                        if (((CheckBox)item.FindControl("chkItem")).Checked)
+                        if ( ( ( CheckBox ) item.FindControl( "chkItem" ) ).Checked )
                         {
-                            sb.Append(item.Cells[0].Text + Delim);
+                            sb.Append( item.Cells[0].Text + Delim );
                         }
                     }
                     else
                     {
-                        if (((RadioButton)item.FindControl("rdoItem")).Checked)
+                        if ( ( ( RadioButton ) item.FindControl( "rdoItem" ) ).Checked )
                         {
-                            sb.Append(item.Cells[0].Text + Delim);
+                            sb.Append( item.Cells[0].Text + Delim );
                             break;
                         }
 
@@ -380,10 +379,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             string PersonIDs;
 
-            if (String.IsNullOrEmpty(sb.ToString()))
+            if ( String.IsNullOrEmpty( sb.ToString() ) )
                 PersonIDs = sb.ToString();
             else
-                PersonIDs = sb.ToString().Substring(0, sb.ToString().Length - 1);
+                PersonIDs = sb.ToString().Substring( 0, sb.ToString().Length - 1 );
             return PersonIDs;
         }
 
@@ -395,33 +394,34 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             string Name1 = String.Empty;
             string Name2 = String.Empty;
 
-            AttributeService attributeService = new AttributeService(new Rock.Data.RockContext());
+            AttributeService attributeService = new AttributeService( new Rock.Data.RockContext() );
             int ministryAreaAttributeID = 0;
             int positionAttributeID = 0;
-            if (MinistryAreaAttributeGuid.HasValue) {
-                ministryAreaAttributeID = attributeService.Get(MinistryAreaAttributeGuid.Value).Id;
-            }
-            if (PositionAttributeGuid.HasValue)
+            if ( MinistryAreaAttributeGuid.HasValue )
             {
-                positionAttributeID = attributeService.Get(PositionAttributeGuid.Value).Id;
+                ministryAreaAttributeID = attributeService.Get( MinistryAreaAttributeGuid.Value ).Id;
+            }
+            if ( PositionAttributeGuid.HasValue )
+            {
+                positionAttributeID = attributeService.Get( PositionAttributeGuid.Value ).Id;
             }
             MinistryLUID = ddlMinistry.SelectedValue.AsGuidOrNull();
 
-            if (ParseName(out PersonID, out Name1, out Name2))
+            if ( ParseName( out PersonID, out Name1, out Name2 ) )
             {
-                if (PersonID > 0)
-                    dt = new StaffMemberData().GetStaffMembersDTByPersonID(ministryAreaAttributeID, positionAttributeID, PersonID);
+                if ( PersonID > 0 )
+                    dt = new StaffMemberData().GetStaffMembersDTByPersonID( ministryAreaAttributeID, positionAttributeID, PersonID );
                 else
                 {
-                    if (MinistryLUID.HasValue)
-                        dt = new StaffMemberData().GetStaffMembersDTByNameMinistry(ministryAreaAttributeID, positionAttributeID, Name1, Name2, MinistryLUID);
+                    if ( MinistryLUID.HasValue )
+                        dt = new StaffMemberData().GetStaffMembersDTByNameMinistry( ministryAreaAttributeID, positionAttributeID, Name1, Name2, MinistryLUID );
                     else
-                        dt = new StaffMemberData().GetStaffMembersDTByName(ministryAreaAttributeID, positionAttributeID, Name1, Name2);
+                        dt = new StaffMemberData().GetStaffMembersDTByName( ministryAreaAttributeID, positionAttributeID, Name1, Name2 );
                 }
             }
             else
             {
-                dt = new StaffMemberData().GetStaffMembersDTByMinistryID(ministryAreaAttributeID, positionAttributeID, MinistryLUID);
+                dt = new StaffMemberData().GetStaffMembersDTByMinistryID( ministryAreaAttributeID, positionAttributeID, MinistryLUID );
             }
             return dt;
         }
@@ -442,26 +442,26 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         }
 
 
-        private bool ParseName(out int personID, out string name1, out string name2)
+        private bool ParseName( out int personID, out string name1, out string name2 )
         {
             bool IsParsable = false;
             personID = 0;
             name1 = String.Empty;
             name2 = String.Empty;
 
-            if (!String.IsNullOrEmpty(txtName.Text.Trim()))
+            if ( !String.IsNullOrEmpty( txtName.Text.Trim() ) )
             {
-                if (!int.TryParse(txtName.Text, out personID))
+                if ( !int.TryParse( txtName.Text, out personID ) )
                 {
-                    string[] NameParts = txtName.Text.Trim().Split(" ".ToCharArray());
+                    string[] NameParts = txtName.Text.Trim().Split( " ".ToCharArray() );
 
-                    if (NameParts.Length > 1)
+                    if ( NameParts.Length > 1 )
                     {
                         name1 = NameParts[0];
                         System.Text.StringBuilder sbNameBuild2 = new System.Text.StringBuilder();
-                        for (int i = 1; i < NameParts.Length; i++)
+                        for ( int i = 1; i < NameParts.Length; i++ )
                         {
-                            sbNameBuild2.Append(NameParts[i] + " ");
+                            sbNameBuild2.Append( NameParts[i] + " " );
                         }
 
                         name2 = sbNameBuild2.ToString().Trim();
@@ -485,59 +485,59 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void ResetSearchFields()
         {
-            SetErrorMessage(String.Empty);
+            SetErrorMessage( String.Empty );
             txtName.Text = String.Empty;
-            
 
-            if (ddlMinistry.Items.FindByValue("0") != null)
+
+            if ( ddlMinistry.Items.FindByValue( "0" ) != null )
                 ddlMinistry.SelectedValue = "0";
         }
 
         private void SearchStaff()
         {
-            if (!ValidateStaffFields())
+            if ( !ValidateStaffFields() )
                 return;
             BindStaffMemberList();
-            SetMode(StaffPickerMode.Results);
+            SetMode( StaffPickerMode.Results );
         }
 
-        private void SetErrorMessage(string msg)
+        private void SetErrorMessage( string msg )
         {
             lblError.Text = msg;
-            lblError.Visible = !(String.IsNullOrEmpty(msg.Trim()));
-            error.Visible = !(String.IsNullOrEmpty(msg.Trim()));
+            lblError.Visible = !( String.IsNullOrEmpty( msg.Trim() ) );
+            error.Visible = !( String.IsNullOrEmpty( msg.Trim() ) );
 
         }
-        private void SetMode(StaffPickerMode m)
+        private void SetMode( StaffPickerMode m )
         {
             Mode = m;
             bool ShowResults = Mode == StaffPickerMode.Results;
-            switch (Mode)
+            switch ( Mode )
             {
                 case StaffPickerMode.Search:
                     lblInstructions.Text = Instructions;
                     ResetSearchFields();
                     break;
                 case StaffPickerMode.Results:
-                    if (AllowMultipleSelections)
+                    if ( AllowMultipleSelections )
                         lblInstructions.Text = "Choose Staff Members and click Select.";
                     else
                         lblInstructions.Text = "Choose Staff Member and click Select.";
-                   
+
                     break;
                 default:
                     break;
             }
-          
+
         }
 
         private Dictionary<string, string> ValidatePreReqs()
         {
             Dictionary<string, string> ValErrors = new Dictionary<string, string>();
-            if(!MinistryAreaAttributeGuid.HasValue)
-                ValErrors.Add("MinistryAreaAttributeGuid", "Ministry Area Attribute Guid must have a value.");
-            if (!PositionAttributeGuid.HasValue)
-                ValErrors.Add("PositionAttributeGuid", "Position Attribute Guid must have a value.");
+            if ( !MinistryAreaAttributeGuid.HasValue )
+                ValErrors.Add( "MinistryAreaAttributeGuid", "Ministry Area Attribute Guid must have a value." );
+            if ( !PositionAttributeGuid.HasValue )
+                ValErrors.Add( "PositionAttributeGuid", "Position Attribute Guid must have a value." );
 
             return ValErrors;
         }
@@ -545,30 +545,30 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private bool ValidateStaffFields()
         {
             bool isValid = true;
-            if (String.IsNullOrEmpty(txtName.Text.Trim()) && ddlMinistry.SelectedIndex == 0)
+            if ( String.IsNullOrEmpty( txtName.Text.Trim() ) && ddlMinistry.SelectedIndex == 0 )
             {
-                SetErrorMessage("Either name or ministry must be selected.");
+                SetErrorMessage( "Either name or ministry must be selected." );
                 isValid = false;
             }
 
             return isValid;
         }
 
-        protected void SelectButton_Click(object sender, RowEventArgs e)
+        protected void SelectButton_Click( object sender, RowEventArgs e )
         {
 
-            PersonAliasService personAliasService = new PersonAliasService(new Rock.Data.RockContext());
-            StaffPerson = personAliasService.Get(e.RowKeyValue.ToString().AsInteger());
+            PersonAliasService personAliasService = new PersonAliasService( new Rock.Data.RockContext() );
+            StaffPerson = personAliasService.Get( e.RowKeyValue.ToString().AsInteger() );
             lblRequesterName.Text = StaffPerson.Person.FullName;
             mpStaffSearch.Hide();
             btnRemoveRequester.Visible = true;
             EventHandler handler = this.Select;
-            if (handler != null)
+            if ( handler != null )
             {
-                handler(this, e);
+                handler( this, e );
             }
         }
-        protected void btnChangeRequester_Click(object sender, EventArgs e)
+        protected void btnChangeRequester_Click( object sender, EventArgs e )
         {
             Show();
             //ShowStaffSelector("Select Requester", ihPersonList.ClientID, btnRefresh.ClientID);
@@ -580,7 +580,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
     internal enum StaffPickerMode
     {
-        Search, 
+        Search,
         Results
     }
 }

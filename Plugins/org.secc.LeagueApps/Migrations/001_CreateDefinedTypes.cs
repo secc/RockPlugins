@@ -16,7 +16,7 @@ using Rock.Plugin;
 
 namespace org.secc.LeagueApps.Migrations
 {
-    [MigrationNumber(1, "1.0.1")]
+    [MigrationNumber( 1, "1.0.1" )]
     class CreateDefinedTypes : Migration
     {
         /// <summary>
@@ -39,13 +39,13 @@ namespace org.secc.LeagueApps.Migrations
             );
         }
 
-    /// <summary>
-    /// The commands to undo a migration from a specific version
-    /// </summary>
-    public override void Down()
+        /// <summary>
+        /// The commands to undo a migration from a specific version
+        /// </summary>
+        public override void Down()
         {
-            RockMigrationHelper.DeleteDefinedType("3fc2b68b-9a24-46e9-b6d9-6c77b98abfb3");
-            RockMigrationHelper.DeleteDefinedType("cb85b2aa-46e6-4655-802c-4fe33379018d");
+            RockMigrationHelper.DeleteDefinedType( "3fc2b68b-9a24-46e9-b6d9-6c77b98abfb3" );
+            RockMigrationHelper.DeleteDefinedType( "cb85b2aa-46e6-4655-802c-4fe33379018d" );
         }
     }
 }

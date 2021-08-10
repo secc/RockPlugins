@@ -15,9 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NReco.PdfGenerator;
 using Rock;
 using Rock.Data;
@@ -30,12 +27,12 @@ namespace org.secc.PDF
     {
         public static BinaryFile HtmlToPdf( string html, string pageHeaderHtml = null, string pageFooterHtml = null, RockContext rockContext = null, string pdfFileName = "GeneratedPDF.pdf", PageMargins margins = null, PageOrientation orientation = PageOrientation.Default )
         {
-            if (rockContext == null)
+            if ( rockContext == null )
             {
                 rockContext = new RockContext();
             }
             var htmlToPdf = new HtmlToPdfConverter();
-            if (margins != null)
+            if ( margins != null )
             {
                 htmlToPdf.Margins = margins;
             }

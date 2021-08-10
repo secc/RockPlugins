@@ -22,7 +22,7 @@ namespace org.secc.Workflow.Schedule
         public override bool Execute( RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
         {
             errorMessages = new List<string>();
-            var scheduleGuid = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "ScheduleAttribute" ).AsGuid() ).AsGuid();
+            var scheduleGuid = action.GetWorkflowAttributeValue( GetActionAttributeValue( action, "ScheduleAttribute" ).AsGuid() ).AsGuid();
             ScheduleService scheduleService = new ScheduleService( rockContext );
             var schedule = scheduleService.Get( scheduleGuid );
             if ( schedule != null )

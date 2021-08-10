@@ -14,8 +14,8 @@
 //
 namespace org.secc.FamilyCheckin.Migrations
 {
-    using Rock.Plugin;
     using org.secc.DevLib.Extensions.Migration;
+    using Rock.Plugin;
 
     [MigrationNumber( 4, "1.10.2" )]
     public partial class Touchless : Migration

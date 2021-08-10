@@ -204,7 +204,7 @@ namespace RockWeb.Blocks.Reporting.Children
                 var i = 0;
                 foreach ( var schedule in schedules )
                 {
-                    var count = currentAttendances.Where( a => a.Attendance.ScheduleId == schedule.Id ).Count();
+                    var count = currentAttendances.Where( a => a.Attendance.Occurrence.ScheduleId == schedule.Id ).Count();
 
                     SetExcelValue( worksheet.Cells[rowCounter, 8 + i], count );
                     i++;

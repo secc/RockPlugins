@@ -33,7 +33,7 @@ namespace RockWeb.Plugins.org_secc.oAuth
     [TextField( "Auth Provider Logout URL",
         Description = "The url to the auth provider to tell it to logout",
         IsRequired = false,
-        Key =AttributeKeys.ProviderUrl)]
+        Key = AttributeKeys.ProviderUrl )]
 
     [TextField( "Return Url",
         Description = "The url to send the user once the logout chain is complete",

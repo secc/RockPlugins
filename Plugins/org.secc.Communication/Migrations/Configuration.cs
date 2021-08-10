@@ -1,9 +1,6 @@
 namespace org.secc.Communication.Migrations
 {
-    using System;
-    using System.Data.Entity;
     using System.Data.Entity.Migrations;
-    using System.Linq;
 
     internal sealed class Configuration : DbMigrationsConfiguration<org.secc.Communication.Data.CommunicationDataContext>
     {
@@ -12,7 +9,7 @@ namespace org.secc.Communication.Migrations
             AutomaticMigrationsEnabled = false;
         }
 
-        protected override void Seed(org.secc.Communication.Data.CommunicationDataContext context)
+        protected override void Seed( org.secc.Communication.Data.CommunicationDataContext context )
         {
             //  This method will be called after migrating to the latest version.
 

@@ -71,7 +71,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
             {
                 RegistrationInstanceService registrationInstanceService = new RegistrationInstanceService( rockContext );
 
-                var registrationInstances = registrationInstanceService.Queryable().Where(ri => ri.IsActive == true).AsNoTracking().ToList();
+                var registrationInstances = registrationInstanceService.Queryable().Where( ri => ri.IsActive == true ).AsNoTracking().ToList();
                 ddlRegistrationInstances.DataSource = registrationInstances;
                 RegistrationInstance emptyRegistrationInstance = new RegistrationInstance { Id = -1, Name = "" };
                 registrationInstances.Insert( 0, emptyRegistrationInstance );
@@ -83,7 +83,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
                                  t.Guid.ToString() == Rock.SystemGuid.EntityType.DATAVIEW.ToLower() )
                     .OrderBy( t => t.FriendlyName )
                     .ToList();
-                entityTypes.Insert(0, new EntityType() { Id = -1, FriendlyName = "Select One" } );
+                entityTypes.Insert( 0, new EntityType() { Id = -1, FriendlyName = "Select One" } );
                 ddlEntityType.DataSource = entityTypes;
                 ddlEntityType.DataBind();
             }
@@ -125,13 +125,13 @@ namespace RockWeb.Plugins.org_secc.Workflow
                 ddlRegistrations.DataSource = registrations;
                 ddlRegistrations.Visible = true;
                 ddlRegistrations.DataBind();
-                
+
             }
         }
-        
+
         protected void Launch_Click( object sender, EventArgs e )
         {
-            if (!wtpWorkflowType.SelectedValueAsInt().HasValue)
+            if ( !wtpWorkflowType.SelectedValueAsInt().HasValue )
             {
                 return;
             }
@@ -145,7 +145,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
                     if ( gmpGroupMemberPicker.SelectedIndex > 0 )
                     {
                         GroupMember groupMember = groupMemberService.Get( gmpGroupMemberPicker.SelectedItem.Value.AsInteger() );
-                        if (groupMember != null)
+                        if ( groupMember != null )
                         {
                             groupMembers.Add( groupMember );
                         }
@@ -231,11 +231,11 @@ namespace RockWeb.Plugins.org_secc.Workflow
             {
                 divGroup.Visible = true;
             }
-            else if( ddlEntityType.SelectedValue == "Rock.Model.RegistrationInstance" )
+            else if ( ddlEntityType.SelectedValue == "Rock.Model.RegistrationInstance" )
             {
                 divRegistration.Visible = true;
             }
-            else if (ddlEntityType.SelectedValue == "Rock.Model.DataView")
+            else if ( ddlEntityType.SelectedValue == "Rock.Model.DataView" )
             {
                 divDataView.Visible = true;
             }
@@ -250,7 +250,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
 
         protected void dvItemPicker_SelectItem( object sender, EventArgs e )
         {
-            if(!dvItemPicker.SelectedValueAsId().HasValue)
+            if ( !dvItemPicker.SelectedValueAsId().HasValue )
             {
                 return;
             }
@@ -263,7 +263,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
 
                 if ( dataview.EntityType.Guid == new Guid( Rock.SystemGuid.EntityType.PERSON ) )
                 {
-                    List<Person> people = ( ( IQueryable<Person> ) dataview.GetQuery( new DataViewGetQueryArgs() { SortProperty = null, DatabaseTimeoutSeconds = null } )).OrderBy( p => p.LastName ).ToList();
+                    List<Person> people = ( ( IQueryable<Person> ) dataview.GetQuery( new DataViewGetQueryArgs() { SortProperty = null, DatabaseTimeoutSeconds = null } ) ).OrderBy( p => p.LastName ).ToList();
                     Person emptyPerson = new Person { Id = -1, FirstName = "All People" };
                     people.Insert( 0, emptyPerson );
                     ddlEntities.DataSource = people;

@@ -408,7 +408,6 @@ namespace RockWeb.Plugins.GroupManager
             publishGroup.MeetingLocation = tbLocationName.Text;
             publishGroup.IsHidden = cbIsHidden.Checked;
             publishGroup.RegistrationRequirement = ( RegistrationRequirement ) ddlRegistration.SelectedValue.AsInteger();
-            publishGroup.RequiresRegistration = ddlRegistration.SelectedValue.AsInteger() > 0; //This is obsolete but left in for backward compatability
             publishGroup.RegistrationLink = publishGroup.RegistrationRequirement == RegistrationRequirement.CustomRegistration ? tbRegistrationLink.Text : "";
             publishGroup.RegistrationDescription = tbRegistrationDetails.Text;
             publishGroup.ChildcareRegistrationDescription = ddlChildcareNeedRegistration.SelectedValue == "2" ? tbChildcareRegistrationDetails.Text : "";

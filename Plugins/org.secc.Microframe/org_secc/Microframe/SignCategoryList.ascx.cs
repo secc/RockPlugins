@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -124,7 +124,7 @@ namespace RockWeb.Plugins.org_secc.Microframe
             var signCategoryService = new SignCategoryService( new RockContext() );
 
             var signCategories = signCategoryService.Queryable().Select( s => s ).OrderBy( s => s.Name ).ToList();
-            
+
 
 
             gSignCategories.DataSource = signCategories;

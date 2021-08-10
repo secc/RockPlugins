@@ -22,7 +22,6 @@ using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 using Rock.Workflow;
 
 namespace org.secc.Mapping.Workflow
@@ -46,7 +45,7 @@ namespace org.secc.Mapping.Workflow
             var cacheTagsGuid = originAttributeValue.AsGuidOrNull();
             if ( cacheTagsGuid != null )
             {
-                origin = action.GetWorklowAttributeValue( cacheTagsGuid.Value );
+                origin = action.GetWorkflowAttributeValue( cacheTagsGuid.Value );
             }
             else
             {

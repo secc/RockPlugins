@@ -124,19 +124,19 @@ namespace org.secc.xAPI.Migrations
                     ForeignGuid = c.Guid(),
                     ForeignKey = c.String( maxLength: 100 ),
                 } )
-                .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.PersonAlias", t => t.CreatedByPersonAliasId)
-                .ForeignKey("dbo.PersonAlias", t => t.ModifiedByPersonAliasId)
-                .ForeignKey("dbo._org_secc_xAPI_ExperienceObject", t => t.xObjectId)
-                .ForeignKey("dbo.PersonAlias", t => t.PersonAliasId)
-                .ForeignKey("dbo.DefinedValue", t => t.VerbValueId)
-                .Index(t => t.PersonAliasId)
-                .Index(t => t.VerbValueId)
-                .Index(t => t.xObjectId)
-                .Index(t => t.ResultId)
-                .Index(t => t.CreatedByPersonAliasId)
-                .Index(t => t.ModifiedByPersonAliasId)
-                .Index(t => t.Guid, unique: true)
+                .PrimaryKey( t => t.Id )
+                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
+                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
+                .ForeignKey( "dbo._org_secc_xAPI_ExperienceObject", t => t.xObjectId )
+                .ForeignKey( "dbo.PersonAlias", t => t.PersonAliasId )
+                .ForeignKey( "dbo.DefinedValue", t => t.VerbValueId )
+                .Index( t => t.PersonAliasId )
+                .Index( t => t.VerbValueId )
+                .Index( t => t.xObjectId )
+                .Index( t => t.ResultId )
+                .Index( t => t.CreatedByPersonAliasId )
+                .Index( t => t.ModifiedByPersonAliasId )
+                .Index( t => t.Guid, unique: true )
                 .Run( this );
         }
 

@@ -74,7 +74,7 @@ namespace org.secc.RecurringCommunications.Model
         {
             this.HasRequired( rc => rc.DataView ).WithMany().HasForeignKey( dv => dv.DataViewId ).WillCascadeOnDelete( false );
             this.HasOptional( rc => rc.PhoneNumberValue ).WithMany().HasForeignKey( dv => dv.PhoneNumberValueId ).WillCascadeOnDelete( false );
-            this.HasOptional(rc => rc.TransformationEntityType).WithMany().HasForeignKey(et => et.TransformationEntityTypeId).WillCascadeOnDelete(false);
+            this.HasOptional( rc => rc.TransformationEntityType ).WithMany().HasForeignKey( et => et.TransformationEntityTypeId ).WillCascadeOnDelete( false );
             this.HasEntitySetName( "RecurringCommunications" );
         }
     }

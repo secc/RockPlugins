@@ -33,8 +33,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Runtime.Caching;
-using System.Text;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
@@ -482,7 +480,7 @@ $('#updateProgress').show();
             var currentPageContent = pagination.GetCurrentPageItems( content );
 
 
-            var globalAttributeFields = Rock.Lava.LavaHelper.GetCommonMergeFields(RockPage, CurrentPerson );
+            var globalAttributeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
 
             // Merge content and attribute fields if block is configured to do so.
             if ( GetAttributeValue( "MergeContent" ).AsBoolean() )
@@ -518,7 +516,7 @@ $('#updateProgress').show();
 
 
             var mergeFields = new Dictionary<string, object>();
-             mergeFields.Add( "Pagination", pagination );
+            mergeFields.Add( "Pagination", pagination );
             mergeFields.Add( "LinkedPages", linkedPages );
             mergeFields.Add( "Items", currentPageContent );
             mergeFields.Add( "Context", contextObjects );

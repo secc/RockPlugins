@@ -14,19 +14,17 @@
 //
 using System;
 using System.Collections.Generic;
-using System.Linq;
-
 using System.Data;
-using Rock.Attribute;
+using System.Linq;
+using org.secc.PayPalReporting.Model;
+using org.secc.PersonMatch;
 using Quartz;
-using Rock.Model;
-using Rock.Data;
 using RestSharp;
 using Rock;
-
-using org.secc.PersonMatch;
+using Rock.Attribute;
+using Rock.Data;
+using Rock.Model;
 using Rock.Security;
-using org.secc.PayPalReporting.Model;
 using Rock.Web.Cache;
 
 namespace org.secc.ServiceReef

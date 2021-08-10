@@ -15,14 +15,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
-using System.Linq;
-using org.secc.OAuth.Model;
-using org.secc.OAuth.Data;
 
 namespace RockWeb.Plugins.org_secc.RoomScanner
 {

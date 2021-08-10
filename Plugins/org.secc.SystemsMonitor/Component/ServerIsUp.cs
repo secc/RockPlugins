@@ -20,7 +20,6 @@ using System.Net;
 using org.secc.SystemsMonitor.Model;
 using Rock;
 using Rock.Attribute;
-using Rock.Model;
 
 namespace org.secc.SystemsMonitor.Component
 {

@@ -12,8 +12,8 @@
 // limitations under the License.
 // </copyright>
 //
-using org.secc.Communication.Model;
 using System.Data.Entity;
+using org.secc.Communication.Model;
 
 namespace org.secc.Communication.Data
 {

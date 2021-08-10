@@ -14,9 +14,7 @@
 //
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
 using org.secc.Purchasing.DataLayer;
 using Rock.Model;
@@ -31,7 +29,7 @@ namespace org.secc.Purchasing
         private Person mModifiedBy;
         private BinaryFile mDataBlob;
 
-        private static Guid mPurchasingDocumentTypeGuid = new Guid("5070FDCF-8A68-4139-B07D-CB5E82CE1114");
+        private static Guid mPurchasingDocumentTypeGuid = new Guid( "5070FDCF-8A68-4139-B07D-CB5E82CE1114" );
 
         #endregion
 
@@ -52,8 +50,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mCreatedBy == null && !String.IsNullOrEmpty(CreatedByUserID))
-                    mCreatedBy = userLoginService.GetByUserName(CreatedByUserID).Person;
+                if ( mCreatedBy == null && !String.IsNullOrEmpty( CreatedByUserID ) )
+                    mCreatedBy = userLoginService.GetByUserName( CreatedByUserID ).Person;
 
                 return mCreatedBy;
             }
@@ -64,8 +62,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mModifiedBy == null && !String.IsNullOrEmpty(ModifiedByUserID))
-                    mModifiedBy = userLoginService.GetByUserName(ModifiedByUserID).Person;
+                if ( mModifiedBy == null && !String.IsNullOrEmpty( ModifiedByUserID ) )
+                    mModifiedBy = userLoginService.GetByUserName( ModifiedByUserID ).Person;
 
                 return mModifiedBy;
             }
@@ -76,9 +74,9 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mDataBlob == null && BlobID > 0)
+                if ( mDataBlob == null && BlobID > 0 )
                 {
-                    mDataBlob = new BinaryFileService(new Rock.Data.RockContext()).Get(BlobID);
+                    mDataBlob = new BinaryFileService( new Rock.Data.RockContext() ).Get( BlobID );
                 }
 
                 return mDataBlob;
@@ -93,24 +91,24 @@ namespace org.secc.Purchasing
             Init();
         }
 
-        public Attachment(int attachmentId)
+        public Attachment( int attachmentId )
         {
-            Load(attachmentId);
+            Load( attachmentId );
         }
 
-        public Attachment(AttachmentData data)
+        public Attachment( AttachmentData data )
         {
-            Load(data);
+            Load( data );
         }
         #endregion
 
         #region Public
         public static BinaryFileType GetPurchasingDocumentType()
         {
-            return new BinaryFileTypeService(new Rock.Data.RockContext()).Get(mPurchasingDocumentTypeGuid);
+            return new BinaryFileTypeService( new Rock.Data.RockContext() ).Get( mPurchasingDocumentTypeGuid );
         }
 
-        public static List<Attachment> GetObjectAttachments(string otn, int identifier, bool activeOnly)
+        public static List<Attachment> GetObjectAttachments( string otn, int identifier, bool activeOnly )
         {
             try
             {
@@ -131,13 +129,13 @@ namespace org.secc.Purchasing
             }
             catch ( Exception ex )
             {
-                throw new RequisitionException("An error has occurred while loading attachments.", ex);
+                throw new RequisitionException( "An error has occurred while loading attachments.", ex );
             }
 
 
         }
 
-        public static Attachment LoadByBlobID(string otn, int id, int blobID)
+        public static Attachment LoadByBlobID( string otn, int id, int blobID )
         {
 
             using ( PurchasingContext Context = ContextHelper.GetDBContext() )
@@ -151,25 +149,25 @@ namespace org.secc.Purchasing
             }
         }
 
-        public void Save(string uid)
+        public void Save( string uid )
         {
             try
             {
-                if (String.IsNullOrEmpty(uid))
-                    throw new ArgumentNullException("uid", "User ID is required.");
+                if ( String.IsNullOrEmpty( uid ) )
+                    throw new ArgumentNullException( "uid", "User ID is required." );
                 Dictionary<string, string> ValErrors = Validate();
-                if (ValErrors.Count > 0)
-                    throw new RequisitionNotValidException("Attachment is not valid", ValErrors);
+                if ( ValErrors.Count > 0 )
+                    throw new RequisitionNotValidException( "Attachment is not valid", ValErrors );
                 Attachment Original = null;
                 Enums.HistoryType ChangeType;
-                using (PurchasingContext Context = ContextHelper.GetDBContext())
+                using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                 {
                     AttachmentData data;
 
-                    if (AttachmentID > 0)
+                    if ( AttachmentID > 0 )
                     {
-                        data = Context.AttachmentDatas.FirstOrDefault(x => x.attachment_id == AttachmentID);
-                        Original = new Attachment(data);
+                        data = Context.AttachmentDatas.FirstOrDefault( x => x.attachment_id == AttachmentID );
+                        Original = new Attachment( data );
                         ChangeType = Enums.HistoryType.UPDATE;
                     }
                     else
@@ -187,19 +185,19 @@ namespace org.secc.Purchasing
                     data.date_modified = DateTime.Now;
                     data.active = Active;
 
-                    if (AttachmentID <= 0)
-                        Context.AttachmentDatas.InsertOnSubmit(data);
+                    if ( AttachmentID <= 0 )
+                        Context.AttachmentDatas.InsertOnSubmit( data );
 
                     Context.SubmitChanges();
 
-                    Load(data);
+                    Load( data );
 
                 }
-                SaveHistory(ChangeType, Original, uid);
+                SaveHistory( ChangeType, Original, uid );
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
-                throw new RequisitionException("An error has occurred while saving attachment.", ex);
+                throw new RequisitionException( "An error has occurred while saving attachment.", ex );
             }
         }
 
@@ -225,10 +223,10 @@ namespace org.secc.Purchasing
             mDataBlob = null;
         }
 
-        private void Load(AttachmentData data)
+        private void Load( AttachmentData data )
         {
             Init();
-            if (data != null)
+            if ( data != null )
             {
                 AttachmentID = data.attachment_id;
                 ParentObjectTypeName = data.parent_object_type_name;
@@ -240,28 +238,28 @@ namespace org.secc.Purchasing
                 DateCreated = data.date_created;
                 DateModified = data.date_modified;
 
-                Active = data.active;               
+                Active = data.active;
 
             }
         }
 
-        private void Load(int attachmentId)
+        private void Load( int attachmentId )
         {
             try
             {
-                using (PurchasingContext Context = ContextHelper.GetDBContext())
+                using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                 {
                     Load( Context.AttachmentDatas.FirstOrDefault( a => a.attachment_id == attachmentId ) );
 
                 }
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
-                throw new RequisitionException("An error has occurred while loading attachment.", ex);
+                throw new RequisitionException( "An error has occurred while loading attachment.", ex );
             }
         }
 
-        private void SaveHistory(Enums.HistoryType chgType, Attachment original, string uid)
+        private void SaveHistory( Enums.HistoryType chgType, Attachment original, string uid )
         {
             History h = new History();
             h.ObjectTypeName = this.GetType().ToString();
@@ -269,36 +267,36 @@ namespace org.secc.Purchasing
             h.ChangeType = chgType;
             h.OrganizationID = OrganizationID;
             h.Active = true;
-            switch (chgType)
+            switch ( chgType )
             {
                 case org.secc.Purchasing.Enums.HistoryType.ADD:
                     h.OriginalXML = null;
-                    h.UpdatedXML = Serialize(this);
+                    h.UpdatedXML = Serialize( this );
                     break;
                 case org.secc.Purchasing.Enums.HistoryType.UPDATE:
-                    h.OriginalXML = Serialize(original);
-                    h.UpdatedXML = Serialize(this);
+                    h.OriginalXML = Serialize( original );
+                    h.UpdatedXML = Serialize( this );
                     break;
                 case org.secc.Purchasing.Enums.HistoryType.DELETE:
-                    h.OriginalXML = Serialize(this);
+                    h.OriginalXML = Serialize( this );
                     h.UpdatedXML = null;
                     break;
             }
 
-            h.Save(uid);
+            h.Save( uid );
         }
 
         private Dictionary<string, string> Validate()
         {
             Dictionary<string, string> ValErrors = new Dictionary<string, string>();
-            if (String.IsNullOrEmpty(ParentObjectTypeName))
-                ValErrors.Add("Parent Object Type Name", "Name/Namespace of Parent Object Type is required.");
-            if (ParentIdentifier <= 0)
-                ValErrors.Add("Parent Identifier", "Parent Object Type Identifier is required.");
-            if (BlobID <= 0)
-                ValErrors.Add("Blob ID", "Blob ID is required and must be greater than 0.");
-            else if (DataBlob.Id <= 0)
-                ValErrors.Add("File Not Found", "Referenced file is not found.");
+            if ( String.IsNullOrEmpty( ParentObjectTypeName ) )
+                ValErrors.Add( "Parent Object Type Name", "Name/Namespace of Parent Object Type is required." );
+            if ( ParentIdentifier <= 0 )
+                ValErrors.Add( "Parent Identifier", "Parent Object Type Identifier is required." );
+            if ( BlobID <= 0 )
+                ValErrors.Add( "Blob ID", "Blob ID is required and must be greater than 0." );
+            else if ( DataBlob.Id <= 0 )
+                ValErrors.Add( "File Not Found", "Referenced file is not found." );
 
             return ValErrors;
         }

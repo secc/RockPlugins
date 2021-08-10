@@ -68,8 +68,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
-      <Project>{8f8c2a79-24f4-4157-8b99-45f75fa85799}</Project>
+    <ProjectReference Include="..\..\..\Rock12\Rock\Rock.csproj">
+      <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
     </ProjectReference>
   </ItemGroup>

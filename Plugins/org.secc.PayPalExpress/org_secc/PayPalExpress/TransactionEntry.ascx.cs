@@ -28,22 +28,22 @@
 // limitations under the License.
 // </copyright>
 //
-using System.ComponentModel;
-using Rock.Attribute;
-using Rock.Model;
 using System;
-using System.Web.UI;
-using System.Web.UI.HtmlControls;
-using Rock.Data;
-using Rock.Financial;
-using Rock;
-using Rock.Web.Cache;
-using Rock.Web.UI.Controls;
-using System.Web.UI.WebControls;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
-using System.IO;
+using System.Web.UI;
+using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
+using Rock;
+using Rock.Attribute;
+using Rock.Data;
+using Rock.Financial;
+using Rock.Model;
+using Rock.Web.Cache;
+using Rock.Web.UI.Controls;
 
 namespace org.secc.PayPalExpress
 {
@@ -52,10 +52,10 @@ namespace org.secc.PayPalExpress
     /// <summary>
     /// Add a new one-time or scheduled transaction
     /// </summary>
-    [DisplayName("Transaction Entry with PayPal Express")]
-    [Category("SECC > Finance")]
-    [Description("Creates a new financial transaction or scheduled transaction including PayPal Express.")]
-    [FinancialGatewayField("PayPal Express Gateway", "The PayPal Express gateway.", false, "", "", 1, "PayPalExpressGateway")]
+    [DisplayName( "Transaction Entry with PayPal Express" )]
+    [Category( "SECC > Finance" )]
+    [Description( "Creates a new financial transaction or scheduled transaction including PayPal Express." )]
+    [FinancialGatewayField( "PayPal Express Gateway", "The PayPal Express gateway.", false, "", "", 1, "PayPalExpressGateway" )]
     #endregion
 
     public partial class TransactionEntry : RockWeb.Blocks.Finance.TransactionEntry
@@ -65,74 +65,78 @@ namespace org.secc.PayPalExpress
         private GatewayComponent _payPalExpressGatewayComponent = null;
         private Boolean showPayPalExpressTab = false;
         LinkButton PayPalExpressNextButton = new LinkButton();
-        HtmlGenericControl liPayPal = new HtmlGenericControl("li");
-        HtmlGenericControl redirectDiv = new HtmlGenericControl("div");
+        HtmlGenericControl liPayPal = new HtmlGenericControl( "li" );
+        HtmlGenericControl redirectDiv = new HtmlGenericControl( "div" );
         private Person _targetPerson = null;
         PaymentInfo paymentInfo = null;
         List<AccountItem> TokenSelectedAccounts = null;
 
-    protected override void OnInit(EventArgs e)
+        protected override void OnInit( EventArgs e )
         {
-            using (var rockContext = new RockContext())
+            using ( var rockContext = new RockContext() )
             {
-                _payPalExpressGateway = GetGateway(rockContext, "PayPalExpressGateway");
-                _payPalExpressGatewayComponent = GetGatewayComponent(rockContext, _payPalExpressGateway);
-                SetTargetPerson(rockContext);
+                _payPalExpressGateway = GetGateway( rockContext, "PayPalExpressGateway" );
+                _payPalExpressGatewayComponent = GetGatewayComponent( rockContext, _payPalExpressGateway );
+                SetTargetPerson( rockContext );
             }
-            if (PageParameter("token") != String.Empty && PageParameter("PayerID") != string.Empty)
+            if ( PageParameter( "token" ) != String.Empty && PageParameter( "PayerID" ) != string.Empty )
             {
                 String errorMessage = String.Empty;
                 PaymentInfo paymentInfo = GetPaymentInfo();
-                if (errorMessage != string.Empty)
+                if ( errorMessage != string.Empty )
                 {
-                    ShowMessage(NotificationBoxType.Danger, "PayPal Error", errorMessage);
-                } else { 
+                    ShowMessage( NotificationBoxType.Danger, "PayPal Error", errorMessage );
+                }
+                else
+                {
                     tdNameConfirm.Description = paymentInfo.FullName;
                     tdPhoneConfirm.Description = paymentInfo.Phone;
                     tdEmailConfirm.Description = paymentInfo.Email;
-                    tdAddressConfirm.Description = string.Format("{0} {1}, {2} {3}", paymentInfo.Street1, paymentInfo.City, paymentInfo.State, paymentInfo.PostalCode);
-                
-                    tdTotalConfirm.Description = paymentInfo.Amount.ToString("C");
-                
+                    tdAddressConfirm.Description = string.Format( "{0} {1}, {2} {3}", paymentInfo.Street1, paymentInfo.City, paymentInfo.State, paymentInfo.PostalCode );
+
+                    tdTotalConfirm.Description = paymentInfo.Amount.ToString( "C" );
+
                     tdPaymentMethodConfirm.Description = paymentInfo.CurrencyTypeValue.Description;
 
                     tdAccountNumberConfirm.Description = paymentInfo.MaskedNumber;
-                    tdAccountNumberConfirm.Visible = !string.IsNullOrWhiteSpace(paymentInfo.MaskedNumber);
+                    tdAccountNumberConfirm.Visible = !string.IsNullOrWhiteSpace( paymentInfo.MaskedNumber );
                     tdWhenConfirm.Description = "Today";
 
-                    rptAccountListConfirmation.DataSource = GetSelectedAccounts().Where(a => a.Amount != 0);
+                    rptAccountListConfirmation.DataSource = GetSelectedAccounts().Where( a => a.Amount != 0 );
                     rptAccountListConfirmation.DataBind();
                 }
                 pnlConfirmation.Visible = true;
                 pnlDupWarning.Visible = false;
 
-            } else { 
-                RockTransactionEntry = (RockWeb.Blocks.Finance.TransactionEntry)LoadControl("~/Blocks/Finance/TransactionEntry.ascx");
+            }
+            else
+            {
+                RockTransactionEntry = ( RockWeb.Blocks.Finance.TransactionEntry ) LoadControl( "~/Blocks/Finance/TransactionEntry.ascx" );
                 RockTransactionEntry.Page = RockPage;
-                RockTransactionEntry.SetBlock(PageCache, BlockCache);
-                Controls.Add(RockTransactionEntry);
+                RockTransactionEntry.SetBlock( PageCache, BlockCache );
+                Controls.Add( RockTransactionEntry );
                 RegisterScript();
             }
 
         }
-        protected override void OnLoad(EventArgs e)
+        protected override void OnLoad( EventArgs e )
         {
 
-            if (Page.IsPostBack)
+            if ( Page.IsPostBack )
             {
-                if (RockTransactionEntry != null)
-                { 
-                    rptAccountList = (Repeater)RockTransactionEntry.FindControl("rptAccountList");
+                if ( RockTransactionEntry != null )
+                {
+                    rptAccountList = ( Repeater ) RockTransactionEntry.FindControl( "rptAccountList" );
                     // Save amounts from controls to the viewstate list
-                    foreach (RepeaterItem item in rptAccountList.Items)
+                    foreach ( RepeaterItem item in rptAccountList.Items )
                     {
-                        var accountAmount = item.FindControl("txtAccountAmount") as RockTextBox;
-                        if (accountAmount != null)
+                        var accountAmount = item.FindControl( "txtAccountAmount" ) as RockTextBox;
+                        if ( accountAmount != null )
                         {
-                            if (GetSelectedAccounts().Count > item.ItemIndex)
+                            if ( GetSelectedAccounts().Count > item.ItemIndex )
                             {
                                 decimal amount = decimal.MinValue;
-                                if (decimal.TryParse(accountAmount.Text, out amount))
+                                if ( decimal.TryParse( accountAmount.Text, out amount ) )
                                 {
                                     GetSelectedAccounts()[item.ItemIndex].Amount = amount;
                                 }
@@ -140,19 +144,20 @@ namespace org.secc.PayPalExpress
                         }
                     }
                 }
-            } else
+            }
+            else
             {
                 GetAccounts();
 
-                lPanelTitle2.Text = GetAttributeValue("PanelTitle");
-                lConfirmationTitle.Text = GetAttributeValue("ConfirmationTitle");
-                lSuccessTitle.Text = GetAttributeValue("SuccessTitle");
+                lPanelTitle2.Text = GetAttributeValue( "PanelTitle" );
+                lConfirmationTitle.Text = GetAttributeValue( "ConfirmationTitle" );
+                lSuccessTitle.Text = GetAttributeValue( "SuccessTitle" );
 
                 // Resolve the text field merge fields
                 var configValues = new Dictionary<string, object>();
-                lConfirmationHeader.Text = GetAttributeValue("ConfirmationHeader").ResolveMergeFields(configValues);
-                lConfirmationFooter.Text = GetAttributeValue("ConfirmationFooter").ResolveMergeFields(configValues);
-                lSuccessHeader.Text = GetAttributeValue("SuccessHeader").ResolveMergeFields(configValues);
+                lConfirmationHeader.Text = GetAttributeValue( "ConfirmationHeader" ).ResolveMergeFields( configValues );
+                lConfirmationFooter.Text = GetAttributeValue( "ConfirmationFooter" ).ResolveMergeFields( configValues );
+                lSuccessHeader.Text = GetAttributeValue( "SuccessHeader" ).ResolveMergeFields( configValues );
 
             }
         }
@@ -161,22 +166,23 @@ namespace org.secc.PayPalExpress
         {
             base.CreateChildControls();
 
-            if (RockTransactionEntry != null) { 
+            if ( RockTransactionEntry != null )
+            {
                 // Add the additional next button action
-                ((LinkButton)RockTransactionEntry.FindControl("btnPaymentInfoNext")).Click += btnPaymentInfoNext_Click;
-                ((ButtonDropDownList)RockTransactionEntry.FindControl("btnAddAccount")).SelectionChanged += btnAddAccount_SelectionChanged;
+                ( ( LinkButton ) RockTransactionEntry.FindControl( "btnPaymentInfoNext" ) ).Click += btnPaymentInfoNext_Click;
+                ( ( ButtonDropDownList ) RockTransactionEntry.FindControl( "btnAddAccount" ) ).SelectionChanged += btnAddAccount_SelectionChanged;
 
-                dtpStartDate = ((DatePicker)RockTransactionEntry.FindControl("dtpStartDate"));
+                dtpStartDate = ( ( DatePicker ) RockTransactionEntry.FindControl( "dtpStartDate" ) );
                 dtpStartDate.AutoPostBack = true;
             }
         }
 
-        protected override void OnPreRender(EventArgs e)
+        protected override void OnPreRender( EventArgs e )
         {
-            base.OnPreRender(e);
+            base.OnPreRender( e );
 
             // The rest of this is only when we aren't in confirmation mode
-            if (RockTransactionEntry == null)
+            if ( RockTransactionEntry == null )
             {
                 return;
             }
@@ -185,59 +191,59 @@ namespace org.secc.PayPalExpress
             PayPalExpressNextButton.CssClass = "btn btn-primary pull-right";
             PayPalExpressNextButton.Click += btnPaymentInfoNext_Click;
             bool payPalExpressEnabled = _payPalExpressGatewayComponent != null;
-            if (payPalExpressEnabled)
+            if ( payPalExpressEnabled )
             {
                 PaymentSchedule schedule = GetSchedule();
                 // Disable the other gateway if the frequency is unsupported
-                if (schedule != null && !_payPalExpressGatewayComponent.SupportedPaymentSchedules.Contains(schedule.TransactionFrequencyValue))
+                if ( schedule != null && !_payPalExpressGatewayComponent.SupportedPaymentSchedules.Contains( schedule.TransactionFrequencyValue ) )
                 {
                     payPalExpressEnabled = false;
                 }
 
                 bool allowScheduled = GetAttributeValue( "AllowScheduled" ).AsBoolean();
 
-                if (allowScheduled && ( !dtpStartDate.SelectedDate.HasValue || dtpStartDate.SelectedDate.Value.Date > RockDateTime.Today.AddDays(1)))
+                if ( allowScheduled && ( !dtpStartDate.SelectedDate.HasValue || dtpStartDate.SelectedDate.Value.Date > RockDateTime.Today.AddDays( 1 ) ) )
                 {
                     payPalExpressEnabled = false;
                 }
             }
-            if (hfMyPaymentTab.Value == "divPayPalPaymentInfo")
+            if ( hfMyPaymentTab.Value == "divPayPalPaymentInfo" )
             {
                 ShowTab();
             }
-            if (payPalExpressEnabled)
+            if ( payPalExpressEnabled )
             {
-                RockTransactionEntry.FindControl("phPills").Visible = true;
+                RockTransactionEntry.FindControl( "phPills" ).Visible = true;
                 liPayPal.ID = "liPayPalExpress";
 
                 LinkButton payPalExpressLink = new LinkButton();
                 payPalExpressLink.ID = "lbPayPalExpress";
-                payPalExpressLink.Attributes.Add("title", "PayPal - The safer, easier way to pay online!");
-                payPalExpressLink.Attributes.Add("style", "padding: 7px");
-                payPalExpressLink.Attributes.Add("href", "#divPayPalPaymentInfo");
-                payPalExpressLink.Attributes.Add("data-toggle", "pill");
+                payPalExpressLink.Attributes.Add( "title", "PayPal - The safer, easier way to pay online!" );
+                payPalExpressLink.Attributes.Add( "style", "padding: 7px" );
+                payPalExpressLink.Attributes.Add( "href", "#divPayPalPaymentInfo" );
+                payPalExpressLink.Attributes.Add( "data-toggle", "pill" );
                 payPalExpressLink.Text = "<img src=\"/assets/PayPalExpress/PP_logo_h_100x26.png\" alt=\"PayPal\" />";
-                liPayPal.Controls.Add(payPalExpressLink);
+                liPayPal.Controls.Add( payPalExpressLink );
 
                 redirectDiv.ID = "divPayPalPaymentInfo";
-                redirectDiv.AddCssClass("tab-pane");
+                redirectDiv.AddCssClass( "tab-pane" );
                 redirectDiv.InnerText = "You will be redirected to PayPal to complete this transaction when you click \"Next\" below.";
 
                 // These controls needs to be added early to ensure the postbacks fire
 
                 // Add the pill
-                var pillControls = RockTransactionEntry.FindControl("phPills").Controls;
-                pillControls.AddAt(pillControls.Count - 1, liPayPal);
-                
+                var pillControls = RockTransactionEntry.FindControl( "phPills" ).Controls;
+                pillControls.AddAt( pillControls.Count - 1, liPayPal );
+
                 // Add the tab content div
-                var divControls = RockTransactionEntry.FindControl("divNewPayment").Controls;
-                LiteralControl tabContent = (LiteralControl)divControls[divControls.Count - 3];
+                var divControls = RockTransactionEntry.FindControl( "divNewPayment" ).Controls;
+                LiteralControl tabContent = ( LiteralControl ) divControls[divControls.Count - 3];
                 StringBuilder generatedHtml = new StringBuilder();
-                using (var htmlStringWriter = new StringWriter(generatedHtml))
+                using ( var htmlStringWriter = new StringWriter( generatedHtml ) )
                 {
-                    using (var htmlTextWriter = new HtmlTextWriter(htmlStringWriter))
+                    using ( var htmlTextWriter = new HtmlTextWriter( htmlStringWriter ) )
                     {
-                        redirectDiv.RenderControl(htmlTextWriter);
+                        redirectDiv.RenderControl( htmlTextWriter );
                         tabContent.Text += generatedHtml.ToString();
                     }
                 }
@@ -247,27 +253,27 @@ namespace org.secc.PayPalExpress
         private List<AccountItem> GetSelectedAccounts()
         {
 
-            if (PageParameter("token") != String.Empty && PageParameter("PayerID") != string.Empty)
+            if ( PageParameter( "token" ) != String.Empty && PageParameter( "PayerID" ) != string.Empty )
             {
                 // Load this once per token request
-                if (TokenSelectedAccounts != null)
+                if ( TokenSelectedAccounts != null )
                 {
                     return TokenSelectedAccounts;
                 }
                 SelectedAccounts = new List<AccountItem>();
                 String errorMessage = string.Empty;
-                var selectedAccounts = ((org.secc.PayPalExpress.Gateway)_payPalExpressGatewayComponent).GetSelectedAccounts(_payPalExpressGateway, PageParameter("token"), out errorMessage);
-                if (errorMessage != string.Empty)
+                var selectedAccounts = ( ( org.secc.PayPalExpress.Gateway ) _payPalExpressGatewayComponent ).GetSelectedAccounts( _payPalExpressGateway, PageParameter( "token" ), out errorMessage );
+                if ( errorMessage != string.Empty )
                 {
-                    ShowMessage(NotificationBoxType.Danger, "Payment Processing Error", errorMessage);
+                    ShowMessage( NotificationBoxType.Danger, "Payment Processing Error", errorMessage );
                     return SelectedAccounts;
                 }
 
-                foreach (RedirectGatewayComponent.GatewayAccountItem accountItem in selectedAccounts)
+                foreach ( RedirectGatewayComponent.GatewayAccountItem accountItem in selectedAccounts )
                 {
-                    AccountItem item = new AccountItem(accountItem.Id, 0, accountItem.Name, null, accountItem.PublicName);
+                    AccountItem item = new AccountItem( accountItem.Id, 0, accountItem.Name, null, accountItem.PublicName );
                     item.Amount = accountItem.Amount;
-                    SelectedAccounts.Add(item);
+                    SelectedAccounts.Add( item );
                 }
                 TokenSelectedAccounts = SelectedAccounts;
             }
@@ -277,14 +283,14 @@ namespace org.secc.PayPalExpress
         private void ShowTab()
         {
 
-            liPayPal.AddCssClass("active");
-            redirectDiv.AddCssClass("active");
+            liPayPal.AddCssClass( "active" );
+            redirectDiv.AddCssClass( "active" );
             // Hide the default next button
 
-            ((HtmlGenericControl)RockTransactionEntry.FindControl("liCreditCard")).RemoveCssClass("active");
-            ((HtmlGenericControl)RockTransactionEntry.FindControl("liACH")).RemoveCssClass("active");
-            ((HtmlGenericControl)RockTransactionEntry.FindControl("divCCPaymentInfo")).RemoveCssClass("active");
-            ((HtmlGenericControl)RockTransactionEntry.FindControl("divACHPaymentInfo")).RemoveCssClass("active");
+            ( ( HtmlGenericControl ) RockTransactionEntry.FindControl( "liCreditCard" ) ).RemoveCssClass( "active" );
+            ( ( HtmlGenericControl ) RockTransactionEntry.FindControl( "liACH" ) ).RemoveCssClass( "active" );
+            ( ( HtmlGenericControl ) RockTransactionEntry.FindControl( "divCCPaymentInfo" ) ).RemoveCssClass( "active" );
+            ( ( HtmlGenericControl ) RockTransactionEntry.FindControl( "divACHPaymentInfo" ) ).RemoveCssClass( "active" );
         }
 
         /// <summary>
@@ -292,12 +298,12 @@ namespace org.secc.PayPalExpress
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected new void btnAddAccount_SelectionChanged(object sender, EventArgs e)
+        protected new void btnAddAccount_SelectionChanged( object sender, EventArgs e )
         {
-            btnAddAccount = ((ButtonDropDownList)RockTransactionEntry.FindControl("btnAddAccount"));
-            var selected = AvailableAccounts.Where(a => a.Id == (btnAddAccount.SelectedValueAsId() ?? 0)).ToList();
-            AvailableAccounts = AvailableAccounts.Except(selected).ToList();
-            GetSelectedAccounts().AddRange(selected);
+            btnAddAccount = ( ( ButtonDropDownList ) RockTransactionEntry.FindControl( "btnAddAccount" ) );
+            var selected = AvailableAccounts.Where( a => a.Id == ( btnAddAccount.SelectedValueAsId() ?? 0 ) ).ToList();
+            AvailableAccounts = AvailableAccounts.Except( selected ).ToList();
+            GetSelectedAccounts().AddRange( selected );
         }
 
         /// <summary>
@@ -305,9 +311,10 @@ namespace org.secc.PayPalExpress
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected new void btnPaymentInfoNext_Click(object sender, EventArgs e)
+        protected new void btnPaymentInfoNext_Click( object sender, EventArgs e )
         {
-            if (hfMyPaymentTab.Value == "PayPalExpress") {
+            if ( hfMyPaymentTab.Value == "PayPalExpress" )
+            {
 
                 ShowTab();
                 String errorMessage = string.Empty;
@@ -315,32 +322,32 @@ namespace org.secc.PayPalExpress
                 var errorMessages = new List<string>();
 
                 // Validate that an amount was entered
-                if (GetSelectedAccounts().Sum(a => a.Amount) <= 0)
+                if ( GetSelectedAccounts().Sum( a => a.Amount ) <= 0 )
                 {
-                    errorMessages.Add("Make sure you've entered an amount for at least one account");
+                    errorMessages.Add( "Make sure you've entered an amount for at least one account" );
                 }
 
                 // Validate that no negative amounts were entered
-                if (GetSelectedAccounts().Any(a => a.Amount < 0))
+                if ( GetSelectedAccounts().Any( a => a.Amount < 0 ) )
                 {
-                    errorMessages.Add("Make sure the amount you've entered for each account is a positive amount");
+                    errorMessages.Add( "Make sure the amount you've entered for each account is a positive amount" );
                 }
 
-                if (errorMessages.Any())
+                if ( errorMessages.Any() )
                 {
-                    errorMessage = errorMessages.AsDelimited("<br/>");
+                    errorMessage = errorMessages.AsDelimited( "<br/>" );
 
-                    ShowMessage(NotificationBoxType.Danger, "Before we finish...", errorMessage);
+                    ShowMessage( NotificationBoxType.Danger, "Before we finish...", errorMessage );
                     return;
                 }
 
-                if (_payPalExpressGateway != null)
+                if ( _payPalExpressGateway != null )
                 {
-                    if (_payPalExpressGatewayComponent is RedirectGatewayComponent)
+                    if ( _payPalExpressGatewayComponent is RedirectGatewayComponent )
                     {
-                        var gatewayComponent = ((RedirectGatewayComponent)_payPalExpressGatewayComponent);
+                        var gatewayComponent = ( ( RedirectGatewayComponent ) _payPalExpressGatewayComponent );
                         List<RedirectGatewayComponent.GatewayAccountItem> accountItems = new List<RedirectGatewayComponent.GatewayAccountItem>();
-                        foreach (AccountItem account in GetSelectedAccounts())
+                        foreach ( AccountItem account in GetSelectedAccounts() )
                         {
                             RedirectGatewayComponent.GatewayAccountItem gatewayAccountItem = new RedirectGatewayComponent.GatewayAccountItem()
                             {
@@ -351,16 +358,16 @@ namespace org.secc.PayPalExpress
                                 Order = account.Order,
                                 PublicName = account.PublicName
                             };
-                            accountItems.Add(gatewayAccountItem);
+                            accountItems.Add( gatewayAccountItem );
                         }
-                        gatewayComponent.PreRedirect(_payPalExpressGateway, GetPaymentInfo(), accountItems, out errorMessage);
-                        if (errorMessage.Length > 0)
+                        gatewayComponent.PreRedirect( _payPalExpressGateway, GetPaymentInfo(), accountItems, out errorMessage );
+                        if ( errorMessage.Length > 0 )
                         {
-                            ShowMessage(NotificationBoxType.Danger, "Before we finish...", errorMessage);
+                            ShowMessage( NotificationBoxType.Danger, "Before we finish...", errorMessage );
                         }
                         else
                         {
-                            Response.Redirect(gatewayComponent.RedirectUrl);
+                            Response.Redirect( gatewayComponent.RedirectUrl );
                             Context.ApplicationInstance.CompleteRequest();
                         }
                     }
@@ -374,27 +381,27 @@ namespace org.secc.PayPalExpress
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void btnPayPalConfirmationNext_Click(object sender, EventArgs e)
+        protected void btnPayPalConfirmationNext_Click( object sender, EventArgs e )
         {
             string errorMessage = string.Empty;
 
-            var transaction = _payPalExpressGatewayComponent.Charge(_payPalExpressGateway, GetPaymentInfo(), out errorMessage);
-            if (errorMessage != string.Empty)
+            var transaction = _payPalExpressGatewayComponent.Charge( _payPalExpressGateway, GetPaymentInfo(), out errorMessage );
+            if ( errorMessage != string.Empty )
             {
-                ShowMessage(NotificationBoxType.Danger, "Payment Processing Error", errorMessage);
+                ShowMessage( NotificationBoxType.Danger, "Payment Processing Error", errorMessage );
                 return;
             }
-            if (transaction == null)
+            if ( transaction == null )
             {
-                ShowMessage(NotificationBoxType.Danger, "Payment Error", "Invalid Transaction");
+                ShowMessage( NotificationBoxType.Danger, "Payment Error", "Invalid Transaction" );
                 return;
             }
-            Person person = GetPerson(GetPaymentInfo(), true);
+            Person person = GetPerson( GetPaymentInfo(), true );
             RockContext rockContext = new RockContext();
-            SaveTransaction(_payPalExpressGateway, _payPalExpressGatewayComponent, person, GetPaymentInfo(), transaction, rockContext);
-            FinancialPaymentDetail paymentDetail = transaction.FinancialPaymentDetail.Clone(false);
+            SaveTransaction( _payPalExpressGateway, _payPalExpressGatewayComponent, person, GetPaymentInfo(), transaction, rockContext );
+            FinancialPaymentDetail paymentDetail = transaction.FinancialPaymentDetail.Clone( false );
 
-            ShowSuccess(_payPalExpressGatewayComponent, person, GetPaymentInfo(), null, paymentDetail, rockContext);
+            ShowSuccess( _payPalExpressGatewayComponent, person, GetPaymentInfo(), null, paymentDetail, rockContext );
         }
 
 
@@ -424,12 +431,12 @@ namespace org.secc.PayPalExpress
 ";
             string script = string.Format(
                 scriptFormat,
-                RockTransactionEntry.FindControl("divCCPaymentInfo").ClientID,         // {0}
+                RockTransactionEntry.FindControl( "divCCPaymentInfo" ).ClientID,         // {0}
                 "divPayPalPaymentInfo",         // {1},
                 hfMyPaymentTab.ClientID         // {2}
             );
 
-            ScriptManager.RegisterStartupScript(Page, this.GetType(), "giving-profile-ppExpress", script, true);
+            ScriptManager.RegisterStartupScript( Page, this.GetType(), "giving-profile-ppExpress", script, true );
 
         }
 
@@ -463,40 +470,40 @@ namespace org.secc.PayPalExpress
             return transactionEntity;
         }
 
-        private void SetTargetPerson(RockContext rockContext)
+        private void SetTargetPerson( RockContext rockContext )
         {
             // If impersonation is allowed, and a valid person key was used, set the target to that person
-            if (GetAttributeValue("Impersonation").AsBooleanOrNull() ?? false)
+            if ( GetAttributeValue( "Impersonation" ).AsBooleanOrNull() ?? false )
             {
-                string personKey = PageParameter("Person");
-                if (!string.IsNullOrWhiteSpace(personKey))
+                string personKey = PageParameter( "Person" );
+                if ( !string.IsNullOrWhiteSpace( personKey ) )
                 {
-                    _targetPerson = new PersonService(rockContext).GetByUrlEncodedKey(personKey);
+                    _targetPerson = new PersonService( rockContext ).GetByUrlEncodedKey( personKey );
                 }
             }
 
-            if (_targetPerson == null)
+            if ( _targetPerson == null )
             {
                 _targetPerson = CurrentPerson;
             }
         }
 
-        private FinancialGateway GetGateway(RockContext rockContext, string attributeName)
+        private FinancialGateway GetGateway( RockContext rockContext, string attributeName )
         {
-            var financialGatewayService = new FinancialGatewayService(rockContext);
-            Guid? ccGatewayGuid = GetAttributeValue(attributeName).AsGuidOrNull();
-            if (ccGatewayGuid.HasValue)
+            var financialGatewayService = new FinancialGatewayService( rockContext );
+            Guid? ccGatewayGuid = GetAttributeValue( attributeName ).AsGuidOrNull();
+            if ( ccGatewayGuid.HasValue )
             {
-                return financialGatewayService.Get(ccGatewayGuid.Value);
+                return financialGatewayService.Get( ccGatewayGuid.Value );
             }
             return null;
         }
 
-        private GatewayComponent GetGatewayComponent(RockContext rockContext, FinancialGateway gateway)
+        private GatewayComponent GetGatewayComponent( RockContext rockContext, FinancialGateway gateway )
         {
-            if (gateway != null)
+            if ( gateway != null )
             {
-                gateway.LoadAttributes(rockContext);
+                gateway.LoadAttributes( rockContext );
                 return gateway.GetGatewayComponent();
             }
             return null;
@@ -510,27 +517,27 @@ namespace org.secc.PayPalExpress
         /// <returns></returns>
         private PaymentSchedule GetSchedule()
         {
-            if (RockTransactionEntry == null)
+            if ( RockTransactionEntry == null )
             {
                 return null;
             }
 
-            btnFrequency = ((ButtonDropDownList)RockTransactionEntry.FindControl("btnFrequency"));
-            dtpStartDate = ((DatePicker)RockTransactionEntry.FindControl("dtpStartDate"));
+            btnFrequency = ( ( ButtonDropDownList ) RockTransactionEntry.FindControl( "btnFrequency" ) );
+            dtpStartDate = ( ( DatePicker ) RockTransactionEntry.FindControl( "dtpStartDate" ) );
             // Figure out if this is a one-time transaction or a future scheduled transaction
-            if (GetAttributeValue("AllowScheduled").AsBoolean())
+            if ( GetAttributeValue( "AllowScheduled" ).AsBoolean() )
             {
                 // If a one-time gift was selected for today's date, then treat as a onetime immediate transaction (not scheduled)
-                int oneTimeFrequencyId = DefinedValueCache.Get(Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_ONE_TIME).Id;
-                if (btnFrequency.SelectedValue == oneTimeFrequencyId.ToString() && dtpStartDate.SelectedDate <= RockDateTime.Today)
+                int oneTimeFrequencyId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_ONE_TIME ).Id;
+                if ( btnFrequency.SelectedValue == oneTimeFrequencyId.ToString() && dtpStartDate.SelectedDate <= RockDateTime.Today )
                 {
                     // one-time immediate payment
                     return null;
                 }
 
                 var schedule = new PaymentSchedule();
-                schedule.TransactionFrequencyValue = DefinedValueCache.Get(btnFrequency.SelectedValueAsId().Value);
-                if (dtpStartDate.SelectedDate.HasValue && dtpStartDate.SelectedDate > RockDateTime.Today)
+                schedule.TransactionFrequencyValue = DefinedValueCache.Get( btnFrequency.SelectedValueAsId().Value );
+                if ( dtpStartDate.SelectedDate.HasValue && dtpStartDate.SelectedDate > RockDateTime.Today )
                 {
                     schedule.StartDate = dtpStartDate.SelectedDate.Value;
                 }
@@ -551,26 +558,34 @@ namespace org.secc.PayPalExpress
         /// <param name="type">The type.</param>
         /// <param name="title">The title.</param>
         /// <param name="text">The text.</param>
-        private void ShowMessage(NotificationBoxType type, string title, string text)
+        private void ShowMessage( NotificationBoxType type, string title, string text )
         {
-            if (!string.IsNullOrWhiteSpace(text))
+            if ( !string.IsNullOrWhiteSpace( text ) )
             {
                 NotificationBox nb = nbConfirmationMessage;
-                if (RockTransactionEntry != null)
+                if ( RockTransactionEntry != null )
                 {
-                    nb = (NotificationBox)RockTransactionEntry.FindControl("nbMessage");
-                    hfCurrentPage = (HiddenField)RockTransactionEntry.FindControl("hfCurrentPage");
-                    switch (hfCurrentPage.Value.AsInteger())
+                    nb = ( NotificationBox ) RockTransactionEntry.FindControl( "nbMessage" );
+                    hfCurrentPage = ( HiddenField ) RockTransactionEntry.FindControl( "hfCurrentPage" );
+                    switch ( hfCurrentPage.Value.AsInteger() )
                     {
-                        case 1: nb = (NotificationBox)RockTransactionEntry.FindControl("nbSelectionMessage"); break;
-                        case 2: nb = (NotificationBox)RockTransactionEntry.FindControl("nbSelectionMessage"); break;
-                        case 3: nb = (NotificationBox)RockTransactionEntry.FindControl("nbConfirmationMessage"); break;
-                        case 4: nb = (NotificationBox)RockTransactionEntry.FindControl("nbSuccessMessage"); break;
+                        case 1:
+                            nb = ( NotificationBox ) RockTransactionEntry.FindControl( "nbSelectionMessage" );
+                            break;
+                        case 2:
+                            nb = ( NotificationBox ) RockTransactionEntry.FindControl( "nbSelectionMessage" );
+                            break;
+                        case 3:
+                            nb = ( NotificationBox ) RockTransactionEntry.FindControl( "nbConfirmationMessage" );
+                            break;
+                        case 4:
+                            nb = ( NotificationBox ) RockTransactionEntry.FindControl( "nbSuccessMessage" );
+                            break;
                     }
                 }
 
                 nb.Text = text;
-                nb.Title = string.IsNullOrWhiteSpace(title) ? "" : string.Format("<p>{0}</p>", title);
+                nb.Title = string.IsNullOrWhiteSpace( title ) ? "" : string.Format( "<p>{0}</p>", title );
                 nb.NotificationBoxType = type;
                 nb.Visible = true;
             }
@@ -582,14 +597,14 @@ namespace org.secc.PayPalExpress
         /// <returns></returns>
         private PaymentInfo GetPaymentInfo()
         {
-            if (RockTransactionEntry != null)
+            if ( RockTransactionEntry != null )
             {
                 paymentInfo = new PaymentInfo();
-                acAddress = (AddressControl)RockTransactionEntry.FindControl("acAddress");
-                pnbPhone = (PhoneNumberBox)RockTransactionEntry.FindControl("pnbPhone");
-                paymentInfo.Amount = GetSelectedAccounts().Sum(a => a.Amount);
-                paymentInfo.Email = ((TextBox)RockTransactionEntry.FindControl("txtEmail")).Text;
-                paymentInfo.Phone = PhoneNumber.FormattedNumber(pnbPhone.CountryCode, pnbPhone.Number, true);
+                acAddress = ( AddressControl ) RockTransactionEntry.FindControl( "acAddress" );
+                pnbPhone = ( PhoneNumberBox ) RockTransactionEntry.FindControl( "pnbPhone" );
+                paymentInfo.Amount = GetSelectedAccounts().Sum( a => a.Amount );
+                paymentInfo.Email = ( ( TextBox ) RockTransactionEntry.FindControl( "txtEmail" ) ).Text;
+                paymentInfo.Phone = PhoneNumber.FormattedNumber( pnbPhone.CountryCode, pnbPhone.Number, true );
                 paymentInfo.Street1 = acAddress.Street1;
                 paymentInfo.Street2 = acAddress.Street2;
                 paymentInfo.City = acAddress.City;
@@ -598,18 +613,18 @@ namespace org.secc.PayPalExpress
                 paymentInfo.Country = acAddress.Country;
 
             }
-            else if (PageParameter("token") != String.Empty)
+            else if ( PageParameter( "token" ) != String.Empty )
             {
-                if (paymentInfo != null)
+                if ( paymentInfo != null )
                 {
                     return paymentInfo;
                 }
                 paymentInfo = new PaymentInfo();
                 String errorMessage = string.Empty;
-                paymentInfo = ((org.secc.PayPalExpress.Gateway)_payPalExpressGatewayComponent).GetPaymentInfo(_payPalExpressGateway, PageParameter("token"), out errorMessage);
-                if (errorMessage != string.Empty)
+                paymentInfo = ( ( org.secc.PayPalExpress.Gateway ) _payPalExpressGatewayComponent ).GetPaymentInfo( _payPalExpressGateway, PageParameter( "token" ), out errorMessage );
+                if ( errorMessage != string.Empty )
                 {
-                    ShowMessage(NotificationBoxType.Danger, "PayPal Error", errorMessage);
+                    ShowMessage( NotificationBoxType.Danger, "PayPal Error", errorMessage );
                 }
                 return paymentInfo;
 
@@ -624,40 +639,40 @@ namespace org.secc.PayPalExpress
         private void GetAccounts()
         {
             var rockContext = new RockContext();
-            var selectedGuids = GetAttributeValues("Accounts").Select(Guid.Parse).ToList();
+            var selectedGuids = GetAttributeValues( "Accounts" ).Select( Guid.Parse ).ToList();
             bool showAll = !selectedGuids.Any();
 
-            bool additionalAccounts = GetAttributeValue("AdditionalAccounts").AsBoolean(true);
+            bool additionalAccounts = GetAttributeValue( "AdditionalAccounts" ).AsBoolean( true );
 
             SelectedAccounts = new List<AccountItem>();
             AvailableAccounts = new List<AccountItem>();
 
             // Enumerate through all active accounts that are public
-            foreach (var account in new FinancialAccountService(rockContext).Queryable()
-                .Where(f =>
-                   f.IsActive &&
-                   f.IsPublic.HasValue &&
-                   f.IsPublic.Value &&
-                   (f.StartDate == null || f.StartDate <= RockDateTime.Today) &&
-                   (f.EndDate == null || f.EndDate >= RockDateTime.Today))
-                .OrderBy(f => f.Order))
+            foreach ( var account in new FinancialAccountService( rockContext ).Queryable()
+                .Where( f =>
+                    f.IsActive &&
+                    f.IsPublic.HasValue &&
+                    f.IsPublic.Value &&
+                    ( f.StartDate == null || f.StartDate <= RockDateTime.Today ) &&
+                    ( f.EndDate == null || f.EndDate >= RockDateTime.Today ) )
+                .OrderBy( f => f.Order ) )
             {
-                var accountItem = new AccountItem(account.Id, account.Order, account.Name, account.CampusId, account.PublicName);
-                if (showAll)
+                var accountItem = new AccountItem( account.Id, account.Order, account.Name, account.CampusId, account.PublicName );
+                if ( showAll )
                 {
-                    SelectedAccounts.Add(accountItem);
+                    SelectedAccounts.Add( accountItem );
                 }
                 else
                 {
-                    if (selectedGuids.Contains(account.Guid))
+                    if ( selectedGuids.Contains( account.Guid ) )
                     {
-                        SelectedAccounts.Add(accountItem);
+                        SelectedAccounts.Add( accountItem );
                     }
                     else
                     {
-                        if (additionalAccounts)
+                        if ( additionalAccounts )
                         {
-                            AvailableAccounts.Add(accountItem);
+                            AvailableAccounts.Add( accountItem );
                         }
                     }
                 }
@@ -669,9 +684,9 @@ namespace org.secc.PayPalExpress
         {
             transaction.AuthorizedPersonAliasId = person.PrimaryAliasId;
             if ( RockTransactionEntry != null )
-            { 
+            {
                 RockCheckBox cbGiveAnonymouslyControl = ( ( RockCheckBox ) ( RockTransactionEntry.FindControl( "cbGiveAnonymously" ) ) );
-                if ( cbGiveAnonymouslyControl != null)
+                if ( cbGiveAnonymouslyControl != null )
                 {
                     transaction.ShowAsAnonymous = cbGiveAnonymouslyControl.Checked;
                 }
@@ -730,7 +745,7 @@ namespace org.secc.PayPalExpress
 
             if ( batch.Id == 0 )
             {
-                batchChanges.AddCustom( "Add","Record","Generated the batch" );
+                batchChanges.AddCustom( "Add", "Record", "Generated the batch" );
                 History.EvaluateChange( batchChanges, "Batch Name", string.Empty, batch.Name );
                 History.EvaluateChange( batchChanges, "Status", null, batch.Status );
                 History.EvaluateChange( batchChanges, "Start Date/Time", null, batch.BatchStartDateTime );
@@ -772,15 +787,15 @@ namespace org.secc.PayPalExpress
             TransactionCode = transaction.TransactionCode;
         }
 
-        private void SendReceipt(int transactionId)
+        private void SendReceipt( int transactionId )
         {
-            Guid? recieptEmail = GetAttributeValue("ReceiptEmail").AsGuidOrNull();
-            if (recieptEmail.HasValue)
+            Guid? recieptEmail = GetAttributeValue( "ReceiptEmail" ).AsGuidOrNull();
+            if ( recieptEmail.HasValue )
             {
                 // Queue a transaction to send reciepts
                 var newTransactionIds = new List<int> { transactionId };
                 var sendPaymentRecieptsTxn = new Rock.Transactions.SendPaymentReceipts( recieptEmail.Value, newTransactionIds );
-                Rock.Transactions.RockQueue.TransactionQueue.Enqueue(sendPaymentRecieptsTxn);
+                Rock.Transactions.RockQueue.TransactionQueue.Enqueue( sendPaymentRecieptsTxn );
             }
         }
 
@@ -790,37 +805,37 @@ namespace org.secc.PayPalExpress
         /// <param name="paymentInfo">The paymentInfo object to use as the base.</param>
         /// <param name="create">if set to <c>true</c> [create].</param>
         /// <returns></returns>
-        private Person GetPerson(PaymentInfo paymentInfo, bool create)
+        private Person GetPerson( PaymentInfo paymentInfo, bool create )
         {
             Person person = null;
             var rockContext = new RockContext();
-            var personService = new PersonService(rockContext);
+            var personService = new PersonService( rockContext );
 
             Group familyGroup = null;
 
             int personId = ViewState["PersonId"] as int? ?? 0;
-            if (personId == 0 && _targetPerson != null)
+            if ( personId == 0 && _targetPerson != null )
             {
                 personId = _targetPerson.Id;
             }
 
-            if (personId != 0)
+            if ( personId != 0 )
             {
-                person = personService.Get(personId);
+                person = personService.Get( personId );
             }
 
-            if (create)
+            if ( create )
             {
-                if (person == null)
+                if ( person == null )
                 {
                     // Check to see if there's only one person with same email, first name, and last name
-                    if (!string.IsNullOrWhiteSpace(paymentInfo.Email) &&
-                        !string.IsNullOrWhiteSpace(paymentInfo.FirstName) &&
-                        !string.IsNullOrWhiteSpace(paymentInfo.LastName))
+                    if ( !string.IsNullOrWhiteSpace( paymentInfo.Email ) &&
+                        !string.IsNullOrWhiteSpace( paymentInfo.FirstName ) &&
+                        !string.IsNullOrWhiteSpace( paymentInfo.LastName ) )
                     {
                         // Same logic as CreatePledge.ascx.cs
-                        var personMatches = personService.FindPersons(paymentInfo.FirstName, paymentInfo.LastName, paymentInfo.Email);
-                        if (personMatches.Count() == 1)
+                        var personMatches = personService.FindPersons( paymentInfo.FirstName, paymentInfo.LastName, paymentInfo.Email );
+                        if ( personMatches.Count() == 1 )
                         {
                             person = personMatches.FirstOrDefault();
                         }
@@ -830,10 +845,10 @@ namespace org.secc.PayPalExpress
                         }
                     }
 
-                    if (person == null)
+                    if ( person == null )
                     {
-                        DefinedValueCache dvcConnectionStatus = DefinedValueCache.Get(GetAttributeValue("ConnectionStatus").AsGuid());
-                        DefinedValueCache dvcRecordStatus = DefinedValueCache.Get(GetAttributeValue("RecordStatus").AsGuid());
+                        DefinedValueCache dvcConnectionStatus = DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() );
+                        DefinedValueCache dvcRecordStatus = DefinedValueCache.Get( GetAttributeValue( "RecordStatus" ).AsGuid() );
 
                         // Create Person
                         person = new Person();
@@ -841,68 +856,68 @@ namespace org.secc.PayPalExpress
                         person.LastName = paymentInfo.LastName;
                         person.IsEmailActive = true;
                         person.EmailPreference = EmailPreference.EmailAllowed;
-                        person.RecordTypeValueId = DefinedValueCache.Get(Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid()).Id;
-                        if (dvcConnectionStatus != null)
+                        person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                        if ( dvcConnectionStatus != null )
                         {
                             person.ConnectionStatusValueId = dvcConnectionStatus.Id;
                         }
 
-                        if (dvcRecordStatus != null)
+                        if ( dvcRecordStatus != null )
                         {
                             person.RecordStatusValueId = dvcRecordStatus.Id;
                         }
 
                         // Create Person/Family
-                        familyGroup = PersonService.SaveNewPerson(person, rockContext, null, false);
+                        familyGroup = PersonService.SaveNewPerson( person, rockContext, null, false );
                     }
 
                     ViewState["PersonId"] = person != null ? person.Id : 0;
                 }
             }
 
-            if (create && person != null) // person should never be null at this point
+            if ( create && person != null ) // person should never be null at this point
             {
                 person.Email = paymentInfo.Email;
 
-                if (GetAttributeValue("DisplayPhone").AsBooleanOrNull() ?? false && !String.IsNullOrEmpty(paymentInfo.Phone))
+                if ( GetAttributeValue( "DisplayPhone" ).AsBooleanOrNull() ?? false && !String.IsNullOrEmpty( paymentInfo.Phone ) )
                 {
-                    var numberTypeId = DefinedValueCache.Get(new Guid(Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME)).Id;
-                    var phone = person.PhoneNumbers.FirstOrDefault(p => p.NumberTypeValueId == numberTypeId);
-                    if (phone == null)
+                    var numberTypeId = DefinedValueCache.Get( new Guid( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME ) ).Id;
+                    var phone = person.PhoneNumbers.FirstOrDefault( p => p.NumberTypeValueId == numberTypeId );
+                    if ( phone == null )
                     {
                         phone = new PhoneNumber();
-                        person.PhoneNumbers.Add(phone);
+                        person.PhoneNumbers.Add( phone );
                         phone.NumberTypeValueId = numberTypeId;
                     }
                     phone.Number = paymentInfo.Phone;
                 }
 
-                if (familyGroup == null)
+                if ( familyGroup == null )
                 {
-                    var groupLocationService = new GroupLocationService(rockContext);
-                    if (GroupLocationId.HasValue)
+                    var groupLocationService = new GroupLocationService( rockContext );
+                    if ( GroupLocationId.HasValue )
                     {
                         familyGroup = groupLocationService.Queryable()
-                            .Where(gl => gl.Id == GroupLocationId.Value)
-                            .Select(gl => gl.Group)
+                            .Where( gl => gl.Id == GroupLocationId.Value )
+                            .Select( gl => gl.Group )
                             .FirstOrDefault();
                     }
                     else
                     {
-                        familyGroup = personService.GetFamilies(person.Id).FirstOrDefault();
+                        familyGroup = personService.GetFamilies( person.Id ).FirstOrDefault();
                     }
                 }
 
                 rockContext.SaveChanges();
 
-                if (familyGroup != null)
+                if ( familyGroup != null )
                 {
                     GroupService.AddNewGroupAddress(
                         rockContext,
                         familyGroup,
-                        GetAttributeValue("AddressType"),
+                        GetAttributeValue( "AddressType" ),
                         paymentInfo.Street1, paymentInfo.Street2, paymentInfo.City, paymentInfo.State, paymentInfo.PostalCode, paymentInfo.Country,
-                        true);
+                        true );
                 }
             }
 
@@ -910,10 +925,10 @@ namespace org.secc.PayPalExpress
         }
 
 
-        private void ShowSuccess(GatewayComponent gatewayComponent, Person person, PaymentInfo paymentInfo, PaymentSchedule schedule, FinancialPaymentDetail paymentDetail, RockContext rockContext)
+        private void ShowSuccess( GatewayComponent gatewayComponent, Person person, PaymentInfo paymentInfo, PaymentSchedule schedule, FinancialPaymentDetail paymentDetail, RockContext rockContext )
         {
             tdTransactionCodeReceipt.Description = TransactionCode;
-            tdTransactionCodeReceipt.Visible = !string.IsNullOrWhiteSpace(TransactionCode);
+            tdTransactionCodeReceipt.Visible = !string.IsNullOrWhiteSpace( TransactionCode );
 
             tdScheduleId.Description = ScheduleId.ToString();
             tdScheduleId.Visible = ScheduleId.HasValue;
@@ -921,22 +936,22 @@ namespace org.secc.PayPalExpress
             tdNameReceipt.Description = paymentInfo.FullName;
             tdPhoneReceipt.Description = paymentInfo.Phone;
             tdEmailReceipt.Description = paymentInfo.Email;
-            tdAddressReceipt.Description = string.Format("{0} {1}, {2} {3}", paymentInfo.Street1, paymentInfo.City, paymentInfo.State, paymentInfo.PostalCode);
+            tdAddressReceipt.Description = string.Format( "{0} {1}, {2} {3}", paymentInfo.Street1, paymentInfo.City, paymentInfo.State, paymentInfo.PostalCode );
 
-            rptAccountListReceipt.DataSource = GetSelectedAccounts().Where(a => a.Amount != 0);
+            rptAccountListReceipt.DataSource = GetSelectedAccounts().Where( a => a.Amount != 0 );
             rptAccountListReceipt.DataBind();
 
-            tdTotalReceipt.Description = paymentInfo.Amount.ToString("C");
+            tdTotalReceipt.Description = paymentInfo.Amount.ToString( "C" );
 
             tdPaymentMethodReceipt.Description = paymentInfo.CurrencyTypeValue.Description;
 
             string acctNumber = paymentInfo.MaskedNumber;
-            if (string.IsNullOrWhiteSpace(acctNumber) && paymentDetail != null && !string.IsNullOrWhiteSpace(paymentDetail.AccountNumberMasked))
+            if ( string.IsNullOrWhiteSpace( acctNumber ) && paymentDetail != null && !string.IsNullOrWhiteSpace( paymentDetail.AccountNumberMasked ) )
             {
                 acctNumber = paymentDetail.AccountNumberMasked;
             }
             tdAccountNumberReceipt.Description = acctNumber;
-            tdAccountNumberReceipt.Visible = !string.IsNullOrWhiteSpace(acctNumber);
+            tdAccountNumberReceipt.Visible = !string.IsNullOrWhiteSpace( acctNumber );
 
             tdWhenReceipt.Description = schedule != null ? schedule.ToString() : "Today";
 

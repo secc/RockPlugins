@@ -31,15 +31,14 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Web.Security;
 using System.Linq;
+using System.Text;
+using System.Web.Security;
 using Rock;
 using Rock.Attribute;
-using Rock.Security;
-using System.Text;
-using System.Text.RegularExpressions;
-using Rock.Model;
 using Rock.Data;
+using Rock.Model;
+using Rock.Security;
 using Rock.Web.Cache;
 
 namespace RockWeb.Plugins.org_secc.CMS
@@ -59,7 +58,7 @@ namespace RockWeb.Plugins.org_secc.CMS
 
     [BooleanField( "Enable Notifications", "Display a notification of new workflows or connections." )]
 
-    [LinkedPage( "Logout Page", "Page for logging out of Rock", required:false )]
+    [LinkedPage( "Logout Page", "Page for logging out of Rock", required: false )]
 
     public partial class LoginStatus : Rock.Web.UI.RockBlock
     {

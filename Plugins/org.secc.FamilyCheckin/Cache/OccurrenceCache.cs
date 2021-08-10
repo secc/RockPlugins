@@ -183,7 +183,7 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static List<OccurrenceCache> All()
         {
-            var allKeys = RockCacheManager<List<string>>.Instance.Cache.Get( AllKey, _AllRegion );
+            var allKeys = RockCacheManager<List<string>>.Instance.Get( AllKey, _AllRegion );
             if ( allKeys == null )
             {
                 allKeys = GetOrAddKeys( () => AllKeys() );

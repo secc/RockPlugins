@@ -16,7 +16,7 @@ using Rock.Plugin;
 
 namespace org.secc.LeagueApps.Migrations
 {
-    [MigrationNumber(3, "1.0.3")]
+    [MigrationNumber( 3, "1.0.3" )]
     class CreateGenderType : Migration
     {
         /// <summary>
@@ -32,12 +32,12 @@ namespace org.secc.LeagueApps.Migrations
             );
         }
 
-    /// <summary>
-    /// The commands to undo a migration from a specific version
-    /// </summary>
-    public override void Down()
+        /// <summary>
+        /// The commands to undo a migration from a specific version
+        /// </summary>
+        public override void Down()
         {
-            RockMigrationHelper.DeleteDefinedType("4FACC42E-8783-4805-859F-AAC6D8951CE6");
+            RockMigrationHelper.DeleteDefinedType( "4FACC42E-8783-4805-859F-AAC6D8951CE6" );
         }
     }
 }

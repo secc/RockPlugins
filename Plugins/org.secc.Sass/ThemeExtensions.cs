@@ -52,7 +52,7 @@ namespace org.secc.Sass
                 if ( themeDirectory.Exists )
                 {
                     List<FileInfo> files = GetSCSSFiles( themeDirectory );
-                    
+
                     if ( files != null )
                     {
                         if ( theme.AllowsCompile )
@@ -65,10 +65,10 @@ namespace org.secc.Sass
                                 {
                                     InputFile = file.FullName,
                                     OutputFile = file.Name.Replace( ".scss", ".css" ), // Note: It will not generate the file, 
-                                                             // only used for exception reporting
-                                                             // includes and source maps
+                                                                                       // only used for exception reporting
+                                                                                       // includes and source maps
                                     GenerateSourceMap = false,
-                                    
+
                                 } );
 
                                 File.WriteAllText( file.DirectoryName + @"\" + file.Name.Replace( ".scss", ".css" ), compact.Css );

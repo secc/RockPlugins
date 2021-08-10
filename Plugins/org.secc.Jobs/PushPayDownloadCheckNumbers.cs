@@ -12,29 +12,28 @@
 // limitations under the License.
 // </copyright>
 //
-using System.Linq;
+using System;
+using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Reflection;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using System.Collections.Generic;
-using System;
-using System.Reflection;
 using Rock.Web.Cache;
-using System.Threading.Tasks;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace org.secc.Jobs
 {
-    [DefinedValueField( Rock.SystemGuid.DefinedType.FINANCIAL_SOURCE_TYPE, "Transaction Source", "The transaction source for PushPay transactions.", true)]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.FINANCIAL_SOURCE_TYPE, "Transaction Source", "The transaction source for PushPay transactions.", true )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.FINANCIAL_CURRENCY_TYPE, "Currency Type", "The currency type source for PushPay check transactions.", true )]
-    [AttributeField( Rock.SystemGuid.EntityType.FINANCIAL_TRANSACTION, "Check Number Attribute", "The check number finacial transaction attribute.")]
+    [AttributeField( Rock.SystemGuid.EntityType.FINANCIAL_TRANSACTION, "Check Number Attribute", "The check number finacial transaction attribute." )]
     [SlidingDateRangeField( "Date Range", "The date range of transactions to include", true, "Previous|24|Hour||" )]
     [DisallowConcurrentExecution]
     public class PushPayDownloadCheckNumbers : IJob
@@ -55,7 +54,7 @@ namespace org.secc.Jobs
 
             // Fetch any transactions that don't have check numbers
             var checkTransactions = financialTransactionService.Queryable( "FinancialPaymentDetail" )
-                                        .Where( ft => ft.SourceTypeValueId == transactionSource.Id 
+                                        .Where( ft => ft.SourceTypeValueId == transactionSource.Id
                                                       && ft.FinancialPaymentDetail.CurrencyTypeValueId == currencyType.Id
                                                       && ft.CreatedDateTime >= dateRange.Start
                                                       && ft.CreatedDateTime <= dateRange.End )
@@ -64,7 +63,7 @@ namespace org.secc.Jobs
                                             av => new { av.EntityId, AttributeId = av.AttributeId },
                                             ( ft, av ) => new { Transaction = ft, CheckNumberAttributes = av } )
                                         .Where( ft => ft.CheckNumberAttributes.Count() == 0 );
-                                                   
+
 
             int updates = 0;
             int errors = 0;
@@ -96,12 +95,12 @@ namespace org.secc.Jobs
                     merchantDataList.Add( data );
 
                 }
-                
+
                 foreach ( var transaction in checkTransactions )
                 {
                     string currentError = "";
                     Boolean setCheckNumber = false;
-                    foreach( var merchantData in merchantDataList )
+                    foreach ( var merchantData in merchantDataList )
                     {
                         // Fetch the payment information from PushPay
                         var task = GetPayment( merchantData.OAuthToken, merchantData.MerchantKey, transaction.Transaction.ForeignKey );
@@ -117,18 +116,20 @@ namespace org.secc.Jobs
                         }
                         else
                         {
-                            if ( task.Result.Error != null)
+                            if ( task.Result.Error != null )
                             {
                                 currentError = " (" + task.Result.Error + ")";
-                            } else if ( string.IsNullOrWhiteSpace( task.Result?.DepositedCheck?.CheckNumber ) )
+                            }
+                            else if ( string.IsNullOrWhiteSpace( task.Result?.DepositedCheck?.CheckNumber ) )
                             {
                                 currentError = " (No Check Number)";
                             }
                         }
                     }
                     // If we get here without a check number we have a problem
-                    if ( setCheckNumber == false) {
-                        errorMessages += string.Format( " - Unable to fetch check number for PushPay transaction {0}.\n", transaction.Transaction.ForeignKey + currentError ); 
+                    if ( setCheckNumber == false )
+                    {
+                        errorMessages += string.Format( " - Unable to fetch check number for PushPay transaction {0}.\n", transaction.Transaction.ForeignKey + currentError );
                         errors++;
                     }
 
@@ -146,11 +147,11 @@ namespace org.secc.Jobs
         /// <remarks>
         ///	Get a payment details from a payment token
         /// </remarks>
-        public async Task<Response> GetPayment(string oAuthToken, string merchantKey, string paymentToken)
+        public async Task<Response> GetPayment( string oAuthToken, string merchantKey, string paymentToken )
         {
             using ( var client = new HttpClient() )
             {
-                var requestUrl = string.Format( "/v1/merchant/{0}/payment/{1}", merchantKey, paymentToken);
+                var requestUrl = string.Format( "/v1/merchant/{0}/payment/{1}", merchantKey, paymentToken );
 
                 client.BaseAddress = new Uri( "https://api.pushpay.com" );
                 client.DefaultRequestHeaders.Accept.Clear();
@@ -185,7 +186,7 @@ namespace org.secc.Jobs
         public string MerchantKey { get; set; }
         public string OAuthToken { get; set; }
     }
-    
+
     public class Response
     {
         public string PaymentMethodType { get; set; }

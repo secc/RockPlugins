@@ -30,18 +30,15 @@
 //
 using System;
 using System.ComponentModel;
-using Rock.Model;
-using Rock.Security;
-using System.Web.UI;
-using Rock.Web.Cache;
-using Rock.Web.UI;
-using System.Web;
-using Rock.Data;
 using System.Linq;
-using System.Collections.Generic;
+using System.Web.UI;
+using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
-using System.Web.UI.WebControls;
+using Rock.Data;
+using Rock.Model;
+using Rock.Web.Cache;
+using Rock.Web.UI;
 
 namespace RockWeb.Plugins.org_secc.FamilyOnMission
 {

@@ -12,17 +12,11 @@
 // limitations under the License.
 // </copyright>
 //
-using System.Linq;
-using System.Data;
-using System.Data.Entity;
+using org.secc.Communication.Twilio;
 using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
-using Rock.Model;
-using System.Collections.Generic;
-using org.secc.Communication.Model;
-using org.secc.Communication.Twilio;
 
 namespace org.secc.Communication.Jobs
 {

@@ -26,7 +26,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using Humanizer;
 using Newtonsoft.Json;
-
+using org.secc.PersonMatch;
 using Rock;
 using Rock.Attribute;
 using Rock.Communication;
@@ -40,7 +40,6 @@ using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using Helper = Rock.Attribute.Helper;
-using org.secc.PersonMatch;
 
 namespace RockWeb.Plugins.org_secc.Event
 {
@@ -1628,9 +1627,9 @@ namespace RockWeb.Plugins.org_secc.Event
                                     savedAccount.FinancialPaymentDetail.AccountNumberMasked = paymentDetail.AccountNumberMasked;
                                     savedAccount.FinancialPaymentDetail.CurrencyTypeValueId = paymentDetail.CurrencyTypeValueId;
                                     savedAccount.FinancialPaymentDetail.CreditCardTypeValueId = paymentDetail.CreditCardTypeValueId;
-                                    savedAccount.FinancialPaymentDetail.NameOnCardEncrypted = paymentDetail.NameOnCardEncrypted;
-                                    savedAccount.FinancialPaymentDetail.ExpirationMonthEncrypted = paymentDetail.ExpirationMonthEncrypted;
-                                    savedAccount.FinancialPaymentDetail.ExpirationYearEncrypted = paymentDetail.ExpirationYearEncrypted;
+                                    savedAccount.FinancialPaymentDetail.NameOnCard = paymentDetail.NameOnCard;
+                                    savedAccount.FinancialPaymentDetail.ExpirationMonth = paymentDetail.ExpirationMonth;
+                                    savedAccount.FinancialPaymentDetail.ExpirationYear = paymentDetail.ExpirationYear;
                                     savedAccount.FinancialPaymentDetail.BillingLocationId = paymentDetail.BillingLocationId;
 
                                     var savedAccountService = new FinancialPersonSavedAccountService( rockContext );
@@ -4675,7 +4674,7 @@ namespace RockWeb.Plugins.org_secc.Event
                         value = firstRegistrant.FieldValues[field.Id].FieldValue;
                     }
 
-                    bool hasDependantVisibilityRule = form.Fields.Any( a => a.FieldVisibilityRules.RuleList.Any( r => r.ComparedToRegistrationTemplateFormFieldGuid == field.Guid ) );
+                    bool hasDependantVisibilityRule = form.Fields.Any( a => a.FieldVisibilityRules.RuleList.Any( r => r.ComparedToFormFieldGuid == field.Guid ) );
 
                     if ( field.FieldSource == RegistrationFieldSource.PersonField )
                     {
@@ -4725,7 +4724,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 var fieldVisibilityWrapper = new FieldVisibilityWrapper
                 {
                     ID = "_fieldVisibilityWrapper_field_" + field.Guid.ToString( "N" ),
-                    RegistrationTemplateFormFieldId = field.Id,
+                    FormFieldId = field.Id,
                     FieldVisibilityRules = field.FieldVisibilityRules
                 };
 
@@ -4789,7 +4788,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 FieldVisibilityWrapper fieldVisibilityWrapper = new FieldVisibilityWrapper
                 {
                     ID = "_fieldVisibilityWrapper_attribute_" + attribute.Id.ToString(),
-                    RegistrationTemplateFormFieldId = field.Id,
+                    FormFieldId = field.Id,
                     FieldVisibilityRules = field.FieldVisibilityRules
                 };
 

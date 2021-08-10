@@ -17,9 +17,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Ghostscript.NET.Rasterizer;
 using Rock.Data;
 using Rock.Model;
@@ -39,7 +36,7 @@ namespace org.secc.ConnectionCards.Utilities
                 using ( MemoryStream ms = new MemoryStream( inputFile.DatabaseData.Content ) )
                 {
                     rasterizer.Open( ms );
-                    if (rasterizer.PageCount > 0 )
+                    if ( rasterizer.PageCount > 0 )
                     {
                         string filename = "ImageConvertedPDF.png";
 

@@ -19,11 +19,7 @@
 //3) C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Bin\x64>xsd "C:\MyData\Temp\EMS\myFile.xsd" /c /out:"C:\MyData\Temp\EMS"
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
-using System.Data;
 using System.Xml.Serialization;
 
 namespace org.secc.EMS

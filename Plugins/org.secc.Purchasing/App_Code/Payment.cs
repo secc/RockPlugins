@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
 
 using org.secc.Purchasing.DataLayer;
@@ -51,9 +50,9 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if ((mPaymentMethod == null || mPaymentMethod.PaymentMethodID != PaymentMethodID) && PaymentMethodID > 0)
+                if ( ( mPaymentMethod == null || mPaymentMethod.PaymentMethodID != PaymentMethodID ) && PaymentMethodID > 0 )
                 {
-                    mPaymentMethod = new PaymentMethod(PaymentMethodID);
+                    mPaymentMethod = new PaymentMethod( PaymentMethodID );
                 }
                 return mPaymentMethod;
             }
@@ -64,9 +63,9 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if((mPurchaseOrder == null || mPurchaseOrder.PurchaseOrderID != PurchaseOrderID) && PurchaseOrderID > 0)
+                if ( ( mPurchaseOrder == null || mPurchaseOrder.PurchaseOrderID != PurchaseOrderID ) && PurchaseOrderID > 0 )
                 {
-                    mPurchaseOrder = new PurchaseOrder(PurchaseOrderID);
+                    mPurchaseOrder = new PurchaseOrder( PurchaseOrderID );
                 }
 
                 return mPurchaseOrder;
@@ -78,8 +77,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mCreatedBy == null && !String.IsNullOrEmpty(CreatedByUserID))
-                    mCreatedBy = userLoginService.GetByUserName(CreatedByUserID).Person;
+                if ( mCreatedBy == null && !String.IsNullOrEmpty( CreatedByUserID ) )
+                    mCreatedBy = userLoginService.GetByUserName( CreatedByUserID ).Person;
                 return mCreatedBy;
             }
         }
@@ -89,8 +88,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (ModifiedBy == null && !String.IsNullOrEmpty(ModifiedByUserID))
-                    mModifiedBy = userLoginService.GetByUserName(ModifiedByUserID).Person;
+                if ( ModifiedBy == null && !String.IsNullOrEmpty( ModifiedByUserID ) )
+                    mModifiedBy = userLoginService.GetByUserName( ModifiedByUserID ).Person;
                 return mModifiedBy;
             }
         }
@@ -100,7 +99,7 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mCharges == null && PaymentID > 0)
+                if ( mCharges == null && PaymentID > 0 )
                     mCharges = LoadCharges();
                 return mCharges;
             }
@@ -112,17 +111,17 @@ namespace org.secc.Purchasing
         #endregion
 
         #region Constructors
-        public Payment() 
+        public Payment()
         {
             Init();
         }
-        public Payment(int paymentID)
+        public Payment( int paymentID )
         {
-            Load(paymentID);
+            Load( paymentID );
         }
-        public Payment(PaymentData data)
+        public Payment( PaymentData data )
         {
-            Load(data);
+            Load( data );
         }
         #endregion
 
@@ -133,33 +132,33 @@ namespace org.secc.Purchasing
             Charges = LoadCharges();
         }
 
-        public void DeactivateCharges(string uid)
+        public void DeactivateCharges( string uid )
         {
-            foreach (var item in Charges)
+            foreach ( var item in Charges )
             {
                 item.Active = false;
-                item.Save(uid);
+                item.Save( uid );
             }
         }
 
-        public void Save(string uid)
+        public void Save( string uid )
         {
             try
             {
-                if (String.IsNullOrEmpty(uid))
-                    throw new ArgumentNullException("UID", "User ID is required.");
+                if ( String.IsNullOrEmpty( uid ) )
+                    throw new ArgumentNullException( "UID", "User ID is required." );
 
                 Dictionary<string, string> ValErrors = Validate();
-                if (ValErrors.Count > 0)
-                    throw new RequisitionNotValidException("Payment is not valid", ValErrors);
+                if ( ValErrors.Count > 0 )
+                    throw new RequisitionNotValidException( "Payment is not valid", ValErrors );
 
-                using (PurchasingContext Context = ContextHelper.GetDBContext())
+                using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                 {
                     Enums.HistoryType ChangeType;
                     Payment Original = null;
                     PaymentData data;
 
-                    if (PaymentID <= 0)
+                    if ( PaymentID <= 0 )
                     {
                         data = new PaymentData();
                         ChangeType = Enums.HistoryType.ADD;
@@ -168,9 +167,9 @@ namespace org.secc.Purchasing
                     }
                     else
                     {
-                        data = Context.PaymentDatas.FirstOrDefault(x => x.payment_id == PaymentID);
+                        data = Context.PaymentDatas.FirstOrDefault( x => x.payment_id == PaymentID );
                         ChangeType = Enums.HistoryType.UPDATE;
-                        Original = new Payment(data);
+                        Original = new Payment( data );
                     }
 
                     data.payment_method_id = PaymentMethodID;
@@ -182,21 +181,21 @@ namespace org.secc.Purchasing
                     data.active = Active;
                     data.note = Note;
 
-                    if (PaymentID <= 0)
-                        Context.PaymentDatas.InsertOnSubmit(data);
+                    if ( PaymentID <= 0 )
+                        Context.PaymentDatas.InsertOnSubmit( data );
 
                     Context.SubmitChanges();
-                    Load(data);
-                    SaveHistory(ChangeType, Original, uid);
+                    Load( data );
+                    SaveHistory( ChangeType, Original, uid );
                 }
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
-                throw new RequisitionException("An error has occurred while saving payment.", ex);
+                throw new RequisitionException( "An error has occurred while saving payment.", ex );
             }
         }
 
-        public void SaveHistory(Enums.HistoryType ct, Payment original, string uid)
+        public void SaveHistory( Enums.HistoryType ct, Payment original, string uid )
         {
             History h = new History();
             h.ObjectTypeName = this.GetType().ToString();
@@ -204,24 +203,24 @@ namespace org.secc.Purchasing
             h.OrganizationID = PurchaseOrder.OrganizationID;
             h.ChangeType = ct;
 
-            switch (ct)
+            switch ( ct )
             {
                 case org.secc.Purchasing.Enums.HistoryType.ADD:
                     h.OriginalXML = null;
-                    h.UpdatedXML = Serialize(this);
+                    h.UpdatedXML = Serialize( this );
                     break;
                 case org.secc.Purchasing.Enums.HistoryType.UPDATE:
-                    h.OriginalXML = Serialize(original);
-                    h.UpdatedXML = Serialize(this);
+                    h.OriginalXML = Serialize( original );
+                    h.UpdatedXML = Serialize( this );
                     break;
                 case org.secc.Purchasing.Enums.HistoryType.DELETE:
-                    h.OriginalXML = Serialize(this);
+                    h.OriginalXML = Serialize( this );
                     h.UpdatedXML = null;
                     break;
             }
 
             h.Active = true;
-            h.Save(uid);
+            h.Save( uid );
         }
 
         #endregion
@@ -242,10 +241,10 @@ namespace org.secc.Purchasing
             Note = string.Empty;
         }
 
-        private void Load(PaymentData data)
+        private void Load( PaymentData data )
         {
             Init();
-            if (data != null)
+            if ( data != null )
             {
                 PaymentID = data.payment_id;
                 PaymentMethodID = data.payment_method_id;
@@ -261,11 +260,11 @@ namespace org.secc.Purchasing
             }
         }
 
-        private void Load(int paymentId)
+        private void Load( int paymentId )
         {
-            using (PurchasingContext Context = ContextHelper.GetDBContext())
+            using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
-                Load(Context.PaymentDatas.FirstOrDefault(p => p.payment_id == paymentId));
+                Load( Context.PaymentDatas.FirstOrDefault( p => p.payment_id == paymentId ) );
             }
         }
 
@@ -273,11 +272,11 @@ namespace org.secc.Purchasing
         {
             List<PaymentCharge> ChargeList = new List<PaymentCharge>();
 
-            using (PurchasingContext Context = ContextHelper.GetDBContext())
+            using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
-                foreach (PaymentChargeData charge in Context.PaymentDatas.FirstOrDefault(x => x.payment_id == PaymentID).PaymentChargeDatas)
+                foreach ( PaymentChargeData charge in Context.PaymentDatas.FirstOrDefault( x => x.payment_id == PaymentID ).PaymentChargeDatas )
                 {
-                    ChargeList.Add(new PaymentCharge(charge));
+                    ChargeList.Add( new PaymentCharge( charge ) );
                 }
             }
 
@@ -288,21 +287,21 @@ namespace org.secc.Purchasing
         {
             Dictionary<string, string> ValErrors = new Dictionary<string, string>();
 
-            if (PaymentMethodID <= 0)
-                ValErrors.Add("Payment Method ID", "Payment Method is required.");
-            else if (PaymentMethod == null || PaymentMethod.PaymentMethodID <= 0)
-                ValErrors.Add("Payment Method ID", "Selected payment method not found.");
+            if ( PaymentMethodID <= 0 )
+                ValErrors.Add( "Payment Method ID", "Payment Method is required." );
+            else if ( PaymentMethod == null || PaymentMethod.PaymentMethodID <= 0 )
+                ValErrors.Add( "Payment Method ID", "Selected payment method not found." );
 
-            if (PurchaseOrderID <= 0)
-                ValErrors.Add("Purchase Order ID", "Purchase Order ID is required.");
-            else if (PurchaseOrder == null || PurchaseOrder.PurchaseOrderID <= 0)
-                ValErrors.Add("Purchase Order ID", "Purchase Order not found.");
+            if ( PurchaseOrderID <= 0 )
+                ValErrors.Add( "Purchase Order ID", "Purchase Order ID is required." );
+            else if ( PurchaseOrder == null || PurchaseOrder.PurchaseOrderID <= 0 )
+                ValErrors.Add( "Purchase Order ID", "Purchase Order not found." );
 
-            if (PaymentDate == DateTime.MinValue)
-                ValErrors.Add("Invoice Date", "Invoice Date is required in m/d/yyyy format.");
+            if ( PaymentDate == DateTime.MinValue )
+                ValErrors.Add( "Invoice Date", "Invoice Date is required in m/d/yyyy format." );
 
-            if (PaymentDate.Date > DateTime.Now.Date)
-                ValErrors.Add("Invoice Date", "Invoice Date can not be a future date.");
+            if ( PaymentDate.Date > DateTime.Now.Date )
+                ValErrors.Add( "Invoice Date", "Invoice Date can not be a future date." );
 
             return ValErrors;
         }

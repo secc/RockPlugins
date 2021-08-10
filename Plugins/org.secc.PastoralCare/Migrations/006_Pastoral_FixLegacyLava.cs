@@ -12,14 +12,7 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Rock;
 using Rock.Plugin;
-using Rock.Web.Cache;
 
 namespace org.secc.PastoralCare.Migrations
 {
@@ -28,7 +21,7 @@ namespace org.secc.PastoralCare.Migrations
     {
         public override void Up()
         {
-            Sql(@"  UPDATE [AttributeValue] 
+            Sql( @"  UPDATE [AttributeValue] 
                       SET Value =
                         REPLACE(
                             REPLACE(
@@ -52,8 +45,8 @@ namespace org.secc.PastoralCare.Migrations
                         )
                       WHERE
                         AttributeId = (SELECT id FROM Attribute WHERE Guid = '93852244-A667-4749-961A-D47F88675BE4'); 
-            ");
-            Sql(@"  
+            " );
+            Sql( @"  
 	               UPDATE [WorkflowActionForm]
 	               SET Header =
 		               REPLACE(
@@ -93,7 +86,7 @@ namespace org.secc.PastoralCare.Migrations
 				            )
 			            )
 		            ); 
-            ");
+            " );
         }
         public override void Down()
         {

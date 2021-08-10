@@ -186,8 +186,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
             else
             {
-                var errorMessages = new List<string>();
-                var approvedPeopleQry = approvedPeople.GetQuery( null, 30, out errorMessages );
+                var approvedPeopleQry = approvedPeople.GetQuery( new DataViewGetQueryArgs { DatabaseTimeoutSeconds = 30 } );
                 return approvedPeopleQry.Select( e => e.Id ).ToList();
             }
         }
@@ -444,7 +443,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
 
             var volunteerGroupIds = OccurrenceCache.GetVolunteerOccurrences().Select( o => o.GroupId ).ToList();
-            var childGroupIds = OccurrenceCache.GetChildOccurrences().Select( o => o.GroupId ).ToList();
+            var childGroupIds = OccurrenceCache.GetChildrenOccurrences().Select( o => o.GroupId ).ToList();
 
 
             foreach ( var groupType in checkinPerson.GroupTypes )
@@ -1407,8 +1406,7 @@ try{{
                             mdPIN.Hide();
                             return;
                         }
-                        var errorMessages = new List<string>();
-                        var securityMembersQry = securityMembers.GetQuery( null, 30, out errorMessages );
+                        var securityMembersQry = securityMembers.GetQuery( new DataViewGetQueryArgs { DatabaseTimeoutSeconds = 30 } );
                         if ( securityMembersQry.Where( p => p.Id == person.Id ).Any() )
                         {
                             maWarning.Show( "Unable to add PIN to person. This person is in a security role and cannot have a PIN added from this tool.", ModalAlertType.Warning );

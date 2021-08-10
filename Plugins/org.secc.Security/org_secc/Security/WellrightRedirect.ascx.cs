@@ -16,13 +16,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Xml;
+using org.secc.Security.SAML2;
 using Rock;
 using Rock.Attribute;
-using System.Text;
-using System.Security.Cryptography.X509Certificates;
-using System.Xml;
-using System.IO;
-using org.secc.Security.SAML2;
 using Rock.Data;
 using Rock.Model;
 

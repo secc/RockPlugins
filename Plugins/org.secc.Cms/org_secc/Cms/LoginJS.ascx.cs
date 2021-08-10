@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -31,16 +31,11 @@
 using System;
 using System.ComponentModel;
 using Rock.Model;
-using Rock.Security;
-using System.Web.UI;
-using Rock.Web.Cache;
-using Rock.Web.UI;
-using System.Web;
 
 namespace RockWeb.Plugins.org_secc.CMS
 {
     [DisplayName( "Login JavaScript" )]
-    [Category("SECC > CMS")]
+    [Category( "SECC > CMS" )]
     [Description( "Builds the login/user menu." )]
     public partial class LoginJS : Rock.Web.UI.RockBlock
     {
@@ -51,15 +46,15 @@ namespace RockWeb.Plugins.org_secc.CMS
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
         /// </summary>
         /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
-        protected override void OnLoad(EventArgs e)
+        protected override void OnLoad( EventArgs e )
         {
-            if(CurrentUser != null)
+            if ( CurrentUser != null )
             {
                 phLoginJS.Visible = true;
             }
         }
 
         #endregion
-        
+
     }
 }

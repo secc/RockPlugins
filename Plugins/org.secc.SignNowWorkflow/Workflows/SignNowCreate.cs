@@ -16,19 +16,15 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.IO;
+using System.Web;
+using Newtonsoft.Json.Linq;
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Workflow;
-using System.IO;
 using Rock.SignNow;
-using Newtonsoft.Json.Linq;
-using Rock.Attribute;
-using Rock.Web.Cache;
-using System.Net.Http;
-using System.Net;
-using System.Web;
-using System.Text.RegularExpressions;
+using Rock.Workflow;
 
 namespace org.secc.SignNowWorkflow
 {
@@ -54,14 +50,14 @@ namespace org.secc.SignNowWorkflow
                 return false;
             }
 
-            Guid documentGuid = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "Document" ).AsGuid() ).AsGuid();
+            Guid documentGuid = action.GetWorkflowAttributeValue( GetActionAttributeValue( action, "Document" ).AsGuid() ).AsGuid();
             BinaryFileService binaryfileService = new BinaryFileService( rockContext );
 
             BinaryFile renderedPDF = binaryfileService.Get( documentGuid );
 
             // Save the file to a temporary place
-            string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            Directory.CreateDirectory(tempDirectory);
+            string tempDirectory = Path.Combine( Path.GetTempPath(), Path.GetRandomFileName() );
+            Directory.CreateDirectory( tempDirectory );
             string tempFile = tempDirectory + Path.DirectorySeparatorChar + renderedPDF.FileName;
 
             // Open a FileStream to write to the file:
@@ -86,7 +82,7 @@ namespace org.secc.SignNowWorkflow
                 return false;
             }
             // Clean up the temporary directory
-            Directory.Delete(tempDirectory, true);
+            Directory.Delete( tempDirectory, true );
 
             SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid(), documentId );
 
@@ -120,11 +116,11 @@ namespace org.secc.SignNowWorkflow
                 documentId,
                 userAccessToken );
             var mergeFields = GetMergeFields( action );
-            var redirectUri = GetAttributeValue( action, "RedirectUri" ).ResolveMergeFields(mergeFields);
+            var redirectUri = GetAttributeValue( action, "RedirectUri" ).ResolveMergeFields( mergeFields );
 
             if ( !string.IsNullOrWhiteSpace( redirectUri ) )
             {
-                redirectUri += string.Format("{0}document_id={1}", redirectUri.Contains("?") ? "&" : "?", documentId);
+                redirectUri += string.Format( "{0}document_id={1}", redirectUri.Contains( "?" ) ? "&" : "?", documentId );
                 signNowInviteLink += "&redirect_uri=" + HttpUtility.UrlEncode( redirectUri );
             }
 

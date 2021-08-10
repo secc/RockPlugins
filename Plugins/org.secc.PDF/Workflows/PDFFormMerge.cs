@@ -16,14 +16,14 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.IO;
+using iTextSharp.text.pdf;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Workflow;
-using System.IO;
-using iTextSharp.text.pdf;
 using Rock.Web.Cache;
+using Rock.Workflow;
 
 namespace org.secc.PDF
 {
@@ -111,7 +111,7 @@ namespace org.secc.PDF
 
                 //Generate New Object
 
-                
+
                 renderedPDF.CopyPropertiesFrom( pdf );
                 renderedPDF.Guid = Guid.NewGuid();
                 renderedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( Rock.SystemGuid.BinaryFiletype.DEFAULT ) ).Id;

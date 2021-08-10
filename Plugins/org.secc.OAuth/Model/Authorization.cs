@@ -14,12 +14,10 @@
 //
 namespace org.secc.OAuth.Model
 {
-    using Rock.Model;
-    using System;
-    using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Runtime.Serialization;
-    [Table("_org_secc_OAuth_Authorization")]
+    using Rock.Model;
+    [Table( "_org_secc_OAuth_Authorization" )]
     public partial class Authorization : Rock.Data.Model<Authorization>, Rock.Security.ISecured
     {
         [DataMember]

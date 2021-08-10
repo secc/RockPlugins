@@ -14,7 +14,11 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Security.Claims;
+using System.Web;
 using System.Web.UI;
+using Microsoft.AspNet.Identity;
+using Microsoft.Owin.Security;
 using Rock;
 using Rock.Attribute;
 using Rock.Communication;
@@ -22,10 +26,6 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web.UI.Controls;
-using System.Web;
-using System.Security.Claims;
-using Microsoft.Owin.Security;
-using Microsoft.AspNet.Identity;
 
 namespace RockWeb.Plugins.org_secc.OAuth
 {
@@ -46,7 +46,7 @@ Thank-you for logging in, however, we need to confirm the email associated with 
     [CodeEditorField( "Locked Out Caption", "The text (HTML) to display when a user's account has been locked.", CodeEditorMode.Html, CodeEditorTheme.Rock, 100, false, @"
 Sorry, your account has been locked.  Please contact our office at {{ 'Global' | Attribute:'OrganizationPhone' }} or email {{ 'Global' | Attribute:'OrganizationEmail' }} to resolve this.  Thank-you. 
 ", "", 5 )]
-    [BooleanField("Hide New Account Option", "Should 'New Account' option be hidden?  For site's that require user to be in a role (Internal Rock Site for example), users shouldn't be able to create their own account.", false, "", 6, "HideNewAccount" )]
+    [BooleanField( "Hide New Account Option", "Should 'New Account' option be hidden?  For site's that require user to be in a role (Internal Rock Site for example), users shouldn't be able to create their own account.", false, "", 6, "HideNewAccount" )]
     [TextField( "New Account Text", "The text to show on the New Account button.", false, "Register", "", 7, "NewAccountButtonText" )]
     [CodeEditorField( "Prompt Message", "Optional text (HTML) to display above username and password fields.", CodeEditorMode.Html, CodeEditorTheme.Rock, 100, false, @"", "", 9 )]
     public partial class Login : Rock.Web.UI.RockBlock
@@ -63,7 +63,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
 
             btnNewAccount.Visible = !GetAttributeValue( "HideNewAccount" ).AsBoolean();
             btnNewAccount.Text = this.GetAttributeValue( "NewAccountButtonText" ) ?? "Register";
-            
+
         }
 
         /// <summary>
@@ -74,13 +74,13 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
         {
             base.OnLoad( e );
 
-            if (CurrentUser != null)
+            if ( CurrentUser != null )
             {
-                CreateOAuthIdentity(CurrentUser);
+                CreateOAuthIdentity( CurrentUser );
 
-                if (!string.IsNullOrEmpty(PageParameter("ReturnUrl")) && IsLocalUrl(PageParameter("ReturnUrl")))
+                if ( !string.IsNullOrEmpty( PageParameter( "ReturnUrl" ) ) && IsLocalUrl( PageParameter( "ReturnUrl" ) ) )
                 {
-                    Response.Redirect(PageParameter("ReturnUrl"));
+                    Response.Redirect( PageParameter( "ReturnUrl" ) );
                 }
                 else
                 {
@@ -89,7 +89,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
             }
             var authentication = HttpContext.Current.GetOwinContext().Authentication;
 
-            
+
 
             if ( !Page.IsPostBack )
             {
@@ -116,50 +116,51 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
             if ( Page.IsValid )
             {
                 var rockContext = new RockContext();
-                var userLoginService = new UserLoginService(rockContext);
+                var userLoginService = new UserLoginService( rockContext );
                 var userLogin = userLoginService.GetByUserName( tbUserName.Text );
-                if ( userLogin != null && userLogin.EntityType != null)
+                if ( userLogin != null && userLogin.EntityType != null )
                 {
-                    var component = AuthenticationContainer.GetComponent(userLogin.EntityType.Name);
-                    if (component != null && component.IsActive && !component.RequiresRemoteAuthentication)
+                    var component = AuthenticationContainer.GetComponent( userLogin.EntityType.Name );
+                    if ( component != null && component.IsActive && !component.RequiresRemoteAuthentication )
                     {
                         if ( component.Authenticate( userLogin, tbPassword.Text ) )
                         {
-                            if ((userLogin.IsConfirmed ?? true) && !(userLogin.IsLockedOut ?? false))
+                            if ( ( userLogin.IsConfirmed ?? true ) && !( userLogin.IsLockedOut ?? false ) )
                             {
 
                                 var authentication = HttpContext.Current.GetOwinContext().Authentication;
 
-                                UserLoginService.UpdateLastLogin(tbUserName.Text);
+                                UserLoginService.UpdateLastLogin( tbUserName.Text );
 
-                                Rock.Security.Authorization.SetAuthCookie(tbUserName.Text, cbRememberMe.Checked, false);
+                                Rock.Security.Authorization.SetAuthCookie( tbUserName.Text, cbRememberMe.Checked, false );
 
-                                CreateOAuthIdentity(userLogin);
+                                CreateOAuthIdentity( userLogin );
 
-                                if (!string.IsNullOrEmpty(PageParameter("ReturnUrl")) && IsLocalUrl(PageParameter("ReturnUrl")))
+                                if ( !string.IsNullOrEmpty( PageParameter( "ReturnUrl" ) ) && IsLocalUrl( PageParameter( "ReturnUrl" ) ) )
                                 {
-                                    Response.Redirect(PageParameter("ReturnUrl"));
-                                } else
+                                    Response.Redirect( PageParameter( "ReturnUrl" ) );
+                                }
+                                else
                                 {
-                                    
+
                                 }
                             }
                             else
                             {
-                                var globalMergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields(null);
+                                var globalMergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
 
-                                if (userLogin.IsLockedOut ?? false)
+                                if ( userLogin.IsLockedOut ?? false )
                                 {
-                                    lLockedOutCaption.Text = GetAttributeValue("LockedOutCaption").ResolveMergeFields(globalMergeFields);
+                                    lLockedOutCaption.Text = GetAttributeValue( "LockedOutCaption" ).ResolveMergeFields( globalMergeFields );
 
                                     pnlLogin.Visible = false;
                                     pnlLockedOut.Visible = true;
                                 }
                                 else
                                 {
-                                    SendConfirmation(userLogin);
+                                    SendConfirmation( userLogin );
 
-                                    lConfirmCaption.Text = GetAttributeValue("ConfirmCaption").ResolveMergeFields(globalMergeFields);
+                                    lConfirmCaption.Text = GetAttributeValue( "ConfirmCaption" ).ResolveMergeFields( globalMergeFields );
 
                                     pnlLogin.Visible = false;
                                     pnlConfirmation.Visible = true;
@@ -174,18 +175,18 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
 
             string helpUrl = string.Empty;
 
-            if (!string.IsNullOrWhiteSpace(GetAttributeValue("HelpPage")))
+            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "HelpPage" ) ) )
             {
-                helpUrl = LinkedPageUrl("HelpPage");
+                helpUrl = LinkedPageUrl( "HelpPage" );
             }
             else
             {
-                helpUrl = ResolveRockUrl("~/ForgotUserName");
+                helpUrl = ResolveRockUrl( "~/ForgotUserName" );
             }
-                
-            DisplayError( string.Format("Sorry, we couldn't find an account matching that username/password. Can we help you <a href='{0}'>recover your account information</a>?", helpUrl) );
+
+            DisplayError( string.Format( "Sorry, we couldn't find an account matching that username/password. Can we help you <a href='{0}'>recover your account information</a>?", helpUrl ) );
         }
-        
+
         /// <summary>
         /// Handles the Click event of the btnLogin control.
         /// </summary>
@@ -193,15 +194,15 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
         /// <param name="e">The <see cref="System.EventArgs"/> instance containing the event data.</param>
         protected void btnNewAccount_Click( object sender, EventArgs e )
         {
-            string returnUrl = Server.UrlEncode(Request.QueryString["returnurl"]);
+            string returnUrl = Server.UrlEncode( Request.QueryString["returnurl"] );
 
             if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "NewAccountPage" ) ) )
             {
                 var parms = new Dictionary<string, string>();
-                
+
                 if ( !string.IsNullOrWhiteSpace( returnUrl ) )
                 {
-                    parms.Add( "returnurl", returnUrl);
+                    parms.Add( "returnurl", returnUrl );
                 }
 
                 NavigateToLinkedPage( "NewAccountPage", parms );
@@ -213,7 +214,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
                 if ( !string.IsNullOrWhiteSpace( returnUrl ) )
                 {
                     url += "?returnurl=" + returnUrl;
-                } 
+                }
 
                 Response.Redirect( url, false );
                 Context.ApplicationInstance.CompleteRequest();
@@ -252,7 +253,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
             pnlMessage.Controls.Add( new LiteralControl( message ) );
             pnlMessage.Visible = true;
         }
-        
+
 
         /// <summary>
         /// Sends the confirmation.
@@ -266,7 +267,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
                 url = ResolveRockUrl( "~/ConfirmAccount" );
             }
 
-            var mergeObjects = Rock.Lava.LavaHelper.GetCommonMergeFields(null, CurrentPerson );
+            var mergeObjects = Rock.Lava.LavaHelper.GetCommonMergeFields( null, CurrentPerson );
             mergeObjects.Add( "ConfirmAccountUrl", RootPath + url.TrimStart( new char[] { '/' } ) );
 
             var personDictionary = userLogin.Person.ToLiquid() as Dictionary<string, object>;
@@ -274,7 +275,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
             mergeObjects.Add( "User", userLogin );
 
             var recipients = new List<RockMessageRecipient>();
-            recipients.Add( new RockEmailMessageRecipient( userLogin.Person, mergeObjects ));
+            recipients.Add( new RockEmailMessageRecipient( userLogin.Person, mergeObjects ) );
 
             var emailMessage = new RockEmailMessage( GetAttributeValue( "ConfirmAccountTemplate" ).AsGuid() );
             emailMessage.SetRecipients( recipients );
@@ -282,7 +283,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
             emailMessage.Send();
         }
 
-        private void CreateOAuthIdentity(UserLogin userLogin)
+        private void CreateOAuthIdentity( UserLogin userLogin )
         {
 
 
@@ -301,29 +302,29 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
 
                                 };
 
-            authentication.SignIn(new AuthenticationProperties { IsPersistent = cbRememberMe.Checked },
-                new ClaimsIdentity(claims.ToArray(), DefaultAuthenticationTypes.ApplicationCookie ) );
+            authentication.SignIn( new AuthenticationProperties { IsPersistent = cbRememberMe.Checked },
+                new ClaimsIdentity( claims.ToArray(), DefaultAuthenticationTypes.ApplicationCookie ) );
 
 
         }
-        private bool IsLocalUrl(string url)
+        private bool IsLocalUrl( string url )
         {
-            if (string.IsNullOrEmpty(url))
+            if ( string.IsNullOrEmpty( url ) )
             {
                 return false;
             }
 
             Uri absoluteUri;
-            if (Uri.TryCreate(url, UriKind.Absolute, out absoluteUri))
+            if ( Uri.TryCreate( url, UriKind.Absolute, out absoluteUri ) )
             {
-                return String.Equals(this.Request.Url.Host, absoluteUri.Host,
-                            StringComparison.OrdinalIgnoreCase);
+                return String.Equals( this.Request.Url.Host, absoluteUri.Host,
+                            StringComparison.OrdinalIgnoreCase );
             }
             else
             {
-                bool isLocal = !url.StartsWith("http:", StringComparison.OrdinalIgnoreCase)
-                    && !url.StartsWith("https:", StringComparison.OrdinalIgnoreCase)
-                    && Uri.IsWellFormedUriString(url, UriKind.Relative);
+                bool isLocal = !url.StartsWith( "http:", StringComparison.OrdinalIgnoreCase )
+                    && !url.StartsWith( "https:", StringComparison.OrdinalIgnoreCase )
+                    && Uri.IsWellFormedUriString( url, UriKind.Relative );
                 return isLocal;
             }
         }

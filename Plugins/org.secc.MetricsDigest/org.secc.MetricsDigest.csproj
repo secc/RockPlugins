@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{40881F39-F828-47C8-9789-A619EA2CC344}</ProjectGuid>
+    <ProjectGuid>{FF4F86EA-07EC-4271-B00D-BCB29FF42752}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>org.secc.MetricsDigest</RootNamespace>

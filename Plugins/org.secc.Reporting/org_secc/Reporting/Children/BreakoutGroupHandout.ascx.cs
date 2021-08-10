@@ -62,7 +62,7 @@ namespace RockWeb.Blocks.Reporting.Children
                 return;
             }
             var groups = parentGroup.Groups
-                .Where(g => g.IsActive && !g.IsArchived).OrderBy( g => g.Name );
+                .Where( g => g.IsActive && !g.IsArchived ).OrderBy( g => g.Name );
 
             //Group checkbox
             cblGroups.Items.Clear();

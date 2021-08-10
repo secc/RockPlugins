@@ -16,15 +16,13 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-
+using System.Data.Entity;
+using System.Linq;
+using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Attribute;
-using Rock.Web.Cache;
 using Rock.Workflow;
-using Rock;
-using System.Linq;
-using System.Data.Entity;
 
 namespace org.secc.Workflow.Registrations
 {
@@ -36,7 +34,7 @@ namespace org.secc.Workflow.Registrations
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Apply Discount Code to RegistrationState" )]
 
-    [WorkflowTextOrAttribute( "Discount Code", "Discount Code", "The discount code. <span class='tip tip-lava'></span>", true, key:"DiscountCode" )]
+    [WorkflowTextOrAttribute( "Discount Code", "Discount Code", "The discount code. <span class='tip tip-lava'></span>", true, key: "DiscountCode" )]
     public class AutoApplyDiscountCode : ActionComponent
     {
         /// <summary>
@@ -51,9 +49,9 @@ namespace org.secc.Workflow.Registrations
         {
             errorMessages = new List<string>();
 
-            if ( entity is Dictionary<string,object> entityDictionary )
+            if ( entity is Dictionary<string, object> entityDictionary )
             {
-                RegistrationInstance registrationInstanceState = ( RegistrationInstance) entityDictionary["RegistrationInstance"];
+                RegistrationInstance registrationInstanceState = ( RegistrationInstance ) entityDictionary["RegistrationInstance"];
                 RegistrationInfo registrationState = ( RegistrationInfo ) entityDictionary["RegistrationInfo"];
 
                 if ( registrationState != null )
@@ -76,13 +74,13 @@ namespace org.secc.Workflow.Registrations
                         if ( discount == null )
                         {
                             validDiscount = false;
-                            errorMessages.Add(string.Format( "'{0}' is not a valid discount code.", discountCode ));
+                            errorMessages.Add( string.Format( "'{0}' is not a valid discount code.", discountCode ) );
                         }
 
                         if ( validDiscount && discount.MinRegistrants.HasValue && registrationState.RegistrantCount < discount.MinRegistrants.Value )
                         {
                             validDiscount = false;
-                            errorMessages.Add( string.Format( "The '{0}' discount code requires at least {1} registrants.", discountCode,  discount.MinRegistrants.Value ));
+                            errorMessages.Add( string.Format( "The '{0}' discount code requires at least {1} registrants.", discountCode, discount.MinRegistrants.Value ) );
                         }
 
                         if ( validDiscount && discount.StartDate.HasValue && RockDateTime.Today < discount.StartDate.Value )
@@ -109,7 +107,7 @@ namespace org.secc.Workflow.Registrations
                             if ( instances >= discount.MaxUsage.Value )
                             {
                                 validDiscount = false;
-                                errorMessages.Add( string.Format( "The '{0}' discount code is no longer available.", discountCode ));
+                                errorMessages.Add( string.Format( "The '{0}' discount code is no longer available.", discountCode ) );
                             }
                         }
 
@@ -130,7 +128,7 @@ namespace org.secc.Workflow.Registrations
                     registrationState.DiscountPercentage = validDiscount ? discount.DiscountPercentage : 0.0m;
                     registrationState.DiscountAmount = validDiscount ? discount.DiscountAmount : 0.0m;
 
-                    
+
 
 
                 }

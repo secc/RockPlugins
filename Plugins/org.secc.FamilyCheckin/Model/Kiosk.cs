@@ -57,7 +57,7 @@ namespace org.secc.FamilyCheckin.Model
         public PrintTo PrintToOverride { get; set; }
 
         [DataMember]
-        [MaxLength(64)]
+        [MaxLength( 64 )]
         public string AccessKey { get; set; }
 
         [DataMember]

@@ -1,24 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Web.UI;
 
 using Rock;
-using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
-using Rock.Web.Cache;
-using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using org.secc.Trak1.BackgroundCheck;
-using System.Reflection;
-using org.secc.Trak1.Helpers;
-using System.Net.Http;
-using Newtonsoft.Json;
 
 namespace RockWeb.Plugins.org_secc.Trak1
 {

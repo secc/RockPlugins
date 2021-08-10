@@ -15,12 +15,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
 using org.secc.Purchasing.DataLayer;
 using org.secc.Purchasing.Intacct;
-using org.secc.Purchasing.Intacct.Model;
 using Rock;
 using Rock.Communication;
 using Rock.Model;
@@ -76,8 +74,8 @@ namespace org.secc.Purchasing
         public string ProjectId { get; set; }
         public DateTime GLFiscalYearStartDate { get; set; }
         public string CreatedByUserId { get; set; }
-        public string ModifiedByUserId {get; set; }
-        public DateTime DateCreated {  get; set; }
+        public string ModifiedByUserId { get; set; }
+        public DateTime DateCreated { get; set; }
         public DateTime DateModified { get; set; }
         public bool Active { get; set; }
         public int OrganizationId { get; set; }
@@ -119,9 +117,9 @@ namespace org.secc.Purchasing
             {
                 if ( ( mRequester == null && RequesterId > 0 ) || ( mRequester != null && mRequester.Id != RequesterId ) )
                 {
-                    mRequester = personAliasService.Get(RequesterId).Person;
+                    mRequester = personAliasService.Get( RequesterId ).Person;
 
-                    if (mRequester.Id > 0 && mRequester.Id != RequesterId)
+                    if ( mRequester.Id > 0 && mRequester.Id != RequesterId )
                     {
                         RequesterId = mRequester.Id;
                     }
@@ -150,9 +148,9 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if((mLocation == null && LocationLUID > 0) || (mLocation != null && mLocation.Id != LocationLUID))
+                if ( ( mLocation == null && LocationLUID > 0 ) || ( mLocation != null && mLocation.Id != LocationLUID ) )
                 {
-                    mLocation = DefinedValueCache.Get(LocationLUID);
+                    mLocation = DefinedValueCache.Get( LocationLUID );
                 }
 
                 return mLocation;
@@ -168,7 +166,7 @@ namespace org.secc.Purchasing
                 if ( mCreatedByPerson == null && !String.IsNullOrWhiteSpace( CreatedByUserId ) )
                 {
                     var userLogin = userLoginService.GetByUserName( CreatedByUserId );
-                    if ( userLogin != null)
+                    if ( userLogin != null )
                         mCreatedByPerson = userLogin.Person;
                 }
 
@@ -183,7 +181,7 @@ namespace org.secc.Purchasing
             {
                 if ( mModifiedByPerson == null && !String.IsNullOrWhiteSpace( ModifiedByUserId ) )
                 {
-                    mModifiedByPerson = userLoginService.GetByUserName(ModifiedByUserId).Person;
+                    mModifiedByPerson = userLoginService.GetByUserName( ModifiedByUserId ).Person;
                 }
 
                 return mModifiedByPerson;
@@ -260,7 +258,7 @@ namespace org.secc.Purchasing
             }
         }
 
-      
+
         #endregion
 
         #region Constructors
@@ -285,7 +283,7 @@ namespace org.secc.Purchasing
 
         public int AddApprovalRequest( int approverId, string userID, int? approvalType = null )
         {
-            if ( approvalType  == null )
+            if ( approvalType == null )
             {
                 approvalType = Approval.MinistryApprovalTypeLUID();
             }
@@ -326,7 +324,7 @@ namespace org.secc.Purchasing
             {
                 req.LocationLUID = LocationLUID;
             }
-            
+
             req.Save( userId );
             RefreshRequisitions();
 
@@ -500,7 +498,8 @@ namespace org.secc.Purchasing
                                                                 ApprovalStatusLUID = a.approval.approval_status_luid,
                                                                 DateApprovedString = a.approval.date_approved.ToString()
                                                             } )
-                                } ); ;
+                                } );
+                ;
 
                 if ( filter.ContainsKey( "StatusLUID" ) )
                 {
@@ -565,7 +564,7 @@ namespace org.secc.Purchasing
                 }
 
 
-                if(filter.ContainsKey("Show_All"))
+                if ( filter.ContainsKey( "Show_All" ) )
                 {
                     bool showAll = false;
 
@@ -584,7 +583,7 @@ namespace org.secc.Purchasing
                         PersonAliasService aliasService = new PersonAliasService( new Rock.Data.RockContext() );
                         var aliasIds = aliasService.Queryable().Where( a => a.PersonId == currentPersonId ).Select( a => a.Id ).ToList();
 
-                        listItems.AddRange( query.Where( q => aliasIds.Contains(q.RequesterId)).ToList() );
+                        listItems.AddRange( query.Where( q => aliasIds.Contains( q.RequesterId ) ).ToList() );
 
                         listItems.AddRange( query.Where( q => q.CreatedByUserId == currentUserId )
                                                 .Where( q => !listItems.Select( l => l.CapitalRequestId ).Contains( q.CapitalRequestId ) )
@@ -609,7 +608,7 @@ namespace org.secc.Purchasing
                     bool showLocation = false;
                     if ( bool.TryParse( filter["Show_Location"], out showLocation ) && showLocation )
                     {
-                        listItems.AddRange( query.Where( q => q.LocationLUID == currentLocationId)
+                        listItems.AddRange( query.Where( q => q.LocationLUID == currentLocationId )
                                                 .Where( q => !listItems.Select( l => l.CapitalRequestId ).Contains( q.CapitalRequestId ) )
                                                 .ToList() );
                     }
@@ -624,7 +623,7 @@ namespace org.secc.Purchasing
 
                         PersonAliasService aliasService = new PersonAliasService( new Rock.Data.RockContext() );
                         var aliasIds = aliasService.Queryable().Where( a => a.PersonId == currentPersonId ).Select( a => a.Id ).ToList();
-                        listItems.AddRange( query.Where( q => q.ApprovalItems.Where(a => a.ApprovalStatusLUID != Approval.NotSubmittedStatusLUID() && a.ApproverId != null && aliasIds.Contains( a.ApproverId.Value ) ).Any() )
+                        listItems.AddRange( query.Where( q => q.ApprovalItems.Where( a => a.ApprovalStatusLUID != Approval.NotSubmittedStatusLUID() && a.ApproverId != null && aliasIds.Contains( a.ApproverId.Value ) ).Any() )
                                                 .Where( q => !listItems.Select( l => l.CapitalRequestId ).Contains( q.CapitalRequestId ) )
                                                 .ToList() );
 
@@ -634,7 +633,7 @@ namespace org.secc.Purchasing
                                                                 .Count() > 0 )
                                               .Where( q => !listItems.Select( l => l.CapitalRequestId ).Contains( q.CapitalRequestId ) )
                                               .ToList() );
-                                                                               
+
                         }
                     }
                 }
@@ -737,30 +736,30 @@ namespace org.secc.Purchasing
 
             approvalRequest.ApproverID = 0;
 
-            approvalRequest.Save(userId);
+            approvalRequest.Save( userId );
             RefreshApprovalRequests();
 
-            if (!templateId.HasValue)
+            if ( !templateId.HasValue )
             {
                 return;
             }
             SystemCommunicationService systemCommunicationService = new SystemCommunicationService( new Rock.Data.RockContext() );
 
-            Rock.Model.SystemCommunication template = systemCommunicationService.Get(templateId.Value);
-            Dictionary<string, object> Fields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, CurrentPerson);
-            Fields.Add("RequestTitle", ProjectName);
-            Fields.Add("RequestDescription", ProjectDescription);
-            Fields.Add("RequestingMinistry", Ministry.Value);
-            Fields.Add("ProjectCost", string.Format("{0:c}", PurchaseCost));
-            Fields.Add("CERLink", cerLink);
+            Rock.Model.SystemCommunication template = systemCommunicationService.Get( templateId.Value );
+            Dictionary<string, object> Fields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, CurrentPerson );
+            Fields.Add( "RequestTitle", ProjectName );
+            Fields.Add( "RequestDescription", ProjectDescription );
+            Fields.Add( "RequestingMinistry", Ministry.Value );
+            Fields.Add( "ProjectCost", string.Format( "{0:c}", PurchaseCost ) );
+            Fields.Add( "CERLink", cerLink );
 
-            template.Body = template.Body.ResolveMergeFields(Fields);
+            template.Body = template.Body.ResolveMergeFields( Fields );
 
             List<Person> approvers = new List<Person>();
 
-            GroupService groupService = new GroupService(new Rock.Data.RockContext());
+            GroupService groupService = new GroupService( new Rock.Data.RockContext() );
 
-            foreach ( GroupMember gm in groupService.Get(approverProfile).Members )
+            foreach ( GroupMember gm in groupService.Get( approverProfile ).Members )
             {
                 if ( gm.GroupMemberStatus == GroupMemberStatus.Active )
                 {
@@ -768,17 +767,17 @@ namespace org.secc.Purchasing
                 }
             }
 
-            SendCommunication(template, null, approvers);
+            SendCommunication( template, null, approvers );
 
         }
 
-        public void RequestApproval(Guid? templateId, string userId, string cerLink)
+        public void RequestApproval( Guid? templateId, string userId, string cerLink )
         {
             var requests = ApprovalRequests.Where( a => a.Active )
                             .Where( a => a.ApprovalTypeLUID != Approval.FinanceApprovalTypeLUID() )
                             .Where( a => a.ApprovalStatusLUID == Approval.NotSubmittedStatusLUID() || a.ApprovalStatusLUID == Approval.NotApprovedStatusLUID() )
                             .OrderBy( a => a.ApprovalID );
-            foreach(var currentRequest in requests )
+            foreach ( var currentRequest in requests )
             {
                 if ( currentRequest == null )
                 {
@@ -789,12 +788,12 @@ namespace org.secc.Purchasing
                 currentRequest.Save( userId );
                 RefreshApprovalRequests();
 
-                if (!templateId.HasValue)
+                if ( !templateId.HasValue )
                 {
                     return;
                 }
                 SystemCommunicationService SystemCommunicationService = new SystemCommunicationService( new Rock.Data.RockContext() );
-                SystemCommunication template = SystemCommunicationService.Get(templateId.Value);
+                SystemCommunication template = SystemCommunicationService.Get( templateId.Value );
 
                 Dictionary<string, object> Fields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, CurrentPerson );
                 Fields["ApproverName"] = currentRequest.Approver.NickName;
@@ -802,7 +801,7 @@ namespace org.secc.Purchasing
                 Fields["ProjectTitle"] = ProjectName;
                 Fields["CERLink"] = cerLink;
 
-                template.Body = template.Body.ResolveMergeFields(Fields);
+                template.Body = template.Body.ResolveMergeFields( Fields );
 
                 List<Person> approver = new List<Person>() { currentRequest.Approver };
 
@@ -993,7 +992,7 @@ namespace org.secc.Purchasing
         public void SendApprovedNotification( Guid? templateId, string cerLink )
         {
 
-            if (!templateId.HasValue)
+            if ( !templateId.HasValue )
             {
                 return;
             }
@@ -1001,11 +1000,11 @@ namespace org.secc.Purchasing
             SystemCommunication template = SystemCommunicationService.Get( templateId.Value );
 
             Dictionary<string, object> Fields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, CurrentPerson );
-            Fields.Add("RequesterName", Requester.NickName);
-            Fields.Add("ProjectTitle", ProjectName);
-            Fields.Add("CERLink", cerLink);
+            Fields.Add( "RequesterName", Requester.NickName );
+            Fields.Add( "ProjectTitle", ProjectName );
+            Fields.Add( "CERLink", cerLink );
 
-            template.Body = template.Body.ResolveMergeFields(Fields);
+            template.Body = template.Body.ResolveMergeFields( Fields );
 
             SendCommunication( template, null, new List<Person>() { Requester } );
         }
@@ -1024,16 +1023,16 @@ namespace org.secc.Purchasing
 
 
             Dictionary<string, object> Fields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, CurrentPerson );
-            Fields.Add("RequesterName", Requester.NickName);
-            Fields.Add("ApproverName", approvalReq.Approver.FullName);
-            Fields.Add("ProjectName", ProjectName);
-            Fields.Add("ApprovalType", approvalReq.ApprovalType.Value);
-            var note = approvalReq.Notes.OrderByDescending(n => n.NoteID).FirstOrDefault();
+            Fields.Add( "RequesterName", Requester.NickName );
+            Fields.Add( "ApproverName", approvalReq.Approver.FullName );
+            Fields.Add( "ProjectName", ProjectName );
+            Fields.Add( "ApprovalType", approvalReq.ApprovalType.Value );
+            var note = approvalReq.Notes.OrderByDescending( n => n.NoteID ).FirstOrDefault();
 
-            Fields.Add("ReturnReason", note.Body);
-            Fields.Add("CERLink", cerLink);
+            Fields.Add( "ReturnReason", note.Body );
+            Fields.Add( "CERLink", cerLink );
 
-            template.Body = template.Body.ResolveMergeFields(Fields);
+            template.Body = template.Body.ResolveMergeFields( Fields );
 
 
             SendCommunication( template, null, new List<Person>() { Requester } );
@@ -1106,7 +1105,7 @@ namespace org.secc.Purchasing
 
                 if ( data.requested_on != null )
                 {
-                    RequestedOn = (DateTime)data.requested_on;
+                    RequestedOn = ( DateTime ) data.requested_on;
                 }
 
                 StatusLUID = data.status_luid;
@@ -1115,24 +1114,24 @@ namespace org.secc.Purchasing
 
                 if ( data.location_luid != null )
                 {
-                    LocationLUID = (int)data.location_luid;
+                    LocationLUID = ( int ) data.location_luid;
                 }
 
                 if ( data.purchase_cost != null )
                 {
-                    PurchaseCost = (Decimal) data.purchase_cost;
+                    PurchaseCost = ( Decimal ) data.purchase_cost;
                 }
 
                 if ( data.install_train_cost != null )
                 {
-                    InstallationCost = (Decimal) data.install_train_cost;
+                    InstallationCost = ( Decimal ) data.install_train_cost;
                 }
 
                 if ( data.ongoing_maintenance_cost != null )
                 {
-                    OngoingMaintenanceCost = (Decimal) data.ongoing_maintenance_cost;
+                    OngoingMaintenanceCost = ( Decimal ) data.ongoing_maintenance_cost;
                 }
-                
+
                 ItemLocation = data.item_location;
 
                 if ( data.anticipated_inservice_date != null )
@@ -1148,7 +1147,7 @@ namespace org.secc.Purchasing
 
                 if ( data.gl_fiscal_year_start != null )
                 {
-                    GLFiscalYearStartDate = (DateTime)data.gl_fiscal_year_start;
+                    GLFiscalYearStartDate = ( DateTime ) data.gl_fiscal_year_start;
                 }
 
                 CreatedByUserId = data.created_by;
@@ -1166,7 +1165,7 @@ namespace org.secc.Purchasing
         {
             mApprovalRequests = new List<Approval>();
 
-            if(CapitalRequestId <= 0)
+            if ( CapitalRequestId <= 0 )
             {
                 return;
             }
@@ -1219,7 +1218,7 @@ namespace org.secc.Purchasing
                 mNotes.AddRange( Note.GetNotes( this.GetType().ToString(), CapitalRequestId, false ) );
             }
         }
-        
+
         private void LoadRequisitions()
         {
             mRequisitions = new List<Requisition>();
@@ -1262,7 +1261,7 @@ namespace org.secc.Purchasing
                 replyToEmail = template.From;
             }
 
-            var recipients = recepientList.Select(p => new RockEmailMessageRecipient(p, null)).ToList();
+            var recipients = recepientList.Select( p => new RockEmailMessageRecipient( p, null ) ).ToList();
 
             var emailMessage = new RockEmailMessage( template );
             emailMessage.SetRecipients( recipients );
@@ -1272,7 +1271,7 @@ namespace org.secc.Purchasing
             //Arena.Utility.ArenaSendMail.SendMail( fromEmail, fromName, recepients, template.ReplyEmail, "", "", template.Subject, template.HtmlMessage, template.TextMessage );
         }
 
-        private bool Validate(out Dictionary<string,string> valErrors)
+        private bool Validate( out Dictionary<string, string> valErrors )
         {
             valErrors = new Dictionary<string, string>();
 
@@ -1280,13 +1279,13 @@ namespace org.secc.Purchasing
             {
                 valErrors.Add( "Project Name", "Project Name is required." );
             }
-            
+
             if ( String.IsNullOrWhiteSpace( ProjectDescription ) )
             {
                 valErrors.Add( "Project Description", "Project Description is required." );
             }
-            
-            if(PurchaseCost <= 0)
+
+            if ( PurchaseCost <= 0 )
             {
                 valErrors.Add( "Purchase Cost", "Purchase Cost must be greater than 0.00." );
             }
@@ -1313,7 +1312,7 @@ namespace org.secc.Purchasing
             }
             else
             {
-                Person requester = personAliasService.Get(RequesterId).Person;
+                Person requester = personAliasService.Get( RequesterId ).Person;
                 if ( requester == null || requester.Id <= 0 )
                 {
                     valErrors.Add( "Requester", "Requester not found." );
@@ -1376,7 +1375,7 @@ namespace org.secc.Purchasing
                     }
 
                 }
-                
+
                 if ( account == null )
                 {
                     valErrors.Add( "General Ledger Account", "General ledger account is not valid." );
@@ -1386,7 +1385,7 @@ namespace org.secc.Purchasing
                 if ( account != null && account.RequireProject == "true" && string.IsNullOrWhiteSpace( ProjectId ) )
                 {
                     valErrors.Add( "Project", "Project required: The account code you entered requires a project to be entered." );
-                } 
+                }
                 else if ( !string.IsNullOrWhiteSpace( ProjectId ) )
                 {
                     var project = apiClient.GetProjects().Where( a => a.ProjectId == ProjectId ).FirstOrDefault();
@@ -1398,7 +1397,7 @@ namespace org.secc.Purchasing
 
             }
 
-            if (StatusLUID != DefinedValueCache.Get(new Guid(LOOKUP_STATUS_NEW_GUID)).Id && StatusLUID != DefinedValueCache.Get(new Guid(LOOKUP_STATUS_CANCELLED_GUID)).Id)
+            if ( StatusLUID != DefinedValueCache.Get( new Guid( LOOKUP_STATUS_NEW_GUID ) ).Id && StatusLUID != DefinedValueCache.Get( new Guid( LOOKUP_STATUS_CANCELLED_GUID ) ).Id )
             {
                 if ( GLCompanyId == null || GLFundId == null || GLDepartmentId == null || GLAccountId == null )
                 {
@@ -1406,7 +1405,7 @@ namespace org.secc.Purchasing
                 }
             }
 
-            
+
             return valErrors.Count == 0;
         }
 

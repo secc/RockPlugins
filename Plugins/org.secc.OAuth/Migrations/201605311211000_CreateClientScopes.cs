@@ -12,22 +12,21 @@
 // limitations under the License.
 // </copyright>
 //
-using Rock.Plugin;
-using Rock;
 using System.Text;
+using Rock.Plugin;
 
 namespace org.secc.OAuth.Migrations
 {
 
-    [MigrationNumber(4, "1.4.5")]
+    [MigrationNumber( 4, "1.4.5" )]
     class CreateClientScopes : Rock.Plugin.Migration
     {
         public override void Up()
         {
             StringBuilder sql = new StringBuilder();
-            sql.Append(@"DECLARE @ClientId INT;");
-            sql.Append(@"DECLARE @ScopeId INT;");
-            sql.Append(@"INSERT INTO [dbo].[_org_secc_OAuth_Client]
+            sql.Append( @"DECLARE @ClientId INT;" );
+            sql.Append( @"DECLARE @ScopeId INT;" );
+            sql.Append( @"INSERT INTO [dbo].[_org_secc_OAuth_Client]
                    ([ClientName]
                    ,[ApiKey]
                    ,[ApiSecret]
@@ -43,9 +42,9 @@ namespace org.secc.OAuth.Migrations
                    ,1
                    ,GETDATE()
                    ,NEWID());
-                ");
-            sql.Append(@"SET @ClientId = SCOPE_IDENTITY();");
-            sql.Append(@"INSERT INTO [dbo].[_org_secc_OAuth_Scope]
+                " );
+            sql.Append( @"SET @ClientId = SCOPE_IDENTITY();" );
+            sql.Append( @"INSERT INTO [dbo].[_org_secc_OAuth_Scope]
                     ([Identifier]
                     , [Description]
                     , [Active]
@@ -57,9 +56,9 @@ namespace org.secc.OAuth.Migrations
                     , 1
                     ,GETDATE()
                     ,NEWID());
-                ");
-            sql.Append(@"SET @ScopeId = SCOPE_IDENTITY();");
-            sql.Append(@"INSERT INTO [dbo].[_org_secc_OAuth_ClientScope]
+                " );
+            sql.Append( @"SET @ScopeId = SCOPE_IDENTITY();" );
+            sql.Append( @"INSERT INTO [dbo].[_org_secc_OAuth_ClientScope]
                            ([ClientId]
                            ,[ScopeId]
                            ,[Active]
@@ -70,9 +69,9 @@ namespace org.secc.OAuth.Migrations
                             ,@ScopeId
                             ,0
                             ,GETDATE()
-                            ,NEWID());");
+                            ,NEWID());" );
 
-            Sql(@"INSERT INTO [dbo].[_org_secc_OAuth_Scope]
+            Sql( @"INSERT INTO [dbo].[_org_secc_OAuth_Scope]
                     ([Identifier]
                     , [Description]
                     , [Active]
@@ -84,9 +83,9 @@ namespace org.secc.OAuth.Migrations
                     , 1
                     ,GETDATE()
                     ,NEWID());
-                ");
-            sql.Append(@"SET @ScopeId = SCOPE_IDENTITY();");
-            sql.Append(@"INSERT INTO [dbo].[_org_secc_OAuth_ClientScope]
+                " );
+            sql.Append( @"SET @ScopeId = SCOPE_IDENTITY();" );
+            sql.Append( @"INSERT INTO [dbo].[_org_secc_OAuth_ClientScope]
                            ([ClientId]
                            ,[ScopeId]
                            ,[Active]
@@ -97,22 +96,24 @@ namespace org.secc.OAuth.Migrations
                             ,@ScopeId
                             ,0
                             ,GETDATE()
-                            ,NEWID());");
+                            ,NEWID());" );
 
-            try { 
-                Sql(sql.ToString());
-            } catch (System.Exception e)
+            try
+            {
+                Sql( sql.ToString() );
+            }
+            catch ( System.Exception e )
             {
                 // Debug stuff
-                throw new System.Exception(e.Message + " - " + sql.ToString());
+                throw new System.Exception( e.Message + " - " + sql.ToString() );
             }
         }
         public override void Down()
         {
-            Sql("Truncate [dbo].[_org_secc_OAuth_Authorization];");
-            Sql("Truncate [dbo].[_org_secc_OAuth_ClientScope];");
-            Sql("Truncate [dbo].[_org_secc_OAuth_Scope];");
-            Sql("Truncate [dbo].[_org_secc_OAuth_Client];");
+            Sql( "Truncate [dbo].[_org_secc_OAuth_Authorization];" );
+            Sql( "Truncate [dbo].[_org_secc_OAuth_ClientScope];" );
+            Sql( "Truncate [dbo].[_org_secc_OAuth_Scope];" );
+            Sql( "Truncate [dbo].[_org_secc_OAuth_Client];" );
         }
 
     }

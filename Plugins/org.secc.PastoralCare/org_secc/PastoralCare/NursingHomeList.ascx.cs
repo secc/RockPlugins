@@ -39,7 +39,6 @@ using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using OfficeOpenXml;
-using OfficeOpenXml.Style; 
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -61,7 +60,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
     [DefinedTypeField( "Nursing Home List" )]
 
     [GroupField( "Volunteer Group", "Group to use for list of Volunteers on the Excel export. If omitted, volunteers will not be displayed.", false, "", "", 0 )]
-    [BooleanField( "Display Pastoral Minister", "Should the Pastoral Minister be dislayed on the report. Defaults to True",true,"",1)]
+    [BooleanField( "Display Pastoral Minister", "Should the Pastoral Minister be dislayed on the report. Defaults to True", true, "", 1 )]
     public partial class NursingHomeList : RockBlock
     {
         #region Control Methods
@@ -261,8 +260,8 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                         r.Style.Fill.BackgroundColor.SetColor( Color.FromArgb( 34, 41, 55 ) );
                     }
                     rowCounter++;
- 
-                    if ( displayMinister)
+
+                    if ( displayMinister )
                     {
                         worksheet.Cells[rowCounter, 1].Value = "Pastoral Minister: " + nursingHomeInfo.PastoralMinister;
                         using ( ExcelRange r = worksheet.Cells[rowCounter, 1, rowCounter, 15] )
@@ -276,7 +275,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                         }
                         rowCounter++;
                     }
-            
+
                     if ( nursingHomeInfo.Volunteers.IsNotNullOrWhiteSpace() )
                     {
                         worksheet.Cells[rowCounter, 1].Value = "Volunteers: " + nursingHomeInfo.Volunteers;
@@ -595,14 +594,14 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     {
                         if ( groupMember.GetAttributeValue( "NursingHomes" ).IsNotNullOrWhiteSpace() )
                         {
-                           
+
                             if ( groupMember.GetAttributeValue( "NursingHomes" ).ToLower().Contains( nursingHome.Guid.ToString().ToLower() ) )
                             {
                                 if ( volunteerList.ContainsKey( nursingHome.Guid ) )
                                 {
-                                    volunteerList[ nursingHome.Guid ] = volunteerList[ nursingHome.Guid ] + ", " + groupMember.EntityStringValue;
+                                    volunteerList[nursingHome.Guid] = volunteerList[nursingHome.Guid] + ", " + groupMember.EntityStringValue;
                                 }
-                            
+
                                 else
                                 {
                                     volunteerList.Add( nursingHome.Guid, groupMember.EntityStringValue );

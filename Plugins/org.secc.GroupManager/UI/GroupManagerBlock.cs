@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
-using org.secc.GroupManager.Exceptions;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;

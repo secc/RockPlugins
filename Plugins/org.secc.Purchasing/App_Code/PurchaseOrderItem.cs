@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
 using org.secc.Purchasing.DataLayer;
 using Rock.Model;
@@ -37,7 +36,7 @@ namespace org.secc.Purchasing
         public int PurchaseOrderID { get; set; }
         public int ItemID { get; set; }
         public int Quantity { get; set; }
-        public decimal Price { get; set; }
+        public decimal? Price { get; set; }
         public bool HasBeenReceived { get; set; }
         public string CreatedByUserID { get; set; }
         public string ModifiedByUserID { get; set; }
@@ -51,8 +50,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mPurchaseOrder == null && PurchaseOrderID > 0)
-                    mPurchaseOrder = new PurchaseOrder(PurchaseOrderID);
+                if ( mPurchaseOrder == null && PurchaseOrderID > 0 )
+                    mPurchaseOrder = new PurchaseOrder( PurchaseOrderID );
                 return mPurchaseOrder;
             }
         }
@@ -62,8 +61,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mRequisitionItem == null && ItemID > 0)
-                    mRequisitionItem = new RequisitionItem(ItemID);
+                if ( mRequisitionItem == null && ItemID > 0 )
+                    mRequisitionItem = new RequisitionItem( ItemID );
                 return mRequisitionItem;
             }
         }
@@ -73,8 +72,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mCreatedBy == null && !String.IsNullOrEmpty(CreatedByUserID))
-                    mCreatedBy = userLoginService.GetByUserName(CreatedByUserID).Person;
+                if ( mCreatedBy == null && !String.IsNullOrEmpty( CreatedByUserID ) )
+                    mCreatedBy = userLoginService.GetByUserName( CreatedByUserID ).Person;
                 return mCreatedBy;
             }
         }
@@ -84,8 +83,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mModifiedBy == null && !String.IsNullOrEmpty(ModifiedByUserID))
-                    mModifiedBy = userLoginService.GetByUserName(ModifiedByUserID).Person;
+                if ( mModifiedBy == null && !String.IsNullOrEmpty( ModifiedByUserID ) )
+                    mModifiedBy = userLoginService.GetByUserName( ModifiedByUserID ).Person;
                 return mModifiedBy;
             }
         }
@@ -95,7 +94,7 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mReceiptItems == null)
+                if ( mReceiptItems == null )
                     mReceiptItems = GetReceiptItems();
                 return mReceiptItems;
             }
@@ -113,28 +112,28 @@ namespace org.secc.Purchasing
             Init();
         }
 
-        public PurchaseOrderItem(int purchaseOrderID, int itemID)
+        public PurchaseOrderItem( int purchaseOrderID, int itemID )
         {
             Load( purchaseOrderID, itemID );
         }
 
-        public PurchaseOrderItem(int poItemID)
+        public PurchaseOrderItem( int poItemID )
         {
-            Load(poItemID);
+            Load( poItemID );
         }
-        public PurchaseOrderItem(PurchaseOrderItemData data)
+        public PurchaseOrderItem( PurchaseOrderItemData data )
         {
-            Load(data);
+            Load( data );
         }
         #endregion
 
         #region Public
-        public static List<PurchaseOrderItem> LoadByPurchaseOrder(int poID)
+        public static List<PurchaseOrderItem> LoadByPurchaseOrder( int poID )
         {
             try
             {
-                if (poID <= 0)
-                    throw new ArgumentNullException("poID", "Purchase Order ID is required.");
+                if ( poID <= 0 )
+                    throw new ArgumentNullException( "poID", "Purchase Order ID is required." );
 
                 using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                 {
@@ -144,19 +143,19 @@ namespace org.secc.Purchasing
                         .ToList();
                 }
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
 
-                throw new RequisitionException("An error has occurred when loading Purchase Order Items.", ex);
+                throw new RequisitionException( "An error has occurred when loading Purchase Order Items.", ex );
             }
         }
 
-        public static List<PurchaseOrderItem> LoadByRequistionItem(int itemID)
+        public static List<PurchaseOrderItem> LoadByRequistionItem( int itemID )
         {
             try
             {
-                if (itemID <= 0)
-                    throw new ArgumentNullException("itemID", "Item ID is required.");
+                if ( itemID <= 0 )
+                    throw new ArgumentNullException( "itemID", "Item ID is required." );
 
                 using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                 {
@@ -166,32 +165,32 @@ namespace org.secc.Purchasing
                             .ToList();
                 }
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
-                throw new RequisitionException("An error has occurred when loading Purchase Order Items.", ex);
+                throw new RequisitionException( "An error has occurred when loading Purchase Order Items.", ex );
             }
         }
 
-        public void Save(string uid)
+        public void Save( string uid )
         {
             try
             {
-                if (String.IsNullOrEmpty(uid))
-                    throw new ArgumentNullException("uid", "User Name is required");
+                if ( String.IsNullOrEmpty( uid ) )
+                    throw new ArgumentNullException( "uid", "User Name is required" );
                 Dictionary<string, string> ValErrors = Validate();
-                if (ValErrors.Count > 0)
-                    throw new RequisitionNotValidException("Purchase Order Item not valid", ValErrors);
+                if ( ValErrors.Count > 0 )
+                    throw new RequisitionNotValidException( "Purchase Order Item not valid", ValErrors );
 
 
-                using (PurchasingContext Context = ContextHelper.GetDBContext())
+                using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                 {
                     Enums.HistoryType ChangeType;
                     PurchaseOrderItem Original = null;
                     PurchaseOrderItemData Data = null;
-                    if (PurchaseOrderItemID > 0)
+                    if ( PurchaseOrderItemID > 0 )
                     {
-                        Data = Context.PurchaseOrderItemDatas.FirstOrDefault(x => x.purchase_order_item_id == PurchaseOrderItemID);
-                        Original = new PurchaseOrderItem(Data);
+                        Data = Context.PurchaseOrderItemDatas.FirstOrDefault( x => x.purchase_order_item_id == PurchaseOrderItemID );
+                        Original = new PurchaseOrderItem( Data );
                         ChangeType = Enums.HistoryType.UPDATE;
                     }
                     else
@@ -215,47 +214,47 @@ namespace org.secc.Purchasing
                     else
                         Data.price = null;
 
-                    if (PurchaseOrderItemID <= 0)
-                        Context.PurchaseOrderItemDatas.InsertOnSubmit(Data);
+                    if ( PurchaseOrderItemID <= 0 )
+                        Context.PurchaseOrderItemDatas.InsertOnSubmit( Data );
 
                     Context.SubmitChanges();
 
-                    Load(Data);
-                    SaveHistory(ChangeType, Original, uid);
+                    Load( Data );
+                    SaveHistory( ChangeType, Original, uid );
                 }
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
-                throw new RequisitionException("An error has occurred while saving Purchase Order Item.", ex);
+                throw new RequisitionException( "An error has occurred while saving Purchase Order Item.", ex );
             }
         }
 
-        public void SaveHistory(Enums.HistoryType ht, PurchaseOrderItem original, string uid)
+        public void SaveHistory( Enums.HistoryType ht, PurchaseOrderItem original, string uid )
         {
             History h = new History();
             h.ObjectTypeName = this.GetType().ToString();
             h.Identifier = PurchaseOrderItemID;
             h.ChangeType = ht;
 
-            switch (ht)
+            switch ( ht )
             {
                 case org.secc.Purchasing.Enums.HistoryType.ADD:
                     h.OriginalXML = null;
-                    h.UpdatedXML = Serialize(this);
+                    h.UpdatedXML = Serialize( this );
                     break;
                 case org.secc.Purchasing.Enums.HistoryType.UPDATE:
-                    h.OriginalXML = Serialize(original);
-                    h.UpdatedXML = Serialize(this);
+                    h.OriginalXML = Serialize( original );
+                    h.UpdatedXML = Serialize( this );
                     break;
                 case org.secc.Purchasing.Enums.HistoryType.DELETE:
-                    h.OriginalXML = Serialize(this);
+                    h.OriginalXML = Serialize( this );
                     h.UpdatedXML = null;
                     break;
             }
 
             h.Active = true;
             h.OrganizationID = PurchaseOrder.OrganizationID;
-            h.Save(uid);
+            h.Save( uid );
         }
 
         #endregion
@@ -265,11 +264,11 @@ namespace org.secc.Purchasing
         private List<ReceiptItem> GetReceiptItems()
         {
             List<ReceiptItem> ReceiptItems = new List<ReceiptItem>();
-            using (PurchasingContext Context = ContextHelper.GetDBContext())
+            using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
-                foreach (var ri in Context.PurchaseOrderItemDatas.FirstOrDefault(x => x.purchase_order_item_id == PurchaseOrderItemID).ReceiptItemDatas)
+                foreach ( var ri in Context.PurchaseOrderItemDatas.FirstOrDefault( x => x.purchase_order_item_id == PurchaseOrderItemID ).ReceiptItemDatas )
                 {
-                    ReceiptItems.Add(new ReceiptItem(ri));
+                    ReceiptItems.Add( new ReceiptItem( ri ) );
                 }
             }
             return ReceiptItems;
@@ -295,11 +294,11 @@ namespace org.secc.Purchasing
             mModifiedBy = null;
         }
 
-        private void Load(PurchaseOrderItemData data)
+        private void Load( PurchaseOrderItemData data )
         {
             Init();
 
-            if (data != null)
+            if ( data != null )
             {
                 PurchaseOrderItemID = data.purchase_order_item_id;
                 PurchaseOrderID = data.purchase_order_id;
@@ -311,23 +310,23 @@ namespace org.secc.Purchasing
                 DateCreated = data.date_created;
                 DateModifed = data.date_modified;
                 Active = data.active;
-                if (data.price != null)
-                    Price = (decimal)data.price;
+                if ( data.price != null )
+                    Price = ( decimal ) data.price;
             }
         }
 
-        private void Load(int poItemId)
+        private void Load( int poItemId )
         {
             try
             {
-                using (PurchasingContext Context = ContextHelper.GetDBContext())
+                using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                 {
                     Load( Context.PurchaseOrderItemDatas.FirstOrDefault( poi => poi.purchase_order_item_id == poItemId ) );
                 }
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
-                throw new RequisitionException("An error has occurred while loading Purchase Order Items", ex);
+                throw new RequisitionException( "An error has occurred while loading Purchase Order Items", ex );
             }
 
         }
@@ -357,39 +356,39 @@ namespace org.secc.Purchasing
         {
             Dictionary<string, string> ValErrors = new Dictionary<string, string>();
 
-            if (PurchaseOrderID <= 0)
-                ValErrors.Add("PurchaseOrderID", "Purchase Order ID is required.");
-            else if (PurchaseOrder == null || PurchaseOrder.PurchaseOrderID <= 0)
-                ValErrors.Add("Purchase Order", string.Format("Could not find purchase order {0}.", PurchaseOrderID));
+            if ( PurchaseOrderID <= 0 )
+                ValErrors.Add( "PurchaseOrderID", "Purchase Order ID is required." );
+            else if ( PurchaseOrder == null || PurchaseOrder.PurchaseOrderID <= 0 )
+                ValErrors.Add( "Purchase Order", string.Format( "Could not find purchase order {0}.", PurchaseOrderID ) );
 
-            if (ItemID <= 0)
-                ValErrors.Add("ItemID", "Requisition Item ID is required.");
-            else if (RequisitionItem == null || RequisitionItem.ItemID <= 0)
-                ValErrors.Add("ItemID", string.Format("Could not find requisition item {0}.", ItemID));
+            if ( ItemID <= 0 )
+                ValErrors.Add( "ItemID", "Requisition Item ID is required." );
+            else if ( RequisitionItem == null || RequisitionItem.ItemID <= 0 )
+                ValErrors.Add( "ItemID", string.Format( "Could not find requisition item {0}.", ItemID ) );
 
-            if (PurchaseOrderItemID > 0 && 
+            if ( PurchaseOrderItemID > 0 &&
                     RequisitionItem.POItems
-                    .Where(x => x.PurchaseOrderID != PurchaseOrderID && x.Active)
-                    .Where(x => x.PurchaseOrder.Active)
-                    .Where(x => x.PurchaseOrder.StatusLUID != PurchaseOrder.PurchaseOrderStatusCancelledLUID())
-                    .Select(x => x.Quantity).Sum() + Quantity > RequisitionItem.Quantity)
-                ValErrors.Add("Quantity", string.Format("Quantity added for item {0} is greater than the item's quantity that is not added to a PO. Verify and retry", RequisitionItem.Description));
-            else if (PurchaseOrderItemID == 0 && 
+                    .Where( x => x.PurchaseOrderID != PurchaseOrderID && x.Active )
+                    .Where( x => x.PurchaseOrder.Active )
+                    .Where( x => x.PurchaseOrder.StatusLUID != PurchaseOrder.PurchaseOrderStatusCancelledLUID() )
+                    .Select( x => x.Quantity ).Sum() + Quantity > RequisitionItem.Quantity )
+                ValErrors.Add( "Quantity", string.Format( "Quantity added for item {0} is greater than the item's quantity that is not added to a PO. Verify and retry", RequisitionItem.Description ) );
+            else if ( PurchaseOrderItemID == 0 &&
                         RequisitionItem.POItems
-                        .Where(x => x.Active)
-                        .Where(x => x.PurchaseOrder.Active)
-                        .Where(x => x.PurchaseOrder.StatusLUID != PurchaseOrder.PurchaseOrderStatusCancelledLUID())
-                        .Select(x =>  x.Quantity).Sum() + Quantity > RequisitionItem.Quantity)
+                        .Where( x => x.Active )
+                        .Where( x => x.PurchaseOrder.Active )
+                        .Where( x => x.PurchaseOrder.StatusLUID != PurchaseOrder.PurchaseOrderStatusCancelledLUID() )
+                        .Select( x => x.Quantity ).Sum() + Quantity > RequisitionItem.Quantity )
             {
-                ValErrors.Add("Quantity", string.Format("Quantity added for item {0}  is greater than the items quantity that is not added to a PO.", RequisitionItem.Description));
+                ValErrors.Add( "Quantity", string.Format( "Quantity added for item {0}  is greater than the items quantity that is not added to a PO.", RequisitionItem.Description ) );
             }
 
             //if (Price < 0)
             //    ValErrors.Add("Price", "Price must be equal to or greater than 0.");
 
-            if (Quantity == 0)
+            if ( Quantity == 0 )
             {
-                ValErrors.Add("Quantity", "Quantity is required.");
+                ValErrors.Add( "Quantity", "Quantity is required." );
             }
 
             return ValErrors;
@@ -404,7 +403,7 @@ namespace org.secc.Purchasing
         public decimal ItemPrice { get; set; }
 
         public ItemToAddToPO() { }
-        public ItemToAddToPO(int itemID, int qty, decimal price)
+        public ItemToAddToPO( int itemID, int qty, decimal price )
         {
             RequisitionItemID = itemID;
             QuantityToAdd = qty;

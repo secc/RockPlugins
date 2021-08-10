@@ -14,9 +14,6 @@
 //
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace org.secc.ServiceReef.Contracts
 {
@@ -26,7 +23,7 @@ namespace org.secc.ServiceReef.Contracts
         public string TimeZone { get; set; }
         public bool ApprovalRequired { get; set; }
         public bool ApplicationEnabled { get; set; }
-        public bool UseMasterApplication { get; set; }       
+        public bool UseMasterApplication { get; set; }
         public int OrganizationFormId { get; set; }
         public double ApplicationFee { get; set; }
         public bool AcceptFundRaising { get; set; }

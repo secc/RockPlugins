@@ -13,9 +13,6 @@
 // </copyright>
 //
 using org.secc.OAuth.Data;
-using System;
-using System.Data.Entity;
-using System.Linq;
 
 namespace org.secc.OAuth.Model
 {
@@ -26,7 +23,7 @@ namespace org.secc.OAuth.Model
         /// Initializes a new instance of the <see cref="ClientScopeService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public ClientScopeService(OAuthContext context) : base( context ) { }
-        
+        public ClientScopeService( OAuthContext context ) : base( context ) { }
+
     }
 }

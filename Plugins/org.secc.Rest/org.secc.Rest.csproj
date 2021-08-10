@@ -42,8 +42,8 @@
     <Reference Include="Microsoft.Data.OData, Version=5.6.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\Microsoft.Data.OData.5.6.0\lib\net40\Microsoft.Data.OData.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\..\Rock12\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -109,13 +109,17 @@
       <Project>{B89DFD33-CE93-44E1-8616-C31ACDFE89CB}</Project>
       <Name>Rock.Rest</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
-      <Project>{8F8C2A79-24F4-4157-8B99-45F75FA85799}</Project>
+    <ProjectReference Include="..\..\..\Rock12\Rock\Rock.csproj">
+      <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
     </ProjectReference>
     <ProjectReference Include="..\org.secc.Authentication\org.secc.Authentication.csproj">
-      <Project>{a480481f-1735-4cff-baf5-207aea57e425}</Project>
+      <Project>{A480481F-1735-4CFF-BAF5-207AEA57E425}</Project>
       <Name>org.secc.Authentication</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\stephenl\source\repos\Rock12\\Rock\Rock.csproj">
+      <Project>{8F8C2A79-24F4-4157-8B99-45F75FA85799}</Project>
+      <Name>Rock</Name>
     </ProjectReference>
     <ProjectReference Include="..\org.secc.OAuth\org.secc.OAuth.csproj">
       <Project>{E43836AD-ABCD-4347-ACA1-DC30BC410350}</Project>

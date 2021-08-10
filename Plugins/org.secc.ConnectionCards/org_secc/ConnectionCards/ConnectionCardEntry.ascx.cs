@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -14,24 +14,14 @@
 //
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
 using System.ComponentModel;
-
+using System.Web.UI;
+using org.secc.ConnectionCards.Utilities;
 using Rock;
-using Rock.Web.UI;
-using System.Web.UI.HtmlControls;
-using Rock.Web.UI.Controls;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Attribute;
-using Rock.Web.Cache;
-using org.secc.ConnectionCards.Utilities;
-using Ghostscript.NET.Rasterizer;
-using System.IO;
-using System.Drawing.Imaging;
+using Rock.Web.UI;
 
 namespace RockWeb.Plugins.org_secc.ConnectionCards
 {
@@ -42,8 +32,8 @@ namespace RockWeb.Plugins.org_secc.ConnectionCards
     //Settings
     [WorkflowTypeField( "Workflow Type", "The workflow type to activate to merge pdf" )]
     [BinaryFileTypeField( "Binary File Type", "The binary file type to set images as." )]
-    [IntegerField("Number of Columns","The number of different columns to divide the document into.",key:"cols")]
-    [IntegerField( "Number of Rows", "The number of different columns to divide the document into.", key:"rows")]
+    [IntegerField( "Number of Columns", "The number of different columns to divide the document into.", key: "cols" )]
+    [IntegerField( "Number of Rows", "The number of different columns to divide the document into.", key: "rows" )]
     public partial class ConnectionCardEntry : RockBlock
     {
         protected override void OnLoad( EventArgs e )

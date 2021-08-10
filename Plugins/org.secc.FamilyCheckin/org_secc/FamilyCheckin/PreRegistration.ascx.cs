@@ -12,21 +12,20 @@
 // limitations under the License.
 // </copyright>
 //
-using Rock.Web.Cache;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
-using Rock;
-using Rock.Web.UI.Controls;
-using Rock.Model;
-using Rock.Data;
 using org.secc.PersonMatch;
-using System.ComponentModel;
+using Rock;
 using Rock.Attribute;
+using Rock.Data;
+using Rock.Model;
+using Rock.Web.Cache;
+using Rock.Web.UI.Controls;
 
 [DisplayName( "Children's Pre-Registration" )]
 [Category( "SECC > Check-in" )]
@@ -335,8 +334,8 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             {
                 child.SaveAsPerson( family.Id, rockContext );
             }
-     
- 
+
+
 
             //rockContext.SaveChanges();
             var personWorkflowGuid = GetAttributeValue( "PersonWorkflow" );
@@ -349,7 +348,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         var homeLocationType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() );
         if ( homeLocationType != null )
         {
-            
+
             // Find a location record for the address that was entered
             var loc = new Location();
             acAddress.GetValues( loc );
@@ -363,7 +362,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 loc = null;
             }
 
- 
+
             if ( !groupLocationService.Queryable()
                 .Where( gl =>
                     gl.GroupId == family.Id &&
@@ -373,19 +372,19 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             {
                 var groupType = GroupTypeCache.Get( family.GroupTypeId );
                 var prevLocationType = groupType.LocationTypeValues.FirstOrDefault( l => l.Guid.Equals( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_PREVIOUS.AsGuid() ) );
-                    if ( prevLocationType != null )
+                if ( prevLocationType != null )
+                {
+                    foreach ( var prevLoc in groupLocationService.Queryable( "Location,GroupLocationTypeValue" )
+                        .Where( gl =>
+                            gl.GroupId == family.Id &&
+                            gl.GroupLocationTypeValueId == homeLocationType.Id ) )
                     {
-                        foreach ( var prevLoc in groupLocationService.Queryable( "Location,GroupLocationTypeValue" )
-                            .Where( gl =>
-                                gl.GroupId == family.Id &&
-                                gl.GroupLocationTypeValueId == homeLocationType.Id ) )
-                        {
-                            prevLoc.GroupLocationTypeValueId = prevLocationType.Id;
-                            prevLoc.IsMailingLocation = false;
-                            prevLoc.IsMappedLocation = false;
-                        }
+                        prevLoc.GroupLocationTypeValueId = prevLocationType.Id;
+                        prevLoc.IsMailingLocation = false;
+                        prevLoc.IsMappedLocation = false;
                     }
-                
+                }
+
 
                 string addressChangeField = homeLocationType.Value;
 
@@ -407,7 +406,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 }
                 groupLocation.GroupLocationTypeValueId = homeLocationType.Id;
 
-               
+
             }
 
             rockContext.SaveChanges();

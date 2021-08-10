@@ -14,12 +14,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Web;
 using Newtonsoft.Json;
-using org.secc.OAuth;
-using org.secc.OAuth.Data;
-using org.secc.OAuth.Model;
-using Rock;
 using Rock.Attribute;
 using Rock.Model;
 using Rock.Web.UI;

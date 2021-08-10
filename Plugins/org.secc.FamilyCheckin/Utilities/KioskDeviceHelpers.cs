@@ -57,7 +57,7 @@ namespace org.secc.FamilyCheckin.Utilities
         public static void FlushItem( int id )
         {
             var key = $"{typeof( KioskDevice ).Name}:{id}";
-            RockCacheManager<KioskDevice>.Instance.Cache.Remove( key );
+            RockCacheManager<KioskDevice>.Instance.Remove( key );
         }
     }
 }

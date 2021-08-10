@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Data.Entity;
 using System.Linq;
 using Newtonsoft.Json;
 using org.secc.FamilyCheckin.Cache;
@@ -24,10 +23,8 @@ using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
-using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 using Rock.Workflow;
 using Rock.Workflow.Action.CheckIn;
 

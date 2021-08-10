@@ -59,7 +59,7 @@ namespace RockWeb.Plugins.org_secc.Cms
     [AttributeField( Rock.SystemGuid.EntityType.GROUP, "GroupTypeId", Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY, "Family Attributes", "The family attributes that should be displayed / edited.", false, true, order: 6 )]
     [AttributeField( Rock.SystemGuid.EntityType.PERSON, "Person Attributes (adults)", "The person attributes that should be displayed / edited for adults.", false, true, order: 7 )]
     [AttributeField( Rock.SystemGuid.EntityType.PERSON, "Person Attributes (children)", "The person attributes that should be displayed / edited for children.", false, true, order: 8 )]
-    [DefinedValueField(Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "Connection status which new people will be assigned.")]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "Connection status which new people will be assigned." )]
 
     public partial class PublicProfileEdit : RockBlock
     {
@@ -73,9 +73,9 @@ namespace RockWeb.Plugins.org_secc.Cms
         {
             base.OnInit( e );
             ScriptManager.RegisterStartupScript( ddlGradePicker, ddlGradePicker.GetType(), "grade-selection-" + BlockId.ToString(), ddlGradePicker.GetJavascriptForYearPicker( ypGraduation ), true );
-            
-            ddlTitle.BindToDefinedType( DefinedTypeCache.Read( new Guid( Rock.SystemGuid.DefinedType.PERSON_TITLE ) ), true );
-            ddlSuffix.BindToDefinedType( DefinedTypeCache.Read( new Guid( Rock.SystemGuid.DefinedType.PERSON_SUFFIX ) ), true );
+
+            dvpTitle.DefinedTypeId = DefinedTypeCache.Get( new Guid( Rock.SystemGuid.DefinedType.PERSON_TITLE ) ).Id;
+            dvpSuffix.DefinedTypeId = DefinedTypeCache.Get( new Guid( Rock.SystemGuid.DefinedType.PERSON_SUFFIX ) ).Id;
             RockPage.AddCSSLink( ResolveRockUrl( "~/Styles/fluidbox.css" ) );
             RockPage.AddScriptLink( ResolveRockUrl( "~/Scripts/imagesloaded.min.js" ) );
             RockPage.AddScriptLink( ResolveRockUrl( "~/Scripts/jquery.fluidbox.min.js" ) );
@@ -340,14 +340,14 @@ namespace RockWeb.Plugins.org_secc.Cms
 
                             var groupMemberService = new GroupMemberService( rockContext );
                             var groupMember = new GroupMember() { Person = new Person(), Group = group, GroupId = group.Id };
-                            groupMember.Person.TitleValueId = ddlTitle.SelectedValueAsId();
+                            groupMember.Person.TitleValueId = dvpTitle.SelectedValueAsId();
                             groupMember.Person.FirstName = tbFirstName.Text;
                             groupMember.Person.NickName = tbNickName.Text;
                             groupMember.Person.LastName = tbLastName.Text;
-                            groupMember.Person.SuffixValueId = ddlSuffix.SelectedValueAsId();
+                            groupMember.Person.SuffixValueId = dvpSuffix.SelectedValueAsId();
                             groupMember.Person.Gender = rblGender.SelectedValueAsEnum<Gender>();
                             DateTime? birthdate = bpBirthDay.SelectedDate;
-                            
+
                             if ( birthdate.HasValue )
                             {
                                 // If setting a future birthdate, subtract a century until birthdate is not greater than today.
@@ -374,8 +374,8 @@ namespace RockWeb.Plugins.org_secc.Cms
                             var headOfHousehold = GroupServiceExtensions.HeadOfHousehold( group.Members.AsQueryable() );
                             if ( headOfHousehold != null )
                             {
-                                DefinedValueCache dvcConnectionStatus = DefinedValueCache.Read( headOfHousehold.ConnectionStatusValueId ?? 0 );
-                                DefinedValueCache dvcRecordStatus = DefinedValueCache.Read( headOfHousehold.RecordStatusValueId ?? 0 );
+                                DefinedValueCache dvcConnectionStatus = DefinedValueCache.Get( headOfHousehold.ConnectionStatusValueId ?? 0 );
+                                DefinedValueCache dvcRecordStatus = DefinedValueCache.Get( headOfHousehold.RecordStatusValueId ?? 0 );
                                 if ( dvcConnectionStatus != null )
                                 {
                                     groupMember.Person.ConnectionStatusValueId = dvcConnectionStatus.Id;
@@ -394,12 +394,12 @@ namespace RockWeb.Plugins.org_secc.Cms
 
                             groupMember.Person.IsEmailActive = true;
                             groupMember.Person.EmailPreference = EmailPreference.EmailAllowed;
-                            groupMember.Person.RecordTypeValueId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
+                            groupMember.Person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
 
                             var connectionStatus = GetAttributeValue( "ConnectionStatus" );
                             if ( !string.IsNullOrWhiteSpace( connectionStatus ) )
                             {
-                             groupMember.Person.ConnectionStatusValueId =  DefinedValueCache.Read( connectionStatus.AsGuid() ).Id;
+                                groupMember.Person.ConnectionStatusValueId = DefinedValueCache.Get( connectionStatus.AsGuid() ).Id;
                             }
 
                             groupMemberService.Add( groupMember );
@@ -434,21 +434,16 @@ namespace RockWeb.Plugins.org_secc.Cms
                                 }
                             }
 
-                            int? newTitleId = ddlTitle.SelectedValueAsInt();
-                            History.EvaluateChange( changes, "Title", DefinedValueCache.GetName( person.TitleValueId ), DefinedValueCache.GetName( newTitleId ) );
+                            int? newTitleId = dvpTitle.SelectedValueAsInt();
                             person.TitleValueId = newTitleId;
 
-                            History.EvaluateChange( changes, "First Name", person.FirstName, tbFirstName.Text );
                             person.FirstName = tbFirstName.Text;
 
-                            History.EvaluateChange( changes, "Nick Name", person.NickName, tbNickName.Text );
                             person.NickName = tbNickName.Text;
 
-                            History.EvaluateChange( changes, "Last Name", person.LastName, tbLastName.Text );
                             person.LastName = tbLastName.Text;
 
-                            int? newSuffixId = ddlSuffix.SelectedValueAsInt();
-                            History.EvaluateChange( changes, "Suffix", DefinedValueCache.GetName( person.SuffixValueId ), DefinedValueCache.GetName( newSuffixId ) );
+                            int? newSuffixId = dvpSuffix.SelectedValueAsInt();
                             person.SuffixValueId = newSuffixId;
 
                             var birthMonth = person.BirthMonth;
@@ -481,21 +476,15 @@ namespace RockWeb.Plugins.org_secc.Cms
                                 person.SetBirthDate( null );
                             }
 
-                            History.EvaluateChange( changes, "Birth Month", birthMonth, person.BirthMonth );
-                            History.EvaluateChange( changes, "Birth Day", birthDay, person.BirthDay );
-                            History.EvaluateChange( changes, "Birth Year", birthYear, person.BirthYear );
-
                             int? graduationYear = null;
                             if ( ypGraduation.SelectedYear.HasValue )
                             {
                                 graduationYear = ypGraduation.SelectedYear.Value;
                             }
 
-                            History.EvaluateChange( changes, "Graduation Year", person.GraduationYear, graduationYear );
                             person.GraduationYear = graduationYear;
 
                             var newGender = rblGender.SelectedValue.ConvertToEnum<Gender>();
-                            History.EvaluateChange( changes, "Gender", person.Gender, newGender );
                             person.Gender = newGender;
 
                             var phoneNumberTypeIds = new List<int>();
@@ -547,12 +536,6 @@ namespace RockWeb.Plugins.org_secc.Cms
 
                                             phoneNumber.IsUnlisted = cbUnlisted.Checked;
                                             phoneNumberTypeIds.Add( phoneNumberTypeId );
-
-                                            History.EvaluateChange(
-                                                changes,
-                                                string.Format( "{0} Phone", DefinedValueCache.GetName( phoneNumberTypeId ) ),
-                                                oldPhoneNumber,
-                                                phoneNumber.NumberFormattedWithCountryCode );
                                         }
                                     }
                                 }
@@ -564,21 +547,13 @@ namespace RockWeb.Plugins.org_secc.Cms
                                 .Where( n => n.NumberTypeValueId.HasValue && !phoneNumberTypeIds.Contains( n.NumberTypeValueId.Value ) )
                                 .ToList() )
                             {
-                                History.EvaluateChange(
-                                    changes,
-                                    string.Format( "{0} Phone", DefinedValueCache.GetName( phoneNumber.NumberTypeValueId ) ),
-                                    phoneNumber.ToString(),
-                                    string.Empty );
-
                                 person.PhoneNumbers.Remove( phoneNumber );
                                 phoneNumberService.Delete( phoneNumber );
                             }
 
-                            History.EvaluateChange( changes, "Email", person.Email, tbEmail.Text );
                             person.Email = tbEmail.Text.Trim();
 
                             var newEmailPreference = rblEmailPreference.SelectedValue.ConvertToEnum<EmailPreference>();
-                            History.EvaluateChange( changes, "Email Preference", person.EmailPreference, newEmailPreference );
                             person.EmailPreference = newEmailPreference;
 
                             person.LoadAttributes();
@@ -590,12 +565,6 @@ namespace RockWeb.Plugins.org_secc.Cms
                                 {
                                     if ( changes.Any() )
                                     {
-                                        HistoryService.SaveChanges(
-                                            rockContext,
-                                            typeof( Person ),
-                                            Rock.SystemGuid.Category.HISTORY_PERSON_DEMOGRAPHIC_CHANGES.AsGuid(),
-                                            person.Id,
-                                            changes );
                                     }
 
                                     if ( orphanedPhotoId.HasValue )
@@ -648,12 +617,11 @@ namespace RockWeb.Plugins.org_secc.Cms
                                             {
                                                 var groupLocationService = new GroupLocationService( rockContext );
 
-                                                var dvHomeAddressType = DefinedValueCache.Read( addressTypeGuid.Value );
+                                                var dvHomeAddressType = DefinedValueCache.Get( addressTypeGuid.Value );
                                                 var familyAddress = groupLocationService.Queryable().Where( l => l.GroupId == familyGroup.Id && l.GroupLocationTypeValueId == dvHomeAddressType.Id ).FirstOrDefault();
                                                 if ( familyAddress != null && string.IsNullOrWhiteSpace( acAddress.Street1 ) )
                                                 {
                                                     // delete the current address
-                                                    History.EvaluateChange( changes, familyAddress.GroupLocationTypeValue.Value + " Location", familyAddress.Location.ToString(), string.Empty );
                                                     groupLocationService.Delete( familyAddress );
                                                     rockContext.SaveChanges();
                                                 }
@@ -676,7 +644,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                                                             var previousAddress = new GroupLocation();
                                                             groupLocationService.Add( previousAddress );
 
-                                                            var previousAddressValue = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_PREVIOUS.AsGuid() );
+                                                            var previousAddressValue = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_PREVIOUS.AsGuid() );
                                                             if ( previousAddressValue != null )
                                                             {
                                                                 previousAddress.GroupLocationTypeValueId = previousAddressValue.Id;
@@ -700,19 +668,10 @@ namespace RockWeb.Plugins.org_secc.Cms
                                                         var updatedHomeAddress = new Location();
                                                         acAddress.GetValues( updatedHomeAddress );
 
-                                                        History.EvaluateChange( changes, dvHomeAddressType.Value + " Location", familyAddress.Location != null ? familyAddress.Location.ToString() : string.Empty, updatedHomeAddress.ToString() );
-
                                                         familyAddress.Location = updatedHomeAddress;
                                                         rockContext.SaveChanges();
                                                     }
                                                 }
-
-                                                HistoryService.SaveChanges(
-                                                    rockContext,
-                                                    typeof( Person ),
-                                                    Rock.SystemGuid.Category.HISTORY_PERSON_DEMOGRAPHIC_CHANGES.AsGuid(),
-                                                    person.Id,
-                                                    changes );
                                             }
 
                                             familyGroup.LoadAttributes();
@@ -879,13 +838,13 @@ namespace RockWeb.Plugins.org_secc.Cms
                             Guid? locationTypeGuid = GetAttributeValue( "AddressType" ).AsGuidOrNull();
                             if ( locationTypeGuid.HasValue )
                             {
-                                var addressTypeDv = DefinedValueCache.Read( locationTypeGuid.Value );
+                                var addressTypeDv = DefinedValueCache.Get( locationTypeGuid.Value );
 
                                 var familyGroupTypeGuid = Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuidOrNull();
 
                                 if ( familyGroupTypeGuid.HasValue )
                                 {
-                                    var familyGroupType = GroupTypeCache.Read( familyGroupTypeGuid.Value );
+                                    var familyGroupType = GroupTypeCache.Get( familyGroupTypeGuid.Value );
 
                                     var address = new GroupLocationService( rockContext ).Queryable()
                                                         .Where( l => l.Group.GroupTypeId == familyGroupType.Id
@@ -980,11 +939,11 @@ namespace RockWeb.Plugins.org_secc.Cms
                         {
                             imgPhoto.BinaryFileId = person.PhotoId;
                             imgPhoto.NoPictureUrl = Person.GetPersonPhotoUrl( person, 200, 200 );
-                            ddlTitle.SelectedValue = person.TitleValueId.HasValue ? person.TitleValueId.Value.ToString() : string.Empty;
+                            dvpTitle.SelectedValue = person.TitleValueId.HasValue ? person.TitleValueId.Value.ToString() : string.Empty;
                             tbFirstName.Text = person.FirstName;
                             tbNickName.Text = person.NickName;
                             tbLastName.Text = person.LastName;
-                            ddlSuffix.SelectedValue = person.SuffixValueId.HasValue ? person.SuffixValueId.Value.ToString() : string.Empty;
+                            dvpSuffix.SelectedValue = person.SuffixValueId.HasValue ? person.SuffixValueId.Value.ToString() : string.Empty;
                             bpBirthDay.SelectedDate = person.BirthDate;
                             rblGender.SelectedValue = person.Gender.ConvertToString();
                             if ( group.Members.Where( gm => gm.PersonId == person.Id && gm.GroupRole.Guid == childGuid ).Any() )
@@ -1051,7 +1010,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                                 if ( locationTypeGuid.HasValue )
                                 {
                                     pnlAddress.Visible = true;
-                                    var addressTypeDv = DefinedValueCache.Read( locationTypeGuid.Value );
+                                    var addressTypeDv = DefinedValueCache.Get( locationTypeGuid.Value );
 
                                     // if address type is home enable the move and is mailing/physical
                                     if ( addressTypeDv.Guid == Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() )
@@ -1073,7 +1032,7 @@ namespace RockWeb.Plugins.org_secc.Cms
 
                                     if ( familyGroupTypeGuid.HasValue )
                                     {
-                                        var familyGroupType = GroupTypeCache.Read( familyGroupTypeGuid.Value );
+                                        var familyGroupType = GroupTypeCache.Get( familyGroupTypeGuid.Value );
 
                                         var familyAddress = new GroupLocationService( rockContext ).Queryable()
                                                             .Where( l => l.Group.GroupTypeId == familyGroupType.Id
@@ -1096,10 +1055,10 @@ namespace RockWeb.Plugins.org_secc.Cms
                                 pnlAddress.Visible = false;
                             }
 
-                            var mobilePhoneType = DefinedValueCache.Read( new Guid( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE ) );
+                            var mobilePhoneType = DefinedValueCache.Get( new Guid( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE ) );
 
                             var phoneNumbers = new List<PhoneNumber>();
-                            var phoneNumberTypes = DefinedTypeCache.Read( new Guid( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE ) );
+                            var phoneNumberTypes = DefinedTypeCache.Get( new Guid( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE ) );
                             var selectedPhoneTypeGuids = GetAttributeValue( "PhoneNumbers" ).Split( ',' ).AsGuidList();
                             if ( phoneNumberTypes.DefinedValues.Where( pnt => selectedPhoneTypeGuids.Contains( pnt.Guid ) ).Any() )
                             {

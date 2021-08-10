@@ -13,25 +13,23 @@
 // </copyright>
 //
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.SqlTypes;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
+using Microsoft.AspNet.SignalR;
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.UI.Controls;
-using Rock.Attribute;
-using org.secc.Finance.Utility;
-using Rock.Web.Cache;
-using System.Data.SqlTypes;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using Microsoft.AspNet.SignalR;
 using Rock.Web;
-using System.Collections.Concurrent;
+using Rock.Web.Cache;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.Finance
 {
@@ -43,7 +41,7 @@ namespace RockWeb.Plugins.org_secc.Finance
     [Description( "Block for kicking off the process for generating contribution statements." )]
     [WorkflowTypeField( "Statement Generator Workflow", "The workflow to launch to generate statements.", true )]
     [DataViewField( "Default Review DataView", "The default DataView to use for the review process.", false )]
-    [IntegerField( "Command Timeout", "Maximum amount of time (in seconds) to wait for the query to run.", false, 300, key:"CommandTimeout" )]
+    [IntegerField( "Command Timeout", "Maximum amount of time (in seconds) to wait for the query to run.", false, 300, key: "CommandTimeout" )]
 
     public partial class ContributionStatementGenerator : Rock.Web.UI.RockBlock
     {
@@ -107,7 +105,7 @@ namespace RockWeb.Plugins.org_secc.Finance
         {
             base.OnLoad( e );
 
-            if (!Page.IsPostBack)
+            if ( !Page.IsPostBack )
             {
                 tbGivingId.Text = GetBlockUserPreference( "GivingIdFilter" );
                 tbGivingGroup.Text = GetBlockUserPreference( "GivingGroupFilter" );
@@ -243,16 +241,16 @@ namespace RockWeb.Plugins.org_secc.Finance
 						) Existing on Existing.Value = GivingId
 					WHERE (@p3 IS NULL OR Existing.Value is null)
 					GROUP by GivingId, GivingGroupName",
-					contributionTypeId, lower, upper, null/*"2019-01-01T00:00:00,2019-12-31T00:00:00"*/).AsQueryable();
+                    contributionTypeId, lower, upper, null/*"2019-01-01T00:00:00,2019-12-31T00:00:00"*/).AsQueryable();
 
             // Filter by Giving ID
-            if (tbGivingId.Text.IsNotNullOrWhiteSpace())
+            if ( tbGivingId.Text.IsNotNullOrWhiteSpace() )
             {
                 givingGroups = givingGroups.Where( gg => gg.GivingId.Contains( tbGivingId.Text ) );
             }
 
             // Filter by Giving Group Name
-            if (tbGivingGroup.Text.IsNotNullOrWhiteSpace())
+            if ( tbGivingGroup.Text.IsNotNullOrWhiteSpace() )
             {
                 givingGroups = givingGroups.Where( gg => gg.GivingGroupName.Contains( tbGivingGroup.Text ) );
             }
@@ -265,7 +263,7 @@ namespace RockWeb.Plugins.org_secc.Finance
 
         private IQueryable<GivingGroup> GetSelectedGivingUnits()
         {
-            if (gdGivingUnits.SelectedKeys.Count > 0)
+            if ( gdGivingUnits.SelectedKeys.Count > 0 )
             {
                 var selectedKeys = gdGivingUnits.SelectedKeys.Select( k => k.ToString() ).ToList();
                 return GetGivingGroups().ToList().Where( gg => selectedKeys.Contains( gg.GivingId ) ).AsQueryable();
@@ -274,7 +272,7 @@ namespace RockWeb.Plugins.org_secc.Finance
         }
         private int GetSelectedGivingUnitsCount()
         {
-            if (gdGivingUnits.SelectedKeys.Count > 0)
+            if ( gdGivingUnits.SelectedKeys.Count > 0 )
             {
                 return gdGivingUnits.SelectedKeys.Count;
             }
@@ -355,15 +353,15 @@ namespace RockWeb.Plugins.org_secc.Finance
                                 //Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
                             }
                         }
-                        catch (Exception ex )
+                        catch ( Exception ex )
                         {
-                            LogException( new Exception( "Could not generate contribution", new Exception( "GivingId: " + givingGroup!=null ?  givingGroup.GivingId : "[Unknown]",  ex) ) );
+                            LogException( new Exception( "Could not generate contribution", new Exception( "GivingId: " + givingGroup != null ? givingGroup.GivingId : "[Unknown]", ex ) ) );
                         }
                         j++;
                     }
                 } ) );
             }
-                       
+
 
             Task.WhenAll( taskList ).ContinueWith( ( t ) =>
             {
@@ -380,7 +378,7 @@ namespace RockWeb.Plugins.org_secc.Finance
                     }
 
                     OnProgress( "ERROR: " + t.Exception.Message );
-                } 
+                }
                 else
                 {
                     OnProgress( string.Format( "{0} {1} Complete: [{2}ms]", total, " contribution statement generation requests were generated.", totalMilliseconds ) );

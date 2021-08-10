@@ -28,7 +28,6 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
@@ -73,13 +72,13 @@ namespace org.secc.Search.Person
         public override IQueryable<string> Search( string searchterm )
         {
             var rockContext = new RockContext();
-            var aService = new AttributeService(rockContext);
+            var aService = new AttributeService( rockContext );
             var avService = new AttributeValueService( rockContext );
             var personEntityTypeId = EntityTypeCache.Get( Rock.SystemGuid.EntityType.PERSON.AsGuid() ).Id;
             var attribute = aService.Queryable().Where( a => a.Key == "GivingEnvelopeNumber" && a.EntityTypeId == personEntityTypeId ).FirstOrDefault();
-            if (attribute != null)
+            if ( attribute != null )
             {
-                return avService.Queryable().Where(av => av.AttributeId == attribute.Id && av.Value.Equals(searchterm) ).Select( av => av.Value );
+                return avService.Queryable().Where( av => av.AttributeId == attribute.Id && av.Value.Equals( searchterm ) ).Select( av => av.Value );
             }
 
             return null;

@@ -17,14 +17,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
 using org.secc.Panel.Models;
 using org.secc.Panel.Utilities;
 using Quartz;
-using Rock.Attribute;
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 
@@ -141,7 +139,7 @@ namespace org.secc.Panel.Jobs
                             rockContext.SaveChanges();
                         }
                         child.Title = sermon.title;
-                        child.Content = sermon.description.Replace("\n", "").Replace("\r", "");
+                        child.Content = sermon.description.Replace( "\n", "" ).Replace( "\r", "" );
                         child.StartDateTime = Helpers.FromUnixTime( sermon.date );
                         rockContext.SaveChanges();
                         child.LoadAttributes();

@@ -15,14 +15,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Xml.Serialization;
 
 using org.secc.Purchasing.DataLayer;
 using Rock.Model;
 namespace org.secc.Purchasing
 {
-    public class ReceiptItem: PurchasingBase
+    public class ReceiptItem : PurchasingBase
     {
         #region Fields
         private Receipt mReceipt;
@@ -46,8 +44,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if ((mReceipt == null || mReceipt.ReceiptID != ReceiptID) && ReceiptID > 0)
-                    mReceipt = new Receipt(ReceiptID);
+                if ( ( mReceipt == null || mReceipt.ReceiptID != ReceiptID ) && ReceiptID > 0 )
+                    mReceipt = new Receipt( ReceiptID );
                 return mReceipt;
             }
         }
@@ -56,8 +54,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if ((mPOItem == null || mPOItem.PurchaseOrderItemID != POItemID) && POItemID > 0)
-                    mPOItem = new PurchaseOrderItem(POItemID);
+                if ( ( mPOItem == null || mPOItem.PurchaseOrderItemID != POItemID ) && POItemID > 0 )
+                    mPOItem = new PurchaseOrderItem( POItemID );
                 return mPOItem;
             }
         }
@@ -66,8 +64,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mCreatedBy == null && !String.IsNullOrEmpty(CreatedByUserID))
-                    mCreatedBy = userLoginService.GetByUserName(CreatedByUserID).Person;
+                if ( mCreatedBy == null && !String.IsNullOrEmpty( CreatedByUserID ) )
+                    mCreatedBy = userLoginService.GetByUserName( CreatedByUserID ).Person;
                 return mCreatedBy;
             }
         }
@@ -76,8 +74,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mModifiedBy == null && !String.IsNullOrEmpty(ModifiedByUserID))
-                    mModifiedBy = userLoginService.GetByUserName(ModifiedByUserID).Person;
+                if ( mModifiedBy == null && !String.IsNullOrEmpty( ModifiedByUserID ) )
+                    mModifiedBy = userLoginService.GetByUserName( ModifiedByUserID ).Person;
                 return mModifiedBy;
             }
         }
@@ -86,37 +84,37 @@ namespace org.secc.Purchasing
         #endregion
 
         #region Constructors
-        public ReceiptItem() 
+        public ReceiptItem()
         {
             Init();
         }
-        
-        public ReceiptItem(int receiptItemId)
+
+        public ReceiptItem( int receiptItemId )
         {
-            Load(receiptItemId);
+            Load( receiptItemId );
         }
 
-        public ReceiptItem(ReceiptItemData data)
+        public ReceiptItem( ReceiptItemData data )
         {
-            Load(data);
+            Load( data );
         }
         #endregion
 
         #region Public
 
-        public void Save(string uid)
+        public void Save( string uid )
         {
             try
             {
-                if (String.IsNullOrEmpty(uid))
-                    throw new ArgumentNullException("UID", "User ID is required.");
-                using (PurchasingContext Context = ContextHelper.GetDBContext())
+                if ( String.IsNullOrEmpty( uid ) )
+                    throw new ArgumentNullException( "UID", "User ID is required." );
+                using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                 {
                     Enums.HistoryType ChangeType;
                     ReceiptItem Original = null;
                     ReceiptItemData Data;
 
-                    if (ReceiptItemID <= 0)
+                    if ( ReceiptItemID <= 0 )
                     {
                         Data = new ReceiptItemData();
                         ChangeType = Enums.HistoryType.ADD;
@@ -125,8 +123,8 @@ namespace org.secc.Purchasing
                     }
                     else
                     {
-                        Data = Context.ReceiptItemDatas.FirstOrDefault(x => x.receipt_item_id == ReceiptItemID);
-                        Original = new ReceiptItem(Data);
+                        Data = Context.ReceiptItemDatas.FirstOrDefault( x => x.receipt_item_id == ReceiptItemID );
+                        Original = new ReceiptItem( Data );
                         ChangeType = Enums.HistoryType.UPDATE;
                     }
 
@@ -137,24 +135,24 @@ namespace org.secc.Purchasing
                     Data.modified_by = uid;
                     Data.active = Active;
 
-                    if (ReceiptItemID <= 0)
-                        Context.ReceiptItemDatas.InsertOnSubmit(Data);
+                    if ( ReceiptItemID <= 0 )
+                        Context.ReceiptItemDatas.InsertOnSubmit( Data );
 
                     Context.SubmitChanges();
 
-                    Load(Data);
+                    Load( Data );
 
-                    SaveHistory(ChangeType, Original, uid);
+                    SaveHistory( ChangeType, Original, uid );
 
                 }
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
-                throw new RequisitionException("An error has occureed while saving receipt item.", ex);
+                throw new RequisitionException( "An error has occureed while saving receipt item.", ex );
             }
         }
 
-        public void SaveHistory(Enums.HistoryType changeType, ReceiptItem original, string uid)
+        public void SaveHistory( Enums.HistoryType changeType, ReceiptItem original, string uid )
         {
             History h = new History();
 
@@ -163,34 +161,34 @@ namespace org.secc.Purchasing
             h.OrganizationID = POItem.PurchaseOrder.OrganizationID;
             h.ChangeType = changeType;
 
-            switch (changeType)
+            switch ( changeType )
             {
                 case org.secc.Purchasing.Enums.HistoryType.ADD:
                     h.OriginalXML = null;
-                    h.UpdatedXML = Serialize(this);
+                    h.UpdatedXML = Serialize( this );
                     break;
                 case org.secc.Purchasing.Enums.HistoryType.UPDATE:
-                    h.OriginalXML = Serialize(original);
-                    h.UpdatedXML = Serialize(this);
+                    h.OriginalXML = Serialize( original );
+                    h.UpdatedXML = Serialize( this );
                     break;
                 case org.secc.Purchasing.Enums.HistoryType.DELETE:
-                    h.OriginalXML = Serialize(this);
+                    h.OriginalXML = Serialize( this );
                     h.UpdatedXML = null;
                     break;
 
             }
 
             h.Active = true;
-            h.Save(uid);
+            h.Save( uid );
         }
 
         public Dictionary<string, string> Validate()
         {
             Dictionary<string, string> ValErrors = new Dictionary<string, string>();
-            if (POItemID <= 0 || POItem != null || POItem.PurchaseOrderItemID <= 0)
-                ValErrors.Add("Purchase Order Item ID", "Purchase Order Item ID is required and must be greater than zero.");
-            if (QuantityReceived <= 0)
-                ValErrors.Add("Quantity Recieved", "Quantity Received must be greater than zero.");
+            if ( POItemID <= 0 || POItem != null || POItem.PurchaseOrderItemID <= 0 )
+                ValErrors.Add( "Purchase Order Item ID", "Purchase Order Item ID is required and must be greater than zero." );
+            if ( QuantityReceived <= 0 )
+                ValErrors.Add( "Quantity Recieved", "Quantity Received must be greater than zero." );
 
             return ValErrors;
         }
@@ -210,10 +208,10 @@ namespace org.secc.Purchasing
             Active = true;
         }
 
-        private void Load(ReceiptItemData data)
+        private void Load( ReceiptItemData data )
         {
             Init();
-            if (data != null)
+            if ( data != null )
             {
                 ReceiptItemID = data.receipt_item_id;
                 ReceiptID = data.receipt_id;
@@ -227,9 +225,9 @@ namespace org.secc.Purchasing
             }
         }
 
-        private void Load(int receiptItemId)
+        private void Load( int receiptItemId )
         {
-            using (PurchasingContext Context = ContextHelper.GetDBContext())
+            using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
                 Load( Context.ReceiptItemDatas.FirstOrDefault( ri => ri.receipt_item_id == receiptItemId ) );
             }

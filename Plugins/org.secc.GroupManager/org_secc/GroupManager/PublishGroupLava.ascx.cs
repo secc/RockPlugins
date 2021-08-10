@@ -14,18 +14,18 @@
 // </copyright>
 //
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Web.UI.WebControls;
 using org.secc.GroupManager.Model;
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
-using Rock.Attribute;
-using Rock.Lava;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {

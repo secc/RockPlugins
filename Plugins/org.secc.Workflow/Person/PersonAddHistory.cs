@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Data.Entity;
 
 using Rock;
 using Rock.Attribute;
@@ -85,7 +84,7 @@ namespace org.secc.Workflow.Person
 
                 var personChanges = new History.HistoryChangeList();
 
-                personChanges.AddCustom( verb, History.HistoryChangeType.Record.ToString(), summary.Truncate(250) );
+                personChanges.AddCustom( verb, History.HistoryChangeType.Record.ToString(), summary.Truncate( 250 ) );
                 personChanges.First().Caption = caption;
 
                 if ( action?.Activity?.Workflow != null && action.Activity.WorkflowId != 0 )

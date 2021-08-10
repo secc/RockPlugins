@@ -28,10 +28,10 @@ namespace org.secc.Jobs
     /// <summary>
     /// Job to close workflows
     /// </summary>
-    [WorkflowTypeField("Workflow Types", "The type of workflows to close.", true, true, order: 0 )]
-    [TextField("Close Status", "The status to set the workflow to when closed.", true, "Completed", order: 1)]
-    [IntegerField("Expiration Age", "The age in minutes that a workflow needs to be in order to close them.", false, order: 2)]
-    [BooleanField("Expiration Calc Last Used", "If this is set to True the Expiration Age will be caluculated from the last time an entry form was updated.  Otherwise it will use the create date",false, order:3)]
+    [WorkflowTypeField( "Workflow Types", "The type of workflows to close.", true, true, order: 0 )]
+    [TextField( "Close Status", "The status to set the workflow to when closed.", true, "Completed", order: 1 )]
+    [IntegerField( "Expiration Age", "The age in minutes that a workflow needs to be in order to close them.", false, order: 2 )]
+    [BooleanField( "Expiration Calc Last Used", "If this is set to True the Expiration Age will be caluculated from the last time an entry form was updated.  Otherwise it will use the create date", false, order: 3 )]
     [DisallowConcurrentExecution]
     public class CompleteWorkflows : IJob
     {
@@ -57,22 +57,22 @@ namespace org.secc.Jobs
         {
             JobDataMap dataMap = context.JobDetail.JobDataMap;
 
-            var workflowTypeGuids = dataMap.GetString( "WorkflowTypes" ).Split(',').Select(Guid.Parse).ToList();
+            var workflowTypeGuids = dataMap.GetString( "WorkflowTypes" ).Split( ',' ).Select( Guid.Parse ).ToList();
             int? expirationAge = dataMap.GetString( "ExpirationAge" ).AsIntegerOrNull();
-            bool lastUsed = dataMap.GetString( "ExpirationCalcLastUsed").AsBoolean();
+            bool lastUsed = dataMap.GetString( "ExpirationCalcLastUsed" ).AsBoolean();
             string closeStatus = dataMap.GetString( "CloseStatus" );
 
             var rockContext = new RockContext();
             var workflowService = new WorkflowService( rockContext );
-            var workflowActionService = new WorkflowActionService( rockContext);
-           
+            var workflowActionService = new WorkflowActionService( rockContext );
+
 
             var qry = workflowService.Queryable().AsNoTracking()
                         .Where( w => workflowTypeGuids.Contains( w.WorkflowType.Guid )
                                      && w.ActivatedDateTime.HasValue
                                      && !w.CompletedDateTime.HasValue );
-            
-           
+
+
 
             if ( expirationAge.HasValue )
             {
@@ -89,10 +89,10 @@ namespace org.secc.Jobs
                         w.Activities
                         .Where( a => a.CompletedDateTime == null )
                         .SelectMany( a => a.Actions )
-                        .Where( ac => ac.CompletedDateTime == null && ac.CreatedDateTime <= expirationDate && ac.ActionType.EntityTypeId == formEntityTypeId ) 
+                        .Where( ac => ac.CompletedDateTime == null && ac.CreatedDateTime <= expirationDate && ac.ActionType.EntityTypeId == formEntityTypeId )
                         .Any() );
-                 }
-                 
+                }
+
 
 
             }
@@ -100,7 +100,7 @@ namespace org.secc.Jobs
             // Get a list of workflows to expire so we can open a new context in the loop
             var workflowIds = qry.Select( w => w.Id ).ToList();
 
-            foreach(var workflowId in workflowIds )
+            foreach ( var workflowId in workflowIds )
             {
                 rockContext = new RockContext();
                 workflowService = new WorkflowService( rockContext );
@@ -118,7 +118,7 @@ namespace org.secc.Jobs
                 rockContext.SaveChanges();
             }
 
-            context.Result = string.Format("{0} workflows were closed", workflowIds.Count);
+            context.Result = string.Format( "{0} workflows were closed", workflowIds.Count );
         }
 
     }

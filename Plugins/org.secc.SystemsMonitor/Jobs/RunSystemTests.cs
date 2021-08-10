@@ -12,7 +12,6 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -30,7 +29,7 @@ namespace org.secc.Jobs
 {
     [SystemCommunicationField( "Notification Communication", "Communication to send if a test meets an alarm condition", Order = 0 )]
     [GroupField( "Notification Group", "People communicate to if an alarm condition is met.", Order = 1 )]
-    [DefinedValueField( Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM, "From Number", "Number that sends the SMS alerts.",IsRequired = true, Order = 2 )]
+    [DefinedValueField( Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM, "From Number", "Number that sends the SMS alerts.", IsRequired = true, Order = 2 )]
 
 
     [DisallowConcurrentExecution]
@@ -65,7 +64,7 @@ namespace org.secc.Jobs
 
                     if ( test.MeetsAlarmCondition( result ) )
                     {
-                        alarms.Add( new TestResult(test.Name, test.AlarmNotification) );
+                        alarms.Add( new TestResult( test.Name, test.AlarmNotification ) );
                     }
                 }
             }
@@ -96,7 +95,7 @@ namespace org.secc.Jobs
             var emailAlarms = alarms
                 .Where( a => ( a.AlarmNotification & AlarmNotification.Email ) == AlarmNotification.Email )
                 .ToList();
-            if (emailAlarms.Any())
+            if ( emailAlarms.Any() )
             {
                 SendNotificationEmail( emailAlarms, people );
             }
@@ -117,7 +116,7 @@ namespace org.secc.Jobs
             var recipients = new List<RockMessageRecipient>();
 
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null, null );
-            mergeFields.Add( "Alarms", alarms );          
+            mergeFields.Add( "Alarms", alarms );
 
             foreach ( var person in people )
             {

@@ -12,22 +12,22 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Web;
 using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using System.Collections.Generic;
-using System;
-using System.Web;
 
 namespace org.secc.Jobs
 {
-    [CodeEditorField( "SQL Query", "The SQL to execute.  Each row will launch a workflow and columns will be automatically mapped to workflow attributes.", Rock.Web.UI.Controls.CodeEditorMode.Sql, required: false, category:"Source", order:1 )]
-    [DataViewField( "Data View", "A Dataview to use for launching workflows with the selected entity.", false, category: "Source", order: 2)]
+    [CodeEditorField( "SQL Query", "The SQL to execute.  Each row will launch a workflow and columns will be automatically mapped to workflow attributes.", Rock.Web.UI.Controls.CodeEditorMode.Sql, required: false, category: "Source", order: 1 )]
+    [DataViewField( "Data View", "A Dataview to use for launching workflows with the selected entity.", false, category: "Source", order: 2 )]
     [IntegerField( "Command Timeout", "Maximum amount of time (in seconds) to wait for the SQL Query or DataView to complete.", false, 60 * 60, "Source", 2, "CommandTimeout" )]
-    [WorkflowTypeField( "Workflow", "The workflow to launch for each row.", false, true, category:"Target" )]
+    [WorkflowTypeField( "Workflow", "The workflow to launch for each row.", false, true, category: "Target" )]
 
     [DisallowConcurrentExecution]
     public class WorkflowLauncher : IJob
@@ -95,9 +95,9 @@ namespace org.secc.Jobs
                             if ( dataViewGuid != null )
                             {
                                 var dataView = new DataViewService( rockContext ).Get( dataViewGuid.Value );
-                                
+
                                 var entityList = dataView.GetQuery( new DataViewGetQueryArgs { SortProperty = null, DatabaseTimeoutSeconds = commandTimeout } );
-                                foreach(IEntity entity in entityList)
+                                foreach ( IEntity entity in entityList )
                                 {
                                     var workflow = Workflow.Activate( workflowType, workflowType.Name );
 
@@ -123,7 +123,7 @@ namespace org.secc.Jobs
                 throw;
             }
 
-            context.Result = string.Format( "Workflow Launch Results:<br />Success:  {0}<br />Failed: {1}{2}", successful, failed, errors.Count>0? "<br />Errors: " + string.Join("<br />", errors ):"" );
+            context.Result = string.Format( "Workflow Launch Results:<br />Success:  {0}<br />Failed: {1}{2}", successful, failed, errors.Count > 0 ? "<br />Errors: " + string.Join( "<br />", errors ) : "" );
         }
     }
 }

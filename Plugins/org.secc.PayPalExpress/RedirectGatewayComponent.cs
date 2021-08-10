@@ -28,29 +28,23 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
-using System.Data;
-using Rock.Attribute;
-using Rock.Extension;
-using Rock.Model;
-using Rock.Web.Cache;
-using Rock.Financial;
-using System.Web;
 using Rock;
+using Rock.Financial;
+using Rock.Model;
 
 namespace org.secc.PayPalExpress
 {
     /// <summary>
     /// Base class for financial provider components
     /// </summary>
-    public abstract class RedirectGatewayComponent : GatewayComponent 
+    public abstract class RedirectGatewayComponent : GatewayComponent
     {
 
-        public abstract void PreRedirect(FinancialGateway financialGateway, PaymentInfo paymentInfo, List<GatewayAccountItem> SelectedAccounts, out string errorMessage );
+        public abstract void PreRedirect( FinancialGateway financialGateway, PaymentInfo paymentInfo, List<GatewayAccountItem> SelectedAccounts, out string errorMessage );
 
         public abstract string RedirectUrl { get; }
-        
+
         public class GatewayAccountItem
         {
             public int Id { get; set; }

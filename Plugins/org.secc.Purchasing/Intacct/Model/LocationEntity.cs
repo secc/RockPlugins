@@ -10,7 +10,7 @@ namespace org.secc.Purchasing.Intacct.Model
         [DeserializeAs( Name = "STARTOPEN" )]
         public DateTime StartOpen { get; set; }
 
-        [DeserializeAs(Name = "LOCATIONENTITY.LOCATIONTYPE" )]
+        [DeserializeAs( Name = "LOCATIONENTITY.LOCATIONTYPE" )]
         public string LocationType { get; set; }
 
         [DeserializeAs( Name = "ENABLELEGALCONTACT" )]

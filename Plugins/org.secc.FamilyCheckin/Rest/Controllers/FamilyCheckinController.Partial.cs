@@ -44,7 +44,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
         /// <param name="routes"></param>
         public void AddRoutes( HttpRouteCollection routes )
         {
-            RouteTable.Routes.MapHttpRoute( 
+            RouteTable.Routes.MapHttpRoute(
                 name: "FamiliesByPhone",
                 routeTemplate: "api/org.secc/familycheckin/{action}/{param}",
                 defaults: new
@@ -81,7 +81,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
 
                 var currentKioskId = localDevice.CurrentKioskId.Value;
                 Guid blockGuid = ( Guid ) session["BlockGuid"];
-                var currentCheckInState = new CheckInState( currentKioskId, localDevice.CurrentCheckinTypeId, localDevice.CurrentGroupTypeIds );
+                var currentCheckInState = new CheckInState( localDevice );
                 currentCheckInState.CheckIn.UserEnteredSearch = true;
                 currentCheckInState.CheckIn.ConfirmSingleFamily = true;
                 currentCheckInState.CheckIn.SearchType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER );

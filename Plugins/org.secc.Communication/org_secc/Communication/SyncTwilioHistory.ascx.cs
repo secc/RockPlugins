@@ -17,21 +17,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Humanizer;
 using Microsoft.AspNet.SignalR;
-
+using org.secc.Communication.Twilio;
 using Rock;
-using Rock.Data;
 using Rock.Model;
 using Rock.Web;
 using Rock.Web.UI;
-using System.Linq;
-using System.Web.UI.WebControls;
-using Rock.Web.Cache;
-using Rock.Communication;
-using org.secc.Communication.Twilio;
-using DocumentFormat.OpenXml.Drawing;
-using Humanizer;
-using Amazon.S3.Model.Internal.MarshallTransformations;
 
 namespace RockWeb.Plugins.org_secc.Communication
 {

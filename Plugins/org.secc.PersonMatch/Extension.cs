@@ -12,18 +12,13 @@
 // limitations under the License.
 // </copyright>
 //
-using Rock.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Rock;
-using Rock.Web.Cache;
-using Rock.Configuration;
 using Rock.Data;
-using DotLiquid.Util;
-using Rock.Search.Group;
+using Rock.Model;
+using Rock.Web.Cache;
 
 namespace org.secc.PersonMatch
 {

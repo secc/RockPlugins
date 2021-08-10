@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -131,10 +131,10 @@ namespace RockWeb.Plugins.org_secc.Microframe
                     Name = s.Name,
                     IPAddress = s.IPAddress,
                     Port = s.Port,
-                    Categories = string.Join(", ", s.SignCategories)
+                    Categories = string.Join( ", ", s.SignCategories )
                 } )
-                .OrderBy(s => s.Name).ToList();
-            
+                .OrderBy( s => s.Name ).ToList();
+
             gSigns.DataSource = signs;
             gSigns.DataBind();
         }

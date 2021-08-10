@@ -14,7 +14,6 @@
 //
 using System.Data.Entity;
 using org.secc.Reporting.Model;
-using Rock.Data;
 
 namespace org.secc.Reporting.Data
 {

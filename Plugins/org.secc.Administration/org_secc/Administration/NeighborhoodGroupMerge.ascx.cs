@@ -13,22 +13,15 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Web.UI;
 using System.Web.UI.WebControls;
 
 using Rock;
-using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
-using Rock.Web.UI.Controls;
-using Newtonsoft.Json;
 using Rock.Web.UI;
-using System.Data.Entity;
 
 namespace RockWeb.Plugins.org_secc.Administration
 {
@@ -58,9 +51,9 @@ namespace RockWeb.Plugins.org_secc.Administration
             AttendanceService attendanceService = new AttendanceService( rockContext );
 
             var destLWYA = groupService.Get( targetGroupId.Value );
-            
+
             var sourceLWYA = groupService.Get( sourceGroupId.Value );
-            
+
             //Add source members to target group as inactive
             foreach ( var member in sourceLWYA.Members.Where( m => !destLWYA.Members.Select( dM => dM.PersonId ).Contains( m.PersonId ) ) )
             {
@@ -89,11 +82,11 @@ namespace RockWeb.Plugins.org_secc.Administration
             //set cycle attribute
             AddCycle( destLWYA, sourceLWYA );
         }
-        
+
 
         private void CopyLocations( Group destLWYA, Group sourceLWYA )
         {
-            foreach (var groupLocation in sourceLWYA.GroupLocations )
+            foreach ( var groupLocation in sourceLWYA.GroupLocations )
             {
                 var newGroupLocation = groupLocation.Clone( false );
                 newGroupLocation.Id = 0;

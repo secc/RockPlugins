@@ -31,20 +31,15 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
+using org.secc.Finance.Utility;
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
-using Rock.Attribute;
-using System.Data.Entity;
-using Rock.Security;
-using org.secc.Finance.Utility;
 
 namespace RockWeb.Plugins.org_secc.Finance
 {
@@ -249,17 +244,17 @@ namespace RockWeb.Plugins.org_secc.Finance
             var statementYear = RockDateTime.Now.Year;
             DateRange dateRange = new DateRange();
 
-            if (Request["StatementYear"] != null)
+            if ( Request["StatementYear"] != null )
             {
                 Int32.TryParse( Request["StatementYear"].ToString(), out statementYear );
             }
             DateTime startDate = new DateTime( statementYear, 1, 1 );
             DateTime endDate = new DateTime( statementYear, 12, 31 );
-            if (Request["StatementStartDate"] != null)
+            if ( Request["StatementStartDate"] != null )
             {
-                DateTime.TryParse( Request["StatementStartDate"].ToString(), out startDate);
+                DateTime.TryParse( Request["StatementStartDate"].ToString(), out startDate );
             }
-            if (Request["StatementEndDate"] != null)
+            if ( Request["StatementEndDate"] != null )
             {
                 DateTime.TryParse( Request["StatementEndDate"].ToString(), out endDate );
             }
@@ -270,21 +265,21 @@ namespace RockWeb.Plugins.org_secc.Finance
 
             // get excluded currency types setting
             List<Guid> excludedCurrencyTypes = new List<Guid>();
-            if (GetAttributeValue( "ExcludedCurrencyTypes" ).IsNotNullOrWhiteSpace())
+            if ( GetAttributeValue( "ExcludedCurrencyTypes" ).IsNotNullOrWhiteSpace() )
             {
                 excludedCurrencyTypes = GetAttributeValue( "ExcludedCurrencyTypes" ).Split( ',' ).Select( Guid.Parse ).ToList();
             }
 
             var personGuid = Request["PersonGuid"].AsGuidOrNull();
 
-            if (personGuid.HasValue)
+            if ( personGuid.HasValue )
             {
                 // if "AllowPersonQueryString is False", only use the PersonGuid if it is a Guid of one of the current person's businesses
                 var isCurrentPersonsBusiness = targetPerson != null && targetPerson.GetBusinesses().Any( b => b.Guid == personGuid.Value );
-                if (GetAttributeValue( "AllowPersonQuerystring" ).AsBoolean() || isCurrentPersonsBusiness)
+                if ( GetAttributeValue( "AllowPersonQuerystring" ).AsBoolean() || isCurrentPersonsBusiness )
                 {
                     var person = new PersonService( rockContext ).Get( personGuid.Value );
-                    if (person != null)
+                    if ( person != null )
                     {
                         targetPerson = person;
                     }
@@ -292,7 +287,7 @@ namespace RockWeb.Plugins.org_secc.Finance
             }
 
             List<Guid> accountGuids = null;
-            if (!string.IsNullOrWhiteSpace( GetAttributeValue( "Accounts" ) ))
+            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "Accounts" ) ) )
             {
                 accountGuids = GetAttributeValue( "Accounts" ).Split( ',' ).Select( Guid.Parse ).ToList();
             }

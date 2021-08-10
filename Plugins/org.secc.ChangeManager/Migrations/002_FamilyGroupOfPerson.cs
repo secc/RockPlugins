@@ -13,7 +13,6 @@
 // </copyright>
 namespace org.secc.ChangeManager.Migrations
 {
-    using System;
     using Rock.Plugin;
 
     [MigrationNumber( 2, "1.10.2" )]

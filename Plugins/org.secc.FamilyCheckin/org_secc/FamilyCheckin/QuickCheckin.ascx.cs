@@ -785,13 +785,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 //Remove overlapping schedules
                 var otherSchedules = GetSchedules().Where( s => s.Schedule.Id != schedule.Schedule.Id );
-                var start = schedule.Schedule.GetCalendarEvent().DTStart;
-                var end = schedule.Schedule.GetCalendarEvent().DTEnd;
+                var start = schedule.Schedule.GetICalEvent().DtStart;
+                var end = schedule.Schedule.GetICalEvent().DtEnd;
 
                 foreach ( var otherSchedule in otherSchedules )
                 {
-                    if ( start.LessThan( otherSchedule.Schedule.GetCalendarEvent().DTEnd )
-                        && otherSchedule.Schedule.GetCalendarEvent().DTStart.LessThan( end ) )
+                    if ( start.LessThan( otherSchedule.Schedule.GetICalEvent().DtEnd )
+                        && otherSchedule.Schedule.GetICalEvent().DtStart.LessThan( end ) )
                     {
                         if ( selectedSchedules.Contains( otherSchedule.Schedule.Id ) )
                         {
@@ -993,13 +993,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         /// <returns></returns>
         private bool DoesNotOverlap( CheckInSchedule schedule, List<CheckInSchedule> selectedSchedules )
         {
-            var start = schedule.Schedule.GetCalendarEvent().DTStart;
-            var end = schedule.Schedule.GetCalendarEvent().DTEnd;
+            var start = schedule.Schedule.GetICalEvent().DtStart;
+            var end = schedule.Schedule.GetICalEvent().DtEnd;
 
             foreach ( var otherSchedule in selectedSchedules )
             {
-                if ( start.LessThan( otherSchedule.Schedule.GetCalendarEvent().DTEnd )
-                    && otherSchedule.Schedule.GetCalendarEvent().DTStart.LessThan( end ) )
+                if ( start.LessThan( otherSchedule.Schedule.GetICalEvent().DtEnd )
+                    && otherSchedule.Schedule.GetICalEvent().DtStart.LessThan( end ) )
                 {
                     return false;
                 }
@@ -1164,13 +1164,13 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         private void RemoveOverlappingSchedules( CheckInPerson checkInPerson, CheckInSchedule schedule )
         {
             var otherSchedules = GetCheckinSchedules( checkInPerson ).Where( s => s.Schedule.Id != schedule.Schedule.Id );
-            var start = schedule.Schedule.GetCalendarEvent().DTStart;
-            var end = schedule.Schedule.GetCalendarEvent().DTEnd;
+            var start = schedule.Schedule.GetICalEvent().DtStart;
+            var end = schedule.Schedule.GetICalEvent().DtEnd;
 
             foreach ( var otherSchedule in otherSchedules )
             {
-                if ( start.LessThan( otherSchedule.Schedule.GetCalendarEvent().DTEnd )
-                    && otherSchedule.Schedule.GetCalendarEvent().DTStart.LessThan( end ) )
+                if ( start.LessThan( otherSchedule.Schedule.GetICalEvent().DtEnd )
+                    && otherSchedule.Schedule.GetICalEvent().DtStart.LessThan( end ) )
                 {
                     ClearRoomSelection( checkInPerson, otherSchedule );
                 }

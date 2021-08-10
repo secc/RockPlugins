@@ -13,17 +13,16 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Web.Http;
-
+using Microsoft.Owin.Security.OAuth;
 using Rock;
 using Rock.Model;
 using Rock.Rest;
-using System.Collections.Generic;
-using System.Security.Claims;
-using Microsoft.Owin.Security.OAuth;
 
 
 namespace org.secc.OAuth.Rest.Controllers

@@ -43,21 +43,21 @@ namespace org.secc.Workflow.WorkflowAttributes
 
             // Get all the attribute values
             var attributeGuid = GetActionAttributeValue( action, "AttributeMatrix" ).AsGuidOrNull();
-            var attributeMatrixGuid = action.GetWorklowAttributeValue( attributeGuid.HasValue?attributeGuid.Value:Guid.Empty ).AsGuidOrNull();
+            var attributeMatrixGuid = action.GetWorkflowAttributeValue( attributeGuid.HasValue ? attributeGuid.Value : Guid.Empty ).AsGuidOrNull();
             var itemAttributes = GetActionAttributeValue( action, "ItemAttributes" ).AsDictionaryOrNull();
 
-            if ( attributeGuid.HasValue && itemAttributes != null)
+            if ( attributeGuid.HasValue && itemAttributes != null )
             {
                 // Load the matrix
-                AttributeMatrix matrix = attributeMatrixService.Get( attributeMatrixGuid.HasValue? attributeMatrixGuid.Value:Guid.Empty );
+                AttributeMatrix matrix = attributeMatrixService.Get( attributeMatrixGuid.HasValue ? attributeMatrixGuid.Value : Guid.Empty );
 
                 // If the matrix is null, create it first
-                if (matrix == null)
+                if ( matrix == null )
                 {
                     var attribute = AttributeCache.Get( GetActionAttributeValue( action, "AttributeMatrix" ).AsGuid() );
                     matrix = new AttributeMatrix();
                     matrix.AttributeMatrixItems = new List<AttributeMatrixItem>();
-                    matrix.AttributeMatrixTemplateId = attribute.QualifierValues["attributematrixtemplate"]?.Value?.AsInteger()??0;
+                    matrix.AttributeMatrixTemplateId = attribute.QualifierValues["attributematrixtemplate"]?.Value?.AsInteger() ?? 0;
                     attributeMatrixService.Add( matrix );
 
                     // Persist it and make sure it gets saved
@@ -77,9 +77,9 @@ namespace org.secc.Workflow.WorkflowAttributes
                 item.AttributeMatrix = matrix;
                 item.LoadAttributes();
 
-                foreach(var attribute in item.Attributes)
+                foreach ( var attribute in item.Attributes )
                 {
-                    if (itemAttributes.ContainsKey(attribute.Key))
+                    if ( itemAttributes.ContainsKey( attribute.Key ) )
                     {
                         item.SetAttributeValue( attribute.Key, itemAttributes[attribute.Key].ResolveMergeFields( GetMergeFields( action ) ) );
                     }

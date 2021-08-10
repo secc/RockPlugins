@@ -34,15 +34,13 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Data;
 using System.Linq;
-using PayPal.Payments.Common.Utility;
 using PayPal.Payments.DataObjects;
-using PayPal.Payments.Transactions;
+using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Financial;
 using Rock.Model;
 using Rock.Web.Cache;
-using Rock;
 
 namespace org.secc.PayFlowPro
 {
@@ -144,18 +142,18 @@ namespace org.secc.PayFlowPro
         {
             var financialTransaction = base.Charge( financialGateway, paymentInfo, out errorMessage );
             // Handle issues with the "Original transaction ID not found" error more gracefully
-            if ( paymentInfo is ReferencePaymentInfo  && errorMessage == "[19] Original transaction ID not found")
+            if ( paymentInfo is ReferencePaymentInfo && errorMessage == "[19] Original transaction ID not found" )
             {
                 // First delete the saved account--it is worthless
                 var rockContext = new RockContext();
                 var savedAccountService = new FinancialPersonSavedAccountService( rockContext );
                 var savedAccount = savedAccountService.Queryable()
                 .Where( s =>
-                    s.TransactionCode == (( ReferencePaymentInfo )paymentInfo).TransactionCode &&
+                    s.TransactionCode == ( ( ReferencePaymentInfo ) paymentInfo ).TransactionCode &&
                     s.FinancialGatewayId.HasValue &&
                     s.FinancialGatewayId.Value == financialGateway.Id )
                 .FirstOrDefault();
-                if (savedAccount != null)
+                if ( savedAccount != null )
                 {
                     savedAccountService.Delete( savedAccount );
                     rockContext.SaveChanges();
@@ -297,7 +295,7 @@ namespace org.secc.PayFlowPro
                         payment.GatewayScheduleId = recurringBillingRow["Profile ID"].ToString();
                         payment.ScheduleActive = recurringBillingRow["Status"].ToString() == "Active";
                         payment.CreditCardTypeValue = creditCardTypes.Where( t => t.Value == tenderType ).FirstOrDefault();
-                        if ( payment.CreditCardTypeValue != null)
+                        if ( payment.CreditCardTypeValue != null )
                         {
                             payment.CurrencyTypeValue = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_CREDIT_CARD );
                         }
@@ -305,7 +303,7 @@ namespace org.secc.PayFlowPro
                         {
                             payment.CurrencyTypeValue = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.CURRENCY_TYPE_ACH );
                         }
-                        if (!string.IsNullOrEmpty(email))
+                        if ( !string.IsNullOrEmpty( email ) )
                         {
                             payment.Attributes = new Dictionary<string, string>();
                             payment.Attributes.Add( "CCEmail", email );

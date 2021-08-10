@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -17,18 +17,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Web.UI;
 using System.Web.UI.WebControls;
 
 using Rock;
-using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
-using Rock.Web.UI.Controls;
-using Newtonsoft.Json;
 using Rock.Web.UI;
-using System.Data.Entity;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
@@ -76,7 +70,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
             PersonService personService = new PersonService( rockContext );
-            GroupMemberService groupMemberService = new GroupMemberService(rockContext);
+            GroupMemberService groupMemberService = new GroupMemberService( rockContext );
 
             foreach ( var year in graduationYears )
             {
@@ -139,7 +133,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 Name = groupName,
                 GroupTypeId = groupTypeId,
                 ScheduleId = groupScheduleId,
-                ParentGroupId = parentGroupId                
+                ParentGroupId = parentGroupId
             };
 
             groupService.Add( group );

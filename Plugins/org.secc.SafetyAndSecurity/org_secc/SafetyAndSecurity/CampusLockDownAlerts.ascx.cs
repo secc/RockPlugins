@@ -97,7 +97,7 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
                 .OrderBy( a => a.CreatedDateTime )
                 .ToList();
 
-            
+
             rNotifications.DataSource = alerts;
             rNotifications.DataBind();
         }
@@ -193,11 +193,11 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
                 mdSendUpdate.Title = "Send Update";
                 tbAlertMessage.Required = true;
             }
-            
+
 
         }
 
-        
+
 
         protected void mdSendUpdate_SendClick( object sender, EventArgs e )
         {
@@ -217,7 +217,7 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
                 {
                     AlertNotification = alert,
                     Message = tbAlertMessage.Text,
-                    
+
                 };
 
                 alertMessageService.Add( alertMessage );

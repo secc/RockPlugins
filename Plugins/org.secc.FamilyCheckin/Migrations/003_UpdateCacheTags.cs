@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using org.secc.FamilyCheckin.Utilities;
-using Rock;
+﻿using org.secc.FamilyCheckin.Utilities;
 using Rock.Plugin;
 
 namespace org.secc.FamilyCheckin.Migrations

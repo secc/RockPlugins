@@ -38,7 +38,7 @@ namespace RockWeb.Blocks.Event
     [Category( "SECC > Event" )]
     [Description( "Renders a particular calendar event item using Lava." )]
     [LinkedPage( "Registration Page", "Registration page for events", order: 1 )]
-    [EventItemField( "EventItem", "", required: false)]
+    [EventItemField( "EventItem", "", required: false )]
     [CodeEditorField( "Lava Template", "Lava template to use to display the list of events.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"{% include '~~/Assets/Lava/CalendarItem.lava' %}", "", 2 )]
     [BooleanField( "Set Page Title", "Determines if the block should set the page title with the calendar item name.", false, order: 3 )]
     [AttributeField( "E37FB26F-03F6-48DA-8E96-F412616F5EE4", "URL Slug Attribute", "The attribute on the calendar item which contains the URL Slug.", false, order: 4 )]
@@ -133,7 +133,7 @@ namespace RockWeb.Blocks.Event
             int eventItemId = qry.Where( i => i.Guid == eventItemAttGuid ).Select( i => i.Id ).FirstOrDefault();
 
             // get the eventItem id if the event item block attribute isn't set
-            if ( eventItemId == 0 &&  !string.IsNullOrWhiteSpace( PageParameter( "EventItemId" ) ) )
+            if ( eventItemId == 0 && !string.IsNullOrWhiteSpace( PageParameter( "EventItemId" ) ) )
             {
                 eventItemId = Convert.ToInt32( PageParameter( "EventItemId" ) );
             }
@@ -224,7 +224,7 @@ namespace RockWeb.Blocks.Event
                         }
                     }
 
-                    eventItem.EventItemOccurrences = occurrenceList.OrderBy(o => o.NextStartDateTime.HasValue ? o.NextStartDateTime : DateTime.Now ).ToList();
+                    eventItem.EventItemOccurrences = occurrenceList.OrderBy( o => o.NextStartDateTime.HasValue ? o.NextStartDateTime : DateTime.Now ).ToList();
 
                     var mergeFields = new Dictionary<string, object>();
                     mergeFields.Add( "RegistrationPage", LinkedPageRoute( "RegistrationPage" ) );

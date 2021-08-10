@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -102,7 +102,7 @@ namespace RockWeb.Plugins.org_secc.TotalMD
 
             if ( !Page.IsPostBack )
             {
-                if (pnlList.Visible == true)
+                if ( pnlList.Visible == true )
                 {
                     BindFilter();
                     BindGrid();
@@ -266,7 +266,7 @@ namespace RockWeb.Plugins.org_secc.TotalMD
                     }
                 }
 
-                if (string.IsNullOrEmpty(whereClause))
+                if ( string.IsNullOrEmpty( whereClause ) )
                 {
                     whereClause = "WHERE [Code] <> '00000'";
                 }
@@ -277,7 +277,7 @@ namespace RockWeb.Plugins.org_secc.TotalMD
 
                 string qry = @"SELECT [Code], CONCAT(CONCAT([First Name] WITH ' ') WITH [Last Name]) AS [Counselor Name] 
                     FROM Provider " +
-                    whereClause + 
+                    whereClause +
                     " ORDER BY [Counselor Name]";
 
                 OdbcDataAdapter da = new OdbcDataAdapter( qry, con );

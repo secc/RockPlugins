@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
 using org.secc.Purchasing.DataLayer;
@@ -36,8 +35,8 @@ namespace org.secc.Purchasing
         private GLAccount mAccount;
         private List<PurchaseOrderItem> mPOItems;
 
-        private Guid ShippingTypeLTGuid = new Guid("DFAC2EB7-97D0-4318-ACF3-554ADC2272F3");
-        private Guid SubmittedToPurchasingLUGuid = new Guid("22026706-A51D-44D7-8072-945AAB64A364");
+        private Guid ShippingTypeLTGuid = new Guid( "DFAC2EB7-97D0-4318-ACF3-554ADC2272F3" );
+        private Guid SubmittedToPurchasingLUGuid = new Guid( "22026706-A51D-44D7-8072-945AAB64A364" );
         #endregion
 
         #region Properties
@@ -60,14 +59,14 @@ namespace org.secc.Purchasing
         public bool Active { get; set; }
         public decimal Price { get; set; }
         public bool IsExpeditiedShippingAllowed { get; set; }
- 
+
         [XmlIgnore]
         public Requisition Requisition
         {
             get
             {
-                if (mRequisition == null && RequisitionID > 0)
-                    mRequisition = new Requisition(RequisitionID);
+                if ( mRequisition == null && RequisitionID > 0 )
+                    mRequisition = new Requisition( RequisitionID );
                 return mRequisition;
             }
         }
@@ -77,8 +76,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mCreatedBy == null && !String.IsNullOrEmpty(CreatedByUserID))
-                    mCreatedBy = userLoginService.GetByUserName(CreatedByUserID).Person;
+                if ( mCreatedBy == null && !String.IsNullOrEmpty( CreatedByUserID ) )
+                    mCreatedBy = userLoginService.GetByUserName( CreatedByUserID ).Person;
                 return mCreatedBy;
             }
         }
@@ -88,8 +87,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mModifiedBy == null && !String.IsNullOrEmpty(ModifiedByUserID))
-                    mModifiedBy = userLoginService.GetByUserName(ModifiedByUserID).Person;
+                if ( mModifiedBy == null && !String.IsNullOrEmpty( ModifiedByUserID ) )
+                    mModifiedBy = userLoginService.GetByUserName( ModifiedByUserID ).Person;
                 return mModifiedBy;
             }
         }
@@ -103,14 +102,14 @@ namespace org.secc.Purchasing
                 mAccount = ApiClient.GetGLAccounts().Where( a => a.AccountNo == AccountID ).FirstOrDefault();
 
                 // Now verify that the location and department are valid
-                if ( mAccount != null)
+                if ( mAccount != null )
                 {
                     var restrictedData = ApiClient.GetDimensionRestrictedData( mAccount );
 
                     // If we get here with no data, then the restricted data is just not available so go ahead and allow it
-                    if ( restrictedData.Count > 0)
-                    { 
-                        if (!restrictedData.Any(r => r.Dimension == "DEPARTMENT" && r.IdValues.Contains( DepartmentID ) ) )
+                    if ( restrictedData.Count > 0 )
+                    {
+                        if ( !restrictedData.Any( r => r.Dimension == "DEPARTMENT" && r.IdValues.Contains( DepartmentID ) ) )
                         {
                             mAccount = null;
                         }
@@ -132,8 +131,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mPOItems == null && ItemID > 0)
-                    mPOItems = PurchaseOrderItem.LoadByRequistionItem(ItemID);
+                if ( mPOItems == null && ItemID > 0 )
+                    mPOItems = PurchaseOrderItem.LoadByRequistionItem( ItemID );
 
                 return mPOItems;
             }
@@ -161,14 +160,14 @@ namespace org.secc.Purchasing
             Init();
         }
 
-        public RequisitionItem(int itemID)
+        public RequisitionItem( int itemID )
         {
-            Load(itemID);
+            Load( itemID );
         }
 
-        public RequisitionItem(RequisitionItemData d)
+        public RequisitionItem( RequisitionItemData d )
         {
-            Load(d);
+            Load( d );
         }
         #endregion 
 
@@ -177,7 +176,7 @@ namespace org.secc.Purchasing
         public bool CanBeDeleted()
         {
             bool Deleteable = true;
-            if (Deleteable && POItems.Where(poi => poi.Active == true).Where(poi => poi.PurchaseOrder.Active).Where(poi => poi.PurchaseOrder.StatusLUID != PurchaseOrder.PurchaseOrderStatusCancelledLUID()).Count() > 0)
+            if ( Deleteable && POItems.Where( poi => poi.Active == true ).Where( poi => poi.PurchaseOrder.Active ).Where( poi => poi.PurchaseOrder.StatusLUID != PurchaseOrder.PurchaseOrderStatusCancelledLUID() ).Count() > 0 )
                 Deleteable = false;
             return Deleteable;
 
@@ -186,35 +185,35 @@ namespace org.secc.Purchasing
         public bool HasChanged()
         {
             bool Changed = false;
-            RequisitionItem Original = new RequisitionItem(ItemID);
+            RequisitionItem Original = new RequisitionItem( ItemID );
 
-            if (this.GetHashCode() != Original.GetHashCode())
+            if ( this.GetHashCode() != Original.GetHashCode() )
             {
-                if (RequisitionID != Original.RequisitionID)
+                if ( RequisitionID != Original.RequisitionID )
                     Changed = true;
-                if (!Changed && Quantity != Original.Quantity)
+                if ( !Changed && Quantity != Original.Quantity )
                     Changed = true;
-                if (!Changed && Description != Original.Description)
+                if ( !Changed && Description != Original.Description )
                     Changed = true;
-                if (!Changed && DateNeeded != Original.DateNeeded)
+                if ( !Changed && DateNeeded != Original.DateNeeded )
                     Changed = true;
-                if (!Changed && CompanyID != Original.CompanyID)
+                if ( !Changed && CompanyID != Original.CompanyID )
                     Changed = true;
-                if (!Changed && FundID != Original.FundID)
+                if ( !Changed && FundID != Original.FundID )
                     Changed = true;
-                if (!Changed && DepartmentID != Original.DepartmentID)
+                if ( !Changed && DepartmentID != Original.DepartmentID )
                     Changed = true;
-                if (!Changed && AccountID != Original.AccountID)
+                if ( !Changed && AccountID != Original.AccountID )
                     Changed = true;
                 if ( !Changed && ProjectId != Original.ProjectId )
                     Changed = true;
-                if (!Changed && FYStartDate != Original.FYStartDate)
+                if ( !Changed && FYStartDate != Original.FYStartDate )
                     Changed = true;
-                if (!Changed && Active != Original.Active)
+                if ( !Changed && Active != Original.Active )
                     Changed = true;
-                if (!Changed && Price != Original.Price)
+                if ( !Changed && Price != Original.Price )
                     Changed = true;
-                if (!Changed && IsExpeditiedShippingAllowed != Original.IsExpeditiedShippingAllowed)
+                if ( !Changed && IsExpeditiedShippingAllowed != Original.IsExpeditiedShippingAllowed )
                     Changed = true;
             }
 
@@ -225,30 +224,31 @@ namespace org.secc.Purchasing
         public int GetQuantityReceived()
         {
             return POItems
-                    .Where(x => x.Active)
-                    .Where(x => x.PurchaseOrder.Active)
-                    .Where(x => x.PurchaseOrder.StatusLUID != PurchaseOrder.PurchaseOrderStatusCancelledLUID())
-                    .Select(x => x.ReceiptItems.Where(ri => ri.Active).Where(ri=> ri.Receipt.Active).Select(ri => ri.QuantityReceived).Sum()).Sum();
+                    .Where( x => x.Active )
+                    .Where( x => x.PurchaseOrder.Active )
+                    .Where( x => x.PurchaseOrder.StatusLUID != PurchaseOrder.PurchaseOrderStatusCancelledLUID() )
+                    .Select( x => x.ReceiptItems.Where( ri => ri.Active ).Where( ri => ri.Receipt.Active ).Select( ri => ri.QuantityReceived ).Sum() ).Sum();
         }
-        
 
-        public void Save(string uid)
+
+        public void Save( string uid )
         {
             try
             {
                 RequisitionItem Original = null;
                 Enums.HistoryType ChangeType;
                 Dictionary<string, string> ValErrors = Validate();
-                if (ValErrors.Count > 0) throw new RequisitionNotValidException("The requested item is not valid.", ValErrors);
+                if ( ValErrors.Count > 0 )
+                    throw new RequisitionNotValidException( "The requested item is not valid.", ValErrors );
 
-                using (PurchasingContext Context = ContextHelper.GetDBContext())
+                using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                 {
                     RequisitionItemData data;
-                    if (ItemID > 0)
+                    if ( ItemID > 0 )
                     {
-                        data = Context.RequisitionItemDatas.FirstOrDefault(x => x.requisition_item_id == ItemID);
+                        data = Context.RequisitionItemDatas.FirstOrDefault( x => x.requisition_item_id == ItemID );
                         ChangeType = HistoryType.UPDATE;
-                        Original = new RequisitionItem(data);
+                        Original = new RequisitionItem( data );
                     }
                     else
                     {
@@ -263,15 +263,15 @@ namespace org.secc.Purchasing
                     data.requisition_id = RequisitionID;
                     data.quantity = Quantity;
                     data.description = Description;
-                    
-                    if(DateNeeded != DateTime.MinValue)
+
+                    if ( DateNeeded != DateTime.MinValue )
                         data.date_needed = DateNeeded;
 
-                    if (!String.IsNullOrEmpty(ItemNumber))
+                    if ( !String.IsNullOrEmpty( ItemNumber ) )
                         data.item_number = ItemNumber;
                     else
                         data.item_number = null;
-                    
+
                     data.company_id = CompanyID;
                     data.fund_id = FundID;
                     data.department_id = DepartmentID;
@@ -289,55 +289,55 @@ namespace org.secc.Purchasing
                         data.price = null;
                     }
 
-                    if (ItemID == 0)
-                        Context.RequisitionItemDatas.InsertOnSubmit(data);
+                    if ( ItemID == 0 )
+                        Context.RequisitionItemDatas.InsertOnSubmit( data );
 
                     Context.SubmitChanges();
 
-                    Load(data);
+                    Load( data );
 
-                    SaveHistory(ChangeType, Original, uid);
+                    SaveHistory( ChangeType, Original, uid );
                 }
 
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
-                throw new RequisitionException("An error has occurred while saving requisition item.", ex);
+                throw new RequisitionException( "An error has occurred while saving requisition item.", ex );
             }
         }
 
-        public void SaveHistory(HistoryType ht, RequisitionItem orig, string uid)
+        public void SaveHistory( HistoryType ht, RequisitionItem orig, string uid )
         {
             History h = new History();
             h.ObjectTypeName = this.GetType().ToString();
             h.Identifier = ItemID;
             h.ChangeType = ht;
 
-            switch (ht)
+            switch ( ht )
             {
                 case HistoryType.ADD:
                     h.OriginalXML = null;
-                    h.UpdatedXML = base.Serialize(this);
+                    h.UpdatedXML = base.Serialize( this );
                     break;
                 case HistoryType.UPDATE:
-                    h.OriginalXML = base.Serialize(orig);
-                    h.UpdatedXML = base.Serialize(this);
+                    h.OriginalXML = base.Serialize( orig );
+                    h.UpdatedXML = base.Serialize( this );
                     break;
                 case HistoryType.DELETE:
-                    h.OriginalXML = base.Serialize(this);
+                    h.OriginalXML = base.Serialize( this );
                     break;
             }
 
             h.OrganizationID = Requisition.OrganizationID;
             h.Active = true;
-            h.Save(uid);
+            h.Save( uid );
         }
 
 
-        public void SoftDelete(string uid)
+        public void SoftDelete( string uid )
         {
             Active = false;
-            Save(uid);
+            Save( uid );
         }
 
         #endregion
@@ -356,7 +356,7 @@ namespace org.secc.Purchasing
             DepartmentID = 0;
             AccountID = 0;
             ProjectId = null;
-            FYStartDate = new DateTime(DateTime.Now.Year, 1, 1);
+            FYStartDate = new DateTime( DateTime.Now.Year, 1, 1 );
             CreatedByUserID = String.Empty;
             ModifiedByUserID = String.Empty;
             DateCreated = DateTime.MinValue;
@@ -371,20 +371,20 @@ namespace org.secc.Purchasing
 
         }
 
-        private void Load(RequisitionItemData data)
+        private void Load( RequisitionItemData data )
         {
             Init();
-            if (data != null)
+            if ( data != null )
             {
                 ItemID = data.requisition_item_id;
                 RequisitionID = data.requisition_id;
-                Quantity =  data.quantity;
+                Quantity = data.quantity;
                 Description = data.description;
 
-                if (data.date_needed != null)
-                    DateNeeded = (DateTime)data.date_needed;
+                if ( data.date_needed != null )
+                    DateNeeded = ( DateTime ) data.date_needed;
 
-                if (data.item_number != null)
+                if ( data.item_number != null )
                     ItemNumber = data.item_number;
 
                 CompanyID = data.company_id;
@@ -395,22 +395,22 @@ namespace org.secc.Purchasing
                 CreatedByUserID = data.created_by;
                 ModifiedByUserID = data.modified_by;
                 DateCreated = data.date_created;
-                DateModified = (DateTime)data.date_modified;
+                DateModified = ( DateTime ) data.date_modified;
                 IsExpeditiedShippingAllowed = data.is_expedited_shipping_allowed;
-                if(data.fiscal_year_start != null)
-                    FYStartDate = (DateTime)data.fiscal_year_start;
+                if ( data.fiscal_year_start != null )
+                    FYStartDate = ( DateTime ) data.fiscal_year_start;
 
-                if (data.price == null)
+                if ( data.price == null )
                     Price = 0;
                 else
-                    Price = (decimal)data.price;
+                    Price = ( decimal ) data.price;
                 Active = data.active;
             }
         }
 
-        private void Load(int requisitionItemId)
+        private void Load( int requisitionItemId )
         {
-            using (PurchasingContext Context = ContextHelper.GetDBContext())
+            using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
                 Load( Context.RequisitionItemDatas.FirstOrDefault( ri => ri.requisition_item_id == requisitionItemId ) );
             }
@@ -424,36 +424,37 @@ namespace org.secc.Purchasing
                 return ValErrors;
             }
 
-            if (ItemID <= 0 )
+            if ( ItemID <= 0 )
             {
-                if (DateNeeded != DateTime.MinValue && DateNeeded < DateTime.Now.Date)
-                    ValErrors.Add("Date Needed", "Date Needed can not be in the past.");
+                if ( DateNeeded != DateTime.MinValue && DateNeeded < DateTime.Now.Date )
+                    ValErrors.Add( "Date Needed", "Date Needed can not be in the past." );
             }
             else
             {
-                RequisitionItem Original = new RequisitionItem(ItemID);
+                RequisitionItem Original = new RequisitionItem( ItemID );
 
-                if (Original.Quantity != Quantity)
+                if ( Original.Quantity != Quantity )
                 {
-                    if (Quantity < POItems.Where(poi => poi.Active).Select(poi => (int?)poi.Quantity ?? 0).Sum())
+                    if ( Quantity < POItems.Where( poi => poi.Active ).Select( poi => ( int? ) poi.Quantity ?? 0 ).Sum() )
                     {
-                        ValErrors.Add("Quantity", "Quantity is less than the quantity assigned to purchase orders.");
+                        ValErrors.Add( "Quantity", "Quantity is less than the quantity assigned to purchase orders." );
                     }
                 }
             }
 
-            if(Quantity <= 0)
-                ValErrors.Add("Quantity", "Quantity must be greater than 0.");
-            if(String.IsNullOrEmpty(Description))
-                ValErrors.Add("Description", "Description must be provided.");
-            
+            if ( Quantity <= 0 )
+                ValErrors.Add( "Quantity", "Quantity must be greater than 0." );
+            if ( String.IsNullOrEmpty( Description ) )
+                ValErrors.Add( "Description", "Description must be provided." );
 
-            if (CompanyID <= 0 || FundID <= 0 || DepartmentID <= 0 || AccountID <= 0 || FYStartDate == DateTime.MinValue)
-            { 
-                ValErrors.Add("Account", "Please select a valid account");
-            } else if (Account == null || Account.AccountNo <= 0)
+
+            if ( CompanyID <= 0 || FundID <= 0 || DepartmentID <= 0 || AccountID <= 0 || FYStartDate == DateTime.MinValue )
             {
-                ValErrors.Add("Account", "Account not found.");
+                ValErrors.Add( "Account", "Please select a valid account" );
+            }
+            else if ( Account == null || Account.AccountNo <= 0 )
+            {
+                ValErrors.Add( "Account", "Account not found." );
             }
             else if ( !apiClient.GetLocations().Any( l => l.Id == FundID ) )
             {
@@ -472,14 +473,14 @@ namespace org.secc.Purchasing
 
             if ( !string.IsNullOrWhiteSpace( ProjectId ) )
             {
-                if ( !ApiClient.GetProjects().Where(p => p.ProjectId == ProjectId).Any() )
+                if ( !ApiClient.GetProjects().Where( p => p.ProjectId == ProjectId ).Any() )
                 {
                     ValErrors.Add( "Project", "Project not found: Please enter a valid project code." );
                 }
             }
 
-            if (ItemID <= 0 && FYStartDate.Year < DateTime.Now.Year)
-                ValErrors.Add("Fiscal Year", "Fiscal year can not be in the past.");
+            if ( ItemID <= 0 && FYStartDate.Year < DateTime.Now.Year )
+                ValErrors.Add( "Fiscal Year", "Fiscal year can not be in the past." );
 
 
             //if (Price < 0)

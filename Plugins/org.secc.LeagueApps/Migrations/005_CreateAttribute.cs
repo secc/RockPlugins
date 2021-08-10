@@ -16,7 +16,7 @@ using Rock.Plugin;
 
 namespace org.secc.LeagueApps.Migrations
 {
-    [MigrationNumber(5, "1.0.5")]
+    [MigrationNumber( 5, "1.0.5" )]
     class CreateAttribute : Migration
     {
         /// <summary>
@@ -38,12 +38,12 @@ namespace org.secc.LeagueApps.Migrations
 
         }
 
-    /// <summary>
-    /// The commands to undo a migration from a specific version
-    /// </summary>
-    public override void Down()
+        /// <summary>
+        /// The commands to undo a migration from a specific version
+        /// </summary>
+        public override void Down()
         {
-            RockMigrationHelper.DeleteAttribute("FA679B84-53A4-4DE9-84B5-D4EAFCC52E75");
+            RockMigrationHelper.DeleteAttribute( "FA679B84-53A4-4DE9-84B5-D4EAFCC52E75" );
         }
     }
 }

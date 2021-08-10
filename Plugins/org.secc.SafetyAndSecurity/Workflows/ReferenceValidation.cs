@@ -12,11 +12,6 @@
 // limitations under the License.
 // </copyright>
 //
-using Rock;
-using Rock.Attribute;
-using Rock.Data;
-using Rock.Model;
-using Rock.Workflow;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -24,6 +19,11 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Rock;
+using Rock.Attribute;
+using Rock.Data;
+using Rock.Model;
+using Rock.Workflow;
 
 namespace org.secc.SafetyAndSecurity
 {
@@ -227,7 +227,7 @@ namespace org.secc.SafetyAndSecurity
             {
                 //if this is the not the last reference OR
                 //if this is the last reference and it is a minor
-                if ( ( ref_count < max_ref - 1 ) || (ref_count == max_ref - 1 && !minor ) )
+                if ( ( ref_count < max_ref - 1 ) || ( ref_count == max_ref - 1 && !minor ) )
                 {
                     sbErrorMessages.AppendLine( "<li>Your reference must not be a staff member of Southeast Christian Church.</li>" );
                 }
@@ -258,16 +258,16 @@ namespace org.secc.SafetyAndSecurity
             street = street.Trim();
             street = street.Substring( 0, street.LastIndexOf( " " ) + 1 );
             street = street.Replace( " ", "" );
-            return ( street);
+            return ( street );
         }
 
         private string formatAddress( Location location )
         {
             string address;
-            address = String.Concat( formatStreet( location?.Street1?.ToLower() ), 
+            address = String.Concat( formatStreet( location?.Street1?.ToLower() ),
                                      formatStreet( location?.Street2?.ToLower() ),
-                                     location?.City?.ToLower(), location?.State?.ToLower(), 
-                                     location?.PostalCode?.SafeSubstring( 0, 5 ) );
+                                     location?.City?.ToLower(), location?.State?.ToLower(),
+                                     location?.PostalCode?.SubstringSafe( 0, 5 ) );
             address = address.Replace( " ", "" );
             address = address.Replace( "-", "" ).Trim();
             return ( address );

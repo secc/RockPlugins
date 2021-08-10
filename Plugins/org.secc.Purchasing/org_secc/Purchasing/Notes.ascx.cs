@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -14,16 +14,13 @@
 //
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
 using org.secc.Purchasing;
 using Rock;
-using Rock.Web.UI;
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
@@ -34,8 +31,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             get
             {
                 int ID = 0;
-                if (ViewState["uc_Notes_NoteTypeIdentifier"] != null)
-                    ID = (int)ViewState["uc_Notes_NoteTypeIdentifier"];
+                if ( ViewState["uc_Notes_NoteTypeIdentifier"] != null )
+                    ID = ( int ) ViewState["uc_Notes_NoteTypeIdentifier"];
                 return ID;
             }
             set
@@ -49,8 +46,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             get
             {
                 bool allowCancel = false;
-                if (ViewState["ucNotes_AllowCancel"] != null)
-                    allowCancel = (bool)ViewState["ucNotes_AllowCancel"];
+                if ( ViewState["ucNotes_AllowCancel"] != null )
+                    allowCancel = ( bool ) ViewState["ucNotes_AllowCancel"];
                 return allowCancel;
             }
             set
@@ -81,7 +78,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             get
             {
                 string callbackName = String.Empty;
-                if (ViewState["ucNotes_Callback"] != null)
+                if ( ViewState["ucNotes_Callback"] != null )
                     callbackName = ViewState["ucNotes_Callback"].ToString();
                 return callbackName;
             }
@@ -128,7 +125,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             get
             {
                 string instructions = String.Empty;
-                if (ViewState["ucNotes_Instructions"] != null)
+                if ( ViewState["ucNotes_Instructions"] != null )
                     instructions = ViewState["ucNotes_Instructions"].ToString();
                 return instructions;
             }
@@ -136,7 +133,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 ViewState["ucNotes_Instructions"] = value;
                 lblInstruction.Text = value;
-                lblInstruction.Visible = !String.IsNullOrEmpty(value);
+                lblInstruction.Visible = !String.IsNullOrEmpty( value );
             }
         }
 
@@ -145,7 +142,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             get
             {
                 string prefix = String.Empty;
-                if (ViewState["ucNotes_NotePrefix"] != null)
+                if ( ViewState["ucNotes_NotePrefix"] != null )
                     prefix = ViewState["ucNotes_NotePrefix"].ToString();
                 return prefix;
             }
@@ -160,7 +157,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             get
             {
                 string otName = String.Empty;
-                if (ViewState["uc_Notes_ObjectTypeName"] != null)
+                if ( ViewState["uc_Notes_ObjectTypeName"] != null )
                     otName = ViewState["uc_Notes_ObjectTypeName"].ToString();
                 return otName;
             }
@@ -176,8 +173,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 bool readOnly = false;
 
-                if (ViewState["ucNotes_ReadOnly"] != null)
-                    bool.TryParse(ViewState["ucNotes_ReadOnly"].ToString(), out readOnly);
+                if ( ViewState["ucNotes_ReadOnly"] != null )
+                    bool.TryParse( ViewState["ucNotes_ReadOnly"].ToString(), out readOnly );
 
                 return readOnly;
             }
@@ -211,7 +208,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-                if (ViewState["ucNotes_CurrentUserName"] != null)
+                if ( ViewState["ucNotes_CurrentUserName"] != null )
                 {
                     return ViewState["ucNotes_CurrentUserName"].ToString();
                 }
@@ -225,77 +222,77 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         #region Page Events
 
 
-        protected void Page_Load(object sender, EventArgs e)
+        protected void Page_Load( object sender, EventArgs e )
         {
-          if (!Page.IsPostBack)
+            if ( !Page.IsPostBack )
                 ResetVariableProperties();
         }
 
-        protected void btnSave_Click(object sender, EventArgs e)
+        protected void btnSave_Click( object sender, EventArgs e )
         {
-            if (SaveNote())
+            if ( SaveNote() )
             {
                 int NoteID = 0;
 
-                int.TryParse(hfNoteID.Value, out NoteID);
+                int.TryParse( hfNoteID.Value, out NoteID );
                 ClearNoteDetail();
                 mpNoteDetails.Hide();
                 BindNoteList();
 
-                RefreshParent(sender, e);
+                RefreshParent( sender, e );
 
-                if (!String.IsNullOrEmpty(Callback))
+                if ( !String.IsNullOrEmpty( Callback ) )
                 {
-                    Callback = Callback.Replace("##NoteID##", NoteID.ToString());
-                    ScriptManager.RegisterStartupScript(upNoteDetails, upNoteDetails.GetType(), "NoteDetailCallback" + DateTime.Now.Ticks, Callback, true);
+                    Callback = Callback.Replace( "##NoteID##", NoteID.ToString() );
+                    ScriptManager.RegisterStartupScript( upNoteDetails, upNoteDetails.GetType(), "NoteDetailCallback" + DateTime.Now.Ticks, Callback, true );
 
                 }
 
             }
         }
 
-        protected void btnCancel_Click(object sender, EventArgs e)
+        protected void btnCancel_Click( object sender, EventArgs e )
         {
             ClearNoteDetail();
             mpNoteDetails.Hide();
         }
 
-        protected void btnReset_Click(object sender, EventArgs e)
+        protected void btnReset_Click( object sender, EventArgs e )
         {
             ResetPopupFields();
         }
 
-        protected void dgNote_RowDataBound(object sender, GridViewRowEventArgs e)
+        protected void dgNote_RowDataBound( object sender, GridViewRowEventArgs e )
         {
-            if (e.Row.RowType == DataControlRowType.DataRow)
+            if ( e.Row.RowType == DataControlRowType.DataRow )
             {
-                DataRowView drv = (DataRowView)e.Row.DataItem;
-                LinkButton lbHide = (LinkButton)e.Row.FindControl("lbHide");
-                LinkButton lbEdit = (LinkButton)e.Row.FindControl("lbEdit");
+                DataRowView drv = ( DataRowView ) e.Row.DataItem;
+                LinkButton lbHide = ( LinkButton ) e.Row.FindControl( "lbHide" );
+                LinkButton lbEdit = ( LinkButton ) e.Row.FindControl( "lbEdit" );
 
-                bool IsEditable = UserCanEditItem(drv["CreatedByUser"].ToString());
+                bool IsEditable = UserCanEditItem( drv["CreatedByUser"].ToString() );
                 lbHide.CommandArgument = drv["NoteID"].ToString();
                 lbHide.Visible = IsEditable;
 
                 lbEdit.CommandArgument = drv["NoteID"].ToString();
                 lbEdit.Visible = IsEditable;
-                
+
             }
         }
 
-        protected void dgNote_ItemCommand(object sender, CommandEventArgs e)
+        protected void dgNote_ItemCommand( object sender, CommandEventArgs e )
         {
             int noteID = 0;
-                int.TryParse(e.CommandArgument.ToString(), out noteID);
+            int.TryParse( e.CommandArgument.ToString(), out noteID );
 
-            if (noteID <= 0)
+            if ( noteID <= 0 )
                 return;
 
-            switch (e.CommandName.ToLower())
+            switch ( e.CommandName.ToLower() )
             {
                 case "hidenote":
-                    HideNote(noteID);
-                    RefreshParent(sender, e);
+                    HideNote( noteID );
+                    RefreshParent( sender, e );
                     break;
                 case "editnote":
                     ShowNoteDetail( noteID );
@@ -309,7 +306,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         #endregion
 
         #region Public
-        public void LoadNoteList(string otn, int identifier)
+        public void LoadNoteList( string otn, int identifier )
         {
             ObjectTypeName = otn;
             Identifier = identifier;
@@ -327,7 +324,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         }
         public void ShowNoteDetail()
         {
-            ShowNoteDetail(0);
+            ShowNoteDetail( 0 );
             btnCancel.Visible = AllowCancel;
         }
 
@@ -340,7 +337,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
 
             DataTable dt = new DataTable();
-            dt.Columns.AddRange(new DataColumn[] {
+            dt.Columns.AddRange( new DataColumn[] {
             new DataColumn("NoteID"),
             new DataColumn("Body"),
             new DataColumn("CreatedBy"),
@@ -349,37 +346,37 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             new DataColumn("ModifiedByUser"),
             new DataColumn("LastModifiedDate"),
             new DataColumn("Active")
-        });
+        } );
 
-            if (Identifier > 0)
+            if ( Identifier > 0 )
             {
-                var Items = Note.GetNotes(ObjectTypeName, Identifier, true).Select(n =>
-                        new
-                        {
-                            NoteID = n.NoteID,
-                            Body = n.Body,
-                            CreatedBy = n.CreatedBy == null || n.CreatedBy.PrimaryAliasId <= 0 ? n.CreatedByUserID : n.CreatedBy.FullName,
-                            CreatedByUser = n.CreatedByUserID,
-                            LastModifiedDate = n.DateModified,
-                            ModifiedBy = n.ModifiedBy == null || n.ModifiedBy.PrimaryAliasId <= 0 ? n.ModifiedByUserID : n.ModifiedBy.FullName,
-                            ModifiedByUser = n.ModifiedByUserID,
-                            Active = n.Active
-                        }).OrderBy(n => n.NoteID);
+                var Items = Note.GetNotes( ObjectTypeName, Identifier, true ).Select( n =>
+                           new
+                           {
+                               NoteID = n.NoteID,
+                               Body = n.Body,
+                               CreatedBy = n.CreatedBy == null || n.CreatedBy.PrimaryAliasId <= 0 ? n.CreatedByUserID : n.CreatedBy.FullName,
+                               CreatedByUser = n.CreatedByUserID,
+                               LastModifiedDate = n.DateModified,
+                               ModifiedBy = n.ModifiedBy == null || n.ModifiedBy.PrimaryAliasId <= 0 ? n.ModifiedByUserID : n.ModifiedBy.FullName,
+                               ModifiedByUser = n.ModifiedByUserID,
+                               Active = n.Active
+                           } ).OrderBy( n => n.NoteID );
 
 
 
-                foreach (var i in Items)
+                foreach ( var i in Items )
                 {
-                    dt.Rows.Add(new object[] {
+                    dt.Rows.Add( new object[] {
                 i.NoteID,
                 i.Body,
                 i.CreatedBy,
                 i.CreatedByUser,
-                i.ModifiedBy, 
+                i.ModifiedBy,
                 i.ModifiedByUser,
-                String.Format("{0:g}", i.LastModifiedDate), 
+                String.Format("{0:g}", i.LastModifiedDate),
                 i.Active
-            });
+            } );
                 }
             }
             dgNote.DataSource = dt;
@@ -390,31 +387,31 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void ClearNoteDetail()
         {
-            SetErrorMessage(String.Empty);
+            SetErrorMessage( String.Empty );
             hfNoteID.Value = String.Empty;
             txtNote.Text = String.Empty;
         }
 
-        private void HideNote(int noteID)
+        private void HideNote( int noteID )
         {
-            if (noteID <= 0)
+            if ( noteID <= 0 )
                 return;
 
-            Note n = new Note(noteID);
+            Note n = new Note( noteID );
 
             n.Active = false;
 
-            n.Save(CurrentUserName);
+            n.Save( CurrentUserName );
             BindNoteList();
         }
 
-        private void LoadNote(int noteID)
+        private void LoadNote( int noteID )
         {
-            if (noteID <= 0)
+            if ( noteID <= 0 )
                 return;
 
-            Note n = new Note(noteID);
-            if (n.NoteID > 0)
+            Note n = new Note( noteID );
+            if ( n.NoteID > 0 )
             {
                 hfNoteID.Value = n.NoteID.ToString();
                 txtNote.Text = n.Body;
@@ -425,10 +422,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private void ResetPopupFields()
         {
             int noteID = 0;
-            int.TryParse(hfNoteID.Value, out noteID);
+            int.TryParse( hfNoteID.Value, out noteID );
 
             ClearNoteDetail();
-            LoadNote(noteID);
+            LoadNote( noteID );
 
         }
 
@@ -436,45 +433,45 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             try
             {
-                SetErrorMessage(String.Empty);
+                SetErrorMessage( String.Empty );
                 int noteID = 0;
-                int.TryParse(hfNoteID.Value, out noteID);
+                int.TryParse( hfNoteID.Value, out noteID );
 
                 Note n = null;
-                if (noteID > 0)
-                    n = new Note(noteID);
+                if ( noteID > 0 )
+                    n = new Note( noteID );
                 else
                     n = new Note();
 
                 n.ObjectTypeName = ObjectTypeName;
                 n.Identifier = Identifier;
-                if (!String.IsNullOrEmpty(NotePrefix) && !String.IsNullOrEmpty(txtNote.Text.Trim()))
+                if ( !String.IsNullOrEmpty( NotePrefix ) && !String.IsNullOrEmpty( txtNote.Text.Trim() ) )
                     n.Body = NotePrefix + " " + txtNote.Text;
                 else
                     n.Body = txtNote.Text.Trim();
                 DateTime DisplayAtTopExpire = DateTime.MinValue;
                 n.Active = true;
 
-                n.Save(CurrentUserName);
+                n.Save( CurrentUserName );
 
                 ClearNoteDetail();
-                LoadNote(n.NoteID);
+                LoadNote( n.NoteID );
                 return true;
             }
-            catch (RequisitionException rEx)
+            catch ( RequisitionException rEx )
             {
-                if (rEx.InnerException.GetType() == typeof(RequisitionNotValidException))
+                if ( rEx.InnerException.GetType() == typeof( RequisitionNotValidException ) )
                 {
-                    Dictionary<string, string> ValErrors = ((RequisitionNotValidException)rEx.InnerException).InvalidProperties;
-                    if (ValErrors.Count > 0)
+                    Dictionary<string, string> ValErrors = ( ( RequisitionNotValidException ) rEx.InnerException ).InvalidProperties;
+                    if ( ValErrors.Count > 0 )
                     {
                         System.Text.StringBuilder sb = new System.Text.StringBuilder();
-                        foreach (var item in ValErrors)
+                        foreach ( var item in ValErrors )
                         {
-                            sb.AppendFormat("<strong>{0}</strong> - {1}<br />", item.Key, item.Value);
+                            sb.AppendFormat( "<strong>{0}</strong> - {1}<br />", item.Key, item.Value );
                         }
 
-                        SetErrorMessage(sb.ToString());
+                        SetErrorMessage( sb.ToString() );
                     }
                 }
                 else
@@ -487,16 +484,16 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         }
 
 
-        private void SetErrorMessage(string msg)
+        private void SetErrorMessage( string msg )
         {
             lblPopupError.Text = msg;
-            lblPopupError.Visible = !String.IsNullOrEmpty(msg);
-            popupError.Visible = !String.IsNullOrEmpty(msg);
+            lblPopupError.Visible = !String.IsNullOrEmpty( msg );
+            popupError.Visible = !String.IsNullOrEmpty( msg );
         }
 
-        private void SetNoteEditibility(bool isEditiable)
+        private void SetNoteEditibility( bool isEditiable )
         {
-            if (isEditiable && ReadOnly)
+            if ( isEditiable && ReadOnly )
                 isEditiable = false;
 
             txtNote.ReadOnly = !isEditiable;
@@ -509,23 +506,23 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         }
 
-        private void ShowNoteDetail(int noteID)
+        private void ShowNoteDetail( int noteID )
         {
             ClearNoteDetail();
-            if (noteID > 0)
-                LoadNote(noteID);
-            SetNoteEditibility(true);
+            if ( noteID > 0 )
+                LoadNote( noteID );
+            SetNoteEditibility( true );
             mpNoteDetails.Show();
         }
 
 
-        private bool UserCanEditItem(string createdByUid)
+        private bool UserCanEditItem( string createdByUid )
         {
-            
-            if (ReadOnly)
+
+            if ( ReadOnly )
                 return !ReadOnly;
 
-            return (createdByUid == CurrentUserName || UserHasParentEditPermission );
+            return ( createdByUid == CurrentUserName || UserHasParentEditPermission );
 
         }
 

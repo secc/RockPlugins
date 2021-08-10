@@ -1,20 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
+using System.Data.Entity;
 using System.Linq;
+using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
-using Rock.Web.UI.Controls;
-using Rock.Attribute;
 using Rock.Web.UI;
-using System.Data.Entity;
-using System.Web.Security;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.Communication
 {

@@ -16,18 +16,17 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Web.UI.WebControls;
 using Microsoft.AspNet.SignalR;
-
 using Rock;
+using Rock.Communication;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web;
-using Rock.Web.UI;
-using System.Linq;
-using System.Web.UI.WebControls;
 using Rock.Web.Cache;
-using Rock.Communication;
+using Rock.Web.UI;
 
 namespace RockWeb.Plugins.org_secc.Finance
 {
@@ -117,7 +116,7 @@ namespace RockWeb.Plugins.org_secc.Finance
                 if ( pnlRegistration.Visible && registrationTemplateIds.Count > 0 )
                 {
                     List<int> registrationInstanceIds = new List<int>();
-                    if ( ddlRegistrationInstance.SelectedValueAsId().HasValue && ddlRegistrationInstance.SelectedValueAsId() > 0)
+                    if ( ddlRegistrationInstance.SelectedValueAsId().HasValue && ddlRegistrationInstance.SelectedValueAsId() > 0 )
                     {
                         registrationInstanceIds.Add( ddlRegistrationInstance.SelectedValueAsId().Value );
                     }
@@ -134,7 +133,7 @@ namespace RockWeb.Plugins.org_secc.Finance
                     RegistrationInstanceService registrationInstanceService = new RegistrationInstanceService( rockContext );
 
                     // Load the registration instance and then iterate through all registrations.
-                    var registrations = registrationInstanceService.Queryable().Where( ri => registrationInstanceIds.Contains( ri.Id )  ).SelectMany( ri => ri.Registrations );
+                    var registrations = registrationInstanceService.Queryable().Where( ri => registrationInstanceIds.Contains( ri.Id ) ).SelectMany( ri => ri.Registrations );
                     int j = 1;
                     foreach ( Registration registration in registrations )
                     {
@@ -142,7 +141,7 @@ namespace RockWeb.Plugins.org_secc.Finance
                         OnProgress( "Processing registration refund " + j + " of " + registrations.Count() );
                         foreach ( var payment in registration.GetPayments( rockContext ) )
                         {
-                                issuedRefund = issueRefund( payment.Transaction, "Registration", registration.FirstName + " " + registration.LastName );                            
+                            issuedRefund = issueRefund( payment.Transaction, "Registration", registration.FirstName + " " + registration.LastName );
                         }
                         j++;
 
@@ -153,10 +152,10 @@ namespace RockWeb.Plugins.org_secc.Finance
                             mergeFields.Add( "Registration", registration );
 
                             SystemCommunication systemCommunication = systemCommunicationService.Get( ddlSystemCommunication.SelectedValueAsInt().Value );
-                            
+
                             var emailMessage = new RockEmailMessage( systemCommunication );
                             emailMessage.AdditionalMergeFields = mergeFields;
-                            
+
                             emailMessage.AddRecipient( RockEmailMessageRecipient.CreateAnonymous( registration.ConfirmationEmail, mergeFields ) );
                             emailMessage.CreateCommunicationRecord = true;
                             emailMessage.Send();
@@ -170,7 +169,7 @@ namespace RockWeb.Plugins.org_secc.Finance
                     FinancialTransactionService financialTransactionService = new FinancialTransactionService( rockContext );
                     var transactions = financialTransactionService.Queryable().Where( ft => codes.Contains( ft.TransactionCode ) );
                     int j = 0;
-                    foreach(var transaction in transactions)
+                    foreach ( var transaction in transactions )
                     {
                         OnProgress( "Processing transaction refund " + j + " of " + transactions.Count() );
                         var issuedRefund = issueRefund( transaction, "Transaction", transaction.AuthorizedPersonAlias != null ? transaction.AuthorizedPersonAlias.Person.FullName : "Unknown" );
@@ -186,7 +185,7 @@ namespace RockWeb.Plugins.org_secc.Finance
                             var emailMessage = new RockEmailMessage( systemCommunication );
                             emailMessage.AdditionalMergeFields = mergeFields;
                             emailMessage.FromEmail = ebEmail.Text;
-                            emailMessage.AddRecipient( new RockEmailMessageRecipient(transaction.AuthorizedPersonAlias.Person, mergeFields ));
+                            emailMessage.AddRecipient( new RockEmailMessageRecipient( transaction.AuthorizedPersonAlias.Person, mergeFields ) );
                             emailMessage.CreateCommunicationRecord = true;
                             emailMessage.Send();
                         }
@@ -228,7 +227,7 @@ namespace RockWeb.Plugins.org_secc.Finance
         /// <param name="label">The label for the log entry (Registration or Transaction).</param>
         /// <param name="value">The value for the log entry for this line item.</param>
         /// <returns></returns>
-        private bool issueRefund( FinancialTransaction transaction, string label, string value)
+        private bool issueRefund( FinancialTransaction transaction, string label, string value )
         {
             decimal refundAmount = transaction.TotalAmount + transaction.Refunds.Sum( r => r.FinancialTransaction.TotalAmount );
 
@@ -314,7 +313,7 @@ namespace RockWeb.Plugins.org_secc.Finance
             if ( !ddlSystemCommunication.SelectedValueAsInt().HasValue )
             {
                 SystemCommunicationService systemCommunicationService = new SystemCommunicationService( rockContext );
-                var systemCommunications = systemCommunicationService.Queryable().Where(c => c.IsActive == true ).Select( e => new { Title = e.Category.Name + " - " + e.Title, e.Id } ).OrderBy( e => e.Title ).ToList();
+                var systemCommunications = systemCommunicationService.Queryable().Where( c => c.IsActive == true ).Select( e => new { Title = e.Category.Name + " - " + e.Title, e.Id } ).OrderBy( e => e.Title ).ToList();
                 systemCommunications.Insert( 0, new { Title = "", Id = 0 } );
                 ddlSystemCommunication.DataSource = systemCommunications;
                 ddlSystemCommunication.DataValueField = "Id";
@@ -327,7 +326,7 @@ namespace RockWeb.Plugins.org_secc.Finance
             int itemCount = 0;
             decimal totalPayments = 0;
 
-            if ( liRegistration.Visible == true &&  registrationTemplateIds.Count > 0 )
+            if ( liRegistration.Visible == true && registrationTemplateIds.Count > 0 )
             {
                 RegistrationTemplateService registrationTemplateService = new RegistrationTemplateService( rockContext );
                 var templates = registrationTemplateService.GetByIds( rtpRegistrationTemplate.ItemIds.AsIntegerList() );
@@ -340,10 +339,10 @@ namespace RockWeb.Plugins.org_secc.Finance
                 itemCount = instances.SelectMany( i => i.Registrations ).Count();
                 totalPayments = instances.SelectMany( i => i.Registrations ).ToList().SelectMany( r => r.Payments ).Sum( p => p.Transaction.TotalAmount );
 
-                if ( ! ddlRegistrationInstance.SelectedValueAsInt().HasValue )
-                { 
+                if ( !ddlRegistrationInstance.SelectedValueAsInt().HasValue )
+                {
                     var instanceList = templates.SelectMany( t => t.Instances ).OrderBy( i => i.Name ).Select( i => new { i.Id, i.Name } ).ToList();
-                    instanceList.Insert( 0, new { Id = 0, Name="" } );
+                    instanceList.Insert( 0, new { Id = 0, Name = "" } );
                     ddlRegistrationInstance.DataSource = instanceList;
                     ddlRegistrationInstance.DataValueField = "Id";
                     ddlRegistrationInstance.DataTextField = "Name";
@@ -360,7 +359,7 @@ namespace RockWeb.Plugins.org_secc.Finance
                 itemCount = transactions.Count();
 
             }
-            lAlert.Text = itemCount + ( pnlRegistration.Visible?" Registrations - ": " Transactions - " ) + totalPayments.FormatAsCurrency() + " Total";
+            lAlert.Text = itemCount + ( pnlRegistration.Visible ? " Registrations - " : " Transactions - " ) + totalPayments.FormatAsCurrency() + " Total";
         }
 
         /// <summary>
@@ -401,7 +400,7 @@ namespace RockWeb.Plugins.org_secc.Finance
             pnlTransactionCodes.Visible = false;
             liRegistration.RemoveCssClass( "active" );
             pnlRegistration.Visible = false;
-            var argument = ( ( LinkButton ) sender).CommandArgument;
+            var argument = ( ( LinkButton ) sender ).CommandArgument;
             switch ( argument )
             {
                 case "Codes":

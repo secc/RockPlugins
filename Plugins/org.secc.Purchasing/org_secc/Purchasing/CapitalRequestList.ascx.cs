@@ -14,13 +14,12 @@
 //
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using System.ComponentModel;
-
+using org.secc.Purchasing;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -28,7 +27,6 @@ using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using org.secc.Purchasing;
 
 
 namespace RockWeb.Plugins.org_secc.Purchasing
@@ -40,7 +38,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
     [DefinedTypeField( "Ministry Area Lookup Type", "The Lookup Type that contains the ministry lookup values.", true )]
     [DefinedTypeField( "Location Lookup Type", "The lookup Type that contains the Location lookup values. If no value is selected, the Location filter will not be available.", true )]
     [SecurityRoleField( "Location Admin Group", "Security role that contains location administrators.  These users will be able to see all requisitions for their location.", false )]
-    [AttributeField( Rock.SystemGuid.EntityType.PERSON, "Ministry Area Person Attribute", "The person attribute that stores the user's Ministry Area.", key:"MinistryAttribute" )]
+    [AttributeField( Rock.SystemGuid.EntityType.PERSON, "Ministry Area Person Attribute", "The person attribute that stores the user's Ministry Area.", key: "MinistryAttribute" )]
     [AttributeField( Rock.SystemGuid.EntityType.PERSON, "SECC Location Person Attribute", "The person attribute that stores the user's SECC Location.", key: "LocationAttribute" )]
     public partial class CapitalRequestList : RockBlock
     {
@@ -327,7 +325,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             //SetRequesterFilter( 0 );
 
             CurrentPerson.LoadAttributes();
-            ddlMinistry.Visible = UserCanEdit || CurrentPerson.AttributeValues[ AttributeCache.Get( GetAttributeValue( "MinistryAttribute" ).AsGuid() ).Key ].Value.Split( ',' ).Count() > 0;
+            ddlMinistry.Visible = UserCanEdit || CurrentPerson.AttributeValues[AttributeCache.Get( GetAttributeValue( "MinistryAttribute" ).AsGuid() ).Key].Value.Split( ',' ).Count() > 0;
             ddlSCCLocation.Visible = UserCanEdit;
             requester.Visible = UserCanEdit;
             txtGLAccount.Visible = UserCanEdit;
@@ -350,8 +348,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             for ( int i = 0; i <= 10; i++ )
             {
-                string date =  RockDateTime.New(RockDateTime.Now.Year - i, 1, 1).ToString();
-                ddlFiscalYear.Items.Insert( 0, new ListItem( (RockDateTime.Now.Year - i).ToString(), date.ToString() ) );
+                string date = RockDateTime.New( RockDateTime.Now.Year - i, 1, 1 ).ToString();
+                ddlFiscalYear.Items.Insert( 0, new ListItem( ( RockDateTime.Now.Year - i ).ToString(), date.ToString() ) );
             }
         }
 
@@ -385,7 +383,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( !UserCanEdit )
             {
                 CurrentPerson.LoadAttributes();
-                var ministryGuids = CurrentPerson.AttributeValues[ AttributeCache.Get( GetAttributeValue( "MinistryAttribute" ).AsGuid() ).Key ].Value.Split( ',' ).AsGuidList();
+                var ministryGuids = CurrentPerson.AttributeValues[AttributeCache.Get( GetAttributeValue( "MinistryAttribute" ).AsGuid() ).Key].Value.Split( ',' ).AsGuidList();
                 ministries = DefinedValueCache.All().Where( dv => ministryGuids.Contains( dv.Guid ) ).OrderBy( l => l.Value );
             }
             else

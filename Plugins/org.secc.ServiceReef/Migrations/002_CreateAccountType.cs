@@ -16,7 +16,7 @@ using Rock.Plugin;
 
 namespace org.secc.PayPalReporting.Migrations
 {
-    [MigrationNumber(2, "1.0.2")]
+    [MigrationNumber( 2, "1.0.2" )]
     class CreateAccountType : Migration
     {
         /// <summary>
@@ -32,13 +32,13 @@ namespace org.secc.PayPalReporting.Migrations
             );
         }
 
-    /// <summary>
-    /// The commands to undo a migration from a specific version
-    /// </summary>
-    public override void Down()
+        /// <summary>
+        /// The commands to undo a migration from a specific version
+        /// </summary>
+        public override void Down()
         {
-            RockMigrationHelper.DeleteDefinedValue("51DC439B-2931-47CE-8FA8-C6DA1451B633");
-           
+            RockMigrationHelper.DeleteDefinedValue( "51DC439B-2931-47CE-8FA8-C6DA1451B633" );
+
         }
     }
 }

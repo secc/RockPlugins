@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -13,32 +13,27 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using System.Web.UI.HtmlControls;
-
-using Rock.Web.UI;
-using Rock;
 using org.secc.Purchasing;
-using Rock.Web.UI.Controls;
-using org.secc.Purchasing.DataLayer;
-using Rock.Model;
+using Rock;
 using Rock.Attribute;
-using System.ComponentModel;
+using Rock.Model;
+using Rock.Web.UI;
+using Rock.Web.UI.Controls;
 
 
 namespace RockWeb.Plugins.org_secc.Purchasing
 {
-    [DisplayName("Vendor List")]
-    [Category("SECC > Purchasing")]
-    [Description("List all vendors in the SECC Purchasing system.")]
+    [DisplayName( "Vendor List" )]
+    [Category( "SECC > Purchasing" )]
+    [Description( "List all vendors in the SECC Purchasing system." )]
 
-    [LinkedPage("Vendor Detail Page", "Vendor Detail Page", true)]
-    [BooleanField("Active Only By Default", "Only show active vendors by default.", true)]
+    [LinkedPage( "Vendor Detail Page", "Vendor Detail Page", true )]
+    [BooleanField( "Active Only By Default", "Only show active vendors by default.", true )]
     public partial class VendorList : RockBlock
     {
         private bool? mCanEdit = null;
@@ -47,15 +42,16 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             get
             {
-            if (mVendorPage == null)
-            {
-                PageService pageService = new PageService(new Rock.Data.RockContext());
-                mVendorPage = pageService.Get(GetAttributeValue("VendorDetailPage").AsGuid());
+                if ( mVendorPage == null )
+                {
+                    PageService pageService = new PageService( new Rock.Data.RockContext() );
+                    mVendorPage = pageService.Get( GetAttributeValue( "VendorDetailPage" ).AsGuid() );
+                }
+                return mVendorPage;
             }
-            return mVendorPage; 
-        } }
+        }
 
-        public bool ActiveOnlyByDefaultSetting { get { return GetAttributeValue("ActiveOnlyByDefault").AsBoolean(); } }
+        public bool ActiveOnlyByDefaultSetting { get { return GetAttributeValue( "ActiveOnlyByDefault" ).AsBoolean(); } }
 
         public static IQueryable<int> vendorsUsed = null;
 
@@ -83,15 +79,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
-        protected override void OnInit(EventArgs e)
+        protected override void OnInit( EventArgs e )
         {
             InitializeComponent();
-            base.OnInit(e);
+            base.OnInit( e );
         }
 
-        protected void Page_Load(object sender, EventArgs e)
+        protected void Page_Load( object sender, EventArgs e )
         {
-            if (!Page.IsPostBack)
+            if ( !Page.IsPostBack )
             {
                 ResetFilter();
                 phNewVendor.Visible = CanEdit;
@@ -99,27 +95,27 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             LoadVendors();
         }
 
-        protected void btnApplyFilter_Click(object sender, EventArgs e)
+        protected void btnApplyFilter_Click( object sender, EventArgs e )
         {
-           LoadVendors();
+            LoadVendors();
         }
 
-        protected void btnClearFilter_Click(object sender, EventArgs e)
+        protected void btnClearFilter_Click( object sender, EventArgs e )
         {
             ResetFilter();
             LoadVendors();
         }
 
-        protected void lbNewVendor_Click(object sender, EventArgs e)
+        protected void lbNewVendor_Click( object sender, EventArgs e )
         {
-            NavigateToPage(this.VendorDetailPageSetting.Guid, null);
+            NavigateToPage( this.VendorDetailPageSetting.Guid, null );
         }
 
         #region Private
         private void InitializeComponent()
         {
-            dgVendors.RowCommand += new GridViewCommandEventHandler(dgVendors_ItemCommand);
-            dgVendors.GridRebind += new GridRebindEventHandler(dgVendors_ReBind);
+            dgVendors.RowCommand += new GridViewCommandEventHandler( dgVendors_ItemCommand );
+            dgVendors.GridRebind += new GridRebindEventHandler( dgVendors_ReBind );
         }
 
         private void ResetFilter()
@@ -129,12 +125,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         }
 
 
-        void dgVendors_ItemCommand(object sender,  GridViewCommandEventArgs e)
+        void dgVendors_ItemCommand( object sender, GridViewCommandEventArgs e )
         {
-            
+
         }
 
-        void dgVendors_ReBind(object sender, EventArgs e)
+        void dgVendors_ReBind( object sender, EventArgs e )
         {
             LoadVendors();
         }
@@ -159,14 +155,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             dgVendors.MergeEnabled = false;
             dgVendors.MailEnabled = false;
             dgVendors.ExportEnabled = true;
-            dgVendors.NoResultText = "No Vendors found"*/;
+            dgVendors.NoResultText = "No Vendors found"*/
+            ;
 
         }
         private void LoadVendors()
         {
             ConfigureDataGrid();
-            var vendors = Vendor.LoadVendors(!chkIncludeInactive.Checked);
-            
+            var vendors = Vendor.LoadVendors( !chkIncludeInactive.Checked );
+
             SortProperty sortProperty = dgVendors.SortProperty;
             if ( sortProperty != null )
             {
@@ -184,8 +181,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 vendors = vendors.OrderBy( v => v.VendorName ).ToList();
             }
 
-            if (!string.IsNullOrEmpty(txtFilterVendorName.Text)) {
-                vendors = vendors.Where(v => v.VendorName.ToLower().Contains(txtFilterVendorName.Text.ToLower())).ToList();
+            if ( !string.IsNullOrEmpty( txtFilterVendorName.Text ) )
+            {
+                vendors = vendors.Where( v => v.VendorName.ToLower().Contains( txtFilterVendorName.Text.ToLower() ) ).ToList();
             }
             dgVendors.DataSource = vendors;
             dgVendors.DataBind();
@@ -194,51 +192,57 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         /// <summary>Is vendor used in a PO or a requisition?</summary>
         /// <param name="vendorsInRequisitions">Vendors who are linked from any requisition</param>
         /// <param name="vendor">Vendor to check</param>
-        private static bool IsVendorUsed(int vendorId) {
-            return Vendor.LoadVendors(false).Where(v => v.VendorID == vendorId && 
-                (v.Requisitions.Count > 0 || v.PurchaseOrders.Count > 0)).Any();
+        private static bool IsVendorUsed( int vendorId )
+        {
+            return Vendor.LoadVendors( false ).Where( v => v.VendorID == vendorId &&
+                   ( v.Requisitions.Count > 0 || v.PurchaseOrders.Count > 0 ) ).Any();
         }
 
         #endregion
-        
-        protected void Delete_Click(object sender, RowEventArgs e)
+
+        protected void Delete_Click( object sender, RowEventArgs e )
         {
             int vendorId = e.RowKeyId;
             Vendor currentVendor;
 
-            if (vendorId > 0 && (currentVendor = new Vendor(vendorId)) != null) {
-                if (!IsVendorUsed(currentVendor.VendorID)) {
-                    Vendor.Delete(vendorId, "system");
+            if ( vendorId > 0 && ( currentVendor = new Vendor( vendorId ) ) != null )
+            {
+                if ( !IsVendorUsed( currentVendor.VendorID ) )
+                {
+                    Vendor.Delete( vendorId, "system" );
                 }
-                else { 
+                else
+                {
                     maAlert.Show(
-                        string.Format("The vendor {0} cannot be deleted because it is connected to a requisition or a PO", 
-                            currentVendor.VendorName),
-                            ModalAlertType.Warning);
+                        string.Format( "The vendor {0} cannot be deleted because it is connected to a requisition or a PO",
+                            currentVendor.VendorName ),
+                            ModalAlertType.Warning );
                 }
                 LoadVendors();
             }
         }
-        protected void Unnamed_Click(object sender, RowEventArgs e)
+        protected void Unnamed_Click( object sender, RowEventArgs e )
         {
             return;
         }
-        protected void dgVendors_RowDataBound(object sender, GridViewRowEventArgs e)
+        protected void dgVendors_RowDataBound( object sender, GridViewRowEventArgs e )
         {
-            if (e.Row.RowType == DataControlRowType.DataRow || e.Row.RowType == DataControlRowType.Header) {
+            if ( e.Row.RowType == DataControlRowType.DataRow || e.Row.RowType == DataControlRowType.Header )
+            {
                 e.Row.Controls[7].Visible = UserCanEdit;
                 e.Row.Controls[8].Visible = UserCanEdit;
                 var key = e.Row.Controls[0];
 
             }
-            if ( e.Row.RowType == DataControlRowType.DataRow)
+            if ( e.Row.RowType == DataControlRowType.DataRow )
             {
-                if (((Vendor)e.Row.DataItem).HasRequisitions) {
+                if ( ( ( Vendor ) e.Row.DataItem ).HasRequisitions )
+                {
                     DataControlFieldCell cell = ( DataControlFieldCell ) e.Row.Controls[8]; // as DeleteField ).ButtonCssClass = "btn-disabled";
                     cell.CssClass = "disabled";
                 }
             }
         }
-}
+    }
 
 }

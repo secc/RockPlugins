@@ -65,16 +65,18 @@ namespace RockWeb.Plugins.org_secc.Finance
                 }
                 dtTellerAcctRtng.Columns.Add( "Hashed", typeof( String ) );
 
-                foreach (DataRow dr in dtTellerAcctRtng.Rows)
+                foreach ( DataRow dr in dtTellerAcctRtng.Rows )
                 {
                     dr["Hashed"] = EncodeAccountNumber( dr["RoutingNo"].ToString(), dr["CheckAcctNo"].ToString() );
                 }
 
                 var qry = dtTellerAcctRtng.AsEnumerable()
-                    .Select( i => new {
+                    .Select( i => new
+                    {
                         RoutingNo = i.Field<string>( "RoutingNo" ),
                         CheckAcctNo = i.Field<string>( "CheckAcctNo" ),
-                        Hashed = i.Field<string>( "Hashed" ) } );
+                        Hashed = i.Field<string>( "Hashed" )
+                    } );
 
                 RockContext rockContext = new RockContext();
                 var fpbaService = new FinancialPersonBankAccountService( rockContext );
@@ -99,7 +101,8 @@ namespace RockWeb.Plugins.org_secc.Finance
                     dt.Rows.Add( row.AccountNumberSecured, row.RoutingNo, row.CheckAcctNo, row.PersonAliasIds );
                 }
 
-                try {
+                try
+                {
                     string connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["RockContext"].ConnectionString;
                     using ( SqlConnection connection = new SqlConnection( connectionString ) )
                     {
@@ -128,7 +131,8 @@ namespace RockWeb.Plugins.org_secc.Finance
                     lblExportStatus.Text = "File exported at " + path;
                     */
                 }
-                catch (Exception ex) {
+                catch ( Exception ex )
+                {
                     lblExportStatus.Text = "File was not exported: " + ex.Message;
                 }
             }

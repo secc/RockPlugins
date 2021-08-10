@@ -15,8 +15,6 @@
 namespace org.secc.FamilyCheckin.Migrations
 {
     using Rock.Plugin;
-    using org.secc.DevLib.Extensions.Migration;
-    using org.secc.FamilyCheckin.Utilities;
 
     [MigrationNumber( 14, "1.10.2" )]
     public partial class AccessKey : Migration

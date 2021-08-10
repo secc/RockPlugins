@@ -12,15 +12,14 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Linq;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using System.Linq;
 using Rock.Workflow;
 
 namespace org.secc.Workflow.WorkflowAttributes
@@ -30,7 +29,7 @@ namespace org.secc.Workflow.WorkflowAttributes
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Attribute Matrix - Update Row" )]
     [WorkflowAttribute( "Attribute Matrix", "The attribute matrix to update.", fieldTypeClassNames: new string[] { "Rock.Field.Types.MatrixFieldType" } )]
-    [WorkflowTextOrAttribute( "Item Guid", "Item Guid Attribute", "The guid of the item/row to update <span class='tip tip-lava'></span>.", true, key:"ItemGuid" )]
+    [WorkflowTextOrAttribute( "Item Guid", "Item Guid Attribute", "The guid of the item/row to update <span class='tip tip-lava'></span>.", true, key: "ItemGuid" )]
     [KeyValueListField( "Item Attributes", "Use this to map values to associated matrix attributes <span class='tip tip-lava'></span>.", false, keyPrompt: "Attribute Key", valuePrompt: "Value" )]
 
 
@@ -44,8 +43,8 @@ namespace org.secc.Workflow.WorkflowAttributes
             errorMessages = new List<string>();
 
             // Get all the attribute values
-            var attributeMatrixGuid = action.GetWorklowAttributeValue( GetActionAttributeValue( action, "AttributeMatrix" ).AsGuid() ).AsGuidOrNull();
-            var itemGuid = GetActionAttributeValue( action, "ItemGuid" ).ResolveMergeFields(GetMergeFields(action)).AsGuidOrNull();
+            var attributeMatrixGuid = action.GetWorkflowAttributeValue( GetActionAttributeValue( action, "AttributeMatrix" ).AsGuid() ).AsGuidOrNull();
+            var itemGuid = GetActionAttributeValue( action, "ItemGuid" ).ResolveMergeFields( GetMergeFields( action ) ).AsGuidOrNull();
             var itemAttributes = GetActionAttributeValue( action, "ItemAttributes" ).AsDictionaryOrNull();
 
             if ( attributeMatrixGuid.HasValue && itemGuid.HasValue )
@@ -54,7 +53,7 @@ namespace org.secc.Workflow.WorkflowAttributes
                 AttributeMatrix matrix = attributeMatrixService.Get( attributeMatrixGuid.Value );
 
                 AttributeMatrixItem item = matrix.AttributeMatrixItems.Where( i => i.Guid == itemGuid.Value ).FirstOrDefault();
-                if (item != null)
+                if ( item != null )
                 {
                     item.LoadAttributes();
 

@@ -8,7 +8,7 @@ namespace org.secc.Purchasing.Intacct.Functions
         {
         }
 
-        public ReadMore( string resultId)
+        public ReadMore( string resultId )
         {
             Function.ResultId = resultId;
         }

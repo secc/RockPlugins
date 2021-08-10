@@ -29,27 +29,25 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web.UI;
-using Rock.Attribute;
-
+using System.Web.UI.WebControls;
+using DotLiquid;
+using iTextSharp.text.pdf;
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Security;
+using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using Rock.Security;
-using System.Web.UI.WebControls;
-using iTextSharp.text.pdf;
-using System.Text.RegularExpressions;
-using System.IO;
-using System.Web;
-using System.Collections.Generic;
-using Rock.Web.Cache;
-using ListItem = System.Web.UI.WebControls.ListItem;
-using DotLiquid;
 using Document = iTextSharp.text.Document;
+using ListItem = System.Web.UI.WebControls.ListItem;
 
 namespace RockWeb.Plugins.org_secc.Finance
 {
@@ -57,14 +55,14 @@ namespace RockWeb.Plugins.org_secc.Finance
     [Category( "SECC > Finance" )]
     [Description( "Shows a list of all contribution statements." )]
 
-    [LinkedPage("Detail Page")]
+    [LinkedPage( "Detail Page" )]
     [BinaryFileTypeField]
     [CustomDropdownListField( "Document Type", "The document type for contribution statements.", "SELECT Guid as Value,Name as Text FROM DocumentType", Key = "DocumentType" )]
-    [CustomEnhancedListField("Print & Mail Dataviews", "Any dataviews which indicate people/businesses for who statements will be mailed.", "SELECT Guid as Value,Name as Text FROM DataView", Key="PrintAndMail")]
+    [CustomEnhancedListField( "Print & Mail Dataviews", "Any dataviews which indicate people/businesses for who statements will be mailed.", "SELECT Guid as Value,Name as Text FROM DataView", Key = "PrintAndMail" )]
     public partial class ContributionStatementList : RockBlock, ICustomGridColumns
     {
         private BinaryFileType binaryFileType = null;
-        
+
         #region Control Methods
 
         /// <summary>
@@ -101,7 +99,7 @@ namespace RockWeb.Plugins.org_secc.Finance
         {
             RockContext rockContext = new RockContext();
             rockContext.Database.CommandTimeout = 180;
-            
+
             var files = GetBinaryFiles().Select( d => d.BinaryFile );
 
             PdfImportedPage importedPage;
@@ -119,7 +117,7 @@ namespace RockWeb.Plugins.org_secc.Finance
 
             foreach ( var file in files )
             {
-                if (file.MimeType == "application/pdf")
+                if ( file.MimeType == "application/pdf" )
                 {
                     using ( StreamReader sr = new StreamReader( file.ContentStream ) )
                     {
@@ -283,7 +281,7 @@ namespace RockWeb.Plugins.org_secc.Finance
                 cbDeliveryPreference.DataBind();
 
                 cbDeliveryPreference.SetValues( fBinaryFile.GetUserPreference( "Statement Delivery Preference" ).SplitDelimitedValues( false ) );
-            }            
+            }
         }
 
         private List<DocumentData> GetBinaryFiles()
@@ -298,7 +296,7 @@ namespace RockWeb.Plugins.org_secc.Finance
             var documentService = new DocumentService( context );
 
             // If the document type is not set
-            if ( string.IsNullOrWhiteSpace(GetAttributeValue( "DocumentType" ) ) )
+            if ( string.IsNullOrWhiteSpace( GetAttributeValue( "DocumentType" ) ) )
             {
                 return null;
             }
@@ -317,8 +315,9 @@ namespace RockWeb.Plugins.org_secc.Finance
             var personQuery = personService.Queryable( true );
 
             // Filter for a specific Person
-            if ( ppPerson.SelectedValue.HasValue && ppPerson.SelectedValue.Value > 0 ) {
-                string givingId = personService.Queryable().Where(a => a.Id == ppPerson.SelectedValue ).Select(p => p.GivingId ).FirstOrDefault();
+            if ( ppPerson.SelectedValue.HasValue && ppPerson.SelectedValue.Value > 0 )
+            {
+                string givingId = personService.Queryable().Where( a => a.Id == ppPerson.SelectedValue ).Select( p => p.GivingId ).FirstOrDefault();
                 personQuery = personQuery.Where( p => p.GivingId == givingId );
             }
 
@@ -327,10 +326,10 @@ namespace RockWeb.Plugins.org_secc.Finance
                         obj => obj.EntityId,
                         p => p.Id,
                         ( obj, p ) => new { Document = obj, Person = p } )
-                    .GroupBy(obj => obj.Document.BinaryFile.Id);
+                    .GroupBy( obj => obj.Document.BinaryFile.Id );
 
 
-            List<DocumentData> list = documents.Select(d => new DocumentData() { BinaryFile = d.FirstOrDefault().Document.BinaryFile, People = d.Select( p => p.Person ).ToList() }).ToList();
+            List<DocumentData> list = documents.Select( d => new DocumentData() { BinaryFile = d.FirstOrDefault().Document.BinaryFile, People = d.Select( p => p.Person ).ToList() } ).ToList();
 
 
             List<Guid?> dataviews = GetAttributeValue( "PrintAndMail" ).SplitDelimitedValues().AsGuidOrNullList();
@@ -341,8 +340,7 @@ namespace RockWeb.Plugins.org_secc.Finance
                     var dataViewService = new DataViewService( context );
                     foreach ( var dataviewguid in dataviews )
                     {
-                        List<string> errorMessages = new List<string>();
-                        list.FirstOrDefault().MailPersonIds.AddRange( dataViewService.Get( dataviewguid.Value ).GetQuery( null, null, out errorMessages ).OfType<Rock.Model.Person>().Select( p => p.Id ).ToList() );
+                        list.FirstOrDefault().MailPersonIds.AddRange( dataViewService.Get( dataviewguid.Value ).GetQuery( new DataViewGetQueryArgs() ).OfType<Rock.Model.Person>().Select( p => p.Id ).ToList() );
                     }
                 }
             }

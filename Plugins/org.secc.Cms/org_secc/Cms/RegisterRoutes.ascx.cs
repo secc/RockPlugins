@@ -13,22 +13,19 @@
 // </copyright>
 using System;
 using System.ComponentModel;
-using Rock.Model;
-using System.Web.Routing;
-using System.Linq;
-using Rock;
 using System.Data.Entity;
-using Rock.Lava.Shortcodes;
+using System.Linq;
+using System.Web.Routing;
 using DotLiquid;
+using Rock;
+using Rock.Lava.Shortcodes;
+using Rock.Model;
 using Rock.Web.Cache;
-using AngleSharp.Css.Values;
-using System.Data.Entity.Core.Objects;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 
 namespace RockWeb.Plugins.org_secc.CMS
 {
     [DisplayName( "Register Routes" )]
-    [Category("SECC > CMS")]
+    [Category( "SECC > CMS" )]
     [Description( "Updates and registers routes if those routes have changed." )]
     public partial class RegisterRoutes : Rock.Web.UI.RockBlock
     {
@@ -39,7 +36,7 @@ namespace RockWeb.Plugins.org_secc.CMS
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
         /// </summary>
         /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
-        protected override void OnLoad(EventArgs e)
+        protected override void OnLoad( EventArgs e )
         {
             RouteCollection routes = RouteTable.Routes;
 
@@ -69,7 +66,7 @@ namespace RockWeb.Plugins.org_secc.CMS
             {
                 nbNotification.NotificationBoxType = Rock.Web.UI.Controls.NotificationBoxType.Warning;
                 nbNotification.Text = "Shortcodes were out-of-date.  Running register shortcodes. " + sc.Count;
-                 foreach ( var code in sc )
+                foreach ( var code in sc )
                 {
                     // register shortcode
                     if ( code.TagType == TagType.Block )
@@ -84,7 +81,7 @@ namespace RockWeb.Plugins.org_secc.CMS
 
                 LavaShortcodeCache.Clear();
             }
-            
+
         }
         protected void ReRegisterRoutes()
         {

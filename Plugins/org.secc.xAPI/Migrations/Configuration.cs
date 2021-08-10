@@ -1,9 +1,6 @@
 ﻿namespace org.secc.xAPI.Migrations
 {
-    using System;
-    using System.Data.Entity;
     using System.Data.Entity.Migrations;
-    using System.Linq;
     using org.secc.xAPI.Data;
 
     internal sealed class Configuration : DbMigrationsConfiguration<xAPIContext>
@@ -13,7 +10,7 @@
             AutomaticMigrationsEnabled = false;
         }
 
-        protected override void Seed(xAPIContext context)
+        protected override void Seed( xAPIContext context )
         {
             //  This method will be called after migrating to the latest version.
 

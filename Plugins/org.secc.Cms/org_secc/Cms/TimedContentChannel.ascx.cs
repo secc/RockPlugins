@@ -29,20 +29,18 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
-using Rock.Model;
-using Rock.Security;
+using System.Linq;
 using System.Web.UI;
+using System.Web.UI.WebControls;
 using Rock;
+using Rock.Attribute;
+using Rock.Data;
+using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
-using System.Web;
-using System.Web.UI.WebControls;
-using Rock.Attribute;
 using Rock.Web.UI.Controls;
-using Rock.Data;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace RockWeb.Plugins.org_secc.CMS
 {
@@ -104,8 +102,9 @@ namespace RockWeb.Plugins.org_secc.CMS
                         if ( schedule.WasScheduleActive( Rock.RockDateTime.Now ) )
                         {
                             mergeItems.Add( item );
-                            var end = schedule.GetCalendarEvent().DTEnd.TimeOfDay;
-                            var endMinutes = ( end - Rock.RockDateTime.Now.TimeOfDay ).TotalSeconds;
+                            var end = schedule.GetICalEvent().DtEnd;
+                            var tsEnd = new TimeSpan( end.Hour, end.Minute, end.Second );
+                            var endMinutes = ( tsEnd - Rock.RockDateTime.Now.TimeOfDay ).TotalSeconds;
                             cacheLength = Math.Min( cacheLength, endMinutes );
                         }
                         else

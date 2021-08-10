@@ -77,7 +77,7 @@ namespace org.secc.FamilyCheckin
                 }
 
                 campusId = GetCampusOrFamilyCampusId( campusId, checkInState.CheckIn.CurrentFamily.Group.CampusId );
-                if (campusId == 0 )
+                if ( campusId == 0 )
                 {
                     campusId = CampusCache.All().FirstOrDefault().Id;
                 }
@@ -243,7 +243,7 @@ namespace org.secc.FamilyCheckin
                 RockContext rockContext = new RockContext();
                 GroupService groupService = new GroupService( rockContext );
                 var actualGroup = groupService.GetNoTracking( membershipGroupGuid );
-                if (actualGroup != null )
+                if ( actualGroup != null )
                 {
                     return actualGroup.Id;
                 }

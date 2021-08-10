@@ -16,7 +16,7 @@ using Rock.Plugin;
 
 namespace org.secc.PayPalExpress.Migrations
 {
-    [MigrationNumber(1, "1.0.1")]
+    [MigrationNumber( 1, "1.0.1" )]
     class CreateCurrencyType : Migration
     {
         /// <summary>
@@ -24,7 +24,7 @@ namespace org.secc.PayPalExpress.Migrations
         /// </summary>
         public override void Up()
         {
-            RockMigrationHelper.AddDefinedValue(Rock.SystemGuid.DefinedType.FINANCIAL_CURRENCY_TYPE, "PayPal", "PayPal Express", PayPalExpress.Gateway.CURRENCY_TYPE_PAYPAL);
+            RockMigrationHelper.AddDefinedValue( Rock.SystemGuid.DefinedType.FINANCIAL_CURRENCY_TYPE, "PayPal", "PayPal Express", PayPalExpress.Gateway.CURRENCY_TYPE_PAYPAL );
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace org.secc.PayPalExpress.Migrations
         /// </summary>
         public override void Down()
         {
-            RockMigrationHelper.DeleteDefinedValue(PayPalExpress.Gateway.CURRENCY_TYPE_PAYPAL);
+            RockMigrationHelper.DeleteDefinedValue( PayPalExpress.Gateway.CURRENCY_TYPE_PAYPAL );
         }
     }
 }

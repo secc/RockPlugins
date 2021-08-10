@@ -12,9 +12,9 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System;
 
 namespace org.secc.LeagueApps.Contracts
 {
@@ -23,16 +23,16 @@ namespace org.secc.LeagueApps.Contracts
         public int programId { get; set; }
         public string name { get; set; }
         public string description { get; set; }
-        [JsonConverter(typeof(MillisecondEpochConverter))]
+        [JsonConverter( typeof( MillisecondEpochConverter ) )]
         public DateTime startTime { get; set; }
-        [JsonConverter(typeof(MillisecondEpochConverter))]
+        [JsonConverter( typeof( MillisecondEpochConverter ) )]
         public DateTime publicRegistrationTime { get; set; }
         public string gender { get; set; }
         public string mode { get; set; }
         public string sport { get; set; }
         public string season { get; set; }
         public string experienceLevel { get; set; }
-        [JsonConverter(typeof(MillisecondEpochConverter))]
+        [JsonConverter( typeof( MillisecondEpochConverter ) )]
         public DateTime ageLimitEffectiveDate { get; set; }
         public string programUrlHtml { get; set; }
         public string registerUrlHtml { get; set; }
@@ -43,17 +43,18 @@ namespace org.secc.LeagueApps.Contracts
 
     public class MillisecondEpochConverter : DateTimeConverterBase
     {
-        private static readonly DateTime _epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        private static readonly DateTime _epoch = new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc );
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson( JsonWriter writer, object value, JsonSerializer serializer )
         {
-            writer.WriteRawValue(((DateTime)value - _epoch).TotalMilliseconds.ToString());
+            writer.WriteRawValue( ( ( DateTime ) value - _epoch ).TotalMilliseconds.ToString() );
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object ReadJson( JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer )
         {
-            if (reader.Value == null) { return null; }
-            return _epoch.AddMilliseconds((long)reader.Value);
+            if ( reader.Value == null )
+            { return null; }
+            return _epoch.AddMilliseconds( ( long ) reader.Value );
         }
     }
 

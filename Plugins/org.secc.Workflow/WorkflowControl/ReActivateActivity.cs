@@ -24,7 +24,6 @@ using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 using Rock.Workflow;
 
 namespace org.secc.Workflow.WorkflowControl

@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -32,7 +32,7 @@ namespace RockWeb.Plugins.org_secc.Microframe
     [DisplayName( "Sign Code Manager" )]
     [Category( "SECC > Microframe" )]
     [Description( "Manages all of the codes sent out." )]
-    [IntegerField("Max Length", "The maximum length a code can be.", false, 4)]
+    [IntegerField( "Max Length", "The maximum length a code can be.", false, 4 )]
     public partial class SignCodeManager : RockBlock
     {
         #region Control Methods
@@ -95,7 +95,7 @@ namespace RockWeb.Plugins.org_secc.Microframe
             var codes = ( signCategory.Codes ?? "" ).Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries ).ToList();
             if ( codes.Any() )
             {
-                foreach(var code in codes )
+                foreach ( var code in codes )
                 {
                     Panel pnlCode = new Panel();
                     pnlCode.CssClass = "codes";
@@ -108,7 +108,7 @@ namespace RockWeb.Plugins.org_secc.Microframe
                     LinkButton lbCode = new LinkButton();
                     lbCode.ID = code + signCategory.Id.ToString();
                     lbCode.Text = "<i class='fa fa-close'></i>";
-                    lbCode.Click += ( s,e ) => RemoveCode( code, signCategoryId );
+                    lbCode.Click += ( s, e ) => RemoveCode( code, signCategoryId );
                     pnlCode.Controls.Add( lbCode );
                 }
             }
@@ -221,7 +221,7 @@ namespace RockWeb.Plugins.org_secc.Microframe
             }
         }
 
-        private void UpdateSigns(int signCategoryId)
+        private void UpdateSigns( int signCategoryId )
         {
             SignUtilities.UpdateSignCategorySigns( signCategoryId );
         }

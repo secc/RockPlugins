@@ -206,7 +206,7 @@ namespace RockWeb.Plugins.org_secc.Administration
                 var personalDevices = personalDeviceService
                    .Queryable()
                    .Where( d => d.MACAddress == personalDevice.MACAddress )
-                   .ToList();   
+                   .ToList();
 
                 foreach ( var device in personalDevices )
                 {

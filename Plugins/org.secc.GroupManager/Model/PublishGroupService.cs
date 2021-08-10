@@ -12,8 +12,8 @@
 // limitations under the License.
 // </copyright>
 //
-using Rock.Data;
 using org.secc.GroupManager.Data;
+using Rock.Data;
 
 namespace org.secc.GroupManager.Model
 {

@@ -12,21 +12,10 @@
 // limitations under the License.
 // </copyright>
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Web.UI;
-using Rock;
-using Rock.Attribute;
-using Rock.Communication;
+using org.secc.Imaging.AI;
 using Rock.Data;
 using Rock.Model;
-using Rock.Security;
-using Rock.Web.UI.Controls;
-using System.Web;
-using System.Security.Claims;
-using Microsoft.Owin.Security;
-using Microsoft.AspNet.Identity;
-using org.secc.Imaging.AI;
 
 namespace RockWeb.Plugins.org_secc.Imaging
 {
@@ -72,7 +61,7 @@ namespace RockWeb.Plugins.org_secc.Imaging
                 var binaryFile = binaryFileService.GetNoTracking( row.BinaryFileId );
                 if ( person != null && binaryFile != null )
                 {
-                    face.UpdatePhoto(person,binaryFile);
+                    face.UpdatePhoto( person, binaryFile );
                 }
             }
 

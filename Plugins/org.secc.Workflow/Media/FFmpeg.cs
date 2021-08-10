@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using FFmpeg.NET;
@@ -39,10 +37,10 @@ namespace org.secc.Workflow.media
             var executable = GetAttributeValue( action, "FFmpegExecutable" );
 
             var outputPath = GetAttributeValue( action, "OutputPath", true );
-            if ( string.IsNullOrWhiteSpace(outputPath) )
+            if ( string.IsNullOrWhiteSpace( outputPath ) )
             {
                 outputPath = Path.Combine( Path.GetTempPath(), Path.GetRandomFileName() ) + Path.DirectorySeparatorChar;
-            } 
+            }
             else
             {
                 outputPath = outputPath.TrimEnd( Path.DirectorySeparatorChar ) + Path.DirectorySeparatorChar;
@@ -53,7 +51,7 @@ namespace org.secc.Workflow.media
             var mergeFields = GetMergeFields( action );
             mergeFields.Add( "file", file );
             mergeFields.Add( "outputPath", outputPath );
-            
+
             Task.Run( async () => await StartConverting( command.ResolveMergeFields( mergeFields ), executable ) ).Wait();
             action.AddLogEntry( output.ToString() );
 

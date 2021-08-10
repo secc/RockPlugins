@@ -13,21 +13,15 @@
 // </copyright>
 //
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Newtonsoft.Json;
 using org.secc.Attributes.Helpers;
 using Rock;
-using Rock.Data;
-using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 
 namespace org.secc.Attributes.Controls
@@ -302,14 +296,14 @@ namespace org.secc.Attributes.Controls
 
             panel.Controls.Clear();
             var configurationString = ViewState["Configuration"] as string;
-            
+
             KeyValueMatrix config = new KeyValueMatrix( configurationString );
 
             if ( config.Count == 0 )
             {
                 var ddl = new DropDownList()
                 {
-                    ID = string.Format( "ddlNull_{0}", this.ID)
+                    ID = string.Format( "ddlNull_{0}", this.ID )
                 };
                 panel.Controls.Add( ddl );
                 this.RequiredFieldValidator.ControlToValidate = ddl.ID;
@@ -326,7 +320,7 @@ namespace org.secc.Attributes.Controls
                     AutoPostBack = true
                 };
 
-                if (i > 0 )
+                if ( i > 0 )
                 {
                     ddl.Style.Add( "margin-top", "5px" );
                 }
@@ -336,7 +330,7 @@ namespace org.secc.Attributes.Controls
                     .Select( p => p[i] )
                     .DistinctBy( p => p.Key ).ToList();
 
-                source.Insert( 0, new KeyValuePair<string,string>( "", "" ) );
+                source.Insert( 0, new KeyValuePair<string, string>( "", "" ) );
                 ddl.DataSource = source;
                 ddl.DataBind();
                 ddl.SelectedIndexChanged += Ddl_SelectedIndexChanged;
@@ -363,7 +357,7 @@ namespace org.secc.Attributes.Controls
 
         }
 
-        
+
 
         private void Ddl_SelectedIndexChanged( object sender, EventArgs e )
         {

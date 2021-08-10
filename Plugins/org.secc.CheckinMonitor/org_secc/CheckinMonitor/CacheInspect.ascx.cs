@@ -14,20 +14,11 @@
 //
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Web.UI.WebControls;
-using CacheManager.Serialization.Json;
-using Lucene.Net.Search;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using org.secc.FamilyCheckin.Cache;
-using org.secc.RedisSession;
-using org.secc.RedisSession.Converters;
 using Rock;
-using Rock.CheckIn;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;

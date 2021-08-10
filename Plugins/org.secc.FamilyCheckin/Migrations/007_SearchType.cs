@@ -14,9 +14,8 @@
 //
 namespace org.secc.FamilyCheckin.Migrations
 {
-    using Rock.Plugin;
-    using org.secc.DevLib.Extensions.Migration;
     using org.secc.FamilyCheckin.Utilities;
+    using Rock.Plugin;
 
     [MigrationNumber( 7, "1.10.2" )]
     public partial class SearchType : Migration

@@ -22,6 +22,7 @@ namespace org.secc.xAPI.Migrations
     using System.Web.Hosting;
     using org.secc.xAPI.Utilities;
     using Rock;
+    using Rock.Model;
     using Rock.Plugin;
 
     [MigrationNumber( 1, "1.10.2" )]
@@ -57,7 +58,7 @@ namespace org.secc.xAPI.Migrations
                 }
                 catch ( Exception e )
                 {
-
+                    ExceptionLogService.LogException( e );
                 }
             }
         }

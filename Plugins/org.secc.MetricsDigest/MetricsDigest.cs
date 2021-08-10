@@ -12,27 +12,26 @@
 // limitations under the License.
 // </copyright>
 //
-using System.Linq;
+using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
+using System.Linq;
+using DotLiquid;
 using Quartz;
 using Rock;
 using Rock.Attribute;
+using Rock.Communication;
 using Rock.Data;
 using Rock.Model;
-using System.Collections.Generic;
-using System.Data.Entity.SqlServer;
-using System;
-using Rock.Communication;
-using static Rock.Attribute.MetricCategoriesFieldAttribute;
-using Rock.Web.UI.Controls;
 using Rock.Web.Cache;
-using DotLiquid;
+using Rock.Web.UI.Controls;
+using static Rock.Attribute.MetricCategoriesFieldAttribute;
 
 namespace org.secc.Jobs
 {
     [MetricCategoriesField( "Metrics", "The metric categories to include in this email communication.", true )]
-    [SlidingDateRangeField( "Date Range", "The date range to review metric entries.", true ) ]
+    [SlidingDateRangeField( "Date Range", "The date range to review metric entries.", true )]
     [CategoryField( "Schedule Categories", "The schedule categories to use for list of service times.  Note that this requires a campus attribute to be selected below.", true, "Rock.Model.Schedule" )]
     [AttributeField( Rock.SystemGuid.EntityType.SCHEDULE, "Campus Attribute", "The campus attribute to use for filtering the schedules" )]
     [GroupField( "Notification Group", "The group of people to notify about the metric entry progress", true )]
@@ -54,7 +53,7 @@ namespace org.secc.Jobs
             DateRange dateRange = SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( dataMap.GetString( "DateRange" ) );
 
             var systemEmail = dataMap.GetString( "Email" ).AsGuidOrNull();
-            if (!systemEmail.HasValue)
+            if ( !systemEmail.HasValue )
             {
                 throw new Exception( "System Email is required!" );
             }
@@ -68,28 +67,29 @@ namespace org.secc.Jobs
             int recipients = 0;
 
             Group notificationGroup = groupService.Get( dataMap.GetString( "NotificationGroup" ).AsGuid() );
-            List<MetricCount> metricCounts = CampusCache.All().Select(c => new MetricCount() { Campus = c, TotalEntered = 0, TotalMetrics = 0 } ).ToList();
+            List<MetricCount> metricCounts = CampusCache.All().Select( c => new MetricCount() { Campus = c, TotalEntered = 0, TotalMetrics = 0 } ).ToList();
             List<Metric> metrics = new List<Metric>();
 
 
             // If we have some reasonable data, go ahead and run the job
-            if (notificationGroup != null && metricCategories.Count > 0 && dateRange.Start.HasValue && dateRange.End.HasValue)
+            if ( notificationGroup != null && metricCategories.Count > 0 && dateRange.Start.HasValue && dateRange.End.HasValue )
             {
-                foreach(MetricCategoryPair metricCategoryPair in metricCategories)
+                foreach ( MetricCategoryPair metricCategoryPair in metricCategories )
                 {
                     Metric metric = metricService.Get( metricCategoryPair.MetricGuid );
                     metrics.Add( metric );
                     // Split this by campus partition
-                    if (metric.MetricPartitions.Any(mp => mp.EntityType.Name.Contains("Campus")))
+                    if ( metric.MetricPartitions.Any( mp => mp.EntityType.Name.Contains( "Campus" ) ) )
                     {
-                        foreach(CampusCache campus in CampusCache.All())
+                        foreach ( CampusCache campus in CampusCache.All() )
                         {
                             // Check to see if we also have a schedule partition
-                            if (metric.MetricPartitions.Any(mp => mp.EntityType.Name.Contains("Schedule")))
+                            if ( metric.MetricPartitions.Any( mp => mp.EntityType.Name.Contains( "Schedule" ) ) )
                             {
                                 var services = GetServices( campus, dataMap, dateRange );
                                 metricCounts.Where( mc => mc.Campus == campus ).FirstOrDefault().TotalMetrics += services.Count;
-                                foreach ( var service in services ) {
+                                foreach ( var service in services )
+                                {
                                     var hasValues = metric.MetricValues.Where( mv =>
                                         mv.MetricValuePartitions.Any( mvp => mvp.MetricPartition.EntityType.Name.Contains( "Campus" ) && mvp.EntityId == campus.Id )
                                         && mv.MetricValuePartitions.Any( mvp => mvp.MetricPartition.EntityType.Name.Contains( "Schedule" ) && mvp.EntityId == service.Id )
@@ -124,14 +124,14 @@ namespace org.secc.Jobs
                 message.AdditionalMergeFields = mergeFields;
                 foreach ( GroupMember member in notificationGroup.Members )
                 {
-                    message.AddRecipient( RockEmailMessageRecipient.CreateAnonymous(member.Person.Email, mergeFields) );
+                    message.AddRecipient( RockEmailMessageRecipient.CreateAnonymous( member.Person.Email, mergeFields ) );
                     recipients++;
                 }
                 message.SendSeperatelyToEachRecipient = true;
                 message.Send();
             }
 
-            context.Result = string.Format( "Sent "+ recipients + " metric entry digest emails." );
+            context.Result = string.Format( "Sent " + recipients + " metric entry digest emails." );
         }
 
 
@@ -146,7 +146,7 @@ namespace org.secc.Jobs
             {
                 List<Guid> categoryGuids = dataMap.GetString( "ScheduleCategories" ).Split( ',' ).Select( g => g.AsGuid() ).ToList();
                 string campusAttributeGuid = dataMap.GetString( "CampusAttribute" );
-                
+
                 using ( var rockContext = new RockContext() )
                 {
                     var attributeValueQry = new AttributeValueService( rockContext ).Queryable();
@@ -168,7 +168,7 @@ namespace org.secc.Jobs
                             // Check to see if the event was applicable the week for which we are entering data
                             foreach ( var schedule in schedules )
                             {
-                                var occurrences = ScheduleICalHelper.GetOccurrences( schedule.Schedule.GetCalendarEvent(), dateRange.Start.Value, dateRange.End.Value );
+                                var occurrences = InetCalendarHelper.GetOccurrences( schedule.Schedule.iCalendarContent, dateRange.Start.Value );
                                 if ( occurrences.Count > 0 )
                                 {
                                     services.Add( schedule.Schedule );

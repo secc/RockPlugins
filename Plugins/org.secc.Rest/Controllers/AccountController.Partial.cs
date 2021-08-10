@@ -12,27 +12,27 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Web.Http;
-using Rock.Model;
+using System.Numerics;
+using System.Security.Cryptography;
 using System.Web;
-using System.Collections.Generic;
+using System.Web.Http;
 using System.Web.Routing;
-using org.secc.OAuth.Data;
-using org.secc.OAuth.Model;
-using Rock;
-using System;
-using System.Linq;
-using Rock.Security.ExternalAuthentication;
-using Rock.Communication;
-using Rock.Web.Cache;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using org.secc.OAuth.Data;
+using org.secc.OAuth.Model;
 using org.secc.PersonMatch;
-using System.ComponentModel.DataAnnotations;
-using System.Security.Cryptography;
-using System.Numerics;
+using Rock;
+using Rock.Communication;
+using Rock.Model;
+using Rock.Security.ExternalAuthentication;
+using Rock.Web.Cache;
 
 namespace org.secc.Rest.Controllers
 {

@@ -16,15 +16,13 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-
+using System.Linq;
+using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Attribute;
 using Rock.Web.Cache;
 using Rock.Workflow;
-using Rock;
-using System.Linq;
-using System.Data.Entity;
 
 namespace org.secc.Workflow.Registrations
 {
@@ -36,7 +34,7 @@ namespace org.secc.Workflow.Registrations
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Set Attribute from Registrant Field" )]
 
-    [WorkflowAttribute( "Workflow Attribute", "The Workflow Attribute to set")]
+    [WorkflowAttribute( "Workflow Attribute", "The Workflow Attribute to set" )]
     [WorkflowTextOrAttribute( "Field Key", "Field Key", "The registration template form field attribute key. <span class='tip tip-lava'></span>", true, key: "FieldKey" )]
     [WorkflowTextOrAttribute( "Registrant Index", "Registrant Index", "The Registrant index. <span class='tip tip-lava'></span>", true, "0", key: "RegistrantIndex", fieldTypeClassNames: new string[] { "Rock.Field.Types.IntegerFieldType" } )]
     public class SetAttributeFromRegistrantField : ActionComponent
@@ -53,9 +51,9 @@ namespace org.secc.Workflow.Registrations
         {
             errorMessages = new List<string>();
 
-            if ( entity is Dictionary<string,object> entityDictionary )
+            if ( entity is Dictionary<string, object> entityDictionary )
             {
-                RegistrationInstance registrationInstanceState = ( RegistrationInstance) entityDictionary["RegistrationInstance"];
+                RegistrationInstance registrationInstanceState = ( RegistrationInstance ) entityDictionary["RegistrationInstance"];
                 RegistrationInfo registrationState = ( RegistrationInfo ) entityDictionary["RegistrationInfo"];
                 if ( registrationState != null )
                 {
@@ -63,12 +61,12 @@ namespace org.secc.Workflow.Registrations
                     int registrantIndex = GetAttributeValue( action, "RegistrantIndex", true ).ResolveMergeFields( GetMergeFields( action ) ).AsInteger();
 
                     var formField = registrationInstanceState.RegistrationTemplate.Forms.SelectMany( f => f.Fields.Where( ff => ff.Attribute != null && ff.Attribute.Key == fieldKey ) ).FirstOrDefault();
-                    if ( formField != null)
-                    { 
+                    if ( formField != null )
+                    {
                         var fieldValue = registrationState.Registrants[registrantIndex].FieldValues.Where( fv => fv.Key == formField.Id ).Select( fv => fv.Value.FieldValue ).FirstOrDefault();
 
-                        if ( fieldValue != null)
-                        { 
+                        if ( fieldValue != null )
+                        {
                             // Now store the attribute
                             var targetAttribute = AttributeCache.Get( GetActionAttributeValue( action, "WorkflowAttribute" ).AsGuid(), rockContext );
                             if ( targetAttribute.EntityTypeId == new Rock.Model.Workflow().TypeId )

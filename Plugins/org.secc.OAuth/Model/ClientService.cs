@@ -12,10 +12,9 @@
 // limitations under the License.
 // </copyright>
 //
-using org.secc.OAuth.Data;
 using System;
-using System.Data.Entity;
 using System.Linq;
+using org.secc.OAuth.Data;
 
 namespace org.secc.OAuth.Model
 {
@@ -26,11 +25,11 @@ namespace org.secc.OAuth.Model
         /// Initializes a new instance of the <see cref="ClientService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public ClientService(OAuthContext context) : base( context ) { }
+        public ClientService( OAuthContext context ) : base( context ) { }
 
-        public Client GetByApiKey(Guid apiKey)
+        public Client GetByApiKey( Guid apiKey )
         {
-            return Queryable().FirstOrDefault(t => t.ApiKey == apiKey);
+            return Queryable().FirstOrDefault( t => t.ApiKey == apiKey );
         }
     }
 }

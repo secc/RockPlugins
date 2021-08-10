@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data.Entity.Migrations;
 using System.Data.Entity.Migrations.Builders;
 using System.Data.Entity.Migrations.Model;
 using System.Data.Entity.Migrations.Sql;
 using System.Data.Entity.SqlServer;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using Rock;
 
 namespace org.secc.DevLib.Extensions.Migration

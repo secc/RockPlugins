@@ -251,7 +251,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             var lastNameRecord = changeRequest.EvaluatePropertyChange( person, "LastName", tbLastName.Text );
 
             //Store the person's old last name as a previous name
-            if (lastNameRecord != null )
+            if ( lastNameRecord != null )
             {
                 changeRequest.AddEntity( new PersonPreviousName
                 {
@@ -546,8 +546,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 var dv = dataViewService.Get( approvedDataview.Value );
                 if ( dv != null )
                 {
-                    List<string> errorMessages;
-                    var qry = ( IQueryable<Person> ) dv.GetQuery( null, 30, out errorMessages );
+                    var qry = ( IQueryable<Person> ) dv.GetQuery( new DataViewGetQueryArgs { DatabaseTimeoutSeconds = 30 } );
                     if ( qry.Where( p => p.Id == CurrentPersonId ).Any() )
                     {
                         userCanApply = true;
@@ -571,8 +570,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 var dv = dataViewService.Get( blackListDV.Value );
                 if ( dv != null )
                 {
-                    List<string> errorMessages;
-                    var qry = ( IQueryable<Person> ) dv.GetQuery( null, 30, out errorMessages );
+                    var qry = ( IQueryable<Person> ) dv.GetQuery( new DataViewGetQueryArgs { DatabaseTimeoutSeconds = 30 } );
                     if ( qry.Where( p => p.Id == person.Id ).Any() )
                     {
                         return false;

@@ -89,9 +89,9 @@ namespace org.secc.SermonFeed.Rest
                 //add sermons to series
                 foreach ( var sermonItem in seriesItem.ChildItems
                     .Where( s => s.ChildContentChannelItem.ContentChannelId == SERMON_CONTENT_CHANNEL )
-                    .Select( s => s.ChildContentChannelItem ) 
+                    .Select( s => s.ChildContentChannelItem )
                     .Where( s => s.StartDateTime <= now && ( s.ExpireDateTime == null || s.ExpireDateTime >= now ) )
-                    .ToList())
+                    .ToList() )
                 {
                     sermonItem.LoadAttributes();
                     if ( sermonItem.GetAttributeValue( "Speaker" ).ToLower() != speaker.ToLower() )

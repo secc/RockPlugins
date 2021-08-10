@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
-using System.IO;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
@@ -25,11 +24,8 @@ using org.secc.GroupManager;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
-using Rock.MergeTemplates;
 using Rock.Model;
 using Rock.Security;
-using Rock.Web.Cache;
-using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
@@ -229,7 +225,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     if ( cbDidNotMeet.Checked == true )
                     {
                         var occurrence = attendanceOccurenceService.Get( occurenceDate.Date, CurrentGroup.Id, null, CurrentGroup.ScheduleId );
-                        if (occurrence == null)
+                        if ( occurrence == null )
                         {
                             occurrence = new AttendanceOccurrence();
                             occurrence.OccurrenceDate = occurenceDate;
@@ -238,7 +234,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             attendanceOccurenceService.Add( occurrence );
                         }
                         occurrence.DidNotOccur = true;
-                        foreach(var attendee in occurrence.Attendees)
+                        foreach ( var attendee in occurrence.Attendees )
                         {
                             attendee.DidAttend = false;
                         }
@@ -264,7 +260,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                                 }
                             }
 
-                            if (attendanceItem != null )
+                            if ( attendanceItem != null )
                             {
                                 attendanceItem.DidAttend = cbMember.Checked;
                             }
@@ -398,7 +394,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 var items = groupMembers
                     .Where( gm => gm.GroupMemberStatus == GroupMemberStatus.Active )
                     .OrderBy( gm => gm.Person.LastName )
-                    .ThenBy(gm => gm.Person.NickName)
+                    .ThenBy( gm => gm.Person.NickName )
                     .Select( m => new
                     {
                         PersonId = m.PersonId.ToString(),
@@ -420,7 +416,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 cbDidNotMeet.Checked = (
                        ( attendanceData.Where( a => a.DidAttend == true ).Count() <= 0
                        && attendanceData.Where( a => a.Occurrence.DidNotOccur == true ).Count() > 0 )
-                       || (occurrence != null &&  occurrence.DidNotOccur == true)
+                       || ( occurrence != null && occurrence.DidNotOccur == true )
                        );
                 if ( cbDidNotMeet.Checked )
                 {

@@ -13,11 +13,7 @@
 // </copyright>
 //
 using org.secc.Microframe.Data;
-using System.Data.Entity;
-using System.Linq;
 using Rock.Data;
-using System.Net.Sockets;
-using System.Text.RegularExpressions;
 
 namespace org.secc.Microframe.Model
 {

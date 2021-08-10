@@ -1,22 +1,14 @@
 ﻿using System;
-using System.Data.Entity;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Web.Http;
-using org.secc.FamilyCheckin.Cache;
-using org.secc.FamilyCheckin.Model;
 using QRCoder;
-using Rock;
-using Rock.Data;
-using Rock.Model;
 using Rock.Rest;
 using Rock.Rest.Filters;
-using Rock.Web.Cache;
 
 namespace org.secc.QRManager.Rest.Controllers
 {

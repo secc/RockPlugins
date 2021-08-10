@@ -1,26 +1,23 @@
-﻿using Jose;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using org.secc.LeagueApps.Contracts;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Security.Cryptography;
-using Rock.Model;
-using System.IO;
+using Jose;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using org.secc.LeagueApps.Components;
-using Rock.Security;
 using org.secc.LeagueApps.Utilities;
+using RestSharp;
 using Rock;
 using Rock.Data;
-using RestSharp;
+using Rock.Model;
+using Rock.Security;
+using Security.Cryptography;
+using Security.Cryptography.X509Certificates;
 
 namespace org.secc.LeagueApps
 {

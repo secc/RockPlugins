@@ -13,25 +13,22 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
-using System.Web;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
-
+using System.Text.RegularExpressions;
+using System.Web;
+using System.Web.Script.Serialization;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI;
-using Rock.Web.UI.Controls;
-using System.Net;
-using System.Text.RegularExpressions;
-using Rock.Security;
-using System.Web.Script.Serialization;
-using System.IO;
 
 namespace RockWeb.Plugins.org_secc.Security
 {
@@ -188,7 +185,7 @@ namespace RockWeb.Plugins.org_secc.Security
             {
                 query["test"] = "true";
             }
-            builder.Query = string.Format( "{0}&{1}", query.ToString(), Request.QueryString);
+            builder.Query = string.Format( "{0}&{1}", query.ToString(), Request.QueryString );
             string url = builder.ToString();
 
             return url.ToString();
@@ -208,7 +205,7 @@ namespace RockWeb.Plugins.org_secc.Security
                 PersonalDevice personalDevice = null;
 
                 bool isAnExistingDevice = DoesPersonalDeviceExist( macAddress );
-                if (isAnExistingDevice)
+                if ( isAnExistingDevice )
                 {
                     personalDevice = VerifyDeviceInfo( macAddress );
                 }
@@ -219,7 +216,7 @@ namespace RockWeb.Plugins.org_secc.Security
                 }
 
                 // Time to link this device to the person.
-                if (personalDevice.PersonAliasId != CurrentPersonAliasId && CurrentPersonAliasId.HasValue)
+                if ( personalDevice.PersonAliasId != CurrentPersonAliasId && CurrentPersonAliasId.HasValue )
                 {
                     RockPage.LinkPersonAliasToDevice( CurrentPersonAliasId.Value, macAddress );
                 }
@@ -345,19 +342,19 @@ namespace RockWeb.Plugins.org_secc.Security
         private int? GetDeviceTypeValueId()
         {
             // Get the device type Mobile or Computer
-            DefinedTypeCache definedTypeCache = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_TYPE.AsGuid() );
+            DefinedTypeCache definedTypeCache = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_TYPE.AsGuid() );
             DefinedValueCache definedValueCache = null;
 
             var clientType = InteractionDeviceType.GetClientType( Request.UserAgent );
             clientType = clientType == "Mobile" || clientType == "Tablet" ? "Mobile" : "Computer";
 
-            if (definedTypeCache != null)
+            if ( definedTypeCache != null )
             {
                 definedValueCache = definedTypeCache.DefinedValues.FirstOrDefault( v => v.Value == clientType );
 
-                if (definedValueCache == null)
+                if ( definedValueCache == null )
                 {
-                    definedValueCache = DefinedValueCache.Read( "828ADECE-EFE7-49DF-BA8C-B3F132509A95" );
+                    definedValueCache = DefinedValueCache.Get( "828ADECE-EFE7-49DF-BA8C-B3F132509A95" );
                 }
 
                 return definedValueCache.Id;
@@ -376,15 +373,15 @@ namespace RockWeb.Plugins.org_secc.Security
             // get the OS
             string platform = client.OS.Family.Split( ' ' ).First();
 
-            DefinedTypeCache definedTypeCache = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_PLATFORM.AsGuid() );
+            DefinedTypeCache definedTypeCache = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_PLATFORM.AsGuid() );
             DefinedValueCache definedValueCache = null;
-            if (definedTypeCache != null)
+            if ( definedTypeCache != null )
             {
                 definedValueCache = definedTypeCache.DefinedValues.FirstOrDefault( v => v.Value == platform );
 
-                if (definedValueCache == null)
+                if ( definedValueCache == null )
                 {
-                    definedValueCache = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSONAL_DEVICE_PLATFORM_OTHER.AsGuid() );
+                    definedValueCache = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSONAL_DEVICE_PLATFORM_OTHER.AsGuid() );
                 }
 
                 return definedValueCache.Id;
@@ -400,7 +397,7 @@ namespace RockWeb.Plugins.org_secc.Security
         /// <returns></returns>
         private string GetDeviceOsVersion( UAParser.ClientInfo client )
         {
-            if (client.OS.Major == null)
+            if ( client.OS.Major == null )
             {
                 string platform = client.OS.Family.Split( ' ' ).First();
                 return client.OS.Family.Replace( platform, string.Empty ).Trim();
@@ -419,7 +416,7 @@ namespace RockWeb.Plugins.org_secc.Security
         /// </summary>
         private void CreateDeviceCookie( string macAddress )
         {
-            if (Request.Cookies["rock_wifi"] == null)
+            if ( Request.Cookies["rock_wifi"] == null )
             {
                 HttpCookie httpcookie = new HttpCookie( "rock_wifi" );
                 httpcookie.Expires = DateTime.MaxValue;

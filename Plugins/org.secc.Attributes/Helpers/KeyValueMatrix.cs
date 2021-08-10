@@ -60,7 +60,7 @@ namespace org.secc.Attributes.Helpers
                 matrix = new KeyValueMatrix( matrix.Where( r => r.Count > i && r[i].Key == values[i] ) );
 
                 var kv = matrix.Where( r => r[i].Key == values[i] ).FirstOrDefault();
-                if ( kv != null)
+                if ( kv != null )
                 {
                     value = kv[i].Value;
                 }

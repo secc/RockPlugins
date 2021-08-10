@@ -29,18 +29,12 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Entity;
-using System.Data.SqlClient;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using System.Xml.Linq;
 
 using Rock;
 using Rock.Attribute;
@@ -126,10 +120,10 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
                 int entityTypeId = entityTypeService.Queryable().Where( et => et.Name == typeof( Workflow ).FullName ).FirstOrDefault().Id;
                 string status = ( contextEntity != null ? "Completed" : "Active" );
-                
+
                 var workflowType = new WorkflowTypeService( rockContext ).Get( homeBoundPersonWorkflow );
 
-                if (workflowType == null )
+                if ( workflowType == null )
                 {
                     nbError.Visible = true;
                     return;
@@ -140,7 +134,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 var attributeIds = attributeService.Queryable()
                     .Where( a => a.EntityTypeQualifierColumn == "WorkflowTypeId" && a.EntityTypeQualifierValue == workflowTypeIdAsString )
                     .Select( a => a.Id ).ToList();
-            
+
                 // Look up the activity type for "Visitation"
                 var visitationActivityIdAsString = workflowType.ActivityTypes.Where( at => at.Name == "Visitation Info" ).Select( at => at.Id.ToString() ).FirstOrDefault();
 
@@ -188,7 +182,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     .Select( obj => new { Workflow = obj.WorkflowObjects.Workflow, AttributeValues = obj.WorkflowObjects.AttributeValues, VisitationActivities = obj.VisitationActivities } ).ToList();
 
 
-                if ( contextEntity == null)
+                if ( contextEntity == null )
                 {
                     // Make sure they aren't deceased
                     qry = qry.AsQueryable().Where( w => !
@@ -196,7 +190,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                         personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "HomeboundPerson" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person.IsDeceased :
                         false ) ).ToList();
                 }
-                
+
                 var newQry = qry.Select( w => new
                 {
                     Id = w.Workflow.Id,
@@ -223,7 +217,8 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     StartDate = w.AttributeValues.Where( av => av.AttributeKey == "StartDate" ).Select( av => av.ValueAsDateTime ).FirstOrDefault(),
                     Description = w.AttributeValues.Where( av => av.AttributeKey == "HomeboundResidentDescription" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     Visits = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Count(),
-                    LastVisitor = new Func<string>( () => {
+                    LastVisitor = new Func<string>( () =>
+                    {
                         var visitor = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Select( va => va.AttributeValues.Where( av => av.AttributeKey == "Visitor" ).LastOrDefault() ).LastOrDefault();
                         if ( visitor != null )
                         {
@@ -300,14 +295,14 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
                     // Find the summary activity and activate it.
                     WorkflowActivityType workflowActivityType = workflow.WorkflowType.ActivityTypes.Where( at => at.Name.Contains( "Summary" ) ).FirstOrDefault();
-                    WorkflowActivity workflowActivity = WorkflowActivity.Activate( WorkflowActivityTypeCache.Get(workflowActivityType.Id, rockContext), workflow, rockContext );
+                    WorkflowActivity workflowActivity = WorkflowActivity.Activate( WorkflowActivityTypeCache.Get( workflowActivityType.Id, rockContext ), workflow, rockContext );
 
                 }
                 rockContext.SaveChanges();
             }
             BindGrid();
         }
-        
+
         #endregion
     }
 }

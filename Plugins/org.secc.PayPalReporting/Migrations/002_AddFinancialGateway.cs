@@ -13,15 +13,10 @@
 // </copyright>
 //
 using Rock.Plugin;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace org.secc.PayPalReporting.Migrations
 {
-    [MigrationNumber(2, "1.0.1")]
+    [MigrationNumber( 2, "1.0.1" )]
     class AddFinancialGateway : Migration
     {
         /// <summary>
@@ -46,10 +41,10 @@ namespace org.secc.PayPalReporting.Migrations
 
         }
 
-    /// <summary>
-    /// The commands to undo a migration from a specific version
-    /// </summary>
-    public override void Down()
+        /// <summary>
+        /// The commands to undo a migration from a specific version
+        /// </summary>
+        public override void Down()
         {
             Sql( @"
             ALTER TABLE [dbo].[_org_secc_PayPalReporting_Transaction] DROP CONSTRAINT [FK__org_secc_PayPalReporting_Transaction_FinancialGateway]

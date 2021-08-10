@@ -12,8 +12,8 @@
 // limitations under the License.
 // </copyright>
 //
-using org.secc.OAuth.Model;
 using System.Data.Entity;
+using org.secc.OAuth.Model;
 
 namespace org.secc.OAuth.Data
 {
@@ -50,13 +50,13 @@ namespace org.secc.OAuth.Data
         /// More control over caching is provided through use of the DbModelBuilder and DbContextFactory
         /// classes directly.
         /// </remarks>
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        protected override void OnModelCreating( DbModelBuilder modelBuilder )
         {
             // we don't want this context to create a database or look for EF Migrations, do set the Initializer to null
-            Database.SetInitializer<OAuthContext>(new NullDatabaseInitializer<OAuthContext>());
+            Database.SetInitializer<OAuthContext>( new NullDatabaseInitializer<OAuthContext>() );
 
-            Rock.Data.ContextHelper.AddConfigurations(modelBuilder);
-            modelBuilder.Configurations.AddFromAssembly(System.Reflection.Assembly.GetExecutingAssembly());
+            Rock.Data.ContextHelper.AddConfigurations( modelBuilder );
+            modelBuilder.Configurations.AddFromAssembly( System.Reflection.Assembly.GetExecutingAssembly() );
         }
 
     }

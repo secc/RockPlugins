@@ -109,8 +109,8 @@ namespace org.secc.Jobs
                             }
                         }
                     }
-                    personalDevice.SaveAttributeValues( );
-                   
+                    personalDevice.SaveAttributeValues();
+
 
                 }
 

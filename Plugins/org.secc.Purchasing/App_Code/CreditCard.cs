@@ -13,9 +13,7 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
 using org.secc.Purchasing.DataLayer;
 using Rock.Model;
@@ -30,7 +28,7 @@ namespace org.secc.Purchasing
         private string mCardLastFour;
         private DateTime mCardExpirationDate;
         private int mCardholderID;
-        private string  mCreatedByUserID;
+        private string mCreatedByUserID;
         private string mModifiedByUserID;
         private DateTime mDateCreated;
         private DateTime mDateModified;
@@ -155,8 +153,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mCardholder == null && mCardholderID > 0)
-                    mCardholder = personAliasService.Get(mCardholderID).Person;
+                if ( mCardholder == null && mCardholderID > 0 )
+                    mCardholder = personAliasService.Get( mCardholderID ).Person;
 
                 return mCardholder;
             }
@@ -167,8 +165,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mCreatedBy == null && !String.IsNullOrEmpty(mCreatedByUserID))
-                    mCreatedBy = userLoginService.GetByUserName(CreatedByUserID).Person;
+                if ( mCreatedBy == null && !String.IsNullOrEmpty( mCreatedByUserID ) )
+                    mCreatedBy = userLoginService.GetByUserName( CreatedByUserID ).Person;
 
                 return mCreatedBy;
             }
@@ -179,8 +177,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if(mModifiedBy == null && !String.IsNullOrEmpty(ModifiedByUserID))
-                    mModifiedBy = userLoginService.GetByUserName(ModifiedByUserID).Person;
+                if ( mModifiedBy == null && !String.IsNullOrEmpty( ModifiedByUserID ) )
+                    mModifiedBy = userLoginService.GetByUserName( ModifiedByUserID ).Person;
 
                 return mModifiedBy;
             }
@@ -194,17 +192,17 @@ namespace org.secc.Purchasing
             Init();
         }
 
-        public CreditCard(int ccID)
+        public CreditCard( int ccID )
         {
-            if (ccID <= 0)
-                throw new ArgumentException("Credit Card ID", "Credit Card ID must be greater than 0.");
+            if ( ccID <= 0 )
+                throw new ArgumentException( "Credit Card ID", "Credit Card ID must be greater than 0." );
 
-            Load(ccID);
+            Load( ccID );
         }
 
-        public CreditCard(PaymentCreditCardData data)
+        public CreditCard( PaymentCreditCardData data )
         {
-            Load(data);
+            Load( data );
         }
         #endregion
 
@@ -225,34 +223,34 @@ namespace org.secc.Purchasing
             mCardholder = null;
         }
 
-        private void Load(PaymentCreditCardData data)
+        private void Load( PaymentCreditCardData data )
         {
             Init();
-            if (data != null)
+            if ( data != null )
             {
                 mCreditCardID = data.credit_card_id;
                 mCardLastFour = data.card_last_four;
                 mCardExpirationDate = data.card_expiration_date;
 
-                if (data.card_holder_id == null)
+                if ( data.card_holder_id == null )
                     mCardholderID = 0;
                 else
-                    mCardholderID = (int)data.card_holder_id;
+                    mCardholderID = ( int ) data.card_holder_id;
 
                 mCreatedByUserID = data.created_by;
                 mModifiedByUserID = data.modified_by;
                 mDateCreated = data.date_created;
 
-                if (data.date_modified == null)
+                if ( data.date_modified == null )
                     mDateModified = DateTime.MinValue;
                 else
-                    mDateModified = (DateTime)data.date_modified;
+                    mDateModified = ( DateTime ) data.date_modified;
 
                 mActive = data.active;
             }
         }
 
-        private void Load(int ccId)
+        private void Load( int ccId )
         {
             using ( PurchasingContext context = ContextHelper.GetDBContext() )
                 Load( context.PaymentCreditCardDatas.FirstOrDefault( h => h.credit_card_id == ccId ) );
@@ -261,11 +259,11 @@ namespace org.secc.Purchasing
 
         private PaymentMethod GetPaymentMethod()
         {
-            using (PurchasingContext Context = ContextHelper.GetDBContext())
+            using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
-                PaymentMethodData PayData= Context.PaymentCreditCardDatas.Where(c => c.credit_card_id == CreditCardID).FirstOrDefault().PaymentMethodDatas.FirstOrDefault();
+                PaymentMethodData PayData = Context.PaymentCreditCardDatas.Where( c => c.credit_card_id == CreditCardID ).FirstOrDefault().PaymentMethodDatas.FirstOrDefault();
 
-                return new PaymentMethod(PayData);
+                return new PaymentMethod( PayData );
             }
         }
         #endregion

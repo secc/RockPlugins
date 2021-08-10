@@ -695,10 +695,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 List<int> forbiddenGroupIds = new List<int>();
                 var approvedPeopleGuid = GetAttributeValue( "ApprovedPeople" ).AsGuid();
                 var approvedPeople = new DataViewService( _rockContext ).Get( approvedPeopleGuid );
-                var errorMessages = new List<string>();
                 if ( approvedPeople != null )
                 {
-                    var approvedPeopleQry = approvedPeople.GetQuery( null, 30, out errorMessages );
+                    var approvedPeopleQry = approvedPeople.GetQuery( new DataViewGetQueryArgs { DatabaseTimeoutSeconds = 30 } );
                     if ( !approvedPeopleQry.Where( dv => dv.Id == attendanceRecord.PersonAlias.PersonId ).Any() )
                     {
                         forbiddenGroupIds = OccurrenceCache.GetVolunteerOccurrences().Select( o => o.GroupId ).ToList();

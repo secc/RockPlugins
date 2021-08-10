@@ -28,7 +28,7 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static T Get( string qualifiedKey, Func<T> itemFactory, Func<List<string>> keyFactory )
         {
-            var item = RockCacheManager<T>.Instance.Cache.Get( qualifiedKey );
+            var item = RockCacheManager<T>.Instance.Get( qualifiedKey );
 
             if ( item != null )
             {

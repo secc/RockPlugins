@@ -28,15 +28,14 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Search;
-using Rock;
 
 namespace org.secc.Search.Person
 {
@@ -76,10 +75,10 @@ namespace org.secc.Search.Person
 
             var rockContext = new RockContext();
 
-            var personService = new PersonService(rockContext);
+            var personService = new PersonService( rockContext );
             var birthDates = personService.Queryable().Where( p => p.BirthDate.HasValue ).Select( p => p.BirthDate ).Distinct().AsEnumerable();
             var shortDateSearch = birthDates.Where( p => p.Value.ToString( "d" ).ToLower().Contains( searchterm ) || p.Value.ToString( "MM/dd/yyyy" ).ToLower().Contains( searchterm ) ).Select( p => p.Value.ToString( "d" ) );
-            var longDateSearch =  birthDates.Where( p => p.Value.ToString( "MMMM d, yyyy" ).ToLower().Contains( searchterm ) ).Select( p => p.Value.ToString( "MMMM d, yyyy" ) );
+            var longDateSearch = birthDates.Where( p => p.Value.ToString( "MMMM d, yyyy" ).ToLower().Contains( searchterm ) ).Select( p => p.Value.ToString( "MMMM d, yyyy" ) );
             if ( shortDateSearch.Union( longDateSearch ).Any() )
             {
                 return shortDateSearch.Union( longDateSearch ).Distinct().AsQueryable();

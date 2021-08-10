@@ -18,17 +18,16 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web;
-
+using org.secc.PersonMatch;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using Rock.Web.Cache;
-using System.Text.RegularExpressions;
-using org.secc.PersonMatch;
 
 namespace RockWeb.Plugins.org_secc.Security
 {
@@ -284,7 +283,7 @@ namespace RockWeb.Plugins.org_secc.Security
         private int? GetDeviceTypeValueId()
         {
             // Get the device type Mobile or Computer
-            DefinedTypeCache definedTypeCache = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_TYPE.AsGuid() );
+            DefinedTypeCache definedTypeCache = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_TYPE.AsGuid() );
             DefinedValueCache definedValueCache = null;
 
             var clientType = InteractionDeviceType.GetClientType( Request.UserAgent );
@@ -296,7 +295,7 @@ namespace RockWeb.Plugins.org_secc.Security
 
                 if ( definedValueCache == null )
                 {
-                    definedValueCache = DefinedValueCache.Read( "828ADECE-EFE7-49DF-BA8C-B3F132509A95" );
+                    definedValueCache = DefinedValueCache.Get( "828ADECE-EFE7-49DF-BA8C-B3F132509A95" );
                 }
 
                 return definedValueCache.Id;
@@ -315,7 +314,7 @@ namespace RockWeb.Plugins.org_secc.Security
             // get the OS
             string platform = client.OS.Family.Split( ' ' ).First();
 
-            DefinedTypeCache definedTypeCache = DefinedTypeCache.Read( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_PLATFORM.AsGuid() );
+            DefinedTypeCache definedTypeCache = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.PERSONAL_DEVICE_PLATFORM.AsGuid() );
             DefinedValueCache definedValueCache = null;
             if ( definedTypeCache != null )
             {
@@ -323,7 +322,7 @@ namespace RockWeb.Plugins.org_secc.Security
 
                 if ( definedValueCache == null )
                 {
-                    definedValueCache = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSONAL_DEVICE_PLATFORM_OTHER.AsGuid() );
+                    definedValueCache = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSONAL_DEVICE_PLATFORM_OTHER.AsGuid() );
                 }
 
                 return definedValueCache.Id;
@@ -391,7 +390,7 @@ namespace RockWeb.Plugins.org_secc.Security
             if ( tbMobilePhone.Visible )
             {
                 PhoneNumberService phoneNumberService = new PhoneNumberService( new RockContext() );
-                int mobilePhoneTypeId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE ).Id;
+                int mobilePhoneTypeId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE ).Id;
                 PhoneNumber phoneNumber = phoneNumberService.Queryable().Where( p => p.PersonId == person.Id && p.NumberTypeValueId == mobilePhoneTypeId ).FirstOrDefault();
                 tbMobilePhone.Text = phoneNumber == null ? string.Empty : phoneNumber.Number;
             }
@@ -431,7 +430,7 @@ namespace RockWeb.Plugins.org_secc.Security
             }
 
             PersonService personService = new PersonService( new RockContext() );
-            int mobilePhoneTypeId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE ).Id;
+            int mobilePhoneTypeId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE ).Id;
 
             // Use the entered info to try and find an existing user
             string mobilePhoneNumber = string.Concat( tbMobilePhone.Text.Where( c => char.IsLetterOrDigit( c ) ) );
@@ -447,7 +446,7 @@ namespace RockWeb.Plugins.org_secc.Security
             // If no known person record then create one
             if ( person == null )
             {
-                var defaultConnectionStatus = DefinedValueCache.Read( GetAttributeValue( "ConnectionStatus" ).AsGuid() );
+                var defaultConnectionStatus = DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() );
 
                 person = new Person
                 {
@@ -559,7 +558,7 @@ namespace RockWeb.Plugins.org_secc.Security
 
                 Person person = new PersonService( rockContext ).Get( ( int ) personId );
 
-                int mobilePhoneTypeId = DefinedValueCache.Read( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE ).Id;
+                int mobilePhoneTypeId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE ).Id;
 
                 person.Email = tbEmail.Text;
 

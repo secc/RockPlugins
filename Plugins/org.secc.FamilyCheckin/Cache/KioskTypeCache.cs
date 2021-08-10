@@ -168,7 +168,7 @@ namespace org.secc.FamilyCheckin.Cache
         public static void FlushItem( int id )
         {
             var qualifiedKey = QualifiedKey( id.ToString() );
-            RockCacheManager<KioskTypeCache>.Instance.Cache.Remove( qualifiedKey );
+            RockCacheManager<KioskTypeCache>.Instance.Remove( qualifiedKey );
         }
 
         /// <summary>

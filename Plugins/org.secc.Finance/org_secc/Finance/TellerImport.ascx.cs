@@ -34,21 +34,19 @@ using System.ComponentModel;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
-using Rock;
-using Rock.Data;
-using Rock.Model;
-using Rock.Web.Cache;
-using Rock.Web.UI.Controls;
-using Rock.Attribute;
 using System.Xml.Linq;
 using Microsoft.AspNet.SignalR;
-using Microsoft.AspNet.SignalR.Hubs;
-using System.Security.Cryptography;
+using Rock;
+using Rock.Attribute;
+using Rock.Data;
+using Rock.Model;
 using Rock.Security;
-using System.Text;
+using Rock.Web.Cache;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.Finance
 {
@@ -77,7 +75,7 @@ namespace RockWeb.Plugins.org_secc.Finance
            order: 3,
            key: "InitializationVectorValue",
            isPassword: true )]
-    
+
     #endregion Block Settings
 
     public partial class TellerImport : Rock.Web.UI.RockBlock
@@ -324,9 +322,15 @@ namespace RockWeb.Plugins.org_secc.Finance
 
                 switch ( status )
                 {
-                    case ProcessStatus.Matched: matchCount++; break;
-                    case ProcessStatus.Unmatched: unmatchCount++; break;
-                    case ProcessStatus.Error: errorCount++; break;
+                    case ProcessStatus.Matched:
+                        matchCount++;
+                        break;
+                    case ProcessStatus.Unmatched:
+                        unmatchCount++;
+                        break;
+                    case ProcessStatus.Error:
+                        errorCount++;
+                        break;
                 }
 
                 allErrorMessages.AddRange( errorMessages );
@@ -646,7 +650,7 @@ namespace RockWeb.Plugins.org_secc.Finance
         /// <param name="giftElement">The gift element.</param>
         /// <param name="propertyName">Name of the property.</param>
         /// <returns></returns>
-        private string GetChildElementValue( XElement giftElement, string propertyName)
+        private string GetChildElementValue( XElement giftElement, string propertyName )
         {
             var propElement = giftElement.Element( propertyName );
             if ( propElement != null )
@@ -715,7 +719,7 @@ namespace RockWeb.Plugins.org_secc.Finance
             };
             MemoryStream memoryStream = new MemoryStream( Convert.FromBase64String( value ) );
             ICryptoTransform cryptoTransform = rijndaelManaged.CreateDecryptor( num, numArray );
-            memoryStream.Position = (long)0;
+            memoryStream.Position = ( long ) 0;
             return ( new StreamReader( new CryptoStream( memoryStream, cryptoTransform, CryptoStreamMode.Read ) ) ).ReadToEnd();
         }
 

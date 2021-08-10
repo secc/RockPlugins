@@ -19,7 +19,6 @@ using System.Data;
 using System.Linq;
 using System.Web.UI;
 using org.secc.FamilyCheckin.Cache;
-using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -168,7 +167,7 @@ namespace RockWeb.Blocks.Reporting.Children
             }
 
             var records = new List<AttendanceRecord>();
-            var volunteerGroupIds = OccurrenceCache.GetVolunteerOccurrences().Select(o => o.GroupId).ToList();
+            var volunteerGroupIds = OccurrenceCache.GetVolunteerOccurrences().Select( o => o.GroupId ).ToList();
 
             foreach ( var attendance in attendances )
             {
@@ -284,11 +283,6 @@ namespace RockWeb.Blocks.Reporting.Children
                 && h.CreatedDateTime >= dayOf
                 && h.CreatedDateTime < nextDay
                 ).ToList();
-
-            //This is a hack.
-            //The HTML grid field doesn't render html on the first column for some reason.
-            //This inserts a non-HTML item so the later items will be rendered correctly.
-            history.Insert( 0, new History() { Summary = "Summary:" } );
 
             gHistory.DataSource = history;
             gHistory.DataBind();

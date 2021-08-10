@@ -20,7 +20,7 @@ namespace org.secc.PastoralCare.Migrations
     class Fix_Nursing_Homes : Migration
     {
         public override void Up()
-        {     
+        {
             Sql( "UPDATE [AttributeValue] SET Value = '4573E600-4E00-4BE9-BA92-D17093C735D6' WHERE Value = '89C2E347-BDEF-4BF2-8A25-9D4EE2E9B405'" );
         }
         public override void Down()

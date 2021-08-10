@@ -13,14 +13,12 @@
 // </copyright>
 //
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.UI;
-using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
@@ -55,7 +53,7 @@ We are sorry, we dected more than one person with your number in our records.
         " )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM, "From", "The number to originate message from (configured under Admin Tools > General Settings > Defined Types > SMS From Values).", true, false, "", "" )]
     [TextField( "Message", "Message that will be sent along with the login code.", true, "Use {{ password }} to log in.  If you received this message by mistake please disregard." )]
-    [LinkedPage( "Redirect Page", "Page to redirect user to upon successful login.", true, "", "")]
+    [LinkedPage( "Redirect Page", "Page to redirect user to upon successful login.", true, "", "" )]
     public partial class SMSLogin : Rock.Web.UI.RockBlock
     {
 

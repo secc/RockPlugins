@@ -121,7 +121,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
             var items = dataService
                 .Get( newguid );
             List<string> list = new List<string>();
-            var qry = items.GetQuery( null, null, out list );
+            var qry = items.GetQuery( new DataViewGetQueryArgs() );
             var personList = (IQueryable<Person>)qry;
             var plist = personList
                 .Where( p => p.BirthDate != null )

@@ -13,19 +13,17 @@
 // </copyright>
 //
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Text;
+using System.Text.RegularExpressions;
 using Rock;
 using Rock.Data;
 using Rock.Model;
-using Rock.Workflow;
-using Rock.Attribute;
-using System.Text.RegularExpressions;
-using System.Text;
 using Rock.Security;
 using Rock.Web.Cache;
+using Rock.Workflow;
 
 namespace org.secc.SafetyAndSecurity
 {
@@ -41,8 +39,8 @@ namespace org.secc.SafetyAndSecurity
 
 
             var actionStep = GetActionAttributeValue( action, "ActionStep" );
-            
-            if ( Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN1" ) ) == "***")
+
+            if ( Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN1" ) ) == "***" )
             {
                 // ***'s mean to just ignore it.
                 return activateActivity( rockContext, action, "SuccessActivity" );
@@ -52,8 +50,8 @@ namespace org.secc.SafetyAndSecurity
             string ssn = Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN1" ) ) + "-" +
                 Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN2" ) ) + "-" +
                 Encryption.DecryptString( action.Activity.Workflow.GetAttributeValue( "SSN3" ) );
-                    
-            if (Regex.Match(ssn, @"^(?!(123[ -]?45[ -]?6789)|((\d)\3\3[ -]?\3\3[ -]?\3\3\3\3))(\d{3}[- ]?\d{2}[- ]?\d{4})$").Success)
+
+            if ( Regex.Match( ssn, @"^(?!(123[ -]?45[ -]?6789)|((\d)\3\3[ -]?\3\3[ -]?\3\3\3\3))(\d{3}[- ]?\d{2}[- ]?\d{4})$" ).Success )
             {
                 PersonAliasService personAliasService = new PersonAliasService( rockContext );
                 // Store the SSN and then set it to ***'s
@@ -69,11 +67,11 @@ namespace org.secc.SafetyAndSecurity
             SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "ErrorMessages" ).AsGuid(), "" );
 
             // If we get here, it was successful
-            return activateActivity( rockContext, action, "SuccessActivity");
+            return activateActivity( rockContext, action, "SuccessActivity" );
 
         }
 
-        private bool activateActivity( RockContext rockContext, WorkflowAction action, string activityAttributeName)
+        private bool activateActivity( RockContext rockContext, WorkflowAction action, string activityAttributeName )
         {
 
             Guid guid = GetAttributeValue( action, activityAttributeName ).AsGuid();
@@ -118,11 +116,11 @@ namespace org.secc.SafetyAndSecurity
             }
         }
 
-        private void validateAddress(Guid? addressGuid, String addressName, StringBuilder sbErrorMessages )
+        private void validateAddress( Guid? addressGuid, String addressName, StringBuilder sbErrorMessages )
         {
 
             // Check out lots of stuff with the fourth reference address
-            if ( addressGuid.HasValue && addressGuid != new Guid())
+            if ( addressGuid.HasValue && addressGuid != new Guid() )
             {
                 LocationService locationService = new LocationService( new RockContext() );
                 Location location = locationService.Get( addressGuid.Value );

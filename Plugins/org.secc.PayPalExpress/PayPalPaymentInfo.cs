@@ -12,13 +12,9 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
 using Rock.Financial;
 using Rock.Web.Cache;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace org.secc.PayPalExpress
 {
@@ -40,7 +36,7 @@ namespace org.secc.PayPalExpress
         /// </summary>
         public override DefinedValueCache CurrencyTypeValue
         {
-            get { return DefinedValueCache.Get(new Guid(PayPalExpress.Gateway.CURRENCY_TYPE_PAYPAL)); }
+            get { return DefinedValueCache.Get( new Guid( PayPalExpress.Gateway.CURRENCY_TYPE_PAYPAL ) ); }
         }
 
     }

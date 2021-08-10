@@ -14,19 +14,17 @@
 //
 using System;
 using System.ComponentModel;
+using System.Data.Entity;
+using System.Diagnostics;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.UI.Controls;
-using System.Collections.Generic;
-using Rock.CheckIn;
-using Rock.Attribute;
 using Rock.Web.UI;
-using System.Data.Entity;
-using System.Diagnostics;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {

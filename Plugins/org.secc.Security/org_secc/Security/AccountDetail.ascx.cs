@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -29,12 +29,9 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Web.UI;
-using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
@@ -52,8 +49,8 @@ namespace RockWeb.Plugins.org_secc.Security
     [Category( "SECC > Security" )]
     [Description( "Public block for user to manager their account" )]
 
-    [LinkedPage("Detail Page", "Page to edit account details.", order: 0)]
-    [BooleanField("Show Home Address", "Shows/hides the home address.", order: 1)]
+    [LinkedPage( "Detail Page", "Page to edit account details.", order: 0 )]
+    [BooleanField( "Show Home Address", "Shows/hides the home address.", order: 1 )]
     [GroupLocationTypeField( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY, "Location Type",
         "The type of location that address should use.", false, Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME, "", 14 )]
     public partial class AccountDetail : RockBlock
@@ -114,13 +111,13 @@ namespace RockWeb.Plugins.org_secc.Security
                 Guid? locationTypeGuid = GetAttributeValue( "LocationType" ).AsGuidOrNull();
                 if ( locationTypeGuid.HasValue )
                 {
-                    var addressTypeDv = DefinedValueCache.Read( locationTypeGuid.Value );
+                    var addressTypeDv = DefinedValueCache.Get( locationTypeGuid.Value );
 
                     var familyGroupTypeGuid = Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuidOrNull();
 
                     if ( familyGroupTypeGuid.HasValue )
                     {
-                        var familyGroupType = GroupTypeCache.Read( familyGroupTypeGuid.Value );
+                        var familyGroupType = GroupTypeCache.Get( familyGroupTypeGuid.Value );
 
                         RockContext rockContext = new RockContext();
                         var address = new GroupLocationService( rockContext ).Queryable()
@@ -141,7 +138,7 @@ namespace RockWeb.Plugins.org_secc.Security
                     var homeAddress = CurrentPerson.GetHomeLocation();
                     if ( homeAddress != null )
                     {
-                        
+
                     }
                 }
             }

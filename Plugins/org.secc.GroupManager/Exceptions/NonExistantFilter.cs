@@ -13,10 +13,6 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace org.secc.GroupManager.Exceptions
 {
@@ -26,6 +22,6 @@ namespace org.secc.GroupManager.Exceptions
             : base() { }
 
         public NonExistantFilter( string message )
-            : base(message) { }
+            : base( message ) { }
     }
 }

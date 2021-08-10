@@ -13,8 +13,6 @@
 // </copyright>
 //
 
-using Rock.Model;
-
 namespace org.secc.FamilyCheckin.Utilities
 {
     public static class Constants

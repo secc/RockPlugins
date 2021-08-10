@@ -16,7 +16,7 @@ using Rock.Plugin;
 
 namespace org.secc.LeagueApps.Migrations
 {
-    [MigrationNumber(4, "1.0.4")]
+    [MigrationNumber( 4, "1.0.4" )]
     class CreateGenderDefinedValues : Migration
     {
         /// <summary>
@@ -54,15 +54,15 @@ namespace org.secc.LeagueApps.Migrations
 
         }
 
-    /// <summary>
-    /// The commands to undo a migration from a specific version
-    /// </summary>
-    public override void Down()
+        /// <summary>
+        /// The commands to undo a migration from a specific version
+        /// </summary>
+        public override void Down()
         {
-            RockMigrationHelper.DeleteDefinedValue("9A3C3ED4-48AE-4384-B98D-722539319E84");
-            RockMigrationHelper.DeleteDefinedValue("DDB7721A-DFDC-46EE-83BC-8FA70D99EFD5");
-            RockMigrationHelper.DeleteDefinedValue("58F93CCD-9AB4-4653-A690-168D42ED17CB");
-            RockMigrationHelper.DeleteDefinedValue("24E07D3E-912E-490F-8932-4A2C27B7244B");
+            RockMigrationHelper.DeleteDefinedValue( "9A3C3ED4-48AE-4384-B98D-722539319E84" );
+            RockMigrationHelper.DeleteDefinedValue( "DDB7721A-DFDC-46EE-83BC-8FA70D99EFD5" );
+            RockMigrationHelper.DeleteDefinedValue( "58F93CCD-9AB4-4653-A690-168D42ED17CB" );
+            RockMigrationHelper.DeleteDefinedValue( "24E07D3E-912E-490F-8932-4A2C27B7244B" );
         }
     }
 }

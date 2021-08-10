@@ -12,41 +12,41 @@
 // limitations under the License.
 // </copyright>
 //
-using Rock.Data;
-using Rock.Model;
-using Rock.Web.UI;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using Rock.Web.Cache;
-using Rock.Web.UI.Controls;
-using System.Collections.Generic;
+using org.secc.GroupManager;
 using Rock;
 using Rock.Attribute;
+using Rock.Data;
+using Rock.Model;
 using Rock.Security;
-using System.Text;
-using org.secc.GroupManager;
+using Rock.Web.Cache;
+using Rock.Web.UI;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
     [DisplayName( "LWYA Roster" )]
     [Category( "SECC > Groups" )]
     [Description( "Presents members of group in roster format." )]
-    
+
     [CustomRadioListField( "Group Member Status", "The group member status to use when adding person to group (default: 'Pending'.)", "2^Pending,1^Active,0^Inactive", true, "2", "", 1 )]
     [DefinedValueField( "2E6540EA-63F0-40FE-BE50-F2A84735E600", "Connection Status", "The connection status to use for new individuals (default: 'Web Prospect'.)", true, false, "368DD475-242C-49C4-A42C-7278BE690CC2", "", 2 )]
     [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 3 )]
-    
+
     //Settings
     [CodeEditorField( "Roster Lava", "Lava to appear in member roster pannels", CodeEditorMode.Lava, CodeEditorTheme.Rock, 600, false )]
     [BooleanField( "Allow Email", "Allow email to be sent from this block.", false )]
     [BooleanField( "Allow SMS", "Allow test messages to be sent from this block.", false )]
 
     [TextField( "Safe Sender Email", "If the current users email address is not from a safe sender, the email address to use.", category: "Email Settings" )]
-    [DefinedTypeField ( "Mail Relay Domain Blacklist", "The Defined Type containing the blacklist of restricted domains for relaying email.", false, key:"RestrictedDomains", category:"Email Settings" )]
-    [TextField ("From Email Help", "The help text for the \"From Email\" field", true, "Certain email providers (such as aol.com and yahoo.com) do not permit relaying email from your email address on our servers.  Please select the email address you want this email to be sent from.", category: "Email Settings" )]
+    [DefinedTypeField( "Mail Relay Domain Blacklist", "The Defined Type containing the blacklist of restricted domains for relaying email.", false, key: "RestrictedDomains", category: "Email Settings" )]
+    [TextField( "From Email Help", "The help text for the \"From Email\" field", true, "Certain email providers (such as aol.com and yahoo.com) do not permit relaying email from your email address on our servers.  Please select the email address you want this email to be sent from.", category: "Email Settings" )]
     public partial class LWYARoster : GroupManagerBlock
     {
         List<GroupMemberData> memberData = new List<GroupMemberData>();
@@ -271,13 +271,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 if ( restrictedDomainsGuid.HasValue )
                 {
                     var restrictedDomains = DefinedTypeCache.Get( restrictedDomainsGuid.Value );
-                    if ( restrictedDomains.DefinedValues.Where(dv => CurrentPerson.Email.EndsWith(dv.Value)).Any() )
+                    if ( restrictedDomains.DefinedValues.Where( dv => CurrentPerson.Email.EndsWith( dv.Value ) ).Any() )
                     {
                         ddlFrom.SelectedValue = GetAttributeValue( "SafeSenderEmail" );
                         ddlFrom.Enabled = false;
                     }
                 }
-            } else
+            }
+            else
             {
                 ddlFrom.Visible = false;
             }
@@ -294,7 +295,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 if ( communication != null )
                 {
-                    AddRecipients( communication, cbEmailSendToParents.Checked, EntityTypeCache.Get( new Guid(Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_EMAIL) ).Id );
+                    AddRecipients( communication, cbEmailSendToParents.Checked, EntityTypeCache.Get( new Guid( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_EMAIL ) ).Id );
 
                     communication.CommunicationType = CommunicationType.Email;
 
@@ -428,11 +429,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             if ( id > 0 )
             {
                 _rockContext = new RockContext();
-             
+
                 int? groupTypeId = new GroupService( _rockContext ).Get( id ).GroupTypeId;
                 var groupTypeCache = GroupTypeCache.Get( groupTypeId.Value );
                 if ( groupTypeCache.EnableGroupHistory == true )
-                    
+
                 {
                     archiveMember( id );
                 }
@@ -483,7 +484,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         private void archiveMember( int id )
         {
 
-            
+
             //Do not archive the last active leader.
             if ( memberData.Where( m => m.IsLeader && m.Status == GroupMemberStatus.Active ).Count() == 1
                 && memberData.Where( m => m.Person.Id == id && m.IsLeader ).Any() )
@@ -1065,9 +1066,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
                 else
                 {
-                    foreach(var groupMember in CurrentGroup.Members
+                    foreach ( var groupMember in CurrentGroup.Members
                         .Where( m => m.PersonId == person.Id &&
-                            m.GroupRoleId == _defaultGroupRole.Id ))
+                            m.GroupRoleId == _defaultGroupRole.Id ) )
                     {
                         var groupMemberService = new GroupMemberService( rockContext );
                         var efGroupMember = groupMemberService.Get( groupMember.Guid );
@@ -1113,10 +1114,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 return false;
             }
 
-                        return true;
+            return true;
 
         }
-        
+
         protected void btnAddMember_Click( object sender, EventArgs e )
         {
 
@@ -1166,7 +1167,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     public class GroupMemberData
     {
         public Person Person { get; private set; }
-        
+
         public int Id
         {
             get

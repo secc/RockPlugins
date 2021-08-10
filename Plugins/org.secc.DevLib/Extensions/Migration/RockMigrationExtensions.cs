@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity.Migrations;
 using System.Data.Entity.Migrations.Model;
 using System.Data.Entity.Migrations.Sql;
 using System.Data.Entity.SqlServer;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 using Rock;
-using Rock.Lava.Blocks;
 
 namespace org.secc.DevLib.Extensions.Migration
 {

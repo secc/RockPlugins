@@ -15,18 +15,14 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.Composition;
+using iTextSharp.text.pdf;
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Workflow;
-using iTextSharp.text.pdf;
-using System.IO;
-using System.ComponentModel.Composition;
-using iTextSharp.text;
-using iTextSharp.text.html.simpleparser;
-using iTextSharp.tool.xml;
-using Rock.Attribute;
 using Rock.Web.Cache;
+using Rock.Workflow;
 
 namespace org.secc.PDF
 {
@@ -37,14 +33,14 @@ namespace org.secc.PDF
 
 
     //Settings
-    [CodeEditorField("Lava", "The lava to convert to a PDF", Rock.Web.UI.Controls.CodeEditorMode.Lava, height:300, order: 1)]
+    [CodeEditorField( "Lava", "The lava to convert to a PDF", Rock.Web.UI.Controls.CodeEditorMode.Lava, height: 300, order: 1 )]
     [CodeEditorField( "Header", "The html/lava to use in the page header.", Rock.Web.UI.Controls.CodeEditorMode.Lava, height: 100, required: false, order: 2 )]
     [CodeEditorField( "Footer", "The html/lava to use in the page footer.", Rock.Web.UI.Controls.CodeEditorMode.Lava, height: 100, required: false, order: 3 )]
     [WorkflowAttribute( "PDF", "Binary File attribute to output PDF to.", fieldTypeClassNames: new string[] { "Rock.Field.Types.FileFieldType" }, order: 4 )]
     [TextField( "Document Name", "The name of the document <span class='tip tip-lava'></span>.", true, "LavaDocument.pdf", order: 5 )]
     class LavaPDF : ActionComponent
     {
-        
+
         /// <summary>
         /// Executes the action.
         /// </summary>
@@ -57,7 +53,7 @@ namespace org.secc.PDF
         {
             errorMessages = new List<string>();
 
-            
+
             string html = GetActionAttributeValue( action, "Lava" ).ResolveMergeFields( GetMergeFields( action ) );
             string header = GetActionAttributeValue( action, "Header" ).ResolveMergeFields( GetMergeFields( action ) );
             string footer = GetActionAttributeValue( action, "Footer" ).ResolveMergeFields( GetMergeFields( action ) );
@@ -87,8 +83,8 @@ namespace org.secc.PDF
                         }
                     }
 
-                    BinaryFileService binaryFileService = new BinaryFileService(rockContext);
-                    binaryFileService.Add(pdfBinary);
+                    BinaryFileService binaryFileService = new BinaryFileService( rockContext );
+                    binaryFileService.Add( pdfBinary );
                     rockContext.SaveChanges();
 
                     // Now store the attribute

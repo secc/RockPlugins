@@ -12,22 +12,22 @@
 // limitations under the License.
 // </copyright>
 //
-using Rock.Data;
-using Rock.Model;
-using Rock.Web.UI;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using Rock.Web.Cache;
-using Rock.Web.UI.Controls;
-using System.Collections.Generic;
+using org.secc.GroupManager;
 using Rock;
 using Rock.Attribute;
+using Rock.Data;
+using Rock.Model;
 using Rock.Security;
-using System.Text;
-using org.secc.GroupManager;
+using Rock.Web.Cache;
+using Rock.Web.UI;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
@@ -761,7 +761,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             return communication;
         }
 
-        private void AddRecepients( Communication communication, bool sendParents )
+        private void AddRecepients( Rock.Model.Communication communication, bool sendParents )
         {
             //List to keep from sending multiple messages
             List<int> addedIds = new List<int>();

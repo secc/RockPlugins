@@ -12,48 +12,44 @@
 // limitations under the License.
 // </copyright>
 //
-using Rock.Attribute;
-using Rock.Financial;
-using Rock.Model;
-using Rock.Web.Cache;
-using Rock;
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using PayPal.PayPalAPIInterfaceService.Model;
 using PayPal.PayPalAPIInterfaceService;
+using PayPal.PayPalAPIInterfaceService.Model;
+using Rock;
+using Rock.Attribute;
+using Rock.Financial;
+using Rock.Model;
 using Rock.Security;
 using Rock.Web;
+using Rock.Web.Cache;
 
 namespace org.secc.PayPalExpress
 {
     /// <summary>
     /// Paypal Express Payment Gateway
     /// </summary>
-    [Description("PayPal Express Gateway")]
-    [Export(typeof(GatewayComponent))]
-    [ExportMetadata("ComponentName", "PayPal Express Gateway")]
+    [Description( "PayPal Express Gateway" )]
+    [Export( typeof( GatewayComponent ) )]
+    [ExportMetadata( "ComponentName", "PayPal Express Gateway" )]
 
-    [EncryptedTextField("PayPal API Username", "Username for authenticating to the PayPal API", true, "", "PayPal Settings", 1)]
-    [EncryptedTextField("PayPal API Password", "Password for authenticating to the PayPal API", true, "", "PayPal Settings", 2)]
-    [EncryptedTextField("PayPal API Signature", "Signature for authenticating to the PayPal API", true, "", "PayPal Settings", 3)]
-    [CustomDropdownListField("PayPal Environment", "Sandbox for test, Live for production", "Live,Sandbox", true, "Sandbox", "PayPal Settings", 4)]
-    [TextField("PayPal URL", "Base URL for the PayPal Redirect.", true, "https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=", "PayPal Urls", 0)]
-    [LinkedPage("Return Page", "Page for handling the return request from PayPal.  More documentation is available here: https://developer.paypal.com/docs/classic/express-checkout/integration-guide/ECGettingStarted/#setting-up-the-express-checkout-transaction", true, "1615E090-1889-42FF-AB18-5F7BE9F24498", "PayPal Urls", 1)]
-    [LinkedPage("Cancel Page", "Page for handling a PayPal cancellation.  More documentation is available here: https://developer.paypal.com/docs/classic/express-checkout/integration-guide/ECGettingStarted/#setting-up-the-express-checkout-transaction", true, "1615E090-1889-42FF-AB18-5F7BE9F24498", "PayPal Urls", 2)]
-    [TextField("PayPal Brand Name", "(Optional) A label that overrides the business name in the PayPal account on the PayPal hosted checkout pages.", false, "", "PayPal Look & Feel", 1)]
-    [TextField("PayPal Logo Image", "(Optional) A URL to your logo image. Use a valid graphics format, such as .gif, .jpg, or.png.Limit the image to 190 pixels wide by 60 pixels high.PayPal crops images that are larger.PayPal places your logo image at the top of the cart review area.", false, "", "PayPal Look & Feel", 1)]
+    [EncryptedTextField( "PayPal API Username", "Username for authenticating to the PayPal API", true, "", "PayPal Settings", 1 )]
+    [EncryptedTextField( "PayPal API Password", "Password for authenticating to the PayPal API", true, "", "PayPal Settings", 2 )]
+    [EncryptedTextField( "PayPal API Signature", "Signature for authenticating to the PayPal API", true, "", "PayPal Settings", 3 )]
+    [CustomDropdownListField( "PayPal Environment", "Sandbox for test, Live for production", "Live,Sandbox", true, "Sandbox", "PayPal Settings", 4 )]
+    [TextField( "PayPal URL", "Base URL for the PayPal Redirect.", true, "https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=", "PayPal Urls", 0 )]
+    [LinkedPage( "Return Page", "Page for handling the return request from PayPal.  More documentation is available here: https://developer.paypal.com/docs/classic/express-checkout/integration-guide/ECGettingStarted/#setting-up-the-express-checkout-transaction", true, "1615E090-1889-42FF-AB18-5F7BE9F24498", "PayPal Urls", 1 )]
+    [LinkedPage( "Cancel Page", "Page for handling a PayPal cancellation.  More documentation is available here: https://developer.paypal.com/docs/classic/express-checkout/integration-guide/ECGettingStarted/#setting-up-the-express-checkout-transaction", true, "1615E090-1889-42FF-AB18-5F7BE9F24498", "PayPal Urls", 2 )]
+    [TextField( "PayPal Brand Name", "(Optional) A label that overrides the business name in the PayPal account on the PayPal hosted checkout pages.", false, "", "PayPal Look & Feel", 1 )]
+    [TextField( "PayPal Logo Image", "(Optional) A URL to your logo image. Use a valid graphics format, such as .gif, .jpg, or.png.Limit the image to 190 pixels wide by 60 pixels high.PayPal crops images that are larger.PayPal places your logo image at the top of the cart review area.", false, "", "PayPal Look & Feel", 1 )]
     public class Gateway : RedirectGatewayComponent
     {
 
         public const string CURRENCY_TYPE_PAYPAL = "2D6FC5FA-A49F-4D20-BCDF-2F0D7E67AD86";
-        
+
         #region Gateway Component Implementation
 
         /// <summary>
@@ -67,7 +63,7 @@ namespace org.secc.PayPalExpress
             get
             {
                 var values = new List<DefinedValueCache>();
-                values.Add(DefinedValueCache.Get(Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_ONE_TIME));
+                values.Add( DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.TRANSACTION_FREQUENCY_ONE_TIME ) );
                 return values;
             }
         }
@@ -89,7 +85,7 @@ namespace org.secc.PayPalExpress
         /// <value>
         ///   <c>true</c> if [name on card required]; otherwise, <c>false</c>.
         /// </value>
-        public override bool PromptForNameOnCard(FinancialGateway financialGateway)
+        public override bool PromptForNameOnCard( FinancialGateway financialGateway )
         {
             return false;
         }
@@ -99,7 +95,7 @@ namespace org.secc.PayPalExpress
         /// </summary>
         /// <param name="financialGateway">The financial gateway.</param>
         /// <returns></returns>
-        public override bool PromptForBankAccountName(FinancialGateway financialGateway)
+        public override bool PromptForBankAccountName( FinancialGateway financialGateway )
         {
             return false;
         }
@@ -112,7 +108,7 @@ namespace org.secc.PayPalExpress
         /// <value>
         ///   <c>true</c> if [address required]; otherwise, <c>false</c>.
         /// </value>
-        public override bool PromptForBillingAddress(FinancialGateway financialGateway)
+        public override bool PromptForBillingAddress( FinancialGateway financialGateway )
         {
             return false;
         }
@@ -124,16 +120,16 @@ namespace org.secc.PayPalExpress
         /// <param name="paymentInfo">The payment info.</param>
         /// <param name="errorMessage">The error message.</param>
         /// <returns></returns>
-        public override FinancialTransaction Charge(FinancialGateway financialGateway, PaymentInfo paymentInfo, out string errorMessage)
+        public override FinancialTransaction Charge( FinancialGateway financialGateway, PaymentInfo paymentInfo, out string errorMessage )
         {
             errorMessage = string.Empty;
 
-            if (!(paymentInfo is PayPalExpress.PayPalPaymentInfo))
+            if ( !( paymentInfo is PayPalExpress.PayPalPaymentInfo ) )
             {
                 errorMessage = "PaymentInfo object must be of type PayPalPaymentInfo in order to charge a PayPal Express transaction.";
                 return null;
             }
-            PayPalPaymentInfo payPalPaymentInfo = (PayPalPaymentInfo)paymentInfo;
+            PayPalPaymentInfo payPalPaymentInfo = ( PayPalPaymentInfo ) paymentInfo;
 
             // Create the DoExpressCheckoutPaymentResponseType object
             DoExpressCheckoutPaymentResponseType responseDoExpressCheckoutPaymentResponseType = new DoExpressCheckoutPaymentResponseType();
@@ -160,8 +156,8 @@ namespace org.secc.PayPalExpress
 
                 // information about the first payment
                 PaymentDetailsType paymentDetails = new PaymentDetailsType();
-               
-                BasicAmountType orderTotal = new BasicAmountType(CurrencyCodeType.USD, paymentInfo.Amount.ToString());
+
+                BasicAmountType orderTotal = new BasicAmountType( CurrencyCodeType.USD, paymentInfo.Amount.ToString() );
                 paymentDetails.OrderTotal = orderTotal;
 
                 // We are actually capturing this payment now.
@@ -170,36 +166,36 @@ namespace org.secc.PayPalExpress
                 // Unique identifier for the merchant. For parallel payments, this field
                 // is required and must contain the Payer Id or the email address of the
                 // merchant.
-                String apiUsername = Encryption.DecryptString(financialGateway.GetAttributeValue("PayPalAPIUsername"));
+                String apiUsername = Encryption.DecryptString( financialGateway.GetAttributeValue( "PayPalAPIUsername" ) );
                 SellerDetailsType sellerDetails = new SellerDetailsType();
                 sellerDetails.PayPalAccountID = apiUsername;
-            
-                paymentDetailsList.Add(paymentDetails);
+
+                paymentDetailsList.Add( paymentDetails );
                 doExpressCheckoutPaymentRequestDetails.PaymentDetails = paymentDetailsList;
 
-                DoExpressCheckoutPaymentRequestType doExpressCheckoutPaymentRequest = new DoExpressCheckoutPaymentRequestType(doExpressCheckoutPaymentRequestDetails);
+                DoExpressCheckoutPaymentRequestType doExpressCheckoutPaymentRequest = new DoExpressCheckoutPaymentRequestType( doExpressCheckoutPaymentRequestDetails );
                 doExpressCheckoutPayment.DoExpressCheckoutPaymentRequest = doExpressCheckoutPaymentRequest;
 
                 // Create the service wrapper object to make the API call
-                PayPalAPIInterfaceServiceService service = new PayPalAPIInterfaceServiceService(GetCredentials(financialGateway));
+                PayPalAPIInterfaceServiceService service = new PayPalAPIInterfaceServiceService( GetCredentials( financialGateway ) );
 
                 // # API call
                 // Invoke the DoExpressCheckoutPayment method in service wrapper object
-                responseDoExpressCheckoutPaymentResponseType = service.DoExpressCheckoutPayment(doExpressCheckoutPayment);
+                responseDoExpressCheckoutPaymentResponseType = service.DoExpressCheckoutPayment( doExpressCheckoutPayment );
 
-                if (responseDoExpressCheckoutPaymentResponseType != null)
+                if ( responseDoExpressCheckoutPaymentResponseType != null )
                 {
                     // # Success values
-                    if (responseDoExpressCheckoutPaymentResponseType.Ack.ToString().Trim().ToUpper().Equals("SUCCESS"))
+                    if ( responseDoExpressCheckoutPaymentResponseType.Ack.ToString().Trim().ToUpper().Equals( "SUCCESS" ) )
                     {
                         // Transaction identification number of the transaction that was
                         // created.
                         // This field is only returned after a successful transaction
                         // for DoExpressCheckout has occurred.
-                        if (responseDoExpressCheckoutPaymentResponseType.DoExpressCheckoutPaymentResponseDetails.PaymentInfo != null)
+                        if ( responseDoExpressCheckoutPaymentResponseType.DoExpressCheckoutPaymentResponseDetails.PaymentInfo != null )
                         {
                             IEnumerator<PaymentInfoType> paymentInfoIterator = responseDoExpressCheckoutPaymentResponseType.DoExpressCheckoutPaymentResponseDetails.PaymentInfo.GetEnumerator();
-                            while (paymentInfoIterator.MoveNext())
+                            while ( paymentInfoIterator.MoveNext() )
                             {
                                 PaymentInfoType ppPaymentInfo = paymentInfoIterator.Current;
 
@@ -213,7 +209,7 @@ namespace org.secc.PayPalExpress
                     else
                     {
                         List<ErrorType> errorMessages = responseDoExpressCheckoutPaymentResponseType.Errors;
-                        foreach (ErrorType error in errorMessages)
+                        foreach ( ErrorType error in errorMessages )
                         {
                             errorMessage += "API Error Message : " + error.LongMessage + "\n";
                         }
@@ -221,7 +217,7 @@ namespace org.secc.PayPalExpress
                 }
             }
             // # Exception log    
-            catch (System.Exception ex)
+            catch ( System.Exception ex )
             {
                 errorMessage += "Error Message : " + ex.Message;
             }
@@ -229,15 +225,15 @@ namespace org.secc.PayPalExpress
             return null;
         }
 
-        public PaymentInfo GetPaymentInfo(FinancialGateway financialGateway, String token, out string errorMessage)
+        public PaymentInfo GetPaymentInfo( FinancialGateway financialGateway, String token, out string errorMessage )
         {
             errorMessage = string.Empty;
-            GetExpressCheckoutDetailsResponseType response = GetExpressCheckoutDetailsResponse(financialGateway, token, out errorMessage);
-            if (response == null)
+            GetExpressCheckoutDetailsResponseType response = GetExpressCheckoutDetailsResponse( financialGateway, token, out errorMessage );
+            if ( response == null )
             {
                 return null;
             }
-            
+
             var details = response.GetExpressCheckoutDetailsResponseDetails;
             var paymentDetails = details.PaymentDetails.FirstOrDefault();
             PayPalPaymentInfo paymentInfo = new PayPalPaymentInfo();
@@ -257,24 +253,25 @@ namespace org.secc.PayPalExpress
             return paymentInfo;
         }
 
-        public List<GatewayAccountItem> GetSelectedAccounts(FinancialGateway financialGateway, String token, out string errorMessage)
+        public List<GatewayAccountItem> GetSelectedAccounts( FinancialGateway financialGateway, String token, out string errorMessage )
         {
             errorMessage = string.Empty;
-            GetExpressCheckoutDetailsResponseType response = GetExpressCheckoutDetailsResponse(financialGateway, token, out errorMessage);
-            if (response == null)
+            GetExpressCheckoutDetailsResponseType response = GetExpressCheckoutDetailsResponse( financialGateway, token, out errorMessage );
+            if ( response == null )
             {
                 return null;
             }
             var details = response.GetExpressCheckoutDetailsResponseDetails;
             var paymentDetails = details.PaymentDetails.FirstOrDefault();
             List<GatewayAccountItem> accounts = new List<GatewayAccountItem>();
-            foreach(PaymentDetailsItemType item in paymentDetails.PaymentDetailsItem) { 
+            foreach ( PaymentDetailsItemType item in paymentDetails.PaymentDetailsItem )
+            {
                 GatewayAccountItem account = new GatewayAccountItem();
                 account.Id = item.Number.AsInteger();
                 account.Name = item.Name;
                 account.PublicName = item.Description;
                 account.Amount = item.Amount.value.AsDecimal();
-                accounts.Add(account);
+                accounts.Add( account );
             }
             return accounts;
         }
@@ -289,14 +286,14 @@ namespace org.secc.PayPalExpress
         /// <param name="comment">The comment.</param>
         /// <param name="errorMessage">The error message.</param>
         /// <returns></returns>
-        public override FinancialTransaction Credit(FinancialTransaction transaction, decimal amount, string comment, out string errorMessage)
+        public override FinancialTransaction Credit( FinancialTransaction transaction, decimal amount, string comment, out string errorMessage )
         {
 
             errorMessage = string.Empty;
 
-            if (transaction == null ||
-                string.IsNullOrWhiteSpace(transaction.TransactionCode) ||
-                transaction.FinancialGateway == null)
+            if ( transaction == null ||
+                string.IsNullOrWhiteSpace( transaction.TransactionCode ) ||
+                transaction.FinancialGateway == null )
             {
                 errorMessage = "Invalid original transaction, transaction code, or gateway.";
                 return null;
@@ -315,23 +312,23 @@ namespace org.secc.PayPalExpress
                 refundTransactionRequest.RefundType = RefundType.FULL;
 
                 // Set the amount
-                refundTransactionRequest.Amount = new BasicAmountType(CurrencyCodeType.USD, amount.ToString());
+                refundTransactionRequest.Amount = new BasicAmountType( CurrencyCodeType.USD, amount.ToString() );
 
                 refundTransaction.RefundTransactionRequest = refundTransactionRequest;
-                
+
                 // Create the service wrapper object to make the API call
-                PayPalAPIInterfaceServiceService service = new PayPalAPIInterfaceServiceService(GetCredentials(transaction.FinancialGateway));
+                PayPalAPIInterfaceServiceService service = new PayPalAPIInterfaceServiceService( GetCredentials( transaction.FinancialGateway ) );
 
                 // # API call
                 // Invoke the RefundTransaction method in service wrapper object
-                responseRefundTransactionResponseType = service.RefundTransaction(refundTransaction);
+                responseRefundTransactionResponseType = service.RefundTransaction( refundTransaction );
 
-                if (responseRefundTransactionResponseType != null)
+                if ( responseRefundTransactionResponseType != null )
                 {
 
 
                     // # Success values
-                    if (responseRefundTransactionResponseType.Ack.ToString().Trim().ToUpper().Equals("SUCCESS"))
+                    if ( responseRefundTransactionResponseType.Ack.ToString().Trim().ToUpper().Equals( "SUCCESS" ) )
                     {
                         var refundFinancialTransaction = new FinancialTransaction();
                         refundFinancialTransaction.TransactionCode = responseRefundTransactionResponseType.RefundTransactionID;
@@ -341,9 +338,9 @@ namespace org.secc.PayPalExpress
                     else
                     {
                         List<ErrorType> errorMessages = responseRefundTransactionResponseType.Errors;
-                        foreach (ErrorType error in errorMessages)
+                        foreach ( ErrorType error in errorMessages )
                         {
-                            errorMessage = string.Format("[{0}] {1}", responseRefundTransactionResponseType.Ack, error.LongMessage);
+                            errorMessage = string.Format( "[{0}] {1}", responseRefundTransactionResponseType.Ack, error.LongMessage );
                         }
                     }
                 }
@@ -352,7 +349,7 @@ namespace org.secc.PayPalExpress
                     errorMessage = "Invalid transaction response from the financial gateway";
                 }
             }
-            catch (System.Exception ex)
+            catch ( System.Exception ex )
             {
                 // Log the exception message       
                 errorMessage = ex.Message;
@@ -368,7 +365,7 @@ namespace org.secc.PayPalExpress
         /// <param name="paymentInfo">The payment info.</param>
         /// <param name="errorMessage">The error message.</param>
         /// <returns></returns>
-        public override FinancialScheduledTransaction AddScheduledPayment(FinancialGateway financialGateway, PaymentSchedule schedule, PaymentInfo paymentInfo, out string errorMessage)
+        public override FinancialScheduledTransaction AddScheduledPayment( FinancialGateway financialGateway, PaymentSchedule schedule, PaymentInfo paymentInfo, out string errorMessage )
         {
             // Just do nothing here.  It's not supported!
             errorMessage = "";
@@ -381,7 +378,7 @@ namespace org.secc.PayPalExpress
         /// <param name="transaction">The transaction.</param>
         /// <param name="errorMessage">The error message.</param>
         /// <returns></returns>
-        public override bool ReactivateScheduledPayment(FinancialScheduledTransaction transaction, out string errorMessage)
+        public override bool ReactivateScheduledPayment( FinancialScheduledTransaction transaction, out string errorMessage )
         {
             // Just do nothing here.  It's not supported!
             errorMessage = "";
@@ -395,7 +392,7 @@ namespace org.secc.PayPalExpress
         /// <param name="paymentInfo">The payment info.</param>
         /// <param name="errorMessage">The error message.</param>
         /// <returns></returns>
-        public override bool UpdateScheduledPayment(FinancialScheduledTransaction transaction, PaymentInfo paymentInfo, out string errorMessage)
+        public override bool UpdateScheduledPayment( FinancialScheduledTransaction transaction, PaymentInfo paymentInfo, out string errorMessage )
         {
             // Just do nothing here.  It's not supported!
             errorMessage = "";
@@ -408,7 +405,7 @@ namespace org.secc.PayPalExpress
         /// <param name="transaction">The transaction.</param>
         /// <param name="errorMessage">The error message.</param>
         /// <returns></returns>
-        public override bool CancelScheduledPayment(FinancialScheduledTransaction transaction, out string errorMessage)
+        public override bool CancelScheduledPayment( FinancialScheduledTransaction transaction, out string errorMessage )
         {
             // Just do nothing here.  It's not supported!
             errorMessage = "";
@@ -421,7 +418,7 @@ namespace org.secc.PayPalExpress
         /// <param name="transaction">The transaction.</param>
         /// <param name="errorMessage">The error message.</param>
         /// <returns></returns>
-        public override bool GetScheduledPaymentStatus(FinancialScheduledTransaction transaction, out string errorMessage)
+        public override bool GetScheduledPaymentStatus( FinancialScheduledTransaction transaction, out string errorMessage )
         {
             // Just do nothing here.  It's not supported!
             errorMessage = "";
@@ -436,7 +433,7 @@ namespace org.secc.PayPalExpress
         /// <param name="endDate">The end date.</param>
         /// <param name="errorMessage">The error message.</param>
         /// <returns></returns>
-        public override List<Payment> GetPayments(FinancialGateway financialGateway, DateTime startDate, DateTime endDate, out string errorMessage)
+        public override List<Payment> GetPayments( FinancialGateway financialGateway, DateTime startDate, DateTime endDate, out string errorMessage )
         {
             // Just do nothing here.  It's not supported!
             errorMessage = "";
@@ -450,7 +447,7 @@ namespace org.secc.PayPalExpress
         /// <param name="transaction">The transaction.</param>
         /// <param name="errorMessage">The error message.</param>
         /// <returns></returns>
-        public override string GetReferenceNumber(FinancialTransaction transaction, out string errorMessage)
+        public override string GetReferenceNumber( FinancialTransaction transaction, out string errorMessage )
         {
             errorMessage = string.Empty;
             return string.Empty;
@@ -462,16 +459,16 @@ namespace org.secc.PayPalExpress
         /// <param name="scheduledTransaction">The scheduled transaction.</param>
         /// <param name="errorMessage">The error message.</param>
         /// <returns></returns>
-        public override string GetReferenceNumber(FinancialScheduledTransaction scheduledTransaction, out string errorMessage)
+        public override string GetReferenceNumber( FinancialScheduledTransaction scheduledTransaction, out string errorMessage )
         {
             errorMessage = string.Empty;
             return string.Empty;
         }
 
-        public override void PreRedirect(FinancialGateway financialGateway, PaymentInfo paymentInfo, List<GatewayAccountItem> selectedAccounts, out string errorMessage)
+        public override void PreRedirect( FinancialGateway financialGateway, PaymentInfo paymentInfo, List<GatewayAccountItem> selectedAccounts, out string errorMessage )
         {
             // Create request object
-            SetExpressCheckoutRequestType request = populateRequestObject(financialGateway, paymentInfo, selectedAccounts);
+            SetExpressCheckoutRequestType request = populateRequestObject( financialGateway, paymentInfo, selectedAccounts );
 
             // Invoke the API
             SetExpressCheckoutReq wrapper = new SetExpressCheckoutReq();
@@ -479,24 +476,24 @@ namespace org.secc.PayPalExpress
 
 
             // Create the PayPalAPIInterfaceServiceService service object to make the API call
-            PayPalAPIInterfaceServiceService service = new PayPalAPIInterfaceServiceService(GetCredentials(financialGateway));
+            PayPalAPIInterfaceServiceService service = new PayPalAPIInterfaceServiceService( GetCredentials( financialGateway ) );
 
             // # API call 
             // Invoke the SetExpressCheckout method in service wrapper object  
-            SetExpressCheckoutResponseType setECResponse = service.SetExpressCheckout(wrapper);
+            SetExpressCheckoutResponseType setECResponse = service.SetExpressCheckout( wrapper );
 
             // Check for API return status
-            String url = financialGateway.GetAttributeValue("PayPalURL")
+            String url = financialGateway.GetAttributeValue( "PayPalURL" )
                     + "_express-checkout&token=" + setECResponse.Token;
             mRedirectUrl = url;
             errorMessage = string.Empty;
             return;
         }
 
-        private GetExpressCheckoutDetailsResponseType GetExpressCheckoutDetailsResponse(FinancialGateway financialGateway, String token, out string errorMessage)
+        private GetExpressCheckoutDetailsResponseType GetExpressCheckoutDetailsResponse( FinancialGateway financialGateway, String token, out string errorMessage )
         {
             errorMessage = string.Empty;
-            
+
 
             // Create the GetExpressCheckoutDetailsResponseType object
             GetExpressCheckoutDetailsResponseType responseGetExpressCheckoutDetailsResponseType = new GetExpressCheckoutDetailsResponseType();
@@ -507,20 +504,20 @@ namespace org.secc.PayPalExpress
                 GetExpressCheckoutDetailsReq getExpressCheckoutDetails = new GetExpressCheckoutDetailsReq();
 
                 // A timestamped token, the value of which was returned by `SetExpressCheckout` response
-                GetExpressCheckoutDetailsRequestType getExpressCheckoutDetailsRequest = new GetExpressCheckoutDetailsRequestType(token);
+                GetExpressCheckoutDetailsRequestType getExpressCheckoutDetailsRequest = new GetExpressCheckoutDetailsRequestType( token );
                 getExpressCheckoutDetails.GetExpressCheckoutDetailsRequest = getExpressCheckoutDetailsRequest;
 
                 // Create the service wrapper object to make the API call
-                PayPalAPIInterfaceServiceService service = new PayPalAPIInterfaceServiceService(GetCredentials(financialGateway));
+                PayPalAPIInterfaceServiceService service = new PayPalAPIInterfaceServiceService( GetCredentials( financialGateway ) );
 
                 // # API call
                 // Invoke the GetExpressCheckoutDetails method in service wrapper object
-                responseGetExpressCheckoutDetailsResponseType = service.GetExpressCheckoutDetails(getExpressCheckoutDetails);
+                responseGetExpressCheckoutDetailsResponseType = service.GetExpressCheckoutDetails( getExpressCheckoutDetails );
 
-                if (responseGetExpressCheckoutDetailsResponseType != null)
+                if ( responseGetExpressCheckoutDetailsResponseType != null )
                 {
                     // # Success values
-                    if (responseGetExpressCheckoutDetailsResponseType.Ack.ToString().Trim().ToUpper().Equals("SUCCESS"))
+                    if ( responseGetExpressCheckoutDetailsResponseType.Ack.ToString().Trim().ToUpper().Equals( "SUCCESS" ) )
                     {
                         return responseGetExpressCheckoutDetailsResponseType;
                     }
@@ -528,7 +525,7 @@ namespace org.secc.PayPalExpress
                     else
                     {
                         List<ErrorType> errorMessages = responseGetExpressCheckoutDetailsResponseType.Errors;
-                        foreach (ErrorType error in errorMessages)
+                        foreach ( ErrorType error in errorMessages )
                         {
                             errorMessage += "API Error Message : " + error.LongMessage + "\n";
                         }
@@ -536,28 +533,28 @@ namespace org.secc.PayPalExpress
                 }
             }
             // # Exception log    
-            catch (System.Exception ex)
+            catch ( System.Exception ex )
             {
                 errorMessage += "Error Message : " + ex.Message;
             }
             return null;
         }
 
-        private SetExpressCheckoutRequestType populateRequestObject(FinancialGateway financialGateway, PaymentInfo paymentInfo, List<GatewayAccountItem> selectedAccounts)
+        private SetExpressCheckoutRequestType populateRequestObject( FinancialGateway financialGateway, PaymentInfo paymentInfo, List<GatewayAccountItem> selectedAccounts )
         {
             SetExpressCheckoutRequestType request = new SetExpressCheckoutRequestType();
             SetExpressCheckoutRequestDetailsType ecDetails = new SetExpressCheckoutRequestDetailsType();
-            String host = GlobalAttributesCache.Value("PublicApplicationRoot");
-            int lastSlash = host.LastIndexOf('/');
-            host = (lastSlash > -1) ? host.Substring(0, lastSlash) : host;
-            if (financialGateway.GetAttributeValue("ReturnPage") != string.Empty)
+            String host = GlobalAttributesCache.Value( "PublicApplicationRoot" );
+            int lastSlash = host.LastIndexOf( '/' );
+            host = ( lastSlash > -1 ) ? host.Substring( 0, lastSlash ) : host;
+            if ( financialGateway.GetAttributeValue( "ReturnPage" ) != string.Empty )
             {
-                PageReference pageReference = new PageReference(financialGateway.GetAttributeValue("ReturnPage"));
+                PageReference pageReference = new PageReference( financialGateway.GetAttributeValue( "ReturnPage" ) );
                 ecDetails.ReturnURL = host + pageReference.BuildUrl();
             }
-            if (financialGateway.GetAttributeValue("CancelPage") != string.Empty)
+            if ( financialGateway.GetAttributeValue( "CancelPage" ) != string.Empty )
             {
-                PageReference pageReference = new PageReference(financialGateway.GetAttributeValue("CancelPage"));
+                PageReference pageReference = new PageReference( financialGateway.GetAttributeValue( "CancelPage" ) );
                 ecDetails.CancelURL = host + pageReference.BuildUrl();
             }
             /*
@@ -573,35 +570,36 @@ namespace org.secc.PayPalExpress
              * This samples shows just one payment.
              */
             PaymentDetailsType paymentDetails = new PaymentDetailsType();
-            ecDetails.PaymentDetails.Add(paymentDetails);
+            ecDetails.PaymentDetails.Add( paymentDetails );
             // (Required) Total cost of the transaction to the buyer. If shipping cost and tax charges are known, include them in this value. If not, this value should be the current sub-total of the order. If the transaction includes one or more one-time purchases, this field must be equal to the sum of the purchases. Set this field to 0 if the transaction does not include a one-time purchase such as when you set up a billing agreement for a recurring payment that is not immediately charged. When the field is set to 0, purchase-specific fields are ignored.
             double orderTotal = 0.0;
             // Sum of cost of all items in this order. For digital goods, this field is required.
-            double itemTotal = Convert.ToDouble(paymentInfo.Amount);
+            double itemTotal = Convert.ToDouble( paymentInfo.Amount );
             CurrencyCodeType currency = CurrencyCodeType.USD;
-            
+
             //(Optional) Description of items the buyer is purchasing.
             paymentDetails.OrderDescription = "Contribution";
 
             // We do a authorization then complete the sale in the "Charge" phase
             paymentDetails.PaymentAction = PaymentActionCodeType.AUTHORIZATION;
-            foreach( GatewayAccountItem item in selectedAccounts )
+            foreach ( GatewayAccountItem item in selectedAccounts )
             {
-                if (item.Amount > 0) { 
+                if ( item.Amount > 0 )
+                {
                     PaymentDetailsItemType itemDetails = new PaymentDetailsItemType();
 
                     itemDetails.Name = item.Name;
-                    itemDetails.Amount = new BasicAmountType(currency, item.Amount.ToString());
+                    itemDetails.Amount = new BasicAmountType( currency, item.Amount.ToString() );
                     itemDetails.Quantity = 1;
                     itemDetails.Description = item.PublicName;
                     itemDetails.Number = item.Id.ToString();
-                    paymentDetails.PaymentDetailsItem.Add(itemDetails);
+                    paymentDetails.PaymentDetailsItem.Add( itemDetails );
                 }
             }
 
             orderTotal += itemTotal;
-            paymentDetails.ItemTotal = new BasicAmountType(currency, itemTotal.ToString());
-            paymentDetails.OrderTotal = new BasicAmountType(currency, orderTotal.ToString());
+            paymentDetails.ItemTotal = new BasicAmountType( currency, itemTotal.ToString() );
+            paymentDetails.OrderTotal = new BasicAmountType( currency, orderTotal.ToString() );
 
             //(Optional) Your URL for receiving Instant Payment Notification (IPN) 
             //about this transaction. If you do not specify this value in the request, 
@@ -625,9 +623,9 @@ namespace org.secc.PayPalExpress
                 ecDetails.PageStyle = pageStyle.Value;
             }*/
             //(Optional) URL for the image you want to appear at the top left of the payment page. The image has a maximum size of 750 pixels wide by 90 pixels high. PayPal recommends that you provide an image that is stored on a secure (https) server. If you do not specify an image, the business name displays.
-            if (financialGateway.GetAttributeValue("PayPalLogoImage") != string.Empty)
+            if ( financialGateway.GetAttributeValue( "PayPalLogoImage" ) != string.Empty )
             {
-                ecDetails.cppHeaderImage = financialGateway.GetAttributeValue("PayPalLogoImage");
+                ecDetails.cppHeaderImage = financialGateway.GetAttributeValue( "PayPalLogoImage" );
             }
             /*// (Optional) Sets the border color around the header of the payment page. The border is a 2-pixel perimeter around the header space, which is 750 pixels wide by 90 pixels high. By default, the color is black.
             if (cppheaderbordercolor.Value != string.Empty)
@@ -646,9 +644,9 @@ namespace org.secc.PayPalExpress
             }
             // (Optional) A label that overrides the business name in the PayPal account on the PayPal hosted checkout pages.
             */
-            if (financialGateway.GetAttributeValue("PayPalBrandName") != string.Empty)
+            if ( financialGateway.GetAttributeValue( "PayPalBrandName" ) != string.Empty )
             {
-                ecDetails.BrandName = financialGateway.GetAttributeValue("PayPalBrandName");
+                ecDetails.BrandName = financialGateway.GetAttributeValue( "PayPalBrandName" );
             }
 
             request.SetExpressCheckoutRequestDetails = ecDetails;
@@ -659,19 +657,19 @@ namespace org.secc.PayPalExpress
 
         #endregion
 
-        private Dictionary<string, string> GetCredentials(FinancialGateway financialGateway)
+        private Dictionary<string, string> GetCredentials( FinancialGateway financialGateway )
         {
             financialGateway.LoadAttributes();
             Dictionary<string, string> config = new Dictionary<string, string>();
 
-            String apiUsername = Encryption.DecryptString(financialGateway.GetAttributeValue("PayPalAPIUsername"));
-            String apiPassword = Encryption.DecryptString(financialGateway.GetAttributeValue("PayPalAPIPassword"));
-            String apiSignature = Encryption.DecryptString(financialGateway.GetAttributeValue("PayPalAPISignature"));
+            String apiUsername = Encryption.DecryptString( financialGateway.GetAttributeValue( "PayPalAPIUsername" ) );
+            String apiPassword = Encryption.DecryptString( financialGateway.GetAttributeValue( "PayPalAPIPassword" ) );
+            String apiSignature = Encryption.DecryptString( financialGateway.GetAttributeValue( "PayPalAPISignature" ) );
 
-            config.Add("mode", financialGateway.GetAttributeValue("PayPalEnvironment"));
-            config.Add("account1.apiUsername", apiUsername);
-            config.Add("account1.apiPassword", apiPassword);
-            config.Add("account1.apiSignature", apiSignature);
+            config.Add( "mode", financialGateway.GetAttributeValue( "PayPalEnvironment" ) );
+            config.Add( "account1.apiUsername", apiUsername );
+            config.Add( "account1.apiPassword", apiPassword );
+            config.Add( "account1.apiSignature", apiSignature );
 
             return config;
         }

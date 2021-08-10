@@ -12,18 +12,12 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using Rock.Plugin;
 
 namespace org.secc.Migrations
 {
     [MigrationNumber( 7, "1.2.0" )]
-    class Purchasing_PageData :Migration 
+    class Purchasing_PageData : Migration
     {
         public override void Up()
         {
@@ -116,7 +110,7 @@ namespace org.secc.Migrations
         }
         public override void Down()
         {
-            
+
         }
     }
 }

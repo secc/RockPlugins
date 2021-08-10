@@ -18,14 +18,12 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Data.Entity;
 using System.Linq;
-using DotLiquid.Util;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
-using Rock.Web.UI.Controls;
 using Rock.Workflow;
 using Rock.Workflow.Action.CheckIn;
 

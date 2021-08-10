@@ -128,7 +128,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             GroupMemberService groupMemberService = new GroupMemberService( rockContext );
             foreach ( var group in groups )
             {
-                if (! group.IsAuthorized(Authorization.VIEW, CurrentPerson ) )
+                if ( !group.IsAuthorized( Authorization.VIEW, CurrentPerson ) )
                 {
                     continue;
                 }
@@ -138,7 +138,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 foreach ( var groupMember in groupMembers )
                 {
                     var incorrectRoleIdAlert = "";
-                    if (!groupRoleIds.Contains( groupMember.GroupRoleId ) )
+                    if ( !groupRoleIds.Contains( groupMember.GroupRoleId ) )
                     {
                         incorrectRoleIdAlert = string.Format( " <i class='fa fa-exclamation-triangle' title='{0}'></i>",
                             group.GroupType.DefaultGroupRoleId );
@@ -263,7 +263,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     tbNotes.Text = groupMember.Note;
                     pnlWell.Controls.Add( tbNotes );
 
-                    if (savedGroupMemberId == groupMember.Id )
+                    if ( savedGroupMemberId == groupMember.Id )
                     {
                         NotificationBox nbSavedNote = new NotificationBox();
                         nbSavedNote.Text = "Group member information saved";
@@ -295,13 +295,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         }
 
 
-        private void SaveGroupMember(RockContext rockContext, GroupMember groupMember, Panel pnlWell, List<AttributeCache> AttributeList, TextBox notes )
+        private void SaveGroupMember( RockContext rockContext, GroupMember groupMember, Panel pnlWell, List<AttributeCache> AttributeList, TextBox notes )
         {
             var changes = new List<string>();
             foreach ( var attribute in AttributeList )
             {
 
-                if ( Person != null && groupMember.Group.IsAuthorized( Authorization.EDIT, CurrentPerson) )
+                if ( Person != null && groupMember.Group.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
                 {
                     groupMember.Note = notes.Text;
                     rockContext.SaveChanges();
@@ -316,7 +316,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     }
                 }
             }
-            ShowEdit(groupMember.Id);
+            ShowEdit( groupMember.Id );
         }
 
         private void AddGroupMember( Group group, RockDropDownList ddlRole )

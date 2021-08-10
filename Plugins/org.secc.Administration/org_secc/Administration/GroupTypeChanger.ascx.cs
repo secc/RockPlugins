@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -20,7 +20,6 @@ using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Rock;
-using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.UI;

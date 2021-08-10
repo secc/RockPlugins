@@ -12,17 +12,15 @@
 // limitations under the License.
 // </copyright>
 using System;
-using System.ComponentModel;
-using Rock;
-using Rock.Model;
-using System.Web.UI;
-using Rock.Web.Cache;
-using Rock.Data;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Web.UI;
 using System.Web.UI.WebControls;
-using Rock.Attribute;
 using org.secc.RecurringCommunications.Model;
+using Rock.Attribute;
+using Rock.Data;
+using Rock.Model;
 
 namespace RockWeb.Plugins.org_secc.RecurringCommunications
 {

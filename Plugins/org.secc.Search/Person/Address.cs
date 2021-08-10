@@ -82,8 +82,8 @@ namespace org.secc.Search.Person
             return service.Queryable()
                 .Where( m => m.Group.GroupType.Guid == groupTypefamilyGuid )
                 .SelectMany( g => g.Group.GroupLocations )
-                .Where( gl => (gl.GroupLocationTypeValueId == homeAddressTypeValueId || gl.GroupLocationTypeValueId == previousAddressTypeValueId) &&
-                    (gl.Location.Street1.Contains( searchterm ) || gl.Location.PostalCode.Contains (searchterm) ) )
+                .Where( gl => ( gl.GroupLocationTypeValueId == homeAddressTypeValueId || gl.GroupLocationTypeValueId == previousAddressTypeValueId ) &&
+                    ( gl.Location.Street1.Contains( searchterm ) || gl.Location.PostalCode.Contains( searchterm ) ) )
                 .Select( gl => gl.Location.Street1 + " - " + gl.Location.PostalCode )
                 .Distinct();
         }

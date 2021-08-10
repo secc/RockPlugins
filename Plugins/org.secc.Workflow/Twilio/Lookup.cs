@@ -12,7 +12,6 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
@@ -32,9 +31,9 @@ namespace org.secc.Twilio
     [Description( "Make a Twilio Lookup API Call" )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Lookup" )]
-    [ComponentField( "Rock.Communication.TransportContainer, Rock", "Twilio Transport Container", "The Twilio transport container to use for the API credentials.")]
+    [ComponentField( "Rock.Communication.TransportContainer, Rock", "Twilio Transport Container", "The Twilio transport container to use for the API credentials." )]
     [CustomCheckboxListField( "Lookup Services", "Select the lookup services to perform on this request.", "carrier^Carrier,caller-name^Caller Name,whitepages_pro_caller_id^Whitepages Pro Caller Id", true )]
-    [WorkflowTextOrAttribute( "Phone Number", "Phone Number", "The phone number to lookup.", true, key:"PhoneNumber", fieldTypeClassNames: new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.PhoneNumberFieldType" } )]
+    [WorkflowTextOrAttribute( "Phone Number", "Phone Number", "The phone number to lookup.", true, key: "PhoneNumber", fieldTypeClassNames: new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.PhoneNumberFieldType" } )]
     [WorkflowAttribute( "Results Attribute", "The attribute to store the results (JSON).", true, fieldTypeClassNames: new string[] { "Rock.Field.Types.TextFieldType" } )]
     class TwilioLookup : ActionComponent
     {
@@ -45,14 +44,14 @@ namespace org.secc.Twilio
             errorMessages = new List<string>();
 
             string twilioGuid = GetAttributeValue( action, "TwilioTransportContainer" );
-            string pn = PhoneNumber.CleanNumber( GetAttributeValue( action, "PhoneNumber", true ));
+            string pn = PhoneNumber.CleanNumber( GetAttributeValue( action, "PhoneNumber", true ) );
             string[] lookupServices = GetAttributeValue( action, "LookupServices" ).SplitDelimitedValues();
 
-            
-            if ( !string.IsNullOrWhiteSpace( twilioGuid ) && !string.IsNullOrWhiteSpace( pn ))
+
+            if ( !string.IsNullOrWhiteSpace( twilioGuid ) && !string.IsNullOrWhiteSpace( pn ) )
             {
                 // Add the country code if applicable
-                if (pn.Length == 10)
+                if ( pn.Length == 10 )
                 {
                     var definedValues = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.COMMUNICATION_PHONE_COUNTRY_CODE.AsGuid() ).DefinedValues.OrderBy( v => v.Order );
                     var countryCode = definedValues.Select( v => v.Value ).FirstOrDefault();
@@ -70,9 +69,9 @@ namespace org.secc.Twilio
                     // Setup the lookup(s) to perform
                     var type = new List<string>();
                     var addOns = new List<string>();
-                    foreach(string lookupService in lookupServices)
+                    foreach ( string lookupService in lookupServices )
                     {
-                        if (lookupService.ToLower().StartsWith("whitepages"))
+                        if ( lookupService.ToLower().StartsWith( "whitepages" ) )
                         {
                             addOns.Add( lookupService );
                         }
@@ -84,11 +83,11 @@ namespace org.secc.Twilio
 
                     // Now do the lookup
                     var phoneNumber = PhoneNumberResource.Fetch(
-                        addOns:addOns,
+                        addOns: addOns,
                         type: type,
                         pathPhoneNumber: new global::Twilio.Types.PhoneNumber( "+" + pn )
                     );
-                    
+
                     // Now store the target attribute
                     var targetAttribute = AttributeCache.Get( GetActionAttributeValue( action, "ResultsAttribute" ).AsGuid(), rockContext );
                     if ( targetAttribute.EntityTypeId == new Rock.Model.Workflow().TypeId )

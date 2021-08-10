@@ -1,5 +1,4 @@
-﻿using System;
-using RestSharp.Deserializers;
+﻿using RestSharp.Deserializers;
 
 namespace org.secc.Purchasing.Intacct.Model
 {

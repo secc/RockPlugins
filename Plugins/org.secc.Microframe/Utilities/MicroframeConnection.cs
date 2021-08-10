@@ -18,7 +18,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace org.secc.Microframe.Utilities
 {
@@ -58,7 +57,7 @@ namespace org.secc.Microframe.Utilities
             string PinA = PIN.Substring( 0, 2 );
             string PinB = PIN.Substring( 2, 2 );
 
-            byte byteA = Convert.ToByte( Convert.ToInt32( PinA ));
+            byte byteA = Convert.ToByte( Convert.ToInt32( PinA ) );
             byte byteB = Convert.ToByte( Convert.ToInt32( PinB ) );
 
             return new byte[2] { byteA, byteB };

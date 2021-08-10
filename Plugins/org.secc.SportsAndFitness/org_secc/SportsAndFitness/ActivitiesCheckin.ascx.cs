@@ -16,16 +16,15 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-
+using System.Web.UI;
+using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
-using Rock.Web.UI.Controls;
-using Rock.Web.Cache;
-using System.Web.UI.WebControls;
-using System.Web.UI;
-using Rock.Model;
 using Rock.Data;
+using Rock.Model;
+using Rock.Web.Cache;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.SportsAndFitness
 {
@@ -331,7 +330,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             {
                 return GroupMembershipStatus.Member;
             }
-            
+
             groupMember.LoadAttributes();
             var expirationDate = groupMember.GetAttributeValue( _expirationDateKey ).AsDateTime() ?? Rock.RockDateTime.Today.AddDays( -1 );
 

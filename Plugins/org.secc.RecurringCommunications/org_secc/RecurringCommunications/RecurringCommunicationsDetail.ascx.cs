@@ -56,9 +56,9 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
         {
             get
             {
-                if (_personEntityType == null)
+                if ( _personEntityType == null )
                 {
-                    _personEntityType = EntityTypeCache.Get(Rock.SystemGuid.EntityType.PERSON.AsGuid());
+                    _personEntityType = EntityTypeCache.Get( Rock.SystemGuid.EntityType.PERSON.AsGuid() );
                 }
 
                 return _personEntityType;
@@ -94,18 +94,18 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
         private void BindTransformationTypes()
         {
             ddlTransformTypes.Items.Clear();
-            
+
             foreach ( var component in DataTransformContainer.GetComponentsByTransformedEntityName( PersonEntityType.Name ).OrderBy( c => c.Title ) )
             {
-                if (component.IsAuthorized( Authorization.VIEW, CurrentPerson ) )
+                if ( component.IsAuthorized( Authorization.VIEW, CurrentPerson ) )
                 {
-                    var transformEntityType = EntityTypeCache.Get(component.TypeName);
-                    ListItem li = new ListItem(component.Title, transformEntityType.Id.ToString());
-                    ddlTransformTypes.Items.Add(li);
-                }               
+                    var transformEntityType = EntityTypeCache.Get( component.TypeName );
+                    ListItem li = new ListItem( component.Title, transformEntityType.Id.ToString() );
+                    ddlTransformTypes.Items.Add( li );
+                }
             }
 
-            ddlTransformTypes.Items.Insert(0, new ListItem("", ""));
+            ddlTransformTypes.Items.Insert( 0, new ListItem( "", "" ) );
         }
 
         private void DisplayDetails()
@@ -120,7 +120,7 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
             rblCommunicationType.DataSource = communicationDictionary;
             rblCommunicationType.DataBind();
 
-            dvpPhoneNumber.DefinedTypeId = DefinedTypeCache.Get(Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM.AsGuid()).Id;
+            dvpPhoneNumber.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM.AsGuid() ).Id;
 
             BindTransformationTypes();
 
@@ -135,21 +135,21 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
             }
             rblCommunicationType.SetValue( recurringCommunication.CommunicationType.ConvertToInt() );
 
-            if (recurringCommunication.TransformationEntityTypeId.HasValue)
+            if ( recurringCommunication.TransformationEntityTypeId.HasValue )
             {
-                if (ddlTransformTypes.Items.FindByValue(recurringCommunication.TransformationEntityTypeId.Value.ToString()) != null)
+                if ( ddlTransformTypes.Items.FindByValue( recurringCommunication.TransformationEntityTypeId.Value.ToString() ) != null )
                 {
                     ddlTransformTypes.SelectedValue = recurringCommunication.TransformationEntityTypeId.Value.ToString();
                 }
                 else
                 {
-                    var transformComponent = DataTransformContainer.GetComponentsByTransformedEntityName(PersonEntityType.Name)
-                        .SingleOrDefault(c => c.Id == recurringCommunication.TransformationEntityTypeId.Value);
+                    var transformComponent = DataTransformContainer.GetComponentsByTransformedEntityName( PersonEntityType.Name )
+                        .SingleOrDefault( c => c.Id == recurringCommunication.TransformationEntityTypeId.Value );
 
-                    if (transformComponent != null)
+                    if ( transformComponent != null )
                     {
-                        var li = new ListItem(transformComponent.Title, transformComponent.Id.ToString());
-                        ddlTransformTypes.Items.Insert(1, li);
+                        var li = new ListItem( transformComponent.Title, transformComponent.Id.ToString() );
+                        ddlTransformTypes.Items.Insert( 1, li );
                         ddlTransformTypes.SelectedIndex = 1;
                     }
                 }
@@ -162,7 +162,7 @@ namespace RockWeb.Plugins.org_secc.RecurringCommunications
             tbSubject.Text = recurringCommunication.Subject;
             ceEmailBody.Text = recurringCommunication.EmailBody;
 
-            dvpPhoneNumber.SetValue(recurringCommunication.PhoneNumberValueId);
+            dvpPhoneNumber.SetValue( recurringCommunication.PhoneNumberValueId );
             tbSMSBody.Text = recurringCommunication.SMSBody;
 
             tbPushNotificationTitle.Text = recurringCommunication.PushTitle;

@@ -34,9 +34,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.Entity;
 using System.Diagnostics;
-using System.Dynamic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
@@ -511,7 +509,7 @@ namespace org.secc.Connection
                                         AddRowColumnPartition( dtTmp, dt, column + partition.Guid, campus.Guid, campus.Name );
                                     }
                                 }
-                                AddColumnFilter( partition, CampusCache.All().Where( c => selectedCampuses.Contains( c.Guid.ToString() ) ).Select( c => new ListItem( c.Name, c.Guid.ToString() ) ).ToList(), "Campus"  );
+                                AddColumnFilter( partition, CampusCache.All().Where( c => selectedCampuses.Contains( c.Guid.ToString() ) ).Select( c => new ListItem( c.Name, c.Guid.ToString() ) ).ToList(), "Campus" );
                             }
                             break;
                         case "Schedule":
@@ -573,7 +571,7 @@ namespace org.secc.Connection
         private RockListBox AddColumnFilter( PartitionSettings partition, List<ListItem> listItems, string label )
         {
             var filterSelections = GetBlockUserPreference( partition.Guid + "_filter" ).Split( ',' );
-            listItems.ForEach(li => li.Selected = filterSelections.Contains( li.Value) );
+            listItems.ForEach( li => li.Selected = filterSelections.Contains( li.Value ) );
             var filterListBox = new RockListBox();
             filterListBox.Items.AddRange( listItems.ToArray() );
             filterListBox.ID = partition.Guid + "_filter";
@@ -1104,7 +1102,7 @@ namespace org.secc.Connection
 
                 // Create and set the value for a group picker for each partition option
                 var ddlPlacementGroup = new RockDropDownList();
-                ddlPlacementGroup.ID =  rowId + "_group";
+                ddlPlacementGroup.ID = rowId + "_group";
 
                 List<ListItem> groupList = GetGroups().Select( g => new ListItem( String.Format( "{0} ({1})", g.Name, g.Campus != null ? g.Campus.Name : "No Campus" ), g.Id.ToString() ) ).ToList();
                 groupList.Insert( 0, new ListItem( "Not Mapped", null ) );
@@ -1113,12 +1111,13 @@ namespace org.secc.Connection
                 if ( Groups.ContainsKey( rowId ) )
                 {
                     ddlPlacementGroup.SetValue( Groups[rowId].AsIntegerOrNull() );
-                } else
+                }
+                else
                 {
                     var keys = rowId.Split( ',' );
                     foreach ( var partition in Settings.Partitions )
                     {
-                        foreach( var key in keys )
+                        foreach ( var key in keys )
                         {
                             if ( partition.GroupMap != null && partition.GroupMap.ContainsKey( key ) )
                             {
@@ -1126,13 +1125,13 @@ namespace org.secc.Connection
                             }
                         }
                     }
-                    
+
                 }
                 e.Row.Cells[gCounts.Columns.Count - 2].Controls.Add( ddlPlacementGroup );
             }
         }
 
-        protected List<Schedule> Schedules { get ; set; }
+        protected List<Schedule> Schedules { get; set; }
         protected List<GroupTypeRole> GroupTypeRoles { get; set; }
 
         /// <summary>
@@ -1148,14 +1147,14 @@ namespace org.secc.Connection
         /// <returns></returns>
         protected List<Dictionary<string, object>> GetTree( PartitionSettings partition, ICollection<ConnectionRequest> connectionRequests = null, String concatGuid = null, string parentIdentifier = "signup", string parentUrl = "", string groupId = "", string roleId = "" )
         {
-            if (Schedules == null)
+            if ( Schedules == null )
             {
                 Schedules = new List<Schedule>();
                 if ( Settings.Partitions.Any( p => p.PartitionType == "Schedule" ) )
                 {
                     var scheduleService = new ScheduleService( new RockContext() );
-                    var scheduleGuidList = Settings.Partitions.Where( p => p.PartitionType == "Schedule" && p.PartitionValue != null).SelectMany( p => p.PartitionValue.Trim( ',' ).Split( ',' ).AsGuidList() ).ToArray();
-                    Schedules = scheduleService.Queryable().Where(s => scheduleGuidList.Contains( s.Guid ) ).ToList().OrderBy( s => s.GetNextStartDateTime( DateTime.Now)??s.GetFirstStartDateTime() ).ToList();
+                    var scheduleGuidList = Settings.Partitions.Where( p => p.PartitionType == "Schedule" && p.PartitionValue != null ).SelectMany( p => p.PartitionValue.Trim( ',' ).Split( ',' ).AsGuidList() ).ToArray();
+                    Schedules = scheduleService.Queryable().Where( s => scheduleGuidList.Contains( s.Guid ) ).ToList().OrderBy( s => s.GetNextStartDateTime( DateTime.Now ) ?? s.GetFirstStartDateTime() ).ToList();
                 }
             }
             if ( GroupTypeRoles == null )
@@ -1187,7 +1186,7 @@ namespace org.secc.Connection
 
             if ( partition.PartitionType == "Schedule" )
             {
-                values = Schedules.Where(s => values.AsGuidList().Contains(s.Guid) ).Select( s => s.Guid.ToString() ).ToArray();
+                values = Schedules.Where( s => values.AsGuidList().Contains( s.Guid ) ).Select( s => s.Guid.ToString() ).ToArray();
             }
 
             var partitionList = new List<Dictionary<string, object>>();
@@ -1226,7 +1225,7 @@ namespace org.secc.Connection
                 inner.Add( "ParameterName", partition.AttributeKey );
                 inner.Add( "Value", value );
                 inner.Add( "RoleGuid", roleId );
-                inner.Add( "GroupId", newGroupId.HasValue?newGroupId.Value.ToString():groupId );
+                inner.Add( "GroupId", newGroupId.HasValue ? newGroupId.Value.ToString() : groupId );
                 inner.Add( "Limit", limit );
 
                 // Filter the requests recursively depending on the type of partition
@@ -1241,7 +1240,7 @@ namespace org.secc.Connection
                         }
                         break;
                     case "Schedule":
-                        inner["Entity"] = Schedules.Where(s => s.Guid == value.AsGuid() ).FirstOrDefault();
+                        inner["Entity"] = Schedules.Where( s => s.Guid == value.AsGuid() ).FirstOrDefault();
                         if ( connectionRequests != null )
                         {
                             subRequests = connectionRequests.Where( cr => cr.AssignedGroupMemberAttributeValues != null && cr.AssignedGroupMemberAttributeValues.Contains( value ) ).ToList();
@@ -1256,7 +1255,7 @@ namespace org.secc.Connection
                         }
                         break;
                     case "Role":
-                        var role = GroupTypeRoles.Where(gtr => gtr.Guid == value.AsGuid() ).FirstOrDefault();
+                        var role = GroupTypeRoles.Where( gtr => gtr.Guid == value.AsGuid() ).FirstOrDefault();
                         inner["Entity"] = role;
                         if ( connectionRequests != null && role != null )
                         {
@@ -1331,7 +1330,7 @@ namespace org.secc.Connection
 
         protected void gFilter_ApplyFilterClick( object sender, EventArgs e )
         {
-            foreach( var control in gFilter.Controls )
+            foreach ( var control in gFilter.Controls )
             {
                 if ( control is RockListBox )
                 {
@@ -1343,7 +1342,7 @@ namespace org.secc.Connection
 
         private void HideRows()
         {
-            foreach( GridViewRow row in gCounts.Rows)
+            foreach ( GridViewRow row in gCounts.Rows )
             {
                 string rowId = gCounts.DataKeys[row.RowIndex].Value.ToString();
                 foreach ( var control in gFilter.Controls )
@@ -1365,7 +1364,7 @@ namespace org.secc.Connection
                                     break;
                                 }
                             }
-                            if (visible == false)
+                            if ( visible == false )
                             {
                                 row.Visible = false;
                             }
@@ -1384,7 +1383,8 @@ namespace org.secc.Connection
                 if ( control is RockListBox )
                 {
                     var rockListBox = ( RockListBox ) control;
-                    foreach ( ListItem item in rockListBox.Items ) {
+                    foreach ( ListItem item in rockListBox.Items )
+                    {
                         item.Selected = false;
                     }
                     DeleteBlockUserPreference( rockListBox.ID );

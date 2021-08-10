@@ -16,7 +16,7 @@ using System;
 
 namespace org.secc.ServiceReef.Contracts
 {
-   
+
     public class Address
     {
         public String Address1 { get; set; }

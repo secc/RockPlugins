@@ -15,19 +15,18 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
-
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
-using Rock.Web.UI.Controls;
-using Rock.Web.Cache;
-using System.Web.UI.WebControls;
-using System.Web.UI;
-using Rock.Model;
 using Rock.Data;
-using org.secc.FamilyCheckin.Utilities;
-using System.Data.Entity;
+using Rock.Model;
+using Rock.Web.Cache;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.SportsAndFitness
 {

@@ -12,14 +12,7 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Rock;
 using Rock.Plugin;
-using Rock.Web.Cache;
 
 namespace org.secc.PastoralCare.Migrations
 {

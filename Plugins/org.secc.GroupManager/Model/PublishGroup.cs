@@ -97,10 +97,6 @@ namespace org.secc.GroupManager.Model
         public string ContactEmail { get; set; }
 
         [DataMember]
-        [Obsolete]
-        public bool RequiresRegistration { get; set; } = false;
-
-        [DataMember]
         public RegistrationRequirement RegistrationRequirement { get; set; } = RegistrationRequirement.NoRegistration;
 
         [DataMember]

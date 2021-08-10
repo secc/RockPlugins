@@ -29,23 +29,18 @@
 // </copyright>
 //
 using System;
-using System.ComponentModel;
 using System.Collections.Generic;
-using System.IO;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Web.UI.WebControls;
-
 using Rock;
 using Rock.Attribute;
-using Rock.Model;
-using Rock.Web.UI.Controls;
-using System.Text.RegularExpressions;
-using System.Data.Entity.SqlServer;
 using Rock.Data;
+using Rock.Model;
 using Rock.Web.Cache;
-using System.Diagnostics;
-using System.Data.Entity.Core.Objects;
-using System.Text;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.Crm
 {

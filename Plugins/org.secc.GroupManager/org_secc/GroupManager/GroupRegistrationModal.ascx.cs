@@ -31,19 +31,15 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using org.secc.GroupManager;
 using Rock;
 using Rock.Attribute;
-using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
-using Rock.Web;
 using Rock.Web.Cache;
-using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
@@ -293,7 +289,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
             //Authorization check. Nothing is visible otherwise
-            if (!CurrentGroup.IsAuthorized(Authorization.EDIT, CurrentPerson ) )
+            if ( !CurrentGroup.IsAuthorized( Authorization.EDIT, CurrentPerson ) )
             {
                 return false;
             }

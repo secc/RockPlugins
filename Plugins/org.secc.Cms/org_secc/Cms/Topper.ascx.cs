@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -30,15 +30,11 @@
 //
 using System;
 using System.ComponentModel;
-using Rock;
-using Rock.Model;
-using Rock.Security;
 using System.Web.UI;
-using Rock.Web.Cache;
-using Rock.Web.UI;
-using System.Web;
+using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Model;
 
 namespace RockWeb.Plugins.org_secc.CMS
 {
@@ -46,7 +42,7 @@ namespace RockWeb.Plugins.org_secc.CMS
     [Category( "SECC > CMS" )]
     [Description( "Header Parallax Title" )]
     [TextField( "Background Image Id", "The parallax background image.", false )]
-    [BooleanField("Info Panel Visible", "", false)]
+    [BooleanField( "Info Panel Visible", "", false )]
     [TextField( "Title Text", "The title text to display over the parallax image (Defaults to the page title)." )]
     [CodeEditorField( "Info Panel Content", "The content to display on the right of the topper.", Rock.Web.UI.Controls.CodeEditorMode.Html, category: "Info Panel" )]
     [TextField( "Info Panel Background RGB Value", "The background color to use on the info panel", true, "rgba(255,255,255,0.8)", category: "Info Panel" )]
@@ -76,7 +72,7 @@ namespace RockWeb.Plugins.org_secc.CMS
 
             ltHtmlContent.Text = GetAttributeValue( "InfoPanelContent" );
             ltTopperTitle.Text = GetAttributeValue( "TitleText" );
-            
+
             nextInfo.Style.Add( "background", GetAttributeValue( "InfoPanelBackgroundRGBValue" ) );
         }
 
@@ -107,7 +103,7 @@ namespace RockWeb.Plugins.org_secc.CMS
         }
         #endregion
 
-        
+
         protected void mdEdit_SaveClick( object sender, EventArgs e )
         {
             // Save the image
@@ -115,10 +111,10 @@ namespace RockWeb.Plugins.org_secc.CMS
             SetAttributeValue( "TitleText", tbTopperTitle.Text );
             RockContext rockContext = new RockContext();
             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
-            BinaryFile backgroundImage = binaryFileService.Get( imgupTitleBackground.BinaryFileId??0 );
+            BinaryFile backgroundImage = binaryFileService.Get( imgupTitleBackground.BinaryFileId ?? 0 );
             if ( backgroundImage != null )
             {
-                backgroundImage.IsTemporary = false;    
+                backgroundImage.IsTemporary = false;
                 rockContext.SaveChanges();
             }
 

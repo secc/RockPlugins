@@ -12,15 +12,8 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
-using System.Linq;
-
-using Quartz;
-using Rock.Attribute;
-using Rock;
-using Rock.Model;
-using Rock.Data;
 using org.secc.Microframe.Utilities;
+using Quartz;
 
 namespace org.secc.Microframe
 {

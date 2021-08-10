@@ -1,20 +1,15 @@
-using System;
-using System.Net;
-using System.Net.Http;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Web.Security;
-using System.Linq;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 using Rock;
-using Rock.Attribute;
-using Rock.Security;
-using System.Text;
 using Rock.Data;
 using Rock.Model;
-using System.IO;
 using Rock.SignNow;
-using Newtonsoft.Json.Linq;
-using System.Text.RegularExpressions;
 
 namespace RockWeb.Plugins.org_secc.Security
 {

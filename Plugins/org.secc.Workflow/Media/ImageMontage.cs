@@ -45,15 +45,15 @@ namespace org.secc.Workflow.media
                 foreach ( string file in Directory.EnumerateFiles( inputPath, "*" ) )
                 {
                     images.Add( new MagickImage( file ) );
-                    if ( i % ( wide * high) == 0)
+                    if ( i % ( wide * high ) == 0 )
                     {
-                        outputFiles.Add( OutputMontage( filename, outputPath, images, j) );
+                        outputFiles.Add( OutputMontage( filename, outputPath, images, j ) );
                         j++;
                     }
                     i++;
                 }
 
-                if (images.Count > 0)
+                if ( images.Count > 0 )
                 {
                     outputFiles.Add( OutputMontage( filename, outputPath, images, j ) );
                 }
@@ -65,7 +65,7 @@ namespace org.secc.Workflow.media
             var targetAttribute = AttributeCache.Get( GetActionAttributeValue( action, "Output" ).AsGuid(), rockContext );
             if ( targetAttribute.EntityTypeId == new Rock.Model.Workflow().TypeId )
             {
-                action.Activity.Workflow.SetAttributeValue( targetAttribute.Key, outputFiles.JoinStrings(",") );
+                action.Activity.Workflow.SetAttributeValue( targetAttribute.Key, outputFiles.JoinStrings( "," ) );
             }
             else if ( targetAttribute.EntityTypeId == new WorkflowActivity().TypeId )
             {

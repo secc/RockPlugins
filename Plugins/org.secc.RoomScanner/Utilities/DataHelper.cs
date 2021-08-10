@@ -13,12 +13,8 @@
 // </copyright>
 //
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using org.secc.FamilyCheckin.Cache;
-using org.secc.FamilyCheckin.Utilities;
 using org.secc.RoomScanner.Models;
 using Rock;
 using Rock.Data;
@@ -63,7 +59,7 @@ namespace org.secc.RoomScanner.Utilities
             }
 
             var changes = new History.HistoryChangeList();
-            changes.AddCustom( "Exit", History.HistoryChangeType.Record.ToString(), summary.Truncate(250) );
+            changes.AddCustom( "Exit", History.HistoryChangeType.Record.ToString(), summary.Truncate( 250 ) );
             changes.First().Caption = "Exited Location";
             changes.First().RelatedEntityTypeId = locationEntityTypeId;
             changes.First().RelatedEntityId = location.Id;
@@ -72,7 +68,7 @@ namespace org.secc.RoomScanner.Utilities
             HistoryService.SaveChanges(
                 new RockContext(),
                 typeof( Rock.Model.Person ),
-                CategoryCache.Get(4).Guid,
+                CategoryCache.Get( 4 ).Guid,
                 attendeeAttendance.PersonAlias.PersonId,
                 changes,
                 true

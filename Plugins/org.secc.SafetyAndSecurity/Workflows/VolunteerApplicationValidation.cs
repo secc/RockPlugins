@@ -13,19 +13,18 @@
 // </copyright>
 //
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Text;
+using System.Text.RegularExpressions;
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Workflow;
-using Rock.Attribute;
-using System.Text.RegularExpressions;
-using System.Text;
 using Rock.Security;
 using Rock.Web.Cache;
+using Rock.Workflow;
 
 namespace org.secc.SafetyAndSecurity
 {

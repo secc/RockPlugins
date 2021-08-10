@@ -14,13 +14,12 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
 using org.secc.Purchasing.DataLayer;
-using Rock.Model;
 using Rock;
-using System.Data.SqlClient;
+using Rock.Model;
 using Rock.Web.Cache;
 
 namespace org.secc.Purchasing
@@ -30,15 +29,15 @@ namespace org.secc.Purchasing
 
         #region Fields
 
-        public static Guid PurchaseOrderTypeGuid = new Guid("E873ADBF-42F8-41F4-BF7D-4877601CC15A");
-        public static Guid PurchaseOrderStatusGuid = new Guid("C2EA5FA6-3767-4827-87CA-4A6CBE538608");
-        public static Guid PurchaseOrderStatusOrderedGuid = new Guid("6A3AC70A-3ED6-4977-86F3-14C3C5101888");
-        public static Guid PurchaseOrderStatusPartiallyReceived = new Guid("B57A7433-EA14-43EE-8316-3C061EFCA671");
-        public static Guid PurchaseOrderStatusReceived = new Guid("EE8D8BD4-E4DE-4E06-AE96-7D15B8034C14");
-        public static Guid PurchaseOrderStatusBilled = new Guid("0F33DCA2-7D73-41A4-A466-A74150B7211F");
-        public static Guid PurchaseOrderStatusClosed = new Guid("BE4FD01A-2EFD-48A1-AFFD-A6F504E0640C");
-        public static Guid PurchaseOrderStatusReopened = new Guid("CB900747-0DDA-47BB-AFBD-5BDA02A4826A");
-        public static Guid PurchaseOrderStatusOpen = new Guid("4797DD09-D109-4D43-BA8E-80E139CFDAED");
+        public static Guid PurchaseOrderTypeGuid = new Guid( "E873ADBF-42F8-41F4-BF7D-4877601CC15A" );
+        public static Guid PurchaseOrderStatusGuid = new Guid( "C2EA5FA6-3767-4827-87CA-4A6CBE538608" );
+        public static Guid PurchaseOrderStatusOrderedGuid = new Guid( "6A3AC70A-3ED6-4977-86F3-14C3C5101888" );
+        public static Guid PurchaseOrderStatusPartiallyReceived = new Guid( "B57A7433-EA14-43EE-8316-3C061EFCA671" );
+        public static Guid PurchaseOrderStatusReceived = new Guid( "EE8D8BD4-E4DE-4E06-AE96-7D15B8034C14" );
+        public static Guid PurchaseOrderStatusBilled = new Guid( "0F33DCA2-7D73-41A4-A466-A74150B7211F" );
+        public static Guid PurchaseOrderStatusClosed = new Guid( "BE4FD01A-2EFD-48A1-AFFD-A6F504E0640C" );
+        public static Guid PurchaseOrderStatusReopened = new Guid( "CB900747-0DDA-47BB-AFBD-5BDA02A4826A" );
+        public static Guid PurchaseOrderStatusOpen = new Guid( "4797DD09-D109-4D43-BA8E-80E139CFDAED" );
         public static Guid PurchaseOrderStatusCancelled = new Guid( "3BEA3A4C-D9B0-47E3-86C0-FA1BF1E88188" );
 
 
@@ -86,8 +85,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mItems == null)
-                   mItems = GetItems();
+                if ( mItems == null )
+                    mItems = GetItems();
 
                 return mItems;
             }
@@ -102,7 +101,7 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mReceipts == null)
+                if ( mReceipts == null )
                     mReceipts = GetReceipts();
                 return mReceipts;
             }
@@ -117,8 +116,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if ((mPurchaseOrderType == null || mPurchaseOrderType.Id != PurchaseOrderTypeLUID) && PurchaseOrderTypeLUID > 0)
-                    mPurchaseOrderType = DefinedValueCache.Get(PurchaseOrderTypeLUID);
+                if ( ( mPurchaseOrderType == null || mPurchaseOrderType.Id != PurchaseOrderTypeLUID ) && PurchaseOrderTypeLUID > 0 )
+                    mPurchaseOrderType = DefinedValueCache.Get( PurchaseOrderTypeLUID );
                 return mPurchaseOrderType;
             }
         }
@@ -128,8 +127,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if ((mStatus == null || mStatus.Id != StatusLUID) && StatusLUID > 0)
-                    mStatus = DefinedValueCache.Get(StatusLUID);
+                if ( ( mStatus == null || mStatus.Id != StatusLUID ) && StatusLUID > 0 )
+                    mStatus = DefinedValueCache.Get( StatusLUID );
 
                 return mStatus;
             }
@@ -141,9 +140,9 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if ((mVendor == null || mVendor.VendorID != VendorID) && VendorID > 0)
-                    mVendor = new Vendor(VendorID);
-                return mVendor;                
+                if ( ( mVendor == null || mVendor.VendorID != VendorID ) && VendorID > 0 )
+                    mVendor = new Vendor( VendorID );
+                return mVendor;
             }
         }
 
@@ -152,10 +151,10 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if ((mOrderedBy == null || mOrderedBy.Id != OrderedByID) && OrderedByID > 0)
-                    mOrderedBy = personAliasService.Get(OrderedByID).Person;
+                if ( ( mOrderedBy == null || mOrderedBy.Id != OrderedByID ) && OrderedByID > 0 )
+                    mOrderedBy = personAliasService.Get( OrderedByID ).Person;
 
-                return mOrderedBy;                    
+                return mOrderedBy;
             }
         }
 
@@ -164,8 +163,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if(mCreatedBy == null && !String.IsNullOrEmpty(CreatedByUserID))
-                    mCreatedBy = userLoginService.GetByUserName(CreatedByUserID).Person;
+                if ( mCreatedBy == null && !String.IsNullOrEmpty( CreatedByUserID ) )
+                    mCreatedBy = userLoginService.GetByUserName( CreatedByUserID ).Person;
                 return mCreatedBy;
             }
         }
@@ -175,8 +174,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mModifiedBy == null && !String.IsNullOrEmpty(ModifiedByUserID))
-                    mModifiedBy = userLoginService.GetByUserName(ModifiedByUserID).Person;
+                if ( mModifiedBy == null && !String.IsNullOrEmpty( ModifiedByUserID ) )
+                    mModifiedBy = userLoginService.GetByUserName( ModifiedByUserID ).Person;
                 return mModifiedBy;
             }
         }
@@ -186,7 +185,7 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mPayments == null)
+                if ( mPayments == null )
                     mPayments = GetPayments();
                 return mPayments;
             }
@@ -201,7 +200,7 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mNotes == null)
+                if ( mNotes == null )
                     mNotes = GetNotes();
 
                 return mNotes;
@@ -217,7 +216,7 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mAttachment == null)
+                if ( mAttachment == null )
                     mAttachment = GetAttachments();
                 return mAttachment;
             }
@@ -232,9 +231,9 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mDefaultPaymentMethod == null || mDefaultPaymentMethod.PaymentMethodID != DefaultPaymentMethodID)
+                if ( mDefaultPaymentMethod == null || mDefaultPaymentMethod.PaymentMethodID != DefaultPaymentMethodID )
                 {
-                    mDefaultPaymentMethod = new PaymentMethod(DefaultPaymentMethodID);
+                    mDefaultPaymentMethod = new PaymentMethod( DefaultPaymentMethodID );
                 }
                 return mDefaultPaymentMethod;
             }
@@ -248,89 +247,89 @@ namespace org.secc.Purchasing
             Init();
         }
 
-        public PurchaseOrder(int poID)
+        public PurchaseOrder( int poID )
         {
-            Load(poID);
+            Load( poID );
         }
 
-        public PurchaseOrder(PurchaseOrderData data)
+        public PurchaseOrder( PurchaseOrderData data )
         {
-            Load(data);
+            Load( data );
         }
-        
+
         #endregion
 
         #region Public
 
-        public static List<DefinedValueCache> GetPurchaseOrderStatuses(bool activeOnly)
+        public static List<DefinedValueCache> GetPurchaseOrderStatuses( bool activeOnly )
         {
             List<DefinedValueCache> StatusList = new List<DefinedValueCache>();
 
-            if (activeOnly)
-                StatusList.AddRange(DefinedTypeCache.Get(PurchaseOrderStatusGuid).DefinedValues.Where(l => l.IsActive));
+            if ( activeOnly )
+                StatusList.AddRange( DefinedTypeCache.Get( PurchaseOrderStatusGuid ).DefinedValues.Where( l => l.IsActive ) );
             else
-                StatusList.AddRange(DefinedTypeCache.Get(PurchaseOrderStatusGuid).DefinedValues);
+                StatusList.AddRange( DefinedTypeCache.Get( PurchaseOrderStatusGuid ).DefinedValues );
 
             return StatusList;
         }
 
-        public static List<DefinedValueCache> GetPurchaseOrderTypes(bool activeOnly)
+        public static List<DefinedValueCache> GetPurchaseOrderTypes( bool activeOnly )
         {
             List<DefinedValueCache> POTypes = new List<DefinedValueCache>();
 
-            if (activeOnly)
-                POTypes.AddRange(DefinedTypeCache.Get(PurchaseOrderTypeGuid).DefinedValues.Where(l => l.IsActive));
+            if ( activeOnly )
+                POTypes.AddRange( DefinedTypeCache.Get( PurchaseOrderTypeGuid ).DefinedValues.Where( l => l.IsActive ) );
             else
-                POTypes.AddRange( DefinedTypeCache.Get(PurchaseOrderTypeGuid).DefinedValues);
+                POTypes.AddRange( DefinedTypeCache.Get( PurchaseOrderTypeGuid ).DefinedValues );
 
             return POTypes;
         }
 
         public static int PurchaseOrderOrderedStatusLUID()
         {
-            return DefinedValueCache.Get(PurchaseOrderStatusOrderedGuid).Id;
+            return DefinedValueCache.Get( PurchaseOrderStatusOrderedGuid ).Id;
         }
 
         public static int PurchaseOrderStatusPartiallyReceivedLUID()
         {
-            return DefinedValueCache.Get(PurchaseOrderStatusPartiallyReceived).Id;
+            return DefinedValueCache.Get( PurchaseOrderStatusPartiallyReceived ).Id;
         }
 
         public static int PurchaseOrderStatusReceivedLUID()
         {
-            return DefinedValueCache.Get(PurchaseOrderStatusReceived).Id;
+            return DefinedValueCache.Get( PurchaseOrderStatusReceived ).Id;
         }
 
         public static int PurchaseOrderStatusBilledLUID()
         {
-            return DefinedValueCache.Get(PurchaseOrderStatusBilled).Id;
+            return DefinedValueCache.Get( PurchaseOrderStatusBilled ).Id;
         }
 
         public static int PurchaseOrderStatusClosedLUID()
         {
-            return DefinedValueCache.Get(PurchaseOrderStatusClosed).Id;
+            return DefinedValueCache.Get( PurchaseOrderStatusClosed ).Id;
         }
 
         public static int PurchaseOrderStatusReopenedLUID()
         {
-            return DefinedValueCache.Get(PurchaseOrderStatusReopened).Id;
+            return DefinedValueCache.Get( PurchaseOrderStatusReopened ).Id;
         }
 
         public static int PurchaseOrderStatusOpenLUID()
         {
-            return DefinedValueCache.Get(PurchaseOrderStatusOpen).Id;
+            return DefinedValueCache.Get( PurchaseOrderStatusOpen ).Id;
         }
 
         public static int PurchaseOrderStatusCancelledLUID()
         {
-            return DefinedValueCache.Get(PurchaseOrderStatusCancelled).Id;
+            return DefinedValueCache.Get( PurchaseOrderStatusCancelled ).Id;
         }
 
-        public static List<PurchaseOrderListItem> GetPurchaseOrderList(Dictionary<string,string> filter)
+        public static List<PurchaseOrderListItem> GetPurchaseOrderList( Dictionary<string, string> filter )
         {
             List<PurchaseOrderListItem> ListItems = new List<PurchaseOrderListItem>();
 
-            using (PurchasingContext Context = ContextHelper.GetDBContext())
+            using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
 
                 var Query = Context.PurchaseOrderDatas
@@ -391,55 +390,55 @@ namespace org.secc.Purchasing
 
 
 
-                if (filter.ContainsKey("StatusLUID"))
+                if ( filter.ContainsKey( "StatusLUID" ) )
                 {
-                    List<int> StatusLUIDs = filter["StatusLUID"].Split(",".ToCharArray()).Select(x => int.Parse(x)).ToList();
-                    Query = Query.Where(p => StatusLUIDs.Contains(p.StatusLUID));
+                    List<int> StatusLUIDs = filter["StatusLUID"].Split( ",".ToCharArray() ).Select( x => int.Parse( x ) ).ToList();
+                    Query = Query.Where( p => StatusLUIDs.Contains( p.StatusLUID ) );
                 }
 
-                if (filter.ContainsKey("TypeLUID"))
+                if ( filter.ContainsKey( "TypeLUID" ) )
                 {
-                    List<int> TypeLUIDs = filter["TypeLUID"].Split(",".ToCharArray()).Select(x => int.Parse(x)).ToList();
-                    Query = Query.Where(p => TypeLUIDs.Contains(p.TypeLUID));
+                    List<int> TypeLUIDs = filter["TypeLUID"].Split( ",".ToCharArray() ).Select( x => int.Parse( x ) ).ToList();
+                    Query = Query.Where( p => TypeLUIDs.Contains( p.TypeLUID ) );
                 }
 
                 int POID = 0;
-                if (filter.ContainsKey("PONumber") && int.TryParse(filter["PONumber"], out POID))
+                if ( filter.ContainsKey( "PONumber" ) && int.TryParse( filter["PONumber"], out POID ) )
                 {
-                    Query = Query.Where(p => p.PurchaseOrderID == POID);
+                    Query = Query.Where( p => p.PurchaseOrderID == POID );
                 }
 
                 int vid = 0;
-                if (filter.ContainsKey("VendorID") && int.TryParse(filter["VendorID"], out vid))
-                    Query = Query.Where(p => p.VendorID == vid);
+                if ( filter.ContainsKey( "VendorID" ) && int.TryParse( filter["VendorID"], out vid ) )
+                    Query = Query.Where( p => p.VendorID == vid );
 
                 DateTime OrderedOnStart;
-                if (filter.ContainsKey("OrderedOnStart") && DateTime.TryParse(filter["OrderedOnStart"], out OrderedOnStart))
-                    Query = Query.Where(p => p.OrderDate >= OrderedOnStart);
+                if ( filter.ContainsKey( "OrderedOnStart" ) && DateTime.TryParse( filter["OrderedOnStart"], out OrderedOnStart ) )
+                    Query = Query.Where( p => p.OrderDate >= OrderedOnStart );
 
                 DateTime OrderedOnEnd;
-                if (filter.ContainsKey("OrderedOnEnd") && DateTime.TryParse(filter["OrderedOnEnd"], out OrderedOnEnd))
-                    Query = Query.Where(p => p.OrderDate <= OrderedOnEnd);
+                if ( filter.ContainsKey( "OrderedOnEnd" ) && DateTime.TryParse( filter["OrderedOnEnd"], out OrderedOnEnd ) )
+                    Query = Query.Where( p => p.OrderDate <= OrderedOnEnd );
 
                 DateTime PaymentStart;
                 if ( filter.ContainsKey( "PaymentStart" ) && DateTime.TryParse( filter["PaymentStart"], out PaymentStart ) )
-                    Query = Query.Where( p => p.PaymentMethods.Where(pm => pm.payment_date >= PaymentStart).Any() );
+                    Query = Query.Where( p => p.PaymentMethods.Where( pm => pm.payment_date >= PaymentStart ).Any() );
 
                 DateTime PaymentEnd;
                 if ( filter.ContainsKey( "PaymentEnd" ) && DateTime.TryParse( filter["PaymentEnd"], out PaymentEnd ) )
                     Query = Query.Where( p => p.PaymentMethods.Where( pm => pm.payment_date <= PaymentEnd ).Any() );
-                
+
                 int pmid = 0;
                 if ( filter.ContainsKey( "PaymentMethodID" ) && int.TryParse( filter["PaymentMethodID"], out pmid ) )
-                    Query = Query.Where( p => p.PaymentMethods.Where(pm => pm.payment_method_id == pmid ).Any() );
+                    Query = Query.Where( p => p.PaymentMethods.Where( pm => pm.payment_method_id == pmid ).Any() );
 
                 int obID = 0;
-                if (filter.ContainsKey("OrderedByID") && int.TryParse(filter["OrderedByID"], out obID))
-                    Query = Query.Where(p => p.OrderedByID == obID);
+                if ( filter.ContainsKey( "OrderedByID" ) && int.TryParse( filter["OrderedByID"], out obID ) )
+                    Query = Query.Where( p => p.OrderedByID == obID );
 
                 bool showInactive = false;
-                if (!filter.ContainsKey("ShowInactive") || !bool.TryParse(filter["ShowInactive"], out showInactive) || !showInactive)
-                    Query = Query.Where(p => p.Active);
+                if ( !filter.ContainsKey( "ShowInactive" ) || !bool.TryParse( filter["ShowInactive"], out showInactive ) || !showInactive )
+                    Query = Query.Where( p => p.Active );
 
 
                 if ( filter.ContainsKey( "GLAccount" ) && !String.IsNullOrWhiteSpace( filter["GLAccount"] ) )
@@ -453,12 +452,12 @@ namespace org.secc.Purchasing
                     int.TryParse( projAccount[1], out deptId );
                     int.TryParse( projAccount[2], out acctId );
 
-                    Query = Query.Where( q => q.Items.Where(i => i.RequisitionItemData.fund_id == fundId ).Any() )
+                    Query = Query.Where( q => q.Items.Where( i => i.RequisitionItemData.fund_id == fundId ).Any() )
                                 .Where( q => q.Items.Where( i => i.RequisitionItemData.department_id == deptId ).Any() )
                                 .Where( q => q.Items.Where( i => i.RequisitionItemData.account_id == acctId ).Any() );
                 }
 
-                var command = Context.GetCommand(Query.Select( p => new PurchaseOrderListItem
+                var command = Context.GetCommand( Query.Select( p => new PurchaseOrderListItem
                 {
                     PurchaseOrderID = p.PurchaseOrderID,
                     VendorID = p.VendorID,
@@ -471,8 +470,8 @@ namespace org.secc.Purchasing
                     TotalPayments = p.PaymentTotal,
                     NoteCount = p.NoteCount,
                     AttachmentCount = p.AttachmentCount
-                } ).AsQueryable());
-                
+                } ).AsQueryable() );
+
                 SqlParameter[] parameters = new SqlParameter[] { };
                 Array.Resize( ref parameters, command.Parameters.Count );
                 command.Parameters.CopyTo( parameters, 0 );
@@ -483,7 +482,7 @@ namespace org.secc.Purchasing
             return ListItems;
         }
 
-        public int AddPayment(int paymentMethod, DateTime paymentDate, decimal paymentAmount, string uid, string note = "")
+        public int AddPayment( int paymentMethod, DateTime paymentDate, decimal paymentAmount, string uid, string note = "" )
         {
             Payment p = new Payment();
             p.PaymentMethodID = paymentMethod;
@@ -492,82 +491,82 @@ namespace org.secc.Purchasing
             p.PaymentAmount = paymentAmount;
             p.Note = note;
 
-            p.Save(uid);
+            p.Save( uid );
             RefreshPayments();
 
             return p.PaymentID;
-           
+
         }
 
         public bool HasChanged()
         {
             bool IsDifferent = false;
-            PurchaseOrder Original = new PurchaseOrder(PurchaseOrderID);
+            PurchaseOrder Original = new PurchaseOrder( PurchaseOrderID );
 
-            if (VendorID != Original.VendorID)
+            if ( VendorID != Original.VendorID )
                 IsDifferent = true;
 
-            if (!IsDifferent && PurchaseOrderTypeLUID != Original.PurchaseOrderTypeLUID)
+            if ( !IsDifferent && PurchaseOrderTypeLUID != Original.PurchaseOrderTypeLUID )
                 IsDifferent = true;
 
-            if (!IsDifferent && OrganizationID != Original.OrganizationID)
+            if ( !IsDifferent && OrganizationID != Original.OrganizationID )
                 IsDifferent = true;
 
-            if (!IsDifferent && DateOrdered != Original.DateOrdered)
+            if ( !IsDifferent && DateOrdered != Original.DateOrdered )
                 IsDifferent = true;
 
-            if (!IsDifferent && OrderedByID != Original.OrderedByID)
+            if ( !IsDifferent && OrderedByID != Original.OrderedByID )
                 IsDifferent = true;
 
-            if (!IsDifferent && StatusLUID != Original.StatusLUID)
+            if ( !IsDifferent && StatusLUID != Original.StatusLUID )
                 IsDifferent = true;
 
-            if (!IsDifferent && DateReceived != Original.DateReceived)
+            if ( !IsDifferent && DateReceived != Original.DateReceived )
                 IsDifferent = true;
 
-            if (!IsDifferent && DateClosed != Original.DateClosed)
+            if ( !IsDifferent && DateClosed != Original.DateClosed )
                 IsDifferent = true;
 
-            if (!IsDifferent && ShipToAddress != Original.ShipToAddress)
+            if ( !IsDifferent && ShipToAddress != Original.ShipToAddress )
                 IsDifferent = true;
 
-            if (!IsDifferent && ShipToName != Original.ShipToName)
+            if ( !IsDifferent && ShipToName != Original.ShipToName )
                 IsDifferent = true;
 
-            if (!IsDifferent && ShipToAttn != Original.ShipToAttn)
+            if ( !IsDifferent && ShipToAttn != Original.ShipToAttn )
                 IsDifferent = true;
 
-            if (!IsDifferent && ShippingCharge != Original.ShippingCharge)
+            if ( !IsDifferent && ShippingCharge != Original.ShippingCharge )
                 IsDifferent = true;
 
-            if (!IsDifferent && OtherCharge != Original.OtherCharge)
+            if ( !IsDifferent && OtherCharge != Original.OtherCharge )
                 IsDifferent = true;
 
-            if (!IsDifferent && DefaultPaymentMethodID != Original.DefaultPaymentMethodID)
+            if ( !IsDifferent && DefaultPaymentMethodID != Original.DefaultPaymentMethodID )
                 IsDifferent = true;
 
-            if (!IsDifferent && Terms != Original.Terms)
+            if ( !IsDifferent && Terms != Original.Terms )
                 IsDifferent = true;
 
             return IsDifferent;
         }
 
-        public bool HasBeenReceived(out bool isPartiallyReceived, string uid)
+        public bool HasBeenReceived( out bool isPartiallyReceived, string uid )
         {
             isPartiallyReceived = false;
             bool isFullyReceived = true;
 
-            foreach (PurchaseOrderItem poItem in Items.Where(i => i.Active))
+            foreach ( PurchaseOrderItem poItem in Items.Where( i => i.Active ) )
             {
-                int QtyReceived = poItem.ReceiptItems.Where(x => x.Active).Select(x => (int?)x.QuantityReceived ?? 0).Sum();
+                int QtyReceived = poItem.ReceiptItems.Where( x => x.Active ).Select( x => ( int? ) x.QuantityReceived ?? 0 ).Sum();
                 bool originalItemRecievedStatus = poItem.HasBeenReceived;
 
-                if (QtyReceived == 0)
+                if ( QtyReceived == 0 )
                 {
                     isFullyReceived = false;
                     poItem.HasBeenReceived = false;
                 }
-                else if (QtyReceived != 0 && poItem.Quantity > QtyReceived)
+                else if ( QtyReceived != 0 && poItem.Quantity > QtyReceived )
                 {
                     isFullyReceived = false;
                     isPartiallyReceived = true;
@@ -579,9 +578,9 @@ namespace org.secc.Purchasing
                     poItem.HasBeenReceived = true;
                 }
 
-                if (originalItemRecievedStatus != poItem.HasBeenReceived)
+                if ( originalItemRecievedStatus != poItem.HasBeenReceived )
                 {
-                    poItem.Save(uid);
+                    poItem.Save( uid );
                 }
 
             }
@@ -592,9 +591,9 @@ namespace org.secc.Purchasing
 
         public bool IsClosed()
         {
-            if (Status == null)
+            if ( Status == null )
                 return false;
-            return Status.GetAttributeValue("IsClosed").AsBoolean();
+            return Status.GetAttributeValue( "IsClosed" ).AsBoolean();
         }
 
         public static List<PurchaseOrder> LoadOpenPOs()
@@ -610,19 +609,19 @@ namespace org.secc.Purchasing
             }
         }
 
-        public static List<PurchaseOrder> LoadByVendor(int vendorId)
+        public static List<PurchaseOrder> LoadByVendor( int vendorId )
         {
 
-            using (PurchasingContext Context = ContextHelper.GetDBContext())
+            using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
                 return Context.PurchaseOrderDatas
-                        .Where(p => p.vendor_id == vendorId)
-                        .Select(p => new PurchaseOrder(p))
+                        .Where( p => p.vendor_id == vendorId )
+                        .Select( p => new PurchaseOrder( p ) )
                         .ToList();
             }
         }
 
-        public static List<PurchaseOrder> LoadByStatus(int[] POStatuses)
+        public static List<PurchaseOrder> LoadByStatus( int[] POStatuses )
         {
             using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
@@ -634,25 +633,25 @@ namespace org.secc.Purchasing
             }
         }
 
-        public void MarkAsBilled(string uid)
+        public void MarkAsBilled( string uid )
         {
             StatusLUID = PurchaseOrderStatusBilledLUID();
             HasBeenBilled = true;
-            Save(uid);
+            Save( uid );
         }
 
-        public void Reopen(string uid)
+        public void Reopen( string uid )
         {
 
-            if (Status.GetAttributeValue("IsClosed").AsBoolean())
+            if ( Status.GetAttributeValue( "IsClosed" ).AsBoolean() )
             {
                 StatusLUID = PurchaseOrderStatusReopenedLUID();
                 DateClosed = DateTime.MinValue;
-                Save(uid);
+                Save( uid );
             }
         }
 
-        public void Close(string uid)
+        public void Close( string uid )
         {
             //if (DateReceived > DateTime.MinValue && Payments.Count > 0 && (StatusLUID == PurchaseOrderStatusBilledLUID() || StatusLUID == PurchaseOrderStatusReopenedLUID()))
             //{
@@ -665,30 +664,30 @@ namespace org.secc.Purchasing
 
             try
             {
-                decimal TotalPayments = Payments.Where(x => x.Active).Select(x => x.PaymentAmount).Sum();
-                decimal TotalCharges = Payments.Where(x => x.Active).Select(x => (decimal?)x.Charges.Where(c => c.Active).Select(c => (decimal?)c.Amount ?? 0).Sum() ?? 0).Sum();
+                decimal TotalPayments = Payments.Where( x => x.Active ).Select( x => x.PaymentAmount ).Sum();
+                decimal TotalCharges = Payments.Where( x => x.Active ).Select( x => ( decimal? ) x.Charges.Where( c => c.Active ).Select( c => ( decimal? ) c.Amount ?? 0 ).Sum() ?? 0 ).Sum();
                 Dictionary<string, string> CloseErrors = new Dictionary<string, string>();
-                if (DateReceived == DateTime.MinValue)
-                    CloseErrors.Add("Date Received", "Purchase Order has not been received");
-                if (StatusLUID != PurchaseOrderStatusBilledLUID() && StatusLUID != PurchaseOrderStatusReopenedLUID())
-                    CloseErrors.Add("Status", "Purchase Order must have been billed.");
-                if (Payments.Where(x => x.Active).Select(x => x.PaymentAmount).Sum() < GetTotal())
-                    CloseErrors.Add("Payments", "Payments are less than total.");
-                if (TotalPayments > TotalCharges)
-                    CloseErrors.Add("Unapplied Payments Exists", "Payments that have not been fully applied to requisitions exist.");
-                if (CloseErrors.Count > 0)
-                    throw new RequisitionNotValidException("Could not close purchase order", CloseErrors);
+                if ( DateReceived == DateTime.MinValue )
+                    CloseErrors.Add( "Date Received", "Purchase Order has not been received" );
+                if ( StatusLUID != PurchaseOrderStatusBilledLUID() && StatusLUID != PurchaseOrderStatusReopenedLUID() )
+                    CloseErrors.Add( "Status", "Purchase Order must have been billed." );
+                if ( Payments.Where( x => x.Active ).Select( x => x.PaymentAmount ).Sum() < GetTotal() )
+                    CloseErrors.Add( "Payments", "Payments are less than total." );
+                if ( TotalPayments > TotalCharges )
+                    CloseErrors.Add( "Unapplied Payments Exists", "Payments that have not been fully applied to requisitions exist." );
+                if ( CloseErrors.Count > 0 )
+                    throw new RequisitionNotValidException( "Could not close purchase order", CloseErrors );
 
                 StatusLUID = PurchaseOrderStatusClosedLUID();
                 DateClosed = DateTime.Now;
-                Save(uid);
+                Save( uid );
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
 
-                throw new RequisitionException("An error has occurred while closing purchase order.", ex); 
+                throw new RequisitionException( "An error has occurred while closing purchase order.", ex );
             }
-                
+
         }
 
         public void Cancel( string uid )
@@ -727,44 +726,44 @@ namespace org.secc.Purchasing
             Items = GetItems();
         }
 
-        public void ReceivePackage(int receivedByID, int carrierLUID, string dateReceivedStr, Dictionary<int, int> itemsToReceive, string uid)
+        public void ReceivePackage( int receivedByID, int carrierLUID, string dateReceivedStr, Dictionary<int, int> itemsToReceive, string uid )
         {
             Receipt r = new Receipt();
             r.PurchaseOrderID = PurchaseOrderID;
             r.CarrierLUID = carrierLUID;
             r.ReceivedByID = receivedByID;
             DateTime tempDateReceived;
-            DateTime.TryParse(dateReceivedStr, out tempDateReceived);
+            DateTime.TryParse( dateReceivedStr, out tempDateReceived );
             r.DateReceived = tempDateReceived;
             r.Active = true;
 
-            r.Save(uid);
+            r.Save( uid );
 
-            foreach (var item in itemsToReceive)
+            foreach ( var item in itemsToReceive )
             {
                 ReceiptItem ri = new ReceiptItem();
                 ri.ReceiptID = r.ReceiptID;
                 ri.POItemID = item.Key;
                 ri.QuantityReceived = item.Value;
                 ri.Active = true;
-                ri.Save(uid);
+                ri.Save( uid );
             }
 
             RefreshReceipts();
             bool isPartiallyReceived = false;
-            bool isFullyReceived = HasBeenReceived(out isPartiallyReceived, uid);
+            bool isFullyReceived = HasBeenReceived( out isPartiallyReceived, uid );
 
-            if (isFullyReceived)
+            if ( isFullyReceived )
             {
                 StatusLUID = PurchaseOrderStatusReceivedLUID();
                 DateReceived = DateTime.Now;
             }
-            else if (isPartiallyReceived)
+            else if ( isPartiallyReceived )
             {
                 StatusLUID = PurchaseOrderStatusPartiallyReceivedLUID();
             }
 
-            Save(uid);
+            Save( uid );
         }
 
         public void RefreshPayments()
@@ -787,16 +786,16 @@ namespace org.secc.Purchasing
             Attachments = GetAttachments();
         }
 
-        public bool RemoveItem(int poItemID, string uid)
+        public bool RemoveItem( int poItemID, string uid )
         {
             bool HasBeenRemoved = false;
-            PurchaseOrderItem POItem = Items.FirstOrDefault(x => x.PurchaseOrderItemID == poItemID);
+            PurchaseOrderItem POItem = Items.FirstOrDefault( x => x.PurchaseOrderItemID == poItemID );
 
-            if (!Status.GetAttributeValue("IsClosed").AsBoolean() && POItem != null && POItem.ItemID > 0)
+            if ( !Status.GetAttributeValue( "IsClosed" ).AsBoolean() && POItem != null && POItem.ItemID > 0 )
             {
                 POItem.Active = false;
-                POItem.Save(uid);
-                POItem.RequisitionItem.Requisition.SyncStatus(uid);
+                POItem.Save( uid );
+                POItem.RequisitionItem.Requisition.SyncStatus( uid );
 
                 RefreshItems();
                 HasBeenRemoved = true;
@@ -805,30 +804,30 @@ namespace org.secc.Purchasing
             return HasBeenRemoved;
         }
 
-        public bool RemovePayment(int paymentID, string uid)
+        public bool RemovePayment( int paymentID, string uid )
         {
             bool HasBeenRemoved = false;
-            Payment p = Payments.FirstOrDefault(x => x.PaymentID == paymentID);
+            Payment p = Payments.FirstOrDefault( x => x.PaymentID == paymentID );
 
             //PO is not closed.
-            if (!Status.GetAttributeValue("IsClosed").AsBoolean() && p.PaymentID > 0)
+            if ( !Status.GetAttributeValue( "IsClosed" ).AsBoolean() && p.PaymentID > 0 )
             {
-                p.DeactivateCharges(uid);
+                p.DeactivateCharges( uid );
                 p.Active = false;
-                p.Save(uid);
+                p.Save( uid );
                 RefreshPayments();
                 HasBeenRemoved = true;
 
                 HasBeenBilled = false;
                 bool isPartiallyReceived = false;
 
-                if (HasBeenReceived(out isPartiallyReceived, uid))
+                if ( HasBeenReceived( out isPartiallyReceived, uid ) )
                 {
                     StatusLUID = PurchaseOrderStatusReceivedLUID();
                 }
                 else
                 {
-                    if (isPartiallyReceived)
+                    if ( isPartiallyReceived )
                         StatusLUID = PurchaseOrderStatusPartiallyReceivedLUID();
                     else
                         StatusLUID = PurchaseOrderOrderedStatusLUID();
@@ -836,36 +835,36 @@ namespace org.secc.Purchasing
                     DateReceived = DateTime.MinValue;
                 }
 
-                Save(uid);
+                Save( uid );
 
             }
 
             return HasBeenRemoved;
         }
 
-        public bool RemoveReceipt(int receiptId, string uid)
+        public bool RemoveReceipt( int receiptId, string uid )
         {
             bool HasBeenRemoved = false;
-            Receipt receipt = Receipts.FirstOrDefault(r => r.ReceiptID == receiptId);
+            Receipt receipt = Receipts.FirstOrDefault( r => r.ReceiptID == receiptId );
 
-            if (!IsClosed())
+            if ( !IsClosed() )
             {
-                foreach (ReceiptItem ri in receipt.ReceiptItems)
+                foreach ( ReceiptItem ri in receipt.ReceiptItems )
                 {
                     ri.Active = false;
-                    ri.Save(uid);
+                    ri.Save( uid );
                 }
 
                 receipt.Active = false;
-                receipt.Save(uid);
+                receipt.Save( uid );
                 RefreshReceipts();
 
                 bool isPartiallyReceived = false;
 
-                HasBeenReceived(out isPartiallyReceived, uid);
+                HasBeenReceived( out isPartiallyReceived, uid );
                 DateReceived = DateTime.MinValue;
 
-                if (isPartiallyReceived)
+                if ( isPartiallyReceived )
                 {
                     StatusLUID = PurchaseOrderStatusPartiallyReceivedLUID();
                 }
@@ -874,35 +873,35 @@ namespace org.secc.Purchasing
                     StatusLUID = PurchaseOrderOrderedStatusLUID();
                 }
 
-                Save(uid);
-                
+                Save( uid );
+
                 HasBeenRemoved = true;
             }
 
             return HasBeenRemoved;
         }
 
-        public void Save(string uid)
+        public void Save( string uid )
         {
             try
             {
-                if (string.IsNullOrEmpty(uid))
-                    throw new ArgumentNullException("UID", "User Name is required.");
+                if ( string.IsNullOrEmpty( uid ) )
+                    throw new ArgumentNullException( "UID", "User Name is required." );
                 Dictionary<string, string> ValErrors = Validate();
-                if (ValErrors.Count > 0)
-                    throw new RequisitionNotValidException("Purchase Order is not valid.", ValErrors);
+                if ( ValErrors.Count > 0 )
+                    throw new RequisitionNotValidException( "Purchase Order is not valid.", ValErrors );
 
-                using (PurchasingContext Context = ContextHelper.GetDBContext())
+                using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                 {
                     Enums.HistoryType ChangeType;
                     PurchaseOrder Original = null;
 
                     PurchaseOrderData data = null;
-                    if (PurchaseOrderID > 0)
+                    if ( PurchaseOrderID > 0 )
                     {
                         ChangeType = Enums.HistoryType.UPDATE;
-                        data = Context.PurchaseOrderDatas.FirstOrDefault(x => x.purchase_order_id == PurchaseOrderID);
-                        Original = new PurchaseOrder(data);
+                        data = Context.PurchaseOrderDatas.FirstOrDefault( x => x.purchase_order_id == PurchaseOrderID );
+                        Original = new PurchaseOrder( data );
                     }
                     else
                     {
@@ -916,54 +915,54 @@ namespace org.secc.Purchasing
                     data.purchase_order_type_luid = PurchaseOrderTypeLUID;
                     data.organization_id = OrganizationID;
 
-                    if (DateOrdered > DateTime.MinValue)
+                    if ( DateOrdered > DateTime.MinValue )
                         data.date_ordered = DateOrdered;
                     else
                         data.date_ordered = null;
 
-                    if (OrderedByID > 0)
+                    if ( OrderedByID > 0 )
                         data.ordered_by = OrderedByID;
                     else
                         data.ordered_by = null;
 
                     data.status_luid = StatusLUID;
 
-                    if (DateReceived > DateTime.MinValue)
+                    if ( DateReceived > DateTime.MinValue )
                         data.date_received = DateReceived;
                     else
                         data.date_received = null;
 
-                    if (DateClosed > DateTime.MinValue)
+                    if ( DateClosed > DateTime.MinValue )
                         data.date_closed = DateClosed;
                     else
                         data.date_closed = null;
 
-                    if (!String.IsNullOrEmpty(ShipToName))
+                    if ( !String.IsNullOrEmpty( ShipToName ) )
                         data.ship_to_name = ShipToName;
                     else
                         data.ship_to_name = null;
 
-                    if (!String.IsNullOrEmpty(ShipToAttn))
+                    if ( !String.IsNullOrEmpty( ShipToAttn ) )
                         data.ship_to_attention = ShipToAttn;
                     else
                         data.ship_to_attention = null;
 
-                    if (ShipToAddress != null && ShipToAddress.IsValid())
+                    if ( ShipToAddress != null && ShipToAddress.IsValid() )
                         data.ship_to_address = ShipToAddress.ToArenaFormat();
                     else
                         data.ship_to_address = null;
 
-                    if (ShippingCharge != 0)
+                    if ( ShippingCharge != 0 )
                         data.shipping_charge = ShippingCharge;
                     else
                         data.shipping_charge = null;
 
-                    if (OtherCharge != 0)
+                    if ( OtherCharge != 0 )
                         data.other_charge = OtherCharge;
                     else
                         data.other_charge = null;
 
-                    if (DefaultPaymentMethodID > 0)
+                    if ( DefaultPaymentMethodID > 0 )
                         data.default_payment_method_id = DefaultPaymentMethodID;
                     else
                         data.default_payment_method_id = null;
@@ -972,29 +971,29 @@ namespace org.secc.Purchasing
                     data.date_modified = DateTime.Now;
                     data.active = Active;
 
-                    if (!String.IsNullOrEmpty(Terms))
+                    if ( !String.IsNullOrEmpty( Terms ) )
                         data.terms = Terms.Trim();
                     else
                         data.terms = null;
 
                     data.has_been_billed = HasBeenBilled;
 
-                    if (PurchaseOrderID <= 0)
-                        Context.PurchaseOrderDatas.InsertOnSubmit(data);
+                    if ( PurchaseOrderID <= 0 )
+                        Context.PurchaseOrderDatas.InsertOnSubmit( data );
 
                     Context.SubmitChanges();
 
-                    Load(data);
-                    SaveHistory(ChangeType, Original, uid);
+                    Load( data );
+                    SaveHistory( ChangeType, Original, uid );
                 }
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
-                throw new RequisitionException("An error has occurred while saving purchase order.", ex);
+                throw new RequisitionException( "An error has occurred while saving purchase order.", ex );
             }
         }
 
-        public void SaveHistory(Enums.HistoryType ht, PurchaseOrder original, string uid)
+        public void SaveHistory( Enums.HistoryType ht, PurchaseOrder original, string uid )
         {
             History h = new History();
 
@@ -1003,51 +1002,51 @@ namespace org.secc.Purchasing
             h.ChangeType = ht;
             h.OrganizationID = OrganizationID;
 
-            switch (ht)
+            switch ( ht )
             {
                 case org.secc.Purchasing.Enums.HistoryType.ADD:
                     h.OriginalXML = null;
-                    h.UpdatedXML = Serialize(this);
+                    h.UpdatedXML = Serialize( this );
                     break;
                 case org.secc.Purchasing.Enums.HistoryType.UPDATE:
-                    h.OriginalXML = Serialize(original);
-                    h.UpdatedXML = Serialize(this);
+                    h.OriginalXML = Serialize( original );
+                    h.UpdatedXML = Serialize( this );
                     break;
                 case org.secc.Purchasing.Enums.HistoryType.DELETE:
-                    h.OriginalXML = Serialize(this);
+                    h.OriginalXML = Serialize( this );
                     h.UpdatedXML = null;
                     break;
             }
 
             h.Active = true;
-            h.Save(uid);
+            h.Save( uid );
         }
 
-        public void SaveNote(string noteText, string uid)
+        public void SaveNote( string noteText, string uid )
         {
             Note n = new Note();
             n.ObjectTypeName = this.GetType().ToString();
             n.Identifier = PurchaseOrderID;
-            n.Body = string.Format("Order submitted: {0}",noteText);
+            n.Body = string.Format( "Order submitted: {0}", noteText );
             n.Active = true;
-            n.Save(uid);
+            n.Save( uid );
         }
 
-        public void SubmitOrder(DateTime orderDate, int orderedBy, string uid)
+        public void SubmitOrder( DateTime orderDate, int orderedBy, string uid )
         {
             DateOrdered = orderDate;
             OrderedByID = orderedBy;
             StatusLUID = PurchaseOrderOrderedStatusLUID();
-            Save(uid);
+            Save( uid );
         }
 
-        public void UpdatePOItems(List<ItemToAddToPO> ItemList, string uid)
+        public void UpdatePOItems( List<ItemToAddToPO> ItemList, string uid )
         {
-            foreach (var item in ItemList)
+            foreach ( var item in ItemList )
             {
-                PurchaseOrderItem i = Items.FirstOrDefault(x => x.ItemID == item.RequisitionItemID && x.Price == item.ItemPrice && x.Active);
+                PurchaseOrderItem i = Items.FirstOrDefault( x => x.ItemID == item.RequisitionItemID && x.Price == item.ItemPrice && x.Active );
 
-                if (i == null)
+                if ( i == null )
                     i = new PurchaseOrderItem();
 
                 i.PurchaseOrderID = PurchaseOrderID;
@@ -1056,7 +1055,7 @@ namespace org.secc.Purchasing
                 i.Price = item.ItemPrice;
                 i.HasBeenReceived = false;
 
-                i.Save(uid);
+                i.Save( uid );
             }
 
             RefreshItems();
@@ -1070,8 +1069,8 @@ namespace org.secc.Purchasing
         {
             List<Attachment> AttachmentList = new List<Attachment>();
 
-            if (PurchaseOrderID > 0)
-                AttachmentList.AddRange(Attachment.GetObjectAttachments(this.GetType().ToString(), PurchaseOrderID, true));
+            if ( PurchaseOrderID > 0 )
+                AttachmentList.AddRange( Attachment.GetObjectAttachments( this.GetType().ToString(), PurchaseOrderID, true ) );
 
             return AttachmentList;
         }
@@ -1079,14 +1078,14 @@ namespace org.secc.Purchasing
         private List<PurchaseOrderItem> GetItems()
         {
             List<PurchaseOrderItem> Items = new List<PurchaseOrderItem>();
-            if (PurchaseOrderID <= 0)
+            if ( PurchaseOrderID <= 0 )
                 return Items;
 
-            using (PurchasingContext Context = ContextHelper.GetDBContext())
+            using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
-                foreach (var item in Context.PurchaseOrderDatas.Where(x=> x.purchase_order_id == PurchaseOrderID).FirstOrDefault().PurchaseOrderItemDatas.ToList())
+                foreach ( var item in Context.PurchaseOrderDatas.Where( x => x.purchase_order_id == PurchaseOrderID ).FirstOrDefault().PurchaseOrderItemDatas.ToList() )
                 {
-                    Items.Add(new PurchaseOrderItem(item));
+                    Items.Add( new PurchaseOrderItem( item ) );
                 }
             }
 
@@ -1097,9 +1096,9 @@ namespace org.secc.Purchasing
         {
             List<Note> NoteList = new List<Note>();
 
-            if (PurchaseOrderID > 0)
+            if ( PurchaseOrderID > 0 )
             {
-                NoteList.AddRange(Note.GetNotes(this.GetType().ToString(), PurchaseOrderID, true));
+                NoteList.AddRange( Note.GetNotes( this.GetType().ToString(), PurchaseOrderID, true ) );
             }
             return NoteList;
         }
@@ -1108,11 +1107,11 @@ namespace org.secc.Purchasing
         {
             List<Payment> PaymentList = new List<Payment>();
 
-            using (PurchasingContext Context = ContextHelper.GetDBContext())
+            using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
-                foreach (PaymentData p in  Context.PurchaseOrderDatas.FirstOrDefault(x => x.purchase_order_id == PurchaseOrderID).PaymentDatas)
+                foreach ( PaymentData p in Context.PurchaseOrderDatas.FirstOrDefault( x => x.purchase_order_id == PurchaseOrderID ).PaymentDatas )
                 {
-                    PaymentList.Add(new Payment(p));
+                    PaymentList.Add( new Payment( p ) );
                 }
             }
 
@@ -1123,11 +1122,11 @@ namespace org.secc.Purchasing
         {
             List<Receipt> Receipts = new List<Receipt>();
 
-            using (PurchasingContext Context = ContextHelper.GetDBContext())
+            using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
-                foreach (var item in Context.PurchaseOrderDatas.FirstOrDefault(x => x.purchase_order_id == PurchaseOrderID).ReceiptDatas)
+                foreach ( var item in Context.PurchaseOrderDatas.FirstOrDefault( x => x.purchase_order_id == PurchaseOrderID ).ReceiptDatas )
                 {
-                    Receipts.Add(new Receipt(item));
+                    Receipts.Add( new Receipt( item ) );
                 }
             }
 
@@ -1136,7 +1135,7 @@ namespace org.secc.Purchasing
 
         private decimal GetTotal()
         {
-            decimal SubTotal = Items.Where(x => x.Active).Select(x => x.Price * x.Quantity).Sum();
+            decimal SubTotal = Items.Where( x => x.Active && x.Price.HasValue ).Select( x => x.Price.Value * x.Quantity ).Sum();
 
             return SubTotal + ShippingCharge + OtherCharge;
         }
@@ -1165,7 +1164,7 @@ namespace org.secc.Purchasing
             Terms = String.Empty;
             Active = true;
             HasBeenBilled = false;
-              
+
             mVendor = null;
             mCreatedBy = null;
             mModifiedBy = null;
@@ -1177,9 +1176,9 @@ namespace org.secc.Purchasing
 
         }
 
-        private void Load(PurchaseOrderData data)
+        private void Load( PurchaseOrderData data )
         {
-            if (data != null)
+            if ( data != null )
             {
                 Init();
                 PurchaseOrderID = data.purchase_order_id;
@@ -1191,46 +1190,46 @@ namespace org.secc.Purchasing
                 DateCreated = data.date_created;
                 DateModified = data.date_modified;
                 Active = data.active;
-                if (data.date_ordered != null)
-                    DateOrdered = (DateTime)data.date_ordered;
-                if (data.ordered_by != null)
-                    OrderedByID = (int)data.ordered_by;
+                if ( data.date_ordered != null )
+                    DateOrdered = ( DateTime ) data.date_ordered;
+                if ( data.ordered_by != null )
+                    OrderedByID = ( int ) data.ordered_by;
                 StatusLUID = data.status_luid;
 
-                if (data.ship_to_name != null)
+                if ( data.ship_to_name != null )
                     ShipToName = data.ship_to_name;
 
-                if (data.ship_to_attention != null)
+                if ( data.ship_to_attention != null )
                     ShipToAttn = data.ship_to_attention;
 
-                if (data.ship_to_address != null)
+                if ( data.ship_to_address != null )
                 {
-                    ShipToAddress = new Helpers.Address(data.ship_to_address);
+                    ShipToAddress = new Helpers.Address( data.ship_to_address );
                 }
 
-                if (data.date_received != null)
-                    DateReceived = (DateTime)data.date_received;
-                if (data.date_closed != null)
-                    DateClosed = (DateTime)data.date_closed;
+                if ( data.date_received != null )
+                    DateReceived = ( DateTime ) data.date_received;
+                if ( data.date_closed != null )
+                    DateClosed = ( DateTime ) data.date_closed;
 
-                if (data.shipping_charge != null)
-                    ShippingCharge = (decimal)data.shipping_charge;
-                if (data.other_charge != null)
-                    OtherCharge = (decimal)data.other_charge;
+                if ( data.shipping_charge != null )
+                    ShippingCharge = ( decimal ) data.shipping_charge;
+                if ( data.other_charge != null )
+                    OtherCharge = ( decimal ) data.other_charge;
                 HasBeenBilled = data.has_been_billed;
 
                 Terms = data.terms;
 
-                if (data.default_payment_method_id != null)
+                if ( data.default_payment_method_id != null )
                 {
-                    DefaultPaymentMethodID = (int)data.default_payment_method_id;
+                    DefaultPaymentMethodID = ( int ) data.default_payment_method_id;
                 }
             }
         }
 
-        private void Load(int poId)
+        private void Load( int poId )
         {
-            using (PurchasingContext Context = ContextHelper.GetDBContext())
+            using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
                 Load( Context.PurchaseOrderDatas.FirstOrDefault( po => po.purchase_order_id == poId ) );
             }
@@ -1240,23 +1239,23 @@ namespace org.secc.Purchasing
         {
             Dictionary<string, string> ValErrors = new Dictionary<string, string>();
 
-            if (VendorID <= 0)
-                ValErrors.Add("Vendor", "Vendor selection is required.");
-            if (OrganizationID <= 0)
-                ValErrors.Add("Organization ID", "Organization ID is required.");
-            if (StatusLUID <= 0 || GetPurchaseOrderStatuses(true).Where(x => x.Id == StatusLUID) == null)
-                ValErrors.Add("Status", "Status is not vaild.");
-            if (PurchaseOrderTypeLUID <= 0 || GetPurchaseOrderTypes(true).Where(x => x.Id == PurchaseOrderTypeLUID) == null)
-                ValErrors.Add("Purchase Order Type", "Purchase Order Type is required.");
+            if ( VendorID <= 0 )
+                ValErrors.Add( "Vendor", "Vendor selection is required." );
+            if ( OrganizationID <= 0 )
+                ValErrors.Add( "Organization ID", "Organization ID is required." );
+            if ( StatusLUID <= 0 || GetPurchaseOrderStatuses( true ).Where( x => x.Id == StatusLUID ) == null )
+                ValErrors.Add( "Status", "Status is not vaild." );
+            if ( PurchaseOrderTypeLUID <= 0 || GetPurchaseOrderTypes( true ).Where( x => x.Id == PurchaseOrderTypeLUID ) == null )
+                ValErrors.Add( "Purchase Order Type", "Purchase Order Type is required." );
 
-            if (ShipToAddress != null && !ShipToAddress.IsValid())
-                ValErrors.Add("Ship To Address", "Ship To Address is not valid.");
+            if ( ShipToAddress != null && !ShipToAddress.IsValid() )
+                ValErrors.Add( "Ship To Address", "Ship To Address is not valid." );
 
-            if (DefaultPaymentMethodID > 0 && DefaultPaymentMethod.PaymentMethodID <= 0)
-                ValErrors.Add("Payment Method", "Default Payment Method is invalid.");
+            if ( DefaultPaymentMethodID > 0 && DefaultPaymentMethod.PaymentMethodID <= 0 )
+                ValErrors.Add( "Payment Method", "Default Payment Method is invalid." );
 
             return ValErrors;
-          
+
         }
 
         #endregion

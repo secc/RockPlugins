@@ -7,7 +7,8 @@ namespace org.secc.Purchasing.Intacct.Model
     {
         public override int Id
         {
-            get { 
+            get
+            {
                 return 0;
             }
         }

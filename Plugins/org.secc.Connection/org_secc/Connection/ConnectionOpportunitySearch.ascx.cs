@@ -31,22 +31,18 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data.Entity;
-using System.IO;
 using System.Linq;
+using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Security;
 using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
-using Rock.Attribute;
-using Rock.Store;
-using System.Text;
-using Rock.Security;
 
 namespace org.secc.Connection
 {
@@ -118,7 +114,7 @@ namespace org.secc.Connection
                 SetFilters( true );
                 UpdateList();
             }
-            
+
         }
 
         /// <summary>
@@ -194,7 +190,7 @@ namespace org.secc.Connection
                     var searchCampuses = cblCampus.SelectedValuesAsInt;
                     if ( searchCampuses.Count > 0 )
                     {
-                        searchSelections.Add( "cblCampus", searchCampuses.AsDelimited("|") );
+                        searchSelections.Add( "cblCampus", searchCampuses.AsDelimited( "|" ) );
                         qrySearch = qrySearch.Where( o => o.ConnectionOpportunityCampuses.Any( c => searchCampuses.Contains( c.CampusId ) ) ).ToList();
                     }
                 }
@@ -238,13 +234,13 @@ namespace org.secc.Connection
 
                 var mergeFields = new Dictionary<string, object>();
                 mergeFields.Add( "CurrentPerson", CurrentPerson );
-				mergeFields.Add( "Campuses", CampusCache.All());
+                mergeFields.Add( "Campuses", CampusCache.All() );
                 mergeFields.Add( "CampusContext", RockPage.GetCurrentContext( EntityTypeCache.Get( "Rock.Model.Campus" ) ) as Campus );
                 var pageReference = new PageReference( GetAttributeValue( "DetailPage" ), null );
-                mergeFields.Add( "DetailPage", BuildDetailPageUrl(pageReference.BuildUrl()) );
+                mergeFields.Add( "DetailPage", BuildDetailPageUrl( pageReference.BuildUrl() ) );
 
                 // iterate through the opportunities and lava merge the summaries and descriptions
-                foreach(var opportunity in opportunities )
+                foreach ( var opportunity in opportunities )
                 {
                     opportunity.Summary = opportunity.Summary.ResolveMergeFields( mergeFields );
                     opportunity.Description = opportunity.Description.ResolveMergeFields( mergeFields );
@@ -277,10 +273,10 @@ namespace org.secc.Connection
         /// </summary>
         /// <param name="detailPage">The detail page.</param>
         /// <returns></returns>
-        private string BuildDetailPageUrl(string detailPage )
+        private string BuildDetailPageUrl( string detailPage )
         {
             StringBuilder sbUrlParms = new StringBuilder();
-            foreach(var parm in this.RockPage.PageParameters() )
+            foreach ( var parm in this.RockPage.PageParameters() )
             {
                 if ( parm.Key != "PageId" )
                 {
@@ -319,9 +315,9 @@ namespace org.secc.Connection
                 if ( GetAttributeValue( "DisplayCampusFilter" ).AsBoolean() )
                 {
                     cblCampus.Visible = true;
-                    cblCampus.DataSource = CampusCache.All().Where(c => c.AttributeValues["Public"].ToString().AsBoolean() == true);
+                    cblCampus.DataSource = CampusCache.All().Where( c => c.AttributeValues["Public"].ToString().AsBoolean() == true );
                     cblCampus.DataBind();
-                    
+
                 }
                 else
                 {
@@ -384,7 +380,7 @@ namespace org.secc.Connection
                             {
                                 if ( control is IRockControl )
                                 {
-                                    var rockControl = (IRockControl)control;
+                                    var rockControl = ( IRockControl ) control;
                                     rockControl.Label = attribute.Name;
                                     rockControl.Help = attribute.Description;
                                     phAttributeFilters.Controls.Add( control );
@@ -398,7 +394,7 @@ namespace org.secc.Connection
                                     phAttributeFilters.Controls.Add( wrapper );
                                 }
 
-                                if ( setValues && searchSelections.ContainsKey(controlId))
+                                if ( setValues && searchSelections.ContainsKey( controlId ) )
                                 {
                                     var values = searchSelections[controlId].FromJsonOrNull<List<string>>();
                                     attribute.FieldType.Field.SetFilterValues( control, attribute.QualifierValues, values );
@@ -414,15 +410,15 @@ namespace org.secc.Connection
             }
         }
 
-        protected override void OnPreRender(EventArgs e)
+        protected override void OnPreRender( EventArgs e )
         {
-            base.OnPreRender(e);
+            base.OnPreRender( e );
             var campuses = CampusCache.All();
             foreach ( ListItem campus in cblCampus.Items )
             {
                 var campusObj = campuses.Where( c => c.Id.ToString() == campus.Value ).FirstOrDefault();
                 campus.Text = "<strong><span class=\"" + campusObj.AttributeValues["Slug"] + " text\">" + campusObj.Name.ToUpper() + "</span></strong>";
-                
+
             }
         }
         #endregion

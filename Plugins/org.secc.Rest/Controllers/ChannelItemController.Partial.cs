@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Net;
+using System.Net.Http;
 using System.Web.Http;
 using org.secc.Rest.Models;
 using Rock;
@@ -10,10 +9,6 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Rest;
 using Rock.Web.Cache;
-using System.Linq.Dynamic;
-using Rock.Security;
-using System.Net;
-using System.Net.Http;
 
 namespace org.secc.Rest.Controllers
 {

@@ -29,13 +29,13 @@
 //
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
 using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
-using System.Linq;
 
 namespace RockWeb
 {
@@ -113,7 +113,7 @@ namespace RockWeb
                             binaryFile.LoadAttributes();
                             var previousPersonIds = currentPerson.Aliases.Select( pa => pa.AliasPersonId ).ToArray();
                             var binaryFilePersonIds = binaryFile.GetAttributeValue( AttributeKeys.PersonIds ).SplitDelimitedValues().Select( pi => pi.AsIntegerOrNull() );
-                            if ( !(binaryFile.GetAttributeValue( AttributeKeys.GivingId ) == currentPerson.GivingId || previousPersonIds.Intersect( binaryFilePersonIds ).Any() ) )
+                            if ( !( binaryFile.GetAttributeValue( AttributeKeys.GivingId ) == currentPerson.GivingId || previousPersonIds.Intersect( binaryFilePersonIds ).Any() ) )
                             {
                                 SendError( context, 403, "Not authorized to view file." );
                                 return;

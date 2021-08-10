@@ -12,12 +12,8 @@
 // limitations under the License.
 // </copyright>
 //
-using System.Data.Entity;
-using System.Linq;
-using Rock.Data;
-using System.Net.Sockets;
-using System.Text.RegularExpressions;
 using org.secc.Microframe.Data;
+using Rock.Data;
 
 namespace org.secc.Microframe.Model
 {
@@ -28,7 +24,7 @@ namespace org.secc.Microframe.Model
         /// Initializes a new instance of the <see cref="KioskService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public SignService(RockContext context) : base( context ) { }
+        public SignService( RockContext context ) : base( context ) { }
 
     }
 }

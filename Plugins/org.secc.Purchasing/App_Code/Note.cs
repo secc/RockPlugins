@@ -15,10 +15,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Serialization;
-using Rock;
 using org.secc.Purchasing.DataLayer;
+using Rock;
 using Rock.Model;
 
 
@@ -48,8 +47,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mCreatedBy == null && !String.IsNullOrEmpty(CreatedByUserID))
-                    mCreatedBy = userLoginService.GetByUserName(CreatedByUserID).Person;
+                if ( mCreatedBy == null && !String.IsNullOrEmpty( CreatedByUserID ) )
+                    mCreatedBy = userLoginService.GetByUserName( CreatedByUserID ).Person;
                 return mCreatedBy;
             }
         }
@@ -59,38 +58,38 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mModifiedBy == null && !String.IsNullOrEmpty(ModifiedByUserID))
-                    mModifiedBy = userLoginService.GetByUserName(ModifiedByUserID).Person;
+                if ( mModifiedBy == null && !String.IsNullOrEmpty( ModifiedByUserID ) )
+                    mModifiedBy = userLoginService.GetByUserName( ModifiedByUserID ).Person;
                 return mModifiedBy;
             }
         }
         #endregion 
 
         #region Constructors
-        public Note() 
+        public Note()
         {
             Init();
         }
-        public Note(int id)
+        public Note( int id )
         {
-            Load(id);
+            Load( id );
         }
 
-        public Note(NoteData data)
+        public Note( NoteData data )
         {
-            Load(data);
+            Load( data );
         }
         #endregion
 
         #region Public
-        public static List<Note> GetNotes(string objectName, int identifier, bool activeOnly)
+        public static List<Note> GetNotes( string objectName, int identifier, bool activeOnly )
         {
             try
             {
-                if (String.IsNullOrEmpty(objectName))
-                    throw new ArgumentNullException("objectName", "Object name is required.");
-                if (identifier < 0)
-                    throw new ArgumentNullException("identifier", "Identifier must be provided.");
+                if ( String.IsNullOrEmpty( objectName ) )
+                    throw new ArgumentNullException( "objectName", "Object name is required." );
+                if ( identifier < 0 )
+                    throw new ArgumentNullException( "identifier", "Identifier must be provided." );
 
                 using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                 {
@@ -108,33 +107,33 @@ namespace org.secc.Purchasing
 
 
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
 
-                throw new RequisitionException("An error has occurred when loading notes.", ex);
+                throw new RequisitionException( "An error has occurred when loading notes.", ex );
             }
         }
 
-        public void Save(string uid)
+        public void Save( string uid )
         {
             try
             {
-                if (String.IsNullOrEmpty(uid))
-                    throw new ArgumentNullException("UID", "User ID is required.");
+                if ( String.IsNullOrEmpty( uid ) )
+                    throw new ArgumentNullException( "UID", "User ID is required." );
                 Note Original = null;
                 Enums.HistoryType ChangeType;
                 Dictionary<string, string> ValErrors = Validate();
-                if (ValErrors.Count > 0)
-                    throw new RequisitionNotValidException("Note is not valid.", ValErrors);
+                if ( ValErrors.Count > 0 )
+                    throw new RequisitionNotValidException( "Note is not valid.", ValErrors );
 
-                using (PurchasingContext Context = ContextHelper.GetDBContext())
+                using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                 {
                     NoteData data = null;
 
-                    if (NoteID > 0)
+                    if ( NoteID > 0 )
                     {
-                        data = Context.NoteDatas.FirstOrDefault(n => n.note_id == NoteID);
-                        Original = new Note(data);
+                        data = Context.NoteDatas.FirstOrDefault( n => n.note_id == NoteID );
+                        Original = new Note( data );
                         ChangeType = Enums.HistoryType.UPDATE;
                     }
                     else
@@ -153,26 +152,26 @@ namespace org.secc.Purchasing
                     data.active = Active;
                     data.organization_id = OrganizationID;
 
-                    if (NoteID <= 0)
-                        Context.NoteDatas.InsertOnSubmit(data);
+                    if ( NoteID <= 0 )
+                        Context.NoteDatas.InsertOnSubmit( data );
 
                     Context.SubmitChanges();
 
-                    Load(data);
+                    Load( data );
 
-                    SaveHistory(ChangeType, Original, uid);
+                    SaveHistory( ChangeType, Original, uid );
                 }
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
-               throw new RequisitionException("An error has occurred while saving note", ex);
+                throw new RequisitionException( "An error has occurred while saving note", ex );
             }
         }
 
-        public void SaveHistory(Enums.HistoryType ht, Note original, string uid)
+        public void SaveHistory( Enums.HistoryType ht, Note original, string uid )
         {
-            if(String.IsNullOrEmpty(uid))
-                throw new ArgumentNullException("uid", "User ID (uid) is required to save note history.");
+            if ( String.IsNullOrEmpty( uid ) )
+                throw new ArgumentNullException( "uid", "User ID (uid) is required to save note history." );
 
             History h = new History();
             h.ObjectTypeName = this.GetType().ToString();
@@ -180,52 +179,52 @@ namespace org.secc.Purchasing
             h.ChangeType = ht;
             h.OrganizationID = OrganizationID;
 
-            switch (ht)
+            switch ( ht )
             {
                 case org.secc.Purchasing.Enums.HistoryType.ADD:
                     h.OriginalXML = null;
-                    h.UpdatedXML = Serialize(this);
+                    h.UpdatedXML = Serialize( this );
                     break;
                 case org.secc.Purchasing.Enums.HistoryType.UPDATE:
-                    h.OriginalXML = Serialize(original);
-                    h.UpdatedXML = Serialize(this);
+                    h.OriginalXML = Serialize( original );
+                    h.UpdatedXML = Serialize( this );
                     break;
                 case org.secc.Purchasing.Enums.HistoryType.DELETE:
-                    h.OriginalXML = Serialize(this);
+                    h.OriginalXML = Serialize( this );
                     h.UpdatedXML = null;
                     break;
             }
 
             h.Active = true;
 
-            h.Save(uid);
+            h.Save( uid );
         }
 
-        public static void Delete(int noteID, string uid)
+        public static void Delete( int noteID, string uid )
         {
             //TODO: Validate Permissions
             try
             {
-                if (noteID <= 0)
-                    throw new ArgumentNullException("Note ID", "Note ID is required.");
-                if (String.IsNullOrEmpty(uid))
-                    throw new ArgumentNullException("UID", "User ID is required.");
+                if ( noteID <= 0 )
+                    throw new ArgumentNullException( "Note ID", "Note ID is required." );
+                if ( String.IsNullOrEmpty( uid ) )
+                    throw new ArgumentNullException( "UID", "User ID is required." );
 
-                using (PurchasingContext Context = ContextHelper.GetDBContext())
+                using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                 {
-                    NoteData data = Context.NoteDatas.Where(x => x.note_id == noteID).FirstOrDefault();
+                    NoteData data = Context.NoteDatas.Where( x => x.note_id == noteID ).FirstOrDefault();
 
-                    if (data == null)
-                        throw new RequisitionException("Note not found.");
-                    Context.NoteDatas.DeleteOnSubmit(data);
+                    if ( data == null )
+                        throw new RequisitionException( "Note not found." );
+                    Context.NoteDatas.DeleteOnSubmit( data );
 
                     Context.SubmitChanges();
                 }
 
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
-                throw new RequisitionException("Unable to delete note.", ex);
+                throw new RequisitionException( "Unable to delete note.", ex );
             }
         }
 
@@ -248,10 +247,10 @@ namespace org.secc.Purchasing
             mModifiedBy = null;
         }
 
-        private void Load(NoteData data)
+        private void Load( NoteData data )
         {
             Init();
-            if (data != null)
+            if ( data != null )
             {
                 NoteID = data.note_id;
                 ObjectTypeName = data.object_type_name;
@@ -266,18 +265,18 @@ namespace org.secc.Purchasing
             }
         }
 
-        private void Load(int id)
+        private void Load( int id )
         {
             try
             {
-                using (PurchasingContext Context = ContextHelper.GetDBContext())
+                using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                 {
                     Load( Context.NoteDatas.FirstOrDefault( n => n.note_id == id ) );
                 }
             }
-            catch (RequisitionException ex)
+            catch ( RequisitionException ex )
             {
-                throw new RequisitionException("An error has occurred while loading notes.", ex);
+                throw new RequisitionException( "An error has occurred while loading notes.", ex );
             }
         }
 
@@ -285,17 +284,17 @@ namespace org.secc.Purchasing
         {
             Dictionary<string, string> ValErrors = new Dictionary<string, string>();
 
-            if (String.IsNullOrEmpty(ObjectTypeName))
-                ValErrors.Add("ObjectTypeName", "Object Type Name is Required.");
+            if ( String.IsNullOrEmpty( ObjectTypeName ) )
+                ValErrors.Add( "ObjectTypeName", "Object Type Name is Required." );
             //else if (!base.TypeExists(ObjectTypeName))
             //    ValErrors.Add("ObjectTypeName", "Object not found.");
-            if (Identifier <= 0)
-                ValErrors.Add("Identifier", "Identifier is required and must be greater than 0");
+            if ( Identifier <= 0 )
+                ValErrors.Add( "Identifier", "Identifier is required and must be greater than 0" );
 
-            if(String.IsNullOrEmpty(Body))
-                ValErrors.Add("Body", "Note body is required.");
+            if ( String.IsNullOrEmpty( Body ) )
+                ValErrors.Add( "Body", "Note body is required." );
 
-            
+
             return ValErrors;
         }
 

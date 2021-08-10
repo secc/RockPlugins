@@ -167,8 +167,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mCreatedBy == null && !String.IsNullOrEmpty(CreatedByUserID))
-                    mCreatedBy = userLoginService.GetByUserName(CreatedByUserID).Person;
+                if ( mCreatedBy == null && !String.IsNullOrEmpty( CreatedByUserID ) )
+                    mCreatedBy = userLoginService.GetByUserName( CreatedByUserID ).Person;
 
                 return mCreatedBy;
             }
@@ -179,8 +179,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mModifiedBy == null && !String.IsNullOrEmpty(ModifiedByUserID))
-                    mModifiedBy = userLoginService.GetByUserName(ModifiedByUserID).Person;
+                if ( mModifiedBy == null && !String.IsNullOrEmpty( ModifiedByUserID ) )
+                    mModifiedBy = userLoginService.GetByUserName( ModifiedByUserID ).Person;
                 return mModifiedBy;
             }
         }
@@ -189,8 +189,8 @@ namespace org.secc.Purchasing
         {
             get
             {
-                if (mCreditCard == null && mCreditCardID > 0)
-                    mCreditCard = new CreditCard(CreditCardID);
+                if ( mCreditCard == null && mCreditCardID > 0 )
+                    mCreditCard = new CreditCard( CreditCardID );
 
                 return mCreditCard;
             }
@@ -209,16 +209,16 @@ namespace org.secc.Purchasing
             Init();
         }
 
-        public PaymentMethod(int id)
+        public PaymentMethod( int id )
         {
-            if (id <= 0)
-                throw new ArgumentException("Payment Method ID", "Payment Method ID must be greater than 0.");
-            Load(id);
+            if ( id <= 0 )
+                throw new ArgumentException( "Payment Method ID", "Payment Method ID must be greater than 0." );
+            Load( id );
         }
 
-        public PaymentMethod(PaymentMethodData data)
+        public PaymentMethod( PaymentMethodData data )
         {
-            Load(data);
+            Load( data );
         }
         #endregion
 
@@ -230,7 +230,7 @@ namespace org.secc.Purchasing
         }
 
 
-        public static List<PaymentMethod> GetPaymentMethods(bool activeOnly)
+        public static List<PaymentMethod> GetPaymentMethods( bool activeOnly )
         {
             using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
@@ -244,10 +244,10 @@ namespace org.secc.Purchasing
 
                 return query.Select( pm => new PaymentMethod( pm ) ).ToList();
             }
-        
+
         }
 
-        public static List<PaymentMethod> GetPaymentMethods(string name, bool activeOnly)
+        public static List<PaymentMethod> GetPaymentMethods( string name, bool activeOnly )
         {
             using ( PurchasingContext Context = ContextHelper.GetDBContext() )
             {
@@ -261,25 +261,25 @@ namespace org.secc.Purchasing
 
                 return query.Select( pm => new PaymentMethod( pm ) ).ToList();
             }
-            
+
         }
 
 
-        public void Save(string uid)
+        public void Save( string uid )
         {
             try
             {
                 Dictionary<string, string> ValErrors = Validate();
-                if (ValErrors.Count > 0)
-                    throw new RequisitionNotValidException("Payment Method is not valid.", ValErrors);
+                if ( ValErrors.Count > 0 )
+                    throw new RequisitionNotValidException( "Payment Method is not valid.", ValErrors );
 
                 HistoryType UpdateType;
                 PaymentMethod Original = null;
 
-                using (PurchasingContext Context = ContextHelper.GetDBContext())
+                using ( PurchasingContext Context = ContextHelper.GetDBContext() )
                 {
                     PaymentMethodData Data = new PaymentMethodData();
-                    if (PaymentMethodID == 0)
+                    if ( PaymentMethodID == 0 )
                     {
                         UpdateType = HistoryType.ADD;
                         Data = new PaymentMethodData();
@@ -289,14 +289,14 @@ namespace org.secc.Purchasing
                     }
                     else
                     {
-                        Data = Context.PaymentMethodDatas.Where(x => x.payment_method_id == PaymentMethodID).FirstOrDefault();
-                        Original = new PaymentMethod(Data);
+                        Data = Context.PaymentMethodDatas.Where( x => x.payment_method_id == PaymentMethodID ).FirstOrDefault();
+                        Original = new PaymentMethod( Data );
                         UpdateType = HistoryType.UPDATE;
                     }
 
                     Data.name = Name;
 
-                    if (String.IsNullOrEmpty(Description))
+                    if ( String.IsNullOrEmpty( Description ) )
                         Data.description = null;
                     else
                         Data.description = Description;
@@ -305,9 +305,9 @@ namespace org.secc.Purchasing
                     Data.modified_by = uid;
                     Data.active = Active;
 
-                    if (CreditCard != null)
+                    if ( CreditCard != null )
                     {
-                        if (Data.PaymentCreditCardData == null)
+                        if ( Data.PaymentCreditCardData == null )
                         {
                             Data.PaymentCreditCardData = new PaymentCreditCardData();
                             Data.PaymentCreditCardData.created_by = uid;
@@ -322,7 +322,7 @@ namespace org.secc.Purchasing
                     }
                     else
                     {
-                        if (Data.PaymentCreditCardData != null)
+                        if ( Data.PaymentCreditCardData != null )
                         {
                             PaymentCreditCardData CC = Data.PaymentCreditCardData;
                             CC.active = false;
@@ -333,19 +333,19 @@ namespace org.secc.Purchasing
                         }
                     }
 
-                    if (PaymentMethodID == 0)
-                        Context.PaymentMethodDatas.InsertOnSubmit(Data);
+                    if ( PaymentMethodID == 0 )
+                        Context.PaymentMethodDatas.InsertOnSubmit( Data );
 
                     Context.SubmitChanges();
-                    Load(Data);
-                    SaveHistory(UpdateType, Original, uid);
+                    Load( Data );
+                    SaveHistory( UpdateType, Original, uid );
 
                 }
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
 
-                throw new PaymentMethodException("An error has occurred while saving Payment Method", ex);
+                throw new PaymentMethodException( "An error has occurred while saving Payment Method", ex );
             }
         }
 
@@ -369,71 +369,71 @@ namespace org.secc.Purchasing
             mModifiedBy = null;
         }
 
-        private void Load(PaymentMethodData data)
+        private void Load( PaymentMethodData data )
         {
             Init();
-            if (data != null)
+            if ( data != null )
             {
                 mPaymentMethodID = data.payment_method_id;
                 mName = data.name;
                 mDescription = data.description;
-                
-                if (data.credit_card_id == null)
+
+                if ( data.credit_card_id == null )
                     mCreditCardID = 0;
                 else
-                    mCreditCardID = (int)data.credit_card_id;
+                    mCreditCardID = ( int ) data.credit_card_id;
 
                 mCreatedByUserID = data.created_by;
                 mModifiedByUserID = data.modified_by;
                 mDateCreated = data.date_created;
 
-                if (data.date_modified != null)
-                    mDateModified = (DateTime) data.date_modified;
+                if ( data.date_modified != null )
+                    mDateModified = ( DateTime ) data.date_modified;
 
                 mActive = data.active;
                 mOrganizationID = data.organization_id;
 
-                if (mCreditCardID > 0)
-                    mCreditCard = new CreditCard(data.PaymentCreditCardData);
+                if ( mCreditCardID > 0 )
+                    mCreditCard = new CreditCard( data.PaymentCreditCardData );
 
             }
         }
 
-        private void Load(int paymentMethodId)
+        private void Load( int paymentMethodId )
         {
             try
             {
-                using (PurchasingContext Context = ContextHelper.GetDBContext())
-                    Load(Context.PaymentMethodDatas.FirstOrDefault(pm => pm.payment_method_id == paymentMethodId));
+                using ( PurchasingContext Context = ContextHelper.GetDBContext() )
+                    Load( Context.PaymentMethodDatas.FirstOrDefault( pm => pm.payment_method_id == paymentMethodId ) );
             }
-            catch (Exception ex)
+            catch ( Exception ex )
             {
-                throw new PaymentMethodException("An error has occurred while loading Payment Method.", ex);
+                throw new PaymentMethodException( "An error has occurred while loading Payment Method.", ex );
             }
-        }   
+        }
 
-        private void SaveHistory(HistoryType chgType, PaymentMethod orig, string uid)
+        private void SaveHistory( HistoryType chgType, PaymentMethod orig, string uid )
         {
             History PayHistory = new History();
             PayHistory.ObjectTypeName = this.GetType().ToString();
             PayHistory.Identifier = this.PaymentMethodID;
             PayHistory.OrganizationID = this.OrganizationID;
 
-            switch (chgType)
+            switch ( chgType )
             {
                 case HistoryType.ADD:
-                    PayHistory.UpdatedXML = Serialize(this);
+                    PayHistory.UpdatedXML = Serialize( this );
                     break;
                 case HistoryType.UPDATE:
-                    PayHistory.OriginalXML = Serialize(orig);
-                    PayHistory.UpdatedXML = Serialize(this);
+                    PayHistory.OriginalXML = Serialize( orig );
+                    PayHistory.UpdatedXML = Serialize( this );
                     break;
                 case HistoryType.DELETE:
-                    PayHistory.OriginalXML = Serialize(orig);
+                    PayHistory.OriginalXML = Serialize( orig );
                     break;
             }
 
-            PayHistory.Save(uid);
+            PayHistory.Save( uid );
         }
 
         private Dictionary<string, string> Validate()
@@ -450,12 +450,12 @@ namespace org.secc.Purchasing
     public class PaymentMethodException : Exception
     {
         public PaymentMethodException() { }
-        public PaymentMethodException(string message) : base(message) { }
-        public PaymentMethodException(string message, Exception inner) : base(message, inner) { }
+        public PaymentMethodException( string message ) : base( message ) { }
+        public PaymentMethodException( string message, Exception inner ) : base( message, inner ) { }
         protected PaymentMethodException(
           System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context)
-            : base(info, context) { }
+          System.Runtime.Serialization.StreamingContext context )
+            : base( info, context ) { }
     }
 
     [Serializable]
@@ -464,10 +464,10 @@ namespace org.secc.Purchasing
         private Dictionary<string, string> mInvalidProperties = null;
 
         public PaymentMethodNotValidException() { }
-        public PaymentMethodNotValidException(string message) : base(message) { }
+        public PaymentMethodNotValidException( string message ) : base( message ) { }
 
-        public PaymentMethodNotValidException(string message, Dictionary<string, string> invalidProps)
-            : base(message)
+        public PaymentMethodNotValidException( string message, Dictionary<string, string> invalidProps )
+            : base( message )
         {
             mInvalidProperties = invalidProps;
         }
@@ -485,14 +485,14 @@ namespace org.secc.Purchasing
             get
             {
                 string msg = base.Message;
-                if (mInvalidProperties.Count > 0)
+                if ( mInvalidProperties.Count > 0 )
                 {
 
                     System.Text.StringBuilder sb = new StringBuilder();
-                    sb.AppendLine("The following fields are not valid:");
-                    foreach (KeyValuePair<string, string> kvp in InvalidProperties)
+                    sb.AppendLine( "The following fields are not valid:" );
+                    foreach ( KeyValuePair<string, string> kvp in InvalidProperties )
                     {
-                        sb.Append(kvp.Key + " - " + kvp.Value);
+                        sb.Append( kvp.Key + " - " + kvp.Value );
                     }
 
                     msg += "\n" + sb.ToString();
@@ -502,11 +502,11 @@ namespace org.secc.Purchasing
             }
         }
 
-        public PaymentMethodNotValidException(string message, Exception inner) : base(message, inner) { }
+        public PaymentMethodNotValidException( string message, Exception inner ) : base( message, inner ) { }
         protected PaymentMethodNotValidException(
           System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context)
-            : base(info, context) { }
+          System.Runtime.Serialization.StreamingContext context )
+            : base( info, context ) { }
 
     }
 }

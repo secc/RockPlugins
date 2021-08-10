@@ -99,7 +99,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 {
                     Record = r,
                     Caption = g.Name,
-                    Attendances = r.Attendances.Where(a => a.EndDateTime == null)
+                    Attendances = r.Attendances.Where( a => a.EndDateTime == null )
                 } )
                 .ToList()
                 .Select( r => new MCRPoco

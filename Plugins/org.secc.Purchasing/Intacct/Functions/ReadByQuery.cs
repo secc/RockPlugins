@@ -9,7 +9,7 @@ namespace org.secc.Purchasing.Intacct.Functions
 
         }
 
-        public ReadByQuery(string objectName)
+        public ReadByQuery( string objectName )
         {
             Function.Object = objectName;
         }

@@ -14,27 +14,25 @@
 //
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-using Quartz;
-using Rock.Attribute;
-using org.secc.PayPalReporting.Engine;
 using System.Data;
-using org.secc.PayPalReporting.Model;
+using System.Linq;
 using org.secc.PayPalReporting.Data;
+using org.secc.PayPalReporting.Engine;
+using org.secc.PayPalReporting.Model;
+using Quartz;
 using Rock;
+using Rock.Attribute;
 using Rock.Security;
 
 namespace org.secc.PayPalReporting
 {
 
-    [TextField("Report Name", "Name of PayFlowPro Report/Template to retrieve.", true, "GivingReport")]
-    [TextField("PayPal Report URL", "URL for paypal reporting (Update to change to test/prod mode)", true, "https://payments-reports.paypal.com/reportingengine")]
-    [BooleanField("Fetch Fees", "Flag for indicating whether this import should fetch fees.", true, "PayPal API")]
-    [EncryptedTextField("PayPal API Username", "Username for authenticating to the PayPal API", false, "", "PayPal API")]
-    [EncryptedTextField("PayPal API Password", "Password for authenticating to the PayPal API", false, "", "PayPal API")]
-    [EncryptedTextField("PayPal API Signature", "Signature for authenticating to the PayPal API", false, "", "PayPal API")]
+    [TextField( "Report Name", "Name of PayFlowPro Report/Template to retrieve.", true, "GivingReport" )]
+    [TextField( "PayPal Report URL", "URL for paypal reporting (Update to change to test/prod mode)", true, "https://payments-reports.paypal.com/reportingengine" )]
+    [BooleanField( "Fetch Fees", "Flag for indicating whether this import should fetch fees.", true, "PayPal API" )]
+    [EncryptedTextField( "PayPal API Username", "Username for authenticating to the PayPal API", false, "", "PayPal API" )]
+    [EncryptedTextField( "PayPal API Password", "Password for authenticating to the PayPal API", false, "", "PayPal API" )]
+    [EncryptedTextField( "PayPal API Signature", "Signature for authenticating to the PayPal API", false, "", "PayPal API" )]
     [SlidingDateRangeField( "Date Range", "The range of dates to import.", true, "Previous|24|Hour||" )]
 
     [DisallowConcurrentExecution]
@@ -53,7 +51,7 @@ namespace org.secc.PayPalReporting
         public ImportData()
         {
             dbContext = new PayPalReportingContext();
-            transactionService = new TransactionService(dbContext);
+            transactionService = new TransactionService( dbContext );
         }
 
         /// <summary>
@@ -86,7 +84,7 @@ namespace org.secc.PayPalReporting
 
                 foreach ( DataRow row in data.Rows )
                 {
-                    ProcessTransaction( row, gateway);
+                    ProcessTransaction( row, gateway );
                 }
                 dbContext.SaveChanges();
 
@@ -121,7 +119,8 @@ namespace org.secc.PayPalReporting
                     {
                         zeroFeeTran.Fees = fee;
                         feesSuccessful++;
-                    } else
+                    }
+                    else
                     {
                         feesFailed++;
                     }
@@ -146,79 +145,79 @@ namespace org.secc.PayPalReporting
         /// </summary>
         /// <param name="dr"></param>
         /// <returns></returns>
-        private Transaction ProcessTransaction(DataRow dr, Rock.Model.FinancialGateway gateway )
+        private Transaction ProcessTransaction( DataRow dr, Rock.Model.FinancialGateway gateway )
         {
             Transaction transaction = null;
-            if (dr["Transaction ID"] != null)
+            if ( dr["Transaction ID"] != null )
             {
-                transaction = transactionService.Get(dr["Transaction ID"].ToString());
-                if (transaction == null)
+                transaction = transactionService.Get( dr["Transaction ID"].ToString() );
+                if ( transaction == null )
                 {
                     transaction = new Transaction();
                     transaction.GatewayTransactionId = dr["Transaction ID"].ToString();
-                    transactionService.Add(transaction);
+                    transactionService.Add( transaction );
                 }
             }
             else
             {
-                throw new Exception("Transaction from PayPal is missing the Gateway Transaction ID.");
+                throw new Exception( "Transaction from PayPal is missing the Gateway Transaction ID." );
             }
 
             transaction.FinancialGatewayId = gateway.Id;
 
-            if (dr["Amount"] != null)
+            if ( dr["Amount"] != null )
             {
-                transaction.Amount = Convert.ToDouble(((decimal)dr["Amount"] / 100));
+                transaction.Amount = Convert.ToDouble( ( ( decimal ) dr["Amount"] / 100 ) );
             }
 
-            if (dr["Billing First Name"] != null)
+            if ( dr["Billing First Name"] != null )
             {
                 transaction.BillingFirstName = dr["Billing First Name"].ToString();
             }
 
-            if (dr["Billing Last Name"] != null)
+            if ( dr["Billing Last Name"] != null )
             {
                 transaction.BillingLastName = dr["Billing Last Name"].ToString();
             }
 
-            if (dr["Comment1"] != null)
+            if ( dr["Comment1"] != null )
             {
                 transaction.Comment1 = dr["Comment1"].ToString();
             }
 
-            if (dr["Comment2"] != null)
+            if ( dr["Comment2"] != null )
             {
                 transaction.Comment2 = dr["Comment2"].ToString();
             }
 
-            if (dr["PayPal Fees"] != null)
+            if ( dr["PayPal Fees"] != null )
             {
                 transaction.Fees = 0;
             }
 
-            if (dr["PayPal Transaction ID"] != null)
+            if ( dr["PayPal Transaction ID"] != null )
             {
                 transaction.MerchantTransactionId = dr["PayPal Transaction ID"].ToString();
             }
 
-            if (dr["Tender Type"] != null)
+            if ( dr["Tender Type"] != null )
             {
                 transaction.TenderType = dr["Tender Type"].ToString();
             }
 
-            if (dr["Time"] != null)
+            if ( dr["Time"] != null )
             {
-                transaction.TimeCreated = (DateTime)dr["Time"];
+                transaction.TimeCreated = ( DateTime ) dr["Time"];
             }
 
-            if (dr["Type"] != null)
+            if ( dr["Type"] != null )
             {
                 transaction.Type = dr["Type"].ToString();
             }
 
-            if (dr["Batch ID"] != null)
+            if ( dr["Batch ID"] != null )
             {
-                transaction.BatchId = Convert.ToInt32((decimal)dr["Batch ID"]);
+                transaction.BatchId = Convert.ToInt32( ( decimal ) dr["Batch ID"] );
             }
             return transaction;
         }

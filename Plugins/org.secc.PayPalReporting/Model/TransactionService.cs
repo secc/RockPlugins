@@ -12,9 +12,8 @@
 // limitations under the License.
 // </copyright>
 //
-using org.secc.PayPalReporting.Data;
-using System.Data.Entity;
 using System.Linq;
+using org.secc.PayPalReporting.Data;
 
 namespace org.secc.PayPalReporting.Model
 {
@@ -25,11 +24,11 @@ namespace org.secc.PayPalReporting.Model
         /// Initializes a new instance of the <see cref="TransactionService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public TransactionService(PayPalReportingContext context) : base( context ) { }
+        public TransactionService( PayPalReportingContext context ) : base( context ) { }
 
-        public Transaction Get(string GatewayTransactionId)
+        public Transaction Get( string GatewayTransactionId )
         {
-            return Queryable().FirstOrDefault(t => t.GatewayTransactionId == GatewayTransactionId);
+            return Queryable().FirstOrDefault( t => t.GatewayTransactionId == GatewayTransactionId );
         }
     }
 }

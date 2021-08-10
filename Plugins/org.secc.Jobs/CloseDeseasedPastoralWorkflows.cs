@@ -12,15 +12,15 @@
 // limitations under the License.
 // </copyright>
 //
-using System.Linq;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
+using System.Linq;
 using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using System.Collections.Generic;
 
 namespace org.secc.Jobs
 {
@@ -85,10 +85,10 @@ namespace org.secc.Jobs
 
             var workflowsToClose = newQry
                 .Where( cd => cd.Person.IsDeceased && cd.Workflow.CompletedDateTime == null )
-                .Select(cd => cd.Workflow)
+                .Select( cd => cd.Workflow )
                 .ToList();
-            
-            foreach (var workflow in workflowsToClose)
+
+            foreach ( var workflow in workflowsToClose )
             {
                 workflow.MarkComplete();
             }

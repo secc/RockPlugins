@@ -12,20 +12,18 @@
 // limitations under the License.
 // </copyright>
 //
-using System.Linq;
+using System;
+using System.Collections.Generic;
 using System.Data;
-using System.Data.Entity;
+using System.Linq;
+using System.Reflection;
+using org.secc.RecurringCommunications.Model;
 using Quartz;
 using Rock;
-using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using System.Collections.Generic;
-using org.secc.RecurringCommunications.Model;
-using Rock.Web.Cache;
-using System;
 using Rock.Reporting;
-using System.Reflection;
+using Rock.Web.Cache;
 
 namespace org.secc.RecurringCommunications.Jobs
 {
@@ -90,9 +88,9 @@ namespace org.secc.RecurringCommunications.Jobs
             communication.Status = CommunicationStatus.Approved;
 
             DataTransformComponent transform = null;
-            if (recurringCommunication.TransformationEntityTypeId.HasValue)
+            if ( recurringCommunication.TransformationEntityTypeId.HasValue )
             {
-                transform = DataTransformContainer.GetComponent(recurringCommunication.TransformationEntityType.Name);
+                transform = DataTransformContainer.GetComponent( recurringCommunication.TransformationEntityType.Name );
                 communication.AdditionalMergeFields = new List<string>() { "AppliesTo" };
             }
 
@@ -103,38 +101,37 @@ namespace org.secc.RecurringCommunications.Jobs
             var smsMediumEntityType = EntityTypeCache.Get( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_SMS.AsGuid() );
             var pushNotificationMediumEntityType = EntityTypeCache.Get( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_PUSH_NOTIFICATION.AsGuid() );
 
-            List<string> errorsOut;
-            var dataview = ( IQueryable<Person> ) recurringCommunication.DataView.GetQuery( null, rockContext, null, out errorsOut );
+            var dataview = ( IQueryable<Person> ) recurringCommunication.DataView.GetQuery( new DataViewGetQueryArgs() );
 
 
-            if (transform != null)
+            if ( transform != null )
             {
                 var recipients = new List<CommunicationRecipient>();
-                var personService = new PersonService(rockContext);
+                var personService = new PersonService( rockContext );
                 var paramExpression = personService.ParameterExpression;
-                
-                foreach (Person dvPerson in dataview)
+
+                foreach ( Person dvPerson in dataview )
                 {
-                    var whereExp = Rock.Reporting.FilterExpressionExtractor.Extract<Rock.Model.Person>(personService.Queryable().Where(p => p.Id == dvPerson.Id), paramExpression, "p");
-                    var transformExp = transform.GetExpression(personService, paramExpression, whereExp);
+                    var whereExp = Rock.Reporting.FilterExpressionExtractor.Extract<Rock.Model.Person>( personService.Queryable().Where( p => p.Id == dvPerson.Id ), paramExpression, "p" );
+                    var transformExp = transform.GetExpression( personService, paramExpression, whereExp );
 
-                    MethodInfo getMethod = personService.GetType().GetMethod("Get", new Type[] { typeof(System.Linq.Expressions.ParameterExpression), typeof(System.Linq.Expressions.Expression) });
+                    MethodInfo getMethod = personService.GetType().GetMethod( "Get", new Type[] { typeof( System.Linq.Expressions.ParameterExpression ), typeof( System.Linq.Expressions.Expression ) } );
 
-                    if (getMethod != null)
+                    if ( getMethod != null )
                     {
-                        var getResult = getMethod.Invoke(personService, new object[] { paramExpression, transformExp });
+                        var getResult = getMethod.Invoke( personService, new object[] { paramExpression, transformExp } );
                         var qry = getResult as IQueryable<Person>;
 
-                        foreach (var p in qry.ToList())
+                        foreach ( var p in qry.ToList() )
                         {
                             var fieldValues = new Dictionary<string, object>();
-                            fieldValues.Add("AppliesTo", dvPerson);
-                            recipients.Add(new CommunicationRecipient()
+                            fieldValues.Add( "AppliesTo", dvPerson );
+                            recipients.Add( new CommunicationRecipient()
                             {
                                 PersonAlias = p.PrimaryAlias,
                                 MediumEntityTypeId = p.CommunicationPreference == CommunicationType.SMS ? smsMediumEntityType.Id : emailMediumEntityType.Id,
                                 AdditionalMergeValues = fieldValues
-                            }); 
+                            } );
 
                         }
                     }
@@ -146,12 +143,12 @@ namespace org.secc.RecurringCommunications.Jobs
             {
                 communication.Recipients = dataview
                     .ToList()
-                    .Select(p =>
-                       new CommunicationRecipient
+                    .Select( p =>
+                        new CommunicationRecipient
                         {
                             PersonAlias = p.PrimaryAlias,
                             MediumEntityTypeId = p.CommunicationPreference == CommunicationType.SMS ? smsMediumEntityType.Id : emailMediumEntityType.Id
-                        })
+                        } )
                     .ToList();
             }
             Dictionary<int, CommunicationType?> communicationListGroupMemberCommunicationTypeLookup = new Dictionary<int, CommunicationType?>();
@@ -184,7 +181,7 @@ namespace org.secc.RecurringCommunications.Jobs
             var transaction = new Rock.Transactions.SendCommunicationTransaction();
             transaction.CommunicationId = communication.Id;
             transaction.PersonAlias = recurringCommunication.CreatedByPersonAlias;
-            Rock.Transactions.RockQueue.TransactionQueue.Enqueue(transaction);
+            Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
         }
 
     }
