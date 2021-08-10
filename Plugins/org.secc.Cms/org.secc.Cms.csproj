@@ -30,23 +30,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Controllers\DailyInteractionController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SectionZone.cs" />
-    <Compile Include="ViewModels\InteractionViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)Rock\Rock.csproj">
       <Project>{185A31D7-3037-4DAE-8797-0459849A84BD}</Project>
       <Name>Rock</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Rock12\Rock.Rest\Rock.Rest.csproj">
+    <ProjectReference Include="$(SolutionDir)\Rock.Rest\Rock.Rest.csproj">
       <Project>{add1edd0-a4cb-4e82-b6ad-6ad1d556deae}</Project>
       <Name>Rock.Rest</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\org.secc.Warehouse\org.secc.Warehouse.csproj">
-      <Project>{ADE69222-E49B-4854-9EA4-74956C826BD4}</Project>
-      <Name>org.secc.Warehouse</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -65,6 +59,9 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Controllers\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
