@@ -68,7 +68,7 @@
       <HintPath>$(SolutionDir)packages\Microsoft.Owin.Security.OAuth.3.0.1\lib\net45\Microsoft.Owin.Security.OAuth.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\..\Rock12\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
@@ -130,25 +130,17 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Rock12\Rock.Migrations\Rock.Migrations.csproj">
+    <ProjectReference Include="$(SolutionDir)\Rock.Migrations\Rock.Migrations.csproj">
       <Project>{704740d8-b539-4560-9f8c-681670c9d6ad}</Project>
       <Name>Rock.Migrations</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Rock12\Rock.Rest\Rock.Rest.csproj">
+    <ProjectReference Include="$(SolutionDir)\Rock.Rest\Rock.Rest.csproj">
       <Project>{add1edd0-a4cb-4e82-b6ad-6ad1d556deae}</Project>
       <Name>Rock.Rest</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Rock12\Rock\Rock.csproj">
+    <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
       <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
-    </ProjectReference>
-    <ProjectReference Include="C:\Users\stephenl\source\repos\Rock12\\Rock.Migrations\Rock.Migrations.csproj">
-      <Project>{957B1DBE-B921-4FAE-8E5E-B7AD7F01B161}</Project>
-      <Name>Rock.Migrations</Name>
-    </ProjectReference>
-    <ProjectReference Include="C:\Users\stephenl\source\repos\Rock12\\Rock.Rest\Rock.Rest.csproj">
-      <Project>{B89DFD33-CE93-44E1-8616-C31ACDFE89CB}</Project>
-      <Name>Rock.Rest</Name>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)\DotLiquid\DotLiquid.csproj">
       <Project>{00edcb8d-ef33-459c-ad62-02876bd24dff}</Project>
