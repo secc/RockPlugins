@@ -280,7 +280,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         RegistrantAttributes row = new RegistrantAttributes(g.RegistrationRegistrant, g.RegistrationAttributeValues);
                         return row;
                     })(),
-                    School = string.IsNullOrEmpty(g.School)?"":DefinedValueCache.Read(g.School.AsGuid()) != null?DefinedValueCache.Read(g.School.AsGuid()).Value:"",
+                    School = string.IsNullOrEmpty(g.School)?"":DefinedValueCache.Get(g.School.AsGuid()) != null?DefinedValueCache.Get(g.School.AsGuid()).Value:"",
                     LegalRelease = tmp2.Where(gm => gm.GroupMember.Id == g.GroupMember.Id).SelectMany(gm => gm.SignatureDocuments).OrderByDescending(sd => sd.SignatureDocument.CreatedDateTime).Where(sd => signatureDocumentIds.Contains(sd.SignatureDocument.SignatureDocumentTemplateId)).Select(sd => sd.SignatureDocument.SignatureDocumentTemplate.Name + " (" + sd.SignatureDocument.Status.ToString() + ")").FirstOrDefault(),
                     Departure = g.GroupMemberAttributeValues.Where(av => av.AttributeKey == "Departure").Select(av => av.Value).FirstOrDefault(),
                     Campus = group.Campus, // 
@@ -673,7 +673,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                             return GetAttributeValue("Campus");
                         } else
                         {
-                            return CampusCache.Read(GetAttributeValue("Campus").AsGuid()).Name;
+                            return CampusCache.Get(GetAttributeValue("Campus").AsGuid()).Name;
                         }
                     }
                     return "";

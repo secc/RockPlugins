@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -200,7 +200,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                             string campusShortCode = "";
                             if ( !string.IsNullOrEmpty( GetAttributeValue( "Campus" ) ) )
                             {
-                                campusShortCode = CampusCache.Read( GetAttributeValue( "Campus" ).AsGuid() ).ShortCode;
+                                campusShortCode = CampusCache.Get( GetAttributeValue( "Campus" ).AsGuid() ).ShortCode;
                                 if ( campusShortCode == "920" )
                                 {
                                     campusShortCode = "BL";
