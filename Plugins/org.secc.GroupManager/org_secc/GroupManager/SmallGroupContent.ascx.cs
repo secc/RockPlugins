@@ -480,18 +480,11 @@ $('#updateProgress').show();
             var currentPageContent = pagination.GetCurrentPageItems( content );
 
 
-            var globalAttributeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
+            var itemMergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
 
             // Merge content and attribute fields if block is configured to do so.
             if ( GetAttributeValue( "MergeContent" ).AsBoolean() )
             {
-                var itemMergeFields = new Dictionary<string, object>();
-
-                if ( CurrentPerson != null )
-                {
-                    itemMergeFields.Add( "CurrentPerson", CurrentPerson );
-                }
-                globalAttributeFields.ToList().ForEach( d => itemMergeFields.Add( d.Key, d.Value ) );
 
                 foreach ( var item in currentPageContent )
                 {
@@ -521,7 +514,7 @@ $('#updateProgress').show();
             mergeFields.Add( "Items", currentPageContent );
             mergeFields.Add( "Context", contextObjects );
 
-            globalAttributeFields.ToList().ForEach( d => mergeFields.Add( d.Key, d.Value ) );
+            itemMergeFields.ToList().ForEach( d => mergeFields.Add( d.Key, d.Value ) );
             mergeFields.Add( "RockVersion", Rock.VersionInfo.VersionInfo.GetRockProductVersionNumber() );
 
             // enable showing debug info
