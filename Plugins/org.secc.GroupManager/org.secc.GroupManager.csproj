@@ -88,25 +88,17 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Rock12\DotLiquid\DotLiquid.csproj">
+    <ProjectReference Include="$(SolutionDir)\DotLiquid\DotLiquid.csproj">
       <Project>{00edcb8d-ef33-459c-ad62-02876bd24dff}</Project>
       <Name>DotLiquid</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Rock12\Rock.Rest\Rock.Rest.csproj">
+    <ProjectReference Include="$(SolutionDir)\Rock.Rest\Rock.Rest.csproj">
       <Project>{add1edd0-a4cb-4e82-b6ad-6ad1d556deae}</Project>
       <Name>Rock.Rest</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Rock12\Rock\Rock.csproj">
+    <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
       <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
-    </ProjectReference>
-    <ProjectReference Include="C:\Users\stephenl\source\repos\Rock12\\Rock\Rock.csproj">
-      <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
-      <Name>Rock</Name>
-    </ProjectReference>
-    <ProjectReference Include="C:\Users\stephenl\source\repos\Rock12\\Rock.Rest\Rock.Rest.csproj">
-      <Project>{ADD1EDD0-A4CB-4E82-B6AD-6AD1D556DEAE}</Project>
-      <Name>Rock.Rest</Name>
     </ProjectReference>
     <ProjectReference Include="..\org.secc.Mapping\org.secc.Mapping.csproj">
       <Project>{749eb2a1-5240-4a1f-a0a1-110ea282ff7e}</Project>
