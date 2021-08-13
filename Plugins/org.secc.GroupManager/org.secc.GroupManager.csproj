@@ -64,15 +64,16 @@
     <Compile Include="Data\GroupManagerContext.cs" />
     <Compile Include="Data\GroupManagerService.cs" />
     <Compile Include="Exceptions\NonExistantFilter.cs" />
-    <Compile Include="Migrations\201911220000000_RequestedChanges.cs" />
-    <Compile Include="Migrations\201910110000001_ChildcareOptions.cs" />
-    <Compile Include="Migrations\201911050000000_AddKeys.cs" />
-    <Compile Include="Migrations\201910140000001_RegistrationDescription.cs" />
-    <Compile Include="Migrations\201910140000000_ChildcareDescription.cs" />
-    <Compile Include="Migrations\201910110000000_RegistrationOptions.cs" />
-    <Compile Include="Migrations\201908090000000_MeetingDetails.cs" />
-    <Compile Include="Migrations\201908020000000_SpouseRegistration.cs" />
-    <Compile Include="Migrations\201907011232595_Init.cs" />
+    <Compile Include="Migrations\010_DropRequiresRegistration.cs" />
+    <Compile Include="Migrations\009_RequestedChanges.cs" />
+    <Compile Include="Migrations\005_ChildcareOptions.cs" />
+    <Compile Include="Migrations\008_AddKeys.cs" />
+    <Compile Include="Migrations\007_RegistrationDescription.cs" />
+    <Compile Include="Migrations\006_ChildcareDescription.cs" />
+    <Compile Include="Migrations\004_RegistrationOptions.cs" />
+    <Compile Include="Migrations\003_MeetingDetails.cs" />
+    <Compile Include="Migrations\002_SpouseRegistration.cs" />
+    <Compile Include="Migrations\001_Init.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\PublishGroupService.cs" />
     <Compile Include="Model\PublishGroup.cs" />
@@ -87,15 +88,23 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\DotLiquid\DotLiquid.csproj">
+    <ProjectReference Include="..\..\..\Rock12\DotLiquid\DotLiquid.csproj">
       <Project>{00edcb8d-ef33-459c-ad62-02876bd24dff}</Project>
       <Name>DotLiquid</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
+    <ProjectReference Include="..\..\..\Rock12\Rock.Rest\Rock.Rest.csproj">
+      <Project>{add1edd0-a4cb-4e82-b6ad-6ad1d556deae}</Project>
+      <Name>Rock.Rest</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Rock12\Rock\Rock.csproj">
       <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock.Rest\Rock.Rest.csproj">
+    <ProjectReference Include="C:\Users\stephenl\source\repos\Rock12\\Rock\Rock.csproj">
+      <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
+      <Name>Rock</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\stephenl\source\repos\Rock12\\Rock.Rest\Rock.Rest.csproj">
       <Project>{ADD1EDD0-A4CB-4E82-B6AD-6AD1D556DEAE}</Project>
       <Name>Rock.Rest</Name>
     </ProjectReference>
