@@ -153,7 +153,7 @@ namespace RockWeb.Plugins.org_secc.Cms
         private bool SendEmail()
         {
             var rockContext = new RockContext();
-            var personAliasService = new PersonAliasService( rockContext );
+            var personService = new PersonService( rockContext );
             var groupService = new GroupService( rockContext );
             var publishGroupService = new PublishGroupService( rockContext );
             Group group = null;
@@ -168,10 +168,10 @@ namespace RockWeb.Plugins.org_secc.Cms
                 Guid? personGuid = this.PageParameter( "PersonGuid" ).AsGuidOrNull();
                 if ( personGuid.HasValue )
                 {
-                    var personAlias = personAliasService.Get( personGuid.Value );
-                    if ( personAlias != null )
+                    var person = personService.Get( personGuid.Value );
+                    if ( person != null )
                     {
-                        recipients.Add( new RockMessageRecipient( new CommunicationRecipient { PersonAlias = personAlias }, mergeFields ) );
+                        recipients.Add( new RockEmailMessageRecipient( person, mergeFields ) );
                     }
                 }
             }
@@ -188,7 +188,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                     var leaders = GetGroupLeaders( group );
                     foreach ( var leader in leaders )
                     {
-                        recipients.Add( new RecipientData( new CommunicationRecipient { PersonAlias = leader.PrimaryAlias }, mergeFields ) );
+                        recipients.Add( new RockEmailMessageRecipient( leader, mergeFields ) );
 
                     }
                 }
@@ -204,7 +204,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                     publishGroup = publishGroupService.Get( publishGroupGuid.Value );
                     if ( publishGroup != null )
                     {
-                        recipients.Add( new RecipientData( publishGroup.ContactEmail, mergeFields ) );
+                        recipients.Add( RockEmailMessageRecipient.CreateAnonymous( publishGroup.ContactEmail, mergeFields ) );
                     }
                 }
             }
@@ -212,10 +212,10 @@ namespace RockWeb.Plugins.org_secc.Cms
             if ( !recipients.Any() )
             {
                 Guid defaultRecipient = this.GetAttributeValue( "DefaultRecipient" ).AsGuid();
-                var defaultPerson = personAliasService.Get( defaultRecipient );
+                var defaultPerson = personService.Get( defaultRecipient );
                 if ( defaultPerson != null )
                 {
-                    recipients.Add( new RecipientData( new CommunicationRecipient { PersonAlias = defaultPerson }, mergeFields ) );
+                    recipients.Add( new RockEmailMessageRecipient( defaultPerson, mergeFields ) );
                 }
             }
 
@@ -226,7 +226,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                 var leaders = GetGroupLeaders( defaultGroup );
                 foreach ( var leader in leaders )
                 {
-                    recipients.Add( new RecipientData( new CommunicationRecipient { PersonAlias = leader.PrimaryAlias }, mergeFields ) );
+                    recipients.Add( new RockEmailMessageRecipient( leader, mergeFields ) );
                 }
             }
 
