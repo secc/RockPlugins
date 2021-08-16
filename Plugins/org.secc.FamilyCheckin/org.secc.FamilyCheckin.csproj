@@ -201,14 +201,16 @@
       <Name>org.secc.DevLib</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Scripts\ZebraPrint.js" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
 xcopy /Y /R /E /I "$(ProjectDir)Themes\*" "$(SolutionDir)RockWeb\Themes\"
 xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.FamilyCheckin.dll" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.FamilyCheckin.pdb" "$(SolutionDir)RockWeb\bin"
-
-</PostBuildEvent>
+xcopy /Y /R /E /I "$(ProjectDir)Scripts\*" "$(SolutionDir)RockWeb\Scripts\CheckinClient"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

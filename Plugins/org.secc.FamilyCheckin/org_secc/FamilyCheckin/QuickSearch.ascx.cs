@@ -205,10 +205,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 return;
             }
 
+            lDebug.Text = CurrentCheckInState.Kiosk.Device.Name;
+
             if ( CurrentCheckInState.Kiosk.DebugDateTime.HasValue )
             {
-                lTime.Visible = true;
-                lTime.Text = CurrentCheckInState.Kiosk.DebugDateTime.Value.ToString();
+                lDebug.Text += ": "+ CurrentCheckInState.Kiosk.DebugDateTime.Value.ToString();
             }
 
             var currentDateTime = CurrentCheckInState.Kiosk.DebugDateTime.HasValue ? CurrentCheckInState.Kiosk.DebugDateTime.Value : RockDateTime.Now;

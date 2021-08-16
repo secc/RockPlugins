@@ -304,9 +304,19 @@
 
 </script>
 
+<style>
+    .checkin-debug{
+        position:absolute;
+        bottom: 0px;
+        left: 0px;
+        font-size:.5em;
+        color: #777;
+    }
+</style>
+
 <asp:UpdatePanel ID="upContent" runat="server" CssClass="">
     <ContentTemplate>
-        <asp:Literal Visible="false" ID="lTime" runat="server" />
+        <asp:Label ID="lDebug" runat="server" CssClass="checkin-debug" />
 
         <asp:PlaceHolder ID="phScript" runat="server"></asp:PlaceHolder>
         <asp:HiddenField ID="hfMobileAccessKey" runat="server" ClientIDMode="Static" />

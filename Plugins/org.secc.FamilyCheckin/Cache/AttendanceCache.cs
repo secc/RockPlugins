@@ -237,6 +237,18 @@ namespace org.secc.FamilyCheckin.Cache
                 WithParent = false
             };
 
+            //Sometimes we need to look up the attendance code
+            if ( attendanceCache.Code.IsNullOrWhiteSpace() && attendance.AttendanceCodeId.HasValue )
+            {
+                RockContext rockContext = new RockContext();
+                AttendanceCodeService attendanceCodeService = new AttendanceCodeService( rockContext );
+                var code = attendanceCodeService.GetNoTracking( attendance.AttendanceCodeId.Value );
+                if (code != null )
+                {
+                    attendanceCache.Code = code.Code;
+                }
+            }
+
 
             if ( attendance.EndDateTime.HasValue ) //End date means checked out
             {
