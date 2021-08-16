@@ -153,7 +153,7 @@ namespace RockWeb.Plugins.org_secc.Cms
         private bool SendEmail()
         {
             var rockContext = new RockContext();
-            var personService = new PersonService( rockContext );
+            var personAliasService = new PersonAliasService( rockContext );
             var groupService = new GroupService( rockContext );
             var publishGroupService = new PublishGroupService( rockContext );
             Group group = null;
@@ -168,7 +168,10 @@ namespace RockWeb.Plugins.org_secc.Cms
                 Guid? personGuid = this.PageParameter( "PersonGuid" ).AsGuidOrNull();
                 if ( personGuid.HasValue )
                 {
-                    var person = personService.Get( personGuid.Value );
+                    var person = personAliasService.Queryable()
+                        .Where( pa => pa.Guid == personGuid.Value )
+                        .Select(pa => pa.Person)
+                        .FirstOrDefault();
                     if ( person != null )
                     {
                         recipients.Add( new RockEmailMessageRecipient( person, mergeFields ) );
@@ -212,7 +215,10 @@ namespace RockWeb.Plugins.org_secc.Cms
             if ( !recipients.Any() )
             {
                 Guid defaultRecipient = this.GetAttributeValue( "DefaultRecipient" ).AsGuid();
-                var defaultPerson = personService.Get( defaultRecipient );
+                var defaultPerson = personAliasService.Queryable()
+                        .Where( pa => pa.Guid == defaultRecipient )
+                        .Select( pa => pa.Person )
+                        .FirstOrDefault();
                 if ( defaultPerson != null )
                 {
                     recipients.Add( new RockEmailMessageRecipient( defaultPerson, mergeFields ) );
