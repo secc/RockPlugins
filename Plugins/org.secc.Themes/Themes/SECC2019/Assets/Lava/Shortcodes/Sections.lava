@@ -27,50 +27,50 @@ This shortcode is to help pull together a simple section with an image on the le
 
 {% comment %} Right Side Image {% endcomment %}
 {% if layout == "right" %}
-<section id="GrowGatherGo">
-    <div class="container">
-        <div class="row g-padding-y-150--xs g-display-flex--lg">
-            <div class="col-lg-6 col-md-6 col-md-push-6 clearfix text-center">
-                {% if image != "" -%}
-                    <img src="{{ image | Escape }}" class="img-responsive img-circle" style="margin: 0 auto; width: {{ imagewidth }}"> 
-                {% endif -%}
-            </div>
-            <div class="col-lg-6 col-md-6 col-md-pull-6 clearfix g-padding-t-60--xs">
-                <div class="g-padding-l-60--md g-width-100-percent--xs g-center--lg g-position--relative">
-                    {{ blockContent }}
+    <section>
+        <div class="container">
+            <div class="row g-padding-y-150--xs g-display-flex--lg">
+                <div class="col-lg-6 col-md-6 col-md-push-6 clearfix text-center">
+                    {% if image != "" -%}
+                        <img src="{{ image | Escape }}" class="img-responsive img-circle" style="margin: 0 auto; width: {{ imagewidth }}">
+                    {% endif -%}
                 </div>
-    		</div>
+                <div class="col-lg-6 col-md-6 col-md-pull-6 clearfix g-padding-t-60--xs">
+                    <div class="g-padding-l-60--md g-width-100-percent--xs g-center--lg g-position--relative">
+                        {{ blockContent }}
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
 {% elseif layout == "left" %}
 {% comment %} Left Side Image {% endcomment %}
-<section id="Membership" class="g-display-flex--lg">
-    <div class="container">
-        <div class="row g-padding-y-150--xs">
-            <div class="col-lg-6 col-md-6 clearfix text-center">
-                {% if image != "" -%}
-                    <img src="{{ image | Escape }}" class="img-responsive img-circle" style="margin: 0 auto; width: {{ imagewidth }}px"> 
-                {% endif -%}
-            </div>
-            <div class="col-lg-6 col-md-6 clearfix g-padding-t-60--xs">
-                <div class="g-padding-l-60--md g-padding-t-40--xs g-width-100-percent--xs">
-					{{ blockContent }}
+    <section>
+        <div class="container">
+            <div class="row g-padding-y-150--xs g-display-flex--lg">
+                <div class="col-lg-6 col-md-6 clearfix text-center">
+                    {% if image != "" -%}
+                        <img src="{{ image | Escape }}" class="img-responsive img-circle" style="margin: 0 auto; width: {{ imagewidth }}">
+                    {% endif -%}
                 </div>
-    		</div>
-        </div>
-    </div>
-</section>
-{% elseif layout == "center"%}
-<section>
-    <div class="container g-padding-t-50--xs g-padding-b-150--xs g-padding-x-40--xs">
-        <div class="row g-padding-y-75--md">
-            <div class="text-center g-padding-x-80--md">
-            {{ blockContent }}
+                <div class="col-lg-6 col-md-6 clearfix g-padding-t-60--xs">
+                    <div class="g-padding-l-60--md g-width-100-percent--xs g-center--lg g-position--relative">
+                        {{ blockContent }}
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
+{% elseif layout == "center"%}
+    <section>
+        <div class="container g-padding-t-50--xs g-padding-b-150--xs g-padding-x-40--xs">
+            <div class="row g-padding-y-75--md">
+                <div class="text-center g-padding-x-80--md">
+                {{ blockContent }}
+                </div>
+            </div>
+        </div>
+    </section>
 {% endif %}
 
 {% comment %}
