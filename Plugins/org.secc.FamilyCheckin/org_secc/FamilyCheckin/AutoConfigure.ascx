@@ -1,13 +1,31 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="AutoConfigure.ascx.cs" Inherits="RockWeb.Plugins.org_secc.FamilyCheckin.AutoConfigure" %>
 
 <script>
+    var setClientName = function (clientName) {
+        __doPostBack("ClientName", clientName);
+    }
+
     var getClientName = function () {
         try {
-            var client = window.external.GetClientName();
-            __doPostBack("ClientName", client);
+            try {
+                window.location = window.location;
+                console.log("Newer Client")
+                var browserCommand = {
+                    eventName: "GETCLIENT"
+                };
+                window.external.notify(JSON.stringify(browserCommand));
+            }
+            catch (e) { //Older clients
+                console.log(e)
+                console.log("Older Client")
+                var client = window.external.GetClientName();
+                setClientName(client);
+            }
+            
         }
         catch (e) {
             __doPostBack("UseDNS", "");
+            console.log("DNS Mode")
         }
     }
 </script>
