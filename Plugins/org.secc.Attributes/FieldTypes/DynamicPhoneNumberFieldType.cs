@@ -109,7 +109,7 @@ namespace org.secc.Attributes.FieldTypes
         public override string GetEditValue( System.Web.UI.Control control, Dictionary<string, ConfigurationValue> configurationValues )
         {
             DynamicPhoneNumberPicker picker = control as DynamicPhoneNumberPicker;
-            if ( string.IsNullOrWhiteSpace( picker.PhoneNumber ) )
+            if ( picker == null || string.IsNullOrWhiteSpace( picker.PhoneNumber ) )
             {
                 return "";
             }
