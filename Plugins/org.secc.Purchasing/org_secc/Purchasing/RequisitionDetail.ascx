@@ -448,7 +448,7 @@
                     </div>
                     <div id="attachments">
                         <h3>Attachments</h3>
-                        <secc:Attachments ID="ucAttachments" runat="server"/>
+                        <secc:Attachments ID="ucAttachments" runat="server" />
                     </div>
                 </div>
                 <div class="footer">

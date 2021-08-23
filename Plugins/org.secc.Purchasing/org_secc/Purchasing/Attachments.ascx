@@ -41,8 +41,8 @@
                             </div>
                         </div>
                             <div class="col-sm-9">
-                                <Rock:RockTextBox runat="server" ValidationGroup="Attachment" Label="Title"  ID="tbTitle" Required="true"></Rock:RockTextBox>
-                                <Rock:RockTextBox runat="server" ValidationGroup="Attachment" Rows="5" Label="Description"
+                                <Rock:RockTextBox runat="server"  Label="Title"  ID="tbTitle" Required="true"></Rock:RockTextBox>
+                                <Rock:RockTextBox runat="server"  Rows="5" Label="Description"
                                      TextMode="MultiLine" ID="tbAttachmentDesc"></Rock:RockTextBox>
                         </div>
                     </div>
