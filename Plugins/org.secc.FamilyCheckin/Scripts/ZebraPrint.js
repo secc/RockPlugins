@@ -86,7 +86,7 @@ var ZebraPrintPlugin = {
                     window.external.notify(JSON.stringify(browserCommand));
                 } catch (error) {
                     console.log('Printing with Rock Windows Client 3.0');
-                    window.external.notify(tagJson);
+                    window.external.PrintLabels(tagJson);
                 }
             }
         }
