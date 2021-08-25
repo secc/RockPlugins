@@ -1291,7 +1291,6 @@ namespace RockWeb.Plugins.org_secc.Event
                     {
                         registrant.SignatureDocumentKey = Request.Form["document_id"];
                     }
-                    registrant.SignatureDocumentKey = qryString.Substring( 13 );
                     registrant.SignatureDocumentLastSent = RockDateTime.Now;
                 }
 
