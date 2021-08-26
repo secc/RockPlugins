@@ -91,13 +91,13 @@
         .qr-code {
             float: left;
             height: 50%;
-            padding: 1em 3em;
-            width: 50%;
+            padding: 3em 2em;
+            width: 30%;
         }
         .check-in-text{
             float: right;
             padding: 10% 0;
-            width: 50%;
+            width: 70%;
         }
 
     }
