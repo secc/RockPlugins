@@ -126,18 +126,11 @@ namespace org.secc.Jobs
                             }
                         }
                     }
-                    // If we get here without a check number we have a problem
-                    if ( setCheckNumber == false )
-                    {
-                        errorMessages += string.Format( " - Unable to fetch check number for PushPay transaction {0}.\n", transaction.Transaction.ForeignKey + currentError );
-                        errors++;
-                    }
-
                 }
             }
 
 
-            context.Result = string.Format( "Updated {0} Financial Transaction Check Numbers with {1} Error(s).\n\n{2}", updates, errors, errorMessages );
+            context.Result = string.Format( "Updated {0} Financial Transaction Check Numbers with {1} Error(s).", updates, errors );
         }
 
 
