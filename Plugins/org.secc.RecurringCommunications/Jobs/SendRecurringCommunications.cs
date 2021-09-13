@@ -37,6 +37,7 @@ namespace org.secc.RecurringCommunications.Jobs
             RecurringCommunicationService recurringCommunicationService = new RecurringCommunicationService( rockContext );
             var communications = recurringCommunicationService.Queryable( "Schedule" ).ToList();
             int count = 0;
+            var errors = new List<RecurringCommunication>();
 
             foreach ( var communication in communications )
             {
@@ -49,17 +50,31 @@ namespace org.secc.RecurringCommunications.Jobs
                     {
                         communication.LastRunDateTime = RockDateTime.Now;
                         rockContext.SaveChanges();
-                        EnqueRecurringCommuniation( communication.Id );
+                        try
+                        {
+                            EnqueRecurringCommunication( communication.Id );
+                        }
+                        catch ( Exception e )
+                        {
+                            ExceptionLogService.LogException( new Exception( $"Error Sending Recurring Communication: ID {communication.Id}", e ) );
+                            errors.Add( communication );
+                        }
                         count++;
                     }
 
                 }
             }
-            context.Result = string.Format( "Sent {0} communication{1}", count, count == 1 ? "" : "s" );
+            var errorText = "";
+            if ( errors.Any() )
+            {
+                errorText = "There were errors with the following Recurring Communications: ";
+                errorText += string.Join( ", ", errors.Select( c => $"{c.Id}:{c.Name}" ) );
+            }
+            context.Result = $"Sent {count} communication{( count == 1 ? "" : "s" )} {errorText}";
         }
 
 
-        private void EnqueRecurringCommuniation( int id )
+        private void EnqueRecurringCommunication( int id )
         {
             RockContext rockContext = new RockContext();
             CommunicationService communicationService = new CommunicationService( rockContext );
@@ -72,20 +87,22 @@ namespace org.secc.RecurringCommunications.Jobs
 
 
 
-            var communication = new Communication();
-            communication.SenderPersonAlias = recurringCommunication.CreatedByPersonAlias;
-            communication.Name = recurringCommunication.Name;
-            communication.CommunicationType = recurringCommunication.CommunicationType;
-            communication.FromName = recurringCommunication.FromName;
-            communication.FromEmail = recurringCommunication.FromEmail;
-            communication.Subject = recurringCommunication.Subject;
-            communication.Message = recurringCommunication.EmailBody;
-            communication.SMSFromDefinedValueId = recurringCommunication.PhoneNumberValueId;
-            communication.SMSMessage = recurringCommunication.SMSBody;
-            communication.PushTitle = recurringCommunication.PushTitle;
-            communication.PushSound = recurringCommunication.PushSound;
-            communication.PushMessage = recurringCommunication.PushMessage;
-            communication.Status = CommunicationStatus.Approved;
+            var communication = new Communication
+            {
+                SenderPersonAlias = recurringCommunication.CreatedByPersonAlias,
+                Name = recurringCommunication.Name,
+                CommunicationType = recurringCommunication.CommunicationType,
+                FromName = recurringCommunication.FromName,
+                FromEmail = recurringCommunication.FromEmail,
+                Subject = recurringCommunication.Subject,
+                Message = recurringCommunication.EmailBody,
+                SMSFromDefinedValueId = recurringCommunication.PhoneNumberValueId,
+                SMSMessage = recurringCommunication.SMSBody,
+                PushTitle = recurringCommunication.PushTitle,
+                PushSound = recurringCommunication.PushSound,
+                PushMessage = recurringCommunication.PushMessage,
+                Status = CommunicationStatus.Approved
+            };
 
             DataTransformComponent transform = null;
             if ( recurringCommunication.TransformationEntityTypeId.HasValue )
@@ -101,7 +118,7 @@ namespace org.secc.RecurringCommunications.Jobs
             var smsMediumEntityType = EntityTypeCache.Get( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_SMS.AsGuid() );
             var pushNotificationMediumEntityType = EntityTypeCache.Get( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_PUSH_NOTIFICATION.AsGuid() );
 
-            var dataview = ( IQueryable<Person> ) recurringCommunication.DataView.GetQuery( new DataViewGetQueryArgs() );
+            var dataview = ( IQueryable<Person> ) recurringCommunication.DataView.GetQuery( new DataViewGetQueryArgs { DbContext = rockContext } );
 
 
             if ( transform != null )
