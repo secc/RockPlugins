@@ -44,7 +44,7 @@
                                 <asp:Label ID="lblError" runat="server" Visible="false" />
                             </div>
                             <div class="row">
-                                <asp:Panel ID="pnlSearch" runat="server" DefaultButton="btnSubmit" class="col-md-4">
+                                <asp:Panel ID="pnlSearch" runat="server" DefaultButton="btnSubmit" class="col-md-4 col-xs-12">
                                     <Rock:RockTextBox label="Name" ID="txtName" runat="server"/>
                                     <Rock:RockDropDownList label="Ministry" ID="ddlMinistry" runat="server" />
                                     <div runat="server" class="pull-right" style="margin-bottom: 10px">
@@ -52,7 +52,7 @@
                                             Style="width: 100px;" CausesValidation="false" Text="Search"/>
                                     </div>
                                 </asp:Panel>
-                                <asp:Panel ID="pnlResults" runat="server" class="col-md-8">
+                                <asp:Panel ID="pnlResults" runat="server" class="col-md-8 col-xs-12">
                                     <div id="instructions" class="smallText">
                                         <asp:Label ID="lblInstructions" runat="server" CssClass="smallText" Visible="true" />
                                     </div>
