@@ -79,6 +79,7 @@ namespace org.secc.Jira.Model
                     ticket.Title = issue.Fields.Summary;
                     ticket.Description = issue.Fields.Description;
                     ticket.TicketType = ( TicketType ) Enum.Parse( typeof( TicketType ), issue.Fields.IssueType.Name.Replace( "-", "" ) );
+                    ticket.CreatedDateTime = issue.Fields.Created;
 
                     rockContext.SaveChanges();
                 }
