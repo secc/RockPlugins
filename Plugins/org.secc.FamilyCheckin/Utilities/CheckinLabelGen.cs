@@ -92,7 +92,7 @@ namespace org.secc.FamilyCheckin.Utilities
                         .OrderBy( a => a.Schedule.StartTimeOfDay );
 
                 //Load breakout group
-                var breakoutGroups = GetBreakoutGroups( person, rockContext );
+                var breakoutGroupItems = GetBreakoutGroupItems( person );
 
                 //Add in an empty object as a placeholder for our breakout group
                 mergeObjects.Add( "BreakoutGroup", "" );
@@ -110,21 +110,12 @@ namespace org.secc.FamilyCheckin.Utilities
                     mergeSchedules.Add( set.Schedule );
 
                     //Add the breakout group mergefield
-                    if ( breakoutGroups.Any() )
+                    if ( breakoutGroupItems.Any() )
                     {
-                        var breakoutGroup = breakoutGroups.Where( g => g.ScheduleId == set.Schedule.Id ).FirstOrDefault();
-                        if ( breakoutGroup != null )
+                        var breakoutGroupItem = breakoutGroupItems.Where( g => g.ScheduleId == set.Schedule.Id ).FirstOrDefault();
+                        if ( breakoutGroupItem != null )
                         {
-                            var breakoutGroupEntity = new GroupService( rockContext ).Get( breakoutGroup.Id );
-                            if ( breakoutGroupEntity != null )
-                            {
-                                breakoutGroupEntity.LoadAttributes();
-                                var letter = breakoutGroupEntity.GetAttributeValue( "Letter" );
-                                if ( !string.IsNullOrWhiteSpace( letter ) )
-                                {
-                                    mergeObjects["BreakoutGroup"] = letter;
-                                }
-                            }
+                            mergeObjects["BreakoutGroup"] = breakoutGroupItem.Letter;
                         }
                     }
 
@@ -266,33 +257,72 @@ namespace org.secc.FamilyCheckin.Utilities
             return labels;
         }
 
-        private static List<Rock.Model.Group> GetBreakoutGroups( Person person, RockContext rockContext )
+        private static List<BreakoutGroupItem> GetBreakoutGroupItems( Person person )
         {
-            List<Rock.Model.Group> allBreakoutGroups = RockCache.Get( cacheKey ) as List<Rock.Model.Group>;
-            if ( allBreakoutGroups == null || !allBreakoutGroups.Any() )
+            List<BreakoutGroupItem> allBreakoutGroupItems = RockCache.Get( cacheKey ) as List<BreakoutGroupItem>;
+            if ( allBreakoutGroupItems == null || !allBreakoutGroupItems.Any() )
             {
-                //If the cache is empty, fill it up!
-                Guid breakoutGroupTypeGuid = Constants.GROUP_TYPE_BREAKOUT_GROUPS.AsGuid();
-                var breakoutGroups = new GroupService( rockContext )
-                    .Queryable( "Members" )
-                    .AsNoTracking()
-                   .Where( g => g.GroupType.Guid == breakoutGroupTypeGuid && g.IsActive && !g.IsArchived )
-                   .ToList();
+                allBreakoutGroupItems = new List<BreakoutGroupItem>();
+                RockContext rockContext = new RockContext();
 
-                allBreakoutGroups = new List<Rock.Model.Group>();
+                var attributeService = new AttributeService( rockContext );
+                var attributeValueService = new AttributeValueService( rockContext );
 
-                foreach ( var breakoutGroup in breakoutGroups )
+                var groupEntityTypeId = EntityTypeCache.GetId( typeof( Rock.Model.Group ) );
+                var breakoutGroupGroupTypeId = GroupTypeCache.GetId( Constants.GROUP_TYPE_BREAKOUT_GROUPS.AsGuid() );
+
+                if ( groupEntityTypeId == null || breakoutGroupGroupTypeId == null )
                 {
-                    allBreakoutGroups.Add( breakoutGroup.Clone( false ) );
+                    ExceptionLogService.LogException( new Exception( "Could not load breakout groups due to missing breakoutgroup type" ) );
+                    return new List<BreakoutGroupItem>();
                 }
 
-                RockCache.AddOrUpdate( cacheKey, null, allBreakoutGroups, RockDateTime.Now.AddMinutes( 10 ), Constants.CACHE_TAG );
+                var letterCache = AttributeCache.GetByEntityTypeQualifier( groupEntityTypeId, "GroupTypeId", breakoutGroupGroupTypeId.Value.ToString(), false )
+                    .Where( a => a.Key == Constants.GROUP_ATTRIBUTE_KEY_LETTER )
+                    .FirstOrDefault();
+
+                if ( letterCache == null )
+                {
+                    ExceptionLogService.LogException( new Exception( "Could not load breakout group letter attribute." ) );
+                    return new List<BreakoutGroupItem>();
+                }
+
+                var attributeQueryable = attributeValueService.Queryable().AsNoTracking()
+                    .Where( av => letterCache.Id == av.AttributeId );
+
+                //Get all the data in one go 
+                var breakoutData = new GroupService( rockContext )
+                    .Queryable()
+                    .AsNoTracking()
+                    .Where( g => g.GroupTypeId == breakoutGroupGroupTypeId && g.IsActive && !g.IsArchived )
+                    .Join( attributeQueryable,
+                        g => g.Id,
+                        av => av.EntityId,
+                        ( g, av ) => new
+                        {
+                            ScheduleId = g.ScheduleId ?? 0,
+                            PersonIds = g.Members.Select( gm => gm.PersonId ),
+                            Letter = av.Value
+                        } )
+                    .ToList();
+
+                foreach ( var item in breakoutData )
+                {
+                    foreach ( var personId in item.PersonIds )
+                    {
+                        allBreakoutGroupItems.Add( new BreakoutGroupItem
+                        {
+                            Letter = item.Letter,
+                            PersonId = personId,
+                            ScheduleId = item.ScheduleId
+                        } );
+                    }
+                }
+
+                RockCache.AddOrUpdate( cacheKey, null, allBreakoutGroupItems, RockDateTime.Now.AddMinutes( 10 ), Constants.CACHE_TAG );
             }
 
-            return allBreakoutGroups.Where( g => g.Members
-                    .Where( gm => gm.PersonId == person.Id && gm.GroupMemberStatus == GroupMemberStatus.Active ).Any()
-                    && g.IsActive && !g.IsArchived )
-                .ToList();
+            return allBreakoutGroupItems.Where( i => i.PersonId == person.Id ).ToList();
         }
 
         private static void GetGroupTypeLabels( GroupTypeCache groupType, List<CheckInLabel> labels, Dictionary<string, object> mergeObjects, List<Guid> labelGuids )

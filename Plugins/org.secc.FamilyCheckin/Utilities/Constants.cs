@@ -42,6 +42,8 @@ namespace org.secc.FamilyCheckin.Utilities
         public const string PERSON_ATTRIBUTE_LASTMEDICATIONCHECKIN = "2B670150-E45D-4E31-A3F6-B5F29B292A62";
         public const string PERSON_ATTRIBUTE_KEY_LASTMEDICATIONCHECKIN = "LastMedicationCheckin";
 
+        public const string GROUP_ATTRIBUTE_KEY_LETTER = "Letter";
+
         //GroupType Filters
         public const string GROUP_TYPE_BY_BASE = "6E7AD783-7614-4721-ABC1-35842113EF59";
         public const string GROUP_TYPE_BY_CHILDREN_CHECKIN_BASE = "5398A1C2-F422-4ADC-A48B-B9EFFE3598AD";
