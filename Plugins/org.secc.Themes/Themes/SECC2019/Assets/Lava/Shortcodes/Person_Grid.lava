@@ -21,13 +21,14 @@ Shortcode for the public website to be used when displaying a grid of people
 
     [[ item image:'/Content/Staff/DarthVader3.jpg' title:'Darth Vader' ]]
        Sith Lord
-       <br>
+       &lt;br&gt;
        Stormtrooper training.
     [[ enditem ]]
 
     [[ item image:'/Content/Staff/Yoda.jpg' title:'Yoda' ]]
        Jedi Master
-       <br>Current Location: Dagoba
+       &lt;br&gt;
+       Current Location: &lt;a href="https://en.wikipedia.org/wiki/Dagobah"&gt;Dagoba&lt;/a&gt;
     [[ enditem ]]
 
     [[ item image:'/Content/Staff/LukeSkywalker.jpg' title:'Luke Skywalker' ]]
