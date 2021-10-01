@@ -1,0 +1,133 @@
+{% comment %}
+*********************************** NAME ***************************************
+Person Grid
+
+*********************************** TagType ************************************
+Block
+
+*********************************** TAG NAME ***********************************
+persongrid
+
+*********************************** DESCRIPTION ********************************
+Shortcode for the public website to be used when displaying a grid of people
+
+********************************* DOCUMENTATION ********************************
+
+<p>Use the Person Grid Lava Shortcode to quickly and easily add, remove, or update people in a grid format.</p>
+
+<img style="width: 25%;" src="/Content/PersonGridDemo.png" alt="PersonGridDemo.png">
+
+<pre>{[persongrid columns:'3']}
+
+    [[ item image:'/Content/Staff/DarthVader3.jpg' title:'Darth Vader' ]]
+       Sith Lord
+       <br>
+       Stormtrooper training.
+    [[ enditem ]]
+
+    [[ item image:'/Content/Staff/Yoda.jpg' title:'Yoda' ]]
+       Jedi Master
+       <br>Current Location: Dagoba
+    [[ enditem ]]
+
+    [[ item image:'/Content/Staff/LukeSkywalker.jpg' title:'Luke Skywalker' ]]
+       Jedi Knight
+    [[ enditem ]]
+
+    [[ item image:'/Content/Staff/LeiaOrgana.jpg' title:'Princess Leia' ]]
+       Skywalker Sister
+    [[ enditem ]]
+
+    [[ item image:'/Content/Staff/HanSolo.jpg' title:'Han Solo' ]]
+       Outlaw Pilot
+    [[ enditem ]]
+
+{[endpersongrid]}</pre>
+
+<p>The [[ persongrid ]] configuration has the following option:</p><p>
+    </p><ul><li><b>columns</b> - Set the maximum number of items to display in one row (1-3, default is 3)</li></ul>
+  The [[ item ]] block configuration has the following options:
+<p></p>
+<ul>
+  <li><b>image</b> - The web address of the image.</li>
+  <li><b>title</b> - Content for the title section</li>
+</ul><p></p>
+
+************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
+{% endcomment %}
+<style>
+.row.display-flex {
+  display: flex;
+  flex-wrap: wrap;
+}
+.row.display-flex > [class*='col-'] {
+  display: flex;
+  flex-direction: column;
+}
+.person-grid-image {
+  height: 27rem;
+  min-height: 27rem;
+  max-height: 27rem;
+  margin: 30px auto;
+  object-fit: cover;
+  width: 100%;
+  max-width: 27rem;
+  min-width: 27rem;
+}
+</style>
+
+{%- assign wrapperId = uniqueid -%}
+{%- assign columns = columns | AsInteger -%}
+{%- if columns > 3 -%}
+  {%- assign columns = 3 -%}
+{%- endif -%}
+{%- assign gridNum = 12 | DividedBy:columns | Ceiling -%}
+
+<div class="container">
+{%- for item in items -%}
+  {%- assign itemModulo = forloop.index | Modulo:columns -%}
+
+  {%- if forloop.first -%}
+    <div class="row display-flex">
+  {%- endif -%}
+
+      {%- assign loopExtraItemsCount = forloop.length | Modulo:columns -%}
+      {%- assign extraItemsStartIndex = forloop.length | Minus:loopExtraItemsCount -%}
+      {%- assign smallModulo = forloop.length | Modulo:2 -%}
+
+      <div class="col-xs-12
+        {% if columns > 1 -%} col-sm-6
+          {% if smallModulo == 1 and forloop.last -%}
+            col-sm-offset-3
+          {% endif -%}
+          {% if columns > 2 -%} col-md-{{gridNum | Floor}}
+            {% if forloop.index >= extraItemsStartIndex -%}
+              {% if itemModulo == 1 -%}
+                col-md-offset-{{ gridNum | DividedBy:loopExtraItemsCount | Ceiling}}
+              {% else -%}
+                col-md-offset-0
+              {% endif -%}
+            {% endif -%}
+          {% endif -%}
+        {% endif -%}
+      text-center g-margin-b-150--md">
+        <img src="{{ item.image }}" class="img-responsive img-circle person-grid-image" style="">
+        <h4 class="g-line-height--xs"><strong>{{ item.title }}</strong><br>
+            <small>
+              {{ item.content }}
+            </small>
+        </h4>
+      </div>
+
+  {%- if forloop.last -%}
+    </div>
+  {%- endif -%}
+
+{%- endfor -%}
+</div>
+{% comment %}
+************************ PARAMETERS ********************
+
+columns        - 3
+
+{% endcomment %}
