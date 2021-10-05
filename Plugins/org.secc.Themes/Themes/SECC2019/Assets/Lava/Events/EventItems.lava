@@ -85,7 +85,7 @@
                         </a>
 
                         {% assign scheduledDates = eventItemOccurrence.ICalendarContent | Split: 'RRULE' %}
-                        {% assign scheduledNumDates = scheduledDates | Size %} 
+                        {% assign scheduledNumDates = scheduledDates | Size %}
                         <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
 
                             {% if numOccurrences > 1 and multiCampus == true %}
@@ -107,57 +107,59 @@
 
                         </div><!-- END: caption -->
 
-                        <div class="event-items col-xs-4 {% if campus | Attribute: 'Slug' != 'Yes' %}col-xs-offset-2{% endif %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if childCareIsAvailable != 'Yes' %}col-xs-offset-2{% endif %}">
-                             <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
-                             <h6>
-                                 {% if eventItemOccurrence.CustomDateText != null && eventItemOccurrence.CustomDateText != '' -%}
-                                    {{ eventItemOccurrence.CustomDateText }}
-                                 {% else -%}
-                                    {% assign eventItemDatesIsHidden = eventItemOccurrence.AttEventDatesHide %}
-                                    {% unless eventItemDatesIsHidden == 'Yes' %}
-                                        {% assign useOnlyScheduleText = eventItemOccurrence.AttUseOnlyScheduleText %}
-                                        {% if useOnlyScheduleText == 'Yes' %}
-                                            {{eventItemOccurrence.AttScheduleText }}
-                                        {% else %}
-                                            {{ eventItemOccurrence.Date | Date: 'ddd, MMM dd'}}
-                                        {% endif %}
-                                    {% endunless %}
-                                    <br />
-                                    {% if numOccurrences > 1 and multiCampus == true %}
-                                        <small class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Dates</small>
-                                    {% elseif numOccurrences > 1 or scheduledNumDates > 1 %}
-                                        <small class="uppercase g-padding-b-20--xs g-font-weight--700">Recurring Event</small>
-                                    {% endif %}
-                                 {% endif -%}
-                             </h6>
-                        </div>
-
-                        <div class="event-items g-padding-x-10--xs col-xs-4 {% if childCareIsAvailable == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}">
-                             <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
-                             <h6>
-                                 {% if eventItemOccurrence.CustomLocationText != null && eventItemOccurrence.CustomLocationText != '' -%}
-                                    {{ eventItemOccurrence.CustomLocationText}}
-                                 {% else %}
-                                     {% if eventItemOccurrence.EventItemOccurrence.Location != '' %}
-                                        {{ eventItemOccurrence.EventItemOccurrence.Location }}
-                                    {% else %}
+                        <div class="row">
+                            <div class="event-items col-xs-4 {% if campus | Attribute: 'Slug' != 'Yes' %}col-xs-offset-2{% endif %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if childCareIsAvailable != 'Yes' %}col-xs-offset-2{% endif %}">
+                                <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
+                                <h6>
+                                    {% if eventItemOccurrence.CustomDateText != null && eventItemOccurrence.CustomDateText != '' -%}
+                                        {{ eventItemOccurrence.CustomDateText }}
+                                    {% else -%}
+                                        {% assign eventItemDatesIsHidden = eventItemOccurrence.AttEventDatesHide %}
+                                        {% unless eventItemDatesIsHidden == 'Yes' %}
+                                            {% assign useOnlyScheduleText = eventItemOccurrence.AttUseOnlyScheduleText %}
+                                            {% if useOnlyScheduleText == 'Yes' %}
+                                                {{eventItemOccurrence.AttScheduleText }}
+                                            {% else %}
+                                                {{ eventItemOccurrence.Date | Date: 'ddd, MMM dd'}}
+                                            {% endif %}
+                                        {% endunless %}
+                                        <br />
                                         {% if numOccurrences > 1 and multiCampus == true %}
-                                            Multiple <br />Campuses
+                                            <small class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Dates</small>
+                                        {% elseif numOccurrences > 1 or scheduledNumDates > 1 %}
+                                            <small class="uppercase g-padding-b-20--xs g-font-weight--700">Recurring Event</small>
+                                        {% endif %}
+                                    {% endif -%}
+                                </h6>
+                            </div>
+
+                            <div class="event-items g-padding-x-10--xs col-xs-4 {% if childCareIsAvailable == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}">
+                                <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
+                                <h6>
+                                    {% if eventItemOccurrence.CustomLocationText != null && eventItemOccurrence.CustomLocationText != '' -%}
+                                        {{ eventItemOccurrence.CustomLocationText}}
+                                    {% else %}
+                                        {% if eventItemOccurrence.EventItemOccurrence.Location != '' %}
+                                            {{ eventItemOccurrence.EventItemOccurrence.Location }}
                                         {% else %}
-                                            {{eventItemOccurrence.EventItemOccurrence.Campus.Name}} <br />Campus
+                                            {% if numOccurrences > 1 and multiCampus == true %}
+                                                Multiple <br />Campuses
+                                            {% else %}
+                                                {{eventItemOccurrence.EventItemOccurrence.Campus.Name}} <br />Campus
+                                            {% endif %}
                                         {% endif %}
                                     {% endif %}
-                                 {% endif %}
-                             </h6> 
-                        </div>
+                                </h6>
+                            </div>
 
-                        <!-- ChildCare -->
-                        {% if childCareIsAvailable == 'Yes' %}
-                        <div class="event-items col-xs-4 g-padding-x-10--xs">
-                            <div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
-                            <h6>Childcare<br> Available</h6>
+                            <!-- ChildCare -->
+                            {% if childCareIsAvailable == 'Yes' %}
+                            <div class="event-items col-xs-4 g-padding-x-10--xs">
+                                <div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
+                                <h6>Childcare<br> Available</h6>
+                            </div>
+                            {% endif %}
                         </div>
-                        {% endif %}
 
                         <div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
                             <a href="{{ eventLinkURL }}" class='eventCardLink link--hover-underscore'>
