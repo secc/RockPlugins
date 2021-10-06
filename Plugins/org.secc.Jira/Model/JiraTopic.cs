@@ -83,20 +83,23 @@ namespace org.secc.Jira.Model
 
                     rockContext.SaveChanges();
                 }
-
-                //Now delete keys are in this topic but no longer used
-                var activeKeys = issues.Select( i => i.Key ).ToList();
-
-                RockContext deleteContext = new RockContext();
-
-                JiraTicketService jiraTicketService2 = new JiraTicketService( deleteContext );
-
-                var oldTickets = jiraTicketService2.Queryable().Where( t => t.JiraTopicId == Id && !activeKeys.Contains( t.Key ) ).ToList();
-
-                jiraTicketService2.DeleteRange( oldTickets );
-
-                deleteContext.SaveChanges();
             }
+
+            //Now delete keys are in this topic but no longer used
+            var activeKeys = issues.Select( i => i.Key ).ToList();
+
+            RockContext deleteContext = new RockContext();
+
+            JiraTicketService jiraTicketService2 = new JiraTicketService( deleteContext );
+
+            var oldTickets = jiraTicketService2.Queryable().Where( t => t.JiraTopicId == Id && !activeKeys.Contains( t.Key ) ).ToList();
+
+            foreach ( var oldTicket in oldTickets )
+            {
+                jiraTicketService2.Delete( oldTicket );
+            }
+
+            deleteContext.SaveChanges();
         }
     }
 
