@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{11AC9F5A-FE1D-433E-A680-20BB931A559D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>org.secc.Equip</RootNamespace>
+    <AssemblyName>org.secc.Equip</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>.$(SolutionDir)\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Quartz, Version=2.0.0.100, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)\libs\Quartz\Quartz.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Controls\CoursePicker.cs" />
+    <Compile Include="CoursePageComponent.cs" />
+    <Compile Include="CoursePageContainer.cs" />
+    <Compile Include="CoursePages\DragDropPage.cs" />
+    <Compile Include="CoursePages\YouTubePage.cs" />
+    <Compile Include="CoursePages\VimeoPage.cs" />
+    <Compile Include="CoursePages\QuizPage.cs" />
+    <Compile Include="CoursePages\HTMLPage.cs" />
+    <Compile Include="Data\LearingContext.cs" />
+    <Compile Include="Helpers\CourseRequirementHelper.cs" />
+    <Compile Include="Helpers\PersonCourseInfo.cs" />
+    <Compile Include="Jobs\UpdateCourseRequirements.cs" />
+    <Compile Include="Lava\CustomFilters.cs" />
+    <Compile Include="Migrations\007_IconCssClass.cs" />
+    <Compile Include="Migrations\006_ExternalCourseUrl.cs" />
+    <Compile Include="Migrations\005_AllowedViewers.cs" />
+    <Compile Include="Migrations\004_CourseSlug.cs" />
+    <Compile Include="Migrations\003_CourseImage.cs" />
+    <Compile Include="Migrations\002_ActiveFlag.cs" />
+    <Compile Include="Migrations\001_Init.cs" />
+    <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Model\Chapter.cs" />
+    <Compile Include="Model\ChapterRecord.cs" />
+    <Compile Include="Model\ChapterRecordService.cs" />
+    <Compile Include="Model\ChapterService.cs" />
+    <Compile Include="Model\Course.cs" />
+    <Compile Include="Model\CoursePageRecord.cs" />
+    <Compile Include="Model\CoursePageRecordService.cs" />
+    <Compile Include="Model\CoursePageService.cs" />
+    <Compile Include="Model\CourseRecord.cs" />
+    <Compile Include="Model\CourseRecordService.cs" />
+    <Compile Include="Model\CourseRequirement.cs" />
+    <Compile Include="Model\CoursePage.cs" />
+    <Compile Include="Model\CourseRequirementService.cs" />
+    <Compile Include="Model\CourseRequirementStatus.cs" />
+    <Compile Include="Model\CourseRequirementStatusService.cs" />
+    <Compile Include="Model\CourseService.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Reporting\DataFilter\ExpiringCourseRequirement.cs" />
+    <Compile Include="Reporting\DataFilter\CourseRequirementStatus.cs" />
+    <Compile Include="Reporting\DataFilter\CourseCompletionStatus.cs" />
+    <Compile Include="Startup\LoadCustomFilters.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)\DotLiquid\DotLiquid.csproj">
+      <Project>{00EDCB8D-EF33-459C-AD62-02876BD24DFF}</Project>
+      <Name>DotLiquid</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\org.secc.Widgities\org.secc.Widgities.csproj">
+      <Project>{6dc19fd1-3dd5-45f1-916a-aa7797e886ab}</Project>
+      <Name>org.secc.Widgities</Name>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
+      <Project>{185A31D7-3037-4DAE-8797-0459849A84BD}</Project>
+      <Name>Rock</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
+xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Widgities.dll" "$(SolutionDir)RockWeb\bin"
+</PostBuildEvent>
+  </PropertyGroup>
+</Project>
