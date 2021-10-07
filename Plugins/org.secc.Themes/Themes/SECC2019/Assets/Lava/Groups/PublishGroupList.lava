@@ -61,9 +61,9 @@
 						<img src="/GetImage.ashx?id={{ publishGroup.ImageId }}&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
 					</div>
                     <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
-					<h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">
-						{{ publishGroup.Title}}
-                    </h5>
+                        <h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">
+                            {{ publishGroup.Title}}
+                        </h5>
                         <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">
 							{{ publishGroup.Group.Campus.Name }}
 						</h6>
@@ -74,6 +74,7 @@
 							</div>
                         </div>
                     </div>
+                    <div class="row" style="padding:0 10%;">
 						{% assign offset = 0 %}
 						{% if publishGroup.ScheduleText == empty %}
 							{% assign offset = offset | Plus: 2 %}
@@ -112,42 +113,38 @@
 
 						<!-- ChildCare -->
 						{% if publishGroup.ChildcareAvailable == true %}
-						<div class="event-items col-xs-4 g-padding-x-10--xs col-xs-offset-{{offset}}">
-							<div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
-							<h6>Children's<br>Programming<br> Available</h6>
-						</div>
+                            <div class="event-items col-xs-4 g-padding-x-10--xs col-xs-offset-{{offset}}">
+                                <div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
+                                <h6>Children's<br>Programming<br> Available</h6>
+                            </div>
 						{% endif %}
+                    </div>
 
+                    <div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
 
-						<div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
-							
-								<div class="col-md-6">
-									<a href="{{ contactLink }}" class='eventCardLink link--hover-underscore'>
-										<h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
-											Contact
-										</h6>
-									</a>
-								</div>
-								<div class="col-md-6">
-									<a href="{{ registrationLink }}" class='eventCardLink link--hover-underscore'>
-										<h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
-										{% if publishGroup.RequiresRegistration == true %}
-											Register&nbsp;Now
-										{% else %}
-											Details
-										{% endif %}
-										</h6>
-									</a>
-								</div>
-							
-							
-							
-
-						</div>
-
+                        <div class="col-md-6">
+                            <a href="{{ contactLink }}" class='eventCardLink link--hover-underscore'>
+                                <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
+                                    Contact
+                                </h6>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ registrationLink }}" class='eventCardLink link--hover-underscore'>
+                                <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
+                                {% if publishGroup.RequiresRegistration == true %}
+                                    Register&nbsp;Now
+                                {% else %}
+                                    Details
+                                {% endif %}
+                                </h6>
+                            </a>
+                        </div>
 
                     </div>
-                </div><!-- END: isotope_item -->
+
+                </div>
+            </div><!-- END: isotope_item -->
         {% endif %}
         {% endfor %}
 
