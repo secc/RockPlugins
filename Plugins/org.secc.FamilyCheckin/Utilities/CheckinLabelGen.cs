@@ -277,18 +277,18 @@ namespace org.secc.FamilyCheckin.Utilities
                     return new List<BreakoutGroupItem>();
                 }
 
-                var letterCache = AttributeCache.GetByEntityTypeQualifier( groupEntityTypeId, "GroupTypeId", breakoutGroupGroupTypeId.Value.ToString(), false )
+                var letterAttribute = attributeService.GetByEntityTypeQualifier( groupEntityTypeId, "GroupTypeId", breakoutGroupGroupTypeId.Value.ToString(), false )
                     .Where( a => a.Key == Constants.GROUP_ATTRIBUTE_KEY_LETTER )
                     .FirstOrDefault();
 
-                if ( letterCache == null )
+                if ( letterAttribute == null )
                 {
                     ExceptionLogService.LogException( new Exception( "Could not load breakout group letter attribute." ) );
                     return new List<BreakoutGroupItem>();
                 }
 
                 var attributeQueryable = attributeValueService.Queryable().AsNoTracking()
-                    .Where( av => letterCache.Id == av.AttributeId );
+                    .Where( av => letterAttribute.Id == av.AttributeId );
 
                 //Get all the data in one go 
                 var breakoutData = new GroupService( rockContext )
