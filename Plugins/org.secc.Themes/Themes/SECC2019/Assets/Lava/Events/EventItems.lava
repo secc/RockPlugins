@@ -107,7 +107,7 @@
 
                         </div><!-- END: caption -->
 
-                        <div class="row">
+                        <div class="row g-margin-x-0--xs">
                             <div class="event-items col-xs-4 {% if campus | Attribute: 'Slug' != 'Yes' %}col-xs-offset-2{% endif %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if childCareIsAvailable != 'Yes' %}col-xs-offset-2{% endif %}">
                                 <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
                                 <h6>
@@ -156,7 +156,7 @@
                             {% if childCareIsAvailable == 'Yes' %}
                             <div class="event-items col-xs-4 g-padding-x-10--xs">
                                 <div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
-                                <h6>Childcare<br> Available</h6>
+                                <h6>Children's<br>Programming</h6>
                             </div>
                             {% endif %}
                         </div>
