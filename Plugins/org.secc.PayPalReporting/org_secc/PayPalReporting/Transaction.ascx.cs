@@ -33,6 +33,10 @@ namespace RockWeb.Plugins.org_secc.PayPalReporting
             {
                 ShowDetail();
             }
+            else
+            {
+                btnEdit.Visible = false;
+            }
         }
 
         private void ShowDetail()
