@@ -26,7 +26,7 @@ namespace RockWeb.Plugins.org_secc.Jira
         Key = AttributeKey.LavaTemplate )]
 
     [LavaCommandsField( "Enabled Lava Commands",
-        IsRequired =false,
+        IsRequired = false,
         Order = 1,
         Key = AttributeKey.EnabledCommands )]
 
@@ -64,6 +64,8 @@ namespace RockWeb.Plugins.org_secc.Jira
                     .AsNoTracking()
                     .OrderBy( t => t.Order )
                     .ToList();
+
+                topics.ForEach( t => t.JiraTickets = t.JiraTickets.OrderBy( t2 => t.CreatedDateTime ).ToList() );
 
                 var mergeFields = LavaHelper.GetCommonMergeFields( this.RockPage, CurrentPerson );
                 mergeFields.Add( "JiraTopics", topics );
