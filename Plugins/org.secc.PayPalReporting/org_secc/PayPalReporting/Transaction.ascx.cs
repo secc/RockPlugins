@@ -62,6 +62,7 @@ namespace RockWeb.Plugins.org_secc.PayPalReporting
             btnEdit.Visible = false;
             pnlEdit.Visible = true;
             btnSave.Visible = true;
+            btnCancel.Visible = true;
 
             TransactionService transactionService = new TransactionService( new org.secc.PayPalReporting.Data.PayPalReportingContext() );
             org.secc.PayPalReporting.Model.Transaction txn = transactionService.Get( transactionId );
@@ -107,8 +108,18 @@ namespace RockWeb.Plugins.org_secc.PayPalReporting
             btnEdit.Visible = true;
             pnlEdit.Visible = false;
             btnSave.Visible = false;
+            btnCancel.Visible = false;
 
             ShowDetail();
+        }
+
+        protected void btnCancel_Click( object sender, EventArgs e )
+        {
+            pnlDetails.Visible = true;
+            btnEdit.Visible = true;
+            pnlEdit.Visible = false;
+            btnSave.Visible = false;
+            btnCancel.Visible = false;
         }
     }
 }

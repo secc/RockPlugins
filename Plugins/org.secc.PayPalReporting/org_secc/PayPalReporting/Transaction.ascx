@@ -66,6 +66,7 @@
         </Rock:RockUpdatePanel>
         <Rock:BootstrapButton CssClass="btn btn-primary" ID="btnEdit" runat="server" Text="Edit" OnClick="Edit_Click" />
         <Rock:BootstrapButton CssClass="btn btn-primary" ID="btnSave" runat="server" Text="Save" OnClick="Save_Click" Visible="false" />
+        <Rock:BootstrapButton CssClass="btn btn-secondary" ID="btnCancel" runat="server" Text="Cancel" OnClick="btnCancel_Click" Visible="false" />
     </div>
 
 </div>
