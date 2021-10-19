@@ -392,7 +392,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             int columnCounter = 0;
 
             // print headings
-            foreach ( String column in new List<String>() { "Zip", "Name", "Campus", "Address", "City", "State", "Phone", "Notes" } )
+            foreach ( String column in new List<String>() { "Zip", "Name", "Campus", "Location Name", "Location Room No.", "Street Address", "City", "State", "Zip", "Phone", "Notes" } )
             {
                 columnCounter++;
                 worksheet.Cells[3, columnCounter].Value = column.SplitCase();
@@ -402,17 +402,19 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             // print data
             foreach ( CommunionData row in getQuery<CommunionData>() )
             {
-                SetExcelValue( worksheet.Cells[rowCounter, 1], row.PostalCode.Length > 5 ? row.PostalCode.Substring( 0, 5 ) : row.PostalCode );
-                SetExcelValue( worksheet.Cells[rowCounter, 2], row.Person.FullName );
-                SetExcelValue( worksheet.Cells[rowCounter, 3], row.Campus );
-                SetExcelValue( worksheet.Cells[rowCounter, 4], ( row.Location != "Home" ? row.Location + "\r\n" : "" )
-                    + row.Address + ( !string.IsNullOrEmpty( row.Room ) ? "\r\nRoom: " + row.Room : "" )
-                    + ( !string.IsNullOrWhiteSpace( row.FacilityNumber ) ? "\r\n" + row.FacilityNumber : "" ) );
-                SetExcelValue( worksheet.Cells[rowCounter, 5], ( row.City ) );
-                SetExcelValue( worksheet.Cells[rowCounter, 6], ( row.State ) );
-                SetExcelValue( worksheet.Cells[rowCounter, 7], phoneNumberService.GetByPersonId( row.Person.Id ).Where( p => p.NumberTypeValue.Guid == homePhone ).Select( p => p.NumberFormatted ).FirstOrDefault() );
-                SetExcelValue( worksheet.Cells[rowCounter, 8], row.Description );
-                worksheet.Cells[rowCounter, 8].Style.WrapText = true;
+                var i = 1;
+                SetExcelValue( worksheet.Cells[rowCounter, i++], row.PostalCode.IsNotNull() && row.PostalCode.Length > 5 ? row.PostalCode.Substring( 0, 5 ) : row.PostalCode );
+                SetExcelValue( worksheet.Cells[rowCounter, i++], row.Person.FullName );
+                SetExcelValue( worksheet.Cells[rowCounter, i++], row.Campus );
+                SetExcelValue( worksheet.Cells[rowCounter, i++], row.Location );
+                SetExcelValue( worksheet.Cells[rowCounter, i++], row.Room );
+                SetExcelValue( worksheet.Cells[rowCounter, i++], row.Address );
+                SetExcelValue( worksheet.Cells[rowCounter, i++], row.City );
+                SetExcelValue( worksheet.Cells[rowCounter, i++], row.State );
+                SetExcelValue( worksheet.Cells[rowCounter, i++], row.PostalCode );
+                SetExcelValue( worksheet.Cells[rowCounter, i++], phoneNumberService.GetByPersonId( row.Person.Id ).Where( p => p.NumberTypeValue.Guid == homePhone ).Select( p => p.NumberFormatted ).FirstOrDefault() );
+                SetExcelValue( worksheet.Cells[rowCounter, i], row.Description );
+                worksheet.Cells[rowCounter, i++].Style.WrapText = true;
 
                 rowCounter++;
             }
