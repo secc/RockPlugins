@@ -143,6 +143,8 @@ namespace org.secc.ServiceReef
                                 {
                                     var glCode = result.EventCode;
 
+                                    glCode = glCode.IsNotNullOrWhiteSpace() ? glCode : "[No GL Code]";
+
                                     if ( glCode.Length > 50 )
                                     {
                                         glCode = glCode.Substring( 0, 50 );
