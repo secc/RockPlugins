@@ -110,7 +110,7 @@ namespace RockWeb.Plugins.org_secc.RoomScanner
 
 
 
-            var combined = String.Join( ",", roomEvents.Select( r => r.ToString() ) );
+            var combined = String.Join( ",", roomEvents.Select( r => r.ToString() ) ).Replace( "<span class='field-name'>", "<span class=\"field-name\">" );
             var peopleString = string.Join( ",", personLinks );
 
             var script = string.Format( @"
