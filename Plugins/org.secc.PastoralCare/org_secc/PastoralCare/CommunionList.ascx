@@ -19,6 +19,7 @@
                 <Rock:GridFilter ID="gFilter" runat="server" OnApplyFilterClick="gFilter_ApplyFilterClick">
                     <Rock:CampusesPicker ID="cpCampus" runat="server" Label="Campus" />
                     <Rock:RockCheckBoxList id="cblState" runat="server" RepeatDirection="Horizontal" Label="State"/>
+                    <Rock:NumberRangeEditor ID="nreRoute" runat="server" NumberType="Integer" Label="Route"/>
                 </Rock:GridFilter>
                 <Rock:Grid ID="gReport" runat="server" AllowSorting="true" EmptyDataText="No Results" ExportFilename="CommunionList" ShowActionRow="false">
                     <Columns>
@@ -30,6 +31,7 @@
                         <Rock:RockBoundField DataField="City" HeaderText="City" ExcelExportBehavior="NeverInclude"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="State" HeaderText="State" ExcelExportBehavior="NeverInclude"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="PostalCode" HeaderText="Zip" SortExpression="PostalCode" ExcelExportBehavior="AlwaysInclude"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="Route" HeaderText="Route" SortExpression="Route" ExcelExportBehavior="AlwaysInclude"/>
                         <Rock:RockTemplateField HeaderText="Status" ExcelExportBehavior="NeverInclude">
                             <ItemTemplate>
                                 <span class="label label-success"><%# Eval("Status") %></span>

@@ -200,7 +200,8 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     Room = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "Room" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     AdmitDate = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "AdmitDate" || av.AttributeKey == "StartDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     Status = w.Workflow.Status,
-                    Communion = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "Communion" ).FirstOrDefault().ValueFormatted
+                    Communion = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "Communion" ).FirstOrDefault().ValueFormatted,
+                    Route = (int?)w.AttributeValues.AsQueryable().Where(av => av.AttributeKey == "CommunionRoute").Select(av => av.ValueAsNumeric).FirstOrDefault()
                 } )
                 .Where( o => o.Communion.AsBoolean() && !o.Person.IsDeceased )
                 .OrderBy( a => a.PostalCode )
@@ -224,6 +225,15 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     newQry = newQry.Where( o => campuses.Contains( o.Campus.Id ) );
                 }
 
+                if (nreRoute.LowerValue.HasValue)
+                {
+                    newQry = newQry.Where( o => o.Route >= nreRoute.LowerValue.Value );
+                }
+
+                if (nreRoute.UpperValue.HasValue)
+                {
+                    newQry = newQry.Where( o => o.Route <= nreRoute.UpperValue.Value );
+                }
 
                 //AddGridColumns( newQry.FirstOrDefault() );
 
@@ -392,7 +402,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             int columnCounter = 0;
 
             // print headings
-            foreach ( String column in new List<String>() { "Zip", "Name", "Campus", "Location Name", "Location Room No.", "Street Address", "City", "State", "Zip", "Phone", "Notes" } )
+            foreach ( String column in new List<String>() { "Zip", "Name", "Campus", "Location Name", "Location Room No.", "Street Address", "City", "State", "Zip", "Phone", "Notes", "Start Date", "Route No." } )
             {
                 columnCounter++;
                 worksheet.Cells[3, columnCounter].Value = column.SplitCase();
@@ -413,7 +423,10 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 SetExcelValue( worksheet.Cells[rowCounter, i++], row.State );
                 SetExcelValue( worksheet.Cells[rowCounter, i++], row.PostalCode );
                 SetExcelValue( worksheet.Cells[rowCounter, i++], phoneNumberService.GetByPersonId( row.Person.Id ).Where( p => p.NumberTypeValue.Guid == homePhone ).Select( p => p.NumberFormatted ).FirstOrDefault() );
-                SetExcelValue( worksheet.Cells[rowCounter, i], row.Description );
+                SetExcelValue( worksheet.Cells[rowCounter, i++], row.Description );
+                SetExcelValue( worksheet.Cells[rowCounter, i++], row.AdmitDate );
+                SetExcelValue( worksheet.Cells[rowCounter, i], row.Route ); 
+
                 worksheet.Cells[rowCounter, i++].Style.WrapText = true;
 
                 rowCounter++;
@@ -560,6 +573,8 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             public string AdmitDate { get; set; }
             public string Status { get; set; }
             public string Communion { get; set; }
+            public int? Route { get; set; }
+            public Guid? WorkflowGuid { get; set; }
         }
 
 
