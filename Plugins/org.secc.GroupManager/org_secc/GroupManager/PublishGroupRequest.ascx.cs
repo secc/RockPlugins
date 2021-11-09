@@ -31,7 +31,7 @@ namespace RockWeb.Plugins.GroupManager
 {
     [DisplayName( "Publish Group Request" )]
     [Category( "SECC > Groups" )]
-    [Description( "Block for camp leaders to see their group." )]
+    [Description( "Block for displaying a publish group request." )]
 
     [MemoField(
         "Registration Details",
@@ -286,7 +286,7 @@ namespace RockWeb.Plugins.GroupManager
             if ( PageParameter( PageParameterKeys.PublishGroupId ).IsNotNullOrWhiteSpace() )
             {
                 var publishGroup = publishGroupService.Get( PageParameter( PageParameterKeys.PublishGroupId ).AsInteger() );
-                if ( publishGroup != null )
+                if ( publishGroup != null && publishGroup.Group != null)
                 {
                     return publishGroup;
                 }

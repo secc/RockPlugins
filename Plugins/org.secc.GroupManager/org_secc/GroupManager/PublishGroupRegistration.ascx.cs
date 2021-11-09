@@ -681,7 +681,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
             }
 
-            if ( _publishGroup == null || _publishGroup.PublishGroupStatus != PublishGroupStatus.Approved )
+            if ( _publishGroup == null || _publishGroup.Group == null || _publishGroup.PublishGroupStatus != PublishGroupStatus.Approved )
             {
                 nbNotice.Heading = "Unknown Group";
                 nbNotice.Text = "<p>This page requires a valid group identifying parameter and there was not one provided.</p>";
