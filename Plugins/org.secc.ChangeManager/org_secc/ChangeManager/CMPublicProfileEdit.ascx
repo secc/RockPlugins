@@ -6,6 +6,7 @@
         <script>
             $(function () {
                 $(".photo a").fluidbox();
+                $("[id$='acAddress_ddlCountry']").parent().removeClass('col-sm-6').addClass('col-sm-12');
             });
         </script>
 
@@ -63,20 +64,30 @@
                     <h3>Contact Info</h3>
                     <div class="form-horizontal">
                         <div class="form-group">
-                            <div class="controls col-md-10 col-md-offset-2">
-                                <Rock:DataTextBox ID="tbEmail" PrependText="<i class='fa fa-envelope'></i>" runat="server" SourceTypeName="Rock.Model.Person, Rock" PropertyName="Email" Label="Email Address" />
+                            <div class="col-md-2">
+                                <label for="tbEmail" class="control-label required-indicator">Email Address</label>
+                            </div>
+                            <div class="controls col-md-10">
+                                <Rock:DataTextBox ID="tbEmail" PrependText="<i class='fa fa-envelope'></i>" runat="server" SourceTypeName="Rock.Model.Person, Rock" LabelTextFromPropertyName="false"  PropertyName="Email" />
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <div class="controls col-md-10 col-md-offset-2">
-                                <Rock:RockRadioButtonList ID="rblEmailPreference" runat="server" RepeatDirection="Horizontal" Label="Email Preference">
+                            <div class="col-md-2">
+                                <label for="rblEmailPreference" class="control-label">Email Preference</label>
+                            </div>
+                            <div class="controls col-md-10">
+                                <Rock:RockRadioButtonList ID="rblEmailPreference" runat="server" RepeatDirection="Horizontal">
                                     <asp:ListItem Text="Email Allowed" Value="EmailAllowed" />
                                     <asp:ListItem Text="No Mass Emails" Value="NoMassEmails" />
                                     <asp:ListItem Text="Do Not Email" Value="DoNotEmail" />
                                 </Rock:RockRadioButtonList>
-
-                                <Rock:RockRadioButtonList ID="rblCommunicationPreference" runat="server" RepeatDirection="Horizontal" Label="Communication Preference">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="rblCommunicationPreference" class="control-label">Communication Preference</label>
+                            </div>
+                            <div class="col-md-10" >
+                                <Rock:RockRadioButtonList ID="rblCommunicationPreference" runat="server" RepeatDirection="Horizontal">
                                     <asp:ListItem Text="Email" Value="1" />
                                     <asp:ListItem Text="SMS" Value="2" />
                                 </Rock:RockRadioButtonList>
@@ -117,6 +128,7 @@
                     </asp:Panel>
 
                     <asp:Panel ID="pnlAddress" runat="server">
+
                         <fieldset>
                             <legend>
                                 <asp:Literal ID="lAddressTitle" runat="server" /></legend>
@@ -134,17 +146,18 @@
                             <asp:HiddenField ID="hfPostalCode" runat="server" />
                             <asp:HiddenField ID="hfCountry" runat="server" />
 
-                            <Rock:AddressControl ID="acAddress" runat="server" RequiredErrorMessage="Your Address is Required" />
-
+                            <h3>Address</h3>
+                                <Rock:AddressControl ID="acAddress" runat="server" RequiredErrorMessage="Your Address is Required" />
                         </fieldset>
                     </asp:Panel>
 
                     <asp:Panel ID="Panel1" runat="server">
                         <fieldset>
                             <legend>
-                                <asp:Literal ID="Literal1" runat="server" />Other Changes</legend>
+                               <h3>Other Changes</h3></legend>
                         </fieldset>
-                        <Rock:RockTextBox runat="server" ID="tbComments" TextMode="MultiLine" Height="200" Label="Other Change Requests" />
+                        <Rock:RockTextBox runat="server" ID="tbComments" TextMode="MultiLine" Height="200" />
+
                     </asp:Panel>
                     <Rock:NotificationBox runat="server" ID="nbTOS" NotificationBoxType="Validation" Text="Please check the box below before saving your changes." Visible="false" />
                     <Rock:RockCheckBox runat="server" ID="cbTOS" Visible="false" />

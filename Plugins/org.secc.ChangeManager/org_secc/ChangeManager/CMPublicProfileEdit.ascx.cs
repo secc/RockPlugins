@@ -136,6 +136,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             ddlTitle.Items.Insert( 0, new ListItem() );
             ddlSuffix.DefinedTypeId = DefinedTypeCache.Get( new Guid( Rock.SystemGuid.DefinedType.PERSON_SUFFIX ) ).Id;
             ddlSuffix.Items.Insert( 0, new ListItem() );
+            RockPage.AddCSSLink(ResolveRockUrl("~~/Styles/theme.css"));
             RockPage.AddCSSLink( ResolveRockUrl( "~/Styles/fluidbox.css" ) );
             RockPage.AddScriptLink( ResolveRockUrl( "~/Scripts/imagesloaded.min.js" ) );
             RockPage.AddScriptLink( ResolveRockUrl( "~/Scripts/jquery.fluidbox.min.js" ) );
