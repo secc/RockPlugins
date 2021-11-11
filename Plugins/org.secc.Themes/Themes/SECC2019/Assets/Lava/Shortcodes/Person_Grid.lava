@@ -57,14 +57,6 @@ Shortcode for the public website to be used when displaying a grid of people
 ************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
 {% endcomment %}
 <style>
-.row.display-flex {
-  display: flex;
-  flex-wrap: wrap;
-}
-.row.display-flex > [class*='col-'] {
-  display: flex;
-  flex-direction: column;
-}
 .person-grid-image {
   height: 27rem;
   min-height: 27rem;
@@ -89,7 +81,7 @@ Shortcode for the public website to be used when displaying a grid of people
   {%- assign itemModulo = forloop.index | Modulo:columns -%}
 
   {%- if forloop.first -%}
-    <div class="row display-flex">
+    <div class="row">
   {%- endif -%}
 
       {%- assign loopExtraItemsCount = forloop.length | Modulo:columns -%}
