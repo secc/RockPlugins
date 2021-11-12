@@ -301,7 +301,7 @@ namespace org.secc.FamilyCheckin.Utilities
                         ( g, av ) => new
                         {
                             ScheduleId = g.ScheduleId ?? 0,
-                            PersonIds = g.Members.Select( gm => gm.PersonId ),
+                            PersonIds = g.Members.Where( gm => gm.IsArchived == false && gm.GroupMemberStatus == GroupMemberStatus.Active ).Select( gm => gm.PersonId ),
                             Letter = av.Value
                         } )
                     .ToList();
