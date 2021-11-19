@@ -82,7 +82,7 @@
                     {% assign sundayBefore = "Now" | SundayDate | DateAdd:subtractDays | Date:'dd' %}
                     {%- assign satSubtractDays = subtractDays | Plus:-1 -%}
                     {% assign saturdayBefore = "Now" | SundayDate | DateAdd:satSubtractDays | Date:'dd' %}
-                    {% assign weekendDate = "Now" | SundayDate | DateAdd:subtractDays | Date:'MMMM SAT-SUN, 2020' | Replace:'SAT',saturdayBefore | Replace:'SUN',sundayBefore %}
+                    {% assign weekendDate = "Now" | SundayDate | DateAdd:subtractDays | Date:'MMMM SUN, yyyy' | Replace:'SUN',sundayBefore %}
                     <h1 class="connectTitle g-font-weight--600 g-color--white g-line-height">Facts & Figures<br /><small class="g-color--white g-font-weight--500 uppercase">{{ weekendDate }}</small></h1>
                 </div>
             </div>
