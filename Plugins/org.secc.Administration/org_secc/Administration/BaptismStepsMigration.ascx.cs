@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Data.SqlClient;
-using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -26,13 +23,13 @@ using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.Administration
 {
-    [DisplayName("Baptism Data Migrator")]
-    [Category("SECC > Administration")]
-    [Description("Block that will convert baptism data in a person attribute matrix to a Baptism Step Type.")]
+    [DisplayName( "Baptism Data Migrator" )]
+    [Category( "SECC > Administration" )]
+    [Description( "Block that will convert baptism data in a person attribute matrix to a Baptism Step Type." )]
 
-    [StepProgramStepTypeField("Baptism Step Type", "The Baptism Step Type that the data will be migrated to.", true, "", "", 0, "BaptismStepType", "7C50242C-FE2D-4291-B53C-4FE0FE7CE6C1")]
-    [StepProgramStepStatusField("Completed Status", "The status for a completed step.", true, "", "", 1, "StepStatus", "7C50242C-FE2D-4291-B53C-4FE0FE7CE6C1")]
-    [AttributeField("72657ED8-D16E-492E-AC12-144C5E7567E7", "Baptism Matrix Person Attribute", "The Person Attribute that references their Baptism Matrix", true, false, "", "", 2, "BaptismPersonAttribute")]
+    [StepProgramStepTypeField( "Baptism Step Type", "The Baptism Step Type that the data will be migrated to.", true, "", "", 0, "BaptismStepType", "7C50242C-FE2D-4291-B53C-4FE0FE7CE6C1" )]
+    [StepProgramStepStatusField( "Completed Status", "The status for a completed step.", true, "", "", 1, "StepStatus", "7C50242C-FE2D-4291-B53C-4FE0FE7CE6C1" )]
+    [AttributeField( "72657ED8-D16E-492E-AC12-144C5E7567E7", "Baptism Matrix Person Attribute", "The Person Attribute that references their Baptism Matrix", true, false, "", "", 2, "BaptismPersonAttribute" )]
 
     public partial class BaptismStepsMigration : RockBlock
     {
@@ -62,7 +59,7 @@ namespace RockWeb.Plugins.org_secc.Administration
         {
             get
             {
-                return string.Format("BaptismStepsMigration_BlockId:{0}_SessionId:{1}", this.BlockId, Session.SessionID);
+                return string.Format( "BaptismStepsMigration_BlockId:{0}_SessionId:{1}", this.BlockId, Session.SessionID );
             }
         }
 
@@ -98,10 +95,10 @@ namespace RockWeb.Plugins.org_secc.Administration
         /// Processes the block's Initialization methods (events that happen early in the user control's life cycle).
         /// </summary>
         /// <param name="e"></param>
-        protected override void OnInit(EventArgs e)
+        protected override void OnInit( EventArgs e )
         {
-            base.OnInit(e);
-            RockPage.AddScriptLink("~/Scripts/jquery.signalR-2.2.0.min.js", fingerprint: false);
+            base.OnInit( e );
+            RockPage.AddScriptLink( "~/Scripts/jquery.signalR-2.2.0.min.js", fingerprint: false );
 
         }
 
@@ -109,12 +106,12 @@ namespace RockWeb.Plugins.org_secc.Administration
         /// Processes the Block's load events
         /// </summary>
         /// <param name="e"></param>
-        protected override void OnLoad(EventArgs e)
+        protected override void OnLoad( EventArgs e )
         {
-            base.OnLoad(e);
+            base.OnLoad( e );
 
             NotificationBoxClear();
-            if (LoadBlockSettings())
+            if ( LoadBlockSettings() )
             {
                 LoadPendingMigrations();
             }
@@ -124,14 +121,14 @@ namespace RockWeb.Plugins.org_secc.Administration
         /// Loads Viewstate items or this block
         /// </summary>
         /// <param name="savedState"></param>
-        protected override void LoadViewState(object savedState)
+        protected override void LoadViewState( object savedState )
         {
-            base.LoadViewState(savedState);
+            base.LoadViewState( savedState );
             var baseVieweStateKey = $"{base.BlockId}_";
 
             var vsMatrixItems = ViewState[$"{baseVieweStateKey}MatrixItems"] as string;
 
-            if (vsMatrixItems.IsNotNullOrWhiteSpace())
+            if ( vsMatrixItems.IsNotNullOrWhiteSpace() )
             {
                 BaptismMatrixItems = vsMatrixItems.FromJsonOrNull<List<BaptismMatrixReferenceItem>>();
             }
@@ -164,25 +161,25 @@ namespace RockWeb.Plugins.org_secc.Administration
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected void btnMigrateRecords_Click(object sender, EventArgs e)
+        protected void btnMigrateRecords_Click( object sender, EventArgs e )
         {
-            if (hfProcessingMigrations.Value.Equals("0"))
+            if ( hfProcessingMigrations.Value.Equals( "0" ) )
             {
                 hfProcessingMigrations.Value = "1";
                 MigrateBaptismRecords();
             }
             else
             {
-                LoadPendingMigrations(true);
+                LoadPendingMigrations( true );
 
                 lProgressMessage.Text = String.Empty;
                 lProgressResults.Text = String.Empty;
 
                 var js = new StringBuilder();
-                js.AppendFormat("$('#{0}').hide();", pnlProgress.ClientID);
-                js.AppendFormat("$('#{0}').show();", pnlSummary.ClientID);
+                js.AppendFormat( "$('#{0}').hide();", pnlProgress.ClientID );
+                js.AppendFormat( "$('#{0}').show();", pnlSummary.ClientID );
 
-                ScriptManager.RegisterClientScriptBlock(upMain, upMain.GetType(), "ShowPanels" + DateTime.Now.Ticks, js.ToString(), true);
+                ScriptManager.RegisterClientScriptBlock( upMain, upMain.GetType(), "ShowPanels" + DateTime.Now.Ticks, js.ToString(), true );
 
             }
         }
@@ -197,62 +194,62 @@ namespace RockWeb.Plugins.org_secc.Administration
         /// <returns>A boolean flag indicating if all block attribute properties have been loaded properly</returns>
         private bool LoadBlockSettings()
         {
-            using (var rockContext = new RockContext())
+            using ( var rockContext = new RockContext() )
             {
-                var baptismStepAV = GetAttributeValue("BaptismStepType");
+                var baptismStepAV = GetAttributeValue( "BaptismStepType" );
                 var baptismStepGuids = baptismStepAV.SplitDelimitedValues();
 
-                var stepStatusAV = GetAttributeValue("StepStatus");
+                var stepStatusAV = GetAttributeValue( "StepStatus" );
                 var stepstatusGuids = stepStatusAV.SplitDelimitedValues();
 
-                var personAttributeGuid = GetAttributeValue("BaptismPersonAttribute").AsGuid();
+                var personAttributeGuid = GetAttributeValue( "BaptismPersonAttribute" ).AsGuid();
 
-                if (baptismStepAV.IsNotNullOrWhiteSpace() && baptismStepGuids.Length > 1)
+                if ( baptismStepAV.IsNotNullOrWhiteSpace() && baptismStepGuids.Length > 1 )
                 {
-                    BaptismStepType = new StepTypeService(rockContext).Get(baptismStepGuids[1].AsGuid());
+                    BaptismStepType = new StepTypeService( rockContext ).Get( baptismStepGuids[1].AsGuid() );
                 }
 
-                if (stepStatusAV.IsNotNullOrWhiteSpace() && stepstatusGuids.Length > 1)
+                if ( stepStatusAV.IsNotNullOrWhiteSpace() && stepstatusGuids.Length > 1 )
                 {
-                    StepStatus = new StepStatusService(rockContext).Get(stepstatusGuids[1].AsGuid());
+                    StepStatus = new StepStatusService( rockContext ).Get( stepstatusGuids[1].AsGuid() );
                 }
 
-                PersonAttribute = AttributeCache.Get(personAttributeGuid);
+                PersonAttribute = AttributeCache.Get( personAttributeGuid );
             }
 
             List<string> errors = new List<string>();
 
-            if (BaptismStepType == null)
+            if ( BaptismStepType == null )
             {
-                errors.Add("Baptism Step Type is not set.");
+                errors.Add( "Baptism Step Type is not set." );
             }
 
-            if (StepStatus == null)
+            if ( StepStatus == null )
             {
-                errors.Add("Step Status is not set.");
+                errors.Add( "Step Status is not set." );
             }
 
-            if (PersonAttribute == null)
+            if ( PersonAttribute == null )
             {
-                errors.Add("Baptism Matrix Attribute Not Set.");
+                errors.Add( "Baptism Matrix Attribute Not Set." );
             }
 
 
-            if (errors.Count > 0)
+            if ( errors.Count > 0 )
             {
                 StringBuilder sb = new StringBuilder();
-                sb.Append("<strong><i class='fas fa-exclamation-triangle'></i>&nbsp; Please Verify Block Settings</strong>");
-                sb.Append("<ul type='disc'>");
-                foreach (var error in errors)
+                sb.Append( "<strong><i class='fas fa-exclamation-triangle'></i>&nbsp; Please Verify Block Settings</strong>" );
+                sb.Append( "<ul type='disc'>" );
+                foreach ( var error in errors )
                 {
-                    sb.AppendFormat("<li>{0}</li>", error);
+                    sb.AppendFormat( "<li>{0}</li>", error );
                 }
-                sb.Append("</ul>");
+                sb.Append( "</ul>" );
 
-                NotificationBoxSet(sb.ToString(), NotificationBoxType.Validation);
+                NotificationBoxSet( sb.ToString(), NotificationBoxType.Validation );
             }
 
-            return errors.Count.Equals(0);
+            return errors.Count.Equals( 0 );
         }
 
         /// <summary>
@@ -262,10 +259,10 @@ namespace RockWeb.Plugins.org_secc.Administration
         /// <param name="refreshMatrixItems">Optional boolean paramater that indicates if the Matrix Item dictionary needs to be
         ///    refreshed. Default is false. 
         /// </param>
-        private void LoadPendingMigrations(bool refreshMatrixItems = false)
+        private void LoadPendingMigrations( bool refreshMatrixItems = false )
         {
-            if (BaptismMatrixItems == null || refreshMatrixItems)
-                using (var rockContext = new RockContext())
+            if ( BaptismMatrixItems == null || refreshMatrixItems )
+                using ( var rockContext = new RockContext() )
                 {
 
 
@@ -282,9 +279,9 @@ namespace RockWeb.Plugins.org_secc.Administration
                             av.[AttributeId] = @AttributeId
                             AND s.Id IS NULL";
 
-                    BaptismMatrixItems = rockContext.Database.SqlQuery<BaptismMatrixReferenceItem>(sql,
-                        new SqlParameter("@AttributeId", PersonAttribute.Id),
-                        new SqlParameter("@BaptismStepType", BaptismStepType.Id)).ToList();
+                    BaptismMatrixItems = rockContext.Database.SqlQuery<BaptismMatrixReferenceItem>( sql,
+                        new SqlParameter( "@AttributeId", PersonAttribute.Id ),
+                        new SqlParameter( "@BaptismStepType", BaptismStepType.Id ) ).ToList();
 
                     lRecordsToMigrate.Text = BaptismMatrixItems.Count.ToString();
                     nbRecordsToProcess.Text = BaptismMatrixItems.Count.ToString();
@@ -304,55 +301,55 @@ namespace RockWeb.Plugins.org_secc.Administration
         {
             int recordsToProcess = nbRecordsToProcess.Text.AsInteger();
 
-            BaptismMatrixItems = BaptismMatrixItems.Take(recordsToProcess).ToList();
+            BaptismMatrixItems = BaptismMatrixItems.Take( recordsToProcess ).ToList();
             long totalMilliseconds = 0;
 
             long baptismsProcessed = 0;
-            var importTask = new Task(() =>
-            {
-                System.Threading.Thread.Sleep(1000);
-                _hubContext.Clients.All.showSummary(this.SignalRNotificationKey, false);
-                _hubContext.Clients.All.showButtons(this.SignalRNotificationKey, false);
-                _hubContext.Clients.All.updateProcessingFlag(this.SignalRNotificationKey, "1");
-                Stopwatch sw = Stopwatch.StartNew();
+            var importTask = new Task( () =>
+             {
+                 System.Threading.Thread.Sleep( 1000 );
+                 _hubContext.Clients.All.showSummary( this.SignalRNotificationKey, false );
+                 _hubContext.Clients.All.showButtons( this.SignalRNotificationKey, false );
+                 _hubContext.Clients.All.updateProcessingFlag( this.SignalRNotificationKey, "1" );
+                 Stopwatch sw = Stopwatch.StartNew();
 
-                int i = 1;
-                foreach (var item in BaptismMatrixItems)
-                {
-                    bool baptismMigrated = false;
-                    OnProgress($"Processing Baptism Migration {i} of {BaptismMatrixItems.Count}");
-                    baptismMigrated = MigrateBaptismItem(item.MatrixItemId, item.PersonId);
+                 int i = 1;
+                 foreach ( var item in BaptismMatrixItems )
+                 {
+                     bool baptismMigrated = false;
+                     OnProgress( $"Processing Baptism Migration {i} of {BaptismMatrixItems.Count}" );
+                     baptismMigrated = MigrateBaptismItem( item.MatrixItemId, item.PersonId );
 
-                    if (baptismMigrated)
-                    {
-                        baptismsProcessed++;
-                    }
-                    i++;
+                     if ( baptismMigrated )
+                     {
+                         baptismsProcessed++;
+                     }
+                     i++;
 
-                }
+                 }
 
-                sw.Stop();
-                totalMilliseconds = sw.ElapsedMilliseconds;
-                _hubContext.Clients.All.showButtons(this.SignalRNotificationKey, true);
-                BaptismMatrixItems.Clear();
-            });
+                 sw.Stop();
+                 totalMilliseconds = sw.ElapsedMilliseconds;
+                 _hubContext.Clients.All.showButtons( this.SignalRNotificationKey, true );
+                 BaptismMatrixItems.Clear();
+             } );
 
-            importTask.ContinueWith((t) =>
-            {
-                if (t.IsFaulted)
-                {
-                    foreach (var exception in t.Exception.InnerExceptions)
-                    {
-                        LogException(exception);
-                    }
-                    OnProgress($"ERROR: {t.Exception.Message}");
-                }
-                else
-                {
-                    OnProgress($"{baptismsProcessed} Baptisms have been Processed. Complete [{totalMilliseconds}]");
-                }
+            importTask.ContinueWith( ( t ) =>
+             {
+                 if ( t.IsFaulted )
+                 {
+                     foreach ( var exception in t.Exception.InnerExceptions )
+                     {
+                         LogException( exception );
+                     }
+                     OnProgress( $"ERROR: {t.Exception.Message}" );
+                 }
+                 else
+                 {
+                     OnProgress( $"{baptismsProcessed} Baptisms have been Processed. Complete [{totalMilliseconds}]" );
+                 }
 
-            });
+             } );
 
             importTask.Start();
 
@@ -364,41 +361,41 @@ namespace RockWeb.Plugins.org_secc.Administration
         /// <param name="itemId">Matrix Item Id</param>
         /// <param name="personId">The Person Id of the person who was baptized.</param>
         /// <returns></returns>
-        private bool MigrateBaptismItem(int itemId, int personId)
+        private bool MigrateBaptismItem( int itemId, int personId )
         {
-            using (var context = new RockContext())
+            using ( var context = new RockContext() )
             {
-                var matrixItem = new AttributeMatrixItemService(context).Get(itemId);
+                var matrixItem = new AttributeMatrixItemService( context ).Get( itemId );
 
-                var person = new PersonService(context).Get(personId);
+                var person = new PersonService( context ).Get( personId );
 
-                if (matrixItem == null )
+                if ( matrixItem == null )
                 {
-                    results["Fail"] += String.Format("Failed Migration {0} - {1}, baptism matrix item not found.",
+                    results["Fail"] += String.Format( "Failed Migration {0} - {1}, baptism matrix item not found.",
                         itemId,
-                        person != null ? person.FullName : "Unknown") + Environment.NewLine;
+                        person != null ? person.FullName : "Unknown" ) + Environment.NewLine;
                     return false;
                 }
 
 
 
-                matrixItem.LoadAttributes(context);
-                var campusGuid = matrixItem.GetAttributeValue("BaptismLocation").AsGuidOrNull();
-                var baptismDate = matrixItem.GetAttributeValue("BaptismDate").AsDateTime();
-                var baptizedBy = matrixItem.GetAttributeValue("BaptizedBy");
-                var baptismTypeGuid = matrixItem.GetAttributeValue("BaptismType").AsGuidOrNull();
+                matrixItem.LoadAttributes( context );
+                var campusGuid = matrixItem.GetAttributeValue( "BaptismLocation" ).AsGuidOrNull();
+                var baptismDate = matrixItem.GetAttributeValue( "BaptismDate" ).AsDateTime();
+                var baptizedBy = matrixItem.GetAttributeValue( "BaptizedBy" );
+                var baptismTypeGuid = matrixItem.GetAttributeValue( "BaptismType" ).AsGuidOrNull();
 
 
-                var stepService = new StepService(context);
+                var stepService = new StepService( context );
 
-                
+
 
                 var step = stepService.Queryable()
-                    .Where(s => s.ForeignId == itemId)
-                    .Where(s => s.PersonAlias.PersonId == personId)
+                    .Where( s => s.ForeignId == itemId )
+                    .Where( s => s.PersonAlias.PersonId == personId )
                     .SingleOrDefault();
 
-                if (step == null)
+                if ( step == null )
                 {
                     step = new Step()
                     {
@@ -407,10 +404,10 @@ namespace RockWeb.Plugins.org_secc.Administration
                         ForeignId = matrixItem.Id
                     };
 
-                    stepService.Add(step);
+                    stepService.Add( step );
                 }
 
-                if (baptismDate >= new DateTime(1753, 1, 1)) //datetime minimum date
+                if ( baptismDate >= new DateTime( 1753, 1, 1 ) ) //datetime minimum date
                 {
                     step.StartDateTime = baptismDate;
                     step.CompletedDateTime = baptismDate;
@@ -418,31 +415,31 @@ namespace RockWeb.Plugins.org_secc.Administration
 
                 step.StepStatusId = StepStatus.Id;
 
-                if (campusGuid.HasValue)
+                if ( campusGuid.HasValue )
                 {
-                    step.CampusId = CampusCache.Get(campusGuid.Value).Id;
+                    step.CampusId = CampusCache.Get( campusGuid.Value ).Id;
                 }
 
                 context.SaveChanges();
-                step.LoadAttributes(context);
+                step.LoadAttributes( context );
 
-                step.SetAttributeValue("BaptismType", baptismTypeGuid);
+                step.SetAttributeValue( "BaptismType", baptismTypeGuid );
 
-                if (baptizedBy.IsNotNullOrWhiteSpace())
+                if ( baptizedBy.IsNotNullOrWhiteSpace() )
                 {
-                    step.SetAttributeValue("BaptizedBy", baptizedBy);
+                    step.SetAttributeValue( "BaptizedBy", baptizedBy );
                 }
                 else
                 {
-                    step.SetAttributeValue("BaptizedBy", null);
+                    step.SetAttributeValue( "BaptizedBy", null );
                 }
 
-                step.SaveAttributeValues(context);
+                step.SaveAttributeValues( context );
 
-                results["Success"] += String.Format("Successfully migrated baptism item {0}-{1} for {2}.",
+                results["Success"] += String.Format( "Successfully migrated baptism item {0}-{1} for {2}.",
                     matrixItem.Id,
-                    baptismTypeGuid.HasValue ? DefinedValueCache.Get(baptismTypeGuid.Value).Value : "Unknown Type",
-                    person != null ? person.FullName: "Unknown") + Environment.NewLine;
+                    baptismTypeGuid.HasValue ? DefinedValueCache.Get( baptismTypeGuid.Value ).Value : "Unknown Type",
+                    person != null ? person.FullName : "Unknown" ) + Environment.NewLine;
 
                 return true;
 
@@ -465,7 +462,7 @@ namespace RockWeb.Plugins.org_secc.Administration
         /// </summary>
         /// <param name="message">The message to display</param>
         /// <param name="boxType">The notification/alert box type</param>
-        private void NotificationBoxSet(string message, NotificationBoxType boxType)
+        private void NotificationBoxSet( string message, NotificationBoxType boxType )
         {
             nbMain.Text = message;
             nbMain.NotificationBoxType = boxType;
@@ -478,31 +475,31 @@ namespace RockWeb.Plugins.org_secc.Administration
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="ProgressChangedEventArgs"/> instance containing the event data.</param>
-        private void OnProgress(object e)
+        private void OnProgress( object e )
         {
 
             string progressMessage = string.Empty;
             DescriptionList progressResults = new DescriptionList();
-            if (e is string)
+            if ( e is string )
             {
                 progressMessage = e.ToString();
             }
 
-            foreach (var result in results)
+            foreach ( var result in results )
             {
-                progressResults.Add(result.Key, result.Value);
+                progressResults.Add( result.Key, result.Value );
             }
 
-            WriteProgressMessage(progressMessage, progressResults.Html);
+            WriteProgressMessage( progressMessage, progressResults.Html );
         }
 
         /// <summary>
         /// Writes the progress message.
         /// </summary>
         /// <param name="message">The message.</param>
-        private void WriteProgressMessage(string message, string results)
+        private void WriteProgressMessage( string message, string results )
         {
-            _hubContext.Clients.All.receiveNotification(this.SignalRNotificationKey, message, results.ConvertCrLfToHtmlBr());
+            _hubContext.Clients.All.receiveNotification( this.SignalRNotificationKey, message, results.ConvertCrLfToHtmlBr() );
         }
 
 
