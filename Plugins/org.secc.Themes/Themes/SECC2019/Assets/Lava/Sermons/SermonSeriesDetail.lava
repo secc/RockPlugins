@@ -117,7 +117,7 @@
                     		{%- assign videoImageGuid = message | Attribute:'Image','RawValue' -%}
                     		{%- if message.ContentChannelId != "23" -%}
                                 {% comment %} init & reset values each loop {% endcomment %}
-                                {%- assign childItemJSON = "" -%} 
+                                {%- assign childItemJSON = "" -%}
                                 {%- assign recommendedReading = "" -%}
                                 {%- assign resourceMediaFile = "" -%}
                                 {%- assign resourceURL = "" -%}
@@ -167,7 +167,7 @@
                                 {%- endif -%}
 
                     		{%- endif -%}
-                            
+
                     	{%- endfor -%}
                         {%- if resourcesCount != 0 -%}
     					<li><a href="#Resources">Resources</a></li>
@@ -210,13 +210,20 @@
             {{ '{%- assign seriesImageGuid = "' | Append:seriesImageGuid | Append: '" ' | Append: ending }}
 
             {%- assign currentMessageVideoId = currentMessage | Attribute:'VimeoId' -%}
+			{%- assign youtubeMessageVideoId = currentMessage | Attribute:'YouTubeId' -%}
+			
             <div class="series-detail container">
                 <div id="seriesHead" class="row">
                     {%- unless currentMessageVideoId == empty -%}
                     <div id="sermonVideo" class="col-sm-12 col-lg-8 g-padding-x-0--xs g-padding-x-60--lg">
                         <div class="embed-responsive embed-responsive-16by9 media-border-only">
                             <div class="embed-responsive embed-responsive-16by9 media-border-only">
+							{% if youtubeMessageVideoId != null and youtubeMessageVideoId != '' %}
+								{% assign startTime =  currentMessage | Attribute:'YoutubeSermonStartTime' %}
+								<iframe width="640" height="360" src="https://www.youtube.com/embed/{{youtubeMessageVideoId}}?start={{startTime}}" title="{{currentMessage.Title}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+							{% else %}
                                 <iframe src="https://player.vimeo.com/video/{{ currentMessageVideoId }}?title=0&byline=0&portrait=0" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+							{% endif %}
                             </div>
                         </div>
         			</div>
@@ -422,7 +429,7 @@
     											{%- assign runningSeconds = message | Attribute: 'Duration' | Minus:temp -%}
                                                 {% if runningSeconds < 10 %}
                                                     Running Time: {{runningMinutes}}:0{{runningSeconds}}
-                                                {% else %}    
+                                                {% else %}
     											    Running Time: {{runningMinutes}}:{{runningSeconds}}
                                                 {% endif %}
     										</h6>
@@ -549,7 +556,7 @@
             <br>
             <h5 class="uppercase g-letter-spacing--3">Could not find series.</h5>
             <br>
-            <h3 class="g-font-family--secondary">Please try again by looking at our <a href="https://www.southeastchristian.org/sermons"><i>Sermons</i>.</a></h3>
+            <h3 class="g-font-family--secondary">Please try again by looking at our <a href="/sermons"><i>Sermons</i>.</a></h3>
             <br>
             <h5>"For the Son of Man came to seek and to save the lost." Luke 19:10</h5>
             <br>
