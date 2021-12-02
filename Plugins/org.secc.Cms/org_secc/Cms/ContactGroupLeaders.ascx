@@ -5,7 +5,7 @@
 
         <asp:Literal ID="lError" runat="server" />
 
-        <asp:Panel ID="pnlContactGroupLeaders" runat="server" CssClass="emailform">
+        <asp:Panel ID="pnlContactGroupLeaders" runat="server" CssClass="emailform" Visible="false">
             
            <Rock:RockTextBox ID="tbFirstName" runat="server" Label="First Name" Required="true" />
            <Rock:RockTextBox ID="tbLastName" runat="server" Label="Last Name" Required="false" />
@@ -21,6 +21,10 @@
 				<asp:Button ID="btnSubmit" CssClass="btn btn-primary" runat="server" Text="Submit"  OnClick="btnSubmit_Click" />
 			</div>		
             
+        </asp:Panel>
+
+        <asp:Panel ID="pnlViewMessage" runat="server" Visible="false">
+            <asp:Literal ID="lMessageContent" runat="server" />
         </asp:Panel>
         
          <asp:Literal ID="lResponse" runat="server" Visible="false" />

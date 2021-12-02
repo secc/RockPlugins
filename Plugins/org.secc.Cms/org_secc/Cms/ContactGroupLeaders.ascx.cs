@@ -20,12 +20,15 @@ using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+
 using org.secc.GroupManager.Model;
+
 using Rock;
 using Rock.Attribute;
 using Rock.Communication;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 using Group = Rock.Model.Group;
 
@@ -49,6 +52,10 @@ namespace RockWeb.Plugins.org_secc.Cms
     [TextField( "Submit Button CSS Class", "The CSS class add to the submit button.", false, "btn btn-primary", "", 12, key: "SubmitButtonCssClass" )]
     [BooleanField( "Save Communication History", "Should a record of this communication be saved to the recipient's profile", false, "", 14 )]
     [LavaCommandsField( "Enabled Lava Commands", "The Lava commands that should be enabled for this HTML block.", false, order: 15 )]
+    [BooleanField( "Enable SMS", "Enable messages being sent by SMS when it is the user's preferred communication method.", false, order: 16 )]
+    [DefinedValueField( "611bde1f-7405-4d16-8626-ccfedb0e62be", "SMS From Number", "The SMS Phone Number that the message should come from", false, false, "86604119-a222-4b35-9cd3-1a78db1b7b17", "", order: 17 )]
+    [CodeEditorField( "SMS Message Body", "The SMS message body.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, "", "", 18 )]
+
     public partial class ContactGroupLeaders : Rock.Web.UI.RockBlock
     {
 
@@ -72,7 +79,14 @@ namespace RockWeb.Plugins.org_secc.Cms
 
             if ( !Page.IsPostBack )
             {
-                ShowForm();
+                if ( PageParameter( "c" ).AsGuidOrNull().HasValue )
+                {
+                    ShowCommunication();
+                }
+                else
+                {
+                    ShowForm();
+                }
             }
         }
 
@@ -97,7 +111,7 @@ namespace RockWeb.Plugins.org_secc.Cms
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnSubmit_Click( object sender, EventArgs e )
         {
-            bool result = SendEmail();
+            bool result = SendMessage();
 
             if ( result == true )
             {
@@ -111,6 +125,7 @@ namespace RockWeb.Plugins.org_secc.Cms
         }
 
         #endregion
+
         #region Methods
 
         /// <summary>
@@ -118,6 +133,8 @@ namespace RockWeb.Plugins.org_secc.Cms
         /// </summary>
         private void ShowForm()
         {
+            pnlContactGroupLeaders.Visible = true;
+
             //Preload form
             if ( CurrentPerson != null )
             {
@@ -150,7 +167,7 @@ namespace RockWeb.Plugins.org_secc.Cms
         /// <summary>
         /// Sends the email.
         /// </summary>
-        private bool SendEmail()
+        private bool SendMessage()
         {
             var rockContext = new RockContext();
             var personAliasService = new PersonAliasService( rockContext );
@@ -158,10 +175,11 @@ namespace RockWeb.Plugins.org_secc.Cms
             var publishGroupService = new PublishGroupService( rockContext );
             Group group = null;
             PublishGroup publishGroup = null;
+            bool allowSMS = GetAttributeValue( "EnableSMS" ).AsBoolean();
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
 
-            List<RockMessageRecipient> recipients = new List<RockMessageRecipient>();
-
+            List<Person> emailRecipients = new List<Person>();
+            List<Person> smsRecipients = new List<Person>();
             // get person from url
             if ( PageParameter( "PersonGuid" ).IsNotNullOrWhiteSpace() )
             {
@@ -170,11 +188,16 @@ namespace RockWeb.Plugins.org_secc.Cms
                 {
                     var person = personAliasService.Queryable()
                         .Where( pa => pa.Guid == personGuid.Value )
-                        .Select(pa => pa.Person)
+                        .Select( pa => pa.Person )
                         .FirstOrDefault();
-                    if ( person != null )
+                    var phoneNumber = person.PhoneNumbers.GetFirstSmsNumber();
+                    if ( person != null && allowSMS && person.CommunicationPreference == CommunicationType.SMS && phoneNumber.IsNotNullOrWhiteSpace() )
                     {
-                        recipients.Add( new RockEmailMessageRecipient( person, mergeFields ) );
+                        smsRecipients.Add( person );
+                    }
+                    else
+                    {
+                        emailRecipients.Add( person );
                     }
                 }
             }
@@ -191,7 +214,15 @@ namespace RockWeb.Plugins.org_secc.Cms
                     var leaders = GetGroupLeaders( group );
                     foreach ( var leader in leaders )
                     {
-                        recipients.Add( new RockEmailMessageRecipient( leader, mergeFields ) );
+                        var phonenumber = leader.PhoneNumbers.GetFirstSmsNumber();
+                        if ( allowSMS && leader.CommunicationPreference == CommunicationType.SMS && phonenumber.IsNotNullOrWhiteSpace() )
+                        {
+                            smsRecipients.Add( leader );
+                        }
+                        else
+                        {
+                            emailRecipients.Add( leader );
+                        }
 
                     }
                 }
@@ -207,12 +238,13 @@ namespace RockWeb.Plugins.org_secc.Cms
                     publishGroup = publishGroupService.Get( publishGroupGuid.Value );
                     if ( publishGroup != null )
                     {
-                        recipients.Add( RockEmailMessageRecipient.CreateAnonymous( publishGroup.ContactEmail, mergeFields ) );
+                        var person = new Person { Email = publishGroup.ContactEmail };
+                        emailRecipients.Add( person );
                     }
                 }
             }
 
-            if ( !recipients.Any() )
+            if ( !emailRecipients.Any() && !smsRecipients.Any() )
             {
                 Guid defaultRecipient = this.GetAttributeValue( "DefaultRecipient" ).AsGuid();
                 var defaultPerson = personAliasService.Queryable()
@@ -221,18 +253,34 @@ namespace RockWeb.Plugins.org_secc.Cms
                         .FirstOrDefault();
                 if ( defaultPerson != null )
                 {
-                    recipients.Add( new RockEmailMessageRecipient( defaultPerson, mergeFields ) );
+                    var phonenumber = defaultPerson.PhoneNumbers.GetFirstSmsNumber();
+                    if ( allowSMS && defaultPerson.CommunicationPreference == CommunicationType.SMS && phonenumber.IsNotNullOrWhiteSpace() )
+                    {
+                        smsRecipients.Add( defaultPerson );
+                    }
+                    else
+                    {
+                        emailRecipients.Add( defaultPerson );
+                    }
                 }
             }
 
-            if ( !recipients.Any() )
+            if ( !emailRecipients.Any() && !smsRecipients.Any() )
             {
                 Guid defaultGroupGuid = GetAttributeValue( "LeaderGroup" ).AsGuid();
                 var defaultGroup = groupService.Get( defaultGroupGuid );
                 var leaders = GetGroupLeaders( defaultGroup );
                 foreach ( var leader in leaders )
                 {
-                    recipients.Add( new RockEmailMessageRecipient( leader, mergeFields ) );
+                    var phonenumber = leader.PhoneNumbers.GetFirstSmsNumber();
+                    if ( allowSMS && leader.CommunicationPreference == CommunicationType.SMS && phonenumber.IsNotNullOrWhiteSpace() )
+                    {
+                        smsRecipients.Add( leader );
+                    }
+                    else
+                    {
+                        emailRecipients.Add( leader );
+                    }
                 }
             }
 
@@ -247,25 +295,15 @@ namespace RockWeb.Plugins.org_secc.Cms
                 mergeFields.Add( "FromEmail", tbEmail.Text );
                 mergeFields.Add( "FromName", tbFirstName.Text + " " + tbLastName.Text );
 
-                var message = new RockEmailMessage();
-                message.EnabledLavaCommands = GetAttributeValue( "EnabledLavaCommands" );
-
-                // send email
-                foreach ( var recipient in recipients )
+                if ( emailRecipients.Any() )
                 {
-                    message.AddRecipient( recipient );
+                    SendEmail( emailRecipients, mergeFields );
                 }
 
-                message.FromEmail = tbEmail.Text;
-                message.FromName = tbFirstName.Text + " " + tbLastName.Text;
-                message.Subject = GetAttributeValue( "Subject" );
-                message.Message = GetAttributeValue( "MessageBody" );
-                message.AppRoot = ResolveRockUrl( "~/" );
-                message.ThemeRoot = ResolveRockUrl( "~~/" );
-                message.CreateCommunicationRecord = GetAttributeValue( "SaveCommunicationHistory" ).AsBoolean();
-                message.Send();
-
-                // set response
+                if ( smsRecipients.Any() )
+                {
+                    SendTextMessage( smsRecipients, mergeFields );
+                }
 
                 // display response message
                 lResponse.Visible = true;
@@ -280,6 +318,156 @@ namespace RockWeb.Plugins.org_secc.Cms
                 lResponse.Text = "<div class='alert alert-danger'>You appear to be a computer. Check the box above and then click Submit.</div>";
                 return false;
             }
+        }
+
+        private void SendEmail( List<Person> emailrecipients, Dictionary<string, object> mergeFields )
+        {
+            var message = new RockEmailMessage();
+            message.EnabledLavaCommands = GetAttributeValue( "EnabledLavaCommands" );
+
+            foreach ( var person in emailrecipients )
+            {
+                if ( person.Id > 0 )
+                {
+                    message.AddRecipient( new RockEmailMessageRecipient( person, mergeFields ) );
+                }
+                else
+                {
+                    message.AddRecipient( RockEmailMessageRecipient.CreateAnonymous( person.Email, mergeFields ) );
+                }
+            }
+
+            message.FromEmail = tbEmail.Text;
+            message.FromName = tbFirstName.Text + " " + tbLastName.Text;
+            message.Subject = GetAttributeValue( "Subject" );
+            message.Message = GetAttributeValue( "MessageBody" );
+            message.AppRoot = ResolveRockUrl( "~/" );
+            message.ThemeRoot = ResolveRockUrl( "~~/" );
+            message.CreateCommunicationRecord = GetAttributeValue( "SaveCommunicationHistory" ).AsBoolean();
+            message.Send();
+
+        }
+
+        private void SendTextMessage( List<Person> smsRecipients, Dictionary<string, object> mergeFields )
+        {
+            var rockContext = new RockContext();
+            var communicationService = new CommunicationService( rockContext );
+            var communicationRecipientService = new CommunicationRecipientService( rockContext );
+
+            var communication = new Rock.Model.Communication();
+            communication.Status = CommunicationStatus.Approved;
+            communication.SenderPersonAliasId = CurrentPerson.PrimaryAliasId;
+            communicationService.Add( communication );
+            communication.EnabledLavaCommands = GetAttributeValue( "EnabledLavaCommands" );
+            communication.IsBulkCommunication = false;
+            communication.CommunicationType = CommunicationType.SMS;
+            communication.ListGroup = null;
+            communication.ListGroupId = null;
+            communication.ExcludeDuplicateRecipientAddress = true;
+            communication.CommunicationTemplateId = null;
+            communication.FromName = mergeFields["FromName"].ToString().TrimForMaxLength( communication, "FromName" );
+            communication.FromEmail = mergeFields["FromEmail"].ToString().TrimForMaxLength( communication, "FromEmail" );
+            communication.Subject = GetAttributeValue( "Subject" );
+            communication.Message = GetAttributeValue( "MessageBody" );
+
+            communication.SMSFromDefinedValueId = DefinedValueCache.GetId( GetAttributeValue( "SMSFromNumber" ).AsGuid() );
+            communication.SMSMessage = GetAttributeValue( "SMSMessageBody" );
+            communication.FutureSendDateTime = null;
+
+            communicationService.Add( communication );
+
+            rockContext.SaveChanges();
+
+            foreach ( var smsPerson in smsRecipients )
+            {
+                communication.Recipients.Add( new CommunicationRecipient()
+                {
+                    PersonAliasId = smsPerson.PrimaryAliasId,
+                    MediumEntityTypeId = EntityTypeCache.Get( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_SMS.AsGuid() ).Id,
+                    AdditionalMergeValues = mergeFields
+                } );
+
+            }
+            rockContext.SaveChanges();
+
+            var transaction = new Rock.Transactions.SendCommunicationTransaction();
+            transaction.CommunicationId = communication.Id;
+            transaction.PersonAlias = CurrentPersonAlias;
+            Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+
+        }
+
+        private void ShowCommunication()
+        {
+
+            pnlViewMessage.Visible = true;
+
+            var communicationGuid = PageParameter( "c" ).AsGuid();
+
+            var rockContext = new RockContext();
+            var communicationService = new CommunicationService( rockContext );
+            var personService = new PersonService( rockContext );
+            Person person = null;
+
+            if ( PageParameter( "p" ).IsNotNullOrWhiteSpace() )
+            {
+                person = personService.GetByImpersonationToken( PageParameter( "p" ), true, null );
+            }
+
+            if ( person == null )
+            {
+                person = CurrentPerson;
+            }
+
+            var communication = communicationService.Get( communicationGuid );
+
+            if ( communication == null || !communication.Recipients.Where( r => r.PersonAlias.PersonId == person.Id ).Any() )
+            {
+                var message = "<div class='alert alert-info'>This message is currently unavailable</div>";
+                lMessageContent.Text = message;
+
+                return;
+            }
+
+            var recipient = communication.Recipients.Where( r => r.PersonAlias.PersonId == person.Id ).FirstOrDefault();
+            var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
+            mergeFields.Add( "Communication", "communication" );
+            mergeFields.Add( "Person", person );
+
+            foreach ( var mergeField in recipient.AdditionalMergeValues )
+            {
+                if ( !mergeFields.ContainsKey( mergeField.Key ) )
+                {
+                    mergeFields.Add( mergeField.Key, mergeField.Value );
+                }
+            }
+
+            string body = communication.Message.ResolveMergeFields( mergeFields, communication.EnabledLavaCommands );
+            body = System.Text.RegularExpressions.Regex.Replace( body, @"\[\[\s*UnsubscribeOption\s*\]\]", string.Empty );
+            lMessageContent.Text = body;
+
+
+            // write an 'opened' interaction
+            var interactionService = new InteractionService( rockContext );
+
+            InteractionComponent interactionComponent = new InteractionComponentService( rockContext )
+                                .GetComponentByEntityId( Rock.SystemGuid.InteractionChannel.COMMUNICATION.AsGuid(),
+                                    communication.Id, communication.Subject );
+            rockContext.SaveChanges();
+
+            var ipAddress = Rock.Web.UI.RockPage.GetClientIpAddress();
+
+            var userAgent = Request.UserAgent ?? "";
+
+            UAParser.ClientInfo client = UAParser.Parser.GetDefault().Parse( userAgent );
+            var clientOs = client.OS.ToString();
+            var clientBrowser = client.UA.ToString();
+            var clientType = InteractionDeviceType.GetClientType( userAgent );
+
+            interactionService.AddInteraction( interactionComponent.Id, recipient.Id, "Opened", "", recipient.PersonAliasId, RockDateTime.Now, clientBrowser, clientOs, clientType, userAgent, ipAddress, null );
+
+            rockContext.SaveChanges();
+
         }
 
 
