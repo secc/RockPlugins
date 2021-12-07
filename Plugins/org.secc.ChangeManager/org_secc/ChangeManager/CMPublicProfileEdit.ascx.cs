@@ -42,7 +42,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Default Connection Status", "The connection status that should be set by default", false, false, "", "", order: 0 )]
     [BooleanField( "Disable Name Edit", "Whether the First and Last Names can be edited.", false, order: 1 )]
-    [GroupLocationTypeField( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY, "Address Type", "The type of address to be displayed / edited.", false, Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME, "", order: 4 )]
+    [GroupLocationTypeField( "Address Type", Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY, "The type of address to be displayed / edited.", false, Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME, "", order: 4 )]
     [BooleanField( "Show Phone Numbers", "Allows hiding the phone numbers.", false, order: 5 )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "Phone Types", "The types of phone numbers to display / edit.", false, true, Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME, order: 6 )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_PHONE_TYPE, "Required Adult Phone Types", "The phone numbers that are required when editing an adult record.", false, true, order: 7 )]
@@ -136,7 +136,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             ddlTitle.Items.Insert( 0, new ListItem() );
             ddlSuffix.DefinedTypeId = DefinedTypeCache.Get( new Guid( Rock.SystemGuid.DefinedType.PERSON_SUFFIX ) ).Id;
             ddlSuffix.Items.Insert( 0, new ListItem() );
-            RockPage.AddCSSLink(ResolveRockUrl("~~/Styles/theme.css"));
+            RockPage.AddCSSLink( ResolveRockUrl( "~~/Styles/theme.css" ) );
             RockPage.AddCSSLink( ResolveRockUrl( "~/Styles/fluidbox.css" ) );
             RockPage.AddScriptLink( ResolveRockUrl( "~/Scripts/imagesloaded.min.js" ) );
             RockPage.AddScriptLink( ResolveRockUrl( "~/Scripts/jquery.fluidbox.min.js" ) );
@@ -338,6 +338,15 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 {
                     var phoneNumberTypeIds = new List<int>();
                     var phoneNumbersScreen = new List<PhoneNumber>();
+                    var visiblePhoneNumberTypeIds = new List<int>();
+
+                    var visiblePhoneNumberTypeGuids = GetAttributeValue( "PhoneTypes" ).SplitDelimitedValues().AsGuidList();
+
+                    foreach ( var phoneTypeGuid in visiblePhoneNumberTypeGuids )
+                    {
+                        visiblePhoneNumberTypeIds.Add( DefinedValueCache.Get( phoneTypeGuid ).Id );
+                    }
+
                     bool smsSelected = false;
                     foreach ( RepeaterItem item in rContactInfo.Items )
                     {
@@ -387,6 +396,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     }
                     //Remove old phone numbers or changed
                     var phoneNumbersToRemove = person.PhoneNumbers
+                                       .Where( n => visiblePhoneNumberTypeIds.Contains( n.NumberTypeValueId ?? -1 ) )
                                        .Where( n => !phoneNumbersScreen.Any( n2 => n2.Number == n.Number && n2.NumberTypeValueId == n.NumberTypeValueId ) ).ToList();
 
                     foreach ( var number in phoneNumbersToRemove )
