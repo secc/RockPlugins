@@ -211,7 +211,7 @@
 
             {%- assign currentMessageVideoId = currentMessage | Attribute:'VimeoId' -%}
 			{%- assign youtubeMessageVideoId = currentMessage | Attribute:'YouTubeId' -%}
-			
+
             <div class="series-detail container">
                 <div id="seriesHead" class="row">
                     {%- unless currentMessageVideoId == empty -%}
@@ -261,9 +261,7 @@
                         <div class="text-center">
         					<br />
                             <p><i class="fa fa-share-alt"></i> Share this Sermon:
-                            {%- raw -%}
                             {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}&mode=crop&width=960&height=540' emailsubject:'{{ currentMessage.Title }}' emailbody:'Check out this sermon I found at Southeast Christian Church.' ]}
-                            {%- endraw -%}
                             <br />
                             <br />
                         </div>
