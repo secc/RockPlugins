@@ -59,8 +59,8 @@
         if ($('#co_action_counter_container').length) {
 
             var co_days, co_goLive, co_hours, co_intervalId, co_minutes, co_seconds;
-										
-																			
+
+
 
             co_goLive = function() {
               $("#co_action_counter_loader").hide();
@@ -162,18 +162,22 @@
 
     Production is 60.
 {% endcomment %}
-
+<style>
+.action-item-card {
+    flex-direction: row!important;
+}
+</style>
 {% assign dt =  'Now' | Date:'yyyy/MM/dd HH:mm:ss tt' -%}
 {% contentchannelitem where:'ContentChannelId == 60 && StartDateTime <= "{{dt}}"' sort:'Order' %}
 {% assign Items = contentchannelitemItems %}
 {% endcontentchannelitem %}
 
-{% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger %}
+{% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsDouble %}
 
 {% assign ItemsCount = 0 %}
 {% for item in Items %}
-    {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
-    {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsInteger %}
+    {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsDouble %}
+    {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsDouble %}
     {% if itemStartDateTime <= currentDateTime %}
         {% if itemExpireDateTime > currentDateTime or itemExpireDateTime == null %}
             {% assign ItemsCount = ItemsCount | Plus:1 %}
@@ -188,8 +192,8 @@
             {% assign cardsFlagCount = 0 %}
             {% assign firstFlag = false %}
             {%- for item in Items -%}
-                {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
-                {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsInteger %}
+                {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsDouble %}
+                {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsDouble %}
                 {% if itemStartDateTime <= currentDateTime %}
                 {% if itemExpireDateTime > currentDateTime or itemExpireDateTime == null %}
                 <div class="col-xs-12 col-lg-4
@@ -203,7 +207,7 @@
                 {% assign alert_template = item | Attribute:'AlertTemplate','RawValue' %}
                 {%- if alert_template == 1 -%}
                     {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
-								 
+
                     <a href="/online">
                     <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
                         <h5 class="g-font-family--secondary">{{ item.Title }}</h5>
@@ -233,21 +237,16 @@
                         </div>
                     </div>
                     </a>
-									
-									  
-																												  
-																																																																																																									  
-																									   
-																													 
-							  
-						
+
                 {%- elseif alert_template == 2 -%}
                     {% assign cardsFlagCount = cardsFlagCount | Plus:1 %}
                     <a href="/locations">
-                    <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
+                    <div class="clearfix card action-item-card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
                         <img src="/GetImage.ashx?id=1999706&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg action-image" style="margin-right: 0 !important;" />
-                        <h5 class="g-font-family--secondary g-margin-b-5--xs">New Here?</h5>
-                        <h6 class="g-margin-b-0--xs g-line-height--normal action-content">We have multiple locations but one mission: <i>Connecting people to Jesus and one another.</i> Learn more about what to expect on your visit.</h6>
+                        <div>
+                            <h5 class="g-font-family--secondary g-margin-b-5--xs">New Here?</h5>
+                            <h6 class="g-margin-b-0--xs g-line-height--normal action-content">We have multiple locations but one mission: <i>Connecting people to Jesus and one another.</i> Learn more about what to expect on your visit.</h6>
+                        </div>
                     </div>
                     </a>
                 {%- elseif alert_template == 3 -%}
@@ -257,12 +256,14 @@
                     {% assign defaultContent = item | Attribute:'DefaultContent' %}
                     {%- if defaultURL != "" -%}
                     <a href="{{ defaultURL }}">
-                    <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
+                    <div class="clearfix card action-item-card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
                         {% if defaultImageGuid != '' %}
                         <img src="/GetImage.ashx?Guid={{ defaultImageGuid }}&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg action-image" style="margin-right: 0 !important;" />
                         {% endif %}
-                        <h5 class="g-font-family--secondary g-margin-b-5--xs">{{ item.Title }}</h5>
-                        <h6 class="g-margin-b-0--xs g-line-height--normal action-content">{{ item.Content }}</h6>
+                        <div>
+                            <h5 class="g-font-family--secondary g-margin-b-5--xs">{{ item.Title }}</h5>
+                            <h6 class="g-margin-b-0--xs g-line-height--normal action-content">{{ item.Content }}</h6>
+                        </div>
                     </div>
                     </a>
                     {%- endif -%}
@@ -273,12 +274,14 @@
                     {% assign defaultContent = item | Attribute:'DefaultContent' %}
                     {%- if defaultURL != "" -%}
                     <a href="{{ defaultURL }}">
-                    <div class="clearfix card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
+                    <div class="clearfix card action-item-card g-padding-y-30--xs g-padding-x-30--xs g-height-100-percent--xs">
                         {% if defaultImageGuid != '' %}
                         <img src="/GetImage.ashx?Guid={{ defaultImageGuid }}&h=175&w=175&mode=crop" class="pull-left img-responsive g-padding-r-30--xs g-width-200--xs g-width-250--lg action-image" style="margin-right: 0 !important;" />
                         {% endif %}
-                        <h5 class="g-font-family--secondary g-margin-b-5--xs">{{ item.Title }}</h5>
-                        <h6 class="g-margin-b-0--xs g-line-height--normal action-content">{{ defaultContent | Truncate:134,'...' }}</h6>
+                        <div>
+                            <h5 class="g-font-family--secondary g-margin-b-5--xs">{{ item.Title }}</h5>
+                            <h6 class="g-margin-b-0--xs g-line-height--normal action-content">{{ defaultContent | Truncate:134,'...' }}</h6>
+                        </div>
                     </div>
                     </a>
                     {%- endif -%}
