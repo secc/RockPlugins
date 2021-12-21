@@ -253,12 +253,36 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             if ( kioskTypeCookie != null )
             {
                 var kioskType = KioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
-                if ( kioskType == null || kioskType.CampusId == null || kioskType.CampusId == activeMCR.CampusId )
+                if(kioskType != null && kioskType.CampusId == activeMCR.CampusId)
+                {
+                    if(MCRValidForKiosk(kioskType, activeMCR))
+                    {
+                        return true;
+                    }
+                }
+
+
+                if ( kioskType == null || kioskType.CampusId == null  )
                 {
                     return true;
                 }
             }
             return false;
+        }
+
+        private bool MCRValidForKiosk( KioskTypeCache kioskType, MobileCheckinRecordCache mcr )
+        {
+            var groupTypeIds = new List<int>();
+            foreach ( var a in mcr.AttendanceIds )
+            {
+                var attendance = AttendanceCache.Get( a );
+                var occurrence = OccurrenceCache.Get( attendance.OccurrenceAccessKey );
+
+                groupTypeIds.Add( occurrence.GroupTypeId );
+            }
+
+            return kioskType.GroupTypeIds.Where( kg => groupTypeIds.Contains( kg ) ).Any();
+            
         }
 
         private void ShowActiveMobileCheckin()
