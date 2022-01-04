@@ -28,8 +28,7 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static T Get( string qualifiedKey, Func<T> itemFactory, Func<List<string>> keyFactory )
         {
-
-            var item = ( T ) RockCache.Get( qualifiedKey );
+            var item = RockCacheManager<T>.Instance.Get( qualifiedKey );
 
             if ( item != null )
             {
@@ -45,7 +44,7 @@ namespace org.secc.FamilyCheckin.Cache
                     UpdateKeys( keyFactory );
                 }
 
-                RockCache.AddOrUpdate( qualifiedKey, item );
+                RockCacheManager<T>.Instance.Cache.AddOrUpdate( qualifiedKey, item, v => item );
             }
             else
             {
@@ -69,14 +68,12 @@ namespace org.secc.FamilyCheckin.Cache
                 UpdateKeys( keyFactory );
             }
 
-            //RockCacheManager<T>.Instance.Cache.AddOrUpdate( qualifiedKey, item, v => item );
-            RockCache.AddOrUpdate( qualifiedKey, item );
+            RockCacheManager<T>.Instance.Cache.AddOrUpdate( qualifiedKey, item, v => item );
         }
 
         public static void Remove( string qualifiedKey, Func<List<string>> keyFactory )
         {
-            //RockCacheManager<T>.Instance.Cache.Remove( qualifiedKey );
-            RockCache.Remove( qualifiedKey );
+            RockCacheManager<T>.Instance.Cache.Remove( qualifiedKey );
             UpdateKeys( keyFactory );
         }
 
@@ -92,8 +89,7 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static void FlushItem( string qualifiedKey )
         {
-            //RockCacheManager<T>.Instance.Cache.Remove( qualifiedKey );
-            RockCache.Remove( qualifiedKey );
+            RockCacheManager<T>.Instance.Cache.Remove( qualifiedKey );
         }
 
         internal protected static string QualifiedKey( int id )
@@ -118,16 +114,14 @@ namespace org.secc.FamilyCheckin.Cache
 
         private static List<string> AllKeys()
         {
-         
-            var keys = RockCache.Get( AllKey, AllRegion ) as List<string>;
+            var keys = RockCacheManager<List<string>>.Instance.Cache.Get( AllKey, AllRegion );
             return keys ?? new List<string>();
         }
 
         private static List<string> UpdateKeys( Func<List<string>> keyFactory )
         {
             var keys = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
-            RockCache.AddOrUpdate( AllKey, AllRegion, keys );
-            
+            RockCacheManager<List<string>>.Instance.Cache.AddOrUpdate( AllKey, AllRegion, keys, v => keys );
             return keys;
         }
     }
