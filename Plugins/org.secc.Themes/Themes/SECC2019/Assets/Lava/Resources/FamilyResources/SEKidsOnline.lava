@@ -60,9 +60,9 @@
 <div class="container-fluid g-padding-y-40--xs">
 	<div class="container">
 		<div class="isotope_wrap margin-t-lg series-list">
-			{% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger %}
+			{% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsDouble %}
 			{% for item in Items -%}
-				{% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
+				{% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsDouble %}
 				{% if itemStartDateTime <= currentDateTime %}
 					{% assign itemImage = item | Attribute:'Image' -%}
 					{% assign itemImageGuid = item | Attribute:'Image','RawValue' -%}
