@@ -71,16 +71,16 @@
             "images":[
                 { "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/campusFigures/{{campus.Guid}}"  }
             ]
-	}{%- assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger -%}
+	}{%- assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsDouble -%}
 	 {%- contentchannelitem where:'ContentChannelId == 70 && Status == 2' sort:'Order'  -%}{%- for item in contentchannelitemItems -%}
-		{% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
-		{% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsInteger %}
+		{% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsDouble %}
+		{% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsDouble %}
 			{% if itemStartDateTime <= currentDateTime %}
 				{%- assign itemCampuses = item | Attribute:'Campuses' -%}
 				{%- assign connectUrl = item | Attribute:'ConnectURL','RawValue' -%}
 					{% if itemCampuses contains campus.Name %}
 						{%- assign connectImageGuid = item | Attribute:'Image','RawValue' -%}
-						{%- if connectImageGuid == "" -%} 
+						{%- if connectImageGuid == "" -%}
 						,{
 							"images": [
 								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/connect/{{item.Guid}}?bgcolor=121212&mode=crop&s.roundcorners=20,20,20,20&margin=80,0,80,80"  }
