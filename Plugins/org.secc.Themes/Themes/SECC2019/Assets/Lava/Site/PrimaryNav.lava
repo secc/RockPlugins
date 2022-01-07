@@ -80,8 +80,8 @@
                     </a>
                 </li>
                 <li class="se-5-column border-right">
-                    <a class="cd-nav-item stoies" href="/stories">
-                        <h3>Stories</h3>
+                    <a class="cd-nav-item stoies" href="/unleashed-digital">
+                        <h3 style="margin-top:0;">Unleashed <br class="hidden-xs hidden-sm hidden-md">Magazine</h3>
                     </a>
                 </li>
                 <li class="se-5-column border-right">
@@ -179,9 +179,6 @@
                     <li>
                         <a href="/ministries/seniors">Seniors</a>
                     </li>
-                    {% comment %} <li>
-                        <a href="/ministries/generous-living">Generous Living</a>
-                    </li> {% endcomment %}
                     <li class="has-children">
                         <a class="arrow">Generous Living</a>
                         <ul class="is-hidden">
