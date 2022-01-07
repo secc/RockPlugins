@@ -29,26 +29,27 @@ public class Subsplash : IHttpHandler
     {
         try
         {
+            // get the current authenticated user
+            var currentUser = Rock.Model.UserLoginService.GetCurrentUser();
+
             // Convert the context values to a dictionary
-            var mergeFields = RequestToDictionary( context.Request );
+            var mergeFields = RequestToDictionary( context.Request, currentUser != null ? currentUser.Person : null );
 
             // Find the valid api handler for this request
             var api = GetApiForRequest( context.Request, mergeFields );
             if ( api != null )
             {
-                var currentUser = Rock.Model.UserLoginService.GetCurrentUser();
-
                 // Check to see if security should be applied
                 if ( !api.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser != null ? currentUser.Person : null )
-                    || (context.Request.Headers["Authorization"] != null && currentUser == null ) )
+                    || ( context.Request.Headers["Authorization"] != null && currentUser == null ) )
                 {
                     context.Response.ContentType = "text/plain";
                     context.Response.StatusCode = 401;
                     context.Response.Write( "Unauthorized Error." );
-					context.Response.Flush();
+                    context.Response.Flush();
 
-					context.Server.ClearError(); //Clearing server error
-					context.ApplicationInstance.CompleteRequest();
+                    context.Server.ClearError(); //Clearing server error
+                    context.ApplicationInstance.CompleteRequest();
                     return;
                 }
 
@@ -56,15 +57,15 @@ public class Subsplash : IHttpHandler
                 string lava = api.GetAttributeValue( "Template" );
                 string enabledLavaCommands = api.GetAttributeValue( "EnabledLavaCommands" );
                 string contentType = api.GetAttributeValue( "ResponseContentType" );
-
                 string response = lava.ResolveMergeFields( mergeFields, currentUser != null ? currentUser.Person : null, enabledLavaCommands );
 
                 // Add the response headers
                 var headers = api.GetAttributeValue( "ResponseHeaders" );
-                if ( headers != null ) {
-                    foreach( var header in headers.AsDictionary() )
+                if ( headers != null )
+                {
+                    foreach ( var header in headers.AsDictionary() )
                     {
-                        context.Response.AddHeader( header.Key.ResolveMergeFields(mergeFields, currentUser != null ? currentUser.Person : null, enabledLavaCommands ), header.Value.ResolveMergeFields(mergeFields, currentUser != null ? currentUser.Person : null, enabledLavaCommands ) );
+                        context.Response.AddHeader( header.Key.ResolveMergeFields( mergeFields, currentUser != null ? currentUser.Person : null, enabledLavaCommands ), header.Value.ResolveMergeFields( mergeFields, currentUser != null ? currentUser.Person : null, enabledLavaCommands ) );
                     }
                 }
 
@@ -187,9 +188,13 @@ public class Subsplash : IHttpHandler
     /// </summary>
     /// <param name="request">The HttpRequest of the currently executing webhook.</param>
     /// <returns>A dictionary that can be passed to Lava as the merge fields.</returns>
-    protected Dictionary<string, object> RequestToDictionary( HttpRequest request )
+    protected Dictionary<string, object> RequestToDictionary( HttpRequest request, Rock.Model.Person currentPerson )
     {
-        var dictionary = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
+
+        var lavaOptions = new Rock.Lava.CommonMergeFieldsOptions();
+        lavaOptions.GetCurrentPerson = true;
+
+        var dictionary = Rock.Lava.LavaHelper.GetCommonMergeFields( null, currentPerson, lavaOptions );
         var host = WebRequestHelper.GetHostNameFromRequest( HttpContext.Current );
         // Set the standard values to be used.
         dictionary.Add( "Url", "/" + string.Join( "", request.Url.Segments.SkipWhile( s => !s.EndsWith( ".ashx", StringComparison.InvariantCultureIgnoreCase ) && !s.EndsWith( ".ashx/", StringComparison.InvariantCultureIgnoreCase ) ).Skip( 1 ).ToArray() ) );
@@ -211,7 +216,7 @@ public class Subsplash : IHttpHandler
         {
             try
             {
-                dictionary.Add( "Body", JsonConvert.DeserializeObject( (string)dictionary["RawBody"] ) );
+                dictionary.Add( "Body", JsonConvert.DeserializeObject( ( string ) dictionary["RawBody"] ) );
             }
             catch
             {
@@ -232,7 +237,7 @@ public class Subsplash : IHttpHandler
             try
             {
                 XmlDocument doc = new XmlDocument();
-                doc.LoadXml( (string)dictionary["RawBody"] );
+                doc.LoadXml( ( string ) dictionary["RawBody"] );
                 string jsonText = JsonConvert.SerializeXmlNode( doc );
                 dictionary.Add( "Body", JsonConvert.DeserializeObject( ( jsonText ) ) );
             }
