@@ -931,6 +931,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     foreach ( var record in currentRecords )
                     {
                         record.EndDateTime = Rock.RockDateTime.Now;
+                        record.QualifierValueId = null;
                         record.DidAttend = false;
                     }
 
