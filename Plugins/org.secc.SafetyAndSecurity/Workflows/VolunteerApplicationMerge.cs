@@ -243,15 +243,19 @@ namespace org.secc.SafetyAndSecurity
                 pdfStamper = null;
 
                 BinaryFile renderedPDF = new BinaryFile();
-                renderedPDF.CopyPropertiesFrom( PDF );
+                renderedPDF.IsTemporary = false;
+                renderedPDF.IsSystem = false;
                 renderedPDF.Guid = Guid.NewGuid();
+                renderedPDF.MimeType = PDF.MimeType;
                 renderedPDF.FileName = "VolunteerApplication_" + person.FirstName + person.LastName + ".pdf";
                 renderedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( BACKGROUND_CHECK_BINARY_FILE_TYPE ) ).Id;
+                renderedPDF.DatabaseData = null;
 
-                BinaryFileData pdfData = new BinaryFileData();
-                pdfData.Content = ms.ToArray();
+                var bytes = ms.ToArray();
+                renderedPDF.FileSize = bytes.Length;
+                renderedPDF.ContentStream = new MemoryStream( bytes );
+               
 
-                renderedPDF.DatabaseData = pdfData;
 
                 binaryFileService.Add( renderedPDF );
                 rockContext.SaveChanges();

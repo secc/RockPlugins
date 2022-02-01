@@ -59,10 +59,9 @@ namespace org.secc.PDF
                 pdfBinary.MimeType = "application/pdf";
                 pdfBinary.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( Rock.SystemGuid.BinaryFiletype.DEFAULT ) ).Id;
 
-                BinaryFileData pdfData = new BinaryFileData();
-                pdfData.Content = msPDF.ToArray();
-
-                pdfBinary.DatabaseData = pdfData;
+                var bytes = msPDF.ToArray();
+                pdfBinary.FileSize = bytes.Length;
+                pdfBinary.ContentStream = new MemoryStream( bytes );                
 
                 return pdfBinary;
             }
