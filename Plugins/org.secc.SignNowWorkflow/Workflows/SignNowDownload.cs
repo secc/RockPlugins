@@ -43,7 +43,7 @@ namespace org.secc.SignNowWorkflow
         {
             errorMessages = new List<string>();
 
-            // Check to see if the action's activity does not yet have the the 'InviteLink' attribute.
+            // Check to see if the action's activity does not yet have the the 'InviteLink' attribute.x 
             string signNowDocumentId = action.GetWorkflowAttributeValue( GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid() );
             if ( string.IsNullOrEmpty( signNowDocumentId ) )
             {
@@ -101,8 +101,7 @@ namespace org.secc.SignNowWorkflow
                             signedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( binaryFileTypeGuid ).Id;
                         }
                     }
-                    signedPDF.DatabaseData = new BinaryFileData();
-                    signedPDF.DatabaseData.Content = File.ReadAllBytes( tempPath + tempFileName + ".pdf" );
+                    signedPDF.ContentStream = new FileStream( $"{tempPath}{tempFileName}.pdf", FileMode.Open);
 
                     rockContext.SaveChanges();
 
@@ -119,7 +118,8 @@ namespace org.secc.SignNowWorkflow
                 else
                 {
                     signedPDF.FileName = tempFileName;
-                    signedPDF.DatabaseData.Content = File.ReadAllBytes( tempPath + tempFileName + ".pdf" );
+                    signedPDF.ContentStream = new FileStream( $"{tempPath}{tempFileName}.pdf", FileMode.Open );
+
                 }
 
                 // Delete the file when we are done:

@@ -112,15 +112,12 @@ namespace org.secc.PDF
                 //Generate New Object
 
 
-                renderedPDF.CopyPropertiesFrom( pdf );
+                renderedPDF.MimeType = pdf.MimeType;
+                renderedPDF.FileName = pdf.FileName;
+                renderedPDF.IsTemporary = false;
                 renderedPDF.Guid = Guid.NewGuid();
                 renderedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( Rock.SystemGuid.BinaryFiletype.DEFAULT ) ).Id;
-
-                BinaryFileData pdfData = new BinaryFileData();
-                pdfData.Content = ms.ToArray();
-
-                renderedPDF.DatabaseData = pdfData;
-
+                renderedPDF.ContentStream = new MemoryStream( ms.ToArray() );
                 pdfReader.Close();
             }
 

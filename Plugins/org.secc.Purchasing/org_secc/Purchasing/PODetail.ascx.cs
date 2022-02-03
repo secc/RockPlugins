@@ -1708,7 +1708,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             Response.Buffer = true;
             Response.ContentType = pdf.MimeType;
             Response.AddHeader( "content-disposition", "attachment;filename=\"PurchaseOrder-" + CurrentPurchaseOrder.PurchaseOrderID + ".pdf\"" );
-            Response.OutputStream.Write( pdf.DatabaseData.Content, 0, pdf.DatabaseData.Content.Length );
+            Response.BinaryWrite( pdf.ContentStream.ReadBytesToEnd() );
+            Response.Flush();
             Response.End();
         }
 

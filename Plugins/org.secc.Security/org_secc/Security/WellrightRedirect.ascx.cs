@@ -128,8 +128,7 @@ namespace RockWeb.Plugins.org_secc.Security
             {
                 return "";
             }
-            var bindaryFileData = binaryFile.DatabaseData;
-            var binaryData = bindaryFileData.Content;
+            var binaryData = binaryFile.ContentStream.ReadBytesToEnd();
 
             X509Certificate2 signingCert = new X509Certificate2( binaryData, GetAttributeValue( AttributeKey.CertificatePassword ), X509KeyStorageFlags.Exportable );
 

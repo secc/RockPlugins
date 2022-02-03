@@ -129,7 +129,7 @@ namespace org.secc.PDF
             AttributeService attributeService = new AttributeService( rockContext );
             attributeService.Add( newAttribute );
             rockContext.SaveChanges();
-            AttributeCache.RemoveEntityAttributes();
+            AttributeCache.Clear();
 
             action.Activity.Workflow.LoadAttributes();
         }

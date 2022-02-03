@@ -46,7 +46,7 @@ namespace org.secc.LeagueApps
                     RockContext rockContext = new RockContext();
                     BinaryFileService binaryFileService = new BinaryFileService( rockContext );
                     var p12File = binaryFileService.GetNoTracking( Settings.GetAttributeValue( Constants.LeagueAppsServiceAccountFile ).AsGuid() );
-                    certificate = p12File.DatabaseData.Content;
+                    certificate = p12File.ContentStream.ReadBytesToEnd();
                 }
                 return certificate;
             }

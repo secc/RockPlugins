@@ -33,9 +33,8 @@ namespace org.secc.ConnectionCards.Utilities
             using ( GhostscriptRasterizer rasterizer = new GhostscriptRasterizer() )
             {
 
-                using ( MemoryStream ms = new MemoryStream( inputFile.DatabaseData.Content ) )
-                {
-                    rasterizer.Open( ms );
+
+                    rasterizer.Open( inputFile.ContentStream );
                     if ( rasterizer.PageCount > 0 )
                     {
                         string filename = "ImageConvertedPDF.png";
@@ -58,7 +57,7 @@ namespace org.secc.ConnectionCards.Utilities
                             return outputFile;
                         }
                     }
-                }
+
 
             }
             return new BinaryFile();
@@ -66,18 +65,15 @@ namespace org.secc.ConnectionCards.Utilities
 
         public static BinaryFile RotateImage( BinaryFile inputFile, RotateFlipType rotateFlipType, RockContext rockContext )
         {
-            using ( var inMS = new MemoryStream( inputFile.DatabaseData.Content ) )
-            {
-                Image image = Image.FromStream( inMS );
+                Image image = Image.FromStream( inputFile.ContentStream );
                 image.RotateFlip( rotateFlipType );
                 using ( var outMS = new MemoryStream() )
                 {
                     image.Save( outMS, ImageFormat.Png );
-                    inputFile.DatabaseData.Content = outMS.ToArray();
+                    inputFile.ContentStream = outMS;
                     rockContext.SaveChanges();
                     return inputFile;
                 }
-            }
         }
 
 
