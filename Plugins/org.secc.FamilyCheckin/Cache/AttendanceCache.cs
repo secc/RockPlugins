@@ -219,6 +219,18 @@ namespace org.secc.FamilyCheckin.Cache
                 return null;
             }
 
+            Person person;
+            if ( attendance.PersonAliasId != null && attendance.PersonAlias?.Person == null )
+            {
+                PersonAliasService personAliasService = new PersonAliasService( new RockContext() );
+                person = personAliasService.GetPersonNoTracking( attendance.PersonAliasId ?? 0 );
+            }
+            else
+            {
+                person = attendance.PersonAlias.Person;
+            }
+
+
             var attendanceCache = new AttendanceCache
             {
                 Id = attendance.Id,
@@ -227,8 +239,8 @@ namespace org.secc.FamilyCheckin.Cache
                 CreatedDateTime = attendance.CreatedDateTime,
                 StartDateTime = attendance.StartDateTime,
                 EndDateTime = attendance.EndDateTime,
-                PersonId = attendance.PersonAlias.PersonId,
-                PersonName = attendance.PersonAlias.Person.FullName,
+                PersonId = person?.Id ?? 0,
+                PersonName = person?.FullName ?? "Unnamed Person",
                 GroupId = attendance.Occurrence.GroupId,
                 LocationId = attendance.Occurrence.LocationId,
                 ScheduleId = attendance.Occurrence.ScheduleId,
@@ -243,7 +255,7 @@ namespace org.secc.FamilyCheckin.Cache
                 RockContext rockContext = new RockContext();
                 AttendanceCodeService attendanceCodeService = new AttendanceCodeService( rockContext );
                 var code = attendanceCodeService.GetNoTracking( attendance.AttendanceCodeId.Value );
-                if (code != null )
+                if ( code != null )
                 {
                     attendanceCache.Code = code.Code;
                 }
