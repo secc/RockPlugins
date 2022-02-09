@@ -41,17 +41,17 @@
 
                     <asp:Panel ID="pnlCol2" runat="server" CssClass="col-md-6">
                         <div class="row">
-                            <div class="col-sm-6"><Rock:RockTextBox ID="tbSpouseFirstName" runat="server" Label="Spouse First Name"></Rock:RockTextBox></div>
-                            <div class="col-sm-6"><Rock:RockTextBox ID="tbSpouseLastName" runat="server" Label="Spouse Last Name"></Rock:RockTextBox></div>
+                            <Rock:RockCheckBox runat="server" ID="cbRegisterSpouse" Text="Register My Spouse" OnCheckedChanged="cbRegisterSpouse_CheckedChanged" AutoPostBack="true" />
+                            <div class="col-sm-6"><Rock:RockTextBox ID="tbSpouseFirstName" runat="server" Label="Spouse First Name" Enabled="false"></Rock:RockTextBox></div>
+                            <div class="col-sm-6"><Rock:RockTextBox ID="tbSpouseLastName" runat="server" Label="Spouse Last Name"  Enabled="false"></Rock:RockTextBox></div>
                         </div>
-                        <Rock:DatePartsPicker ID="dppSpouseDOB" runat="server" Label="Spouse Birth Date" FutureYearCount="0" />
+                        <Rock:DatePartsPicker ID="dppSpouseDOB" runat="server" Label="Spouse Birth Date" FutureYearCount="0"  Enabled="false" />
                         <div class="pull-right" style="margin-left: 15px;">
-                            <Rock:RockCheckBox ID="cbSpouseSms" runat="server" Label="&nbsp;" Text="Enable SMS" />
+                            <Rock:RockCheckBox ID="cbSpouseSms" runat="server" Label="&nbsp;" Text="Enable SMS"  Enabled="false" />
                         </div>
-                        <Rock:PhoneNumberBox ID="pnSpouseCell" runat="server" Label="Spouse Cell Phone" />
-                        <Rock:EmailBox ID="tbSpouseEmail" runat="server" Label="Email" />
+                        <Rock:PhoneNumberBox ID="pnSpouseCell" runat="server" Label="Spouse Cell Phone"  Enabled="false" />
+                        <Rock:EmailBox ID="tbSpouseEmail" runat="server" Label="Email"  Enabled="false" />
                     </asp:Panel>
-
                 </div>
 
                 <div class="actions">

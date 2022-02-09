@@ -299,7 +299,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
 
                 // Check for the spouse
-                if ( _showSpouse && tbSpouseFirstName.Text.IsNotNullOrWhiteSpace() && tbSpouseLastName.Text.IsNotNullOrWhiteSpace() )
+                if ( cbRegisterSpouse.Checked && _showSpouse && tbSpouseFirstName.Text.IsNotNullOrWhiteSpace() && tbSpouseLastName.Text.IsNotNullOrWhiteSpace() )
                 {
                     spouse = person.GetSpouse( rockContext );
                     bool isSpouseMatch = true;
@@ -420,6 +420,16 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             message.Send();
         }
 
+        protected void cbRegisterSpouse_CheckedChanged( object sender, EventArgs e )
+        {
+            tbSpouseFirstName.Enabled = cbRegisterSpouse.Checked;
+            tbSpouseLastName.Enabled = cbRegisterSpouse.Checked;
+            tbSpouseEmail.Enabled = cbRegisterSpouse.Checked;
+            pnSpouseCell.Enabled = cbRegisterSpouse.Checked;
+            cbSpouseSms.Enabled = cbRegisterSpouse.Checked;
+            dppSpouseDOB.Enabled = cbRegisterSpouse.Checked;
+        }
+
         #endregion
 
         #region Internal Methods
@@ -506,10 +516,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                     foreach ( var aFamily in families )
                     {
-                        homeAddress = aFamily.GroupLocations
+                            homeAddress = aFamily.GroupLocations
                             .Where( l =>
                                 l.GroupLocationTypeValueId == _homeAddressType.Id )
-                            .FirstOrDefault().Location;
+                            .FirstOrDefault()?.Location;
                     }
 
                     if ( homeAddress != null )
@@ -785,5 +795,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         }
 
         #endregion
+
+
     }
 }
