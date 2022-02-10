@@ -102,6 +102,7 @@
     <Compile Include="Person\GetPersonFromFields.cs" />
     <Compile Include="Person\PersonAddHistory.cs" />
     <Compile Include="Registrations\AutoApplyDiscountCode.cs" />
+    <Compile Include="Registrations\SECCGenerateDiscountCode.cs" />
     <Compile Include="Registrations\SetAttributeFromRegistrantField.cs" />
     <Compile Include="Schedule\ScheduleNextStartDate.cs" />
     <Compile Include="Twilio\Lookup.cs" />
@@ -110,6 +111,7 @@
     <Compile Include="WorkflowAttributes\AttributeMatrixAddRow.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixCopy.cs" />
     <Compile Include="SignatureDocument\StoreSignedDocument.cs" />
+    <Compile Include="WorkflowAttributes\SECCSetAttriuteValue.cs" />
     <Compile Include="WorkflowControl\DeleteVisitActivity.cs" />
     <Compile Include="WorkflowControl\ReActivateActivity.cs" />
     <Compile Include="WorkflowControl\ActivateWorkflowWithLava.cs" />
