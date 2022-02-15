@@ -247,7 +247,7 @@
         				<div class="text-center">
         					{%- assign mediaURL = currentMessage | Attribute:'Audio','Path' | Replace:'~/','' -%}
         					{%- unless mediaURL == empty -%}
-        					<a href="{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}" data-resource="{{ currentMessage | Attribute:'Audio','FileName' }}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="margin-top: 5px;">
+        					<a href="/GetFile.ashx?guid={{ currentMessage | Attribute:'Audio','RawValue' }}" data-resource="{{ currentMessage | Attribute:'Audio','FileName' }}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="margin-top: 5px;">
         						<i class="fa fa-headphones"></i>
         						Audio
         					</a>
