@@ -1,3 +1,4 @@
+{% comment %}{% include '~~/Assets/Lava/Groups/PublishGroupFilters.lava' %}{% endcomment %}
 {% comment %}
     ******* Filtering System for Calendar *****
 {% endcomment %}
@@ -98,7 +99,7 @@
                         <p class="g-font-weight--400 g-line-height--sm">Find a group that interests you by selecting a campus and/or ministry. Click on the image to see more details or to register.</p>
                         <br />
                     </div>
-					
+
                     <div class="col-xs-12 col-md-3 g-padding-y-40--md" >
                         <select class="select2-campuses" name="campus">
                         <option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
@@ -112,7 +113,42 @@
                         {% endfor %}
                         </select>
                     </div>
-					
+
+                    <div class="col-xs-12 col-md-3 g-padding-y-20--xs g-padding-y-40--sm" >
+                        <select class="select2-ministries" name="minitry">
+                        <option value="allMinistries">All Ministries</option>
+
+						{% assign availAudienceIds = '' %}
+						{% assign webrequestroot = 'https://rockstaging.secc.org/Webhooks/Lava.ashx/publishgroups/' %}
+						{% assign webrequest = webrequestroot %}
+						{% if selectedCampus != null %}
+							{% assign webrequest = webrequest | Append:selectedCampus.Id %}
+						{% endif %}
+						{% webrequest url:'{{ webrequest }}' %}
+							{% for item in results %}
+								{% for data in item.AvailAudienceIds %}
+									{% assign availAudienceIds = availAudienceIds | Append:',' | Append:data.Key %}
+								{% endfor %}
+							{% endfor %}
+						{% endwebrequest %}
+						{% assign ministrySlug = 'Global' | PageParameter:'ministry' | Downcase  %}
+                        {% definedvalue where:'DefinedTypeId==16' %}
+                            {% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
+                            {% for definedValue in definedvalueItemsSorted %}
+								{% assign idRepresentation = definedValue.Id | AsString %}
+								{% assign validAudience = availAudienceIds | Split:',' | Contains:idRepresentation %}
+								{% if validAudience %}
+									{% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
+									{% if publicFilter == "Yes" %}
+										{% assign urlSlug = definedValue | Attribute:'URLSlug' %}
+										<option value="{{ definedValue.Id }}" data-ministry="{{urlSlug}}" {% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
+									{% endif %}
+								{% endif %}
+                            {% endfor %}
+                        {% enddefinedvalue %}
+                        </select>
+                    </div>
+
 					<div class="col-xs-12 col-md-3 g-padding-y-40--md" tabindex="0" >
 						<span class="se-dropdown" data-toggle="dropdown-content" data-reveal="daysOfTheWeek" aria-expanded="false" data-control="#groupFilters">
 							Meets On<span class="g-font-weight--100" id="dayOfTheWeekText"></span>
@@ -129,25 +165,7 @@
 							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Saturday" data-toggle="tooltip" data-placement="bottom" title="Saturday">S</a>
 						</div>
 					</div>
-					
-                    <div class="col-xs-12 col-md-3 g-padding-y-20--xs g-padding-y-40--sm" >
-                        <select class="select2-ministries" name="minitry">
-                        <option value="allMinistries">All Ministries</option>
 
-						{% assign ministrySlug = 'Global' | PageParameter:'ministry' | Downcase  %}
-                        {% definedvalue where:'DefinedTypeId==16' %}
-                            {% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
-                            {% for definedValue in definedvalueItemsSorted %}
-                                {% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
-                                {% if publicFilter == "Yes" %}
-									{% assign urlSlug = definedValue | Attribute:'URLSlug' %}
-									<option value="{{ definedValue.Id }}" data-ministry="{{urlSlug}}" {% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
-                                {% endif %}
-                            {% endfor %}
-                        {% enddefinedvalue %}
-                        </select>
-                    </div>
-					
 					<div class="col-xs-12 col-md-3 g-padding-y-50--md" tabindex="0" >
 						<a class="button se-btn se-btn--tag uppercase no-transitions" id="groupType"
 						data-filter="True" data-toggle="tooltip" data-placement="bottom" title="Show Only Groups That Meet Online">Online Group</a>
@@ -219,7 +237,7 @@ $(document).ready(function() {
         var data = e.params.data;
         runMinistryFilters(data);
     });
-	
+
 	//make days of week clicky
 		$('[data-toggle="dropdown-content"]').click(function(e) {
 			e.preventDefault();
@@ -237,7 +255,7 @@ $(document).ready(function() {
 			});
 		}
 
-	
+
 
 	$daysOfTheWeek = $('#daysOfTheWeek').on( 'click', '.button', function(e) {
 		  e.preventDefault();
@@ -247,7 +265,7 @@ $(document).ready(function() {
 		  buildDaysFilters(filterValue);
 		  runFilters();
 		});
-		
+
 	$groupType = $('#groupType').on( 'click', function(e) {
 		  e.preventDefault();
 		  var $this = $( this );
@@ -256,8 +274,8 @@ $(document).ready(function() {
 		  buildGroupTypeFilter(filterValue);
 		  runFilters();
 		});
-	
-	
+
+
 	// hide descriptions
 	$('.readmore_dates').readmore({
 		speed: 200,
@@ -325,7 +343,7 @@ $(document).ready(function() {
 			}
 			console.log(days_selected);
 		 }
-		 
+
 		 var groupType_selected = [];
 		 function buildGroupTypeFilter(isOnline) {
 			if (~groupType_selected.indexOf(isOnline)) {
@@ -354,7 +372,7 @@ $(document).ready(function() {
 				 filterSelectors += filterStringify(days_selected, 'day');
 				 filterSelectors += ',';
 			 }
-			 
+
 			  // if online is selected
 			  if (groupType_selected.length != 0) {
 				 filterSelectors += filterStringify(groupType_selected, 'online');
@@ -367,19 +385,29 @@ $(document).ready(function() {
 			   filterSelectors = filterSelectors.slice(0, -1);
 			 }
 
-			 console.log('filters: '+filterSelectors);
-			 	var isoOptions = {
-		itemSelector: '.isotope_item',
-		percentPosition: true,
-		layoutMode: 'fitRows'
-	};
-			var $grid = $('.isotope_wrap').isotope(isoOptions);
+			 var isoOptions = {
+				itemSelector: '.isotope_item',
+				percentPosition: true,
+				layoutMode: 'fitRows'
+			 };
+			 var $grid = $('.isotope_wrap').isotope(isoOptions);
 			 $grid.isotope({
 			   itemSelector: '.isotope_item',
 			   percentPosition: true,
 			   layoutMode: 'fitRows',
 			   filter: filterSelectors
 			 });
+			 let filteredElements = $grid.isotope('getFilteredItemElements');
+         	showNoResults(filteredElements);
+		 }
+
+		 showNoResults = (array) => {
+        	//console.log('Total Items:'+array.length)
+			if (array.length == 0) {
+				$('#noresultmsg').show();
+			} else {
+				$('#noresultmsg').hide();
+			}
 		 }
 
 		 function filterStringify(arrayList, selector) {
@@ -393,7 +421,7 @@ $(document).ready(function() {
 						 var dayLoopIndex = 1
 						 days_selected.forEach(function(day_item, index, array) {
 							 // show campus groups with filters if campus is selected - otherwise just fitler items(s)
-							 
+
 							 if (day_item != '' && item != undefined) {
 								 varstr += '[data-day*="'+day_item+'"]'
 							 }
@@ -408,7 +436,7 @@ $(document).ready(function() {
 						 });
 					 } else {
 						 // show campus groups with filters if campus is selected - otherwise just fitler items(s)
-						 
+
 
 						 if (item != '' && item != undefined) {
 							 varstr += '[data-'+selector+'*="'+item+'"]'
@@ -424,7 +452,7 @@ $(document).ready(function() {
 			 }
 			 return varstr;
 		 }
-		 
+
 
 ///////////////////////////////////////////////////
 ////////////// Listen for Back Clicks /////////////
@@ -451,6 +479,30 @@ function runCampusFilters(campus_selected) {
     var pnlContent_ID = pnlContent.attr("id");
     pnlContent.slideUp();
     // $grid.isotope('destroy');
+
+	// reset ministries on any location selection
+	$('.select2-ministries').val('allMinistries');
+	$('.select2-ministries').trigger('change'); // Notify any JS components that the value changed
+	var newPath = updatePath('ministry','');
+	// update available ministry selections based on locaiton
+	var audienceAPI = "{{ webrequestroot }}" + $(campus_selected.element).val();
+	console.log(audienceAPI);
+	$.getJSON( audienceAPI )
+		.done(( json ) => {
+			var options = [];
+
+			// remove existing options except for the first
+			$(".select2-ministries option").slice(1).remove();
+			json.AvailAudienceIds.map( (item) => {
+				if ( item.Key != "" )
+					$(".select2-ministries").append('<option data-ministry="'+item.URLSlug+'" value="'+item.Key+'">'+item.Name+'</option>');
+			});
+			$(".select2-ministries").select2();
+		})
+		.fail(( jqxhr, textStatus, error ) => {
+			var err = textStatus + ", " + error;
+			console.log( "Request Failed: " + err );
+		});
 
     // push a new URL state with filter parameter
     var newPath = updatePath('campus',$(campus_selected.element).data('campus'));
@@ -504,15 +556,17 @@ function processPageLoad(pnlContent_ID, params) {
     // Raised after an asynchronous postback is finished and control has been returned to the browser.
     prm.add_endRequest(pageLoad);
     // Listen for PostBack
+	let runCount = 0;
     function pageLoad() {
         var pnlContent = $('#event-results').find("div[id*='_upnlContent']");
         var pnlContent_ID = pnlContent.attr("id");
+		runCount = runCount + 1;
         // Once loaded, fire the Javascript function from the list
-		InitLoadedRequest(); // an Ajax pageLoad method that will call your jquery method
-		runFilters();
-        pnlContent.slideDown(400, function() {
-
-		});
+		if (runCount <= 1) {
+			InitLoadedRequest(); // an Ajax pageLoad method that will call your jquery method
+			runFilters();
+			pnlContent.slideDown(400, function() {});
+		}
         // $('html, body').animate({scrollTop: ($('#filter_selected').offset().top)}, 400);
         // $('html, body').scrollspy({ target: '#filter_selected' });
         /*var scroll = new SmoothScroll();
@@ -545,12 +599,12 @@ function updatePath(key, value) {    baseUrl = [location.protocol, '//', locatio
         parts[4] = value||'all';
     }
     window.history.pushState({}, '', baseUrl + parts.join('/'));
-    console.log("key: " + key);
+    /*console.log("key: " + key);
     console.log( "value:" + value );
-                    console.log( "parts:" + parts );
-                    return parts.join( '/' );
-                }
-                
+                    console.log( "parts:" + parts );*/
+	return parts.join( '/' );
+}
+
 
 var parseQueryString = function() {
 
@@ -587,5 +641,41 @@ function loadQueryStringParam() {
         }
     }
 
+}
+
+function InitLoadedRequest(visstring, elem, msg) {
+		//console.log('**** Load InitLoadedRequest! ****')
+        // Re-Initialize Isotope
+        var $grid = $('.isotope_wrap').isotope({
+          itemSelector: '.isotope_item',
+          percentPosition: true,
+          layoutMode: 'fitRows'
+        });
+
+        var isoOptions = {
+    		itemSelector: '.isotope_item',
+    		percentPosition: true,
+    		layoutMode: 'fitRows'
+    	};
+
+        $grid.imagesLoaded( function() {
+            // Re-Initialize ReadmoreJS
+            $('.readmore_dates').readmore({
+                speed: 200,
+                lessLink: '<a href="#" class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
+        		moreLink: '<a href="#" class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
+        		embedCSS: false,
+                collapsedHeight: 0,
+                beforeToggle: function(tr, el, ex) {
+                    $(el).show();
+                },
+                afterToggle: function(trigger, element, expanded) {
+					$('.isotope_wrap').isotope(isoOptions); // re-initialize
+
+                }
+            });
+            // init Isotope after all images have loaded
+            $grid.addClass('is-showing-items').isotope(isoOptions);
+        });
 }
 </script>

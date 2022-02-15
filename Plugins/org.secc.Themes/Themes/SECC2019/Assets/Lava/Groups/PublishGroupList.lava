@@ -1,4 +1,3 @@
-{% comment %}{% include '~~/Assets/Lava/Groups/PublishGroupList.lava' %}{% endcomment %}
 {% comment %}
 *****************************************************************************
 ****** There needs to be a lava variable defined if this block is to  *******
@@ -8,7 +7,6 @@
 {% endcomment %}
 
 {% assign publishGroupCount = PublishGroups | Size %}
-
 {% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
 {% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
 {% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
@@ -30,7 +28,7 @@
    display: none;
 }
 </style>
-
+{% assign contCount = 0 %}
 <div class="container">
 
     {% if filterByMinistry != null %}
@@ -41,6 +39,7 @@
     <div class="isotope_wrap">
         {% for publishGroup in PublishGroups %}
 		{% if publishGroup.Group.IsPublic != true %}
+        {% assign contCount = contCount | Plus:1 %}
 		{% continue %}
 		{% endif %}
         {% if filterByMinistry != null %}
@@ -133,7 +132,7 @@
                         <div class="col-md-6">
                             <a href="{{ registrationLink }}" class='eventCardLink link--hover-underscore'>
                                 <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
-                                {% if publishGroup.RegistrationRequirement != 0 %}
+                                {% if publishGroup.RequiresRegistration == true %}
                                     Register&nbsp;Now
                                 {% else %}
                                     Details
@@ -150,6 +149,14 @@
         {% endfor %}
 
     </div><!-- END: isotope_wrap -->
+
+    {% comment %} <div class="row">
+        <div class="col-xs-12 text-center">
+            <div style="border: 1px solid rgba(32, 30, 29, 0.50); padding: 20px; border-radius: 5px;">
+                <p style="margin: 0px;">Removed Groups: {{ contCount }}</p>
+            </div>
+        </div>
+    </div> {% endcomment %}
 
     <div id="noresultmsg" class="row" {% unless publishGroupCount == 0 or ministyCount == 0 %}style="display: none;"{% endunless %}>
         <div class="col-xs-12 text-center">
@@ -198,43 +205,3 @@ $(window).load(function() {
 });
 </script>
 {% endcomment %}
-
-
-<script type="text/javascript">
-    // This function gets called when a pageLoad() function is called from the Filters
-    function InitLoadedRequest(visstring, elem, msg)
-    {
-        // Re-Initialize Isotope
-        var $grid = $('.isotope_wrap').isotope({
-          itemSelector: '.isotope_item',
-          percentPosition: true,
-          layoutMode: 'fitRows'
-        });
-
-        var isoOptions = {
-    		itemSelector: '.isotope_item',
-    		percentPosition: true,
-    		layoutMode: 'fitRows'
-    	};
-
-        $grid.imagesLoaded( function() {
-            // Re-Initialize ReadmoreJS
-            $('.readmore_dates').readmore({
-                speed: 200,
-                lessLink: '<a href="#" class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
-        		moreLink: '<a href="#" class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
-        		embedCSS: false,
-                collapsedHeight: 0,
-                beforeToggle: function(tr, el, ex) {
-                    $(el).show();
-                },
-                afterToggle: function(trigger, element, expanded) {
-					$('.isotope_wrap').isotope(isoOptions); // re-initialize
-
-                }
-            });
-            // init Isotope after all images have loaded
-            $grid.addClass('is-showing-items').isotope(isoOptions);
-        });
-    }
-</script>
