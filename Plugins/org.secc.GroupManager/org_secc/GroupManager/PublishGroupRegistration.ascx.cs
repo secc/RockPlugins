@@ -422,12 +422,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected void cbRegisterSpouse_CheckedChanged( object sender, EventArgs e )
         {
-            tbSpouseFirstName.Enabled = cbRegisterSpouse.Checked;
-            tbSpouseLastName.Enabled = cbRegisterSpouse.Checked;
-            tbSpouseEmail.Enabled = cbRegisterSpouse.Checked;
-            pnSpouseCell.Enabled = cbRegisterSpouse.Checked;
-            cbSpouseSms.Enabled = cbRegisterSpouse.Checked;
-            dppSpouseDOB.Enabled = cbRegisterSpouse.Checked;
+            tbSpouseFirstName.Visible = cbRegisterSpouse.Checked;
+            tbSpouseLastName.Visible = cbRegisterSpouse.Checked;
+            tbSpouseEmail.Visible = cbRegisterSpouse.Checked;
+            pnSpouseCell.Visible = cbRegisterSpouse.Checked;
+            cbSpouseSms.Visible = cbRegisterSpouse.Checked;
+            dppSpouseDOB.Visible = cbRegisterSpouse.Checked;
         }
 
         #endregion
@@ -457,15 +457,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 string template = GetAttributeValue( "LavaTemplate" );
                 lLavaOverview.Text = template.ResolveMergeFields( mergeFields );
 
-                // Set visibility based on selected mode
-                if ( _showSpouse )
-                {
-                    pnlCol1.RemoveCssClass( "col-md-12" ).AddCssClass( "col-md-6" );
-                }
-                else
-                {
-                    pnlCol1.RemoveCssClass( "col-md-6" ).AddCssClass( "col-md-12" );
-                }
                 pnlCol2.Visible = _showSpouse;
 
                 tbEmail.Required = GetAttributeValue( REQUIRE_EMAIL_KEY ).AsBoolean();

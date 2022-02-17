@@ -15,47 +15,58 @@
             <asp:Panel runat="server" ID="pnlForm">
 
                 <div class="row">
-                    <asp:Panel ID="pnlCol1" runat="server">
-                        <div class="row">
-                            <div class="col-sm-6"><Rock:RockTextBox ID="tbFirstName" runat="server" Label="First Name" Required="true"></Rock:RockTextBox></div>
-                            <div class="col-sm-6"><Rock:RockTextBox ID="tbLastName" runat="server" Label="Last Name" Required="true"></Rock:RockTextBox></div>
-                        </div>
-                        
-                        
-                        <Rock:DatePartsPicker ID="dppDOB" runat="server" Label="Birth Date" FutureYearCount="0" />
-                        <div class="row">
-                            <asp:Panel ID="pnlHomePhone" runat="server" CssClass="col-sm-6">
-                                    <Rock:PhoneNumberBox ID="pnHome" runat="server" Label="Home Phone" />
-                            </asp:Panel>
-                            <asp:Panel ID="pnlCellPhone" runat="server" CssClass="col-sm-6">
-                                
-                                <div class="pull-right" style="margin-left: 15px;">
-                                    <Rock:RockCheckBox ID="cbSms" runat="server" Label="&nbsp;" Text="Enable SMS" />
+                    <div class="col-md-6">
+                        <asp:Panel ID="pnlCol1" runat="server">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <Rock:RockTextBox ID="tbFirstName" runat="server" Label="First Name" Required="true"></Rock:RockTextBox>
                                 </div>
-                                <Rock:PhoneNumberBox ID="pnCell" runat="server" Label="Cell Phone" />
-                            </asp:Panel>
-                        </div>
-                        <Rock:EmailBox ID="tbEmail" runat="server" Label="Email"></Rock:EmailBox>
-                        <Rock:AddressControl ID="acAddress" runat="server" />
-                    </asp:Panel>
+                                <div class="col-sm-6">
+                                    <Rock:RockTextBox ID="tbLastName" runat="server" Label="Last Name" Required="true"></Rock:RockTextBox>
+                                </div>
+                            </div>
 
-                    <asp:Panel ID="pnlCol2" runat="server" CssClass="col-md-6">
-                        <div class="row">
+
+                            <Rock:DatePartsPicker ID="dppDOB" runat="server" Label="Birth Date" FutureYearCount="0" />
+                            <div class="row">
+                                <asp:Panel ID="pnlHomePhone" runat="server" CssClass="col-sm-6">
+                                    <Rock:PhoneNumberBox ID="pnHome" runat="server" Label="Home Phone" />
+                                </asp:Panel>
+                                <asp:Panel ID="pnlCellPhone" runat="server" CssClass="col-sm-6">
+
+                                    <div class="pull-right" style="margin-left: 15px;">
+                                        <Rock:RockCheckBox ID="cbSms" runat="server" Label="&nbsp;" Text="Enable SMS" />
+                                    </div>
+                                    <Rock:PhoneNumberBox ID="pnCell" runat="server" Label="Cell Phone" />
+                                </asp:Panel>
+                            </div>
+                            <Rock:EmailBox ID="tbEmail" runat="server" Label="Email"></Rock:EmailBox>
+                            <Rock:AddressControl ID="acAddress" runat="server" />
+                        </asp:Panel>
+
+                        <asp:Panel ID="pnlCol2" runat="server">
+                            <br />
                             <Rock:RockCheckBox runat="server" ID="cbRegisterSpouse" Text="Register My Spouse" OnCheckedChanged="cbRegisterSpouse_CheckedChanged" AutoPostBack="true" />
-                            <div class="col-sm-6"><Rock:RockTextBox ID="tbSpouseFirstName" runat="server" Label="Spouse First Name" Enabled="false"></Rock:RockTextBox></div>
-                            <div class="col-sm-6"><Rock:RockTextBox ID="tbSpouseLastName" runat="server" Label="Spouse Last Name"  Enabled="false"></Rock:RockTextBox></div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <Rock:RockTextBox ID="tbSpouseFirstName" runat="server" Label="Spouse First Name" Visible="false"></Rock:RockTextBox>
+                                </div>
+                                <div class="col-sm-6">
+                                    <Rock:RockTextBox ID="tbSpouseLastName" runat="server" Label="Spouse Last Name" Visible="false"></Rock:RockTextBox>
+                                </div>
+                            </div>
+                            <Rock:DatePartsPicker ID="dppSpouseDOB" runat="server" Label="Spouse Birth Date" FutureYearCount="0" Visible="false" />
+                            <div class="pull-right" style="margin-left: 15px;">
+                                <Rock:RockCheckBox ID="cbSpouseSms" runat="server" Label="&nbsp;" Text="Enable SMS" Visible="false" />
+                            </div>
+                            <Rock:PhoneNumberBox ID="pnSpouseCell" runat="server" Label="Spouse Cell Phone" Visible="false" />
+                            <Rock:EmailBox ID="tbSpouseEmail" runat="server" Label="Email" Visible="false" />
+                            <br />
+                        </asp:Panel>
+                        <div class="actions">
+                            <asp:LinkButton ID="btnRegister" runat="server" CssClass="btn btn-primary" OnClick="btnRegister_Click" />
                         </div>
-                        <Rock:DatePartsPicker ID="dppSpouseDOB" runat="server" Label="Spouse Birth Date" FutureYearCount="0"  Enabled="false" />
-                        <div class="pull-right" style="margin-left: 15px;">
-                            <Rock:RockCheckBox ID="cbSpouseSms" runat="server" Label="&nbsp;" Text="Enable SMS"  Enabled="false" />
-                        </div>
-                        <Rock:PhoneNumberBox ID="pnSpouseCell" runat="server" Label="Spouse Cell Phone"  Enabled="false" />
-                        <Rock:EmailBox ID="tbSpouseEmail" runat="server" Label="Email"  Enabled="false" />
-                    </asp:Panel>
-                </div>
-
-                <div class="actions">
-                    <asp:LinkButton ID="btnRegister" runat="server" CssClass="btn btn-primary" OnClick="btnRegister_Click" />
+                    </div>
                 </div>
 
             </asp:Panel>
