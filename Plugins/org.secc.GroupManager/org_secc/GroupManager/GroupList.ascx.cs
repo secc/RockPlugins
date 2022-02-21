@@ -146,35 +146,5 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             phContent.Controls.Add( nbError );
 
         }
-
-        private List<int> GetChildGroupIds( RockContext rockContext )
-        {
-            var childGroupIds = ( List<int> ) GetCacheItem( BlockId.ToString() );
-            if ( childGroupIds != null && childGroupIds.Any() )
-            {
-                return childGroupIds;
-            }
-
-            var parentGroup = new GroupService( rockContext ).Get( GetAttributeValue( "Group" ).AsGuid() );
-            if ( parentGroup != null )
-            {
-                childGroupIds = GetChildGroups( parentGroup ).Select( g => g.Id ).ToList();
-                AddCacheItem( BlockId.ToString(), childGroupIds, 300 );
-                return childGroupIds;
-            }
-            return new List<int>();
-        }
-
-        private List<Group> GetChildGroups( Group group )
-        {
-            List<Group> childGroups = group.Groups.ToList();
-            List<Group> grandChildGroups = new List<Group>();
-            foreach ( var childGroup in childGroups )
-            {
-                grandChildGroups.AddRange( GetChildGroups( childGroup ) );
-            }
-            childGroups.AddRange( grandChildGroups );
-            return childGroups;
-        }
     }
 }
