@@ -77,7 +77,7 @@ namespace org.secc.SafetyAndSecurity
                 validateRelationships( action, refCount, maxRef, sbErrorMessages );
 
                 LocationService locationService = new LocationService( new RockContext() );
-                Location location = locationService.Get( addressGuid.Value );
+                Location location = locationService.Get( addressGuid.HasValue ? addressGuid.Value : Guid.NewGuid() );
                 if ( addressGuid.HasValue && addressGuid != new Guid() )
                 {
                     validateAddress( location, sbErrorMessages );
