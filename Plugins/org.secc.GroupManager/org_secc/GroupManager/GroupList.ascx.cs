@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Web.UI.WebControls;
 using org.secc.GroupManager;
@@ -50,65 +51,63 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected override void OnLoad( EventArgs e )
         {
-            List<Group> groups = new List<Group>();
-            Guid? groupTypeGuid = GetAttributeValue( "GroupType" ).AsGuidOrNull();
-            Guid? groupGuid = GetAttributeValue( "Group" ).AsGuidOrNull();
-            RockContext rockContext = new RockContext();
-
-            if ( groupGuid != null && groupTypeGuid != null )
+            if ( CurrentPerson == null )
             {
-                List<int> groupIds = GetChildGroupIds( rockContext );
-
-                groups.AddRange( new GroupTypeService( rockContext ).Queryable()
-                    .Where( gt => gt.Guid == groupTypeGuid )
-                    .SelectMany( gt => gt.Groups.Where( g => g.IsActive ) )
-                    .Where( g => groupIds.Contains( g.Id ) )
-                    );
-            }
-            else if ( groupGuid != null )
-            {
-                List<int> groupIds = GetChildGroupIds( rockContext );
-                groups.AddRange( new GroupService( rockContext ).Queryable()
-                    .Where( g => groupIds.Contains( g.Id ) && g.IsActive )
-                    );
-            }
-            else if ( groupTypeGuid != null )
-            {
-                groups.AddRange( new GroupTypeService( rockContext ).Queryable()
-                    .Where( gt => gt.Guid == groupTypeGuid )
-                    .SelectMany( gt => gt.Groups.Where( g => g.IsActive ) )
-                    );
-            }
-            else
-            {
-                DisplayNotConfigured();
+                return;
             }
 
-            var requireLeader = GetAttributeValue( "LeadersOnly" ).AsBoolean();
-            var doForward = GetAttributeValue( "ForwardOnOne" ).AsBoolean();
-            if ( doForward && !UserCanAdministrate )
+            try
             {
-                var groupList = new List<Group>();
-                if ( requireLeader )
+                Guid? groupTypeGuid = GetAttributeValue( "GroupType" ).AsGuidOrNull();
+                Guid? groupGuid = GetAttributeValue( "Group" ).AsGuidOrNull();
+                var requireLeader = GetAttributeValue( "LeadersOnly" ).AsBoolean();
+                var doForward = GetAttributeValue( "ForwardOnOne" ).AsBoolean();
+
+                if ( groupTypeGuid == null && groupGuid == null )
                 {
-                    groupList = groups.Where( g => g.Members.Where( m => m.PersonId == CurrentPerson.Id && m.GroupRole.IsLeader ).Any() ).ToList();
-                }
-                else
-                {
-                    groupList = groups.Where( g => g.Members.Where( m => m.PersonId == CurrentPerson.Id ).Any() ).ToList();
-                }
-                if ( groupList.Count() == 1 )
-                {
-                    LoadGroup( groupList.FirstOrDefault() );
+                    DisplayNotConfigured();
                     return;
                 }
-            }
 
-            foreach ( var group in groups.OrderBy( g => g.Name ) )
-            {
-                var groupMember = group.Members.Where( m => m.PersonId == CurrentPerson.Id ).FirstOrDefault();
-                if ( !requireLeader
-                    || ( groupMember != null && groupMember.GroupRole.IsLeader ) )
+                RockContext rockContext = new RockContext();
+
+                var groupService = new GroupService( rockContext );
+
+                var qry = groupService.Queryable().AsNoTracking();
+
+                if ( groupTypeGuid != null )
+                {
+                    qry = qry.Where( g => g.GroupType.Guid == groupTypeGuid );
+                }
+
+                if ( groupGuid != null )
+                {
+                    qry = qry.Where( g => g.ParentGroup.Guid == groupGuid );
+                }
+
+                qry = qry.Where( g => g.IsActive && !g.IsArchived );
+
+                qry = qry.Where( g => g.Members.Any( gm => gm.PersonId == CurrentPersonId && gm.GroupMemberStatus == GroupMemberStatus.Active ) );
+
+                if ( requireLeader )
+                {
+                    qry = qry.Where( g => g.Members.Any( gm => gm.PersonId == CurrentPersonId && gm.GroupRole.IsLeader ) );
+                }
+
+                var groups = qry.ToList();
+
+                if ( !groups.Any() )
+                {
+                    return;
+                }
+
+                if ( doForward && !UserCanAdministrate && groups.Count == 1 )
+                {
+                    LoadGroup( groups.FirstOrDefault() );
+
+                }
+
+                foreach ( var group in groups.OrderBy( g => g.Name ) )
                 {
                     LinkButton lbGroup = new LinkButton()
                     {
@@ -117,7 +116,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     };
                     lbGroup.Click += ( s, ee ) => LoadGroup( group );
                     phContent.Controls.Add( lbGroup );
+
                 }
+            }
+            catch ( Exception ex )
+            {
+                LogException( new Exception( "Group List Exception:", ex ) );
             }
         }
 
