@@ -82,7 +82,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 if ( groupGuid != null )
                 {
-                    qry = qry.Where( g => g.ParentGroup.Guid == groupGuid );
+                    //Check parent groups, grand parent groups and great grandparent groups
+                    qry = qry.Where( g => g.ParentGroup.Guid == groupGuid
+                                        || g.ParentGroup.ParentGroup.Guid == groupGuid
+                                        || g.ParentGroup.ParentGroup.ParentGroup.Guid == groupGuid);
                 }
 
                 qry = qry.Where( g => g.IsActive && !g.IsArchived );
