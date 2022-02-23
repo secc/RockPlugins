@@ -111,30 +111,40 @@ namespace org.secc.PDF
 
                 //Generate New Object
 
+                Guid guid = GetAttributeValue( action, "PDFOutput" ).AsGuid();
+                AttributeCache attribute = null;
+                var binaryFileTypeGuid = Rock.SystemGuid.BinaryFiletype.DEFAULT;
+                if ( !guid.IsEmpty() )
+                {
+                    attribute = AttributeCache.Get( guid, rockContext );
+                    if ( attribute != null
+                        && attribute.QualifierValues.ContainsKey( "binaryFileType" )
+                        && ( attribute.QualifierValues["binaryFileType"]?.Value ).IsNotNullOrWhiteSpace() )
+                    {
+                        binaryFileTypeGuid = attribute.QualifierValues["binaryFileType"].Value;
+                    }
+
+                }
 
                 renderedPDF.MimeType = pdf.MimeType;
                 renderedPDF.FileName = pdf.FileName;
                 renderedPDF.IsTemporary = false;
                 renderedPDF.Guid = Guid.NewGuid();
-                renderedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( Rock.SystemGuid.BinaryFiletype.DEFAULT ) ).Id;
+                renderedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( binaryFileTypeGuid.AsGuid() ).Id;
                 renderedPDF.ContentStream = new MemoryStream( ms.ToArray() );
                 pdfReader.Close();
-            }
 
-            if ( entity is PDFWorkflowObject )
-            {
-                entity = pdfWorkflowObject;
-            }
-            else
-            {
-                BinaryFileService binaryFileService = new BinaryFileService( rockContext );
-                binaryFileService.Add( renderedPDF );
-                rockContext.SaveChanges();
 
-                Guid guid = GetAttributeValue( action, "PDFOutput" ).AsGuid();
-                if ( !guid.IsEmpty() )
+                if ( entity is PDFWorkflowObject )
                 {
-                    var attribute = AttributeCache.Get( guid, rockContext );
+                    entity = pdfWorkflowObject;
+                }
+                else
+                {
+                    BinaryFileService binaryFileService = new BinaryFileService( rockContext );
+                    binaryFileService.Add( renderedPDF );
+                    rockContext.SaveChanges();
+
                     if ( attribute != null )
                     {
                         SetWorkflowAttributeValue( action, guid, renderedPDF.Guid.ToString() );
