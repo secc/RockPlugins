@@ -6048,30 +6048,31 @@ namespace RockWeb.Plugins.org_secc.Event
                     nbDiscountCode.Text = string.Format( "The {0} {1} of {2} {3} was automatically applied.", DiscountCodeTerm.ToLower(), discount.Code, discountTypeAndAmountString, discountRegistrantNumberString );
                     return true;
                 }
-                // If we have a Discount Code workflow
-                if ( !String.IsNullOrWhiteSpace( GetAttributeValue( "DiscountCodeWorkflow" ) ) )
+            }
+            // If we have a Discount Code workflow
+            if ( !String.IsNullOrWhiteSpace( GetAttributeValue( "DiscountCodeWorkflow" ) ) )
+            {
+                var workflowType = WorkflowTypeCache.Get( GetAttributeValue( "DiscountCodeWorkflow" ).AsGuid() );
+                var workflow = Rock.Model.Workflow.Activate( workflowType, RegistrationState.FirstName + " " + RegistrationState.LastName + " - Discount Code" );
+
+                Dictionary<string, object> entityDictionary = new Dictionary<string, object>();
+                entityDictionary.Add( "RegistrationInstance", RegistrationInstanceState );
+                entityDictionary.Add( "RegistrationInfo", RegistrationState );
+                entityDictionary.Add( "ExistingDiscountCode", RegistrationState.DiscountCode );
+                entityDictionary.Add( "ExistingDiscountPercentage", RegistrationState.DiscountPercentage );
+                entityDictionary.Add( "ExistingDiscountAmount", RegistrationState.DiscountAmount );
+                List<string> workflowErrors;
+                var processed = new Rock.Model.WorkflowService( new RockContext() ).Process( workflow, entityDictionary, out workflowErrors );
+
+                tbDiscountCode.Text = RegistrationState.DiscountCode;
+
+                foreach ( string error in workflowErrors )
                 {
-                    var workflowType = WorkflowTypeCache.Get( GetAttributeValue( "DiscountCodeWorkflow" ).AsGuid() );
-                    var workflow = Rock.Model.Workflow.Activate( workflowType, RegistrationState.FirstName + " " + RegistrationState.LastName + " - Discount Code" );
-
-                    Dictionary<string, object> entityDictionary = new Dictionary<string, object>();
-                    entityDictionary.Add( "RegistrationInstance", RegistrationInstanceState );
-                    entityDictionary.Add( "RegistrationInfo", RegistrationState );
-                    entityDictionary.Add( "ExistingDiscountCode", RegistrationState.DiscountCode );
-                    entityDictionary.Add( "ExistingDiscountPercentage", RegistrationState.DiscountPercentage );
-                    entityDictionary.Add( "ExistingDiscountAmount", RegistrationState.DiscountAmount );
-                    List<string> workflowErrors;
-                    var processed = new Rock.Model.WorkflowService( new RockContext() ).Process( workflow, entityDictionary, out workflowErrors );
-
-                    tbDiscountCode.Text = RegistrationState.DiscountCode;
-
-                    foreach ( string error in workflowErrors )
-                    {
-                        nbDiscountCode.NotificationBoxType = NotificationBoxType.Warning;
-                        nbDiscountCode.Text += string.Format( "{0}<br />", error );
-                        nbDiscountCode.Visible = true;
-                    }
+                    nbDiscountCode.NotificationBoxType = NotificationBoxType.Warning;
+                    nbDiscountCode.Text += string.Format( "{0}<br />", error );
+                    nbDiscountCode.Visible = true;
                 }
+
             }
             return false;
         }
