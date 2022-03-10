@@ -443,8 +443,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( _publishGroup != null )
             {
-                if ( _publishGroup.RegistrationRequirement != RegistrationRequirement.RegistrationAvailable &&
+                if (( _publishGroup.RegistrationRequirement != RegistrationRequirement.RegistrationAvailable &&
                      _publishGroup.RegistrationRequirement != RegistrationRequirement.RegistrationRequired )
+                     || _publishGroup.StartDateTime > Rock.RockDateTime.Now
+                     || _publishGroup.EndDateTime < Rock.RockDateTime.Now )
                 {
                     pnlForm.Visible = false;
                 }
