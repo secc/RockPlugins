@@ -55,6 +55,6 @@
     </div>
 </div>
 <br><br>
-{% if PublishGroup.RequiresRegistration == 'true' %}
+{% if PublishGroup.RegistrationRequirement != 0 %}
 	<h3 class="g-font-family--secondary">Register:</h3>
 {% endif %}
