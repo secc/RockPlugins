@@ -151,21 +151,21 @@ public class ImageGenerator : IHttpHandler
             WriteToLog( e.Message );
         }
     }
-	
-	public string UnicodeEncode( string text ) {
-		char[] chars = text.ToCharArray();
-		StringBuilder result = new StringBuilder( text.Length + (int)( text.Length * 0.1 ) );
 
-		foreach ( char c in chars ) {
-			int value = Convert.ToInt32( c );
-			if ( value > 127 )
-				result.AppendFormat("&#{0};",value); 
-			else
-				result.Append( c );
-		}
+    public string UnicodeEncode( string text ) {
+        char[] chars = text.ToCharArray();
+        StringBuilder result = new StringBuilder( text.Length + (int)( text.Length * 0.1 ) );
 
-		return result.ToString();
-	}
+        foreach ( char c in chars ) {
+            int value = Convert.ToInt32( c );
+            if ( value > 127 )
+                result.AppendFormat("&#{0};",value);
+            else
+                result.Append( c );
+        }
+
+        return result.ToString();
+    }
 
     /// <summary>
     /// These webhooks are not reusable and must only be used once.
@@ -279,67 +279,7 @@ public class ImageGenerator : IHttpHandler
     /// <returns>A dictionary that can be passed to Lava as the merge fields.</returns>
     protected Dictionary<string, object> RequestToDictionary( HttpRequest request )
     {
-        var dictionary = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
-        var host = WebRequestHelper.GetHostNameFromRequest( HttpContext.Current );
-        // Set the standard values to be used.
-        dictionary.Add( "Url", "/" + string.Join( "", request.Url.Segments.SkipWhile( s => !s.EndsWith( ".ashx", StringComparison.InvariantCultureIgnoreCase ) && !s.EndsWith( ".ashx/", StringComparison.InvariantCultureIgnoreCase ) ).Skip( 1 ).ToArray() ) );
-        dictionary.Add( "RawUrl", request.Url.AbsoluteUri );
-        dictionary.Add( "Method", request.HttpMethod );
-        dictionary.Add( "QueryString", request.QueryString.Cast<string>().ToDictionary( q => q, q => request.QueryString[q] ) );
-        dictionary.Add( "RemoteAddress", request.UserHostAddress );
-        dictionary.Add( "RemoteName", request.UserHostName );
-        dictionary.Add( "ServerName", host );
-
-        // Add in the raw body content.
-        using ( StreamReader reader = new StreamReader( request.InputStream, Encoding.UTF8 ) )
-        {
-            dictionary.Add( "RawBody", reader.ReadToEnd() );
-        }
-
-        // Parse the body content if it is JSON or standard Form data.
-        if ( request.ContentType == "application/json" )
-        {
-            try
-            {
-                dictionary.Add( "Body", JsonConvert.DeserializeObject( ( string ) dictionary["RawBody"] ) );
-            }
-            catch { }
-        }
-        else if ( request.ContentType == "application/x-www-form-urlencoded" )
-        {
-            try
-            {
-                dictionary.Add( "Body", request.Form.Cast<string>().ToDictionary( q => q, q => request.Form[q] ) );
-            }
-            catch { }
-        }
-        else if ( request.ContentType == "application/xml" )
-        {
-            try
-            {
-                XmlDocument doc = new XmlDocument();
-                doc.LoadXml( ( string ) dictionary["RawBody"] );
-                string jsonText = JsonConvert.SerializeXmlNode( doc );
-                dictionary.Add( "Body", JsonConvert.DeserializeObject( ( jsonText ) ) );
-            }
-            catch { }
-        }
-
-        // Add the headers
-        var headers = request.Headers.Cast<string>()
-            .Where( h => !h.Equals( "Authorization", StringComparison.InvariantCultureIgnoreCase ) )
-            .Where( h => !h.Equals( "Cookie", StringComparison.InvariantCultureIgnoreCase ) )
-            .ToDictionary( h => h, h => request.Headers[h] );
-        dictionary.Add( "Headers", headers );
-
-        // Add the cookies
-        try
-        {
-            dictionary.Add( "Cookies", request.Cookies.Cast<string>().ToDictionary( q => q, q => request.Cookies[q].Value ) );
-        }
-        catch { }
-
-        return dictionary;
+        return new Dictionary<string, object>();
     }
 
     /// <summary>
