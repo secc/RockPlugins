@@ -132,7 +132,7 @@
                         <div class="col-md-6">
                             <a href="{{ registrationLink }}" class='eventCardLink link--hover-underscore'>
                                 <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
-                                {% if publishGroup.RequiresRegistration == true %}
+                                {% if publishGroup.RegistrationRequirement != 0 %}
                                     Register&nbsp;Now
                                 {% else %}
                                     Details
