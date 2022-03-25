@@ -157,22 +157,29 @@
       gtag('config', 'DC-9235428');
     </script>
     <!-- End of global snippet: Please do not remove -->
-
-    <!--
-    Event snippet for HTV - WLKY - Southeast Christian Church - Easter - Retargeting Pixel - 03/27/2019 on : Please do not remove.
-    Place this snippet on pages with events you‚Äôre tracking.
-    Creation date: 03/27/2019
-    -->
-    <script>
-      gtag('event', 'conversion', {
-        'allow_custom_scripts': true,
-        'send_to': 'DC-9235428/invmedia/htv-w0+standard'
-      });
+    <!-- GDPR Compliance -->
+    <script type="text/javascript" src="/Themes/SECC2019/Scripts/GDPR/jquery.ihavecookies.js"></script>
+    <script type="text/javascript">
+        var options = {
+            title: 'Accept Cookies & Privacy Policy?',
+            message: 'This website uses cookies to enhance user experience and to analyze performance and traffic on our website. We also share information about your use of our site with our social media, advertising and analytics partners.',
+            delay: 600,
+            expires: 1,
+            link: '/privacy-policy',
+            onAccept: function () {
+                var myPreferences = $.fn.ihavecookies.cookie();
+            },
+            uncheckBoxes: false,
+            acceptBtnLabel: 'Accept Cookies'
+        }
+        $(document).ready(function () {
+            $('body').ihavecookies(options);
+            $('#ihavecookiesBtn').on('click', function () {
+                $('body').ihavecookies(options, 'reinit');
+            });
+        });
     </script>
-    <noscript>
-    <img src="https://ad.doubleclick.net/ddm/activity/src=9235428;type=invmedia;cat=htv-w0;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;npa=;ord=1?" width="1" height="1" alt=""/>
-    </noscript>
-    <!-- End of event snippet: Please do not remove -->
+    <link href="/Themes/SECC2019/Scripts/GDPR/gdpr.css" rel="stylesheet">
 </head>
 
 <body runat="server" id="body" class="nav-is-fixed">
