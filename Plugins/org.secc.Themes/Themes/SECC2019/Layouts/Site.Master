@@ -82,6 +82,17 @@
 	'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 	})(window,document,'script','dataLayer','GTM-T5HH6PN');</script>
 	<!-- End Google Tag Manager -->
+    <!-- Global site tag (gtag.js) - Google Ads: 10865280602 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-10865280602"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag () { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+
+
+        gtag('config', 'AW-10865280602');
+    </script>
     <meta http-equiv="X-UA-Compatible" content="IE=10" />
     <meta charset="utf-8">
     <title></title>
@@ -162,30 +173,6 @@
     <img src="https://ad.doubleclick.net/ddm/activity/src=9235428;type=invmedia;cat=htv-w0;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;npa=;ord=1?" width="1" height="1" alt=""/>
     </noscript>
     <!-- End of event snippet: Please do not remove -->
-
-    <!-- GDPR Compliance -->
-    <script type="text/javascript" src="/Themes/SECC2019/Scripts/GDPR/jquery.ihavecookies.js"></script>
-    <script type="text/javascript">
-    var options = {
-        title: 'Accept Cookies & Privacy Policy?',
-        message: 'This website uses cookies to enhance user experience and to analyze performance and traffic on our website. We also share information about your use of our site with our social media, advertising and analytics partners.',
-        delay: 600,
-        expires: 1,
-        link: '/privacy-policy',
-        onAccept: function(){
-            var myPreferences = $.fn.ihavecookies.cookie();
-        },
-        uncheckBoxes: false,
-        acceptBtnLabel: 'Accept Cookies'
-    }
-    $(document).ready(function() {
-        $('body').ihavecookies(options);
-        $('#ihavecookiesBtn').on('click', function(){
-            $('body').ihavecookies(options, 'reinit');
-        });
-    });
-    </script>
-    <link href="/Themes/SECC2019/Scripts/GDPR/gdpr.css" rel="stylesheet">
 </head>
 
 <body runat="server" id="body" class="nav-is-fixed">
