@@ -55,18 +55,15 @@
                 {%- assign startingDate = '10/24/2020' -%}
                 {%- assign sinceStartingWeek =  startingDate | DateDiff:currentDate,'d' | DividedBy:7 | Floor -%}
                 {%- assign weeklyCount = sinceStartingWeek | AtMost:52 -%}
-        
+
                 <select class="select2-campuses select-css g-width-350--xs g-margin-t-20--xs" name="campus" data-control="#groupFilters">
                     {% assign selectedCampus = 'Global' | PageParameter:'campus' | Downcase | Replace:" ","" %}
                     <option value="0" data-shortcode="SE" data-campus="" {% if selectedCampus == null %} selected="selected"{% endif %}>All Campuses</option>
                     {% for campus in Campuses %}
-                        {% assign publicCampus = campus | Attribute:'Public' %}
-                        {% if publicCampus == 'Yes' %}
-                            {% assign campusName = campus.Name | Downcase | Replace:" ","" %}
-                            <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campusName }}"{% if selectedCampus == campusName %} selected="selected"{% endif %}>
-                                {{ campus.Name }}
-                            </option>
-                        {% endif %}
+                        {% assign campusName = campus.Name | Downcase | Replace:" ","" %}
+                        <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campusName }}"{% if selectedCampus == campusName %} selected="selected"{% endif %}>
+                            {{ campus.Name }}
+                        </option>
                     {% endfor %}
                 </select>
 
@@ -83,7 +80,7 @@
 
         </div>
     </div>
-    
+
     {% comment %} --------------------------------------------------
     ---------------------------- DIVIDER ---------------------------
     ------------------------------------------------ {% endcomment %}
@@ -120,9 +117,9 @@
                             {[ vivus svg:'/Content/Ministries/church2.svg' fill:'#ffffff' duration:'50' ]}
                             </span>
                         </div>
-                        
+
                         <h1 class="metric-num g-font-weight--800" id="Worship"></h1>
-                        
+
                     </div>
                 </div>
             </div>
@@ -139,9 +136,9 @@
                             {[ vivus svg:'/Content/Ministries/serving.svg' fill:'#ffffff' duration:'50' ]}
                             </span>
                         </div>
-                        
+
                         <h1 class="metric-num g-font-weight--800" id="Serving"></h1>
-                        
+
                     </div>
                 </div>
             </div>
@@ -158,9 +155,9 @@
                             {[ vivus svg:'/Content/Ministries/baptism.svg' fill:'#ffffff' duration:'50' ]}
                             </span>
                         </div>
-                        
+
                         <h1 class="metric-num g-font-weight--800" id="Baptism"></h1>
-                        
+
                     </div>
                 </div>
             </div>
@@ -179,9 +176,9 @@
                             {[ vivus svg:'/Content/Ministries/groups.svg' fill:'#ffffff' duration:'50' ]}
                             </span>
                         </div>
-                        
+
                         <h1 class="metric-num g-font-weight--800" id="Groups"></h1>
-                        
+
                     </div>
                 </div>
             </div>
@@ -198,9 +195,9 @@
                             {[ vivus svg:'/Content/Ministries/Giving.svg' fill:'#ffffff' duration:'50' ]}
                             </span>
                         </div>
-                        
+
                         <h1 class="metric-num g-font-weight--800" id="Giving"></h1>
-                        
+
                     </div>
                 </div>
             </div>
@@ -244,7 +241,7 @@
                     <div class="col-md-12 g-padding-y-50--xs text-center">
 
                         <h1 class="metric-num g-font-weight--800" id="Worship-YearToDateAverage"></h1>
-                        
+
                     </div>
                 </div>
             </div>
@@ -252,20 +249,20 @@
 
         <div class="col-lg-4">
             <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- <span class="last-year"></span> Average <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="The comparison of the current year weekly average to the weekly average realized in the prior year from Jan. 1st to Dec. 31st.		
+                <h5 class="g-font-weight--700 g-padding-x-60--xs g-padding-y-20--xs g-color--primary text-center" style="background-color: #67B7DC;">+/- <span class="last-year"></span> Average <a class="help" href="#" data-toggle="tooltip" data-placement="auto" data-container="body" data-html="true" data-original-title="The comparison of the current year weekly average to the weekly average realized in the prior year from Jan. 1st to Dec. 31st.
 		"><i class="fa fa-info-circle"></i></a></h5>
                 <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
                     <div class="col-md-12 g-padding-y-50--xs text-center">
 
                         <h1 class="metric-num g-font-weight--800" id="Worship-LastYearDifference"></h1>
-                        
+
                     </div>
                 </div>
             </div>
         </div>
     </div>
-	
-	
+
+
     {% comment %} --------------------------------------------------
     ---------------------------- DIVIDER ---------------------------
     ------------------------------------------------ {% endcomment %}
@@ -296,7 +293,7 @@
                     <div class="col-md-12 g-padding-y-50--xs text-center">
 
                         <h1 class="metric-num g-font-weight--800" id="Baptism-YearToDateTotal"></h1>
-                        
+
                     </div>
                 </div>
             </div>
@@ -309,7 +306,7 @@
                     <div class="col-md-12 g-padding-y-50--xs text-center">
 
                         <h1 class="metric-num g-font-weight--800" id="Baptism-LastYearDifference"></h1>
-                        
+
                     </div>
                 </div>
             </div>
@@ -347,7 +344,7 @@
                     <div class="col-md-12 g-padding-y-50--xs text-center">
 
                         <h1 class="metric-num g-font-weight--800" id="Groups-YearToDateAverage"></h1>
-                        
+
                     </div>
                 </div>
             </div>
@@ -360,7 +357,7 @@
                     <div class="col-md-12 g-padding-y-50--xs text-center">
 
                         <h1 class="metric-num g-font-weight--800" id="Groups-LastYearDifference"></h1>
-                        
+
                     </div>
                 </div>
             </div>
@@ -399,7 +396,7 @@
                     <div class="col-md-12 g-padding-y-50--xs text-center">
 
                         <h1 class="metric-num g-font-weight--800" id="Serving-YearToDateAverage"></h1>
-                        
+
                     </div>
                 </div>
             </div>
@@ -413,7 +410,7 @@
 
                         <h1 class="metric-num g-font-weight--800" id="Serving-LastYearDifference"></i>
                         </h1>
-                        
+
                     </div>
                 </div>
             </div>
@@ -489,7 +486,7 @@ function loadQueryStringParam() {
         $("select.select2-weekend option[value='"+params["weekend"]+"']").attr("selected","selected");
     }
 }
-function updatePath(key, value) {    
+function updatePath(key, value) {
     baseUrl = [location.protocol, '//', location.host].join('');
     parts = location.pathname.split('/');
     // Set some defaults;
@@ -538,11 +535,11 @@ loadData = function() {
     $(".campus-name").html($("select.select2-campuses option:selected").html());
     $(".last-year").html($("select.select2-weekend option:selected").val().substring(0,4)-1);
     $(".weekend-date").html($("select.select2-weekend option:selected").html());
-    
+
     // Set variables
     let campusId = $("select.select2-campuses").val();
     let weekend = $("select.select2-weekend").val();
-    
+
     let dataSettings = [
         {
             "selector":"#Worship",
@@ -568,7 +565,7 @@ loadData = function() {
     ];
     let down = '<i class="fas fa-arrow-alt-circle-down" style="color: #DC6967;"></i>';
     let up = '<i class="fas fa-arrow-alt-circle-up" style="color: #A0DC67;"></i>';
-    
+
     // Load the Data
     dataSettings.forEach(function(item) {
         $.get("/webhooks/lava.ashx/se-engage/scorecard/"+item.metricIds+"/"+weekend+"/"+campusId+"/data.json", function(data)
