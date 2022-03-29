@@ -9,7 +9,7 @@
             ShowFooter="false" ShowActionsInHeader="false" AllowPaging="false" AllowSorting="false" OnRowSelected="gGrid_RowSelected">
             <Columns>
                 <Rock:RockBoundField DataField="Name" HeaderText="Person" />
-                <Rock:RockBoundField DataField="Group" ColumnPriority="Desktop" HeaderText="Camp" />
+                <Rock:RockBoundField DataField="Group" ColumnPriority="Desktop" HeaderText="Camp" HtmlEncode="false" />
                 <Rock:RockBoundField DataField="Medications" HeaderText="Medications" ColumnPriority="Desktop" HtmlEncode="false" />
                 <Rock:LinkButtonField OnClick="SelectMember_Click" Text="Update Medications" />
             </Columns>
