@@ -253,16 +253,16 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             if ( kioskTypeCookie != null )
             {
                 var kioskType = KioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
-                if(kioskType != null && kioskType.CampusId == activeMCR.CampusId)
+                if ( kioskType != null && kioskType.CampusId == activeMCR.CampusId )
                 {
-                    if(MCRValidForKiosk(kioskType, activeMCR))
+                    if ( MCRValidForKiosk( kioskType, activeMCR ) )
                     {
                         return true;
                     }
                 }
 
 
-                if ( kioskType == null || kioskType.CampusId == null  )
+                if ( kioskType == null || kioskType.CampusId == null )
                 {
                     return true;
                 }
@@ -282,7 +282,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             }
 
             return kioskType.GroupTypeIds.Where( kg => groupTypeIds.Contains( kg ) ).Any();
-            
+
         }
 
         private void ShowActiveMobileCheckin()
@@ -1350,6 +1350,24 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         /// <param name="checkinPerson">CheckInPerson</param>
         private void EnsureGroupSelected( CheckInPerson checkinPerson )
         {
+            foreach ( var grouptype in checkinPerson.GroupTypes.Where( gt => gt.Selected ) )
+            {
+                foreach ( var group in grouptype.Groups.Where( g => g.Selected ) )
+                {
+                    foreach ( var location in group.Locations.Where( l => l.Selected ).ToList() )
+                    {
+                        foreach ( var schedule in location.Schedules.Where( s => s.Selected ).ToList() )
+                        {
+                            if ( !LocationScheduleOkay( location, schedule ) )
+                            {
+                                location.Selected = false;
+                                schedule.Selected = false;
+                            }
+                        }
+                    }
+                }
+            }
+
             //Only run if someone has nothing selected
             if ( checkinPerson
                 .GroupTypes.Where( gt => gt.Selected )
