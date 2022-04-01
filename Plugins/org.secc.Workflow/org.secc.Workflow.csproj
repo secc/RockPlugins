@@ -112,6 +112,7 @@
     <Compile Include="WorkflowAttributes\AttributeMatrixCopy.cs" />
     <Compile Include="SignatureDocument\StoreSignedDocument.cs" />
     <Compile Include="WorkflowAttributes\SECCSetAttriuteValue.cs" />
+    <Compile Include="WorkflowControl\ProcessWorkflow.cs" />
     <Compile Include="WorkflowControl\DeleteVisitActivity.cs" />
     <Compile Include="WorkflowControl\ReActivateActivity.cs" />
     <Compile Include="WorkflowControl\ActivateWorkflowWithLava.cs" />
