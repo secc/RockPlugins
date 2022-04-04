@@ -16,12 +16,18 @@
               width: 1336px;
               height: 540px;
               background-color: #262626;
-              border-radius: 0px 0px 0px 0px;
               background-repeat: no-repeat;
               background-size: contain;
               background-position: top;
-              background: url("{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}&s.alpha=0.6&bgcolor=000000");
+              background: url("https://app.secc.org/GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}&s.alpha=0.6&bgcolor=000000");
               position: relative;
+			 border-radius:20px;
+			 overflow:hidden;
+			  border:solid 0px #121212;
+			  display:inline-block;
+			  background-clip: padding-box;
+			  -moz-background-clip: padding;
+-webkit-background-clip: padding;
            }
             .box h4, .box h5, .box p {
               color: white;
@@ -38,8 +44,8 @@
     <body>
         <div class="box">
             <div class="content">
-                	<h1 class="g-font-weight--600 g-color--white g-font-family--secondary" style="font-size: 4.5em; letter-spacing: -3px;">{{ item.Title }}</h1>
-                    <h3 class="g-color--white g-line-height g-font-weight--600" style="font-size: 5rem;">{{ item | Attribute:'Subtitle' }}</h3>
+                	<h1 class="g-font-weight--600 g-color--white g-font-family--secondary" style="font-size: 7.5em; letter-spacing: -3px;">{{ item.Title }}</h1>
+                    <h3 class="g-color--white g-line-height g-font-weight--600" style="font-size: 6.25rem;">{{ item | Attribute:'Subtitle' }}</h3>
             </div>
         </div>
     </body>
