@@ -157,13 +157,8 @@
                     <li>
                         <a href="/ministries/college-age">College Age</a>
                     </li>
-                    <li class="has-children">
-                        <a class="arrow">High School</a>
-                        <ul class="is-hidden">
-                            <li class="go-back arrow"><a class="arrow">High School</a></li>
-                            <li><a href="/ministries/high-school">Overview</a></li>
-                            <li><a href="/camp/bibleandbeach">Camp</a></li>
-                        </ul>
+                    <li>
+                        <a href="/ministries/high-school">High School</a>
                     </li>
                     <li class="has-children">
                         <a class="arrow">Middle School</a>
