@@ -160,13 +160,8 @@
                     <li>
                         <a href="/ministries/high-school">High School</a>
                     </li>
-                    <li class="has-children">
-                        <a class="arrow">Middle School</a>
-                        <ul class="is-hidden">
-                            <li class="go-back arrow"><a class="arrow">Middle School</a></li>
-                            <li><a href="/ministries/middle-school">Overview</a></li>
-                            <li><a href="/camp/mix">Camp</a></li>
-                        </ul>
+                    <li>
+                        <a href="/ministries/middle-school">Middle School</a>
                     </li>
                 </div>
 
