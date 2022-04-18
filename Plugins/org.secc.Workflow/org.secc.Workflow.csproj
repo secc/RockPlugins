@@ -81,11 +81,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\DotLiquid\DotLiquid.csproj">
+    <ProjectReference Include="..\..\..\rockdev\DotLiquid\DotLiquid.csproj">
       <Project>{00edcb8d-ef33-459c-ad62-02876bd24dff}</Project>
       <Name>DotLiquid</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Rock\Rock.csproj">
+    <ProjectReference Include="..\..\..\rockdev\Rock\Rock.csproj">
       <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
     </ProjectReference>
@@ -104,6 +104,7 @@
     <Compile Include="Registrations\AutoApplyDiscountCode.cs" />
     <Compile Include="Registrations\SECCGenerateDiscountCode.cs" />
     <Compile Include="Registrations\SetAttributeFromRegistrantField.cs" />
+    <Compile Include="Registrations\UpdateDiscountCodeWithAttribute.cs" />
     <Compile Include="Schedule\ScheduleNextStartDate.cs" />
     <Compile Include="Twilio\Lookup.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixUpdateRow.cs" />
