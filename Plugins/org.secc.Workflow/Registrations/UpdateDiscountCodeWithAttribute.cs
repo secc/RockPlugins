@@ -64,14 +64,14 @@ namespace Rock.Workflow.Action
 
             var registrationTemplateDiscountService = new RegistrationTemplateDiscountService( rockContext );
             var discountCode = GetAttributeValue( action, "DiscountCode", true ).ResolveMergeFields( mergeFields );
-            var registrationTemplateGuid = GetAttributeValue( action, "RegistrationTemplate", true ).AsGuid();
+            var registrationTemplateGuid = GetAttributeValue( action, "RegistrationTemplate", true ).ResolveMergeFields( mergeFields ).AsGuid();
 
             var registrationTemplateService = new RegistrationTemplateService( rockContext );
             var registrationTemplateId = registrationTemplateService
                 .Queryable()
                 .Where( c =>
                     c.Guid == registrationTemplateGuid )
-                .First()?.Id;
+                .FirstOrDefault()?.Id;
 
             if ( registrationTemplateId == null )
             {
