@@ -13,14 +13,14 @@ using Rock.Web.Cache;
 
 namespace org.secc.Finance.Rest.Controllers
 {
-    public partial class FinancialStatementController : ApiControllerBase
+    public partial class FinancialStatementsController : ApiControllerBase
     {
 
         private const string CONTRIBUTION_STATEMENT_FILETYPE_GUID = "01630dc6-66dd-4e26-b51e-6f70216847ae";
 
         [Authenticate, Secured]
         [HttpDelete]
-        [System.Web.Http.Route( "api/FinancialStatement/{binaryFileId}" )]
+        [System.Web.Http.Route( "api/FinancialStatements/{binaryFileId}" )]
         public HttpResponseMessage DeleteStatement( int binaryFileId )
         {
             try

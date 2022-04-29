@@ -81,7 +81,7 @@
       <DependentUpon>GetStatement.ashx</DependentUpon>
     </Compile>
     <Compile Include="Jobs\ProcessGivingStatements.cs" />
-    <Compile Include="Rest\Controllers\FinancialStatementController.cs" />
+    <Compile Include="Rest\Controllers\FinancialStatementsController.cs" />
     <Compile Include="Utility\Statement.cs" />
     <Compile Include="Workflow\GenerateStatement.cs" />
   </ItemGroup>
