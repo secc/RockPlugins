@@ -21,7 +21,7 @@
     {%- for groupMember in groupMembers -%}
         {%- if groupMember.GroupRoleId == 826 -%}
         <li {% if currentPage == '/MyAccount/MyFinancialCoachingCases' %} class="active" {% endif %}>
-            <a href="/MyAccount/MyFinancialCoachingCases"><i class="fas fa-dollar-sign fa-2x"></i></i> Coaching</a>
+            <a href="/MyAccount/MyFinancialCoachingCases"><i class="fal fa-comment-alt-dollar fa-2x"></i></i> Coaching</a>
         </li>
         {%- endif -%}
     {%- endfor -%}
