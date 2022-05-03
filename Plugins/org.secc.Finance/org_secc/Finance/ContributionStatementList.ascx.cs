@@ -73,7 +73,7 @@ namespace RockWeb.Plugins.org_secc.Finance
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-
+            Server.ScriptTimeout = 600;
             Guid binaryFileTypeGuid = Guid.NewGuid();
             if ( Guid.TryParse( GetAttributeValue( "BinaryFileType" ), out binaryFileTypeGuid ) )
             {
