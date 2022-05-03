@@ -31,6 +31,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -209,7 +210,18 @@ namespace RockWeb.Plugins.org_secc.Finance
         protected void gBinaryFile_Delete( object sender, RowEventArgs e )
         {
             var rockContext = new RockContext();
-            BinaryFileService binaryFileService = new BinaryFileService( rockContext );
+            
+            //Have to delete the Documents through a SQL Query becasue Rock doesn't support
+            //a Binary File being available from two documents in Entity Framework
+
+            var sql = "DELETE FROM dbo.Document WHERE BinaryFileId = @BinaryFileId";
+            var param = new SqlParameter( "@BinaryFileId", e.RowKeyId );
+            rockContext.Database.ExecuteSqlCommand( sql, param );
+
+
+            //Deleting the file through entity framework to ensure that it is removed
+            //from the storage provider.
+            var binaryFileService = new BinaryFileService( rockContext );
             BinaryFile binaryFile = binaryFileService.Get( e.RowKeyId );
 
             if ( binaryFile != null )
