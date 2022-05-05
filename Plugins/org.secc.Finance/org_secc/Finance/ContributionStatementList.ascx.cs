@@ -115,27 +115,42 @@ namespace RockWeb.Plugins.org_secc.Finance
 
 
             Regex regex = new Regex( @"/Type\s*/Page[^s]" );
-
+            List<int> invalidFileIds = new List<int>();
             foreach ( var file in files )
             {
-                if ( file.MimeType == "application/pdf" )
+                try
                 {
-                    using ( StreamReader sr = new StreamReader( file.ContentStream ) )
+                    if ( file.MimeType == "application/pdf" )
                     {
-                        MatchCollection matches = regex.Matches( sr.ReadToEnd() );
-                        int pages = matches.Count;
-
-                        PdfReader reader = new PdfReader( file.ContentStream );
-                        //Add pages in new file  
-                        for ( int i = 1; i <= pages; i++ )
+                        using ( StreamReader sr = new StreamReader( file.ContentStream ) )
                         {
-                            importedPage = pdfCopyProvider.GetImportedPage( reader, i );
-                            pdfCopyProvider.AddPage( importedPage );
+                            MatchCollection matches = regex.Matches( sr.ReadToEnd() );
+                            int pages = matches.Count;
+
+                            PdfReader reader = new PdfReader( file.ContentStream );
+                            //Add pages in new file  
+                            for ( int i = 1; i <= pages; i++ )
+                            {
+                                importedPage = pdfCopyProvider.GetImportedPage( reader, i );
+                                pdfCopyProvider.AddPage( importedPage );
+                            }
+                            reader.Close();
                         }
-                        reader.Close();
                     }
                 }
+                catch 
+                {
+                    invalidFileIds.Add( file.Id );
+                }
+
             }
+
+            if( invalidFileIds.Any())
+            {
+                nbBadFiles.Visible = true;
+                nbBadFiles.Text = "Invalid Files:<br />" + invalidFileIds.Select( i => i.ToString() ).ToList().AsDelimited( "," );
+            }
+
             // Finish up the output
             sourceDocument.Close();
 
@@ -156,6 +171,7 @@ namespace RockWeb.Plugins.org_secc.Finance
         /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
+            nbBadFiles.Visible = false;
             if ( !Page.IsPostBack )
             {
                 BindGrid();

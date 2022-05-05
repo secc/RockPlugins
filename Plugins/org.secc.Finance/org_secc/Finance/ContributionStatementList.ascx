@@ -34,7 +34,7 @@
         </div>
 
         <Rock:ModalAlert ID="mdGridWarning" runat="server" />
-        
+        <Rock:NotificationBox ID="nbBadFiles" runat="server" NotificationBoxType="Warning" Visible="false" />
         
 
     </ContentTemplate>
