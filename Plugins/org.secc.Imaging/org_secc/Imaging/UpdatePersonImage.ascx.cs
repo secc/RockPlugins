@@ -13,6 +13,7 @@
 // </copyright>
 using System;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using org.secc.Imaging.AI;
 using Rock.Data;
 using Rock.Model;
@@ -61,7 +62,7 @@ namespace RockWeb.Plugins.org_secc.Imaging
                 var binaryFile = binaryFileService.GetNoTracking( row.BinaryFileId );
                 if ( person != null && binaryFile != null )
                 {
-                    face.UpdatePhoto( person, binaryFile );
+                    var task = Task.Run( async () => await face.UpdatePhoto( person, binaryFile ) );
                 }
             }
 
