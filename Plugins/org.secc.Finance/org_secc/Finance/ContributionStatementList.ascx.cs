@@ -60,6 +60,7 @@ namespace RockWeb.Plugins.org_secc.Finance
     [BinaryFileTypeField]
     [CustomDropdownListField( "Document Type", "The document type for contribution statements.", "SELECT Guid as Value,Name as Text FROM DocumentType", Key = "DocumentType" )]
     [CustomEnhancedListField( "Print & Mail Dataviews", "Any dataviews which indicate people/businesses for who statements will be mailed.", "SELECT Guid as Value,Name as Text FROM DataView", Key = "PrintAndMail" )]
+    [IntegerField("Page Load Timeout", "The time in seconds to wait before the page times out. The default is 300 seconds (5 minutes).", false, 300, Key ="PageLoadTimeout")]
     public partial class ContributionStatementList : RockBlock, ICustomGridColumns
     {
         private BinaryFileType binaryFileType = null;
@@ -73,7 +74,7 @@ namespace RockWeb.Plugins.org_secc.Finance
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-            Server.ScriptTimeout = 600;
+            Server.ScriptTimeout = GetAttributeValue("PageLoadTimeout").AsInteger();
             Guid binaryFileTypeGuid = Guid.NewGuid();
             if ( Guid.TryParse( GetAttributeValue( "BinaryFileType" ), out binaryFileTypeGuid ) )
             {
