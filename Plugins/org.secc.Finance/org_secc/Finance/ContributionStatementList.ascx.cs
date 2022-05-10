@@ -61,6 +61,7 @@ namespace RockWeb.Plugins.org_secc.Finance
     [CustomDropdownListField( "Document Type", "The document type for contribution statements.", "SELECT Guid as Value,Name as Text FROM DocumentType", Key = "DocumentType" )]
     [CustomEnhancedListField( "Print & Mail Dataviews", "Any dataviews which indicate people/businesses for who statements will be mailed.", "SELECT Guid as Value,Name as Text FROM DataView", Key = "PrintAndMail" )]
     [IntegerField("Page Load Timeout", "The time in seconds to wait before the page times out. The default is 300 seconds (5 minutes).", false, 300, Key ="PageLoadTimeout")]
+
     public partial class ContributionStatementList : RockBlock, ICustomGridColumns
     {
         private BinaryFileType binaryFileType = null;
@@ -99,9 +100,6 @@ namespace RockWeb.Plugins.org_secc.Finance
 
         public void ExportPdfs_Click( object sender, EventArgs e )
         {
-            RockContext rockContext = new RockContext();
-            rockContext.Database.CommandTimeout = 180;
-
             var files = GetBinaryFiles().Select( d => d.BinaryFile );
 
             PdfImportedPage importedPage;
@@ -323,6 +321,8 @@ namespace RockWeb.Plugins.org_secc.Finance
             var personAliasService = new PersonAliasService( context );
             var personService = new PersonService( context );
             var documentService = new DocumentService( context );
+
+            context.Database.CommandTimeout = 180;
 
             // If the document type is not set
             if ( string.IsNullOrWhiteSpace( GetAttributeValue( "DocumentType" ) ) )
