@@ -142,7 +142,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             var parentGroups = new List<int>();
             parentGroups = gpGroup.SelectedValuesAsInt().ToList();
             var groupType = ddlGroupType.SelectedValue.AsInteger();
-            var groupNames = JsonConvert.DeserializeObject<List<Rock.Web.UI.Controls.ListItems.KeyValuePair>>( liGroupNames.Value );
+            var groupNames = tbGroupNames.Text.SplitDelimitedValues( "," ).ToList();
             var rockContext = new RockContext();
             var groupService = new GroupService( rockContext );
 
@@ -153,7 +153,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     Group group = new Group();
                     group.IsSystem = false;
-                    group.Name = groupName.Value;
+                    group.Name = groupName.Trim();
                     group.GroupTypeId = groupType;
                     group.ParentGroupId = parentGroup;
                     groupService.Add( group );
