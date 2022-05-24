@@ -39,16 +39,13 @@
             {% assign campuses_list = '' %}
             {% for EventItemOccurrence in Event.EventItemOccurrences %}
             {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
-            {% if campuses_list contains campus_slug %}
-            {% comment %} Display only the first occurence of each campus - so skip this {% endcomment %}
-            {% else %}
+
             {% assign campuses_list = campuses_list | Append:',' | Append:campus_slug %}
             <div class="event-calendar">
                 <div class="clearfix card g-margin-b-20--xs" >
                     {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
                 </div>
             </div>
-            {% endif %}
             {% endfor %}
         </div>
         {% endif %}
@@ -62,22 +59,40 @@
             <h2 class="g-font-family--secondary g-padding-b-20--xs">Choose a class from your campus below</h2>
             <p>If you're new to faith, just checking things out, or coming back to church after some time away, Starting Point is a great first step to get connected and find out more about Southeast.</p>
         </div>
+        <div class="col-md-4 col-md-offset-4 g-padding-t-10--xs g-padding-b-60--xs g-padding-x-50--lg">
+
+            {% assign campusesAvail = '' %}
+            {% assign campusesCount = 0 %}
+            {% for EventItemOccurrence in Event.EventItemOccurrences %}
+                {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
+                {% if campusesAvail contains campus_slug %}
+                    {% comment %} Great – Skip this since it already conatains the Campus {% endcomment %}
+                {% else %}
+                    {% assign campusesCount = campusesCount | Plus: 1 %}
+                    {% assign campusesAvail = campusesAvail | Append: '<option value="' | Append: campus_slug | Append: '" data-shortcode="' | Append: EventItemOccurrence.Campus.ShortCode | Append: '">' | Append: EventItemOccurrence.Campus.Name | Append: '</option>' %}
+                {% endif %}
+            {% endfor %}
+
+            {% if campusesCount >= 2 %}
+            <select class="select2-campuses" name="campus">
+                <option value="*" data-shortcode="SE">Select a Campus</option>
+                {{campusesAvail}}
+            </select>
+            {% endif %}
+
+        </div><!-- END: col-md-4 -->
     </div>
     <div class="row">
         <div class="isotope_wrap g-margin-b-80--xs">
             {% assign campuses = '' %}
             {% for EventItemOccurrence in Event.EventItemOccurrences %}
                 {% assign campus_slug = EventItemOccurrence.Campus | Attribute:'Slug' %}
-                {% if campuses contains campus_slug %}
-                    {% comment %} Display only the first occurence of each campus - so skip this {% endcomment %}
-                {% else %}
                     {% assign campuses = campuses | Append:',' | Append:campus_slug %}
                     <div class="isotope_item col-xs-12 col-md-6 col-lg-4 {{campus_slug}}_filter event-calendar">
                         <div class="clearfix card g-margin-b-20--xs" >
                             {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
                         </div>
                     </div>
-                {% endif %}
             {% endfor %}
         </div>
     </div>
@@ -121,3 +136,54 @@
 
 {% endif %}
 </div>
+    <script type="text/javascript">
+
+        $(document).ready(function() {
+
+            ///////////////////////////////////////////////////
+            /////////////// Initialize Select2 ////////////////
+            ///////////////////////////////////////////////////
+            $('.select2-campuses').select2({
+              placeholder: 'Select a Campus'
+            });
+
+            $('.select2-campuses').on('select2:select', function (e) {
+                // prevent from submiting default form actionn
+                e.preventDefault();
+                // pull in lava ID
+                var data = e.params.data;
+                if (data.id != '*') {
+                    var filterClass = '.' + data.id + '_filter';
+                } else {
+                    var filterClass = data.id;
+                }
+                console.log(filterClass);
+                $grid.isotope({
+                    // options
+                    filter: filterClass,
+                    percentPosition: true,
+                    itemSelector: '.isotope_item'
+                });
+            });
+             // Initialize Isotope
+            $grid.isotope({
+                // options
+                filter: '*',
+                percentPosition: true,
+                itemSelector: '.isotope_item'
+            });
+
+            // filter items on button click
+            // $('.filter-button-group').on( 'click', 'button', function(e) {
+            //     e.preventDefault();
+            //     var filterValue = $(this).attr('data-filter');
+            //     $grid.isotope({
+            //         // options
+            //         filter: filterValue,
+            //         percentPosition: true,
+            //         itemSelector: '.isotope_item'
+            //     });
+            // });
+         });
+
+    </script>
