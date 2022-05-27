@@ -1,0 +1,43 @@
+<script>
+    $zipcode_input = $('#se-zipcode');
+
+    $zipcode_input.keydown( function (e) {
+        if (e.keyCode == 13) {
+            e.preventDefault();
+        }
+    });
+
+    $zipcode_input.keyup(function(){
+        var zipcode = $zipcode_input.val();
+
+        if (zipcode.length==5){
+            $('.se-zipcode-loading').removeClass('hidden');
+
+            $.getJSON(
+                "/api/mapping/distance/41561/"+zipcode,
+                function(data){
+                    if (zipcode.length!=5){
+                        $('.se-zipcode-loading').addClass('hidden');
+                        return
+                    }
+                    var array=[],obj=data;
+                    for(a in obj){
+                        array.push([a,obj[a]])
+                    }
+                    array.sort(function(a,b){return a[1] - b[1]});
+                    var definedValueId = array.reverse().pop();
+                    console.log(definedValueId[0]);
+                    var locationId = definedValueId[0];
+                    redirectToRegistrationUrl(locationId);
+                }
+            );
+        };
+    });
+
+    async function redirectToRegistrationUrl(locationId){
+        let response = await fetch('/Webhooks/Lava.ashx/shine-gala?location='+locationId);
+        let data = await response.text();
+        window.location.href = data.trim();
+    };
+
+</script>

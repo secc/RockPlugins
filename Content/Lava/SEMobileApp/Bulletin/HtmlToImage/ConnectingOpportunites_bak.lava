@@ -1,0 +1,106 @@
+{%- contentchannelitem where:'Guid == "{{Guid}}"' -%}
+{%- assign item = contentchannelitemItems | First - %}
+{%- endcontentchannelitem -%}
+{%- assign lineCount = 6 -%}
+{%- if connectTitle == "" -%}
+    {%- assign lineCount = lineCount | Plus:1 -%}
+{%- endif -%}
+{%- if connectTitle2 == "" -%}
+    {%- assign lineCount = lineCount | Plus:1 -%}
+{%- endif -%}
+{%- if connectTitle3 == "" -%}
+    {%- assign lineCount = lineCount | Plus:1 -%}
+{%- endif -%}
+{%- if connectUrl == "" -%}
+    {%- assign lineCount = lineCount | Plus:1 -%}
+{%- endif -%}
+<html>
+    <head>
+        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/layout.css?v=637171650738055685"/>
+        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/main.css?v=637171650775243506"/>
+        <style>
+            html, body {
+              margin: 0px;
+              padding: 0px;
+              background-color: #121212;
+            }
+            .box {
+              width: 1334px;
+              height:824px;
+              background-color: #262626;
+              background-repeat: no-repeat;
+              background-size: contain;
+              background-position: top;
+            }
+            .box h4, .box h5, .box p {
+              color: white;
+            }
+            .content{
+              padding: 5em 5em 5em 5em;
+              height: 100%;
+              overflow: hidden;
+            }
+            .content div,
+            .content div p,
+            .content div span:not(.js-shave-char),
+            .content div div,
+            .content div h1,
+            .content div h2,
+            .content div h3,
+            .content div h4,
+            .content div h5,
+            .content div h6,
+            .content div small {
+                font-size: 45px !important;;
+            }
+            .block-with-text {
+                overflow: hidden;
+                display: -webkit-box;
+                -webkit-line-clamp: {{- lineCount -}};
+                -webkit-box-orient: vertical;
+            }
+            .more {
+                position: absolute;
+                bottom: 0;
+                width: 100%;
+                padding: 50px;
+                font-size: 2.8em;
+                color: white;
+                background-color: #28A5BB;
+                text-align: center;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="box">
+            <div class="content-box g-position--relative">
+                {%- assign connectTitle = item | Attribute:'ConnectionTitle' -%}
+                {%- assign connectTitle2 = item | Attribute:'ConnectionTitle2' -%}
+                {%- assign connectTitle3 = item | Attribute:'ConnectionTitle3' -%}
+                {%- assign connectInfo = item | Attribute:'ConnectInfo' -%}
+                {%- assign connectUrl = item | Attribute:'ConnectURL' -%}
+                <div class="content">
+                    {%- if connectTitle != "" -%}
+                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 45px; font-style: italic;">{{ connectTitle }}</h3>
+                    {%- endif -%}
+                    {%- if connectTitle2 != "" -%}
+                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 45px; font-style: italic;">{{ connectTitle2 }}</h3>
+                    {%- endif -%}
+                    {%- if connectTitle3 != "" -%}
+                	<h3 class="g-color--white g-line-height g-font-weight--700" style="font-size: 45px; font-style: italic;">{{ connectTitle3 }}</h3>
+                    {%- endif -%}
+                    {%- if connectInfo != "" -%}
+                    <div class="g-color--white g-padding-t-20--xs g-line-height block-with-text">{{ connectInfo }}</div>
+                    {%- endif -%}
+                </div>
+                {%- if connectUrl != "" -%}
+                <div class="more">
+                    Learn More
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </body>
+</html>

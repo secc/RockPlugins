@@ -1,3 +1,7 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Sermon Series' componententityid:'27192' operation:'View' summary:'Sermon Series Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'{{series}}'%}
+Sermon Series Page
+{% endinteractionwrite %}
+
 {%- assign cacheSpecific = '' -%}
 {%- if Headers.sap-app-version >= '5.4.0' -%}
 	{%- assign cacheSpecific = 'subsplash-sermons-v2--series-' | Append:series -%}
@@ -57,7 +61,7 @@
 				"title": "{{sermon.Title | Replace:'"','\"'}}",
 				"subtitle": "{{ sermon | Attribute:'Speaker' | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }} {{ '&bull;' | HtmlDecode }} {{ sermon.StartDateTime | Date:'MMMM d, yyyy' }}",
 				"images":[
-					{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/button/{{sermon.Guid}}?bgcolor=121314&mode=crop&s.roundcorners=40&margin=80,80,80,0"  }
+					{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/button/{{sermon.Guid}}?bgcolor=121314&mode=crop&s.roundcorners=40&margin=80,80,80,0"  }
 				],
 				"actions": [{
 					{%- if Headers.sap-app-version >= '5.4.0' -%}
@@ -89,7 +93,7 @@
 				{%- else -%}
 					{%- assign Body = "" | Escape | EscapeDataString -%}
 				{%- endif -%}
-				{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+				{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 			]
 		}
 		{%- endif -%}

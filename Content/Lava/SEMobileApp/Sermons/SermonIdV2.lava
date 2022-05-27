@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Sermon V2' componententityid:'33574' operation:'View' summary:'Sermon Page V2' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'{{id}}'%}
+Sermon Page V2
+{% endinteractionwrite %}
 {%- contentchannelitem where:'ContentChannelId == 23 && Id == {{id}}' sort:'StartDateTime desc'  -%}
 {%- for sermon in contentchannelitemItems -%}
 {%- comment -%}

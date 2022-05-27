@@ -1,4 +1,6 @@
-{
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Campuses' componententityid:'27571' operation:'View' summary:'Campuses Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
+Campuses Page
+{% endinteractionwrite %}{
 	"header": {
 		"title": "Location"
 	},
@@ -40,7 +42,7 @@
 	        {{- comma -}}{
 				"images":[
 				    {"width": 668,
-					"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/location/{{campus.Guid}}?bgcolor=121212&mode=crop&s.roundcorners=10"}
+					"url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/location/{{campus.Guid}}?bgcolor=121212&mode=crop&s.roundcorners=10"}
 					],
 				"title":"{{campus.Name}}",
 				"actions": [{

@@ -46,7 +46,7 @@
                 height: 100%;
                 position: relative;
                 float: left;
-                background-image: url("{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{ imgGuid }}.jpg?guid={{ imgGuid }}");
+                background-image: url("https://app.secc.org/GetImage.ashx/{{ imgGuid }}.jpg?guid={{ imgGuid }}");
                 background-repeat: no-repeat;
                 background-size: cover;
                 background-position: center;

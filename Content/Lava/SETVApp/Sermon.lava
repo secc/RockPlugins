@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'TV App Sermon' componententityid:'27735' operation:'View' summary:'TV App Sermon Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypdid:'208' relatedentityid:'{{id}}'%}
+TV App Sermon Page
+{% endinteractionwrite %}
 {%- cache key:'subsplash-tvapp-{{id}}' duration:'3600' -%}
 {%- contentchannelitem where:'ContentChannelId == 23 && Id == {{id}}' sort:'StartDateTime desc'  -%}
 {%- for sermon in contentchannelitemItems -%}

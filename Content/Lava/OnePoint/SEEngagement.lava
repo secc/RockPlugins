@@ -5,19 +5,19 @@
     {%- assign subtractDays = -7 -%}
 {%- endif -%}
 <script>
-    $.fn.digits = function(){ 
-        return this.each(function(){ 
-            $(this).text( $(this).text().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,") ); 
+    $.fn.digits = function(){
+        return this.each(function(){
+            $(this).text( $(this).text().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,") );
         })
     }
 </script>
-<div class="g-bg-color--gray-lightest">
-    <div class="container g-padding-y-100--xs">
-        {% comment %} 
+<div>
+    <div class="">
+        {% comment %}
         {% include '/Themes/SECC2019Portal/Assets/Lava/SEEngagement.lava' %}
         {% endcomment %}
 
-        
+
         {% comment %}
         --------------------------------------------------------
         ------------------------ SE ENGAGEMENT HEADER ------------------------
@@ -79,7 +79,7 @@
                     .select-css:focus {
                         border-color: #aaa;
                         /* It'd be nice to use -webkit-focus-ring-color here but it doesn't work on box-shadow */
-                        color: #222; 
+                        color: #222;
                         outline: none;
                     }
 
@@ -127,13 +127,13 @@
                 </div>
             </div>
         </div>
-        
+
         {% comment %} --------------------------------------------------
         ---------------------------- DIVIDER ---------------------------
         ------------------------------------------------ {% endcomment %}
         <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
             <hr style="border-color: #4D4D4D;position: relative;">
-            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
                 SE ONLINE ENGAGEMENT
             </h4>
         </div>
@@ -144,7 +144,7 @@
         <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
             <div class="col-lg-6">
                 <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
-                    
+
                     <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Online Viewers <div class="pull-right"><a href="/page/2495?MetricCategoryId=78&ExpandedIds=C1592" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
                     <div class="g-padding-x-50--xs g-padding-y-50--xs g-position--relative" style="display: block;height: 100%;width: 100%;">
                         <div id="OnlineViewersContainer" class="g-center--xs g-text-center--xs">
@@ -230,10 +230,10 @@
                         /**
                         * ---------------------------------------
                         * This demo was created using amCharts 4.
-                        * 
+                        *
                         * For more information visit:
                         * https://www.amcharts.com/
-                        * 
+                        *
                         * Documentation is available at:
                         * https://www.amcharts.com/docs/v4/
                         * ---------------------------------------
@@ -290,7 +290,7 @@
                         "color":colorSet.next()
                         }, {
                         "title": "Malaysia",
-                                "latitude": 4.1278731, 
+                                "latitude": 4.1278731,
                                 "longitude": 105.1109232,
                         "color":colorSet.next()
                         }, {
@@ -380,7 +380,7 @@
                         "color":colorSet.next()
                         }, {
                                 "title": "Australia",
-                                "latitude": -25.0258658, 
+                                "latitude": -25.0258658,
                                 "longitude": 115.1730476,
                         "color":colorSet.next()
                         }];
@@ -398,7 +398,7 @@
         ------------------------------------------------ {% endcomment %}
         <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
             <hr style="border-color: #4D4D4D;position: relative;">
-            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
                 SE!KIDS ONLINE ENGAGEMENT
             </h4>
         </div>
@@ -471,7 +471,7 @@
         ------------------------------------------------ {% endcomment %}
         <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
             <hr style="border-color: #4D4D4D;position: relative;">
-            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
                 SOCIAL MEDIA ENGAGEMENT
             </h4>
         </div>
@@ -493,8 +493,8 @@
             let twitterFollowersTotal = 0;
             // youtube
             let youtubeSubscribersTotal = 0;
-            let youtubeSubscribersNew = 0;   
-            let youtubeViews = 0; 
+            let youtubeSubscribersNew = 0;
+            let youtubeViews = 0;
 
             var loadFile = function (filePath, done) {
                 var xhr = new XMLHttpRequest();
@@ -520,7 +520,7 @@
             });
             // display each result after loading it
             let campusFBPages;
-            function callback () { 
+            function callback () {
                 // group the data by campus
                 campusFBPages = jsonData.reduce((r, a) => {
                     r[a.campus] = [...r[a.campus] || [], a];
@@ -548,7 +548,7 @@
                                             '<div class="g-padding-r-10--xs g-display-inline-block--xs"><a href="/page/2495?MetricCategoryId=83&amp;ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div>'
                                             + '<span class="se-pill"><strong>'+ campusFBPages[campus][item]['follower category'] +'</strong>: '
                                             + '<span class="g-font-weight--700" style="color: #6450AC;">'+ campusFBPages[campus][item]['value'].toLocaleString() +'</span></span><br />'
-                                        ) 
+                                        )
                                     } else {
                                         // total followers
                                         $('#campusFacebook'+campus.replace(/\s+/g, '')).append(
@@ -576,7 +576,7 @@
                                 if (campusFBPages[campus][item]['follower category'] != undefined) {
                                     if (campusFBPages[campus][item]['follower category'].indexOf("New") !== -1) {
                                         // new followers
-                                        facebookFollowersNew += campusFBPages[campus][item]['value']; 
+                                        facebookFollowersNew += campusFBPages[campus][item]['value'];
                                     } else {
                                         // total followers
                                         facebookFollowersTotal += campusFBPages[campus][item]['value'];
@@ -592,7 +592,7 @@
                                 if (campusFBPages[campus][item]['follower category'] != undefined) {
                                     if (campusFBPages[campus][item]['follower category'].indexOf("New") !== -1) {
                                         // new followers
-                                        instagramFollowersNew += campusFBPages[campus][item]['value']; 
+                                        instagramFollowersNew += campusFBPages[campus][item]['value'];
                                     } else {
                                         // total followers
                                         instagramFollowersTotal += campusFBPages[campus][item]['value'];
@@ -614,14 +614,14 @@
                             }
                             // YouTube
                             //let youtubeSubscribersTotal = 0;
-                            //let youtubeSubscribersNew = 0;   
-                            //let youtubeViews = 0; 
+                            //let youtubeSubscribersNew = 0;
+                            //let youtubeViews = 0;
                             if (campusFBPages[campus][item]['platform'] == "YouTube" || campusFBPages[campus][item]['social media platform'] == "YouTube") {
                                 // see if the follower category is total or new followers
                                 if (campusFBPages[campus][item]['follower category'] != undefined) {
                                     if (campusFBPages[campus][item]['follower category'].indexOf("New") !== -1) {
                                         // new followers
-                                        youtubeSubscribersNew += campusFBPages[campus][item]['value']; 
+                                        youtubeSubscribersNew += campusFBPages[campus][item]['value'];
                                     } else {
                                         // total followers
                                         youtubeSubscribersTotal += campusFBPages[campus][item]['value'];
@@ -723,7 +723,7 @@
                             <div class="g-padding-r-10--xs g-display-inline-block--xs">
                                 <a href="/page/2495?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
                             </div>
-                            <strong>Total Followers</strong>: 
+                            <strong>Total Followers</strong>:
                             <h3 class="g-font-weight--700" style="color: #6794DD;" id="seFacebookTotalFollowers">---</h3>
                         </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
                             <div class="g-padding-r-10--xs g-display-inline-block--xs">
@@ -898,7 +898,7 @@
         ------------------------------------------------ {% endcomment %}
         <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
             <hr style="border-color: #4D4D4D;position: relative;">
-            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
                 GIVING
             </h4>
         </div>
@@ -913,14 +913,14 @@
                         <div class="col-md-12 g-padding-y-50--xs ">
                            {[ amcharts data-category:'date,giving,givingUnits,average,percentOnlineGiving' data-category-labels:'Date,$ General Giving,# of Giving Units,$ Amount / Giving Unit,% of Online Giving' type:'linechart' legend:'on' data-src:'/webhooks/Lava.ashx/se-engage/generalgiving/{{ pageParamWeekendDate }}/chart.json' ]}
                            {[ endamcharts ]}
-                           {% comment %} 
+                           {% comment %}
                            {[ amcharts data-category:'date,giving,units,online,average' data-category-labels:'Date,$ General Giving,$ Amount / Giving Unit,# of Giving Units,% of Online Giving' type:'linechart' legend:'on' ]}
                                 [[ dataitem value:'April 26 2020,987935,3712,73,266' ]][[ enddataitem ]]
                                 [[ dataitem value:'May 3 2020,1256557,4582,81,274' ]][[ enddataitem ]]
                                 [[ dataitem value:'May 10 2020,1060088,3708,66,286' ]][[ enddataitem ]]
                                 [[ dataitem value:'May 17 2020,1147240,4261,84,269' ]][[ enddataitem ]]
                                 [[ dataitem value:'May 24 2020,865035,3485,77,248' ]][[ enddataitem ]]
-                            {[ endamcharts ]} 
+                            {[ endamcharts ]}
                             {% endcomment %}
                         </div>
                     </div>
@@ -958,32 +958,32 @@
                                         return givinglocation.LocationType === "States";
                                     });
                                 statesArray = states.shift().Locations.split(",").map(function(item) { return {'id':`US-${item.trim()}`, 'value':100};});
-                                
+
                                 // Themes begin
                                 am4core.useTheme(am4themes_animated);
                                 // Themes end
-    
+
                                 // Create map instance
                                 var chart = am4core.create("chartdivGivingByLocation", am4maps.MapChart);
-    
+
                                 // Set map definition
                                 chart.geodata = am4geodata_worldLow;
-    
+
                                 // Set projection
                                 chart.projection = new am4maps.projections.Miller();
                                 chart.chartContainer.wheelable = false;
-                                
+
                                 // Series for World map
                                 var worldSeries = chart.series.push(new am4maps.MapPolygonSeries());
                                 //worldSeries.include = countriesArray;
                                 worldSeries.exclude = ["AQ"];
                                 worldSeries.useGeodata = true;
-    
+
                                 var polygonTemplate = worldSeries.mapPolygons.template;
                                 polygonTemplate.tooltipText = "{name}";
                                 polygonTemplate.fill = chart.colors.getIndex(0);
                                 polygonTemplate.nonScalingStroke = true;
-    
+
                                 // Add heat rule
                                 worldSeries.heatRules.push({
                                   "property": "fill",
@@ -991,31 +991,31 @@
                                   "min": chart.colors.getIndex(0),
                                   "max": am4core.color("#367B25")
                                 });
-                                
+
                                 // Add expectancy data
                                 worldSeries.data = countriesArray;
-                                
+
                                 // Hover state
                                 var hs = polygonTemplate.states.create("hover");
                                 hs.properties.fill = am4core.color("#367B25");
-    
+
                                 // Series for United States map
                                 var usaSeries = chart.series.push(new am4maps.MapPolygonSeries());
                                 usaSeries.geodata = am4geodata_usaLow;
-    
+
                                 // Configure series
                                 var usPolygonTemplate = usaSeries.mapPolygons.template;
                                 usPolygonTemplate.tooltipText = "{name}";
                                 usPolygonTemplate.fill = chart.colors.getIndex(0);//am4core.color("#74B266");
                                 usPolygonTemplate.nonScalingStroke = true;
-    
-    
+
+
                                 // Create hover state and set alternative fill color
                                 var hs = usPolygonTemplate.states.create("hover");
                                 hs.properties.fill = am4core.color("#367B25");
-    
+
                                 //usaSeries.exclude = ["US-CO", "US-AZ", "US-KY", "US-FL"];
-                                
+
                                 // Add heat rule
                                 usaSeries.heatRules.push({
                                   "property": "fill",
@@ -1023,7 +1023,7 @@
                                   "min": chart.colors.getIndex(0),
                                   "max": am4core.color("#367B25")
                                 });
-                                
+
                                 // Add expectancy data
                                 usaSeries.data = statesArray;
                             });
@@ -1040,7 +1040,7 @@
         ------------------------------------------------ {% endcomment %}
         <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
             <hr style="border-color: #4D4D4D;position: relative;">
-            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
                 SE APP
             </h4>
         </div>
@@ -1109,7 +1109,7 @@
         {% comment %}
         <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-y-50--xs g-text-center--xs g-position--relative">
             <hr style="border-color: #4D4D4D;position: relative;">
-            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
                 Stories
             </h4>
         </div>
@@ -1182,7 +1182,7 @@
         ------------------------------------------------ {% endcomment %}
         <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-y-50--xs g-text-center--xs g-position--relative">
             <hr style="border-color: #4D4D4D;position: relative;">
-            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #F5F5F5; color: #4D4D4D;">
                 Videos
             </h4>
         </div>
@@ -1198,10 +1198,10 @@
         <div class="fluid-container">
             <section class="cards-section">
                     <div class="isotope_wrap">
-                        {% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger %}
+                        {% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsDouble %}
                         {% for item in Items %}
-                            {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
-                            {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsInteger %}
+                            {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsDouble %}
+                            {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsDouble %}
                             {% if itemStartDateTime <= currentDateTime %}
                                 {% if itemExpireDateTime > currentDateTime or itemExpireDateTime == null %}
                                     {% assign ImageGuid = item | Attribute:'Image','RawValue' %}

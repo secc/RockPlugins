@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow Bible Studies' componententityid:'31003' operation:'View' summary:'Grow Bible Studies Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
+Grow Bible Studies Page
+{% endinteractionwrite %}
 {
 	"header": {
 		"title": "Bible Studies"
@@ -41,7 +44,7 @@
                     {
                         "images":[
                             {"width": 667,
-                            "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/grow/resources/listcard/{{ item.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+                            "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/listcard/{{ item.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
                         ],
                         "title": "{{ title }}",
                         "actions":[{

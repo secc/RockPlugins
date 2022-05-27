@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow Family Resources Message' componententityid:'31631' operation:'View' summary:'Grow Family Resources Message Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypdid:'208' relatedentityid:'{{id}}'%}
+Grow Family Resources Message Page
+{% endinteractionwrite %}
 {%- cache key:'subsplash-familyresource-detail-{{id}}' duration:'3600' -%}
 {%- contentchannelitem where:'ContentChannelId == 76 && Id == {{id}}' -%}
 	{%- for item in contentchannelitemItems -%}
@@ -7,8 +10,8 @@
 		{%- endif -%}
 	{%- endfor -%}
 {%- endcontentchannelitem -%}
-{%-  assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger -%}
-{%-  assign itemStartDateTime = SEKidsItem.StartDateTime | Date:'yyMMddHHmm' | AsInteger -%}
+{%-  assign currentDateTime = 'Now' | Date:'dd/MM/yy HH:mm' | AsDateTime -%}
+{%-  assign itemStartDateTime = SEKidsItem.StartDateTime | AsDateTime -%}
 {%-  assign itemImage = SEKidsItem | Attribute:'Image' -%}
 {%-  assign itemImageGuid = SEKidsItem | Attribute:'Image','RawValue' -%}
 {%- if SEKidsItem and itemStartDateTime <= currentDateTime -%}

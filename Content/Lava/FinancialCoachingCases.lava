@@ -1,0 +1,46 @@
+<div id="myApp">
+  <template>
+  <v-data-table
+    :headers="headers"
+    :items="workflows"
+    :items-per-page="50"
+    class="elevation-1"
+  ></v-data-table>
+</template>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+<script>
+var app = new Vue({
+  el: '#myApp',
+  data: {
+    headers: [
+      {
+        text: 'Name',
+        align: 'start',
+        sortable: false,
+        value: 'name',
+      },
+      {text: 'Status', value: 'status'},
+      {text: 'Coach', value: 'coach'},
+      {text: 'Created', value: 'created'},
+      {text: '', sortable: false, value: 'view'},
+
+    ],
+    workflows: [
+    {% workflow where:'WorkflowTypeId == 600' sort:'CreatedDateTime desc'%}
+      {%for workflow in workflowItems%}
+        { view: '<a href="/page/2855?w={{workflow.Guid}}">View Case</a>',
+          created: '{{workflow.CreatedDateTime}}',
+          name: '{{workflow.Name}}',
+          status: '{{workflow.Status}}',
+          coach: '{{workflow | Attribute:'Coach','FullName'}}'
+        },
+      {%endfor%}
+    {%endworkflow %}
+    ]
+  },
+  vuetify: new Vuetify(),
+})
+</script>

@@ -1,6 +1,11 @@
 {%- campus where:'Guid == "{{CampusGuid}}"' -%}
 {%- assign campus = campusItems | First - %}
 {%- endcampus -%}
+
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Bulletin Campus' componententityid:'30280' operation:'View' summary:'Bulletin Campus Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'67' relatedentityid:'{{ campus.id }}'%}
+Bulletin Campus Page
+{% endinteractionwrite %}
+
 {%- contentchannelitem where:'ContentChannelId == 24 && Status == 2' sort:'StartDateTime Desc' -%}
 {%- assign series = "" -%}
 {%- for item in contentchannelitemItems -%}
@@ -65,11 +70,11 @@
 	"items": [
         {
             "images":[
-                { "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/campusIntro/{{campus.Guid}}"  }
+                { "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/bulletin/campusIntro/{{campus.Guid}}?date={{ 'Now' | Date:'MMddyyyy' }}"  }
             ]
 	},{
             "images":[
-                { "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/campusFigures/{{campus.Guid}}"  }
+                { "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/bulletin/campusFigures/{{campus.Guid}}?date={{ 'Now' | Date:'MMddyyyy' }}"  }
             ]
 	}{%- assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsDouble -%}
 	 {%- contentchannelitem where:'ContentChannelId == 70 && Status == 2' sort:'Order'  -%}{%- for item in contentchannelitemItems -%}
@@ -83,7 +88,7 @@
 						{%- if connectImageGuid == "" -%}
 						,{
 							"images": [
-								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/connect/{{item.Guid}}?bgcolor=121212&mode=crop&s.roundcorners=20,20,20,20&margin=80,0,80,80"  }
+								{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/bulletin/connect/{{item.Guid}}?bgcolor=121212&mode=crop&s.roundcorners=20,20,20,20&margin=80,0,80,80"  }
 							]
 							{%- if connectUrl != "" -%}
 							,"actions": [{
@@ -98,7 +103,7 @@
 						{%- else -%}
 						,{
 							"images": [
-								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/connect/{{item.Guid}}?bgcolor=121212&s.roundcorners=20,20,0,0&margin=80,0,80,0&width=1494&crop=(0,0,1494,904)&anchor=topcenter&format=jpg"  }
+								{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/bulletin/connect/{{item.Guid}}?bgcolor=121212&s.roundcorners=20,20,0,0&margin=80,0,80,0&width=1494&crop=(0,0,1494,904)&anchor=topcenter&format=jpg"  }
 							]
 							{%- if connectUrl != "" -%}
 							,"actions": [{
@@ -111,7 +116,7 @@
 							{% endif %}
 						},{
 							"images": [
-								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/connect/{{item.Guid}}?bgcolor=121212&s.roundcorners=0,0,20,20&margin=80,0,80,80&width=1494&crop=(0,905,1494,1729)&anchor=topcenter&format=jpg"  }
+								{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/bulletin/connect/{{item.Guid}}?bgcolor=121212&s.roundcorners=0,0,20,20&margin=80,0,80,80&width=1494&crop=(0,905,1494,1729)&anchor=topcenter&format=jpg"  }
 							]
 							{%- if connectUrl != "" -%}
 							,"actions": [{

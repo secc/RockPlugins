@@ -44,7 +44,7 @@
 	        {% unless forloop.first %},{% endunless %}
 
 			{%- assign itemActionHandler = "list" -%}
-			{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/sermons/series/" | Append:item.Id -%}
+			{%- assign itemActionUrl = "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/" | Append:item.Id -%}
 			{%- assign resourcesCount = 0 -%}
 			{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
 			{%- for messages in itemChildItems -%}
@@ -55,14 +55,14 @@
 			{%- endfor -%}
 			{%- if resourcesCount != 0 -%}
 			{%- assign itemActionHandler = "subtabs" -%}
-			{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/tabs/series/" | Append:item.Id -%}
+			{%- assign itemActionUrl = "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/" | Append:item.Id -%}
 			{%- endif -%}
 
 	        {
 				"title": "{{item.Title | Replace:'"','\"'}}",
 				"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
 	            "images":[
-				    { "width":400, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=400&height=75&mode=crop&s.roundcorners=80,80,0,0&bgcolor=121212&format=png&margin=40,75,40,0&anchor=topcenter"  }
+				    { "width":400, "url":"https://app.secc.org/GetImage.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=400&height=75&mode=crop&s.roundcorners=80,80,0,0&bgcolor=121212&format=png&margin=40,75,40,0&anchor=topcenter"  }
 			    ],
 				"actions": [{
 					"handler": "{{- itemActionHandler -}}",
@@ -72,7 +72,7 @@
 			},
 			{
 	            "images":[
-				    { "width":400, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/7{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=400&height=150&mode=crop&s.roundcorners=0,0,0,0&bgcolor=121212&format=png&margin=40,0,40,0&anchor=bottomcenter"  }
+				    { "width":400, "url":"https://app.secc.org/GetImage.ashx/7{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=400&height=150&mode=crop&s.roundcorners=0,0,0,0&bgcolor=121212&format=png&margin=40,0,40,0&anchor=bottomcenter"  }
 			    ],
 				"actions": [{
 					"handler": "{{- itemActionHandler -}}",

@@ -51,7 +51,7 @@
         {{- comma -}}{
 			"title": "SE!KIDS Check-in",
             "images":[
-			    { "width":800, "url":"https://app.secc.org/webhooks/ImageGenerator.ashx/checkin?width=1544&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+			    { "width":800, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/checkin?width=1544&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 		    ]{%- if forloop.index == 3 or forloop.index == 9 or forloop.index == 10 -%},"actions":[{
                 "handler":"browser",
 				"type":"navigation",

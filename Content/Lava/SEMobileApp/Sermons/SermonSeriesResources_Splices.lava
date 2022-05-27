@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Series Resources' componententityid:'30051' operation:'View' summary:'Series Resources Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'{{series}}'%}
+Series Resources Page
+{% endinteractionwrite %}
 {%- assign cacheOS = '' -%}
 {%- if Headers.sap-device-os == 'Android' -%}
 	{%- assign cacheOS = 'subsplash-sermons-android-resources--' | Append:series -%}
@@ -62,7 +65,7 @@
 				{%- assign videoImageGuid = message | Attribute:'Image','RawValue' -%}
 				{%- if message.ContentChannelId != "23" -%}
 					{% comment %} init & reset values each loop {% endcomment %}
-					{%- assign childItemJSON = "" -%} 
+					{%- assign childItemJSON = "" -%}
 					{%- assign recommendedReading = "" -%}
 					{%- assign resourceMediaFile = "" -%}
 					{%- assign resourceURL = "" -%}
@@ -125,7 +128,7 @@
 					"images":[
 							{%- assign Title = "Recommended Reading" | Escape | EscapeDataString -%}
 							{%- assign Body = "" | Escape | EscapeDataString -%}
-							{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+							{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 						]
 					}
 					{%- for resource in recommendedReadingArray -%}
@@ -137,7 +140,7 @@
 								"title": "{{ resource.Title }}",
 								"subtitle": "{%- if ResourceURLText != "" -%}{{ ResourceURLText }}{%- else -%}Link{%- endif -%}",
 								"images":[
-									{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+									{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 								],
 								"actions": [{
 									"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
@@ -153,7 +156,7 @@
 								"title": "{{ resource.Title }}",
 								"subtitle": "Download",
 								"images":[
-									{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+									{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 								],
 								"actions": [{
 									"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
@@ -165,7 +168,7 @@
 							}
 						{%- endif -%}
 					{%- endfor -%}
-					{%- assign comma = "," -%} 
+					{%- assign comma = "," -%}
 				{%- endif -%}
 
 				{% comment %}
@@ -178,7 +181,7 @@
 					"images":[
 							{%- assign Title = "Studies" | Escape | EscapeDataString -%}
 							{%- assign Body = "Find related studies below." | Escape | EscapeDataString -%}
-							{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+							{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 						]
 					}
 					{%- for resource in downloadsArray -%}
@@ -188,7 +191,7 @@
 								"title": "{{ resource.Title }}",
 								"subtitle": "Download",
 								"images":[
-									{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+									{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 								],
 								"actions": [{
 									"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
@@ -200,7 +203,7 @@
 							}
 						{%- endif -%}
 					{%- endfor -%}
-					{%- assign comma = "," -%} 
+					{%- assign comma = "," -%}
 				{%- endif -%}
 
 				{% comment %}
@@ -213,7 +216,7 @@
 					"images":[
 							{%- assign Title = "Reading Plans" | Escape | EscapeDataString -%}
 							{%- assign Body = "Grow spiritually with a daily devotion." | Escape | EscapeDataString -%}
-							{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+							{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 						]
 					}
 					{%- for resource in linksArray -%}
@@ -224,7 +227,7 @@
 								"title": "{{ resource.Title }}",
 								"subtitle": "{%- if ResourceURLText != "" -%}{{ ResourceURLText }}{%- else -%}Link{%- endif -%}",
 								"images":[
-									{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+									{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 								],
 								"actions": [{
 									"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
@@ -236,7 +239,7 @@
 							}
 						{%- endif -%}
 					{%- endfor -%}
-					{%- assign comma = "," -%} 
+					{%- assign comma = "," -%}
 				{%- endif -%}
 
 				{% comment %}
@@ -249,7 +252,7 @@
 					"images":[
 							{%- assign Title = "Media" | Escape | EscapeDataString -%}
 							{%- assign Body = "See other related videos, links, or testimonies." | Escape | EscapeDataString -%}
-							{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+							{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 						]
 					}
 					{%- for resource in videosArray -%}
@@ -259,7 +262,7 @@
 								"title": "{{ resource.Title }}",
 								"subtitle": "Watch",
 								"images":[
-									{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+									{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 								],
 								"actions": [{
 									"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
@@ -271,9 +274,9 @@
 							}
 						{%- endif -%}
 					{%- endfor -%}
-					{%- assign comma = "," -%} 
+					{%- assign comma = "," -%}
 				{%- endif -%}
-				
+
 				{{ comma }}
 				{
 					"images":[

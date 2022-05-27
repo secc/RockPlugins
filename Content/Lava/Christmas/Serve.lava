@@ -1,0 +1,56 @@
+<style>
+	.serveContainer{
+		color:white;
+		font-size:1.2em;
+		font-weight:600;
+		text-align:center;
+	}
+
+	.serveSubtitle{
+		color:#f1ca9f;
+		font-size: 2.5em;
+		font-weight: 800;
+		
+	}
+	
+	.serveButton{
+		border: solid 1px white;
+		color:white;
+		font-weight: bold;
+		padding:15px 60px;;
+		border-radius:10px;
+		background-color: #374047;
+	}
+	
+	.serveButton:active{
+		color:#ccc;
+	}
+</style>
+
+<section>
+	<div>
+    {[ parallax image:'/Content/ExternalSite/WebImages/Christmas2021/ServeBackground.jpg' position:'50%' speed:'0' ]}
+        <div class="row serveContainer">
+			<div class="col-md-6 col-md-offset-3">
+				<br>
+				<br>
+					<img src="/Content/ExternalSite/WebImages/Christmas2021/ServeLogo.png" class="img-responsive"> 
+				<br>
+				<br>
+				<div class="serveSubtitle">
+					SERVE WITH US
+				</div>
+				<br>
+				Help make our Christmas Eve services special for all who attend! There are a variety of ways you can serve. Click below to learn more about volunteer opportunities.
+				<br>
+				<br>
+				<br>
+				<br>
+				<a href='https://secc.org/serve/christmas' class="serveButton">SERVE</a>
+				<br><br>
+				<br>
+			</div>
+        </div>
+    {[ endparallax ]}
+	</div>
+</section>

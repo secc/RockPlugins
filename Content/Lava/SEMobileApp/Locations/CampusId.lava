@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Campus' componententityid:'27570' operation:'View' summary:'Campus Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'67' relatedentityid:'{{id}}'%}
+Campus Page
+{% endinteractionwrite %}
 {%- campus id:'{{Id}}' -%}
 {%- assign campusSlug = campus | Attribute:'Slug' -%}
 {
@@ -50,7 +53,7 @@
         {{- comma -}}{
 			"title": "{{campus.Name}} Image",
             "images":[
-			    { "width":800, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/location/info/{{campusSlug}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+			    { "width":800, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/location/info/{{campusSlug}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 		    ]{%- if forloop.index == 2 -%},"actions":[{
                 "handler":"browser",
                 "type":"navigation",
@@ -97,7 +100,7 @@
 				,{
 					"title": "{{campus.Name}} Worship Service Times",
 					"images":[
-						{ "width":800, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/location/info/oneslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+						{ "width":800, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/location/info/oneslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 					]{%- if url != "" -%},"actions":[{
 		                "handler":"browser",
 		                "type":"navigation",
@@ -144,7 +147,7 @@
 						{{- comma -}}{
 							"title": "{{campus.Name}} SE!KIDS Checkin",
 							"images":[
-								{ "width":800, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/location/info/twoslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+								{ "width":800, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/location/info/twoslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 							],"actions":[{
 								"url": "https://app.secc.org/webhooks/SubSplash.ashx/checkin/{{campus.Id}}",
 								"handler": "list",
@@ -203,7 +206,7 @@
 		        {{- comma -}}{
 					"title": "{{campus.Name}} Group",
 		            "images":[
-					    { "width":800, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/location/info/threeslice/{{publishGroupId}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+					    { "width":800, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/location/info/threeslice/{{publishGroupId}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 				    ]
 					{%- if forloop.first -%}
 						,"actions":[{
@@ -283,7 +286,7 @@
 						{{- comma -}}{
 							"title": "{{campus.Name}} Connection",
 							"images":[
-								{ "width":800, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/location/info/twoslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+								{ "width":800, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/location/info/twoslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 							]{%- if url != "" -%},"actions":[{
 								"handler":"browser",
 								"type":"navigation",
@@ -333,7 +336,7 @@
 				{{- comma -}}{
 					"title": "{{campus.Name}} Leadership",
 					"images":[
-						{ "width":800, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/location/info/twoslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+						{ "width":800, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/location/info/twoslice/{{contentItem.Guid}}?width=1600&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 					]{%- if url != "" -%},"actions":[{
 		                "handler":"browser",
 		                "type":"navigation",

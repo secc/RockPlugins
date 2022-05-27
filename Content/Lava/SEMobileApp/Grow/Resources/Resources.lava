@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow Resources' componententityid:'30999' operation:'View' summary:'Grow Resources Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'2389' %}
+Grow Resources Page
+{% endinteractionwrite %}
 {
 	"header": {
 		"title": "Resources"
@@ -48,7 +51,7 @@
 				  {
 					  "images":[
 						  {"width": 668,
-						  "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/grow/resources/{{ item.ChildContentChannelItem.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=10"}
+						  "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/{{ item.ChildContentChannelItem.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=10"}
 						  ]
 					  {%- if actionJson != "" -%}
 					  ,"actions":[{

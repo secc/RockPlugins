@@ -1,0 +1,38 @@
+{%- contentchannelitem where:'ContentChannelId == 85 && Id == {{id}}' -%}
+{%- for item in contentchannelitemItems -%}
+{
+	"header": {
+		"title": "Day {{ item | Attribute:'Day' }}"
+	},
+    "items": [
+        {% assign video = item | Attribute:'Vimeo', 'RawValue' %}
+        {%- if video != '' -%}
+        {
+            "title": "Video",
+            "actions": [{
+                "handler": "blockPage",
+                "topBarStyle": "default",
+                "url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/advent/{{item.Id}}/video"
+            }]
+        },
+        {%- endif -%}
+        {
+            "title": "Devotion",
+            "actions": [{
+                "handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
+                "type":"navigation",
+                "showBrowserControls": true,
+                "contentUrl": "{{- item | Attribute:'SubSplashPageURL','RawValue' -}}"
+            }]
+        },
+        {
+            "title": "Resources",
+            "actions": [{
+                "handler": "list",
+                "url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/advent/{{item.Id}}/resources"
+            }]
+        }
+    ]
+}
+{%- endfor -%}
+{% endcontentchannelitem -%}

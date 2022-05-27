@@ -1,4 +1,6 @@
-{
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Give' componententityid:'30809' operation:'View' summary:'Give Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
+Give Page
+{% endinteractionwrite %}{
 	"header": {
 		"title": "Give"
 	},
@@ -45,7 +47,7 @@
 			"title": "{{item.Title | Replace:'"','\"'}}",
 			"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
             "images":[
-				{ "width":772, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/give?bgcolor=121314&crop=(0,{{ interY1 }},1544,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+				{ "width":772, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/give?bgcolor=121314&crop=(0,{{ interY1 }},1544,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 			],
 			"actions": [{
 				"handler": "externalBrowser",

@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'More' componententityid:'27197' operation:'View' summary:'More Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' %}
+More Page
+{% endinteractionwrite %}
 {
 	"header": {
 		"title": "More",
@@ -10,7 +13,7 @@
 			}],
 			"actions": [{
 				"handler": "list",
-				"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/Lava.ashx/subsplash/connect",
+				"url": "https://app.secc.org/webhooks/Lava.ashx/subsplash/connect",
 				"authProviderId": "ccaf1fb2-03e0-4093-8f97-f8f60f125ddc"
 			}]
 		}]

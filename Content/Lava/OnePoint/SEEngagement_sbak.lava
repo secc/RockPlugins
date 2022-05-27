@@ -1,0 +1,1252 @@
+{% assign pageParamWeekendDate = 'Global' | PageParameter:'weekendDate' %}
+{%- assign currentDay = 'Now' | Date:'dddd' -%}
+{%- assign subtractDays = -14 -%}
+{%- if today == "Saturday" or today == "Sunday" -%}
+    {%- assign subtractDays = -7 -%}
+{%- endif -%}
+<script>
+    $.fn.digits = function(){ 
+        return this.each(function(){ 
+            $(this).text( $(this).text().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,") ); 
+        })
+    }
+</script>
+<div class="g-bg-color--gray-lightest">
+    <div class="container g-padding-y-100--xs">
+        {% comment %} 
+        {% include '/Themes/SECC2019Portal/Assets/Lava/SEEngagement.lava' %}
+        {% endcomment %}
+
+        
+        {% comment %}
+        --------------------------------------------------------
+        ------------------------ SE ENGAGEMENT HEADER ------------------------
+        -------------------------------------------------------{% endcomment %}
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-display-flex--lg" style="background-color: #6771DC; border-radius: 30px">
+            <div class="g-padding-y-150--xs g-padding-x-75--xs col-md-6 col-lg-5" style="background-color: #67B7DC;border-radius: 30px;">
+                <div class="g-width-100-percent--xs">
+                    <img src="/Content/Ministries/SEEngage.svg" class="img-responsive g-margin-x-auto--xs g-center--xs g-padding-x-40--xs">
+                </div>
+            </div>
+            <div class="col-lg-7 col-md-6 g-position--relative" style="">
+                <div class="g-width-100-percent--xs g-padding-x-60--xs g-padding-y-60--xs g-center--lg g-position--relative">
+                    <h2 class="g-color--primary g-font-weight--600">Welcome!</h2>
+                    <h5 class="g-color--primary">Here you’ll find a snapshot of our latest engagement numbers. Whether it’s how many people tuned in to SE Online, the number of followers and interactions on our social media platforms, or the latest giving total and where those dollars are coming from throughout the world, it’s all here—all at a glance.</h5>
+                    <br />
+                    <h5 class="g-color--primary g-display-inline-block--xs">Scroll down to see the latest metrics, or select a weekend below to see past metrics.</h5>
+                    <br />
+                    {%- assign currentDate = 'Now' | Date:'MM/dd/yyyy' -%}
+                    {%- assign startingDate = '10/24/2020' -%}
+                    {%- assign sinceStartingWeek =  startingDate | DateDiff:currentDate,'d' | DividedBy:7 | Floor -%}
+                    {%- assign weeklyCount = sinceStartingWeek | AtMost:52 -%}
+                    <style>
+                    /* class applies to select element itself, not a wrapper element */
+                    .select-css {
+                        display: inline-block;
+                        font-size: 16px;
+                        font-family: sans-serif;
+                        font-weight: 700;
+                        color: #444;
+                        line-height: 1.3;
+                        padding: .6em 1.4em .5em .8em;
+                        max-width: 100%;
+                        box-sizing: border-box;
+                        margin: 0;
+                        border: 1px solid #aaa;
+                        box-shadow: 0 1px 0 1px rgba(0,0,0,.04);
+                        border-radius: 0.5em !important;
+                        -moz-appearance: none;
+                        -webkit-appearance: none;
+                        appearance: none;
+                        background-color: #fff;
+                        margin-top: 10px;
+                        background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+                        background-repeat: no-repeat, repeat;
+                        /* arrow icon position (1em from the right, 50% vertical) */
+                        background-position: right .7em top 50%, 0 0;
+                        /* icon size, then gradient */
+                        background-size: .65em auto, 100%;
+                    }
+                    /* Hide arrow icon in IE browsers */
+                    .select-css::-ms-expand {
+                        display: none;
+                    }
+                    /* Hover style */
+                    .select-css:hover {
+                        border-color: #888;
+                    }
+                    /* Focus style */
+                    .select-css:focus {
+                        border-color: #aaa;
+                        /* It'd be nice to use -webkit-focus-ring-color here but it doesn't work on box-shadow */
+                        color: #222; 
+                        outline: none;
+                    }
+
+                    /* Set options to normal weight */
+                    .select-css option {
+                        font-weight:normal;
+                    }
+
+                    /* Support for rtl text, explicit support for Arabic and Hebrew */
+                    *[dir="rtl"] .select-css, :root:lang(ar) .select-css, :root:lang(iw) .select-css {
+                        background-position: left .7em top 50%, 0 0;
+                        padding: .6em .8em .5em 1.4em;
+                    }
+                    /* Disabled styles */
+                    .select-css:disabled, .select-css[aria-disabled=true] {
+                        color: graytext;
+                        background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22graytext%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'),
+                        linear-gradient(to bottom, #ffffff 0%,#e5e5e5 100%);
+                    }
+                    .select-css:disabled:hover, .select-css[aria-disabled=true] {
+                        border-color: #aaa;
+                    }
+                    </style>
+
+                    <select class="select-css g-width-350--xs g-margin-t-20--xs" id="selectWeekend" onchange="document.location.href = '/se-engage/' + this.value">
+                        {% for i in (1..weeklyCount) %}
+                        {%- assign weekendDate = "Now"  | SundayDate | DateAdd:subtractDays | Date:'yyyy-MM-dd' -%}
+                        <option value="{{ weekendDate }}">{{ weekendDate | Date:'MMMM dd, yyyy' }}</option>
+                        {%- assign subtractDays = subtractDays | Minus:7 -%}
+                        {% endfor %}
+                    </select>
+                    <script type="text/javascript">
+
+                    {% if pageParamWeekendDate == "" %}
+                        {%- assign currentDay = 'Now' | Date:'dddd' -%}
+                        {%- assign subtractDays = -14 -%}
+                        {%- if today == "Saturday" or today == "Sunday" -%}
+                            {%- assign subtractDays = -7 -%}
+                        {%- endif -%}
+                        {%- assign weekendDate = "Now"  | SundayDate | DateAdd:subtractDays | Date:'yyyy-MM-dd' -%}
+                        {% assign pageParamWeekendDate = weekendDate %}
+                    {% endif %}
+                    document.getElementById('selectWeekend').value = "{{ pageParamWeekendDate }}";
+                    </script>
+                </div>
+            </div>
+        </div>
+        
+        {% comment %} --------------------------------------------------
+        ---------------------------- DIVIDER ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
+            <hr style="border-color: #4D4D4D;position: relative;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+                SE ONLINE ENGAGEMENT
+            </h4>
+        </div>
+
+        {% comment %} --------------------------------------------------------------
+        ---------------------------- SE ONLINE ENAGEMENT ---------------------------
+        ----------------------------------------------------------- {% endcomment %}
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-lg-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Online Viewers <div class="pull-right"><a href="/page/2495?MetricCategoryId=78&ExpandedIds=C1592" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs g-position--relative" style="display: block;height: 100%;width: 100%;">
+                        <div id="OnlineViewersContainer" class="g-center--xs g-text-center--xs">
+                            <h6 class="uppercase g-font-weight--700">Total</h6>
+                            <script>
+                            var OnlineViewersTotal = 0;
+                            $.getJSON( "/webhooks/Lava.ashx/se-engage/51/{{ pageParamWeekendDate }}/chart.json", function( json ) {
+                                $.each(json, function(i, item) {
+                                    OnlineViewersTotal = OnlineViewersTotal + item.value;
+                                });
+                                //console.log('Total is:'+total);
+                                $('#OnlineViewersTotal').html(OnlineViewersTotal);
+                                $("#OnlineViewersTotal").digits();
+
+                                if (OnlineViewersTotal == 0) {
+                                    $('#OnlineViewersContainer').html("<h5 class='g-font-weight--500'>There is no data on {{ pageParamWeekendDate | Date:'MMM dd, yyyy' }}, for Online Viewers yet.</h5>");
+                                }
+                            });
+                            </script>
+                            <h3 id="OnlineViewersTotal" class="g-font-weight--700" style="color: #6794DD;"></h3>
+                        </div>
+                        {[ amcharts chartwidth:'100%' chartheight:'280px' data-category:'platform' data-value:'value' data-src:'/webhooks/Lava.ashx/se-engage/51/{{ pageParamWeekendDate }}/chart.json' ]}
+                        {[ endamcharts ]}
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>This chart indicates the total number of SE Online viewers, including the percentage watching on Facebook, YouTube, and the Southeast website (which also includes those viewing via the Southeast App on Apple TV or Roku).</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Engagements <div class="pull-right"><a href="/page/2495?MetricCategoryId=89&ExpandedIds=C1592%2CC1591%2CC1597" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs g-position--relative" style="display: block;height: 100%;width: 100%;">
+                        <div id="EngagementContainer" class="g-center--xs g-text-center--xs">
+                            <h6 class="uppercase g-font-weight--700">Total</h6>
+                            <script>
+                            var EngagementTotal = 0;
+                            $.getJSON( "/webhooks/Lava.ashx/se-engage/64/{{ pageParamWeekendDate }}/chart.json", function( json ) {
+                                $.each(json, function(i, item) {
+                                    EngagementTotal = EngagementTotal + item.value;
+                                });
+                                //console.log('Total is:'+total);
+                                $('#EngagementTotal').html(EngagementTotal);
+                                $("#EngagementTotal").digits();
+
+                                if (EngagementTotal == 0) {
+                                    $('#EngagementContainer').html("<h5 class='g-font-weight--500'>There is no data on {{ pageParamWeekendDate | Date:'MMM dd, yyyy' }}, for Engagements yet.</h5>");
+                                }
+                            });
+                            </script>
+                            <h3 id="EngagementTotal" class="g-font-weight--700" style="color: #6794DD;"></h3>
+                        </div>
+                        {[ amcharts chartwidth:'100%' chartheight:'280px' data-category:'platform' data-value:'value' data-src:'/webhooks/Lava.ashx/se-engage/64/{{ pageParamWeekendDate }}/chart.json' ]}
+                        {[ endamcharts ]}
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>This chart indicates the total number of SE Online viewers who participated live on Facebook, YouTube, and the Southeast website (which also includes those viewing via the SE App on Apple TV or Roku).</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-position--relative">
+            <div class="col-lg-12">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Unique Locations</h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        {% comment %} -----------------------------------------------------------
+                        ---------------------------- UNIQUE LOCATIONS ---------------------------
+                        -------------------------------------------------------- {% endcomment %}
+                        <script src="https://www.amcharts.com/lib/4/maps.js"></script>
+                        <script src="https://www.amcharts.com/lib/4/geodata/worldLow.js"></script>
+                        <div id="chartdivUniqLocations"></div>
+                        <style>
+                        #chartdivUniqLocations {
+                            width: 100%;
+                            height: 500px;
+                            overflow: hidden;
+                        }
+                        </style>
+                        <script>
+                        /**
+                        * ---------------------------------------
+                        * This demo was created using amCharts 4.
+                        * 
+                        * For more information visit:
+                        * https://www.amcharts.com/
+                        * 
+                        * Documentation is available at:
+                        * https://www.amcharts.com/docs/v4/
+                        * ---------------------------------------
+                        */
+                        // Themes begin
+                        am4core.useTheme(am4themes_animated);
+                        // Themes end
+                        // Create map instance
+                        var chart = am4core.create("chartdivUniqLocations", am4maps.MapChart);
+                        // Set map definition
+                        chart.geodata = am4geodata_worldLow;
+                        // Set projection
+                        chart.projection = new am4maps.projections.Miller();
+                        chart.chartContainer.wheelable = false;
+                        // Create map polygon series
+                        var polygonSeries = chart.series.push(new am4maps.MapPolygonSeries());
+                        // Exclude Antartica
+                        polygonSeries.exclude = ["AQ"];
+                        // Make map load polygon (like country names) data from GeoJSON
+                        polygonSeries.useGeodata = true;
+                        // Configure series
+                        var polygonTemplate = polygonSeries.mapPolygons.template;
+                        polygonTemplate.tooltipText = "{name}";
+                        polygonTemplate.polygon.fillOpacity = 0.6;
+                        // Create hover state and set alternative fill color
+                        var hs = polygonTemplate.states.create("hover");
+                        hs.properties.fill = chart.colors.getIndex(0);
+                        // Add image series
+                        var imageSeries = chart.series.push(new am4maps.MapImageSeries());
+                        imageSeries.mapImages.template.propertyFields.longitude = "longitude";
+                        imageSeries.mapImages.template.propertyFields.latitude = "latitude";
+                        imageSeries.mapImages.template.tooltipText = "{title}";
+                        imageSeries.mapImages.template.propertyFields.url = "url";
+                        var circle = imageSeries.mapImages.template.createChild(am4core.Circle);
+                        circle.radius = 5;
+                        circle.propertyFields.fill = "color";
+                        var circle2 = imageSeries.mapImages.template.createChild(am4core.Circle);
+                        circle2.radius = 4;
+                        circle2.propertyFields.fill = "color";
+                        circle2.events.on("inited", function(event){
+                        animateBullet(event.target);
+                        });
+                        function animateBullet(circle) {
+                            var animation = circle.animate([{ property: "scale", from: 1, to: 3 }, { property: "opacity", from: 1, to: 0 }], 1000, am4core.ease.circleOut);
+                            animation.events.on("animationended", function(event){
+                            animateBullet(event.target.object);
+                            });
+                        }
+                        var colorSet = new am4core.ColorSet();
+                        imageSeries.data = [ {
+                        "title": "Indonesia",
+                            "latitude": -2.4151629,
+                            "longitude": 108.8270939,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Malaysia",
+                                "latitude": 4.1278731, 
+                                "longitude": 105.1109232,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "South Korea",
+                        "latitude": 35.7981093,
+                            "longitude": 125.6247401,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Nigeria",
+                        "latitude": 9.0270254,
+                        "longitude": 6.4279373,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Nepal",
+                                "latitude": 28.3789164,
+                                "longitude": 81.8812292,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Czech Republic",
+                                "latitude": 49.7820202,
+                                "longitude": 13.2271521,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Austria",
+                                "latitude": 47.6745153,
+                                "longitude": 11.0978707,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Netherlands",
+                                "latitude": 52.2076561,
+                                "longitude": 4.155728,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Germany",
+                                "latitude": 51.0895525,
+                                "longitude": 5.9587011,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Spain",
+                                "latitude": 40.1213348,
+                                "longitude": -8.2123216,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Portugal",
+                                "latitude": 37.1367202,
+                                "longitude": -23.3273098,
+                        "color":colorSet.next()
+                        }, {
+                        "title": "Brazil",
+                                "latitude": -13.7020097,
+                                "longitude": -69.6968099,
+                        "color":colorSet.next()
+                        }, {
+                                "title": "Colombia",
+                                "latitude": 4.6310417,
+                                "longitude": -78.8462063,
+                        "color":colorSet.next()
+                        }, {
+                                "title": "Panama",
+                                "latitude": 8.3761109,
+                                "longitude": -81.2293544,
+                        "color":colorSet.next()
+                        }, {
+                                "title": "Dominican Republic",
+                                "latitude": 18.6665563,
+                                "longitude": -71.2540031,
+                        "color":colorSet.next()
+                        }, {
+                                "title": "Honduras",
+                                "latitude": 15.2215167,
+                                "longitude": -87.3332567,
+                        "color":colorSet.next()
+                        }, {
+                                "title": "Mexico",
+                                "latitude": 23.292818,
+                                "longitude": -111.6612058,
+                        "color":colorSet.next()
+                        }, {
+                                "title": "Canada",
+                                "latitude": 54.6924369,
+                                "longitude": -113.7537297,
+                        "color":colorSet.next()
+                        }, {
+                                "title": "Italy",
+                                "latitude": 41.2032007,
+                                "longitude": 8.2132121,
+                        "color":colorSet.next()
+                        }, {
+                                "title": "Australia",
+                                "latitude": -25.0258658, 
+                                "longitude": 115.1730476,
+                        "color":colorSet.next()
+                        }];
+                        </script>
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>This map shows the unique locations of SE Online viewers from around the world.</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- DIVIDER ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
+            <hr style="border-color: #4D4D4D;position: relative;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+                SE!KIDS ONLINE ENGAGEMENT
+            </h4>
+        </div>
+        {% comment %} -------------------------------------------------------------------
+        ---------------------------- SE!KIDS ONLINE ENAGEMENT ---------------------------
+        ---------------------------------------------------------------- {% endcomment %}
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-lg-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Viewers Per Platform <div class="pull-right"><a href="/page/2495?MetricCategoryId=76&ExpandedIds=C1591" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <!-- BAR CHART -->
+                        <div id="vppContainer" class="g-center--xs g-text-center--xs">
+                            <script>
+                            var vpp = 0;
+                            $.getJSON( "/webhooks/Lava.ashx/se-engage/64/{{ pageParamWeekendDate }}/chart.json", function( json ) {
+                                $.each(json, function(i, item) {
+                                    vpp = vpp + item.value;
+                                });
+                                if (vpp == 0) {
+                                    $('#vppContainer').html("<h5 class='g-font-weight--500'>There is no data on {{ pageParamWeekendDate | Date:'MMM dd, yyyy' }}, for Viewers Per Platform yet.</h5>");
+                                }
+                            });
+                            </script>
+                        </div>
+                        {[ amcharts chartwidth:'100%' chartheight:'250px' data-value:'value' data-category:'platform' type:'bar' data-src:'/webhooks/Lava.ashx/se-engage/52/{{ pageParamWeekendDate }}/chart.json' ]}
+                        {[ endamcharts ]}
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>This chart indicates the number of SE!KIDS Online viewers via YouTube and Vimeo.</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Devices Across Platforms <div class="pull-right"><a href="/page/2495?MetricCategoryId=77&ExpandedIds=C1591" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <div id="devicesAcrossPlatsContainer" class="g-center--xs g-text-center--xs"></div>
+                        <div id="devicesAcrossPlatsTotalContainer" class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 20%;left: 50%;transform: translate(-50%, -50%);">
+                            <h6 class="uppercase g-font-weight--700">Total</h6>
+                            <script>
+                            var devicesAcrossPlatsTotal = 0;
+                            $.getJSON( "/webhooks/Lava.ashx/se-engage/53/{{ pageParamWeekendDate }}/chart.json", function( json ) {
+                                $.each(json, function(i, item) {
+                                    devicesAcrossPlatsTotal = devicesAcrossPlatsTotal + item.value;
+                                });
+                                //console.log('Total is:'+total);
+                                $('#devicesAcrossPlatsTotal').html(devicesAcrossPlatsTotal);
+                                $("#devicesAcrossPlatsTotal").digits();
+                                if (devicesAcrossPlatsTotal == 0) {
+                                    $('#devicesAcrossPlatsTotalContainer').html('')
+                                    $('#devicesAcrossPlatsContainer').html("<h5 class='g-font-weight--500'>There is no data on {{ pageParamWeekendDate | Date:'MMM dd, yyyy' }}, for Devices Across Platforms yet.</h5>");
+                                }
+                            });
+                            </script>
+                            <h3 id="devicesAcrossPlatsTotal" class="g-font-weight--700" style="color: #6794DD;"></h3>
+                        </div>
+                        {[ amcharts chartwidth:'100%' chartheight:'250px' data-value:'value' data-category:'device type' type:'halfdonut' data-src:'/webhooks/Lava.ashx/se-engage/53/{{ pageParamWeekendDate }}/chart.json' ]}
+                        {[ endamcharts ]}
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>This chart indicates the percentage of SE!KIDS Online viewers by device, including computers, mobile phones, tablets, and TVs.</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- DIVIDER ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
+            <hr style="border-color: #4D4D4D;position: relative;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+                SOCIAL MEDIA ENGAGEMENT
+            </h4>
+        </div>
+
+        {% comment %} ------------------------------------------------------------------
+        ---------------------------- SOCIAL MEDIA ENGAGEMENT ---------------------------
+        --------------------------------------------------------------- {% endcomment %}
+        <script>
+        $(document).ready(function() {
+            // facebook
+            let facebookFollowersTotal = 0;
+            let facebookFollowersNew = 0;
+            let facebookReached = 0;
+            // instagram
+            let instagramFollowersTotal = 0;
+            let instagramFollowersNew = 0;
+            let instagramReached = 0;
+            // twitter
+            let twitterFollowersTotal = 0;
+            // youtube
+            let youtubeSubscribersTotal = 0;
+            let youtubeSubscribersNew = 0;   
+            let youtubeViews = 0; 
+
+            var loadFile = function (filePath, done) {
+                var xhr = new XMLHttpRequest();
+                xhr.onload = function () { return done(this.responseText) }
+                xhr.open("GET", filePath, true);
+                xhr.send();
+            }
+            let requestFollowersURL = '/webhooks/Lava.ashx/se-engage/58/{{ pageParamWeekendDate }}/chart.json';
+            let requestReachURL = '/webhooks/Lava.ashx/se-engage/59/{{ pageParamWeekendDate }}/chart.json';
+            var myFiles = [requestFollowersURL, requestReachURL];
+            var jsonData = [];
+            // loop through each file
+            let itemsProcessed = 0;
+            myFiles.forEach(function (file, i) {
+                loadFile(file, function (responseText) {
+                    let feed = JSON.parse(responseText);
+                    jsonData = jsonData.concat(feed);
+                    itemsProcessed++;
+                    if(itemsProcessed === myFiles.length) {
+                        callback();
+                    }
+                })
+            });
+            // display each result after loading it
+            let campusFBPages;
+            function callback () { 
+                // group the data by campus
+                campusFBPages = jsonData.reduce((r, a) => {
+                    r[a.campus] = [...r[a.campus] || [], a];
+                    return r;
+                }, {});
+                for (const campus in campusFBPages) {
+                    if (campus != "undefined") {
+                        // For Facebook
+                        $('#campusFacebookPages').append(
+                            $('<span></span>', {
+                            "class": "g-width-400--xs g-padding-b-30--xs g-display-inline-block--xs",
+                            "id": "campusFacebook"+campus.replace(/\s+/g, '')
+                            }).append(
+                                $('<h4 class="g-font-weight--800" style="color: #6794DD;">'+ campus +'</h4>')
+                            )
+                        )
+                        for (const item in campusFBPages[campus]) {
+                            if (campusFBPages[campus][item]['platform'] == "Facebook" || campusFBPages[campus][item]['social media platform'] == "Facebook") {
+                                console.log(campusFBPages[campus][item]['follower category']);
+                                // see if the follower category is total or new followers
+                                if (campusFBPages[campus][item]['follower category'] != undefined) {
+                                    if (campusFBPages[campus][item]['follower category'].indexOf("New") !== -1) {
+                                        // new followers
+                                        $('#campusFacebook'+campus.replace(/\s+/g, '')).append(
+                                            '<div class="g-padding-r-10--xs g-display-inline-block--xs"><a href="/page/2495?MetricCategoryId=83&amp;ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div>'
+                                            + '<span class="se-pill"><strong>'+ campusFBPages[campus][item]['follower category'] +'</strong>: '
+                                            + '<span class="g-font-weight--700" style="color: #6450AC;">'+ campusFBPages[campus][item]['value'].toLocaleString() +'</span></span><br />'
+                                        ) 
+                                    } else {
+                                        // total followers
+                                        $('#campusFacebook'+campus.replace(/\s+/g, '')).append(
+                                            '<div class="g-padding-r-10--xs g-display-inline-block--xs"><a href="/page/2495?MetricCategoryId=83&amp;ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div>'
+                                            + '<span class="se-pill"><strong>'+ campusFBPages[campus][item]['follower category'] +'</strong>: '
+                                            + '<span class="g-font-weight--700" style="color: #6794DD;">'+ campusFBPages[campus][item]['value'].toLocaleString() +'</span></span><br />'
+                                        )
+                                    }
+                                } else {
+                                    // weekly post enagement
+                                    $('#campusFacebook'+campus.replace(/\s+/g, '')).append(
+                                    '<div class="g-padding-r-10--xs g-display-inline-block--xs"><a href="/page/2495?MetricCategoryId=84&amp;ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div>'
+                                    + '<span class="se-pill"><strong>Weekly Post Reach</strong>: '
+                                    + '<span class="g-font-weight--700" style="color: #BD62D1;">'
+                                    + campusFBPages[campus][item]['value'].toLocaleString() +'</span></span><br />');
+                                }
+                            }
+                        }
+                    } else {
+                        // for the 'undefined', we will use these #s as the main #s.
+                        for (const item in campusFBPages[campus]) {
+                            // facebook
+                            if (campusFBPages[campus][item]['platform'] == "Facebook" || campusFBPages[campus][item]['social media platform'] == "Facebook") {
+                                // see if the follower category is total or new followers
+                                if (campusFBPages[campus][item]['follower category'] != undefined) {
+                                    if (campusFBPages[campus][item]['follower category'].indexOf("New") !== -1) {
+                                        // new followers
+                                        facebookFollowersNew += campusFBPages[campus][item]['value']; 
+                                    } else {
+                                        // total followers
+                                        facebookFollowersTotal += campusFBPages[campus][item]['value'];
+                                    }
+                                } else {
+                                    // weekly post enagement
+                                    facebookReached += campusFBPages[campus][item]['value'];
+                                }
+                            }
+                            // Instagram
+                            if (campusFBPages[campus][item]['platform'] == "Instagram" || campusFBPages[campus][item]['social media platform'] == "Instagram") {
+                                // see if the follower category is total or new followers
+                                if (campusFBPages[campus][item]['follower category'] != undefined) {
+                                    if (campusFBPages[campus][item]['follower category'].indexOf("New") !== -1) {
+                                        // new followers
+                                        instagramFollowersNew += campusFBPages[campus][item]['value']; 
+                                    } else {
+                                        // total followers
+                                        instagramFollowersTotal += campusFBPages[campus][item]['value'];
+                                    }
+                                } else {
+                                    // weekly post enagement
+                                    instagramReached += campusFBPages[campus][item]['value'];
+                                }
+                            }
+                            // Twitter
+                            if (campusFBPages[campus][item]['platform'] == "Twitter" || campusFBPages[campus][item]['social media platform'] == "Twitter") {
+                                // see if the follower category is total or new followers
+                                if (campusFBPages[campus][item]['follower category'] != undefined) {
+                                    if (campusFBPages[campus][item]['follower category'].indexOf("New") == -1) {
+                                        // total followers
+                                        twitterFollowersTotal += campusFBPages[campus][item]['value'];
+                                    }
+                                }
+                            }
+                            // YouTube
+                            //let youtubeSubscribersTotal = 0;
+                            //let youtubeSubscribersNew = 0;   
+                            //let youtubeViews = 0; 
+                            if (campusFBPages[campus][item]['platform'] == "YouTube" || campusFBPages[campus][item]['social media platform'] == "YouTube") {
+                                // see if the follower category is total or new followers
+                                if (campusFBPages[campus][item]['follower category'] != undefined) {
+                                    if (campusFBPages[campus][item]['follower category'].indexOf("New") !== -1) {
+                                        // new followers
+                                        youtubeSubscribersNew += campusFBPages[campus][item]['value']; 
+                                    } else {
+                                        // total followers
+                                        youtubeSubscribersTotal += campusFBPages[campus][item]['value'];
+                                    }
+                                } else {
+                                    // views
+                                    youtubeViews += campusFBPages[campus][item]['value'];
+                                }
+                            }
+                        }
+                    }
+                }
+                // load facebook metrics
+                $('#seFacebookTotalFollowers').html(facebookFollowersTotal.toLocaleString());
+                $('#seFacebookNewFollowers').html(facebookFollowersNew.toLocaleString());
+                $('#seFacebookPageReach').html(facebookReached.toLocaleString());
+                // load instagram metrics
+                $('#seInstagramTotalFollowers').html(instagramFollowersTotal.toLocaleString());
+                $('#seInstagramNewFollowers').html(instagramFollowersNew.toLocaleString());
+                $('#seInstagramReached').html(instagramReached.toLocaleString());
+                // load twitter metrics
+                $('#seTwitterTotalFollowers').html(twitterFollowersTotal.toLocaleString());
+                // load youtube metrics
+                $('#seYouTubeTotalFollowers').html(youtubeSubscribersTotal.toLocaleString());
+                $('#seYouTubeNewFollowers').html(youtubeSubscribersNew.toLocaleString());
+                $('#seYouTubeReached').html(youtubeViews.toLocaleString());
+            }
+
+            // Load Engagements
+            var facebookPostEnagement = 0;
+            var twitterEngagements = 0;
+            $.getJSON( "/webhooks/Lava.ashx/se-engage/60/{{ pageParamWeekendDate }}/chart.json", function( json ) {
+                $.each(json, function(i, item) {
+                    if (item.platform == "Facebook") {
+                        facebookPostEnagement += item.value;
+                    } else if (item.platform == "Twitter") {
+                        twitterEngagements += item.value;
+                    }
+                });
+                $('#seFacebookPostEngagement').html(facebookPostEnagement.toLocaleString());
+                $("#seTwitterEngagements").html(twitterEngagements.toLocaleString());
+            });
+
+            // Load Watch Time
+            var youtubeWatchTime = 0;
+            $.getJSON( "/webhooks/Lava.ashx/se-engage/61/{{ pageParamWeekendDate }}/chart.json", function( json ) {
+                $.each(json, function(i, item) {
+                    if (item['video platform'] == "YouTube") {
+                        youtubeWatchTime += item.value;
+                    }
+                });
+                $('#seYouTubeWatchTime').html(youtubeWatchTime.toLocaleString() + ' hours');
+            });
+        });
+        </script>
+
+        {% comment %}
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-lg-12">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Family Gatherings</h4>
+                    <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                        <div class="col-md-4 g-padding-y-50--xs ">
+                            <!-- VIEWS -->
+                            <div class="g-text-center--xs">
+                                <h6 class="uppercase g-font-weight--700">Views <div class="g-padding-l-10--xs g-display-inline-block--xs"><a href="/page/2495?MetricCategoryId=80&amp;ExpandedIds=C1591%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div></h6>
+                            </div>
+                            {[ amcharts chartwidth:'' chartheight:'300px' data-value:'value' data-category:'campus' type:'radar' data-src:'/webhooks/Lava.ashx/se-engage/55/{{ pageParamWeekendDate }}/chart.json' ]}
+                            {[ endamcharts ]}
+                        </div>
+                        <div class="col-md-4 g-padding-y-50--xs ">
+                            <!-- COMMENTS -->
+                            <div class="g-text-center--xs">
+                                <h6 class="uppercase g-font-weight--700">COMMENTS <div class="g-padding-l-10--xs g-display-inline-block--xs"><a href="/page/2495?MetricCategoryId=81&ExpandedIds=C1591%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div></h6>
+                            </div>
+                            {[ amcharts chartwidth:'' chartheight:'300px' data-value:'value' data-category:'campus' type:'radar' data-src:'/webhooks/Lava.ashx/se-engage/56/{{ pageParamWeekendDate }}/chart.json' ]}
+                            {[ endamcharts ]}
+                        </div>
+                        <div class="col-md-4 g-padding-y-50--xs ">
+                            <!-- SHARES -->
+                            <div class="g-text-center--xs">
+                                <h6 class="uppercase g-font-weight--700">SHARES <div class="g-padding-l-10--xs g-display-inline-block--xs"><a href="/page/2495?MetricCategoryId=82&ExpandedIds=C1591%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a></div></h6>
+                            </div>
+                            {[ amcharts chartwidth:'' chartheight:'300px' data-value:'value' data-category:'campus' type:'radar' data-src:'/webhooks/Lava.ashx/se-engage/57/{{ pageParamWeekendDate }}/chart.json' ]}
+                            {[ endamcharts ]}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endcomment %}
+
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-md-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Facebook</h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/2495?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Total Followers</strong>: 
+                            <h3 class="g-font-weight--700" style="color: #6794DD;" id="seFacebookTotalFollowers">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/2495?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>New Followers</strong>: <h3 class="g-font-weight--700" style="color: #626DD2;" id="seFacebookNewFollowers">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/2495?MetricCategoryId=84&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Page Reach</strong>: <h3 class="g-font-weight--700" style="color: #6450AC;" id="seFacebookPageReach">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/2495?MetricCategoryId=85&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Post Engagement</strong>: <h3 class="g-font-weight--700" style="color: #BD62D1;" id="seFacebookPostEngagement">---</h3></span>
+                        {% comment %} {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
+                            [[ dataitem label:'Total Followers' value:'51022' ]] [[ enddataitem ]]
+                            [[ dataitem label:'New Followers' value:'237' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Page Reach' value:'102800' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Post Engagement' value:'41400' ]] [[ enddataitem ]]
+                        {[ endamcharts ]} {% endcomment %}
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>Above are engagement numbers—total followers, new followers, page reach, and post engagement—for the Southeast Christian Church Facebook page.</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Instagram</h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/2495?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Total Followers</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;" id="seInstagramTotalFollowers">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/2495?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>New Followers</strong>: <h3 class="g-font-weight--700" style="color: #626DD2;" id="seInstagramNewFollowers">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/2495?MetricCategoryId=84&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Accounts Reached</strong>: <h3 class="g-font-weight--700" style="color: #6450AC;" id="seInstagramReached">---</h3></span>
+                        {% comment %} <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
+                            <h6 class="uppercase g-font-weight--700"><i class="fab fa-3x fa-instagram g-padding-b-10--xs"></i><br>Total Followers</h6>
+                            <h3 class="g-font-weight--700" style="color: #6794DD;">21,651</h3>
+                        </div> {% endcomment %}
+                        {% comment %} {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' legend:'off' ]}
+                            [[ dataitem label:'Total Followers' value:'21651' ]] [[ enddataitem ]]
+                            [[ dataitem label:'New Followers' value:'67' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Accounts Reached' value:'13778' ]] [[ enddataitem ]]
+                        {[ endamcharts ]} {% endcomment %}
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>Above are engagement numbers—total followers, new followers, and accounts reached—for the Southeast Christian Church Instagram page.</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-md-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Twitter</h4>
+                    {% comment %} <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
+                        <h6 class="uppercase g-font-weight--700"><i class="fab fa-3x fa-twitter g-padding-b-10--xs"></i><br>Total Followers</h6>
+                        <h3 class="g-font-weight--700" style="color: #6794DD;">14,426</h3>
+                    </div> {% endcomment %}
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <span class="g-width-50-percent--xs g-display-inline-block--xs ">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/2495?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Total Followers</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;" id="seTwitterTotalFollowers">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs ">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/2495?MetricCategoryId=85&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Engagements</strong>:<br /><h6>(Retweets, Favorites,Replies)</h6> <h3 class="g-font-weight--700" style="color: #626DD2;" id="seTwitterEngagements">---</h3>
+                        </span>{%- comment -%} {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
+                            [[ dataitem label:'Total Followers' value:'21651' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Engagements (Retweets, Favorites,Replies)' value:'351' ]] [[ enddataitem ]]
+                        {[ endamcharts ]} {%- endcomment -%}</div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>Above are engagement numbers—total followers and engagements (retweets, favorites, and replies)—for the Southeast Christian Church Twitter account.</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">YouTube</h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/2495?MetricCategoryId=84&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Views</strong>: <h3 class="g-font-weight--700" style="color: #6794DD;" id="seYouTubeReached">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/2495?MetricCategoryId=86&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Watch Time</strong>: <h3 class="g-font-weight--700" style="color: #626DD2;" id="seYouTubeWatchTime">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/2495?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>New Subscribers</strong>: <h3 class="g-font-weight--700" style="color: #6450AC;" id="seYouTubeNewFollowers">---</h3>
+                        </span><span class="g-width-50-percent--xs g-display-inline-block--xs g-padding-b-10--xs">
+                            <div class="g-padding-r-10--xs g-display-inline-block--xs">
+                                <a href="/page/2495?MetricCategoryId=83&ExpandedIds=C1590%2CC1597" style="color:#FFF"><i class="fa fa-cog g-color--dark" aria-hidden="true"></i></a>
+                            </div>
+                            <strong>Total Subscribers</strong>: <h3 class="g-font-weight--700" style="color: #BD62D1;" id="seYouTubeTotalFollowers">---</h3></span>
+                        {% comment %} <div class="g-margin-x-auto--xs g-text-center--xs" style="position: absolute;bottom: 5%;left: 50%;transform: translate(-50%, -50%);">
+                            <h6 class="uppercase g-font-weight--700"><i class="fab fa-3x fa-youtube g-padding-b-10--xs"></i><br>Total Followers</h6>
+                            <h3 class="g-font-weight--700" style="color: #6794DD;">23,100</h3>
+                        </div> {% endcomment %}
+                        {% comment %} {[ amcharts chartwidth:'' chartheight:'250px' data-value:'value' data-category:'country' type:'halfdonut' ]}
+                            [[ dataitem label:'Views' value:'23100' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Watch Time (hours)' value:'9600' ]] [[ enddataitem ]]
+                            [[ dataitem label:'New Subscribers' value:'207' ]] [[ enddataitem ]]
+                            [[ dataitem label:'Total Subscribers' value:'18987' ]] [[ enddataitem ]]
+                        {[ endamcharts ]} {% endcomment %}
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>Above are engagement numbers—views, hours watched, new subscribers, and total subscribers—for the Southeast Christian Church YouTube page.</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-lg-12">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Campus Facebook Pages</h4>
+                    <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                        <style>
+                        span.se-pill {
+                            background-color: #f5f5f5;
+                            padding: 10px 15px;
+                            line-height: 4.5rem;
+                            border-radius: 30px;
+                        }
+                        </style>
+                        <div id="campusFacebookPages" class="col-md-12 g-padding-y-50--xs ">
+                        {% comment %} {[ amcharts chartheight:'500px;' data-category:'campus,total,new,weekly' data-category-labels:'Campus,Total Followers,New Followers,Weekly Post Reach' type:'sidebar' ]}
+                            [[ dataitem value:'Blankenbaker,1844,76,9677' ]] [[ enddataitem ]]
+                            [[ dataitem value:'Indiana,3714,16,4902' ]] [[ enddataitem ]]
+                            [[ dataitem value:'Crestwood,3674,22,5222' ]] [[ enddataitem ]]
+                            [[ dataitem value:'Southwest,4133,15,4505' ]] [[ enddataitem ]]
+                            [[ dataitem value:'La Grange,2206,15,5898' ]] [[ enddataitem ]]
+                            [[ dataitem value:'Elizabethtown,2461,10,5295' ]] [[ enddataitem ]]
+                            [[ dataitem value:'River Valley,1013,21,1823' ]] [[ enddataitem ]]
+                            [[ dataitem value:'Chapel in the Woods,458,18,1173' ]] [[ enddataitem ]]
+                            [[ dataitem value:'Shelby County,739,12,2888' ]] [[ enddataitem ]]
+                            [[ dataitem value:'Bullitt  County,1298,26,2875' ]] [[ enddataitem ]]
+                        {[ endamcharts ]} {% endcomment %}
+                        </div>
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>Above are engagement numbers—weekly post reach, total followers, and new followers—for each Southeast Christian Church campus Facebook page.</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- DIVIDER ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
+            <hr style="border-color: #4D4D4D;position: relative;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+                GIVING
+            </h4>
+        </div>
+        {% comment %} -------------------------------------------------------------
+        ---------------------------------- GIVING ---------------------------------
+        ---------------------------------------------------------- {% endcomment %}
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative" id="GivingTotals">
+            <div class="col-lg-12">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Giving Totals</h4>
+                    <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                        <div class="col-md-12 g-padding-y-50--xs ">
+                           {[ amcharts data-category:'date,giving,givingUnits,average,percentOnlineGiving' data-category-labels:'Date,$ General Giving,# of Giving Units,$ Amount / Giving Unit,% of Online Giving' type:'linechart' legend:'on' data-src:'/webhooks/Lava.ashx/se-engage/generalgiving/{{ pageParamWeekendDate }}/chart.json' ]}
+                           {[ endamcharts ]}
+                           {% comment %} 
+                           {[ amcharts data-category:'date,giving,units,online,average' data-category-labels:'Date,$ General Giving,$ Amount / Giving Unit,# of Giving Units,% of Online Giving' type:'linechart' legend:'on' ]}
+                                [[ dataitem value:'April 26 2020,987935,3712,73,266' ]][[ enddataitem ]]
+                                [[ dataitem value:'May 3 2020,1256557,4582,81,274' ]][[ enddataitem ]]
+                                [[ dataitem value:'May 10 2020,1060088,3708,66,286' ]][[ enddataitem ]]
+                                [[ dataitem value:'May 17 2020,1147240,4261,84,269' ]][[ enddataitem ]]
+                                [[ dataitem value:'May 24 2020,865035,3485,77,248' ]][[ enddataitem ]]
+                            {[ endamcharts ]} 
+                            {% endcomment %}
+                        </div>
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>This chart shows general giving totals.</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-lg-12">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Giving by Location</h4>
+                    <div class="g-padding-x-50--xs g-display-inline-block--xs g-width-100-percent--xs">
+                        <div class="col-md-12 g-padding-y-50--xs ">
+
+                            <script src="https://cdn.amcharts.com/lib/4/geodata/usaLow.js"></script>
+                            <div id="chartdivGivingByLocation"></div>
+
+                            <style>
+                            #chartdivGivingByLocation {
+                                width: 100%;
+                                height: 500px;
+                            }
+                            </style>
+
+                            <script>
+                            $.getJSON( "/webhooks/Lava.ashx/se-engage/givinglocations/{{ pageParamWeekendDate }}/chart.json", function( json ) {
+                                var countries = json.filter(function (givinglocation) {
+                                      return givinglocation.LocationType === "Countries";
+                                    });
+                                countriesArray = countries.shift().Locations.split(",").map(function(item) { return {'id':`${item.trim()}`, 'value':100}; });
+                                var states = json.filter(function (givinglocation) {
+                                        return givinglocation.LocationType === "States";
+                                    });
+                                statesArray = states.shift().Locations.split(",").map(function(item) { return {'id':`US-${item.trim()}`, 'value':100};});
+                                
+                                // Themes begin
+                                am4core.useTheme(am4themes_animated);
+                                // Themes end
+    
+                                // Create map instance
+                                var chart = am4core.create("chartdivGivingByLocation", am4maps.MapChart);
+    
+                                // Set map definition
+                                chart.geodata = am4geodata_worldLow;
+    
+                                // Set projection
+                                chart.projection = new am4maps.projections.Miller();
+                                chart.chartContainer.wheelable = false;
+                                
+                                // Series for World map
+                                var worldSeries = chart.series.push(new am4maps.MapPolygonSeries());
+                                //worldSeries.include = countriesArray;
+                                worldSeries.exclude = ["AQ"];
+                                worldSeries.useGeodata = true;
+    
+                                var polygonTemplate = worldSeries.mapPolygons.template;
+                                polygonTemplate.tooltipText = "{name}";
+                                polygonTemplate.fill = chart.colors.getIndex(0);
+                                polygonTemplate.nonScalingStroke = true;
+    
+                                // Add heat rule
+                                worldSeries.heatRules.push({
+                                  "property": "fill",
+                                  "target": worldSeries.mapPolygons.template,
+                                  "min": chart.colors.getIndex(0),
+                                  "max": am4core.color("#367B25")
+                                });
+                                
+                                // Add expectancy data
+                                worldSeries.data = countriesArray;
+                                
+                                // Hover state
+                                var hs = polygonTemplate.states.create("hover");
+                                hs.properties.fill = am4core.color("#367B25");
+    
+                                // Series for United States map
+                                var usaSeries = chart.series.push(new am4maps.MapPolygonSeries());
+                                usaSeries.geodata = am4geodata_usaLow;
+    
+                                // Configure series
+                                var usPolygonTemplate = usaSeries.mapPolygons.template;
+                                usPolygonTemplate.tooltipText = "{name}";
+                                usPolygonTemplate.fill = chart.colors.getIndex(0);//am4core.color("#74B266");
+                                usPolygonTemplate.nonScalingStroke = true;
+    
+    
+                                // Create hover state and set alternative fill color
+                                var hs = usPolygonTemplate.states.create("hover");
+                                hs.properties.fill = am4core.color("#367B25");
+    
+                                //usaSeries.exclude = ["US-CO", "US-AZ", "US-KY", "US-FL"];
+                                
+                                // Add heat rule
+                                usaSeries.heatRules.push({
+                                  "property": "fill",
+                                  "target": usaSeries.mapPolygons.template,
+                                  "min": chart.colors.getIndex(0),
+                                  "max": am4core.color("#367B25")
+                                });
+                                
+                                // Add expectancy data
+                                usaSeries.data = statesArray;
+                            });
+                            </script>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- DIVIDER ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-b-50--xs g-text-center--xs g-position--relative">
+            <hr style="border-color: #4D4D4D;position: relative;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+                SE APP
+            </h4>
+        </div>
+
+        <div class="row g-margin-x-40--xs g-margin-x-0--md g-position--relative">
+            <div class="col-lg-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Downloads by Platform <div class="pull-right"><a href="/page/2495?MetricId=62&MetricCategoryId=87&ExpandedIds=C1596" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs g-position--relative" style="display: block;height: 100%;width: 100%;">
+                        <div class="g-center--xs g-text-center--xs">
+                            <h6 class="uppercase g-font-weight--700">Total</h6>
+                            <script>
+                            var downloadsByPlatTotal = 0;
+                            $.getJSON( "/webhooks/Lava.ashx/se-engage/62/{{ pageParamWeekendDate }}/chart.json", function( json ) {
+                                $.each(json, function(i, item) {
+                                    downloadsByPlatTotal = downloadsByPlatTotal + item.value;
+                                });
+                                //console.log('Total is:'+total);
+                                $('#downloadsByPlatTotal').html(downloadsByPlatTotal);
+                                $("#downloadsByPlatTotal").digits();
+                            });
+                            </script>
+                            <h3 id="downloadsByPlatTotal" class="g-font-weight--700" style="color: #6794DD;"></h3>
+                        </div>
+                        {[ amcharts chartwidth:'' chartheight:'280px' data-category:'app platform' data-value:'value' data-src:'/webhooks/Lava.ashx/se-engage/62/{{ pageParamWeekendDate }}/chart.json' ]}
+                        {[ endamcharts ]}
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>This chart indicates the total number of downloads of the Southeast App, including the percentage by platform (iOS, Android, Apple TV, and Roku).</h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="g-bg-color--white g-padding-x-0--xs g-overflow--hidden g-margin-b-50--xs" style="border-radius: 30px;">
+                    <h4 class="g-font-weight--600 g-padding-x-60--xs g-padding-y-20--xs g-color--primary" style="background-color: #67B7DC;">Impressions by Platform <div class="pull-right"><a href="/page/2495?MetricCategoryId=88&ExpandedIds=C1596" style="color:#FFF"><i class="fa fa-cog" aria-hidden="true"></i></a></div></h4>
+                    <div class="g-padding-x-50--xs g-padding-y-50--xs g-position--relative" style="display: block;height: 100%;width: 100%;">
+                        <div class="g-center--xs g-text-center--xs">
+                            <h6 class="uppercase g-font-weight--700">Total</h6>
+                            <script>
+                            var impressionsByPlatTotal = 0;
+                            $.getJSON( "/webhooks/Lava.ashx/se-engage/63/{{ pageParamWeekendDate }}/chart.json", function( json ) {
+                                $.each(json, function(i, item) {
+                                    impressionsByPlatTotal = impressionsByPlatTotal + item.value;
+                                });
+                                //console.log('Total is:'+total);
+                                $('#impressionsByPlatTotal').html(impressionsByPlatTotal);
+                                $("#impressionsByPlatTotal").digits();
+                            });
+                            </script>
+                            <h3 id="impressionsByPlatTotal" class="g-font-weight--700" style="color: #6794DD;"></h3>
+                        </div>
+                        {[ amcharts chartwidth:'' chartheight:'280px' data-category:'app platform' data-value:'value' data-src:'/webhooks/Lava.ashx/se-engage/63/{{ pageParamWeekendDate }}/chart.json' ]}
+                        {[ endamcharts ]}
+                    </div>
+                    <div class="g-padding-x-50--xs g-padding-b-50--xs" style="display: block;height: 100%;width: 100%;">
+                        <h6>This chart indicates the total number of impressions of the Southeast App, including the percentage by platform (iOS, Android, Apple TV, and Roku).</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- DIVIDER ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        {% comment %}
+        <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-y-50--xs g-text-center--xs g-position--relative">
+            <hr style="border-color: #4D4D4D;position: relative;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+                Stories
+            </h4>
+        </div>
+        {% endcomment %}
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- STORIES ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        {% comment %}
+        <div class="fluid-container">
+            <section class="cards-section">
+                    <div class="isotope_wrap">
+                        <a href="{{ childPage.Id }}" {% if childPage.DisplayDescription != 'true' %} title="{{ childPage.Description }}"{% endif %}>
+                            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+                                <div class="clearfix card g-hor-divider__solid__t--doc-color-{{ forloop.index }}" style="border-width:5px; border-radius: 30px;">
+                                    <a href="/events/starting-point" class="eventCardLink">
+                                        <div class="img-hover">
+                                            <img src="/GetImage.ashx?id=1998421&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+                                        </div>
+                                    </a>
+                                    <div class="caption g-padding-x-50--xs g-padding-y-50--xs">
+                                        <h6 class="g-font-family--secondary" style="margin-bottom: 5px;">
+                                            Story Title
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="{{ childPage.Id }}" {% if childPage.DisplayDescription != 'true' %} title="{{ childPage.Description }}"{% endif %}>
+                            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+                                <div class="clearfix card g-hor-divider__solid__t--doc-color-{{ forloop.index }}" style="border-width:5px; border-radius: 30px;">
+                                    <a href="/events/starting-point" class="eventCardLink">
+                                        <div class="img-hover">
+                                            <img src="/GetImage.ashx?id=1999706&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+                                        </div>
+                                    </a>
+                                    <div class="caption g-padding-x-50--xs g-padding-y-50--xs">
+                                        <h6 class="g-font-family--secondary" style="margin-bottom: 5px;">
+                                            Story Title
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="{{ childPage.Id }}" {% if childPage.DisplayDescription != 'true' %} title="{{ childPage.Description }}"{% endif %}>
+                            <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+                                <div class="clearfix card g-hor-divider__solid__t--doc-color-{{ forloop.index }}" style="border-width:5px; border-radius: 30px;">
+                                    <a href="/events/starting-point" class="eventCardLink">
+                                        <div class="img-hover">
+                                            <img src="/GetImage.ashx?id=1999706&w=720" class="event-image img-responsive" onerror="this.style.display='none'">
+                                        </div>
+                                    </a>
+                                    <div class="caption g-padding-x-50--xs g-padding-y-50--xs">
+                                        <h6 class="g-font-family--secondary" style="margin-bottom: 5px;">
+                                            Story Title
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+            </section>
+        </div>
+        {% endcomment %}
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- DIVIDER ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        <div class="row g-padding-x-40--xs g-margin-x-40--xs g-margin-x-0--md g-margin-y-50--xs g-text-center--xs g-position--relative">
+            <hr style="border-color: #4D4D4D;position: relative;">
+            <h4 class="g-font-weight--600 uppercase g-center--xs g-padding-x-40--xs" style="background-color: #e7e7e7; color: #4D4D4D;">
+                Videos
+            </h4>
+        </div>
+
+        {% comment %} --------------------------------------------------
+        ---------------------------- VIDEOS ---------------------------
+        ------------------------------------------------ {% endcomment %}
+        {% contentchannelitem where:'ContentChannelId == 82' sort:'Order' limit:'3' %}
+        {% assign Items = contentchannelitemItems %}
+        {% endcontentchannelitem %}
+        {% assign itemCount = Items | Size %}
+        {% if itemCount > 0 %}
+        <div class="fluid-container">
+            <section class="cards-section">
+                    <div class="isotope_wrap">
+                        {% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger %}
+                        {% for item in Items %}
+                            {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
+                            {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsInteger %}
+                            {% if itemStartDateTime <= currentDateTime %}
+                                {% if itemExpireDateTime > currentDateTime or itemExpireDateTime == null %}
+                                    {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
+                                    <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar">
+                                        <article class="post_item_story g-margin-y-0--xs card">
+                                            <div class="post_featured_story">
+                                                <div class="post_thumb_story" data-image="/GetImage.ashx?Guid={{ ImageGuid }}" data-title="{{ item.Title }}">
+                                                    <a class="hover_icon hover_icon_link" href="{{ 'Global' | Page:'Root' }}/engage-stories/{{ item.PrimarySlug }}" target="_blank">
+                                                        <img class="img-responsive" alt="{{ item.Title }}" src="/GetImage.ashx?Guid={{ ImageGuid }}" style="margin: 0 auto">
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div class="massonry_border g-height-150--xs g-padding-x-20--xs g-padding-y-20--xs">
+                                                <h5 class="g-font-family--secondary">
+                                                    <a class="g-letter-spacing--1" href="{{ 'Global' | Page:'Root' }}/engage-stories/{{ item.PrimarySlug }}">{{ item.Title }}</a>
+                                                </h5>
+                                            </div>
+                                        </article>
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+
+                    </div>
+            </section>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+    $(window).load(function() {
+        var isoOptions = {
+            percentPosition: true,
+            itemSelector: '.isotope_item',
+            layoutMode: 'masonry'
+        };
+        // Initialize Connection Opportunities Isotope
+        var $grid = $('.isotope_wrap').isotope(isoOptions);
+        // reveal all items after init
+        var $items = $grid.find('.isotope_item');
+        $grid.imagesLoaded( function() {
+        // init Isotope after all images have loaded
+        $grid.addClass('is-showing-items').isotope(isoOptions);
+        });
+    });
+</script>

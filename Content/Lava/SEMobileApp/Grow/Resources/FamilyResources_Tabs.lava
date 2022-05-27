@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow Family Resources Tab' componententityid:'31630' operation:'View' summary:'Grow Family Resources Tab Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypdid:'208' relatedentityid:'{{id}}'%}
+Grow Family Resources Tab Page
+{% endinteractionwrite %}
 {%- cache key:'subsplash-familyresource-tab-{{id}}' duration:'3600' -%}
 {%- contentchannelitem where:'ContentChannelId == 76 && Id == {{id}}' -%}
 {%- for series in contentchannelitemItems -%}

@@ -1,4 +1,6 @@
-{
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Prayer' componententityid:'31635' operation:'View' summary:'Prayer Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
+Prayer Page
+{% endinteractionwrite %}{
 	"header": {
 		"title": "Prayer"
 	},
@@ -49,7 +51,7 @@
         {{- comma -}}{
 			"title": "Prayer Image",
             "images":[
-			    { "width":800, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/prayer?width=1544&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
+			    { "width":800, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/prayer?width=1544&crop=(0,{{ interY1 }},1600,{{ interY2 }})&anchor=topcenter&format=jpg"  }
 		    ]{%- if forloop.index == 3 -%},"actions":[{
                 "handler":"browser",
                 "type":"navigation",

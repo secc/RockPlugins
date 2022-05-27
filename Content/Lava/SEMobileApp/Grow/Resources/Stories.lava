@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow Stories' componententityid:'31004' operation:'View' summary:'Grow Stories' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
+Grow Stories Page
+{% endinteractionwrite %}
 {
 	"header": {
 		"title": "Stories"
@@ -41,11 +44,12 @@
                     {
                         "images":[
                             {"width": 667,
-                            "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/grow/resources/listcard/{{ item.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+                            "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/listcard/{{ item.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
                         ],
                         "title": "{{ title }}",
                         "actions":[{
-                            "handler":"externalBrowser",
+                            "handler":"browser",
+                            "style":"external",
                             "type":"navigation",
                             "showBrowserControls": true,
                             "contentUrl": "https://www.southeastchristian.org/stories/{{ item.PrimarySlug }}"

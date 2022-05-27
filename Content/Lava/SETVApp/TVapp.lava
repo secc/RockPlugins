@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'TV App' componententityid:'27568' operation:'View' summary:'TV App Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
+TV App Page
+{% endinteractionwrite %}
 {%- cache key:'subsplash-tvapp-home' duration:'60' -%}
 {
     {% contentchannelitem where:'ContentChannelId == 74' sort:'Order' %}

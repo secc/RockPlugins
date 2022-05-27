@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow Family Resources Resources' componententityid:'31632' operation:'View' summary:'Grow Family Resources Resources Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypdid:'208' relatedentityid:'{{id}}'%}
+Grow Family Resources Resources Page
+{% endinteractionwrite %}
 {%- cache key:'subsplash-familyresource-resource-{{id}}' duration:'3600' -%}
 {%- contentchannelitem where:'ContentChannelId == 76 && Id == {{id}}' -%}
 	{%- for item in contentchannelitemItems -%}
@@ -7,8 +10,8 @@
 		{%- endif -%}
 	{%- endfor -%}
 {%- endcontentchannelitem -%}
-{%-  assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger -%}
-{%-  assign itemStartDateTime = SEKidsItem.StartDateTime | Date:'yyMMddHHmm' | AsInteger -%}
+{%-  assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsDouble -%}
+{%-  assign itemStartDateTime = SEKidsItem.StartDateTime | Date:'yyMMddHHmm' | AsDouble -%}
 {%-  assign itemImage = SEKidsItem | Attribute:'Image' -%}
 {%-  assign itemImageGuid = SEKidsItem | Attribute:'Image','RawValue' -%}
 {%- if SEKidsItem and itemStartDateTime <= currentDateTime -%}
@@ -48,7 +51,7 @@
 							"images":[
 								{%- assign Title = "Downloadables" | Escape | EscapeDataString -%}
 								{%- assign Body = "Checkout the files below" | Escape | EscapeDataString -%}
-								{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+								{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 							]
 						}{%- assign comma = "," -%}
 						{%- endif -%}
@@ -62,7 +65,7 @@
 								"title": "{{ resource.Title }}",
 								"subtitle": "Download PDF",
 								"images":[
-									{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
+									{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 								],
 								"actions": [{
 									"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
@@ -83,7 +86,7 @@
 				"images":[
 					{%- assign Title = "Resources Coming" | Escape | EscapeDataString -%}
 					{%- assign Body = "Please come back soon" | Escape | EscapeDataString -%}
-					{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+					{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 				]
 			}{%- assign comma = "," -%}
 			{%- endif -%}

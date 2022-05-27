@@ -85,7 +85,7 @@
 
 					{% if covidApplicable == "Yes" or covidApplicable == "Both" %}
                     <div class="isotope_item col-xs-12 col-md-6 col-lg-4"
-                         data-groupid="{{item.Id}}"
+                         data-groupid="{% attributevalue where:'EntityId=={{item.Id}} && AttributeId == 90627' %}{{ attributevalueItems[0].Id }}{% endattributevalue %}"
                          data-need="{% taggeditem where:'EntityGuid == "{{item.Guid}}"' %}{% for tag in taggeditemItems %}{%- if forloop.first -%}{%- else -%},{%- endif -%}{{ tag.Tag.Id }}{% endfor %}{% endtaggeditem %}"
                          data-zipcode="{{ item | Attribute:'Location','PostalCode' | Truncate:5,'' }}"
                          data-partner="{%- if se_recognition != "" -%}yes{%- endif -%}">
@@ -152,16 +152,16 @@
 									</div>
 									<div>
                                         <h6>
-											{% assign location = item | Attribute:'Location','City' %}
-											{% if location != '' %}
-												<small class="uppercase g-font-weight--700">location</small><br />
-												{{ item | Attribute:'Location','Street1' }}<br />
-												{{ item | Attribute:'Location','City' }}, {{ item | Attribute:'Location','State' }} {{ item | Attribute:'Location','PostalCode' }}
-												<br />
-												<br />
-												<h5 class="uppercase g-display-none--xs distance-miles text-center g-font-weight--700 g-hor-divider__solid__t--black-opacity-lighter g-padding-t-20--xs"></h5>
-											{% endif %}	
-										</h6>
+										{% assign location = item | Attribute:'Location','City' %}
+										{% if location != '' %}
+                                            <small class="uppercase g-font-weight--700">location</small><br />
+                                            {{ item | Attribute:'Location','Street1' }}<br />
+                                            {{ item | Attribute:'Location','City' }}, {{ item | Attribute:'Location','State' }} {{ item | Attribute:'Location','PostalCode' }}
+											<br />
+											<br />
+											<h5 class="uppercase g-display-none--xs distance-miles text-center g-font-weight--700 g-hor-divider__solid__t--black-opacity-lighter g-padding-t-20--xs"></h5>
+										{% endif %}
+									</h6>
                                     </div>
                                 </div>
                                 {% endif %}

@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'TV App Home Announcements' componententityid:'31221' operation:'View' summary:'TV App Home Announcements Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
+TV App Home Announcements Page
+{% endinteractionwrite %}
 {%- contentchannelitem where:'Guid == "{{Guid}}"' -%}
 {%- assign item = contentchannelitemItems | First - %}
 {%- assign subtitleSize = item | Attribute:'Subtitle' | Size -%}

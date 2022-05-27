@@ -1,0 +1,64 @@
+{
+	"header": {
+		"title": "Advent"
+	},
+    "displayOptions": {
+		"style":"stacked",
+		"contentWidthRatio": 1.0,
+		"itemDisplayOptions": {
+			"indicatorAspectRatio":3.66,
+			"indicatorShadowEnabled":true,
+        	"maxWidth":1400,
+	        "textPosition": "none"
+		}
+    },
+	"items": [
+        {%- assign comma = "" -%}
+        {%- contentchannelitem where:'ContentChannelId == 85' sort:'StartDateTime desc' -%}
+            {%- assign Items = contentchannelitemItems -%}
+        {%- endcontentchannelitem -%}
+        {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+        {%- for item in Items -%}
+            {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+            {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+            {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+				{%- assign resourcesCount = 0 -%}
+				{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
+				{%- for messages in itemChildItems -%}
+					{%- assign message = messages.ChildContentChannelItem -%}
+					{%- if message.ContentChannelId == "77" or message.ContentChannelId == "78" -%}
+						{%- assign resourcesCount = resourcesCount | Plus:1 -%}
+					{%- endif -%}
+				{%- endfor -%}
+				{{ comma }}
+                {
+                    "title": "{{-item.Title | Replace:'"','\"'-}}",
+                    "images":[
+                        { "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/advent/devotional-button/{{-item.Guid-}}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,80,80,0"  }
+                    ],
+                    {%- if resourcesCount != 0 -%}
+                        {%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/advent/tab/" | Append:item.Id -%}
+					    "actions": [{
+                            "handler": "subtabs",
+                            "type": "navigation",
+                            "url": "{{- itemActionUrl -}}"
+                        }]
+                    {%- else -%}
+                        "actions": [{
+                            "handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
+                            "type":"navigation",
+                            "showBrowserControls": true,
+                            "contentUrl": "{{- item | Attribute:'SubSplashPageURL','RawValue' -}}"
+                        }]
+                    {%- endif -%}
+                }
+                {%- assign comma = "," -%}
+            {%- endif -%}
+        {%- endfor -%}
+        ,{
+            "images":[
+                { "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank121212.jpg"  }
+            ]
+        }
+	]
+}

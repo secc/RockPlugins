@@ -44,7 +44,7 @@
 	        {% unless forloop.first %},{% endunless %}
 
 			{%- assign itemActionHandler = "list" -%}
-			{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/sermons/series/" | Append:item.Id -%}
+			{%- assign itemActionUrl = "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/" | Append:item.Id -%}
 			{%- assign resourcesCount = 0 -%}
 			{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
 			{%- for messages in itemChildItems -%}
@@ -55,13 +55,13 @@
 			{%- endfor -%}
 			{%- if resourcesCount != 0 -%}
 			{%- assign itemActionHandler = "subtabs" -%}
-			{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/tabs/series/" | Append:item.Id -%}
+			{%- assign itemActionUrl = "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/" | Append:item.Id -%}
 			{%- endif -%}
 	        {
 				"title": "{{item.Title | Replace:'"','\"'}}",
 				"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
 	            "images":[
-					{ "width":920, "url":"https://rockstaging.secc.org/Webhooks/ImageGenerator.ashx/sermon/card/{{item.Guid | Upcase}}"  }
+					{ "width":920, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/card/{{item.Guid | Upcase}}"  }
 			    ],
 				"actions": [{
 					"handler": "{{- itemActionHandler -}}",

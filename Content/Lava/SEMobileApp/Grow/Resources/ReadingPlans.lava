@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow Reading Plans' componententityid:'31002' operation:'View' summary:'Grow Reading Plans Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
+Grow Reading Plans Page
+{% endinteractionwrite %}
 {
 	"header": {
 		"title": "Reading Plans"
@@ -41,7 +44,7 @@
                     {
                         "images":[
                             {"width": 667,
-                            "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/ImageGenerator.ashx/grow/resources/listcard/{{ item.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+                            "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/listcard/{{ item.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
                         ],
                         "title": "{{ title }}",
                         "actions":[{

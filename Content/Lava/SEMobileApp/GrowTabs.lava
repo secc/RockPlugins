@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow' componententityid:'30530' operation:'View' summary:'Grow Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
+Grow Page
+{% endinteractionwrite %}
 {
 	"header": {
 		"title": "Grow"
@@ -7,14 +10,15 @@
             "title": "Resources",
             "actions": [{
                 "handler": "list",
-                "url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/grow/resources"
+                "url": "https://app.secc.org/webhooks/SubSplash.ashx/grow/resources"
             }]
         },
         {
             "title": "Bible",
             "actions": [{
-				"handler": "list",
-				"url": "http://api-feeds.subsplash.com/bible/books.xml"
+				"handler": "bible",
+                "type": "navigation",
+                "reading_plan_id": "b2feabc3-a836-43ca-bc8d-8832e172a9cd"
 			}]
         }
     ]

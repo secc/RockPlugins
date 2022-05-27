@@ -1,0 +1,1070 @@
+<style>
+    #map_canvas {
+        height: 80vh;
+    }
+
+    #sidebar {
+        height: 80vh;
+        overflow-y: auto;
+    }
+
+    @media (max-width: 768px) {
+        #sidebar {
+            height: auto;
+            overflow-y: unset;
+        }
+    }
+
+
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .gm-style iframe+div {
+        border: none !important;
+    }
+
+    .popup-bubble .accordions-1 .panel:hover{
+        transform: none !important;
+    }
+
+
+    /* The popup bubble styling. */
+    .popup-bubble {
+        /* Position the bubble centred-above its parent. */
+
+        top: 0;
+        left: 0;
+        transform: translate(-50%, -100%);
+        /* Style the bubble. */
+        background-color: white;
+        /*padding: 10px 25px 0px 25px;*/
+
+        box-shadow: 0px 2px 10px 1px rgba(0, 0, 0, 0.5);
+        width: 325px;
+    }
+
+    /* JavaScript will position this div at the bottom of the popup tip. */
+    .popup-container {
+        cursor: auto;
+        height: 0;
+        position: absolute;
+        /* The max width of the info window. */
+        width: 325px;
+        font-family: "ProximaNova", "proxima-nova", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    .popup-complex-name {
+        font-weight: bold;
+        font-size: 1.2em;
+        margin-left: -10px;
+        padding: 0px 25px 0px 25px;
+    }
+
+    .popup-complex-name a {
+        color: #222324;
+    }
+
+    .popup-campus {
+        margin: 10px auto;
+    }
+
+    .campus-complex-name,
+    .sidebar-complex-name.panel-heading {
+        font-size: 1.5em;
+        font-weight: bold;
+        padding: 0px -25px 0px -25px;
+    }
+
+    .popup-campus-name {
+        font-size: 2em;
+        font-weight: bold;
+        border-bottom: 1px black solid !important;
+        padding: 0px 9% 0px 25px !important;
+    }
+
+    .popup-campus-description {
+        font-style: italic;
+        font-size: .60em;
+        font-weight: normal;
+        margin: 10px 10px 10px 0;
+    }
+
+
+
+    .popup-services {
+        font-size: 1.5em;
+        padding: 0px 25px 0px 25px;
+    }
+
+    .popup-service {
+        margin-top: 10px;
+    }
+
+    .popup-service-day {
+        font-weight: bold;
+        font-style: italic;
+    }
+
+    .popup-map {
+        text-align: center;
+        font-size: 1.6em;
+        margin: 10px;
+    }
+
+    .popup-map a {
+        color: #222324 !important;
+    }
+
+    .popup-campus-page {
+        display: block;
+        padding: 10px;
+        text-align: center;
+        font-size: 1.5em;
+        background-color: #222324;
+        color: white;
+        font-weight: bold;
+    }
+
+    .popup-campus-page:hover {
+        color: white;
+    }
+
+    .panel {
+        box-shadow: none !important;
+    }
+
+    .btn-search {
+        display: block;
+        border: solid 1px black !important;
+        width: 200px !important;
+        margin: 10px auto !important;
+        font-weight: bold;
+    }
+
+    .sidebar-complex {
+        font-size: .6em !important;
+        margin-left: 5px;
+    }
+
+    .sidebar-complex-name {
+        padding: 0px !important;
+    }
+
+    .sidebar-complex-name div i {
+        transition: transform 500ms;
+    }
+
+    .sidebar-complex-name div.collapsed i {
+        transform: rotate(-90deg);
+    }
+
+    .campus-complex-name {
+        font-size: 1.2em;
+        margin-bottom: 10px;
+        cursor: pointer;
+    }
+
+
+    .input-group {
+        max-width: 300px;
+        margin: auto;
+    }
+
+    .se-online {
+        border: solid 1px #222324;
+        text-align: center;
+        font-size: 1.2em;
+    }
+
+    .campus-complex-name:hover {
+        color: lightgray;
+    }
+</style>
+
+<div class="row g-width-80-percent--lg clearfix" style="margin:0 auto">
+    <div class="col-sm-4" id="sidebar">
+        <div class="text-center">
+            <h3 class="g-font-size-40--xs g-font-weight--700 g-padding-y-25--xs uppercase">Easter Service Times and
+                Locations</h3>
+            <div class="input-group">
+                <span class="input-group-addon" id="basic-addon1">
+                    <i class="fa fa-search"></i>
+                </span>
+                <input maxlength="5" class="form-control input-field" placeholder="Search by Zip Code" id="postalcode"
+                    autocomplete="off">
+            </div>
+            <a id="search" class="form-control btn btn-search" style="color:black;">SEARCH</a>
+        </div>
+        <div class="se-online hidden">
+            <h4 style="font-weight:bold;">SE Online</h4>
+            Don't see a campus near you?
+            <br>Join us at SE Online
+            <br>Sunday, April 17
+            <br>9:15 AM, 11:30 AM, 2:00 PM, 8:00 PM
+            <br>
+            <br><a href="https://www.southeastchristian.org/location/seonline" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1">Watch Online</a>
+            <br><br>
+        </div>
+        <br>
+        <div id="campuses">
+        </div>
+    </div>
+    <div id="map_canvas" class="mapping col-md-8 hidden-xs"></div>
+</div>
+
+<script async
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAE0SCdnU3rGnC2bO5l24Y4dcfjpvstxzU&callback=initMap">
+    </script>
+
+<script>
+
+    var mapStyles = [
+        {
+            "featureType": "administrative",
+            "elementType": "all",
+            "stylers": [
+                {
+                    "saturation": "-100"
+                }
+            ]
+        },
+        {
+            "featureType": "administrative.province",
+            "elementType": "all",
+            "stylers": [
+                {
+                    "visibility": "off"
+                }
+            ]
+        },
+        {
+            "featureType": "landscape",
+            "elementType": "all",
+            "stylers": [
+                {
+                    "saturation": -100
+                },
+                {
+                    "lightness": 65
+                },
+                {
+                    "visibility": "on"
+                }
+            ]
+        },
+        {
+            "featureType": "poi",
+            "elementType": "all",
+            "stylers": [
+                {
+                    "saturation": -100
+                },
+                {
+                    "lightness": "50"
+                },
+                {
+                    "visibility": "simplified"
+                }
+            ]
+        },
+        {
+            "featureType": "road",
+            "elementType": "all",
+            "stylers": [
+                {
+                    "saturation": "-100"
+                }
+            ]
+        },
+        {
+            "featureType": "road.highway",
+            "elementType": "all",
+            "stylers": [
+                {
+                    "visibility": "simplified"
+                }
+            ]
+        },
+        {
+            "featureType": "road.arterial",
+            "elementType": "all",
+            "stylers": [
+                {
+                    "lightness": "30"
+                }
+            ]
+        },
+        {
+            "featureType": "road.local",
+            "elementType": "all",
+            "stylers": [
+                {
+                    "lightness": "40"
+                }
+            ]
+        },
+        {
+            "featureType": "transit",
+            "elementType": "all",
+            "stylers": [
+                {
+                    "saturation": -100
+                },
+                {
+                    "visibility": "simplified"
+                }
+            ]
+        },
+        {
+            "featureType": "water",
+            "elementType": "geometry",
+            "stylers": [
+                {
+                    "hue": "#ffff00"
+                },
+                {
+                    "lightness": -25
+                },
+                {
+                    "saturation": -97
+                }
+            ]
+        },
+        {
+            "featureType": "water",
+            "elementType": "labels",
+            "stylers": [
+                {
+                    "lightness": -25
+                },
+                {
+                    "saturation": -100
+                }
+            ]
+        }
+    ];
+
+    campusData = {
+        "campusComplexes": {
+            "46384": {
+                "id": "46384",
+                "name": "Blankenbaker Area",
+                "lat": 38.2282894,
+                "lng": -85.5457546,
+                "campuses": [
+                    {
+                        "name": "Blankenbaker Campus",
+                        "slug": "blankenbaker",
+                        "lat": "38.229038",
+                        "lng": "-85.542328",
+                        "street": "920 Blankenbaker Pkwy",
+                        "city": "Louisville",
+                        "state": "KY",
+                        "postalcode": "40243-1845",
+                        "description": "Contemporary worship services feature Biblical teaching in an inviting and engaging environment.",
+                        "services": [
+                            {
+                                "day": "Thursday, April 14",
+                                "time": "6:30 PM",
+                                "children": true,
+                                "deafinterpreted": false
+                            },
+                            {
+                                "day": "Friday, April 15",
+                                "time": "*6:30 PM",
+                                "children": true,
+                                "deafinterpreted": true
+                            },
+                            {
+                                "day": "Saturday, April 16",
+                                "time": "4:00 PM",
+                                "children": true,
+                                "deafinterpreted": false
+                            },
+                            {
+                                "day": "Sunday, April 17",
+                                "time": "9:00 AM & *11:15 AM",
+                                "children": true,
+                                "deafinterpreted": true
+                            }
+                        ]
+                    },
+                    {
+                        "name": "Chapel in the Woods",
+                        "slug": "chapelinthewoods",
+                        "lat": "38.224780",
+                        "lng": "-85.554080",
+                        "street": "1407 Moser Rd",
+                        "city": "Louisville",
+                        "state": "KY",
+                        "postalcode": "40299-2321",
+                        "description": "Traditional worship services feature a simple, piano-led style and include a call to worship, prayer, communion, sermon, and closing benediction.",
+                        "services": [
+                            {
+                                "day": "Sunday, April 17",
+                                "time": "8:30 AM, 10:00 AM, & 11:30 AM",
+                                "children": false,
+                                "deafinterpreted": false
+                            }
+                        ]
+                    },
+                    {
+                        "name": "SE Multination",
+                        "slug": "multination",
+                        "lat": "38.229038",
+                        "lng": "-85.542328",
+                        "street": "920 Blankenbaker Pkwy",
+                        "city": "Louisville",
+                        "state": "KY",
+                        "postalcode": "40243-1845",
+                        "description": "Services share the boundary-breaking love of Jesus with the African immigrant and refugee population.",
+                        "services": [
+                            {
+                                "day": "Saturday, April 16",
+                                "time": "3:30 PM",
+                                "children": false,
+                                "deafinterpreted": false
+                            },
+                            {
+                                "day": "Sunday, April 17",
+                                "time": "10:30 AM",
+                                "children": true,
+                                "deafinterpreted": false
+                            }
+                        ]
+                    }
+                ]
+            },
+            "46385": {
+                "id": "46385",
+                "name": "Southern Indiana",
+                "lat": 38.3219486,
+                "lng": -85.7524665,
+                "campuses": [
+                    {
+                        "name": "Indiana Campus",
+                        "slug": "indiana",
+                        "lat": "38.32360076904297",
+                        "lng": "-85.74493408203125",
+                        "street": "1309 Charlestown New Albany Rd",
+                        "city": "Jeffersonville",
+                        "state": "IN",
+                        "postalcode": "47130-9643",
+                        "description": "Contemporary worship services feature Biblical teaching in an inviting and engaging environment.",
+                        "services": [
+                            {
+                                "day": "Thursday, April 14",
+                                "time": "6:45 PM",
+                                "children": true,
+                                "deafinterpreted": false
+                            },
+                            {
+                                "day": "Friday, April 15",
+                                "time": "6:30 PM",
+                                "children": true,
+                                "deafinterpreted": false
+                            },
+                            {
+                                "day": "Sunday, April 17",
+                                "time": "8:00 AM, 9:30 AM, & 11:15 AM",
+                                "children": true,
+                                "deafinterpreted": false
+                            }
+                        ]
+                    }
+                ]
+            },
+            "46561": {
+                "id": "46561",
+                "name": "South Louisville",
+                "lat": 38.2252992,
+                "lng": -85.793139,
+                "campuses": [
+                    {
+                        "name": "South Louisville Campus",
+                        "slug": "southlouisville",
+                        "lat": "38.1985969",
+                        "lng": "-85.7660877",
+                        "street": "3845 Southern Pkwy",
+                        "city": "Louisville",
+                        "state": "KY",
+                        "postalcode": "40214-1756",
+                        "description": "Contemporary worship services feature Biblical teaching in an inviting and engaging environment.",
+                        "services": [
+                            {
+                                "day": "Sunday, April 17",
+                                "time": " 9:30 AM & 11:15 AM",
+                                "children": true,
+                                "deafinterpreted": false
+                            }
+                        ]
+                    },
+                    {
+                        "name": "SE Beechmont Campus",
+                        "slug": "beechmont",
+                        "lat": "38.17546463012695",
+                        "lng": "-85.76469421386719",
+                        "street": "5007 Southside Dr",
+                        "city": "Louisville",
+                        "state": "KY",
+                        "postalcode": "40214",
+                        "description": "Services share the boundary-breaking love of Jesus with the diverse population of South Louisville’s Beechmont neighborhood.",
+                        "services": [
+                            {
+                                "day": "Sunday, April 17",
+                                "time": "5:00 p.m.",
+                                "children": true,
+                                "deafinterpreted": false
+                            }
+                        ]
+                    }
+                ]
+            },
+            "46562": {
+                "id": "46562",
+                "name": "Crestwood",
+                "lat": 38.3391768,
+                "lng": -85.4676631,
+                "campuses": [
+                    {
+                        "name": "Crestwood Campus",
+                        "slug": "crestwood",
+                        "lat": "38.3391768",
+                        "lng": "-85.4676631",
+                        "street": "6201 Crestwood Station",
+                        "city": "Crestwood",
+                        "state": "KY ",
+                        "postalcode": "40014-7414",
+                        "description": "Contemporary worship services feature Biblical teaching in an inviting and engaging environment.",
+                        "services": [
+                            {
+                                "day": "Saturday, April 16",
+                                "time": "4:00 PM & 5:30 PM",
+                                "children": true,
+                                "deafinterpreted": false
+                            },
+                            {
+                                "day": "Sunday, April 17",
+                                "time": "9:00 AM, 10:30 AM, & 12:00 PM",
+                                "children": true,
+                                "deafinterpreted": false
+                            }
+                        ]
+                    }
+                ]
+            },
+            "46563": {
+                "id": "46563",
+                "name": "Southwest Louisville",
+                "lat": 38.1424721,
+                "lng": -85.8355246,
+                "campuses": [
+                    {
+                        "name": "Southwest Campus",
+                        "slug": "southwest",
+                        "lat": "38.1424721",
+                        "lng": "-85.8355246",
+                        "street": "8301 Saint Andrews Church Rd",
+                        "city": "Louisville",
+                        "state": "KY ",
+                        "postalcode": "40258-3835",
+                        "description": "Contemporary worship services feature Biblical teaching in an inviting and engaging environment.",
+                        "services": [
+                            {
+                                "day": "Friday, April 15",
+                                "time": "6:30 PM",
+                                "children": true,
+                                "deafinterpreted": false
+                            },
+                            {
+                                "day": "Sunday, April 17",
+                                "time": "9:30 AM & *11:30 AM",
+                                "children": true,
+                                "deafinterpreted": true
+                            }
+                        ]
+                    }
+                ]
+            },
+            "46564": {
+                "id": "46564",
+                "name": "La Grange",
+                "lat": 38.4029787,
+                "lng": -85.3790287,
+                "campuses": [
+                    {
+                        "name": "La Grange Campus",
+                        "slug": "lagrange",
+                        "lat": "38.4029787",
+                        "lng": "-85.3790287",
+                        "street": "410 South 1st Street",
+                        "city": "La Grange",
+                        "state": "KY ",
+                        "postalcode": "40031",
+                        "description": "Contemporary worship services feature Biblical teaching in an inviting and engaging environment.",
+                        "services": [
+                            {
+                                "day": "Thursday, April 14",
+                                "time": "6:45 PM",
+                                "children": true,
+                                "deafinterpreted": false
+                            },
+                            {
+                                "day": "Friday, April 15",
+                                "time": "6:30 PM",
+                                "children": true,
+                                "deafinterpreted": false
+                            },
+                            {
+                                "day": "Sunday, April 17",
+                                "time": "9:30 AM & 11:15 AM",
+                                "children": true,
+                                "deafinterpreted": false
+                            }
+                        ]
+                    }
+                ]
+            },
+            "46565": {
+                "id": "46565",
+                "name": "Elizabethtown",
+                "lat": 37.7036557,
+                "lng": -85.8733599,
+                "campuses": [
+                    {
+                        "name": "Elizabethtown Campus",
+                        "slug": "elizabethtown",
+                        "lat": "37.7036557",
+                        "lng": "-85.8733599",
+                        "street": "600 N Dixie Ave",
+                        "city": "Elizabethtown",
+                        "state": "KY ",
+                        "postalcode": "42701-2409",
+                        "description": "Contemporary worship services feature Biblical teaching in an inviting and engaging environment.",
+                        "services": [
+                            {
+                                "day": "Friday, April 15",
+                                "time": "6:30 PM",
+                                "children": true,
+                                "deafinterpreted": false
+                            },
+                            {
+                                "day": "Sunday, April 17",
+                                "time": "9:00 AM, 10:30 AM, & 12:00 PM",
+                                "children": true,
+                                "deafinterpreted": false
+                            }
+                        ]
+                    }
+                ]
+            },
+            "46566": {
+                "id": "46566",
+                "name": "Prospect",
+                "lat": 38.3772143,
+                "lng": -85.5880368,
+                "campuses": [
+                    {
+                        "name": "Prospect Campus",
+                        "slug": "prospect",
+                        "lat": "38.3772143",
+                        "lng": "-85.5880368",
+                        "street": "12650 W Highway 42",
+                        "city": "Prospect",
+                        "state": "KY ",
+                        "postalcode": "40059-9142",
+                        "description": "Contemporary worship services feature Biblical teaching in an inviting and engaging environment.",
+                        "services": [
+                            {
+                                "day": "Friday, April 15",
+                                "time": "6:30 PM",
+                                "children": true,
+                                "deafinterpreted": false
+                            },
+                            {
+                                "day": "Sunday, April 17",
+                                "time": "9:30 AM, 11:15 AM, & 1:00 PM",
+                                "children": true,
+                                "deafinterpreted": false
+                            }
+                        ]
+                    }
+                ]
+            },
+            "46567": {
+                "id": "46567",
+                "name": "Shelby County",
+                "lat": 38.215148,
+                "lng": -85.2536577,
+                "campuses": [
+                    {
+                        "name": "Shelby County Campus",
+                        "slug": "shelbycounty",
+                        "lat": "38.215148",
+                        "lng": "-85.2536577",
+                        "street": "196 Midland Blvd",
+                        "city": "Shelbyville",
+                        "state": "KY ",
+                        "postalcode": "40065-9734",
+                        "description": "Contemporary worship services feature Biblical teaching in an inviting and engaging environment.",
+                        "services": [
+                            {
+                                "day": "Friday, April 15",
+                                "time": "6:30 PM",
+                                "children": true,
+                                "deafinterpreted": false
+                            },
+                            {
+                                "day": "Sunday, April 17",
+                                "time": "9:30 AM, 11:15 AM & 1:00 PM",
+                                "children": true,
+                                "deafinterpreted": false
+                            }
+                        ]
+                    }
+                ]
+            },
+            "46568": {
+                "id": "46568",
+                "name": "Bullitt County",
+                "lat": 38.0297315,
+                "lng": -85.602171,
+                "campuses": [
+                    {
+                        "name": "Bullitt County Campus",
+                        "slug": "bullittcounty",
+                        "lat": "38.0297315",
+                        "lng": "-85.602171",
+                        "street": "6925 Highway 44",
+                        "city": "Mt Washington",
+                        "state": "KY ",
+                        "postalcode": "40047-5737",
+                        "description": "Contemporary worship services feature Biblical teaching in an inviting and engaging environment.",
+                        "services": [
+                            {
+                                "day": "Saturday, April 16",
+                                "time": "5:00 PM",
+                                "children": true,
+                                "deafinterpreted": false
+                            },
+                            {
+                                "day": "Sunday, April 17",
+                                "time": "9:30 AM & 11:15 AM",
+                                "children": true,
+                                "deafinterpreted": false
+                            }
+                        ]
+                    }
+                ]
+            },
+        }
+    };
+
+    var prev_infowindow = false;
+
+    const image = "https://www.southeastchristian.org/content/lava/campusfinder/SE_Web_MapMarker.svg";
+    const staticIcon = "https://www.southeastchristian.org/content/lava/campusfinder/SE_Web_MapMarker.png";
+
+
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map_canvas'), {
+            center: { lat: 38.0442778, lng: -85.6018933 },
+            zoom: 9.5,
+            streetViewControl: false,
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            disableDefaultUI: true,
+            styles: mapStyles
+
+        });
+
+
+        class Popup extends google.maps.OverlayView {
+
+            constructor(position, content) {
+                super();
+                this.position = position;
+
+                // This zero-height div is positioned at the bottom of the bubble.
+                const bubbleAnchor = document.createElement("div");
+
+                bubbleAnchor.classList.add("popup-bubble");
+                bubbleAnchor.innerHTML = content;
+                // This zero-height div is positioned at the bottom of the tip.
+                this.containerDiv = document.createElement("div");
+                this.containerDiv.classList.add("popup-container");
+                this.containerDiv.appendChild(bubbleAnchor);
+                // Optionally stop clicks, etc., from bubbling up to the map.
+                Popup.preventMapHitsAndGesturesFrom(this.containerDiv);
+            }
+            /** Called when the popup is added to the map. */
+            onAdd() {
+                this.getPanes().floatPane.appendChild(this.containerDiv);
+            }
+            /** Called when the popup is removed from the map. */
+            onRemove() {
+                if (this.containerDiv.parentElement) {
+                    this.containerDiv.parentElement.removeChild(this.containerDiv);
+                }
+            }
+            /** Called each frame when the popup needs to draw itself. */
+            draw() {
+                const divPosition = this.getProjection().fromLatLngToDivPixel(
+                    this.position
+                );
+                // Hide the popup when it is far out of view.
+                const display =
+                    Math.abs(divPosition.x) < 4000 && Math.abs(divPosition.y) < 4000
+                        ? "block"
+                        : "none";
+
+                if (display === "block") {
+                    this.containerDiv.style.left = divPosition.x + "px";
+                    this.containerDiv.style.top = (divPosition.y - 40) + "px";
+                }
+
+                if (this.containerDiv.style.display !== display) {
+                    this.containerDiv.style.display = display;
+                }
+            }
+        }
+
+        google.maps.event.addListener(map, "click", function (event) {
+            if (prev_infowindow) {
+                prev_infowindow.setMap(null);
+            }
+        });
+
+        for (var property in campusData['campusComplexes']) {
+            let complex = campusData['campusComplexes'][property];
+            let latLng = new google.maps.LatLng(complex.lat, complex.lng);
+
+            const marker = new google.maps.Marker({
+                position: latLng,
+                map: map,
+                icon: image,
+                title: complex.name,
+                color: "gray"
+            });
+
+            const popup = new Popup(latLng, getContentForComplex(complex, false));
+
+            marker.addListener("click", () => {
+
+                if (prev_infowindow) {
+                    prev_infowindow.setMap(null);
+                }
+                prev_infowindow = popup;
+
+                popup.setMap(map);
+
+                let latLng2 = new google.maps.LatLng((complex.lat + 0.2), complex.lng);
+                map.setZoom(10.5);
+                map.panTo(latLng2);
+                marker.setAnimation(Animation.BOUNCE);
+            });
+
+            complex.marker = marker
+        }
+
+    }
+
+    $("#search").click(function () {
+        var postalcode = $("#postalcode").val();
+        $.getJSON("https://www.southeastchristian.org/api/mapping/distance/46386/" + postalcode, function (data) {
+            orderDisplayCampuses(data);
+        });
+    })
+
+    $(document).on('keypress', function (e) {
+        if (e.which == 13) {
+            var postalcode = $("#postalcode").val();
+            $.getJSON("https://www.southeastchristian.org/api/mapping/distance/46386/" + postalcode, function (data) {
+                orderDisplayCampuses(data);
+            });
+        }
+    });
+
+    $(document).ready(
+        function () {
+            var campusComplexes = [];
+
+            for (var property in campusData['campusComplexes']) {
+                campusComplexes.push(campusData['campusComplexes'][property])
+            }
+
+            displayCampuses(campusComplexes);
+        }
+    )
+
+    var orderDisplayCampuses = function (data) {
+        var keysSorted = Object.keys(data).sort(function (a, b) { return data[a] - data[b] })
+
+        var campusComplexes = [];
+
+        let isClose = false;
+
+        for (const i in keysSorted) {
+            var campusMapId = keysSorted[i];
+            var complex = campusData['campusComplexes'][campusMapId];
+            complex.distance = data[campusMapId];
+            if (complex.distance < 50) {
+                isClose = true;
+            }
+            campusComplexes.push(complex);
+        }
+
+        const firstComplex = campusComplexes[0];
+        if (firstComplex.marker && firstComplex.distance < 50) {
+            new google.maps.event.trigger(firstComplex.marker, 'click');
+        }
+
+        if (isClose) {
+            $(".se-online").addClass("hidden");
+        }
+        else {
+            $(".se-online").removeClass("hidden");
+        }
+
+        displayCampuses(campusComplexes);
+    }
+
+    var displayCampuses = function (campusComplexes) {
+        $("#campuses").empty();
+
+        var isMobile = $("#map_canvas:visible").length == 0;
+
+        for (const i in campusComplexes) {
+            var complex = campusComplexes[i]
+            var distance = complex.distance;
+
+            var distanceText = "";
+
+            if (distance) {
+                distance = distance.split(".")[0];
+
+
+                distanceText = ": " + distance.split(".")[0] + " miles";
+                if (distance == "1") {
+                    distanceText = ": 1 mile";
+                }
+
+            }
+
+            var template = `<div class="campus-complex-name" data-id="${complex.id}"><i class="fas fa-caret-right"></i> ${complex.name}${distanceText}</div>`;
+
+            if (isMobile) {
+                template = `
+    <div id="campusList" role="tablist" class="panel-group">
+        <div class="panel">
+            <div class="sidebar-complex-name panel-heading" role="tab">
+                <div role="button" class="collapsed" data-toggle="collapse" href="#${complex.name.replace(/\s/g, '')}-sidebar" data-parent="#campusList">
+                    <i class="fas fa-caret-down"></i> ${complex.name}${distanceText}
+                </div>
+            </div>
+            <div id="${complex.name.replace(/\s/g, '')}-sidebar" class="collapse sidebar-complex" role="tabpanel" data-parent="#campusList">
+                <div id="${complex.name.replace(/\s/g, '')}" role="tablist" class="panel-group accordions-1" aria-multiselectable="true">
+                    ${complex.campuses.map(campus => getContentForCampus(campus, true, complex)).join('')}
+                </div>
+            </div>
+        </div>
+    </div>
+    `;
+            }
+
+            $("#campuses").append(template);
+        }
+        $(".campus-complex-name").click(function (event) {
+            const dataId = event.target.getAttribute("data-id");
+            const cluster = campusData['campusComplexes'][dataId];
+            new google.maps.event.trigger(cluster.marker, 'click');
+        });
+    }
+
+    var getContentForComplex = function (complex, includeMap) {
+
+        let template = `
+        <div class="popup-complex-name">${complex.name}</div>
+        <div id="${complex.name.replace(/\s/g, '')}" role="tablist" class="panel-group accordions-1" aria-multiselectable="true">
+            ${complex.campuses.map(campus => getContentForCampus(campus, includeMap, complex)).join('')}
+        </div>
+    `;
+
+
+        return template;
+    }
+
+    var getContentForCampus = function (campus, includeMap, complex) {
+
+        let isMulti = complex.campuses.length > 1;
+
+        let campusLink = `https://maps.google.com?daddr=${(campus.street.replace(' ', '+'))}+${campus.state}+${campus.postalcode}`
+
+        let subText = "";
+
+        for (let i = 0; i < campus.services.length; i++) {
+            if (campus.services[i].deafinterpreted == true) {
+                subText = "<small><i>*Interpreted for the deaf.</i></small><br>";
+            }
+        }
+
+        let mapContent = `${subText}<i class="fa fa-map-marker-alt"></i> Map & Directions</a>`;
+
+        if (includeMap) {
+            mapContent = `<img src="https://maps.googleapis.com/maps/api/staticmap?style=feature:all|element:all|saturation:-100|gamma:1|&style=feature:all|element:labels.text.stroke|visibility:off|&style=feature:poi|element:all|visibility:off|&style=feature:road|element:geometry|visibility:simplified|&style=feature:water|element:all|visibility:on|color:0xc6dfec|&style=feature:administrative.neighborhood|element:labels.text.fill|visibility:off|&style=feature:road.local|element:labels.text|weight:0.5|color:0x333333|&style=feature:transit.station|element:labels.icon|visibility:off|&markers=icon:${staticIcon}|${campus.lat},${campus.lng}&visual_refresh=true&path=fillcolor:0xe71e2255|color:0xe71e2255|&sensor=false&size=400x350&zoom=12&format=png&key=AIzaSyAE0SCdnU3rGnC2bO5l24Y4dcfjpvstxzU">`;
+        }
+
+        let map = `<div class="popup-map"><a href="${campusLink}" target="_blank">${mapContent}</div>`
+
+        let template = "";
+
+        if (isMulti) {
+            template = `
+        <div class="popup-campus panel">
+            <div class="popup-campus-name panel-heading collapsed" role="button" data-toggle="collapse" href="#${campus.name.replace(/\s/g, '')}" data-parent="#${complex.name.replace(/\s/g, '')}" role="tab">
+                    ${campus.name}
+                    <div class="popup-campus-description">${campus.description}</div>
+            </div>
+            <div class="collapse" role="tabpanel" id="${campus.name.replace(/\s/g, '')}">
+                <div  class="popup-services">${campus.services.map(getContentForService).join("")}</div>
+                ${map}
+
+                <a href="https://southeastchristian.org/location/${campus.slug}" class="popup-campus-page">Campus Page <i class="fa fa-chevron-right"></i></a>
+            </div>
+        </div>
+        `;
+        }
+        else {
+            template = `
+        <div class="popup-campus panel">
+            <div class="popup-campus-name">
+                    ${campus.name}
+                    <div class="popup-campus-description">${campus.description}</div>
+            </div>
+            <div id="${campus.name.replace(/\s/g, '')}">
+                <div  class="popup-services">${campus.services.map(getContentForService).join("")}</div>
+                ${map}
+                <a href="https://southeastchristian.org/location/${campus.slug}" class="popup-campus-page">Campus Page <i class="fa fa-chevron-right"></i></a>
+            </div>
+        </div>
+        `;
+        }
+
+        return template;
+    }
+
+    var getContentForService = function (service) {
+        let template = `
+    <div class="popup-service">
+        <div class="popup-service-day">${service.day}</div>
+        <div class="popup-service-time">Time: ${service.time}</div>
+    </div>
+    `;
+        return template;
+    }
+
+
+</script>

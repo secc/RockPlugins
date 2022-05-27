@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Home' componententityid:'27194' operation:'View' summary:'App Homepage' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'2087' %}
+App Homepage
+{% endinteractionwrite %}
 {
 	"header": {
 		"title": "Home"
@@ -56,7 +59,7 @@
 					{
 						"images":[
 							{"width": 668,
-							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+							"url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
 							]
 						{%- if actionJson != "" -%}
 						,"actions":[{
@@ -78,7 +81,7 @@
 						{
 							"images":[
 								{"width": 668,
-								"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+								"url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
 								]
 							{%- if actionJson != "" -%}
 							,"actions":[{
@@ -101,7 +104,7 @@
 						{
 							"images":[
 								{"width": 668,
-								"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+								"url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
 								]
 							{%- if actionJson != "" -%}
 							,"actions":[{
@@ -125,7 +128,7 @@
 					{
 						"images":[
 							{"width": 668,
-							"url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+							"url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
 							]
 						{%- if actionJson != "" -%}
 						,"actions":[{

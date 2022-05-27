@@ -1,0 +1,52 @@
+<style>
+@media (min-width: 767px){
+    .frame {
+        height: 70vh;      /* equals max image height */
+        width: 100%;
+        white-space: nowrap;
+        text-align: center; margin: 1em 0;
+    }
+    
+    .helper {
+        display: inline-block;
+        height: 100%;
+        vertical-align: middle;
+    }
+    
+    .frame img {
+        vertical-align: middle;
+        display: inline;
+    }
+}
+@media (max-width: 766px){
+    .frame {
+        margin:0px 50px;
+    }
+}
+
+.headerContainer {
+    border-bottom:solid 36px #af504c;
+}
+</style>
+
+<section>
+	<div class="headerContainer">
+    {[ parallax image:'/Content/ExternalSite/WebImages/Christmas2021/Background.png' height:'70vh' position:'25% 50%' speed:'0' ]}
+        <div class="row">
+            <div class="col-sm-1 col-md-2"></div>
+            <div class="col-sm-5 col-md-4">
+                <div class="frame">
+                    <span class="helper"></span>
+                    <img src="/Content/ExternalSite/WebImages/Christmas2021/Tree.png" class="img-responsive" style="margin-bottom: 36px;">
+                </div>
+            </div>
+            <div class="col-sm-5 col-md-4">
+                <div class="frame">
+                    <span class="helper"></span>
+                    <img src="/Content/ExternalSite/WebImages/Christmas2021/Title.png" class="img-responsive">
+                </div>
+            </div>
+        </div>
+    {[ endparallax ]}
+	</div>
+</section>

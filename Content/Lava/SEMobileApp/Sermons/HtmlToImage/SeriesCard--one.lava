@@ -26,7 +26,7 @@
               height:1040px;
               background-color: #262626;
               border-radius: 40px;
-              background-image: url("{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}");
+              background-image: url("https://app.secc.org/GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}");
               background-repeat: no-repeat;
               background-size: contain;
               background-position: top;

@@ -1,3 +1,6 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'TV App Series' componententityid:'27734' operation:'View' summary:'TV App Series Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypdid:'208' relatedentityid:'{{id}}'%}
+TV App Series Page
+{% endinteractionwrite %}
 {%- cache key:'subsplash-tvapp-series-{{series}}' duration:'0' -%}
 {%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
 {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}

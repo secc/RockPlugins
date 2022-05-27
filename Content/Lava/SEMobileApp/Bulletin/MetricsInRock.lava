@@ -5,7 +5,7 @@
 {%- endcomment -%}
 {% assign campusIds = "" %}
 {% assign cTotal = "" %}
-{% campus where:'Public == true' %}
+{% campus where:'IsActive == true' %}
     {% for campus in campusItems %}
         {% assign campusIds = campusIds | Append:campus.Id | Append:"|" %}
         {% assign cTotal = cTotal | Append:0 | Append:"|" %}
@@ -16,8 +16,8 @@
 {% assign campusIds = campusIds | Split:'|' %}
 {% assign cTotal = cTotal | Split:'|' %}
 <style>
-.inlineMetrics { 
-    display: inline-block; 
+.inlineMetrics {
+    display: inline-block;
 }
 </style>
 {%- comment -%}
@@ -27,15 +27,9 @@
 {%- endcomment -%}
 {%- assign today = 'Now' | Date:'dddd' -%}
 {%- assign subtractDays = -7 -%}
-{% comment %} {%- assign subtractDays = -14 -%}
-{%- if today == "Saturday" or today == "Sunday" -%}
-    {%- assign subtractDays = -7 -%}
-{% endif %} {% endcomment %}
 {% assign sundayBefore = "Now" | SundayDate | DateAdd:subtractDays | Date:'dd' %}
-{%- assign satSubtractDays = subtractDays | Plus:-1 -%}
-{% assign saturdayBefore = "Now" | SundayDate | DateAdd:satSubtractDays | Date:'dd' %}
 {% assign weekendDate = "Now" | SundayDate | DateAdd:subtractDays | Date:'yyyy-MM-dd' %}
-{% assign weekendDateToDisplay = "Now" | SundayDate | DateAdd:subtractDays | Date:'MMMM SAT-SUN, 2020' | Replace:'SAT',saturdayBefore | Replace:'SUN',sundayBefore %}
+{% assign weekendDateToDisplay = "Now" | SundayDate | DateAdd:subtractDays | Date:'MMMM SUN, yyyy' | Replace:'SUN',sundayBefore %}
 <h1 style="
     margin: 0;
     line-height: 32px;
@@ -51,9 +45,6 @@
 {%- endcomment -%}
 <div>
     <h4 style="margin: 0 0 10px 0; text-align: left;"><strong>Church-Wide Attendance</strong></h4>
-    {%- comment -%}
-    {% assign weekendDate = 'Now' | SundayDate | DateAdd:-7 | Date:'yyyy-MM-dd' %}
-    {%- endcomment -%}
     {% assign campusTotal = 0 %}
     {% assign total = 0 %}
     {% assign currentCampus = 0 %}
@@ -98,7 +89,6 @@
                         {% endif %}
                         {% assign tempCTotal = tempCTotal | Append:mValue | Append:"|" %}
                     {% endfor %}
-                    {% comment %} <br />tempTotal:{{tempCTotal | ReplaceLast:'|',''}}<br /> {% endcomment %}
                     {% assign cTotal = tempCTotal | ReplaceLast:'|','' | Split:'|' %}
                     <br />
 
@@ -114,7 +104,7 @@
     <h4 style="margin: 10px 0 0 0px;text-align: left;"><strong>Total:</strong> {{ total | Format:'#,##0' }}</h4>
     <br />
     <hr />
-    {% campus where:'Public == true' %}
+    {% campus where:'IsActive == true' %}
         {% for assignedCampus in campusItems %}
             {% assign campusId = assignedCampus.Id %}
             <div class="inlineMetrics" style="padding: 0px 2px 10px;">
@@ -126,14 +116,14 @@
                             vertical-align: top;
                             background-color: #eaeaea;
                         ">
-                    
+
                     {%- comment -%}
                     ---------------------------------------------------------
                     ------- Grab Weekend Attendance with index array --------
                     ---------------------------------------------------------
                     {%- endcomment -%}
                     <strong>Campus Attendance:</strong> {% for cID in campusIds %}{% if cID == campusId %}{{ cTotal[forloop.index0] }}{% endif %}{% endfor %}<br />
-                    
+
                     {%- comment -%}
                     ------------------------------------
                     ------- General Fund Giving -------
@@ -149,8 +139,6 @@
                         {% endfor %}
                     {% endmetricvalue %}
                     {{ campusGeneralFund | FormatAsCurrency }}<br />
-                    {% comment %}
-                    {% endcomment %}
                     {%- comment -%}
                     ------------------------------------
                     ------- Building Fund Giving -------
@@ -166,8 +154,6 @@
                         {% endfor %}
                     {% endmetricvalue %}
                     {{ campusBuildingFund | FormatAsCurrency }}<br />
-                    {% comment %}
-                    {% endcomment %}
                 </div>
             </div>
 

@@ -55,12 +55,6 @@
 	left: 50%;
 	position: relative;
 	transform: translate(-50%, 0);
-	padding-top: 4px;
-	margin-top: 4px;
-}
-.check.empty {
-	background-color: #b3995a;
-	border-radius: 10px;
 }
 .check h3 strong {
 	min-width: 250px;

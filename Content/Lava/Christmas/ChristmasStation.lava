@@ -1,0 +1,176 @@
+<style>
+	.serviceContainter {
+		background-image: url('/Content/ExternalSite/WebImages/Christmas2021/Background.png');
+		border-top:solid 36px #af504c;
+
+	}
+	
+	.serviceContainerHeader {
+		background-color: #e8dfd2;
+		margin: auto;
+		width:auto;
+		text-align: center;
+		font-size: 1.5em;
+		font-weight 600;
+	}
+	
+	.serviceHeaderImg{
+		margin: 30px auto;
+	}
+	
+	
+	.serviceTopic {
+		z-index:2;
+		color: white;
+		height: 100%;
+		width: 100%;
+		min-height: 400px;
+		text-align: center;
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size:contain;
+		font-size: 3em;
+		font-weight: 900;
+		cursor:pointer;
+		display:table;
+		position:relative;
+		margin-bottom: 15px;
+	}
+	
+	.serviceTopicCell {
+		display: table-cell;
+		height:100%;
+		vertical-align: middle;
+		-webkit-user-select: none;     
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none; 
+	}
+	
+	.serviceTopicItems {
+		background-color: white;
+		position: relative;
+		top: -180px;
+		z-index: 1;
+		margin: auto;
+		width:80%;
+		text-align:center;
+		transition: all .25s ease-out;
+		height: 0px;
+		padding-top: 0px;
+		overflow:hidden;
+		max-width:400px;
+	}
+	
+	.serviceTopicItemsOn {
+		height:auto;
+		padding-top: 180px;
+		margin-bottom: -170px;
+	}
+	
+	.serviceTopicItems ul {
+		padding: 20px;
+	}
+	
+	.serviceTopicItems li {
+		list-style-type: none;
+		font-size: 1.5em;
+		font-weight: 600;
+		padding: 20px 0px;
+		border-bottom:solid 1px #000;
+	}
+	
+	.serviceTopicItems li:last-of-type  {
+		border-bottom: 0px;
+	}	
+	
+</style>
+
+<section id="ServiceStation" class="serviceContainter">
+	<div class="container serviceContainerHeader">
+		<div class="row">
+				<div class="col-xs-12 col-md-6 col-md-offset-3">
+					<br>
+					<img src="/Content/ExternalSite/WebImages/Christmas2021/StationLogo.png" class="serviceHeaderImg img-responsive" >
+					<br>
+					From inviting friends, family, and coworkers, to fun activities for your children to help make this your most stress-free hoilday season ever,
+					our Christmas Service Station is here to help! Click below to get started.
+					<br><br><br>
+				</div>
+		</div>
+	</div>
+        <div class="container g-padding-b-150--md">
+          <br><br>
+			<div class="row">
+				<div class="col-md-4">
+					<div class="serviceTopicContainer">
+						<div class="serviceTopic" style="background-image:url('/Content/ExternalSite/WebImages/Christmas2021/Topic1.png');">
+							<div class="serviceTopicCell">
+								<br>INVITE<br> A FRIEND<br>
+								<i class="fa fa-chevron-down"></i>
+							</div>
+						</div>
+						<div class="serviceTopicItems">
+							<ul>
+								<li><a href="/Content/ExternalSite/WebImages/Christmas2021/SocialWall.png" target="_blank">Social Sharable</a></li>
+								<li><a href="/Content/ExternalSite/WebImages/Christmas2021/SocialStory.png" target="_blank">Sharable Story</a></li>
+								<li><a href="/Content/ExternalSite/WebImages/Christmas2021/PrintableInvite.pdf" target="_blank">Printable Invite</a></li>
+								<li><a href="/Content/ExternalSite/WebImages/Christmas2021/WaysToInvite.pdf" target="_blank">How To Invite a Friend</a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="serviceTopicContainer">
+						<div class="serviceTopic" style="background-image:url('/Content/ExternalSite/WebImages/Christmas2021/Topic2.png');">
+							<div class="serviceTopicCell">
+								<br>GRAB<br>THE KIDS<br>
+								<i class="fa fa-chevron-down"></i>
+							</div>
+						</div>
+						<div class="serviceTopicItems">
+							<ul>
+								<li><a href="/Content/ExternalSite/WebImages/Christmas2021/ColoringPage.pdf" target="_blank">Coloring Page</a></li>
+								<li><a href="/Content/ExternalSite/WebImages/Christmas2021/ChristmasTraditions.pdf" target="_blank">Christmas Traditions</a></li>
+								<li><a href="https://open.spotify.com/playlist/1Dyua6nulrjCYSXrNIZ70z?si=dKGJcPWyRcC8SWhrIs2UGA&nd=1" target="_blank">Christmas Spotify Playlist</a></li>
+								
+								
+							</ul>
+							
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="serviceTopicContainer">
+						<div class="serviceTopic" style="background-image:url('/Content/ExternalSite/WebImages/Christmas2021/Topic3.png');">
+							<div class="serviceTopicCell">
+								<br>CHRISTMAS<br>MADE EASY<br>
+								<i class="fa fa-chevron-down"></i>
+							</div>
+						</div>
+						<div class="serviceTopicItems">
+							<ul>
+								<li><a href="/Content/ExternalSite/WebImages/Christmas2021/Photos.pdf" target="_blank">Take Memorable Photos</a></li>
+								<li class="visible-xs-block"><a href="/Content/ExternalSite/WebImages/Christmas2021/ChristmasHacks.pdf" target="_blank">Christmas Hacks</a></li>
+								<li class="visible-xs-block"><a href="/Content/ExternalSite/WebImages/Christmas2021/WallPaper1.png" target="_blank">Christmas Wallpaper 1</a></li>
+								<li class="visible-xs-block"><a href="/Content/ExternalSite/WebImages/Christmas2021/WallPaper2.png" target="_blank">Christmas Wallpaper 2</a></li>
+								<li class="visible-xs-block"><a href="/Content/ExternalSite/WebImages/Christmas2021/WallPaper3.png" target="_blank">Christmas Wallpaper 3</a></li>
+								<li class="visible-xs-block"><a href="/Content/ExternalSite/WebImages/Christmas2021/WallPaper4.png" target="_blank">Christmas Wallpaper 4</a></li>
+								<li class="hidden-xs"><a href="/Content/ExternalSite/WebImages/Christmas2021/ChristmasHacks.pdf" target="_blank">Christmas Hacks</a></li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+</section>
+
+<script>
+$(".serviceTopic").click(function() {
+	$('.serviceTopicItemsOn').removeClass('serviceTopicItemsOn');
+	var topic = $(this).parent().find('.serviceTopicItems').addClass('serviceTopicItemsOn');
+})
+
+
+
+</script>

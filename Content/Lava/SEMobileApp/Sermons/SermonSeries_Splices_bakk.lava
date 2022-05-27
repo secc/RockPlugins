@@ -1,0 +1,90 @@
+{%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
+{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+{%- for series in contentchannelitemItems -%}
+{
+	"header": {
+		"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+		"style": "featured",
+		"items": [{
+			"images":[
+                { "width":320, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=110&height=110"  },
+                { "width":720, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=720&height=720" },
+                { "width":1080, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=1080&height=1080" },
+                { "width":1920, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=1920&height=1920" }
+		    ]
+		}]
+	},
+	"displayOptions": {
+		"style":"stacked",
+		"contentWidthRatio": 1.0,
+		"itemDisplayOptions": {
+			"indicatorAspectRatio":3.66,
+			"indicatorShadowEnabled":true,
+        	"maxWidth":1400,
+	        "textPosition": "none"
+		},
+		"colors":{
+			"brand":{
+            "primary":"#121212",
+            "primaryAccent":"#000000"
+	        }
+	    }
+    },
+    "items": [
+        {%- assign comma = "" -%}
+		{%- assign resourcesCount = 0 -%}
+		{%- assign zeroSermons = true -%}
+        {%- for seriesChild in series.ChildItems reversed -%}
+        {%- assign sermon = seriesChild.ChildContentChannelItem -%}
+		{%- assign startDateTime = sermon.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+		{%- assign endDateTime = sermon.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+		{%- comment -%}
+		** Checks to see if there's a sermon. **
+		{%- endcomment -%}
+		{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+        {%- if sermon.ContentChannelId == "23" -%}
+			{%- assign zeroSermons = false -%}
+	        {{ comma }}
+			{
+				"title": "{{sermon.Guid}} {{sermon.Title | Replace:'"','\"'}}",
+				"subtitle": "{{ sermon | Attribute:'Speaker' | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }} {{ '&bull;' | HtmlDecode }} {{ sermon.StartDateTime | Date:'MMMM d, yyyy' }}",
+				"images":[
+					{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/button/{{sermon.Guid}}?bgcolor=121314&mode=crop&s.roundcorners=40&margin=80,80,80,0"  }
+				],
+				"actions": [{
+					"handler": "detail",
+					"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/Subsplash.ashx/sermon/{{sermon.Id}}"
+				}]
+			}
+	        {%- assign comma = "," -%}
+        {%- endif -%}
+		{%- endif -%}
+		{%- comment -%}
+		** Checks to see if there are resources. **
+		{%- endcomment -%}
+		{%- if sermon.ContentChannelId != "23" -%}
+			{%- assign resourcesCount = resourcesCount | Plus:1 -%}
+		{%- endif -%}
+		{%- endfor -%}
+		{%- if zeroSermons == true -%}
+		{
+			"images":[
+				{%- assign Title = "Sermons Coming Soon" | Escape | EscapeDataString -%}
+				{%- if resourcesCount != 0 -%}
+					{%- assign Body = "Please look under resources for more info." | Escape | EscapeDataString -%}
+				{%- else -%}
+					{%- assign Body = "" | Escape | EscapeDataString -%}
+				{%- endif -%}
+				{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
+			]
+		}
+		{%- endif -%}
+		,{
+			"images":[
+				{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank121212.jpg"  }
+			]
+		}
+    ]
+}
+{%- endfor -%}
+{% endcontentchannelitem -%}

@@ -1,0 +1,24 @@
+<style>
+.course-image {
+  height: 27rem;
+  max-height: 27rem;
+  margin: 30px auto;
+  object-fit: cover;
+  width: 100%;
+  max-width: 27rem;
+  }
+</style>
+
+<div class="row">
+	{% for item in CourseItems %}
+		<div class="col-md-3 card">
+		<img src="/GetImage.ashx?id={{item.Course.ImageId}}" class="img-responsive course-image">
+		 <div class="card-body text-center">
+		<h5 class="card-title">{{ item.Course.Name }}</h5>
+		<p class="card-text">{{ item.Course.Description }}</p>
+		<a href="/RockEquip/{{item.Course.Slug}}" class="btn btn-primary">Take Course</a>
+  </div>
+		
+		</div>
+	{% endfor %}
+</div>

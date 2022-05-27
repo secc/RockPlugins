@@ -65,12 +65,12 @@
 	"items": [
         {
             "images":[
-                { "width":636, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/bulletin/campusIntro/{{campus.Guid}}"  }
+                { "width":636, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/bulletin/campusIntro/{{campus.Guid}}"  }
             ]
-		{% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger %}
+		{% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsDouble %}
         }{%- contentchannelitem where:'ContentChannelId == 70' sort:'StartDateTime desc'  -%}{%- for item in contentchannelitemItems -%}
-		{% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
-		{% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsInteger %}
+		{% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsDouble %}
+		{% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsDouble %}
 			{% if itemStartDateTime <= currentDateTime %}
 				{%- assign itemCampuses = item | Attribute:'Campuses' -%}
 				{%- assign connectUrl = item | Attribute:'ConnectURL','RawValue' -%}
