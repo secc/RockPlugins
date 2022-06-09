@@ -81,6 +81,8 @@
                 <Rock:Grid runat="server" ID="gGrid" TooltipField="History" DataKeyNames="Key" AllowSorting="true" OnRowSelected="gGrid_RowSelected">
                     <Columns>
                         <asp:BoundField DataField="Person" HeaderText="Person" SortExpression="Person" />
+                        <asp:BoundField DataField="SmallGroup" HeaderText="Small Group" />
+                        <asp:BoundField DataField="SmallGroupLeader" HeaderText="Leader" />
                         <asp:BoundField DataField="Medication" HeaderText="Medication" />
                         <asp:BoundField DataField="Instructions" HeaderText="Instructions" />
                         <asp:BoundField DataField="Schedule" HeaderText="Schedule" />

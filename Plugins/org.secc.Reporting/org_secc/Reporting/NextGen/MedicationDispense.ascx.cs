@@ -21,6 +21,7 @@ using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using OfficeOpenXml;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -28,7 +29,6 @@ using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using org.secc.FamilyCheckin.Utilities;
 
 namespace RockWeb.Blocks.Reporting.NextGen
 {
@@ -41,22 +41,32 @@ namespace RockWeb.Blocks.Reporting.NextGen
         Order = 0,
         Key = "DefinedType" )]
 
-    [TextField( "Group Ids",
-        Description = "Comma separated list of group ids.",
+    [TextField( "Small Group Parent Group ID",
+        Description = "ID of the camp manager parent group",
         Order = 1,
+        Key = AttributeKey.SmallGroupParentGroupId )]
+
+    [TextField( "Small Group Group Type ID",
+        Description = "Group Type ID of the camp manager small groups",
+        Order = 2,
+        Key = AttributeKey.SmallGroupGroupTypeId )]
+
+    [TextField( "Group Ids",
+        Description = "Comma separated list of registration group ids.",
+        Order = 3,
         Key = AttributeKey.GroupIds
         )]
 
     [TextField( "Medication Matrix Key",
         Description = "The attribute key for the medication schedule matrix.",
-        Order = 2,
+        Order = 4,
         Key = AttributeKey.MedicationMatrixKey
         )]
 
     [IntegerField( "Days Since Medication Checkin",
         Description = "The maximum number of days since the last medication checkin in order to appear",
         DefaultIntegerValue = 14,
-        Order = 3,
+        Order = 5,
         Key = AttributeKey.Days
         )]
 
@@ -64,12 +74,12 @@ namespace RockWeb.Blocks.Reporting.NextGen
         "Medication Note Type",
         false,
         "Rock.Model.Person",
-        order: 4,
+        order: 6,
         key: AttributeKey.NoteType )]
 
     [TextField( "Group Member Attribute Filter",
         Description = "Group member filter to sort group by.",
-        Order = 5,
+        Order = 7,
         IsRequired = false,
         Key = AttributeKey.GroupMemberAttributeFilter
         )]
@@ -80,6 +90,8 @@ namespace RockWeb.Blocks.Reporting.NextGen
         private static class AttributeKey
         {
             internal const string MedicationScheduleDT = "DefinedType";
+            internal const string SmallGroupParentGroupId = "SmallGroupParentGroupId";
+            internal const string SmallGroupGroupTypeId = "SmallGroupGroupTypeId";
             internal const string GroupIds = "GroupIds";
             internal const string MedicationMatrixKey = "MedicationMatrixKey";
             internal const string NoteType = "NoteType";
@@ -221,6 +233,8 @@ namespace RockWeb.Blocks.Reporting.NextGen
         {
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
+            GroupMemberService groupMemberService = new GroupMemberService( rockContext );
+            GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( rockContext );
             AttributeMatrixService attributeMatrixService = new AttributeMatrixService( rockContext );
             AttributeValueService attributeValueService = new AttributeValueService( rockContext );
             AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
@@ -290,46 +304,96 @@ namespace RockWeb.Blocks.Reporting.NextGen
             var attributeMatrixItemEntityId = EntityTypeCache.GetId<AttributeMatrixItem>();
 
             var qry = groupMembers
-                .Join(
-                    attributeValueService.Queryable().Where( av => attributeIds.Contains( av.AttributeId ) ),
-                    m => m.PersonId,
+               .Join(
+                   attributeValueService.Queryable().Where( av => attributeIds.Contains( av.AttributeId ) ),
+                   m => m.PersonId,
+                   av => av.EntityId.Value,
+                   ( m, av ) => new { m.Person, Member = m, AttributeValue = av.Value }
+               )
+               .Join(
+                   attributeMatrixService.Queryable(),
+                   m => m.AttributeValue,
+                   am => am.Guid.ToString(),
+                   ( m, am ) => new { m.Person, m.Member, AttributeMatrix = am }
+               )
+               .Join(
+                   attributeMatrixItemService.Queryable(),
+                   m => m.AttributeMatrix.Id,
+                   ami => ami.AttributeMatrixId,
+                   ( m, ami ) => new { m.Person, m.Member, AttributeMatrixItem = ami, TemplateId = ami.AttributeMatrix.AttributeMatrixTemplateId }
+               )
+               .Join(
+                   attributeService.Queryable(),
+                   m => new { TemplateIdString = m.TemplateId.ToString(), EntityTypeId = attributeMatrixItemEntityId },
+                   a => new { TemplateIdString = a.EntityTypeQualifierValue, EntityTypeId = a.EntityTypeId },
+                   ( m, a ) => new { m.Person, m.Member, m.AttributeMatrixItem, Attribute = a }
+               )
+               .Join(
+                   attributeValueService.Queryable(),
+                   m => new { EntityId = m.AttributeMatrixItem.Id, AttributeId = m.Attribute.Id },
+                   av => new { EntityId = av.EntityId ?? 0, AttributeId = av.AttributeId },
+                   ( m, av ) => new { m.Person, m.Member, m.Attribute, AttributeValue = av, MatrixItemId = m.AttributeMatrixItem.Id, FilterValue = "" }
+               )
+               .Join(
+                attributeValueService.Queryable().Where( av => filterAttributeIds.Contains( av.AttributeId ) ),
+                    m => m.Member.Id,
                     av => av.EntityId.Value,
-                    ( m, av ) => new { Person = m.Person, Member = m, AttributeValue = av.Value }
-                )
-                .Join(
-                    attributeMatrixService.Queryable(),
-                    m => m.AttributeValue,
-                    am => am.Guid.ToString(),
-                    ( m, am ) => new { Person = m.Person, Member = m.Member, AttributeMatrix = am }
-                )
-                .Join(
-                    attributeMatrixItemService.Queryable(),
-                    m => m.AttributeMatrix.Id,
-                    ami => ami.AttributeMatrixId,
-                    ( m, ami ) => new { Person = m.Person, Member = m.Member, AttributeMatrixItem = ami, TemplateId = ami.AttributeMatrix.AttributeMatrixTemplateId }
-                )
-                .Join(
-                    attributeService.Queryable(),
-                    m => new { TemplateIdString = m.TemplateId.ToString(), EntityTypeId = attributeMatrixItemEntityId },
-                    a => new { TemplateIdString = a.EntityTypeQualifierValue, EntityTypeId = a.EntityTypeId },
-                    ( m, a ) => new { Person = m.Person, Member = m.Member, AttributeMatrixItem = m.AttributeMatrixItem, Attribute = a }
-                )
-                .Join(
-                    attributeValueService.Queryable(),
-                    m => new { EntityId = m.AttributeMatrixItem.Id, AttributeId = m.Attribute.Id },
-                    av => new { EntityId = av.EntityId ?? 0, AttributeId = av.AttributeId },
-                    ( m, av ) => new { Person = m.Person, Member = m.Member, Attribute = m.Attribute, AttributeValue = av, MatrixItemId = m.AttributeMatrixItem.Id, FilterValue = "" }
-                );
+                    ( m, av ) => new { m.Person, m.Member, m.Attribute, m.AttributeValue, m.MatrixItemId, FilterValue = "", SmallGroup = av.Value, SmallGroupLeader = "" }
+               );
 
             if ( filterAttributeIds != null && pnlAttribute.Visible && !string.IsNullOrWhiteSpace( ddlAttribute.SelectedValue ) )
             {
                 var filterValue = ddlAttribute.SelectedValue;
                 qry = qry
                     .Join(
-                    attributeValueService.Queryable().Where( av => filterAttributeIds.Contains( av.AttributeId ) ),
-                    m => new { Id = m.Member.Id, Value = filterValue },
-                    av => new { Id = av.EntityId ?? 0, Value = av.Value },
-                    ( m, av ) => new { Person = m.Person, Member = m.Member, Attribute = m.Attribute, AttributeValue = m.AttributeValue, MatrixItemId = m.MatrixItemId, FilterValue = av.Value } );
+                        attributeValueService.Queryable().Where( av => filterAttributeIds.Contains( av.AttributeId ) ),
+                        m => new { Id = m.Member.Id, Value = filterValue },
+                        av => new { Id = av.EntityId ?? 0, av.Value },
+                        ( m, av ) => new { m.Person, m.Member, m.Attribute, m.AttributeValue, m.MatrixItemId, FilterValue = av.Value, m.SmallGroup, m.SmallGroupLeader }
+                    );
+            }
+
+            var smallGroupParentId = GetAttributeValue( "SmallGroupParentGroupId" ).AsIntegerOrNull();
+            var smallGroupGroupTypeId = GetAttributeValue( "SmallGroupGroupTypeId" ).AsIntegerOrNull();
+            var smallGroupLeaderRole = groupTypeRoleService.Queryable().Where( gtr => gtr.GroupTypeId == ( smallGroupGroupTypeId ) ).Where( gtr => gtr.IsLeader ).FirstOrDefault().Id;
+
+            if ( smallGroupParentId != null )
+            {
+                var smallGroups = groupService.GetAllDescendentGroupIds( ( int ) smallGroupParentId, true );
+                qry = qry
+                    .Join(
+                        groupService.Queryable().Where( g => smallGroups.Contains( g.Id ) ),
+                        m => m.SmallGroup,
+                        g => g.Name,
+                        ( m, g ) => new
+                        {
+                            m.Person,
+                            m.Member,
+                            m.Attribute,
+                            m.AttributeValue,
+                            m.MatrixItemId,
+                            m.FilterValue,
+                            m.SmallGroup,
+                            SmallGroupId = g.Id
+                        }
+                    )
+                    .Join(
+                        groupMemberService.Queryable().Where( gm => gm.GroupRoleId == smallGroupLeaderRole ),
+                        m => m.SmallGroupId,
+                        gm => gm.GroupId,
+                        ( m, gm ) => new
+                        {
+                            m.Person,
+                            m.Member,
+                            m.Attribute,
+                            m.AttributeValue,
+                            m.MatrixItemId,
+                            m.FilterValue,
+                            m.SmallGroup,
+                            SmallGroupLeader = gm.Person.NickName + " " + gm.Person.LastName
+                        }
+                    )
+                    ;
             }
             var members = qry.ToList().GroupBy( a => a.Person ).ToList();
 
@@ -382,6 +446,8 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         var medicalItem = new MedicalItem()
                         {
                             Person = member.Key.FullNameReversed,
+                            SmallGroup = member.FirstOrDefault().SmallGroup,
+                            SmallGroupLeader = member.FirstOrDefault().SmallGroupLeader,
                             GroupMemberId = member.Key.Id,
                             GroupMember = member.Key.Members.FirstOrDefault(),
                             PersonId = member.Key.Id,
@@ -491,7 +557,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             int rowCounter = 4;
             int columnCounter = 0;
 
-            List<string> columns = new List<string>() { "Name", "Medication", "Instructions", "Schedule" };
+            List<string> columns = new List<string>() { "Name", "Small Group", "Leader", "Medication", "Instructions", "Schedule" };
             var filterAttribute = "";
             var hasFilter = false;
             if ( !string.IsNullOrWhiteSpace( ddlAttribute.Label ) )
@@ -511,15 +577,17 @@ namespace RockWeb.Blocks.Reporting.NextGen
             foreach ( var item in medicalItems )
             {
                 SetExcelValue( worksheet.Cells[rowCounter, 1], item.Person );
-                SetExcelValue( worksheet.Cells[rowCounter, 2], item.Medication );
-                SetExcelValue( worksheet.Cells[rowCounter, 3], item.Instructions );
-                SetExcelValue( worksheet.Cells[rowCounter, 4], item.Schedule );
+                SetExcelValue( worksheet.Cells[rowCounter, 2], item.SmallGroup );
+                SetExcelValue( worksheet.Cells[rowCounter, 3], item.SmallGroupLeader );
+                SetExcelValue( worksheet.Cells[rowCounter, 4], item.Medication );
+                SetExcelValue( worksheet.Cells[rowCounter, 5], item.Instructions );
+                SetExcelValue( worksheet.Cells[rowCounter, 6], item.Schedule );
                 if ( hasFilter )
                 {
                     item.GroupMember.LoadAttributes();
                     if ( item.GroupMember != null )
                     {
-                        SetExcelValue( worksheet.Cells[rowCounter, 5], item.GroupMember.GetAttributeValue( filterAttribute ) );
+                        SetExcelValue( worksheet.Cells[rowCounter, 7], item.GroupMember.GetAttributeValue( filterAttribute ) );
                     }
                 }
                 rowCounter++;
@@ -631,6 +699,8 @@ namespace RockWeb.Blocks.Reporting.NextGen
             public int GroupMemberId { get; set; }
             public GroupMember GroupMember { get; set; }
             public string Person { get; set; }
+            public string SmallGroup { get; set; }
+            public string SmallGroupLeader { get; set; }
             public string Medication { get; set; }
             public string Instructions { get; set; }
             public string Schedule { get; set; }
