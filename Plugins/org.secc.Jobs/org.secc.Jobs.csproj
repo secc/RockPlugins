@@ -69,10 +69,10 @@
   <ItemGroup>
     <Compile Include="CompleteWorkflows.cs" />
     <Compile Include="FrontPorchDeviceRemoval.cs" />
+    <Compile Include="GroupLeaderMedicationNotifications.cs" />
     <Compile Include="RemoveDevicesFromPersons.cs" />
     <Compile Include="SetFirstAttendanceDate.cs" />
     <Compile Include="PushPayDownloadCheckNumbers.cs" />
-    <Compile Include="StartUnsubmittedEventFinancialAidApplications.cs" />
     <Compile Include="StoreAttendanceFromInteraction.cs" />
     <Compile Include="CloseDeseasedPastoralWorkflows.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
