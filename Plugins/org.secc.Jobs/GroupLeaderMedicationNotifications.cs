@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+
+using Newtonsoft.Json;
 using Quartz;
 using Rock;
 using Rock.Attribute;
@@ -35,15 +37,15 @@ namespace org.secc.Jobs
     [IntegerField( "Medication Checkin Days",
         "Only show medication alerts for people who used Medication Checkin in the last x number of days.",
         false, 14, Key = "MedicationCheckinDays" )]
-    [DefinedValueField( "81B51822-50D7-4BE6-A462-04077405BB7E", "Medication Dispersal Schedule",
-        "The medication schedule to send notifications for.", true, false, Key = "MedicationSchedule" )]
     [SystemCommunicationField( "Communication Template", "Template for the system communication to send to the group leader.", true,
         Key = "CommunicationTemplate" )]
+    [TextField( "Medication Notification History", "Medication Notification History", false, "", Key = "MedicationNotificationHistory" )]
 
     [DisallowConcurrentExecution]
     public class GroupLeaderMedicationNotifications : IJob
     {
         private Guid MedicationMatrixTemplateGuid = "d2ed9b3d-309a-4a70-bda4-2c090acd1384".AsGuid();
+        private Guid MedicationScheduleDefinedTypeGuid = "81b51822-50d7-4be6-a462-04077405bb7e".AsGuid();
 
         public static class JobAttributes
         {
@@ -52,9 +54,15 @@ namespace org.secc.Jobs
             public static DefinedValueCache MedicationScheduleValue { get; set; }
             public static Group ParentGroup { get; set; }
             public static Group CommunicationList { get; set; }
+            public static List<MedicationNotificationHistory> NotificationHistory { get; set; }
 
         }
 
+        public class MedicationSchedule
+        {
+            public DefinedValueCache DefinedValue { get; set; }
+            public DateTime? NotificationTime { get; set; }
+        }
 
         public class PersonMedicationMatrixSummary
         {
@@ -62,13 +70,27 @@ namespace org.secc.Jobs
             public Guid MatrixGuid { get; set; }
         }
 
+        public class MedicationNotificationHistory
+        {
+            public DateTime NotificationDate { get; set; }
+            public int ScheduleDefinedValueId { get; set; }
+            public int RemindersSent { get; set; }
+        }
 
 
         public void Execute( IJobExecutionContext context )
         {
             var rockContext = new RockContext();
             var dataMap = context.JobDetail.JobDataMap;
+            var jobId = context.GetJobId();
             LoadAttributes( dataMap, rockContext );
+            JobAttributes.MedicationScheduleValue = GetMedicationSchedule();
+
+            if(JobAttributes.MedicationScheduleValue == null)
+            {
+                return;
+            }
+
             var groupInformation = GetGroupLeaderInformation( rockContext );
 
             foreach ( var leader in groupInformation )
@@ -82,8 +104,8 @@ namespace org.secc.Jobs
                     SendSMS( leader );
                 }
             }
-
-            groupInformation.Count();
+            UpdateHistory( jobId, groupInformation.Count );
+            
 
         }
 
@@ -132,7 +154,7 @@ namespace org.secc.Jobs
                         ( m, ami ) => new { GroupMember = m.GroupMember, CheckinValue = m.CheckinValue, MatrixItem = ami } )
                     .Join( medicationScheduleValues, m => m.MatrixItem.Id, s => s.EntityId,
                         ( m, s ) => new { m.GroupMember, m.CheckinValue, ScheduleValue = s.Value } )
-                    .Where( m => m.ScheduleValue == selectedScheduleGuidString )
+                    .Where( m => m.ScheduleValue.Contains(selectedScheduleGuidString) )
                     .GroupBy( m => m.GroupMember )
                     .Select( m => new
                     {
@@ -158,8 +180,6 @@ namespace org.secc.Jobs
             }
 
             return groupNotificationSummaries;
-
-
         }
 
         private Rock.Model.Attribute GetMatrixItemAttribute( string key )
@@ -176,7 +196,50 @@ namespace org.secc.Jobs
                 .SingleOrDefault();
 
             return attribute;
+        }
 
+        private DefinedValueCache GetMedicationSchedule()
+        {
+            var today = RockDateTime.Now.Date;
+
+            MedicationNotificationHistory lastHistoryItem = null;
+            if ( JobAttributes.NotificationHistory != null )
+            {
+                lastHistoryItem = JobAttributes.NotificationHistory
+                    .Where( h => h.NotificationDate >= today )
+                    .OrderByDescending( h => h.NotificationDate )
+                    .FirstOrDefault();
+            }
+            var lastScheduleOrder = -1;
+            if ( lastHistoryItem != null )
+            {
+                lastScheduleOrder = DefinedValueCache.Get( lastHistoryItem.ScheduleDefinedValueId ).Order;
+            }
+            var definedValues = DefinedTypeCache.Get( MedicationScheduleDefinedTypeGuid ).DefinedValues
+                .Select( dv => new MedicationSchedule
+                {
+                    DefinedValue = dv,
+                    NotificationTime = default( DateTime? )
+                } ).ToList();
+
+
+            foreach ( var value in definedValues )
+            {
+                var reminderTimeSpan = value.DefinedValue.GetAttributeValue( "ReminderTime" ).AsTimeSpan();
+                if ( reminderTimeSpan.HasValue )
+                {
+                    value.NotificationTime = RockDateTime.Now.Date.Add( reminderTimeSpan.Value );
+                }
+
+            }
+
+            var currentNotification = definedValues
+                .Where( n => n.NotificationTime.HasValue && n.NotificationTime <= RockDateTime.Now )
+                .Where( n => n.DefinedValue.Order > lastScheduleOrder )
+                .OrderByDescending( n => n.DefinedValue.Order )
+                .FirstOrDefault();
+
+            return currentNotification == null ? null : currentNotification.DefinedValue;
 
         }
 
@@ -204,6 +267,7 @@ namespace org.secc.Jobs
             JobAttributes.ParentGroup = new GroupService( rockContext )
                 .Get( dataMap.GetString( "ParentGroup" ).AsGuid() );
             JobAttributes.CommunicationList = new GroupService( rockContext ).Get( dataMap.GetInt( "CommunicationListId" ) );
+            JobAttributes.NotificationHistory = JsonConvert.DeserializeObject<List<MedicationNotificationHistory>>( dataMap.GetString( "MedicationNotificationHistory" ) );
 
         }
 
@@ -265,6 +329,30 @@ namespace org.secc.Jobs
                 SendEmail( leader );
             }
 
+        }
+
+        private void UpdateHistory(int jobId, int notificationCount)
+        {
+            var rockContext = new RockContext();
+            var serviceJobService = new ServiceJobService( rockContext );
+
+            var job = serviceJobService.Get( jobId );
+            job.LoadAttributes( rockContext );
+            var notificationHistory = JsonConvert.DeserializeObject<List<MedicationNotificationHistory>>( job.GetAttributeValue( "MedicationNotificationHistory" ) );
+
+            if(notificationHistory == null)
+            {
+                notificationHistory = new List<MedicationNotificationHistory>();
+            }
+            
+            var historyItem = new MedicationNotificationHistory();
+            historyItem.ScheduleDefinedValueId = JobAttributes.MedicationScheduleValue.Id;
+            historyItem.NotificationDate = RockDateTime.Now;
+            historyItem.RemindersSent = notificationCount;
+            notificationHistory.Add( historyItem );
+
+            job.SetAttributeValue( "MedicationNotificationHistory", JsonConvert.SerializeObject( notificationHistory ) );
+            job.SaveAttributeValues( rockContext );
         }
     }
 }
