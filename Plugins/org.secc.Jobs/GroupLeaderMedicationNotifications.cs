@@ -1,19 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-
-using Quartz;
+﻿using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Communication;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
 
 
 namespace org.secc.Jobs
 {
+    public class GroupLeaderNotificationSummary 
+    {
+
+        public int PersonId { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public int StudentCount { get; set; }
+        public CommunicationType CommunicationType { get; set; }
+        public string MedicationScheduleName { get; set; }
+
+    }
+
     /// <summary>
     /// Job to notify the Group Leaders 
     /// </summary>
@@ -44,16 +55,6 @@ namespace org.secc.Jobs
 
         }
 
-        public class GroupNotificationSummary
-        {
-            public int PersonId { get; set; }
-            public string FirstName { get; set; }
-            public string LastName { get; set; }
-            public int StudentCount { get; set; }
-            public CommunicationType CommunicationType { get; set; }
-            public string MedicationScheduleName { get; set; }
-
-        }
 
         public class PersonMedicationMatrixSummary
         {
@@ -86,10 +87,10 @@ namespace org.secc.Jobs
 
         }
 
-        private List<GroupNotificationSummary> GetGroupLeaderInformation(RockContext rockContext)
+        private List<GroupLeaderNotificationSummary> GetGroupLeaderInformation(RockContext rockContext)
         {
             var groupIds = new GroupService(rockContext).GetAllDescendentGroupIds(JobAttributes.ParentGroup.Id, false);
-            var groupNotificationSummaries = new List<GroupNotificationSummary>();
+            var groupNotificationSummaries = new List<GroupLeaderNotificationSummary>();
             var groupMemberService = new GroupMemberService(rockContext);
             var attributeValueService = new AttributeValueService(rockContext);
 
@@ -139,19 +140,21 @@ namespace org.secc.Jobs
                         MedCount = m.Count()
                     }).ToList();
 
-                foreach (var leader in leaders)
+                if (groupMemberWithMeds.Count > 0)
                 {
-                    groupNotificationSummaries.Add(new GroupNotificationSummary
+                    foreach (var leader in leaders)
                     {
-                        PersonId = leader.PersonId,
-                        FirstName = leader.Person.NickName,
-                        LastName = leader.Person.LastName,
-                        StudentCount = groupMemberWithMeds.Count(),
-                        CommunicationType = LeaderAllowsSMSAlerts(leader.PersonId) ? CommunicationType.SMS : CommunicationType.Email,
-                        MedicationScheduleName = JobAttributes.MedicationScheduleValue.Value
-                    });
+                        groupNotificationSummaries.Add(new GroupLeaderNotificationSummary
+                        {
+                            PersonId = leader.PersonId,
+                            FirstName = leader.Person.NickName,
+                            LastName = leader.Person.LastName,
+                            StudentCount = groupMemberWithMeds.Count(),
+                            CommunicationType = LeaderAllowsSMSAlerts(leader.PersonId) ? CommunicationType.SMS : CommunicationType.Email,
+                            MedicationScheduleName = JobAttributes.MedicationScheduleValue.Value
+                        });
+                    }
                 }
-
             }
 
             return groupNotificationSummaries;
@@ -195,7 +198,7 @@ namespace org.secc.Jobs
         private void LoadAttributes(JobDataMap dataMap, RockContext rockContext)
         {
             JobAttributes.CommunicationTemplate = new SystemCommunicationService(rockContext)
-                .Get(dataMap.GetString("CommunicationTmplate").AsGuid());
+                .Get(dataMap.GetString("CommunicationTemplate").AsGuid());
             JobAttributes.MedicationCheckinDays = dataMap.GetInt("MedicationCheckinDays");
             JobAttributes.MedicationScheduleValue = DefinedValueCache.Get(dataMap.GetString("MedicationSchedule").AsGuid());
             JobAttributes.ParentGroup = new GroupService(rockContext)
@@ -204,12 +207,18 @@ namespace org.secc.Jobs
 
         }
 
-        private void SendEmail(GroupNotificationSummary leader)
+        private void SendEmail(GroupLeaderNotificationSummary leader)
         {
             var person = new PersonService(new RockContext()).Get(leader.PersonId);
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields(null);
             mergeFields.Add("Person", person);
-            mergeFields.Add("leader", leader);
+            mergeFields.Add("LeaderFirstName", leader.FirstName);
+            mergeFields.Add("LeaderLastName", leader.LastName);
+            mergeFields.Add("PersonId", leader.PersonId);
+            mergeFields.Add("StudentCount", leader.StudentCount);
+            mergeFields.Add("MessageType", leader.CommunicationType == CommunicationType.SMS ? "SMS" : "Email");
+            mergeFields.Add("MedicationScheduleName", leader.MedicationScheduleName);
+            mergeFields.Add("Today", RockDateTime.Now.ToShortDateString());
             var emailMessage = new RockEmailMessage(JobAttributes.CommunicationTemplate.Guid);
             emailMessage.AddRecipient(new RockEmailMessageRecipient(person, mergeFields));
 
@@ -218,25 +227,43 @@ namespace org.secc.Jobs
 
         }
 
-        private void SendSMS(GroupNotificationSummary leader)
+        private void SendSMS(GroupLeaderNotificationSummary leader)
         {
             if (!JobAttributes.CommunicationTemplate.SMSFromDefinedValueId.HasValue)
             {
                 throw new Exception("SMS From Number not configured in System Communication.");
             }
 
-            var fromNumber = DefinedValueCache.Get(JobAttributes.CommunicationTemplate.SMSFromDefinedValueId.Value).Value;
             var person = new PersonService(new RockContext()).Get(leader.PersonId);
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields(null);
 
             mergeFields.Add("Person", person);
-            mergeFields.Add("leader", leader);
+            mergeFields.Add("LeaderFirstName", leader.FirstName);
+            mergeFields.Add("LeaderLastName", leader.LastName);
+            mergeFields.Add("PersonId", leader.PersonId);
+            mergeFields.Add("StudentCount", leader.StudentCount);
+            mergeFields.Add("MessageType", leader.CommunicationType == CommunicationType.SMS ? "SMS" : "Email");
+            mergeFields.Add("MedicationScheduleName", leader.MedicationScheduleName);
+            mergeFields.Add("Today", RockDateTime.Now.ToShortDateString());
 
             var smsMessage = new RockSMSMessage(JobAttributes.CommunicationTemplate);
 
-            smsMessage.AddRecipient(new RockSMSMessageRecipient(person, fromNumber, mergeFields));
-            smsMessage.Send();
+            var smsNumber = new PhoneNumberService(new RockContext()).Queryable()
+                .Where(n => n.PersonId == person.Id)
+                .Where(n => n.IsMessagingEnabled)
+                .OrderBy(n => n.NumberTypeValue.Order)
+                .FirstOrDefault();
 
+            if (smsNumber != null)
+            {
+                smsMessage.FromNumber = DefinedValueCache.Get(JobAttributes.CommunicationTemplate.SMSFromDefinedValueId.Value);
+                smsMessage.AddRecipient(new RockSMSMessageRecipient(person, smsNumber.FullNumber, mergeFields));
+                smsMessage.Send();
+            }
+            else
+            {
+                SendEmail(leader);
+            }
 
         }
     }
