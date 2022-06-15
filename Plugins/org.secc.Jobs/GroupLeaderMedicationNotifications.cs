@@ -105,8 +105,8 @@ namespace org.secc.Jobs
                 }
             }
             UpdateHistory( jobId, groupInformation.Count );
-            
 
+            context.Result = $"{groupInformation.Count} {JobAttributes.MedicationScheduleValue.Value} {"notification".PluralizeIf( groupInformation.Count != 1 )} sent to group leaders.";
         }
 
         private List<GroupLeaderNotificationSummary> GetGroupLeaderInformation( RockContext rockContext )
