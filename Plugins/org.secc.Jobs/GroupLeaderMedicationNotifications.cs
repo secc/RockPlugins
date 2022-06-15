@@ -88,6 +88,7 @@ namespace org.secc.Jobs
 
             if(JobAttributes.MedicationScheduleValue == null)
             {
+                context.Result = "There are currently no notifications scheduled to be sent.";
                 return;
             }
 
