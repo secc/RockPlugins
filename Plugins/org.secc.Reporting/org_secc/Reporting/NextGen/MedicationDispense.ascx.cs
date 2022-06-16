@@ -361,7 +361,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             {
                 var smallGroups = groupService.GetAllDescendentGroupIds( ( int ) smallGroupParentId, true );
                 qry = qry
-                    .Join(
+                    .GroupJoin(
                         groupService.Queryable().Where( g => smallGroups.Contains( g.Id ) ),
                         m => m.SmallGroup,
                         g => g.Name,
@@ -374,10 +374,24 @@ namespace RockWeb.Blocks.Reporting.NextGen
                             m.MatrixItemId,
                             m.FilterValue,
                             m.SmallGroup,
+                            g
+                        }
+                    )
+                    .SelectMany(
+                        x => x.g.DefaultIfEmpty(),
+                        (m, g) => new
+                        {
+                            m.Person,
+                            m.Member,
+                            m.Attribute,
+                            m.AttributeValue,
+                            m.MatrixItemId,
+                            m.FilterValue,
+                            m.SmallGroup,
                             SmallGroupId = g.Id
                         }
                     )
-                    .Join(
+                    .GroupJoin(
                         groupMemberService.Queryable().Where( gm => gm.GroupRoleId == smallGroupLeaderRole ),
                         m => m.SmallGroupId,
                         gm => gm.GroupId,
@@ -390,10 +404,23 @@ namespace RockWeb.Blocks.Reporting.NextGen
                             m.MatrixItemId,
                             m.FilterValue,
                             m.SmallGroup,
-                            SmallGroupLeader = gm.Person.NickName + " " + gm.Person.LastName
+                            gm
                         }
                     )
-                    ;
+                    .SelectMany(
+                        x=> x.gm.DefaultIfEmpty(),
+                        (m, gm) => new
+                        {
+                            m.Person,
+                            m.Member,
+                            m.Attribute,
+                            m.AttributeValue,
+                            m.MatrixItemId,
+                            m.FilterValue,
+                            m.SmallGroup,
+                            SmallGroupLeader = gm.Person.NickName + " " + gm.Person.LastName
+                        }
+                    );
             }
             var members = qry.ToList().GroupBy( a => a.Person ).ToList();
 
