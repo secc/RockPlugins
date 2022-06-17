@@ -89,14 +89,14 @@
                 <div class="container-fluid g-padding-x-0--xs">
                     <div class="col-xs-6 g-padding-x-0--xs">
                         <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase">
-                            Martial Status
+                            Marital Status
                         </p>
                     </div>
                     <div class="col-xs-6 g-padding-x-0--xs">
                         {% definedvalue where:'DefinedTypeId == 7' sort:'Value' %}
                          {% for definedValueItem in definedvalueItems %}
                             {% if Person.MaritalStatusValueId == definedValueItem.Id %}
-                                {{ definedValueItem.Value }} {% if Person.AnniversaryDate != null %} ({{ Person.AnniversaryDate | Date:'M/d' }}){% endif %}
+                                {{ definedValueItem.Value }}{% if Person.AnniversaryDate != null %} ({{ Person.AnniversaryDate | Date:'M/d' }}){% endif %}
                             {% endif %}
     					 {% endfor %}
     					{% enddefinedvalue %}
