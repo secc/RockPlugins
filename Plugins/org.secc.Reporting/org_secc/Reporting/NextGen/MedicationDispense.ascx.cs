@@ -638,19 +638,18 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             foreach ( var item in medicalItems )
             {
-                var i = 0;
-                SetExcelValue( worksheet.Cells[rowCounter, i++], item.Person );
-                SetExcelValue( worksheet.Cells[rowCounter, i++], item.SmallGroup );
-                SetExcelValue( worksheet.Cells[rowCounter, i++], item.SmallGroupLeader );
-                SetExcelValue( worksheet.Cells[rowCounter, i++], item.Medication );
-                SetExcelValue( worksheet.Cells[rowCounter, i++], item.Instructions );
-                SetExcelValue( worksheet.Cells[rowCounter, i++], item.Schedule );
+                SetExcelValue( worksheet.Cells[rowCounter, 1], item.Person );
+                SetExcelValue( worksheet.Cells[rowCounter, 2], item.SmallGroup );
+                SetExcelValue( worksheet.Cells[rowCounter, 3], item.SmallGroupLeader );
+                SetExcelValue( worksheet.Cells[rowCounter, 4], item.Medication );
+                SetExcelValue( worksheet.Cells[rowCounter, 5], item.Instructions );
+                SetExcelValue( worksheet.Cells[rowCounter, 6], item.Schedule );
                 if ( hasFilter )
                 {
                     item.GroupMember.LoadAttributes();
                     if ( item.GroupMember != null )
                     {
-                        SetExcelValue( worksheet.Cells[rowCounter, i++], item.GroupMember.GetAttributeValue( filterAttribute ) );
+                        SetExcelValue( worksheet.Cells[rowCounter, 7], item.GroupMember.GetAttributeValue( filterAttribute ) );
                     }
                 }
                 rowCounter++;
