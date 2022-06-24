@@ -108,9 +108,14 @@
                         {%- assign itemChildItems = series.ChildItems | Sort:'Priority' -%}
 
                         {% assign recommendedReadingJSONArray = "" %}
+                        {% assign recommendedReadingString = "" %}
                         {% assign downloadsJSONArray = "" %}
+                        {% assign downloadsString = "" %}
                         {% assign linksJSONArray = "" %}
+                        {% assign linksString = "" %}
                         {% assign videosJSONArray = "" %}
+                        {% assign videosString = "" %}
+
 
                     	{%- for messages in itemChildItems reversed -%}
                     		{%- assign message = messages.ChildContentChannelItem -%}
@@ -137,6 +142,11 @@
                                         {% assign recommendedReadingJSONArray = recommendedReadingJSONArray | Append: "," %}
                                     {% endif %}
                                     {% assign recommendedReadingJSONArray = recommendedReadingJSONArray | Append: childItemJSON %}
+                                    {% comment %} Recommended Reading String {% endcomment %}
+                                    {% if recommendedReadingString != "" %}
+                                        {% assign recommendedReadingString = recommendedReadingString | Append: "," %}
+                                    {% endif %}
+                                    {% assign recommendedReadingString = recommendedReadingString | Append: message.Id %}
                                 {% else %}
                                     {% comment %} **** If it's not, then include resources by type ***** {% endcomment %}
 
@@ -146,6 +156,11 @@
                                             {% assign downloadsJSONArray = downloadsJSONArray | Append: "," %}
                                         {% endif %}
                                         {% assign downloadsJSONArray = downloadsJSONArray | Append: childItemJSON %}
+                                    {% comment %} PDFs/Downloads String {% endcomment %}
+                                        {% if downloadsString != "" %}
+                                            {% assign downloadsString = downloadsString | Append: "," %}
+                                        {% endif %}
+                                        {% assign downloadsString = downloadsString | Append: message.Id %}
                                     {%- endif -%}
 
                                     {% comment %} Links Array {% endcomment %}
@@ -154,6 +169,11 @@
                                             {% assign linksJSONArray = linksJSONArray | Append: "," %}
                                         {% endif %}
                                         {% assign linksJSONArray = linksJSONArray | Append: childItemJSON %}
+                                    {% comment %} Recommended Reading String {% endcomment %}
+                                        {% if linksString != "" %}
+                                            {% assign linksString = linksString | Append: "," %}
+                                        {% endif %}
+                                        {% assign linksString = linksString | Append: message.Id %}
                                     {%- endif -%}
 
                                     {% comment %} Videos Array {% endcomment %}
@@ -162,6 +182,11 @@
                                             {% assign videosJSONArray = videosJSONArray | Append: "," %}
                                         {% endif %}
                                         {% assign videosJSONArray = videosJSONArray | Append: childItemJSON %}
+                                    {% comment %} Recommended Reading String {% endcomment %}
+                                        {% if videosString != "" %}
+                                            {% assign videosString = videosString | Append: "," %}
+                                        {% endif %}
+                                        {% assign videosString = videosString | Append: message.Id %}
                                     {%- endif -%}
 
                                 {%- endif -%}
@@ -517,27 +542,34 @@
 
                     {% comment %}
                     Display all "Recommended Reading"
-                    {% endcomment %}
                     {% assign recommendedReadingJSONArray = "[" | Append: recommendedReadingJSONArray | Append: "]" %}
                     {[ sermonresources title:'Recommended Reading' child-items:'{{ recommendedReadingJSONArray | EscapeDataString }}' ]}
+                    {% endcomment %}
+                    {[ sermonresources title:'Recommended Reading' items-string:'{{ recommendedReadingString }}' ]}
+
 
                     {% comment %}
-                    Grab all "Studies" resources
+                        Grab all "Studies" resources
+                        {% assign downloadsJSONArray = "[" | Append: downloadsJSONArray | Append: "]" %}
+                        {[ sermonresources title:'Studies' child-items:'{{ downloadsJSONArray | EscapeDataString }}' ]}
                     {% endcomment %}
-                    {% assign downloadsJSONArray = "[" | Append: downloadsJSONArray | Append: "]" %}
-                    {[ sermonresources title:'Studies' child-items:'{{ downloadsJSONArray | EscapeDataString }}' ]}
+                    {[ sermonresources title:'Studies' items-string:'{{ downloadsString }}' ]}
+
 
                     {% comment %}
                     Grab all "Reading Plans" or "Links" resources
-                    {% endcomment %}
                     {% assign linksJSONArray = "[" | Append: linksJSONArray | Append: "]" %}
-                    {[ sermonresources title:'Reading Plans' child-items:'{{ linksJSONArray | EscapeDataString }}' ]}
+                    {[ sermonresources title:'Links' child-items:'{{ linksJSONArray | EscapeDataString }}' ]}
+                    {% endcomment %}
+                    {[ sermonresources title:'Links' items-string:'{{ linksString }}' ]}
+
 
                     {% comment %}
                     Grab all "Media" resources
-                    {% endcomment %}
                     {% assign videosJSONArray = "[" | Append: videosJSONArray | Append: "]" %}
                     {[ sermonresources title:'Media' child-items:'{{ videosJSONArray | EscapeDataString }}' series-slug:'{{slug}}' ]}
+                    {% endcomment %}
+                    {[ sermonresources title:'Media' items-string:'{{ videosString }}' series-slug:'{{slug}}' ]}
 
     			</div>
             </div>
