@@ -201,7 +201,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     AdmitDate = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "AdmitDate" || av.AttributeKey == "StartDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
                     Status = w.Workflow.Status,
                     Communion = w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "Communion" ).FirstOrDefault().ValueFormatted,
-                    Route = (int?)w.AttributeValues.AsQueryable().Where(av => av.AttributeKey == "CommunionRoute").Select(av => av.ValueAsNumeric).FirstOrDefault()
+                    Route = ( int? ) w.AttributeValues.AsQueryable().Where( av => av.AttributeKey == "CommunionRoute" ).Select( av => av.ValueAsNumeric ).FirstOrDefault(),
                 } )
                 .Where( o => o.Communion.AsBoolean() && !o.Person.IsDeceased )
                 .OrderBy( a => a.PostalCode )
@@ -402,7 +402,19 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             int columnCounter = 0;
 
             // print headings
-            foreach ( String column in new List<String>() { "Zip", "Name", "Campus", "Location Name", "Location Room No.", "Street Address", "City", "State", "Zip", "Phone", "Notes", "Start Date", "Route No." } )
+            foreach ( String column in new List<String>() {
+                "Zip",
+                "Name",
+                "Campus",
+                "Location Name",
+                "Location Room No.",
+                "Street Address",
+                "City", "State", "Zip",
+                "Phone",
+                "Birthday",
+                "Notes",
+                "Start Date",
+                "Route No." } )
             {
                 columnCounter++;
                 worksheet.Cells[3, columnCounter].Value = column.SplitCase();
@@ -423,6 +435,18 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 SetExcelValue( worksheet.Cells[rowCounter, i++], row.State );
                 SetExcelValue( worksheet.Cells[rowCounter, i++], row.PostalCode );
                 SetExcelValue( worksheet.Cells[rowCounter, i++], phoneNumberService.GetByPersonId( row.Person.Id ).Where( p => p.NumberTypeValue.Guid == homePhone ).Select( p => p.NumberFormatted ).FirstOrDefault() );
+                if ( row.Person.BirthDay.HasValue )
+                {
+                    SetExcelValue( worksheet.Cells[rowCounter, i++], row.Person.BirthMonth + "/" + row.Person.BirthDay );
+
+                }
+                else
+                {
+                    SetExcelValue( worksheet.Cells[rowCounter, i++], "" );
+
+                }
+
+
                 SetExcelValue( worksheet.Cells[rowCounter, i++], row.Description );
                 SetExcelValue( worksheet.Cells[rowCounter, i++], row.AdmitDate );
                 SetExcelValue( worksheet.Cells[rowCounter, i], row.Route ); 
@@ -562,6 +586,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             public Campus Campus { get; set; }
             public Person Person { get; set; }
             public int? Age { get; set; }
+            public System.DateTime? BirthDay { get; set; }
             public string Description { get; set; }
             public string Location { get; set; }
             public string Address { get; set; }
