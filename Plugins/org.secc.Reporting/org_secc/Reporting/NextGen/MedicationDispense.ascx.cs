@@ -229,6 +229,24 @@ namespace RockWeb.Blocks.Reporting.NextGen
             {
                 gGrid.Columns[gGrid.Columns.Count - 1].Visible = true;
             }
+
+            if ( GetAttributeValue( "GroupMemberAttributeFilter" ).IsNotNullOrWhiteSpace() )
+            {
+                gGrid.Columns[1].Visible = true;
+            }
+            else
+            {
+                gGrid.Columns[1].Visible = false;
+            }
+
+            if ( GetAttributeValue( "SmallGroupParentGroupId" ).AsIntegerOrNull().IsNotNullOrZero() && GetAttributeValue( "SmallGroupGroupTypeId" ).AsIntegerOrNull().IsNotNullOrZero() )
+            {
+                gGrid.Columns[2].Visible = true;
+            }
+            else
+            {
+                gGrid.Columns[2].Visible = false;
+            }
         }
 
         private List<MedicalItem> GetMedicalItems( bool overrideHideDistributed = false )
