@@ -56,6 +56,7 @@ namespace RockWeb.Plugins.org_secc.Microframe
         /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
+            nbError.Visible = false;
             if ( !Page.IsPostBack )
             {
                 BindGrid();
@@ -191,6 +192,14 @@ namespace RockWeb.Plugins.org_secc.Microframe
             RockContext rockContext = new RockContext();
             SignCategory signCategory = new SignCategoryService( rockContext ).Get( signCategoryId );
             var code = tbCode.Text.Trim().ToUpper();
+
+            if ( code.IsNotNullOrWhiteSpace() && !System.Text.RegularExpressions.Regex.IsMatch( code, "^\\w+$" ) )
+            {
+                nbError.Visible = true;
+                nbError.Text = "<i class='fas fa-exclamation-triangle'></i> Code not valid.";
+                return;
+            }
+
             tbCode.Text = "";
             if ( string.IsNullOrWhiteSpace( code ) )
             {
