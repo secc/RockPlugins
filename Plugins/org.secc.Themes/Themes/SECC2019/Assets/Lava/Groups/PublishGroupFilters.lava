@@ -115,11 +115,11 @@
                     </div>
 
                     <div class="col-xs-12 col-md-3 g-padding-y-20--xs g-padding-y-40--sm" >
-                        <select class="select2-ministries" name="minitry">
+                        <select class="select2-ministries" name="ministry">
                         <option value="allMinistries">All Ministries</option>
 
 						{% assign availAudienceIds = '' %}
-						{% assign webrequestroot = 'https://rockstaging.secc.org/Webhooks/Lava.ashx/publishgroups/' %}
+							{% assign webrequestroot = '/Webhooks/Lava.ashx/publishgroups/' %}
 						{% assign webrequest = webrequestroot %}
 						{% if selectedCampus != null %}
 							{% assign webrequest = webrequest | Append:selectedCampus.Id %}
