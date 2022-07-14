@@ -196,7 +196,7 @@ namespace RockWeb.Plugins.org_secc.Microframe
             if ( code.IsNotNullOrWhiteSpace() && !System.Text.RegularExpressions.Regex.IsMatch( code, "^\\w+$" ) )
             {
                 nbError.Visible = true;
-                nbError.Text = "<i class='fas fa-exclamation-triangle'></i> Code not valid.";
+                nbError.Text = "<i class='fas fa-exclamation-triangle'></i> <strong>Child Id Error</strong><br />Please verify provided Child Id Code. Child Ids should only contain letters and numbers.";
                 return;
             }
 
@@ -207,7 +207,8 @@ namespace RockWeb.Plugins.org_secc.Microframe
             }
             if ( code.Length > maxCodeLength )
             {
-                code = code.Substring( 0, maxCodeLength );
+                nbError.Visible = true;
+                nbError.Text = $"<i class='fas fa-exclamation-triangle'></i><strong>Child Id Error</strong><br />Please verify provided Child Id Code. Child Ids should be {maxCodeLength} characters or less.";
             }
 
             if ( signCategory != null )
