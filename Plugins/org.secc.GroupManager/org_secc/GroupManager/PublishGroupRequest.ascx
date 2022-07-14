@@ -1,6 +1,12 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="PublishGroupRequest.ascx.cs" Inherits="RockWeb.Plugins.GroupManager.PublishGroupRequest" %>
 <asp:UpdatePanel runat="server">
     <ContentTemplate>
+        <Rock:NotificationBox ID="nbNotAuthorized" runat="server" Visible="false" NotificationBoxType="Warning">
+            <div>
+                <i class="fas fa-exclamation-triangle"></i> Not Authorized
+                <p>You do not have access to edit this publish group.</p>
+            </div>
+        </Rock:NotificationBox>
         <asp:Panel runat="server" ID="pnlEdit" Visible="true">
             <div class="panel panel-default">
                 <div class="panel-heading">

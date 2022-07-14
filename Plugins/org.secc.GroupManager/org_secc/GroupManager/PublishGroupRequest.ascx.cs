@@ -92,6 +92,8 @@ namespace RockWeb.Plugins.GroupManager
 
         #endregion
 
+        bool mUserCanEditGroup = false;
+
         #region Page Cycle
 
         /// <summary>Raises the <see cref="E:System.Web.UI.Control.Init"/> event.</summary>
@@ -145,6 +147,12 @@ namespace RockWeb.Plugins.GroupManager
                 btnSave.Text = "Save";
                 btnDraft.Visible = false;
                 ddlStatus.SelectedValue = publishGroup.PublishGroupStatus.ConvertToInt().ToString();
+            }
+            else if (!mUserCanEditGroup)
+            {
+                pnlEdit.Visible = false;
+                pnlSelectGroup.Visible = false;
+                nbNotAuthorized.Visible = true;
             }
             else
             {
@@ -299,6 +307,8 @@ namespace RockWeb.Plugins.GroupManager
                 var group = groupService.Get( groupId );
                 if ( group != null )
                 {
+                    mUserCanEditGroup = group.IsAuthorized( Rock.Security.Authorization.EDIT, CurrentPerson );
+
                     var publishGroup = publishGroupService.Queryable()
                     .Where( pg => pg.GroupId == groupId )
                     .ToList()
