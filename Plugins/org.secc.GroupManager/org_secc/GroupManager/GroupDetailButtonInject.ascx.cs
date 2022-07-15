@@ -37,11 +37,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         Order = 2,
         Key = AttributeKey.QualityCheckGroupUseSecurity )]
 
-    [LinkedPage("Quality Check Detail Page",
+    [LinkedPage( "Quality Check Detail Page",
         Description = "Quality Check Page",
         IsRequired = false,
         Order = 3,
-        Key = AttributeKey.QualityCheckDetailPage)]
+        Key = AttributeKey.QualityCheckDetailPage )]
 
     public partial class GroupDetailButtonInject : ContextEntityBlock
     {
@@ -84,44 +84,54 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 return;
             }
 
-            var enforcePublishGroupSecurity = GetAttributeValue( AttributeKey.PublishGroupUseSecurity ).AsBoolean();
+            var userCanEdit = SelectedGroup.IsAuthorized( Authorization.EDIT, CurrentPerson );
 
-            if ( !enforcePublishGroupSecurity )
+            if ( SelectedGroup.ParentGroupId.HasValue  && SelectedGroup.IsActive)
             {
-                ShowPublishGroup = true;
+                var enforcePublishGroupSecurity = GetAttributeValue( AttributeKey.PublishGroupUseSecurity ).AsBoolean();
+
+                if ( !enforcePublishGroupSecurity )
+                {
+                    ShowPublishGroup = true;
+                }
+
+                else
+                {
+                    ShowPublishGroup = userCanEdit;
+                }
             }
             else
             {
-                ShowPublishGroup = SelectedGroup.IsAuthorized( Authorization.EDIT, CurrentPerson );
+                ShowPublishGroup = false;
             }
 
             var enforceQualityCheckGroupSecurity = GetAttributeValue( AttributeKey.QualityCheckGroupUseSecurity ).AsBoolean();
 
-            if(!enforceQualityCheckGroupSecurity)
+            if ( !enforceQualityCheckGroupSecurity )
             {
                 ShowQualityCheck = true;
             }
             else
             {
-                ShowQualityCheck = SelectedGroup.IsAuthorized( Authorization.EDIT, CurrentPerson );
+                ShowQualityCheck = userCanEdit;
             }
 
             var publishPageGuid = GetAttributeValue( AttributeKey.PublishGroupDetailPage ).AsGuid();
             var publishPage = PageCache.Get( publishPageGuid );
 
-            var qualityCheckPageGuid = GetAttributeValue(AttributeKey.QualityCheckDetailPage).AsGuid();
+            var qualityCheckPageGuid = GetAttributeValue( AttributeKey.QualityCheckDetailPage ).AsGuid();
             var qualityCheckPage = PageCache.Get( qualityCheckPageGuid );
 
             var sbScript = new System.Text.StringBuilder();
-            if(ShowQualityCheck && qualityCheckPage != null)
+            if ( ShowQualityCheck && qualityCheckPage != null )
             {
                 sbScript.Append( $"$('[id*=\"hlMap\"]').parent().append('<a href=\"/page/{qualityCheckPage.Id}?GroupId={groupId}\" class=\"btn btn-sm btn-square btn-default\" " );
                 sbScript.Append( $"title=\"Quality Check\" height=\"500px\"><i class=\"fa fa-badge-check\"></i></a> '); \n" );
             }
 
-            if(ShowPublishGroup && publishPage != null)
+            if ( ShowPublishGroup && publishPage != null )
             {
-                sbScript.Append( $"$('[id*=\"hlMap\"]').parent().append('<a href=\"/page/{publishPage.Id}?GroupId={groupId}\" class=\"btn btn-sm btn-square btn-default\" ");
+                sbScript.Append( $"$('[id*=\"hlMap\"]').parent().append('<a href=\"/page/{publishPage.Id}?GroupId={groupId}\" class=\"btn btn-sm btn-square btn-default\" " );
                 sbScript.Append( $"title=\"Publish Group\" height=\"500px\"><i class=\"fa fa-globe\"></i></a>');" );
             }
 
