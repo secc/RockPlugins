@@ -43,7 +43,7 @@ Vivus is a lightweight JavaScript class (with no dependencies) that allows you t
     };
 </style>
 
-<div id="{{ id }}" style="max-width: {{ max-width }}; margin:  0 auto;width:  100%;"></div>
+<div id="{{ id }}" {%- if link -%}onclick="window.location = '{{link}}'"{%- endif -%} style="max-width: {{ max-width }}; margin:  0 auto;width:  100%;"></div>
 
 <script>
     new Vivus('{{ id }}', {
@@ -62,3 +62,5 @@ svg       -
 duration  - 80
 fill      - black
 max-width - 150px
+type      - delayed
+link      -
