@@ -38,7 +38,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
     [TextField( "Sessions Attribute Key", "Attribute key which contains the session count", true, "Sessions" )]
     [GroupField( "Group Fitness Parent Group", "Group which contains all group fitness groups. Needed for reading the number of sessions left.", true )]
     [IntegerField( "Minimum Digits", "Minimum number of digits required.", true, 7 )]
-
+    
     public partial class GroupFitness : CheckInBlock
     {
 
@@ -133,6 +133,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             try
             {
                 bool test = ProcessActivity( GetAttributeValue( "WorkflowActivity" ), out errors );
+
             }
             catch
             {
@@ -142,7 +143,8 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             }
             if ( CurrentCheckInState.CheckIn.Families.Any() )
             {
-                if ( CurrentCheckInState.CheckIn.Families.Count() == 1 )
+                if ( CurrentCheckInState.CheckIn.Families.Count() == 1 &&
+                        CurrentCheckInState.CheckIn.Families.SelectMany(f => f.People).Count() == 1 )
                 {
                     var family = CurrentCheckInState.CheckIn.Families.FirstOrDefault();
                     if ( family == null )
