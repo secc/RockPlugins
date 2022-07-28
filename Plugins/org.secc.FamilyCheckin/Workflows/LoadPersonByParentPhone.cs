@@ -55,7 +55,8 @@ namespace org.secc.FamilyCheckin
                         .Include( fm => fm.Group )
                         .Include( fm => fm.Person )
                         .Where( fm => fm.Group.GroupTypeId == familyGroupType.Id )
-                        .Where( fm => fm.Group.IsActive );
+                        .Where( fm => fm.Group.IsActive )
+                        .Where( fm => fm.GroupMemberStatus == GroupMemberStatus.Active );
 
                     var adultQry = familyMemberQry.Where( a => a.GroupRoleId == adultRole.Id ).AsQueryable();
                     var childQry = familyMemberQry.Where( a => a.GroupRoleId == childRole.Id ).AsQueryable();
