@@ -70,6 +70,8 @@ namespace org.secc.FamilyCheckin
                            ( pn, fm ) => fm )
                         .Join( childQry, parent => parent.GroupId, child => child.GroupId,
                             ( parent, child ) => child )
+                        .DistinctBy(child => child.PersonId)
+                        .Take(20)
                         .ToList();
 
                     foreach ( var child in familyChildren )
