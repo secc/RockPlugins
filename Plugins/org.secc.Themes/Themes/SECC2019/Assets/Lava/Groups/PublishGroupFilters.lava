@@ -213,39 +213,41 @@ $(document).ready(function() {
 
     loadQueryStringParam();
 
-	// If there is already a selected campus, load the ministries
+	// Load ministries
+	var pnlContent = $('#event-results').find("div[id*='_upnlContent']");
+	var pnlContent_ID = pnlContent.attr("id");
+	pnlContent.slideUp();
+	// $grid.isotope('destroy');
+
+	// reset ministries on any location selection
+	$('.select2-ministries').val('allMinistries');
+	$('.select2-ministries').trigger('change'); // Notify any JS components that the value changed
+
+	// update available ministry selections based on location
+	var audienceAPI = "{{ webrequestroot }}";
+	// Limit to selected campus
 	if ("{{selectedCampus.Id}}" !== null && "{{selectedCampus.Id}}" !== '') {
-		var pnlContent = $('#event-results').find("div[id*='_upnlContent']");
-		var pnlContent_ID = pnlContent.attr("id");
-		pnlContent.slideUp();
-		// $grid.isotope('destroy');
-
-		// reset ministries on any location selection
-		$('.select2-ministries').val('allMinistries');
-		$('.select2-ministries').trigger('change'); // Notify any JS components that the value changed
-
-		// update available ministry selections based on location
-		var audienceAPI = "{{ webrequestroot }}" + "{{selectedCampus.Id}}";
-		console.log(audienceAPI);
-		$.getJSON( audienceAPI )
-			.done(( json ) => {
-				var options = [];
-
-				// remove existing options except for the first
-				$(".select2-ministries option").slice(1).remove();
-				json.AvailAudienceIds.map( (item) => {
-					if ( item.Key != "" )
-						$(".select2-ministries").append('<option data-ministry="'+item.URLSlug+'" value="'+item.Key+'">'+item.Name+'</option>');
-				});
-				$(".select2-ministries").select2();
-			})
-			.fail(( jqxhr, textStatus, error ) => {
-				var err = textStatus + ", " + error;
-				console.log( "Request Failed: " + err );
-			});
-		// do AJAX postback through .NET
-		processPageLoad(pnlContent_ID, '');
+		audienceAPI = audienceAPI + "{{selectedCampus.Id}}";
 	}
+	console.log(audienceAPI);
+	$.getJSON( audienceAPI )
+		.done(( json ) => {
+			var options = [];
+
+			// remove existing options except for the first
+			$(".select2-ministries option").slice(1).remove();
+			json.AvailAudienceIds.map( (item) => {
+				if ( item.Key != "" )
+					$(".select2-ministries").append('<option data-ministry="'+item.URLSlug+'" value="'+item.Key+'">'+item.Name+'</option>');
+			});
+			$(".select2-ministries").select2();
+		})
+		.fail(( jqxhr, textStatus, error ) => {
+			var err = textStatus + ", " + error;
+			console.log( "Request Failed: " + err );
+		});
+	// do AJAX postback through .NET
+	processPageLoad(pnlContent_ID, '');
 
     ///////////////////////////////////////////////////
     /////////////// Initialize Select2 ////////////////
