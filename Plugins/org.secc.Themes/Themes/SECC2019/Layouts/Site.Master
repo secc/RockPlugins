@@ -106,7 +106,11 @@
     <!-- Included CSS Files -->
     <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/layout.css", true) %>"/>
     <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/main.css", true) %>"/>
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("/Styles/developer.css", true) %>"/>
+
+    <!-- GDPR -->
+    <link rel="stylesheet" href="/Themes/SECC2019/Scripts/GDPR/gdpr.css" />
+
     <asp:ContentPlaceHolder ID="css" runat="server" />
 
     <!-- Included JS Files -->
@@ -136,11 +140,11 @@
 
     <script src="/Themes/SECC2019/Scripts/jarrallax/jarallax.min.js"></script>
     <script src="/Themes/SECC2019/Scripts/jarrallax/jarallax-video.min.js" ></script>
-    <link href="/Themes/SECC2019/Scripts/jarrallax/jarallax.css" />
+    <link rel="stylesheet" href="/Themes/SECC2019/Scripts/jarrallax/jarallax.css" />
     <script src="/Themes/SECC2019/Scripts/jarrallax/object-fit-images/ofi.min.js" ></script>
     <script src="/Themes/SECC2019/Scripts/vivus/vivus.min.js" ></script>
-    <link href="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe.css?v=4.1.2-1.0.4" />
-    <link href="/Themes/SECC2019/Assets/vendor/photo_swipe/default-skin/default-skin.css?v=4.1.2-1.0.4" />
+    <link rel="stylesheet" href="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe.css?v=4.1.2-1.0.4" />
+    <link rel="stylesheet" href="/Themes/SECC2019/Assets/vendor/photo_swipe/default-skin/default-skin.css?v=4.1.2-1.0.4" />
     <script src="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe.js"></script>
     <script src="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe-ui-default.js"></script>
     <!--
@@ -179,7 +183,6 @@
             });
         });
     </script>
-    <link href="/Themes/SECC2019/Scripts/GDPR/gdpr.css" rel="stylesheet">
 </head>
 
 <body runat="server" id="body" class="nav-is-fixed">
