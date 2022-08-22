@@ -12,6 +12,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
+using System.Web.UI.WebControls;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
@@ -30,7 +31,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
+            rGroupMember.ItemCommand += rGroupMember_ItemCommand;
         }
+
+
 
         protected override void OnLoad( EventArgs e )
         {
@@ -52,9 +56,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 return;
             }
 
-            var attendanceOccurrence = GetAttendanceOccurrenceByGroupId( CurrentGroup.Id );
+            LoadCurrentOccurrence();
 
-            if ( attendanceOccurrence == default( AttendanceOccurrence ) )
+            if ( currentOccurrence == default( GroupOccurrence ) )
             {
                 DisplayNoOccurrenceMessage();
                 return;
@@ -70,6 +74,23 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 LoadGroupMembers();
             }
+        }
+
+        private void CheckinGroupMember(int? attendanceId)
+        {
+            using ( var rockContext = new RockContext() )
+            {
+                var attendanceService = new AttendanceService( rockContext );
+                var attendance = attendanceService.Get( attendanceId.Value );
+
+                if(attendance != null)
+                {
+                    attendance.DidAttend = true;
+                    rockContext.SaveChanges();
+                }
+            }
+            LoadCurrentOccurrence();
+            LoadGroupMembers();
         }
 
         private void DisplayNotAuthorizedMessage()
@@ -92,7 +113,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             var today = RockDateTime.Now.Date;
             using ( var rockContext = new RockContext() )
             {
-                var occurrence = new AttendanceOccurrenceService( rockContext )
+                currentOccurrence = new AttendanceOccurrenceService( rockContext )
                     .Queryable().AsNoTracking()
                     .Where( o => o.OccurrenceDate == today )
                     .Where( o => o.GroupId == CurrentGroup.Id )
@@ -108,12 +129,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             Id = a.Id,
                             PersonAliasId = a.PersonAliasId,
                             PersonId = a.PersonAlias != null ? a.PersonAlias.PersonId : (int?)null,
-                            DidAttend = a.DidAttend == null ? false : true,
+                            DidAttend = !a.DidAttend.HasValue ? false : a.DidAttend.Value,
                             StartDateTime = a.StartDateTime,
                             EndDateTime = a.EndDateTime
                         } )
                     } ).FirstOrDefault();
-                ;
+                
 
             }
         }
@@ -142,7 +163,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         AttendanceState = o.FirstOrDefault() == null ? AttendanceState.CheckedOut : o.FirstOrDefault().AttendanceState
                     } )
                 .GroupJoin( mobilePhoneQry, gm => gm.PersonId, mp => mp.PersonId,
-                    ( gm, mp ) => new { GroupMember = gm, MobilePhone = mp.DefaultIfEmpty() } );
+                    ( gm, mp ) => new { GroupMember = gm, MobilePhone = mp.Select(p => p.NumberFormatted).FirstOrDefault() } );
 
             if(!includeLeaders)
             {
@@ -157,7 +178,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     GroupMemberId = gm.GroupMember.Id,
                     FirstName = gm.GroupMember.Person.FirstName,
                     LastName = gm.GroupMember.Person.LastName,
-                    MobilePhone = gm.MobilePhone.FirstOrDefault() != null ? gm.MobilePhone.FirstOrDefault().NumberFormatted : String.Empty,
+                    MobilePhone = gm.MobilePhone,
                     PhotoUrl = gm.GroupMember.Person.PhotoUrl,
                     State = gm.GroupMember.AttendanceState,
                     AttendanceId = gm.GroupMember.AttendanceId    
@@ -187,11 +208,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             var hlCheckinStatus = e.Item.FindControl( "hlCheckinStatus" ) as HighlightLabel;
             var lPhoneNumber = e.Item.FindControl( "lPhoneNumber" ) as RockLiteral;
             var lIcons = e.Item.FindControl( "lIcons" ) as RockLiteral;
+            var btnCheckin = e.Item.FindControl( "btnCheckin" ) as BootstrapButton;
 
-            lPhoneNumber.Visible = dataItem.MobilePhone.IsNotNullOrWhiteSpace();
+            lPhoneNumber.Label = dataItem.MobilePhone.IsNotNullOrWhiteSpace() ? "Mobile Phone" : String.Empty;
             lPhoneNumber.Text = dataItem.MobilePhone;
             lIcons.Visible = false;
 
+            btnCheckin.Visible = dataItem.State == AttendanceState.EnRoute;
+            btnCheckin.CommandArgument = dataItem.AttendanceId.HasValue ? dataItem.AttendanceId.ToString() : null;
+            btnCheckin.CommandName = "CheckIn";
 
             switch ( dataItem.State )
             {
@@ -210,6 +235,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
 
         }
+
+        private void rGroupMember_ItemCommand( object source, RepeaterCommandEventArgs e )
+        {
+            if ( e.CommandName == "CheckIn" )
+            {
+                CheckinGroupMember( e.CommandArgument.ToString().AsIntegerOrNull() );
+            }
+        }
+
 
         class GroupMemberInfo
         {
