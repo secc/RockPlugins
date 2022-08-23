@@ -72,6 +72,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             if ( !IsPostBack )
             {
+                ddlFilter.SelectedValue = "1";
                 LoadGroupMembers();
             }
         }
@@ -170,6 +171,18 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 groupMembersQry = groupMembersQry.Where( gm => !gm.GroupMember.GroupRole.IsLeader );
             }
 
+            switch ( ddlFilter.SelectedValueAsInt() )
+            {
+                case 1:
+                    groupMembersQry = groupMembersQry.Where( m => m.GroupMember.AttendanceState == AttendanceState.EnRoute );
+                    break;
+                case 2:
+                    groupMembersQry = groupMembersQry.Where( m => m.GroupMember.AttendanceState == AttendanceState.InRoom );
+                    break;
+                default:
+                    groupMembersQry = groupMembersQry.Where( m => m.GroupMember.AttendanceId.HasValue );
+                    break;
+            }
 
             var groupMembers = groupMembersQry
                 .Select( gm => new GroupMemberInfo
@@ -189,16 +202,31 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             rGroupMember.DataSource = groupMembers;
             rGroupMember.DataBind();
 
-        }
+            if(groupMembers.Count() == 0 )
+            {
+                var noResultsTemplate = "<h3 style='text-align:center;'><i class='far fa-exclamation-triangle'></i> No group members {0}.</h3>";
+                var noResultsPart2 = String.Empty;
 
-        private AttendanceOccurrence GetAttendanceOccurrenceByGroupId(int groupId)
-        {
-            var today = RockDateTime.Now.Date;
-            return new AttendanceOccurrenceService( new RockContext() )
-                .Queryable()
-                .Where( o => o.GroupId == groupId )
-                .Where( o => o.OccurrenceDate == today )
-                .FirstOrDefault();
+                switch ( ddlFilter.SelectedValue.AsInteger() )
+                {
+                    case 1:
+                        noResultsPart2 = "are enroute";
+                        break;
+                    case 2:
+                        noResultsPart2 = "have arrived";
+                        break;
+                    default:
+                        noResultsPart2 = "have checked-in";
+                        break;
+                }
+
+                nbNoResults.Visible = true;
+                nbNoResults.Text = String.Format( noResultsTemplate, noResultsPart2 );
+            }
+            else
+            {
+                nbNoResults.Visible = false;
+            }
         }
 
         protected void rGroupMember_ItemDataBound( object sender, System.Web.UI.WebControls.RepeaterItemEventArgs e )
@@ -221,7 +249,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             switch ( dataItem.State )
             {
                 case AttendanceState.InRoom:
-                    hlCheckinStatus.Text = "Checked In";
+                    hlCheckinStatus.Text = "Arrived";
                     hlCheckinStatus.CssClass = "label-success pull-right";
                     break;
                 case AttendanceState.EnRoute:
@@ -244,6 +272,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
         }
 
+        protected void ddlFilter_SelectionChanged( object sender, EventArgs e )
+        {
+            LoadCurrentOccurrence();
+            LoadGroupMembers();
+        }
+
 
         class GroupMemberInfo
         {
@@ -259,7 +293,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     switch ( State )
                     {
                         case AttendanceState.InRoom:
-                            return "Checked In";
+                            return "Arrived";
                         case AttendanceState.EnRoute:
                             return "EnRoute";
                         default:
@@ -326,5 +360,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
             }
         }
+
+
     }
 }
