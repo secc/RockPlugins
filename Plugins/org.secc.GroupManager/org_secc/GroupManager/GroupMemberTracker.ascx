@@ -5,13 +5,21 @@
         <asp:Panel ID="pnlMain" runat="server" Visible="false">
             <asp:Panel ID="pnlGroupMember" runat="server" Visible="true">
                 <div class="row">
-                    <div class="col-md-12 ">
+                    <div class="col-xs-8 col-sm-6  ">
+                        <Rock:ButtonDropDownList ID="ddlFilter" Label="View" runat="server" OnSelectionChanged="ddlFilter_SelectionChanged">
+                            <asp:ListItem Value="1" Text="Enroute" Selected="True" />
+                            <asp:ListItem Value="2" Text="Arrived" />
+                            <asp:ListItem Value="-1" Text="All Checked-in" />
+                        </Rock:ButtonDropDownList>
+
+                    </div>
+                    <div class="col-xs-4 col-sm-6">
                         <span class="pull-right">
-                            <Rock:ButtonDropDownList ID="ddlFilter" Label="Display Options" runat="server" OnSelectionChanged="ddlFilter_SelectionChanged">
-                                <asp:ListItem Value="1" Text="Enroute" Selected="True" />
-                                <asp:ListItem Value="2" Text="Arrived" />
-                                <asp:ListItem Value="-1" Text="All Checked-in" />
-                            </Rock:ButtonDropDownList>
+                            <label class="control-label">&nbsp;</label>
+
+                            <div class="control-wrapper ">
+                                <asp:LinkButton ID="lbRefresh" runat="server" OnClick="lbRefresh_Click" CssClass="btn btn-default"><i class="far fa-sync-alt"></i></asp:LinkButton>
+                            </div>
                         </span>
                     </div>
                 </div>
@@ -35,7 +43,7 @@
                                             <Rock:RockLiteral ID="lPhoneNumber" Label="Mobile Phone" runat="server" />
                                             <Rock:RockLiteral ID="lIcons" Label="Notifications" runat="server" />
                                             <div style="text-align: center;">
-                                                <Rock:BootstrapButton ID="btnCheckin" runat="server" CssClass="btn-lg btn-success" Text="Has Arrived" />
+                                                <Rock:BootstrapButton ID="btnCheckin" runat="server" CssClass="btn-lg btn-success" Text="Has Arrived" DataLoadingText="Checking In" />
                                             </div>
                                         </div>
                                     </div>
@@ -44,8 +52,10 @@
                         </ItemTemplate>
                     </asp:Repeater>
                 </div>
-               <Rock:NotificationBox ID="nbNoResults" runat="server" Visible="false" NotificationBoxType="Default" />
+                <Rock:NotificationBox ID="nbNoResults" runat="server" Visible="false" NotificationBoxType="Info" />
             </asp:Panel>
         </asp:Panel>
+        <asp:Timer ID="tmrRefresh" runat="server" Interval="10000" OnTick="tmrRefresh_Tick" Enabled="false" />
     </ContentTemplate>
 </asp:UpdatePanel>
+
