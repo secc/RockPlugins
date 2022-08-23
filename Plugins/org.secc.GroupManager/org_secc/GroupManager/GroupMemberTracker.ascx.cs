@@ -49,7 +49,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             var refreshInterval = GetAttributeValue( "RefreshInterval" ).AsInteger();
             tmrRefresh.Enabled = refreshInterval > 0;
-            tmrRefresh.Interval = refreshInterval;
+            if ( refreshInterval > 0 )
+            {
+                tmrRefresh.Interval = refreshInterval;
+            }
 
             bool canTakeAttendance = CurrentGroup.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, CurrentPerson ) ||
                 CurrentGroup.IsAuthorized( Rock.Security.Authorization.EDIT, CurrentPerson );
@@ -116,7 +119,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             }
 
-            tmrRefresh.Enabled = true;
+            tmrRefresh.Enabled = GetAttributeValue("RefreshInterval").AsInteger() > 0;
         }
 
         private void LoadCurrentOccurrence()
