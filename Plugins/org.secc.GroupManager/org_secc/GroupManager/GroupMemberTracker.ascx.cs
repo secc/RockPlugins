@@ -73,7 +73,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void CheckinGroupMember( int? attendanceId )
         {
-            using ( var rockContext = new RockContext() )
+             using ( var rockContext = new RockContext() )
             {
                 var attendanceService = new AttendanceService( rockContext );
                 var attendance = attendanceService.Get( attendanceId.Value );
@@ -82,6 +82,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     attendance.DidAttend = true;
                     rockContext.SaveChanges();
+                    AttendanceCache.AddOrUpdate( attendance );
                 }
             }
             LoadCheckinData();
