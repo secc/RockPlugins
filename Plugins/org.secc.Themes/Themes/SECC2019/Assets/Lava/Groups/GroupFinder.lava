@@ -119,9 +119,9 @@
                                     <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
                                     <h6>
                                         {{ scheduleText }}
-                                        {% if publishGroup.StartDateTime and publishGroup.StartDateTime != empty %}
+                                        {% if publishGroup.StartDate and publishGroup.StartDate != empty %}
                                         <br>
-                                        Starting: {{ publishGroup.StartDateTime | Date:'MMM d'}}
+                                        Starting: {{ publishGroup.StartDate | Date:'MMM d'}}
                                         {% endif %}
                                     </h6>
                                 </div>
