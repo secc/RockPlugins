@@ -18,7 +18,7 @@
                         <li>
                             <a class="cd-nav-item" href="/location/{{slug}}">
                                 <h3>{{ campus.Name }}</h3>
-                                <img src="/GetImage.ashx?Guid={{ CampusImageThumb.Guid }}" class="img-responsive" />
+                                <img src="/GetImage.ashx?Guid={{ CampusImageThumb.Guid }}" class="img-responsive" alt="{{campus.Name}}" />
                             </a>
                         </li>
                     {% endif %}
@@ -195,6 +195,11 @@
                     <li>
                         <a href="/ministries/sports-fitness">Sports & Fitness</a>
                     </li>
+
+                    <li>
+                        <a href="/southeastworship">Southeast Worship</a>
+                    </li>
+
                 </div>
             </ul>
         </li>
