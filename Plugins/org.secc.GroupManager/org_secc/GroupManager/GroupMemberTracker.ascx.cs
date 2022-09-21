@@ -174,8 +174,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         PersonId = gm.PersonId,
                         Person = gm.Person,
                         GroupRole = gm.GroupRole,
-                        AttendanceId = o.FirstOrDefault() == null ? ( int? ) null : o.FirstOrDefault().Id,
-                        AttendanceState = o.FirstOrDefault() == null ? AttendanceState.CheckedOut : o.FirstOrDefault().AttendanceState
+                        AttendanceId = o.FirstOrDefault() == null ? ( int? ) null : o.OrderByDescending( o1 => o1.Id ).FirstOrDefault().Id,
+                        AttendanceState = o.FirstOrDefault() == null ? AttendanceState.CheckedOut : o.OrderByDescending( o1 => o1.Id ).FirstOrDefault().AttendanceState
                     } )
                 .GroupJoin( mobilePhoneQry, gm => gm.PersonId, mp => mp.PersonId,
                     ( gm, mp ) => new { GroupMember = gm, MobilePhone = mp.Select( p => p.NumberFormatted ).FirstOrDefault() } );
