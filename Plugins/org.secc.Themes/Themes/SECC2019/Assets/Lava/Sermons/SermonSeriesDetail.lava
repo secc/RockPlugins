@@ -239,7 +239,7 @@
 
             <div class="series-detail container">
                 <div id="seriesHead" class="row">
-                    {%- unless currentMessageVideoId == empty -%}
+                    {%- unless currentMessageVideoId == empty and youtubeMessageVideoId == empty -%}
                     <div id="sermonVideo" class="col-sm-12 col-lg-8 g-padding-x-0--xs g-padding-x-60--lg">
                         <div class="embed-responsive embed-responsive-16by9 media-border-only">
                             <div class="embed-responsive embed-responsive-16by9 media-border-only">
