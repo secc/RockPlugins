@@ -73,7 +73,7 @@
         </script>
         <div style="background-color:black">
 
-            {[ parallax videourl:'https://vimeo.com/357603792' image:'/Content/0N2A1494.jpg'  videostarttime:'0' videoendtime:'19' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'75vh' position:'bottom center' speed:'-15' ]}
+            {[ parallax videourl:'https://vimeo.com/569881335' image:'/Content/0N2A1494.jpg' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'75vh' position:'bottom center' speed:'-15' ]}
                 <!-- START: Ministry Logo & Video -->
                 <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
                     <h1 class="g-font-family--secondary g-font-size-130--lg g-font-size-80--xs g-text-shadow--black--soft" style="text-shadow: none;">Streaming Now</h1>
@@ -222,6 +222,8 @@
     	{% assign currentDate = 'Now' | Date:'M/d/yyyy' %}
     	{% assign seriesImageGuid = series | Attribute:'SeriesImage','RawValue' %}
     	{% assign currentMessageVimeoID = currentMessage | Attribute:'VimeoId' %}
+        {% assign youtubeMessageVideoId = currentMessage | Attribute:'YouTubeId' %}
+
         <section id="">
     		<script>
     		  var tmpCanInitParallax = jarallax.constructor.prototype.canInitParallax;
@@ -290,28 +292,28 @@
     		  }
     		</script>
         	<div style="background-color:black">
-                {% unless currentMessageVimeoID == empty %}
+                {% unless currentMessageVimeoID == empty and youtubeMessageVideoId == empty %}
 
-                    {[ parallax videourl:'https://vimeo.com/380352381' image:'/Content/0N2A1494.jpg'  videostarttime:'0' videoendtime:'19' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'75vh' position:'bottom center' speed:'-15' ]}
-    					<!-- START: Ministry Logo & Video -->
-                        <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
-                            <h4 class="uppercase g-letter-spacing--3">Latest Sermon</h4>
-    						<hr class="g-width-80--xs">
-                            <h1 class="g-font-family--secondary g-font-size-130--lg g-font-size-80--xs g-text-shadow--black--soft" style="text-shadow: none;">{{ series.Title }}</h1>
-    						<br />
-    						<h4 class="uppercase g-letter-spacing--3">{{ currentMessage.Title }}</h4>
-                            <br />
-                            <br />
-    						<a href="/sermons/{{ item | Attribute: 'Slug' }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
-    				            <strong>Watch Sermons</strong>
-    				        </a>
-                        </div>
-                        <!-- END: Ministry Logo & Videod -->
+                    {[ parallax videourl:'https://vimeo.com/569881335' image:'/Content/0N2A1494.jpg'  addclass:'g-bg-parallax-color--black--40 menu-switch' height:'75vh' position:'bottom center' speed:'-15' ]}
+                    <!-- START: Ministry Logo & Video -->
+                    <div class="parallax-logo centered" style="max-width: inherit;padding: 0px;">
+                        <h4 class="uppercase g-letter-spacing--3">Latest Sermon</h4>
+                        <hr class="g-width-80--xs">
+                        <h1 class="g-font-family--secondary g-font-size-130--lg g-font-size-80--xs g-text-shadow--black--soft" style="text-shadow: none;">{{ series.Title }}</h1>
+                        <br />
+                        <h4 class="uppercase g-letter-spacing--3">{{ currentMessage.Title }}</h4>
+                        <br />
+                        <br />
+                        <a href="/sermons/{{ item | Attribute: 'Slug' }}" class="uppercase se-btn se-btn--primary-brd g-letter-spacing--1">
+                            <strong>Watch Sermons</strong>
+                        </a>
+                    </div>
+                    <!-- END: Ministry Logo & Videod -->
                     {[ endparallax ]}
 
                 {% endunless %}
-        	</div>
-        </section>
+                </div>
+            </section>
     {% else %}
     	{[ parallax image:'/Content/0N2A1494.jpg' zindex:'0' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'75vh' position:'bottom center' speed:'-15' ]}
     	    <div class="parallax-logo centered" style="padding: 0px; z-index:3">
