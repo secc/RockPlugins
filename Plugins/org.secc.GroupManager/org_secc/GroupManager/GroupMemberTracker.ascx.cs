@@ -6,6 +6,7 @@ using System.Linq;
 using System.Web.UI.WebControls;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.GroupManager;
+using org.secc.Microframe;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -116,6 +117,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             else
             {
                 pnlMain.Visible = true;
+
+                if ( !string.IsNullOrWhiteSpace( currentOccurrence.Notes ) )
+                {
+                    tbGroupNote.Text = currentOccurrence.Notes.Trim();
+                }
+                else
+                {
+                    tbGroupNote.Text = string.Empty;
+                }
                 LoadGroupMembers();
 
             }
@@ -139,6 +149,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         ScheduleId = o.ScheduleId,
                         LocationId = o.LocationId,
                         OccurrenceDate = o.OccurrenceDate,
+                        Notes = o.Notes,
                         OccurrenceAttendees = o.Attendees.Select( a => new OccurrenceAttendeeItem
                         {
                             Id = a.Id,
@@ -215,6 +226,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             rGroupMember.DataSource = groupMembers;
             rGroupMember.DataBind();
+        
 
             if ( groupMembers.Count() == 0 )
             {
@@ -293,9 +305,39 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             LoadCheckinData();
         }
 
+        protected void lbShowNotes_Click( object sender, EventArgs e )
+        {
+            LoadCheckinData();
+            hfOccurrenceId.Value = currentOccurrence.Id.ToString();
+            tmrRefresh.Enabled = false;
+            mdlNoteDialog.Show();
+        }
+
         protected void lbRefresh_Click( object sender, EventArgs e )
         {
             tmrRefresh.Enabled = false;
+            LoadCheckinData();
+        }
+
+        protected void mdlNoteDialog_SaveClick( object sender, EventArgs e )
+        {
+            var occurrenceId = hfOccurrenceId.ValueAsInt();
+
+            var rockContext = new RockContext();
+            var attendanceOccurrenceService = new AttendanceOccurrenceService( rockContext );
+            var occurrence = attendanceOccurrenceService.Get( occurrenceId );
+
+            if ( !string.IsNullOrWhiteSpace( tbGroupNote.Text ) )
+            {
+                occurrence.Notes = tbGroupNote.Text.Trim();
+            }
+            else
+            {
+                occurrence.Notes = null;
+            }
+
+            rockContext.SaveChanges();
+            mdlNoteDialog.Hide();
             LoadCheckinData();
         }
 
@@ -355,6 +397,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             public int? GroupId { get; set; }
             public int? ScheduleId { get; set; }
             public int? LocationId { get; set; }
+            public string Notes { get; set; }
             public DateTime OccurrenceDate { get; set; }
             public IEnumerable<OccurrenceAttendeeItem> OccurrenceAttendees { get; set; }
 
@@ -387,11 +430,5 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
             }
         }
-
-
-
-
-
-
     }
 }

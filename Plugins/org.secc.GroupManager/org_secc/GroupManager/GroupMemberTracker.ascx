@@ -18,6 +18,7 @@
                             <label class="control-label">&nbsp;</label>
 
                             <div class="control-wrapper ">
+                                <asp:LinkButton ID="lbShowNotes" runat="server" OnClick="lbShowNotes_Click" CssClass="btn btn-default"><i class="far fa-sticky-note"></i></asp:LinkButton>
                                 <asp:LinkButton ID="lbRefresh" runat="server" OnClick="lbRefresh_Click" CssClass="btn btn-default"><i class="far fa-sync-alt"></i></asp:LinkButton>
                             </div>
                         </span>
@@ -55,6 +56,12 @@
                 <Rock:NotificationBox ID="nbNoResults" runat="server" Visible="false" NotificationBoxType="Info" />
             </asp:Panel>
         </asp:Panel>
+        <Rock:ModalDialog ID="mdlNoteDialog" runat="server" Title="Meeting Notes" OnSaveClick="mdlNoteDialog_SaveClick">
+            <Content>
+                <asp:HiddenField ID="hfOccurrenceId" runat="server" />
+                <Rock:RockTextBox ID="tbGroupNote" runat="server" Required="false" TextMode="MultiLine" Rows="4" MaxLength="1000" ShowCountDown="true" Label="Notes" />
+            </Content>
+        </Rock:ModalDialog>
         <asp:Timer ID="tmrRefresh" runat="server" Interval="10000" OnTick="tmrRefresh_Tick" Enabled="false" />
     </ContentTemplate>
 </asp:UpdatePanel>
