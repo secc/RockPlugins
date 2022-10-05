@@ -309,7 +309,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             LoadCheckinData();
             hfOccurrenceId.Value = currentOccurrence.Id.ToString();
-            tmrRefresh.Enabled = false;
             mdlNoteDialog.Show();
         }
 
