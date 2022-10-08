@@ -26,7 +26,7 @@ namespace org.secc.FamilyCheckin.Cache
 {
     [Serializable]
     [DataContract]
-    public class KioskTypeCache : ModelCache<KioskTypeCache, KioskType>
+    public class KioskTypeCache : ModelCache<KioskTypeCache, Model.KioskType>
     {
         [DataMember]
         public string Name { get; set; }
@@ -95,7 +95,7 @@ namespace org.secc.FamilyCheckin.Cache
         {
             base.SetFromEntity( entity );
 
-            var kioskType = entity as KioskType;
+            var kioskType = entity as Model.KioskType;
             if ( kioskType == null )
                 return;
 

@@ -22,6 +22,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
+using SECCModel = org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Constants;
@@ -144,7 +145,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         protected void btnSave_Click( object sender, EventArgs e )
         {
-            KioskType kioskType = null;
+            SECCModel.KioskType kioskType = null;
 
             var rockContext = new RockContext();
             var kioskTypeService = new KioskTypeService( rockContext );
@@ -162,7 +163,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             if ( kioskType == null )
             {
-                kioskType = new KioskType();
+                kioskType = new SECCModel.KioskType();
                 kioskTypeService.Add( kioskType );
 
             }
@@ -347,20 +348,20 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         public void ShowDetail( int kioskTypeId )
         {
             pnlDetails.Visible = true;
-            KioskType kioskType = null;
+            SECCModel.KioskType kioskType = null;
 
             var checkinContext = new RockContext();
 
             if ( !kioskTypeId.Equals( 0 ) )
             {
                 kioskType = new KioskTypeService( checkinContext ).Get( kioskTypeId );
-                lActionTitle.Text = ActionTitle.Edit( KioskType.FriendlyTypeName ).FormatAsHtmlTitle();
+                lActionTitle.Text = ActionTitle.Edit( SECCModel.KioskType.FriendlyTypeName ).FormatAsHtmlTitle();
             }
 
             if ( kioskType == null )
             {
-                kioskType = new KioskType { Id = 0 };
-                lActionTitle.Text = ActionTitle.Add( KioskType.FriendlyTypeName ).FormatAsHtmlTitle();
+                kioskType = new SECCModel.KioskType { Id = 0 };
+                lActionTitle.Text = ActionTitle.Add( SECCModel.KioskType.FriendlyTypeName ).FormatAsHtmlTitle();
             }
 
             hfKioskTypeId.Value = kioskType.Id.ToString();
@@ -404,12 +405,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             if ( !IsUserAuthorized( Authorization.EDIT ) )
             {
                 readOnly = true;
-                nbEditModeMessage.Text = EditModeMessage.ReadOnlyEditActionNotAllowed( KioskType.FriendlyTypeName );
+                nbEditModeMessage.Text = EditModeMessage.ReadOnlyEditActionNotAllowed( SECCModel.KioskType.FriendlyTypeName );
             }
 
             if ( readOnly )
             {
-                lActionTitle.Text = ActionTitle.View( KioskType.FriendlyTypeName );
+                lActionTitle.Text = ActionTitle.View( SECCModel.KioskType.FriendlyTypeName );
                 btnCancel.Text = "Close";
             }
 
@@ -421,7 +422,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             btnSave.Visible = !readOnly;
         }
 
-        private void BindDropDownList( KioskType kioskType = null )
+        private void BindDropDownList( SECCModel.KioskType kioskType = null )
         {
             RockContext rockContext = new RockContext();
             GroupTypeService groupTypeService = new GroupTypeService( rockContext );
@@ -481,7 +482,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             BindGroupTypes();
         }
 
-        private void BindGroupTypes( KioskType kioskType = null )
+        private void BindGroupTypes( SECCModel.KioskType kioskType = null )
         {
 
             var groupTypeIds = new List<string>();

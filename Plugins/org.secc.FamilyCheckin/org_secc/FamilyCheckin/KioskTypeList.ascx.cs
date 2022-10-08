@@ -94,7 +94,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             var checkinContext = new RockContext();
             KioskTypeService KioskTypeService = new KioskTypeService( checkinContext );
-            KioskType KioskType = KioskTypeService.Get( e.RowKeyId );
+            org.secc.FamilyCheckin.Model.KioskType KioskType = KioskTypeService.Get( e.RowKeyId );
 
             if ( KioskType != null )
             {
