@@ -42,7 +42,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     public partial class CheckinMonitor : CheckInBlock
     {
 
-        KioskTypeCache KioskType = null;
+        CheckinKioskTypeCache KioskType = null;
         private static class ViewStateKeys
         {
             internal const string ModalLocationId = "ModalLocationId";
@@ -60,7 +60,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var kioskTypeCookie = this.Page.Request.Cookies["KioskTypeId"];
             if ( kioskTypeCookie != null )
             {
-                KioskType = KioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
+                KioskType = CheckinKioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
             }
 
             if ( KioskType == null )
@@ -282,7 +282,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                                 && totalCount >= ( locationOccurrence.FirmRoomThreshold ?? int.MaxValue ) )
                             {
                                 CloseOccurrence( locationOccurrence.GroupLocationId, locationOccurrence.ScheduleId );
-                                KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
+                                CheckinKioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
                                 KioskDeviceHelpers.Clear( CurrentCheckInState.ConfiguredGroupTypes );
                                 return;
                             }
@@ -758,7 +758,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     }
                     _rockContext.SaveChanges();
 
-                    KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
+                    CheckinKioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
                     KioskDeviceHelpers.Clear( CurrentCheckInState.ConfiguredGroupTypes );
                     OccurrenceCache.AddOrUpdate( occurrence );
                 }
@@ -1037,7 +1037,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 _rockContext.SaveChanges();
                 mdLocation.Hide();
                 ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
-                KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
+                CheckinKioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
                 KioskDeviceHelpers.Clear( CurrentCheckInState.ConfiguredGroupTypes );
 
                 //Update the occurrence caches with the new numbers
@@ -1298,7 +1298,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 CloseOccurrence( occcurrence.GroupLocationId, occcurrence.ScheduleId, false );
             }
 
-            KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
+            CheckinKioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
             KioskDeviceHelpers.Clear( CurrentCheckInState.ConfiguredGroupTypes );
 
             BindTable();

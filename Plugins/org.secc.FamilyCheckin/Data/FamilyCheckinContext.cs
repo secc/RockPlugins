@@ -20,7 +20,7 @@ namespace org.secc.FamilyCheckin.Data
     public class FamilyCheckinContext : Rock.Data.DbContext
     {
         #region Models
-        public DbSet<KioskType> KioskTypes { get; set; }
+        public DbSet<CheckinKioskType> KioskTypes { get; set; }
         public DbSet<Kiosk> Kiosks { get; set; }
         public DbSet<MobileCheckinRecord> MobileCheckinRecords { get; set; }
         #endregion

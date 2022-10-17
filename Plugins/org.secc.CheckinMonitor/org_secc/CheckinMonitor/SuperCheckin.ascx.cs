@@ -1539,7 +1539,7 @@ try{{
 
         private void BindMCRRepeater()
         {
-            var kioskType = KioskTypeCache.All().Where( k => k.CheckinTemplateId == LocalDeviceConfig.CurrentCheckinTypeId ).FirstOrDefault();
+            var kioskType = CheckinKioskTypeCache.All().Where( k => k.CheckinTemplateId == LocalDeviceConfig.CurrentCheckinTypeId ).FirstOrDefault();
             var campus = kioskType.Campus;
 
             RockContext rockContext = new RockContext();

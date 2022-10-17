@@ -93,24 +93,24 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         protected void gKioskType_Delete( object sender, RowEventArgs e )
         {
             var checkinContext = new RockContext();
-            KioskTypeService KioskTypeService = new KioskTypeService( checkinContext );
-            org.secc.FamilyCheckin.Model.KioskType KioskType = KioskTypeService.Get( e.RowKeyId );
+            CheckinKioskTypeService CheckinKioskTypeService = new CheckinKioskTypeService( checkinContext );
+            CheckinKioskType KioskType = CheckinKioskTypeService.Get( e.RowKeyId );
 
             if ( KioskType != null )
             {
                 int kosktypeId = KioskType.Id;
 
                 string errorMessage;
-                if ( !KioskTypeService.CanDelete( KioskType, out errorMessage ) )
+                if ( !CheckinKioskTypeService.CanDelete( KioskType, out errorMessage ) )
                 {
                     mdGridWarning.Show( errorMessage, ModalAlertType.Information );
                     return;
                 }
 
-                KioskTypeService.Delete( KioskType );
+                CheckinKioskTypeService.Delete( KioskType );
                 checkinContext.SaveChanges();
 
-                KioskTypeCache.Clear();
+                CheckinKioskTypeCache.Clear();
                 KioskDeviceHelpers.Clear();
             }
 
@@ -135,7 +135,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         /// </summary>
         private void BindGrid()
         {
-            var kioskTypeService = new KioskTypeService( new RockContext() );
+            var kioskTypeService = new CheckinKioskTypeService( new RockContext() );
             var kioskTypes = kioskTypeService.Queryable()
                 .Select( kt => kt )
                 .OrderBy( k => k.Name )

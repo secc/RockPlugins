@@ -226,7 +226,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         private void BindDropDownList( Kiosk kiosk = null )
         {
             RockContext rockContext = new RockContext();
-            KioskTypeService kioskTypeService = new KioskTypeService( rockContext );
+            CheckinKioskTypeService kioskTypeService = new CheckinKioskTypeService( rockContext );
 
 
             ddlKioskType.DataSource = kioskTypeService

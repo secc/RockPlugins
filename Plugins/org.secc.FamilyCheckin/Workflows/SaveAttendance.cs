@@ -61,11 +61,11 @@ namespace org.secc.FamilyCheckin
             {
                 KioskService kioskService = new KioskService( rockContext );
                 var kioskTypeId = kioskService.GetByClientName( checkInState.Kiosk.Device.Name ).KioskTypeId;
-                var kioskType = KioskTypeCache.Get( kioskTypeId.Value );
+                var kioskType = CheckinKioskTypeCache.Get( kioskTypeId.Value );
                 var campusId = kioskType.CampusId;
                 if ( campusId == null )
                 {
-                    var compatableKioskType = KioskTypeCache.All().Where( kt => kt.CampusId.HasValue && kt.CheckinTemplateId == kioskType.CheckinTemplateId ).FirstOrDefault();
+                    var compatableKioskType = CheckinKioskTypeCache.All().Where( kt => kt.CampusId.HasValue && kt.CheckinTemplateId == kioskType.CheckinTemplateId ).FirstOrDefault();
                     if ( compatableKioskType != null )
                     {
                         campusId = compatableKioskType.CampusId;

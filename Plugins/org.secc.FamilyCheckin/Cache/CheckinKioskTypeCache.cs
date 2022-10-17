@@ -26,7 +26,7 @@ namespace org.secc.FamilyCheckin.Cache
 {
     [Serializable]
     [DataContract]
-    public class KioskTypeCache : ModelCache<KioskTypeCache, Model.KioskType>
+    public class CheckinKioskTypeCache : ModelCache<CheckinKioskTypeCache, Model.CheckinKioskType>
     {
         [DataMember]
         public string Name { get; set; }
@@ -95,13 +95,13 @@ namespace org.secc.FamilyCheckin.Cache
         {
             base.SetFromEntity( entity );
 
-            var kioskType = entity as Model.KioskType;
+            var kioskType = entity as Model.CheckinKioskType;
             if ( kioskType == null )
                 return;
 
             //Rock tries to go fast, but it doesn't work right in redis for what I'm doing.
             RockContext rockContext = new RockContext();
-            KioskTypeService kioskTypeService = new KioskTypeService( rockContext );
+            CheckinKioskTypeService kioskTypeService = new CheckinKioskTypeService( rockContext );
 
             var kioskdata = kioskTypeService.Queryable()
                 .Where( k => k.Id == kioskType.Id )
@@ -168,7 +168,7 @@ namespace org.secc.FamilyCheckin.Cache
         public static void FlushItem( int id )
         {
             var qualifiedKey = QualifiedKey( id.ToString() );
-            RockCacheManager<KioskTypeCache>.Instance.Remove( qualifiedKey );
+            RockCacheManager<CheckinKioskTypeCache>.Instance.Remove( qualifiedKey );
         }
 
         /// <summary>
@@ -178,9 +178,9 @@ namespace org.secc.FamilyCheckin.Cache
         public static void Verify( ref List<string> errors )
         {
             RockContext rockContext = new RockContext();
-            KioskTypeService kioskTypeService = new KioskTypeService( rockContext );
+            CheckinKioskTypeService kioskTypeService = new CheckinKioskTypeService( rockContext );
             var kioskTypes = kioskTypeService.Queryable().ToList();
-            var kioskTypeCaches = KioskTypeCache.All();
+            var kioskTypeCaches = CheckinKioskTypeCache.All();
 
             if ( kioskTypes.Count != kioskTypeCaches.Count )
             {
@@ -189,7 +189,7 @@ namespace org.secc.FamilyCheckin.Cache
 
             foreach ( var kioskType in kioskTypes )
             {
-                var kioskTypeCache = KioskTypeCache.Get( kioskType.Id );
+                var kioskTypeCache = CheckinKioskTypeCache.Get( kioskType.Id );
 
                 if ( kioskType.Name != kioskTypeCache.Name
                     || kioskType.CampusId != kioskTypeCache.CampusId

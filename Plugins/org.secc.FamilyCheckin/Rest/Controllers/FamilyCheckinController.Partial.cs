@@ -148,7 +148,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
         public HttpResponseMessage KioskStatus( int param )
         {
             CheckInState currentCheckInState;
-            var kioskType = KioskTypeCache.Get( param );
+            var kioskType = CheckinKioskTypeCache.Get( param );
             var Session = HttpContext.Current.Session;
             if ( Session["CheckInState"] != null )
             {

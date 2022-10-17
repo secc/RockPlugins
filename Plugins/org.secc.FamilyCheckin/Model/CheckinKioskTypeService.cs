@@ -17,13 +17,13 @@ using Rock.Data;
 
 namespace org.secc.FamilyCheckin.Model
 {
-    public class KioskTypeService : FamilyCheckinService<KioskType>
+    public class CheckinKioskTypeService : FamilyCheckinService<CheckinKioskType>
     {
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="KioskTypeService"/> class.
+        /// Initializes a new instance of the <see cref="CheckinKioskTypeService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public KioskTypeService( RockContext context ) : base( context ) { }
+        public CheckinKioskTypeService( RockContext context ) : base( context ) { }
     }
 }
