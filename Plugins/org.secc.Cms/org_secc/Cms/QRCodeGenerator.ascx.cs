@@ -199,10 +199,10 @@ namespace RockWeb.Plugins.org_secc.Cms
                 String csname1 = "qrCodeImageScript" + RockDateTime.Now.Ticks;
                 Type cstype = this.GetType();
                 var script = string.Format( @"
-let canvas = document.getElementById('qrCodeCanvas');
-let context = canvas.getContext('2d');
-let img1 = new Image();
-let img2 = new Image();
+var canvas = document.getElementById('qrCodeCanvas');
+var context = canvas.getContext('2d');
+var img1 = new Image();
+var img2 = new Image();
 
 img1.onload = function() {{
     canvas.width = img1.width;
@@ -214,12 +214,12 @@ img2.onload = function() {{
     context.drawImage(img1, 0, 0);
     context.drawImage(img2, ( canvas.width / 2 ) - ( img2.width / 2 ), ( canvas.height / 2 ) - ( img2.height / 2 ));
 
-    let aTag = document.createElement('a');
+    var aTag = document.createElement('a');
     aTag.download = ""QRCode.png"";
     aTag.href = canvas.toDataURL(""image/png"");
     aTag.innerHTML = ""Download"";
     aTag.className += ""btn btn-primary"";
-    let qrCodeDiv = document.getElementById('QrCodeDiv');
+    var qrCodeDiv = document.getElementById('QrCodeDiv');
     qrCodeDiv.appendChild(aTag);
 }};       
 
