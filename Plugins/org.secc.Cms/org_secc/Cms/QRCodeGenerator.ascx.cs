@@ -14,7 +14,15 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Web.UI;
+using org.secc.Imaging;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -42,6 +50,17 @@ namespace RockWeb.Plugins.org_secc.Cms
         IsRequired = false,
         DefaultIntegerValue = 7,
         Order = 1 )]
+    [FileField(
+        "Logo file",
+        Key = AttributeKey.Logo,
+        Description = "Logo to brand QR code",
+        Order = 2 )]
+    [TextField(
+        "Root URL",
+        Key = AttributeKey.RootURL,
+        Description = "The URL to use as the base of the shortlink (if blank, this will be the URL of the Default Site)",
+        IsRequired = false,
+        Order = 3)]
 
     #endregion Block Attributes
 
@@ -53,7 +72,9 @@ namespace RockWeb.Plugins.org_secc.Cms
         {
             public const string DefaultSite = "DefaultSite";
             public const string MinimumTokenLength = "MinimumTokenLength";
-            public const string Logo = "logo";
+            public const string Logo = "Logo";
+            public const string RootURL = "RootUrl";
+
 
         }
 
@@ -78,7 +99,7 @@ namespace RockWeb.Plugins.org_secc.Cms
 
         protected void btnCreate_Click( object sender, EventArgs e )
         {
-            var url = ulbUrl.Text;
+            var url = ulbUrl.Text.Trim();
             if ( !url.IsValidUrl() )
             {
                 nbError.Text = "Please enter a valid URL.";
@@ -90,6 +111,9 @@ namespace RockWeb.Plugins.org_secc.Cms
                 PageShortLink link = null;
                 var _minTokenLength = GetAttributeValue( "MinimumTokenLength" ).AsIntegerOrNull() ?? 7;
                 var _defaultSite = GetAttributeValue( "DefaultSite" ).AsIntegerOrNull();
+                var _logo = GetAttributeValue( "Logo" ).AsGuidOrNull();
+                var _rootUrl = GetAttributeValue( "RootUrl" );
+
                 int? siteId = _defaultSite.Value;
 
                 RockContext rockContext = new RockContext();
@@ -125,6 +149,10 @@ namespace RockWeb.Plugins.org_secc.Cms
                     return;
                 }
 
+                // Figure out how to create unique link per person?
+                //var currentUser = UserLoginService.GetCurrentUser();
+                //int? currentPersonId = currentUser != null ? currentUser.PersonId : null;
+
                 var existingLink = pageShortLinkService.Queryable().Where( l => l.Url == url ).FirstOrDefault();
                 if ( existingLink != null )
                 {
@@ -150,10 +178,56 @@ namespace RockWeb.Plugins.org_secc.Cms
 
                 var siteDomainService = new SiteDomainService( rockContext );
                 var siteUrl = siteDomainService.GetBySiteId( link.SiteId ).FirstOrDefault();
-                QrCode.ImageUrl = $"/GetQRCode.ashx?data=http://{siteUrl}/{link.Token}";
-                QrCode.AlternateText = $"http://{siteUrl}/{token}";
-                QrCode.Visible = true;
+
+                var qrCodeUrl = "/GetQRCode.ashx?data=";
+                if ( _rootUrl != null )
+                {
+                    qrCodeUrl += $"{_rootUrl}/{link.Token}";
+                }
+                else
+                {
+                    qrCodeUrl += $"http://{siteUrl}/{link.Token}";
+                } 
+
+                String logoUrl = "";
+                if ( _logo != null )
+                {
+                    logoUrl = $"/GetImage.ashx?guid={_logo}";
+                }
+
+
+                String csname1 = "qrCodeImageScript" + RockDateTime.Now.Ticks;
+                Type cstype = this.GetType();
+                var script = string.Format( @"
+let canvas = document.getElementById('qrCodeCanvas');
+let context = canvas.getContext('2d');
+let img1 = new Image();
+let img2 = new Image();
+
+img1.onload = function() {{
+    canvas.width = img1.width;
+    canvas.height = img1.height;
+    img2.src = '{0}';
+}};
+img2.onload = function() {{
+    context.globalAlpha = 1.0;
+    context.drawImage(img1, 0, 0);
+    context.drawImage(img2, ( canvas.width / 2 ) - ( img2.width / 2 ), ( canvas.height / 2 ) - ( img2.height / 2 ));
+
+    let aTag = document.createElement('a');
+    aTag.download = ""QRCode.png"";
+    aTag.href = canvas.toDataURL(""image/png"");
+    aTag.innerHTML = ""Download"";
+    aTag.className += ""btn btn-primary"";
+    let qrCodeDiv = document.getElementById('QrCodeDiv');
+    qrCodeDiv.appendChild(aTag);
+}};       
+
+img1.src = '{1}';", logoUrl, qrCodeUrl );
+                ScriptManager.RegisterStartupScript( upnlQRCodeGenerator, typeof( UpdatePanel ), csname1, script, true );
+
             }
+
         }
 
     }
