@@ -7,11 +7,8 @@
             <Rock:UrlLinkBox class="col-md-4" runat="server" ID="ulbUrl" Required="true" RequiredErrorMessage="A URL is Required" Help="Creates a shortlink and then displays a QR code for that shortlink" Label="URL" />
             <Rock:BootstrapButton runat="server" ID="btnCreate" OnClick="btnCreate_Click" Text="Create" CssClass="btn btn-primary" />
         
-        
             <div id="QrCodeDiv">
                 <canvas id="qrCodeCanvas"></canvas>
-                </div>
-                
             </div>
         </div>
     </ContentTemplate>

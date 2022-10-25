@@ -14,15 +14,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.NetworkInformation;
 using System.Web.UI;
-using org.secc.Imaging;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -60,7 +53,7 @@ namespace RockWeb.Plugins.org_secc.Cms
         Key = AttributeKey.RootURL,
         Description = "The URL to use as the base of the shortlink (if blank, this will be the URL of the Default Site)",
         IsRequired = false,
-        Order = 3)]
+        Order = 3 )]
 
     #endregion Block Attributes
 
@@ -187,7 +180,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                 else
                 {
                     qrCodeUrl += $"http://{siteUrl}/{link.Token}";
-                } 
+                }
 
                 String logoUrl = "";
                 if ( _logo != null )
