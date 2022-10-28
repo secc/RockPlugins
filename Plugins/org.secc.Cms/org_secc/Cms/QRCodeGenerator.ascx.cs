@@ -175,11 +175,11 @@ namespace RockWeb.Plugins.org_secc.Cms
                 var qrCodeUrl = "/GetQRCode.ashx?data=";
                 if ( _rootUrl != null )
                 {
-                    qrCodeUrl += $"{_rootUrl}/{link.Token}";
+                    qrCodeUrl += $"{_rootUrl}/{link.Token}&outputType=svg";
                 }
                 else
                 {
-                    qrCodeUrl += $"http://{siteUrl}/{link.Token}";
+                    qrCodeUrl += $"http://{siteUrl}/{link.Token}&outputType=svg";
                 }
 
                 String logoUrl = "";
@@ -194,18 +194,24 @@ namespace RockWeb.Plugins.org_secc.Cms
                 var script = string.Format( @"
 var canvas = document.getElementById('qrCodeCanvas');
 var context = canvas.getContext('2d');
+var qrCodeDiv = document.getElementById('QrCodeDiv');
+
 var img1 = new Image();
 var img2 = new Image();
 
 img1.onload = function() {{
-    canvas.width = img1.width;
-    canvas.height = img1.height;
+    canvas.width = qrCodeDiv.offsetWidth;
+    canvas.height = qrCodeDiv.offsetWidth;
     img2.src = '{0}';
 }};
 img2.onload = function() {{
     context.globalAlpha = 1.0;
-    context.drawImage(img1, 0, 0);
-    context.drawImage(img2, ( canvas.width / 2 ) - ( img2.width / 2 ), ( canvas.height / 2 ) - ( img2.height / 2 ));
+    context.drawImage(img1, 0, 0, canvas.width, canvas.height);
+    context.drawImage(img2,
+        ( canvas.width / 2 ) - ( ( canvas.width / 5) / 2 ),
+        ( canvas.height / 2 ) - ( ( canvas.height / 5 ) / 2 ),
+        ( canvas.width / 5 ),
+        ( canvas.height / 5 ));
 
     var aTag = document.createElement('a');
     aTag.download = ""QRCode.png"";
