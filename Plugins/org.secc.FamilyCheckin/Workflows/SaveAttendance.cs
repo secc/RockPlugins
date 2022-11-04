@@ -39,6 +39,8 @@ namespace org.secc.FamilyCheckin
     [ExportMetadata( "ComponentName", "Save Attendance Custom" )]
 
     [BooleanField( "Is Mobile", "If this is a mobile check-in and needs to have its attendances set as RSVP and stored in an entity set, set true.", false )]
+    [BooleanField( "Is Super Check-in", "If this is a super check-in and needs to be noted so, set true.", false )]
+
     public class SaveAttendance : CheckInActionComponent
     {
         /// <summary>
@@ -53,6 +55,8 @@ namespace org.secc.FamilyCheckin
         public override bool Execute( RockContext rockContext, Rock.Model.WorkflowAction action, Object entity, out List<string> errorMessages )
         {
             var isMobile = GetAttributeValue( action, "IsMobile" ).AsBoolean();
+            var isSuper = GetAttributeValue( action, "IsSuperCheck-in" ).AsBoolean();
+
             var mobileDidAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_DID_ATTEND ).Id;
             var mobileNotAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_NOT_ATTEND ).Id;
 
@@ -166,7 +170,7 @@ namespace org.secc.FamilyCheckin
                                             attendance.CreatedDateTime = startDateTime;
                                             attendance.StartDateTime = startDateTime;
                                             attendance.EndDateTime = null;
-                                            attendance.Note = group.Notes;
+                                            attendance.Note = isSuper ? group.Notes + " * super check-in * " : group.Notes;
                                             attendance.DidAttend = isMobile ? false : groupType.GroupType.GetAttributeValue( "SetDidAttend" ).AsBoolean();
                                             if ( isMobile )
                                             {
