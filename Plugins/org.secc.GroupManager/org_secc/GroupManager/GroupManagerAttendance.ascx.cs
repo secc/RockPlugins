@@ -116,67 +116,141 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         private void BindDropDown()
         {
             RockContext rockContext = new RockContext();
+            var startDate = RockDateTime.Today.AddYears( -1 );
+            var enddate = RockDateTime.Today.AddDays( 1 );
 
             if ( CurrentGroup.Schedule != null )
             {
-                AttendanceService attendanceService = new AttendanceService( rockContext );
-                var occurances = attendanceService.Queryable().Where( a => a.Occurrence.GroupId == CurrentGroup.Id )
-                    .DistinctBy( s => s.StartDateTime )
-                    .Select( s => s.StartDateTime )
+                var attendanceOccurrenceService = new AttendanceOccurrenceService( rockContext );
+
+                var occurrenceQry = attendanceOccurrenceService.Queryable().AsNoTracking()
+                    .Where( o => o.GroupId == CurrentGroup.Id )
+                    .Where( o => o.OccurrenceDate > startDate && o.OccurrenceDate < enddate )
+                    .AsQueryable();
+
+                var locations = occurrenceQry.Where(l => l.LocationId.HasValue).Select( l => l.LocationId.Value ).ToList();
+                var schedules = occurrenceQry.Where(s => s.ScheduleId.HasValue).Select( s => s.ScheduleId.Value ).ToList();
+
+                if(CurrentGroup.ScheduleId.HasValue && !schedules.Contains(CurrentGroup.ScheduleId.Value))
+                {
+                    schedules.Add( CurrentGroup.ScheduleId.Value );
+                }
+
+                foreach ( var item in CurrentGroup.GroupLocations )
+                {
+                    if(!locations.Contains(item.LocationId))
+                    {
+                        locations.Add( item.LocationId );
+                    }
+                }
+
+
+                var scheduledOccurrences = attendanceOccurrenceService.GetGroupOccurrences( CurrentGroup, startDate, enddate, locations, schedules );
+
+                var occurrences = occurrenceQry
+                    .Include(o => o.Schedule)
+                    .OrderByDescending(o => o.OccurrenceDate)
                     .Take( 50 )
                     .ToList()
-                    .Select( s => new
+                    .Select( o => new GroupManagerOccurrenceSummary
                     {
-                        Id = ( s - new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc ) ).TotalSeconds,
-                        Name = s.ToString( "MMM d, yyyy -  h:mmtt" )
+                        OccurrenceId = ( int? ) o.Id,
+                        GroupId = o.GroupId,
+                        LocationId = o.LocationId,
+                        ScheduleId = o.ScheduleId,
+                        OccurrenceDate = o.OccurrenceDate,
+                        StartDateTime = o.Schedule.GetNextStartDateTime(o.OccurrenceDate)
                     } )
                     .ToList();
 
-                if ( CurrentGroup.Schedule.ScheduleType == ScheduleType.Named
-                    || CurrentGroup.Schedule.ScheduleType == ScheduleType.Custom )
+                foreach ( var item in scheduledOccurrences )
                 {
+                    var occurrenceCreated = occurrences.Where( o => o.GroupId == item.GroupId )
+                        .Where( o => o.OccurrenceDate == item.OccurrenceDate )
+                        .Where( o => o.ScheduleId == item.ScheduleId )
+                        .Where( o => o.LocationId == item.LocationId )
+                        .Any();
 
-                    var prevSchedules = CurrentGroup.Schedule
-                        .GetScheduledStartTimes( Rock.RockDateTime.Today.AddYears( -1 ), Rock.RockDateTime.Today.AddDays( 1 ) )
-                        .OrderByDescending( o => o )
-                        .Take( 10 )
-                        .Select( s => new
-                        {
-                            Id = ( s - new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc ) ).TotalSeconds,
-                            Name = s.ToString( "MMM d, yyyy -  h:mmtt" )
-                        } )
-                        .Where( a => !occurances.Select( o => o.Id ).Contains( a.Id ) )
-                        .ToList();
-                    occurances.AddRange( prevSchedules );
-                }
-                else if ( CurrentGroup.Schedule.ScheduleType == ScheduleType.Weekly )
-                {
-                    var schedules = new List<DateTime>();
-
-                    DateTime lastSchedule = Rock.RockDateTime.Today;
-                    //Crawl backward to find the last time this occured
-                    while ( lastSchedule.DayOfWeek != CurrentGroup.Schedule.WeeklyDayOfWeek )
+                    if(!occurrenceCreated)
                     {
-                        lastSchedule = lastSchedule.AddDays( -1 );
-                    }
-                    lastSchedule = lastSchedule.AddMinutes( CurrentGroup.Schedule.WeeklyTimeOfDay.Value.TotalMinutes );
-                    schedules.Add( lastSchedule );
-                    for ( int i = 1; i < 10; i++ )
-                    {
-                        schedules.Add( lastSchedule.AddDays( i * -7 ) );
-                    }
-                    occurances.AddRange( schedules
-                        .Select( s => new
+                        occurrences.Add( new GroupManagerOccurrenceSummary
                         {
-                            Id = ( s - new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc ) ).TotalSeconds,
-                            Name = s.ToString( "MMM d, yyyy -  h:mmtt" )
-                        }
-                         )
-                         .Where( a => !occurances.Select( o => o.Id ).Contains( a.Id ) )
-                         );
+                            GroupId = item.GroupId,
+                            LocationId = item.LocationId,
+                            ScheduleId = item.ScheduleId,
+                            OccurrenceDate = item.OccurrenceDate,
+                            StartDateTime = item.Schedule.GetNextStartDateTime( item.OccurrenceDate )
+                        } );
+                    }
                 }
 
-                ddlOccurence.DataSource = occurances.OrderByDescending( o => o.Id );
+
+                //AttendanceService attendanceService = new AttendanceService( rockContext );
+                //var occurances = attendanceService.Queryable().Where( a => a.Occurrence.GroupId == CurrentGroup.Id )
+                //    .DistinctBy( s => s.StartDateTime )
+                //    .Select( s => s.StartDateTime )
+                //    .Take( 50 )
+                //    .ToList()
+                //    .Select( s => new
+                //    {
+                //        Id = ( s - new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc ) ).TotalSeconds,
+                //        Name = s.ToString( "MMM d, yyyy -  h:mmtt" )
+                //    } )
+                //    .ToList();
+
+                //if ( CurrentGroup.Schedule.ScheduleType == ScheduleType.Named
+                //    || CurrentGroup.Schedule.ScheduleType == ScheduleType.Custom )
+                //{
+
+                //    var prevSchedules = CurrentGroup.Schedule
+                //        .GetScheduledStartTimes( Rock.RockDateTime.Today.AddYears( -1 ), Rock.RockDateTime.Today.AddDays( 1 ) )
+                //        .OrderByDescending( o => o )
+                //        .Take( 10 )
+                //        .Select( s => new
+                //        {
+                //            Id = ( s - new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc ) ).TotalSeconds,
+                //            Name = s.ToString( "MMM d, yyyy -  h:mmtt" )
+                //        } )
+                //        .Where( a => !occurances.Select( o => o.Id ).Contains( a.Id ) )
+                //        .ToList();
+                //    occurances.AddRange( prevSchedules );
+                //}
+                //else if ( CurrentGroup.Schedule.ScheduleType == ScheduleType.Weekly )
+                //{
+                //    var schedules = new List<DateTime>();
+
+                //    DateTime lastSchedule = Rock.RockDateTime.Today;
+                //    //Crawl backward to find the last time this occured
+                //    while ( lastSchedule.DayOfWeek != CurrentGroup.Schedule.WeeklyDayOfWeek )
+                //    {
+                //        lastSchedule = lastSchedule.AddDays( -1 );
+                //    }
+                //    lastSchedule = lastSchedule.AddMinutes( CurrentGroup.Schedule.WeeklyTimeOfDay.Value.TotalMinutes );
+                //    schedules.Add( lastSchedule );
+                //    for ( int i = 1; i < 10; i++ )
+                //    {
+                //        schedules.Add( lastSchedule.AddDays( i * -7 ) );
+                //    }
+                //    occurances.AddRange( schedules
+                //        .Select( s => new
+                //        {
+                //            Id = ( s - new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc ) ).TotalSeconds,
+                //            Name = s.ToString( "MMM d, yyyy -  h:mmtt" )
+                //        }
+                //         )
+                //         .Where( a => !occurances.Select( o => o.Id ).Contains( a.Id ) )
+                //         );
+                //}
+
+                ddlOccurence.DataSource = occurrences
+                    .OrderByDescending( o => o.StartDateTime )
+                    .Take( 50 )
+                    .Select( o => new
+                    {
+                        Id = o.ToString(),
+                        Name = $"{o.StartDateTime: MMM d, yyy h:mmtt}"
+                    } )
+                    .ToList();
                 ddlOccurence.DataBind();
 
                 //Drop down for filter values
@@ -210,27 +284,34 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             if ( CurrentGroup != null )
             {
-                if ( ddlOccurence.SelectedValue.AsInteger() != 0 )
+                if ( ddlOccurence.SelectedValue.IsNotNullOrWhiteSpace() )
                 {
-                    //The drop down stores the time in unix time
-                    var occurenceDate = new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Local )
-                         .AddSeconds( ddlOccurence.SelectedValue.AsInteger() );
+                    var values = ddlOccurence.SelectedValue.Split( "^".ToCharArray() )
+                        .Select( o => new { Key = o.Split( ":".ToCharArray() )[0], Value = o.Split( ":".ToCharArray() )[1] } )
+                        .ToDictionary( v => v.Key, v => v.Value );
+
+                    var groupId = values["G"].AsInteger();
+                    var locationId = values["L"].AsIntegerOrNull();
+                    var scheduleId = values["S"].AsIntegerOrNull();
+                    var occurrenceDate = new DateTime( values["D"].Substring( 0, 4 ).AsInteger(), values["D"].Substring( 4, 2 ).AsInteger(), values["D"].Substring( 6, 2 ).AsInteger() );
+
 
                     var attendanceData = new AttendanceService( _rockContext )
                         .Queryable( "PersonAlias" )
-                        .Where( a => a.Occurrence.GroupId == CurrentGroup.Id && a.StartDateTime == occurenceDate );
+                        .Where( a => a.Occurrence.GroupId == groupId && a.Occurrence.LocationId == locationId && a.Occurrence.ScheduleId == scheduleId && a.Occurrence.OccurrenceDate == occurrenceDate );
 
 
                     var attendanceOccurenceService = new AttendanceOccurrenceService( _rockContext );
                     if ( cbDidNotMeet.Checked == true )
                     {
-                        var occurrence = attendanceOccurenceService.Get( occurenceDate.Date, CurrentGroup.Id, null, CurrentGroup.ScheduleId );
+                        var occurrence = attendanceOccurenceService.Get( occurrenceDate, groupId, locationId, scheduleId);
                         if ( occurrence == null )
                         {
                             occurrence = new AttendanceOccurrence();
-                            occurrence.OccurrenceDate = occurenceDate;
-                            occurrence.GroupId = CurrentGroup.Id;
-                            occurrence.ScheduleId = CurrentGroup.ScheduleId;
+                            occurrence.OccurrenceDate = occurrenceDate;
+                            occurrence.GroupId = groupId;
+                            occurrence.ScheduleId = scheduleId;
+                            occurrence.LocationId = locationId;
                             attendanceOccurenceService.Add( occurrence );
                         }
                         occurrence.DidNotOccur = true;
@@ -256,7 +337,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                                 var attendancePerson = new PersonService( _rockContext ).Get( personId );
                                 if ( attendancePerson != null && attendancePerson.PrimaryAliasId.HasValue )
                                 {
-                                    attendanceItem = attendanceService.AddOrUpdate( attendancePerson.PrimaryAliasId.Value, occurenceDate, CurrentGroup.Id, null, CurrentGroup.ScheduleId, CurrentGroup.CampusId );
+                                    attendanceItem = attendanceService.AddOrUpdate( attendancePerson.PrimaryAliasId.Value, occurrenceDate, groupId, locationId, scheduleId, CurrentGroup.CampusId );
                                 }
                             }
 
@@ -367,15 +448,23 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             lMembers.Text = CurrentGroup.GroupType.GroupMemberTerm.Pluralize();
             lPendingMembers.Text = "Pending " + lMembers.Text;
 
-            if ( ddlOccurence.SelectedValue.AsInteger() != 0 )
+            if ( !String.IsNullOrWhiteSpace( ddlOccurence.SelectedValue ) )
             {
-                //The drop down stores the time in unix time
-                var occurenceDate = new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Local )
-                     .AddSeconds( ddlOccurence.SelectedValue.AsInteger() );
+                var itemKey = ddlOccurence.SelectedValue.Split( "^".ToCharArray() )
+                    .ToList()
+                    .Select( v => new { Key = v.Split( ":".ToCharArray() )[0], Value = v.Split( ":".ToCharArray() )[1] } )
+                    .ToDictionary( v => v.Key, v => v.Value );
+
+                var groupId = itemKey["G"].AsInteger();
+                var locationId = itemKey["L"].AsIntegerOrNull();
+                var scheduleId = itemKey["S"].AsIntegerOrNull();
+                var occurrenceDate = new DateTime( itemKey["D"].Substring( 0, 4 ).AsInteger(), itemKey["D"].Substring( 4, 2 ).AsInteger(), itemKey["D"].Substring( 6, 2 ).AsInteger() );
+
+    
 
                 var attendanceData = new AttendanceService( _rockContext )
                     .Queryable()
-                    .Where( a => a.Occurrence.GroupId == CurrentGroup.Id && a.StartDateTime == occurenceDate )
+                    .Where( a => a.Occurrence.GroupId == groupId && a.Occurrence.LocationId == locationId && a.Occurrence.ScheduleId == scheduleId && a.Occurrence.OccurrenceDate == occurrenceDate )
                     .ToList();
 
                 lvMembers.Items.Clear();
@@ -411,7 +500,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 lvMembers.DataBind();
 
                 AttendanceOccurrenceService attendanceOccurenceService = new AttendanceOccurrenceService( _rockContext );
-                var occurrence = attendanceOccurenceService.Get( occurenceDate.Date, CurrentGroup.Id, null, CurrentGroup.ScheduleId );
+                var occurrence = attendanceOccurenceService.Get( occurrenceDate, groupId, locationId, scheduleId );
 
                 cbDidNotMeet.Checked = (
                        ( attendanceData.Where( a => a.DidAttend == true ).Count() <= 0
@@ -545,6 +634,21 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         protected void ddlFilter_SelectedIndexChanged( object sender, EventArgs e )
         {
             ShowDetails();
+        }
+    }
+
+    public class GroupManagerOccurrenceSummary
+    {
+        public int? OccurrenceId { get; set; }
+        public int? GroupId { get; set; }
+        public int? LocationId { get; set; }
+        public int? ScheduleId { get; set; }
+        public DateTime OccurrenceDate { get; set; }
+        public DateTime? StartDateTime { get; set; }
+
+        public override string ToString()
+        {
+            return $"G:{GroupId}^L:{LocationId}^S:{ScheduleId}^D:{OccurrenceDate:yyyyMMdd}";
         }
     }
 }
