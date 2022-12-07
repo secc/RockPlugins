@@ -13,8 +13,11 @@
 // </copyright>
 using System;
 using System.ComponentModel;
+using System.Threading;
 using System.Threading.Tasks;
 using org.secc.Imaging.AI;
+using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 
@@ -26,12 +29,16 @@ namespace RockWeb.Plugins.org_secc.Imaging
     [DisplayName( "Update Person Image" )]
     [Category( "SECC > Imaging" )]
     [Description( "Uses sql to update person images from binary files cropping the images with AI" )]
+    [IntegerField("Execution Delay","How many milliseconds to delay between each execution to stay under transaction per second limit.",false,0)]
 
     public partial class UpdatePersonImage : Rock.Web.UI.RockBlock
     {
+        protected static class AttributeKeys
+        {
+            internal const string ExecutionDelay = "ExecutionDelay";
+        }
+
         #region Base Control Methods
-
-
 
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
@@ -40,8 +47,6 @@ namespace RockWeb.Plugins.org_secc.Imaging
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-
-
         }
 
         #endregion
@@ -51,6 +56,8 @@ namespace RockWeb.Plugins.org_secc.Imaging
             FaceCrop face = new FaceCrop();
 
             var sql = ceQuery.Text;
+
+            int? delay = GetAttributeValue( "ExecutionDelay" ).AsIntegerOrNull();
 
             RockContext rockContext = new RockContext();
             var personService = new PersonService( rockContext );
@@ -63,6 +70,10 @@ namespace RockWeb.Plugins.org_secc.Imaging
                 if ( person != null && binaryFile != null )
                 {
                     var task = Task.Run( async () => await face.UpdatePhoto( person, binaryFile ) );
+                    if (!delay.IsNullOrZero())
+                    {
+                        Thread.Sleep( delay.Value );
+                    }
                 }
             }
 
