@@ -95,16 +95,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     {
                         pnlDidNotMeet.Visible = false;
                     }
-
-                    if(GroupUsesGroupTracker())
-                    {
-                        var groupTrackerLink = LinkedPageUrl( "GroupTracker" );
-                        lbSave.Visible = false;
-                        nbNotice.Heading = "View Only Mode";
-                        nbNotice.Text = $"<p>Please use <a href='{groupTrackerLink}'>Group Tracker</a> to enter attendance.";
-                        nbNotice.NotificationBoxType = NotificationBoxType.Info;
-                        nbNotice.Visible = true;
-                    }
                 }
                 else
                 {
@@ -113,10 +103,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     nbNotice.NotificationBoxType = NotificationBoxType.Danger;
                     nbNotice.Visible = true;
                 }
-            }
-            else
-            {
-
             }
 
             if ( GetAttributeValue( "AutoCount" ).AsBoolean() )
@@ -156,22 +142,26 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             GroupId = CurrentGroup.Id,
                             ScheduleId = CurrentGroup.ScheduleId,
                             LocationId = CurrentGroup.GroupLocations.Any() ? ( int? ) CurrentGroup.GroupLocations.Select( l => l.LocationId ).FirstOrDefault() : null,
-                            StartDateTime = p.Add( CurrentGroup.Schedule.StartTimeOfDay )
+                            StartDateTime = CurrentGroup.Schedule.GetNextStartDateTime( p )
                         } )
                         .ToList() );
+                    
 
 
                     foreach ( var occurrence in existingOccurrences )
                     {
                         var selectedOccurrence = occurrences
-                            .Where( o => o.OccurrenceDate == occurrence.OccurrenceDate )
-                            .Where( o => o.LocationId == occurrence.LocationId )
+                            .Where( o => o.OccurrenceDate.Date == occurrence.OccurrenceDate.Date )
                             .Where( o => o.ScheduleId == occurrence.ScheduleId )
                             .FirstOrDefault();
 
                         if ( selectedOccurrence != null )
                         {
                             selectedOccurrence.OccurrenceId = occurrence.Id;
+                            if(!selectedOccurrence.LocationId.HasValue)
+                            {
+                                selectedOccurrence.LocationId = occurrence.LocationId;
+                            }
                         }
                     }
                 }
@@ -493,7 +483,17 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 {
                     lbDidNotMeet.AddCssClass( "active" );
                 }
-                cbDidNotMeet.Attributes.Add( "disabled", "true" );
+
+                if ( GroupUsesGroupTracker() )
+                {
+                    var groupTrackerLink = LinkedPageUrl( "GroupTracker" );
+                    lbSave.Visible = false;
+                    nbNotice.Heading = "View Only Mode";
+                    nbNotice.Text = $"<p>Please use <a href='{groupTrackerLink}'>Group Tracker</a> to enter attendance.";
+                    nbNotice.NotificationBoxType = NotificationBoxType.Info;
+                    nbNotice.Visible = true;
+
+                }
             }
 
 
