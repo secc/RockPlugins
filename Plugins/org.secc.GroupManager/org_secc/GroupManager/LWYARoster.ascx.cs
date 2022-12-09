@@ -1015,15 +1015,18 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 // Add Table Number
                 string TableNumberKey = GetAttributeValue( AttributeKey.TableNumberAttributeKey );
-                var groupMemberService = new GroupMemberService( _rockContext );
-                var currentGroupMember = groupMemberService.GetByPersonId( CurrentPerson.Id ).AsQueryable().AsNoTracking()
-                    .Where( gm => gm.GroupId == CurrentGroup.Id ).FirstOrDefault();
-                var newGroupMember = groupMemberService.GetByPersonId( person.Id ).AsQueryable().AsNoTracking()
-                    .Where( gm => gm.GroupId == CurrentGroup.Id ).FirstOrDefault();
-                currentGroupMember.LoadAttributes();
-                newGroupMember.LoadAttributes();
-                newGroupMember.SetAttributeValue( TableNumberKey, currentGroupMember.GetAttributeValue( TableNumberKey ) );
-                newGroupMember.SaveAttributeValue( TableNumberKey );
+                if ( TableNumberKey.IsNotNullOrWhiteSpace() )
+                {
+                    var groupMemberService = new GroupMemberService( _rockContext );
+                    var currentGroupMember = groupMemberService.GetByPersonId( CurrentPerson.Id ).AsQueryable().AsNoTracking()
+                        .Where( gm => gm.GroupId == CurrentGroup.Id ).FirstOrDefault();
+                    var newGroupMember = groupMemberService.GetByPersonId( person.Id ).AsQueryable().AsNoTracking()
+                        .Where( gm => gm.GroupId == CurrentGroup.Id ).FirstOrDefault();
+                    currentGroupMember.LoadAttributes();
+                    newGroupMember.LoadAttributes();
+                    newGroupMember.SetAttributeValue( TableNumberKey, currentGroupMember.GetAttributeValue( TableNumberKey ) );
+                    newGroupMember.SaveAttributeValue( TableNumberKey );
+                }
 
                 //Mark That We Created a New Person and Clear Form
                 //hfUpdated.Value = "true";
