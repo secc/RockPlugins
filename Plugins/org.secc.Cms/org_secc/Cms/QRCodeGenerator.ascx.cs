@@ -15,7 +15,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web.UI;
+using RestSharp.Extensions;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -92,7 +94,12 @@ namespace RockWeb.Plugins.org_secc.Cms
 
         protected void btnCreate_Click( object sender, EventArgs e )
         {
-            var url = ulbUrl.Text.Trim();
+            var url = tbUrl.Text.Trim();
+ 
+            if (!Regex.IsMatch( url, "^http(s)?://" ) )
+            {
+                url = "http://" + url;
+            }
             if ( !url.IsValidUrl() )
             {
                 nbError.Text = "Please enter a valid URL.";
@@ -141,10 +148,6 @@ namespace RockWeb.Plugins.org_secc.Cms
                     nbError.Visible = true;
                     return;
                 }
-
-                // Figure out how to create unique link per person?
-                //var currentUser = UserLoginService.GetCurrentUser();
-                //int? currentPersonId = currentUser != null ? currentUser.PersonId : null;
 
                 var existingLink = pageShortLinkService.Queryable().Where( l => l.Url == url ).FirstOrDefault();
                 if ( existingLink != null )
