@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Web.UI;
@@ -47,8 +48,21 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [TextField( "Safe Sender Email", "If the current users email address is not from a safe sender, the email address to use.", category: "Email Settings" )]
     [DefinedTypeField( "Mail Relay Domain Blacklist", "The Defined Type containing the blacklist of restricted domains for relaying email.", false, key: "RestrictedDomains", category: "Email Settings" )]
     [TextField( "From Email Help", "The help text for the \"From Email\" field", true, "Certain email providers (such as aol.com and yahoo.com) do not permit relaying email from your email address on our servers.  Please select the email address you want this email to be sent from.", category: "Email Settings" )]
+    [TextField( "Table Number Attribute Key", "Set the Attribute Key of the Table Number group member attribute.", false )]
+
     public partial class LWYARoster : GroupManagerBlock
     {
+        #region Keys
+
+        /// <summary>
+        /// Keys to use for the attributes
+        /// </summary>
+        public static class AttributeKey
+        {
+            public const string TableNumberAttributeKey = "TableNumberAttributeKey";
+        }
+        #endregion
+
         List<GroupMemberData> memberData = new List<GroupMemberData>();
         string smsScript = @"
             var charCount = function(){
@@ -998,6 +1012,21 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 pnlForm.Visible = false;
                 pnlResults.Visible = true;
                 ltResults.Text = person.FullName + " has been added to your group.";
+
+                // Add Table Number
+                string TableNumberKey = GetAttributeValue( AttributeKey.TableNumberAttributeKey );
+                if ( TableNumberKey.IsNotNullOrWhiteSpace() )
+                {
+                    var groupMemberService = new GroupMemberService( _rockContext );
+                    var currentGroupMember = groupMemberService.GetByPersonId( CurrentPerson.Id ).AsQueryable().AsNoTracking()
+                        .Where( gm => gm.GroupId == CurrentGroup.Id ).FirstOrDefault();
+                    var newGroupMember = groupMemberService.GetByPersonId( person.Id ).AsQueryable().AsNoTracking()
+                        .Where( gm => gm.GroupId == CurrentGroup.Id ).FirstOrDefault();
+                    currentGroupMember.LoadAttributes();
+                    newGroupMember.LoadAttributes();
+                    newGroupMember.SetAttributeValue( TableNumberKey, currentGroupMember.GetAttributeValue( TableNumberKey ) );
+                    newGroupMember.SaveAttributeValue( TableNumberKey );
+                }
 
                 //Mark That We Created a New Person and Clear Form
                 //hfUpdated.Value = "true";
