@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
@@ -770,7 +770,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             {
                 ID = $"tbEmail{panelWidgetId}",
                 Label = "Verify Email Address",
-                Help = "Your meail address will be updated to the address entered here and your "
+                Help = "Your email address will be updated to the address entered here and your "
                     + "preferences will be set to Email Allowed.",
                 Text = Person != null ? Person.Email : String.Empty
             };
