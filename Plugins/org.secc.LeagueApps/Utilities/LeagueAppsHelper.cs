@@ -167,6 +167,18 @@ namespace org.secc.LeagueApps.Utilities
                     person.Gender = Gender.Unknown;
                 }
 
+                if(member.mobilePhone.IsNotNullOrWhiteSpace() && member.mobilePhone.StartsWith("+1"))
+                {
+                    var cleanNumber = PhoneNumber.CleanNumber( member.mobilePhone );
+                    person.PhoneNumbers.Add( new PhoneNumber
+                    {
+                        Number = cleanNumber.Right( 10 ),
+                        CountryCode = PhoneNumber.DefaultCountryCode(),
+                        NumberTypeValueId = DefinedValueCache.GetId( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ),
+                        IsUnlisted = false
+                    } );
+                }
+
                 locationService.Verify( location, true );
                 bool existingFamily = false;
 
