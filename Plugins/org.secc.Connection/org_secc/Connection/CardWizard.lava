@@ -103,7 +103,7 @@
 
     $(document).ready(function() {
        $('#signup-container').css('display', 'block');
-       resizeblock('#{% assign showDiv = 'Global' | PageParameter:'show' | Size > 0 %}{% if show > 0 %}{{'Global' | PageParameter:'show'}}{% else %}signup{% endif %}');
+       resizeblock('#{% assign showDiv = 'Global' | PageParameter:'show' | Size  %}{% if showDiv > 0 %}{{'Global' | PageParameter:'show'}}{% else %}signup{% endif %}');
     });
 
 	$(window).on("popstate", function(e) {
