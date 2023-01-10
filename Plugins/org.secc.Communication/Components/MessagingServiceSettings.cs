@@ -1,8 +1,11 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Linq;
 using org.secc.DevLib.Components;
+using Rock;
 using Rock.Attribute;
-
+using Rock.Security;
+using Rock.Web.Cache;
 
 namespace org.secc.Communication.Components
 {
@@ -53,6 +56,21 @@ namespace org.secc.Communication.Components
             public const string MESSAGING_API_KEY = "MessagingApiKey";
             public const string SMS_DEFINED_TYPE = "SMSDefinedType";
             public const string KEYWORD_APPROVER_ROLES = "KeywordApproverRoles";
+        }
+
+        public SECCMessagingSettings GetSettings()
+        {
+            return new SECCMessagingSettings
+            {
+                MessagingUrl = GetAttributeValue( ComponentAttributeKeys.MESSAGING_API_URL ),
+                MessagingKey = Encryption.DecryptString( GetAttributeValue( ComponentAttributeKeys.MESSAGING_API_KEY ) ),
+                RockSMSNumbersDefinedType = DefinedTypeCache.Get( GetAttributeValue( ComponentAttributeKeys.SMS_DEFINED_TYPE ).AsGuid() ),
+                ApproverGroupGuids = GetAttributeValue( ComponentAttributeKeys.KEYWORD_APPROVER_ROLES ).SplitDelimitedValues()
+                    .Select( v => v.AsGuidOrNull() )
+                    .Where( v => v.HasValue )
+                    .Select( v => v.Value )
+                    .ToList()
+            };
         }
 
         public override string Name => "SECC Messaging";

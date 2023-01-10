@@ -74,6 +74,10 @@
     <Compile Include="Data\CommunicationDataContext.cs" />
     <Compile Include="Data\CommunicationDataService.cs" />
     <Compile Include="Jobs\SyncTwilioHistory.cs" />
+    <Compile Include="MessagingClient.cs" />
+    <Compile Include="Messaging\Model\MessagingPhoneNumber.cs" />
+    <Compile Include="Messaging\Model\TwilioPhoneNumber.cs" />
+    <Compile Include="SECCMessagingSettings.cs" />
     <Compile Include="Migrations\002_Index.cs" />
     <Compile Include="Migrations\001_Init.cs" />
     <Compile Include="Migrations\Configuration.cs" />
