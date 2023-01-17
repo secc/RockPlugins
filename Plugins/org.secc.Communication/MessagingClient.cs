@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using org.secc.Communication.Components;
 using org.secc.Communication.Messaging.Model;
 using org.secc.DevLib.Components;
+using RestSharp;
+
+using Twilio.Http;
+using Twilio.Rest.Taskrouter.V1.Workspace.TaskQueue;
 
 namespace org.secc.Communication
 {
@@ -25,110 +29,119 @@ namespace org.secc.Communication
             this.settings = settings;
         }
 
-        public Task<List<TwilioPhoneNumber>> GetTwilioNumbers()
+        public List<TwilioPhoneNumber> GetTwilioNumbers()
         {
             return GetTwilioNumbers( false );
         }
 
 
         #region Twilio
-        public async Task<List<TwilioPhoneNumber>> GetTwilioNumbers( bool clearCache = false )
+        public List<TwilioPhoneNumber> GetTwilioNumbers( bool clearCache = false )
         {
-            string method = "twiliophonenumbers";
-            var queryValues = new Dictionary<string, string>();
 
-            if ( clearCache )
+            var url = $"{settings.MessagingUrl}twiliophonenumbers?code={settings.MessagingKey}{( clearCache ? "&nocache=1" : String.Empty )}";
+            var restClient = new RestClient( url );
+            var request = new RestRequest( Method.GET );
+            request.RequestFormat = DataFormat.Json;
+            request.AddHeader( "Accept", "application/json" );
+
+            var response = restClient.Execute( request );
+
+            if ( response.StatusCode != HttpStatusCode.OK )
             {
-                queryValues.Add( "nocache", "1" );
+                throw new Exception( $"An error occurred while retrieving Twilio Number List. Status Code {response.StatusCode}. Description: {response.StatusDescription}" );
             }
 
-            var twilioNumberUri = BuildUrl( method, queryValues );
-
-            using ( HttpClient httpClient = new HttpClient() )
-            {
-                var responseString = await httpClient.GetStringAsync( twilioNumberUri );
-
-                return JsonConvert.DeserializeObject<List<TwilioPhoneNumber>>( responseString );
-            }
+            return JsonConvert.DeserializeObject<List<TwilioPhoneNumber>>( response.Content );
         }
         #endregion 
 
 
         #region Phone Numbers
 
-        public async Task AddPhoneNumber( MessagingPhoneNumber number )
+        public MessagingPhoneNumber AddPhoneNumber( MessagingPhoneNumber number )
         {
-            var method = "phonenumbers";
-            var uri = BuildUrl( method, new Dictionary<string, string>() );
+            var url = $"{settings.MessagingUrl}phonenumbers?code={settings.MessagingKey}";
+            var restClient = new RestClient( url );
+            var request = new RestRequest( Method.POST );
+            request.RequestFormat = DataFormat.Json;
+            request.AddHeader( "Accept", "application/json" );
+            request.AddParameter( "application/json", JsonConvert.SerializeObject( number ), ParameterType.RequestBody );
+            var response = restClient.Execute( request );
 
-            var body = JsonConvert.SerializeObject( number );
-
-            var httpContent = new StringContent( body, Encoding.UTF8, "application/json" );
-            using ( HttpClient httpClient = new HttpClient() )
+            if ( response.StatusCode == HttpStatusCode.Created )
             {
-                var responseString = await httpClient.PostAsync( uri, httpContent );
+                return JsonConvert.DeserializeObject<MessagingPhoneNumber>( response.Content );
             }
+
+            return null;
 
         }
 
-        public async Task<MessagingPhoneNumber> GetPhoneNumber( string id )
+        public void DeletePhoneNumber( string id )
         {
-            var method = $"phonenumbers/{id}";
-            var uri = BuildUrl( method, new Dictionary<string, string>() );
-
-            using ( HttpClient httpClient = new HttpClient() )
-            {
-                var responseString = await httpClient.GetStringAsync( uri );
-                return JsonConvert.DeserializeObject<MessagingPhoneNumber>( responseString );
-            }
-        }
-
-        public async Task<List<MessagingPhoneNumber>> GetPhoneNumbers()
-        {
-            var method = "phonenumbers";
-            var numberUri = BuildUrl( method, new Dictionary<string, string>() );
-
-            using ( HttpClient httpClient = new HttpClient() )
-            {
-                var responseString = await httpClient.GetStringAsync( numberUri );
-                return JsonConvert.DeserializeObject<List<MessagingPhoneNumber>>( responseString );
-            }
+            var url = $"{settings.MessagingUrl}phonenumbers/{id}?code={settings.MessagingKey}";
+            var restClient = new RestClient( url );
+            var request = new RestRequest( Method.DELETE );
+            restClient.Execute( request );
 
         }
 
-        public async Task UpdatePhoneNumber( MessagingPhoneNumber number )
+        public MessagingPhoneNumber GetPhoneNumber( string id )
         {
-            var method = "phonenumbers";
-            var numberUri = BuildUrl( method, new Dictionary<string, string>() );
-            var body = JsonConvert.SerializeObject( number );
-            var content = new StringContent( body, Encoding.UTF8, "application/json" );
+            var url = $"{settings.MessagingUrl}phonenumbers/{id}?code={settings.MessagingKey}";
+            var restClient = new RestClient( url );
+            var request = new RestRequest( Method.GET );
+            request.RequestFormat = DataFormat.Json;
+            request.AddHeader( "Accept", "applicaiton/json" );
+            var response = restClient.Execute( request );
 
-            using ( HttpClient httpClient = new HttpClient() )
+            if(response.StatusCode == HttpStatusCode.OK)
             {
-                var responseString = await httpClient.PutAsync( numberUri, content );
+                return JsonConvert.DeserializeObject<MessagingPhoneNumber>( response.Content );
             }
+
+            return null;
+        }
+
+        public List<MessagingPhoneNumber> GetPhoneNumbers()
+        {
+            var url = $"{settings.MessagingUrl}phonenumbers?code={settings.MessagingKey}";
+            var restClient = new RestClient( url );
+            var request = new RestRequest( Method.GET );
+            request.RequestFormat = DataFormat.Json;
+            request.AddHeader( "Accept", "application/json" );
+            var response = restClient.Execute( request );
+
+            if(response.StatusCode == HttpStatusCode.OK)
+            {
+                return JsonConvert.DeserializeObject<List<MessagingPhoneNumber>>( response.Content );
+            }
+
+            return null;
+
+        }
+
+        public MessagingPhoneNumber UpdatePhoneNumber( MessagingPhoneNumber number )
+        {
+            var url = $"{settings.MessagingUrl}phonenumbers?code={settings.MessagingKey}";
+            var restClient = new RestClient( url );
+            var request = new RestRequest( Method.PUT );
+            request.RequestFormat = DataFormat.Json;
+            request.AddHeader( "Accept", "application/json" );
+            request.AddParameter("application/json", JsonConvert.SerializeObject( number ), ParameterType.RequestBody );
+            var response = restClient.Execute( request );
+
+            if(response.StatusCode == HttpStatusCode.OK)
+            {
+                return JsonConvert.DeserializeObject<MessagingPhoneNumber>( response.Content );
+            }
+
+            return null;
         }
 
         #endregion
 
-
-        private Uri BuildUrl( string requestPath, Dictionary<string, string> queryString )
-        {
-            Uri requestUri = new Uri( $"{settings.MessagingUrl}{( settings.MessagingUrl.EndsWith( "/" ) ? String.Empty : "/" )}{requestPath}" );
-            UriBuilder builder = new UriBuilder( requestUri );
-
-            var queryBuilder = new StringBuilder( $"code={settings.MessagingKey}" );
-
-            foreach ( var item in queryString )
-            {
-                queryBuilder.Append( $"&{item.Key}={item.Value}" );
-            }
-            builder.Query = queryBuilder.ToString();
-
-            return builder.Uri;
-
-
-        }
 
     }
 }

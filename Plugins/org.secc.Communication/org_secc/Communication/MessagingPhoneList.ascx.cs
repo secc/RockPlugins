@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
-using MassTransit.Initializers;
 using org.secc.Communication;
 using org.secc.Communication.Messaging.Model;
 using Rock;
 using Rock.Model;
 using Rock.Web.UI;
+using Rock.Web.UI.Controls;
 
 
 namespace RockWeb.Plugins.org_secc.Communication
@@ -24,16 +24,20 @@ namespace RockWeb.Plugins.org_secc.Communication
         {
             base.OnInit( e );
 
-            gPhoneNumbers.Actions.ShowAdd = IsUserAuthorized( Rock.Security.Authorization.EDIT );
-            gPhoneNumbers.Actions.AddClick += Actions_AddClick;
+            gPhoneNumbers.Actions.ShowAdd = UserCanEdit;
+            gPhoneNumbers.IsDeleteEnabled = UserCanEdit;
+            gPhoneNumbers.Actions.AddClick += gPhoneNumbers_AddClick;
+            gPhoneNumbers.GridRebind += GPhoneNumbers_GridRebind;
             mdlAddTwilioNumber.SaveClick += MdlAddTwilioNumber_SaveClick;
         }
+
 
 
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
 
+            SetNotificationBox( string.Empty, string.Empty );
             if ( !IsPostBack )
             {
                 LoadTwilioNumbers();
@@ -54,18 +58,59 @@ namespace RockWeb.Plugins.org_secc.Communication
         }
 
 
-        private void Actions_AddClick( object sender, EventArgs e )
+        private void gPhoneNumbers_AddClick( object sender, EventArgs e )
         {
+            
+            ClearAddModal();
             BindTwilioNumberList();
             hPhonenumberId.Value = string.Empty;
+            ddlTwilioNumbers.Visible = true;
             lPhone.Visible = false;
             mdlAddTwilioNumber.SaveButtonText = "Save";
             mdlAddTwilioNumber.SaveButtonCausesValidation = true;
             mdlAddTwilioNumber.CancelLinkVisible = true;
 
+            mdlAddTwilioNumber.Title = "Add Phone Number";
             mdlAddTwilioNumber.Show();
 
 
+        }
+
+        private void GPhoneNumbers_GridRebind( object sender, Rock.Web.UI.Controls.GridRebindEventArgs e )
+        {
+            LoadPhoneNumberList();
+        }
+
+        protected void gPhoneNumbers_RowSelected( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        {
+            if(!UserCanEdit)
+            {
+                return;
+            }
+
+            LoadPhoneEditModel( e.RowKeyValue.ToString() );
+        }
+
+        protected void gPhoneNumber_Delete( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        {
+            if(!UserCanEdit)
+            {
+                return;
+            }
+            var client = new MessagingClient();
+            var key = e.RowKeyValue.ToString();
+            var phoneNumber = client.GetPhoneNumber( key );
+
+            if(phoneNumber.ActiveKeywordCount > 0)
+            {
+                SetNotificationBox( "Can not delete phone number.", "This phone number has active keywords, and can not be deleted." );
+                nbNotifications.NotificationBoxType = NotificationBoxType.Danger;
+                return;
+            }
+
+            client.DeletePhoneNumber( phoneNumber.Id.ToString() );
+            LoadPhoneNumberList();
+            
         }
 
         private void MdlAddTwilioNumber_SaveClick( object sender, EventArgs e )
@@ -77,7 +122,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             {
                 isNew = false;
 
-                number = Task.Run( async () => await messagingClient.GetPhoneNumber( hPhonenumberId.Value ) ).Result;
+                number = messagingClient.GetPhoneNumber( hPhonenumberId.Value );
             }
             else
             {
@@ -90,16 +135,22 @@ namespace RockWeb.Plugins.org_secc.Communication
 
             if ( isNew )
             {
-                Task.Run( async () => await messagingClient.AddPhoneNumber( number ) );
+                messagingClient.AddPhoneNumber( number );
             }
             else
             {
-                Task.Run( async () => await messagingClient.UpdatePhoneNumber( number ) );
+                messagingClient.UpdatePhoneNumber( number );
             }
             mdlAddTwilioNumber.Hide();
+
             LoadPhoneNumberList();
 
 
+        }
+
+        protected void viewKeywords_Click( object sender, RowEventArgs e )
+        {
+            throw new NotImplementedException();
         }
 
         private void BindTwilioNumberList()
@@ -107,7 +158,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             ddlTwilioNumbers.Items.Clear();
 
             var messagingClient = new MessagingClient();
-            var numbers = Task.Run( async () => await messagingClient.GetPhoneNumbers() ).Result;
+            var numbers = messagingClient.GetPhoneNumbers();
 
             var availableTwilioNumbers = twilioNumbers
                 .Where( t => !numbers.Select( n => n.Sid ).Contains( t.Sid ) )
@@ -119,18 +170,25 @@ namespace RockWeb.Plugins.org_secc.Communication
             ddlTwilioNumbers.DataTextField = "DisplayName";
             ddlTwilioNumbers.DataBind();
 
+        }
 
-
-
+        private void ClearAddModal()
+        {
+            hPhonenumberId.Value = String.Empty;
+            ddlTwilioNumbers.Items.Clear();
+            lPhone.Text = String.Empty;
+            tbName.Text = String.Empty;
+            cbActive.Checked = false;
 
         }
+
 
         private void LoadTwilioNumbers()
         {
             twilioNumbers.Clear();
 
             var messagingClient = new MessagingClient();
-            var twilioResults = Task.Run( async () => await messagingClient.GetTwilioNumbers() ).Result;
+            var twilioResults = messagingClient.GetTwilioNumbers();
 
 
             foreach ( var item in twilioResults )
@@ -145,12 +203,44 @@ namespace RockWeb.Plugins.org_secc.Communication
             }
         }
 
+        private void LoadPhoneEditModel(string key)
+        {
+            if(key.IsNullOrWhiteSpace())
+            {
+                return;
+            }
+            ClearAddModal();
+            var phoneId = key;
+            var client = new MessagingClient();
+            var phonenumber = client.GetPhoneNumber( key );
+
+            ddlTwilioNumbers.Visible = false;
+            lPhone.Visible = true;
+            hPhonenumberId.Value = phonenumber.Id.ToString();
+            lPhone.Text = Rock.Model.PhoneNumber.FormattedNumber( "1", phonenumber.Number.Replace( "+1", String.Empty), false );
+            tbName.Text = phonenumber.Name;
+            cbActive.Checked = phonenumber.IsActive;
+            mdlAddTwilioNumber.Title = "Edit Phone Number";
+            mdlAddTwilioNumber.Show();
+
+        }
+
         private void LoadPhoneNumberList()
         {
             var messagingClient = new MessagingClient();
-            var phoneNumbers = Task.Run( async () => await messagingClient.GetPhoneNumbers() ).Result;
+            var phoneNumbers = messagingClient.GetPhoneNumbers();
             gPhoneNumbers.DataSource = phoneNumbers;
             gPhoneNumbers.DataBind();
+        }
+
+        public void SetNotificationBox(string title, string message)
+        {
+            if(message.IsNullOrWhiteSpace() && title.IsNullOrWhiteSpace())
+            {
+                nbNotifications.Visible = false;
+            }
+            nbNotifications.Title = title;
+            nbNotifications.Text = message;
         }
 
         [Serializable]
@@ -167,6 +257,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                 }
             }
         }
+
 
 
     }

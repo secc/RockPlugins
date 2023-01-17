@@ -7,20 +7,21 @@ using Rock.Model;
 
 namespace org.secc.Communication.Messaging.Model
 {
+    
     public class MessagingPhoneNumber
     {
-        [JsonProperty("id")]
+        [JsonProperty( "id" )]
         public Guid Id { get; set; }
-        [JsonProperty("name")]
+        [JsonProperty( "name" )]
         public string Name { get; set; }
-        [JsonProperty("sid")]
+        [JsonProperty( "sid" )]
         public string Sid { get; set; }
-        [JsonProperty("isactive")]
+        [JsonProperty( "isactive" )]
         public bool IsActive { get; set; }
-        [JsonProperty("number")]
+        [JsonProperty( "number" )]
         public string Number { get; set; }
 
-        [JsonProperty("keywords")]
+        [JsonProperty( "keywords" )]
         public SortedList<int, Keyword> Keywords { get; set; } = new SortedList<int, Keyword>();
 
         [JsonIgnore]
@@ -62,25 +63,25 @@ namespace org.secc.Communication.Messaging.Model
 
     public class Keyword
     {
-        [JsonProperty("id")]
+        [JsonProperty("Id")]
         public Guid Id { get; set; }
-        [JsonProperty("phoneNumberId")]
+        [JsonProperty( "PhoneNumberId" )]
         public Guid PhoneNumberId { get; set; }
-        [JsonProperty("messageToMatch")]
-        public string MessageToMatch { get; set; }
-        [JsonProperty("campaignCode")]
+        [JsonProperty( "MessageToMatch" )]
+        public string MessageToMatch { get; set; } = string.Empty;
+        [JsonProperty( "CampaignCode" )]
         public string CampaignCode { get; set; }
-        [JsonProperty("responseMessage")]
+        [JsonProperty("ResponseMessage")]
         public string ResponseMessage { get; set; }
-        [JsonProperty("startDate")]
+        [JsonProperty( "StartDate" )]
         public DateTime? StartDate { get; set; }
-        [JsonProperty("endDate")]
+        [JsonProperty( "EndDate" )]
         public DateTime? EndDate { get; set; }
-        [JsonProperty("createdOnDate")]
+        [JsonProperty( "CreatedOnDate" )]
         public DateTime? CreatedOnDate { get; }
-        [JsonProperty("modifiedOnDateTime")]
+        [JsonProperty( "ModifiedOnDateTime" )]
         public DateTime? ModifiedOnDateTime { get; set; }
-        [JsonProperty("isActive")]
+        [JsonProperty( "IsActive" )]
         public bool IsActive { get; set; }
     }
 }
