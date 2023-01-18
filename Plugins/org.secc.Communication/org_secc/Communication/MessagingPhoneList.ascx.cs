@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Threading.Tasks;
 using org.secc.Communication;
 using org.secc.Communication.Messaging.Model;
 using Rock;
+using Rock.Attribute;
 using Rock.Model;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
@@ -16,8 +16,19 @@ namespace RockWeb.Plugins.org_secc.Communication
     [DisplayName( "Messaging Phone Numbers" )]
     [Category( "SECC > Communication" )]
     [Description( "List of active phone numbers from the SECC Messaging Service." )]
+
+    [LinkedPage( "Detail Page",
+        Description = "The Phone Number detail Page.",
+        IsRequired = false,
+        Order = 0,
+        Key = AttributeKeys.DetailPage )]
     public partial class MessagingPhoneList : RockBlock
     {
+        public static class AttributeKeys
+        {
+            public const string DetailPage = "DetailPage";
+        }
+
         List<TwilioNumber> twilioNumbers = new List<TwilioNumber>();
 
         protected override void OnInit( EventArgs e )
@@ -60,12 +71,14 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         private void gPhoneNumbers_AddClick( object sender, EventArgs e )
         {
-            
+
             ClearAddModal();
             BindTwilioNumberList();
             hPhonenumberId.Value = string.Empty;
             ddlTwilioNumbers.Visible = true;
             lPhone.Visible = false;
+            pnlMdlHistory.Visible = false;
+
             mdlAddTwilioNumber.SaveButtonText = "Save";
             mdlAddTwilioNumber.SaveButtonCausesValidation = true;
             mdlAddTwilioNumber.CancelLinkVisible = true;
@@ -83,7 +96,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         protected void gPhoneNumbers_RowSelected( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
-            if(!UserCanEdit)
+            if ( !UserCanEdit )
             {
                 return;
             }
@@ -93,7 +106,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         protected void gPhoneNumber_Delete( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
-            if(!UserCanEdit)
+            if ( !UserCanEdit )
             {
                 return;
             }
@@ -101,7 +114,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             var key = e.RowKeyValue.ToString();
             var phoneNumber = client.GetPhoneNumber( key );
 
-            if(phoneNumber.ActiveKeywordCount > 0)
+            if ( phoneNumber.ActiveKeywordCount > 0 )
             {
                 SetNotificationBox( "Can not delete phone number.", "This phone number has active keywords, and can not be deleted." );
                 nbNotifications.NotificationBoxType = NotificationBoxType.Danger;
@@ -110,7 +123,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
             client.DeletePhoneNumber( phoneNumber.Id.ToString() );
             LoadPhoneNumberList();
-            
+
         }
 
         private void MdlAddTwilioNumber_SaveClick( object sender, EventArgs e )
@@ -129,9 +142,11 @@ namespace RockWeb.Plugins.org_secc.Communication
                 number = new MessagingPhoneNumber();
                 number.Sid = ddlTwilioNumbers.SelectedValue;
                 number.Number = twilioNumbers.FirstOrDefault( t => t.Sid.Equals( number.Sid ) ).Number;
+                number.CreatedBy = new MessagingPerson( CurrentPerson );
             }
             number.Name = tbName.Text.Trim();
             number.IsActive = cbActive.Checked;
+            number.ModifiedBy = new MessagingPerson( CurrentPerson );
 
             if ( isNew )
             {
@@ -150,7 +165,12 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         protected void viewKeywords_Click( object sender, RowEventArgs e )
         {
-            throw new NotImplementedException();
+            var phoneId = e.RowKeyValue.ToString();
+            var queryStrings = new Dictionary<string, string>
+            {
+                { "MessagingNumber", phoneId }
+            };
+            NavigateToLinkedPage( AttributeKeys.DetailPage, queryStrings );
         }
 
         private void BindTwilioNumberList()
@@ -203,9 +223,9 @@ namespace RockWeb.Plugins.org_secc.Communication
             }
         }
 
-        private void LoadPhoneEditModel(string key)
+        private void LoadPhoneEditModel( string key )
         {
-            if(key.IsNullOrWhiteSpace())
+            if ( key.IsNullOrWhiteSpace() )
             {
                 return;
             }
@@ -217,9 +237,29 @@ namespace RockWeb.Plugins.org_secc.Communication
             ddlTwilioNumbers.Visible = false;
             lPhone.Visible = true;
             hPhonenumberId.Value = phonenumber.Id.ToString();
-            lPhone.Text = Rock.Model.PhoneNumber.FormattedNumber( "1", phonenumber.Number.Replace( "+1", String.Empty), false );
+            lPhone.Text = Rock.Model.PhoneNumber.FormattedNumber( "1", phonenumber.Number.Replace( "+1", String.Empty ), false );
             tbName.Text = phonenumber.Name;
             cbActive.Checked = phonenumber.IsActive;
+            pnlMdlHistory.Visible = true;
+
+            if ( phonenumber.CreatedBy == null )
+            {
+                lCreatedBy.Text = "(unknown) " + ( phonenumber.CreatedOnDateTime.HasValue ? phonenumber.CreatedOnDateTime?.ToShortDateTimeString() : String.Empty );
+            }
+            else
+            {
+                lCreatedBy.Text = phonenumber.CreatedBy.ToString() + " " + ( phonenumber.CreatedOnDateTime.HasValue ? phonenumber.CreatedOnDateTime?.ToLocalTime().ToShortDateTimeString() : String.Empty );
+            }
+
+            if( phonenumber.ModifiedBy == null)
+            {
+                lModifiedBy.Text = "(unknown) " + ( phonenumber.CreatedOnDateTime.HasValue ? phonenumber.CreatedOnDateTime?.ToShortDateTimeString() : string.Empty );
+            }
+            else
+            {
+                lModifiedBy.Text = phonenumber.ModifiedBy.ToString() + " " + ( phonenumber.ModifiedOnDateTime.HasValue ? phonenumber.ModifiedOnDateTime?.ToLocalTime().ToShortDateTimeString() : String.Empty );
+            }
+
             mdlAddTwilioNumber.Title = "Edit Phone Number";
             mdlAddTwilioNumber.Show();
 
@@ -233,9 +273,9 @@ namespace RockWeb.Plugins.org_secc.Communication
             gPhoneNumbers.DataBind();
         }
 
-        public void SetNotificationBox(string title, string message)
+        public void SetNotificationBox( string title, string message )
         {
-            if(message.IsNullOrWhiteSpace() && title.IsNullOrWhiteSpace())
+            if ( message.IsNullOrWhiteSpace() && title.IsNullOrWhiteSpace() )
             {
                 nbNotifications.Visible = false;
             }

@@ -31,6 +31,14 @@
                             <Rock:RockLiteral ID="lPhone" runat="server" Label="Phone Number" />
                             <Rock:RockTextBox ID="tbName" runat="server" Label="Name" Required="true" RequiredErrorMessage="Name is required" />
                             <Rock:RockCheckBox ID="cbActive" runat="server" Label="Is Active"  />
+                            <asp:Panel ID="pnlMdlHistory" runat="server" class="row" Visible="true">
+                                <div class="col-md-6">
+                                    <Rock:RockLiteral ID="lCreatedBy" runat="server" Label="Created By" Text="Test 1" />
+                                </div>
+                                <div class="col-md-6">
+                                    <Rock:RockLiteral ID="lModifiedBy" runat="server" Label="Modified By" Text="Test 2" />
+                                </div>
+                            </asp:Panel>
                         </Content>
                     </Rock:ModalDialog>
                 </div>

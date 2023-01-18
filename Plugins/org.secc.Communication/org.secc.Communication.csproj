@@ -78,6 +78,9 @@
     <Compile Include="Data\CommunicationDataService.cs" />
     <Compile Include="Jobs\SyncTwilioHistory.cs" />
     <Compile Include="MessagingClient.cs" />
+    <Compile Include="Messaging\KeywordReorderItem.cs" />
+    <Compile Include="Messaging\Model\Keyword.cs" />
+    <Compile Include="Messaging\Model\MessagingPerson.cs" />
     <Compile Include="Messaging\Model\MessagingPhoneNumber.cs" />
     <Compile Include="Messaging\Model\TwilioPhoneNumber.cs" />
     <Compile Include="SECCMessagingSettings.cs" />

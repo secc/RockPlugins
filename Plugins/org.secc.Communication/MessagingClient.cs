@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using org.secc.Communication.Components;
+using org.secc.Communication.Messaging;
 using org.secc.Communication.Messaging.Model;
 using org.secc.DevLib.Components;
 using RestSharp;
@@ -142,6 +143,25 @@ namespace org.secc.Communication
 
         #endregion
 
+
+        #region Keywords
+        public void ReorderKeyword(KeywordReorderItem item, string phoneId)
+        {
+            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords/reorder";
+            var restClient = new RestClient( url );
+            var request = new RestRequest( Method.PATCH );
+            request.RequestFormat = DataFormat.Json;
+            request.AddHeader( "Accept", "application/json" );
+            request.AddParameter( "application/json", JsonConvert.SerializeObject( item ), ParameterType.RequestBody );
+            var response = restClient.Execute( request );
+
+            if(response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new Exception( "An error occurred reordering keywords." );
+            }
+
+        }
+        #endregion
 
     }
 }

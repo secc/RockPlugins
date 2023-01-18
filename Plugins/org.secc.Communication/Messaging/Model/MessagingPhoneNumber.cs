@@ -7,7 +7,7 @@ using Rock.Model;
 
 namespace org.secc.Communication.Messaging.Model
 {
-    
+
     public class MessagingPhoneNumber
     {
         [JsonProperty( "id" )]
@@ -20,9 +20,16 @@ namespace org.secc.Communication.Messaging.Model
         public bool IsActive { get; set; }
         [JsonProperty( "number" )]
         public string Number { get; set; }
-
         [JsonProperty( "keywords" )]
         public SortedList<int, Keyword> Keywords { get; set; } = new SortedList<int, Keyword>();
+        [JsonProperty("createdOn")]
+        public DateTime? CreatedOnDateTime { get; set; }
+        [JsonProperty("modifiedOn")]
+        public DateTime? ModifiedOnDateTime { get; set; }
+        [JsonProperty("createdBy")]
+        public MessagingPerson CreatedBy { get; set; }
+        [JsonProperty("modifiedBy")]
+        public MessagingPerson ModifiedBy { get; set; }
 
         [JsonIgnore]
         public int KeywordCount
@@ -59,29 +66,5 @@ namespace org.secc.Communication.Messaging.Model
                 return Rock.Model.PhoneNumber.FormattedNumber("1", twilioNumber, false );
             }
         }
-    }
-
-    public class Keyword
-    {
-        [JsonProperty("Id")]
-        public Guid Id { get; set; }
-        [JsonProperty( "PhoneNumberId" )]
-        public Guid PhoneNumberId { get; set; }
-        [JsonProperty( "MessageToMatch" )]
-        public string MessageToMatch { get; set; } = string.Empty;
-        [JsonProperty( "CampaignCode" )]
-        public string CampaignCode { get; set; }
-        [JsonProperty("ResponseMessage")]
-        public string ResponseMessage { get; set; }
-        [JsonProperty( "StartDate" )]
-        public DateTime? StartDate { get; set; }
-        [JsonProperty( "EndDate" )]
-        public DateTime? EndDate { get; set; }
-        [JsonProperty( "CreatedOnDate" )]
-        public DateTime? CreatedOnDate { get; }
-        [JsonProperty( "ModifiedOnDateTime" )]
-        public DateTime? ModifiedOnDateTime { get; set; }
-        [JsonProperty( "IsActive" )]
-        public bool IsActive { get; set; }
     }
 }
