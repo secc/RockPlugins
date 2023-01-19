@@ -145,9 +145,28 @@ namespace org.secc.Communication
 
 
         #region Keywords
+
+        public Keyword GetKeyword(string phoneId, string keywordId)
+        {
+            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords/{keywordId}?code={settings.MessagingKey}";
+            var restClient = new RestClient( url );
+            var request = new RestRequest( Method.GET );
+            request.RequestFormat = DataFormat.Json;
+            request.AddHeader( "Accept", "application/json" );
+            var response = restClient.Execute( request );
+
+            if(response.StatusCode == HttpStatusCode.NotFound)
+            {
+                throw new Exception( $"Keyword {keywordId} not found." );
+            }
+
+            var k =  JsonConvert.DeserializeObject<KeyValuePair<int, Keyword>>( response.Content );
+            return k.Value;
+        }
+
         public void ReorderKeyword(KeywordReorderItem item, string phoneId)
         {
-            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords/reorder";
+            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords/reorder?code={settings.MessagingKey}";
             var restClient = new RestClient( url );
             var request = new RestRequest( Method.PATCH );
             request.RequestFormat = DataFormat.Json;

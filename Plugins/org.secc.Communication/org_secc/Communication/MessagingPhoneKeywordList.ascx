@@ -14,22 +14,39 @@
                             <Rock:ReorderField />
                             <Rock:RockBoundField DataField="MessageToMatch" HeaderText="Keyword" />
                             <Rock:RockBoundField DataField="ResponseMessage" HeaderText="Response" />
-                            <Rock:DateField DataField="StartDate" HeaderText="Start"  />
-                            <Rock:DateField DataField="EndDate" HeaderText="End" />
+                            <Rock:DateTimeField DataField="StartDate" HeaderText="Start"  />
+                            <Rock:DateTimeField DataField="EndDate" HeaderText="End" />
                             <Rock:RockBoundField DataField="Status" HeaderText="Status" />
                         </Columns>
                     </Rock:Grid>
 
                 </div>
-                <Rock:ModalDialog ID="mdlEditKeyword" runat="server" SaveButtonText="Save">
+                <Rock:ModalDialog ID="mdlEditKeyword" runat="server" SaveButtonText="Save"
+                    SaveButtonCausesValidation="true" ValidationGroup="valKeyword">
                     <Content>
+                        <asp:ValidationSummary ID="valSummaryKeyword" runat="server" CssClass="alert alert-validation" ValidationGroup="valKeyword" />
                         <asp:HiddenField ID="hfKeyword" runat="server" />
                         <Rock:RockTextBox ID="tbWord" runat="server" Label="Phrase to Match" Required="true"
                             ValidationGroup="valKeyword" RequiredErrorMessage="Phrase to Match is required" />
                         <Rock:RockTextBox ID="tbResponse" runat="server" Label="Response Message" TextMode="MultiLine"
                             MaxLength="160" ShowCountDown="true" Required="true" ValidationGroup="valKeyword" RequiredErrorMessage="Response Message is required." />
-                        <Rock:DateTimePicker ID="dtpStartDate" runat="server" Label="Start Date" ValidationGroup="valKeyword" />
-                        <Rock:DateTimePicker ID="dtpEndDate" runat="server" Label="End Date" ValidationGroup="valKeyword" />
+                        <div class="row">
+                            <div class="col-md-6">
+                                <Rock:DateTimePicker ID="dtpStartDate" runat="server" Label="Start Date" ValidationGroup="valKeyword" />
+                            </div>
+                            <div class="col-md-6">
+                                <Rock:DateTimePicker ID="dtpEndDate" runat="server" Label="End Date" ValidationGroup="valKeyword" />
+                            </div>
+                        </div>
+                        <Rock:RockCheckBox ID="cbActive" runat="server" Label="Active" />
+                        <asp:Panel ID="pnlStatus" runat="server" CssClass="row">
+                            <div class="col-md-6">
+                                <Rock:RockLiteral ID="lCreatedOn" runat="server" Label="Created On" />
+                            </div>
+                            <div class="col-md-6">
+                                <Rock:RockLiteral ID="lModifiedOn" runat="server" Label="Modified On" />
+                            </div>
+                        </asp:Panel>
                     </Content>
                 </Rock:ModalDialog>
             </div>

@@ -23,7 +23,7 @@
                                 <Rock:DeleteField OnClick="gPhoneNumber_Delete"  />
                             </Columns>
                         </Rock:Grid>
-                    </div
+                    </div>
                     <Rock:ModalDialog ID="mdlAddTwilioNumber" runat="server" SaveButtonText="Add" >
                         <Content>
                             <asp:HiddenField ID="hPhonenumberId" runat="server" />
