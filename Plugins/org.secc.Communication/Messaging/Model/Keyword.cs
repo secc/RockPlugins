@@ -22,13 +22,13 @@ namespace org.secc.Communication.Messaging.Model
         [JsonProperty( "EndDate" )]
         public DateTime? EndDate { get; set; }
         [JsonProperty( "CreatedOn" )]
-        public DateTime? CreatedOnDateTime { get; }
+        public DateTime? CreatedOnDateTime { get; set; }
         [JsonProperty( "CreatedBy" )]
-        public Person CreatedBy { get; set; }
+        public MessagingPerson CreatedBy { get; set; }
         [JsonProperty( "ModifiedOn" )]
         public DateTime? ModifiedOnDateTime { get; set; }
         [JsonProperty("ModifiedBy")]
-        public DateTime? ModifiedBy { get; set; }
+        public MessagingPerson ModifiedBy { get; set; }
         [JsonProperty( "IsActive" )]
         public bool IsActive { get; set; }
 

@@ -43,7 +43,7 @@ namespace RockWeb.Plugins.org_secc.Communication
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-            gKeywords.DataKeyNames = new string[] { "KeywordId" };
+            
             gKeywords.ItemType = "Keywords";
             gKeywords.EmptyDataText = "No Keywords Found";
             gKeywords.Actions.ShowAdd = UserCanEdit;
@@ -58,6 +58,8 @@ namespace RockWeb.Plugins.org_secc.Communication
             gKeywords.RowSelected += gKeywords_RowSelected;
 
             mdlEditKeyword.SaveClick += mdlEditKeyword_SaveClick;
+
+            gKeywords.Columns[gKeywords.Columns.Count - 1].Visible = UserCanEdit;
 
         }
 
@@ -87,6 +89,22 @@ namespace RockWeb.Plugins.org_secc.Communication
             mdlEditKeyword.Show();
         }
 
+        protected void gKeywords_DeleteClick( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        {
+            if(!UserCanEdit)
+            {
+                return;
+            }
+            var keywordId = e.RowKeyValue.ToString();
+            var client = new MessagingClient();
+            client.DeleteKeyword( hfPhoneNumberId.Value, keywordId );
+            LoadPhoneNumberKeywords();
+            NotificationBoxSetContent(
+                "<i class='fas fa-trash'></i> Keyword Deleted",
+                "Keyword has been successfully deleted.", NotificationBoxType.Success );
+
+        }
+
         private void gKeywords_GridRebind( object sender, GridRebindEventArgs e )
         {
             LoadPhoneNumberKeywords();
@@ -110,7 +128,7 @@ namespace RockWeb.Plugins.org_secc.Communication
         {
             ClearKeywordModal();
             mdlEditKeyword.Title = "<i class='fas fa-comments'></i> Edit Keyword";
-            var keyword = LoadKeyword( e.Row.DataItem.ToString() );
+            var keyword = LoadKeyword( e.RowKeyValue.ToString());
             
 
             if(keyword == null)
@@ -126,30 +144,70 @@ namespace RockWeb.Plugins.org_secc.Communication
             cbActive.Checked = keyword.IsActive;
 
             pnlStatus.Visible = true;
-            lCreatedOn.Text = ( keyword.CreatedBy != null ? keyword.CreatedBy.ToString() : "(unknown) " )
-                + ( keyword.StartDate.HasValue ? keyword.StartDate.Value.ToShortDateTimeString() : String.Empty );
-            lModifiedOn.Text = ( keyword.ModifiedBy != null ? keyword.ModifiedBy.ToString() : "(unknown) " )
-                + ( keyword.ModifiedBy.HasValue ? keyword.ModifiedBy.Value.ToShortDateTimeString() : String.Empty );
+            lCreatedBy.Text = ( keyword.CreatedBy != null ? $"{keyword.CreatedBy} " : "(unknown) " )
+                + ( keyword.CreatedOnDateTime.HasValue ? keyword.CreatedOnDateTime.Value.ToLocalTime().ToShortDateTimeString() : String.Empty );
+            lModifiedBy.Text = ( keyword.ModifiedBy != null ? $"{keyword.ModifiedBy} " : "(unknown) " )
+                + ( keyword.ModifiedOnDateTime.HasValue ? keyword.ModifiedOnDateTime.Value.ToLocalTime().ToShortDateTimeString() : String.Empty );
 
             mdlEditKeyword.Show();
         }
 
         private void mdlEditKeyword_SaveClick( object sender, EventArgs e )
         {
-            var phoneGuid = hfPhoneNumberId.Value.AsGuid();
+            nbKeywordPanel.Visible = false;
+            nbKeywordPanel.Text = string.Empty;
+            nbKeywordPanel.Title = string.Empty;
+            if(!KeywordDateRangeIsValid())
+            {
+                nbKeywordPanel.Title = "<i class='fas fa-exclamation-triangle'></i> Date Range Not Valid";
+                nbKeywordPanel.Text = "Start date must be before the end date.";
+                nbKeywordPanel.Visible = true;
+                return;     
+            }
+            
+
+            var phoneId = hfPhoneNumberId.Value;
             var keywordId = hfKeyword.Value;
 
             Keyword k = null;
+            var isNew = false;
             if( keywordId.IsNullOrWhiteSpace())
             {
                 k = new Keyword();
+                k.CreatedBy = new MessagingPerson( CurrentPerson );
+                isNew = true;
             }
             else
             {
                 k = LoadKeyword( keywordId );
             }
-            pnlStatus.Visible = false;
+            k.MessageToMatch = tbWord.Text.Trim();
+            k.ResponseMessage = tbResponse.Text.Trim();
+            k.StartDate = dtpStartDate.SelectedDateTime;
+            k.EndDate = dtpEndDate.SelectedDateTime;
+            k.IsActive = cbActive.Checked;
+
+            k.ModifiedBy = new MessagingPerson( CurrentPerson );
+
+            var client = new MessagingClient();
+            if(isNew)
+            {
+                client.AddKeyword( phoneId, k );
+            }
+            else
+            {
+                client.UpdateKeyword( phoneId, k );
+            }
+
+
+            mdlEditKeyword.Hide();
+            NotificationBoxSetContent(
+                "<i class='fas fa-save'></i> Keyword Saved",
+                "Keyword has been successfully saved.", NotificationBoxType.Success );
+
+            LoadPhoneNumberKeywords();
         }
+
         #endregion
 
         #region Methods
@@ -206,6 +264,24 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         }
 
+        private bool KeywordDateRangeIsValid()
+        {
+            
+            if(!dtpStartDate.SelectedDateTime.HasValue || !dtpEndDate.SelectedDateTime.HasValue)
+            {
+                return true;
+            }
+
+            if(dtpStartDate.SelectedDateTime.Value <= dtpEndDate.SelectedDateTime.Value)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+
+
         private void NotificationBoxClear()
         {
             NotificationBoxSetContent( String.Empty, String.Empty, NotificationBoxType.Info );
@@ -235,5 +311,9 @@ namespace RockWeb.Plugins.org_secc.Communication
             public int Order { get; set; }
 
         }
+
+
+
+
     }
 }

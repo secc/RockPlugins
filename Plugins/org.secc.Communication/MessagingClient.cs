@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
@@ -9,7 +10,7 @@ using org.secc.Communication.Messaging;
 using org.secc.Communication.Messaging.Model;
 using org.secc.DevLib.Components;
 using RestSharp;
-
+using Rock.Workflow.Action;
 using Twilio.Http;
 using Twilio.Rest.Taskrouter.V1.Workspace.TaskQueue;
 
@@ -146,6 +147,38 @@ namespace org.secc.Communication
 
         #region Keywords
 
+        public void AddKeyword(string phoneId, Keyword k)
+        {
+            var url = $"{settings.MessagingUrl}/phonenumbers/{phoneId}/keywords?code={settings.MessagingKey}";
+            var restClient = new RestClient( url );
+            var request = new RestRequest( Method.POST );
+            request.RequestFormat = DataFormat.Json;
+            request.AddHeader( "Accept", "application/json" );
+            request.AddParameter( "application/json", JsonConvert.SerializeObject( k ), ParameterType.RequestBody );
+
+            var response = restClient.Execute( request );
+
+            if(response.StatusCode != HttpStatusCode.Created)
+            {
+                throw new Exception( "Keyword not created" );
+            }
+        }
+
+        public void DeleteKeyword(string phoneId, string keywordId)
+        {
+            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords/{keywordId}?code={settings.MessagingKey}";
+            var restClient = new RestClient( url );
+            var request = new RestRequest( Method.DELETE );
+            request.RequestFormat = DataFormat.Json;
+            var response = restClient.Execute( request );
+
+            if(response.StatusCode != HttpStatusCode.Gone)
+            {
+                throw new Exception( "Keyword not deleted." );
+            }
+
+        }
+        
         public Keyword GetKeyword(string phoneId, string keywordId)
         {
             var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords/{keywordId}?code={settings.MessagingKey}";
@@ -179,6 +212,22 @@ namespace org.secc.Communication
                 throw new Exception( "An error occurred reordering keywords." );
             }
 
+        }
+
+        public void UpdateKeyword(string phoneId, Keyword k)
+        {
+            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords?code={settings.MessagingKey}";
+            var restClient = new RestClient( url );
+            var request = new RestRequest( Method.PUT );
+            request.RequestFormat = DataFormat.Json;
+            request.AddHeader( "Accept", "application/json" );
+            request.AddParameter( "application/json", JsonConvert.SerializeObject( k ), ParameterType.RequestBody );
+            var response = restClient.Execute( request );
+
+            if(response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new Exception( "An error occurred updating keyword." );
+            }
         }
         #endregion
 

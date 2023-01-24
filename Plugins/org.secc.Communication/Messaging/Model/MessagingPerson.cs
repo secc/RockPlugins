@@ -31,7 +31,7 @@ namespace org.secc.Communication.Messaging.Model
         public void LoadPerson(Person p)
         {
             AliasGuid = p.PrimaryAlias.Guid;
-            FirstName = p.FirstName;
+            FirstName = p.NickName;
             LastName = p.LastName;
         }
 
