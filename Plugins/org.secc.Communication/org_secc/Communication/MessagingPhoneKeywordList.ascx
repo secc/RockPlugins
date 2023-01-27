@@ -1,7 +1,7 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeFile="MessagingPhoneKeywordList.ascx.cs" Inherits="RockWeb.Plugins.org_secc.Communication.MessagingPhoneKeywordList" %>
 <asp:UpdatePanel ID="upKeywordList" runat="server">
     <ContentTemplate>
-        <asp:Panel ID="pnlContnet" CssClass="panel panel-block" runat="server">
+        <asp:Panel ID="pnlContent" CssClass="panel panel-block" runat="server">
             <asp:HiddenField ID="hfPhoneNumberId" runat="server" />
             <div class="panel-heading">
                 <h1 class="panel-title"><i class="fas fa-comments"></i><asp:Literal ID="lTitle" runat="server" Text="Keywords"></asp:Literal></h1>

@@ -40,6 +40,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             gPhoneNumbers.Actions.AddClick += gPhoneNumbers_AddClick;
             gPhoneNumbers.GridRebind += GPhoneNumbers_GridRebind;
             mdlAddTwilioNumber.SaveClick += MdlAddTwilioNumber_SaveClick;
+            gPhoneNumbers.Columns[gPhoneNumbers.Columns.Count - 1].Visible = UserCanEdit;
         }
 
 

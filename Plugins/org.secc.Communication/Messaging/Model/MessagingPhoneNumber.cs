@@ -20,6 +20,8 @@ namespace org.secc.Communication.Messaging.Model
         public bool IsActive { get; set; }
         [JsonProperty( "number" )]
         public string Number { get; set; }
+        [JsonProperty( "description" )]
+        public string Description { get; set; }
         [JsonProperty( "keywords" )]
         public SortedList<int, Keyword> Keywords { get; set; } = new SortedList<int, Keyword>();
         [JsonProperty("createdOn")]

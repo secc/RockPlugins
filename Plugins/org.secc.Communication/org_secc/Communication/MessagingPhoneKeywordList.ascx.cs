@@ -74,7 +74,15 @@ namespace RockWeb.Plugins.org_secc.Communication
             if ( !IsPostBack )
             {
                 hfPhoneNumberId.Value = PageParameter( AttributeKeys.QS_MessagingNumber );
-                LoadPhoneNumberKeywords();
+                if ( hfPhoneNumberId.Value.IsNotNullOrWhiteSpace() )
+                {
+                    LoadPhoneNumberKeywords();
+                    pnlContent.Visible = true;
+                }
+                else
+                {
+                    pnlContent.Visible = false;
+                }
             }
         }
         #endregion
@@ -120,6 +128,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             };
             var client = new MessagingClient();
             client.ReorderKeyword( reorderItem, hfPhoneNumberId.Value );
+            LoadPhoneNumberKeywords();
 
 
         }
