@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Rock.Data;
 using Rock.Model;
@@ -11,8 +12,15 @@ namespace org.secc.Communication.Messaging.Model
         public Guid Id { get; set; }
         [JsonProperty( "PhoneNumberId" )]
         public Guid PhoneNumberId { get; set; }
+        [JsonProperty( "Name" )]
+        public string Name { get; set; }
+        [JsonProperty("Description")]
+        public string Description { get; set; }
+        [Obsolete]
         [JsonProperty( "MessageToMatch" )]
         public string MessageToMatch { get; set; } = string.Empty;
+        [JsonProperty("PhrasesToMatch")]
+        public List<string> PhrasesToMatch { get; set; }
         [JsonProperty( "CampaignCode" )]
         public string CampaignCode { get; set; }
         [JsonProperty("ResponseMessage")]

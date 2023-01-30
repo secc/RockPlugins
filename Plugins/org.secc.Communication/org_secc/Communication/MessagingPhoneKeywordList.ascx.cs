@@ -257,13 +257,15 @@ namespace RockWeb.Plugins.org_secc.Communication
                 {
                     KeywordId = item.Value.Id,
                     PhoneNumberId = item.Value.PhoneNumberId,
-                    MessageToMatch = item.Value.MessageToMatch,
+                    Name = item.Value.Name,
+                    Description = item.Value.Description,
                     ResponseMessage = item.Value.ResponseMessage,
                     StartDate = item.Value.StartDate,
                     EndDate = item.Value.EndDate,
                     Order = item.Key,
                     CreatedOn = item.Value.CreatedOnDateTime,
-                    ModifiedOn = item.Value.ModifiedOnDateTime
+                    ModifiedOn = item.Value.ModifiedOnDateTime,
+                    PhraseCount = item.Value.PhrasesToMatch != null ? item.Value.PhrasesToMatch.Count() : 0
 
                 } );
             }
@@ -310,12 +312,15 @@ namespace RockWeb.Plugins.org_secc.Communication
         {
             public Guid KeywordId { get; set; }
             public Guid PhoneNumberId { get; set; }
+            public string Name { get; set; }
+            public string Description { get; set; }
             public string MessageToMatch { get; set; }
             public string ResponseMessage { get; set; }
             public DateTime? StartDate { get; set; }
             public DateTime? EndDate { get; set; }
             public DateTime? CreatedOn { get; set; }
             public DateTime? ModifiedOn { get; set; }
+            public int PhraseCount { get; set; }
             public string Status { get; set; }
             public int Order { get; set; }
 

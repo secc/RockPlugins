@@ -12,10 +12,12 @@
                     <Rock:Grid ID="gKeywords" runat="server" AllowPaging="true" AllowSorting="false" DataKeyNames="KeywordId">
                         <Columns>
                             <Rock:ReorderField />
-                            <Rock:RockBoundField DataField="MessageToMatch" HeaderText="Keyword" />
+                            <Rock:RockBoundField DataField="Name" HeaderText="Name" />
+                            <Rock:RockBoundField DataField="Description" HeaderText="Description" />
                             <Rock:RockBoundField DataField="ResponseMessage" HeaderText="Response" />
                             <Rock:DateTimeField DataField="StartDate" HeaderText="Start"  />
                             <Rock:DateTimeField DataField="EndDate" HeaderText="End" />
+                            <Rock:BadgeField DataField="PhraseCount" HeaderText="Phrases" />
                             <Rock:RockBoundField DataField="Status" HeaderText="Status" />
                             <Rock:DeleteField OnClick="gKeywords_DeleteClick" />
                         </Columns>
