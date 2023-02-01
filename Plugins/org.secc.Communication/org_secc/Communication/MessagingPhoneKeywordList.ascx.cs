@@ -13,6 +13,10 @@ using Rock.Web.UI.Controls;
 using System.Linq.Dynamic;
 using EntityFramework.Utilities;
 using Rock.Jobs;
+using CSScriptLibrary;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
+using Newtonsoft.Json;
+using Rock.Common.Mobile.Blocks.Groups.GroupFinder;
 
 namespace RockWeb.Plugins.org_secc.Communication
 {
@@ -56,8 +60,9 @@ namespace RockWeb.Plugins.org_secc.Communication
             gKeywords.GridReorder += gKeywords_GridReorder;
             gKeywords.Actions.AddClick += gKeywords_AddClick;
             gKeywords.RowSelected += gKeywords_RowSelected;
-
-            mdlEditKeyword.SaveClick += mdlEditKeyword_SaveClick;
+            lbKeywordCancel.Click += lbKeywordCancel_Click;
+            lbKeywordSave.Click += lbKeywordSave_Click;
+            
 
             gKeywords.Columns[gKeywords.Columns.Count - 1].Visible = UserCanEdit;
 
@@ -91,10 +96,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         private void gKeywords_AddClick( object sender, EventArgs e )
         {
-            ClearKeywordModal();
-            mdlEditKeyword.Title = "<i class='fas fa-comments'></i> Add Keyword";
-            hfKeyword.Value = String.Empty;
-            mdlEditKeyword.Show();
+            KeywordFormLoad( string.Empty );
         }
 
         protected void gKeywords_DeleteClick( object sender, Rock.Web.UI.Controls.RowEventArgs e )
@@ -135,101 +137,82 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         private void gKeywords_RowSelected( object sender, RowEventArgs e )
         {
-            ClearKeywordModal();
-            mdlEditKeyword.Title = "<i class='fas fa-comments'></i> Edit Keyword";
-            var keyword = LoadKeyword( e.RowKeyValue.ToString());
-            
+            var keywordId = e.RowKeyValue.ToString();
+            KeywordFormLoad( keywordId );
+        }
 
-            if(keyword == null)
+        private void lbKeywordCancel_Click( object sender, EventArgs e )
+        {
+            KeywordFormClear();
+            LoadPhoneNumberKeywords();
+            pnlKeywordGrid.Visible = true;
+            pnlKeywordEdit.Visible = false;
+        }
+
+        private void lbKeywordSave_Click( object sender, EventArgs e )
+        {
+            if(!KeywordDateRangeIsValid())
             {
+                NotificationBoxSetContent( "Please correct the following:", "Start Date must be before End Date.", NotificationBoxType.Validation );
                 return;
             }
 
-            hfKeyword.Value = keyword.Id.ToString();
-            tbWord.Text = keyword.MessageToMatch;
-            tbResponse.Text = keyword.ResponseMessage;
-            dtpStartDate.SelectedDateTime = keyword.StartDate;
-            dtpEndDate.SelectedDateTime = keyword.EndDate;
-            cbActive.Checked = keyword.IsActive;
-
-            pnlStatus.Visible = true;
-            lCreatedBy.Text = ( keyword.CreatedBy != null ? $"{keyword.CreatedBy} " : "(unknown) " )
-                + ( keyword.CreatedOnDateTime.HasValue ? keyword.CreatedOnDateTime.Value.ToLocalTime().ToShortDateTimeString() : String.Empty );
-            lModifiedBy.Text = ( keyword.ModifiedBy != null ? $"{keyword.ModifiedBy} " : "(unknown) " )
-                + ( keyword.ModifiedOnDateTime.HasValue ? keyword.ModifiedOnDateTime.Value.ToLocalTime().ToShortDateTimeString() : String.Empty );
-
-            mdlEditKeyword.Show();
-        }
-
-        private void mdlEditKeyword_SaveClick( object sender, EventArgs e )
-        {
-            nbKeywordPanel.Visible = false;
-            nbKeywordPanel.Text = string.Empty;
-            nbKeywordPanel.Title = string.Empty;
-            if(!KeywordDateRangeIsValid())
+            bool isNew = false;
+            Keyword keyword = null;
+            if(hfKeywordId.Value.IsNotNullOrWhiteSpace())
             {
-                nbKeywordPanel.Title = "<i class='fas fa-exclamation-triangle'></i> Date Range Not Valid";
-                nbKeywordPanel.Text = "Start date must be before the end date.";
-                nbKeywordPanel.Visible = true;
-                return;     
-            }
-            
-
-            var phoneId = hfPhoneNumberId.Value;
-            var keywordId = hfKeyword.Value;
-
-            Keyword k = null;
-            var isNew = false;
-            if( keywordId.IsNullOrWhiteSpace())
-            {
-                k = new Keyword();
-                k.CreatedBy = new MessagingPerson( CurrentPerson );
-                isNew = true;
+                keyword = LoadKeyword( hfKeywordId.Value );
             }
             else
             {
-                k = LoadKeyword( keywordId );
+                keyword = new Keyword();
+                keyword.CreatedBy = new MessagingPerson( CurrentPerson );
+                keyword.CreatedOnDateTime = RockDateTime.Now.ToUniversalTime();
+                isNew = true;
             }
-            k.MessageToMatch = tbWord.Text.Trim();
-            k.ResponseMessage = tbResponse.Text.Trim();
-            k.StartDate = dtpStartDate.SelectedDateTime;
-            k.EndDate = dtpEndDate.SelectedDateTime;
-            k.IsActive = cbActive.Checked;
 
-            k.ModifiedBy = new MessagingPerson( CurrentPerson );
+            keyword.Name = tbName.Text.Trim();
+            keyword.Description = tbDescription.Text.Trim();
+            keyword.StartDate = dpStart.SelectedDate;
+            keyword.EndDate = dpEnd.SelectedDate;
+            keyword.IsActive = switchActive.Checked;
+
+            var wordsToMatch = new List<string>();
+            var listItems = JsonConvert.DeserializeObject<List<ListItems.KeyValuePair>>( listPhrasesToMatch.Value );
+            keyword.PhrasesToMatch = listItems.Select( l => l.Value ).ToList();
+            keyword.ResponseMessage = tbResponseMessage.Text.Trim();
 
             var client = new MessagingClient();
             if(isNew)
             {
-                client.AddKeyword( phoneId, k );
+                client.AddKeyword( hfPhoneNumberId.Value, keyword );
             }
             else
             {
-                client.UpdateKeyword( phoneId, k );
+                client.UpdateKeyword( hfPhoneNumberId.Value, keyword );
             }
 
 
-            mdlEditKeyword.Hide();
-            NotificationBoxSetContent(
-                "<i class='fas fa-save'></i> Keyword Saved",
-                "Keyword has been successfully saved.", NotificationBoxType.Success );
-
+            pnlKeywordGrid.Visible = true;
+            pnlKeywordEdit.Visible = false;
             LoadPhoneNumberKeywords();
         }
+
 
         #endregion
 
         #region Methods
 
-        private void ClearKeywordModal()
+        private void KeywordFormClear()
         {
-            mdlEditKeyword.Title = String.Empty;
-            hfKeyword.Value = String.Empty;
-            tbWord.Text = String.Empty;
-            tbResponse.Text = String.Empty;
-            dtpStartDate.SelectedDateTime = null;
-            dtpEndDate.SelectedDateTime = null;
-            cbActive.Checked = false;
+            hfKeywordId.Value = string.Empty;
+            tbName.Text = string.Empty;
+            tbDescription.Text = string.Empty;
+            dpStart.SelectedDate = null;
+            dpEnd.SelectedDate = null;
+            switchActive.Checked = false;
+            listPhrasesToMatch.Value = string.Empty;
+            tbResponseMessage.Text = string.Empty;
         }
 
         private Keyword LoadKeyword(string id)
@@ -237,6 +220,38 @@ namespace RockWeb.Plugins.org_secc.Communication
             var client = new MessagingClient();
             var keyword = client.GetKeyword( hfPhoneNumberId.Value, id );
             return keyword;
+        }
+
+        private void KeywordFormLoad(string keywordId)
+        {
+            Keyword keyword = null;
+            if ( keywordId.IsNotNullOrWhiteSpace() )
+            {
+                keyword = LoadKeyword( keywordId );
+            }
+            KeywordFormClear();
+            if(keyword != null)
+            {
+                hfKeywordId.Value = keyword.Id.ToString();
+                tbName.Text = keyword.Name;
+                tbDescription.Text = keyword.Description;
+                dpStart.SelectedDate = keyword.StartDate;
+                dpEnd.SelectedDate = keyword.EndDate;
+                switchActive.Checked = keyword.IsActive;
+
+                var listItems = new List<ListItems.KeyValuePair>();
+                foreach ( var phrase in keyword.PhrasesToMatch )
+                {
+                    listItems.Add( new ListItems.KeyValuePair { Value = phrase } );
+                }
+
+                listPhrasesToMatch.Value = JsonConvert.SerializeObject( listItems );
+                tbResponseMessage.Text = keyword.ResponseMessage;
+            }
+
+            pnlKeywordEdit.Visible = true;
+            pnlKeywordGrid.Visible = false;
+
         }
 
         private void LoadPhoneNumberKeywords()
@@ -278,12 +293,12 @@ namespace RockWeb.Plugins.org_secc.Communication
         private bool KeywordDateRangeIsValid()
         {
             
-            if(!dtpStartDate.SelectedDateTime.HasValue || !dtpEndDate.SelectedDateTime.HasValue)
+            if(!dpStart.SelectedDate.HasValue || !dpEnd.SelectedDate.HasValue)
             {
                 return true;
             }
 
-            if(dtpStartDate.SelectedDateTime.Value <= dtpEndDate.SelectedDateTime.Value)
+            if(dpStart.SelectedDate.Value <= dpEnd.SelectedDate.Value)
             {
                 return true;
             }

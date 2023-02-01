@@ -8,51 +8,52 @@
             </div>
             <div class="panel-body">
                 <Rock:NotificationBox ID="nbNotifications" runat="server" />
-                <div class="grid grid-panel">
+                <asp:Panel id="pnlKeywordGrid" runat="server" Visible="true" CssClass="grid grid-panel">
                     <Rock:Grid ID="gKeywords" runat="server" AllowPaging="true" AllowSorting="false" DataKeyNames="KeywordId">
                         <Columns>
                             <Rock:ReorderField />
                             <Rock:RockBoundField DataField="Name" HeaderText="Name" />
                             <Rock:RockBoundField DataField="Description" HeaderText="Description" />
                             <Rock:RockBoundField DataField="ResponseMessage" HeaderText="Response" />
-                            <Rock:DateTimeField DataField="StartDate" HeaderText="Start"  />
-                            <Rock:DateTimeField DataField="EndDate" HeaderText="End" />
-                            <Rock:BadgeField DataField="PhraseCount" HeaderText="Phrases" />
+                            <Rock:DateField DataField="StartDate" HeaderText="Start"  />
+                            <Rock:Datefield DataField="EndDate" HeaderText="End" />
+                            <Rock:BadgeField DataField="PhraseCount" HeaderText="Phrases" InfoMin="1" />
                             <Rock:RockBoundField DataField="Status" HeaderText="Status" />
                             <Rock:DeleteField OnClick="gKeywords_DeleteClick" />
                         </Columns>
                     </Rock:Grid>
 
-                </div>
-                <Rock:ModalDialog ID="mdlEditKeyword" runat="server" SaveButtonText="Save"
-                    SaveButtonCausesValidation="true" ValidationGroup="valKeyword">
-                    <Content>
-                        <asp:ValidationSummary ID="valSummaryKeyword" runat="server" CssClass="alert alert-validation" ValidationGroup="valKeyword" />
-                        <Rock:NotificationBox ID="nbKeywordPanel" runat="server" Visible="false" NotificationBoxType="Validation" />
-                        <asp:HiddenField ID="hfKeyword" runat="server" />
-                        <Rock:RockTextBox ID="tbWord" runat="server" Label="Phrase to Match" Required="true"
-                            ValidationGroup="valKeyword" RequiredErrorMessage="Phrase to Match is required" />
-                        <Rock:RockTextBox ID="tbResponse" runat="server" Label="Response Message" TextMode="MultiLine"
-                            MaxLength="160" ShowCountDown="true" Required="true" ValidationGroup="valKeyword" RequiredErrorMessage="Response Message is required." />
+                </asp:Panel>
+                <asp:Panel ID="pnlKeywordEdit" runat="server" Visible="false">
+                    <asp:ValidationSummary iv="vsKeywordEdit" runat="server" ValidationGroup="keyword-edit" CssClass="alert alert-validation" HeaderText="Please correct the following:" />
+                    <asp:HiddenField ID="hfKeywordId" runat="server" />
+                    <Rock:RockTextBox ID="tbName" runat="server" Label="Name" CssClass="input-width-xxl" Required="true" RequiredErrorMessage="Name is required" ValidationGroup="keyword-edit" />
+                    <Rock:RockTextBox ID="tbDescription" runat="server" Label="Description"  TextMode="MultiLine" MaxLength="250" ShowCountDown="true" ValidationGroup="keyword-edit"/>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <Rock:DatePicker ID="dpStart" runat="server" Label="Start Date" />
+                        </div>
+                        <div class="col-sm-6">
+                            <Rock:DatePicker ID="dpEnd" runat="server" Label="End Date" />
+                        </div>
+                    </div>
+                    <Rock:Switch ID="switchActive" Label="Active" runat="server" />
+
+                    <div class="well">
                         <div class="row">
-                            <div class="col-md-6">
-                                <Rock:DateTimePicker ID="dtpStartDate" runat="server" Label="Start Date" ValidationGroup="valKeyword" />
+                            <div class="col-md-4 col-sm-6">
+                                <Rock:ListItems ID="listPhrasesToMatch" runat="server" Label="Phrases to Match" Required="true"  RequiredErrorMessage="At least one phrase to match is required." ValidationGroup="keyword-edit" />
                             </div>
-                            <div class="col-md-6">
-                                <Rock:DateTimePicker ID="dtpEndDate" runat="server" Label="End Date" ValidationGroup="valKeyword" />
+                            <div class="col-md-8 col-sm-6">
+                                <Rock:RockTextBox ID="tbResponseMessage" runat="server" Label="Response Message" TextMode="MultiLine" MaxLength="160" Required="true" RequiredErrorMessage="Response Message is required." ValidationGroup="keyword-edit" />
                             </div>
                         </div>
-                        <Rock:RockCheckBox ID="cbActive" runat="server" Label="Active" />
-                        <asp:Panel ID="pnlStatus" runat="server" CssClass="row">
-                            <div class="col-md-6">
-                                <Rock:RockLiteral ID="lCreatedBy" runat="server" Label="Created By" />
-                            </div>
-                            <div class="col-md-6">
-                                <Rock:RockLiteral ID="lModifiedBy" runat="server" Label="Modified By" />
-                            </div>
-                        </asp:Panel>
-                    </Content>
-                </Rock:ModalDialog>
+                    </div>
+                    <div class="actions">
+                        <asp:LinkButton ID="lbKeywordSave" runat="server" CssClass="btn btn-primary" ValidationGroup="keyword-edit" CausesValidation="true">Save</asp:LinkButton>
+                        <asp:LinkButton ID="lbKeywordCancel" runat="server" CssClass="btn btn-default" CausesValidation="false">Cancel</asp:LinkButton>
+                    </div>
+                </asp:Panel>
             </div>
         </asp:Panel>
     </ContentTemplate>
