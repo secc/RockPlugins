@@ -54,6 +54,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [DataViewField( "Security Role Dataview", "Data view which people who are in a security role. It will not allow adding PINs for people in this group.", entityTypeName: "Rock.Model.Person", required: false )]
     [TextField( "Data Error URL", "Example: WorkflowEntry/12?PersonId={0}", false )]
     [SecurityRoleField( "Reprint Tag Security Group", "Group to allow reprinting of tags.", key: "SecurityGroup", defaultSecurityRoleGroupGuid: Rock.SystemGuid.Group.GROUP_STAFF_MEMBERS )]
+    [BooleanField( "Enable Check-In QR Code Validation", "Should QR code scanning be required to complete a super check-in?", false, key: "QRCodeCheck" )]
+
     public partial class SuperCheckin : CheckInBlock
     {
         private RockContext _rockContext;
@@ -884,20 +886,57 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void btnCompleteCheckin_Click( object sender, EventArgs e )
         {
-            if ( CurrentCheckInState == null )
+            var requireQRCodeCheck = GetAttributeValue( "QRCodeCheck" ).AsBoolean();
+            if ( requireQRCodeCheck )
+            {
+                mdCheckinPin.Show();
+                tbCheckinPin.Focus();
+            }
+            else
+            {
+                completeCheckin();
+            }
+        }
+
+
+        protected void mdCheckinPin_SaveClick( object sender, EventArgs e )
+        {
+            var userGuid = tbCheckinPin.Text.AsGuid();
+            var rockContext = new Rock.Data.RockContext();
+            var attendanceQuery = new AttendanceService( rockContext )
+                                    .Queryable()
+                                    .Where( a =>
+                                        a.Guid == userGuid &&
+                                        a.EndDateTime == null )
+                                    .FirstOrDefault();
+            if ( attendanceQuery.IsNotNull() )
+            {
+                var superCheckinPerson = new PersonAliasService( rockContext )
+                                            .Queryable()
+                                            .Where( pa =>
+                                                pa.Id == attendanceQuery.PersonAliasId )
+                                            .FirstOrDefault();
+                mdCheckinPin.Hide();
+
+                completeCheckin( superCheckinPerson.Name );
+            }
+            else
+            {
+
+                maWarning.Show( "Something went wrong. Please check QR Code and try again.", ModalAlertType.Warning );
+                tbCheckinPin.Text = "";
+
+            }
+        }
+        private void completeCheckin( string superCheckinPerson = null )
+        {
+            if ( CurrentCheckInState == null || CurrentCheckInState.CheckIn.CurrentFamily == null )
             {
                 NavigateToPreviousPage();
                 return;
             }
 
-            var currentFamily = CurrentCheckInState.CheckIn.CurrentFamily;
-            if ( currentFamily == null )
-            {
-                NavigateToPreviousPage();
-                return;
-            }
-
-            foreach ( var person in currentFamily.People )
+            foreach ( var person in CurrentCheckInState.CheckIn.CurrentFamily.People )
             {
                 person.Selected = false;
                 foreach ( var groupType in person.GroupTypes )
@@ -915,6 +954,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                                 person.Selected = true;
                                 groupType.Selected = true;
                                 group.Selected = true;
+                                group.Notes = superCheckinPerson.IsNotNullOrWhiteSpace() ? $"Super Check-In by {superCheckinPerson}" : "Super Check-In";
                                 location.Selected = true;
                             }
                         }
@@ -930,7 +970,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             btnCompleteCheckin.Visible = false;
             DisplayFamilyMemberMenu();
             BuildGroupTypeModal();
+            tbCheckinPin.Text = "";
+            mdCheckinPin.Hide();
+
         }
+
 
         private void ClearLabels()
         {
@@ -1705,7 +1749,6 @@ try{{
             public string SubCaption { get; set; }
             public bool Active { get; set; }
         }
-
     }
     class FamilyLabel
     {

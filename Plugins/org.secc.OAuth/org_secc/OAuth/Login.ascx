@@ -16,8 +16,9 @@
                         <Rock:RockCheckBox ID="cbRememberMe" runat="server" Text="Remember me on this computer" />        
                     
                         <asp:Button ID="btnLogin" runat="server" Text="Login" CssClass="btn btn-primary" OnClick="btnLogin_Click" />
-                        <asp:Button ID="btnNewAccount" runat="server" Text="Register" CssClass="btn btn-action" OnClick="btnNewAccount_Click" CausesValidation="false" />
                         <asp:Button ID="btnHelp" runat="server" Text="Forgot Account" CssClass="btn btn-link" OnClick="btnHelp_Click" CausesValidation="false" />
+                        <hr />
+                        <asp:Button ID="btnNewAccount" runat="server" Text="Register New Account" CssClass="btn btn-action" OnClick="btnNewAccount_Click" CausesValidation="false" />
 
                         <asp:Panel ID="pnlMessage" runat="server" Visible="false" CssClass="alert alert-warning block-message margin-t-md"/>
                     
