@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Linq.Dynamic;
 using System.Web.UI.WebControls;
+using Lucene.Net.Analysis.Miscellaneous;
 using Newtonsoft.Json;
 using org.secc.Communication;
 using org.secc.Communication.Messaging;
@@ -185,8 +186,26 @@ namespace RockWeb.Plugins.org_secc.Communication
 
             keyword.Name = tbName.Text.Trim();
             keyword.Description = tbDescription.Text.Trim();
-            keyword.StartDate = dpStart.SelectedDate;
-            keyword.EndDate = dpEnd.SelectedDate;
+
+            if ( dpStart.SelectedDate.HasValue )
+            {
+                keyword.StartDate = dpStart.SelectedDate.Value.ToUniversalTime();
+            }
+            else
+            {
+                keyword.StartDate = dpStart.SelectedDate;
+            }
+
+            if ( dpEnd.SelectedDate.HasValue )
+            {
+                var ts = new TimeSpan( 23, 59, 59 );
+                keyword.EndDate = dpEnd.SelectedDate.Value.Add(ts).ToUniversalTime();
+            }
+            else
+            {
+                keyword.EndDate = dpEnd.SelectedDate;
+            }
+
             keyword.IsActive = switchActive.Checked;
 
             var wordsToMatch = new List<string>();
@@ -247,8 +266,8 @@ namespace RockWeb.Plugins.org_secc.Communication
                 hfKeywordId.Value = keyword.Id.ToString();
                 tbName.Text = keyword.Name;
                 tbDescription.Text = keyword.Description;
-                dpStart.SelectedDate = keyword.StartDate;
-                dpEnd.SelectedDate = keyword.EndDate;
+                dpStart.SelectedDate = keyword.StartDate.HasValue ? keyword.StartDate.Value.ToLocalTime() : keyword.StartDate;
+                dpEnd.SelectedDate = keyword.EndDate.HasValue ? keyword.EndDate.Value.ToLocalTime() : keyword.EndDate;
                 switchActive.Checked = keyword.IsActive;
 
                 var listItems = new List<ListItems.KeyValuePair>();
@@ -287,8 +306,8 @@ namespace RockWeb.Plugins.org_secc.Communication
                     Name = item.Value.Name,
                     Description = item.Value.Description,
                     ResponseMessage = item.Value.ResponseMessage,
-                    StartDate = item.Value.StartDate,
-                    EndDate = item.Value.EndDate,
+                    StartDate = item.Value.StartDate.HasValue ? item.Value.StartDate.Value.ToLocalTime() : item.Value.StartDate,
+                    EndDate = item.Value.EndDate.HasValue ? item.Value.EndDate.Value.ToLocalTime() : item.Value.EndDate,
                     Order = item.Key,
                     CreatedOn = item.Value.CreatedOnDateTime,
                     ModifiedOn = item.Value.ModifiedOnDateTime,
@@ -297,7 +316,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                         "<span class='label label-warning'>Inactive</span>"
 
 
-                } );
+                } ); ;
             }
 
             gKeywords.DataSource = keywords.OrderBy( k => k.Order ).ToList();
