@@ -15,10 +15,14 @@
                             <Rock:RockBoundField DataField="Name" HeaderText="Name" />
                             <Rock:RockBoundField DataField="Description" HeaderText="Description" />
                             <Rock:RockBoundField DataField="ResponseMessage" HeaderText="Response" />
-                            <Rock:DateField DataField="StartDate" HeaderText="Start"  />
-                            <Rock:Datefield DataField="EndDate" HeaderText="End" />
+                            <Rock:DateField DataField="StartDate" HeaderStyle-HorizontalAlign="Left" ItemStyle-HorizontalAlign="Left" HeaderText="Start"  />
+                            <Rock:Datefield DataField="EndDate" HeaderStyle-HorizontalAlign="Left" ItemStyle-HorizontalAlign="Left" HeaderText="End" />
                             <Rock:BadgeField DataField="PhraseCount" HeaderText="Phrases" InfoMin="1" />
-                            <Rock:RockBoundField DataField="Status" HeaderText="Status" />
+                            <Rock:RockLiteralField  HeaderText="Status" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center" >
+                                <ItemTemplate>
+                                    <asp:Literal ID="lStatus" runat="server" />
+                                </ItemTemplate>
+                            </Rock:RockLiteralField>
                             <Rock:DeleteField OnClick="gKeywords_DeleteClick" />
                         </Columns>
                     </Rock:Grid>

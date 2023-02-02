@@ -1,7 +1,10 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Linq.Dynamic;
+using System.Web.UI.WebControls;
+using Newtonsoft.Json;
 using org.secc.Communication;
 using org.secc.Communication.Messaging;
 using org.secc.Communication.Messaging.Model;
@@ -10,13 +13,7 @@ using Rock.Attribute;
 using Rock.Model;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using System.Linq.Dynamic;
-using EntityFramework.Utilities;
-using Rock.Jobs;
-using CSScriptLibrary;
-using DocumentFormat.OpenXml.Drawing.Diagrams;
-using Newtonsoft.Json;
-using Rock.Common.Mobile.Blocks.Groups.GroupFinder;
+
 
 namespace RockWeb.Plugins.org_secc.Communication
 {
@@ -47,7 +44,7 @@ namespace RockWeb.Plugins.org_secc.Communication
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-            
+
             gKeywords.ItemType = "Keywords";
             gKeywords.EmptyDataText = "No Keywords Found";
             gKeywords.Actions.ShowAdd = UserCanEdit;
@@ -60,15 +57,30 @@ namespace RockWeb.Plugins.org_secc.Communication
             gKeywords.GridReorder += gKeywords_GridReorder;
             gKeywords.Actions.AddClick += gKeywords_AddClick;
             gKeywords.RowSelected += gKeywords_RowSelected;
+            gKeywords.RowDataBound += GKeywords_RowDataBound;
             lbKeywordCancel.Click += lbKeywordCancel_Click;
             lbKeywordSave.Click += lbKeywordSave_Click;
-            
+
 
             gKeywords.Columns[gKeywords.Columns.Count - 1].Visible = UserCanEdit;
 
         }
 
+        private void GKeywords_RowDataBound( object sender, System.Web.UI.WebControls.GridViewRowEventArgs e )
+        {
+            if ( e.Row.RowType != DataControlRowType.DataRow )
+            {
+                return;
+            }
 
+            var item = e.Row.DataItem as KeywordSummary;
+
+            Literal lStatus = e.Row.FindControl( "lStatus" ) as Literal;
+
+            lStatus.Text = item.Status;
+
+
+        }
 
         protected override void OnLoad( EventArgs e )
         {
@@ -101,7 +113,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         protected void gKeywords_DeleteClick( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
-            if(!UserCanEdit)
+            if ( !UserCanEdit )
             {
                 return;
             }
@@ -151,7 +163,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         private void lbKeywordSave_Click( object sender, EventArgs e )
         {
-            if(!KeywordDateRangeIsValid())
+            if ( !KeywordDateRangeIsValid() )
             {
                 NotificationBoxSetContent( "Please correct the following:", "Start Date must be before End Date.", NotificationBoxType.Validation );
                 return;
@@ -159,7 +171,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
             bool isNew = false;
             Keyword keyword = null;
-            if(hfKeywordId.Value.IsNotNullOrWhiteSpace())
+            if ( hfKeywordId.Value.IsNotNullOrWhiteSpace() )
             {
                 keyword = LoadKeyword( hfKeywordId.Value );
             }
@@ -183,7 +195,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             keyword.ResponseMessage = tbResponseMessage.Text.Trim();
 
             var client = new MessagingClient();
-            if(isNew)
+            if ( isNew )
             {
                 client.AddKeyword( hfPhoneNumberId.Value, keyword );
             }
@@ -215,14 +227,14 @@ namespace RockWeb.Plugins.org_secc.Communication
             tbResponseMessage.Text = string.Empty;
         }
 
-        private Keyword LoadKeyword(string id)
+        private Keyword LoadKeyword( string id )
         {
             var client = new MessagingClient();
             var keyword = client.GetKeyword( hfPhoneNumberId.Value, id );
             return keyword;
         }
 
-        private void KeywordFormLoad(string keywordId)
+        private void KeywordFormLoad( string keywordId )
         {
             Keyword keyword = null;
             if ( keywordId.IsNotNullOrWhiteSpace() )
@@ -230,7 +242,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                 keyword = LoadKeyword( keywordId );
             }
             KeywordFormClear();
-            if(keyword != null)
+            if ( keyword != null )
             {
                 hfKeywordId.Value = keyword.Id.ToString();
                 tbName.Text = keyword.Name;
@@ -280,25 +292,28 @@ namespace RockWeb.Plugins.org_secc.Communication
                     Order = item.Key,
                     CreatedOn = item.Value.CreatedOnDateTime,
                     ModifiedOn = item.Value.ModifiedOnDateTime,
-                    PhraseCount = item.Value.PhrasesToMatch != null ? item.Value.PhrasesToMatch.Count() : 0
+                    PhraseCount = item.Value.PhrasesToMatch != null ? item.Value.PhrasesToMatch.Count() : 0,
+                    Status = item.Value.IsActive ? "<span class='label label-success'>Active</span>" :
+                        "<span class='label label-warning'>Inactive</span>"
+
 
                 } );
             }
 
             gKeywords.DataSource = keywords.OrderBy( k => k.Order ).ToList();
-            gKeywords.DataBind();   
+            gKeywords.DataBind();
 
         }
 
         private bool KeywordDateRangeIsValid()
         {
-            
-            if(!dpStart.SelectedDate.HasValue || !dpEnd.SelectedDate.HasValue)
+
+            if ( !dpStart.SelectedDate.HasValue || !dpEnd.SelectedDate.HasValue )
             {
                 return true;
             }
 
-            if(dpStart.SelectedDate.Value <= dpEnd.SelectedDate.Value)
+            if ( dpStart.SelectedDate.Value <= dpEnd.SelectedDate.Value )
             {
                 return true;
             }
