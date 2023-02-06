@@ -32,6 +32,14 @@ namespace org.secc.Communication.Messaging.Model
         public MessagingPerson CreatedBy { get; set; }
         [JsonProperty("modifiedBy")]
         public MessagingPerson ModifiedBy { get; set; }
+        [JsonIgnore]
+        public bool IsSystem
+        {
+            get
+            {
+                return KeywordCount > 0;
+            }
+        }
 
         [JsonIgnore]
         public int KeywordCount

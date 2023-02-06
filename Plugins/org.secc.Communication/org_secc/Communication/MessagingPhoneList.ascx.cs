@@ -119,6 +119,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             {
                 SetNotificationBox( "Can not delete phone number.", "This phone number has active keywords, and can not be deleted." );
                 nbNotifications.NotificationBoxType = NotificationBoxType.Danger;
+                nbNotifications.Visible = true;
                 return;
             }
 
@@ -142,7 +143,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             {
                 number = new MessagingPhoneNumber();
                 number.Sid = ddlTwilioNumbers.SelectedValue;
-                number.Number = twilioNumbers.FirstOrDefault( t => t.Sid.Equals( number.Sid ) ).Number;
+                number.Number = twilioNumbers.FirstOrDefault( t => t.Sid.Equals( number.Sid ) ).NumberRaw;
                 number.CreatedBy = new MessagingPerson( CurrentPerson );
             }
             number.Name = tbName.Text.Trim();
@@ -218,7 +219,8 @@ namespace RockWeb.Plugins.org_secc.Communication
                 {
                     Sid = item.Sid,
                     Name = item.FriendlyName,
-                    Number = PhoneNumber.CleanNumber( item.PhoneNumber )
+                    Number = PhoneNumber.CleanNumber( item.PhoneNumber ),
+                    NumberRaw= item.PhoneNumber
                 };
                 twilioNumbers.Add( number );
             }
@@ -290,6 +292,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             public string Sid { get; set; }
             public string Name { get; set; }
             public string Number { get; set; }
+            public string NumberRaw { get; set; }
             public string DisplayName
             {
                 get

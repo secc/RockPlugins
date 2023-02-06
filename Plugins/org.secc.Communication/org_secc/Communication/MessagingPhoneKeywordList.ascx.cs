@@ -206,6 +206,9 @@ namespace RockWeb.Plugins.org_secc.Communication
                 keyword.EndDate = dpEnd.SelectedDate;
             }
 
+            keyword.ModifiedBy = new MessagingPerson( CurrentPerson );
+            keyword.ModifiedOnDateTime = RockDateTime.Now.ToUniversalTime();
+
             keyword.IsActive = switchActive.Checked;
 
             var wordsToMatch = new List<string>();
@@ -297,26 +300,28 @@ namespace RockWeb.Plugins.org_secc.Communication
             }
 
             List<KeywordSummary> keywords = new List<KeywordSummary>();
-            foreach ( var item in phoneNumber.Keywords )
+            if ( phoneNumber.Keywords != null )
             {
-                keywords.Add( new KeywordSummary
+                foreach ( var item in phoneNumber.Keywords )
                 {
-                    KeywordId = item.Value.Id,
-                    PhoneNumberId = item.Value.PhoneNumberId,
-                    Name = item.Value.Name,
-                    Description = item.Value.Description,
-                    ResponseMessage = item.Value.ResponseMessage,
-                    StartDate = item.Value.StartDate.HasValue ? item.Value.StartDate.Value.ToLocalTime() : item.Value.StartDate,
-                    EndDate = item.Value.EndDate.HasValue ? item.Value.EndDate.Value.ToLocalTime() : item.Value.EndDate,
-                    Order = item.Key,
-                    CreatedOn = item.Value.CreatedOnDateTime,
-                    ModifiedOn = item.Value.ModifiedOnDateTime,
-                    PhraseCount = item.Value.PhrasesToMatch != null ? item.Value.PhrasesToMatch.Count() : 0,
-                    Status = item.Value.IsActive ? "<span class='label label-success'>Active</span>" :
-                        "<span class='label label-warning'>Inactive</span>"
-
-
-                } ); ;
+                    keywords.Add( new KeywordSummary
+                    {
+                        KeywordId = item.Value.Id,
+                        PhoneNumberId = item.Value.PhoneNumberId,
+                        Name = item.Value.Name,
+                        Description = item.Value.Description,
+                        ResponseMessage = item.Value.ResponseMessage,
+                        StartDate = item.Value.StartDate.HasValue ? item.Value.StartDate.Value.ToLocalTime() : item.Value.StartDate,
+                        EndDate = item.Value.EndDate.HasValue ? item.Value.EndDate.Value.ToLocalTime() : item.Value.EndDate,
+                        Order = item.Key,
+                        CreatedOn = item.Value.CreatedOnDateTime,
+                        ModifiedOn = item.Value.ModifiedOnDateTime,
+                        PhraseCount = item.Value.PhrasesToMatch != null ? item.Value.PhrasesToMatch.Count() : 0,
+                        Status = item.Value.IsActive ? "<span class='label label-success'>Active</span>" :
+                            "<span class='label label-warning'>Inactive</span>"
+                    } );
+                    ;
+                }
             }
 
             gKeywords.DataSource = keywords.OrderBy( k => k.Order ).ToList();
