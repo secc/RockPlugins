@@ -93,35 +93,16 @@ namespace RockWeb.Plugins.org_secc.Communication
             btnCancelPhone.Click += btnCancelPhone_Click;
             this.AddConfigurationUpdateTrigger( upPhoneDetail );
 
-            string script = @"
-$('.js-drawerpull').on('click', function () {
-    $( this ).closest( '.panel-drawer' ).toggleClass( 'open' );
-    $( this ).siblings( '.drawer-content' ).slideToggle();
 
-    $expanded = $(this).children('input.filter-expanded');
-    $expanded.val($expanded.val() == 'True' ? 'False' : 'True');
 
-    var icon = $( this ).find( 'i' );
-    var iconOpenClass = icon.attr( 'data-icon-open' ) || 'fa fa-chevron-up';
-    var iconCloseClass = icon.attr( 'data-icon-closed' ) || 'fa fa-chevron-down';
 
-    if ($( this ).closest( '.panel-drawer' ).hasClass( 'open' )) {
-        icon.attr( 'class', iconOpenClass );
-    }
-    else {
-        icon.attr( 'class', iconCloseClass );
-    }
-});
-
-$('.js-date-rollover').tooltip();
-";
-            ScriptManager.RegisterStartupScript( this, typeof( UpdatePanel ), "MessagingPhoneAuditPanel", script, true );
         }
 
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
             NotificationBoxClear();
+            LoadPanelDrawerScript();
             if ( !Page.IsPostBack )
             {
                 if(PageParameter("IsSave").AsBoolean())
@@ -236,6 +217,33 @@ $('.js-date-rollover').tooltip();
                     localTime.ToString(), localTime.ToRelativeDateString() );
             }
             return stringBuilder.ToString();
+        }
+
+        private void LoadPanelDrawerScript()
+        {
+            string script = @"
+$('.js-drawerpull').on('click', function () {
+    $( this ).closest( '.panel-drawer' ).toggleClass( 'open' );
+    $( this ).siblings( '.drawer-content' ).slideToggle();
+
+    $expanded = $(this).children('input.filter-expanded');
+    $expanded.val($expanded.val() == 'True' ? 'False' : 'True');
+
+    var icon = $( this ).find( 'i' );
+    var iconOpenClass = icon.attr( 'data-icon-open' ) || 'fa fa-chevron-up';
+    var iconCloseClass = icon.attr( 'data-icon-closed' ) || 'fa fa-chevron-down';
+
+    if ($( this ).closest( '.panel-drawer' ).hasClass( 'open' )) {
+        icon.attr( 'class', iconOpenClass );
+    }
+    else {
+        icon.attr( 'class', iconCloseClass );
+    }
+});
+
+$('.js-date-rollover').tooltip();
+";
+            ScriptManager.RegisterStartupScript( pnlDetails, typeof( Panel ), "MessagingPhoneAuditPanel" + DateTime.Now.Ticks, script, true );
         }
 
         private MessagingPhoneNumber LoadPhoneNumber()
