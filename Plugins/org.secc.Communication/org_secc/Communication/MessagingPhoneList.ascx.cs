@@ -72,20 +72,21 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         private void gPhoneNumbers_AddClick( object sender, EventArgs e )
         {
+            NavigateToLinkedPage( AttributeKeys.DetailPage );
 
-            ClearAddModal();
-            BindTwilioNumberList();
-            hPhonenumberId.Value = string.Empty;
-            ddlTwilioNumbers.Visible = true;
-            lPhone.Visible = false;
-            pnlMdlHistory.Visible = false;
+            //ClearAddModal();
+            //BindTwilioNumberList();
+            //hPhonenumberId.Value = string.Empty;
+            //ddlTwilioNumbers.Visible = true;
+            //lPhone.Visible = false;
+            //pnlMdlHistory.Visible = false;
 
-            mdlAddTwilioNumber.SaveButtonText = "Save";
-            mdlAddTwilioNumber.SaveButtonCausesValidation = true;
-            mdlAddTwilioNumber.CancelLinkVisible = true;
+            //mdlAddTwilioNumber.SaveButtonText = "Save";
+            //mdlAddTwilioNumber.SaveButtonCausesValidation = true;
+            //mdlAddTwilioNumber.CancelLinkVisible = true;
 
-            mdlAddTwilioNumber.Title = "Add Phone Number";
-            mdlAddTwilioNumber.Show();
+            //mdlAddTwilioNumber.Title = "Add Phone Number";
+            //mdlAddTwilioNumber.Show();
 
 
         }
@@ -102,7 +103,10 @@ namespace RockWeb.Plugins.org_secc.Communication
                 return;
             }
 
-            LoadPhoneEditModel( e.RowKeyValue.ToString() );
+            var phoneId = e.RowKeyValue.ToString();
+            var queryStringValues = new Dictionary<string, string>();
+            queryStringValues.Add( "MessagingNumber", phoneId );
+            NavigateToLinkedPage( AttributeKeys.DetailPage, queryStringValues );
         }
 
         protected void gPhoneNumber_Delete( object sender, Rock.Web.UI.Controls.RowEventArgs e )
