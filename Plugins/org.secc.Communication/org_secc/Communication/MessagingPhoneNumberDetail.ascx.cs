@@ -160,7 +160,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
             phone.Name = tbPhoneNumberName.Text.Trim();
             phone.Description = tbDescription.Text.Trim();
-            phone.IsActive = cbActive.Checked;
+            phone.IsActive = switchActive.Checked;
             phone.ModifiedBy = new MessagingPerson( CurrentPerson );
 
             if(phone.Id.IsEmpty())
@@ -196,7 +196,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             hlStatus.Text = string.Empty;
             hlStatus.Visible = false;
             tbDescription.Text = string.Empty;
-            cbActive.Checked = false;
+            switchActive.Checked = false;
         }
 
         private string GetAuditLink(MessagingPerson p, DateTime? actionDateUtc)
@@ -356,7 +356,7 @@ $('.js-date-rollover').tooltip();
                 ClearDetailPanel();
                 lTitle.Text = $"Phone Number - {CurrentPhoneNumber.Name}";
                 hlStatus.Text = CurrentPhoneNumber.IsActive ? "Active" : "Inactive";
-                hlStatus.LabelType = CurrentPhoneNumber.IsActive ? LabelType.Success : LabelType.Warning;
+                hlStatus.LabelType = CurrentPhoneNumber.IsActive ? LabelType.Success : LabelType.Default;
                 hlStatus.Visible = true;
 
                 tbPhoneNumberName.Text = CurrentPhoneNumber.Name;
@@ -364,11 +364,9 @@ $('.js-date-rollover').tooltip();
                 ddlPhoneNumber.Visible = false;
                 lPhoneNumber.Visible = true;
                 lPhoneNumber.Text = CurrentPhoneNumber.NumberFormatted;
-                cbActive.Checked = CurrentPhoneNumber.IsActive;
+                switchActive.Checked = CurrentPhoneNumber.IsActive;
 
             }
-
-
         }
 
         private void ShowDetailView()
@@ -381,7 +379,7 @@ $('.js-date-rollover').tooltip();
             lPhoneNumberView.Text = CurrentPhoneNumber.NumberFormatted;
             lDescription.Text = CurrentPhoneNumber.Description;
             hlStatus.Text = CurrentPhoneNumber.IsActive ? "Active" : "Inactive";
-            hlStatus.LabelType = CurrentPhoneNumber.IsActive ? LabelType.Success : LabelType.Warning;
+            hlStatus.LabelType = CurrentPhoneNumber.IsActive ? LabelType.Success : LabelType.Default;
             hlStatus.Visible = true;
 
 

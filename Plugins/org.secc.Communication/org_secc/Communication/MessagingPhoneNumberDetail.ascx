@@ -58,7 +58,7 @@
                         </div>
                         <div class="row">
                             <div class="col-md-12">
-                                <Rock:RockCheckBox ID="cbActive" runat="server" Label="Active" />
+                                <Rock:Switch ID="switchActive" Label="Active" runat="server" />
                             </div>
                         </div>
                     </fieldset>
