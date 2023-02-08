@@ -22,11 +22,6 @@ namespace RockWeb.Plugins.org_secc.Communication
     [Category( "SECC > Communication" )]
     [Description( "List of keywords that are associated with a messaging phone number." )]
 
-    [BooleanField( "Show Inactive Keywords",
-        Description = "Should inactive keywords be displayed",
-        DefaultBooleanValue = true,
-        Order = 1,
-        Key = AttributeKeys.IncludeInactive )]
     [BooleanField( "Show Filter",
         Description = "Show Keyword Filter options",
         DefaultBooleanValue = true,
@@ -36,7 +31,6 @@ namespace RockWeb.Plugins.org_secc.Communication
     {
         public static class AttributeKeys
         {
-            public const string IncludeInactive = "IncludeInactive";
             public const string ShowFilter = "ShowFilter";
             public const string QS_MessagingNumber = "MessagingNumber";
         }
@@ -45,7 +39,7 @@ namespace RockWeb.Plugins.org_secc.Communication
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-
+            this.BlockUpdated += MessagingPhoneKeywordList_BlockUpdated;
             gKeywords.ItemType = "Keywords";
             gKeywords.EmptyDataText = "No Keywords Found";
             gKeywords.Actions.ShowAdd = UserCanEdit;
@@ -59,6 +53,9 @@ namespace RockWeb.Plugins.org_secc.Communication
             gKeywords.Actions.AddClick += gKeywords_AddClick;
             gKeywords.RowSelected += gKeywords_RowSelected;
             gKeywords.RowDataBound += GKeywords_RowDataBound;
+            gfKeywords.ApplyFilterClick += gfKeywords_ApplyFilterClick;
+            gfKeywords.ClearFilterClick += gfKeywords_ClearFilterClick;
+            gfKeywords.DisplayFilterValue += gfKeywords_DisplayFilterValue;
             lbKeywordCancel.Click += lbKeywordCancel_Click;
             lbKeywordSave.Click += lbKeywordSave_Click;
 
@@ -67,21 +64,9 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         }
 
-        private void GKeywords_RowDataBound( object sender, System.Web.UI.WebControls.GridViewRowEventArgs e )
-        {
-            if ( e.Row.RowType != DataControlRowType.DataRow )
-            {
-                return;
-            }
-
-            var item = e.Row.DataItem as KeywordSummary;
-
-            Literal lStatus = e.Row.FindControl( "lStatus" ) as Literal;
-
-            lStatus.Text = item.Status;
 
 
-        }
+
 
         protected override void OnLoad( EventArgs e )
         {
@@ -94,6 +79,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                 hfPhoneNumberId.Value = PageParameter( AttributeKeys.QS_MessagingNumber );
                 if ( hfPhoneNumberId.Value.IsNotNullOrWhiteSpace() )
                 {
+                    BindFilter();
                     LoadPhoneNumberKeywords();
                     pnlContent.Visible = true;
                 }
@@ -106,6 +92,20 @@ namespace RockWeb.Plugins.org_secc.Communication
         #endregion
 
         #region Events
+
+        private void MessagingPhoneKeywordList_BlockUpdated( object sender, EventArgs e )
+        {
+            if(hfPhoneNumberId.Value.IsNotNullOrWhiteSpace())
+            {
+                BindFilter();
+                LoadPhoneNumberKeywords();
+                pnlContent.Visible = true;
+            }
+            else
+            {
+                pnlContent.Visible = false;
+            }
+        }
 
         private void gKeywords_AddClick( object sender, EventArgs e )
         {
@@ -148,10 +148,84 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         }
 
+        private void GKeywords_RowDataBound( object sender, System.Web.UI.WebControls.GridViewRowEventArgs e )
+        {
+            if ( e.Row.RowType != DataControlRowType.DataRow )
+            {
+                return;
+            }
+
+            var item = e.Row.DataItem as KeywordSummary;
+
+            Literal lStatus = e.Row.FindControl( "lStatus" ) as Literal;
+
+            var labelText = String.Empty;
+            var cssClass = string.Empty;
+
+            switch ( item.Status )
+            {
+                case KeywordStatus.Inactive:
+                    labelText = "Inactive";
+                    cssClass = "label label-default";
+                    break;
+                case KeywordStatus.Active:
+                    labelText = "Active";
+                    cssClass = "label label-success";
+                    break;
+                case KeywordStatus.PendingApproval:
+                    labelText = "Pending Approval";
+                    cssClass = "label label-warning";
+                    break;
+            }
+            lStatus.Text = $"<span class='{cssClass}'>{labelText}</span>";
+
+        }
+
         private void gKeywords_RowSelected( object sender, RowEventArgs e )
         {
             var keywordId = e.RowKeyValue.ToString();
             KeywordFormLoad( keywordId );
+        }
+
+        private void gfKeywords_ApplyFilterClick( object sender, EventArgs e )
+        {
+            gfKeywords.SaveUserPreference( "Keyword", tbKeywordSearch.Text.Trim() );
+            gfKeywords.SaveUserPreference( "Status", cblStatus.SelectedValues.AsDelimited( "," ) );
+            LoadPhoneNumberKeywords();
+        }
+
+        private void gfKeywords_ClearFilterClick( object sender, EventArgs e )
+        {
+            gfKeywords.DeleteUserPreferences();
+            tbKeywordSearch.Text = string.Empty;
+
+            foreach ( ListItem li in cblStatus.Items )
+            {
+                li.Selected = false;
+            }
+
+            BindFilter();
+        }
+
+
+        private void gfKeywords_DisplayFilterValue( object sender, GridFilter.DisplayFilterValueArgs e )
+        {
+            switch ( e.Key )
+            {
+                case "Status":
+                    var statusValues = e.Value.SplitDelimitedValues().ToList();
+                    var displayValue = string.Empty;
+                    foreach ( var value in statusValues )
+                    {
+                        displayValue += cblStatus.Items.FindByValue( value ).Text + ", ";
+                    }
+
+                    if ( displayValue.IsNotNullOrWhiteSpace() )
+                    {
+                        e.Value = displayValue.Substring( 0, displayValue.LastIndexOf( "," )).Trim();
+                    }
+                    break;
+            }
         }
 
         private void lbKeywordCancel_Click( object sender, EventArgs e )
@@ -237,6 +311,28 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         #region Methods
 
+        private void BindFilter()
+        {
+            var showFilter = GetAttributeValue( AttributeKeys.ShowFilter ).AsBoolean();
+            gfKeywords.Visible = showFilter;
+
+            if ( !showFilter )
+                return;
+
+            tbKeywordSearch.Text = gfKeywords.GetUserPreference( "Keyword" );
+
+            var selectedStatus = gfKeywords.GetUserPreference( "Status" );
+            if(selectedStatus.IsNotNullOrWhiteSpace())
+            {
+                foreach ( var status in selectedStatus.SplitDelimitedValues() )
+                {
+                    var item = cblStatus.Items.FindByValue( status );
+                    item.Selected = true;
+                }
+            }
+            
+        }
+
         private void KeywordFormClear()
         {
             hfKeywordId.Value = string.Empty;
@@ -299,6 +395,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                 return;
             }
 
+
             List<KeywordSummary> keywords = new List<KeywordSummary>();
             if ( phoneNumber.Keywords != null )
             {
@@ -316,16 +413,41 @@ namespace RockWeb.Plugins.org_secc.Communication
                         Order = item.Key,
                         CreatedOn = item.Value.CreatedOnDateTime,
                         ModifiedOn = item.Value.ModifiedOnDateTime,
-                        PhraseCount = item.Value.PhrasesToMatch != null ? item.Value.PhrasesToMatch.Count() : 0,
-                        Status = item.Value.IsActive ? "<span class='label label-success'>Active</span>" :
-                            "<span class='label label-warning'>Inactive</span>"
+                        IsActive = item.Value.IsActive,
+                        PhrasesToMatch = item.Value.PhrasesToMatch
                     } );
-                    ;
+                    
                 }
             }
 
-            gKeywords.DataSource = keywords.OrderBy( k => k.Order ).ToList();
+            var keywordQry = keywords.AsQueryable();
+
+
+            if ( GetAttributeValue( AttributeKeys.ShowFilter ).AsBoolean() )
+            {
+                if ( tbKeywordSearch.Text.IsNotNullOrWhiteSpace() )
+                {
+                    keywordQry = keywordQry.Where( k => k.PhrasesToMatch.Contains( tbKeywordSearch.Text.Trim() ) );
+                }
+
+                var selectedStatuses = new List<KeywordStatus>();
+                foreach ( ListItem li in cblStatus.Items )
+                {
+                    if ( li.Selected )
+                    {
+                        selectedStatuses.Add( li.Value.ConvertToEnum<KeywordStatus>() );
+                    }
+                }
+
+                if ( selectedStatuses.Count > 0 )
+                {
+                    keywordQry = keywordQry.Where( k => selectedStatuses.Contains( k.Status ) );
+                }
+            }
+
+            gKeywords.DataSource = keywordQry.OrderBy( k => k.Order ).ToList();
             gKeywords.DataBind();
+
 
         }
 
@@ -364,6 +486,8 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         protected class KeywordSummary
         {
+            KeywordStatus? _status = null;
+
             public Guid KeywordId { get; set; }
             public Guid PhoneNumberId { get; set; }
             public string Name { get; set; }
@@ -374,9 +498,59 @@ namespace RockWeb.Plugins.org_secc.Communication
             public DateTime? EndDate { get; set; }
             public DateTime? CreatedOn { get; set; }
             public DateTime? ModifiedOn { get; set; }
-            public int PhraseCount { get; set; }
-            public string Status { get; set; }
+            public bool IsActive { get; set; }
+            public int PhraseCount
+            {
+                get
+                {
+                    return PhrasesToMatch.Count;
+                }
+            }
+            public List<string> PhrasesToMatch { get; set; } = new List<string>();
             public int Order { get; set; }
+
+
+            public KeywordStatus Status
+            {
+                get
+                {
+                    if(_status.HasValue)
+                    {
+                        return _status.Value;
+                    }
+
+                    _status = GetStatus();
+
+                    return _status.Value;
+                }
+            }
+
+            private KeywordStatus GetStatus()
+            {
+                var status = KeywordStatus.Active;
+                if(!IsActive)
+                {
+                    status =  KeywordStatus.Inactive;
+                }
+                else if(StartDate.HasValue && StartDate.Value > RockDateTime.Now)
+                {
+                    status =  KeywordStatus.Inactive;
+                }
+                else if(EndDate.HasValue && EndDate.Value < RockDateTime.Now)
+                {
+                    status =  KeywordStatus.Inactive;
+                }
+
+                return status;
+            }
+
+        }
+
+        public enum KeywordStatus
+        {
+            Inactive = 0,
+            Active = 1,
+            PendingApproval = 2
 
         }
 

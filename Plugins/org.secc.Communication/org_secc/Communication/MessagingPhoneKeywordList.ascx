@@ -9,6 +9,15 @@
             <div class="panel-body">
                 <Rock:NotificationBox ID="nbNotifications" runat="server" />
                 <asp:Panel id="pnlKeywordGrid" runat="server" Visible="true" CssClass="grid grid-panel">
+                    <Rock:GridFilter ID="gfKeywords" runat="server">
+                        <Rock:RockTextBox ID="tbKeywordSearch" runat="server" Label="Keyword" />
+                        <Rock:RockCheckBoxList ID="cblStatus" runat="server" Label="Status" RepeatDirection="Horizontal" RepeatColumns="3">
+                            <asp:ListItem Value="Active" Text="Active" />
+                            <asp:ListItem Value="Inactive" Text="Inactive" />
+                            <asp:ListItem Value="PendingApproval" Text="Pending Approval" />
+                        </Rock:RockCheckBoxList>
+
+                    </Rock:GridFilter>
                     <Rock:Grid ID="gKeywords" runat="server" AllowPaging="true" AllowSorting="false" DataKeyNames="KeywordId">
                         <Columns>
                             <Rock:ReorderField />
