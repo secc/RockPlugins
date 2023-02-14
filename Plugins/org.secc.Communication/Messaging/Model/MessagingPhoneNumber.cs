@@ -32,6 +32,9 @@ namespace org.secc.Communication.Messaging.Model
         public MessagingPerson CreatedBy { get; set; }
         [JsonProperty("modifiedBy")]
         public MessagingPerson ModifiedBy { get; set; }
+        [JsonProperty("ownedBy")]
+        public MessagingOwner OwnedBy { get; set; }
+
         [JsonIgnore]
         public bool IsSystem
         {

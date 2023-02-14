@@ -58,6 +58,14 @@
                         </div>
                         <div class="row">
                             <div class="col-md-12">
+                                <span class="control-label">Owner</span><br />
+                                <asp:Literal ID="lOwnerNameEdit" runat="server" />
+                                <span style="margin-left:1em;"><asp:LinkButton ID="lbChangeOwner" runat="server" CssClass="btn  btn-default btn-xs" Text="..." /></span>
+                                <asp:HiddenField ID="hfOwner" runat="server" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
                                 <Rock:Switch ID="switchActive" Label="Active" runat="server" />
                             </div>
                         </div>
@@ -78,6 +86,12 @@
                             <Rock:RockLiteral ID="lDescription" runat="server" Label="Description" />
                         </div>
                     </div>
+                    <asp:Panel ID="pnlViewOwner" runat="server" CssClass="row" Visible="false">
+                        <div class="col-md-12">
+                            <Rock:RockLiteral ID="lViewOwner" runat="server" Label="Owner" />
+                        </div>
+
+                    </asp:Panel>
                     <div class="actions">
                         <asp:LinkButton ID="btnEditPhone" runat="server" AccessKey="e" ToolTip="Alt+e" Text="Edit" CssClass="btn btn-primary" />
                     </div>
@@ -86,5 +100,40 @@
 
             </div>
         </asp:Panel>
+        <Rock:ModalDialog ID="mdlAssignOwner" runat="server" Title="Set Owner">
+            <Content>
+                <asp:Panel ID="pnlOwner" runat="server" Visible="true">
+                    <h3>Owner</h3>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <span class="control-label"><asp:Literal ID="lblOwner" runat="server" /></span>
+                                <span style="margin-left:2em;"><asp:LinkButton ID="lbDeleteOwner" runat="server" CssClass="btn-sm btn-delete" Text="X" /></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="actions">
+                                <asp:LinkButton ID="lbSetOwnerPerson" runat="server" CssClass="btn btn-primary" Text="Set Owner Person" />
+                                <asp:LinkButton ID="lbSetOwnerGroup" runat="server" CssClass="btn btn-primary" Text="Set Owner Group" />
+                            </div>
+                        </div>
+                    </div>
+                </asp:Panel>
+                <asp:Panel ID="pnlOwnerPerson" runat="server" Visible="false">
+                    <Rock:PersonPicker ID="ppSetOwner" runat="server" Label="Owner" />
+                    <div class="actions">
+                        <asp:LinkButton ID="lbUpdateOwnerPerson" runat="server" CssClass="btn btn-primary" Text="Update" />
+                        <asp:LinkButton ID="lbCancelOwnerPerson" runat="server" CssClass="btn btn-cancel" Text="Cancel" />
+                    </div>
+                </asp:Panel>
+                <asp:Panel ID="pnlOwnerGroup" runat="server" Visible="false">
+                    <Rock:GroupPicker ID="gpSetOwner" runat="server" Label="Owner Group" />
+                    <div class="actions">
+                        <asp:LinkButton ID="lbUpdateOwnerGroup" runat="server" CssClass="btn btn-primary" Text="Update" />
+                        <asp:LinkButton ID="lbCancelOwnerGroup" runat="server" CssClass="btn btn-cancel" Text="Cancel" />
+                    </div>
+                </asp:Panel>
+            </Content>
+        </Rock:ModalDialog>
     </ContentTemplate>
 </asp:UpdatePanel>

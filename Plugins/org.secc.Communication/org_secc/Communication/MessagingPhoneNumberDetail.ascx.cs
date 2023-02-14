@@ -13,6 +13,7 @@ using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+using Rock.Data;
 
 namespace RockWeb.Plugins.org_secc.Communication
 {
@@ -91,12 +92,18 @@ namespace RockWeb.Plugins.org_secc.Communication
             btnEditPhone.Click += btnEditPhone_Click;
             btnSavePhone.Click += btnSavePhone_Click;
             btnCancelPhone.Click += btnCancelPhone_Click;
+            lbChangeOwner.Click += lbChangeOwner_Click;
+            lbDeleteOwner.Click += lbDeleteOwner_Click;
+            lbSetOwnerPerson.Click += lbSetOwnerPerson_Click;
+            lbSetOwnerGroup.Click += lbSetOwnerGroup_Click;
+            lbUpdateOwnerPerson.Click += lbUpdateOwnerPerson_Click;
+            lbUpdateOwnerGroup.Click += lbUpdateOwnerGroup_Click;
+            lbCancelOwnerPerson.Click += lbCancelOwnerPerson_Click;
+            lbCancelOwnerGroup.Click += lbCancelOwnerGroup_Click;
             this.AddConfigurationUpdateTrigger( upPhoneDetail );
-
-
-
-
         }
+
+
 
         protected override void OnLoad( EventArgs e )
         {
@@ -163,6 +170,23 @@ namespace RockWeb.Plugins.org_secc.Communication
             phone.IsActive = switchActive.Checked;
             phone.ModifiedBy = new MessagingPerson( CurrentPerson );
 
+            if(hfOwner.Value.IsNullOrWhiteSpace())
+            {
+                phone.OwnedBy = null;
+            }
+            else if ( hfOwner.Value.Split( "|".ToCharArray() )[0].AsInteger() == EntityTypeCache.Get(typeof(Group)).Id)
+            {
+                var messagingGroup = new MessagingGroup( hfOwner.Value.Split( "|".ToCharArray() )[1].AsGuid() );
+                phone.OwnedBy = new MessagingOwner();
+                phone.OwnedBy.OwnerGroup = messagingGroup;
+            }
+            else if ( hfOwner.Value.Split( "|".ToCharArray() )[0].AsInteger() == EntityTypeCache.Get(typeof(PersonAlias)).Id )
+            {
+                var messagingPerson = new MessagingPerson( hfOwner.Value.Split( "|".ToCharArray() )[1].AsGuid());
+                phone.OwnedBy = new MessagingOwner();
+                phone.OwnedBy.OwnerPerson = messagingPerson;
+            }
+
             if(phone.Id.IsEmpty())
             {
                 phone = client.AddPhoneNumber( phone );
@@ -180,10 +204,114 @@ namespace RockWeb.Plugins.org_secc.Communication
             }
             CurrentPhoneNumber = phone;
 
+
             ShowDetailView();
             NotificationBoxShowSaveAlert();
         }
 
+        private void lbChangeOwner_Click( object sender, EventArgs e )
+        {
+            LoadChangeOwnerPanel();
+        }
+
+        private void lbDeleteOwner_Click( object sender, EventArgs e )
+        {
+            hfOwner.Value = string.Empty;
+            lOwnerNameEdit.Text = "(none)";
+            lblOwner.Text = "Not Set";
+
+        }
+
+        private void lbSetOwnerGroup_Click( object sender, EventArgs e )
+        {
+            gpSetOwner.SetValue( null );
+            pnlOwner.Visible = false;
+            pnlOwnerGroup.Visible = true;
+            pnlOwnerPerson.Visible = false;
+
+            if(hfOwner.Value.IsNullOrWhiteSpace())
+            {
+                return;
+            }
+
+            var entityTypeId = hfOwner.Value.Split( "|".ToCharArray() )[0].AsInteger();
+            var groupGuid = hfOwner.Value.Split( "|".ToCharArray() )[1].AsGuid();
+
+            if(entityTypeId == EntityTypeCache.Get(typeof(Group)).Id)
+            {
+                var group = new GroupService( new RockContext() ).Get( groupGuid );
+                gpSetOwner.SetValue( group );
+            }
+        }
+
+        private void lbSetOwnerPerson_Click( object sender, EventArgs e )
+        {
+            ppSetOwner.SetValue( null );
+            pnlOwner.Visible = false;
+            pnlOwnerGroup.Visible = false;
+            pnlOwnerPerson.Visible = true;
+
+            if(hfOwner.Value.IsNullOrWhiteSpace())
+            {          
+                return;
+            }
+
+            var entityTypeId = hfOwner.Value.Split( "|".ToCharArray() )[0].AsInteger();
+            var personAliasGuid = hfOwner.Value.Split( "|".ToCharArray() )[1].AsGuid();
+
+            if(entityTypeId == EntityTypeCache.Get(typeof(PersonAlias)).Id)
+            {
+                var person = new PersonAliasService( new RockContext() ).Get( personAliasGuid ).Person;
+                ppSetOwner.SetValue( person );
+            }
+        }
+
+        private void lbCancelOwnerGroup_Click( object sender, EventArgs e )
+        {
+            pnlOwner.Visible = true;
+            pnlOwnerPerson.Visible = false;
+            pnlOwnerGroup.Visible = false;
+        }
+
+        private void lbCancelOwnerPerson_Click( object sender, EventArgs e )
+        {
+            pnlOwner.Visible = true;
+            pnlOwnerPerson.Visible = false;
+            pnlOwnerGroup.Visible = false;
+        }
+
+        private void lbUpdateOwnerGroup_Click( object sender, EventArgs e )
+        {
+            pnlOwner.Visible = true;
+            pnlOwnerPerson.Visible = false;
+            pnlOwnerGroup.Visible = false;
+
+            if ( gpSetOwner.GroupId.HasValue )
+            {
+                var groupEntityType = EntityTypeCache.Get( typeof( Group ) );
+                var group = new GroupService( new RockContext()).Get( gpSetOwner.GroupId.Value );
+                hfOwner.Value = $"{groupEntityType.Id}|{group.Guid}";
+                lblOwner.Text = $"{group.Name}";
+                lOwnerNameEdit.Text = $"{group.Name}";
+            }
+
+        }
+
+        private void lbUpdateOwnerPerson_Click( object sender, EventArgs e )
+        {
+            pnlOwner.Visible = true;
+            pnlOwnerPerson.Visible = false;
+            pnlOwnerGroup.Visible = false;
+
+            if(ppSetOwner.PersonAliasId.HasValue)
+            {
+                var personAliasEntityType = EntityTypeCache.Get( typeof( PersonAlias ) );
+                var personAlias = new PersonAliasService( new RockContext() ).Get( ppSetOwner.PersonAliasId.Value );
+                hfOwner.Value = $"{personAliasEntityType.Id}|{personAlias.Guid}";
+                lblOwner.Text = $"{personAlias.Person.FullName}";
+                lOwnerNameEdit.Text = $"{personAlias.Person.FullName}";
+            }
+        }
 
         #endregion
 
@@ -217,6 +345,41 @@ namespace RockWeb.Plugins.org_secc.Communication
                     localTime.ToString(), localTime.ToRelativeDateString() );
             }
             return stringBuilder.ToString();
+        }
+
+        private void LoadChangeOwnerPanel()
+        {
+            var currentOwnerValue = hfOwner.Value;
+
+            if(currentOwnerValue.IsNotNullOrWhiteSpace())
+            {
+                var entityTypeId = currentOwnerValue.Split( "|".ToCharArray() )[0].AsInteger();
+                var entityGuid = currentOwnerValue.Split( "|".ToCharArray() )[1].AsGuid();
+
+                var rockContext = new RockContext();
+                if(entityTypeId == EntityTypeCache.Get(typeof(PersonAlias)).Id)
+                {
+                    var ownerPerson = new PersonAliasService( rockContext ).Get( entityGuid );
+                    lblOwner.Text = ownerPerson == null ? string.Empty : ownerPerson.Person.FullName;
+                }
+                else if (entityTypeId == EntityTypeCache.Get(typeof(Group)).Id)
+                {
+                    var ownerGroup = new GroupService( rockContext ).Get( entityGuid );
+                    lblOwner.Text = ownerGroup == null ? string.Empty : ownerGroup.Name;
+                }
+                lbDeleteOwner.Visible = true;
+            }
+            else
+            {
+                lbDeleteOwner.Visible = false;
+                lblOwner.Text = "Not Set";
+            }
+
+
+            pnlOwner.Visible = true;
+            pnlOwnerGroup.Visible = false;
+            pnlOwnerPerson.Visible = false;
+            mdlAssignOwner.Show();
         }
 
         private void LoadPanelDrawerScript()
@@ -366,6 +529,24 @@ $('.js-date-rollover').tooltip();
                 lPhoneNumber.Text = CurrentPhoneNumber.NumberFormatted;
                 switchActive.Checked = CurrentPhoneNumber.IsActive;
 
+                if(currentPhoneNumber.OwnedBy != null && currentPhoneNumber.OwnedBy.OwnerGroup != null)
+                {
+                    var group = new GroupService( new RockContext() ).Get( currentPhoneNumber.OwnedBy.OwnerGroup.GroupGuid );
+                    lOwnerNameEdit.Text = group != null ? group.Name : "(none)";
+                    hfOwner.Value = $"{EntityTypeCache.Get( typeof( Group ) ).Id}|{currentPhoneNumber.OwnedBy.OwnerGroup.GroupGuid.ToString()}";
+                }
+                else if(currentPhoneNumber.OwnedBy != null && currentPhoneNumber.OwnedBy.OwnerPerson != null)
+                {
+                    var person = new PersonAliasService( new RockContext() ).Get( currentPhoneNumber.OwnedBy.OwnerPerson.AliasGuid ).Person;
+                    lOwnerNameEdit.Text = person != null ? person.FullName : "(none)";
+                    hfOwner.Value = $"{EntityTypeCache.Get( typeof( PersonAlias ) ).Id}|{currentPhoneNumber.OwnedBy.OwnerPerson.AliasGuid.ToString()}";
+                }
+                else
+                {
+                    lOwnerNameEdit.Text = "(none)";
+                    hfOwner.Value = string.Empty;
+                }
+
             }
         }
 
@@ -378,6 +559,20 @@ $('.js-date-rollover').tooltip();
             lTitle.Text = $"Phone Number - {CurrentPhoneNumber.Name}";
             lPhoneNumberView.Text = CurrentPhoneNumber.NumberFormatted;
             lDescription.Text = CurrentPhoneNumber.Description;
+
+            pnlViewOwner.Visible = CurrentPhoneNumber.OwnedBy != null;
+            if(CurrentPhoneNumber.OwnedBy.OwnerGroup != null)
+            {
+                var group = new GroupService( new RockContext() ).Get( CurrentPhoneNumber.OwnedBy.OwnerGroup.GroupGuid );
+                lViewOwner.Text = group != null ? group.Name : String.Empty;
+            }
+            else if(CurrentPhoneNumber.OwnedBy.OwnerPerson != null)
+            {
+                var person = new PersonAliasService( new RockContext() ).Get( CurrentPhoneNumber.OwnedBy.OwnerPerson.AliasGuid )
+                    .Person;
+                lViewOwner.Text = person != null ? person.FullName : String.Empty;
+            }
+
             hlStatus.Text = CurrentPhoneNumber.IsActive ? "Active" : "Inactive";
             hlStatus.LabelType = CurrentPhoneNumber.IsActive ? LabelType.Success : LabelType.Default;
             hlStatus.Visible = true;
