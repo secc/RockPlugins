@@ -37,6 +37,8 @@ namespace org.secc.Communication.Messaging.Model
         public DateTime? ModifiedOnDateTime { get; set; }
         [JsonProperty("ModifiedBy")]
         public MessagingPerson ModifiedBy { get; set; }
+        [JsonProperty("ContactPerson")]
+        public MessagingPerson ContactPerson { get; set; }
         [JsonProperty( "IsActive" )]
         public bool IsActive { get; set; }
 

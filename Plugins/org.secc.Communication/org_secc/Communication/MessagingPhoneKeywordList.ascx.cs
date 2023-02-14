@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Linq.Dynamic;
 using System.Web.UI.WebControls;
-using Lucene.Net.Analysis.Miscellaneous;
+using CSScriptLibrary;
 using Newtonsoft.Json;
 using org.secc.Communication;
 using org.secc.Communication.Messaging;
 using org.secc.Communication.Messaging.Model;
 using Rock;
 using Rock.Attribute;
+using Rock.Data;
 using Rock.Model;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
@@ -95,7 +97,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         private void MessagingPhoneKeywordList_BlockUpdated( object sender, EventArgs e )
         {
-            if(hfPhoneNumberId.Value.IsNotNullOrWhiteSpace())
+            if ( hfPhoneNumberId.Value.IsNotNullOrWhiteSpace() )
             {
                 BindFilter();
                 LoadPhoneNumberKeywords();
@@ -222,7 +224,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
                     if ( displayValue.IsNotNullOrWhiteSpace() )
                     {
-                        e.Value = displayValue.Substring( 0, displayValue.LastIndexOf( "," )).Trim();
+                        e.Value = displayValue.Substring( 0, displayValue.LastIndexOf( "," ) ).Trim();
                     }
                     break;
             }
@@ -273,11 +275,21 @@ namespace RockWeb.Plugins.org_secc.Communication
             if ( dpEnd.SelectedDate.HasValue )
             {
                 var ts = new TimeSpan( 23, 59, 59 );
-                keyword.EndDate = dpEnd.SelectedDate.Value.Add(ts).ToUniversalTime();
+                keyword.EndDate = dpEnd.SelectedDate.Value.Add( ts ).ToUniversalTime();
             }
             else
             {
                 keyword.EndDate = dpEnd.SelectedDate;
+            }
+
+            if ( ppContact.PersonId.HasValue )
+            {
+                var contactPerson = new PersonService( new RockContext() ).Get( ppContact.PersonId.Value );
+                keyword.ContactPerson = new MessagingPerson( contactPerson );
+            }
+            else
+            {
+                keyword.ContactPerson = null;
             }
 
             keyword.ModifiedBy = new MessagingPerson( CurrentPerson );
@@ -322,7 +334,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             tbKeywordSearch.Text = gfKeywords.GetUserPreference( "Keyword" );
 
             var selectedStatus = gfKeywords.GetUserPreference( "Status" );
-            if(selectedStatus.IsNotNullOrWhiteSpace())
+            if ( selectedStatus.IsNotNullOrWhiteSpace() )
             {
                 foreach ( var status in selectedStatus.SplitDelimitedValues() )
                 {
@@ -330,7 +342,22 @@ namespace RockWeb.Plugins.org_secc.Communication
                     item.Selected = true;
                 }
             }
-            
+
+        }
+
+        private Person GetContactPerson( MessagingPerson contact )
+        {
+            if ( contact == null )
+            {
+                return null;
+            }
+
+            var rockContext = new RockContext();
+            return new PersonAliasService( rockContext )
+                .Queryable().AsNoTracking()
+                .Where( a => a.Guid == contact.AliasGuid )
+                .Select( a => a.Person )
+                .FirstOrDefault();
         }
 
         private void KeywordFormClear()
@@ -340,6 +367,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             tbDescription.Text = string.Empty;
             dpStart.SelectedDate = null;
             dpEnd.SelectedDate = null;
+            ppContact.SetValue( null );
             switchActive.Checked = false;
             listPhrasesToMatch.Value = string.Empty;
             tbResponseMessage.Text = string.Empty;
@@ -368,6 +396,8 @@ namespace RockWeb.Plugins.org_secc.Communication
                 dpStart.SelectedDate = keyword.StartDate.HasValue ? keyword.StartDate.Value.ToLocalTime() : keyword.StartDate;
                 dpEnd.SelectedDate = keyword.EndDate.HasValue ? keyword.EndDate.Value.ToLocalTime() : keyword.EndDate;
                 switchActive.Checked = keyword.IsActive;
+                ppContact.SetValue( GetContactPerson( keyword.ContactPerson ) );
+
 
                 var listItems = new List<ListItems.KeyValuePair>();
                 foreach ( var phrase in keyword.PhrasesToMatch )
@@ -416,7 +446,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                         IsActive = item.Value.IsActive,
                         PhrasesToMatch = item.Value.PhrasesToMatch
                     } );
-                    
+
                 }
             }
 
@@ -514,7 +544,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             {
                 get
                 {
-                    if(_status.HasValue)
+                    if ( _status.HasValue )
                     {
                         return _status.Value;
                     }
@@ -528,17 +558,17 @@ namespace RockWeb.Plugins.org_secc.Communication
             private KeywordStatus GetStatus()
             {
                 var status = KeywordStatus.Active;
-                if(!IsActive)
+                if ( !IsActive )
                 {
-                    status =  KeywordStatus.Inactive;
+                    status = KeywordStatus.Inactive;
                 }
-                else if(StartDate.HasValue && StartDate.Value > RockDateTime.Now)
+                else if ( StartDate.HasValue && StartDate.Value > RockDateTime.Now )
                 {
-                    status =  KeywordStatus.Inactive;
+                    status = KeywordStatus.Inactive;
                 }
-                else if(EndDate.HasValue && EndDate.Value < RockDateTime.Now)
+                else if ( EndDate.HasValue && EndDate.Value < RockDateTime.Now )
                 {
-                    status =  KeywordStatus.Inactive;
+                    status = KeywordStatus.Inactive;
                 }
 
                 return status;

@@ -50,7 +50,16 @@
                             <Rock:DatePicker ID="dpEnd" runat="server" Label="End Date" />
                         </div>
                     </div>
-                    <Rock:Switch ID="switchActive" Label="Active" runat="server" />
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <Rock:PersonPicker ID="ppContact" runat="server" Label="Contact" />
+                        </div>
+                        <div class="col-sm-6">
+                            <Rock:Switch ID="switchActive" Label="Active" runat="server" />
+                        </div>
+
+                    </div>
+                    
 
                     <div class="well">
                         <div class="row">
