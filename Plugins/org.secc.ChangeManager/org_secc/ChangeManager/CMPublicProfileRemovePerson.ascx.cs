@@ -16,9 +16,8 @@ using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using org.secc.FamilyCheckin;
-using Microsoft.Ajax.Utilities;
 using System.Text;
-using DocumentFormat.OpenXml.Drawing;
+
 
 namespace RockWeb.Plugins.org_secc.ChangeManager
 {
@@ -30,8 +29,6 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         DefaultBooleanValue = true, Key = AttributeKeys.DisplayPhone, Order = 0 )]
     [BooleanField( "Display Email", " Should the person's email address be displayed. Default is true",
         DefaultBooleanValue = true, Key = AttributeKeys.DisplayEmail, Order = 1 )]
-    [BooleanField( "Apply Change", "Should the change be applied immediately.",
-        DefaultBooleanValue = true, Key = AttributeKeys.ApplyChange, Order = 2 )]
 
 
     public partial class CMPublicProfileRemovePerson : Rock.Web.UI.RockBlock
@@ -71,14 +68,14 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         #endregion
 
         #region Events
-        private void lbCancel_Click( object sender, EventArgs e )
-        {
-            throw new NotImplementedException();
-        }
 
         private void lbRemoveMember_Click( object sender, EventArgs e )
         {
-            throw new NotImplementedException();
+            if(hfPersonGuid.Value.IsNotNullOrWhiteSpace())
+            {
+                MovePerson();
+                
+            }
         }
 
         #endregion
@@ -174,6 +171,102 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 pnlPhoneNumber.Visible = false;
             }
 
+        }
+
+        private void MovePerson()
+        {
+            var rockContext = new RockContext();
+            var groupEntity = EntityTypeCache.Get( typeof( Group ) );
+            var family = CurrentPerson.GetFamily();
+
+            PersonService personService = new PersonService( rockContext );
+            var removePerson = personService.Get( hfPersonGuid.Value.AsGuid() );
+            if(removePerson != null)
+            {
+
+                var familyChangeRequest = new ChangeRequest()
+                {
+                    EntityTypeId = groupEntity.Id,
+                    EntityId = family.Id,
+                    RequestorAliasId = CurrentPersonAliasId ?? 0,
+                    RequestorComment = tbAdditionalInfo.Text.Trim()
+                };
+
+                GroupMemberService groupMemberService = new GroupMemberService( rockContext );
+                var familyGroupTypeId = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() ).Id;
+
+                var members = groupMemberService.Queryable()
+                    .Where( m => m.Group.GroupTypeId == familyGroupTypeId )
+                    .Where( m => m.PersonId == removePerson.Id )
+                    .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active );
+
+                foreach ( var member in members )
+                {
+                    if(member.GroupId == family.Id)
+                    {
+                        var comment = $"Removed {removePerson.FullName} from {family.Name}";
+                        familyChangeRequest.DeleteEntity( member, true, comment );
+                    }
+                }
+
+                if(members.Count() == 1)
+                {
+                    var newFamily = new Group()
+                    {
+                        GroupTypeId = familyGroupTypeId,
+                        IsSystem = false,
+                        IsSecurityRole = false,
+                        Name = $"{removePerson.LastName} Family",
+                        Guid = Guid.NewGuid(),
+                        IsActive = true,
+                        CampusId = family.CampusId
+                    };
+
+                    List<GroupLocation> locations = new List<GroupLocation>();
+                    
+                    foreach ( var l in family.GroupLocations)
+                    {
+                        GroupLocation location = new GroupLocation()
+                        {
+                            CreatedByPersonAliasId = CurrentPersonAliasId,
+                            ModifiedByPersonAliasId = CurrentPersonAliasId,
+                            LocationId = l.LocationId,
+                            GroupLocationTypeValueId = l.GroupLocationTypeValueId,
+                            IsMailingLocation = l.IsMailingLocation,
+                            IsMappedLocation = l.IsMappedLocation,
+                            Guid = Guid.NewGuid()
+                        };
+                        locations.Add( location );
+                    }
+                    newFamily.GroupLocations = locations;
+                    var familyContext = new RockContext();
+                    GroupService groupService = new GroupService( familyContext );
+                    groupService.Add( newFamily );
+                    familyContext.SaveChanges();
+
+                    GroupMember familyMember = new GroupMember
+                    {
+                        PersonId = removePerson.Id,
+                        GroupId = newFamily.Id,
+                        GroupMemberStatus = GroupMemberStatus.Active,
+                        Guid = Guid.NewGuid(),
+                        GroupRoleId = members.First().GroupRoleId
+                    };
+                    var insertComment = string.Format( "Added {0} to {1}", removePerson.FullName, newFamily.Name );
+                    familyChangeRequest.AddEntity( familyMember, rockContext, false, insertComment );
+                }
+
+
+                List<string> errors;
+                if(familyChangeRequest.ChangeRecords.Any())
+                {
+                    ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
+                    changeRequestService.Add( familyChangeRequest );
+                    rockContext.SaveChanges();
+                    familyChangeRequest.CompleteChanges( rockContext, out errors );
+                }
+            }
+            NavigateToParentPage();
         }
 
         private void ShowNotAuthorizedAlert()
