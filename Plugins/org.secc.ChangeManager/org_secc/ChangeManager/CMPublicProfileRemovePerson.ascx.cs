@@ -5,6 +5,8 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using System.Text;
+using System.Data.Entity;
 
 using org.secc.ChangeManager.Model;
 using org.secc.ChangeManager.Utilities;
@@ -16,7 +18,6 @@ using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using org.secc.FamilyCheckin;
-using System.Text;
 
 
 namespace RockWeb.Plugins.org_secc.ChangeManager
@@ -176,97 +177,133 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         private void MovePerson()
         {
             var rockContext = new RockContext();
-            var groupEntity = EntityTypeCache.Get( typeof( Group ) );
-            var family = CurrentPerson.GetFamily();
-
-            PersonService personService = new PersonService( rockContext );
-            var removePerson = personService.Get( hfPersonGuid.Value.AsGuid() );
-            if(removePerson != null)
+            rockContext.WrapTransaction( () =>
             {
+                var groupService = new GroupService( rockContext );
+                var groupMemberService = new GroupMemberService( rockContext );
+                var personService = new PersonService( rockContext );
+                var groupLocationService = new GroupLocationService( rockContext );
 
-                var familyChangeRequest = new ChangeRequest()
+                var changeRequestContext = new RockContext();
+                var changeRequestService = new ChangeRequestService( changeRequestContext );
+
+
+                var familyGroupType = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() );
+                var adultRole = familyGroupType.Roles
+                    .Where( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() )
+                    .SingleOrDefault();
+                var childRole = familyGroupType.Roles
+                    .Where( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() )
+                    .SingleOrDefault();
+
+                var personToMove = personService.Get( hfPersonGuid.Value.AsGuid() );
+
+                var sharedFamily = groupService.Queryable()
+                    .Include( f => f.Members )
+                    .Include(f => f.GroupLocations)
+                    .Where( g => g.GroupTypeId == familyGroupType.Id )
+                    .Where( g => g.Members.Where( m => m.PersonId == CurrentPerson.Id && m.GroupMemberStatus == GroupMemberStatus.Active ).Any() )
+                    .Where( g => g.Members.Where( m => m.PersonId == personToMove.Id && m.GroupMemberStatus == GroupMemberStatus.Active ).Any() )
+                    .FirstOrDefault();
+
+                if(sharedFamily == null)
                 {
-                    EntityTypeId = groupEntity.Id,
-                    EntityId = family.Id,
-                    RequestorAliasId = CurrentPersonAliasId ?? 0,
-                    RequestorComment = tbAdditionalInfo.Text.Trim()
+                    // No Shared Family Found;
+                    NavigateToParentPage();
+                    return;
+                }
+
+                var changeRequest = new ChangeRequest()
+                {
+                    EntityTypeId = EntityTypeCache.Get( typeof( Group ) ).Id,
+                    EntityId = sharedFamily.Id,
+                    RequestorAliasId = CurrentPersonAliasId.Value,
+                    RequestorComment = tbAdditionalInfo.Text.Trim(),
+                    ChangeRecords = new List<ChangeRecord>()
                 };
 
-                GroupMemberService groupMemberService = new GroupMemberService( rockContext );
-                var familyGroupTypeId = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() ).Id;
+                var personToMoveFamilies = personToMove.GetFamilies();
 
-                var members = groupMemberService.Queryable()
-                    .Where( m => m.Group.GroupTypeId == familyGroupTypeId )
-                    .Where( m => m.PersonId == removePerson.Id )
-                    .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active );
+                var groupMemberToRemove = sharedFamily.Members.Where( m => m.PersonId == personToMove.Id )
+                    .FirstOrDefault();
 
-                foreach ( var member in members )
+                var changeRecordOld = new ChangeRecord()
                 {
-                    if(member.GroupId == family.Id)
-                    {
-                        var comment = $"Removed {removePerson.FullName} from {family.Name}";
-                        familyChangeRequest.DeleteEntity( member, true, comment );
-                    }
+                    WasApplied = true,
+                    RelatedEntityTypeId = EntityTypeCache.Get( typeof( GroupMember ) ).Id,
+                    RelatedEntityId = groupMemberToRemove.Id,
+                    OldValue = groupMemberToRemove.ToJson(),
+                    Comment = $"Removed {personToMove.FullName} from {sharedFamily.Name}.",
+                    Guid = Guid.NewGuid(),
+                    Action = ChangeRecordAction.Delete
+                };
+                changeRequest.ChangeRecords.Add( changeRecordOld );               
+                
+
+                var familyRoleId = groupMemberToRemove.GroupRoleId;
+
+                var groupMember = groupMemberService.Get( groupMemberToRemove.Guid );
+                groupMemberService.Delete( groupMember );
+                rockContext.SaveChanges();
+
+                if(personToMoveFamilies.Count() > 1)
+                {
+                    //Person in multiple familes
+                    NavigateToParentPage();
+                    return;
                 }
 
-                if(members.Count() == 1)
+                var newGroup = new Group();
+                newGroup.Name = personToMove.LastName + " " + familyGroupType.Name;
+                newGroup.GroupTypeId = familyGroupType.Id;
+                newGroup.CampusId = sharedFamily.CampusId;
+                groupService.Add( newGroup );
+                rockContext.SaveChanges();
+
+                if(personToMove.GivingGroup != null && personToMove.GivingGroupId == sharedFamily.Id )
                 {
-                    var newFamily = new Group()
-                    {
-                        GroupTypeId = familyGroupTypeId,
-                        IsSystem = false,
-                        IsSecurityRole = false,
-                        Name = $"{removePerson.LastName} Family",
-                        Guid = Guid.NewGuid(),
-                        IsActive = true,
-                        CampusId = family.CampusId
-                    };
-
-                    List<GroupLocation> locations = new List<GroupLocation>();
-                    
-                    foreach ( var l in family.GroupLocations)
-                    {
-                        GroupLocation location = new GroupLocation()
-                        {
-                            CreatedByPersonAliasId = CurrentPersonAliasId,
-                            ModifiedByPersonAliasId = CurrentPersonAliasId,
-                            LocationId = l.LocationId,
-                            GroupLocationTypeValueId = l.GroupLocationTypeValueId,
-                            IsMailingLocation = l.IsMailingLocation,
-                            IsMappedLocation = l.IsMappedLocation,
-                            Guid = Guid.NewGuid()
-                        };
-                        locations.Add( location );
-                    }
-                    newFamily.GroupLocations = locations;
-                    var familyContext = new RockContext();
-                    GroupService groupService = new GroupService( familyContext );
-                    groupService.Add( newFamily );
-                    familyContext.SaveChanges();
-
-                    GroupMember familyMember = new GroupMember
-                    {
-                        PersonId = removePerson.Id,
-                        GroupId = newFamily.Id,
-                        GroupMemberStatus = GroupMemberStatus.Active,
-                        Guid = Guid.NewGuid(),
-                        GroupRoleId = members.First().GroupRoleId
-                    };
-                    var insertComment = string.Format( "Added {0} to {1}", removePerson.FullName, newFamily.Name );
-                    familyChangeRequest.AddEntity( familyMember, rockContext, false, insertComment );
+                    personToMove.GivingGroupId = newGroup.Id;
                 }
 
+                var newGroupMember = new GroupMember();
+                newGroupMember.GroupId = newGroup.Id;
+                newGroupMember.PersonId = personToMove.Id;
+                newGroupMember.GroupMemberStatus = GroupMemberStatus.Active;
+                newGroupMember.GroupRoleId = familyRoleId;
+                newGroupMember.Guid = Guid.NewGuid();
+                groupMemberService.Add( newGroupMember );
+                rockContext.SaveChanges();
 
-                List<string> errors;
-                if(familyChangeRequest.ChangeRecords.Any())
+                var newChangeRecord = new ChangeRecord()
                 {
-                    ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
-                    changeRequestService.Add( familyChangeRequest );
-                    rockContext.SaveChanges();
-                    familyChangeRequest.CompleteChanges( rockContext, out errors );
+                    WasApplied = true,
+                    RelatedEntityTypeId = EntityTypeCache.Get( typeof( GroupMember ) ).Id,
+                    RelatedEntityId = newGroupMember.Id,
+                    NewValue = newGroupMember.ToJson(),
+                    Comment = $"Added {personToMove.FullName} to {newGroup.Name}.",
+                    Guid = Guid.NewGuid(),
+                    Action = ChangeRecordAction.Create
+                };
+                changeRequest.ChangeRecords.Add( newChangeRecord );
+
+                foreach ( var gl in sharedFamily.GroupLocations )
+                {
+                    var newLocation = new GroupLocation();
+                    newLocation.GroupId = newGroup.Id;
+                    newLocation.LocationId = gl.LocationId;
+                    newLocation.GroupLocationTypeValueId = gl.GroupLocationTypeValueId;
+                    newLocation.IsMailingLocation = gl.IsMailingLocation;
+                    newLocation.IsMappedLocation = gl.IsMappedLocation;
+                    groupLocationService.Add( newLocation );
                 }
-            }
+
+                rockContext.SaveChanges();
+                changeRequestService.Add( changeRequest );
+                changeRequestContext.SaveChanges();
+            } );
+
             NavigateToParentPage();
+
         }
 
         private void ShowNotAuthorizedAlert()
