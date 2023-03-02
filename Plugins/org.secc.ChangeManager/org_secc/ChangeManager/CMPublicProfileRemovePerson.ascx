@@ -6,7 +6,7 @@
                 <h1 class="panel-text"><i class="fa fa-user"></i>&nbsp;My Account</h1>
             </div>
             <div class="panel-body">
-                <Rock:NotificationBox ID="nbNotAuthorized" runat="server" Text="You are not auuthorized to edit this account." NotificationBoxType="Danger" Visible="false" />
+                <Rock:NotificationBox ID="nbNotAuthorized" runat="server" Text="You are not authorized to edit this account." NotificationBoxType="Danger" Visible="false" />
                 <asp:HiddenField ID="hfPersonGuid" runat="server" />
 
                 <asp:Panel ID="pnlEdit" runat="server">
