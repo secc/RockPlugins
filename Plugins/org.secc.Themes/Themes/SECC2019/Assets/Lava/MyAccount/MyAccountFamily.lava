@@ -37,6 +37,9 @@
 								<a href="/MyAccount/Edit/{{ person.Guid }}" title="Change Account Info" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
 									<i class="fas fa-user-edit"></i>
 								</a>
+								<a href="/MyAccount/Remove/{{ person.Guid }}" title="Remove From Family" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
+									<i class="fas fa-times"></i>
+								</a>
 							</span>
 						{% endif -%}
 						<span class="g-padding-y-40--xs g-padding-x-60--xs g-padding-y-60--sm g-padding-x-80--sm g-padding-y-80--lg g-padding-x-120--lg">

@@ -68,7 +68,7 @@
                            </div>
                             <div class="container-fluid g-padding-x-0--xs">
                                 <div class="col-xs-12 g-padding-x-0--xs g-margin-y-10--xs">
-                                    <asp:LinkButton ID="lbRemoveMember" runat="server" CssClass="btn btn-primary btn-xs" Text="Remove" />
+                                    <asp:LinkButton ID="lbRemoveMember" runat="server" CssClass="btn btn-primary btn-xs" Text="Remove From Family" />
                                 
                                     <a href="/MyAccount" class="btn btn-default btn-xs">Cancel</a>
                                 </div>
