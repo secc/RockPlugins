@@ -171,6 +171,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             {
                 pnlPhoneNumber.Visible = false;
             }
+            lFirstName.Text = person.NickName;
 
         }
 

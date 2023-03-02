@@ -3,12 +3,13 @@
     <ContentTemplate>
         <div class="panel panel-block">
             <div class="panel-heading">
-                <h1 class="panel-text"><i class="fa fa-user"></i>&nbsp;My Account</h1>
+                <h1 class="panel-text"><i class="fas fa-user-times"></i>&nbsp;Remove From Family</h1>
+                
             </div>
             <div class="panel-body">
                 <Rock:NotificationBox ID="nbNotAuthorized" runat="server" Text="You are not authorized to edit this account." NotificationBoxType="Danger" Visible="false" />
                 <asp:HiddenField ID="hfPersonGuid" runat="server" />
-
+                
                 <asp:Panel ID="pnlEdit" runat="server">
                     <div class="row">
                         <div class="col-md-3">
@@ -66,6 +67,9 @@
                                    </span>
                                </div>
                            </div>
+                            <div class="container-fluid g-padding-x-0--xs g-margin-y-10--xs">
+                                <p class="g-font-weight--600">Please confirm that you would like to remove <asp:Literal ID="lFirstName" runat="server" /> from this family.</p>
+                            </div>
                             <div class="container-fluid g-padding-x-0--xs">
                                 <div class="col-xs-12 g-padding-x-0--xs g-margin-y-10--xs">
                                     <asp:LinkButton ID="lbRemoveMember" runat="server" CssClass="btn btn-primary btn-xs" Text="Remove From Family" />

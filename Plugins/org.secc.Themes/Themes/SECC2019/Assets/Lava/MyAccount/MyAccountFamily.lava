@@ -38,7 +38,7 @@
 									<i class="fas fa-user-edit"></i>
 								</a>
 								<a href="/MyAccount/Remove/{{ person.Guid }}" title="Remove From Family" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
-									<i class="fas fa-times-circle"></i>
+									<i class="fas fa-user-times"></i>
 								</a>
 							</span>
 						{% endif -%}
