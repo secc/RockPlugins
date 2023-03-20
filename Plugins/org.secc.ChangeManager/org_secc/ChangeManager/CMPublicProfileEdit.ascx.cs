@@ -684,6 +684,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         /// <param name="personGuid">The person's global unique identifier.</param>
         private void ShowEditPersonDetails( Person person )
         {
+
+            var personGuid = PageParameter( PageParameterKeys.PersonGuid );
             var childGuid = Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid();
             RockContext rockContext = new RockContext();
 
@@ -694,7 +696,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             rblRole.Visible = true;
             rblRole.Required = true;
 
-            if ( GetAttributeValue( "DisableNameEdit" ).AsBoolean() )
+            if ( GetAttributeValue( "DisableNameEdit" ).AsBoolean() && !string.IsNullOrWhiteSpace( personGuid ) )
             {
                 tbFirstName.Enabled = false;
                 tbLastName.Enabled = false;
