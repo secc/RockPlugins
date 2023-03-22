@@ -110,16 +110,11 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
             var familyAliasIds = familyMembers.SelectMany( fm => fm.Person.Aliases.Select( pa => pa.Id ) ).ToList();
 
-            var discountCodes = new Dictionary<string, decimal>();
-
-            foreach ( var familyMember in registrationRegistrantService.Queryable().Where( rr => rr.PersonAliasId.HasValue && familyAliasIds.Contains( rr.PersonAliasId.Value ) )
-                                .Where( rr => rr.Registration.DiscountCode != null && rr.Registration.DiscountCode != "" ) )
-            {
-                if ( !discountCodes.ContainsKey( familyMember.Registration.DiscountCode.ToUpper() ) )
-                {
-                    discountCodes[familyMember.Registration.DiscountCode.ToUpper()] = familyMember.Registration.DiscountAmount;
-                }
-            }
+            var discountCodes = registrationRegistrantService.Queryable()
+                .Where( rr => rr.PersonAliasId.HasValue && familyAliasIds.Contains( rr.PersonAliasId.Value )
+                             && !string.IsNullOrEmpty( rr.Registration.DiscountCode ) )
+                .GroupBy( rr => rr.Registration.DiscountCode.ToUpper() )
+                .ToDictionary( g => g.Key, g => g.First().Registration.DiscountAmount );
 
             var qry = workflowService.Queryable().Where( w => workflowTypeIds.Contains( w.WorkflowTypeId.ToString() ) )
                 .GroupJoin( attributeValueService.Queryable().Where( av => attributeIds.Contains( av.AttributeId ) ),
