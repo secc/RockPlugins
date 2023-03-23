@@ -1,19 +1,18 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
 using org.secc.Communication;
 using org.secc.Communication.Messaging.Model;
 using Rock;
+using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using Rock.Data;
 
 namespace RockWeb.Plugins.org_secc.Communication
 {
@@ -57,7 +56,7 @@ namespace RockWeb.Plugins.org_secc.Communication
         {
             get
             {
-                if(CurrentPhoneNumber == null)
+                if ( CurrentPhoneNumber == null )
                 {
                     return string.Empty;
                 }
@@ -71,7 +70,7 @@ namespace RockWeb.Plugins.org_secc.Communication
         {
             get
             {
-                if(CurrentPhoneNumber == null)
+                if ( CurrentPhoneNumber == null )
                 {
                     return string.Empty;
                 }
@@ -112,7 +111,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             LoadPanelDrawerScript();
             if ( !Page.IsPostBack )
             {
-                if(PageParameter("IsSave").AsBoolean())
+                if ( PageParameter( "IsSave" ).AsBoolean() )
                 {
                     NotificationBoxShowSaveAlert();
                 }
@@ -132,7 +131,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         private void btnCancelPhone_Click( object sender, EventArgs e )
         {
-            if ( hfMessagingPhoneId.Value.AsGuid() == Guid.Empty)
+            if ( hfMessagingPhoneId.Value.AsGuid() == Guid.Empty )
             {
                 RedirectToParentPage();
                 return;
@@ -153,7 +152,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             MessagingPhoneNumber phone = null;
             var client = new MessagingClient();
 
-            if ( phoneId == Guid.Empty.ToString() ) 
+            if ( phoneId == Guid.Empty.ToString() )
             {
                 phone = new MessagingPhoneNumber();
                 phone.CreatedBy = new MessagingPerson( CurrentPerson );
@@ -170,24 +169,24 @@ namespace RockWeb.Plugins.org_secc.Communication
             phone.IsActive = switchActive.Checked;
             phone.ModifiedBy = new MessagingPerson( CurrentPerson );
 
-            if(hfOwner.Value.IsNullOrWhiteSpace())
+            if ( hfOwner.Value.IsNullOrWhiteSpace() )
             {
                 phone.OwnedBy = null;
             }
-            else if ( hfOwner.Value.Split( "|".ToCharArray() )[0].AsInteger() == EntityTypeCache.Get(typeof(Group)).Id)
+            else if ( hfOwner.Value.Split( "|".ToCharArray() )[0].AsInteger() == EntityTypeCache.Get( typeof( Group ) ).Id )
             {
                 var messagingGroup = new MessagingGroup( hfOwner.Value.Split( "|".ToCharArray() )[1].AsGuid() );
                 phone.OwnedBy = new MessagingOwner();
                 phone.OwnedBy.OwnerGroup = messagingGroup;
             }
-            else if ( hfOwner.Value.Split( "|".ToCharArray() )[0].AsInteger() == EntityTypeCache.Get(typeof(PersonAlias)).Id )
+            else if ( hfOwner.Value.Split( "|".ToCharArray() )[0].AsInteger() == EntityTypeCache.Get( typeof( PersonAlias ) ).Id )
             {
-                var messagingPerson = new MessagingPerson( hfOwner.Value.Split( "|".ToCharArray() )[1].AsGuid());
+                var messagingPerson = new MessagingPerson( hfOwner.Value.Split( "|".ToCharArray() )[1].AsGuid() );
                 phone.OwnedBy = new MessagingOwner();
                 phone.OwnedBy.OwnerPerson = messagingPerson;
             }
 
-            if(phone.Id.IsEmpty())
+            if ( phone.Id.IsEmpty() )
             {
                 phone = client.AddPhoneNumber( phone );
                 hfMessagingPhoneId.Value = phone.Id.ToString();
@@ -229,7 +228,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             pnlOwnerGroup.Visible = true;
             pnlOwnerPerson.Visible = false;
 
-            if(hfOwner.Value.IsNullOrWhiteSpace())
+            if ( hfOwner.Value.IsNullOrWhiteSpace() )
             {
                 return;
             }
@@ -237,7 +236,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             var entityTypeId = hfOwner.Value.Split( "|".ToCharArray() )[0].AsInteger();
             var groupGuid = hfOwner.Value.Split( "|".ToCharArray() )[1].AsGuid();
 
-            if(entityTypeId == EntityTypeCache.Get(typeof(Group)).Id)
+            if ( entityTypeId == EntityTypeCache.Get( typeof( Group ) ).Id )
             {
                 var group = new GroupService( new RockContext() ).Get( groupGuid );
                 gpSetOwner.SetValue( group );
@@ -251,15 +250,15 @@ namespace RockWeb.Plugins.org_secc.Communication
             pnlOwnerGroup.Visible = false;
             pnlOwnerPerson.Visible = true;
 
-            if(hfOwner.Value.IsNullOrWhiteSpace())
-            {          
+            if ( hfOwner.Value.IsNullOrWhiteSpace() )
+            {
                 return;
             }
 
             var entityTypeId = hfOwner.Value.Split( "|".ToCharArray() )[0].AsInteger();
             var personAliasGuid = hfOwner.Value.Split( "|".ToCharArray() )[1].AsGuid();
 
-            if(entityTypeId == EntityTypeCache.Get(typeof(PersonAlias)).Id)
+            if ( entityTypeId == EntityTypeCache.Get( typeof( PersonAlias ) ).Id )
             {
                 var person = new PersonAliasService( new RockContext() ).Get( personAliasGuid ).Person;
                 ppSetOwner.SetValue( person );
@@ -289,7 +288,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             if ( gpSetOwner.GroupId.HasValue )
             {
                 var groupEntityType = EntityTypeCache.Get( typeof( Group ) );
-                var group = new GroupService( new RockContext()).Get( gpSetOwner.GroupId.Value );
+                var group = new GroupService( new RockContext() ).Get( gpSetOwner.GroupId.Value );
                 hfOwner.Value = $"{groupEntityType.Id}|{group.Guid}";
                 lblOwner.Text = $"{group.Name}";
                 lOwnerNameEdit.Text = $"{group.Name}";
@@ -303,7 +302,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             pnlOwnerPerson.Visible = false;
             pnlOwnerGroup.Visible = false;
 
-            if(ppSetOwner.PersonAliasId.HasValue)
+            if ( ppSetOwner.PersonAliasId.HasValue )
             {
                 var personAliasEntityType = EntityTypeCache.Get( typeof( PersonAlias ) );
                 var personAlias = new PersonAliasService( new RockContext() ).Get( ppSetOwner.PersonAliasId.Value );
@@ -327,18 +326,18 @@ namespace RockWeb.Plugins.org_secc.Communication
             switchActive.Checked = false;
         }
 
-        private string GetAuditLink(MessagingPerson p, DateTime? actionDateUtc)
+        private string GetAuditLink( MessagingPerson p, DateTime? actionDateUtc )
         {
             var stringBuilder = new StringBuilder();
             var internalUrl = GlobalAttributesCache.Value( "InternalApplicationRoot" );
 
-            if(p != null)
+            if ( p != null )
             {
                 var rockPerson = new PersonAliasService( new Rock.Data.RockContext() ).Get( p.AliasGuid ).Person;
-                stringBuilder.AppendFormat( "<a href='{0}Person/{1}'>{2}</a>", internalUrl,  rockPerson.Id, rockPerson.FullName );
+                stringBuilder.AppendFormat( "<a href='{0}Person/{1}'>{2}</a>", internalUrl, rockPerson.Id, rockPerson.FullName );
             }
 
-            if(actionDateUtc.HasValue)
+            if ( actionDateUtc.HasValue )
             {
                 var localTime = actionDateUtc.Value.ToLocalTime();
                 stringBuilder.AppendFormat( " <small class='js-date-rollover' data-toggle='tooltip' data-placement='top' title='{0}'>({1})</small>",
@@ -351,18 +350,18 @@ namespace RockWeb.Plugins.org_secc.Communication
         {
             var currentOwnerValue = hfOwner.Value;
 
-            if(currentOwnerValue.IsNotNullOrWhiteSpace())
+            if ( currentOwnerValue.IsNotNullOrWhiteSpace() )
             {
                 var entityTypeId = currentOwnerValue.Split( "|".ToCharArray() )[0].AsInteger();
                 var entityGuid = currentOwnerValue.Split( "|".ToCharArray() )[1].AsGuid();
 
                 var rockContext = new RockContext();
-                if(entityTypeId == EntityTypeCache.Get(typeof(PersonAlias)).Id)
+                if ( entityTypeId == EntityTypeCache.Get( typeof( PersonAlias ) ).Id )
                 {
                     var ownerPerson = new PersonAliasService( rockContext ).Get( entityGuid );
                     lblOwner.Text = ownerPerson == null ? string.Empty : ownerPerson.Person.FullName;
                 }
-                else if (entityTypeId == EntityTypeCache.Get(typeof(Group)).Id)
+                else if ( entityTypeId == EntityTypeCache.Get( typeof( Group ) ).Id )
                 {
                     var ownerGroup = new GroupService( rockContext ).Get( entityGuid );
                     lblOwner.Text = ownerGroup == null ? string.Empty : ownerGroup.Name;
@@ -438,7 +437,7 @@ $('.js-date-rollover').tooltip();
             foreach ( var tn in twilioNumbers )
             {
                 var formattedNumber = string.Empty;
-                if(tn.PhoneNumber.StartsWith("1"))
+                if ( tn.PhoneNumber.StartsWith( "1" ) )
                 {
                     formattedNumber = PhoneNumber.FormattedNumber( "1", tn.PhoneNumber.Substring( 1 ) );
                 }
@@ -460,7 +459,7 @@ $('.js-date-rollover').tooltip();
             nbPhoneNotification.Visible = false;
         }
 
-        private void NotificationBoxSet(string title, string text, NotificationBoxType boxType)
+        private void NotificationBoxSet( string title, string text, NotificationBoxType boxType )
         {
             nbPhoneNotification.Title = title;
             nbPhoneNotification.Text = text;
@@ -529,13 +528,13 @@ $('.js-date-rollover').tooltip();
                 lPhoneNumber.Text = CurrentPhoneNumber.NumberFormatted;
                 switchActive.Checked = CurrentPhoneNumber.IsActive;
 
-                if(currentPhoneNumber.OwnedBy != null && currentPhoneNumber.OwnedBy.OwnerGroup != null)
+                if ( currentPhoneNumber.OwnedBy != null && currentPhoneNumber.OwnedBy.OwnerGroup != null )
                 {
                     var group = new GroupService( new RockContext() ).Get( currentPhoneNumber.OwnedBy.OwnerGroup.GroupGuid );
                     lOwnerNameEdit.Text = group != null ? group.Name : "(none)";
                     hfOwner.Value = $"{EntityTypeCache.Get( typeof( Group ) ).Id}|{currentPhoneNumber.OwnedBy.OwnerGroup.GroupGuid.ToString()}";
                 }
-                else if(currentPhoneNumber.OwnedBy != null && currentPhoneNumber.OwnedBy.OwnerPerson != null)
+                else if ( currentPhoneNumber.OwnedBy != null && currentPhoneNumber.OwnedBy.OwnerPerson != null )
                 {
                     var person = new PersonAliasService( new RockContext() ).Get( currentPhoneNumber.OwnedBy.OwnerPerson.AliasGuid ).Person;
                     lOwnerNameEdit.Text = person != null ? person.FullName : "(none)";
@@ -555,24 +554,29 @@ $('.js-date-rollover').tooltip();
             pnlViewDetails.Visible = true;
             pnlEditDetails.Visible = false;
             pnlAuditDrawer.Visible = true;
+            pnlViewOwner.Visible = false;
+
 
             lTitle.Text = $"Phone Number - {CurrentPhoneNumber.Name}";
             lPhoneNumberView.Text = CurrentPhoneNumber.NumberFormatted;
             lDescription.Text = CurrentPhoneNumber.Description;
 
-            pnlViewOwner.Visible = CurrentPhoneNumber.OwnedBy != null;
-            if(CurrentPhoneNumber.OwnedBy.OwnerGroup != null)
+            if ( CurrentPhoneNumber.OwnedBy != null )
             {
-                var group = new GroupService( new RockContext() ).Get( CurrentPhoneNumber.OwnedBy.OwnerGroup.GroupGuid );
-                lViewOwner.Text = group != null ? group.Name : String.Empty;
-            }
-            else if(CurrentPhoneNumber.OwnedBy.OwnerPerson != null)
-            {
-                var person = new PersonAliasService( new RockContext() ).Get( CurrentPhoneNumber.OwnedBy.OwnerPerson.AliasGuid )
-                    .Person;
-                lViewOwner.Text = person != null ? person.FullName : String.Empty;
-            }
+                pnlViewOwner.Visible = true;
+                if ( CurrentPhoneNumber.OwnedBy.OwnerGroup != null )
+                {
+                    var group = new GroupService( new RockContext() ).Get( CurrentPhoneNumber.OwnedBy.OwnerGroup.GroupGuid );
+                    lViewOwner.Text = group != null ? group.Name : String.Empty;
+                }
+                else if ( CurrentPhoneNumber.OwnedBy.OwnerPerson != null )
+                {
+                    var person = new PersonAliasService( new RockContext() ).Get( CurrentPhoneNumber.OwnedBy.OwnerPerson.AliasGuid )
+                        .Person;
+                    lViewOwner.Text = person != null ? person.FullName : String.Empty;
+                }
 
+            }
             hlStatus.Text = CurrentPhoneNumber.IsActive ? "Active" : "Inactive";
             hlStatus.LabelType = CurrentPhoneNumber.IsActive ? LabelType.Success : LabelType.Default;
             hlStatus.Visible = true;
