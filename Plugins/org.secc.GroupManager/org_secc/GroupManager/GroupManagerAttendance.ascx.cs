@@ -119,6 +119,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             var existingOccurrences = new AttendanceOccurrenceService( rockContext )
                 .Queryable()
+                .Include(o => o.Schedule)
                 .AsNoTracking()
                 .Where( g => g.GroupId == CurrentGroup.Id )
                 .Where( o => o.OccurrenceDate >= startDate && o.OccurrenceDate < enddate )
@@ -211,9 +212,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 LocationId = o.LocationId,
                 ScheduleId = o.ScheduleId,
                 OccurrenceDate = o.OccurrenceDate,
-                StartDateTime = o.Schedule.GetNextStartDateTime( o.OccurrenceDate )
+                StartDateTime = o.Schedule.GetNextStartDateTime(o.OccurrenceDate) ?? o.OccurrenceDate.Date.Add(o.Schedule.WeeklyTimeOfDay.Value)
             } )
             .ToList() );
+            
 
             ddlOccurence.DataSource = occurrences
                 .OrderByDescending( o => o.StartDateTime )
