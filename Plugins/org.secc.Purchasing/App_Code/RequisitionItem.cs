@@ -152,6 +152,20 @@ namespace org.secc.Purchasing
                 return apiClient;
             }
         }
+
+        private bool bypassIntacct = false;
+        [XmlIgnore]
+        public bool BypassIntacct
+        {
+            get
+            {
+                return bypassIntacct;
+            }
+            set
+            {
+                bypassIntacct = value;
+            }
+        }
         #endregion
 
         #region Constructors
@@ -298,7 +312,12 @@ namespace org.secc.Purchasing
 
                     SaveHistory( ChangeType, Original, uid );
                 }
+                BypassIntacct = false;
 
+            }
+            catch(IntacctException iEx)
+            {
+                throw iEx;
             }
             catch ( Exception ex )
             {
@@ -452,11 +471,15 @@ namespace org.secc.Purchasing
             {
                 ValErrors.Add( "Account", "Please select a valid account" );
             }
-            else if ( Account == null || Account.AccountNo <= 0 )
+            else if (BypassIntacct)
+            {
+                return ValErrors;
+            }
+            else if (Account == null || Account.AccountNo <= 0 )
             {
                 ValErrors.Add( "Account", "Account not found." );
             }
-            else if ( !apiClient.GetLocations().Any( l => l.Id == FundID ) )
+            else if (!apiClient.GetLocations().Any( l => l.Id == FundID ) )
             {
                 ValErrors.Add( "Account", "Account not found (Location does not exist)." );
             }
@@ -466,7 +489,7 @@ namespace org.secc.Purchasing
             }
 
 
-            if ( Account?.RequireProject == "true" && string.IsNullOrWhiteSpace( ProjectId ) )
+            if ( Account != null && Account.RequireProject == "true" && string.IsNullOrWhiteSpace( ProjectId ) )
             {
                 ValErrors.Add( "Project", "Project required: The account code you entered requires a project to be entered." );
             }

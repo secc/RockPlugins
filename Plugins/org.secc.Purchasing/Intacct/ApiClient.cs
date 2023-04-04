@@ -108,16 +108,24 @@ namespace org.secc.Purchasing.Intacct
                 restRequest.RequestFormat = DataFormat.Xml;
                 restRequest.AddBody( request );
 
-                var response = client.Execute<List<RestrictedData>>( restRequest );
-
-                var xmlDeserializer = new RestSharp.Deserializers.XmlDeserializer();
-                var responseObj = xmlDeserializer.Deserialize<Response>( response );
-                if ( responseObj?.Operation?.Result?.Status != "success" && !string.IsNullOrWhiteSpace( responseObj?.ErrorMessage?.Error?.Description ) )
+                try
                 {
-                    CheckResponse( response );
+                    var response = client.Execute<List<RestrictedData>>( restRequest );
+
+                    var xmlDeserializer = new RestSharp.Deserializers.XmlDeserializer();
+                    var responseObj = xmlDeserializer.Deserialize<Response>( response );
+                    if ( responseObj?.Operation?.Result?.Status != "success" && !string.IsNullOrWhiteSpace( responseObj?.ErrorMessage?.Error?.Description ) )
+                    {
+                        CheckResponse( response );
+                    }
+
+                    items = response.Data;
+                }
+                catch ( Exception ex )
+                {
+                    throw new IntacctException( "An error occurred connecting to Intacct. See Inner Exception for details", ex );
                 }
 
-                items = response.Data;
 
                 RockCache.AddOrUpdate( cacheKey, items );
             }
@@ -181,41 +189,49 @@ namespace org.secc.Purchasing.Intacct
             {
                 items = new List<T>();
 
-                var request = GetRequest();
-                request.Operation.Content.Function = new ReadByQuery( operation );
+                try
+                {    
+                    var request = GetRequest();
+                    request.Operation.Content.Function = new ReadByQuery( operation );
 
-                var restRequest = new RestRequest( "", Method.POST );
-                restRequest.AddHeader( "Content-Type", "application/xml" );
-                restRequest.RequestFormat = DataFormat.Xml;
-                restRequest.AddBody( request );
-
-                var response = client.Execute<List<T>>( restRequest );
-                CheckResponse( response );
-
-                var responseObj = new RestSharp.Deserializers.XmlDeserializer().Deserialize<Response>( response );
-                int? numRemaining = responseObj?.Operation?.Result?.Data?.NumRemaining ?? 0;
-                string resultId = responseObj?.Operation?.Result?.Data?.ResultId;
-                items.AddRange( response.Data );
-
-                while ( numRemaining != 0 && !string.IsNullOrWhiteSpace( resultId ) )
-                {
-                    restRequest = new RestRequest( "", Method.POST );
+                    var restRequest = new RestRequest( "", Method.POST );
                     restRequest.AddHeader( "Content-Type", "application/xml" );
                     restRequest.RequestFormat = DataFormat.Xml;
-
-                    request.Operation.Content.Function = new ReadMore( resultId );
                     restRequest.AddBody( request );
 
-                    response = client.Execute<List<T>>( restRequest );
+                    var response = client.Execute<List<T>>( restRequest );
                     CheckResponse( response );
 
-                    responseObj = new RestSharp.Deserializers.XmlDeserializer().Deserialize<Response>( response );
-                    numRemaining = responseObj?.Operation?.Result?.Data?.NumRemaining ?? 0;
+                    var responseObj = new RestSharp.Deserializers.XmlDeserializer().Deserialize<Response>( response );
+                    int? numRemaining = responseObj?.Operation?.Result?.Data?.NumRemaining ?? 0;
+                    string resultId = responseObj?.Operation?.Result?.Data?.ResultId;
                     items.AddRange( response.Data );
+
+                    while ( numRemaining != 0 && !string.IsNullOrWhiteSpace( resultId ) )
+                    {
+                        restRequest = new RestRequest( "", Method.POST );
+                        restRequest.AddHeader( "Content-Type", "application/xml" );
+                        restRequest.RequestFormat = DataFormat.Xml;
+
+                        request.Operation.Content.Function = new ReadMore( resultId );
+                        restRequest.AddBody( request );
+
+                        response = client.Execute<List<T>>( restRequest );
+                        CheckResponse( response );
+
+                        responseObj = new RestSharp.Deserializers.XmlDeserializer().Deserialize<Response>( response );
+                        numRemaining = responseObj?.Operation?.Result?.Data?.NumRemaining ?? 0;
+                        items.AddRange( response.Data );
+                    }
+
+
+                    RockCache.AddOrUpdate( cacheKey, items );
                 }
+                catch ( Exception ex )
+                {
 
-
-                RockCache.AddOrUpdate( cacheKey, items );
+                    throw new IntacctException( $"An exception occurred while retrieving account information from Intacct.", ex );
+                }
             }
             return items;
         }

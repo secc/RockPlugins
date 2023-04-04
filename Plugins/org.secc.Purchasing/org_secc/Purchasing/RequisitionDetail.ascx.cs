@@ -22,11 +22,14 @@ using System.Web.UI.WebControls;
 using Newtonsoft.Json;
 using org.secc.Purchasing;
 using org.secc.Purchasing.Intacct;
+using org.secc.Purchasing.Intacct.Functions;
+using org.secc.Purchasing.Intacct.Model;
 using Rock;
 using Rock.Attribute;
 using Rock.Communication;
 using Rock.Data;
 using Rock.Model;
+using Rock.MyWell;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
@@ -513,6 +516,28 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 }
 
                 return inSameMinistry;
+            }
+        }
+
+        private bool BypassIntacctValidation
+        {
+            get
+            {
+                bool bypass = false;
+                if ( ViewState[BlockId + "_BypassIntacct"] != null)
+                {
+                    bypass = ( bool ) ViewState[BlockId + "_BypassIntacct"];
+                }
+                else
+                {
+                    ViewState[BlockId + "_BypassIntacct"] = bypass;
+                }
+
+                return bypass;
+            }
+            set
+            {
+                ViewState[BlockId + "_BypassIntacct"] = value;
             }
         }
 
@@ -2116,11 +2141,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ddlItemCompany.Items.Clear();
 
 
+            try
+            {
+                ddlItemCompany.DataSource = ApiClient.GetLocationEntities().OrderBy( c => c.Name );
+                ddlItemCompany.DataValueField = "RecordNo";
+                ddlItemCompany.DataTextField = "Name";
+                ddlItemCompany.DataBind();
+            }
+            catch ( IntacctException iex )
+            {
+                ddlItemCompany.Items.Add( new ListItem( "Southeast Christian Church", "1" ) );
 
-            ddlItemCompany.DataSource = ApiClient.GetLocationEntities().OrderBy( c => c.Name );
-            ddlItemCompany.DataValueField = "RecordNo";
-            ddlItemCompany.DataTextField = "Name";
-            ddlItemCompany.DataBind();
+                LogException( iex );
+            }
         }
 
 
@@ -2179,7 +2212,16 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             txtItemAccountNumber.Text = string.Empty;
             chkItemAllowExpedited.Checked = false;
 
-            int DefaultCompanyID = GetUserCompanyID( ApiClient.GetLocationEntities().Min( l => l.RecordNo ) );
+            int DefaultCompanyID = -1;
+
+            try
+            {
+                DefaultCompanyID = GetUserCompanyID( ApiClient.GetLocationEntities().Min( l => l.RecordNo ) );
+            }
+            catch(IntacctException)
+            {
+                DefaultCompanyID = 1;
+            }
 
             if ( ddlItemCompany.Items.FindByValue( DefaultCompanyID.ToString() ) != null )
             {
@@ -2358,6 +2400,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 }
 
                 Item.IsExpeditiedShippingAllowed = chkItemAllowExpedited.Checked;
+                Item.BypassIntacct = BypassIntacctValidation;
+                
 
                 CurrentRequisition.SaveItem( Item, CurrentUser.UserName, true );
 
@@ -2376,9 +2420,22 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 else
                     throw rEx;
             }
+            catch(IntacctException iEx)
+            {
+                if ( !BypassIntacctValidation )
+                {
+                    ShowIntacctWarning();
+                }
+            }
+            
 
             return IsSuccessful;
 
+        }
+
+        public void ShowIntacctWarning()
+        {
+            mdlShowIntacctWarning.Show();
         }
 
         public void SetItemDetailErrorMessage( string message )
@@ -3629,5 +3686,21 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         }
 
+
+        protected void lbIntacctBypass_Click( object sender, EventArgs e )
+        {
+            mdlShowIntacctWarning.Hide();
+            BypassIntacctValidation = true;
+            if ( SaveItemDetail() )
+            {
+                LoadItems();
+                mpItemDetail.Hide();
+            }
+        }
+
+        protected void lbIntacctCancel_Click( object sender, EventArgs e )
+        {
+            mdlShowIntacctWarning.Hide();
+        }
     }
 }

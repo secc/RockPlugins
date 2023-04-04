@@ -113,6 +113,7 @@
     <Compile Include="Intacct\Api\Request.cs" />
     <Compile Include="Intacct\Model\ApiSession.cs" />
     <Compile Include="Intacct\Model\Data.cs" />
+    <Compile Include="Intacct\Model\IntacctException.cs" />
     <Compile Include="Intacct\Model\Location.cs" />
     <Compile Include="Intacct\Model\IntacctModel.cs" />
     <Compile Include="Intacct\Model\GLAccount.cs" />

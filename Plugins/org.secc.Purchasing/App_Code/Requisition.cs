@@ -327,6 +327,7 @@ namespace org.secc.Purchasing
             }
         }
 
+        [XmlIgnore]
         public Person AssignedTo
         {
             get
