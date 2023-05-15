@@ -5,7 +5,6 @@ using System.Data.Entity;
 using System.Linq;
 using System.Linq.Dynamic;
 using System.Web.UI.WebControls;
-using CSScriptLibrary;
 using Newtonsoft.Json;
 using org.secc.Communication;
 using org.secc.Communication.Messaging;
@@ -29,11 +28,17 @@ namespace RockWeb.Plugins.org_secc.Communication
         DefaultBooleanValue = true,
         Order = 2,
         Key = AttributeKeys.ShowFilter )]
+    [BooleanField("Enforce Response Limit",
+        Description = "Enforce the character limit for SMS Responses.",
+        DefaultBooleanValue = true,
+        Order = 3,
+        Key = AttributeKeys.EnforceResponseLimit)]
     public partial class MessagingPhoneKeywordList : RockBlock
     {
         public static class AttributeKeys
         {
             public const string ShowFilter = "ShowFilter";
+            public const string EnforceResponseLimit = "EnforceResponseLimit";
             public const string QS_MessagingNumber = "MessagingNumber";
         }
 
@@ -60,6 +65,11 @@ namespace RockWeb.Plugins.org_secc.Communication
             gfKeywords.DisplayFilterValue += gfKeywords_DisplayFilterValue;
             lbKeywordCancel.Click += lbKeywordCancel_Click;
             lbKeywordSave.Click += lbKeywordSave_Click;
+
+            if(!GetAttributeValue(AttributeKeys.EnforceResponseLimit).AsBoolean())
+            {
+                tbResponseMessage.MaxLength = 0;
+            }
 
 
             gKeywords.Columns[gKeywords.Columns.Count - 1].Visible = UserCanEdit;
