@@ -39,7 +39,7 @@ namespace org.secc.LeagueApps.Components
         Key = Constants.LeagueAppsClientId )]
 
     [FileField(
-        Rock.SystemGuid.BinaryFiletype.DEFAULT,
+        "d963ff2a-be2e-48e6-8bb5-3fddb872b8c5",
         Name = "LeagueApps Service Account File",
         Description = "PKCS12 file containing private key for authenticating to the LeagueApps API",
         IsRequired = true,
