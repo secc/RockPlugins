@@ -85,14 +85,15 @@
             </Content>
         </Rock:ModalDialog>
 
-        <Rock:ModalDialog runat="server" Title="Please Log-in To Reprint" ID="mdLogin" CancelLinkVisible="false">
+        <Rock:ModalDialog runat="server" Title="Please Enter PIN To Reprint" ID="mdLogin" CancelLinkVisible="false">
             <Content>
                 <div class="row clearfix">
                     <div class="col-md-4"></div>
                     <div class="col-md-4">
                         <Rock:NotificationBox runat="server" ID="nbLogin" NotificationBoxType="Validation" Visible="false" />
-                        <Rock:RockTextBox runat="server" ID="tbUsername" Label="Username" />
-                        <Rock:RockTextBox runat="server" ID="tbPassword" TextMode="Password" Label="Password" />
+<%--                        <Rock:RockTextBox runat="server" ID="tbUsername" Label="Username" />
+                        <Rock:RockTextBox runat="server" ID="tbPassword" TextMode="Password" Label="Password" />--%>
+                        <Rock:RockTextBox runat="server" ID="tbPrintPIN" Label="PIN" TextMode="Password" />
                         <Rock:BootstrapButton runat="server" ID="btnLoginPrint" CssClass="btn btn-primary" Text="Print" OnClick="btnLoginPrint_Click" />
                         <Rock:BootstrapButton runat="server" ID="btnLoginCancel" CssClass="btn btn-default" Text="Cancel" OnClick="btnLoginCancel_Click" />
                     </div>
