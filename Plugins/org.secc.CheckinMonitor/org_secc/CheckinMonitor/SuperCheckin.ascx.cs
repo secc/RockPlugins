@@ -24,7 +24,6 @@ using System.Text.RegularExpressions;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Newtonsoft.Json;
-using OfficeOpenXml.FormulaParsing.Utilities;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Utilities;
@@ -1306,7 +1305,8 @@ try{{
         protected void btnPrint_Click( object sender, EventArgs e )
         {
             nbLogin.Visible = false;
-            tbPrintPIN.Text = "";
+            tbUsername.Text = "";
+            tbPassword.Text = "";
             mdLogin.Show();
         }
 
@@ -1519,46 +1519,44 @@ try{{
 
         protected void btnLoginCancel_Click( object sender, EventArgs e )
         {
-            tbPrintPIN.Text = "";
+            tbUsername.Text = "";
+            tbPassword.Text = "";
             mdLogin.Hide();
         }
 
         protected void btnLoginPrint_Click( object sender, EventArgs e )
         {
-            nbLogin.Text = "";
-            nbLogin.Visible = false;
-
-            if(!tbPrintPIN.Text.Trim().AsIntegerOrNull().HasValue)
-            {
-                nbLogin.Text = "Invalid Pin (n)";
-                nbLogin.Visible = true;
-            }
-
             var rockContext = new RockContext();
             var userLoginService = new UserLoginService( rockContext );
-            var userLogin = userLoginService.GetByUserName( tbPrintPIN.Text );
-            if ( userLogin != null )
+            var userLogin = userLoginService.GetByUserName( tbUsername.Text );
+            if ( userLogin != null && userLogin.EntityType != null )
             {
-                var person = userLogin.Person;
-                if ( AuthorizedToReprint( person ) )
+                var component = AuthenticationContainer.GetComponent( userLogin.EntityType.Name );
+                if ( component != null && component.IsActive && !component.RequiresRemoteAuthentication )
                 {
-                    tbPrintPIN.Text = "";
-                    ReprintAggregateTag();
-                    mdLogin.Hide();
-                    return;
+                    if ( component.Authenticate( userLogin, tbPassword.Text ) )
+                    {
+                        var person = userLogin.Person;
+                        if ( AuthorizedToReprint( person ) )
+                        {
+                            tbUsername.Text = "";
+                            tbPassword.Text = "";
+                            ReprintAggregateTag();
+                            mdLogin.Hide();
+                            return;
+                        }
+                        else
+                        {
+                            nbLogin.Visible = true;
+                            nbLogin.Text = "Unauthorized to reprint";
+                        }
+                    }
+                    else
+                    {
+                        nbLogin.Visible = true;
+                        nbLogin.Text = "Incorrect Username Or Password";
+                    }
                 }
-                else
-                {
-                    nbLogin.Visible = true;
-                    nbLogin.Text = "Unauthorized to reprint";
-                }
-
-                
-            }
-            else
-            {
-                nbLogin.Visible = true;
-                nbLogin.Text = "Invalid PIN";
             }
         }
 
