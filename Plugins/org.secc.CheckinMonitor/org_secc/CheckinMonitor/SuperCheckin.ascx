@@ -355,7 +355,6 @@
             </div>
         </asp:Panel>
 
-
         <!-- Checkin PIN -->
         <Rock:ModalDialog ID="mdCheckinPin" runat="server" Title="Scan Check-In Code" OnSaveClick="mdCheckinPin_SaveClick" SaveButtonText="Submit">
             <Content>
@@ -367,12 +366,8 @@
 
         <script>
             function submitPIN(e) {
-                console.log('running submitPIN');
-                if (e.keyCode == 13) {
-                    document.querySelector('[id*="mdCheckinPin_serverSaveLink"]').click();
-                }
+                document.querySelector('[id*="mdCheckinPin_serverSaveLink"]').click();
             }
         </script>
-
     </ContentTemplate>
 </asp:UpdatePanel>
