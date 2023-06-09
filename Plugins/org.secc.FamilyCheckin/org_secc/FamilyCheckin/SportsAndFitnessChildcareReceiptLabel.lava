@@ -1,0 +1,72 @@
+{%- comment -%} Sports and Fitness Childcare Receipt {%- endcomment -%}
+
+{%- comment -%}
+    Label Header for printer
+{%- endcomment -%}
+^XA~TA000~JSN^LT0^MNW^MTT^PON^PMN^LH0,0^JMA^PR4,4~SD15^JUS^LRN^CI27^PA0,1,1,0^XZ
+^XA^MMT^PW609^LL406^LS0
+
+{%- comment -%}
+    Label Title
+{%- endcomment -%}
+^FT0,39^A0N,39,38^FB609,1,10,C^FH\^CI28^FDChildcare Receipt^FS^CI27
+
+{%- comment -%}
+    Label Summary
+{%- endcomment -%}
+^FT15,97^A0N,28,28^FH\^CI28^FDDate:^FS^CI27
+^FT0,97^A0N,28,28^FB599,1,7,R^FH\^CI28^FD{{'Now' | Date:'MM/dd/yyyy'}}^FS^CI27
+
+^FT15,132^A0N,28,28^FH\^CI28^FDBeginning Credits:^FS^CI27
+^FT0,132^A0N,28,28^FB599,1,7,R^FH\^CI28^FD{{ CreditsBeginning }}^FS^CI27
+
+^FT15,167^A0N,28,28^FH\^CI28^FDCredits Used:^FS^CI27
+^FT0,167^A0N,28,28^FB599,1,7,R^FH\^CI28^FD{{ CreditsUsed }}^FS^CI27
+
+^FO15,172^GB588,2,2^FS
+^FT15,202^A0N,28,28^FH\^CI28^FDEnding Credits:^FS^CI27
+^FT0,202^A0N,28,28^FB599,1,7,R^FH\^CI28^FD{{ CreditsEnding }}^FS^CI27
+
+{%- comment -%}
+    Label Detail
+{%- endcomment -%}
+^FO15,218^GB586,180,4^FS
+^FT22,246^A0N,23,23^FH\^CI28^FDChild^FS^CI27
+^FT246,246^A0N,23,23^FH\^CI28^FDIn^FS^CI27
+^FT403,246^A0N,23,23^FH\^CI28^FDOut^FS^CI27
+^FT0,246^A0N,23,23^FB593,1,6,R^FH\^CI28^FDCredits^FS^CI27
+{%- assign particpantCount = Participants | Size -%}
+{%- if particpantCount > 0 -%}
+    {%- assign participant = Participants | Index:0 =%}
+    ^FT24,275^A0N,23,23^FH\^CI28^FD{{participant.FirstName}}^FS^CI27
+    ^FT246,275^A0N,23,23^FH\^CI28^F{{participant.CheckinTime | AsDateTime | Date:'h:mm tt'}}^FS^CI27
+    ^FT399,275^A0N,23,23^FH\^CI28^FD{{participant.CheckoutTime | AsDateTime | Date:'h:mm tt' }}FS^CI27
+    ^FT0,275^A0N,23,23^FB593,1,6,R^FH\^CI28^FD{{participant.CreditsUsed}}^FS^CI27
+{%- endif -%}
+{%- if participantCount > 1 -%}
+    {%- assign participant = Participants | Index:1 -%}
+    ^FT24,305^A0N,23,23^FH\^CI28^FD{{ participant.FirstName }}FS^CI27
+    ^FT246,305^A0N,23,23^FH\^CI28^FD{{participant.CheckinTime | AsDateTime | Date:'h:mm tt'}}^FS^CI27
+    ^FT399,305^A0N,23,23^FH\^CI28^FD{{participant.CheckoutTime | AsDateTime | Date:'h:mm tt' }}F^FS^CI27
+    ^FT0,305^A0N,23,23^FB593,1,6,R^FH\^CI28^FD{{ participant.CreditsUsed }}^FS^CI27
+{%- endif -%}
+{%- if participantCount > 2 -%}
+    {%- assign participant = Participants | Index:2 -%}
+    ^FT24,335^A0N,23,23^FH\^CI28^FD{{ participant.FirstName }}FS^CI27
+    ^FT246,335^A0N,23,23^FH\^CI28^FD{{participant.CheckinTime | AsDateTime | Date:'h:mm tt'}}^FS^CI27
+    ^FT399,335^A0N,23,23^FH\^CI28^FD{{participant.CheckoutTime | AsDateTime | Date:'h:mm tt' }}F^FS^CI27
+    ^FT0,335^A0N,23,23^FB593,1,6,R^FH\^CI28^FD{ participant.CreditsUsed }}^FS^CI27
+{%- endif -%}
+{%- if participantCount > 3 -%}
+    {% assign participant = Participants | Index:3 %}
+    ^FT24,365^A0N,23,23^FH\^CI28^FD{{ participant.FirstName }}FS^CI27
+    ^FT246,365^A0N,23,23^FH\^CI28^FD{{participant.CheckinTime | AsDateTime | Date:'h:mm tt'}}^FS^CI27
+    ^FT399,365^A0N,23,23^FH\^CI28^FD{{participant.CheckoutTime | AsDateTime | Date:'h:mm tt' }}F^FS^CI27
+    ^FT0,365^A0N,23,23^FB593,1,6,R^FH\^CI28^FD{{ participant.CreditsUsed }}^FS^CI27
+{%- endif -%}
+
+^PQ1,,,Y
+^XZ
+
+
+
