@@ -506,7 +506,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     changeRequest.CompleteChanges( rockContext, out errors );
                 }
 
-                changeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull() );
+                changeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull(), "", null, null );
             }
 
             if ( familyChangeRequest.ChangeRecords.Any() )
@@ -519,7 +519,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 {
                     familyChangeRequest.CompleteChanges( rockContext, out errors );
                 }
-                familyChangeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull() );
+                familyChangeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull(), "", null, null );
             }
 
             if ( autoApply )

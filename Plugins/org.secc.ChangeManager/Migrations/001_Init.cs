@@ -20,7 +20,7 @@ namespace org.secc.ChangeManager.Migrations
     {
         public override void Up()
         {
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_ChangeManager_ChangeRecord",
                 c => new
                 {
@@ -43,22 +43,9 @@ namespace org.secc.ChangeManager.Migrations
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
                     ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "dbo._org_secc_ChangeManager_ChangeRequest", t => t.ChangeRequestId, cascadeDelete: true )
-                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
-                .ForeignKey( "dbo.EntityType", t => t.RelatedEntityTypeId )
-                .Index( t => t.ChangeRequestId )
-                .Index( t => t.IsRejected )
-                .Index( t => t.WasApplied )
-                .Index( t => t.RelatedEntityTypeId )
-                .Index( t => t.RelatedEntityId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true );
+                } );
 
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_ChangeManager_ChangeRequest",
                 c => new
                 {
@@ -79,19 +66,35 @@ namespace org.secc.ChangeManager.Migrations
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
                     ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "dbo.EntityType", t => t.EntityTypeId )
-                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
-                .Index( t => t.EntityTypeId )
-                .Index( t => t.EntityId )
-                .Index( t => t.RequestorAliasId )
-                .Index( t => t.ApproverAliasId )
-                .Index( t => t.IsComplete )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true );
+                } );
+
+            AddPrimaryKey( "dbo._org_secc_ChangeManager_ChangeRecord", "Id" );
+            AddPrimaryKey( "dbo._org_secc_ChangeManager_ChangeRequest", "Id" );
+
+            AddForeignKey( "dbo._org_secc_ChangeManager_ChangeRecord", "ChangeRequestId", "dbo._org_secc_ChangeManager_ChangeRequest", "Id", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_ChangeManager_ChangeRecord", "CreatedByPersonAliasId", "dbo.PersonAlias", "Id" );
+            AddForeignKey( "dbo._org_secc_ChangeManager_ChangeRecord", "ModifiedByPersonAliasId", "dbo.PersonAlias", "Id" );
+            AddForeignKey( "dbo._org_secc_ChangeManager_ChangeRecord", "RelatedEntityTypeId", "dbo.EntityType", "Id" );
+            AddIndex( "dbo._org_secc_ChangeManager_ChangeRecord", "ChangeRequestId" );
+            AddIndex( "dbo._org_secc_ChangeManager_ChangeRecord", "IsRejected" );
+            AddIndex( "dbo._org_secc_ChangeManager_ChangeRecord", "WasApplied" );
+            AddIndex( "dbo._org_secc_ChangeManager_ChangeRecord", "RelatedEntityTypeId" );
+            AddIndex( "dbo._org_secc_ChangeManager_ChangeRecord", "RelatedEntityId" );
+            AddIndex( "dbo._org_secc_ChangeManager_ChangeRecord", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_ChangeManager_ChangeRecord", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_ChangeManager_ChangeRecord", "Guid", unique: true );
+
+            AddForeignKey( "dbo._org_secc_ChangeManager_ChangeRequest", "CreatedByPersonAliasId", "dbo.PersonAlias", "Id" );
+            AddForeignKey( "dbo._org_secc_ChangeManager_ChangeRequest", "ModifiedByPersonAliasId", "dbo.PersonAlias", "Id" );
+            AddForeignKey( "dbo._org_secc_ChangeManager_ChangeRequest", "EntityTypeId", "dbo.EntityType", "Id" );
+            AddIndex( "dbo._org_secc_ChangeManager_ChangeRequest", "EntityTypeId" );
+            AddIndex( "dbo._org_secc_ChangeManager_ChangeRequest", "EntityId" );
+            AddIndex( "dbo._org_secc_ChangeManager_ChangeRequest", "RequestorAliasId" );
+            AddIndex( "dbo._org_secc_ChangeManager_ChangeRequest", "ApproverAliasId" );
+            AddIndex( "dbo._org_secc_ChangeManager_ChangeRequest", "IsComplete" );
+            AddIndex( "dbo._org_secc_ChangeManager_ChangeRequest", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_ChangeManager_ChangeRequest", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_ChangeManager_ChangeRequest", "Guid", unique: true );
         }
 
         public override void Down()

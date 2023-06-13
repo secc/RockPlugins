@@ -24,6 +24,7 @@ using org.secc.ChangeManager.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Web.Cache;
 
@@ -50,14 +51,14 @@ namespace org.secc.ChangeManager.Model
         [DataMember]
         public int RequestorAliasId { get; set; }
 
-        [LavaInclude]
+        [LavaVisibleAttribute]
         public virtual PersonAlias RequestorAlias { get; set; }
 
         [Index]
         [DataMember]
         public int ApproverAliasId { get; set; }
 
-        [LavaInclude]
+        [LavaVisibleAttribute]
         public virtual PersonAlias ApproverAlias { get; set; }
 
         [Index]
@@ -70,7 +71,7 @@ namespace org.secc.ChangeManager.Model
         [DataMember]
         public string ApproverComment { get; set; }
 
-        [LavaInclude]
+        [LavaVisibleAttribute]
         public virtual ICollection<ChangeRecord> ChangeRecords
         {
             get { return _changeRecords ?? ( _changeRecords = new Collection<ChangeRecord>() ); }
@@ -320,7 +321,7 @@ namespace org.secc.ChangeManager.Model
                         var workflowGuid = GlobalAttributesCache.Get().GetValue( "ChangeManagerSecurityWorkflow" ).AsGuidOrNull();
                         this.LaunchWorkflow( workflowGuid,
                             "Change Request Security Notice",
-                            new Dictionary<string, string> { { "ChangeDetail", securityChangeDetail.ToJson() } } );
+                            new Dictionary<string, string> { { "ChangeDetail", securityChangeDetail.ToJson() } }, null );
                     }
                 }
                 catch ( Exception e )
