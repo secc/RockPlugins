@@ -51,6 +51,7 @@ namespace org.secc.FamilyCheckin.Model
                 CheckoutTime = checkoutTime,
                 CreditsUsed = creditsUsed
             } );
+            ;
 
         }
     }

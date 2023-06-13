@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Data.Entity.Core.Common.CommandTrees;
 using System.Linq;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
@@ -48,14 +49,16 @@ namespace org.secc.FamilyCheckin.Workflows
             }
 
             var receiptLabelFileGuid = GetAttributeValue( action, "ReceiptLabel" ).AsGuid();
-            var receiptDataText = GetAttributeValue( action, "CheckoutReceiptData", true );
+            var receiptLabelText = GetAttributeValue( action, "CheckoutReceiptData", true );
 
-            if(receiptLabelFileGuid.IsEmpty() || receiptDataText.IsNullOrWhiteSpace())
+
+
+            if(receiptLabelFileGuid.IsEmpty() || receiptLabelText.IsNullOrWhiteSpace() )
             {
                 return true;
             }
 
-            var receiptData = receiptDataText.FromJsonOrNull<Model.SFChilcareReceipt>();
+            var receiptData = receiptLabelText.FromJsonOrNull<Model.SFChilcareReceipt>();
 
             var mergeFields = new Dictionary<string, object>();
             foreach ( var item in Rock.Lava.LavaHelper.GetCommonMergeFields(null) )
@@ -66,6 +69,7 @@ namespace org.secc.FamilyCheckin.Workflows
             mergeFields.Add( "CreditsBeginning", receiptData.CreditsBeginning );
             mergeFields.Add( "CreditsUsed", receiptData.CreditsUsed );
             mergeFields.Add( "CreditsEnding", receiptData.CreditsEnding );
+            
             mergeFields.Add( "Participants", receiptData.Participants );
 
             var label = new CheckInLabel( KioskLabel.Get( receiptLabelFileGuid ), mergeFields );
@@ -86,14 +90,13 @@ namespace org.secc.FamilyCheckin.Workflows
 
             var labels = new List<CheckInLabel> { label };
 
-            var groupType = checkinState.CheckIn.CurrentFamily.People
+            var person = checkinState.CheckIn.CurrentFamily.CheckOutPeople
                 .Where( p => p.Selected )
-                .SelectMany( p => p.GroupTypes.Where( gt => gt.Selected ) )
                 .FirstOrDefault();
 
-            if(groupType != null)
-            {
-                groupType.Labels = labels;
+            if(person != null)
+            { 
+                person.Labels.AddRange( labels );
             }
 
             return true;

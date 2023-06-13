@@ -96,11 +96,13 @@ namespace org.secc.FamilyCheckin.Workflows
                 fullFamily.SetAttributeValue( "SportsandFitnessChildcareCredit", sfReceipt.CreditsEnding );
                 fullFamily.SaveAttributeValue( "SportsandFitnessChildcareCredit", familyContext );
 
-                var guidAttribute = GetAttributeValue( action, "CheckoutReceiptData" ).AsGuid();
-                if ( !guidAttribute.IsEmpty() )
+                var value = GetAttributeValue( action, "CheckoutReceiptData" );
+                if(!value.IsNullOrWhiteSpace())
                 {
                     SetWorkflowAttributeValue( action, "CheckoutReceiptData", sfReceipt.ToJson() );
                 }
+
+                
                 //familyContext.SaveChanges();
             }
 

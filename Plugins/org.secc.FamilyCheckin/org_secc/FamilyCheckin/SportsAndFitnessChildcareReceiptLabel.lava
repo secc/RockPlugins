@@ -35,34 +35,36 @@
 ^FT246,246^A0N,23,23^FH\^CI28^FDIn^FS^CI27
 ^FT403,246^A0N,23,23^FH\^CI28^FDOut^FS^CI27
 ^FT0,246^A0N,23,23^FB593,1,6,R^FH\^CI28^FDCredits^FS^CI27
-{%- assign particpantCount = Participants | Size -%}
-{%- if particpantCount > 0 -%}
-    {%- assign participant = Participants | Index:0 =%}
-    ^FT24,275^A0N,23,23^FH\^CI28^FD{{participant.FirstName}}^FS^CI27
-    ^FT246,275^A0N,23,23^FH\^CI28^F{{participant.CheckinTime | AsDateTime | Date:'h:mm tt'}}^FS^CI27
-    ^FT399,275^A0N,23,23^FH\^CI28^FD{{participant.CheckoutTime | AsDateTime | Date:'h:mm tt' }}FS^CI27
-    ^FT0,275^A0N,23,23^FB593,1,6,R^FH\^CI28^FD{{participant.CreditsUsed}}^FS^CI27
+{%- assign participantCount = Participants | Size -%}
+{%- if participantCount > 0 -%}
+    {%- assign participant = Participants | Index:0 -%}
+    ^FT24,275^A0N,23,23^FH\^CI28^FD{{ participant.FirstName }}^FS^CI27
+    ^FT246,275^A0N,23,23^FH\^CI28^FD{{ participant.CheckinTime | AsDateTime | Date:'h:mm tt'}}^FS^CI27
+    ^FT399,275^A0N,23,23^FH\^CI28^FD{{ participant.CheckoutTime | AsDateTime | Date:'h:mm tt' }}^FS^CI27
+    ^FT0,275^A0N,23,23^FB593,1,6,R^FH\^CI28^FD{{ participant.CreditsUsed }}^FS^CI27
 {%- endif -%}
+
 {%- if participantCount > 1 -%}
-    {%- assign participant = Participants | Index:1 -%}
-    ^FT24,305^A0N,23,23^FH\^CI28^FD{{ participant.FirstName }}FS^CI27
-    ^FT246,305^A0N,23,23^FH\^CI28^FD{{participant.CheckinTime | AsDateTime | Date:'h:mm tt'}}^FS^CI27
-    ^FT399,305^A0N,23,23^FH\^CI28^FD{{participant.CheckoutTime | AsDateTime | Date:'h:mm tt' }}F^FS^CI27
-    ^FT0,305^A0N,23,23^FB593,1,6,R^FH\^CI28^FD{{ participant.CreditsUsed }}^FS^CI27
+    {%- assign participant1 = Participants | Index:1 -%}
+    ^FT24,305^A0N,23,23^FH\^CI28^FD{{ participant1.FirstName }}^FS^CI27
+    ^FT246,305^A0N,23,23^FH\^CI28^FD{{ participant1.CheckinTime | AsDateTime | Date:'h:mm tt' }}^FS^CI27
+    ^FT399,305^A0N,23,23^FH\^CI28^FD{{ participant1.CheckoutTime | AsDateTime | Date:'h:mm tt' }}^FS^CI27
+    ^FT0,305^A0N,23,23^FB593,1,6,R^FH\^CI28^FD{{ participant1.CreditsUsed }}^FS^CI27
 {%- endif -%}
+
 {%- if participantCount > 2 -%}
-    {%- assign participant = Participants | Index:2 -%}
-    ^FT24,335^A0N,23,23^FH\^CI28^FD{{ participant.FirstName }}FS^CI27
-    ^FT246,335^A0N,23,23^FH\^CI28^FD{{participant.CheckinTime | AsDateTime | Date:'h:mm tt'}}^FS^CI27
-    ^FT399,335^A0N,23,23^FH\^CI28^FD{{participant.CheckoutTime | AsDateTime | Date:'h:mm tt' }}F^FS^CI27
-    ^FT0,335^A0N,23,23^FB593,1,6,R^FH\^CI28^FD{ participant.CreditsUsed }}^FS^CI27
+    {%- assign participant2 = Participants | Index:2 -%}
+    ^FT24,335^A0N,23,23^FH\^CI28^FD{{ participant2.FirstName }}^FS^CI27
+    ^FT246,335^A0N,23,23^FH\^CI28^FD{{ participant2.CheckinTime | AsDateTime | Date:'h:mm tt' }}^FS^CI27
+    ^FT399,335^A0N,23,23^FH\^CI28^FD{{ participant2.CheckoutTime | AsDateTime | Date:'h:mm tt' }}^FS^CI27
+    ^FT0,335^A0N,23,23^FB593,1,6,R^FH\^CI28^FD{{ participant2.CreditsUsed }}^FS^CI27
 {%- endif -%}
 {%- if participantCount > 3 -%}
-    {% assign participant = Participants | Index:3 %}
-    ^FT24,365^A0N,23,23^FH\^CI28^FD{{ participant.FirstName }}FS^CI27
-    ^FT246,365^A0N,23,23^FH\^CI28^FD{{participant.CheckinTime | AsDateTime | Date:'h:mm tt'}}^FS^CI27
-    ^FT399,365^A0N,23,23^FH\^CI28^FD{{participant.CheckoutTime | AsDateTime | Date:'h:mm tt' }}F^FS^CI27
-    ^FT0,365^A0N,23,23^FB593,1,6,R^FH\^CI28^FD{{ participant.CreditsUsed }}^FS^CI27
+    {% assign participant3 = Participants | Index:3 %}
+    ^FT24,365^A0N,23,23^FH\^CI28^FD{{ participant3.FirstName }}^FS^CI27
+    ^FT246,365^A0N,23,23^FH\^CI28^FD{{participant3.CheckinTime | AsDateTime | Date:'h:mm tt'}}^FS^CI27
+    ^FT399,365^A0N,23,23^FH\^CI28^FD{{participant3.CheckoutTime | AsDateTime | Date:'h:mm tt' }}^FS^CI27
+    ^FT0,365^A0N,23,23^FB593,1,6,R^FH\^CI28^FD{{ participant3.CreditsUsed }}^FS^CI27
 {%- endif -%}
 
 ^PQ1,,,Y
