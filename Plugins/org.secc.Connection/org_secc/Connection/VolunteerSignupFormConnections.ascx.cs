@@ -69,7 +69,7 @@ namespace org.secc.Connection
     [TextField( "Comment label text", "The wording that should be used for the comment box title", true, "Comments", "", 13 )]
     [BooleanField( "Comments Required", "Whether the comment are required", true, "", 14 )]
 
-    public partial class VolunteerSignupFormConnections : RockBlock, IDetailBlock
+    public partial class VolunteerSignupFormConnections : RockBlock
     {
         #region Fields
 
