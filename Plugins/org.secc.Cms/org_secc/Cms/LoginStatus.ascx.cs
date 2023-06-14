@@ -264,11 +264,13 @@ namespace RockWeb.Plugins.org_secc.CMS
 
                 if ( CurrentUser != null )
                 {
-                    var transaction = new Rock.Transactions.UserLastActivityTransaction();
-                    transaction.UserId = CurrentUser.Id;
-                    transaction.LastActivityDate = RockDateTime.Now;
-                    transaction.IsOnLine = false;
-                    Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+                    var transaction = new Rock.Tasks.UpdateUserLastActivity.Message
+                    {
+                        UserId = CurrentUser.Id,
+                        LastActivityDate = RockDateTime.Now,
+                        IsOnline = false
+                    };
+                    transaction.SendIfNeeded();
                 }
 
                 Authorization.SignOut();
