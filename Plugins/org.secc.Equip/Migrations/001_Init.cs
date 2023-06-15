@@ -209,7 +209,7 @@
             AddIndex( "dbo._org_secc_Equip_CoursePage", "Guid", unique: true );
 
             AddForeignKey( "dbo._org_secc_Equip_CoursePageRecord", "ChapterRecordId", "dbo._org_secc_Equip_ChapterRecord", "Id", cascadeDelete: true );
-            AddForeignKey( "dbo._org_secc_Equip_CoursePageRecord", "CoursePageId", "dbo._org_secc_Equip_CoursePage", "Id", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_Equip_CoursePageRecord", "CoursePageId", "dbo._org_secc_Equip_CoursePage", "Id" );
             AddForeignKey( "dbo._org_secc_Equip_CoursePageRecord", "CreatedByPersonAliasId", "dbo.PersonAlias", "Id" );
             AddForeignKey( "dbo._org_secc_Equip_CoursePageRecord", "ModifiedByPersonAliasId", "dbo.PersonAlias", "Id" );
             AddIndex( "dbo._org_secc_Equip_CoursePageRecord", "ChapterRecordId" );
@@ -218,7 +218,7 @@
             AddIndex( "dbo._org_secc_Equip_CoursePageRecord", "ModifiedByPersonAliasId" );
             AddIndex( "dbo._org_secc_Equip_CoursePageRecord", "Guid", unique: true );
 
-            AddForeignKey( "dbo._org_secc_Equip_CourseRecord", "CourseId", "dbo._org_secc_Equip_Course", "Id", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_Equip_CourseRecord", "CourseId", "dbo._org_secc_Equip_Course", "Id" );
             AddForeignKey( "dbo._org_secc_Equip_CourseRecord", "CreatedByPersonAliasId", "dbo.PersonAlias", "Id" );
             AddForeignKey( "dbo._org_secc_Equip_CourseRecord", "ModifiedByPersonAliasId", "dbo.PersonAlias", "Id" );
             AddForeignKey( "dbo._org_secc_Equip_CourseRecord", "PersonAliasId", "dbo.PersonAlias", "Id", cascadeDelete: true );
