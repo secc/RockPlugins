@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Security;
 
 namespace org.secc.Equip.Model
@@ -36,13 +37,13 @@ namespace org.secc.Equip.Model
 
         /// <summary>Gets or sets the course pages.</summary>
         /// <value>The course pages.</value>
-        [LavaInclude]
+        [LavaVisible]
         public virtual ICollection<CoursePage> CoursePages { get; set; }
 
         [DataMember]
         public int CourseId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual Course Course { get; set; }
 
         [DataMember]
