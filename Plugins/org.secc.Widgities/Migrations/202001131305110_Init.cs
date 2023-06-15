@@ -95,7 +95,7 @@
             AddForeignKey( "dbo._org_secc_Widgities_WidgityItem", "CreatedByPersonAliasId", "dbo.PersonAlias", "Id" );
             AddForeignKey( "dbo._org_secc_Widgities_WidgityItem", "ModifiedByPersonAliasId", "dbo.PersonAlias", "Id" );
             AddForeignKey( "dbo._org_secc_Widgities_WidgityItem", "WidgityId", "dbo._org_secc_Widgities_Widgity", "Id", cascadeDelete: true );
-            AddForeignKey( "dbo._org_secc_Widgities_WidgityItem", "WidgityTypeId", "dbo._org_secc_Widgities_WidgityType", "Id", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_Widgities_WidgityItem", "WidgityTypeId", "dbo._org_secc_Widgities_WidgityType", "Id" );
             AddIndex( "dbo._org_secc_Widgities_WidgityItem", "WidgityId" );
             AddIndex( "dbo._org_secc_Widgities_WidgityItem", "WidgityTypeId" );
             AddIndex( "dbo._org_secc_Widgities_WidgityItem", "CreatedByPersonAliasId" );
