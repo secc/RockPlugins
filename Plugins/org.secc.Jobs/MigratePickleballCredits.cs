@@ -169,6 +169,11 @@ namespace org.secc.Jobs
                             groupFitnessMember.InactiveDateTime = null;
                         }
 
+                        if(pickleballParticipant.DateTimeAdded > groupFitnessMember.DateTimeAdded)
+                        {
+                            groupFitnessMember.DateTimeAdded = pickleballParticipant.DateTimeAdded;
+                        }
+
                         migrationContext.SaveChanges();
                         groupFitnessMember.LoadAttributes( migrationContext );
                         var groupFitnessSessions = groupFitnessMember.GetAttributeValue( groupFitnessSessionKey ).AsInteger();
