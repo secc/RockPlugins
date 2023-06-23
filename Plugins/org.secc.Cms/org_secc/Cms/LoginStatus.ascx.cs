@@ -57,7 +57,8 @@ namespace RockWeb.Plugins.org_secc.CMS
     [KeyValueListField( "Logged In Page List", "List of pages to show in the dropdown when the user is logged in. The link field takes Lava with the CurrentPerson merge fields. Place the text 'divider' in the title field to add a divider.", false, "", "Title", "Link" )]
 
     [BooleanField( "Enable Notifications", "Display a notification of new workflows or connections." )]
-
+    [IntegerField("Maximum Connection Request Days", "The maximum age in days of a  Connection Request to display a notification for.", false, 365, Key = "ConnectionRequestMaxDays")]
+    [IntegerField("Maximum Workflow Activity Age Days", "The maximum age in days of workflow activities to display a notification for.", false, 365, Key = "WorkflowActivityMaxDays")]
     [LinkedPage( "Logout Page", "Page for logging out of Rock", required: false )]
 
     public partial class LoginStatus : Rock.Web.UI.RockBlock
@@ -212,14 +213,41 @@ namespace RockWeb.Plugins.org_secc.CMS
             {
                 lastChecked = RockDateTime.Now.AddMonths( -3 );
             }
+
+            DateTime midnightToday = RockDateTime.Today.AddDays( 1 );
+
             RockContext rockContext = new RockContext();
 
+            var maxConnectionRequestAgeDays = GetAttributeValue( "ConnectionRequestMaxDays" ).AsInteger();
+            var maxWorkflowActivityAgeDays = GetAttributeValue( "WorkflowActivityMaxDays" ).AsInteger();
+
+            DateTime workflowActivityMaxCreatedDate = RockDateTime.Today.AddDays( -maxWorkflowActivityAgeDays );
+
+
             //Any workflow assigned to the person where we have active forms.
-            var workflowCount = new WorkflowActionService( rockContext ).GetActiveForms( CurrentPerson ).Where( a => a.CreatedDateTime > lastChecked.Value ).DistinctBy( a => a.Activity.WorkflowId ).Count();
+            var workflowCountQry = new WorkflowActionService( rockContext ).GetActiveForms( CurrentPerson ).AsQueryable();
+
+            if (maxWorkflowActivityAgeDays > 0)
+            {
+                workflowCountQry = workflowCountQry.Where( a => a.CreatedDateTime > workflowActivityMaxCreatedDate );
+            }
+
+            var workflowCount = workflowCountQry.Where( a => a.CreatedDateTime > lastChecked.Value )
+                .DistinctBy( a => a.Activity.WorkflowId ).Count();
 
             //Connections - If a new connecion was made, a connection was just transfered, or a future followup just came up
-            DateTime midnightToday = RockDateTime.Today.AddDays( 1 );
-            var connectionRequests = new ConnectionRequestService( rockContext ).Queryable()
+            
+            DateTime connectionRequestMaxCreatedDate = RockDateTime.Today.AddDays( -maxConnectionRequestAgeDays );
+
+            var connectionRequestsQry = new ConnectionRequestService( rockContext ).Queryable();
+
+            if(maxConnectionRequestAgeDays > 0)
+            {
+                connectionRequestsQry = connectionRequestsQry.Where( r => r.CreatedDateTime > connectionRequestMaxCreatedDate );
+            }
+
+            var connectionRequests = connectionRequestsQry
+                .Where(r => r.CreatedDateTime > connectionRequestMaxCreatedDate )
                 .Where( r => r.ConnectorPersonAlias != null && r.ConnectorPersonAlias.PersonId == CurrentPersonId )
                 .Where( r => ( r.ConnectionState == ConnectionState.Active && ( r.CreatedDateTime > lastChecked.Value || r.ConnectionRequestActivities.Where( a => a.CreatedDateTime > lastChecked.Value && a.ConnectionActivityType.Name == "Transferred" ).Any() ) ) ||
                              ( r.ConnectionState == ConnectionState.FutureFollowUp && r.FollowupDate.HasValue && r.FollowupDate.Value < midnightToday ) && r.FollowupDate.Value > lastChecked.Value )
