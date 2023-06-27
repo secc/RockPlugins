@@ -23,7 +23,7 @@ namespace org.secc.FamilyCheckin.Model
     using System.Linq;
     using System.Runtime.Serialization;
     using Rock;
-    using Rock.Data;
+    using Rock.Lava;
     using Rock.Model;
 
     [Table( "_org_secc_FamilyCheckin_KioskType" )]
@@ -50,7 +50,7 @@ namespace org.secc.FamilyCheckin.Model
         [DataMember]
         public int? CampusId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual Campus Campus { get; set; }
 
         [DataMember]

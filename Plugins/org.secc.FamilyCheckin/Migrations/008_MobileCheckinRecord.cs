@@ -14,7 +14,6 @@
 //
 namespace org.secc.FamilyCheckin.Migrations
 {
-    using org.secc.DevLib.Extensions.Migration;
     using Rock.Plugin;
 
     [MigrationNumber( 8, "1.10.2" )]
@@ -22,7 +21,7 @@ namespace org.secc.FamilyCheckin.Migrations
     {
         public override void Up()
         {
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_FamilyCheckin_MobileCheckinRecord",
                 c => new
                 {
@@ -44,36 +43,36 @@ namespace org.secc.FamilyCheckin.Migrations
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
                     ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "dbo.Campus", t => t.CampusId )
-                .ForeignKey( "dbo.Group", t => t.FamilyGroupId )
-                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
-                .Index( t => t.AccessKey, unique: true )
-                .Index( t => t.UserName )
-                .Index( t => t.CampusId )
-                .Index( t => t.FamilyGroupId )
-                .Index( t => t.Status )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true )
-                .Run( this );
+                } );
 
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_FamilyCheckin_MobileCheckinRecordAttendances",
                 c => new
                 {
                     MobileCheckinRecordId = c.Int( nullable: false ),
                     AttendanceId = c.Int( nullable: false ),
-                } )
-                .PrimaryKey( t => new { t.MobileCheckinRecordId, t.AttendanceId } )
-                .ForeignKey( "dbo._org_secc_FamilyCheckin_MobileCheckinRecord", t => t.MobileCheckinRecordId )
-                .ForeignKey( "dbo.Attendance", t => t.AttendanceId )
-                .Index( t => t.MobileCheckinRecordId )
-                .Index( t => t.AttendanceId )
-                .Run( this );
+                } );
 
+            AddPrimaryKey( "dbo._org_secc_FamilyCheckin_MobileCheckinRecord", "Id" );
+            AddPrimaryKey( "dbo._org_secc_FamilyCheckin_MobileCheckinRecordAttendances", new string[] { "MobileCheckinRecordId", "AttendanceId" } );
+
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_MobileCheckinRecord", "CampusId", "dbo.Campus" );
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_MobileCheckinRecord", "FamilyGroupId", "dbo.Group" );
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_MobileCheckinRecord", "CreatedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_MobileCheckinRecord", "ModifiedByPersonAliasId", "dbo.PersonAlias" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_MobileCheckinRecord", "AccessKey", unique: true );
+            AddIndex( "dbo._org_secc_FamilyCheckin_MobileCheckinRecord", "UserName" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_MobileCheckinRecord", "CampusId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_MobileCheckinRecord", "FamilyGroupId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_MobileCheckinRecord", "Status" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_MobileCheckinRecord", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_MobileCheckinRecord", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_MobileCheckinRecord", "Guid", unique: true );
+
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_MobileCheckinRecordAttendances", "MobileCheckinRecordId", "dbo._org_secc_FamilyCheckin_MobileCheckinRecord" );
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_MobileCheckinRecordAttendances", "AttendanceId", "dbo.Attendance" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_MobileCheckinRecordAttendances", "MobileCheckinRecordId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_MobileCheckinRecordAttendances", "AttendanceId" );
         }
 
         public override void Down()

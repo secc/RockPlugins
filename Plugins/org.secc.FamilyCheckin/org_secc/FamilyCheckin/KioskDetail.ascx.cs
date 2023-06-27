@@ -32,7 +32,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [DisplayName( "Kiosk Detail" )]
     [Category( "SECC > Check-in" )]
     [Description( "Displays the details of the given device." )]
-    public partial class KioskDetail : RockBlock, IDetailBlock
+    public partial class KioskDetail : RockBlock
     {
         #region Control Methods
 

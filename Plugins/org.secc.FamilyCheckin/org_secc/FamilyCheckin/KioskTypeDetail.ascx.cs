@@ -35,7 +35,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [DisplayName( "Kiosk Type Detail" )]
     [Category( "SECC > Check-in" )]
     [Description( "Displays the details of the given device." )]
-    public partial class KioskTypeDetail : RockBlock, IDetailBlock
+    public partial class KioskTypeDetail : RockBlock
     {
         #region Properties
 
