@@ -14,6 +14,8 @@ using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using System.Text;
 
+using org.secc.DevLib.SportsAndFitness;
+
 namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 {
     [DisplayName("Search")]
@@ -46,6 +48,8 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         }
         #endregion
 
+        const string SearchKey = "ControlCenterSearch";
+
         #region Base Control Methods
         protected override void OnInit( EventArgs e )
         {
@@ -63,7 +67,10 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
             if(!IsPostBack)
             {
-                ViewState.Remove( "ControlCenterSearchText" );
+                if (Session[SearchKey] != null)
+                {
+                    Session.Remove( SearchKey );
+                }
                 LoadDetails();
             }
             else
@@ -88,9 +95,17 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             var args = this.Request.Params["__EVENTARGUMENT"];
             if(args == "search" && tbSearch.Text.Length > 2)
             {
-                ViewState["ControlCenterSearchText"] = tbSearch.Text.Trim();
+                var searchConfiguration = new ControlCenterSearchItem
+                {
+                    SearchTerm = tbSearch.Text.Trim(),
+                    SearchByPhone = GetAttributeValue( AttributeKey.SearchByPhone ).AsBoolean(), 
+                    SearchByPIN = GetAttributeValue( AttributeKey.SearchByPIN ).AsBoolean()
+                };
+
+
+                Session[SearchKey] = searchConfiguration.ToString();
                 NavigateToLinkedPage( AttributeKey.SearchResultPage );
-            }
+            }   
         }
 
         private void LoadDetails()
@@ -110,5 +125,6 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         }
 
         #endregion
+
     }
 }
