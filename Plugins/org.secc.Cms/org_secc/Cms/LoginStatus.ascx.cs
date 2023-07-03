@@ -229,10 +229,10 @@ namespace RockWeb.Plugins.org_secc.CMS
 
             if (maxWorkflowActivityAgeDays > 0)
             {
-                workflowCountQry = workflowCountQry.Where( a => a.CreatedDateTime > workflowActivityMaxCreatedDate );
+                workflowCountQry = workflowCountQry.Where( a => a.Activity.CreatedDateTime > workflowActivityMaxCreatedDate );
             }
 
-            var workflowCount = workflowCountQry.Where( a => a.CreatedDateTime > lastChecked.Value )
+            var workflowCount = workflowCountQry.Where( a => a.Activity.CreatedDateTime > lastChecked.Value )
                 .DistinctBy( a => a.Activity.WorkflowId ).Count();
 
             //Connections - If a new connecion was made, a connection was just transfered, or a future followup just came up
