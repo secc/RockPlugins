@@ -8,5 +8,8 @@
             <Rock:RockLiteral ID="lSearchByPIN" runat="server" Label="Search By PIN" />
             <Rock:RockLiteral ID="lResultCount" runat="server" Label="Result Count" />
         </asp:Panel>
+        <asp:Panel id="pnlResults" runat="server" Visible="true">
+            <asp:Literal ID="lResults" runat="server" />
+        </asp:Panel>
     </ContentTemplate>
 </asp:UpdatePanel>
