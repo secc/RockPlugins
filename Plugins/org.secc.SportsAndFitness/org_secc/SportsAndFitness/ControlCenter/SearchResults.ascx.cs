@@ -180,10 +180,11 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             }
 
             var SFPINPurposeDVGuid = GetAttributeValue( AttributeKey.PINPurposeDV );
+            var SPPurposeDV = DefinedValueCache.Get( SFPINPurposeDVGuid );
             userLogin.LoadAttributes();
 
             var isSportsPin = userLogin.GetAttributeValue( "PINPurpose" ).Split( ",".ToCharArray() )
-                .Contains( SFPINPurposeDVGuid );
+                .Contains( SPPurposeDV.Id.ToString() );
 
             if (isSportsPin)
             {
