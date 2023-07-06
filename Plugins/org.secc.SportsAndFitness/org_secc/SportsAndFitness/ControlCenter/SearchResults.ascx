@@ -2,7 +2,7 @@
 <asp:UpdatePanel ID="upMain" runat="server">
     <ContentTemplate>
         <Rock:NotificationBox ID="nbAlert" runat="server" NotificationBoxType="Info" Visible="false" />
-        <asp:Panel ID="pnlDebug" runat="server" Visible="true">
+        <asp:Panel ID="pnlDebug" runat="server" Visible="false">
             <Rock:RockLiteral ID="lSearchTerm" runat="server" Label="Search Term" />
             <Rock:RockLiteral ID="lSearchByPhone" runat="server" Label="Search By Phone" />
             <Rock:RockLiteral ID="lSearchByPIN" runat="server" Label="Search By PIN" />
