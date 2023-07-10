@@ -79,7 +79,7 @@ namespace org.secc.FamilyCheckin
                                         }
 
                                         var occurrence = OccurrenceCache.Get( group.Group.Id, location.Location.Id, schedule.Schedule.Id );
-                                        if ( occurrence == null || occurrence.IsFull )
+                                        if ( occurrence == null || occurrence.IsFull || !occurrence.IsActive )
                                         {
                                             location.Schedules.Remove( schedule );
                                             continue;

@@ -51,6 +51,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(SolutionDir)\libs\Quartz\Quartz.dll</HintPath>
     </Reference>
+    <Reference Include="RestSharp, Version=105.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\RestSharp.105.2.3\lib\net452\RestSharp.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -71,9 +74,19 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\MessagingServiceSettings.cs" />
     <Compile Include="Data\CommunicationDataContext.cs" />
     <Compile Include="Data\CommunicationDataService.cs" />
     <Compile Include="Jobs\SyncTwilioHistory.cs" />
+    <Compile Include="MessagingClient.cs" />
+    <Compile Include="Messaging\KeywordReorderItem.cs" />
+    <Compile Include="Messaging\Model\Keyword.cs" />
+    <Compile Include="Messaging\Model\MessagingGroup.cs" />
+    <Compile Include="Messaging\Model\MessagingOwner.cs" />
+    <Compile Include="Messaging\Model\MessagingPerson.cs" />
+    <Compile Include="Messaging\Model\MessagingPhoneNumber.cs" />
+    <Compile Include="Messaging\Model\TwilioPhoneNumber.cs" />
+    <Compile Include="SECCMessagingSettings.cs" />
     <Compile Include="Migrations\002_Index.cs" />
     <Compile Include="Migrations\001_Init.cs" />
     <Compile Include="Migrations\Configuration.cs" />

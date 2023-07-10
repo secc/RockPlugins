@@ -225,12 +225,12 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                     newQry = newQry.Where( o => campuses.Contains( o.Campus.Id ) );
                 }
 
-                if (nreRoute.LowerValue.HasValue)
+                if ( nreRoute.LowerValue.HasValue )
                 {
                     newQry = newQry.Where( o => o.Route >= nreRoute.LowerValue.Value );
                 }
 
-                if (nreRoute.UpperValue.HasValue)
+                if ( nreRoute.UpperValue.HasValue )
                 {
                     newQry = newQry.Where( o => o.Route <= nreRoute.UpperValue.Value );
                 }
@@ -410,7 +410,8 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 "Location Room No.",
                 "Street Address",
                 "City", "State", "Zip",
-                "Phone",
+                "Home Phone",
+                "Mobile Phone",
                 "Birthday",
                 "Notes",
                 "Start Date",
@@ -421,6 +422,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             }
             PhoneNumberService phoneNumberService = new PhoneNumberService( new RockContext() );
             Guid homePhone = Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME.AsGuid();
+            Guid mobilePhone = Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid();
             // print data
             foreach ( CommunionData row in getQuery<CommunionData>() )
             {
@@ -435,6 +437,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 SetExcelValue( worksheet.Cells[rowCounter, i++], row.State );
                 SetExcelValue( worksheet.Cells[rowCounter, i++], row.PostalCode );
                 SetExcelValue( worksheet.Cells[rowCounter, i++], phoneNumberService.GetByPersonId( row.Person.Id ).Where( p => p.NumberTypeValue.Guid == homePhone ).Select( p => p.NumberFormatted ).FirstOrDefault() );
+                SetExcelValue( worksheet.Cells[rowCounter, i++], phoneNumberService.GetByPersonId( row.Person.Id ).Where( p => p.NumberTypeValue.Guid == mobilePhone ).Select( p => p.NumberFormatted ).FirstOrDefault() );
                 if ( row.Person.BirthDay.HasValue )
                 {
                     SetExcelValue( worksheet.Cells[rowCounter, i++], row.Person.BirthMonth + "/" + row.Person.BirthDay );
@@ -449,7 +452,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
                 SetExcelValue( worksheet.Cells[rowCounter, i++], row.Description );
                 SetExcelValue( worksheet.Cells[rowCounter, i++], row.AdmitDate );
-                SetExcelValue( worksheet.Cells[rowCounter, i], row.Route ); 
+                SetExcelValue( worksheet.Cells[rowCounter, i], row.Route );
 
                 worksheet.Cells[rowCounter, i++].Style.WrapText = true;
 

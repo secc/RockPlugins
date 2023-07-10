@@ -71,6 +71,7 @@
     <Compile Include="CompleteWorkflows.cs" />
     <Compile Include="FrontPorchDeviceRemoval.cs" />
     <Compile Include="GroupLeaderMedicationNotifications.cs" />
+    <Compile Include="MigratePickleballCredits.cs" />
     <Compile Include="RemoveDevicesFromPersons.cs" />
     <Compile Include="SetFirstAttendanceDate.cs" />
     <Compile Include="PushPayDownloadCheckNumbers.cs" />

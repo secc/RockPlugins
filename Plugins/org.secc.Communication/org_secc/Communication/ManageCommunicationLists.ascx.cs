@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
@@ -8,6 +8,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
+using Rock.Communication;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
@@ -24,14 +25,30 @@ namespace RockWeb.Plugins.org_secc.Communication
     [Description( "Block for users to manage their communication list subscriptions" )]
     [TextField( "Communication Group Type Attribute Key", "Group attribute which tells the user how they will be communicated with.", key: "AttributeKey", defaultValue: "Type" )]
     [TextField( "Communication Group Keyword Attribute Key", "Group attribute which tell the user how tehy will be communicated with.", key: "KeywordKey", defaultValue: "Keyword" )]
+    [DefinedValueField( "Confirmation SMS From", AllowMultiple = false, DefinedTypeGuid = "611bde1f-7405-4d16-8626-ccfedb0e62be", Description = "SMS Phone number for confirmation message", AllowAddingNewValues = false, Key = "FromSMSNumber" )]
+
     public partial class ManageCommunicationLists : RockBlock
     {
+        private PhoneNumber mobilePhone = null;
+
         public Person Person { get; set; }
         public List<int> CommunicationGroupIds { get; set; }
         public List<int> CommunicationMembershipIds { get; set; }
         private List<Group> CommunicationGroups { get; set; }
         private List<GroupMember> CommunicationMembership { get; set; }
         private List<string> ExpandedPanels { get; set; }
+
+        private PhoneNumber MobilePhone
+        {
+            get
+            {
+                if ( mobilePhone == null )
+                {
+                    mobilePhone = Person.GetPhoneNumber( "407e7e45-7b2e-4fcd-9605-ecb1339f2453".AsGuid() );
+                }
+                return mobilePhone;
+            }
+        }
 
         #region Base Control Methods
 
@@ -125,6 +142,10 @@ namespace RockWeb.Plugins.org_secc.Communication
                 return;
             }
 
+
+            nbNotice.Visible = false;
+            nbNotice.Heading = string.Empty;
+            nbNotice.Text = string.Empty;
             if ( !Page.IsPostBack )
             {
                 LoadKeywordGroup();
@@ -398,6 +419,33 @@ namespace RockWeb.Plugins.org_secc.Communication
 
             if ( member.PersonId == Person.Id )
             {
+                var myAccountLink = ResolveRockUrl( $"~/MyAccount/Edit/{Person.Guid}" );
+                if ( MobilePhone == null && type.Equals( "text message", StringComparison.InvariantCultureIgnoreCase ) )
+                {
+
+                    NotificationBox phoneAlert = new NotificationBox
+                    {
+                        ID = $"nbNoMobile{panelWidget.ID}",
+                        NotificationBoxType = NotificationBoxType.Validation,
+                        Heading = "Mobile Phone Required",
+                        Text = $"You are subscribed to this list, but we do not have a mobile phone number on record. Please update your <a href='{myAccountLink}'>profile</a>."
+                    };
+                    pnlToggle.Controls.Add( phoneAlert );
+                }
+                else if ( ( Person.Email.IsNullOrWhiteSpace() || Person.EmailPreference != EmailPreference.EmailAllowed ) && type.Equals( "Email", StringComparison.InvariantCultureIgnoreCase ) )
+                {
+                    NotificationBox emailAlert = new NotificationBox
+                    {
+                        ID = $"nbEmailError{panelWidget.ID}",
+                        NotificationBoxType = NotificationBoxType.Validation,
+                        Heading = "Email Required",
+                        Text = $"You are subscribed to this list, but you email peferences are not set to allow emails. "
+                            + $"Please verify your email address and email preferences from your <a href='{myAccountLink}'>profile</a>."
+                    };
+                    pnlToggle.Controls.Add( emailAlert );
+
+                }
+
                 showAttributes = true;
                 LinkButton off = new LinkButton
                 {
@@ -416,9 +464,35 @@ namespace RockWeb.Plugins.org_secc.Communication
                     InnerText = "Subscribed"
                 };
                 pnlToggle.Controls.Add( on );
+
+
             }
             else
             {
+                if ( type.Equals( "Email", StringComparison.InvariantCultureIgnoreCase ) )
+                {
+                    pnlToggle.Controls.Add( CreateEmailBox( panelWidget.ID ) );
+                }
+                else if ( type.Equals( "Text Message", StringComparison.InvariantCultureIgnoreCase ) )
+                {
+                    pnlToggle.Controls.Add( CreatePhoneBox( panelWidget.ID ) );
+                }
+                else
+                {
+                    switch ( Person.CommunicationPreference )
+                    {
+                        case CommunicationType.Email:
+                            pnlToggle.Controls.Add( CreateEmailBox( panelWidget.ID ) );
+                            break;
+                        case CommunicationType.SMS:
+                            pnlToggle.Controls.Add( CreatePhoneBox( panelWidget.ID ) );
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+
                 HtmlGenericContainer off = new HtmlGenericContainer
                 {
                     TagName = "div",
@@ -435,7 +509,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                     CausesValidation = false
                 };
                 pnlToggle.Controls.Add( on );
-                on.Click += ( s, e ) => { Subscribe( group.Id ); };
+                on.Click += ( s, e ) => { Subscribe( group.Id, panelWidget.ID ); };
             }
 
             member.LoadAttributes();
@@ -486,8 +560,130 @@ namespace RockWeb.Plugins.org_secc.Communication
             member.SaveAttributeValues();
         }
 
-        private void Subscribe( int groupId )
+        private void ShowEmailNotice()
         {
+            ShowNotice( "Email Address Reqired",
+                "Email address is required when registering for this communication list.",
+                NotificationBoxType.Validation );
+        }
+
+        private void ShowMobilePhoneNotice()
+        {
+            ShowNotice( "Mobile Phone is required.",
+                "Mobile phone number is required when registering for this communication list.",
+                NotificationBoxType.Validation );
+
+        }
+
+        private void ShowNotice( string heading, string message, NotificationBoxType boxType = NotificationBoxType.Info )
+        {
+            nbNotice.Heading = heading;
+            nbNotice.Text = message;
+            nbNotice.NotificationBoxType = boxType;
+            nbNotice.Visible = true;
+        }
+
+        private void Subscribe( int groupId, string panelId = null )
+        {
+            var communicationGroup = CommunicationGroups.Where( g => g.Id == groupId )
+                .FirstOrDefault();
+
+
+            var communicationType = communicationGroup.GetAttributeValue( "Type" );
+            PanelWidget pnlWidget = phGroups.FindControl( panelId ) as PanelWidget;
+            GroupMemberStatus status = GroupMemberStatus.Active;
+
+            if ( pnlWidget != null && communicationType.Equals( "Text Message", StringComparison.InvariantCultureIgnoreCase ) )
+            {
+                var phoneNumberBox = pnlWidget.FindControl( $"tbPhone{panelId}" ) as PhoneNumberBox;
+                var phoneNumber = string.Empty;
+                if ( phoneNumberBox != null )
+                {
+                    phoneNumber = PhoneNumber.CleanNumber( phoneNumberBox.Text );
+                }
+
+                if ( phoneNumber.IsNullOrWhiteSpace() )
+                {
+                    ShowMobilePhoneNotice();
+                    return;
+                }
+
+                if ( mobilePhone == null || mobilePhone.Number != phoneNumber )
+                {
+                    UpdateMobilePhone( phoneNumber );
+                }
+                status = GroupMemberStatus.Active;
+                //SendConfirmationMessage( groupId );
+            }
+            else if ( pnlWidget != null && communicationType.Equals( "Email", StringComparison.InvariantCultureIgnoreCase ) )
+            {
+                var emailBox = pnlWidget.FindControl( $"tbEmail{panelId}" ) as EmailBox;
+                var email = string.Empty;
+                if ( emailBox != null )
+                {
+                    email = emailBox.Text;
+                }
+
+                if ( email.IsNullOrWhiteSpace() )
+                {
+                    ShowEmailNotice();
+                    return;
+                }
+
+                if ( !Person.Email.Equals( email, StringComparison.InvariantCultureIgnoreCase ) )
+                {
+                    UpdateEmail( email );
+                }
+            }
+            else
+            {
+                if ( Person.CommunicationPreference == CommunicationType.SMS )
+                {
+                    PhoneNumberBox phoneBox = pnlWidget.FindControl( $"tbPhone{panelId}" ) as PhoneNumberBox;
+                    var phoneNumber = String.Empty;
+
+                    if ( phoneBox != null )
+                    {
+                        phoneNumber = PhoneNumber.CleanNumber( phoneBox.Text );
+                    }
+
+                    if ( phoneNumber.IsNullOrWhiteSpace() )
+                    {
+                        ShowMobilePhoneNotice();
+                        return;
+                    }
+
+                    if ( MobilePhone == null || !mobilePhone.Equals( phoneNumber ) )
+                    {
+                        UpdateMobilePhone( phoneNumber );
+                    }
+
+                }
+                else
+                {
+                    EmailBox emailBox = pnlWidget.FindControl( $"tbEmail{panelId}" ) as EmailBox;
+                    var email = String.Empty;
+
+                    if ( emailBox != null )
+                    {
+                        email = emailBox.Text.Trim();
+                    }
+
+                    if ( email.IsNullOrWhiteSpace() )
+                    {
+                        ShowEmailNotice();
+                        return;
+                    }
+
+                    if ( !email.Equals( Person.Email ) )
+                    {
+                        UpdateEmail( email );
+                    }
+                }
+            }
+
+
+
             RockContext rockContext = new RockContext();
             GroupMemberService groupMemberService = new GroupMemberService( rockContext );
             var groupMembers = groupMemberService.GetByGroupIdAndPersonId( groupId, Person.Id ).ToList();
@@ -495,7 +691,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             {
                 foreach ( var member in groupMembers )
                 {
-                    member.GroupMemberStatus = GroupMemberStatus.Active;
+                    member.GroupMemberStatus = status;
                     CommunicationMembership.Add( member );
                 }
             }
@@ -509,7 +705,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                     PersonId = Person.Id,
                     GroupId = groupId,
                     GroupRoleId = defaultGroupRoleId.Value,
-                    GroupMemberStatus = GroupMemberStatus.Active
+                    GroupMemberStatus = status
                 };
                 groupMemberService.Add( newMember );
 
@@ -539,7 +735,87 @@ namespace RockWeb.Plugins.org_secc.Communication
             BindGroups( true );
         }
 
+        private void UpdateEmail( string emailAddress )
+        {
+            using ( var context = new RockContext() )
+            {
+                var personService = new PersonService( context );
+                var person = personService.Get( Person.Guid );
+                person.Email = emailAddress;
+                person.EmailPreference = EmailPreference.EmailAllowed;
+                context.SaveChanges();
 
+            }
+        }
+
+        private void UpdateMobilePhone( string phoneNumber )
+        {
+            using ( var context = new RockContext() )
+            {
+                var mobilePhoneDefinedValue = DefinedValueCache.Get( "407e7e45-7b2e-4fcd-9605-ecb1339f2453" );
+                var personService = new PersonService( context );
+                var person = personService.Get( Person.Guid );
+
+                person.UpdatePhoneNumber( mobilePhoneDefinedValue.Id, "1", phoneNumber, true, null, context );
+                context.SaveChanges();
+
+                Person = personService.Get( Person.Guid );
+                mobilePhone = null;
+            }
+        }
+
+        private EmailBox CreateEmailBox( string panelWidgetId )
+        {
+            return new EmailBox
+            {
+                ID = $"tbEmail{panelWidgetId}",
+                Label = "Verify Email Address",
+                Help = "Your email address will be updated to the address entered here and your "
+                    + "preferences will be set to Email Allowed.",
+                Text = Person != null ? Person.Email : String.Empty
+            };
+        }
+
+        private PhoneNumberBox CreatePhoneBox( string panelWidgetId )
+        {
+            return new PhoneNumberBox
+            {
+                ID = $"tbPhone{panelWidgetId}",
+                Label = "Verify Mobile Number",
+                Help = "Your mobile phone number will be updated to the number entered here "
+                    + " with text messaging enabled.",
+                Text = MobilePhone != null ? MobilePhone.NumberFormatted : String.Empty
+            };
+        }
+
+        private void SendConfirmationMessage( int groupId )
+        {
+            var group = CommunicationGroups.FirstOrDefault( g => g.Id == groupId );
+            var groupResponseMessage = group.GetAttributeValue( "SMSSubscribeResponse" );
+
+            var smsBody = $"{groupResponseMessage} Reply Y to confirm receiving msgs. Reply HELP for help, STOP to quit. Msg&data rates may apply.";
+            var fromNumberGuid = GetAttributeValue( "FromSMSNumber" ).AsGuidOrNull();
+
+            if ( !fromNumberGuid.HasValue )
+            {
+                return;
+            }
+
+            var phoneDefinedValue = DefinedValueCache.Get( fromNumberGuid.Value );
+            var smsMessage = new RockSMSMessage
+            {
+                CreateCommunicationRecord = false,
+                FromNumber = phoneDefinedValue,
+                Message = smsBody,
+
+            };
+            smsMessage.SetRecipients( new List<int> { Person.Id } );
+
+
+            smsMessage.Send();
+
+
+        }
 
         #endregion
 
@@ -618,6 +894,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
             SaveViewState();
             pnlKeyword.Visible = false;
+            nbNotice.Visible = false;
             nbSuccess.Visible = true;
             nbSuccess.Text = "You have been successfully subscribed. We look forward to communicating with you soon!";
 

@@ -738,6 +738,7 @@
                     <Triggers>
                         <asp:PostBackTrigger ControlID="btnItemDetailsUpdate" />
                         <asp:PostBackTrigger ControlID="btnItemDetailsCancel" />
+                        
                     </Triggers>
                 </asp:UpdatePanel>
             </Content>
@@ -792,7 +793,28 @@
                 </asp:UpdatePanel>
             </Content>
         </Rock:ModalDialog>
-
+        <Rock:ModalDialog ID="mdlShowIntacctWarning" runat="server" Width="500px" >
+            <Content>
+                <asp:UpdatePanel ID="upIntacctWarning" runat="server" UpdateMode="Conditional">
+                    <ContentTemplate>
+                        <div id="showIntacctWarning">
+                            <div class="alert alert-warning">
+                                <h3><i class="fas fa-exclamation-triangle"></i> Unable to Connect to Intacct</h3>
+                            </div>
+                            <p>We were unable to connect to Intacct to verify account information. You can bypass this this validation below to save the requisition items.</p>
+                            <div class="action">
+                                <asp:LinkButton ID="lbIntacctBypass" runat="server" CssClass="btn btn-primary" Text="Bypass Intacct" OnClick="lbIntacctBypass_Click" />
+                                <asp:LinkButton ID="lbIntacctCancel" runat="server" CssClass="btn btn-default" Text="Cancel" OnClick="lbIntacctCancel_Click" />
+                            </div>
+                        </div>
+                    </ContentTemplate>
+                    <Triggers>
+                        <asp:PostBackTrigger ControlID="lbIntacctBypass" />
+                        <asp:PostBackTrigger ControlID="lbIntacctCancel" />
+                    </Triggers>
+                </asp:UpdatePanel>
+            </Content>
+        </Rock:ModalDialog>
     </ContentTemplate>
     <Triggers>
         <asp:AsyncPostBackTrigger ControlID="ucStaffPickerApprover" EventName="Select"/>

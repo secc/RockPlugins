@@ -15,6 +15,7 @@
 // </copyright>
 //
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -82,6 +83,15 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         AllowMultiple = true,
         Order = 14 )]
 
+    [DefinedValueField("Campus Types to Display",
+        Key = AttributeKeys.CampusTypes,
+        AllowAddingNewValues = false,
+        AllowMultiple = true,
+        DefinedTypeGuid = Rock.SystemGuid.DefinedType.CAMPUS_TYPE,
+        Description = "Types of Campuses to display in campus selector.",
+        IsRequired = false,
+        Order = 15)]
+
 
     public partial class CMPublicProfileEdit : RockBlock
     {
@@ -92,6 +102,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             internal const string TermsOfServiceText = "TermsOfServiceText";
             internal const string PersonAttributesAdult = "PersonAttributesAdult";
             internal const string PersonAttributesChild = "PersonAttributesChild";
+            internal const string CampusTypes = "CampusTypes";
         }
 
         protected static class PageParameterKeys
@@ -673,6 +684,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         /// <param name="personGuid">The person's global unique identifier.</param>
         private void ShowEditPersonDetails( Person person )
         {
+
+            var personGuid = PageParameter( PageParameterKeys.PersonGuid );
             var childGuid = Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid();
             RockContext rockContext = new RockContext();
 
@@ -683,7 +696,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             rblRole.Visible = true;
             rblRole.Required = true;
 
-            if ( GetAttributeValue( "DisableNameEdit" ).AsBoolean() )
+            if ( GetAttributeValue( "DisableNameEdit" ).AsBoolean() && !string.IsNullOrWhiteSpace( personGuid ) )
             {
                 tbFirstName.Enabled = false;
                 tbLastName.Enabled = false;
@@ -750,7 +763,16 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 phCampus.Visible = showCampus;
                 if ( showCampus )
                 {
+                    var campusTypeIdsToDisplay = GetAttributeValue( AttributeKeys.CampusTypes )
+                        .SplitDelimitedValues()
+                        .Select( v => DefinedValueCache.GetId( v.AsGuid() ) )
+                        .Where(v => v.HasValue)
+                        .Select(v => v.Value)
+                        .ToList();
+
                     cpCampus.Campuses = CampusCache.All( false );
+                    cpCampus.CampusTypesFilter = campusTypeIdsToDisplay;
+
                     var campus = person.GetCampus();
                     if ( campus != null )
                     {

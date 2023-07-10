@@ -17,6 +17,7 @@
             <Rock:BootstrapButton runat="server" ID="btnSubscribe" Text="Subscribe" CssClass="btn btn-primary" OnClick="btnSubscribe_Click" />
             <hr />
         </asp:Panel>
+        <Rock:NotificationBox runat="server" id="nbNotice" Visible="false" />
         <Rock:NotificationBox runat="server" ID="nbSuccess" NotificationBoxType="Success" />
         <Rock:DynamicPlaceholder runat="server" ID="phGroups" />
 

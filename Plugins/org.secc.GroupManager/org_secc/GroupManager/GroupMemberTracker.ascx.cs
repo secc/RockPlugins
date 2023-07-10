@@ -104,7 +104,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             nbMain.Visible = true;
         }
 
-        private void LoadCheckinData()
+        private void LoadCheckinData(int? refreshInterval = null)
         {
             nbMain.Visible = false;
             LoadCurrentOccurrence();
@@ -130,7 +130,21 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             }
 
-            tmrRefresh.Enabled = GetAttributeValue("RefreshInterval").AsInteger() > 0;
+            if(refreshInterval == null)
+            {
+                refreshInterval = GetAttributeValue( "RefreshInterval" ).AsInteger();
+                tmrRefresh.Enabled = true;
+            }
+            else if(refreshInterval == 0)
+            {
+                tmrRefresh.Enabled = false;
+            }
+            else
+            {
+                tmrRefresh.Enabled = true;
+            }
+
+            tmrRefresh.Interval = refreshInterval.Value;
         }
 
         private void LoadCurrentOccurrence()
@@ -307,7 +321,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected void lbShowNotes_Click( object sender, EventArgs e )
         {
-            LoadCheckinData();
+            LoadCheckinData(300000);  // make refresh interval very long to allow user to enter note and to reload if they forget to close the screen.
+
             hfOccurrenceId.Value = currentOccurrence.Id.ToString();
             mdlNoteDialog.Show();
         }

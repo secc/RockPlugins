@@ -51,5 +51,6 @@ namespace org.secc.LeagueApps.Contracts
         public string state { get; set; }
         public string country { get; set; }
         public string zipCode { get; set; }
+        public string mobilePhone { get; set; }
     }
 }

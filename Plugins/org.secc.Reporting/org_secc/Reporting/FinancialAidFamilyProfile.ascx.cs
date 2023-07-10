@@ -14,17 +14,17 @@
 //
 // <copyright>
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.UI;
-using Rock.Attribute;
-using System.Collections.Generic;
-using Rock;
 using Rock.Web.Cache;
+using Rock.Web.UI;
 
 namespace RockWeb.Plugins.org_secc.Reporting
 {
@@ -35,7 +35,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
     [Category( "SECC > Reporting" )]
     [Description( "A block to display the financial aid information for an entire family." )]
     [WorkflowTypeField( "Workflow Types", "The workflow type(s) for financial aid.", true, true )]
-    
+
     public partial class FinancialAidFamilyProfile : RockBlock
     {
         #region Fields
@@ -74,10 +74,10 @@ namespace RockWeb.Plugins.org_secc.Reporting
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-                      
+
             if ( !Page.IsPostBack )
             {
-                if ( !PageParameter("PersonAliasId").IsNullOrWhiteSpace() )
+                if ( !PageParameter( "PersonAliasId" ).IsNullOrWhiteSpace() )
                 {
                     BindGrid();
                 }
@@ -97,7 +97,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
             List<string> workflowTypes = GetAttributeValues( "WorkflowTypes" );
             List<string> workflowTypeIds = new List<string>();
-            foreach( string workflowTypeGuid in workflowTypes )
+            foreach ( string workflowTypeGuid in workflowTypes )
             {
                 workflowTypeIds.Add( WorkflowTypeCache.Get( workflowTypeGuid.AsGuid() ).Id.ToString() );
             }
@@ -110,25 +110,28 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
             var familyAliasIds = familyMembers.SelectMany( fm => fm.Person.Aliases.Select( pa => pa.Id ) ).ToList();
 
-           var discountCodes = registrationRegistrantService.Queryable().Where( rr => rr.PersonAliasId.HasValue && familyAliasIds.Contains( rr.PersonAliasId.Value ) )
-                                .Where( rr => rr.Registration.DiscountCode != null && rr.Registration.DiscountCode != "" )
-                                .ToDictionary( x => x.Registration.DiscountCode.ToUpper(), x => x.Registration.DiscountAmount );
+            var discountCodes = registrationRegistrantService.Queryable()
+                .Where( rr => rr.PersonAliasId.HasValue && familyAliasIds.Contains( rr.PersonAliasId.Value )
+                             && !string.IsNullOrEmpty( rr.Registration.DiscountCode ) )
+                .GroupBy( rr => rr.Registration.DiscountCode.ToUpper() )
+                .ToDictionary( g => g.Key, g => g.First().Registration.DiscountAmount );
 
             var qry = workflowService.Queryable().Where( w => workflowTypeIds.Contains( w.WorkflowTypeId.ToString() ) )
                 .GroupJoin( attributeValueService.Queryable().Where( av => attributeIds.Contains( av.AttributeId ) ),
                     w => w.Id,
                     av => av.EntityId,
                     ( w, av ) => new { Workflow = w, AttributeValues = av } )
-                .Where( obj => obj.AttributeValues.Any(av => av.Attribute.Key == "DiscountCode" && discountCodes.Keys.Contains( av.Value ) ) )
+                .Where( obj => obj.AttributeValues.Any( av => av.Attribute.Key == "DiscountCode" && discountCodes.Keys.Contains( av.Value ) ) )
                 .ToList()
-                .Select(obj => new {
+                .Select( obj => new
+                {
                     Id = obj.Workflow.Id,
                     FirstName = obj.AttributeValues.Where( av => av.Attribute.Key == "StudentFirstName" ).Select( av => av.Value ).DefaultIfEmpty( obj.AttributeValues.Where( av => av.Attribute.Key == "ParentFirstName" ).Select( av => av.Value ).FirstOrDefault() ).FirstOrDefault(),
                     LastName = obj.AttributeValues.Where( av => av.Attribute.Key == "StudentLastName" ).Select( av => av.Value ).DefaultIfEmpty( obj.AttributeValues.Where( av => av.Attribute.Key == "ParentLastName" ).Select( av => av.Value ).FirstOrDefault() ).FirstOrDefault(),
-                    Campus = obj.AttributeValues.Where( av => av.Attribute.Key == "Campus" ).Select( av => CampusCache.Get(av.Value.AsGuid()) ).FirstOrDefault(),
+                    Campus = obj.AttributeValues.Where( av => av.Attribute.Key == "Campus" ).Select( av => CampusCache.Get( av.Value.AsGuid() ) ).FirstOrDefault(),
                     ApplicationYear = obj.AttributeValues.Where( av => av.Attribute.Key == "ApplicationYear" ).Select( av => av.Value ).DefaultIfEmpty( attributes.Where( a => a.Key == "ApplicationYear" ).Select( a => a.DefaultValue ).FirstOrDefault() ).FirstOrDefault(),
                     DiscountCode = obj.AttributeValues.Where( av => av.Attribute.Key == "DiscountCode" ).Select( av => av.Value ).FirstOrDefault(),
-                    DiscountAmount = discountCodes.ContainsKey( obj.AttributeValues.Where( av => av.Attribute.Key == "DiscountCode" ).Select( av => av.Value.ToUpper() ).FirstOrDefault() ) ?discountCodes[obj.AttributeValues.Where( av => av.Attribute.Key == "DiscountCode" ).Select( av => av.Value.ToUpper() ).FirstOrDefault()]:0,
+                    DiscountAmount = discountCodes.ContainsKey( obj.AttributeValues.Where( av => av.Attribute.Key == "DiscountCode" ).Select( av => av.Value.ToUpper() ).FirstOrDefault() ) ? discountCodes[obj.AttributeValues.Where( av => av.Attribute.Key == "DiscountCode" ).Select( av => av.Value.ToUpper() ).FirstOrDefault()] : 0,
                     Event = obj.AttributeValues.Where( av => av.Attribute.Key == "EventStudentisAttending" ).Select( av => av.Value ).DefaultIfEmpty( obj.AttributeValues.Where( av => av.Attribute.Key == "EventLeaderisAttending" ).Select( av => av.Value ).FirstOrDefault() ).FirstOrDefault(),
                     Status = obj.Workflow.Status
                 } );

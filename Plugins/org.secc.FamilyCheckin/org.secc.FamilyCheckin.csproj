@@ -135,7 +135,9 @@
     <Compile Include="Model\Kiosk.cs" />
     <Compile Include="Model\CheckinKioskType.cs" />
     <Compile Include="Model\KioskService.cs" />
-    <Compile Include="Model\CheckinKioskTypeService.cs" />
+    <Compile Include="Model\KioskTypeService.cs" />
+    <Compile Include="Model\SFChilcareReceipt.cs" />
+    <Compile Include="Model\SFChildcareParticipant.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rest\Controllers\FamilyCheckinController.Partial.cs" />
     <Compile Include="Rest\Handlers\SessionControllerHandler.cs" />
@@ -170,6 +172,8 @@
     <Compile Include="Workflows\HistoricalPreselect.cs" />
     <Compile Include="Workflows\RemoveFullGroupLocationSchedules.cs" />
     <Compile Include="Workflows\SelectAllPeople.cs" />
+    <Compile Include="Workflows\SportsAndFitnessChidcareReceipt.cs" />
+    <Compile Include="Workflows\SportsAndFitnessChildcareCredits.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

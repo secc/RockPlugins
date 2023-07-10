@@ -248,12 +248,19 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     pnlWell.Controls.Add( hr );
 
                     groupMember.LoadAttributes();
+
                     var attributeList = groupMember.Attributes.Select( d => d.Value )
                          .OrderBy( a => a.Order ).ThenBy( a => a.Name ).ToList();
-                    foreach ( var attribute in attributeList )
+
+                    var editableAttributes = groupMember.Attributes.Where( a => a.Value.IsAuthorized( Authorization.EDIT, this.CurrentPerson ) ).Select( a => a.Value ).ToList();
+
+                    if ( editableAttributes.Any() )
                     {
-                        string attributeValue = groupMember.GetAttributeValue( attribute.Key );
-                        attribute.AddControl( pnlWell.Controls, attributeValue, "", true, true );
+                        foreach ( var attribute in editableAttributes )
+                        {
+                            string attributeValue = groupMember.GetAttributeValue( attribute.Key );
+                            attribute.AddControl( pnlWell.Controls, attributeValue, "", true, true );
+                        }
                     }
 
                     RockTextBox tbNotes = new RockTextBox();

@@ -1,13 +1,29 @@
-﻿using Rock;
+﻿// <copyright>
+// Copyright Southeast Christian Church
+
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
+using System;
+using System.ComponentModel;
+using System.Linq;
+using System.Web.UI;
+using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI;
-using System;
-using System.ComponentModel;
-using System.Web.UI;
 
 namespace RockWeb.Plugins.org_secc.GroupManager
 {
@@ -43,6 +59,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         Order = 3,
         Key = AttributeKey.QualityCheckDetailPage )]
 
+    [GroupTypesField( "Publish Groups - Group Types to Exclude",
+        Description = "Group Types to exclude from publish groups.",
+        IsRequired = false,
+        Order = 4,
+        Key = AttributeKey.PublishGroupsExcludedGroupTypes )]
+
+
+
     public partial class GroupDetailButtonInject : ContextEntityBlock
     {
         private static class AttributeKey
@@ -51,6 +75,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             public const string QualityCheckGroupUseSecurity = "QualityCheckGroupUseSecurity";
             public const string PublishGroupDetailPage = "PublishGroupPage";
             public const string QualityCheckDetailPage = "QualityCheckPage";
+            public const string PublishGroupsExcludedGroupTypes = "PublishGroupsExcludedTypes";
         }
 
         public Group SelectedGroup { get; set; }
@@ -75,6 +100,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void BindButtons( int groupId )
         {
+            var excludedPublishGroupTypeIds = GetAttributeValue( AttributeKey.PublishGroupsExcludedGroupTypes )
+                .SplitDelimitedValues()
+                .Select( g => GroupTypeCache.GetId( g.AsGuid() ) )
+                .Where( g => g.HasValue )
+                .ToList();
+
+
             var rockContext = new RockContext();
             SelectedGroup = new GroupService( rockContext )
                 .Get( groupId );
@@ -86,7 +118,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             var userCanEdit = SelectedGroup.IsAuthorized( Authorization.EDIT, CurrentPerson );
 
-            if ( SelectedGroup.ParentGroupId.HasValue  && SelectedGroup.IsActive)
+            if ( SelectedGroup.ParentGroupId.HasValue && SelectedGroup.IsActive )
             {
                 var enforcePublishGroupSecurity = GetAttributeValue( AttributeKey.PublishGroupUseSecurity ).AsBoolean();
 
@@ -101,6 +133,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
             }
             else
+            {
+                ShowPublishGroup = false;
+            }
+
+            if ( excludedPublishGroupTypeIds.Where( g => SelectedGroup.GroupTypeId == g.Value ).Any() )
             {
                 ShowPublishGroup = false;
             }

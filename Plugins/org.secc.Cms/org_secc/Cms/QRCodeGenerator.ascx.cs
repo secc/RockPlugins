@@ -15,6 +15,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Web.UI;
+using RestSharp.Extensions;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -42,6 +45,17 @@ namespace RockWeb.Plugins.org_secc.Cms
         IsRequired = false,
         DefaultIntegerValue = 7,
         Order = 1 )]
+    [FileField(
+        "Logo file",
+        Key = AttributeKey.Logo,
+        Description = "Logo to brand QR code",
+        Order = 2 )]
+    [TextField(
+        "Root URL",
+        Key = AttributeKey.RootURL,
+        Description = "The URL to use as the base of the shortlink (if blank, this will be the URL of the Default Site)",
+        IsRequired = false,
+        Order = 3 )]
 
     #endregion Block Attributes
 
@@ -53,7 +67,9 @@ namespace RockWeb.Plugins.org_secc.Cms
         {
             public const string DefaultSite = "DefaultSite";
             public const string MinimumTokenLength = "MinimumTokenLength";
-            public const string Logo = "logo";
+            public const string Logo = "Logo";
+            public const string RootURL = "RootUrl";
+
 
         }
 
@@ -78,7 +94,12 @@ namespace RockWeb.Plugins.org_secc.Cms
 
         protected void btnCreate_Click( object sender, EventArgs e )
         {
-            var url = ulbUrl.Text;
+            var url = tbUrl.Text.Trim();
+ 
+            if (!Regex.IsMatch( url, "^http(s)?://" ) )
+            {
+                url = "http://" + url;
+            }
             if ( !url.IsValidUrl() )
             {
                 nbError.Text = "Please enter a valid URL.";
@@ -90,6 +111,9 @@ namespace RockWeb.Plugins.org_secc.Cms
                 PageShortLink link = null;
                 var _minTokenLength = GetAttributeValue( "MinimumTokenLength" ).AsIntegerOrNull() ?? 7;
                 var _defaultSite = GetAttributeValue( "DefaultSite" ).AsIntegerOrNull();
+                var _logo = GetAttributeValue( "Logo" ).AsGuidOrNull();
+                var _rootUrl = GetAttributeValue( "RootUrl" );
+
                 int? siteId = _defaultSite.Value;
 
                 RockContext rockContext = new RockContext();
@@ -150,10 +174,62 @@ namespace RockWeb.Plugins.org_secc.Cms
 
                 var siteDomainService = new SiteDomainService( rockContext );
                 var siteUrl = siteDomainService.GetBySiteId( link.SiteId ).FirstOrDefault();
-                QrCode.ImageUrl = $"/GetQRCode.ashx?data=http://{siteUrl}/{link.Token}";
-                QrCode.AlternateText = $"http://{siteUrl}/{token}";
-                QrCode.Visible = true;
+
+                var qrCodeUrl = "/GetQRCode.ashx?data=";
+                if ( _rootUrl != null )
+                {
+                    qrCodeUrl += $"{_rootUrl}/{link.Token}&outputType=svg";
+                }
+                else
+                {
+                    qrCodeUrl += $"http://{siteUrl}/{link.Token}&outputType=svg";
+                }
+
+                String logoUrl = "";
+                if ( _logo != null )
+                {
+                    logoUrl = $"/GetImage.ashx?guid={_logo}";
+                }
+
+
+                String csname1 = "qrCodeImageScript" + RockDateTime.Now.Ticks;
+                Type cstype = this.GetType();
+                var script = string.Format( @"
+var canvas = document.getElementById('qrCodeCanvas');
+var context = canvas.getContext('2d');
+var qrCodeDiv = document.getElementById('QrCodeDiv');
+
+var img1 = new Image();
+var img2 = new Image();
+
+img1.onload = function() {{
+    canvas.width = qrCodeDiv.offsetWidth;
+    canvas.height = qrCodeDiv.offsetWidth;
+    img2.src = '{0}';
+}};
+img2.onload = function() {{
+    context.globalAlpha = 1.0;
+    context.drawImage(img1, 0, 0, canvas.width, canvas.height);
+    context.drawImage(img2,
+        ( canvas.width / 2 ) - ( ( canvas.width / 5) / 2 ),
+        ( canvas.height / 2 ) - ( ( canvas.height / 5 ) / 2 ),
+        ( canvas.width / 5 ),
+        ( canvas.height / 5 ));
+
+    var aTag = document.createElement('a');
+    aTag.download = ""QRCode.png"";
+    aTag.href = canvas.toDataURL(""image/png"");
+    aTag.innerHTML = ""Download"";
+    aTag.className += ""btn btn-primary"";
+    var qrCodeDiv = document.getElementById('QrCodeDiv');
+    qrCodeDiv.appendChild(aTag);
+}};       
+
+img1.src = '{1}';", logoUrl, qrCodeUrl );
+                ScriptManager.RegisterStartupScript( upnlQRCodeGenerator, typeof( UpdatePanel ), csname1, script, true );
+
             }
+
         }
 
     }

@@ -17,10 +17,14 @@
         background-color: #d9534f;
     }
 
-        .btn-danger:hover {
-            color: white;
-            background-color: #b24340;
-        }
+    .btn-danger:hover {
+        color: white;
+        background-color: #b24340;
+    }
+
+    .opacity-0 {
+        opacity: 0;
+    }
 </style>
 
 <asp:UpdatePanel ID="upContent" runat="server">
@@ -351,5 +355,19 @@
             </div>
         </asp:Panel>
 
+        <!-- Checkin PIN -->
+        <Rock:ModalDialog ID="mdCheckinPin" runat="server" Title="Scan Check-In Code" OnSaveClick="mdCheckinPin_SaveClick" SaveButtonText="Submit">
+            <Content>
+                <h1>Please scan the QR code on your check-in label</h1>
+                <Rock:RockTextBox runat="server" ID="tbCheckinPin" onkeydown="javascript:submitPIN(event);" CssClass="opacity-0"></Rock:RockTextBox>
+                <div id="CheckInPINdiv"></div>
+            </Content>
+        </Rock:ModalDialog>
+
+        <script>
+            function submitPIN(e) {
+                document.querySelector('[id*="mdCheckinPin_serverSaveLink"]').click();
+            }
+        </script>
     </ContentTemplate>
 </asp:UpdatePanel>
