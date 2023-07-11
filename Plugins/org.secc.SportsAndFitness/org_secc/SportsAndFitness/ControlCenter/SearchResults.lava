@@ -16,12 +16,12 @@
 {% for result in SearchResults %}
     {% assign person = result | Property:'PersonResult' %}
     <div class="panel panel-default">
-        <div class="panel-heading" role="tab" id="heading-{{ person.Id }}">
+        <div class="panel-heading" role="tab" style="min-height:65px;" id="heading-{{ person.Id }}">
             <h4 class="panel-title">
                 <a role="button" data-toggle="collapse" dataparent="#accordion"
                     href="#collapse-{{ person.Id }}" aria-expanded="true" aria-controls="collapse{{ person.Id }}">
                     <div style="width:65px; float:left;">
-                    <img src="{{person.PhotoUrl}}" class="img img-rounded" style="width:50px;;" alt="{{person.FullName}}" />
+                    <img src="{{person.PhotoUrl}}" class="img img-rounded" style="height:50px;" alt="{{person.FullName}}" />
                     </div>
                     {% capture detailLink %}{{ LinkedPageUrl |  ResolveRockUrl }}?Person={{person.Id}}{% endcapture %}
                     <a href="{{ detailLink }}" class="btn btn-link pull-right "><i class="fa fa-chevron-right"></i></a>
@@ -48,7 +48,7 @@
                         <label>Sports & Fitness</label>
                     </div>
                     {% assign sportsId = result | Property:'GroupFitnessMemberId' %}
-                    {% if sportsId == null or sportsId == %}
+                    {% if sportsId == null or sportsId == 0 %}
                         {% assign participantClass = 'non-participant' %}
                     {% else %}
                         {% assign participantClass = 'participant' %}
