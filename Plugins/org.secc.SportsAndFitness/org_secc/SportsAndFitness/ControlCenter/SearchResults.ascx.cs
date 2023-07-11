@@ -47,6 +47,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         IsRequired = false,
         Order = 3,
         Key = AttributeKey.LavaCommands )]
+    [BooleanField("Show Debug Panel",
+        Description = "Should the Debug Panel be displayed",
+        DefaultBooleanValue = false,
+        IsRequired = false,
+        Order = 4,
+        Key = AttributeKey.ShowDebugPanel)]
 
     public partial class SearchResults : RockBlock
     {
@@ -57,6 +63,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             public const string PINPurposeDV = "PINPurposeDV";
             public const string LavaCommands = "LavaCommands";
             public const string ResultLavaTemplate = "ResultsTemplate";
+            public const string ShowDebugPanel = "ShowDebugPanel";
 
         }
         #endregion Attribute Keys
@@ -98,10 +105,15 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
             if (SearchValue != null)
             {
-                pnlDebug.Visible = true;
-                lSearchTerm.Text = SearchValue.SearchTerm;
-                lSearchByPIN.Text = SearchValue.SearchByPIN.ToYesNo();
-                lSearchByPhone.Text = SearchValue.SearchByPhone.ToYesNo();
+                bool showDebugPanel = GetAttributeValue( AttributeKey.ShowDebugPanel ).AsBoolean();
+
+                if (showDebugPanel)
+                {
+                    pnlDebug.Visible = true;
+                    lSearchTerm.Text = SearchValue.SearchTerm;
+                    lSearchByPIN.Text = SearchValue.SearchByPIN.ToYesNo();
+                    lSearchByPhone.Text = SearchValue.SearchByPhone.ToYesNo();
+                }
                 LoadSearchResults();
 
             }
@@ -271,9 +283,9 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 .GroupJoin( mobilePhoneQry, p => p.Id, m => m.PersonId,
                     ( p, m ) => new { Person = p, MobilePhone = m.Select( m1 => m1.NumberFormatted ).FirstOrDefault() } )
                 .GroupJoin( sportsandFitnessMembers, p => p.Person.Id, sm => sm.PersonId,
-                    ( p, sm ) => new { p.Person, MobilePhone = p.MobilePhone, SportsAndFitnessMemberID = sm.Select( sm1 => sm1.Id ).FirstOrDefault() } )
+                    ( p, sm ) => new { p.Person, p.MobilePhone, SportsAndFitnessMemberID = sm.Select( sm1 => sm1.Id ).FirstOrDefault() } )
                 .GroupJoin( groupFitnessMembers, p => p.Person.Id, gm => gm.PersonId,
-                    ( p, gm ) => new { Person = p.Person, p.MobilePhone, p.SportsAndFitnessMemberID, GroupFitnessMemberId = gm.Select( gm1 => gm1.Id ).FirstOrDefault() } )
+                    ( p, gm ) => new { p.Person, p.MobilePhone, p.SportsAndFitnessMemberID, GroupFitnessMemberId = gm.Select( gm1 => gm1.Id ).FirstOrDefault() } )
                 .GroupJoin( pickleBallMembers, p => p.Person.Id, pm => pm.PersonId,
                     ( p, pm ) => new { p.Person, p.MobilePhone, p.SportsAndFitnessMemberID, p.GroupFitnessMemberId, PickleballMemberId = pm.Select( pm1 => pm1.Id ).FirstOrDefault() } )
                 .Select( p => new PersonResults
@@ -294,8 +306,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             mergeFields.Add( "SearchResults", results );
             mergeFields.Add( "LinkedPageUrl", LinkedPageRoute( AttributeKey.PersonDetail ) );
 
-            lResultCount.Text = results.Count().ToString();
             lResults.Text = GetAttributeValue( AttributeKey.ResultLavaTemplate ).ResolveMergeFields( mergeFields, GetAttributeValue( AttributeKey.LavaCommands ) );
+
+            if(GetAttributeValue(AttributeKey.ShowDebugPanel).AsBoolean())
+            {
+                lResultCount.Text = results.Count().ToString();
+            }
         }
 
         #endregion
