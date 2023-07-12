@@ -80,13 +80,13 @@
     <Compile Include="Workflows\VolunteerApplicationValidation.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
-      <Project>{8f8c2a79-24f4-4157-8b99-45f75fa85799}</Project>
-      <Name>Rock</Name>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)\DotLiquid\DotLiquid.csproj">
-      <Project>{cb9372cd-9c1d-47ab-92d8-702d4d68324f}</Project>
+      <Project>{00edcb8d-ef33-459c-ad62-02876bd24dff}</Project>
       <Name>DotLiquid</Name>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
+      <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
+      <Name>Rock</Name>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)\Rock.SignNow\Rock.SignNow.csproj">
       <Project>{1F5956F2-2B0F-49B8-AAF1-2CC28F01426A}</Project>

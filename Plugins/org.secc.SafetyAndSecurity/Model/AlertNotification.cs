@@ -17,6 +17,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
 using System.Runtime.Serialization;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 
 namespace org.secc.SafetyAndSecurity.Model
@@ -34,16 +35,16 @@ namespace org.secc.SafetyAndSecurity.Model
         [DataMember]
         public int AudienceValueId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual DefinedValue AudienceValue { get; set; }
 
         [DataMember]
         public int AlertNotificationTypeValueId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual DefinedValue AlertNotificationTypeValue { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual ICollection<AlertMessage> AlertMessages { get; set; }
     }
 
