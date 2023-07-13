@@ -226,7 +226,6 @@ namespace RockWeb.Plugins.org_secc.CMS
 
             var workflowCount = workflowCountQry
                 .Where( a => ( a.Activity.CreatedDateTime > lastChecked.Value ) && ( a.Activity.CreatedDateTime > workflowActivityMaxCreatedDate ) )
-                .DistinctBy( a => a.Activity.WorkflowId )
                 .Count();
 
             //Connections - If a new connection was made, a connection was just transfered, or a future followup just came up
