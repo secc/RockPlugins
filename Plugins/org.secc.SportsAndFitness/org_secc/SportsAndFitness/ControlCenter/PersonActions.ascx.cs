@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -57,10 +58,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         Key = AttributeKeys.LoginPINPurpose)]
 
     public partial class PersonActions : RockBlock
-    {
-
-        private string _sportsAndFitnessPINPurposeGuid = "e98517ec-1805-456b-8453-ef8480bd487f";
-
+    { 
         public static class AttributeKeys
         {
             public const string GroupFitnessGroup = "GroupFitnessGroup";
@@ -70,21 +68,39 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             public const string LoginPINPurpose = "LoginPINPurpose";
         }
 
+        private string _sportsAndFitnessPINPurposeGuid = "e98517ec-1805-456b-8453-ef8480bd487f";
+        private string _personIdViewStateKey = "PersonActions_PersonId";
+        private Person _selectedPerson;
+
+        private Person SelectedPerson
+        {
+            get
+            {
+                if(_selectedPerson == null)
+                {
+                    LoadSelectedPerson();
+                }
+                return _selectedPerson;
+            }
+        }
+
         #region Base Control Methods
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-            lbUpdatePin.Click += personAction_Click;
-            lbChildcareCredits.Click += personAction_Click;
-            lbGroupFitnessCredit.Click += personAction_Click;
-
+            mdGroupFitness.SaveClick += mdGroupFitness_SaveClick;
         }
+
+
 
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-            if(!Page.IsPostBack)
+
+            RouteAction();
+            if (!Page.IsPostBack)
             {
+                ViewState[_personIdViewStateKey] = PageParameter( "Person" );
                 LoadPINBadge();
                 LoadChildcareCreditBadge();
                 LoadGroupFitnessSessionsBadge();
@@ -94,6 +110,14 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         #endregion Base Control Methods
 
         #region Events
+
+        private void mdGroupFitness_SaveClick( object sender, EventArgs e )
+        {
+            var groupMemberId = hfGroupMemberId.Value.AsInteger();
+
+            SaveGroupFitnessParticipant( groupMemberId );
+
+        }
 
         private void personAction_Click( object sender, EventArgs e )
         {
@@ -119,11 +143,73 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         #region Internal Methods
 
+        private void ClearGroupFitnessModel()
+        {
+            hfGroupMemberId.Value = "0";
+            nbGroupFitness.Title = string.Empty;
+            nbGroupFitness.Text = string.Empty;
+            nbGroupFitness.NotificationBoxType = NotificationBoxType.Info;
+            nbGroupFitness.Visible = false;
+
+            lGFBeginningCredits.Text = "0";
+            tbGFCreditsToAdd.Text = string.Empty;
+            tbGFNotes.Text = string.Empty;
+        }
+
+        private GroupMemberSummary LoadGroupFitnessMember(RockContext rockContext)
+        {
+            var groupFitnessGroupGuid = GetAttributeValue( AttributeKeys.GroupFitnessGroup ).AsGuid();
+            var personId = SelectedPerson.Id;
+            var groupFitnessSessionKey = GetAttributeValue( AttributeKeys.GroupFitnessCreditKey );
+            var groupMemberEntityType = EntityTypeCache.Get( typeof( GroupMember ) );
+
+            var groupService = new GroupService( rockContext );
+
+            var group = groupService.Get( groupFitnessGroupGuid );
+
+            if (group == null)
+            {
+                throw new Exception( "Group Fitness Group is not found." );
+            }
+
+            var groupIdAsString = group.Id.ToString();
+            var attribute = new AttributeService( rockContext ).Queryable().AsNoTracking()
+                .Where( a => a.EntityTypeId == groupMemberEntityType.Id )
+                .Where( a => a.EntityTypeQualifierColumn == "GroupId" )
+                .Where( a => a.EntityTypeQualifierValue == groupIdAsString )
+                .Where( a => a.Key == groupFitnessSessionKey )
+                .FirstOrDefault();
+
+            if (attribute == null)
+            {
+                throw new Exception( "Group Fitness Session Attribute not found." );
+            }
+
+            var attributeValues = new AttributeValueService( rockContext ).Queryable().AsNoTracking()
+                .Where( a => a.AttributeId == attribute.Id )
+                .Where( a => a.Value != null && a.Value != "" );
+
+            var groupMember = new GroupMemberService( rockContext ).Queryable().AsNoTracking()
+                .GroupJoin( attributeValues, gm => gm.Id, av => av.EntityId,
+                    ( gm, av ) => new GroupMemberSummary{
+                        Id = gm.Id,
+                        PersonId = gm.PersonId,
+                        GroupId = gm.GroupId,
+                        Status = gm.GroupMemberStatus,
+                        IsArchived = gm.IsArchived,
+                        Sessions = av.Select( av1 => av1.ValueAsNumeric ).FirstOrDefault() } )
+                .Where( gm => gm.GroupId == group.Id )
+                .Where( gm => gm.PersonId == personId )
+                .FirstOrDefault();
+
+            return groupMember;
+        }
+
         private void LoadPINBadge()
         {
             var pinAuthenticationEntityType = EntityTypeCache.Get( typeof( PINAuthentication ) );
             var SportsPINPurposeDV = DefinedValueCache.Get( _sportsAndFitnessPINPurposeGuid.AsGuid() );
-            var personId = PageParameter( "Person" ).AsInteger();
+            var personId = SelectedPerson.Id;
 
             var purposeAttributeGuid = GetAttributeValue( AttributeKeys.LoginPINPurpose ).AsGuid();
 
@@ -157,17 +243,16 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         private void LoadPinModal()
         {
-            throw new NotImplementedException();
+
         }
 
         private void LoadChildcareCreditBadge()
         {
-            var personId = PageParameter( "Person" ).AsInteger();
             var creditsAttributeKey = GetAttributeValue( AttributeKeys.ChildcareCreditKey );
 
             using (var rockContext = new RockContext())
             {
-                var primaryFamilyId = new PersonService( rockContext ).Get( personId ).PrimaryFamilyId;
+                var primaryFamilyId = SelectedPerson.PrimaryFamilyId;
 
                 var familyGroup = new GroupService( rockContext ).Get( primaryFamilyId ?? 0 );
 
@@ -199,52 +284,16 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         private void LoadGroupFitnessSessionsBadge()
         {
-            var groupFitnessGroupGuid = GetAttributeValue( AttributeKeys.GroupFitnessGroup ).AsGuid();
-            var personId = PageParameter( "Person" ).AsInteger();
-            var groupFitnessSessionKey = GetAttributeValue( AttributeKeys.GroupFitnessCreditKey );
-            var groupMemberEntityType = EntityTypeCache.Get( typeof( GroupMember ) );
-
             using (var rockContext = new RockContext())
             {
-                var groupService = new GroupService( rockContext );
-
-                var group = groupService.Get( groupFitnessGroupGuid );
-
-                if(group == null)
-                {
-                    throw new Exception( "Group Fitness Group is not found." );
-                }
-
-                var groupIdAsString = group.Id.ToString();
-                var attribute = new AttributeService( rockContext ).Queryable().AsNoTracking()
-                    .Where( a => a.EntityTypeId == groupMemberEntityType.Id )
-                    .Where( a => a.EntityTypeQualifierColumn == "GroupId" )
-                    .Where( a => a.EntityTypeQualifierValue == groupIdAsString )
-                    .Where( a => a.Key == groupFitnessSessionKey )
-                    .FirstOrDefault();
-
-                if(attribute == null)
-                {
-                    throw new Exception( "Group Fitness Session Attribute not found." );
-                }
-
-                var attributeValues = new AttributeValueService( rockContext ).Queryable().AsNoTracking()
-                    .Where( a => a.AttributeId == attribute.Id )
-                    .Where( a => a.Value != null && a.Value != "" );
-
-                var groupMember = new GroupMemberService( rockContext ).Queryable().AsNoTracking()
-                    .GroupJoin( attributeValues, gm => gm.Id, av => av.EntityId,
-                        ( gm, av ) => new { gm.Id, gm.PersonId, gm.GroupId, gm.GroupMemberStatus, gm.IsArchived, Sessions = av.Select( av1 => av1.ValueAsNumeric ).FirstOrDefault() } )
-                    .Where( gm => gm.GroupId == group.Id )
-                    .Where( gm => gm.PersonId == personId )
-                    .FirstOrDefault();
+                var groupMember = LoadGroupFitnessMember( rockContext );
 
                 if (groupMember == null)
                 {
                     hlblGroupFitness.Text = "Not Enrolled";
                     hlblGroupFitness.LabelType = LabelType.Danger;
                 }
-                else if(groupMember.GroupMemberStatus == GroupMemberStatus.Inactive)
+                else if(groupMember.Status == GroupMemberStatus.Inactive)
                 {
                     hlblGroupFitness.Text = "Inactive Member";
                     hlblGroupFitness.LabelType = LabelType.Warning;
@@ -276,8 +325,137 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         private void LoadGroupFitnessModal()
         {
-            throw new NotImplementedException();
+            ClearGroupFitnessModel();
+            var groupMember = LoadGroupFitnessMember( new RockContext() );
+
+
+            if(groupMember == null)
+            {
+                nbGroupFitness.Title = "Not Enrolled";
+                nbGroupFitness.Text = $"{SelectedPerson.NickName} is not enrolled in Group Fitness";
+                nbGroupFitness.Visible = true;
+            }
+            else if (groupMember.Status == GroupMemberStatus.Inactive || groupMember.IsArchived)
+            {
+                nbGroupFitness.Title = "Inactive Participant";
+                nbGroupFitness.Text = $"{SelectedPerson.NickName} is an inactive Group Fitness Participant.";
+                nbGroupFitness.Visible = true;
+            }
+
+            if (groupMember != null)
+            {
+                hfGroupMemberId.Value = groupMember.Id.ToString();
+                lGFBeginningCredits.Text = groupMember.Sessions.HasValue
+                    ? string.Format( "{0:0}", groupMember.Sessions.Value ) : "0";
+            }
+            mdGroupFitness.Show();
+            upModals.Update();
         }
+
+        private void LoadSelectedPerson()
+        {
+            var personId = ViewState[_personIdViewStateKey].ToString().AsInteger();
+            using (var rockContext = new RockContext())
+            {
+                _selectedPerson = new PersonService( rockContext ).Get( personId );
+            }
+        }
+
+        private void RouteAction()
+        {
+            var sm = ScriptManager.GetCurrent( Page );
+
+            if(Request.Form["__EVENTARGUMENT"] != null)
+            {
+                var action = Request.Form["__EVENTARGUMENT"];
+
+                switch (action.ToLower())
+                {
+                    case "update-pin":
+                        LoadPinModal();
+                        break;
+                    case "add-childcare-credits":
+                        LoadChildcareCreditModal();
+                        break;
+                    case "add-groupfitness-credits":
+                        LoadGroupFitnessModal();
+                        break;
+                }
+            }
+        }
+
+        private void SaveGroupFitnessParticipant(int groupMemberId)
+        {
+            using (var rockContext = new RockContext())
+            {
+                var groupMemberService = new GroupMemberService( rockContext );
+                var member = groupMemberService.Get( groupMemberId );
+
+                if(groupMemberId == 0)
+                {
+                    var groupGuid = GetAttributeValue( AttributeKeys.GroupFitnessGroup ).AsGuid();
+                    var groupFitnessGroup = new GroupService( rockContext )
+                        .Queryable()
+                        .Include( g => g.GroupType )
+                        .Where( g => g.Guid == groupGuid )
+                        .SingleOrDefault();
+
+
+                    member = new GroupMember
+                    {
+                        GroupId = groupFitnessGroup.Id,
+                        PersonId = SelectedPerson.Id,
+                        GroupMemberStatus = GroupMemberStatus.Active,
+                        GroupRoleId = groupFitnessGroup.GroupType.DefaultGroupRoleId ?? 0,
+                        IsArchived = false
+                    };
+                    groupMemberService.Add( member );
+                }
+
+                if(member.IsArchived || member.GroupMemberStatus == GroupMemberStatus.Inactive)
+                {
+                    member.IsArchived = false;
+                    member.ArchivedDateTime = null;
+                    member.ArchivedByPersonAliasId = null;
+                    member.GroupMemberStatus = GroupMemberStatus.Active;
+                    member.InactiveDateTime = null;
+                }
+
+                rockContext.SaveChanges();
+
+                var groupFitnessSessionAttributeKey = GetAttributeValue( AttributeKeys.GroupFitnessCreditKey );
+                member.LoadAttributes( rockContext );
+                var sessions = member.GetAttributeValue( groupFitnessSessionAttributeKey ).AsInteger();
+                sessions += tbGFCreditsToAdd.Text.AsInteger();
+
+                member.SetAttributeValue( groupFitnessSessionAttributeKey, sessions );
+                member.SaveAttributeValue( groupFitnessSessionAttributeKey, rockContext );
+
+                rockContext.SaveChanges();
+
+                if(tbGFNotes.Text.IsNotNullOrWhiteSpace())
+                {
+                    //todo: add group member note
+                }
+
+                LoadGroupFitnessSessionsBadge();
+                mdGroupFitness.Hide();
+
+                upMain.Update();
+
+            }
+        }
+
+        public class GroupMemberSummary
+        {
+            public int Id { get; set; }
+            public int PersonId { get; set; }
+            public int GroupId { get; set; }
+            public GroupMemberStatus Status { get; set; }
+            public bool IsArchived { get; set; }
+            public decimal? Sessions { get; set; }
+        }
+        
         #endregion
     }
 }   
