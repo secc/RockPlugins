@@ -213,7 +213,7 @@ namespace RockWeb.Plugins.org_secc.CMS
             {
                 lastChecked = RockDateTime.Now.AddMonths( -3 );
             }
-
+			hfLastChecked.Value = lastChecked.ToShortDateString();
             DateTime midnightToday = RockDateTime.Today.AddDays( 1 );
 
             RockContext rockContext = new RockContext();
@@ -223,9 +223,9 @@ namespace RockWeb.Plugins.org_secc.CMS
             DateTime workflowActivityMaxCreatedDate = RockDateTime.Today.AddDays( -maxWorkflowActivityAgeDays );
 
             var workflowCountQry = new WorkflowActionService( rockContext ).GetActiveForms( CurrentPerson ).AsQueryable();
-
+            var maxWorkflowDate = new List<DateTime> { lastChecked.Value, workflowActivityMaxCreatedDate }.Max();
             var workflowCount = workflowCountQry
-                .Where( a => ( a.Activity.CreatedDateTime > lastChecked.Value ) && ( a.Activity.CreatedDateTime > workflowActivityMaxCreatedDate ) )
+                .Where( a =>  a.Activity.CreatedDateTime >  maxWorkflowDate )
                 .Count();
 
             //Connections - If a new connection was made, a connection was just transfered, or a future followup just came up
@@ -234,9 +234,10 @@ namespace RockWeb.Plugins.org_secc.CMS
 
             var connectionRequestsQry = new ConnectionRequestService( rockContext ).Queryable();
 
+            var maxRequestDate = new List<DateTime> { lastChecked.Value, connectionRequestMaxCreatedDate }.Max();
             var connectionRequests = connectionRequestsQry
                 .Where( r => ( r.ConnectorPersonAlias != null ) && ( r.ConnectorPersonAlias.PersonId == CurrentPersonId ) && ( ( r.ConnectionState == ConnectionState.Active ) || ( r.ConnectionState == ConnectionState.FutureFollowUp ) ) )
-                .Where( r => ( r.CreatedDateTime > lastChecked.Value ) && ( r.CreatedDateTime > workflowActivityMaxCreatedDate ) )
+                .Where( r =>  r.CreatedDateTime > maxRequestDate)
                 .Count();
 
             return workflowCount + connectionRequests;
