@@ -21,6 +21,7 @@ using iTextSharp.text.pdf;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Workflow;
@@ -98,7 +99,7 @@ namespace org.secc.PDF
                     else
                     {
                         string fieldValue = form.GetField( fieldKey );
-                        if ( !string.IsNullOrWhiteSpace( fieldValue ) && fieldValue.HasMergeFields() )
+                        if ( !string.IsNullOrWhiteSpace( fieldValue ) && LavaHelper.IsLavaTemplate( fieldValue ) )
                             form.SetField( fieldKey, fieldValue.ResolveMergeFields( pdfWorkflowObject.MergeObjects ) );
                     }
                 }
