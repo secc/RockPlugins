@@ -430,7 +430,10 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             var parentGroup = groupService.Get( parentGroupGuid.AsGuid() );
             if ( parentGroup != null )
             {
-                return groupService.Queryable().AsNoTracking().Where( g => g.ParentGroupId == parentGroup.Id ).ToList();
+                return groupService.Queryable().AsNoTracking()
+                    .Where( g => g.ParentGroupId == parentGroup.Id )
+                    .Where( g => g.IsActive )
+                    .ToList();
             }
             return new List<Group>();
         }
