@@ -1,22 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
-using System.Net.NetworkInformation;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using DocumentFormat.OpenXml.Drawing;
-using DocumentFormat.OpenXml.Wordprocessing;
-using Microsoft.Ajax.Utilities;
-using org.secc.Microframe;
+
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Security.Authentication;
-using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
@@ -56,6 +49,23 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         IsRequired = true,
         Order = 4,
         Key = AttributeKeys.LoginPINPurpose)]
+    [NoteTypeField("Group Fitness Note Type",
+        Description = "Note Type for notes added when updating credits on group fitness members.",
+        AllowMultiple = false,
+        EntityTypeName = "Rock.Model.GroupMember",
+        IsRequired = false,
+        Order = 5,
+        Key = AttributeKeys.GroupFitnessNoteType)]
+
+    [NoteTypeField("Childcare Credit Note Type",
+        Description = "Note type for notes added wehn updating Childcare credits on the family.",
+        AllowMultiple =false,
+        EntityTypeName = "Rock.Model.Group",
+        EntityTypeQualifierColumn = "GroupTypeId",
+        EntityTypeQualifierValue = "10",
+        IsRequired = false,
+        Order = 6,
+        Key = AttributeKeys.ChildCareNoteType)]
 
     public partial class PersonActions : RockBlock
     { 
@@ -63,8 +73,10 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         {
             public const string GroupFitnessGroup = "GroupFitnessGroup";
             public const string GroupFitnessCreditKey = "GroupFitnessSessions";
+            public const string GroupFitnessNoteType = "GroupFitnessNoteType";
             public const string SFGroup = "SportsAndFitnessGroup";
             public const string ChildcareCreditKey = "ChildcareCredits";
+            public const string ChildCareNoteType = "ChildcareNoteType";
             public const string LoginPINPurpose = "LoginPINPurpose";
         }
 
@@ -89,6 +101,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         {
             base.OnInit( e );
             mdGroupFitness.SaveClick += mdGroupFitness_SaveClick;
+            mdChildcare.SaveClick += mdChildcare_SaveClick;
         }
 
 
@@ -110,6 +123,24 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         #endregion Base Control Methods
 
         #region Events
+
+        private void mdChildcare_SaveClick( object sender, EventArgs e )
+        {
+            nbChildcare.Title = String.Empty;
+            nbChildcare.Text = String.Empty;
+            nbChildcare.Visible = false;
+
+            int familyGroupId = hfChildcareFamilyId.ValueAsInt();
+            var creditsAdded = AddChildcareCredit( familyGroupId );
+
+            if(creditsAdded)
+            {
+                LoadChildcareCreditBadge();
+                mdChildcare.Hide();
+                upMain.Update();
+            }
+            
+        }
 
         private void mdGroupFitness_SaveClick( object sender, EventArgs e )
         {
@@ -143,6 +174,70 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         #region Internal Methods
 
+        private bool AddChildcareCredit(int familyGroupId )
+        {
+            using (var rockContext = new RockContext())
+            {
+                var groupService = new GroupService( rockContext );
+                var family = groupService.Get( familyGroupId );
+
+                if(family == null)
+                {
+                    nbChildcare.Title = "Family Not Found";
+                    nbChildcare.Text = "The selected family was not found.";
+                    nbChildcare.NotificationBoxType = NotificationBoxType.Warning;
+                    nbChildcare.Visible = true;
+
+                    return false;
+                }
+
+                var childcareFamilyAttributeKey = GetAttributeValue( AttributeKeys.ChildcareCreditKey );
+
+                family.LoadAttributes( rockContext );
+                var creditCount = family.GetAttributeValue( childcareFamilyAttributeKey ).AsInteger();
+                creditCount += tbCCCreditsToAdd.Text.AsInteger();
+
+                family.SetAttributeValue( childcareFamilyAttributeKey, creditCount );
+                family.SaveAttributeValue( childcareFamilyAttributeKey, rockContext );
+                rockContext.SaveChanges();
+
+
+                var childcareNoteType = NoteTypeCache.Get( AttributeKeys.ChildCareNoteType.AsGuid() );
+                if(tbCCNotes.Text.IsNotNullOrWhiteSpace() && childcareNoteType != null)
+                {
+                    var noteService = new NoteService( rockContext );
+                    var note = new Note
+                    {
+                        NoteTypeId = childcareNoteType.Id,
+                        EntityId = familyGroupId,
+                        Text = tbCCNotes.Text.Trim(),
+                        CreatedByPersonAliasId = CurrentPersonAliasId
+                    };
+                    noteService.Add( note );
+                    rockContext.SaveChanges();
+                }
+            }
+
+            return true;
+        }
+
+        private void ClearChildcareModal()
+        {
+            hfChildcareFamilyId.Value = "0";
+
+            nbChildcare.Title = string.Empty;
+            nbChildcare.Text = string.Empty;
+            nbChildcare.NotificationBoxType = NotificationBoxType.Info;
+            nbChildcare.Visible = false;
+
+            tbCCBeginningCredits.Text = "0";
+            tbCCCreditsToAdd.Text = "0";
+            tbCCCreditsToAdd.Placeholder = "0";
+
+            tbCCNotes.Text = string.Empty;
+            tbCCNotes.Placeholder = "Optional";
+        }
+
         private void ClearGroupFitnessModel()
         {
             hfGroupMemberId.Value = "0";
@@ -153,7 +248,9 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
             lGFBeginningCredits.Text = "0";
             tbGFCreditsToAdd.Text = string.Empty;
+            tbGFCreditsToAdd.Placeholder = "0";
             tbGFNotes.Text = string.Empty;
+            tbGFNotes.Placeholder = "Optional";
         }
 
         private GroupMemberSummary LoadGroupFitnessMember(RockContext rockContext)
@@ -279,7 +376,19 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         private void LoadChildcareCreditModal()
         {
-            throw new NotImplementedException();
+            ClearChildcareModal();
+            using (var rockcontext = new RockContext())
+            {
+                var person = new PersonService( rockcontext ).Get( SelectedPerson.Guid );
+                var family = person.GetFamily( rockcontext );
+                family.LoadAttributes( rockcontext );
+                var credits = family.GetAttributeValue( GetAttributeValue( AttributeKeys.ChildcareCreditKey ) ).AsInteger();
+
+                hfChildcareFamilyId.Value = family.Id.ToString();
+                tbCCBeginningCredits.Text = credits.ToString();
+            }
+            mdChildcare.Show();
+            upModals.Update();
         }
 
         private void LoadGroupFitnessSessionsBadge()
@@ -320,6 +429,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 hlblGroupFitness.Visible = true;
 
             }
+
 
         }
 
@@ -435,7 +545,23 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
                 if(tbGFNotes.Text.IsNotNullOrWhiteSpace())
                 {
-                    //todo: add group member note
+                    var noteService = new NoteService( rockContext );
+                    var noteType = NoteTypeCache.Get( GetAttributeValue( AttributeKeys.GroupFitnessNoteType ).AsGuid() );
+
+                    if(noteType != null)
+                    {
+                        var note = new Note()
+                        {
+                            NoteTypeId = noteType.Id,
+                            EntityId = member.Id,
+                            CreatedByPersonAliasId = CurrentPersonAliasId,
+                            Text = tbGFNotes.Text.Trim()
+                        };
+
+                        noteService.Add( note );
+                        rockContext.SaveChanges();
+                    }
+
                 }
 
                 LoadGroupFitnessSessionsBadge();

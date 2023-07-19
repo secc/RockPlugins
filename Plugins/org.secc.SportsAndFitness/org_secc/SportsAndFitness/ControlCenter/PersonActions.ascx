@@ -5,6 +5,15 @@
             li a {
                 text-decoration: none !important;
             }
+
+            #divChildcareModal .row {
+                padding-bottom: 15px;
+            }
+
+            #divChildcareModal textarea
+            {
+                border:0px;
+            }
         </style>
         <div class="panel panel-default list-as-blocks clearfix">
             <div class="panel-heading">
@@ -15,14 +24,14 @@
             <div class="panel-body">
                 <ul>
                     <li>
-                        <a href="#" ID="lbUpdatePin" onclick="javascript:return runCmd('update-pin');">
+                        <a href="#" id="lbUpdatePin" onclick="javascript:return runCmd('update-pin');">
                             <i class="fas fa-hashtag"></i>
                             <h3>Update PIN</h3>
-                            <Rock:HighlightLabel ID="hlblPIN" runat="server" Visible="false" />                         
+                            <Rock:HighlightLabel ID="hlblPIN" runat="server" Visible="false" />
                         </a>
                     </li>
                     <li>
-                        <a href="#" ID="lbChildcareCredits" onclick="javascript: return runCmd('add-childcare-credits');">
+                        <a href="#" id="lbChildcareCredits" onclick="javascript: return runCmd('add-childcare-credits');">
                             <i class="fas fa-coins"></i>
                             <h3>Update Childcare Credits</h3>
                             <Rock:HighlightLabel ID="hlblChildcare" runat="server" Visible="false" />
@@ -52,7 +61,7 @@
 
 <asp:UpdatePanel ID="upModals" runat="server" UpdateMode="Conditional">
     <ContentTemplate>
-        <Rock:ModalDialog ID="mdGroupFitness" runat="server" Title="Group Fitness" ValidationGroup="vgGroupFitness" SaveButtonText="Add" CancelLinkVisible="true"  >
+        <Rock:ModalDialog ID="mdGroupFitness" runat="server" Title="Group Fitness" ValidationGroup="vgGroupFitness" SaveButtonText="Add" CancelLinkVisible="true">
             <Content>
                 <asp:HiddenField ID="hfGroupMemberId" runat="server" />
                 <Rock:NotificationBox ID="nbGroupFitness" runat="server" />
@@ -82,10 +91,47 @@
                         <span class="control-label">Notes</span>
                     </div>
                     <div class="col-sm-6 col-md-9">
-                        <Rock:RockTextBox ID="tbGFNotes" runat="server" Required="false" TextMode="MultiLine"/>
+                        <Rock:RockTextBox ID="tbGFNotes" runat="server" Required="false" TextMode="MultiLine" />
                     </div>
                 </div>
 
+            </Content>
+        </Rock:ModalDialog>
+        <Rock:ModalDialog ID="mdChildcare" runat="server" Title="Childcare" ValidationGroup="vgChildcare" SaveButtonText="Add" CancelLinkVisible="true">
+            <Content>
+                <div id="divChildcareModal">
+                    <asp:HiddenField ID="hfChildcareFamilyId" runat="server" />
+                    <Rock:NotificationBox ID="nbChildcare" runat="server" Visible="false" />
+                    <asp:ValidationSummary ID="vsChildcareModel" runat="server" CssClass="alert alert-validation" ValidationGroup="vgChildcare" />
+                    <div class="row">
+                        <div class="col-sm-6 col-md-3">
+                            <span class="control-label">Beginning Credits</span>
+                        </div>
+                        <div class="col-sm-6 col-md-9">
+                            <Rock:RockTextBox ID="tbCCBeginningCredits" runat="server" TextMode="Number" ReadOnly="true" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-md-3">
+                            <span class="control-label">Credits To Add</span>
+                        </div>
+                        <div class="col-sm-6 col-md-9">
+                            <Rock:RockTextBox ID="tbCCCreditsToAdd" runat="server" Required="true" TextMode="Number"
+                                RequiredErrorMessage="Credits to Add is required" ValidationGroup="vgChildcare" />
+                            <asp:RangeValidator ID="rngValCCCreditsToAdd" runat="server" ControlToValidate="tbCCCreditsToAdd"
+                                Type="Integer" MinimumValue="0" MaximumValue="500" ValidationGroup="vgChildcare"
+                                ErrorMessage="Credits to add must be 0 or greater." />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 col-md-3">
+                            <span class="control-label">Notes</span>
+                        </div>
+                        <div class="col-sm-6 col-md-9">
+                            <Rock:RockTextBox ID="tbCCNotes" runat="server" Required="false" TextMode="MultiLine" />
+                        </div>
+                    </div>
+                </div>
             </Content>
         </Rock:ModalDialog>
     </ContentTemplate>
