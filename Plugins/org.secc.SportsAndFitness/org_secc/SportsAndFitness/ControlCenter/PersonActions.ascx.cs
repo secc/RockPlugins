@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
@@ -17,58 +18,73 @@ using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 {
-    [DisplayName("Control Center Person Actions")]
-    [Category("Sports and Fitness > Control Center")]
-    [Description("Person Actions for Sports and Fitness Control Center")]
+    [DisplayName( "Control Center Person Actions" )]
+    [Category( "Sports and Fitness > Control Center" )]
+    [Description( "Person Actions for Sports and Fitness Control Center" )]
 
-    [GroupField("Sports and Fitness Group",
+    [GroupField( "Sports and Fitness Group",
         Description = "The group that contains all sports and fitness members.",
         IsRequired = true,
         Order = 0,
-        Key = AttributeKeys.SFGroup)]
+        Key = AttributeKeys.SFGroup )]
 
-    [GroupField("Group Fitness Group",
+    [GroupField( "Group Fitness Group",
         Description = "The group that all Group Fitness participants belong to",
         IsRequired = true,
         Order = 1,
-        Key = AttributeKeys.GroupFitnessGroup)]
-    [TextField("Group Fitness Sessions Attribute Key",
+        Key = AttributeKeys.GroupFitnessGroup )]
+    [TextField( "Group Fitness Sessions Attribute Key",
         Description = "The key of the attribute that contains the group fitness credits.",
         IsRequired = true,
         Order = 2,
-        Key = AttributeKeys.GroupFitnessCreditKey)]
-    [TextField("Childcare Credit Attribute Key",
+        Key = AttributeKeys.GroupFitnessCreditKey )]
+    [TextField( "Childcare Credit Attribute Key",
         Description = "The family group attribute key that contains the S&F childcare credits.",
         IsRequired = true,
         Order = 3,
         Key = AttributeKeys.ChildcareCreditKey )]
-    [AttributeField("PIN Purpose Attribute",
+    [AttributeField( "PIN Purpose Attribute",
         Description = "Attribute that contains the Purpose of a Login PIN",
-        AllowMultiple = false, 
+        AllowMultiple = false,
         EntityTypeGuid = "0fa592f1-728c-4885-be38-60ed6c0d834f",
         IsRequired = true,
         Order = 4,
-        Key = AttributeKeys.LoginPINPurpose)]
-    [NoteTypeField("Group Fitness Note Type",
+        Key = AttributeKeys.LoginPINPurpose )]
+    [NoteTypeField( "Group Fitness Note Type",
         Description = "Note Type for notes added when updating credits on group fitness members.",
         AllowMultiple = false,
         EntityTypeName = "Rock.Model.GroupMember",
         IsRequired = false,
         Order = 5,
-        Key = AttributeKeys.GroupFitnessNoteType)]
+        Key = AttributeKeys.GroupFitnessNoteType )]
 
-    [NoteTypeField("Childcare Credit Note Type",
+    [NoteTypeField( "Childcare Credit Note Type",
         Description = "Note type for notes added wehn updating Childcare credits on the family.",
-        AllowMultiple =false,
+        AllowMultiple = false,
         EntityTypeName = "Rock.Model.Group",
         EntityTypeQualifierColumn = "GroupTypeId",
         EntityTypeQualifierValue = "10",
         IsRequired = false,
         Order = 6,
-        Key = AttributeKeys.ChildCareNoteType)]
+        Key = AttributeKeys.ChildCareNoteType )]
+    [LinkedPage("Sports and Fitness History",
+        Description = "The page where the user can view Sports and Fitness Check-in History",
+        IsRequired = false,
+        Order = 7,
+        Key = AttributeKeys.SFHistory)]
+    [LinkedPage("Group Fitness History",
+        Description = "The page where the user can view Group Fitness Check-in History.",
+        IsRequired = false,
+        Order = 8,
+        Key = AttributeKeys.GFHistory)]
+    [LinkedPage( "Childcare History",
+        Description = "The page where the user can view Childcare Check-in History.",
+        IsRequired = false,
+        Order = 8,
+        Key = AttributeKeys.ChildcareHistory )]
 
     public partial class PersonActions : RockBlock
-    { 
+    {
         public static class AttributeKeys
         {
             public const string GroupFitnessGroup = "GroupFitnessGroup";
@@ -78,6 +94,9 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             public const string ChildcareCreditKey = "ChildcareCredits";
             public const string ChildCareNoteType = "ChildcareNoteType";
             public const string LoginPINPurpose = "LoginPINPurpose";
+            public const string SFHistory = "SFHistoryPage";
+            public const string GFHistory = "GFHistoryPage";
+            public const string ChildcareHistory = "ChildcareHistoryPage";
         }
 
         private string _sportsAndFitnessPINPurposeGuid = "e98517ec-1805-456b-8453-ef8480bd487f";
@@ -88,7 +107,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         {
             get
             {
-                if(_selectedPerson == null)
+                if (_selectedPerson == null)
                 {
                     LoadSelectedPerson();
                 }
@@ -133,13 +152,13 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             int familyGroupId = hfChildcareFamilyId.ValueAsInt();
             var creditsAdded = AddChildcareCredit( familyGroupId );
 
-            if(creditsAdded)
+            if (creditsAdded)
             {
                 LoadChildcareCreditBadge();
                 mdChildcare.Hide();
                 upMain.Update();
             }
-            
+
         }
 
         private void mdGroupFitness_SaveClick( object sender, EventArgs e )
@@ -174,14 +193,14 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         #region Internal Methods
 
-        private bool AddChildcareCredit(int familyGroupId )
+        private bool AddChildcareCredit( int familyGroupId )
         {
             using (var rockContext = new RockContext())
             {
                 var groupService = new GroupService( rockContext );
                 var family = groupService.Get( familyGroupId );
 
-                if(family == null)
+                if (family == null)
                 {
                     nbChildcare.Title = "Family Not Found";
                     nbChildcare.Text = "The selected family was not found.";
@@ -203,7 +222,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
 
                 var childcareNoteType = NoteTypeCache.Get( AttributeKeys.ChildCareNoteType.AsGuid() );
-                if(tbCCNotes.Text.IsNotNullOrWhiteSpace() && childcareNoteType != null)
+                if (tbCCNotes.Text.IsNotNullOrWhiteSpace() && childcareNoteType != null)
                 {
                     var noteService = new NoteService( rockContext );
                     var note = new Note
@@ -253,7 +272,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             tbGFNotes.Placeholder = "Optional";
         }
 
-        private GroupMemberSummary LoadGroupFitnessMember(RockContext rockContext)
+        private GroupMemberSummary LoadGroupFitnessMember( RockContext rockContext )
         {
             var groupFitnessGroupGuid = GetAttributeValue( AttributeKeys.GroupFitnessGroup ).AsGuid();
             var personId = SelectedPerson.Id;
@@ -288,13 +307,15 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
             var groupMember = new GroupMemberService( rockContext ).Queryable().AsNoTracking()
                 .GroupJoin( attributeValues, gm => gm.Id, av => av.EntityId,
-                    ( gm, av ) => new GroupMemberSummary{
+                    ( gm, av ) => new GroupMemberSummary
+                    {
                         Id = gm.Id,
                         PersonId = gm.PersonId,
                         GroupId = gm.GroupId,
                         Status = gm.GroupMemberStatus,
                         IsArchived = gm.IsArchived,
-                        Sessions = av.Select( av1 => av1.ValueAsNumeric ).FirstOrDefault() } )
+                        Sessions = av.Select( av1 => av1.ValueAsNumeric ).FirstOrDefault()
+                    } )
                 .Where( gm => gm.GroupId == group.Id )
                 .Where( gm => gm.PersonId == personId )
                 .FirstOrDefault();
@@ -326,7 +347,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     .Count();
 
                 hlblPIN.Text = string.Format( "{0} {1}", loginCount, "Login".PluralizeIf( loginCount != 1 ) );
-                if(loginCount == 0)
+                if (loginCount == 0)
                 {
                     hlblPIN.LabelType = LabelType.Default;
                 }
@@ -357,11 +378,11 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 var credits = familyGroup.GetAttributeValue( creditsAttributeKey ).AsInteger();
 
                 hlblChildcare.Text = string.Format( "{0} {1} remaining", credits, "Credit".PluralizeIf( Math.Abs( credits ) != 1 ) );
-                if(credits >0)
+                if (credits > 0)
                 {
                     hlblChildcare.LabelType = LabelType.Success;
                 }
-                else if(credits < 0)
+                else if (credits < 0)
                 {
                     hlblChildcare.LabelType = LabelType.Danger;
                 }
@@ -402,19 +423,19 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     hlblGroupFitness.Text = "Not Enrolled";
                     hlblGroupFitness.LabelType = LabelType.Danger;
                 }
-                else if(groupMember.Status == GroupMemberStatus.Inactive)
+                else if (groupMember.Status == GroupMemberStatus.Inactive)
                 {
                     hlblGroupFitness.Text = "Inactive Member";
                     hlblGroupFitness.LabelType = LabelType.Warning;
                 }
-                else if(groupMember.IsArchived)
+                else if (groupMember.IsArchived)
                 {
                     hlblGroupFitness.Text = "Archived Member";
                     hlblGroupFitness.LabelType = LabelType.Warning;
                 }
                 else
                 {
-                    if(!groupMember.Sessions.HasValue || groupMember.Sessions.Value == 0)
+                    if (!groupMember.Sessions.HasValue || groupMember.Sessions.Value == 0)
                     {
                         hlblGroupFitness.Text = "No Sessions Remaining";
                         hlblGroupFitness.LabelType = LabelType.Default;
@@ -439,7 +460,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             var groupMember = LoadGroupFitnessMember( new RockContext() );
 
 
-            if(groupMember == null)
+            if (groupMember == null)
             {
                 nbGroupFitness.Title = "Not Enrolled";
                 nbGroupFitness.Text = $"{SelectedPerson.NickName} is not enrolled in Group Fitness";
@@ -475,10 +496,11 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         {
             var sm = ScriptManager.GetCurrent( Page );
 
-            if(Request.Form["__EVENTARGUMENT"] != null)
+            if (Request.Form["__EVENTARGUMENT"] != null)
             {
                 var action = Request.Form["__EVENTARGUMENT"];
-
+                var personQS = new Dictionary<string, string>();
+                personQS.Add( "Person", PageParameter( "Person" ) );
                 switch (action.ToLower())
                 {
                     case "update-pin":
@@ -490,18 +512,28 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     case "add-groupfitness-credits":
                         LoadGroupFitnessModal();
                         break;
+                    case "view-sports-history":
+                        NavigateToLinkedPage( AttributeKeys.SFHistory, personQS );
+                        break;
+                    case "view-groupfitness-history":
+                        NavigateToLinkedPage( AttributeKeys.GFHistory, personQS );
+                        break;
+                    case "view-childcare-history":
+                        NavigateToLinkedPage( AttributeKeys.ChildcareHistory, personQS );
+                        break;
+
                 }
             }
         }
 
-        private void SaveGroupFitnessParticipant(int groupMemberId)
+        private void SaveGroupFitnessParticipant( int groupMemberId )
         {
             using (var rockContext = new RockContext())
             {
                 var groupMemberService = new GroupMemberService( rockContext );
                 var member = groupMemberService.Get( groupMemberId );
 
-                if(groupMemberId == 0)
+                if (groupMemberId == 0)
                 {
                     var groupGuid = GetAttributeValue( AttributeKeys.GroupFitnessGroup ).AsGuid();
                     var groupFitnessGroup = new GroupService( rockContext )
@@ -522,7 +554,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     groupMemberService.Add( member );
                 }
 
-                if(member.IsArchived || member.GroupMemberStatus == GroupMemberStatus.Inactive)
+                if (member.IsArchived || member.GroupMemberStatus == GroupMemberStatus.Inactive)
                 {
                     member.IsArchived = false;
                     member.ArchivedDateTime = null;
@@ -543,12 +575,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
                 rockContext.SaveChanges();
 
-                if(tbGFNotes.Text.IsNotNullOrWhiteSpace())
+                if (tbGFNotes.Text.IsNotNullOrWhiteSpace())
                 {
                     var noteService = new NoteService( rockContext );
                     var noteType = NoteTypeCache.Get( GetAttributeValue( AttributeKeys.GroupFitnessNoteType ).AsGuid() );
 
-                    if(noteType != null)
+                    if (noteType != null)
                     {
                         var note = new Note()
                         {
@@ -581,7 +613,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             public bool IsArchived { get; set; }
             public decimal? Sessions { get; set; }
         }
-        
+
         #endregion
     }
-}   
+}

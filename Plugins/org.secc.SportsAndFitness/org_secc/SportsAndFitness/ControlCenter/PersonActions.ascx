@@ -44,6 +44,24 @@
                             <Rock:HighlightLabel ID="hlblGroupFitness" runat="server" Visible="false" />
                         </a>
                     </li>
+                    <li>
+                        <a href="#" id="lbSportsAndFitnessHistory" onclick="javascript: return runCmd('view-sports-history');">
+                            <i class="fas fa-basketball-ball"></i>
+                            <h3>View Sports and Fitness History</h3>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="lbGroupFitnessHistory" onclick="javascript: return runCmd('view-groupfitness-history');">
+                            <i class="fas fa-dumbbell"></i>
+                            <h3>View Group Fitness History</h3>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="lbChildcareHistory" onclick="javascript: return runCmd('view-childcare-history');">
+                            <i class="far fa-shapes"></i>
+                            <h3>View Childcare History</h3>
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
