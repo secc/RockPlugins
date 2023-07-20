@@ -54,6 +54,7 @@
     <Compile Include="Extensions\Migration\RockMigrationExtensions.cs" />
     <Compile Include="Extensions\Migration\TableBuilderExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SportsAndFitness\ControlCenterSearchItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)DotLiquid\DotLiquid.csproj">
