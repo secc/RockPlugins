@@ -17,7 +17,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.IO;
-using iTextSharp.text.pdf;
+using iText.Forms;
+using iText.Kernel.Pdf;
+using iText.Layout;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -74,15 +76,15 @@ namespace org.secc.PDF
                 var pdf = new BinaryFileService( rockContext ).Get( pdfGuid.AsGuid() );
 
                 var pdfBytes = pdf.ContentStream.ReadBytesToEnd();
-                var pdfReader = new PdfReader( pdfBytes );
+                var pdfReader = new PdfReader( new MemoryStream( pdfBytes ) );
+                var pdfWriter = new PdfWriter( ms );
 
-                var stamper = new PdfStamper( pdfReader, ms );
+                var pdfDocument = new PdfDocument( pdfReader, pdfWriter );
+                var form = PdfAcroForm.GetAcroForm( pdfDocument, true );
 
-                var form = stamper.AcroFields;
+                form.SetGenerateAppearance( true );
 
-                form.GenerateAppearances = true;
-
-                var fieldKeys = form.Fields.Keys;
+                var fieldKeys = form.GetFormFields().Keys;
 
                 //Field keys are the names of form fields in a pdf form
                 foreach ( string fieldKey in fieldKeys )
@@ -92,23 +94,28 @@ namespace org.secc.PDF
                     {
                         if ( pdfWorkflowObject.MergeObjects[fieldKey] is string )
                         {
-                            form.SetField( fieldKey, pdfWorkflowObject.MergeObjects[fieldKey] as string );
+                            form.GetField( fieldKey ).SetValue( fieldKey, pdfWorkflowObject.MergeObjects[fieldKey] as string );
                         }
                     }
                     //otherwise test for lava and use the form value as the lava input
                     else
                     {
-                        string fieldValue = form.GetField( fieldKey );
+                        PdfObject fieldValuePdfObj = form.GetField( fieldKey ).GetValue();
+                        string fieldValue = fieldValuePdfObj.ToString();
                         if ( !string.IsNullOrWhiteSpace( fieldValue ) && LavaHelper.IsLavaTemplate( fieldValue ) )
-                            form.SetField( fieldKey, fieldValue.ResolveMergeFields( pdfWorkflowObject.MergeObjects ) );
+                            form.GetField( fieldKey ).SetValue( fieldKey, fieldValue.ResolveMergeFields( pdfWorkflowObject.MergeObjects ) );
                     }
                 }
 
                 //Should we flatten the form
-                stamper.FormFlattening = GetActionAttributeValue( action, "Flatten" ).AsBoolean();
+                if ( GetActionAttributeValue( action, "Flatten" ).AsBoolean() )
+                {
+                    form.FlattenFields();
+                }
 
-                stamper.Close();
+                pdfDocument.Close();
                 pdfReader.Close();
+                pdfWriter.Close();
 
                 //Generate New Object
 
