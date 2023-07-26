@@ -80,5 +80,4 @@ xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Sass.pdb" "$(SolutionDir)RockWeb\bi
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)packages\SharpScss.1.3.8\build\net40\SharpScss.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\packages\SharpScss.1.3.8\build\net40\SharpScss.targets'))" />
   </Target>
-  <Import Project="$(SolutionDir)packages\SharpScss.1.3.8\build\net40\SharpScss.targets" Condition="Exists('$(SolutionDir)packages\SharpScss.1.3.8\build\net40\SharpScss.targets')" />
 </Project>
