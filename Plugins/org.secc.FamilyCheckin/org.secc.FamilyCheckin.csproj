@@ -130,12 +130,12 @@
     <Compile Include="Migrations\031_KioskTypeEntityUpdates.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\003_UpdateCacheTags.cs" />
+    <Compile Include="Model\CheckinKioskTypeService.cs" />
     <Compile Include="Model\MobileCheckinRecordService.cs" />
     <Compile Include="Model\MobileCheckinRecord.cs" />
     <Compile Include="Model\Kiosk.cs" />
     <Compile Include="Model\CheckinKioskType.cs" />
     <Compile Include="Model\KioskService.cs" />
-    <Compile Include="Model\KioskTypeService.cs" />
     <Compile Include="Model\SFChilcareReceipt.cs" />
     <Compile Include="Model\SFChildcareParticipant.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
