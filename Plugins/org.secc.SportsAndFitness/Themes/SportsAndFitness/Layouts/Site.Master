@@ -21,8 +21,7 @@
     <meta charset="utf-8">
     <title></title>
 
-    <script src="<%# ResolveRockUrl("~/Scripts/jquery-3.3.1.min.js" ) %>"></script>
-    <script src="<%# ResolveRockUrl("~/Scripts/jquery-migrate-3.0.0.min.js" ) %>"></script>
+    <script src="<%# System.Web.Optimization.Scripts.Url("~/Scripts/Bundles/RockJQueryLatest" ) %>" ></script>
     <script src="<%# ResolveRockUrl("~/Scripts/jquery.jquery-dotimeout.js" ) %>"></script>
 
     <!-- Set the viewport width to device width for mobile -->
