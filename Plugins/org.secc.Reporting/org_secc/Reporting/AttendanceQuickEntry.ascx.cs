@@ -5,7 +5,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
+using org.secc.FamilyCheckin;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -105,9 +105,6 @@ namespace RockWeb.Plugins.org_secc.Reporting
             }
         }
 
-
-
-
         #endregion
 
         #region "Base Control Methods"
@@ -126,14 +123,12 @@ namespace RockWeb.Plugins.org_secc.Reporting
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-
+            SetNotification( String.Empty, String.Empty );
             if (!Page.IsPostBack)
             {
                 SetCampus( true );
                 LoadForm();
             }
- 
-            pnlEntry.Visible = true;
         }
 
         #endregion
@@ -153,12 +148,13 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
         private void lbReset_Click( object sender, EventArgs e )
         {
-            throw new NotImplementedException();
+            LoadForm();
         }
 
         private void lbSubmit_Click( object sender, EventArgs e )
         {
-            throw new NotImplementedException();
+            SaveAttendance();
+
         }
         #endregion
 
@@ -188,10 +184,28 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
         private void LoadForm()
         {
-            lCampus.Text = SelectedCampus.Name;
-            lDate.Text = RockDateTime.Now.ToShortDateString();
+            if(SelectedCampus == null)
+            {
+                SetNotification( "Campus Not Selected",
+                    "Campus must be provided to enter worship attendance",
+                    NotificationBoxType.Validation );
+                pnlEntry.Visible = false;
+                return;
+            }
 
             var campusSchedules = WorshipSchedules.Where( s => s.CampusId == SelectedCampus.Id ).ToList();
+
+            if(!campusSchedules.Any())
+            {
+                SetNotification( "No Services Found",
+                    $"No Services found for today at {SelectedCampus.Name} Campus.",
+                    NotificationBoxType.Info );
+                pnlEntry.Visible = false;
+                return;
+            }
+
+            lCampus.Text = SelectedCampus.Name;
+            lDate.Text = RockDateTime.Now.ToShortDateString();
 
             ddlSchedule.Items.Clear();
             ddlSchedule.Items.Add( new ListItem( string.Empty, string.Empty ) );
@@ -201,6 +215,8 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 ddlSchedule.Items.Add( listItem );
             }
             tbAttendance.Text = string.Empty;
+
+            pnlEntry.Visible = true;
 
         }
 
@@ -289,6 +305,50 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
         }
 
+        private void SaveAttendance()
+        {
+            var worshipService = WorshipSchedules
+                .Where( s => s.CampusId == SelectedCampus.Id )
+                .Where( s => s.ScheduleId == ddlSchedule.SelectedValueAsInt() )
+                .SingleOrDefault();
+
+            worshipService.Attendance = tbAttendance.Text.AsInteger();
+
+            var campusEntityTypeId = EntityTypeCache.Get( typeof( Campus ) ).Id;
+            int? campusPartitionId = null;
+
+            var scheduleEntityTypeId = EntityTypeCache.Get( typeof( Schedule ) ).Id;
+            int? schedulePartitionId = null;
+
+            using (var partitionContext = new RockContext())
+            {
+                var metricPartitionService = new MetricPartitionService( partitionContext );
+                campusPartitionId = metricPartitionService.Queryable().AsNoTracking()
+                    .Where( p => p.MetricId == WorshipAttendanceMetric.Id )
+                    .Where( p => p.EntityTypeId == campusEntityTypeId )
+                    .Select( p => p.Id )
+                    .SingleOrDefault();
+
+                schedulePartitionId = metricPartitionService.Queryable().AsNoTracking()
+                    .Where( p => p.MetricId == WorshipAttendanceMetric.Id )
+                    .Where( p => p.EntityTypeId == scheduleEntityTypeId )
+                    .Select( p => p.Id )
+                    .SingleOrDefault();
+            }
+
+            using (var metricValueContext = new RockContext())
+            {
+                var sundaydate = RockDateTime.Today.SundayDate();
+
+                //var metricValueService = new MetricValueService(metricValueContext).Queryable()
+                //    .Where(v => v.MetricValueDateTime == sundaydate)
+                //    .Where(v => v.MetricValuePartitions
+                //                .Where(p => p.MetricPartitionId == campusPartitionId.Value)
+                //                .Where(p => p.EntityId == ))
+            }
+
+        }
+
         private void SetCampus( bool reload )
         {
             var campusKey = $"{CurrentPageReference.PageId}_CampusId";
@@ -315,6 +375,22 @@ namespace RockWeb.Plugins.org_secc.Reporting
             else
             {
                 SelectedCampus = CampusCache.Get( campusId.Value );
+            }
+        }
+
+        private void SetNotification(string title, string message, NotificationBoxType boxType = NotificationBoxType.Default)
+        {
+            nbMessage.Title = title;
+            nbMessage.Text = message;
+            nbMessage.NotificationBoxType = boxType;
+
+            if(title.IsNullOrWhiteSpace() && message.IsNullOrWhiteSpace())
+            {
+                nbMessage.Visible = false;
+            }
+            else
+            {
+                nbMessage.Visible = true;
             }
         }
 
