@@ -59,7 +59,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
         CampusCache _selectedCampus = null;
         string _serviceCachceKey;
 
-        Metric _worshipAttendanceMetric = null;
+        Rock.Model.Metric _worshipAttendanceMetric = null;
         List<WorshipScheduleSummary> _worshipSchedules = null;
 
 
@@ -81,7 +81,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
             }
         }
 
-        private Metric WorshipAttendanceMetric
+        private Rock.Model.Metric WorshipAttendanceMetric
         {
             get
             {
@@ -124,7 +124,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
         {
             base.OnLoad( e );
             SetNotification( String.Empty, String.Empty );
-            if (!Page.IsPostBack)
+            if (!IsPostBack)
             {
                 SetCampus( true );
                 LoadForm();
@@ -132,6 +132,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
         }
 
         #endregion
+
         #region Events
         private void ddlSchedule_SelectedIndexChanged( object sender, EventArgs e )
         {
@@ -142,7 +143,10 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 var schedule = WorshipSchedules.SingleOrDefault( s => s.ScheduleId == scheduleID && s.CampusId == SelectedCampus.Id );
 
                 tbAttendance.Text = schedule.Attendance.HasValue ? schedule.Attendance.ToString() : String.Empty;
-
+            }
+            else
+            {
+                tbAttendance.Text = String.Empty;
             }
         }
 
@@ -160,44 +164,60 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
         #region Internal Methods
 
-        private int? GetAttendance( DateTime serviceDate, int campusId, int scheduleId )
+        private MetricValue GetMetricValue( WorshipScheduleSummary summary, RockContext context )
         {
-            using (var rockContext = new RockContext())
-            {
-                var campusEntityType = EntityTypeCache.Get( typeof( Rock.Model.Campus ) );
-                var scheduleEntityType = EntityTypeCache.Get( typeof( Rock.Model.Schedule ) );
-                var sundayDate = serviceDate.SundayDate();
+            var campusEntityTypeId = EntityTypeCache.Get( typeof( Campus ) ).Id;
+            var scheduleEntityTypeId = EntityTypeCache.Get( typeof( Schedule ) ).Id;
 
-                var valueService = new MetricValueService( rockContext );
-                var metricValue = valueService.Queryable().AsNoTracking()
-                    .Where( v => v.MetricId == WorshipAttendanceMetric.Id )
-                    .Where( v => v.MetricValueDateTime == sundayDate )
-                    .Where( v => v.MetricValuePartitions.Where( p => p.MetricPartition.EntityTypeId == campusEntityType.Id ).Select( p => p.EntityId ).Contains( campusId ) )
-                    .Where( v => v.MetricValuePartitions.Where( p => p.MetricPartition.EntityTypeId == scheduleEntityType.Id ).Select( p => p.EntityId ).Contains( scheduleId ) )
-                    .Select( v => v.YValue )
-                    .FirstOrDefault();
+            var sundayDate = summary.StartDateTime.SundayDate();
 
-                return (int?) metricValue;
-            }
+            var metricValueService = new MetricValueService( context );
+            var metricValuePartitionService = new MetricValuePartitionService( context );
 
+            var campusPartition = metricValuePartitionService.Queryable()
+                .Where( p => p.MetricPartition.MetricId == WorshipAttendanceMetric.Id )
+                .Where( p => p.MetricPartition.EntityTypeId == campusEntityTypeId )
+                .Where( p => p.EntityId == summary.CampusId );
+
+            var schedulePartition = metricValuePartitionService.Queryable()
+                .Where( p => p.MetricPartition.MetricId == WorshipAttendanceMetric.Id )
+                .Where( p => p.MetricPartition.EntityTypeId == scheduleEntityTypeId )
+                .Where( p => p.EntityId == summary.ScheduleId );
+
+
+
+            var metricValue = metricValueService.Queryable()
+                .Where( m => m.MetricId == WorshipAttendanceMetric.Id )
+                .Where( m => m.MetricValueDateTime == sundayDate )
+                .Join( campusPartition, m => m.Id, p => p.MetricValueId,
+                    ( m, p ) => new { metric = m, campusId = p.EntityId } )
+                .Join( schedulePartition, m => m.metric.Id, p => p.MetricValueId,
+                    ( m, p ) => new { metric = m.metric, campusId = m.campusId, scheduleId = p.Id } )
+                .Select( m => m.metric )
+                .FirstOrDefault();
+
+            return metricValue;
+                
         }
 
         private void LoadForm()
         {
             if(SelectedCampus == null)
             {
-                SetNotification( "Campus Not Selected",
+                SetNotification( "<i class=\"fas fa-exclamation-triangle\"></i> Campus Not Selected",
                     "Campus must be provided to enter worship attendance",
                     NotificationBoxType.Validation );
                 pnlEntry.Visible = false;
                 return;
             }
 
+            lPanelTitle.Text = GetAttributeValue( AttributeKey.PanelTitle );
+
             var campusSchedules = WorshipSchedules.Where( s => s.CampusId == SelectedCampus.Id ).ToList();
 
             if(!campusSchedules.Any())
             {
-                SetNotification( "No Services Found",
+                SetNotification( "<i class=\"fas fa-exclamation-triangle\"></i> No Services Found",
                     $"No Services found for today at {SelectedCampus.Name} Campus.",
                     NotificationBoxType.Info );
                 pnlEntry.Visible = false;
@@ -231,8 +251,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
         }
 
         private void LoadSchedules()
-        {
-            
+        {          
 
             var cachedValue = RockCache.Get( _serviceCachceKey, true ) as List<WorshipScheduleSummary>;
 
@@ -284,10 +303,14 @@ namespace RockWeb.Plugins.org_secc.Reporting
                         StartDateTime = todaysOccurrences.First(),
                     };
 
-                    service.Attendance = GetAttendance( service.StartDateTime, service.CampusId, service.ScheduleId );
+                    var metricValue = GetMetricValue( service, rockContext );
+                    if(metricValue != null)
+                    {
+                        service.Attendance = (int?) metricValue.YValue;
+                        service.MetricValueId = metricValue.Id;
+                    }
 
                     worshipSchedule.Add( service );
-
                 }
             }
 
@@ -300,7 +323,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
             _worshipSchedules = worshipSchedule;
 
-            RockCache.AddOrUpdate( _serviceCachceKey, "", worshipSchedule, new TimeSpan(0, expirationMinutes, 0) );
+            RockCache.AddOrUpdate( _serviceCachceKey, null, worshipSchedule, RockDateTime.Now.AddMinutes(expirationMinutes));
 
 
         }
@@ -312,40 +335,68 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 .Where( s => s.ScheduleId == ddlSchedule.SelectedValueAsInt() )
                 .SingleOrDefault();
 
-            worshipService.Attendance = tbAttendance.Text.AsInteger();
-
-            var campusEntityTypeId = EntityTypeCache.Get( typeof( Campus ) ).Id;
-            int? campusPartitionId = null;
-
-            var scheduleEntityTypeId = EntityTypeCache.Get( typeof( Schedule ) ).Id;
-            int? schedulePartitionId = null;
-
-            using (var partitionContext = new RockContext())
+            if (worshipService == null)
             {
-                var metricPartitionService = new MetricPartitionService( partitionContext );
-                campusPartitionId = metricPartitionService.Queryable().AsNoTracking()
-                    .Where( p => p.MetricId == WorshipAttendanceMetric.Id )
-                    .Where( p => p.EntityTypeId == campusEntityTypeId )
-                    .Select( p => p.Id )
-                    .SingleOrDefault();
-
-                schedulePartitionId = metricPartitionService.Queryable().AsNoTracking()
-                    .Where( p => p.MetricId == WorshipAttendanceMetric.Id )
-                    .Where( p => p.EntityTypeId == scheduleEntityTypeId )
-                    .Select( p => p.Id )
-                    .SingleOrDefault();
+                throw new Exception( "Worship Schedule not found." );
             }
 
-            using (var metricValueContext = new RockContext())
+            worshipService.Attendance = tbAttendance.Text.AsIntegerOrNull();
+            using (var rockContext = new RockContext())
             {
-                var sundaydate = RockDateTime.Today.SundayDate();
+                var campusEntityTypeId = EntityTypeCache.Get( typeof( Campus ) ).Id;
+                var scheduleEntityTypeId = EntityTypeCache.Get( typeof( Schedule ) ).Id;
 
-                //var metricValueService = new MetricValueService(metricValueContext).Queryable()
-                //    .Where(v => v.MetricValueDateTime == sundaydate)
-                //    .Where(v => v.MetricValuePartitions
-                //                .Where(p => p.MetricPartitionId == campusPartitionId.Value)
-                //                .Where(p => p.EntityId == ))
+                var partitionService = new MetricPartitionService( rockContext );
+                var campusPartition = partitionService.Queryable()
+                    .Where( c => c.MetricId == WorshipAttendanceMetric.Id )
+                    .Where( c => c.EntityTypeId == campusEntityTypeId )
+                    .SingleOrDefault();
+
+                var schedulePartition = partitionService.Queryable()
+                    .Where( c => c.MetricId == WorshipAttendanceMetric.Id )
+                    .Where( c => c.EntityTypeId == scheduleEntityTypeId )
+                    .SingleOrDefault();
+
+                var metricValueService = new MetricValueService( rockContext );
+                MetricValue metricValue = null;
+
+                if(worshipService.MetricValueId.HasValue)
+                {
+                    metricValue = metricValueService.Get( worshipService.MetricValueId.Value );
+                }
+                else
+                {
+                    metricValue = new MetricValue
+                    {
+                        MetricId = WorshipAttendanceMetric.Id,
+                        MetricValueDateTime = worshipService.StartDateTime.SundayDate()
+                    };
+                    metricValue.MetricValuePartitions.Add( new MetricValuePartition
+                    {
+                        MetricPartitionId = campusPartition.Id,
+                        EntityId = worshipService.CampusId
+                    } );
+                    metricValue.MetricValuePartitions.Add( new MetricValuePartition
+                    {
+                        MetricPartitionId = schedulePartition.Id,
+                        EntityId = worshipService.ScheduleId
+                    } );
+                    metricValueService.Add( metricValue );
+                }
+                metricValue.YValue = worshipService.Attendance;
+
+                rockContext.SaveChanges();
+
+                if(!worshipService.MetricValueId.HasValue)
+                {
+                    worshipService.MetricValueId = metricValue.Id;
+                }
             }
+
+            RockCache.AddOrUpdate( _serviceCachceKey, WorshipSchedules );
+            SetNotification( "<i class=\"fas fa-check-square\"></i> Attendance Saved", "<br />Worship Attendance Successfully Saved", NotificationBoxType.Success);
+
+
 
         }
 
@@ -404,6 +455,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
         public int CampusId { get; set; }
         public Schedule WorshipSchedule { get; set; }
         public DateTime StartDateTime { get; set; }
+        public int? MetricValueId { get; set; }
         public int? Attendance { get; set; }
 
     }

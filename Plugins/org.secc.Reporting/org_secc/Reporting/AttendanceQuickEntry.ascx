@@ -15,7 +15,7 @@
                 <h1 class="panel-title"><i class="fas fa-poll-people"></i> <asp:Literal ID="lPanelTitle" runat="server" /></h1>
             </div>
             <div class="panel-body">
-                <asp:ValidationSummary ID="valSummary" runat="server" ValidationGroup="valAttendanceEntry" CssClass="alert alert-validation" />
+                <asp:ValidationSummary ID="valSummary" runat="server" ValidationGroup="valAttendanceEntry" CssClass="alert alert-validation" HeaderText="Please correct the following:" />
                 <div class="row">
                     <div class="col-sm-4">
                         <span class="control-label">Campus</span>
@@ -41,7 +41,7 @@
                         </span>
                     </div>
                     <div class="col-sm-4">
-                        <Rock:RockDropDownList ID="ddlSchedule" runat="server" Required="true" RequiredErrorMessage="Schedule is Required" ValidationGroup="valAttendanceEntry" />
+                        <Rock:RockDropDownList ID="ddlSchedule" runat="server" Required="true" RequiredErrorMessage="Schedule is Required" AutoPostBack="true" ValidationGroup="valAttendanceEntry" />
                     </div>
                 </div>
                 <div class="row">
