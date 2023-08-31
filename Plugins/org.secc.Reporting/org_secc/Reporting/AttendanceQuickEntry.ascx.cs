@@ -5,6 +5,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using Newtonsoft.Json;
 using org.secc.FamilyCheckin;
 using Rock;
 using Rock.Attribute;
@@ -229,7 +230,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
             ddlSchedule.Items.Clear();
             ddlSchedule.Items.Add( new ListItem( string.Empty, string.Empty ) );
-            foreach (var item in campusSchedules)
+            foreach (var item in campusSchedules.OrderBy(s => s.StartDateTime))
             {
                 var listItem = new ListItem( $"{item.StartDateTime: h:mm tt}", item.ScheduleId.ToString() );
                 ddlSchedule.Items.Add( listItem );
@@ -253,11 +254,11 @@ namespace RockWeb.Plugins.org_secc.Reporting
         private void LoadSchedules()
         {          
 
-            var cachedValue = RockCache.Get( _serviceCachceKey, true ) as List<WorshipScheduleSummary>;
+            var cachedValue = RockCache.Get( _serviceCachceKey, true ) as string;
 
             if(cachedValue !=  null)
             {
-                _worshipSchedules = cachedValue;
+                _worshipSchedules = JsonConvert.DeserializeObject<List<WorshipScheduleSummary>>(cachedValue);
                 return;
             }
             
@@ -323,7 +324,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
             _worshipSchedules = worshipSchedule;
 
-            RockCache.AddOrUpdate( _serviceCachceKey, null, worshipSchedule, RockDateTime.Now.AddMinutes(expirationMinutes));
+            RockCache.AddOrUpdate( _serviceCachceKey, null, JsonConvert.SerializeObject(worshipSchedule), RockDateTime.Now.AddMinutes(expirationMinutes));
 
 
         }
@@ -393,7 +394,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 }
             }
 
-            RockCache.AddOrUpdate( _serviceCachceKey, WorshipSchedules );
+            RockCache.AddOrUpdate( _serviceCachceKey, JsonConvert.SerializeObject(WorshipSchedules) );
             SetNotification( "<i class=\"fas fa-check-square\"></i> Attendance Saved", "<br />Worship Attendance Successfully Saved", NotificationBoxType.Success);
 
 
