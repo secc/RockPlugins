@@ -192,8 +192,8 @@ namespace org.secc.SafetyAndSecurity
                     {"txtAppDated", "{{t:d;r:y;o:\"Applicant\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
                     {"txtAppPrintedName", person.FullNameFormal },
 
-                    {"txtSOFSigned", "{{t:s;r:n;o:\"Applicant\";}}" },
-                    {"txtSOFDated", "{{t:d;r:n;o:\"Applicant\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
+                    {"txtSOFSigned", "{{t:s;r:y;o:\"Applicant\";}}" },
+                    {"txtSOFDated", "{{t:d;r:y;o:\"Applicant\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
                     {"txtSOFPrintedName", person.FullNameFormal },
 
                     {"txtParentSignature", "{{t:s;r:y;o:\"Parent\";}}" },
