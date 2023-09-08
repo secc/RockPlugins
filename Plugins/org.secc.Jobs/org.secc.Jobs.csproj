@@ -72,7 +72,9 @@
     <Compile Include="FrontPorchDeviceRemoval.cs" />
     <Compile Include="GroupLeaderMedicationNotifications.cs" />
     <Compile Include="MigratePickleballCredits.cs" />
+    <Compile Include="Migrations\AddOtherPhoneTypes.cs" />
     <Compile Include="RemoveDevicesFromPersons.cs" />
+    <Compile Include="Rock13\PhoneNumberCleanup.cs" />
     <Compile Include="SetFirstAttendanceDate.cs" />
     <Compile Include="PushPayDownloadCheckNumbers.cs" />
     <Compile Include="StoreAttendanceFromInteraction.cs" />
