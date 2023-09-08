@@ -311,11 +311,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 Person person = new PersonService(_rockContext).Get(selectedPersonId);
                 AttendanceService attendanceService = new AttendanceService(_rockContext);
                 var reserved = attendanceService.Queryable().Where(a => a.StartDateTime > Rock.RockDateTime.Today
-                    && a.DidAttend == false && a.EndDateTime == null && a.PersonAliasId == person.PrimaryAliasId).ToList();
+                    && a.DidAttend == false && a.EndDateTime == null && a.PersonAliasId == person.PrimaryAliasId && a.RSVPDateTime == null).ToList();
                 var current = attendanceService.Queryable().Where(a => a.StartDateTime > Rock.RockDateTime.Today
-                    && a.DidAttend == true && a.EndDateTime == null && a.PersonAliasId == person.PrimaryAliasId).ToList();
+                    && a.DidAttend == true && a.EndDateTime == null && a.PersonAliasId == person.PrimaryAliasId && a.RSVPDateTime == null).ToList();
                 var history = attendanceService.Queryable().Where(a => a.StartDateTime > Rock.RockDateTime.Today
-                    && a.EndDateTime != null && a.PersonAliasId == person.PrimaryAliasId).ToList();
+                    && a.EndDateTime != null && a.PersonAliasId == person.PrimaryAliasId && a.RSVPDateTime == null).ToList();
 
                 if (current.Any())
                 {
