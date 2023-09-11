@@ -20,12 +20,28 @@ namespace org.secc.Cms.Migrations
     {
         public override void Up()
         {
-            AddColumn( "HtmlContent", "Name", c => c.String( true ) );
+            var addColumnSql = @"
+                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.Columns WHERE TABLE_NAME='HtmlContent' and COLUMN_NAME = 'NAME')
+                BEGIN
+                    ALTER TABLE dbo.HtmlContent     
+                    ADD Name NVARCHAR(100) NULL
+                END 
+            ";
+            Sql( addColumnSql );
+
         }
 
         public override void Down()
         {
-            DropColumn( "HtmlContent", "Name" );
+            var dropColumnSql = @"
+                IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.Columns WHERE TABLE_NAME='HtmlContent' and COLUMN_NAME = 'NAME')
+                BEGIN
+                    ALTER TABLE dbo.HtmlContent     
+                    DROP COLUMN Name
+                END               
+            ";
+
+            Sql( dropColumnSql );
         }
     }
 }
