@@ -121,6 +121,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             base.OnInit( e );
             mdGroupFitness.SaveClick += mdGroupFitness_SaveClick;
             mdChildcare.SaveClick += mdChildcare_SaveClick;
+            //rPersonPins.ItemCommand += rPersonPins_ItemCommand;
         }
 
 
@@ -187,6 +188,11 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 default:
                     break;
             }
+        }
+
+        private void rPersonPins_ItemCommand( object source, RepeaterCommandEventArgs e )
+        {
+
         }
 
         #endregion Events
@@ -330,38 +336,50 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             var personId = SelectedPerson.Id;
 
             var purposeAttributeGuid = GetAttributeValue( AttributeKeys.LoginPINPurpose ).AsGuid();
+            var loginCount = LoadPins().Count();
+            hlblPIN.Text = string.Format( "{0} {1}", loginCount, "Login".PluralizeIf( loginCount != 1 ) );
+            if (loginCount == 0)
+            {
+                hlblPIN.LabelType = LabelType.Default;
+            }
+            else
+            {
+                hlblPIN.LabelType = LabelType.Success;
+            }
+            hlblPIN.Visible = true;
+            
+        }
+
+        private List<UserLogin> LoadPins()
+        {
+            var pinAuthenticationEntityType = EntityTypeCache.Get( typeof( PINAuthentication ) );
+            var SportsPINPurposeDV = DefinedValueCache.Get( _sportsAndFitnessPINPurposeGuid.AsGuid() );
+            var personId = SelectedPerson.Id;
+
+            var purposeAttributeGuid = GetAttributeValue( AttributeKeys.LoginPINPurpose ).AsGuid();
 
             using (var rockContext = new RockContext())
             {
                 var attributeValue = new AttributeValueService( rockContext ).Queryable()
                     .Where( av => av.Attribute.Guid == purposeAttributeGuid );
 
-                var loginCount = new UserLoginService( rockContext ).Queryable()
+                var logins = new UserLoginService( rockContext ).Queryable()
                     .Join( attributeValue, u => u.Id, av => av.EntityId,
-                        ( u, av ) => new { UserLoginId = u.Id, u.UserName, u.PersonId, u.EntityTypeId, purposeIds = av.Value } )
-                    .Where( l => l.EntityTypeId == pinAuthenticationEntityType.Id )
-                    .Where( l => l.PersonId == personId )
+                        ( u, av ) => new { UserLogin = u, purposeIds = av.Value } )
+                    .Where( l => l.UserLogin.EntityTypeId == pinAuthenticationEntityType.Id )
+                    .Where( l => l.UserLogin.PersonId == personId )
                     .ToList()
-                    .Select( l => new { l.UserLoginId, l.UserName, purposes = l.purposeIds.SplitDelimitedValues().AsIntegerList() } )
-                    .Where( l => l.purposes.Contains( SportsPINPurposeDV.Id ) )
-                    .Count();
+                    .Where( l => l.purposeIds.SplitDelimitedValues().Contains( SportsPINPurposeDV.Id.ToString() ) )
+                    .Select( l => l.UserLogin )
+                    .ToList();
 
-                hlblPIN.Text = string.Format( "{0} {1}", loginCount, "Login".PluralizeIf( loginCount != 1 ) );
-                if (loginCount == 0)
-                {
-                    hlblPIN.LabelType = LabelType.Default;
-                }
-                else
-                {
-                    hlblPIN.LabelType = LabelType.Success;
-                }
-                hlblPIN.Visible = true;
+                return logins;
             }
         }
 
         private void LoadPinModal()
         {
-
+            //mdlPINManager.
         }
 
         private void LoadChildcareCreditBadge()
@@ -492,6 +510,29 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             }
         }
 
+        private void RemovePIN(int? userLoginId)
+        {
+            if(!userLoginId.HasValue)
+            {
+                return;
+            }
+
+            using (var userLoginContext = new RockContext())
+            {
+                var userLoginService = new UserLoginService( userLoginContext );
+
+                var login = userLoginService.Get( userLoginId.Value );
+
+                if(login.PersonId == SelectedPerson.Id)
+                {
+                    userLoginService.Delete( login );
+                    userLoginContext.SaveChanges();
+                }
+            }
+
+
+        }
+
         private void RouteAction()
         {
             var sm = ScriptManager.GetCurrent( Page );
@@ -615,5 +656,6 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         }
 
         #endregion
+
     }
 }
