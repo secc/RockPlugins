@@ -36,6 +36,29 @@
                         opacity: 1
                     }
         </style>
+
+        <script type="text/javascript">
+            function runCmd ( action )
+            {
+                var panelClientId =  "<%= upMain.ClientID %>";
+                __doPostBack( panelClientId, action );
+                return false;
+            }
+
+            function addClosePINEvent ()
+            {
+                var mdlPins = $( "#mdlPins" );
+
+                if ( mdlPins != null )
+                {
+                    $( "#mdlPins" ).on( "hidden.bs.modal", function ()
+                    {
+                        runCmd( "update-pin" );
+                    } );
+                }
+            }
+
+        </script>
         <div class="panel panel-default list-as-blocks clearfix">
             <div class="panel-heading">
                 <h1 class="panel-title">
@@ -86,14 +109,26 @@
                 </ul>
             </div>
         </div>
-        <script type="text/javascript">
-            function runCmd ( action )
-            {
-                var panelClientId =  "<%= upMain.ClientID %>";
-                __doPostBack( panelClientId, action );
-                return false;
-            }
-        </script>
+
+        <div class="modal fade" id="mdlPins" tabindex="-1" role="dialog" aria-labelledby="lblPins">
+            <div class="model-dialog" role="document">
+                <div class="modal-content">
+                    <div class="model-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title" id="lblPins">Manage PIN Numbers</h4>
+                    </div>
+                    <div class="modal-body">
+                        <asp:Literal ID="lPINFrame" runat="server" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
     </ContentTemplate>
 
 </asp:UpdatePanel>
@@ -173,21 +208,7 @@
                 </div>
             </Content>
         </Rock:ModalDialog>
-        <div class="modal fade" id="mdlPins" tabindex="-1" role="dialog" aria-labelledby="lblPins">
-            <div class="model-dialog" role="document">
-                <div class="modal-content">
-                    <div class="model-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                        <h4 class="modal-title" id="lblPins">Manage PIN Numbers</h4>
-                    </div>
-                    <div class="modal-body">
-                        <p>PIN Manager is under construction.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+
     </ContentTemplate>
 </asp:UpdatePanel>
 

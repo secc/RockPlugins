@@ -59,7 +59,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         private void LoadPins()
         {
             pnlMain.Visible = false;
-            var personId = PageParameter( "PersonId" ).AsIntegerOrNull();
+            var personId = PageParameter( "Person" ).AsIntegerOrNull();
 
             hfPersonId.Value = personId.ToString();
 

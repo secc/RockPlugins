@@ -5,7 +5,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
+using Microsoft.AspNet.SignalR;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -82,6 +82,11 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         IsRequired = false,
         Order = 8,
         Key = AttributeKeys.ChildcareHistory )]
+    [LinkedPage("PIN Manager",
+        Description = "The PIN Manager page that will be displayed in the Manage Pins IFrame.",
+        IsRequired = true,
+        Order = 9,
+        Key = AttributeKeys.ManagePINS)]
 
     public partial class PersonActions : RockBlock
     {
@@ -97,6 +102,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             public const string SFHistory = "SFHistoryPage";
             public const string GFHistory = "GFHistoryPage";
             public const string ChildcareHistory = "ChildcareHistoryPage";
+            public const string ManagePINS = "ManagePINS";
         }
 
         private string _sportsAndFitnessPINPurposeGuid = "e98517ec-1805-456b-8453-ef8480bd487f";
@@ -137,7 +143,17 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 LoadPINBadge();
                 LoadChildcareCreditBadge();
                 LoadGroupFitnessSessionsBadge();
+
+                var pinParams = new Dictionary<string, string>();
+                pinParams.Add( "Person", SelectedPerson.Id.ToString() );
+
+
+                var pinUrl = LinkedPageUrl( AttributeKeys.ManagePINS, pinParams );
+                lPINFrame.Text = $"<iframe src=\"{pinUrl}\" width=\"100%\" height=\"400\" />";
             }
+
+            var script = "addClosePINEvent();";
+            ScriptManager.RegisterStartupScript( upMain, this.GetType(), "addPINEvent" + RockDateTime.Now.Ticks, script, true );
         }
 
         #endregion Base Control Methods
@@ -177,7 +193,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             switch (commandName)
             {
                 case "update-pin":
-                    LoadPinModal();
+                    LoadPINBadge();
                     break;
                 case "add-childcare-credit":
                     LoadChildcareCreditModal();
@@ -377,11 +393,6 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             }
         }
 
-        private void LoadPinModal()
-        {
-            //mdlPINManager.
-        }
-
         private void LoadChildcareCreditBadge()
         {
             var creditsAttributeKey = GetAttributeValue( AttributeKeys.ChildcareCreditKey );
@@ -545,7 +556,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 switch (action.ToLower())
                 {
                     case "update-pin":
-                        LoadPinModal();
+                        LoadPINBadge();
                         break;
                     case "add-childcare-credits":
                         LoadChildcareCreditModal();
