@@ -5,7 +5,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
+using Microsoft.AspNet.SignalR;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -82,6 +82,11 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         IsRequired = false,
         Order = 8,
         Key = AttributeKeys.ChildcareHistory )]
+    [LinkedPage("PIN Manager",
+        Description = "The PIN Manager page that will be displayed in the Manage Pins IFrame.",
+        IsRequired = true,
+        Order = 9,
+        Key = AttributeKeys.ManagePINS)]
 
     public partial class PersonActions : RockBlock
     {
@@ -97,6 +102,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             public const string SFHistory = "SFHistoryPage";
             public const string GFHistory = "GFHistoryPage";
             public const string ChildcareHistory = "ChildcareHistoryPage";
+            public const string ManagePINS = "ManagePINS";
         }
 
         private string _sportsAndFitnessPINPurposeGuid = "e98517ec-1805-456b-8453-ef8480bd487f";
@@ -121,6 +127,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             base.OnInit( e );
             mdGroupFitness.SaveClick += mdGroupFitness_SaveClick;
             mdChildcare.SaveClick += mdChildcare_SaveClick;
+            //rPersonPins.ItemCommand += rPersonPins_ItemCommand;
         }
 
 
@@ -136,7 +143,17 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 LoadPINBadge();
                 LoadChildcareCreditBadge();
                 LoadGroupFitnessSessionsBadge();
+
+                var pinParams = new Dictionary<string, string>();
+                pinParams.Add( "Person", SelectedPerson.Id.ToString() );
+
+
+                var pinUrl = LinkedPageUrl( AttributeKeys.ManagePINS, pinParams );
+                lPINFrame.Text = $"<iframe src=\"{pinUrl}\" width=\"100%\" height=\"400\" />";
             }
+
+            var script = "addClosePINEvent();";
+            ScriptManager.RegisterStartupScript( upMain, this.GetType(), "addPINEvent" + RockDateTime.Now.Ticks, script, true );
         }
 
         #endregion Base Control Methods
@@ -176,7 +193,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             switch (commandName)
             {
                 case "update-pin":
-                    LoadPinModal();
+                    LoadPINBadge();
                     break;
                 case "add-childcare-credit":
                     LoadChildcareCreditModal();
@@ -187,6 +204,11 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 default:
                     break;
             }
+        }
+
+        private void rPersonPins_ItemCommand( object source, RepeaterCommandEventArgs e )
+        {
+
         }
 
         #endregion Events
@@ -330,38 +352,45 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             var personId = SelectedPerson.Id;
 
             var purposeAttributeGuid = GetAttributeValue( AttributeKeys.LoginPINPurpose ).AsGuid();
+            var loginCount = LoadPins().Count();
+            hlblPIN.Text = string.Format( "{0} {1}", loginCount, "Login".PluralizeIf( loginCount != 1 ) );
+            if (loginCount == 0)
+            {
+                hlblPIN.LabelType = LabelType.Default;
+            }
+            else
+            {
+                hlblPIN.LabelType = LabelType.Success;
+            }
+            hlblPIN.Visible = true;
+            
+        }
+
+        private List<UserLogin> LoadPins()
+        {
+            var pinAuthenticationEntityType = EntityTypeCache.Get( typeof( PINAuthentication ) );
+            var SportsPINPurposeDV = DefinedValueCache.Get( _sportsAndFitnessPINPurposeGuid.AsGuid() );
+            var personId = SelectedPerson.Id;
+
+            var purposeAttributeGuid = GetAttributeValue( AttributeKeys.LoginPINPurpose ).AsGuid();
 
             using (var rockContext = new RockContext())
             {
                 var attributeValue = new AttributeValueService( rockContext ).Queryable()
                     .Where( av => av.Attribute.Guid == purposeAttributeGuid );
 
-                var loginCount = new UserLoginService( rockContext ).Queryable()
+                var logins = new UserLoginService( rockContext ).Queryable()
                     .Join( attributeValue, u => u.Id, av => av.EntityId,
-                        ( u, av ) => new { UserLoginId = u.Id, u.UserName, u.PersonId, u.EntityTypeId, purposeIds = av.Value } )
-                    .Where( l => l.EntityTypeId == pinAuthenticationEntityType.Id )
-                    .Where( l => l.PersonId == personId )
+                        ( u, av ) => new { UserLogin = u, purposeIds = av.Value } )
+                    .Where( l => l.UserLogin.EntityTypeId == pinAuthenticationEntityType.Id )
+                    .Where( l => l.UserLogin.PersonId == personId )
                     .ToList()
-                    .Select( l => new { l.UserLoginId, l.UserName, purposes = l.purposeIds.SplitDelimitedValues().AsIntegerList() } )
-                    .Where( l => l.purposes.Contains( SportsPINPurposeDV.Id ) )
-                    .Count();
+                    .Where( l => l.purposeIds.SplitDelimitedValues().Contains( SportsPINPurposeDV.Id.ToString() ) )
+                    .Select( l => l.UserLogin )
+                    .ToList();
 
-                hlblPIN.Text = string.Format( "{0} {1}", loginCount, "Login".PluralizeIf( loginCount != 1 ) );
-                if (loginCount == 0)
-                {
-                    hlblPIN.LabelType = LabelType.Default;
-                }
-                else
-                {
-                    hlblPIN.LabelType = LabelType.Success;
-                }
-                hlblPIN.Visible = true;
+                return logins;
             }
-        }
-
-        private void LoadPinModal()
-        {
-
         }
 
         private void LoadChildcareCreditBadge()
@@ -492,6 +521,29 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             }
         }
 
+        private void RemovePIN(int? userLoginId)
+        {
+            if(!userLoginId.HasValue)
+            {
+                return;
+            }
+
+            using (var userLoginContext = new RockContext())
+            {
+                var userLoginService = new UserLoginService( userLoginContext );
+
+                var login = userLoginService.Get( userLoginId.Value );
+
+                if(login.PersonId == SelectedPerson.Id)
+                {
+                    userLoginService.Delete( login );
+                    userLoginContext.SaveChanges();
+                }
+            }
+
+
+        }
+
         private void RouteAction()
         {
             var sm = ScriptManager.GetCurrent( Page );
@@ -504,7 +556,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 switch (action.ToLower())
                 {
                     case "update-pin":
-                        LoadPinModal();
+                        LoadPINBadge();
                         break;
                     case "add-childcare-credits":
                         LoadChildcareCreditModal();
@@ -615,5 +667,6 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         }
 
         #endregion
+
     }
 }
