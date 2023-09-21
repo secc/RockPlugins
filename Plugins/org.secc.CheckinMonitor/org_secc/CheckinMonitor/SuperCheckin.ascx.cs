@@ -24,6 +24,7 @@ using System.Text.RegularExpressions;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Newtonsoft.Json;
+using OpenXmlPowerTools;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Utilities;
@@ -903,13 +904,13 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         protected void mdCheckinPin_SaveClick( object sender, EventArgs e )
         {
             var rockContext = new Rock.Data.RockContext();
-
             var attendanceGuid = tbCheckinPin.Text.AsGuid();
+            var today = DateTime.Now.Date;
             var attendanceRecord = new AttendanceService( rockContext )
                                     .Queryable()
                                     .Where( a =>
                                         a.Guid == attendanceGuid &&
-                                        a.EndDateTime == null )
+                                        a.StartDateTime > today )
                                     .FirstOrDefault();
 
             if ( attendanceGuid.IsEmpty() )
