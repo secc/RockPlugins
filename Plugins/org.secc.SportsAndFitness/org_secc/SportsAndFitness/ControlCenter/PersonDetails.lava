@@ -1,0 +1,96 @@
+<style>
+    .img-profile {
+        max-width:200px;
+        max-height:200px;
+        width:100%
+        height:auto;
+        vertical-align:middle;
+    }
+    h1.title.name{
+        margin: 0px;0px;4px;
+    }
+
+    .label {
+        font-weight:400;
+        border-radius:0;
+    }
+    .label-campus {
+        color:#fff;
+        background-color:#83758f;
+    }
+    .label-sportsAndFitness {
+        color:#fff;
+        background-color:rgb(32, 70, 82);
+    }
+    .bio-bar
+    {
+        min-height:200px;
+        padding-bottom:15px;
+    }
+</style>
+
+{% assign personId = 'Global' | PageParameter:'Person' %}
+{% assign person = personId | PersonById %}
+
+{% assign age = '' %}
+{% if person.BirthDate != null %}
+    {% assign age = person.BirthDate | HumanizeDateTime | Replace:'ago','' | Trim %}
+{% endif %}
+
+<div class="row bio-bar">
+    <div class="col-sm-3">
+        <img src="{{person.PhotoUrl}}" alt="{{person.FullName}}" class="img img-profile" />
+    </div>
+    <div class="col-sm-9">
+        <h1 class="title name">{{person.FullName}}</h1>
+        <span class="label label-campus">{{person | Campus | Property:'Name'}}</span>
+        <span class="label label-success">{{person.ConnectionStatusValue.Value }}</span>
+
+        {% if person.RecordStatusValueId == 4 %}
+            <span class="label label-danger">{{person.RecordStatusValue.Value}}</span>
+        {% endif %}
+
+        {% assign groupmembers = person | Group:"319083",'Active' %}
+        {% assign groupmemberCount = groupmembers | Size %}
+        {% if groupmemberCount > 0 %}
+            <span class="label label-sportsAndFitness"><i class="fas fa-basketball-ball"></i> Sports &amp; Fitness</span>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="summary">
+                    <dl class="demographics">
+                        {% if age != '' %}
+                        <dd> {{ age }} <small>({{person.BirthDate | Date:'M/d/yyyy'}})</small></dd>
+                        {% endif %}
+                        <dd>{{ person.Gender }} </dd>
+                        <dd>{{ person.MaritalStatusValue.Value }}</dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="summary">
+                    <dl class="demographics">
+                        {% assign mobilePhone = person | PhoneNumber:'Mobile' %}
+                        {% if mobilePhone != null and mobilePhone != '' %}
+                            <dd>{{ mobilePhone }} <small>Mobile</small></dd>
+                        {% endif %}
+
+                        {% assign homePhone = person | PhoneNumber:'Home' %}
+                        {% if homePhone != null and homePhone != '' %}
+                            <dd>{{ person | PhoneNumber:'Home' }} <small>Home</small></dd>
+                        {% endif %}
+                        {% if person.Email != '' %}
+                            <div class="email">
+                                {% capture communicationLink %}https://rock.secc.org/Communication?person={{ person.Id }}{% endcapture %}
+                                <a href="{{communicationLink}}" target="_blank">{{person.Email}}</a>
+                            </div>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
