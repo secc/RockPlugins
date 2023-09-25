@@ -29,6 +29,7 @@ using Rock;
 using Rock.CheckIn;
 using Rock.Model;
 using Rock.Rest;
+using Rock.Security;
 using Rock.Web.Cache;
 
 namespace org.secc.FamilyCheckin.Rest.Controllers
@@ -76,7 +77,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
             {
                 var session = HttpContext.Current.Session;
 
-                var localDeviceConfigCookie = HttpContext.Current.Request.Cookies[CheckInCookieKey.LocalDeviceConfig].Value;
+                var localDeviceConfigCookie = Encryption.DecryptString( HttpContext.Current.Request.Cookies[CheckInCookieKey.LocalDeviceConfig].Value );
                 var localDevice = localDeviceConfigCookie.FromJsonOrNull<LocalDeviceConfiguration>();
 
                 var currentKioskId = localDevice.CurrentKioskId.Value;
