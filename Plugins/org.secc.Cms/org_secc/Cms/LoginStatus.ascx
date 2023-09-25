@@ -116,4 +116,5 @@
         <asp:LinkButton ID="lbLogin" runat="server" OnClick="lbLoginLogout_Click" CausesValidation="false" Text="Login"></asp:LinkButton></li>
 </ul>
 <asp:HiddenField ID="hfActionType" runat="server" />
+<asp:HiddenField ID="hfLastChecked" runat="server" />
 
