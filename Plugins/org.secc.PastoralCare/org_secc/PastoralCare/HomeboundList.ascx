@@ -22,6 +22,7 @@
                     <Columns>
                         <Rock:PersonField DataField="HomeboundPerson" HeaderText="Person" SortExpression="HomeboundPerson.LastName" />
                         <Rock:RockBoundField DataField="Age" HeaderText="Age" SortExpression="Age"></Rock:RockBoundField>
+                        <Rock:RockBoundField DataField="Birthday" HeaderText="Birthday" SortExpression="Birthday" Visible="false"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="PhoneNumber" HtmlEncode="false" HeaderText="Phone Number" SortExpression="PhoneNumber"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="StartDate" DataFormatString="{0:MM/dd/yyyy}" HeaderText="Start Date" SortExpression="StartDate"></Rock:RockBoundField>
                         <Rock:RockBoundField DataField="Description" HeaderText="Description" SortExpression="Description"></Rock:RockBoundField>
