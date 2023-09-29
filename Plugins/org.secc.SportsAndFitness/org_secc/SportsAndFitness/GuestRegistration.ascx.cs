@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
+using System.IdentityModel.Metadata;
 using System.Linq;
 using System.Web.UI.WebControls;
 using DocumentFormat.OpenXml.Wordprocessing;
+using MassTransit;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -56,6 +59,14 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         DefaultValue = "",
         Order = 4,
         Key = AttributeKeys.NewGuestMessageKey )]
+    [CodeEditorField("Load Guest Details",
+        Description = "Confirmation message to confirm that the guest information is correct.",
+        IsRequired = false,
+        EditorMode = CodeEditorMode.Lava,
+        EditorTheme = CodeEditorTheme.Rock,
+        DefaultValue = "",
+        Order = 5,
+        Key = AttributeKeys.GuestDetailMessageKey)]
     [CodeEditorField( "Finish Message",
         Description = "Complete/Finish Message for the finish screen",
         EditorMode = CodeEditorMode.Lava,
@@ -89,6 +100,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             public const string LavaCommandKey = "LavaCommands";
             public const string WelcomeIntroKey = "WelcomeIntro";
             public const string DefaultCampusKey = "DefaultCampus";
+            public const string GuestDetailMessageKey = "GuestDetailMessage";
         }
 
         private Guid? _invitationGuid;
@@ -121,6 +133,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             lbSaveNewGuest.Click += lbSaveNewGuest_Click;
             lbCancelNewGuest.Click += lbCancelNewGuest_Click;
             lbFinish.Click += lbFinish_Click;
+            lbGuestCancel.Click += lbGuestCancel_Click;
         }
 
 
@@ -194,9 +207,26 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             LoadInvitation();
         }
 
+        private void lbGuestCancel_Click( object sender, EventArgs e )
+        {
+            var personId = lbGuestCancel.CommandArgument.AsInteger();
+            LoadNewGuestForm( personId: personId );
+
+        }
+
         private void lbSaveNewGuest_Click( object sender, EventArgs e )
         {
-            AddNewGuest();
+            var personGuid = hfPersonGuidNewGuest.Value.AsGuid();
+
+            if (personGuid.Equals( Guid.Empty ))
+            {
+                AddNewGuest();
+            }
+            else
+            {
+                UpdateGuest();
+            }
+
         }
         #endregion Events
 
@@ -312,12 +342,13 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                     guest = person;
                 }
             }
-            LoadGuest( guest );
+            LoadGuest( guest, true );
 
         }
 
         private void ClearNewGuestFields()
         {
+            hfPersonGuidNewGuest.Value = string.Empty;
             tbFirstName.Text = string.Empty;
             tbLastName.Text = string.Empty;
             tbMobile.Text = string.Empty;
@@ -333,6 +364,8 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             pnlWelcome.Visible = false;
             pnlReturningGuest.Visible = false;
             pnlNewGuest.Visible = false;
+            pnlLoadGuest.Visible = false;
+            pnlFinish.Visible = false;
 
         }
 
@@ -372,7 +405,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 }
                 else
                 {
-                    LoadGuest( phonePerson.Single() );
+                    LoadGuest( phonePerson.Single(), false );
                 }
 
             }
@@ -388,9 +421,16 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
         }
 
-        private void LoadGuest( Person p )
+        private void LoadGuest( Person p, bool isNew )
         {
-            LoadFinishPanel( p );
+            HidePanels();
+            pnlLoadGuest.Visible = true;
+            var mergefields = new Dictionary<string, object>();
+            mergefields.Add( "Guest", p );
+            mergefields.Add( "IsNew", isNew );
+            lLoadGuestMessage.Text = ProcessLava( GetAttributeValue( AttributeKeys.GuestDetailMessageKey ), mergefields );
+            lbGuestCancel.CommandArgument = p.Id.ToString();
+
         }
 
         private void LoadWelcomePanel()
@@ -402,12 +442,16 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
         }
 
-        private void LoadNewGuestForm( bool guestNotFound = false )
+        private void LoadNewGuestForm( bool guestNotFound = false, int? personId = null )
         {
             HidePanels();
             pnlNewGuest.Visible = true;
             ClearNewGuestFields();
 
+            if(personId.HasValue)
+            {
+                PopulateNewGuestForm( personId.Value );
+            }
         }
 
         private void LoadPreviousGuestPanel()
@@ -416,6 +460,33 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             pnlReturningGuest.Visible = true;
             lReturningGuestMessage.Text = ProcessLava( GetAttributeValue( AttributeKeys.ExistingGuestMessageKey ) );
 
+
+        }
+
+        private void PopulateNewGuestForm(int personId)
+        {
+            Person person = null;
+            using (var rockContext = new RockContext())
+            {
+                person = new PersonService( rockContext ).Get( personId );
+
+
+                if (person == null)
+                {
+                    return;
+                }
+                hfPersonGuidNewGuest.Value = person.Guid.ToString();
+                tbFirstName.Text = person.FirstName;
+                tbLastName.Text = person.LastName;
+                dpBirthDate.SelectedDate = person.BirthDate;
+                tbEmail.Text = person.Email;
+                tbMobile.Text = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).NumberFormatted;
+
+                if(person.Gender != Gender.Unknown)
+                {
+                    ddlGender.SelectedValue = ((int) person.Gender).ToString();
+                }
+            }
 
         }
 
@@ -432,6 +503,40 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             }
 
             return lavaTemplate.ResolveMergeFields( mergeFields, GetAttributeValue( AttributeKeys.LavaCommandKey ) );
+        }
+
+        private void UpdateGuest()
+        {
+            var personGuid = hfPersonGuidNewGuest.Value.AsGuid();
+
+            Person person = null;
+
+            using (var rockContext = new RockContext())
+            {
+                var personService = new PersonService( rockContext );
+                person = personService.Get( personGuid );
+
+                person.FirstName = tbFirstName.Text.Trim();
+                person.LastName = tbLastName.Text.Trim();
+
+                if(dpBirthDate.SelectedDate != null)
+                {
+                    person.BirthMonth = dpBirthDate.SelectedDate.Value.Month;
+                    person.BirthDay = dpBirthDate.SelectedDate.Value.Day;
+                    person.BirthYear = dpBirthDate.SelectedDate.Value.Year;
+                }
+
+                person.Gender = ddlGender.SelectedValueAsEnum<Gender>();
+                person.Email = tbEmail.Text.Trim();
+
+
+                var phone = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
+                phone.Number = PhoneNumber.CleanNumber( tbMobile.Text.Trim() );
+
+                rockContext.SaveChanges();
+            }
+            LoadGuest( person, false );
+
         }
 
         #endregion
