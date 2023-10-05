@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
-using System.IdentityModel.Metadata;
 using System.Linq;
 using System.Web.UI.WebControls;
-using DocumentFormat.OpenXml.Wordprocessing;
-using MassTransit;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -103,7 +100,17 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             public const string GuestDetailMessageKey = "GuestDetailMessage";
         }
 
+        public class EmergencyContact
+        {
+            public string FirstName { get; set; }
+            public string LastName { get; set; }
+            public string PhoneNumber { get; set; }
+            public string Relationship { get; set; }
+        }
+
         private Guid? _invitationGuid;
+        private const int ADULT_AGE = 18;
+        private const string EMERGENCY_CONTACT_LIST_KEY = "SFEmergencyContactList";
 
         private Guid? InvitationGuid
         {
@@ -122,6 +129,32 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             }
         }
 
+        private int? PersonId
+        {
+            get
+            {
+                return ViewState["SFGuest_PersonId"] as int?;
+            }
+            set
+            {
+                ViewState["SFGuest_PersonId"] = value;
+            }
+        }
+
+        private bool? IsMinor
+        {
+            get
+            {
+                return ViewState["SFGuest_IsMinor"] as bool?;
+            }
+            set
+            {
+                ViewState["SFGuest_PersonId"] = value;
+            }
+        }
+
+
+
         #region Base Control Methods
         protected override void OnInit( EventArgs e )
         {
@@ -133,6 +166,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             lbSaveNewGuest.Click += lbSaveNewGuest_Click;
             lbCancelNewGuest.Click += lbCancelNewGuest_Click;
             lbFinish.Click += lbFinish_Click;
+            lbGuestConfirm.Click += lbGuestConfirm_Click;
             lbGuestCancel.Click += lbGuestCancel_Click;
         }
 
@@ -144,7 +178,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
             if (!IsPostBack)
             {
-                LoadInvitation();
+                LoadWelcomePanel();
             }
         }
         #endregion
@@ -160,7 +194,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             nbReturningGuest.Visible = false;
             tbReturningGuestNumber.Text = string.Empty;
             InvitationGuid = null;
-            LoadInvitation();
+            LoadWelcomePanel();
 
         }
 
@@ -186,6 +220,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             }
 
             LoadReturningGuest( phonenumber );
+            tbReturningGuestNumber.Text = string.Empty;
         }
 
         private void lbPreviousGuest_Click( object sender, EventArgs e )
@@ -197,28 +232,31 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         {
             ClearNewGuestFields();
             InvitationGuid = null;
-            LoadInvitation();
+            LoadWelcomePanel();
         }
 
         private void lbFinish_Click( object sender, EventArgs e )
         {
             ClearNewGuestFields();
             InvitationGuid = null;
-            LoadInvitation();
+            LoadWelcomePanel();
         }
 
         private void lbGuestCancel_Click( object sender, EventArgs e )
         {
-            var personId = lbGuestCancel.CommandArgument.AsInteger();
-            LoadNewGuestForm( personId: personId );
+            
+            LoadNewGuestForm( );
 
+        }
+        private void lbGuestConfirm_Click( object sender, EventArgs e )
+        {
+            
         }
 
         private void lbSaveNewGuest_Click( object sender, EventArgs e )
-        {
-            var personGuid = hfPersonGuidNewGuest.Value.AsGuid();
+        {;
 
-            if (personGuid.Equals( Guid.Empty ))
+            if (!PersonId.HasValue)
             {
                 AddNewGuest();
             }
@@ -342,13 +380,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                     guest = person;
                 }
             }
-            LoadGuest( guest, true );
+            LoadGuest( guest.Id, true );
 
         }
 
         private void ClearNewGuestFields()
         {
-            hfPersonGuidNewGuest.Value = string.Empty;
             tbFirstName.Text = string.Empty;
             tbLastName.Text = string.Empty;
             tbMobile.Text = string.Empty;
@@ -369,16 +406,8 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
         }
 
-        private void LoadInvitation()
-        {
-            InvitationGuid = PageParameter( AttributeKeys.InvitationQSKey ).AsGuidOrNull();
 
-            if (!InvitationGuid.HasValue)
-            {
-                LoadWelcomePanel();
-            }
 
-        }
 
         private void LoadReturningGuest( string phoneNumber )
         {
@@ -405,10 +434,42 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 }
                 else
                 {
-                    LoadGuest( phonePerson.Single(), false );
+                    LoadGuest( phonePerson.Single().Id, false );
                 }
 
             }
+        }
+
+        private List<EmergencyContact> LoadEmergencyContacts(Guid matrixGuid)
+        {
+            var emergencyContacts = new List<EmergencyContact>();
+            if (matrixGuid == Guid.Empty)
+            {
+                return emergencyContacts;
+            }
+
+            using (var rockcontext = new RockContext())
+            {
+                var amiService = new AttributeMatrixItemService( rockcontext );
+                var matrixItems = amiService.Queryable().AsNoTracking()
+                    .Where( mi => mi.AttributeMatrix.Guid == matrixGuid )
+                    .ToList();
+
+                foreach (var item in matrixItems)
+                {
+                    item.LoadAttributes( rockcontext );
+                    var contact = new EmergencyContact();
+                    contact.FirstName = item.GetAttributeValue( "FirstName" );
+                    contact.LastName = item.GetAttributeValue( "LastName" );
+                    contact.PhoneNumber = PhoneNumber.FormattedNumber( "1", PhoneNumber.CleanNumber(
+                        item.GetAttributeValue( "PhoneNumber" ) ), false );
+                    contact.Relationship = item.GetAttributeValue( "Relationship" );
+
+                    emergencyContacts.Add( contact );
+                }
+            }
+
+            return emergencyContacts;
         }
 
         private void LoadFinishPanel( Person p )
@@ -421,61 +482,92 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
         }
 
-        private void LoadGuest( Person p, bool isNew )
+        private void LoadGuest( int personId, bool isNew )
         {
             HidePanels();
+
+            using (var rockContext = new RockContext())
+            {
+                var p = new PersonService( rockContext ).Get( personId );
+                PersonId = p.Id;
+                IsMinor = p.Age < ADULT_AGE;
+
+                p.LoadAttributes( rockContext );
+                List<EmergencyContact> contacts = LoadEmergencyContacts( p.GetAttributeValue(EMERGENCY_CONTACT_LIST_KEY).AsGuid() );
+
+                var mergefields = new Dictionary<string, object>();
+                mergefields.Add( "Guest", p );
+                mergefields.Add( "IsNew", isNew );
+                lLoadGuestMessage.Text = ProcessLava( GetAttributeValue( AttributeKeys.GuestDetailMessageKey ), mergefields );
+            }
             pnlLoadGuest.Visible = true;
-            var mergefields = new Dictionary<string, object>();
-            mergefields.Add( "Guest", p );
-            mergefields.Add( "IsNew", isNew );
-            lLoadGuestMessage.Text = ProcessLava( GetAttributeValue( AttributeKeys.GuestDetailMessageKey ), mergefields );
-            lbGuestCancel.CommandArgument = p.Id.ToString();
 
         }
 
-        private void LoadWelcomePanel()
-        {
-            HidePanels();
-            pnlWelcome.Visible = true;
-            var lava = GetAttributeValue( AttributeKeys.WelcomeIntroKey );
-            lWelcomeLava.Text = ProcessLava( lava );
 
-        }
-
-        private void LoadNewGuestForm( bool guestNotFound = false, int? personId = null )
+        private void LoadNewGuestForm( bool guestNotFound = false)
         {
             HidePanels();
             pnlNewGuest.Visible = true;
             ClearNewGuestFields();
 
-            if(personId.HasValue)
+            if(PersonId.HasValue)
             {
-                PopulateNewGuestForm( personId.Value );
+                PopulateNewGuestForm( );
             }
         }
 
         private void LoadPreviousGuestPanel()
         {
             HidePanels();
+            tbReturningGuestNumber.Text = String.Empty;
             pnlReturningGuest.Visible = true;
             lReturningGuestMessage.Text = ProcessLava( GetAttributeValue( AttributeKeys.ExistingGuestMessageKey ) );
 
 
         }
 
-        private void PopulateNewGuestForm(int personId)
+        private void LoadWelcomePanel()
+        {
+            HidePanels();
+            InvitationGuid = null;
+            PersonId = null;
+            pnlWelcome.Visible = true;
+            var lava = GetAttributeValue( AttributeKeys.WelcomeIntroKey );
+            lWelcomeLava.Text = ProcessLava( lava );
+        }
+
+        private void LoadWorkflow()
+        {
+            var workflowTypeGuid = GetAttributeValue( AttributeKeys.GuestWorkflowKey ).AsGuid();
+
+            using (var rockContext = new RockContext())
+            {
+                var person = new PersonService( rockContext ).Get( PersonId.Value );
+                var workflowType = WorkflowTypeCache.Get( workflowTypeGuid );
+
+                var workflow = Workflow.Activate( workflowType, $"New Guest - {person.FullName}" );
+                workflow.InitiatorPersonAliasId = person.PrimaryAliasId;
+               
+
+                var workflowErrors = new List<string>();
+                new WorkflowService( rockContext ).Process( workflow, out workflowErrors );
+
+                InvitationGuid = workflow.Guid;
+            }
+        }
+
+        private void PopulateNewGuestForm()
         {
             Person person = null;
             using (var rockContext = new RockContext())
             {
-                person = new PersonService( rockContext ).Get( personId );
-
+                person = new PersonService( rockContext ).Get( PersonId.Value );
 
                 if (person == null)
                 {
                     return;
                 }
-                hfPersonGuidNewGuest.Value = person.Guid.ToString();
                 tbFirstName.Text = person.FirstName;
                 tbLastName.Text = person.LastName;
                 dpBirthDate.SelectedDate = person.BirthDate;
@@ -507,14 +599,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
         private void UpdateGuest()
         {
-            var personGuid = hfPersonGuidNewGuest.Value.AsGuid();
-
             Person person = null;
 
             using (var rockContext = new RockContext())
             {
                 var personService = new PersonService( rockContext );
-                person = personService.Get( personGuid );
+                person = personService.Get( PersonId.Value );
 
                 person.FirstName = tbFirstName.Text.Trim();
                 person.LastName = tbLastName.Text.Trim();
@@ -535,7 +625,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
                 rockContext.SaveChanges();
             }
-            LoadGuest( person, false );
+            LoadGuest( person.Id, false );
 
         }
 

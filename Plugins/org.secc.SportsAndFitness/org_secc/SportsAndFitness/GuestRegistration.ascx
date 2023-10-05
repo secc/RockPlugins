@@ -29,6 +29,11 @@
         font-size: 24px;
         font-weight:bold;
     }
+    .emergencyContact {
+        border: 1px solid #484848;
+        padding-bottom: 15px;
+
+    }
 </style>
 <asp:UpdatePanel ID="upMain" runat="server">
 
@@ -64,7 +69,6 @@
             <Rock:NotificationBox ID="nbNewGuest" runat="server" NotificationBoxType="Info" />
             <asp:ValidationSummary ID="valNewGuest" runat="server" CssClass="alert alert-validation" ValidationGroup="vgNewGuest" />
             <asp:Literal ID="lNewGuest" runat="server" />
-            <asp:HiddenField ID="hfPersonGuidNewGuest" runat="server" />
             <div class="row">
                 <div class="col-sm-6">
                     <Rock:RockTextBox ID="tbFirstName" runat="server" Label="First Name" Required="true" RequiredErrorMessage="First Name is Required" ValidationGroup="vgNewGuest" />
@@ -102,6 +106,7 @@
             </div>
 
         </asp:Panel>
+
         <asp:Panel ID="pnlLoadGuest" runat="server" Visible="false" CssClass="container-fluid">
             <asp:Literal ID="lLoadGuestMessage" runat="server" />
             <div class="row">
@@ -114,6 +119,38 @@
                 </div>
             </div>
         </asp:Panel>
+        <asp:Panel ID="pnlEmergencyContactConfirm" runat="server" Visible="false">
+            <asp:Literal ID="lEmergencyContactConfirmMessage" runat="server"></asp:Literal>
+            <asp:Panel ID="pnlEmergencyContactNoContactsFound" runat="server" Visible="false">
+                <h2 style="text-align:center;">No Contacts Found</h2>
+            </asp:Panel>
+            <asp:Repeater ID="rEmergencyContactConfirm" runat="server">
+                <HeaderTemplate>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Phone Number</th>
+                                <th>Relationship</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                </HeaderTemplate>
+                <ItemTemplate>
+                            <tr>
+                                <td><%# Eval("FullName") %></td>
+                                <td><%# Eval("PhoneNumber") %></td>
+                                <td><%# Eval("Relationship") %></td>
+                            </tr>
+                </ItemTemplate>
+                <FooterTemplate>
+                        </tbody>
+
+                    </table>
+                </FooterTemplate>
+            </asp:Repeater>
+        </asp:Panel>
+
         <asp:Panel ID="pnlFinish" runat="server" Visible="false" >
             <asp:Literal ID="lFinishMessage" runat="server" />
             <div class="actions pull-right">
