@@ -306,32 +306,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         protected void lbMenuItem_Click( object sender, EventArgs e )
         {
-            if ( sender is ButtonDropDownList )
-            {
-                ButtonDropDownList bddl = ( ButtonDropDownList ) sender;
-
-                switch ( bddl.SelectedValue )
-                {
-                    case "Ministry":
-                        ucStaffSearchRequester.Title = "Ministry Approver";
-                        ucStaffSearchRequester.MinistryAreaAttributeGuid = MinistryAreaPersonAttributeSetting;
-                        ucStaffSearchRequester.PositionAttributeGuid = PositionPersonAttributeSetting;
-                        ucStaffSearchRequester.Show();
-                        break;
-                    case "LeadTeam":
-                        ucStaffSearchRequester.Title = "Lead Team Approver";
-                        ucStaffSearchRequester.MinistryAreaAttributeGuid = MinistryAreaPersonAttributeSetting;
-                        ucStaffSearchRequester.PositionAttributeGuid = PositionPersonAttributeSetting;
-                        ucStaffSearchRequester.Show();
-                        break;
-                    default:
-                        bddl.ClearSelection();
-                        break;
-                }
-
-
-
-            }
             if ( sender is LinkButton )
             {
                 LinkButton lb = ( LinkButton ) sender;
@@ -349,6 +323,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                         break;
                     case "addbid":
                         LoadBidDetail( 0 );
+                        break;
+                    case "addapprover":
+                        ucStaffSearchRequester.Title = "Select Your Ministry Lead";
+                        ucStaffSearchRequester.MinistryAreaAttributeGuid = MinistryAreaPersonAttributeSetting;
+                        ucStaffSearchRequester.PositionAttributeGuid = PositionPersonAttributeSetting;
+                        ucStaffSearchRequester.Show();
                         break;
                     case "requestapproval":
                         RequestApproval();
@@ -1892,7 +1872,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private void SetMenuItemVisibility()
         {
             lbMenuItem_AddBid.Visible = UserCanEditBids();
-            bddlMenuItem_AddApproval.Visible = UserCanAddMinistryApprovalRequest();
+            lbMenuItem_AddApproval.Visible = UserCanAddMinistryApprovalRequest();
             lbMenuItem_RequestApproval.Visible = UserCanRequestApproval();
             lbMenuItem_AddRequisition.Visible = UserCanAddRequisition();
             lbMenuItem_Cancel.Visible = UserCanCancelCER();
@@ -2341,15 +2321,6 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             // Set the approval type;
             int approvalTypeId = Approval.MinistryApprovalTypeLUID();
-            switch ( bddlMenuItem_AddApproval.SelectedValue )
-            {
-                case "Finance":
-                    approvalTypeId = Approval.FinanceApprovalTypeLUID();
-                    break;
-                case "LeadTeam":
-                    approvalTypeId = Approval.LeadTeamApprovalTypeLUID();
-                    break;
-            }
 
             CurrentCapitalRequest.AddApprovalRequest( test.Id, CurrentUser.UserName, approvalTypeId );
 
