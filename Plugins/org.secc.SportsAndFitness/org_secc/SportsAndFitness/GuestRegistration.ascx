@@ -29,11 +29,24 @@
         font-size: 24px;
         font-weight:bold;
     }
-    .emergencyContact {
-        border: 1px solid #484848;
-        padding-bottom: 15px;
-
+    .actions-center {
+        text-align:center;
     }
+    table.emergencyContact {
+        border: 1px solid #484848;
+        margin-bottom:15px;
+    }
+
+    .emergencyContact th {
+        font-weight: bold !important;
+        font-size: 1em !important;
+    }
+
+    .emergencyContactAdd .row {
+        margin-bottom:15px;
+    }
+    
+
 </style>
 <asp:UpdatePanel ID="upMain" runat="server">
 
@@ -109,24 +122,18 @@
 
         <asp:Panel ID="pnlLoadGuest" runat="server" Visible="false" CssClass="container-fluid">
             <asp:Literal ID="lLoadGuestMessage" runat="server" />
-            <div class="row">
-                <div class="center-block" style="text-align:center;">
-                    <div class="col-sm-6 col-sm-offset-3" >
-                        <asp:LinkButton ID="lbGuestConfirm" runat="server" CssClass="btn btn-start btn-success" CausesValidation="false"><i class="fa fa-check"></i></asp:LinkButton>
-                        <asp:LinkButton ID="lbGuestCancel" runat="server" CssClass="btn btn-start btn-danger"  CausesValidation="false" ><i class="fa fa-times"></i></asp:LinkButton>
-                    </div>
 
-                </div>
+            <div class="actions actions-center" >
+                <asp:LinkButton ID="lbGuestConfirm" runat="server" CssClass="btn btn-start btn-success" CausesValidation="false"><i class="fa fa-check"></i></asp:LinkButton>
+                <asp:LinkButton ID="lbGuestCancel" runat="server" CssClass="btn btn-start btn-danger"  CausesValidation="false" ><i class="fa fa-times"></i></asp:LinkButton>
+            </div>
             </div>
         </asp:Panel>
         <asp:Panel ID="pnlEmergencyContactConfirm" runat="server" Visible="false">
             <asp:Literal ID="lEmergencyContactConfirmMessage" runat="server"></asp:Literal>
-            <asp:Panel ID="pnlEmergencyContactNoContactsFound" runat="server" Visible="false">
-                <h2 style="text-align:center;">No Contacts Found</h2>
-            </asp:Panel>
-            <asp:Repeater ID="rEmergencyContactConfirm" runat="server">
+            <asp:Repeater ID="rEmergencyContactConfirm" runat="server" Visible="false">
                 <HeaderTemplate>
-                    <table class="table table-striped">
+                    <table class="table table-striped emergencyContact">
                         <thead>
                             <tr>
                                 <th>Name</th>
@@ -145,10 +152,99 @@
                 </ItemTemplate>
                 <FooterTemplate>
                         </tbody>
-
                     </table>
                 </FooterTemplate>
             </asp:Repeater>
+            <div class="actions actions-center">
+
+                    <asp:LinkButton ID="lbEmergencyContactConfirm" runat="server" CssClass="btn btn-success" CausesValidation="false">Confirm</asp:LinkButton>
+                    <asp:LinkButton ID="lbEmergencyContactEdit" runat="server" CssClass="btn btn-primary" CausesValidation="false">Edit</asp:LinkButton>
+            </div>
+        </asp:Panel>
+        <asp:Panel ID="pnlEmergencyContactEdit" runat="server" Visible="false">
+            <h3>Update Emergency Contacts</h3>
+            <asp:Literal ID="lEmergencyContactEdit" runat="server" />
+            <asp:Panel ID="pnlEmergencyContactAddUpdate" CssClass="emergencyContactAdd" runat="server" Visible="false">
+                <div class="row">
+                    <div class="col-sm-3 col-sm-offset-3">
+                        <label>First Name</label>
+                    </div>
+                    <div class="col-sm-3">
+                        <Rock:RockTextBox ID="tbEmergencyContactFirstName" runat="server" Required="true" ValidationGroup="vg-emergency" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-3 col-sm-offset-3">
+                        <label>Last Name</label>
+                    </div>
+                    <div class="col-sm-3">
+                        <Rock:RockTextBox ID="tbEmergencyContactLastName" runat="server" Required="true" ValidationGroup="vg-emergency" /> 
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-3 col-sm-offset-3">
+                        <label>Phone Number</label>
+                    </div>
+                    <div class="col-sm-3">
+                        <Rock:PhoneNumberBox ID="phEmergencyContactPhone" runat="server" Required="true" ValidationGroup="vg-emergency" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-3 col-sm-offset-3">
+                        <label>Relationship</label>
+                    </div>
+                    <div class="col-sm-3">
+                        <Rock:RockDropDownList ID="ddlEmergencyContactRelationshp" runat="server" Required="true" ValidationGroup="vg-emergency">
+                            <asp:ListItem Text="" Value="" />
+                            <asp:ListItem Text="Spouse" Value="Spouse" />
+                            <asp:ListItem Text="Parent" Value="Parent" />
+                            <asp:ListItem Text="Sibling" Value="Sibling" />
+                            <asp:ListItem Text="Grandparent" Value="Grandparent" />
+                            <asp:ListItem Text="Friend" Value="Friend" />
+                            <asp:ListItem Text="Other" Value="Other" />
+                        </Rock:RockDropDownList>
+                    </div>
+                </div>
+                <div class="actons">
+                    <span class="pull-right">
+                        <asp:LinkButton ID="lbEmergencyContactSave" runat="server" CssClass="btn btn-primary">Save</asp:LinkButton>
+                        <asp:LinkButton ID="lbEmergencyContactCancel" runat="server" CssClass="btn btn-default">Cancel</asp:LinkButton>
+                    </span>
+                </div>
+            </asp:Panel>
+            <asp:Panel ID="pnlEmergencyContactList" runat="server" Visible="false">
+                <asp:Repeater ID="rEmergencyContactList" runat="server">
+                    <HeaderTemplate>
+                        <table class="table table-striped emergencyContact">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Phone Number</th>
+                                    <th>Relationship</th>
+                                    <th>&nbsp;</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    </HeaderTemplate>
+                    <ItemTemplate>
+                        <tr>
+                            <td><%# Eval("FullName") %></td>
+                            <td><%# Eval("PhoneNumber") %></td>
+                            <td><%# Eval("Relationship") %></td>
+                            <td>
+                                <span class="pull-right">
+                                <asp:LinkButton ID="lbEdit" runat="server" CssClass="btn btn-sm btn-primary" CommandName="edit" CommandArgument='<%# Eval("MatrixItemId") %>' ><i class="fa fa-pencil"></i></asp:LinkButton>
+                                <asp:LinkButton ID="lRemove" runat="server" CssClass="btn btn-sm btn-danger" CommandName="remove" CommandArgument='<%# Eval("MatrixItemId") %>' ><i class="fa fa-times"></i></asp:LinkButton>
+                                </span>
+                            </td>
+                        </tr>
+                    </ItemTemplate>
+                    <FooterTemplate>
+                        </tbody>
+                        </table>
+                    </FooterTemplate>
+                </asp:Repeater>
+            </asp:Panel>
         </asp:Panel>
 
         <asp:Panel ID="pnlFinish" runat="server" Visible="false" >

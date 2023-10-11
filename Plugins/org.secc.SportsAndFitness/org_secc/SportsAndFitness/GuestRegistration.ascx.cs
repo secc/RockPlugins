@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
+using System.Web.DynamicData;
 using System.Web.UI.WebControls;
-
+using GreenPipes.Internals.Mapping;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -64,6 +65,13 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         DefaultValue = "",
         Order = 5,
         Key = AttributeKeys.GuestDetailMessageKey)]
+    [CodeEditorField("Confirm Emergency Contacts Message",
+        Description = "Message to display on emergency contact confirmation page.",
+        EditorMode = CodeEditorMode.Lava,
+        EditorTheme = CodeEditorTheme.Rock,
+        IsRequired = false,
+        Order = 6,
+        Key = AttributeKeys.ConfirmEmergencyContactMessageKey)]
     [CodeEditorField( "Finish Message",
         Description = "Complete/Finish Message for the finish screen",
         EditorMode = CodeEditorMode.Lava,
@@ -98,19 +106,35 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             public const string WelcomeIntroKey = "WelcomeIntro";
             public const string DefaultCampusKey = "DefaultCampus";
             public const string GuestDetailMessageKey = "GuestDetailMessage";
+            public const string ConfirmEmergencyContactMessageKey = "ConfirmEmergencyContact";
         }
 
         public class EmergencyContact
         {
+            public Guid MatrixId { get; set; }
+            public int MatrixItemId { get; set; }
             public string FirstName { get; set; }
             public string LastName { get; set; }
             public string PhoneNumber { get; set; }
             public string Relationship { get; set; }
+
+            public string FullName
+            {
+                get
+                {
+                    return $"{FirstName} {LastName}";
+                }
+            }
         }
 
         private Guid? _invitationGuid;
         private const int ADULT_AGE = 18;
         private const string EMERGENCY_CONTACT_LIST_KEY = "SFEmergencyContactList";
+
+
+        private int? _personId = null;
+        private bool? _isMinor = null;
+        private List<EmergencyContact> _emrgencyContacts = null;
 
         private Guid? InvitationGuid
         {
@@ -133,11 +157,16 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         {
             get
             {
-                return ViewState["SFGuest_PersonId"] as int?;
+                if (!_personId.HasValue)
+                {
+                    _personId = ViewState["SFGuest_PersonId"] as int?;
+                }
+                return _personId;
             }
             set
             {
-                ViewState["SFGuest_PersonId"] = value;
+                _personId = value;
+                ViewState["SFGuest_PersonId"] = _personId;
             }
         }
 
@@ -145,11 +174,37 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         {
             get
             {
-                return ViewState["SFGuest_IsMinor"] as bool?;
+                if (!_isMinor.HasValue)
+                {
+                    _isMinor = ViewState["SFGuest_IsMinor"] as bool?;
+                }
+                return _isMinor;
             }
             set
             {
-                ViewState["SFGuest_PersonId"] = value;
+                _isMinor = value;
+                ViewState["SFGuest_IsMinor"] = _isMinor;
+            }
+        }
+
+        private List<EmergencyContact> EmergencyContacts
+        {
+            get
+            {
+                if(_emrgencyContacts == null)
+                {
+                    var json = ViewState["SFGuest_EmergencyContact"] as string;
+                    if(!json.IsNullOrWhiteSpace())
+                    {
+                        _emrgencyContacts = json.FromJsonOrNull<List<EmergencyContact>>();
+                    }
+                }
+                return _emrgencyContacts;
+            }
+            set
+            {
+                _emrgencyContacts = value;
+                ViewState["SFGuest_EmergencyContact"] = _emrgencyContacts.ToJson();
             }
         }
 
@@ -168,6 +223,10 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             lbFinish.Click += lbFinish_Click;
             lbGuestConfirm.Click += lbGuestConfirm_Click;
             lbGuestCancel.Click += lbGuestCancel_Click;
+            lbEmergencyContactEdit.Click += lbEmergencyContactEdit_Click;
+            rEmergencyContactList.ItemCommand += rEmergencyContactList_ItemCommand;
+            lbEmergencyContactSave.Click += lbEmergencyContactSave_Click;
+            lbEmergencyContactCancel.Click += lbEmergencyContactCancel_Click;
         }
 
 
@@ -250,7 +309,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         }
         private void lbGuestConfirm_Click( object sender, EventArgs e )
         {
-            
+            LoadEmergencyContactConfirmationPanel();
         }
 
         private void lbSaveNewGuest_Click( object sender, EventArgs e )
@@ -266,6 +325,39 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             }
 
         }
+
+        private void lbEmergencyContactEdit_Click( object sender, EventArgs e )
+        {
+            LoadEmergencyContactEditPanel();
+        }
+
+        private void rEmergencyContactList_ItemCommand( object source, RepeaterCommandEventArgs e )
+        {
+            if(e.Item.ItemType != ListItemType.Item && e.Item.ItemType != ListItemType.AlternatingItem)
+            {
+                return;
+            }
+
+            if(e.CommandName == "remove")
+            {
+                EmergencyContactDelete( (e.CommandArgument.ToString().AsInteger()) );
+            }
+            else if (e.CommandName == "edit")
+            {
+                LoadEmergencyContactAddPanel( e.CommandArgument.ToString().AsInteger() );
+            }
+        }
+
+        private void lbEmergencyContactCancel_Click( object sender, EventArgs e )
+        {
+            throw new NotImplementedException();
+        }
+
+        private void lbEmergencyContactSave_Click( object sender, EventArgs e )
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion Events
 
         #region Private Methods
@@ -357,7 +449,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                     var groupService = new GroupService( personContext );
                     var familyGroupType = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
 
-                    GroupTypeRoleCache groupTypeRole = person.Age >= 18 ?
+                    GroupTypeRoleCache groupTypeRole = person.Age >= ADULT_AGE ?
                         familyGroupType.Roles.Where( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() ).FirstOrDefault() :
                         familyGroupType.Roles.Where( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() ).FirstOrDefault();
 
@@ -384,6 +476,16 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
         }
 
+        private void ClearEmergencyContactAddPanel()
+        {
+            tbEmergencyContactFirstName.Text = string.Empty;
+            tbEmergencyContactLastName.Text = string.Empty;
+            phEmergencyContactPhone.Text = string.Empty;
+            ddlEmergencyContactRelationshp.SelectedValue = "";
+            lbEmergencyContactSave.CommandArgument = string.Empty;
+
+        }
+
         private void ClearNewGuestFields()
         {
             tbFirstName.Text = string.Empty;
@@ -396,18 +498,77 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
         }
 
+        private void EmergencyContactDelete(int? matrixItemId)
+        {
+            if(!matrixItemId.HasValue)
+            {
+                return;
+            }
+
+            var matrixGuid = Guid.Empty;
+            using (var rockContext = new RockContext())
+            {
+                var itemService = new AttributeMatrixItemService( rockContext );
+                var item = itemService.Get( matrixItemId.Value );
+
+                if(item != null)
+                {
+                    matrixGuid = item.AttributeMatrix.Guid;
+                    itemService.Delete( item );
+                    rockContext.SaveChanges();
+                }
+            }
+
+            EmergencyContacts = LoadEmergencyContacts( matrixGuid );
+            LoadEmergencyContactEditPanel();          
+
+        }
+
+        private void LoadEmergencyContactAddPanel(int? itemId)
+        {
+            ClearEmergencyContactAddPanel();
+
+            if(itemId.HasValue)
+            {
+                using(var rockContext = new RockContext())
+                {
+                    var matrixItem = new AttributeMatrixItemService( rockContext ).Get( itemId.Value );
+                    if (matrixItem == null)
+                        return;
+
+                    matrixItem.LoadAttributes( rockContext );
+                    tbEmergencyContactFirstName.Text = matrixItem.GetAttributeValue( "FirstName" );
+                    tbEmergencyContactLastName.Text = matrixItem.GetAttributeValue( "LastName" );
+                    phEmergencyContactPhone.Text = PhoneNumber.FormattedNumber( "+1", PhoneNumber.CleanNumber( matrixItem.GetAttributeValue( "PhoneNumber" ) ) );
+                    var relationship = matrixItem.GetAttributeValue( "Relationship" );
+
+                    var li = ddlEmergencyContactRelationshp.Items.FindByValue( relationship );
+                    if(li != null)
+                    {
+                        li.Selected = true;
+                    }
+
+                    lbEmergencyContactSave.CommandArgument = itemId.ToString();
+                }
+                
+            }
+
+            pnlEmergencyContactList.Visible = false;
+            pnlEmergencyContactAddUpdate.Visible = true;
+
+        }
+
         private void HidePanels()
         {
             pnlWelcome.Visible = false;
             pnlReturningGuest.Visible = false;
             pnlNewGuest.Visible = false;
             pnlLoadGuest.Visible = false;
+            pnlEmergencyContactConfirm.Visible = false;
+            pnlEmergencyContactEdit.Visible = false;
             pnlFinish.Visible = false;
 
         }
-
-
-
 
         private void LoadReturningGuest( string phoneNumber )
         {
@@ -440,6 +601,58 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             }
         }
 
+        private void LoadEmergencyContactConfirmationPanel()
+        {
+            HidePanels();
+            using (var rockContext = new RockContext())
+            {
+                var person = new PersonService( rockContext ).Get( PersonId.Value );
+                var mergeFields = new Dictionary<string, object>();
+                mergeFields.Add( "Guest", person );
+                mergeFields.Add( "ContactCount", EmergencyContacts.Count() );
+                lEmergencyContactConfirmMessage.Text = ProcessLava( GetAttributeValue( AttributeKeys.ConfirmEmergencyContactMessageKey ), mergeFields );
+                rEmergencyContactConfirm.DataSource = EmergencyContacts;
+                rEmergencyContactConfirm.DataBind();
+
+            }
+            if(EmergencyContacts.Count > 0)
+            {
+                lbEmergencyContactConfirm.Visible = true;
+                lbEmergencyContactEdit.Text = "Update";
+                rEmergencyContactConfirm.Visible = true;
+            }
+            else
+            {
+                lbEmergencyContactConfirm.Visible = false;
+                lbEmergencyContactEdit.Text = "Add";
+                rEmergencyContactConfirm.Visible = false;
+            }
+            pnlEmergencyContactConfirm.Visible = true;
+
+        }
+
+        private void LoadEmergencyContactEditPanel()
+        {
+            HidePanels();
+            pnlEmergencyContactEdit.Visible = true;
+
+            if (EmergencyContacts.Count == 0)
+            {
+                pnlEmergencyContactAddUpdate.Visible = true;
+                pnlEmergencyContactList.Visible = false;
+                LoadEmergencyContactAddPanel( null );
+            }
+            else
+            {
+                pnlEmergencyContactList.Visible = true;
+                pnlEmergencyContactAddUpdate.Visible = false;
+                rEmergencyContactList.DataSource = EmergencyContacts;
+                rEmergencyContactList.DataBind();
+            }
+
+
+        }
+
         private List<EmergencyContact> LoadEmergencyContacts(Guid matrixGuid)
         {
             var emergencyContacts = new List<EmergencyContact>();
@@ -459,6 +672,8 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 {
                     item.LoadAttributes( rockcontext );
                     var contact = new EmergencyContact();
+                    contact.MatrixId = matrixGuid;
+                    contact.MatrixItemId = item.Id;
                     contact.FirstName = item.GetAttributeValue( "FirstName" );
                     contact.LastName = item.GetAttributeValue( "LastName" );
                     contact.PhoneNumber = PhoneNumber.FormattedNumber( "1", PhoneNumber.CleanNumber(
@@ -493,7 +708,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 IsMinor = p.Age < ADULT_AGE;
 
                 p.LoadAttributes( rockContext );
-                List<EmergencyContact> contacts = LoadEmergencyContacts( p.GetAttributeValue(EMERGENCY_CONTACT_LIST_KEY).AsGuid() );
+                EmergencyContacts = LoadEmergencyContacts( p.GetAttributeValue(EMERGENCY_CONTACT_LIST_KEY).AsGuid() );
 
                 var mergefields = new Dictionary<string, object>();
                 mergefields.Add( "Guest", p );
