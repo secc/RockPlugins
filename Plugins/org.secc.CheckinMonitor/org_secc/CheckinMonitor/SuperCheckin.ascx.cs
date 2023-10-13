@@ -1631,7 +1631,7 @@ try{{
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
             GroupMemberService groupMemberService = new GroupMemberService( rockContext );
-            var group = groupService.Get( GetAttributeValue( "SecurityGroup" ).AsGuid() );
+            var group = groupService.Get( GetAttributeValue( "ReprintSecurityGroup" ).AsGuid() );
             if ( group != null )
             {
                 return groupMemberService
