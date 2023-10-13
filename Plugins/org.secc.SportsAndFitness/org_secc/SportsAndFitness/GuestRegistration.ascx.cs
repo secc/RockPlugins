@@ -307,7 +307,15 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         }
         private void lbGuestConfirm_Click( object sender, EventArgs e )
         {
-            LoadEmergencyContactConfirmationPanel();
+            if (IsMinor == true)
+            {
+                LoadEmergencyContactConfirmationPanel();
+            }
+            else
+            {
+                var person = new PersonService( new RockContext() ).Get( PersonId.Value );
+                LoadFinishPanel( person );
+            }
         }
 
         private void lbSaveNewGuest_Click( object sender, EventArgs e )
@@ -800,11 +808,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
         private void LoadFinishPanel( Person p )
         {
+            LoadWorkflow();
             var mergeFields = new Dictionary<string, object>();
             mergeFields.Add( "Guest", p );
             HidePanels();
             pnlFinish.Visible = true;
-            lFinishMessage.Text = ProcessLava( GetAttributeValue( AttributeKeys.FinishMessageKey ) );
+            lFinishMessage.Text = ProcessLava( GetAttributeValue( AttributeKeys.FinishMessageKey ), mergeFields );
 
         }
 
@@ -817,7 +826,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 var p = new PersonService( rockContext ).Get( personId );
                 PersonId = p.Id;
                 IsMinor = p.Age < ADULT_AGE;
-
+                
                 p.LoadAttributes( rockContext );
                 EmergencyContacts = LoadEmergencyContacts( p.GetAttributeValue( EMERGENCY_CONTACT_LIST_KEY ).AsGuid() );
 
@@ -873,11 +882,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 var workflowType = WorkflowTypeCache.Get( workflowTypeGuid );
 
                 var workflow = Workflow.Activate( workflowType, $"New Guest - {person.FullName}" );
-                workflow.InitiatorPersonAliasId = person.PrimaryAliasId;
+                workflow.SetAttributeValue( "Guest", person.PrimaryAlias.Guid );
+                workflow.SetAttributeValue( "IsAdult", IsMinor.Value ? bool.FalseString : bool.TrueString);
 
 
                 var workflowErrors = new List<string>();
-                new WorkflowService( rockContext ).Process( workflow, out workflowErrors );
+                new WorkflowService( rockContext ).Process( workflow, null,  out workflowErrors );
 
                 InvitationGuid = workflow.Guid;
             }
