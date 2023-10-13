@@ -162,15 +162,16 @@
             </div>
         </asp:Panel>
         <asp:Panel ID="pnlEmergencyContactEdit" runat="server" Visible="false">
-            <h3>Update Emergency Contacts</h3>
+            <h3 style="text-align:center;">Update Emergency Contacts</h3>
             <asp:Literal ID="lEmergencyContactEdit" runat="server" />
             <asp:Panel ID="pnlEmergencyContactAddUpdate" CssClass="emergencyContactAdd" runat="server" Visible="false">
+                <asp:ValidationSummary ID="vsEmergencyContactAdd" runat="server" ValidationGroup="vg-emergency" CssClass="alert alert-validation"  HeaderText="Please review the following"/>
                 <div class="row">
                     <div class="col-sm-3 col-sm-offset-3">
                         <label>First Name</label>
                     </div>
                     <div class="col-sm-3">
-                        <Rock:RockTextBox ID="tbEmergencyContactFirstName" runat="server" Required="true" ValidationGroup="vg-emergency" />
+                        <Rock:RockTextBox ID="tbEmergencyContactFirstName" runat="server" Required="true" ValidationGroup="vg-emergency" RequiredErrorMessage="First Name is required" />
                     </div>
                 </div>
                 <div class="row">
@@ -178,7 +179,7 @@
                         <label>Last Name</label>
                     </div>
                     <div class="col-sm-3">
-                        <Rock:RockTextBox ID="tbEmergencyContactLastName" runat="server" Required="true" ValidationGroup="vg-emergency" /> 
+                        <Rock:RockTextBox ID="tbEmergencyContactLastName" runat="server" Required="true" ValidationGroup="vg-emergency" RequiredErrorMessage="Last Name is required" /> 
                     </div>
                 </div>
                 <div class="row">
@@ -186,7 +187,7 @@
                         <label>Phone Number</label>
                     </div>
                     <div class="col-sm-3">
-                        <Rock:PhoneNumberBox ID="phEmergencyContactPhone" runat="server" Required="true" ValidationGroup="vg-emergency" />
+                        <Rock:PhoneNumberBox ID="phEmergencyContactPhone" runat="server" Required="true" ValidationGroup="vg-emergency" RequiredErrorMessage="Phone Number is required" />
                     </div>
                 </div>
                 <div class="row">
@@ -194,7 +195,7 @@
                         <label>Relationship</label>
                     </div>
                     <div class="col-sm-3">
-                        <Rock:RockDropDownList ID="ddlEmergencyContactRelationshp" runat="server" Required="true" ValidationGroup="vg-emergency">
+                        <Rock:RockDropDownList ID="ddlEmergencyContactRelationshp" runat="server" Required="true"  ValidationGroup="vg-emergency" RequiredErrorMessage="Relationship is required">
                             <asp:ListItem Text="" Value="" />
                             <asp:ListItem Text="Spouse" Value="Spouse" />
                             <asp:ListItem Text="Parent" Value="Parent" />
@@ -207,8 +208,8 @@
                 </div>
                 <div class="actons">
                     <span class="pull-right">
-                        <asp:LinkButton ID="lbEmergencyContactSave" runat="server" CssClass="btn btn-primary">Save</asp:LinkButton>
-                        <asp:LinkButton ID="lbEmergencyContactCancel" runat="server" CssClass="btn btn-default">Cancel</asp:LinkButton>
+                        <asp:LinkButton ID="lbEmergencyContactSave" runat="server" CausesValidation="true" ValidationGroup="vg-emergency" CssClass="btn btn-primary">Save</asp:LinkButton>
+                        <asp:LinkButton ID="lbEmergencyContactCancel" runat="server" CausesValidation="false"  CssClass="btn btn-default">Cancel</asp:LinkButton>
                     </span>
                 </div>
             </asp:Panel>
@@ -221,7 +222,9 @@
                                     <th>Name</th>
                                     <th>Phone Number</th>
                                     <th>Relationship</th>
-                                    <th>&nbsp;</th>
+                                    <th >
+                                        <asp:LinkButton ID="lbAdd" runat="server" CssClass="btn btn-sm btn-success pull-right" CommandName="add"><i class="fa fa-plus-circle"</asp:LinkButton>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
