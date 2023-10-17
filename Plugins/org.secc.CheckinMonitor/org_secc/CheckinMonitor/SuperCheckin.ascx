@@ -355,18 +355,19 @@
             </div>
         </asp:Panel>
 
-        <!-- Checkin PIN -->
-        <Rock:ModalDialog ID="mdCheckinPin" runat="server" Title="Scan Check-In Code" OnSaveClick="mdCheckinPin_SaveClick" SaveButtonText="Submit">
+        <!-- Check QR PIN -->
+        <Rock:ModalDialog ID="mdQRPin" runat="server" Title="Scan QR Code" OnSaveClick="mdQRPin_SaveClick" SaveButtonText="Submit">
             <Content>
                 <h1>Please scan the QR code on your check-in label</h1>
-                <Rock:RockTextBox runat="server" ID="tbCheckinPin" onkeydown="javascript:submitPIN(event);" CssClass="opacity-0"></Rock:RockTextBox>
-                <div id="CheckInPINdiv"></div>
+                <Rock:RockTextBox runat="server" ID="tbQRPin" onkeydown="javascript:submitPIN(event);" CssClass="opacity-0"></Rock:RockTextBox>
+                <Rock:RockTextBox runat="server" ID="tbQRCheckPurpose" CssClass="opacity-0"></Rock:RockTextBox>
+                <div id="QRPINdiv"></div>
             </Content>
         </Rock:ModalDialog>
 
         <script>
             function submitPIN(e) {
-                document.querySelector('[id*="mdCheckinPin_serverSaveLink"]').click();
+                document.querySelector('[id*="mdQRPin_serverSaveLink"]').click();
             }
         </script>
     </ContentTemplate>

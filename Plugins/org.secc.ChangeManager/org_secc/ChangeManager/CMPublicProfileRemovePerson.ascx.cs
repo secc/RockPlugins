@@ -1,23 +1,16 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
-using System.Text;
+using System.ComponentModel;
 using System.Data.Entity;
-
+using System.Linq;
+using System.Text;
+using System.Web.UI;
 using org.secc.ChangeManager.Model;
-using org.secc.ChangeManager.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
-using Rock.Web.UI;
-using Rock.Web.UI.Controls;
-using org.secc.FamilyCheckin;
 
 
 namespace RockWeb.Plugins.org_secc.ChangeManager
@@ -69,13 +62,17 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         #endregion
 
         #region Events
+        protected void lbRemoveMemberCancel_Click( object sender, EventArgs e )
+        {
+            NavigateToParentPage();
+        }
 
         private void lbRemoveMember_Click( object sender, EventArgs e )
         {
-            if(hfPersonGuid.Value.IsNotNullOrWhiteSpace())
+            if ( hfPersonGuid.Value.IsNotNullOrWhiteSpace() )
             {
                 MovePerson();
-                
+
             }
         }
 
@@ -90,7 +87,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             var personGuid = PageParameter( PageParameterKeys.PersonGuid ).AsGuid();
             hfPersonGuid.Value = personGuid.ToString();
 
-            if(personGuid.IsEmpty())
+            if ( personGuid.IsEmpty() )
             {
                 ShowNotAuthorizedAlert();
                 return;
@@ -110,7 +107,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
                 .Any();
 
-            if(!inSameFamily)
+            if ( !inSameFamily )
             {
                 ShowNotAuthorizedAlert();
                 return;
@@ -119,7 +116,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             imgProfile.ImageUrl = person.PhotoUrl;
             lName.Text = person.FullName;
 
-            if(person.BirthDate != null)
+            if ( person.BirthDate != null )
             {
                 pnlBirthDate.Visible = true;
                 lAge.Text = $"{person.Age} Years ({person.BirthDate.ToShortDateString()})";
@@ -147,7 +144,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             }
             lGender.Text = genderTxt;
 
-            if(GetAttributeValue(AttributeKeys.DisplayEmail).AsBoolean())
+            if ( GetAttributeValue( AttributeKeys.DisplayEmail ).AsBoolean() )
             {
                 pnlEmail.Visible = true;
                 lEmail.Text = person.Email;
@@ -157,7 +154,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 pnlEmail.Visible = false;
             }
 
-            if(GetAttributeValue(AttributeKeys.DisplayPhone).AsBoolean())
+            if ( GetAttributeValue( AttributeKeys.DisplayPhone ).AsBoolean() )
             {
                 pnlPhoneNumber.Visible = true;
                 var phoneSB = new StringBuilder();
@@ -201,13 +198,13 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
                 var sharedFamily = groupService.Queryable()
                     .Include( f => f.Members )
-                    .Include(f => f.GroupLocations)
+                    .Include( f => f.GroupLocations )
                     .Where( g => g.GroupTypeId == familyGroupType.Id )
                     .Where( g => g.Members.Where( m => m.PersonId == CurrentPerson.Id && m.GroupMemberStatus == GroupMemberStatus.Active ).Any() )
                     .Where( g => g.Members.Where( m => m.PersonId == personToMove.Id && m.GroupMemberStatus == GroupMemberStatus.Active ).Any() )
                     .FirstOrDefault();
 
-                if(sharedFamily == null)
+                if ( sharedFamily == null )
                 {
                     // No Shared Family Found;
                     NavigateToParentPage();
@@ -238,8 +235,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     Guid = Guid.NewGuid(),
                     Action = ChangeRecordAction.Delete
                 };
-                changeRequest.ChangeRecords.Add( changeRecordOld );               
-                
+                changeRequest.ChangeRecords.Add( changeRecordOld );
+
 
                 var familyRoleId = groupMemberToRemove.GroupRoleId;
 
@@ -247,7 +244,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 groupMemberService.Delete( groupMember );
                 rockContext.SaveChanges();
 
-                if(personToMoveFamilies.Count() > 1)
+                if ( personToMoveFamilies.Count() > 1 )
                 {
                     //Person in multiple familes
                     NavigateToParentPage();
@@ -261,7 +258,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 groupService.Add( newGroup );
                 rockContext.SaveChanges();
 
-                if(personToMove.GivingGroup != null && personToMove.GivingGroupId == sharedFamily.Id )
+                if ( personToMove.GivingGroup != null && personToMove.GivingGroupId == sharedFamily.Id )
                 {
                     personToMove.GivingGroupId = newGroup.Id;
                 }

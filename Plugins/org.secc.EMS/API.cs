@@ -52,7 +52,7 @@ namespace org.secc.EMS
             {
                 if ( errorMessage == string.Empty && events != null )
                 {
-                    return FilterEventsForWeb( events, false, true, eventStatusIDs, out errorMessage );
+                    return FilterEventsForWeb( events, true, true, eventStatusIDs, out errorMessage );
                 }
                 else
                     return null;
@@ -61,7 +61,7 @@ namespace org.secc.EMS
             {
                 if ( errorMessage == string.Empty && events != null )
                 {
-                    return FilterEventsForWeb( events, false, false, eventStatusIDs, out errorMessage );
+                    return FilterEventsForWeb( events, true, false, eventStatusIDs, out errorMessage );
                 }
                 else
                 {
