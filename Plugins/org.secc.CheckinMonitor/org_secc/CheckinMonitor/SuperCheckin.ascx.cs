@@ -25,6 +25,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using Newtonsoft.Json;
 using OpenXmlPowerTools;
+using org.secc.FamilyCheckin;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Utilities;
@@ -54,8 +55,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [BooleanField( "Allow NonApproved Adults", "Should adults who are not in the approved person list be allowed to checkin?", false, key: "AllowNonApproved" )]
     [DataViewField( "Security Role Dataview", "Data view which people who are in a security role. It will not allow adding PINs for people in this group.", entityTypeName: "Rock.Model.Person", required: false )]
     [TextField( "Data Error URL", "Example: WorkflowEntry/12?PersonId={0}", false )]
-    [SecurityRoleField( "Reprint Tag Security Group", "Group to allow reprinting of tags.", key: "SecurityGroup", defaultSecurityRoleGroupGuid: Rock.SystemGuid.Group.GROUP_STAFF_MEMBERS )]
-    [BooleanField( "Enable Check-In QR Code Validation", "Should QR code scanning be required to complete a super check-in?", false, key: "QRCodeCheck" )]
+    [BooleanField( "Enable Reprint QR Code Validation", "Should QR code scanning be required to complete a tag reprint?", false, key: "QRCodeCheckReprint" )]
+    [SecurityRoleField( "Reprint Tag Security Group", "Group to allow reprinting of tags.", key: "ReprintSecurityGroup", defaultSecurityRoleGroupGuid: Rock.SystemGuid.Group.GROUP_STAFF_MEMBERS )]
+    [BooleanField( "Enable Check-In QR Code Validation", "Should QR code scanning be required to complete a super check-in?", false, key: "QRCodeCheckCheckin" )]
     [SecurityRoleField( "Super Check-In Group", "Group that is allowed to perform super check in", true, key: "SuperCheckInGroup" )]
 
     public partial class SuperCheckin : CheckInBlock
@@ -888,11 +890,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void btnCompleteCheckin_Click( object sender, EventArgs e )
         {
-            var requireQRCodeCheck = GetAttributeValue( "QRCodeCheck" ).AsBoolean();
+            var requireQRCodeCheck = GetAttributeValue( "QRCodeCheckCheckin" ).AsBoolean();
             if ( requireQRCodeCheck )
             {
-                mdCheckinPin.Show();
-                tbCheckinPin.Focus();
+                mdQRPin.Show();
+                tbQRCheckPurpose.Text = "QRCodeCheckCheckin";
+                tbQRPin.Focus();
             }
             else
             {
@@ -901,10 +904,11 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         }
 
 
-        protected void mdCheckinPin_SaveClick( object sender, EventArgs e )
+        protected void mdQRPin_SaveClick( object sender, EventArgs e )
         {
             var rockContext = new Rock.Data.RockContext();
-            var attendanceGuid = tbCheckinPin.Text.AsGuid();
+            var qrCheckPurpose = tbQRCheckPurpose.Text;
+            var attendanceGuid = tbQRPin.Text.AsGuid();
             var today = DateTime.Now.Date;
             var attendanceRecord = new AttendanceService( rockContext )
                                     .Queryable()
@@ -916,50 +920,63 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             if ( attendanceGuid.IsEmpty() )
             {
                 maWarning.Show( "Something went wrong. Please check QR Code and try again.", ModalAlertType.Warning );
-                tbCheckinPin.Text = "";
-                mdCheckinPin.Hide();
+                tbQRPin.Text = "";
+                mdQRPin.Hide();
             }
-            else if ( attendanceRecord == null )
+            else if ( !attendanceRecord.IsNotNull() )
             {
                 maWarning.Show( "This QR code is not associated with a valid attendance record. Please check QR Code and try again.", ModalAlertType.Warning );
-                tbCheckinPin.Text = "";
-                mdCheckinPin.Hide();
+                tbQRPin.Text = "";
+                mdQRPin.Hide();
             }
             else
             {
-                var superCheckInPerson = new PersonAliasService( rockContext )
+                var qrCheckPerson = new PersonAliasService( rockContext )
                                             .Queryable()
                                             .Where( pa =>
                                                 pa.Id == attendanceRecord.PersonAliasId )
                                             .FirstOrDefault();
 
-                var superCheckInGroupGuid = GetAttributeValue( "SuperCheckInGroup" ).AsGuid();
-                var superCheckInGroup = new GroupService( rockContext )
+                //Assuming the qrCheckPurpose is 'QRCodeCheckCheckin' unless it is a reprint validation...
+                var qrCheckGroupGuid = GetAttributeValue( "SuperCheckInGroup" ).AsGuid();
+                
+                if ( qrCheckPurpose == "QRCodeCheckReprint" )
+                {
+                    qrCheckGroupGuid = GetAttributeValue( "ReprintSecurityGroup" ).AsGuid();
+                }
+                    
+                var qrCheckGroup = new GroupService( rockContext )
                                             .Queryable()
                                             .Where( a =>
-                                                a.Guid == superCheckInGroupGuid )
+                                                a.Guid == qrCheckGroupGuid )
                                             .FirstOrDefault();
 
                 var isInGroup = new GroupMemberService( rockContext )
                                     .Queryable()
                                     .Any( gm =>
-                                    gm.GroupId == superCheckInGroup.Id &&
-                                    gm.PersonId == superCheckInPerson.PersonId );
+                                    gm.GroupId == qrCheckGroup.Id &&
+                                    gm.PersonId == qrCheckPerson.PersonId );
 
-                if ( isInGroup )
+                if ( isInGroup && (qrCheckPurpose == "QRCodeCheckCheckin") )
                 {
-                    completeCheckin( superCheckInPerson.Person.FullName );
+                    completeCheckin( qrCheckPerson.Person.FullName );
+                }
+                else if ( isInGroup && (qrCheckPurpose == "QRCodeCheckReprint") )
+                {
+                    ReprintAggregateTag();
                 }
                 else
                 {
                     maWarning.Show( "You are not allowed to perform this action.", ModalAlertType.Warning );
                 }
 
-                mdCheckinPin.Hide();
+                tbQRPin.Text = "";
+                mdQRPin.Hide();
             }
 
         }
-        private void completeCheckin( string superCheckinPerson = null )
+
+        private void completeCheckin( string qrCheckPerson = null )
         {
             if ( CurrentCheckInState == null || CurrentCheckInState.CheckIn.CurrentFamily == null )
             {
@@ -985,7 +1002,14 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                                 person.Selected = true;
                                 groupType.Selected = true;
                                 group.Selected = true;
-                                group.Notes = superCheckinPerson.IsNotNullOrWhiteSpace() ? $"Super Check-In by {superCheckinPerson}" : "Super Check-In";
+                                if( tbQRCheckPurpose.Text == "QRCodeCheckCheckin" )
+                                {
+                                    group.Notes = qrCheckPerson.IsNotNullOrWhiteSpace() ? $"Super Check-In by {qrCheckPerson}" : "Super Check-In";
+                                }
+                                else if ( tbQRCheckPurpose.Text == "QRCodeCheckReprint" )
+                                {
+                                    group.Notes = qrCheckPerson.IsNotNullOrWhiteSpace() ? $"Parent tag reprint by {qrCheckPerson}" : "Parent Tag Re-Print";
+                                }
                                 location.Selected = true;
                             }
                         }
@@ -1001,8 +1025,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             btnCompleteCheckin.Visible = false;
             DisplayFamilyMemberMenu();
             BuildGroupTypeModal();
-            tbCheckinPin.Text = "";
-            mdCheckinPin.Hide();
+            tbQRPin.Text = "";
+            mdQRPin.Hide();
 
         }
 
@@ -1335,10 +1359,21 @@ try{{
 
         protected void btnPrint_Click( object sender, EventArgs e )
         {
-            nbLogin.Visible = false;
-            tbUsername.Text = "";
-            tbPassword.Text = "";
-            mdLogin.Show();
+            var requireQRCodeCheck = GetAttributeValue( "QRCodeCheckReprint" ).AsBoolean();
+            if ( requireQRCodeCheck )
+            {
+                mdQRPin.Show();
+                tbQRCheckPurpose.Text = "QRCodeCheckReprint";
+                tbQRPin.Focus();
+            }
+            else
+            {
+                nbLogin.Visible = false;
+                tbUsername.Text = "";
+                tbPassword.Text = "";
+                mdLogin.Show();
+            }
+
         }
 
         private void ReprintAggregateTag()
@@ -1596,7 +1631,7 @@ try{{
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
             GroupMemberService groupMemberService = new GroupMemberService( rockContext );
-            var group = groupService.Get( GetAttributeValue( "SecurityGroup" ).AsGuid() );
+            var group = groupService.Get( GetAttributeValue( "ReprintSecurityGroup" ).AsGuid() );
             if ( group != null )
             {
                 return groupMemberService
@@ -1614,7 +1649,7 @@ try{{
 
         private void BindMCRRepeater()
         {
-            var kioskType = CheckinKioskTypeCache.All().Where(k => k.CheckinTemplateId == LocalDeviceConfig.CurrentCheckinTypeId).FirstOrDefault();
+            var kioskType = CheckinKioskTypeCache.All().Where( k => k.CheckinTemplateId == LocalDeviceConfig.CurrentCheckinTypeId ).FirstOrDefault();
             var campus = kioskType.Campus;
 
             RockContext rockContext = new RockContext();
