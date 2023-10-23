@@ -890,11 +890,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void btnCompleteCheckin_Click( object sender, EventArgs e )
         {
+            tbQRCheckPurpose.Text = "QRCodeCheckCheckin";
+
             var requireQRCodeCheck = GetAttributeValue( "QRCodeCheckCheckin" ).AsBoolean();
             if ( requireQRCodeCheck )
             {
                 mdQRPin.Show();
-                tbQRCheckPurpose.Text = "QRCodeCheckCheckin";
                 tbQRPin.Focus();
             }
             else
@@ -1002,14 +1003,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                                 person.Selected = true;
                                 groupType.Selected = true;
                                 group.Selected = true;
-                                if( tbQRCheckPurpose.Text == "QRCodeCheckCheckin" )
-                                {
-                                    group.Notes = qrCheckPerson.IsNotNullOrWhiteSpace() ? $"Super Check-In by {qrCheckPerson}" : "Super Check-In";
-                                }
-                                else if ( tbQRCheckPurpose.Text == "QRCodeCheckReprint" )
-                                {
-                                    group.Notes = qrCheckPerson.IsNotNullOrWhiteSpace() ? $"Parent tag reprint by {qrCheckPerson}" : "Parent Tag Re-Print";
-                                }
+                                group.Notes = qrCheckPerson.IsNotNullOrWhiteSpace() ? $"Super Check-In by {qrCheckPerson}" : "Super Check-In";
                                 location.Selected = true;
                             }
                         }
@@ -1359,11 +1353,12 @@ try{{
 
         protected void btnPrint_Click( object sender, EventArgs e )
         {
+            tbQRCheckPurpose.Text = "QRCodeCheckReprint";
+
             var requireQRCodeCheck = GetAttributeValue( "QRCodeCheckReprint" ).AsBoolean();
             if ( requireQRCodeCheck )
             {
                 mdQRPin.Show();
-                tbQRCheckPurpose.Text = "QRCodeCheckReprint";
                 tbQRPin.Focus();
             }
             else

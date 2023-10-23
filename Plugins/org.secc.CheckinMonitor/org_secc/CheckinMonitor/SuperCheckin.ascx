@@ -365,9 +365,11 @@
             </Content>
         </Rock:ModalDialog>
 
-        <script>
+        <script>  
             function submitPIN(e) {
-                document.querySelector('[id*="mdQRPin_serverSaveLink"]').click();
+                if (e.keyCode == 13) {
+                    document.querySelector('[id*="mdQRPin_serverSaveLink"]').click();
+                }
             }
         </script>
     </ContentTemplate>
