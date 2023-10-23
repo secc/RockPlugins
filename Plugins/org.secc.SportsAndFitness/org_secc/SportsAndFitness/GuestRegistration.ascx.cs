@@ -221,10 +221,13 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             lbFinish.Click += lbFinish_Click;
             lbGuestConfirm.Click += lbGuestConfirm_Click;
             lbGuestCancel.Click += lbGuestCancel_Click;
+            lbEmergencyContactConfirm.Click += lbEmergencyContactConfirm_Click;
             lbEmergencyContactEdit.Click += lbEmergencyContactEdit_Click;
             rEmergencyContactList.ItemCommand += rEmergencyContactList_ItemCommand;
             lbEmergencyContactSave.Click += lbEmergencyContactSave_Click;
             lbEmergencyContactCancel.Click += lbEmergencyContactCancel_Click;
+            lbEmergencyContactEditNext.Click += lbEmergencyContactEditNext_Click;
+            lbEmergencyContactEditCancel.Click += lbEmergencyContactEditCancel_Click;
         }
 
 
@@ -331,6 +334,37 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
                 UpdateGuest();
             }
 
+        }
+
+        private void lbEmergencyContactEditCancel_Click( object sender, EventArgs e )
+        {
+            lEmergencyContactEdit.Text = string.Empty;
+            LoadWelcomePanel();
+        }
+
+        private void lbEmergencyContactEditNext_Click( object sender, EventArgs e )
+        {
+            lEmergencyContactEdit.Text = string.Empty;
+
+            if(EmergencyContacts.Count > 0)
+            {
+                var person = new PersonService( new RockContext() ).Get( PersonId.Value );
+                LoadFinishPanel( person );
+            }
+            else
+            {
+                var sb = new System.Text.StringBuilder();
+                sb.Append( "<div class='alert alert-validation'>" );
+                sb.Append( "<h2><i class='fas fa-exclamation-triangle'></i>Emergency Contacts Required.</h2>" );
+                sb.Append( "<p>At least one emergency contact is required." );
+                sb.Append( "</div>" );
+                lEmergencyContactEdit.Text = sb.ToString();
+            }
+        }
+        private void lbEmergencyContactConfirm_Click( object sender, EventArgs e )
+        {
+            var person = new PersonService( new RockContext() ).Get( PersonId.Value );
+            LoadFinishPanel( person );
         }
 
         private void lbEmergencyContactEdit_Click( object sender, EventArgs e )
@@ -753,6 +787,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         private void LoadEmergencyContactEditPanel()
         {
             HidePanels();
+            lEmergencyContactEdit.Text = string.Empty;
             pnlEmergencyContactEdit.Visible = true;
 
             if (EmergencyContacts.Count == 0)

@@ -247,6 +247,12 @@
                         </table>
                     </FooterTemplate>
                 </asp:Repeater>
+                <div class="actions">
+                    <div class="pull-right">
+                        <asp:LinkButton ID="lbEmergencyContactEditNext" runat="server" CssClass="btn btn-primary">Next</asp:LinkButton>
+                        <asp:LinkButton ID="lbEmergencyContactEditCancel" runat="server" CssClass="btn btn-default">Cancel</asp:LinkButton>
+                    </div>
+                </div>
             </asp:Panel>
         </asp:Panel>
 
