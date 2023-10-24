@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Connection\SafetyAndSecurity_ConnectionVerification.cs" />
+    <Compile Include="Metric\WorshipAttendanceTrigger.cs" />
     <Compile Include="Pages\SuperCheckin_PageData.cs" />
     <Compile Include="Pages\FamilyCheckin_PageData.cs" />
     <Compile Include="Pages\GroupManager_PageData.cs" />
