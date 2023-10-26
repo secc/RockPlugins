@@ -46,7 +46,9 @@
     <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-iphone-retina.png", true) %>">
     <link rel="apple-touch-icon-precomposed" sizes="72x72" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-ipad.png", true) %>">
     <link rel="apple-touch-icon-precomposed" href="<%# ResolveRockUrl("~/Content/ExternalSite/Icons/touch-icon-iphone.png", true) %>">
-    
+
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/7faca2d070.js" crossorigin="anonymous"></script>
 </head>
 <body style="touch-action: pan-x pan-y">
 
