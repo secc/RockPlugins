@@ -10,11 +10,55 @@
                 padding-bottom: 15px;
             }
 
-            #divChildcareModal textarea
-            {
-                border:0px;
+            #divChildcareModal textarea {
+                border: 0px;
             }
+
+            .pinList {
+                padding-left: 0px;
+            }
+
+                .pinList li {
+                    padding-left: 15px;
+                    font-weight: bold;
+                    line-height: 1.3em;
+                }
+
+                .pinList .actions {
+                    opacity: .2;
+                    -webkit-transition: opacity .5s ease-out;
+                    -moz-transition: opacity .5s ease-out;
+                    -o-transition: opacity .5s ease-out;
+                    transition: opacity .5s ease-out;
+                }
+
+                    .pinList .actions:hover {
+                        opacity: 1
+                    }
         </style>
+
+        <script type="text/javascript">
+            function runCmd ( action )
+            {
+                var panelClientId =  "<%= upMain.ClientID %>";
+                __doPostBack( panelClientId, action );
+                return false;
+            }
+
+            function addClosePINEvent ()
+            {
+                var mdlPins = $( "#mdlPins" );
+
+                if ( mdlPins != null )
+                {
+                    $( "#mdlPins" ).on( "hidden.bs.modal", function ()
+                    {
+                        runCmd( "update-pin" );
+                    } );
+                }
+            }
+
+        </script>
         <div class="panel panel-default list-as-blocks clearfix">
             <div class="panel-heading">
                 <h1 class="panel-title">
@@ -24,7 +68,7 @@
             <div class="panel-body">
                 <ul>
                     <li>
-                        <a href="#" id="lbUpdatePin" onclick="javascript:return runCmd('update-pin');">
+                        <a href="#" id="lbUpdatePin" data-toggle="modal" data-target="#mdlPins">
                             <i class="fas fa-hashtag"></i>
                             <h3>Update PIN</h3>
                             <Rock:HighlightLabel ID="hlblPIN" runat="server" Visible="false" />
@@ -65,14 +109,26 @@
                 </ul>
             </div>
         </div>
-        <script type="text/javascript">
-            function runCmd ( action )
-            {
-                var panelClientId =  "<%= upMain.ClientID %>";
-                __doPostBack( panelClientId, action );
-                return false;
-            }
-        </script>
+
+        <div class="modal fade" id="mdlPins" tabindex="-1" role="dialog" aria-labelledby="lblPins">
+            <div class="model-dialog" role="document">
+                <div class="modal-content">
+                    <div class="model-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title" id="lblPins">Manage PIN Numbers</h4>
+                    </div>
+                    <div class="modal-body">
+                        <asp:Literal ID="lPINFrame" runat="server" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
     </ContentTemplate>
 
 </asp:UpdatePanel>
@@ -152,6 +208,7 @@
                 </div>
             </Content>
         </Rock:ModalDialog>
+
     </ContentTemplate>
 </asp:UpdatePanel>
 

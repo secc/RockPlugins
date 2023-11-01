@@ -212,7 +212,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 LocationId = o.LocationId,
                 ScheduleId = o.ScheduleId,
                 OccurrenceDate = o.OccurrenceDate,
-                StartDateTime = o.Schedule.GetNextStartDateTime(o.OccurrenceDate) ?? o.OccurrenceDate.Date.Add(o.Schedule.WeeklyTimeOfDay.Value)
+                StartDateTime = o.Schedule == null ? o.OccurrenceDate :
+                    o.Schedule.GetNextStartDateTime(o.OccurrenceDate) ?? o.OccurrenceDate.Date.Add(o.Schedule.WeeklyTimeOfDay.Value)
             } )
             .ToList() );
             
@@ -223,7 +224,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 .Select( o => new
                 {
                     Id = o.ToString(),
-                    Name = $"{o.StartDateTime: MMM d, yyy h:mmtt}"
+                    Name = o.StartDateTime.Value.Hour == 0 ? $"{o.StartDateTime : MMM d, yyyy}" :  $"{o.StartDateTime: MMM d, yyy h:mmtt}"
                 } )
                 .ToList();
             ddlOccurence.DataBind();

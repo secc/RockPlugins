@@ -214,6 +214,17 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                         return personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "HomeboundPerson" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person;
                     } )(),
                     Age = personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "HomeboundPerson" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person.Age,
+                    Birthday = new Func<string>( () =>
+                    {
+                        PersonAlias p = personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "HomeboundPerson" ).Select( av => av.Value ).FirstOrDefault().AsGuid() );
+                        var personBirthMonth = p.Person.BirthMonth;
+                        var personBirthDay = p.Person.BirthDay;
+                        if ( (personBirthMonth != null) && (personBirthDay != null) )
+                        {
+                            return personBirthMonth + "/" + personBirthDay;
+                        }
+                        return "";
+                    } )(),
                     PhoneNumber = string.Join("<br><br>", personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "HomeboundPerson" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person.PhoneNumbers.Select(ph => ph.NumberTypeValue.Value + ": " + ph.NumberFormatted).ToList()),
                     StartDate = w.AttributeValues.Where( av => av.AttributeKey == "StartDate" ).Select( av => av.ValueAsDateTime ).FirstOrDefault(),
                     Description = w.AttributeValues.Where( av => av.AttributeKey == "HomeboundResidentDescription" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
