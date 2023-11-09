@@ -5,6 +5,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -56,6 +57,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             BlockUpdated += guestCheckin_BlockUpdated;
             gPendingCheckins.RowCommand += gPendingCheckins_RowCommand;
             ddlLocation.SelectedIndexChanged += ddlLocation_SelectedIndexChanged;
+            lbReturnToGuest.Click += lbReturnToGuest_Click;
+            gHosts.RowCommand += gHosts_RowCommand;
+
+            gPendingCheckins.ItemType = "Guests";
+            gPendingCheckins.EmptyDataText = "No Pending Guests.";
+
         }
 
 
@@ -63,10 +70,15 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
+            nbSuccess.Visible = false;
             if (!Page.IsPostBack)
             {
-                //LoadPendingCheckins();
-                LoadHosts();
+                LoadPendingCheckins();
+            }
+            else
+            {
+
+                HandleCustomPostBack();
             }
         }
         #endregion
@@ -82,6 +94,27 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             LoadHosts();
         }
 
+        private void gHosts_RowCommand( object sender, GridViewCommandEventArgs e )
+        {
+            var attendanceId = e.CommandArgument.ToString().AsInteger();
+
+            if (attendanceId <= 0)
+            {
+                return;
+            }
+
+            switch (e.CommandName.ToLower())
+            {
+                case "selecthost":
+                    var attendance = LoadAttendance( attendanceId );
+                    CheckinGuest( hfWorkflowGuid.Value.AsGuidOrNull(), attendance );
+                    break;
+                     
+                default:
+                    break;
+            }
+        }
+
         private void gPendingCheckins_RowCommand( object sender, GridViewCommandEventArgs e )
         {
             var workflowGuid = e.CommandArgument.ToString().AsGuidOrNull();
@@ -90,18 +123,22 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             switch (commandName)
             {
                 case "checkin":
-                    CheckinGuest( workflowGuid );
+                    LoadHostGuestFields( workflowGuid );
+                    LoadHosts();
                     break;
-                case "cancel":
+                case "cancelCheckin":
                     CancelGuestCheckin( workflowGuid );
                     break;
 
                 default:
                     break;
             }
+        }
 
-
-
+        private void lbReturnToGuest_Click( object sender, EventArgs e )
+        {
+            ClearHostGuestFields();
+            LoadPendingCheckins();
         }
         #endregion
 
@@ -110,9 +147,37 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         private void CancelGuestCheckin( Guid? workflowGuid )
         {
-            throw new NotImplementedException();
+            if(!workflowGuid.HasValue)
+            {
+                return;
+            }
+
+            var activityTypeName = GetAttributeValue( "WorkflowCancelActivity" );
+            using (var rockContext = new RockContext())
+            {
+                var workflowService = new WorkflowService( rockContext );
+                var checkinWorkflow = workflowService.Get( workflowGuid.Value );
+
+                var activityType = WorkflowTypeCache.Get( checkinWorkflow.WorkflowTypeId )
+                    .ActivityTypes.Where( a => a.Name.Equals( activityTypeName, StringComparison.InvariantCultureIgnoreCase ) )
+                    .FirstOrDefault();
+
+                if(activityType == null)
+                {
+                    throw new Exception( $"{activityTypeName} was not found." );
+                }
+
+                var errors = new List<string>();
+                WorkflowActivity.Activate( activityType, checkinWorkflow, rockContext );
+                workflowService.Process( checkinWorkflow, out errors );
+
+                rockContext.SaveChanges();
+
+            }
+
+            LoadPendingCheckins();
         }
-        private void CheckinGuest( Guid? workflowGuid )
+        private void CheckinGuest( Guid? workflowGuid, Attendance attend )
         {
 
             if (!workflowGuid.HasValue)
@@ -124,6 +189,13 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             {
                 var workflowService = new WorkflowService( rockContext );
                 var checkinWorkflow = workflowService.Get( workflowGuid.Value );
+                checkinWorkflow.LoadAttributes( rockContext );
+                checkinWorkflow.SetAttributeValue( "HostAttendanceId", attend.Id );
+                checkinWorkflow.SetAttributeValue( "Host", attend.PersonAlias.Guid );
+                checkinWorkflow.SaveAttributeValues( rockContext );
+
+                rockContext.SaveChanges();
+
 
                 var activityType = WorkflowTypeCache.Get( checkinWorkflow.WorkflowTypeId )
                     .ActivityTypes.Where( a => a.Name.Equals( activityTypeName, StringComparison.InvariantCultureIgnoreCase ) )
@@ -140,6 +212,56 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 }
 
                 rockContext.SaveChanges();
+                LoadPendingCheckins();
+
+                var guest = new PersonAliasService( rockContext ).GetPerson( checkinWorkflow.GetAttributeValue( "Guest" ).AsGuid() );
+
+                string message = $"{guest.FullName} has successfully been checked in.";
+                nbSuccess.Text = message;
+                nbSuccess.Visible = true;
+            }
+        }
+
+        private void ClearHostGuestFields()
+        {
+            hfWorkflowGuid.Value = string.Empty;
+            lSelectHostHeader.Text = string.Empty;
+        }
+
+        private void HandleCustomPostBack()
+        {
+            var args = this.Request.Params["__EVENTARGUMENT"];
+            if(args == "filterByName" && tbNameSearch.Text.Length != 1)
+            {
+                LoadHosts();
+            }
+        }
+
+        private Attendance LoadAttendance(int id)
+        {
+            using (var rockContext = new RockContext())
+            {
+                var attendanceService = new AttendanceService(rockContext);
+                return attendanceService.Queryable()
+                    .Include( a => a.Occurrence )
+                    .Include( a => a.PersonAlias.Person )
+                    .Where( a => a.Id == id )
+                    .FirstOrDefault();
+            }
+        }
+
+        private void LoadHostGuestFields( Guid? workflowGuid)
+        {
+            if (!workflowGuid.HasValue)
+                return;
+
+            using (var context = new RockContext())
+            {
+                var workflow = new WorkflowService( context ).Get( workflowGuid.Value );
+                hfWorkflowGuid.Value = workflowGuid.ToString();
+                workflow.LoadAttributes( context );
+                var guest = new PersonAliasService( context ).GetPerson( workflow.GetAttributeValue( "Guest" ).AsGuid() );
+                lSelectHostHeader.Text = $"Select Host for {guest.FullName}";
             }
         }
 
@@ -206,6 +328,14 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     selectedLocationId = ddlLocation.SelectedValueAsInt().Value;
                     hostsQry = hostsQry.Where( h => h.LocationId == selectedLocationId );
                 }
+
+                if(!String.IsNullOrWhiteSpace(tbNameSearch.Text))
+                {
+                    hostsQry = hostsQry
+                        .Where( h => h.Host.LastName.StartsWith( tbNameSearch.Text ) || h.Host.NickName.StartsWith( tbNameSearch.Text ) );
+                }
+
+
                 var locations = groups.Select( h => new
                 {
                     LocationId = h.LocationId,
@@ -221,7 +351,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 ddlLocation.DataBind();
 
                 ddlLocation.Items.Insert( 0, new ListItem( "", "" ) );
-                if(selectedLocationId > 0)
+                if (selectedLocationId > 0)
                 {
                     var item = ddlLocation.Items.FindByValue( selectedLocationId.ToString() );
                     item.Selected = true;
@@ -242,6 +372,8 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         private void LoadPendingCheckins()
         {
             pnlMain.Visible = false;
+            pnlSelectHost.Visible = false;
+
             var today = RockDateTime.Today;
             var workflowType = WorkflowTypeCache.Get( GetAttributeValue( "RegistrationWorkflow" ).AsGuid() );
 
@@ -306,6 +438,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 pnlMain.Visible = true;
             }
         }
+
 
         public class SportsAndFitnessGuest
         {
