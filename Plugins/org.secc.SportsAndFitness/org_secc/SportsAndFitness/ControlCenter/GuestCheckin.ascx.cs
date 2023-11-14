@@ -70,7 +70,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-            nbSuccess.Visible = false;
+            nbCheckinMessage.Visible = false;
             if (!Page.IsPostBack)
             {
                 LoadPendingCheckins();
@@ -206,12 +206,10 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
                 var errors = new List<string>();
                 WorkflowActivity.Activate( activityType, checkinWorkflow, rockContext );
-                if (workflowService.Process( checkinWorkflow, out errors ))
-                {
-                    checkinWorkflow.CompletedDateTime = null;
-                }
+                bool checkinSuccess = workflowService.Process( checkinWorkflow, out errors );
 
-                rockContext.SaveChanges();
+                //rockContext.SaveChanges();
+                
                 checkinWorkflow.LoadAttributes( rockContext );
                 var attendanceId = checkinWorkflow.GetAttributeValue( "AttendanceId" ).AsInteger();
 
@@ -225,9 +223,20 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
                 var guest = new PersonAliasService( rockContext ).GetPerson( checkinWorkflow.GetAttributeValue( "Guest" ).AsGuid() );
 
-                string message = $"{guest.FullName} has successfully been checked in.";
-                nbSuccess.Text = message;
-                nbSuccess.Visible = true;
+                if (checkinSuccess)
+                {
+                    string message = $"{guest.FullName} has successfully been checked in.";
+                    nbCheckinMessage.NotificationBoxType = Rock.Web.UI.Controls.NotificationBoxType.Success;
+                    nbCheckinMessage.Text = message;
+                    nbCheckinMessage.Visible = true;
+                }
+                else
+                {
+                    string message = $"There was an error checking in {guest.FullName} please try again.";
+                    nbCheckinMessage.NotificationBoxType = Rock.Web.UI.Controls.NotificationBoxType.Warning;
+                    nbCheckinMessage.Text = message;
+                    nbCheckinMessage.Visible = true;
+                }
             }
         }
 

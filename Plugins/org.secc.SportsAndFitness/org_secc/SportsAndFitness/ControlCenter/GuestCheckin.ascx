@@ -3,7 +3,7 @@
 <asp:UpdatePanel ID="upMain" runat="server">
     <ContentTemplate>
         <asp:Panel ID="pnlMain" runat="server" Visible="false">
-            <Rock:NotificationBox ID="nbSuccess" runat="server" Dismissable="true"  Visible="false" NotificationBoxType="Success" />
+            <Rock:NotificationBox ID="nbCheckinMessage" runat="server" Dismissable="true"  Visible="false" NotificationBoxType="Success" />
 
             <Rock:Grid ID="gPendingCheckins" runat="server" AllowSorting="true" >
                 <Columns>
