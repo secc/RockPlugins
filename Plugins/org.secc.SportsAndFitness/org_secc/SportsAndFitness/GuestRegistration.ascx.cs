@@ -735,7 +735,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
                 var phoneService = new PhoneNumberService( context );
                 var phonePerson = phoneService.Queryable().AsNoTracking()
-                    .Where( n => n.Number == phoneNumber )
+                    .Where( n => n.Number.EndsWith( phoneNumber ) )
                     .Where( n => n.Person.RecordStatusValueId != inactiveValue.Id )
                     .Where( n => n.Person.RecordTypeValueId == personRecord.Id )
                     .Where( n => n.Person.IsDeceased == false )

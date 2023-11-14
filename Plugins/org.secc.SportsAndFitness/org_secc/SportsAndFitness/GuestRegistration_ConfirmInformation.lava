@@ -15,7 +15,7 @@
         </div>
         <div class="row">
             <div class="col-sm-6">
-                <label>Phone Number</label>
+                <label>Mobile Phone</label>
             </div>
             <div class="col-sm-6">
                 {{ Guest | PhoneNumber:'Mobile' }}

@@ -215,9 +215,11 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 checkinWorkflow.LoadAttributes( rockContext );
                 var attendanceId = checkinWorkflow.GetAttributeValue( "AttendanceId" ).AsInteger();
 
-                var attendance = new AttendanceService( rockContext ).Get( attendanceId );
-                AttendanceCache.AddOrUpdate( attendance );
-
+                if (attendanceId > 0)
+                {
+                    var attendance = new AttendanceService( rockContext ).Get( attendanceId );
+                    AttendanceCache.AddOrUpdate( attendance );
+                }
 
                 LoadPendingCheckins();
 

@@ -54,8 +54,8 @@
         <asp:Panel ID="pnlWelcome" runat="server" Visible="true">
             <asp:Literal ID="lWelcomeLava" runat="server" />
             <div id="divCommands" class="flex-container center-center">
-                <asp:LinkButton ID="lbPreviousGuest" runat="server" CssClass="btn btn-lg btn-start btn-primary">Previous Guest</asp:LinkButton>
-                <asp:LinkButton ID="lbNewGuest" runat="server" CssClass="btn btn-lg btn-start btn-primary">New Guest</asp:LinkButton>
+                <asp:LinkButton ID="lbPreviousGuest" runat="server" CssClass="btn btn-lg btn-start btn-primary">Sign In</asp:LinkButton>
+                <asp:LinkButton ID="lbNewGuest" runat="server" CssClass="btn btn-lg btn-start btn-primary" Visible="false">New Guest</asp:LinkButton>
             </div>
         </asp:Panel>
 
@@ -66,8 +66,9 @@
             <asp:Literal ID="lReturningGuestMessage" runat="server" />
             <div class="row" style="padding-bottom: 15px;">
                 <div class="col-sm-6 col-sm-offset-3">
-                    <Rock:RockTextBox ID="tbReturningGuestNumber" runat="server" type="number" Required="true" CssClass="form-control input-lg input-existingGuest"
-                        RequiredErrorMessage="Phone Number Required" ValidationGroup="valReturningGuest" />
+                    <Rock:PhoneNumberBox ID="tbReturningGuestNumber" runat="server" type="number" Required="true" CssClass="form-control input-lg input-existingGuest"
+                        RequiredErrorMessage="Phone Number Required" ValidationGroup="valReturningGuest"/>
+
                 </div>
             </div>
             <div class="row" style="padding-bottom: 15px;">
