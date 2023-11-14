@@ -12,7 +12,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
-
+using org.secc.FamilyCheckin.Cache;
 
 namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 {
@@ -212,6 +212,13 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 }
 
                 rockContext.SaveChanges();
+                checkinWorkflow.LoadAttributes( rockContext );
+                var attendanceId = checkinWorkflow.GetAttributeValue( "AttendanceId" ).AsInteger();
+
+                var attendance = new AttendanceService( rockContext ).Get( attendanceId );
+                AttendanceCache.AddOrUpdate( attendance );
+
+
                 LoadPendingCheckins();
 
                 var guest = new PersonAliasService( rockContext ).GetPerson( checkinWorkflow.GetAttributeValue( "Guest" ).AsGuid() );
