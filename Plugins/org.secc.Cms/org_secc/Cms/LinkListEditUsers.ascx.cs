@@ -36,14 +36,16 @@ namespace RockWeb.Plugins.org_secc.Cms
         #region Control Methods
         protected override void OnInit( EventArgs e )
         {
-            gListUsers.Actions.AddButton.Visible = true;
+
             gListUsers.Actions.ShowExcelExport = false;
             gListUsers.ShowWorkflowOrCustomActionButtons = false;
             gListUsers.Actions.ShowMergePerson = false;
             gListUsers.Actions.ShowMergeTemplate = false;
+            gListUsers.Actions.ShowAdd = true;
             gListUsers.RowDataBound += gListUsers_RowDataBound;
             gListUsers.RowCommand += gListUsers_RowCommand;
             gListUsers.Actions.AddClick += gListUsers_AddClick;
+            gListUsers.GridRebind += gListUsers_GridRebind;
             lbAddGroupMember.Click += lbAddGroupMember_Click;
             lbCancel.Click += lbCancel_Click;
             base.OnInit( e );
@@ -55,7 +57,10 @@ namespace RockWeb.Plugins.org_secc.Cms
         {
             nbNotification.Text = string.Empty;
             nbNotification.Visible = false;
-            LoadLinkList();
+            if (!IsPostBack)
+            {
+                LoadLinkList();
+            }
             base.OnLoad( e );
         }
         #endregion
@@ -66,6 +71,12 @@ namespace RockWeb.Plugins.org_secc.Cms
         {
             ppGroupMember.SelectedValue = null;
             mdAddGroupMember.Show();
+        }
+
+        private void gListUsers_GridRebind( object sender, GridRebindEventArgs e )
+        {
+            var groupId = hfSecurityGroupId.Value.AsInteger();
+            LoadEditorList( groupId );
         }
 
         private void gListUsers_RowCommand( object sender, GridViewCommandEventArgs e )
@@ -83,10 +94,8 @@ namespace RockWeb.Plugins.org_secc.Cms
             if (e.Row.RowType == DataControlRowType.DataRow)
             {
                 var groupMember = e.Row.DataItem as GroupMember;
-                Label lName = e.Row.FindControl( "lName" ) as Label;
                 LinkButton lbRemove = e.Row.FindControl( "lbRemove" ) as LinkButton;
 
-                lName.Text = groupMember.Person.FullName;
                 lbRemove.CommandArgument = groupMember.Id.ToString();
             }
         }
@@ -172,6 +181,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                         EntityId = listItem.Id,
                         Order = 0,
                         AllowOrDeny = "A",
+                        Action = Rock.Security.Authorization.EDIT,
                         SpecialRole = SpecialRole.None,
                         GroupId = authGroup.Id,
 
@@ -196,9 +206,10 @@ namespace RockWeb.Plugins.org_secc.Cms
                     .Where( m => m.GroupId == groupId )
                     .Where( m => !m.IsArchived )
                     .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
-                    .OrderBy( m => m.Person.LastName )
-                    .ThenBy( m => m.Person.NickName )
+                    .OrderBy(m => m.Person.LastName)
+                    .ThenBy(m => m.Person.NickName)
                     .ToList();
+
 
                 gListUsers.DataSource = members;
                 gListUsers.DataBind();
@@ -213,12 +224,12 @@ namespace RockWeb.Plugins.org_secc.Cms
 
             if (contentChannel == null)
             {
-                var message = "<strong><i class=\"fas fa-exclamation-triangle\"></i>Configuration Error</strong><br />Content Channel not configured.";
+                var message = "<strong><i class=\"fas fa-exclamation-triangle\"></i> Configuration Error</strong><br />Content Channel not configured.";
                 ShowNotification( NotificationBoxType.Validation, message );
                 return;
             }
 
-            var contentChannelItemId = PageParameter( "listId" ).AsInteger();
+            var contentChannelItemId = PageParameter( "linklistId" ).AsInteger();
 
 
             using (var rockContext = new RockContext())
@@ -228,7 +239,7 @@ namespace RockWeb.Plugins.org_secc.Cms
 
                 if (contentItem == null || contentItem.ContentChannelId != contentChannel.Id)
                 {
-                    var message = "<strong><i class=\"fas fa-exclamation-triangle\"></i>List Not Found<br />Link List Not found or is unavailable.";
+                    var message = "<strong><i class=\"fas fa-exclamation-triangle\"></i> List Not Found</strong><br />Link List Not found or is unavailable.";
                     ShowNotification( NotificationBoxType.Info, message );
                     return;
                 }
@@ -236,7 +247,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                 var canEdit = contentItem.IsAuthorized( Rock.Security.Authorization.EDIT, CurrentPerson );
                 if (!canEdit)
                 {
-                    var message = "<strong><i class=\"fas fa-exclamation-triangle\"></i>Not Authorized</strong><br /> You do not have edit rights to this Link List.";
+                    var message = "<strong><i class=\"fas fa-exclamation-triangle\"></i> Not Authorized</strong><br /> You do not have edit rights to this Link List.";
                     ShowNotification( NotificationBoxType.Danger, message );
                     return;
                 }
@@ -263,6 +274,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                 var group = groupService.Get( groupId );
                 var groupMemberService = new GroupMemberService( rockContext );
                 groupMemberService.AddOrRestoreGroupMember( group, personId, defaultRoleId.Value );
+                rockContext.SaveChanges();
             }
 
             LoadEditorList( groupId );
