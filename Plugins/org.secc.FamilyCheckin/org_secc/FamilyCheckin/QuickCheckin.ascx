@@ -4,6 +4,14 @@
         margin-right: 0px;
         margin-left: 0px;
     }
+    .modal-content {
+        position: initial;
+        left: unset;
+        top: unset;
+        transform: unset;
+        min-height: unset;
+
+    }
 </style>
 
 <script>
@@ -61,7 +69,7 @@
 <asp:UpdatePanel ID="upContent" runat="server">
     <ContentTemplate>
         <asp:Label runat="server" ID="lStyle" />
-        <Rock:ModalAlert runat="server" ID="maAlert"></Rock:ModalAlert>
+        <Rock:ModalAlert runat="server" ID="maAlert" />
         <asp:HiddenField runat="server" ID="hfCull" />
         <Rock:ModalDialog ID="mdMCR" CssClass="modal" runat="server">
             <Content>

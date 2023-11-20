@@ -317,7 +317,9 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         #endregion
     }
+
     public class PersonResults : Rock.Lava.ILiquidizable
+
     {
         public Person PersonResult { get; set; }
         public string ConnectionStatusValue { get; set; }
@@ -332,7 +334,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             return this;
         }
 
-        [LavaHidden]
+       [LavaHidden]
         public List<string> AvailableKeys
         {
             get
