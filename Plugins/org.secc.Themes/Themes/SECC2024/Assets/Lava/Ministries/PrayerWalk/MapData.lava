@@ -1,0 +1,71 @@
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAE0SCdnU3rGnC2bO5l24Y4dcfjpvstxzU"></script>
+<script>
+var styleOptions =[
+        {
+            "featureType": "all",
+            "elementType": "all",
+            "stylers": [
+                {
+                    "invert_lightness": true
+                },
+                {
+                    "saturation": 10
+                },
+                {
+                    "lightness": 30
+                },
+                {
+                    "gamma": 0.5
+                },
+                {
+                    "hue": "#435158"
+                }
+            ]
+        }
+    ];
+var styleOptionsLight =[];
+var createMap = function(containerId)
+{   
+    // Create a new StyledMapType object, passing it an array of styles,
+    // and the name to be displayed on the map type control.
+    var styledMapType = new google.maps.StyledMapType(
+        styleOptions,
+        {name: 'Prayer on the Move'}
+    );
+    var lightMapType = new google.maps.StyledMapType(
+        styleOptionsLight,
+        {name: 'Default'}
+    );
+
+    map = new google.maps.Map(document.getElementById(containerId), {
+        center: {lat: 38.1596835, lng: -84.9802525},
+        gestureHandling: 'cooperative',
+        zoom: 9,
+        mapTypeControlOptions: {
+          mapTypeIds: ['default_map','dark_map']
+        }, // here´s the array of controls
+        //gestureHandling: 'greedy',
+        disableDefaultUI: true, // a way to quickly hide all controls
+        mapTypeControl: true,
+        scaleControl: true,
+        zoomControl: true,
+        zoomControlOptions: {
+          style: google.maps.ZoomControlStyle.LARGE 
+        },
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        styles: styleOptions
+      });
+
+      //Associate the styled map with the MapTypeId and set it to display.
+      map.mapTypes.set('default_map', lightMapType);
+      map.setMapTypeId('default_map');
+      map.mapTypes.set('dark_map', styledMapType);
+      map.setMapTypeId('dark_map');
+
+      return map;
+}
+
+var loadMap = function(containerId, kmzUrl) {
+    map = createMap(containerId);
+}
+</script>

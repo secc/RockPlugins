@@ -1,0 +1,621 @@
+{%- assign slug = 'Global' | PageParameter:'Slug' -%}
+{%- assign sermonSlug = 'Global' | PageParameter:'SermonSlug' -%}
+{%- cache key:'sermonPage:{{slug}}:{{sermonSlug}}' duration:'3600' twopass:'true' -%}
+
+{%- assign slug = 'Global' | PageParameter:'Slug' -%}
+{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+
+{%- contentchannelitemslug where:'Slug=="{{slug}}"' -%}
+    {%- for itemSlug in contentchannelitemslugItems -%}
+        {%- assign startDateTime = itemSlug.ContentChannelItem.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+        {%- assign endDateTime = itemSlug.ContentChannelItem.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+        {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+			{%- contentchannelitem id:'{{ itemSlug.ContentChannelItemId }}' -%}
+				{%- assign series = contentchannelitem -%}
+			{%- endcontentchannelitem %}
+            {%- break -%}
+        {%- endif -%}
+    {%- endfor -%}
+{%- endcontentchannelitemslug -%}
+
+{%- if series -%}
+    {%- comment -%}
+    ************ Get the newest sermon if exists ************
+    {%- endcomment -%}
+    {%- assign seriesChildItems = series.ChildItems | Sort:'Priority','Asc' -%}
+    {%- for messages in seriesChildItems reversed -%}
+        {%- assign message = messages.ChildContentChannelItem -%}
+        {%- if message.ContentChannelId == "23" -%}
+            {%- assign startDateTime = message.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+            {%- assign endDateTime = message.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+            {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+                {%- assign newestMessage = message -%}
+                {%- break -%}
+            {%- endif -%}
+        {%- endif -%}
+    {%- endfor -%}
+
+	{%- comment -%}
+    ************ Get the sermon or video resource from the slug ************
+    {%- endcomment -%}
+    {%- assign sermonSlug = 'Global' | PageParameter:'SermonSlug' -%}
+	{%- if sermonSlug != "" -%}
+		{%- for childItem in seriesChildItems -%}
+            {%- assign startDateTime = childItem.ChildContentChannelItem.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+            {%- assign endDateTime = childItem.ChildContentChannelItem.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+            {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+            	{%- if sermonSlug == childItem.ChildContentChannelItem.PrimarySlug -%}
+    				{%- if childItem.ChildContentChannelItem.ContentChannelId == "23" -%}
+                        {%- assign currentMessage = childItem.ChildContentChannelItem -%}
+                        {%- break -%}
+                    {%- endif -%}
+    				{%- if childItem.ChildContentChannelItem.ContentChannelId == "63" -%}
+    					{%- assign videoResource = childItem.ChildContentChannelItem -%}
+    					{%- break -%}
+    				{%- endif -%}
+    			{%- endif -%}
+            {%- endif -%}
+		{%- endfor -%}
+	{%- else -%}
+		{%- assign currentMessage = newestMessage -%}
+	{%- endif -%}
+
+
+    <section>
+
+            {%- assign seriesHeroImageGuid = series | Attribute:'Hero','RawValue' -%}
+            {%- if seriesHeroImageGuid != "" -%}
+            <style>
+                #seriesHero {
+                    overflow: hidden;
+                }
+                #seriesHero img {
+                    width: 100%;
+                    margin: 0 auto;
+                    max-width: 1920px;
+                }
+                @media(max-width:600px){
+                    #seriesHero img {
+                        width: 900px;
+                        position: relative;
+                        left: 50%;
+                        transform: translate(-50%, 0px);
+                        margin: 0 auto;
+                        max-width: none;
+                    }
+            	}
+            </style>
+        	<div id="seriesHero" class="g-bg-color--black g-padding-x-0--xs">
+                <img src="/GetImage.ashx?Guid={{ seriesHeroImageGuid }}&mode=crop&width=1920&height=575" class="img-responsive g-margin-x-auto--xs text-center" />
+                {% comment %}
+                {[ parallax image:'/GetImage.ashx?Guid={{ seriesHeroImageGuid }}' addclass:'menu-switch' height:'400px' position:'center center' speed:'0' ]}{[ endparallax ]}
+                {% endcomment %}
+        	</div>
+            {%- endif -%}
+
+        <!-- START: Page Sub-Menu -->
+        <div class="page-menu" >
+            <div class="container-fluid text-center" style="padding: 0;">
+                <nav class="page-nav text-center">
+                    <ul class="list-inline">
+                        {%- if sermonSlug != "" -%}
+                        <li><a href="/sermons/{{series.PrimarySlug}}">Back to Series</a></li>
+                        {%- endif -%}
+                        {%- if newestMessage != null -%}
+                        <li><a href="#Sermons">Sermons</a></li>
+                        {%- endif -%}
+                        {%- assign resourcesCount = 0 -%}
+                        {%- assign itemChildItems = series.ChildItems | Sort:'Priority' -%}
+
+                        {% assign recommendedReadingJSONArray = "" %}
+                        {% assign recommendedReadingString = "" %}
+                        {% assign downloadsJSONArray = "" %}
+                        {% assign downloadsString = "" %}
+                        {% assign linksJSONArray = "" %}
+                        {% assign linksString = "" %}
+                        {% assign videosJSONArray = "" %}
+                        {% assign videosString = "" %}
+
+
+                    	{%- for messages in itemChildItems reversed -%}
+                    		{%- assign message = messages.ChildContentChannelItem -%}
+                    		{%- assign videoImageGuid = message | Attribute:'Image','RawValue' -%}
+                    		{%- if message.ContentChannelId != "23" -%}
+                                {% comment %} init & reset values each loop {% endcomment %}
+                                {%- assign childItemJSON = "" -%}
+                                {%- assign recommendedReading = "" -%}
+                                {%- assign resourceMediaFile = "" -%}
+                                {%- assign resourceURL = "" -%}
+                                {%- assign embedCode = "" -%}
+
+                                {%- assign childItemJSON = message | ToJSON -%}
+                                {%- assign recommendedReading = message | Attribute:'RecommendedReading' -%}
+                                {%- assign resourceMediaFile = message | Attribute:'ResourceFile','Object' -%}
+                                {%- assign resourceURL = message | Attribute:'ResourceURL','RawValue' -%}
+                                {%- assign embedCode = message | Attribute:'EmbedCode','RawValue' -%}
+                                {%- assign resourcesCount = resourcesCount | Plus:1 -%}
+
+                                {% comment %} **** Check first if Recommended Reading is Checked ***** {% endcomment %}
+                                {% if recommendedReading == "Yes" %}
+                                    {% comment %} Recommended Reading Array {% endcomment %}
+                                    {% if recommendedReadingJSONArray != "" %}
+                                        {% assign recommendedReadingJSONArray = recommendedReadingJSONArray | Append: "," %}
+                                    {% endif %}
+                                    {% assign recommendedReadingJSONArray = recommendedReadingJSONArray | Append: childItemJSON %}
+                                    {% comment %} Recommended Reading String {% endcomment %}
+                                    {% if recommendedReadingString != "" %}
+                                        {% assign recommendedReadingString = recommendedReadingString | Append: "," %}
+                                    {% endif %}
+                                    {% assign recommendedReadingString = recommendedReadingString | Append: message.Id %}
+                                {% else %}
+                                    {% comment %} **** If it's not, then include resources by type ***** {% endcomment %}
+
+                                    {% comment %} PDFs/Downloads Array {% endcomment %}
+                                    {%- if resourceMediaFile.Guid != null -%}
+                                        {% if downloadsJSONArray != "" %}
+                                            {% assign downloadsJSONArray = downloadsJSONArray | Append: "," %}
+                                        {% endif %}
+                                        {% assign downloadsJSONArray = downloadsJSONArray | Append: childItemJSON %}
+                                    {% comment %} PDFs/Downloads String {% endcomment %}
+                                        {% if downloadsString != "" %}
+                                            {% assign downloadsString = downloadsString | Append: "," %}
+                                        {% endif %}
+                                        {% assign downloadsString = downloadsString | Append: message.Id %}
+                                    {%- endif -%}
+
+                                    {% comment %} Links Array {% endcomment %}
+                                    {%- if resourceURL != "" -%}
+                                        {% if linksJSONArray != "" %}
+                                            {% assign linksJSONArray = linksJSONArray | Append: "," %}
+                                        {% endif %}
+                                        {% assign linksJSONArray = linksJSONArray | Append: childItemJSON %}
+                                    {% comment %} Recommended Reading String {% endcomment %}
+                                        {% if linksString != "" %}
+                                            {% assign linksString = linksString | Append: "," %}
+                                        {% endif %}
+                                        {% assign linksString = linksString | Append: message.Id %}
+                                    {%- endif -%}
+
+                                    {% comment %} Videos Array {% endcomment %}
+                                    {%- if embedCode != "" -%}
+                                        {% if videosJSONArray != "" %}
+                                            {% assign videosJSONArray = videosJSONArray | Append: "," %}
+                                        {% endif %}
+                                        {% assign videosJSONArray = videosJSONArray | Append: childItemJSON %}
+                                    {% comment %} Recommended Reading String {% endcomment %}
+                                        {% if videosString != "" %}
+                                            {% assign videosString = videosString | Append: "," %}
+                                        {% endif %}
+                                        {% assign videosString = videosString | Append: message.Id %}
+                                    {%- endif -%}
+
+                                {%- endif -%}
+
+                    		{%- endif -%}
+
+                    	{%- endfor -%}
+                        {%- if resourcesCount != 0 -%}
+    					<li><a href="#Resources">Resources</a></li>
+                        {%- endif -%}
+                        <li><a href="/sermons">Explore All Series</a></li>
+                        {%- comment -%}
+                        {%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' -%}
+                            {%- for item in contentchannelitemItems -%}
+                                {%- if forloop.first -%}
+                                    {%- assign currentSeries = contentchannelitemItems | First -%}
+                                {%- endif -%}
+                            {%- endfor -%}
+                        {%- endcontentchannelitem -%}
+                        <li><a href="/sermons/{{ currentSeries.PrimarySlug | Escape }}">Jump to Current Series</a></li>
+                        {%- endcomment -%}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        <!-- END: Page Sub-Menu -->
+
+        <script>
+        var scroll = new SmoothScroll('a[href*="#"]', {
+                speed: 500, // Integer. How fast to complete the scroll in milliseconds
+                easing: 'easeInOutCubic', // Easing pattern to use
+                header: '.cd-main-header'
+            });
+        </script>
+    </section>
+
+    {%- if currentMessage != null -%}
+        <div class="container g-padding-y-100--xs g-padding-x-0--xs">
+            {%- if sermonSlug == "" -%}
+            <div class="text-center g-padding-x-20--xs g-padding-b-60--xs">
+                <h5 class="uppercase g-letter-spacing--3 g-font-weight--600">Latest Sermon From Series</h5>
+            </div>
+            {%- endif -%}
+            {%- assign seriesImageGuid = currentMessage | Attribute:'Image','RawValue' -%}
+            {%- assign ending = '%25%7D' | UnescapeDataString -%}
+            {{ '{%- assign seriesImageGuid = "' | Append:seriesImageGuid | Append: '" ' | Append: ending }}
+
+            {%- assign currentMessageVideoId = currentMessage | Attribute:'VimeoId' -%}
+			{%- assign youtubeMessageVideoId = currentMessage | Attribute:'YouTubeId' -%}
+
+            <div class="series-detail container">
+                <div id="seriesHead" class="row">
+                    {%- unless currentMessageVideoId == empty and youtubeMessageVideoId == empty -%}
+                    <div id="sermonVideo" class="col-sm-12 col-lg-8 g-padding-x-0--xs g-padding-x-60--lg">
+                        <div class="embed-responsive embed-responsive-16by9 media-border-only">
+                            <div class="embed-responsive embed-responsive-16by9 media-border-only">
+							{% if youtubeMessageVideoId != null and youtubeMessageVideoId != '' %}
+								{% assign startTime =  currentMessage | Attribute:'YoutubeSermonStartTime' %}
+								<iframe width="640" height="360" src="https://www.youtube.com/embed/{{youtubeMessageVideoId}}?start={{startTime}}" title="{{currentMessage.Title}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+							{% else %}
+                                <iframe src="https://player.vimeo.com/video/{{ currentMessageVideoId }}?title=0&byline=0&portrait=0" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+							{% endif %}
+                            </div>
+                        </div>
+        			</div>
+                    {%- endunless -%}
+
+                    <div id="sermonContent" class="col-sm-12 col-lg-4">
+                        <br />
+                        {{ '{%- assign pageTile = "' | Append:series.Title | Append:' | ' | Append:currentMessage.Title | Append: '" ' | Append: ending }}
+                        {% raw %}
+                        {{ pageTile | SetPageTitle }}
+                        {% endraw %}
+                        <h2 class="g-font-size--jumbo-2 g-font-family--secondary">{{ currentMessage.Title }}</h2>
+                    	<h5 class="uppercase">by {{ currentMessage | Attribute:'Speaker' }} – {{ currentMessage.StartDateTime | Date:'MMMM dd, yyyy' }}</h5>
+                        <hr />
+                        {%- if currentMessage.Content != empty -%}
+                        <p class="series-summary g-line-height--sm">
+                            {{ currentMessage.Content | Truncate:250,'...' }}
+                        </p>
+                        <hr />
+                        {%- endif -%}
+        				<div class="text-center">
+        					{%- assign mediaURL = currentMessage | Attribute:'Audio','Path' | Replace:'~/','' -%}
+        					{%- unless mediaURL == empty -%}
+        					<a href="/GetFile.ashx?guid={{ currentMessage | Attribute:'Audio','RawValue' }}" data-resource="{{ currentMessage | Attribute:'Audio','FileName' }}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="margin-top: 5px;">
+        						<i class="fa fa-headphones"></i>
+        						Audio
+        					</a>
+        					{%- endunless -%}
+        					<a href="https://itunes.apple.com/us/podcast/southeast-christian-church/id287341044?mt=2" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" style="margin-top: 5px;">
+        						<i class="fa fa-music"></i>
+        						iTunes
+        					</a>
+        				</div>
+        				<br />
+                        <div class="text-center">
+        					<br />
+                            <p><i class="fa fa-share-alt"></i> Share this Sermon:
+                            {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}&mode=crop&width=960&height=540' emailsubject:'{{ currentMessage.Title }}' emailbody:'Check out this sermon I found at Southeast Christian Church.' ]}
+                            <br />
+                            <br />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+		{%- elseif videoResource != null -%}
+			<div class="container g-padding-y-100--md g-padding-x-0--xs">
+				{%- assign embedCode = videoResource | Attribute:'EmbedCode','RawValue' -%}
+				<div class="series-detail container">
+					<div id="seriesHead" class="row">
+
+						<div id="sermonVideo" class="col-sm-12 col-lg-8 g-padding-x-0--xs g-padding-x-60--lg">
+							<div class="embed-responsive embed-responsive-16by9 media-border-only">
+								{{ embedCode }}
+							</div>
+						</div>
+
+						<div class="col-sm-12 col-lg-4">
+							<br />
+							<h2 class="g-font-size--jumbo-2 g-font-family--secondary">{{ videoResource.Title }}</h2>
+							<br />
+							<div class="text-center">
+								<br />
+								<p><i class="fa fa-share-alt"></i> Share this video:
+								{[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}&mode=crop&width=960&height=540' ]}
+								<br />
+								<br />
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		{%- else -%}
+            {%- if sermonSlug != "" -%}
+            <section>
+                <div class="text-center g-padding-x-100--xs g-padding-y-150--xs g-bg-color--black-opacity-lightest">
+                    <br>
+                    <br>
+                    <h5 class="uppercase g-letter-spacing--3">Sermon Unavailable.</h5>
+                    <br>
+                    <h3 class="g-font-family--secondary">Please try again by looking at our <a href="/sermons/{{ series.PrimarySlug }}"><strong><i>{{ series.Title }}</i></strong> sermons below.</a></h3>
+                    <br>
+                    <br>
+                </div>
+            </section>
+            {%- endif-%}
+
+			<div class="container g-padding-y-100--md g-padding-x-0--xs">
+                {%- assign seriesImageGuid = series | Attribute:'Image','RawValue' -%}
+                <div class="series-detail container">
+					<div id="seriesHead" class="row">
+                        {%- if seriesImageGuid != "" -%}
+						<div class="col-sm-12 col-lg-6 g-padding-x-0--xs g-padding-x-60--lg">
+							<img src="/GetImage.ashx?Guid={{ seriesImageGuid }}&mode=crop&width=960&height=540" class="img-responsive" style="margin: 0 auto">
+						</div>
+                        {%- endif -%}
+
+						<div class="col-xs-12 {% if seriesImageGuid != "" %} col-lg-6 {% else %} col-lg-12 text-center {% endif %}">
+							<br />
+							<h2 class="g-font-size--jumbo-2 g-font-family--secondary">{{ series.Title }}</h2>
+							{%- if series.Content != empty -%}
+							<p class="series-summary g-line-height--sm">
+								{{ series.Content }}
+							</p>
+							{%- endif -%}
+							<hr />
+							<div class="text-center">
+								<br />
+								<p><i class="fa fa-share-alt"></i> Share this:
+								{[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{ seriesImageGuid }}&mode=crop&width=960&height=540' ]}
+								<br />
+								<br />
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+        {%- endif -%}
+
+        {%- comment -%}
+            ************ SERIES - The rest of the Sermons ************
+        {%- endcomment -%}
+        <div class="container-fluid g-padding-x-0--xs">
+
+        	{%- if newestMessage != null -%}
+				<div class="container g-padding-t-20--xs" id="Sermons">
+
+					<div class="row g-padding-b-60--xs">
+						<div class="col-md-12 text-center">
+							<br />
+							<h1 class="g-font-size--jumbo-1 g-font-family--secondary">{{ series.Title }}</h1>
+							<p class="series-dates">
+								Series Date:
+                                {%- assign itemChildItems = series.ChildItems | Sort:'Priority asc' -%}
+                                {%- assign firstSermon = "" -%}
+								{%- assign lastSermon = "" -%}
+								{%- for messages in itemChildItems reversed -%}
+									{%- assign message = messages.ChildContentChannelItem -%}
+									{%- assign startDateTime = message.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+									{%- assign endDateTime = message.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+									{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+										{%- if message.ContentChannelId == "23" -%}
+											{%- if firstSermon == "" -%}
+												{%- assign firstSermon = message -%}
+											{%- endif -%}
+											{%- assign lastSermon = message -%}
+										{%- endif -%}
+									{%- endif -%}
+								{%- endfor -%}
+                                {%- if firstSermon.StartDateTime == lastSermon.StartDateTime -%}
+                                    <i>
+                                        <strong>
+                                            {{ firstSermon.StartDateTime | Date:'MMM dd, yyyy' }}
+                                        </strong>
+                                    </i>
+                                {%- else -%}
+                                    <i>
+                                        <strong>
+                                            {{ firstSermon.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.StartDateTime | Date:'MMM dd, yyyy' }}
+                                        </strong>
+                                    </i>
+                                {%- endif -%}
+							</p>
+						</div>
+					</div>
+					<div class="row">
+					{%- unless currentMessageVideoEmbed == empty -%}
+						<div class="col-md-12 text-center">
+							{%- comment -%} <br /> {%- endcomment -%}
+							{%- comment -%} <h3 style="font-weight: 300" class="uppercase">Sermons In This Series</h3> {%- endcomment -%}
+							<br />
+						</div>
+					{%- endunless -%}
+					</div>
+					{%- assign itemChildItems = series.ChildItems | Sort:'Priority' -%}
+					<div class="messages isotope_wrap series-list g-margin-b-150--xs">
+						{%- for messages in itemChildItems reversed -%}
+							{%- assign message = messages.ChildContentChannelItem -%}
+							{%- assign videoImageGuid = message | Attribute:'Image','RawValue' -%}
+
+                            {%- assign startDateTime = message.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+                            {%- assign endDateTime = message.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+                            {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+    							{%- if message.ContentChannelId == "23" -%}
+    							<div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
+
+    								<a class="series-link" href="/sermons/{{ series.PrimarySlug }}/{{ message.PrimarySlug }}">
+    								<div class="card g-margin-b-25--xs">
+    									<!-- Image -->
+                                        {% if videoImageGuid != "" %}
+    									<div class="img-hover">
+    										<img src="/GetImage.ashx?Guid={{ videoImageGuid }}&mode=crop&width=960&height=540" class="img-responsive img-rounded" style="margin: 0 auto">
+    									</div>
+                                        {% endif %}
+    									<div class="series-body g-padding-x-40--xs g-padding-y-40--xs">
+    										<h5 class="g-font-family--secondary g-padding-b-20--xs">{{ message.Title }}</h5>
+    										<h6 class="g-line-height--normal uppercase">
+    											{{ message| Attribute: 'Speaker' }} – {{ message.StartDateTime | Date:'MMMM dd, yyyy' }}<br />
+    											{%- assign runningMinutes = message | Attribute: 'Duration' | DividedBy:60 | Floor -%}
+    											{%- assign temp = runningMinutes | Times:60 -%}
+    											{%- assign runningSeconds = message | Attribute: 'Duration' | Minus:temp -%}
+                                                {% if runningSeconds < 10 %}
+                                                    Running Time: {{runningMinutes}}:0{{runningSeconds}}
+                                                {% else %}
+    											    Running Time: {{runningMinutes}}:{{runningSeconds}}
+                                                {% endif %}
+    										</h6>
+    									</div>
+    								</div>
+    								</a>
+    							</div>
+    							{%- endif -%}
+                            {%- endif -%}
+						{%- endfor -%}
+					</div>
+				</div>
+            {%- endif -%}
+		</div>
+
+    {%- comment -%}
+        ************ Resources ************
+    {%- endcomment -%}
+    {%- if resourcesCount != 0 -%}
+		<div class="container-fluid g-padding-b-100--xs g-padding-x-0--xs" id="Resources">
+
+            <div class="container g-padding-t-0--xs g-padding-x-0--xs">
+    			<div class="row g-padding-y-60--xs g-padding-x-0--xs g-margin-x-0--xs">
+    				<div class="col-md-12 text-center g-padding-x-20--xs">
+    					<h1 class="g-font-size--jumbo-1 g-font-family--secondary">Series Resources</h1>
+    				</div>
+    			</div>
+    			<div class="">
+                    <style>
+                        @media only screen and (max-width: 780px) {
+                            .rsc-title-brd {
+                                border-bottom: 1px solid rgba(124, 124, 124, 0.18);
+                            }
+                        }
+                        @media all and (min-width: 992px) {
+                            .rsc-title {
+                                position: absolute;
+                                top: 50%;
+                                transform: translateY(-50%);
+                            }
+                            .resourcePreview {
+                                /*width: 75%;
+                                left: 50%;
+                                transform: translate(-25%, 0px);*/
+                            }
+                        }
+                        @media all and (min-width: 768px) {
+                            .rsc-buttons {
+                                position: absolute;
+                                top: 50%;
+                                transform: translateY(-50%);
+                                right: 0;
+                                display: inline-block;
+                            }
+                        }
+                        @media all and (max-width: 767px) {
+                            .rsc-buttons {
+                               position: relative;
+                               display: flex;
+                               width: 100%;
+                            }
+                        }
+                        .sermon-resources-accordion .panel .panel-heading .panel-title {
+                            font-size: 2.5rem !important;
+                            padding-right: 5px;
+                        }
+                        .sermon-resources-accordion .panel .panel-heading {
+                            padding: 5px 5px 5px 20px !important;
+                        }
+                        .sermon-resources-accordion .panel .panel-heading::before {
+                            position: relative !important;
+                            width: 10px !important;
+                            height: 10px !important;
+                            vertical-align: bottom;
+                            left: 15px;
+                        }
+                        .sermon-resources-accordion .panel .panel-collapse .panel-body {
+                            padding: 20px !important;
+                        }
+                        body.modal-open {
+                            overflow: auto;
+                        }
+                        .modal {
+                            overflow-y: auto;
+                        }
+                    </style>
+
+                    {% comment %}
+                    Display all "Recommended Reading"
+                    {% assign recommendedReadingJSONArray = "[" | Append: recommendedReadingJSONArray | Append: "]" %}
+                    {[ sermonresources title:'Recommended Reading' child-items:'{{ recommendedReadingJSONArray | EscapeDataString }}' ]}
+                    {% endcomment %}
+                    {[ sermonresources title:'Recommended Reading' items-string:'{{ recommendedReadingString }}' ]}
+
+
+                    {% comment %}
+                        Grab all "Studies" resources
+                        {% assign downloadsJSONArray = "[" | Append: downloadsJSONArray | Append: "]" %}
+                        {[ sermonresources title:'Studies' child-items:'{{ downloadsJSONArray | EscapeDataString }}' ]}
+                    {% endcomment %}
+                    {[ sermonresources title:'Studies' items-string:'{{ downloadsString }}' ]}
+
+
+                    {% comment %}
+                    Grab all "Reading Plans" or "Links" resources
+                    {% assign linksJSONArray = "[" | Append: linksJSONArray | Append: "]" %}
+                    {[ sermonresources title:'Links' child-items:'{{ linksJSONArray | EscapeDataString }}' ]}
+                    {% endcomment %}
+                    {[ sermonresources title:'Links' items-string:'{{ linksString }}' ]}
+
+
+                    {% comment %}
+                    Grab all "Media" resources
+                    {% assign videosJSONArray = "[" | Append: videosJSONArray | Append: "]" %}
+                    {[ sermonresources title:'Media' child-items:'{{ videosJSONArray | EscapeDataString }}' series-slug:'{{slug}}' ]}
+                    {% endcomment %}
+                    {[ sermonresources title:'Media' items-string:'{{ videosString }}' series-slug:'{{slug}}' ]}
+
+    			</div>
+            </div>
+		</div>
+	{%- endif -%}
+
+{%- else -%}
+    <section>
+        <div class="text-center g-padding-x-100--xs g-padding-y-100--xs">
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <h5 class="uppercase g-letter-spacing--3">Could not find series.</h5>
+            <br>
+            <h3 class="g-font-family--secondary">Please try again by looking at our <a href="/sermons"><i>Sermons</i>.</a></h3>
+            <br>
+            <h5>"For the Son of Man came to seek and to save the lost." Luke 19:10</h5>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+        </div>
+    </section>
+{%- endif -%}
+
+{%- endcache -%}
+
+<script>
+	$(document).ready(function() {
+		$('.cd-main-header').removeClass('transparent-menu-enabled').removeClass('transparent-header');
+		$('.cd-main-content').removeClass('transparent-content');
+	});
+	$(window).load(function() {
+		// Initialize Isotope
+		var $grid = $('.isotope_wrap').isotope({
+			// options
+			percentPosition: true,
+			itemSelector: '.isotope_item',
+			layoutMode: 'fitRows'
+		});
+		// reveal all items after init
+		var $items = $grid.find('.isotope_item');
+		$grid.addClass('is-showing-items')
+		  .isotope( 'revealItemElements', $items );
+		});
+</script>

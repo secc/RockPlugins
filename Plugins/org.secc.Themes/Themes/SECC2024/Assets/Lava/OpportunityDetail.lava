@@ -1,0 +1,22 @@
+
+{% if Opportunity.PhotoId %}
+<section>
+    <div>
+        {[ parallax image:'/GetImage.ashx?id={{ Opportunity.PhotoId }}' addclass:'g-bg-parallax-color--black--30 menu-switch' height:'50vh' position:'50% 50%' speed:'-15' ]}
+            <div class="parallax-logo centered" style="padding: 0px;">
+                <h1 class="g-font-family--secondary g-font-size-150--lg g-font-size-80--xs g-text-shadow--black--soft">
+                    {{ Opportunity.Name }}
+                </h1>
+            </div>
+        {[ endparallax ]}
+    </div>
+</section>
+{% endif %}
+
+<section class="container">
+    <div class="row g-padding-y-50--xs g-padding-x-50--xs">
+        <div class="col-md-12">
+            {{ Opportunity.Description }}
+        </div>
+    </div>
+</section>

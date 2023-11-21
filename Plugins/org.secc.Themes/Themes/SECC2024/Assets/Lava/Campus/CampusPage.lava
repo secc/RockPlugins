@@ -1,0 +1,255 @@
+{% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
+{% cache key:'{{pageParamCampus}}' duration:'3600' tags:'2019CampusLandingPage' %}
+
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
+{% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
+    {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+    {% campus where:'Public == true' %}
+        {% for campus in campusItems %}
+            {% assign campusSlug = campus | Attribute: 'Slug' %}
+            {% if campus.Name == pageParamCampus or campusSlug == pageParamCampus %}
+                {% assign pageParamCampus = campus %}
+            {% endif %}
+        {% endfor %}
+    {% endcampus %}
+{% endif %}
+
+{% assign campus = pageParamCampus %}
+{% assign campusSlug = campus | Attribute:'Slug' %}
+{% assign HeroImage = campus | Attribute:'HeroImage','Object' %}
+{% assign HeroImagePosition = campus | Attribute:'HeroImagePosition','Object' %}
+{% assign CampusImageThumb = campus | Attribute:'CampusThumbnail','Object' %}
+{% assign WorshipImage = campus | Attribute:'WorshipServiceImage','Object' %}
+{% assign WorshipImagePosition = campus | Attribute:'WorshipServiceImagePosition','Object' %}
+{% assign CampusSubMenuItems = campus | Attribute:'CampusSubMenu' %}
+{% assign CampusVideo = campus | Attribute:'CampusVideo' %}
+{% assign CampusEmail = campus | Attribute:'Email' %}
+{% assign CampusFacebookSlug = campus | Attribute:'FacebookSlug' %}
+{% assign CampusVimeoId = campus | Attribute:'VimeoID' %}
+{% assign CampusLongitude = campus | Attribute:'Longitude' %}
+{% assign CampusLatitude = campus | Attribute:'Latitude' %}
+
+{% if campusSlug != "" %}
+
+
+    <section id="CampusHero">
+        <div style="background-color:black">
+            {% unless HeroImage == empty or HeroImage == null %}
+
+                {% if currentMessageVimeoID != empty or currentMessageVimeoID != null %}
+                    <script>
+                      var tmpCanInitParallax = jarallax.constructor.prototype.canInitParallax;
+                      jarallax.constructor.prototype.canInitParallax = function(callback) {
+                        // Intercept the set call for the video object and manually set the image
+                        var imageHandler = {
+                          set(target, prop, value) {
+                            target[prop] = value;
+                            if (prop == 'video') {
+                                value.videoImage = "/GetImage.ashx?Guid={{ HeroImage.Guid }}";
+                                value.userEventsList['started'][0] = function () {
+
+                                    self.image.$default_item = self.image.$item;
+                                    self.image.$item = self.$video;
+
+                                    // set video width and height
+                                    self.image.width = self.video.videoWidth || 1280;
+                                    self.image.height = self.video.videoHeight || 720;
+                                    self.options.imgWidth = self.image.width;
+                                    self.options.imgHeight = self.image.height;
+                                    self.coverImage();
+                                    self.clipContainer();
+                                    self.onScroll();
+
+                                    // hide image
+                                    if (self.image.$default_item) {
+                                        self.css(self.image.$default_item, {
+                                            'transition': 'opacity .25s ease-in-out',
+                                            '-moz-transition': 'opacity .25s ease-in-out',
+                                            '-webkit-transition': 'opacity .25s ease-in-out',
+                                            'opacity': 1,
+                                        });
+                                        setTimeout(function () {
+                                            self.image.$default_item.style.opacity = 0;
+                                        }, 500);
+                                    }
+                                };
+                            }
+                            return true;
+                          }
+                        };
+                        // Use a proxy'ed JS object
+                        var self = new Proxy(this, imageHandler);
+                        self.defaultInitImgResult = true;
+                        self.image.bgImage = 'url("/GetImage.ashx?Guid={{ HeroImage.Guid }}")';
+
+                        // save default user styles
+                        var curStyle = self.$item.getAttribute('style');
+                        if (curStyle) {
+                            self.$item.setAttribute('data-jarallax-original-styles', curStyle);
+                        }
+
+                        // set new background
+                        self.css(self.$item, {
+                            'background-image': self.image.bgImage,
+                            'background-position': '{{ HeroImagePosition }}',
+                            'background-size': 'cover',
+                            'transition': 'opacity .25s ease-in-out',
+                            '-moz-transition': 'opacity .25s ease-in-out',
+                            '-webkit-transition': 'opacity .25s ease-in-out',
+                            'opacity': 1,
+                        });
+
+                        // Now actually call the method against the proxy object
+                        return tmpCanInitParallax.apply(self);
+                      }
+                    </script>
+
+                    {[ parallax videourl:'https://vimeo.com/{{ CampusVimeoId }}' image:'/GetImage.ashx?Guid={{ HeroImage.Guid }}' videostarttime:'75' videoendtime:'105' addclass:'g-bg-parallax-color--black--40 menu-switch' height:'80vh' position:'{{ HeroImagePosition }}' speed:'-15' ]}
+                        <!-- START: Campus Logo & Video -->
+                        <div class="parallax-logo centered" style="padding: 0px; z-index:3; max-width: 100%;">
+                            <h5 class="uppercase g-font-weight--600 g-letter-spacing--3">Welcome To</h5>
+                            <br />
+                            <h1 class="g-font-family--secondary g-font-size-150--lg g-font-size-80--xs g-text-shadow--black--soft">{{ campus.Name }}</h1>
+                            <br />
+                            {% if campusSlug == "multination" or campusSlug == "beechmont" %}   
+                               <h5 class="g-font-weight--600 g-text-shadow--black--soft"><strong>A Community Campus of Southeast Christian Church</strong></h1>
+                            {% endif %}
+                            <br />
+                            {% if CampusVimeoId != '' %}
+                                <script src="/Themes/SECC2019/Scripts/jquery-modal-video-se.js"></script>
+                                <script>
+                                $(document).ready(function() {
+
+                                    initModalVideo();
+
+                                    function initModalVideo(){
+                                        $(".js-modal-video").modalVideo({
+                                            channel: 'vimeo',
+                                            autoplay: true
+                                        });
+                                    }
+
+                                });
+                                </script>
+                                <a href="javascript:void(0)" class="js-modal-video" data-video-id="{{ CampusVimeoId }}">
+                                    <div class="play">
+                                        <svg version="1.1" id="play" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" height="100px" width="100px"
+                                        viewBox="0 0 100 100" enable-background="new 0 0 100 100" xml:space="preserve">
+                                        <path class="stroke-solid" fill="none" stroke="white"  d="M49.9,2.5C23.6,2.8,2.1,24.4,2.5,50.4C2.9,76.5,24.7,98,50.3,97.5c26.4-0.6,47.4-21.8,47.2-47.7
+                                        C97.3,23.7,75.7,2.3,49.9,2.5" />
+                                        <path class="stroke-dotted" fill="none" stroke="white"  d="M49.9,2.5C23.6,2.8,2.1,24.4,2.5,50.4C2.9,76.5,24.7,98,50.3,97.5c26.4-0.6,47.4-21.8,47.2-47.7
+                                        C97.3,23.7,75.7,2.3,49.9,2.5" />
+                                        <path class="icon" fill="white" d="M38,69c-1,0.5-1.8,0-1.8-1.1V32.1c0-1.1,0.8-1.6,1.8-1.1l34,18c1,0.5,1,1.4,0,1.9L38,69z" />
+                                        </svg>
+                                    </div>
+                                </a>
+                            {% endif %}
+                        </div>
+                    <!-- END: Campus Logo & Videod -->
+                    {[ endparallax ]}
+                {% endif %}
+
+            {% endunless %}
+        </div>
+        <!-- START: Page Sub-Menu -->
+        <div class="page-menu">
+            <div class="container-fluid text-center" style="padding: 0;">
+                <nav class="page-nav text-center">
+                    <ul class="list-inline">
+                        {% for item in CampusSubMenuItems %}
+                            {% assign itemkv = item | PropertyToKeyValue %}
+                            <li><a href="{{ itemkv.Value }}">{{ itemkv.Key }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        <!-- END: Page Sub-Menu -->
+    </section>
+
+    {% comment %}
+    ****************************************
+    Campus - Section
+    ****************************************
+    {% endcomment %}
+
+    {% if campus.Location.Street1 != emtpy %}
+    <section id="Location">
+        <div class="container">
+    		<div class="campus-info row g-display-flex--md g-margin-y-150--xs">
+    			<div class="col-sm-12 col-md-6 col-lg-6">
+                    <img src="/GetImage.ashx?Guid={{ CampusImageThumb.Guid }}" class="img-responsive img-circle g-margin-x-auto--xs g-margin-y-0--xs g-pull-right--md" style="max-width: 40rem; width: 100%;">
+                </div>
+                <div class="col-sm-12 col-md-6 col-lg-6 g-margin-t-50--xs">
+                    <div class="g-ver-center--md g-text-center--xs g-text-left--md g-padding-l-40--md">
+                        <h2 class="g-font-size--jumbo-2 g-font-family--secondary">Location</h2>
+                        <p class="g-font-weight--400 g-line-height--sm g-margin-b-0--xs">
+                            {% if campusSlug == "multination" or campusSlug == "beechmont" %}   
+                                {{ campus.Name }}<br />
+                            {% else %}
+                                Southeast Christian Church<br />
+                                {{ campus.Name }} Campus<br />
+                            {% endif %}
+                        </p>
+                        <address>
+                            <p class="g-font-weight--400 g-line-height--sm">
+                                {{ campus.Location.Street1 }}<br />
+                                {%- if campus.Location.Street2 != "" -%}{{ campus.Location.Street2 }}<br />{%- endif -%}
+                                {{ campus.Location.City }}, {{ campus.Location.State }} {{ campus.Location.PostalCode }}<br />
+                            </p>
+                            {% if campus.PhoneNumber != '' %}
+                            <p class="g-font-weight--400 g-line-height--sm">
+                                Phone: {{ campus.PhoneNumber }}
+                            </p>
+                            {%  endif %}
+                        </address>
+                        <a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1"
+                           target="_blank"
+                           href="https://www.google.com/maps/dir/Current+Location/{{campus.Location.Street1 | Replace:' ','+' }}+{{campus.Location.Street2 | Replace:' ','+' }}+{{campus.Location.City}}+{{campus.Location.State}}+{{campus.Location.PostalCode}}">
+                            <strong>Directions</strong>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <script>
+    // Initialize SmoothScroll
+    var scroll = new SmoothScroll('a[href*="#"]', {
+        speed: 500, // Integer. How fast to complete the scroll in milliseconds
+        easing: 'easeInOutCubic', // Easing pattern to use
+        header: '.cd-main-header'
+    });
+    </script>
+{% else %}
+        <!-- Campus Param Invalid -->
+        <section>
+            <div class="text-center g-padding-x-100--xs g-padding-y-100--xs">
+                <br />
+                <br />
+                <br />
+                <br />
+                <br />
+                <h5 class="uppercase g-letter-spacing--3">Campus Not Found.</h5>
+                <br />
+                <h3 class="g-font-family--secondary">Please try again by selecting a campus from "Locations".</h3>
+                <br />
+                <h5>"For the Son of Man came to seek and to save the lost." Luke 19:10</h5>
+                <br />
+                <br />
+                <br />
+                <br />
+                <br />
+            </div>
+        </section>
+        <script>
+            $(document).ready(function() {
+                    $('.cd-main-header').removeClass('transparent-menu-enabled').removeClass('transparent-header');
+                    $('.cd-main-content').removeClass('transparent-content');
+            });
+        </script>
+{% endif %}
+{% endcache %}

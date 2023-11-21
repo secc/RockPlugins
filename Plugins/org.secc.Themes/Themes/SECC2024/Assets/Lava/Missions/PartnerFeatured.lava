@@ -1,0 +1,43 @@
+<div class="wow fadeIn g-padding-t-150--md" data-wow-duration=".3s" data-wow-delay="0.3s">
+    <div class="row">
+        <div class="col-md-offset-1 col-md-10 g-padding-b-40--xs g-padding-b-75--md text-center">
+            <h1 class="g-font-size--jumbo-1 g-font-family--secondary">Featured Partner</h1>
+        </div>
+    </div>
+    <div class="row">
+      <div class="container-fluid">
+    {% assign Item = Items | Shuffle | First %}
+        <div class="col-xs-12 col-md-6 col-lg-4 col-lg-offset-2">
+            <div class="clearfix card g-box-shadow__dark-lightest-v4">
+                <a href="{{ Item | Attribute:'PartnerURL','RawValue' }}" class='eventCardLink' target="_blank">
+                  {% assign partnerImage = Item | Attribute:'Image', 'RawValue' %}
+                    {% if partnerImage != null and partnerImage != 0 %}
+                    <div class="img-hover">
+                        <img src="/GetImage.ashx?Guid={{ partnerImage }}&w=720&h=380&mode=pad&bgcolor=white&anchor=middlecenter&scale=both&paddingWidth=20" class="event-image img-responsive" onerror="this.style.display='none'">
+                    </div>
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+        <div class="col-xs-12 col-md-6 col-lg-4">
+
+            <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
+
+                <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">{{ Item | Attribute:'Location' }}</h6>
+
+                    {% if Item.Title != '' %}
+                        <h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">{{ Item.Title }}</h5>
+                    {% endif %}
+
+                    {% if Item.Content != '' %}
+                      <p>{{ Item.Content }}</p>
+                    {% endif %}
+
+                    <p class="g-margin-t-80--xs"><a href="{{ Item | Attribute:'PartnerURL','RawValue' }}" class='uppercase se-btn se-btn--dark-brd g-letter-spacing--1' target="_blank">Sign up to Serve</a></p>
+
+                </div>
+            </div>
+
+      </div><!-- END: item -->
+    </div>
+</div>

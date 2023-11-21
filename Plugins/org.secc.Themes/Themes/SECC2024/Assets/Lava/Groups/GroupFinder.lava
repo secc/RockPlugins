@@ -1,0 +1,196 @@
+<style>
+.hide {
+    display: none;
+}
+</style>
+
+{% assign selectedCampus = null %}
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
+{% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
+    {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+    {% campus where:'Public == true' %}
+        {% for campus in campusItems %}
+            {% assign campusSlug = campus | Attribute: 'Slug' %}
+            {% if campus.Name == pageParamCampus or campus.ShortCode == pageParamCampus or campusSlug == pageParamCampus %}
+                {% assign pageParamCampusId = campus.Id %}
+                {% assign selectedCampus = campus %}
+
+            {% endif %}
+        {% endfor %}
+    {% endcampus %}
+{% endif %}
+
+{% assign audienceId = -1 %}
+{% assign selectedMinistryUrlSlug = 'Global' | PageParameter:'ministry' %}
+{% if selectedMinistryUrlSlug != 'all' %}
+    {% definedvalue where:'DefinedTypeId==16' %}
+        {% for item in definedvalueItems %}
+            {% assign url = item | Attribute:'URLSlug' %}
+            {% if url == selectedMinistryUrlSlug %}
+                {% assign audienceId = item.Id %}
+                {%break%}
+            {% endif %}
+        {% endfor %}
+    {% enddefinedvalue %}
+{%endif%}
+
+<style>
+.readmore_dates {
+   transition: height 100ms;
+   overflow: hidden;
+   display: none;
+}
+</style>
+<div id="event-results" class="container-fluid g-padding-b-150--xs">
+{% assign contCount = 0 %}
+<div class="container">
+
+    {% if filterByMinistry != null %}
+        {% assign filterByMinistry = '---' | Append:filterByMinistry | Append:'---' %}
+        {% assign ministyCount = 0 %}
+    {% endif %}
+
+
+    {% assign groupRequest = 'Global' | Attribute:'PublicApplicationRoot' | Append:'Webhooks/Lava.ashx/publishgroup/list?campus='%}
+    {% if selectedCampus != null %}
+        {% assign groupRequest = groupRequest | Append:selectedCampus.Id %}
+    {% else %}
+        {% assign groupRequest = groupRequest | Append:'-1' %}
+    {% endif %}
+    {% if audienceId > 0 %}
+        {% assign groupRequest = groupRequest | Append:'&audience=' | Append:audienceId %}
+    {%endif%}
+
+    <div class="isotope_wrap">
+        {% webrequest url:'{{ groupRequest }}' %}
+            {% assign publishGroupCount = results | Size %}
+
+            {% for publishGroup in results %}
+                {% assign registrationLink = '/groups/oncampus/details/' | Append:publishGroup.Slug %}
+                {% assign contactLink = '/groups/oncampus/contact/' | Append:publishGroup.Guid %}
+                <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-day="{{ publishGroup.MeetingDay}}" data-online="{{ publishGroup.IsOnlineGroup}}">
+                    <div class="clearfix card">
+                        <div class="img-hover">
+                            <img src="{{'Global' | Attribute:'PublicApplicationRoot' }}/GetImage.ashx?id={{ publishGroup.ImageId }}&w=720" class="event-image img-responsive" onerror="this.style.display='none'" loading="lazy">
+                        </div>
+                        <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
+                            <h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">
+                                {{ publishGroup.Title}}
+                            </h5>
+                            <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">
+                                {{ publishGroup.CampusName }}
+                            </h6>
+                            <div class="readmore_dates" style="overflow-y: inherit">
+                                <div style='height:auto;'>
+                                    {{ publishGroup.Description }}
+                                    <br />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" style="padding:0 10%;">
+                            {% assign scheduleText = null %}
+                            {% assign meetingDaySize = publishGroup.MeetingDay | Trim | Size %}
+                            {% assign meetingTimeSize = publishGroup.MeetingDay | Trim | Size %}
+                            {% if publishGroup.CustomSchedule != '' %}
+                                {% assign scheduleText = publishGroup.CustomSchedule %}
+                            {% elseif meetingDaySize > 0 and meetingTimeSize > 0 %}
+                                {% assign scheduleText = publishGroup.MeetingDay | Append:'s ' | Append:publishGroup.MeetingTime %}
+                            {% endif %}
+
+                            {% assign offset = 0 %}
+                            {% if scheduleText == null %}
+                                {% assign offset = offset | Plus: 2 %}
+                            {% endif %}
+                            {% if publishGroup.MeetingLocation == null or publishGroup.MeetingLocation == empty %}
+                                {% assign offset = offset | Plus: 2 %}
+                            {% endif %}
+                            {% if publishGroup.IsChildcareAvailable != true %}
+                                {% assign offset = offset | Plus: 2 %}
+                            {% endif %}
+
+                            {% if scheduleText != null %}
+                                {% assign remainder = 4 %}
+                                {% if offset == 4 %}
+                                    {% assign offset = 3 %}
+                                    {% assign remainder = 6 %}
+                                {% endif %}
+                                <div class="event-items col-xs-{{remainder}} {% if publishGroup.MeetingLocation != null and publishGroup.MeetingLocation != empty  %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter{% endif %} col-xs-offset-{{offset}}">
+                                    <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
+                                    <h6>
+                                        {{ scheduleText }}
+                                        {% if publishGroup.StartDate and publishGroup.StartDate != empty %}
+                                        <br>
+                                        Starting: {{ publishGroup.StartDate | Date:'MMM d'}}
+                                        {% endif %}
+                                    </h6>
+                                </div>
+                                {% assign offset = 0 %}
+                            {% endif %}
+
+
+                            {% if publishGroup.MeetingLocation != null and publishGroup.MeetingLocation != empty%}
+                                <div class="event-items g-padding-x-10--xs col-xs-4 {% if publishGroup.IsChildcareAvailable == true %}g-ver-divider__solid__r--gray-lighter{% endif %}  col-xs-offset-{{offset}}">
+                                    <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
+                                    <h6>
+                                        {{ publishGroup.MeetingLocation }}
+                                    </h6>
+                                </div>
+                                {% assign offset = 0 %}
+                            {% endif %}
+
+                            <!-- ChildCare -->
+                            {% if publishGroup.IsChildcareAvailable == true %}
+                                <div class="event-items col-xs-4 g-padding-x-10--xs col-xs-offset-{{offset}}">
+                                    <div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
+                                    <h6>Children's<br>Programming<br> Available</h6>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
+
+                            <div class="col-md-6">
+                                <a href="{{ contactLink }}" class='eventCardLink link--hover-underscore'>
+                                    <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
+                                        Contact
+                                    </h6>
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="{{ registrationLink }}" class='eventCardLink link--hover-underscore'>
+                                    <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
+                                    {% if publishGroup.RegistrationRequirement != 0 %}
+                                        Register&nbsp;Now
+                                    {% else %}
+                                        Details
+                                    {% endif %}
+                                    </h6>
+                                </a>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div><!-- END: isotope_item -->
+            {% endfor %}
+        {%endwebrequest%}
+    </div><!-- END: isotope_wrap -->
+
+    {% comment %} <div class="row">
+        <div class="col-xs-12 text-center">
+            <div style="border: 1px solid rgba(32, 30, 29, 0.50); padding: 20px; border-radius: 5px;">
+                <p style="margin: 0px;">Removed Groups: {{ contCount }}</p>
+            </div>
+        </div>
+    </div> {% endcomment %}
+
+    <div id="noresultmsg" class="row" {% unless publishGroupCount == 0 or ministyCount == 0 %}style="display: none;"{% endunless %}>
+        <div class="col-xs-12 text-center">
+            <div style="border: 1px solid rgba(32, 30, 29, 0.50); padding: 20px; border-radius: 5px;">
+                <p style="margin: 0px;">There are no groups for this ministy at this time. Please try another campus or ministry.</p>
+            </div>
+        </div>
+    </div>
+
+</div><!-- END: bootstrap container -->

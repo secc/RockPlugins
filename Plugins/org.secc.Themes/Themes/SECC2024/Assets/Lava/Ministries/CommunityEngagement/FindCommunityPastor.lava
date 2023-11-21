@@ -1,0 +1,101 @@
+<section id="Men-Main" class="wow fadeIn g-display-flex--lg">
+
+    <div class="container">
+        <div class="g-padding-x-10--xs g-margin-b-40--xs g-margin-t-40--md">
+            <div class="row">
+                <div class="col-md-5 g-padding-t-100--xs">
+                    <h4 class="g-font-weight--600">
+                        Find My Community Pastor
+                    </h4>
+                    <p>Enter your zip code to find the Community Pastor for your area.</p>
+                    <input class="
+                           g-padding-y-10--xs
+                           g-padding-x-10--xs
+                           g-hor-centered-row__col
+                           g-width-400--xs
+                           g-bg-color--gray-lightest" type="text" id="se-zipcode" placeholder="Enter your zip code" />
+                           <i class="fas fa-circle-notch fa-spin se-zipcode-loading hidden"></i>
+                    <br />
+                    <a data-spy="scroll" data-target="#community-pastors" href="#community-pastors">
+                        <h6 class="g-padding-t-10--xs text-uppercase g-font-weight--600">
+                        See All
+                        </h6>
+                    </a>
+                </div>
+                <div class="col-md-7 g-padding-y-20--xs">
+                    <!-- <div id="your-pastor"></div> -->
+                    <div class="row g-padding-y-20--xs" id="dynamicPastor">
+                        
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <hr />
+<a name="community-pastors"></a>
+        <div class="row g-padding-y-40--xs">
+
+            <div class="col-lg-8 col-md-12 clearfix">
+                <div class="g-width-100-percent--xs">
+        	        <h4 class="g-font-weight--600">Community Pastors</h4>
+                    <p>
+                        Our Community Pastors work within specific areas of the community to identify, equip, and mobilize Christ followers to love where they are. Find your Community Pastor below.
+                    </p>
+                </div>
+    		</div>
+
+        </div>
+    </div>
+</section>
+
+
+<section id="CommunityPastors">
+    <div class="container">
+
+          <div class="row">
+          
+          {% groupmember where:'GroupId == 1015929' limit:30 %}
+          {% for member in groupmemberItems %}
+          
+            <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 text-center g-margin-b-150--md">
+			    <img src="{{member | Attribute:'OfficialImage'}}" class="img-responsive img-circle g-width-350--xs g-margin-x-auto--xs g-margin-b-40--xs">
+			    <h4 class="g-line-height--xs"><strong>{{member.Person.FullName}}</strong></h4>
+			</div>
+			
+          {% endfor %}
+          {% endgroupmember %}
+          
+        </div>
+
+	</div>
+</section>
+
+
+<script>
+$(document).ready(function() {
+ //This is for the zipcode :)
+    $zipcode_input = $('#se-zipcode')
+
+    $zipcode_input.keydown( function (e) {
+        if (e.keyCode == 13) {
+            e.preventDefault();
+        }
+    });
+
+    $zipcode_input.keyup(function(){
+        var zipcode = $zipcode_input.val();
+        var $homegroup = $('.homegroup');
+        if (zipcode.length==5){
+            $('.se-zipcode-loading').removeClass('hidden');
+            $.get(
+            "/Webhooks/Lava.ashx/ministries/communityengagement/communitypastors/pastorlookup/"+zipcode,
+            function(data){
+             $('.se-zipcode-loading').addClass('hidden');
+               document.getElementById("dynamicPastor").innerHTML = data;
+			});
+        }
+     });
+
+});
+</script>

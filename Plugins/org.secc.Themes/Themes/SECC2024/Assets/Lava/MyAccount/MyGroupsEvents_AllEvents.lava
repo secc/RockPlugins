@@ -1,0 +1,51 @@
+{% capture externalSite %}{{ 'Global' | Attribute:'PublicApplicationRoot' }}{% endcapture %}
+{% assign registrationCount = Registrations | Size %}
+{% if registrationCount > 0 %}
+<div class="fluid-container g-padding-x-0--xs g-padding-y-30--xs">
+    <h4 class="g-font-family--secondary g-margin-b-10--xs g-padding-x-20--xs">All Registrations</h4>
+    <br />
+    <div class="isotope_wrap clearfix">
+        {% for registration in Registrations %}
+            <div class="isotope_item col-xs-12 col-sm-12 col-md-6 g-padding-x-40--xs g-padding-x-20--md">
+                <div class="se-panel clearfix text-center g-padding-t-40--xs">
+                    <h5 class="g-font-size-30--xs g-font-size-32--md g-font-weight--700">
+                        {{ registration.RegistrationInstance.Name }}
+                        <hr />
+                        <p>
+                            Registrants ({{ registration.CreatedDateTime | Date:'MM/dd/yy' }}):<br />
+                            {% for registrant in registration.Registrants %}
+                            {{ registrant.Person.FullName }}</small><br />
+                            {% endfor %}
+                        </p>
+                        {% if registration.BalanceDue > 0 %}
+                            <label class='label label-warning'>{{ 'Global' | Attribute:'CurrencySymbol' }}{{ registration.BalanceDue }}</label>
+                        {% endif %}
+                    </h5>
+                    <div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
+                        <a href="{{ externalSite }}Registration?RegistrationId={{ registration.Id }}" class="js-group-item" >
+                            <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Update Registration</h6>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+	</div>
+</div>
+{% endif %}
+
+<script>
+    $(window).load(function() {
+        var isoOptions = {
+            percentPosition: true,
+            itemSelector: '.isotope_item'
+        };
+        // Initialize Connection Opportunities Isotope
+        var $grid = $('.isotope_wrap').isotope(isoOptions);
+        // reveal all items after init
+        var $items = $grid.find('.isotope_item');
+        $grid.imagesLoaded( function() {
+          // init Isotope after all images have loaded
+          $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
+        });
+    });
+</script>

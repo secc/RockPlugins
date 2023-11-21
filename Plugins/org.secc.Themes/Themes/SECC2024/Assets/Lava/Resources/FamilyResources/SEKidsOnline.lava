@@ -1,0 +1,140 @@
+<style>
+	#loading-animation {
+		display: none;
+	}
+	.current-series {
+		height: 220px;
+		background-size: cover;
+		background-position: center center;
+		background-repeat: no-repeat;
+	}
+
+	@media (min-width: 992px) {
+		.current-series {
+			height: 420px;
+		}
+	}
+
+	.current-series h1 {
+		background-color: rgba(0, 0, 0, 0.3);
+		text-align: center;
+		font-size: 16px;
+		font-weight: 600;
+		color: #fff;
+		margin: 0;
+		padding: 6px;
+	}
+
+	.series {
+		border: 1px solid rgba(0, 0, 0, .3);
+		position: relative;
+	}
+
+	.series h1 {
+		font-size: 20px;
+		font-weight: 600;
+		margin-top: 4px;
+		margin-bottom: 0;
+	}
+
+	.series-dates, .sermons-count {
+		opacity: .6;
+	}
+
+	.series-body {
+		padding: 15px;
+		/* height: 172px; */
+	}
+	.series-body h3 {
+		font-weight: 300;
+	}
+	.series-body hr {
+		margin: 10px 0px;
+	}
+</style>
+
+{% contentchannelitem where:'ContentChannelId == 76 && Status == 2' sort:'StartDateTime Desc' %}
+{% assign Items = contentchannelitemItems %}
+{% endcontentchannelitem %}
+
+<div class="container-fluid g-padding-y-40--xs">
+	<div class="container">
+		<div class="isotope_wrap margin-t-lg series-list">
+			{% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsDouble %}
+			{% for item in Items -%}
+				{% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsDouble %}
+				{% if itemStartDateTime <= currentDateTime %}
+					{% assign itemImage = item | Attribute:'Image' -%}
+					{% assign itemImageGuid = item | Attribute:'Image','RawValue' -%}
+					{%- assign campuses = item | Attribute:'Campuses','RawValue' | Split: ',' -%}
+			        {%- assign ministries = item | Attribute:'Audiences' -%}
+					{%- if ministries contains "Children" or ministries contains "Family" -%}
+						<div class="isotope_item col-lg-4 col-md-6 col-sm-6 margin-b-md event-calendar hide-on-load">
+							<div class="card">
+								<a href="/familyresources/{{ item.PrimarySlug }}">
+								{% if itemImage != empty -%}
+									<!-- Image -->
+									<div class="img-hover">
+										<img src="/GetImage.ashx?Guid={{ itemImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
+									</div>
+								{% else -%}
+
+									<!-- Grab Sermon Image -->
+									{% for child in item.ChildItems -%}
+										{% assign itemImage = child.ChildContentChannelItem | Attribute:'Image' -%}
+										{% assign itemImageGuid = child.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
+										{% if itemImage != empty -%}
+											<!-- Image -->
+											<div class="img-hover">
+												<img src="/GetImage.ashx?Guid={{ itemImageGuid }}" class="event-image img-responsive" onerror="this.style.display='none'">
+											</div>
+											{% break -%}
+										{% endif %}
+									{% endfor -%}
+
+								{% endif -%}
+									<div class="g-padding-x-30--xs g-padding-y-40--xs g-margin-b-40--xs">
+										<h5 class="g-font-family--secondary g-padding-b-20--xs">{{ item.Title }}</h5>
+									</div>
+								</a>
+							</div>
+						</div>
+					{%- endif -%}
+				{% endif %}
+			{% endfor -%}
+		</div>
+		<!-- <div class="text-center">
+			<br />
+			<br />
+			<br />
+			<img id="loading-animation" src="/Content/ExternalSite/WebImages/loading.gif" />
+		</div> -->
+	</div>
+	<br />
+	<br />
+</div>
+
+<script>
+$(document).ready(function() {
+    // Re-Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+        layoutMode: 'fitRows'
+    });
+
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.imagesLoaded().progress( function() {
+      $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
+    });
+    $grid.isotope( 'revealItemElements', $items );
+
+    // re-init jarallax
+    // jarallax(document.querySelectorAll('.jarallax'), {
+    //     disableParallax: /iPad|iPhone|iPod|Android/,
+    //     disableVideo: /iPad|iPhone|iPod|Android/
+    // });
+});
+</script>

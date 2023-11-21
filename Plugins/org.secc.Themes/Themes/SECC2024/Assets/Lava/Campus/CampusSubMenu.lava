@@ -1,0 +1,47 @@
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
+{% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
+    {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+    {% campus where:'Public == true' %}
+        {% for campus in campusItems %}
+            {% assign campusSlug = campus | Attribute: 'Slug' %}
+            {% if campus.Name == pageParamCampus or campusSlug == pageParamCampus %}
+                {% assign pageParamCampus = campus %}
+            {% endif %}
+        {% endfor %}
+    {% endcampus %}
+{% endif %}
+
+{% assign campus = pageParamCampus %}
+{% assign CampusSubMenuItems = campus | Attribute:'CampusSubMenu' %}
+
+<div id="sub-connect-menu">
+    <nav class="expandable-menu section-nav">
+        <a href="/{{ campus.Slug }}/">
+            <div class="se-logo {{ campus.Slug }}">{{ campus.ShortCode }}</div>
+        </a>
+        <ul>
+            {% for item in CampusSubMenuItems %}
+                {% assign itemkv = item | PropertyToKeyValue %}
+                <li><a href="{{ itemkv.Value }}">{{ itemkv.Key }}</a></li>
+            {% endfor %}
+        </ul>
+    </nav>
+</div>
+
+{% comment %}
+    The script below is to add the sub menu into the mobile menu as well.
+{% endcomment %}
+<script>
+    console.log('hello');
+    $('nav#MobileNav > ul.no-indent').prepend(
+        '<li class="nav-section">' +
+            '<h4>{{ campus.Name }}</h4>' +
+            '<ul>' +
+            {% for item in CampusSubMenuItems %}
+                {% assign itemkv = item | PropertyToKeyValue %}
+                '<li><a href="{{ itemkv.Value }}">{{ itemkv.Key }}</a></li>' +
+            {% endfor %}
+            '</ul>' +
+        '</li>');
+</script>

@@ -1,0 +1,99 @@
+{%- assign slug = 'Global' | PageParameter:'Slug' -%}
+{% cache key:'SEKidsPage:{{slug}}' duration:'3600' twopass:'true' %}
+
+{%- assign slug = 'Global' | PageParameter:'Slug' -%}
+{%- contentchannelitemslug where:'Slug=="{{slug}}"' -%}
+    {%- for item in contentchannelitemslugItems -%}
+        {%- assign ministries = item.ContentChannelItem | Attribute:'Audiences' -%}
+        {%- if ministries contains "Children" or ministries contains "Family"  -%}
+            {%- assign SEKidsItem = item.ContentChannelItem -%}
+        {%- endif -%}
+    {%- endfor -%}
+{%- endcontentchannelitemslug -%}
+
+{% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger %}
+{% assign itemStartDateTime = SEKidsItem.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
+{% assign itemImage = SEKidsItem | Attribute:'Image' -%}
+{% assign itemImageGuid = SEKidsItem | Attribute:'Image','RawValue' -%}
+
+{%- if SEKidsItem and itemStartDateTime <= currentDateTime -%}
+    {{ SEKidsItem.Title | SetPageTitle }}
+    <div class="container g-padding-y-40--xs g-padding-y-100--md g-padding-x-0--xs">
+    	<div class="series-detail container">
+        	<div id="" class="row">
+        	    <div class="col-sm-12 col-lg-8 g-padding-x-40--xs g-padding-x-60--lg">
+    				<h2 class="g-font-family--secondary">{{- SEKidsItem.Title -}}</h2>
+    				<h5 class="g-font-weight--700 uppercase">{{ SEKidsItem | Attribute:'PromotionalDate' | Date:'MMMM dd, yyyy' }}</h5>
+    				<br>
+    			</div>
+        	</div>
+    		<div class="row">
+    			<div id="SEKidsVideo" class="col-sm-12 col-lg-8 g-padding-x-0--xs g-padding-x-60--lg g-padding-b-40--xs">
+    				<div class="embed-responsive embed-responsive-16by9 media-border-only">
+                        {% assign seKidsChildItems = SEKidsItem.ChildItems | Sort:'Order','Asc' %}
+                        {%- for resources in seKidsChildItems -%}
+                            {% assign resource = resources.ChildContentChannelItem %}
+                            {% if resource.ContentChannelId == '77' %}
+                                {% assign resourceVimeoId = resource | Attribute:'vimeo-id' %}
+                                <iframe src="https://player.vimeo.com/video/{{- resourceVimeoId -}}?title=0&amp;byline=0&amp;portrait=0" width="640" height="360" frameborder="0" allow="autoplay; fullscreen" allowfullscreen=""></iframe>
+                                <br />
+                            {%- endif -%}
+                        {%- endfor -%}
+                	</div>
+    			</div>
+    			<div id="SEKidsResources" class="col-sm-12 col-lg-4">
+    				{{- SEKidsItem.Content -}}
+
+                    {% assign seKidsChildItems = SEKidsItem.ChildItems | Sort:'Order','Asc' %}
+                    {%- for resources in seKidsChildItems -%}
+                        {% assign resource = resources.ChildContentChannelItem %}
+                        {% if resource.ContentChannelId == '78' %}
+                            {% assign resourceMediaFile = resource | Attribute:'ResourceFile','Object' %}
+                            <br>
+                            <a href="/GetFile.ashx?guid={{ resourceMediaFile.Guid }}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" download>
+            				    <strong>Download PDF</strong>
+                            </a>
+                        {%- endif -%}
+                    {%- endfor -%}
+
+                    <div class="text-center" id="{{ SEKidsItem.Guid }}">
+                        <br />
+                        <br />
+                        <p><i class="fa fa-share-alt"></i> Share this:
+                        {% assign ending = '%25%7D' | UnescapeDataString %}
+                        {{ '{% assign itemImageGuid = "' | Append:itemImageGuid | Append: '" ' | Append: ending }}
+                        {{ '{% assign itemTitle = "' | Append:SEKidsItem.Title | Append: '" ' | Append: ending }}
+                        {{ '{% assign itemGuid = "' | Append:SEKidsItem.Guid | Append: '" ' | Append: ending }}
+                        {% raw %}
+                        {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx?Guid={{- itemImageGuid -}}' emailsubject:'{{- itemTitle -}}' emailbody:'Check out this SE!KIDS video I found at Southeast Christian Church.' facebooktitle:'{{- itemTitle -}}' facebookog:'true' sharingguid:'{{- itemGuid -}}' ]}
+                        {% endraw %}
+                        <br />
+                        <br />
+                    </div>
+                </div>
+    		</div>
+    	</div>
+    </div>
+{% else %}
+{{ 'SE!KIDS Not Found' | SetPageTitle }}
+<section>
+    <div class="text-center g-padding-x-100--xs g-padding-y-100--xs">
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <h5 class="uppercase g-letter-spacing--3">SE!KIDS Not Found.</h5>
+        <br>
+        <h3 class="g-font-family--secondary">Please try again by looking at our <a href="https://www.southeastchristian.org/familyresources"><i>Family Resources</i>.</a></h3>
+        <br>
+        <h5>"For the Son of Man came to seek and to save the lost." Luke 19:10</h5>
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+    </div>
+</section>
+{% endif %}
+{% endcache %}

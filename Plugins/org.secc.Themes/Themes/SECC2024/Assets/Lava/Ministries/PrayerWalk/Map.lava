@@ -1,0 +1,274 @@
+<style>
+        .google-maps {
+            position: relative;
+            top: 0;
+            left: 0;
+            height: 0;
+            overflow: hidden;
+            height: 600px;
+            width: 100% !important;
+        }
+        .page_content_wrap {
+            padding: 0px;
+            height: 0px;
+            border-bottom: 0.0625rem solid rgba(34, 35, 36, 0.1);
+            background-color: rgb(34, 35, 36);
+            margin: 0px;
+            width: 100%;
+        }
+        .iw_title {
+            font-size: 1.5rem;
+            font-weight: bolder;
+        }
+        .iw_subTitle {
+            font-size: 1.2rem;
+            font-weight: bolder;
+        }
+        .gm-style .gm-style-iw-t::after {
+            box-shadow: none !important;
+        }
+        .gm-style-iw.gm-style-iw-c {
+            padding: 12px !important;
+        }
+        .modal {
+            background-color: transparent;
+        }
+        @media (min-width: 992px) {
+            .modal {
+                width: 900px;
+                margin-left: -450px;
+            }
+        }
+        .prayerInput {
+            padding-bottom: 10px;
+        }
+    </style>
+<div class="container-fluid" id="Map">
+	<div class="row">
+		<div class="col-sm-12 g-padding-x-0--xs">
+            <!-- Button trigger modal -->
+            {% comment %} <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+            Add A Prayer Walk
+            </button> {% endcomment %}
+            <div id="PrayerWalkMap" class="google-maps" style="height: 600px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Add Your Prayer Walk Below:</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="prayerInput form-check">
+                        <label class="form-check-label" for="exampleFirstName">First Name</label>
+                        <input class="form-control" type="text" placeholder="Enter First Name">
+                    </div>
+                    <div class="prayerInput form-check">
+                        <label class="form-check-label" for="exampleLastName">Last Name</label>
+                        <input class="form-control" type="text" placeholder="Enter Last Name">
+                    </div>
+                    <div class="prayerInput form-check">
+                        <label class="form-check-label" for="exampleCheck1">Phone</label>
+                        <input class="form-control" type="text" placeholder="Enter Phone Number">
+                    </div>
+                    <div class="prayerInput form-group">
+                        <label for="exampleInputEmail1">Email address</label>
+                        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+                        <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+                    </div>
+                    <div class="prayerInput form-group">
+                        <label for="exampleInputEmail1">Mark your Prayer Walk the map below:</label>
+                        <div id="NewPrayerWalkMap" class="google-maps" style="height: 300px;"></div>
+                        <small id="newAddressCoordinates" class="form-text text-muted"></small>
+                    </div>
+                    <div class="prayerInput form-check">
+                        <label class="form-check-label" for="exampleCheck1">How many people were on this walk with you?</label>
+                        <input class="form-control" type="text" placeholder="Enter a Number">
+                    </div>
+                    <div class="prayerInput form-check">
+                        <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                        <label class="form-check-label" for="exampleCheck1">Agree to SE terms</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary pull-left" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+        $(document).ready(function() {
+            map1 = createMap("PrayerWalkMap");
+            /*
+            ***
+            *** This is a button to action *** (inactive)
+            ***
+            function PrayerControl(controlDiv, map) {
+                // Set CSS for the control border.
+                var controlUI = document.createElement('div');
+                controlUI.style.backgroundColor = '#fff';
+                controlUI.style.border = '0.4rem solid #fff';
+                controlUI.style.borderRadius = '0.1rem';
+                controlUI.style.cursor = 'pointer';
+                controlUI.style.marginBottom = '22px';
+                controlUI.style.marginTop = '15px';
+                controlUI.style.marginRight = '15px';
+                controlUI.style.textAlign = 'center';
+                controlUI.title = 'Click to add a Prayer Walk';
+                controlDiv.appendChild(controlUI);
+                // Set CSS for the control interior.
+                var controlText = document.createElement('div');
+                controlText.style.color = 'rgb(0,0,0)';
+                controlText.style.fontFamily = '"ProximaNova","proxima-nova","Helvetica Neue",Helvetica,Arial,sans-serif';
+                controlText.style.fontSize = '16px';
+                controlText.style.fontWeight = '700';
+                controlText.style.letterSpacing = '0.0625rem';
+                controlText.style.lineHeight = '38px';
+                controlText.style.paddingLeft = '15px';
+                controlText.style.paddingRight = '15px';
+                controlText.innerHTML = 'ADD PRAYER WALK';
+                controlUI.appendChild(controlText);
+                // Setup the click event listeners: simply toggle the modal.
+                controlUI.addEventListener('click', function() {
+                 $('#exampleModal').modal('toggle');
+                });
+            }
+            var prayerControlDiv = document.createElement('div');
+            var prayerControl = new PrayerControl(prayerControlDiv, map1);
+            prayerControlDiv.index = 1;
+            map.controls[google.maps.ControlPosition.TOP_RIGHT].push(prayerControlDiv);
+            */
+            
+            //map2 = createMap("NewPrayerWalkMap");
+            var prayerwalkMarkers = [];
+            // a new Info Window is created
+            /*infoWindow = new google.maps.InfoWindow({
+                pixelOffset: new google.maps.Size(0, 0)
+            });*/
+            var newMarker = [];
+            map1.addListener('click', function(e) {
+                /* delete marker if already clicked */
+                placeMarkerAndPanTo(e.latLng, map1);
+            });
+            
+            function placeMarkerAndPanTo(latLng, map1) {
+                deleteMarkers(); // remove existing clicks if any
+                var geocoder = new google.maps.Geocoder;
+                
+                var lat = latLng.lat().toString();
+                var lng = latLng.lng().toString();
+
+                // Creating the content to be inserted in the infowindow
+                var contentString = '<div id="iw_container">' +
+                        '<div class="iw_title text-center">Place Your Prayer Walk Here!<br /><small>click on the button below to complete</small><br /></div><br />' +
+                        '<a href="/respond/prayerwalk/new/' + lat + '/' + lng + '" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--600">Create Prayer Walk</a>' +
+                        '</div>' +
+                    '</div>';
+                var infowindow = new google.maps.InfoWindow({
+                    content: contentString
+                });
+
+                var marker = new google.maps.Marker({
+                    position: latLng,
+                    icon: {
+                        url: "/Themes/SECC2019/Assets/img/SE/PrayerWalkAdd.svg",
+                        // This marker is 20 pixels wide by 32 pixels high.
+                        size: new google.maps.Size(44, 64)
+                    },
+                    map: map1
+                });
+                
+                /*map.panTo(latLng);*/
+                newMarker.push(marker);
+                infowindow.open(map1, marker);
+                geocodeLatLng(geocoder, latLng);
+            }
+
+            /*            
+            // This event expects a click on a marker
+            // When this event is fired the Info Window content is created
+            // and the Info Window is opened.
+            google.maps.event.addListener(newMarker, 'click', function() {
+                // stop animation if there is one...
+                if (newMarker.getAnimation() != null) {
+                    newMarker.setAnimation(null);
+                }
+                // Creating the content to be inserted in the infowindow
+                var iwContent = '<div id="iw_container">' +
+                    '<div class="iw_title">Create a Prayer Walk Here</div>' +
+                    '</div>' +
+                    '</div>';
+                // including content to the Info Window.
+                infoWindow.setContent(iwContent);
+                // opening the Info Window in the current map and at the current marker location.
+                infoWindow.open(map, marker);
+            });
+            */
+
+            // Removes the markers from the map, but keeps them in the array.
+            function resetNewMarkers() {
+                for (var i = 0; i < newMarker.length; i++) {
+                    newMarker[i].setMap(null);
+                }
+            }
+            // Deletes all markers in the new marker array by removing references to them.
+            function deleteMarkers() {
+                resetNewMarkers();
+                newMarker = [];
+            }
+            
+            {%- workflow where:'WorkflowTypeId == 477' -%}
+                {% for w in workflowItems %}
+					{% assign lat = w | Attribute:'Lat' | AsDouble %}
+					{% assign long = w | Attribute:'Long' | AsDouble %}
+					{% if lat > 0 && long > 0 %}
+						/* {{w.Guid}} */
+						prayerwalkMarkers[prayerwalkMarkers.length] = new google.maps.Marker({
+							position: new google.maps.LatLng({{ lat }},{{ long }}),
+							icon: {
+								url: "/Themes/SECC2019/Assets/img/SE/PrayerWalk4.svg",
+								// This marker is 20 pixels wide by 32 pixels high.
+								size: new google.maps.Size(30, 44)
+							},
+							animation: google.maps.Animation.DROP,
+							map: map1
+						});
+					{% endif %}
+                {% endfor %}
+            {%- endworkflow -%}
+
+            function geocodeLatLng(geocoder, latlng) {
+                /*var input = document.getElementById('latlng').value;
+                var latlngStr = input.split(',', 2);
+                var latlngStr = latlng[0]+","+latlng[1];*/
+                console.log(latlng);
+                geocoder.geocode({'location': latlng}, function(results, status) {
+                if (status === 'OK') {
+                    if (results[0]) {
+                        $('#newAddressCoordinates').html("Prayer Walk @ <strong>"+results[0].formatted_address+"</strong><br /> "+latlng+" ");
+                        console.log(results[0].formatted_address);
+                    } else {
+                        console.log('No results found');
+                    }
+                } else {
+                    console.log('Geocoder failed due to: ' + status);
+                }
+                });
+            }
+
+            if ($( document ).width() > 768) {
+                map1.setCenter(new google.maps.LatLng((map.getCenter().lat()) , (map.getCenter().lng() - .5)));
+            }
+        });
+    </script>

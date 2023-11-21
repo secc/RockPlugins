@@ -1,0 +1,28 @@
+                {%- assign role = partition -%}
+				{%- assign spotsLeft = role.Limit | Minus: role.Filled -%}
+				<div class="col-sm-6 col-md-4">
+					{% if spotsLeft > 0 and role.Limit > 0 %}
+						{% if partitionSize > 0 %}
+							<a href="#" onclick="doSlide('#{{divId}}_{{role.Value}}'); return false;">
+						{% else %}
+							<a href="{{partition.Url}}&GroupId={{partition.GroupId}}">
+						{% endif %}
+					{% endif %}
+					<div class="serve-card" style="height: 250px;">
+                        <div class="box text-center">
+							<div class="clearfix">
+								<div class="pull-left" style="margin: 10px; width:50%">{% assign roleName = role.Entity.Name | Split: ':' %}{{roleName[0]}}</div>
+								<span class="label label-default pull-right" style="margin: 10px">{% if role.Limit == null %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }}{% endif %}{% endif %}</span>
+							</div>
+							{% assign icon = role.Entity | Attribute:"Icon" %}
+							{% if icon != '' and icon != empty %}
+								<i class="{{icon}} fa-5x"></i>
+							{% endif %}
+                            <h4><strong>{{ roleName[1] }}</strong></h4>
+                        </div>
+						<p style="margin: 0px 15px;">{{role.Entity.Description}}</p>
+					</div>
+					{% if spotsLeft > 0 and role.Limit > 0 %}
+						</a>
+					{% endif %}
+                </div>
