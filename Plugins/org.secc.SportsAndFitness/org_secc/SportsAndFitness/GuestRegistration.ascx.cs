@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
+
 using System.Web.UI.WebControls;
+
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -85,6 +87,15 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         IsRequired = true,
         Order = 3,
         Key = AttributeKeys.ConnectionStatusKey )]
+    [CodeEditorField("Adult Waiver Text",
+        Description = "The adult indemnity waiver.",
+        EditorMode = CodeEditorMode.Lava,
+        EditorTheme =  CodeEditorTheme.Rock,
+        IsRequired = false,
+        DefaultValue = "",
+        Order = 7,
+        Key = AttributeKeys.GuestWaiverTextKey)]
+
     [CampusField( "Default Campus", "Default Campus for new Sports and Fitness Guests", true, "", "", 4, AttributeKeys.DefaultCampusKey )]
 
 
@@ -98,6 +109,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             public const string ExistingGuestMessageKey = "ExistingGuestMessage";
             public const string NewGuestMessageKey = "NeweGuestMessage";
             public const string FinishMessageKey = "FinishMessage";
+            public const string GuestWaiverTextKey = "GuestWaiverText";
             public const string GuestWorkflowKey = "GuestWorkflow";
             public const string InvitationQSKey = "Invitation";
             public const string LavaCommandKey = "LavaCommands";
@@ -228,6 +240,8 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             lbEmergencyContactCancel.Click += lbEmergencyContactCancel_Click;
             lbEmergencyContactEditNext.Click += lbEmergencyContactEditNext_Click;
             lbEmergencyContactEditCancel.Click += lbEmergencyContactEditCancel_Click;
+            lbGuestWaiverNext.Click += lbGuestWaiverNext_Click;
+            lbGuestWaiverCancel.Click += lbGuestWaiverCancel_Click;
         }
 
 
@@ -313,17 +327,74 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
             if (IsMinor == true)
             {
                 LoadEmergencyContactConfirmationPanel();
+                return;
+            }
+
+            using (var rockContext = new RockContext())
+            {
+                var p = new PersonService( rockContext ).Get( PersonId.Value );
+                p.LoadAttributes( rockContext );
+                var waiver = p.GetAttributeValue( "GuestWaiverAccepted" ).FromJsonOrNull<SportsAndFitnessGuestWaiver>();
+
+                if(waiver == null || !waiver.DateAccepted.HasValue)
+                {
+                    LoadGuestWaiver();
+                }
+                else
+                {
+                    LoadFinishPanel( p );
+                }
+            }
+            
+        }
+
+        private void lbGuestWaiverCancel_Click( object sender, EventArgs e )
+        {
+            LoadWelcomePanel();
+        }
+
+        private void lbGuestWaiverNext_Click( object sender, EventArgs e )
+        {
+            if (!cbWaiverAgree.Checked)
+            {
+                nbGuestWaiver.Visible = true;
+                return;
+            }
+
+            var ipList = Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+            string ip = null;
+            if (ipList.IsNotNullOrWhiteSpace())
+            {
+                ip = ipList.Split( ',' )[0];
             }
             else
             {
-                var person = new PersonService( new RockContext() ).Get( PersonId.Value );
+                ip = Request.ServerVariables["REMOTE_ADDR"];
+            }
+
+            var waiver = new SportsAndFitnessGuestWaiver
+            {
+                DateAccepted = RockDateTime.Now,
+                ClientIPAcceptedFrom = ip
+            };
+
+            using (var rockContext = new RockContext())
+            {
+                var person = new PersonService( rockContext ).Get( PersonId.Value );
+                person.LoadAttributes( rockContext );
+                person.SetAttributeValue( "GuestWaiverAccepted", waiver.ToJson() );
+                person.SaveAttributeValue( "GuestWaiverAccepted", rockContext );
+
+                rockContext.SaveChanges();
+
                 LoadFinishPanel( person );
             }
+
         }
 
         private void lbSaveNewGuest_Click( object sender, EventArgs e )
         {
-            ;
+            
 
             if (!PersonId.HasValue)
             {
@@ -715,6 +786,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         {
             pnlWelcome.Visible = false;
             pnlReturningGuest.Visible = false;
+            pnlGuestWaiver.Visible = false;
             pnlNewGuest.Visible = false;
             pnlLoadGuest.Visible = false;
             pnlEmergencyContactConfirm.Visible = false;
@@ -874,6 +946,14 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
 
         }
 
+        private void LoadGuestWaiver()
+        {
+            HidePanels();
+            pnlGuestWaiver.Visible = true;
+            lWaiverText.Text = ProcessLava( GetAttributeValue( AttributeKeys.GuestWaiverTextKey ) );
+
+        }
+
 
         private void LoadNewGuestForm( bool guestNotFound = false )
         {
@@ -1001,5 +1081,11 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness
         }
 
         #endregion
+    }
+
+    public class SportsAndFitnessGuestWaiver
+    {
+        public DateTime? DateAccepted { get; set; }
+        public string ClientIPAcceptedFrom { get; set; }
     }
 }

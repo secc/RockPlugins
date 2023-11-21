@@ -45,6 +45,18 @@
     .emergencyContactAdd .row {
         margin-bottom:15px;
     }
+
+    .legalAgreement {
+        font-size: 1em;
+        font-family: 'Times New Roman', Times, serif;
+    }
+    .legalAgreement p {
+        text-indent:2em;
+    }
+    .legalAgreement p.legalAgreementHeader {
+        text-indent:0em;
+        text-align:center;
+    }
     
 
 </style>
@@ -255,6 +267,33 @@
                     </div>
                 </div>
             </asp:Panel>
+        </asp:Panel>
+
+        <asp:Panel ID="pnlGuestWaiver" runat="server" Visible="false">
+            <h3>Please Review and Agree</h3>
+            <Rock:NotificationBox ID="nbGuestWaiver" runat="server" NotificationBoxType="Validation" Visible="false">
+                <h4>Agreement Acceptance is Required</h4>
+                <p>Acceptance of the Legal Release Agreement is required to participate in Sports &amp; Fitness Activities.</p>
+            </Rock:NotificationBox>
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="legalAgreement">
+                        <asp:Literal ID="lWaiverText" runat="server"></asp:Literal>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <Rock:RockCheckBox ID="cbWaiverAgree" runat="server"  CssClass="form-control checkbox"   Text="I Agree"/>
+                </div>
+
+            </div>
+            <div class="actions">
+                <div class="pull-right">
+                    <asp:LinkButton ID="lbGuestWaiverNext" runat="server" CssClass="btn btn-primary" >Next</asp:LinkButton>
+                    <asp:LinkButton ID="lbGuestWaiverCancel" runat="server" CssClass="btn btn-default" >Cancel</asp:LinkButton>
+                </div>
+            </div>
         </asp:Panel>
 
         <asp:Panel ID="pnlFinish" runat="server" Visible="false" >

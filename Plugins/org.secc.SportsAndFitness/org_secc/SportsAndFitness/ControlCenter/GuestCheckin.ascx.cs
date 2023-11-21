@@ -414,7 +414,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
 
                 var attributeValueService = new AttributeValueService( rockContext );
-                var attributekeys = "Guest,EmergencyContactCount,SignatureDocumentId";
+                var attributekeys = "Guest,EmergencyContactCount,WaiverAcceptedDate";
                 var attributeQry = attributeValueService.Queryable().AsNoTracking()
                     .Where( v => v.Attribute.EntityTypeId == workflowEntityType.Id )
                     .Where( v => v.Attribute.EntityTypeQualifierColumn == "WorkflowTypeId" )
@@ -432,7 +432,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                         CreatedDateTime = w.Workflow.CreatedDateTime,
                         Status = w.Workflow.Status,
                         GuestPersonId = w.Attributes.Where( a => a.Attribute.Key == "Guest" ).Select( g => g.ValueAsPersonId ).FirstOrDefault(),
-                        SignatureDocumentId = w.Attributes.Where( a => a.Attribute.Key == "SignatureDocumentId" ).Select( g => g.ValueAsNumeric ).FirstOrDefault(),
+                        WaiverAcceptedDate = w.Attributes.Where( a => a.Attribute.Key == "WaiverAcceptedDate" ).Select( g => g.ValueAsDateTime ).FirstOrDefault(),
                         EmergencyContactCount = w.Attributes.Where( a => a.Attribute.Key == "EmergencyContactCount" ).Select( g => g.ValueAsNumeric ).FirstOrDefault()
                     } );
 
@@ -446,7 +446,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                         CreatedDateTime = item.CreatedDateTime.Value,
                         Status = item.Status,
                         GuestPersonId = item.GuestPersonId,
-                        HasSignedWaiver = item.SignatureDocumentId.HasValue && item.SignatureDocumentId.Value > 0,
+                        HasSignedWaiver = item.WaiverAcceptedDate.HasValue,
                         HasEmergencyContacts = item.EmergencyContactCount.HasValue && item.EmergencyContactCount.Value > 0
                     } );
                 }
