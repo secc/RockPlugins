@@ -871,8 +871,11 @@ main {
 		}
 
 		> li {
-			float: left;
-			margin-left: 1.5em;
+			float: left;			
+			margin-left: 1em;
+			@include MQ(L) {
+				& > li { margin-left: 1.5em;}
+			}
 		}
 
 		> li > a {
