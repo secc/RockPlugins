@@ -1,0 +1,90 @@
+<div id="MainFooter" class="g-padding-y-100--xs">
+    <div class="row">
+        <div class="col-xs-12 col-md-4 g-padding-b-100--xs g-padding-b-0--lg">
+            <img src="/Themes/SECC2024/Assets/img/SE/Southeast logo_wordmark.svg" alt="Southeast Christian Church wordmark">
+        </div>
+        <div class="col-xs-6 col-md-2 g-padding-b-75--xs">
+            <h3>Locations</h3>
+            <ul>
+                <li>Service Times</li>
+                <li>What To Expect</li>
+            </ul>
+        </div>
+        <div class="col-xs-6 col-md-2 g-padding-b-75--xs">
+            <h3>Resources</h3>
+            <ul>
+                <li>Watch Live</li>
+                <li>Sermon Library</li>
+            </ul>
+        </div>
+        <div class="col-xs-6 col-md-2 g-padding-b-75--xs">
+            <h3>Who We Are</h3>
+            <ul>
+                <li>Leadership</li>
+                <li>What We Believe</li>
+                <li>What is the Gospel?</li>
+                <li>Values</li>
+                <li>Baptism</li>
+                <li>Our Story</li>
+            </ul>
+        </div>
+        <div class="col-xs-6 col-md-2 g-padding-b-75--xs">
+            <h3>Find Your Place</h3>
+            <ul>
+                <li>Events</li>
+                <li>Groups</li>
+                <li>Serve</li>
+                <li>Jobs</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="git-container g-margin-y-100--xs">
+        <div class="text-section">
+            <div class="title">Get in touch.</div>
+            <div class="subtitle">We’d love to hear from you.</div>
+        </div>
+        <div class="contact-section">
+            <div class="contact-item">
+                <a href="mailto:cministry@secc.org">
+                    <span class="label">Email Us:</span>
+                    <span class="value">cministry@secc.org</span>
+                </a>
+            </div>
+            <div class="contact-item">
+                <a href="tel:+15022538000">
+                    <span class="label">Call Us:</span>
+                    <span class="value">502-253-8000</span>
+                </a>
+            </div>
+            <div class="contact-item">
+                <a href="/Connect">
+                    <span class="label">Contact Us</span>
+                </a>
+                </div>
+        </div>
+    </div>
+
+
+    <div class="footer-links">
+        <div class="social-icons g-margin-b-100--xs g-margin-b-0--lg">
+            <a href="#youtube"><i class="fab fa-youtube"></i></a>
+            <a href="#facebook"><i class="fab fa-facebook"></i></a>
+            <a href="#twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#instagram"><i class="fab fa-instagram"></i></a>
+        </div>
+        <div class="fine-print">
+            <div class="legal">
+                <div class="">
+                    <p><a href="/privacy-policy">Privacy Policy</a></p>
+                </div>
+                <div class="">
+                    <p><a href="/terms">Terms & Conditions</a></p>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy;2023 Southeast Christian Church</p>
+            </div>
+        </div>
+    </div>
+</div>

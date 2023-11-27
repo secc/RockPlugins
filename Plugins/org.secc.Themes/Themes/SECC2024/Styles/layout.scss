@@ -132,7 +132,7 @@ nav ul {
 
 
 #SiteFooter {
-	background: rgba($LightGreyColor, 0.18);
+	background: #1D1F21;
 
 	ul {
 		margin-bottom: 0;
@@ -142,59 +142,39 @@ nav ul {
 		ul { margin-left: 1em; }
 
 		& + ul { margin-top: 0.7em; }
-	}
-
-	section.footer-menu {
-		padding-top: 3em;
-		padding-bottom: 3em;
-		color: $BlackColor;
-		p { margin: 0; }
-		.menu > li > a,
-		:not(li) > a { color: $BlackColor; }
-
-		.menu li,
-		.campus-list {margin-top: .5em; }
-	}
-
-	section.partners {
-		background: rgba($LightGreyColor, 0.68);
-		padding-top: 2em;
-		padding-bottom: 2em;
-		text-align: center;
-		font-weight: 600;
-
-		li {
-			padding: 0px 10px;
-			a {
-				color: $WhiteColor;
-			}
-		}
-
-		@include desktops {
-			li {
-				border-right: 1px solid $WhiteColor;
-				&:last-child {
-					border: 0;
-				}
-			}
-		}
-
-		@include mobile-devices {
-			li { padding: 5px 10px;}
-		}
-
-		@include small-phones {
-			li { display: block;}
-		}
-	}
+	}	
 
 	section.signoff {
-		background: $WhiteColor;
+		//background: $WhiteColor;
+		
+		h3 {
+			color: white;
+			font-size: 16px;
+			font-weight: 600;
+			padding-bottom: 16px;
+		}
+		li, p {
+			color: rgba(#fff, 0.5);
+			font-weight: 400;
+			padding: 8px 0;
+		}
+		li {
+			font-size: 14px;
+		}
+		a {
+			color: rgba(#fff, 0.5);
+		}
+
+		a:hover,
+		a:active {
+			color: #fff;
+		}
+
 		padding-top: 2em;
 		padding-bottom: 2em;
 		font-size: $font-size-24;
 		p {
-			font-size: $font-size-24;
+			font-size: 16px;
 		}
 		.se-brand-logo {
 			max-width: 300px;
@@ -222,6 +202,171 @@ nav ul {
 			}
 		}
 	}
+
+	#GetInTouch {
+		width: 100%; 
+		height: 100%; 
+		padding: 48px; 
+		background: rgba(0, 0, 0, 0.15); 
+		border-radius: 16px; 
+		justify-content: space-between; 
+		align-items: flex-start; 
+		display: inline-flex
+
+		div {
+			flex-direction: column; justify-content: center; align-items: flex-start; gap: 16px; display: inline-flex
+		}
+	}
+
+	.git-container {
+		width: 100%;
+		height: 100%;
+		padding: 48px;
+		background: rgba(0, 0, 0, 0.15);
+		border-radius: 16px;
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		@include tablets {
+			& {
+				align-items: center;
+			}
+		}
+		@include phones {
+			& {				
+				align-items: center;
+				flex-direction: column;
+				justify-content: space-between;
+			}
+		}
+	}
+	
+	.text-section {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: flex-start;
+		gap: 16px;	
+		@include phones {
+			& {
+				align-items: center;
+			}
+		}
+	}
+	
+	.title {
+		color: white;
+		font-size: 20px;
+		font-family: 'Inter', sans-serif;
+		font-weight: 600;
+		line-height: 30px;
+		word-wrap: break-word;
+	}
+	
+	.subtitle {
+		opacity: 0.50;
+		color: white;
+		font-size: 16px;
+		font-family: 'Inter', sans-serif;
+		font-weight: 400;
+		line-height: 24px;
+		word-wrap: break-word;
+	}
+	
+	.contact-section {
+		display: flex;
+		justify-content: flex-start;
+		align-items: flex-start;
+		gap: 15px;
+		@include mobile-devices {
+			& {
+				flex-direction: column;
+			}
+		}
+
+		@include phones {
+			& {
+				align-items: center;				
+			}
+		}
+	}
+	
+	.contact-item {
+		padding: 8px 20px;
+		border-radius: 4px;
+		border: 1px rgba(255, 255, 255, 0.30) solid;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 8px;
+		@include phones {
+			& {
+				text-align: center;
+				width: 100%;
+			}
+		}
+	}
+	
+	.label {
+		color: white;
+		font-size: 16px;
+		font-family: 'Inter', sans-serif;
+		font-weight: 600;
+		line-height: 24px;
+		word-wrap: break-word;
+	}
+	
+	.value {
+		color: #8E8F90;
+		font-size: 16px;
+		font-family: 'Inter', sans-serif;
+		font-weight: 400;
+		line-height: 24px;
+		word-wrap: break-word;
+	}
+
+	.social-icons a {
+		color: white!important;
+		font-size: 2em;
+		padding: 0 1em;
+		@include mobile-devices {
+			padding: 0 0.5em;			
+		}
+	}
+
+	.footer-links {
+		display: flex;
+		flex-direction: row-reverse;
+		justify-content: space-between;
+		@include mobile-devices {
+			align-items: center;
+			flex-direction: column;
+		}
+	}
+
+	.fine-print {
+		align-items: start;
+		display: flex;
+		flex-direction: row-reverse;
+		font-size: 14px;
+		@include phones {
+			align-items: center;
+			flex-direction: column;
+		}
+		
+	}
+
+	.legal {
+		display: flex;
+		a {
+			padding-left: 1em;
+		}
+		@include phones {
+			align-items: center;
+			flex-direction: column;
+		}
+	}
+	
 }
 
 .secc-content {
