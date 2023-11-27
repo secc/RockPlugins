@@ -398,7 +398,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 changeRequest.IsComplete = true;
                 changeRequest.ApproverAliasId = CurrentPersonAliasId ?? 0;
                 rockContext.SaveChanges();
-                changeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull() );
+                changeRequest.LaunchWorkflow( GetAttributeValue( "Workflow" ).AsGuidOrNull(), "", null, null );
                 NavigateToParentPage();
             }
         }

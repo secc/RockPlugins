@@ -27,7 +27,7 @@
 
                     <div class="row">
                         <div class="col-md-6">
-                            <Rock:DataTextBox ID="tbName" runat="server" SourceTypeName="org.secc.FamilyCheckin.Model.KioskType, org.secc.FamilyCheckin" PropertyName="Name" Required="true" />
+                            <Rock:DataTextBox ID="tbName" runat="server" SourceTypeName="org.secc.FamilyCheckin.Model.CheckinKioskType, org.secc.FamilyCheckin" PropertyName="Name" Required="true" />
                         </div>
                         <div class="col-md-6">
                         </div>
@@ -35,11 +35,11 @@
 
                     <div class="row">
                         <div class="col-md-12">
-                            <Rock:DataTextBox CausesValidation="false" ID="tbDescription" runat="server" SourceTypeName="org.secc.FamilyCheckin.Model.KioskType, org.secc.FamilyCheckin" PropertyName="Description" TextMode="MultiLine" Rows="3" />
+                            <Rock:DataTextBox CausesValidation="false" ID="tbDescription" runat="server" SourceTypeName="org.secc.FamilyCheckin.Model.CheckinKioskType, org.secc.FamilyCheckin" PropertyName="Description" TextMode="MultiLine" Rows="3" />
                         </div>
                     </div>
 
-                    <Rock:DataDropDownList CausesValidation="false" runat="server" ID="ddlTemplates" Label="Checkin Template" OnSelectedIndexChanged="ddlTemplates_SelectedIndexChanged" AutoPostBack="true" DataTextField="Name" DataValueField="Id" SourceTypeName="org.secc.FamilyCheckin.Model.KioskType, org.secc.FamilyCheckin" PropertyName="CheckinTemplateId"></Rock:DataDropDownList>
+                    <Rock:DataDropDownList CausesValidation="false" runat="server" ID="ddlTemplates" Label="Checkin Template" OnSelectedIndexChanged="ddlTemplates_SelectedIndexChanged" AutoPostBack="true" DataTextField="Name" DataValueField="Id" SourceTypeName="org.secc.FamilyCheckin.Model.CheckinKioskType, org.secc.FamilyCheckin" PropertyName="CheckinTemplateId"></Rock:DataDropDownList>
                     <div class="row">
                         <div class="col-md-6">
                             <Rock:RockCheckBoxList CausesValidation="false" ID="cblPrimaryGroupTypes" runat="server" Label="Check-in Area(s)" DataTextField="Name" DataValueField="Id"></Rock:RockCheckBoxList>
@@ -67,7 +67,7 @@
                         </div>
                     </div>
 
-                    <Rock:DataDropDownList runat="server" CausesValidation="false" ID="ddlTheme" Label="Theme" SourceTypeName="org.secc.FamilyCheckin.Model.KioskType, org.secc.FamilyCheckin" PropertyName="Description" />
+                    <Rock:DataDropDownList runat="server" CausesValidation="false" ID="ddlTheme" Label="Theme" SourceTypeName="org.secc.FamilyCheckin.Model.CheckinKioskType, org.secc.FamilyCheckin" PropertyName="Description" />
 
                     <h3>Locations</h3>
                     <Rock:Grid ID="gLocations" runat="server" DisplayType="Light" RowItemText="Location" ShowConfirmDeleteDialog="false">
@@ -87,7 +87,7 @@
                         </Columns>
                     </Rock:Grid>
 
-                    <Rock:HtmlEditor runat="server" Label="HTML Message" Height="300" ID="tbMessage" SourceTypeName="org.secc.FamilyCheckin.Model.KioskType, org.secc.FamilyCheckin" PropertyName="Message"></Rock:HtmlEditor>
+                    <Rock:HtmlEditor runat="server" Label="HTML Message" Height="300" ID="tbMessage" SourceTypeName="org.secc.FamilyCheckin.Model.CheckinKioskType, org.secc.FamilyCheckin" PropertyName="Message"></Rock:HtmlEditor>
                 </fieldset>
 
 

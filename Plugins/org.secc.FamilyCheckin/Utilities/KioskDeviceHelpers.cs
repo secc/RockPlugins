@@ -19,7 +19,7 @@ namespace org.secc.FamilyCheckin.Utilities
         public static void Clear( List<int> groupTypeIds )
         {
             RockContext rockContext = new RockContext();
-            KioskTypeService kioskTypeService = new KioskTypeService( rockContext );
+            CheckinKioskTypeService kioskTypeService = new CheckinKioskTypeService( rockContext );
             KioskService kioskService = new KioskService( rockContext );
             DeviceService deviceService = new DeviceService( rockContext );
 

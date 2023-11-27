@@ -174,14 +174,14 @@ namespace org.secc.LeagueApps
                     var season = definedValueService.Queryable().Where( d => d.Value == program.season && d.DefinedTypeId == seasonsType.Id ).FirstOrDefault();
                     var groupgender = definedValueService.Queryable().Where( d => d.Value == program.gender && d.DefinedTypeId == gendersType.Id ).FirstOrDefault();
 
-                    if ( !sport.IsNull() )
+                    if ( sport != null )
                         league3.SetAttributeValue( "Sport", sport.Guid );
 
-                    if ( !season.IsNull() )
+                    if ( season != null )
                         league3.SetAttributeValue( "Season", season.Guid );
                     league3.SetAttributeValue( "ExperienceLevel", program.experienceLevel );
 
-                    if ( !groupgender.IsNull() )
+                    if ( groupgender != null )
                         league3.SetAttributeValue( "Gender", groupgender.Guid );
 
                     if ( startdate != DateTime.MinValue )

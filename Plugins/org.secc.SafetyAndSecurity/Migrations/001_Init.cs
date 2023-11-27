@@ -1,6 +1,5 @@
 namespace org.secc.SafetyAndSecurity.Migrations
 {
-    using org.secc.DevLib.Extensions.Migration;
     using Rock.Plugin;
 
     [MigrationNumber( 1, "1.10.2" )]
@@ -8,7 +7,7 @@ namespace org.secc.SafetyAndSecurity.Migrations
     {
         public override void Up()
         {
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_SafetyAndSecurity_AlertNotification",
                 c => new
                 {
@@ -25,20 +24,8 @@ namespace org.secc.SafetyAndSecurity.Migrations
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
                     ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "dbo.DefinedValue", t => t.AlertNotificationTypeValueId )
-                .ForeignKey( "dbo.DefinedValue", t => t.AudienceValueId )
-                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
-                .Index( t => t.AudienceValueId )
-                .Index( t => t.AlertNotificationTypeValueId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true )
-                .Run( this );
-
-            CreateTable(
+                } );
+            AddTable(
                 "dbo._org_secc_SafetyAndSecurity_AlertMessage",
                 c => new
                 {
@@ -54,18 +41,30 @@ namespace org.secc.SafetyAndSecurity.Migrations
                     ForeignGuid = c.Guid(),
                     ForeignKey = c.String( maxLength: 100 ),
                     AlertNotification_Id = c.Int(),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "dbo._org_secc_SafetyAndSecurity_AlertNotification", t => t.AlertNotification_Id )
-                .ForeignKey( "dbo._org_secc_SafetyAndSecurity_AlertNotification", t => t.AlertNotificationId, cascadeDelete: true )
-                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
-                .Index( t => t.AlertNotificationId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true )
-                .Index( t => t.AlertNotification_Id )
-                .Run( this );
+                } );
+
+            AddPrimaryKey( "dbo._org_secc_SafetyAndSecurity_AlertNotification", "Id" );
+            AddPrimaryKey( "dbo._org_secc_SafetyAndSecurity_AlertMessage", "Id" );
+
+            AddForeignKey( "dbo._org_secc_SafetyAndSecurity_AlertNotification", "AlertNotificationTypeValueId", "dbo.DefinedValue" );
+            AddForeignKey( "dbo._org_secc_SafetyAndSecurity_AlertNotification", "AudienceValueId", "dbo.DefinedValue" );
+            AddForeignKey( "dbo._org_secc_SafetyAndSecurity_AlertNotification", "CreatedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_SafetyAndSecurity_AlertNotification", "ModifiedByPersonAliasId", "dbo.PersonAlias" );
+            AddIndex( "dbo._org_secc_SafetyAndSecurity_AlertNotification", "AudienceValueId" );
+            AddIndex( "dbo._org_secc_SafetyAndSecurity_AlertNotification", "AlertNotificationTypeValueId" );
+            AddIndex( "dbo._org_secc_SafetyAndSecurity_AlertNotification", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_SafetyAndSecurity_AlertNotification", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_SafetyAndSecurity_AlertNotification", "Guid", unique: true );
+
+            AddForeignKey( "dbo._org_secc_SafetyAndSecurity_AlertMessage", "AlertNotification_Id", "dbo._org_secc_SafetyAndSecurity_AlertNotification" );
+            AddForeignKey( "dbo._org_secc_SafetyAndSecurity_AlertMessage", "AlertNotificationId", "dbo._org_secc_SafetyAndSecurity_AlertNotification", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_SafetyAndSecurity_AlertMessage", "CreatedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_SafetyAndSecurity_AlertMessage", "ModifiedByPersonAliasId", "dbo.PersonAlias" );
+            AddIndex( "dbo._org_secc_SafetyAndSecurity_AlertMessage", "AlertNotificationId" );
+            AddIndex( "dbo._org_secc_SafetyAndSecurity_AlertMessage", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_SafetyAndSecurity_AlertMessage", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_SafetyAndSecurity_AlertMessage", "Guid", unique: true );
+            AddIndex( "dbo._org_secc_SafetyAndSecurity_AlertMessage", "AlertNotification_Id" );
         }
 
         public override void Down()

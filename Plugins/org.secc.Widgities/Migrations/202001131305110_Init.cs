@@ -7,7 +7,7 @@
     {
         public override void Up()
         {
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_Widgities_Widgity",
                 c => new
                 {
@@ -24,19 +24,9 @@
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
                     ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "dbo.EntityType", t => t.EntityTypeId, cascadeDelete: true )
-                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
-                .ForeignKey( "dbo._org_secc_Widgities_WidgityType", t => t.WidgityTypeId, cascadeDelete: true )
-                .Index( t => t.WidgityTypeId )
-                .Index( t => t.EntityTypeId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true );
+                } );
 
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_Widgities_WidgityItem",
                 c => new
                 {
@@ -52,19 +42,9 @@
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
                     ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
-                .ForeignKey( "dbo._org_secc_Widgities_Widgity", t => t.WidgityId, cascadeDelete: true )
-                .ForeignKey( "dbo._org_secc_Widgities_WidgityType", t => t.WidgityTypeId, cascadeDelete: true )
-                .Index( t => t.WidgityId )
-                .Index( t => t.WidgityTypeId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true );
+                } );
 
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_Widgities_WidgityType",
                 c => new
                 {
@@ -85,33 +65,60 @@
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
                     ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "dbo.Category", t => t.CategoryId )
-                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
-                .Index( t => t.CategoryId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true );
+                } );
 
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_Widgities_WidgityTypeEntityType",
                 c => new
                 {
                     WidgityTypeId = c.Int( nullable: false ),
                     EntityTypeId = c.Int( nullable: false ),
-                } )
-                .PrimaryKey( t => new { t.WidgityTypeId, t.EntityTypeId } )
-                .ForeignKey( "dbo._org_secc_Widgities_WidgityType", t => t.WidgityTypeId, cascadeDelete: true )
-                .ForeignKey( "dbo.EntityType", t => t.EntityTypeId, cascadeDelete: true )
-                .Index( t => t.WidgityTypeId )
-                .Index( t => t.EntityTypeId );
+                } );
+
+            AddPrimaryKey( "dbo._org_secc_Widgities_Widgity", "Id" );
+            AddPrimaryKey( "dbo._org_secc_Widgities_WidgityItem", "Id" );
+            AddPrimaryKey( "dbo._org_secc_Widgities_WidgityType", "Id" );
+            AddPrimaryKey( "dbo._org_secc_Widgities_WidgityTypeEntityType", new string[] { "WidgityTypeId", "EntityTypeId" } );
+
+
+            AddForeignKey( "dbo._org_secc_Widgities_Widgity", "CreatedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_Widgities_Widgity", "EntityTypeId", "dbo.EntityType", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_Widgities_Widgity", "ModifiedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_Widgities_Widgity", "WidgityTypeId", "dbo._org_secc_Widgities_WidgityType", cascadeDelete: true );
+            AddIndex( "dbo._org_secc_Widgities_Widgity", "WidgityTypeId" );
+            AddIndex( "dbo._org_secc_Widgities_Widgity", "EntityTypeId" );
+            AddIndex( "dbo._org_secc_Widgities_Widgity", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_Widgities_Widgity", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_Widgities_Widgity", "Guid", unique: true );
+
+
+            AddForeignKey( "dbo._org_secc_Widgities_WidgityItem", "CreatedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_Widgities_WidgityItem", "ModifiedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_Widgities_WidgityItem", "WidgityId", "dbo._org_secc_Widgities_Widgity", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_Widgities_WidgityItem", "WidgityTypeId", "dbo._org_secc_Widgities_WidgityType" );
+            AddIndex( "dbo._org_secc_Widgities_WidgityItem", "WidgityId" );
+            AddIndex( "dbo._org_secc_Widgities_WidgityItem", "WidgityTypeId" );
+            AddIndex( "dbo._org_secc_Widgities_WidgityItem", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_Widgities_WidgityItem", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_Widgities_WidgityItem", "Guid", unique: true );
+
+            AddForeignKey( "dbo._org_secc_Widgities_WidgityType", "CategoryId", "dbo.Category" );
+            AddForeignKey( "dbo._org_secc_Widgities_WidgityType", "CreatedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_Widgities_WidgityType", "ModifiedByPersonAliasId", "dbo.PersonAlias" );
+            AddIndex( "dbo._org_secc_Widgities_WidgityType", "CategoryId" );
+            AddIndex( "dbo._org_secc_Widgities_WidgityType", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_Widgities_WidgityType", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_Widgities_WidgityType", "Guid", unique: true );
+
+            AddForeignKey( "dbo._org_secc_Widgities_WidgityTypeEntityType", "WidgityTypeId", "dbo._org_secc_Widgities_WidgityType", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_Widgities_WidgityTypeEntityType", "EntityTypeId", "dbo.EntityType", cascadeDelete: true );
+            AddIndex( "dbo._org_secc_Widgities_WidgityTypeEntityType", "WidgityTypeId" );
+            AddIndex( "dbo._org_secc_Widgities_WidgityTypeEntityType", "EntityTypeId" );
         }
 
         public override void Down()
         {
-            
+
         }
     }
 }

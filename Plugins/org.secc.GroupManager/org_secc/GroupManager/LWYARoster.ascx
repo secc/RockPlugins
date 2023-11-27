@@ -2,11 +2,6 @@
 
 <style>
     .columns {
-        -webkit-column-count: 3;
-        -webkit-column-gap: 10px;
-        -webkit-column-fill: auto;
-        -moz-column-count: 3;
-        -moz-column-gap: 10px;
         column-count: 3;
         column-gap: 10px;
         column-fill: auto;

@@ -21,7 +21,7 @@ namespace org.secc.FamilyCheckin.Migrations
     {
         public override void Up()
         {
-            RockMigrationHelper.AddEntityAttribute( "Rock.Model.Person",
+            RockMigrationHelper.AddOrUpdateEntityAttribute( "Rock.Model.Person",
                 Rock.SystemGuid.FieldType.DATE,
                 "", "",
                 "Last Medication Checkin",

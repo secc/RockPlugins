@@ -1,0 +1,238 @@
+hr.christmas {
+    border-color: rgba(117, 30, 23, 0.25);
+    margin: 20px;
+}
+
+.role-day {
+    height: 3.5rem;
+    display: table;
+    text-align: center;
+    width: 100%;
+
+    span {
+        display: table-cell;
+        vertical-align: middle;
+    }
+}
+
+/** this is to overwrite old styles from another developer **/
+.squairy-light-mediumTan-overlay {
+    background: rgba(216, 198, 173, 0.2);
+    &::after {
+        background: none !important;
+    }
+}
+.stickyDate {
+    position: -webkit-sticky !important;  // required for Safari
+    position: sticky !important;
+    top: 15px !important; // required as well.
+}
+
+.select-wrapper-role {
+    border: 1px solid #751e17;
+    position: relative;
+    background-color: white;
+
+    p {
+        margin: 0;
+    }
+
+    .nav-current {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+
+        margin: 0;
+        display: block;
+        height: auto; // could be auto too
+        width: 100%; // could be auto too
+        padding: 15px 55px 15px 15px;
+        border-radius: 0;
+        z-index: auto;
+        cursor: pointer;
+
+        &::after {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            margin: -5px 0 0;
+            display: inline-block;
+            width: 24px;
+            height: 11px;
+            content: "";
+            background: transparent url('https://www.southeastchristian.org/eastertogether/assets/images/arrow-select-2-24x11.png') center no-repeat;
+            border: none;
+        }
+    }
+}
+
+.rolelist {
+    -webkit-box-shadow: -1px 8px 16px 0 rgba(0, 0, 0, 0.18);
+    -moz-box-shadow: -1px 8px 16px 0 rgba(0, 0, 0, 0.18);
+    box-shadow: -1px 8px 16px 0 rgba(0, 0, 0, 0.18);
+    border: 1px solid #751e17;
+    border-top: none;
+    float: none;
+    position: relative;
+    top: 100%;
+    left: 0;
+    right: 0;
+    display: none;
+    padding: 0;
+    height: auto;
+    width: auto;
+    text-align: left;
+    background-color: #ffffff;
+    z-index: 5;
+    overflow-x: hidden;
+
+    li {
+        border-bottom: 1px solid #eeeeee;
+
+        a { color: #51545b; }
+        p { margin-top: 5px; margin-left: 10px; }
+        span.role {
+            font-weight: 600;
+            font-size: 1.2em;
+        }
+        span.badge {
+        }
+        span.time {
+            clear: left;
+            font-size: 1.2em;
+            margin-left: 10px;
+        }
+        span.time {
+            font-size: 1.2em;
+        }
+        span.label { margin: 3px }
+        &.active {
+            background-color: #eeeeee;
+            a { color: #797548; }
+        }
+		div.full {
+			padding: 10px 15px;
+			background: #fff;
+			color: #ccc;
+			span.label {
+				background: #ccc;
+			}
+		}
+    }
+}
+
+/*** Christmas Borders ***/
+.advent-border {
+    a {
+        color: #404d56;
+    }
+    a:hover {
+        color: #797548;
+    }
+    p {
+        margin: 0 0 20px;
+    }
+    .role {
+        font-size: 1.7em;
+        font-weight: bolder;
+    }
+    .christmas-box {
+        min-width: 64px;
+        width: auto;
+        height: auto;
+        position: relative;
+        margin-bottom: 32px;
+    }
+    /* due to custom corners */
+    .christmas-box-body {
+      padding: 32px;
+      height: auto;
+    }
+    .christmas-border {
+      border: 1px solid #751e17;
+      outline: 1px solid #751e17;
+      outline-offset: 3px;
+      width: 100%;
+      height: 100%;
+    }
+    .corner {
+        position: absolute;
+        background-image: url('https://rock.secc.org/Content/ExternalSite/WebImages/CCT_CornerTwo.svg');
+        background-repeat: no-repeat;
+        width: 45px;
+        height: 45px
+    }
+    .TL {
+        top: -6px;
+        left: -7px;
+    }
+    .TR {
+        top: -7px;
+        right: -6px;
+        -webkit-transform: rotate(90deg);
+        transform: rotate(90deg);
+    }
+    .BL {
+        bottom: -9px;
+        left: -6px;
+        -webkit-transform: rotate(-90deg);
+        transform: rotate(-90deg);
+    }
+    .BR {
+        bottom: -8px;
+        right: -7px;
+        -webkit-transform: rotate(180deg);
+        transform: rotate(180deg);
+    }
+    #no-border-tl,
+    #no-border-tr,
+    #no-border-bl,
+    #no-border-br
+    {
+        position:absolute;
+        width:32px; height:32px;
+        background-color:#F7F4EF;
+        /*background-color: red;*/
+        display:block;
+    }
+    #no-border-tl {top:-3px; left:-3px;} /*top left corner*/
+    #no-border-tr {top:-2px; right:-3px;} /*top right*/
+    #no-border-bl {bottom:-3px; left:-3px; width: 38px;} /*bottom left*/
+    #no-border-br {bottom:-3px; right:-1px; width: 37px; height: 32px;} /*bottom right */
+
+    #no-outline-tl,
+    #no-outline-tr,
+    #no-outline-bl,
+    #no-outline-br
+    {
+        position:absolute;
+        width:32px; height:32px;
+        background-color:#F7F4EF;
+        display:block;
+    }
+    #no-outline-tl {top:-13px; left:-13px;} /*top left corner*/
+    #no-outline-tr {top:-13px; right:-13px;} /*top right*/
+    #no-outline-bl {bottom:-14px; left:-10px;} /*bottom left*/
+    #no-outline-br {bottom:-13px; right:-10px;} /*bottom right */
+}
+
+section#christmas .panel {
+    border-radius: 0;
+}
+section#christmas .panel-block>.panel-heading {
+    border-color: #751e17;
+    color: #F7F4EF;
+    background: #4B1A15;
+    border-radius: 0;
+    border-style: double;
+    border-width: 4px;
+    border-bottom: none;
+}
+section#christmas .panel .panel-body {
+    border-color: #751e17;
+    border-style: double;
+    border-top: none;
+    border-width: 4px;
+    border-radius: 0;
+}

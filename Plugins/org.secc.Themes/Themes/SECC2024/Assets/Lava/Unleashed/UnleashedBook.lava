@@ -1,0 +1,55 @@
+<style>
+    #Book {
+        z-index: 10;
+    }
+    #Book.hero--rl-diagonal:before {
+        background-color: #0A1B35;
+        background-size: cover;
+        background-image: url('/Content/Media/Unleashed/Unleashed_pink.jpg');
+        background-repeat: no-repeat;
+        background-position: center center;
+    }
+</style>
+
+<section class="g-margin-t-100--lg g-margin-b-240--xs g-position--relative g-display-inline-block--xs g-width-100-percent--xs">
+    <div class="fluid-container">
+        <div class="clearfix">
+            <div id="Book" class="col-lg-12 hero--rl-diagonal">
+            <div class="container">
+               
+                <div class="row g-padding-y-50--lg">
+                    <div class="col-md-12 clearfix g-padding-y-30--xs g-padding-y-60--lg">
+                        {[ wow animate:'fadeIn' duration:'.8s' delay:'0.3s' ]}
+                        <div class="g-padding-l-60--md g-padding-t-40--xs g-width-100-percent--xs text-center">
+                            <h1 class="g-font-size-60--xs g-font-size-70--md g-font-size-80--lg g-font-family--secondary g-font-weight--600 g-color--white g-padding-b-20--xs"><i>Unleashed</i> Book</h1>
+                        </div>
+                        {[ endwow ]}
+                    </div>
+                </div>
+
+                <div class="row g-padding-y-50--lg g-display-flex--lg">
+                    <div class="col-lg-6 col-md-6 col-md-push-6 clearfix text-center">
+                        {[ wow animate:'fadeInRight' duration:'.8s' delay:'0.3s' ]}
+                        <span class="g-padding-x-50--md g-width-100-percent--xs g-position--relative g-display-block--xs g-margin-x-auto--xs" style="max-width: 500px">
+                            <img class="g-center--lg img-responsive" src="/Content/Media/Unleashed/0N2A2325.jpg" style="top: 200px;border-radius: 20px;" />
+                        </span>
+                        {[ endwow ]}
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-md-pull-6 clearfix g-padding-y-30--xs g-padding-y-60--md">
+                        {[ wow animate:'fadeIn' duration:'.8s' delay:'0.3s' ]}
+                        <div class="g-padding-l-60--md g-padding-t-40--xs g-width-100-percent--xs">
+                            <h5 class="g-line-height g-font-weight--700 g-color--white">Be inspired by stories of how everyday people—just like in the book of Acts—are being unleashed all around the world!</h5>
+                                <br>
+                                <br>
+                                <a href="https://issuu.com/southeastcommunications/docs/se_2020unleashed_digital" class="uppercase se-btn se-btn--primary-brd uppercase g-letter-spacing--1" target="_blank">
+                                <strong>Read Stories</strong>
+                            </a>
+                        </div>
+                        {[ endwow ]}
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</section>

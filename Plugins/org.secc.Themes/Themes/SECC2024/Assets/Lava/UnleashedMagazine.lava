@@ -1,0 +1,264 @@
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.css' | AddCssLink }}
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick-theme.css' | AddCssLink }}
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.min.js' | AddScriptLink }}
+
+{%- assign storySlug = 'Global' | PageParameter:'StorySlug' -%}
+{%- cache key:'storyPage:{{storySlug}}' duration:'0' twopass:'true' -%}
+
+{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+
+{%- comment -%}
+************ Get the story or issue from the slug ************
+{%- endcomment -%}
+{%- assign storySlug = 'Global' | PageParameter:'StorySlug' -%}
+{%- if storySlug != "" -%}
+    {%- contentchannelitemslug where:'Slug=="{{storySlug}}"' -%}
+         {%- if contentchannelitemslug.ContentChannelItem.ContentChannelId == '90' -%}
+            {%- assign currentMessage = contentchannelitemslug.ContentChannelItem -%}
+            {%- for currentMessageParent in currentMessage.ParentItems -%}
+                {%- assign currentMessageParentTitle = currentMessageParent.ContentChannelItem.Title -%}
+                {%- break -%}
+            {%- endfor -%}
+        {%-elseif contentchannelitemslug.ContentChannelItem.ContentChannelId == '89'-%}
+            {%- assign magazine = contentchannelitemslug.ContentChannelItem -%}
+        {%- else -%}
+            {%- assign notFound = 1 -%}
+        {% endif %}
+    {%- endcontentchannelitemslug -%}
+
+{% else %}
+    {%- contentchannelitem where:'ContentChannelId==89' -%}
+        {%- for item in contentchannelitemItems -%}
+            {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+            {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+            {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+                {%- assign magazine = item -%}
+                {%- break -%}
+            {%- endif -%}
+        {%- endfor -%}
+    {%- endcontentchannelitem -%}
+
+{%- endif -%}
+
+    <section>
+        {%- assign storyImageGuid = currentMessage | Attribute:'Hero','RawValue' -%}
+        {%- assign magazineImageGuid = magazine | Attribute:'Image','RawValue' -%}
+        {%- assign magazineHeroImageGuid = magazine | Attribute:'Hero','RawValue' -%}
+
+        <style>
+            #magazineHero {
+                overflow: hidden;
+            }
+            #storyHero img {
+                width: 100%;
+                margin: 0 auto;
+
+            }
+            #magazineHero img {
+                width: 100%;
+                margin: 0 auto;
+                max-width: 500px;
+            }
+            #story-title {
+                display: -webkit-flexbox;
+                display: -ms-flexbox;
+                display: -webkit-flex;
+                display: flex;
+                flex-direction:column;
+                height:100%;
+                -webkit-flex-align: center;
+                -ms-flex-align: center;
+                -webkit-align-items: center;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .social_icons {
+                border: 3px solid;
+                border-radius: 25px;
+                margin: 25px 25px;
+            }
+
+            .prev-top, .prev-bottom, .next-top, .next-bottom {
+                background-color: #fff!important;
+            }
+        </style>
+
+            {%- if currentMessage != null -%}
+                <section class="container text-center">
+                    <div class="g-margin-y-50--xs row">
+                        <div class="g-padding-x-100--xs col-md-4 col-md-offset-4 col-sm-6 col-sm-offset-3 col-xs-8 col-xs-offset-2">
+                            <a href="/unleashed-digital/"><img src="/Content/Media/Unleashed/unleashed-logo.png" alt="Unleashed Magazine Logo"></a>
+                        </div>
+                    </div>
+                </section>
+            {%- endif -%}
+            {%- if storyImageGuid != ''-%}
+                {%- assign imagePosition = currentMessage | Attribute:'StoryHeroImagePosition','RawValue' | Downcase -%}
+                <div id="storyHero" class="g-bg-color--black g-padding-x-0--xs" style="background:url('/GetImage.ashx?Guid={{ storyImageGuid }}') no-repeat {{ imagePosition }};background-size:cover;height:75vh;">
+            {%- else -%}
+                <div id="magazineHero" class="g-bg-color--black g-padding-x-0--xs" style="background:url('/GetImage.ashx?Guid={{ magazineHeroImageGuid }}') no-repeat center">
+            {%- endif -%}
+
+                {%- if currentMessage != null -%}
+                    <div id="story-title">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-8 col-md-offset-2">
+                                    <h1 class="g-font-weight--800 g-font-size-100--xs g-font-size-115--md g-font-size-150--lg g-padding-y-50--lg text-center">{{currentMessage.Title}}</h1>
+                                    <h4 class="g-font-weight--200 text-center uppercase">{{currentMessageParentTitle}}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            {%-elseif magazine != null -%}
+
+                <div class="g-padding-y-50--xs">
+                    <img src="/GetImage.ashx?Guid={{ magazineImageGuid }}" class="img-responsive g-margin-x-auto--xs g-padding-t-50--xs text-center" />
+                </div>
+            {%- endif -%}
+            </div>
+    </section>
+
+    {%- if currentMessage != null -%}
+
+        {{- currentMessage | Attribute:'Summary' | AddMetaTagToHead:'property','og:description' -}}
+        <div class="container g-padding-y-100--xs g-padding-x-0--xs">
+            {%- assign ending = '%25%7D' | UnescapeDataString -%}
+            {{ '{%- assign magazineImageGuid = "' | Append:magazineImageGuid | Append: '" ' | Append: ending }}
+
+
+            <div class="magazine-detail container">
+                <div id="magazineHead" class="row">
+                    <div class="col-sm-12 col-md-2 text-center hidden-sm">
+                        <br>
+                        {%-if currentMessage | Attribute:'FacebookImage' != ''-%}
+                            {%- assign facebookImageGuid = currentMessage | Attribute:'FacebookImage','RawValue' -%}
+                        {%- else -%}
+                            {%- assign facebookImageGuid = storyImageGuid -%}
+                        {%- endif-%}
+                        {[ socialshare facebookimage:'{{- 'Global' | Attribute:'PublicApplicationRoot' -}}GetImage.ashx?Guid={{ facebookImageGuid }}&mode=crop&width=1200&height=630' facebooktitle:'{{ currentMessage.Title }}' emailsubject:'{{ currentMessage.Title }}' emailbody:'Check out this story I found at Southeast Christian Church.' copylink:'false' ]}
+                    </div>
+                    <div id="story-content" class="col-sm-12 col-md-8 g-font-family--secondary g-line-height--lg g-font-size-28--xs">
+                        <br />
+                        {% if currentMessageParentTitle and currentMessageParentTitle != '' %}
+                            {%- assign magazineTitle = currentMessageParentTitle -%}
+                        {% else %}
+                            {%- assign magazineTitle = magazine.Title %}
+                        {% endif %}
+                        {{ '{%- assign pageTitle = "' | Append:magazineTitle | Append:' | ' | Append:currentMessage.Title | Append: '" ' | Append: ending }}
+                        {% raw %}
+                        {{ pageTitle | SetPageTitle }}
+                        {% endraw %}
+                        {%- if currentMessage.Content != empty -%}
+                            {{ currentMessage.Content }}
+                        <hr />
+                        {%- endif -%}
+        				<br />
+                        <div class="text-center">
+        					<br />
+                            {[ socialshare facebookimage:'{{- 'Global' | Attribute:'PublicApplicationRoot' -}}GetImage.ashx?Guid={{ facebookImageGuid }}&mode=crop&width=1200&height=630' facebooktitle:'{{ currentMessage.Title }}' emailsubject:'{{ currentMessage.Title }}' emailbody:'Check out this story I found at Southeast Christian Church.' copylink:'false' ]}
+                            <br />
+                            <br />
+                        </div>
+
+                        <div class="g-margin-y-50--xs row">
+                            <div class="g-padding-x-100--xs col-xs-8 col-xs-offset-2">
+                                <a href="/unleashed-digital/"><img src="/Content/Media/Unleashed/unleashed-logo.png" alt="Unleashed Magazine Logo"></a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    {%- else -%}
+        {%- if notFound == 1 -%}
+        <section>
+            <div class="text-center g-padding-x-100--xs g-padding-y-150--xs g-bg-color--black-opacity-lightest">
+                <br>
+                <br>
+                <h5 class="uppercase g-letter-spacing--3">Story Unavailable.</h5>
+                <br>
+                <h3 class="g-font-family--secondary">Please try again by looking at our <a href="/unleashed-digital/{{ magazine.PrimarySlug }}" style="color:#fff;"><strong><i>{{ magazine.Title }}</i></strong> stories below.</a></h3>
+                <br>
+                <br>
+            </div>
+        </section>
+        {%- endif-%}
+
+        {%- comment -%}
+        ************ Show the Story Thumbnails ************
+        {%- endcomment -%}
+
+        <div class="container">
+            <h4 class="uppercase text-center g-margin-y-100--xs g-margin-x-auto--xs" style="border-bottom:3px solid white;line-height:0.001em;width:100%;"><span style="background:#000;padding:0 10px;">Digital Edition</span></h4>
+            <div class="row">
+                {%- assign items = magazine.ChildItems | OrderBy:'Order' -%}
+                {%- for item in items -%}
+                    <div class="col-sm-4" style="height:600px;">
+                        <a href="/unleashed-digital/{{item.ChildContentChannelItem.PrimarySlug}}">
+                            <img alt="{{item.ChildContentChannelItem.Title}}" class="g-margin-x-auto--xs img-responsive" src="/GetImage.ashx?Guid={{item.ChildContentChannelItem | Attribute:'Image','RawValue'}}&maxwidth=389&maxheight=374&mode=crop">
+                            <h3 class="g-padding-t-50--xs g-padding-b-30--xs text-center g-font-weight--600">{{item.ChildContentChannelItem.Title}}</h3>
+                            <h5 class="text-center g-font-family--secondary g-font-weight--300">{{item.ChildContentChannelItem | Attribute:'Summary'}} ...</h5>
+                        </a>
+                    </div>
+                {%- endfor -%}
+            </div>
+            <h4 class="uppercase text-center g-margin-y-100--xs g-margin-x-auto--xs" style="border-bottom:3px solid white;line-height:0.001em;width:100%;"></h4>
+        </div>
+
+    {%- endif -%}
+
+    {%- comment -%}
+        ************ Featured Unleashed Stories ************
+    {%- endcomment -%}
+    <div class="container-fluid g-padding-x-0--xs">
+
+        <div id="RecentMagazineFeatures" class="col-sm-12">
+        <div class="container">
+            <h4 class="g-padding-b-150--xs text-center uppercase">Recent Magazine Features</h4>
+
+            <div class="visible-xs">
+                {[ simpleimagecarousel slidestoshow:'1' autoplayspeed:'2000' ]}
+                    {%- taggeditem where:'TagId==1142' -%}
+                        {%- for item in taggeditemItems -%}
+                            {%- assign featuredStoryGuid = item.EntityGuid -%}
+                            {%- contentchannelitem where:'ContentChannelId==90 && Guid=="{{featuredStoryGuid}}"' -%}
+                                <div class="" style="background-image:linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.5)), url('/GetImage.ashx?Guid={{contentchannelitem | Attribute:'Image','RawValue'}}');background-repeat:no-repeat;background-position:center;background-size:cover;height:500px;">
+                                    <a href="/unleashed-digital/{{contentchannelitem.PrimarySlug}}">
+                                        <div style="height:100%;position:relative;width:100%;">
+                                            <h3 class="g-padding-t-50--xs g-padding-b-30--xs text-center g-font-weight--700" style="bottom:0;position:absolute;margin-left:auto;margin-right:auto;left:0;right:0;text-align:center;">{{contentchannelitem.Title}}</h3>
+                                        </div>
+                                    </a>
+                                </div>
+                            {% endcontentchannelitem %}
+                        {%- endfor -%}
+                    {%- endtaggeditem -%}
+                {[ endsimpleimagecarousel ]}
+            </div>
+
+            <div class="hidden-xs">
+                {[ simpleimagecarousel slidestoshow:'3' autoplayspeed:'2000' ]}
+                    {%- taggeditem where:'TagId==1142' -%}
+                        {%- for item in taggeditemItems -%}
+                            {%- assign featuredStoryGuid = item.EntityGuid -%}
+                            {%- contentchannelitem where:'ContentChannelId==90 && Guid=="{{featuredStoryGuid}}"' -%}
+                                <div class="" style="background-image:linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.5)), url('/GetImage.ashx?Guid={{contentchannelitem | Attribute:'Image','RawValue'}}');background-repeat:no-repeat;background-position:center;background-size:cover;height:500px;">
+                                    <a href="/unleashed-digital/{{contentchannelitem.PrimarySlug}}">
+                                        <div style="height:100%;position:relative;width:100%;">
+                                            <h3 class="g-padding-t-50--xs g-padding-b-30--xs text-center g-font-weight--700" style="bottom:0;position:absolute;margin-left:auto;margin-right:auto;left:0;right:0;text-align:center;">{{contentchannelitem.Title}}</h3>
+                                        </div>
+                                    </a>
+                                </div>
+                            {% endcontentchannelitem %}
+                        {%- endfor -%}
+                    {%- endtaggeditem -%}
+                {[ endsimpleimagecarousel ]}
+            </div>
+
+            <h4 class="uppercase text-center g-margin-y-150--xs g-margin-x-auto--xs" style="border-bottom:3px solid white;line-height:0.001em;width:100%;"></h4>
+        </div>
+    </div>
+
+{%- endcache -%}

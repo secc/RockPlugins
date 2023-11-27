@@ -1,0 +1,96 @@
+<section id="Stories" class="g-bg-color--gray-lightest g-overflow--hidden">
+    <style>
+    .sr-embed-container h2,
+    .sr-embed-container h3,
+    .sr-embed-container h4 {
+        font-family: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+        font-weight: bold;
+        line-height: 1;
+        color: #000;
+        text-transform: none;
+    }
+    .sr-embed-container {
+        font-family: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+        background-color: inherit !important;
+    }
+    .sr-embed-card.sr-embed-story .sr-embed-cardimage img {
+        width: 100%;
+        background-color: white;
+        position: relative;
+        -webkit-transition: all 0.3s ease;
+        -o-transition: all 0.3s ease;
+        transition: all 0.3s ease;
+        -webkit-transform: scale(1.06);
+        -ms-transform: scale(1.06);
+        -o-transform: scale(1.06);
+        transform: scale(1.06);
+    }
+    @media screen and (min-width: 768px) {
+        .sr-embed-card.sr-embed-story {
+            height: 340px;
+        }
+    }
+    @media screen and (min-width: 600px) and (max-width: 767px) {
+        .sr-embed-card.sr-embed-story {
+            height: auto;
+        }
+    }
+    .sr-embed-card.sr-embed-story .sr-embed-cardimage img:hover {
+        -webkit-transform: scale(1.01);
+        -ms-transform: scale(1.01);
+        -o-transform: scale(1.01);
+        transform: scale(1.01);
+    }
+    .sr-embed-card {
+        background: #fff;
+        border-radius: 20px;
+        margin-bottom: 40px;
+        padding: 0px;
+        overflow: hidden;
+        -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        -webkit-transition: all 0.3s ease;
+        -o-transition: all 0.3s ease;
+        transition: all 0.3s ease;
+        border: none;
+    }
+    .sr-embed-card:hover {
+        -webkit-box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+        transform: translateY(-10px);
+        -webkit-transition: all 0.3s ease;
+        -o-transition: all 0.3s ease;
+        transition: all 0.3s ease;
+    }
+    .sr-embed-cardmessage p,
+    .sr-embed-cardmessage a {
+        font-size: 13px !important;
+    }
+    .sr-embed-cardmessage {
+        background: inherit;
+        font-style: normal;
+        padding: 20px;
+        margin-bottom: 0px;
+        -webkit-box-shadow: none;
+        -moz-box-shadow: none;
+        box-shadow: none;
+        border: none;
+        display: block;
+        margin-bottom: 0px;
+        position: relative;
+        height: auto;
+    }
+    .sr-embed-card.sr-embed-story .sr-embed-cardimage img {
+        border-radius: 0px;
+    }
+    </style>
+
+    <div class="container g-padding-t-150--xs">
+        <header class="text-center g-padding-b-80--xs">
+        	<h1 class="g-font-size--jumbo-1 g-font-family--secondary">Stories</h1>
+        </header>
+        <br />
+        <div class="sr-embed-stories sr-embed-container" data-org-id="13"></div>
+        <script class="sr-embed-script" src="https://secc.servicereef.com/areas/widgets/scripts/sr-embed.js" type="text/javascript" async></script>
+    </div>
+</section>

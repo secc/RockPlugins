@@ -21,7 +21,7 @@ namespace org.secc.FamilyCheckin.Migrations
     {
         public override void Up()
         {
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_FamilyCheckin_KioskType",
                 c => new
                 {
@@ -37,59 +37,32 @@ namespace org.secc.FamilyCheckin.Migrations
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
                     ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "dbo.GroupType", t => t.CheckinTemplateId )
-                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
-                .Index( t => t.CheckinTemplateId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true )
-                .Index( t => t.ForeignId )
-                .Index( t => t.ForeignGuid )
-                .Index( t => t.ForeignKey );
-
-            CreateTable(
+                } );
+            AddTable(
                 "dbo._org_secc_FamilyCheckin_KioskTypeGroupType",
                 c => new
                 {
                     KioskTypeId = c.Int( nullable: false ),
                     GroupTypeId = c.Int( nullable: false ),
-                } )
-                .PrimaryKey( t => new { t.KioskTypeId, t.GroupTypeId } )
-                .ForeignKey( "dbo._org_secc_FamilyCheckin_KioskType", t => t.KioskTypeId, cascadeDelete: true )
-                .ForeignKey( "dbo.GroupType", t => t.GroupTypeId, cascadeDelete: true )
-                .Index( t => t.KioskTypeId )
-                .Index( t => t.GroupTypeId );
+                } );
 
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_FamilyCheckin_KioskTypeLocation",
                 c => new
                 {
                     KioskTypeId = c.Int( nullable: false ),
                     LocationId = c.Int( nullable: false ),
-                } )
-                .PrimaryKey( t => new { t.KioskTypeId, t.LocationId } )
-                .ForeignKey( "dbo._org_secc_FamilyCheckin_KioskType", t => t.KioskTypeId, cascadeDelete: true )
-                .ForeignKey( "dbo.Location", t => t.LocationId, cascadeDelete: true )
-                .Index( t => t.KioskTypeId )
-                .Index( t => t.LocationId );
+                } );
 
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_FamilyCheckin_KioskTypeSchedule",
                 c => new
                 {
                     KioskTypeId = c.Int( nullable: false ),
                     ScheduleId = c.Int( nullable: false ),
-                } )
-                .PrimaryKey( t => new { t.KioskTypeId, t.ScheduleId } )
-                .ForeignKey( "dbo._org_secc_FamilyCheckin_KioskType", t => t.KioskTypeId, cascadeDelete: true )
-                .ForeignKey( "dbo.Schedule", t => t.ScheduleId, cascadeDelete: true )
-                .Index( t => t.KioskTypeId )
-                .Index( t => t.ScheduleId );
+                } );
 
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_FamilyCheckin_Kiosk",
                 c => new
                 {
@@ -109,20 +82,52 @@ namespace org.secc.FamilyCheckin.Migrations
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
                     ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "dbo._org_secc_FamilyCheckin_KioskType", t => t.KioskTypeId )
-                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
-                .ForeignKey( "dbo.Device", t => t.PrinterDeviceId )
-                .Index( t => t.KioskTypeId )
-                .Index( t => t.PrinterDeviceId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true )
-                .Index( t => t.ForeignId )
-                .Index( t => t.ForeignGuid )
-                .Index( t => t.ForeignKey );
+                } );
+
+            AddPrimaryKey( "dbo._org_secc_FamilyCheckin_KioskType", "Id" );
+            AddPrimaryKey( "dbo._org_secc_FamilyCheckin_KioskTypeGroupType", new string[] { "KioskTypeId", "GroupTypeId" } );
+            AddPrimaryKey( "dbo._org_secc_FamilyCheckin_KioskTypeLocation", new string[] { "KioskTypeId", "LocationId" } );
+            AddPrimaryKey( "dbo._org_secc_FamilyCheckin_KioskTypeSchedule", new string[] { "KioskTypeId", "ScheduleId" } );
+            AddPrimaryKey( "dbo._org_secc_FamilyCheckin_Kiosk", "Id" );
+
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_KioskType", "CheckinTemplateId", "dbo.GroupType" );
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_KioskType", "CreatedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_KioskType", "ModifiedByPersonAliasId", "dbo.PersonAlias" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_KioskType", "CheckinTemplateId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_KioskType", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_KioskType", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_KioskType", "Guid", unique: true );
+            AddIndex( "dbo._org_secc_FamilyCheckin_KioskType", "ForeignId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_KioskType", "ForeignGuid" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_KioskType", "ForeignKey" );
+
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_KioskTypeGroupType", "KioskTypeId", "dbo._org_secc_FamilyCheckin_KioskType", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_KioskTypeGroupType", "GroupTypeId", "dbo.GroupType", cascadeDelete: true );
+            AddIndex( "dbo._org_secc_FamilyCheckin_KioskTypeGroupType", "KioskTypeId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_KioskTypeGroupType", "GroupTypeId" );
+
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_KioskTypeLocation", "KioskTypeId", "dbo._org_secc_FamilyCheckin_KioskType", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_KioskTypeLocation", "LocationId", "dbo.Location", cascadeDelete: true );
+            AddIndex( "dbo._org_secc_FamilyCheckin_KioskTypeLocation", "KioskTypeId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_KioskTypeLocation", "LocationId" );
+
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_KioskTypeSchedule", "KioskTypeId", "dbo._org_secc_FamilyCheckin_KioskType", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_KioskTypeSchedule", "ScheduleId", "dbo.Schedule", cascadeDelete: true );
+            AddIndex( "dbo._org_secc_FamilyCheckin_KioskTypeSchedule", "KioskTypeId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_KioskTypeSchedule", "ScheduleId" );
+
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_Kiosk", "CreatedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_Kiosk", "KioskTypeId", "dbo._org_secc_FamilyCheckin_KioskType" );
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_Kiosk", "ModifiedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_FamilyCheckin_Kiosk", "PrinterDeviceId", "dbo.Device" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_Kiosk", "KioskTypeId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_Kiosk", "PrinterDeviceId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_Kiosk", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_Kiosk", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_Kiosk", "Guid", unique: true );
+            AddIndex( "dbo._org_secc_FamilyCheckin_Kiosk", "ForeignId" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_Kiosk", "ForeignGuid" );
+            AddIndex( "dbo._org_secc_FamilyCheckin_Kiosk", "ForeignKey " );
         }
         public override void Down()
         {

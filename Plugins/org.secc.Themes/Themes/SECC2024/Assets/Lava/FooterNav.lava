@@ -1,0 +1,75 @@
+
+
+<div class="row">
+
+	<div class="col-sm-12 col-md-3">
+		<div class="se-expandable">
+			<div class="se-expandable-header">
+				<h3 class="uppercase">Explore<span class="carat"></span></h3>
+			</div>
+			<div class="se-expandable-content" data-collapsed="true" style="height: 0;">
+				<ul class="menu">
+					<li><a href="/sermons/">Sermons</a></li>
+					<li><a href="/beliefs/">Beliefs</a></li>
+					<li><a href="/stories/">Stories</a></li>
+					<li><a href="http://blogs.southeastchristian.org/">Southeast Blogs</a></li>
+					<li><a href="/hr/">Employment</a></li>
+					<li><a href="/giving/">Online Giving</a></li>
+					<li><a href="/contact/">Contact Us</a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-sm-12 col-md-3">
+		<div class="se-expandable">
+			<div class="se-expandable-header">
+				<h3 class="uppercase">Ministries<span class="carat"></span></h3>
+			</div>
+			<div class="se-expandable-content" data-collapsed="true" style="height: 0;">
+				<ul>
+					<li><a href="/connect/men/">Men</a></li>
+					<li><a href="/connect/women/">Women</a></li>
+					<li><a href="/connect/students/">Students</a></li>
+					<li><a href="/connect/children/">Children</a></li>
+					<li><a href="/connect/family/">Family</a></li>
+					<li><a href="/connect/care/">Care</a></li>
+					<li><a href="/connect/missions/">Missions</a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-sm-12 col-md-3">
+		<div class="se-expandable">
+			<div class="se-expandable-header">
+				<h3 class="uppercase">Locations<span class="carat"></span></h3>
+			</div>
+			<div class="se-expandable-content" data-collapsed="true" style="height: 0;">
+				<ul class="list-inline campus-list">
+                    <li><a href="/blankenbaker/"><span class="se-logo">920</span></a></li>
+                    <li><a href="/indiana/"><span class="se-logo">IN</span></a></li>
+                    <li><a href="/crestwood/"><span class="se-logo">CW</span></a></li>
+                    <li><a href="/southwest/"><span class="se-logo">SW</span></a></li>
+                    <li><a href="/lagrange/"><span class="se-logo">LA</span></a></li>
+                    <li><a href="/elizabethtown/"><span class="se-logo">ET</span></a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-sm-12 col-md-3">
+		<div class="se-expandable">
+			<div class="se-expandable-header">
+				<h3 class="uppercase">Leader Resources<span class="carat"></span></h3>
+			</div>
+			<div class="se-expandable-content" data-collapsed="true" style="height: 0;">
+				<ul class="menu">
+					<li><a href="https://my.southeastchristian.org/smallgroupapp" target="_blank">Group Manager</a></li>
+					<li><a href="https://my.southeastchristian.org/page/646" target="_blank">Group Treasurer Reports</a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+</div>

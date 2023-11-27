@@ -22,6 +22,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using Rock;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Security;
 
@@ -35,13 +36,13 @@ namespace org.secc.GroupManager.Model
         [DataMember]
         public int GroupId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual Group Group { get; set; }
 
         [DataMember]
         public string Name { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public string Title
         {
             get
@@ -60,7 +61,7 @@ namespace org.secc.GroupManager.Model
         [DataMember]
         public int? ImageId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public BinaryFile Image { get; set; }
 
         [Index]
@@ -71,7 +72,7 @@ namespace org.secc.GroupManager.Model
         [DataMember]
         public DateTime EndDateTime { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual ICollection<DefinedValue> AudienceValues
         {
             get { return _audienceValues ?? ( _audienceValues = new Collection<DefinedValue>() ); }
@@ -83,14 +84,14 @@ namespace org.secc.GroupManager.Model
         [DataMember]
         public int RequestorAliasId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual PersonAlias RequestorAlias { get; set; }
 
         [Index]
         [DataMember]
         public int ContactPersonAliasId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual PersonAlias ContactPersonAlias { get; set; }
 
         [DataMember]
@@ -148,7 +149,7 @@ namespace org.secc.GroupManager.Model
         public string CustomSchedule { get; set; }
 
 
-        [LavaInclude]
+        [LavaVisible]
         public string ScheduleText
         {
             get
@@ -181,16 +182,15 @@ namespace org.secc.GroupManager.Model
         public string Slug { get; set; }
 
         [NotMapped]
+        [LavaVisible]
         public bool IsActive { get => WasActive( Rock.RockDateTime.Today ); }
 
-        [LavaInclude]
         public bool WasActive( DateTime dateTime )
         {
-
             return StartDateTime <= dateTime && EndDateTime >= dateTime;
         }
 
-        [LavaInclude]
+        [LavaVisible]
         public bool IsFull
         {
             get
@@ -208,7 +208,7 @@ namespace org.secc.GroupManager.Model
             }
         }
 
-        [LavaInclude]
+        [LavaVisible]
         public bool IsNotFull { get => !IsFull; }
     }
 

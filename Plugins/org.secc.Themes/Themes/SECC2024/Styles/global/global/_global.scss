@@ -1,0 +1,297 @@
+/*----------------------------------
+  Font Size
+------------------------------------*/
+
+@for $i from 10 through 20 {
+  .g-font-size-#{$i * 1}--xs {
+    font-size: ($i * .0625rem !important);
+  }
+}
+
+@for $i from 11 through 25 {
+  .g-font-size-#{$i * 2}--xs {
+    font-size: ($i * .125rem !important);
+  }
+}
+
+@for $i from 11 through 30 {
+  .g-font-size-#{$i * 5}--xs {
+    font-size: ($i * .3125rem !important);
+  }
+}
+
+@for $i from 31 through 40 {
+  .g-font-size-#{$i * 5}--xs {
+    font-size: ($i * .375rem !important);
+  }
+}
+
+/* Small screen / phone */
+@include media-breakpoint-up(sm) {
+  @for $i from 10 through 20 {
+  .g-font-size-#{$i * 1}--sm {
+      font-size: ($i * .0625rem !important);
+    }
+  }
+
+  @for $i from 11 through 25 {
+    .g-font-size-#{$i * 2}--sm {
+      font-size: ($i * .125rem !important);
+    }
+  }
+
+  @for $i from 11 through 30 {
+    .g-font-size-#{$i * 5}--sm {
+      font-size: ($i * .3125rem !important);
+    }
+  }
+
+  @for $i from 31 through 40 {
+    .g-font-size-#{$i * 5}--sm {
+      font-size: ($i * .375rem !important);
+    }
+  }
+}
+
+/* Medium screen / tablet */
+@include media-breakpoint-up(md) {
+  @for $i from 10 through 20 {
+  .g-font-size-#{$i * 1}--md {
+      font-size: ($i * .0625rem !important);
+    }
+  }
+
+  @for $i from 11 through 25 {
+    .g-font-size-#{$i * 2}--md {
+      font-size: ($i * .125rem !important);
+    }
+  }
+
+  @for $i from 11 through 30 {
+    .g-font-size-#{$i * 5}--md {
+      font-size: ($i * .3125rem !important);
+    }
+  }
+
+  @for $i from 31 through 40 {
+    .g-font-size-#{$i * 5}--md {
+      font-size: ($i * .375rem !important);
+    }
+  }
+}
+
+/* Extra large screen / wide desktop */
+@include media-breakpoint-up(lg) {
+  @for $i from 10 through 20 {
+  .g-font-size-#{$i * 1}--lg {
+      font-size: ($i * .0625rem !important);
+    }
+  }
+
+  @for $i from 11 through 25 {
+    .g-font-size-#{$i * 2}--lg {
+      font-size: ($i * .125rem !important);
+    }
+  }
+
+  @for $i from 11 through 30 {
+    .g-font-size-#{$i * 5}--lg {
+      font-size: ($i * .3125rem !important);
+    }
+  }
+
+  @for $i from 31 through 40 {
+    .g-font-size-#{$i * 5}--lg {
+      font-size: ($i * .375rem !important);
+    }
+  }
+}
+
+/*----------------------------------
+  Jumbo Font Sizes
+------------------------------------*/
+.g-font-size--jumbo-1 { @include font($size: $font-size-80, $weight: normal, $line-height: $headings-line-height); }
+.g-font-size--jumbo-2 { @include font($size: $font-size-65, $weight: normal, $line-height: $headings-line-height); }
+.g-font-size--jumbo-3 { @include font($size: $font-size-48, $weight: normal, $line-height: $headings-line-height); }
+
+/*----------------------------------
+  Font Family
+------------------------------------*/
+
+.g-font-family--primary { @include font($family: $font-family-primary !important); }
+//.g-font-family--primary-condensed { @include font($family: $font-family-primary-condensed !important); }
+.g-font-family--secondary { @include font($family: $font-family-secondary !important); }
+.g-font-family--playfair { @include font($family: $font-family-playfair !important); }
+
+
+/*----------------------------------
+  Font Weight
+------------------------------------*/
+
+.g-font-weight--100 { @include font($weight: 100 !important); }
+.g-font-weight--200 { @include font($weight: 200 !important); }
+.g-font-weight--300 { @include font($weight: 300 !important); }
+.g-font-weight--400 { @include font($weight: 400 !important); }
+.g-font-weight--500 { @include font($weight: 500 !important); }
+.g-font-weight--600 { @include font($weight: 600 !important); }
+.g-font-weight--700 { @include font($weight: 700 !important); }
+.g-font-weight--800 { @include font($weight: 800 !important); }
+.g-font-weight--900 { @include font($weight: 900 !important); }
+
+/*----------------------------------
+  Letter Spacing
+------------------------------------*/
+
+.g-letter-spacing--1 { letter-spacing: .0625rem; }
+.g-letter-spacing--2 { letter-spacing: .125rem; }
+.g-letter-spacing--3 { letter-spacing: .1875rem; }
+.g-letter-spacing--4 { letter-spacing: .2rem; }
+.g-letter-spacing--5 { letter-spacing: .2125rem; }
+.g-letter-spacing--6 { letter-spacing: .25rem; }
+.g-letter-spacing--7 { letter-spacing: .275rem; }
+.g-letter-spacing--8 { letter-spacing: .3rem; }
+.g-letter-spacing--9 { letter-spacing: .3125rem; }
+.g-letter-spacing--10 { letter-spacing: .325rem; }
+
+/*----------------------------------
+  Font Stretching - Condensed/Expanded
+------------------------------------*/
+
+.g-font-stretch--ultra-condensed { @include font($stretch: ultra-condensed); }
+.g-font-stretch--extra-condensed { @include font($stretch: extra-condensed); }
+.g-font-stretch--condensed { @include font($stretch: condensed); }
+.g-font-stretch--semi-condensed { @include font($stretch: semi-condensed); }
+.g-font-stretch--normal { @include font($stretch: normal); }
+.g-font-stretch--semi-expanded { @include font($stretch: semi-expanded); }
+.g-font-stretch--expanded { @include font($stretch: expanded); }
+.g-font-stretch--extra-expanded { @include font($stretch: extra-expanded); }
+.g-font-stretch--ultra-expanded { @include font($stretch: ultra-expanded); }
+
+/*----------------------------------
+  Display
+------------------------------------*/
+
+.g-display-none--xs { display: none; }
+.g-display-block--xs { display: block; }
+.g-display-inline--xs { display: inline; }
+.g-display-inline-block--xs { display: inline-block; }
+.g-display-inherit--xs { display: inherit; }
+.g-display-table--xs { display: table; }
+.g-display-flex--xs {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display:         flex;
+}
+
+/* Small screen / phone */
+@include media-breakpoint-up(sm) {
+  .g-display-none--sm { display: none; }
+  .g-display-block--sm { display: block; }
+  .g-display-inline--sm { display: inline; }
+  .g-display-inline-block--sm { display: inline-block; }
+  .g-display-inherit--sm { display: inherit; }
+  .g-display-table--sm { display: table; }
+  .g-display-flex--sm {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -ms-flexbox;
+      display:         flex;
+  }
+}
+
+/* Medium screen / tablet */
+@include media-breakpoint-up(md) {
+  .g-display-none--md { display: none; }
+  .g-display-block--md { display: block; }
+  .g-display-inline--md { display: inline; }
+  .g-display-inline-block--md { display: inline-block; }
+  .g-display-inherit--md { display: inherit; }
+  .g-display-table--md { display: table; }
+  .g-display-flex--md {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -ms-flexbox;
+      display:         flex;
+  }
+}
+
+/* Extra large screen / wide desktop */
+@include media-breakpoint-up(lg) {
+  .g-display-none--lg { display: none; }
+  .g-display-block--lg { display: block; }
+  .g-display-inline--lg { display: inline; }
+  .g-display-inline-block--lg { display: inline-block; }
+  .g-display-inherit--lg { display: inherit; }
+  .g-display-table--lg { display: table; }
+  .g-display-flex--lg {
+      display: -webkit-box;
+      display: -webkit-flex;
+      display: -ms-flexbox;
+      display:         flex;
+  }
+}
+
+
+/*----------------------------------
+  Text Alignment
+------------------------------------*/
+
+.g-text-center--xs { text-align: center; }
+.g-text-left--xs { text-align: left; }
+.g-text-right--xs { text-align: right; }
+.g-text-inherit--xs { text-align: inherit; }
+
+/* Small screen / phone */
+@include media-breakpoint-up(sm) {
+  .g-text-center--sm { text-align: center; }
+  .g-text-left--sm { text-align: left; }
+  .g-text-right--sm { text-align: right; }
+  .g-text-inherit--sm { text-align: inherit; }
+}
+
+/* Medium screen / tablet */
+@include media-breakpoint-up(md) {
+  .g-text-center--md { text-align: center; }
+  .g-text-left--md { text-align: left; }
+  .g-text-right--md { text-align: right; }
+  .g-text-inherit--md { text-align: inherit; }
+}
+
+/* Extra large screen / wide desktop */
+@include media-breakpoint-up(lg) {
+  .g-text-center--lg { text-align: center; }
+  .g-text-left--lg { text-align: left; }
+  .g-text-right--lg { text-align: right; }
+  .g-text-inherit--lg { text-align: inherit; }
+}
+
+
+/*----------------------------------
+  Pulls
+------------------------------------*/
+
+.g-pull-left--xs { float: left; }
+.g-pull-right--xs { float: right; }
+.g-pull-none--xs { float: none; }
+
+/* Small screen / phone */
+@include media-breakpoint-up(sm) {
+  .g-pull-left--sm { float: left; }
+  .g-pull-right--sm { float: right; }
+  .g-pull-none--sm { float: none; }
+}
+
+/* Medium screen / tablet */
+@include media-breakpoint-up(md) {
+  .g-pull-left--md { float: left; }
+  .g-pull-right--md { float: right; }
+  .g-pull-none--md { float: none; }
+}
+
+/* Extra large screen / wide desktop */
+@include media-breakpoint-up(lg) {
+  .g-pull-left--lg { float: left; }
+  .g-pull-right--lg { float: right; }
+  .g-pull-none--lg { float: none; }
+}

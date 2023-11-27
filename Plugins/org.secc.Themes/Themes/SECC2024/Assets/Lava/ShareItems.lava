@@ -1,0 +1,101 @@
+<script>
+$(document).ready(function() {
+
+    ///////////////////////////////////////////////////
+    /////////////// Initialize Select2 ////////////////
+    ///////////////////////////////////////////////////
+
+    $('.select2-campuses').select2({
+      placeholder: "Select a Campus"
+    });
+    $('.select2-campuses').on('select2:select', function (e) {
+        // prevent from submiting default form actionn
+        e.preventDefault();
+
+        // update URL path
+        var data = e.params.data;
+        var newPath = updatePath('campus',$(data.element).data('campus'));
+
+        // get filter value from option value
+        var filterValue = this.value == "all" ? "" : this.value;
+        //console.log(filterValue);
+
+        // use filterFn if matches value
+        $grid.isotope({ filter: filterValue });
+
+    });
+
+	if (Modernizr.mq('only all and (max-width: 720px)')) {
+		// don't use isotope on mobile - it's heavy on JS (breaks old iphones)
+		$('.isotope_wrap').addClass('is-showing-items');
+	} else {
+    {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+    {% if pageParamCampus != '' %}
+          var PageLoadFilter = '.campus-{{pageParamCampus}}';
+    {% else %}
+          var PageLoadFilter = '.initial-show';
+    {% endif %}
+    console.log(PageLoadFilter);
+		var isoOptions = {
+			itemSelector: '.isotope_item',
+			percentPosition: true,
+			layoutMode: 'fitRows',
+			filter: PageLoadFilter
+		};
+		// Initialize Isotope
+	    var $grid = $('.isotope_wrap').isotope(isoOptions);
+
+		// reveal all items after init
+		var $items = $grid.find('.isotope_item');
+		$grid.imagesLoaded().progress( function() {
+			$grid.addClass('is-showing-items').isotope('layout');
+		});
+		$grid.isotope( 'revealItemElements', $items );
+	}
+
+});
+
+function updatePath(key, value) {
+    baseUrl = [location.protocol, '//', location.host].join('');
+    parts = location.pathname.split('/');
+    // Set some defaults;
+    parts[1] = 'missions';
+    parts[2] = parts[2]||'pray';
+    parts[3] = parts[3]||'';
+    // Set default part one of Events
+    if (key == 'campus') {
+        parts[3] = value||'';
+    }
+    window.history.pushState({}, '', baseUrl + parts.join('/'));
+    console.log("key: " + key);
+    console.log( "value:" + value );
+    console.log( "parts:" + parts );
+    return parts.join( '/' );
+}
+
+</script>
+
+<div id="sharelist">
+    <div class="row g-padding-b-75--md">
+
+        <div class="col-md-12 g-padding-x-80--md">
+            <div class="g-margin-b-80--xs">
+
+                <div class="isotope_wrap">
+                {%- assign randomOrderedAds = Items | Shuffle -%}
+                {%- for Item in randomOrderedAds -%}
+                {%- assign filterClass = Item | Attribute: 'Campus' | Split:',' -%}
+                    <div class="col-xs-12 col-md-6 col-lg-4">
+                        <div class="shareable">
+                            <img src="/GetImage.ashx?Guid={{ Item | Attribute:'ShareableImage', 'RawValue' }}&height=500&width=500&mode=crop&scale=both" alt="{{ Item.Title }}" />
+                            {[ socialshare facebookimage:'https://{{- 'Global' | Page:'Host' -}}/GetImage.ashx/?Guid={{ Item | Attribute:'ShareableImage', 'RawValue' }}' ]}
+
+                        </div>
+                    </div>
+                {%- endfor -%}
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

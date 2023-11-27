@@ -31,7 +31,7 @@
         width: 25px;
         background-color: #eee;
         font-family: 'FontAwesome';
-        font-weight: '900';
+        font-weight: 900;
         font-style: normal;
         font-variant: normal;
         text-rendering: auto;

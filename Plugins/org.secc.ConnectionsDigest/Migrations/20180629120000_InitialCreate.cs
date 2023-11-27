@@ -174,7 +174,7 @@ namespace org.secc.ConnectionsDigest.Migrations
 <small>*Since last run date/time: {{LastRunDate}}</small>
 {{ ''Global'' | Attribute:''EmailFooter'' }}',
                        '10059716-8B49-46EA-BEDF-AE388DE9F7FF',
-                       (SELECT Id FROM Category WHERE NAME = 'Plugins')
+                       (SELECT c.ID FROM Category c JOIN EntityType et ON et.Id = c.EntityTypeId WHERE c.Name = 'Plugins' AND et.Name = 'Rock.Model.SystemEmail')
             );" );
         }
 

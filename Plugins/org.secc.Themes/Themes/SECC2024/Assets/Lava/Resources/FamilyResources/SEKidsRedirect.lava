@@ -1,0 +1,18 @@
+{%- contentchannelitem where:'ContentChannelId == 76 && Status == 2' sort:'StartDateTime Desc' -%}
+    {% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger %}
+    {%- for item in contentchannelitemItems -%}
+        {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
+        {% if itemStartDateTime <= currentDateTime %}
+            {%- assign campuses = item | Attribute:'Campuses','RawValue' | Split: ',' -%}
+            {%- assign ministries = item | Attribute:'Audiences' -%}
+            {%- if ministries contains "Children" -%}
+                {%- if CurrentPersonCanEdit -%}
+                    <p class="alert alert-warning">If you could not edit you would be redirected to: <a href="https://www.southeastchristian.org/familyresources/{{ item.PrimarySlug }}">https://www.southeastchristian.org/familyresources/{{ item.PrimarySlug }}</a>.</p>
+                {%- else -%}
+                    {{- 'https://www.southeastchristian.org/familyresources/' | Append: item.PrimarySlug | PageRedirect -}}
+                {%- endif -%}
+                {%- break -%}
+            {%- endif -%}
+        {%- endif -%}
+    {%- endfor -%}
+{%- endcontentchannelitem -%}

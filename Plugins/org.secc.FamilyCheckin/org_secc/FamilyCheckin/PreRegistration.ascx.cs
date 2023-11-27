@@ -284,7 +284,12 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             var personWorkflowGuid = GetAttributeValue( "PersonWorkflow" );
             if ( !string.IsNullOrWhiteSpace( personWorkflowGuid ) )
             {
-                matchingPeople.FirstOrDefault().PrimaryAlias.LaunchWorkflow( new Guid( personWorkflowGuid ), matchingPeople.FirstOrDefault().ToString() + " Pre-Registration", new Dictionary<string, string>() { { "ExtraInformation", tbExtraInformation.Text } } );
+                matchingPeople.FirstOrDefault().PrimaryAlias.LaunchWorkflow(
+                    new Guid( personWorkflowGuid ),
+                    matchingPeople.FirstOrDefault().ToString() + " Pre-Registration",
+                    new Dictionary<string, string>() { { "ExtraInformation", tbExtraInformation.Text } },
+                    null
+                    );
             }
         }
         else
@@ -302,7 +307,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 adult.BirthYear = dpBirthday.SelectedDate.Value.Year;
             }
             adult.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-            adult.ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
+            adult.ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PROSPECT.AsGuid() ).Id;
             adult.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
             adult.UpdatePhoneNumber( mobilePhone.Id, pnbPhone.CountryCode, pnbPhone.Number, false, false, rockContext );
             adult.Email = ebEmail.Text;
@@ -321,7 +326,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                     adult2.BirthYear = dpBirthday2.SelectedDate.Value.Year;
                 }
                 adult2.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-                adult2.ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
+                adult2.ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PROSPECT.AsGuid() ).Id;
                 adult2.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
                 adult2.UpdatePhoneNumber( mobilePhone.Id, pnbPhone2.CountryCode, pnbPhone2.Number, false, false, rockContext );
                 adult2.Email = ebEmail2.Text;
@@ -341,7 +346,12 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             var personWorkflowGuid = GetAttributeValue( "PersonWorkflow" );
             if ( !string.IsNullOrWhiteSpace( personWorkflowGuid ) )
             {
-                adult.PrimaryAlias.LaunchWorkflow( new Guid( GetAttributeValue( "PersonWorkflow" ) ), adult.ToString() + " Pre-Registration", new Dictionary<string, string>() { { "ExtraInformation", tbExtraInformation.Text } } );
+                adult.PrimaryAlias.LaunchWorkflow(
+                    new Guid( GetAttributeValue( "PersonWorkflow" ) ),
+                    adult.ToString() + " Pre-Registration",
+                    new Dictionary<string, string>() { { "ExtraInformation", tbExtraInformation.Text } },
+                    null
+                    );
             }
         }
         // Save the family address
@@ -550,7 +560,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             person.BirthMonth = this.DateOfBirth.Month;
             person.BirthYear = this.DateOfBirth.Year;
             person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-            person.ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
+            person.ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PROSPECT.AsGuid() ).Id;
             person.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
             if ( this.Grade.HasValue )
             {

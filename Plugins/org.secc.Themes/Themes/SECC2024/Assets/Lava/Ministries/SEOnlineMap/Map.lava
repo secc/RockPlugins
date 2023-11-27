@@ -1,0 +1,349 @@
+<link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
+<script src="https://unpkg.com/@google/markerclustererplus@4.0.1/dist/markerclustererplus.min.js"></script>
+<style>
+    /* override browser default */
+    html,
+    body {
+    margin: 0;
+    padding: 0;
+    }
+    .google-maps {
+        position: relative;
+        top: 0;
+        left: 0;
+        height: 0;
+        overflow: hidden;
+        display: block;
+        height: 100vh;
+        width: 100% !important;
+    }
+    .page_content_wrap {
+        padding: 0px;
+        height: 0px;
+        border-bottom: 0.0625rem solid rgba(34, 35, 36, 0.1);
+        background-color: rgb(34, 35, 36);
+        margin: 0px;
+        width: 100%;
+    }
+    .iw_title {
+        font-size: 1.5rem;
+        font-weight: bolder;
+    }
+    .iw_subTitle {
+        font-size: 1.2rem;
+        font-weight: bolder;
+    }
+    .gm-style .gm-style-iw-t::after {
+        box-shadow: none !important;
+    }
+    .gm-style-iw.gm-style-iw-c {
+        padding: 12px !important;
+    }
+    .modal {
+        background-color: transparent;
+    }
+    @media (min-width: 992px) {
+        .modal {
+            width: 900px;
+            margin-left: -450px;
+        }
+    }
+    .prayerInput {
+        padding-bottom: 10px;
+    }
+
+    /********************************/
+    /**** SE Online Map Styles ******/
+    /********************************/
+    #Map {
+        overflow: hidden;
+    }
+    .add-your-spot {
+        position: absolute;
+        right: 2em;
+        top: 6.5em;
+        background-color: white;
+        padding: 20px;
+        border-radius: 20px;
+        -webkit-transition: all .6s ease-in-out;
+        transition: all .6s ease-in-out;
+        /* margin-bottom: 60px; */
+        margin: 2rem 2rem 60px 2rem;
+    }
+    @media (max-width: 767px) {
+        /* hide initially */
+        .add-your-spot {
+            right: -200vw;
+            z-index: 0;
+        }
+    }
+    .add-your-spot--close {
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 100%;
+        display: inline-block;
+        height: 35px;
+        top: -.75em;
+        right: -.75em;
+        width: 35px;
+        background-color: rgba(0,0,0,0.5);
+        position: absolute;
+        border: none;
+    }
+
+    .add-your-spot--close i {
+        line-height: 25px;
+        position: relative;
+        display: block;
+    }
+    .add-to-story--condensed {
+        position: absolute;
+        right: -2em;
+        top: 6.5em;
+        background-color: white;
+        padding: 15px;
+        border-radius: 20px;
+        -webkit-transition: all .6s ease-in-out;
+        transition: all .6s ease-in-out;
+        cursor: pointer;
+    }
+    .goodbye {
+        right: -200vw;
+        z-index: 0;
+    }
+
+    /********************************/
+    /**** SE Online Marker Styles ******/
+    /********************************/
+    #markerLayer div {
+        overflow: visible !important;
+    }
+    #markerLayer img {
+        -webkit-animation: pulsate-fwd 0.5s ease-in-out both;
+        animation: pulsate-fwd 0.5s ease-in-out both;
+        transform-origin: center;
+        -webkit-transform-origin: center;
+    }
+    #iw_container {
+        max-width: 250px;
+        display: block !important;
+        position: relative !important;
+        text-align: center !important;
+    }
+    #fbBtn {
+        color:#1877F2;
+        border-color:#1877F2;
+    }
+    #fbBtn:hover {
+        color:#fff;
+        background-color:#1877F2;
+    }
+    /**
+    * ----------------------------------------
+    * animation pulsate-fwd
+    * ----------------------------------------
+    */
+    @-webkit-keyframes pulsate-fwd {
+        0% {
+            -webkit-transform: scale(1);
+                    transform: scale(1);
+        }
+        50% {
+            -webkit-transform: scale(1.1);
+                    transform: scale(1.1);
+        }
+        100% {
+            -webkit-transform: scale(1);
+                    transform: scale(1);
+        }
+    }
+    @keyframes pulsate-fwd {
+        0% {
+            -webkit-transform: scale(1);
+                    transform: scale(1);
+        }
+        50% {
+            -webkit-transform: scale(1.1);
+                    transform: scale(1.1);
+        }
+        100% {
+            -webkit-transform: scale(1);
+                    transform: scale(1);
+        }
+    }
+</style>
+<div class="container-fluid" id="Map">
+	<div class="row">
+		<div class="col-sm-12 g-padding-x-0--xs">
+            <div id="SEOnlineMap" class="google-maps"></div>
+            <div class="add-your-spot g-width-550--md g-width-90-percent--xs">
+                <a class="add-your-spot--close text-center" aria-label="Close">
+                    <i class="fal fa-times g-color--white" aria-hidden="true"></i>
+                </a>
+                <div class="entry-header">
+                    <h5 class="entry-title g-font-weight--700">Welcome to our SE Online Map!</h5>
+                    <p>If you would like to add yourself into the map, please click on the button below!</p>
+                </div>
+                <div class="entry-body text-center">
+                    <a href="/seonline-map/add" type="submit" class="btn btn-primary btn-block"><i class="fa fa-plus"></i> Add Yourself</a>
+                </div>
+            </div>
+
+            <div class="add-to-story--condensed g-padding-r-150--xs goodbye">
+                <div class="flex flex-justify-around flex-align-center m-b-spacer-none">
+                    <h2 class="g-display-inline-block--xs" style="vertical-align: middle;"><i class="fal fa-angle-left" aria-hidden="true"></i></h2>
+                    <div class="g-padding-r-60--xs g-display-inline-block--xs">
+                        <h5>
+                        <span class="fa-stack" style="vertical-align: middle;">
+                            <i class="fas fa-circle fa-stack-2x"></i>
+                            <i class="fas fa-user fa-stack-1x fa-inverse"></i>
+                        </span>
+                        </h5>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+        $(document).ready(function() {
+            //var loadJsonURL = 'https://developers.google.com/maps/documentation/javascript/examples/json/earthquake_GeoJSONP.js';
+            var loadJsonURL = '/webhooks/Lava.ashx/se-online-map.js';
+            map1 = loadMap("SEOnlineMap", loadJsonURL);
+
+            // Loop through the results array and place a marker for each
+            // set of coordinates.
+            let clusterMarkers = [];
+            let clusterMarkersInfo = [];
+            var currentMark;
+            //declare infowindow in global space
+            var infowindow = new google.maps.InfoWindow();
+            var catIcon = {
+                url: '/Content/ExternalSite/SEOnlineMap/MarkerSpot2.svg',
+                size: new google.maps.Size(50, 50),
+                scaledSize: new google.maps.Size(50, 50),
+                origin: new google.maps.Point(0,0)
+            }
+            window.eqfeed_callback = function(results) {
+                for (var i = 0; i < results.features.length; i++) {
+                    var coords = results.features[i].geometry.coordinates;
+                    var latLng = new google.maps.LatLng(coords[1],coords[0]);
+                    var contentString = '<div id="content text-center"><h4>Testing '+i+'</h4><p></p></div>';
+                    var marker = new google.maps.Marker({
+                        position: latLng,
+                        map: map1,
+                        icon: catIcon,
+                        optimized: false,
+                        id: clusterMarkers.length,
+                        location_id: results.features[i].properties.place,
+                        location_facebookUrl: results.features[i].properties.url,
+                        location_sayHiUrl: results.features[i].properties.sayhiurl
+                    });
+                    clusterMarkers.push(marker);
+                    clusterMarkersInfo.push(results);
+                    var myoverlay = new google.maps.OverlayView();
+                        myoverlay.draw = function () {
+                            this.getPanes().markerLayer.id='markerLayer';
+                        };
+                    myoverlay.setMap(map1);
+                    marker.addListener('click', function(e) {
+                        placeMarkerAndPanTo(this, e, map1);
+                        currentMark = marker;
+                    });
+
+                }
+                var clusterStyles = [
+                    {
+                        textColor: 'white',
+                        url: '/Content/ExternalSite/SEOnlineMap/m1.svg',
+                        height: 60,
+                        width: 60,
+                        textSize:20,
+                        textColor:"white",
+                        fontFamily:"Inter",
+                    }
+                ];
+                var mcOptions = {
+                    gridSize: 60,
+                    styles: clusterStyles,
+                    maxZoom: 10
+                };
+                // Add a marker clusterer to manage the markers.
+                const markerCluster = new MarkerClusterer(map1, clusterMarkers, mcOptions);
+            }
+
+            function placeMarkerAndPanTo(markerClicked, e, map1) {
+                const latLng = e.latLng;
+                var geocoder = new google.maps.Geocoder;
+                var lat = latLng.lat().toString();
+                var lng = latLng.lng().toString();
+                let facebookConnectString = '';
+                if (markerClicked.location_facebookUrl != '') {
+                    var location = markerClicked.location_id.split(/[\s,]+/);
+                    facebookConnectString = '<hr class="g-margin-y-20--xs" /><h5 class="g-font-size-24--xs">Connect with a group near you in the SE Facebook Groups</h5>' +
+                        '<a id="fbBtn" target="_blank" href="' + markerClicked.location_facebookUrl + '" class="uppercase se-btn btn-sm se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--600 g-margin-x-auto--xs">'+
+                        '<i class="fab fa-facebook"></i> Join a Group'+
+                        '</a>';
+                }
+                var contentString = '<div id="iw_container" class="g-padding-t-15--xs g-padding-l-15--xs">' +
+                        '<div class="iw_title text-center g-padding-b-20--xs g-font-weight--700 g-font-size-32--xs">'+ markerClicked.location_id +'</div>' +
+                        '<a target="_blank" href="' + markerClicked.location_sayHiUrl + '" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1 g-font-weight--600 g-margin-x-auto--xs"><i class="fas fa-envelope"></i> Say Hi!</a>' +
+                        facebookConnectString +
+                        '</div>' +
+                    '</div>';
+                infowindow.setContent(contentString);
+                let latLngAdj;
+                latLngAdj = new google.maps.LatLng((latLng.lat()) , (latLng.lng()));
+                /*if ($( document ).width() > 768) {
+                    latLngAdj = new google.maps.LatLng((latLng.lat() + 1) , (latLng.lng()));
+                } else {
+                    latLngAdj = new google.maps.LatLng((latLng.lat() + 3) , (latLng.lng()));
+                }*/
+                map1.panTo(latLngAdj);
+                infowindow.open(map1, markerClicked);
+            }
+
+            /*
+            * Depending on the alert bar, change the values below to better center the
+            * markers if needed
+            *
+            if ($( document ).width() > 768) {
+             map1.setCenter(new google.maps.LatLng((map.getCenter().lat()+ 2) , (map.getCenter().lng())));
+            }*/
+
+            $(".add-your-spot--close").click(function () {
+                $(".add-your-spot").css('right','-200vw');
+                $(".add-to-story--condensed").removeClass('goodbye');
+                $(".add-your-spot").addClass('goodbye');
+            });
+
+            $(".add-to-story--condensed").click(function () {
+                $(".add-to-story--condensed").addClass('goodbye');
+                $(".add-your-spot").removeClass('goodbye');
+                $(".add-your-spot").css('right','0px');
+            });
+
+            if ($( document ).width() < 768) {
+                // also load the page with the popup form closed
+                $(".add-to-story--condensed").removeClass('goodbye');
+                $(".add-your-spot").addClass('goodbye');
+            }
+
+			// Attempt to get location access and zoom the map appropriately
+            if (navigator.geolocation) {
+			  navigator.geolocation.getCurrentPosition(
+				(position) => {
+				  const pos = {
+					lat: position.coords.latitude,
+					lng: position.coords.longitude,
+				  };
+				  map.setCenter(pos);
+				  map.setZoom(10);
+				},
+				() => {
+				}
+			  );
+			}
+        });
+    </script>

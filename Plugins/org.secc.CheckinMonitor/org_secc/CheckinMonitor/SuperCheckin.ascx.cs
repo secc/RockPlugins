@@ -1353,8 +1353,6 @@ try{{
 
         protected void btnPrint_Click( object sender, EventArgs e )
         {
-            tbQRCheckPurpose.Text = "QRCodeCheckReprint";
-
             var requireQRCodeCheck = GetAttributeValue( "QRCodeCheckReprint" ).AsBoolean();
             if ( requireQRCodeCheck )
             {
@@ -1644,7 +1642,9 @@ try{{
 
         private void BindMCRRepeater()
         {
-            var kioskType = KioskTypeCache.All().Where( k => k.CheckinTemplateId == LocalDeviceConfig.CurrentCheckinTypeId ).FirstOrDefault();
+
+            var kioskType = CheckinKioskTypeCache.All().Where( k => k.CheckinTemplateId == LocalDeviceConfig.CurrentCheckinTypeId ).FirstOrDefault();
+
             var campus = kioskType.Campus;
 
             RockContext rockContext = new RockContext();

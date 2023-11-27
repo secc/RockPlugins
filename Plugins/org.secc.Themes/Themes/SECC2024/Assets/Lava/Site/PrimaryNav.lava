@@ -1,0 +1,41 @@
+<nav class="cd-nav">
+    {% assign personGuid = CurrentPerson.Guid %}
+    <ul id="cd-primary-nav" class="cd-primary-nav is-fixed {% unless personGuid != null %}logged-in{% endunless %}">
+        <li>
+            <a href="#Locations">Locations</a>
+        </li>
+        <li>
+            <a href="#Watch">Watch</a>
+        </li>
+        <li>
+            <a href="#About">Who We Are</a>
+        </li>
+        <li>
+            <a href="#Place">Find Your Place</a>
+        </li>
+        <li><a href="/give">Give</a></li>
+
+        {% if CurrentPerson.Guid %}
+            <li id="GroupManager">
+                <a href="/MyAccount" class="g-position--relative">
+                    <img src="{{ Person.PhotoUrl }}&width=40" class="img-responsive img-circle g-display-inline-block--xs" style="max-width: 40px;
+                        background-color: white;
+                        border-radius: 40px;
+                        padding: 2px;
+                        width: 40px;" />
+                    <span class="mega-menu-hide g-padding-l-20--xs">My Account</span>
+                </a>
+            </li>
+        {% else %}
+        {% assign host = 'Global' | Page:'Host' %}
+	    {% assign url = 'Global' | Page:'Url' %}
+            <li><a href="/login?returnurl={{ url | Replace:host, '' | Replace:'http://','' | Replace:'https://','' }}" title="Login">Login<span></span></a></li>
+        {% endif %}
+        <li>
+            <a href="#Locations">More</a>
+        </li>
+        <li class="join-button">
+            <a href="#Join"><i class="fal fa-map-marker-alt hidden-large-desktop g-padding-x-20--xs"></i> Join Us For Church</a>
+        </li>
+    </ul> <!-- primary-nav -->
+</nav> <!-- cd-nav -->

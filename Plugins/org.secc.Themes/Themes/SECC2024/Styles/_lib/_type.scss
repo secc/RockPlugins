@@ -1,0 +1,347 @@
+@import '../mixins';
+
+// // Typography
+// //
+// // Font, line-height, and color for body text, headings, and more.
+$line-height:                1.4 !default;
+
+$headings-margin-bottom:     .75rem !default;
+$headings-font-weight:       400 !default;
+$headings-line-height:       1.2 !default;
+
+// Typography font sizes
+// Pixel value used to responsively scale all typography. Applied to the `<html>` element.
+
+$font-size-root:             16px !default;
+
+$font-size-10:               .625rem !default;
+$font-size-11:               .6875rem !default;
+$font-size-12:               .75rem !default;
+$font-size-13:               .8125rem !default;
+$font-size-14:               .875rem !default;
+$font-size-15:               .9375rem !default;
+$font-size-16:               1rem !default;
+$font-size-17:               1.0625rem !default;
+$font-size-18:               1.125rem !default;
+$font-size-20:               1.25rem !default;
+$font-size-22:               1.375rem !default;
+$font-size-24:               1.5rem !default;
+$font-size-26:               1.625rem !default;
+$font-size-28:               1.75rem !default;
+$font-size-30:               1.875rem !default;
+$font-size-32:               2rem !default;
+$font-size-34:               2.125rem !default;
+$font-size-36:               2.25rem !default;
+$font-size-38:               2.375rem !default;
+$font-size-40:               2.5rem !default;
+$font-size-42:               2.625rem !default;
+$font-size-44:               2.75rem !default;
+$font-size-46:               2.875rem !default;
+$font-size-48:               3rem !default;
+$font-size-50:               3.125rem !default;
+$font-size-55:               3.4375rem !default;
+$font-size-56:               3.5rem !default;
+$font-size-60:               3.75rem !default;
+$font-size-64:               4rem !default;
+$font-size-65:               4.625rem !default;
+$font-size-70:               4.375rem !default;
+$font-size-75:               4.6875rem !default;
+$font-size-80:               5rem !default;
+$font-size-85:               5.3125rem !default;
+$font-size-90:               5.625rem !default;
+$font-size-95:               5.9375rem !default;
+$font-size-100:              6.25rem !default;
+$font-size-105:  						 6.5625rem !default;
+$font-size-110:  						 6.875rem !default;
+$font-size-115:  						 7.1875rem !default;
+$font-size-120:  						 7.5rem !default;
+$font-size-125:  						 7.8125rem !default;
+$font-size-130:  						 8.125rem !default;
+$font-size-135:  						 8.4375rem !default;
+$font-size-140:  						 8.75rem !default;
+$font-size-145:  						 9.0625rem !default;
+$font-size-150:  						 9.375rem !default;
+
+@include font-face('TisaPro', "FF-TisaPro", $location: $fa-tisapro-path, $weight:normal);
+@include font-face('TisaPro', "FF-TisaPro-Ita", $location: $fa-tisapro-path, $weight:normal, $style:italic);
+@include font-face('TisaPro', "FF-TisaPro-Thin", $location: $fa-tisapro-path, $weight:100);
+@include font-face('TisaPro', "FF-TisaPro-ThinIta", $location: $fa-tisapro-path, $weight:100, $style:italic);
+@include font-face('TisaPro', "FF-TisaPro-Light", $location: $fa-tisapro-path, $weight:200);
+@include font-face('TisaPro', "FF-TisaPro-LightIta", $location: $fa-tisapro-path, $weight:200, $style:italic);
+@include font-face('TisaPro', "FF-TisaPro-Medi", $location: $fa-tisapro-path, $weight:600);
+@include font-face('TisaPro', "FF-TisaPro-MediIta", $location: $fa-tisapro-path, $weight:600, $style:italic);
+@include font-face('TisaPro', "FF-TisaPro-Bold", $location: $fa-tisapro-path, $weight:700);
+@include font-face('TisaPro', "FF-TisaPro-BoldIta", $location: $fa-tisapro-path, $weight:700, $style:italic);
+@include font-face('TisaPro', "FF-TisaPro-Xbold", $location: $fa-tisapro-path, $weight:800);
+@include font-face('TisaPro', "FF-TisaPro-XboldIta", $location: $fa-tisapro-path, $weight:800, $style:italic);
+@include font-face('TisaPro', "FF-TisaPro-Black", $location: $fa-tisapro-path, $weight:900);
+@include font-face('TisaPro', "FF-TisaPro-BlackIta", $location: $fa-tisapro-path, $weight:900, $style:italic);
+
+@include font-face('ProximaNova', "ProximaNova-Regular", $location: $fa-proximanova-path, $weight:normal);
+@include font-face('ProximaNova', "ProximaNova-RegularIt", $location: $fa-proximanova-path, $weight:normal, $style:italic);
+@include font-face('ProximaNova', "ProximaNova-Thin", $location: $fa-proximanova-path, $weight:100);
+@include font-face('ProximaNova', "ProximaNova-ThinIt", $location: $fa-proximanova-path, $weight:100, $style:italic);
+@include font-face('ProximaNova', "ProximaNova-Light", $location: $fa-proximanova-path, $weight:200);
+@include font-face('ProximaNova', "ProximaNova-LightIt", $location: $fa-proximanova-path, $weight:200, $style:italic);
+@include font-face('ProximaNova', "ProximaNova-Semibold", $location: $fa-proximanova-path, $weight:600);
+@include font-face('ProximaNova', "ProximaNova-SemiboldIt", $location: $fa-proximanova-path, $weight:600, $style:italic);
+@include font-face('ProximaNova', "ProximaNova-Bold", $location: $fa-proximanova-path, $weight:700);
+@include font-face('ProximaNova', "ProximaNova-BoldIt", $location: $fa-proximanova-path, $weight:700, $style:italic);
+@include font-face('ProximaNova', "ProximaNova-Extrabld", $location: $fa-proximanova-path, $weight:800);
+@include font-face('ProximaNova', "ProximaNova-ExtrabldIt", $location: $fa-proximanova-path, $weight:800, $style:italic);
+@include font-face('ProximaNova', "ProximaNova-Black", $location: $fa-proximanova-path, $weight:900);
+@include font-face('ProximaNova', "ProximaNova-BlackIt", $location: $fa-proximanova-path, $weight:900, $style:italic);
+
+@include font-face('ProximaNovaCond', "ProximaNovaCond-Regular", $location: $fa-proximanovacond-path, $weight:normal);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-RegularIt", $location: $fa-proximanovacond-path, $weight:normal, $style:italic);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-Thin", $location: $fa-proximanovacond-path, $weight:100);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-ThinIt", $location: $fa-proximanovacond-path, $weight:100, $style:italic);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-Light", $location: $fa-proximanovacond-path, $weight:200);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-LightIt", $location: $fa-proximanovacond-path, $weight:200, $style:italic);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-Semibold", $location: $fa-proximanovacond-path, $weight:600);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-SemiboldIt", $location: $fa-proximanovacond-path, $weight:600, $style:italic);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-Bold", $location: $fa-proximanovacond-path, $weight:700);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-BoldIt", $location: $fa-proximanovacond-path, $weight:700, $style:italic);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-Extrabld", $location: $fa-proximanovacond-path, $weight:800);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-ExtrabldIt", $location: $fa-proximanovacond-path, $weight:800, $style:italic);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-Black", $location: $fa-proximanovacond-path, $weight:900);
+@include font-face('ProximaNovaCond', "ProximaNovaCond-BlackIt", $location: $fa-proximanovacond-path, $weight:900, $style:italic);
+
+@font-face {
+	font-family: 'Inter';
+	src: url('/Themes/SECC2024/Assets/fonts/Inter/Inter-Variable.woff2') format('woff2-variations');
+};
+
+@font-face {
+    font-family: 'Ivy Journal';
+    src: url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-SemiBoldItalic.eot');
+    src: local('Ivy Journal SemiBold Italic'), local('IvyJournal-SemiBoldItalic'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-SemiBoldItalic.eot?#iefix') format('embedded-opentype'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-SemiBoldItalic.woff2') format('woff2'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-SemiBoldItalic.woff') format('woff'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-SemiBoldItalic.ttf') format('truetype');
+    font-weight: 600;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Ivy Journal';
+    src: url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Regular.eot');
+    src: local('Ivy Journal Regular'), local('IvyJournal-Regular'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Regular.eot?#iefix') format('embedded-opentype'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Regular.woff2') format('woff2'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Regular.woff') format('woff'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Ivy Journal';
+    src: url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-LightItalic.eot');
+    src: local('Ivy Journal Light Italic'), local('IvyJournal-LightItalic'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-LightItalic.eot?#iefix') format('embedded-opentype'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-LightItalic.woff2') format('woff2'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-LightItalic.woff') format('woff'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-LightItalic.ttf') format('truetype');
+    font-weight: 300;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Ivy Journal';
+    src: url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Bold.eot');
+    src: local('Ivy Journal Bold'), local('IvyJournal-Bold'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Bold.eot?#iefix') format('embedded-opentype'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Bold.woff2') format('woff2'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Bold.woff') format('woff'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Ivy Journal';
+    src: url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-ThinItalic.eot');
+    src: local('Ivy Journal Thin Italic'), local('IvyJournal-ThinItalic'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-ThinItalic.eot?#iefix') format('embedded-opentype'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-ThinItalic.woff2') format('woff2'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-ThinItalic.woff') format('woff'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-ThinItalic.ttf') format('truetype');
+    font-weight: 100;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Ivy Journal';
+    src: url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-BoldItalic.eot');
+    src: local('Ivy Journal Bold Italic'), local('IvyJournal-BoldItalic'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-BoldItalic.eot?#iefix') format('embedded-opentype'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-BoldItalic.woff2') format('woff2'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-BoldItalic.woff') format('woff'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-BoldItalic.ttf') format('truetype');
+    font-weight: bold;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Ivy Journal';
+    src: url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Italic.eot');
+    src: local('Ivy Journal Italic'), local('IvyJournal-Italic'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Italic.eot?#iefix') format('embedded-opentype'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Italic.woff2') format('woff2'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Italic.woff') format('woff'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Italic.ttf') format('truetype');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Ivy Journal';
+    src: url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Light.eot');
+    src: local('Ivy Journal Light'), local('IvyJournal-Light'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Light.eot?#iefix') format('embedded-opentype'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Light.woff2') format('woff2'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Light.woff') format('woff'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Ivy Journal';
+    src: url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Thin.eot');
+    src: local('Ivy Journal Thin'), local('IvyJournal-Thin'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Thin.eot?#iefix') format('embedded-opentype'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Thin.woff2') format('woff2'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Thin.woff') format('woff'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-Thin.ttf') format('truetype');
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Ivy Journal';
+    src: url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-SemiBold.eot');
+    src: local('Ivy Journal SemiBold'), local('IvyJournal-SemiBold'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-SemiBold.eot?#iefix') format('embedded-opentype'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-SemiBold.woff2') format('woff2'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-SemiBold.woff') format('woff'),
+        url('/Themes/SECC2024/Assets/fonts/IvyJournal/IvyJournal-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}
+
+// Forms
+$cursor-disabled:           not-allowed !default;
+
+// Links
+//
+// Style anchor elements.
+$link-hover-decoration:     none !default;
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+	&:not(.modal-title) {
+		color: $color-heading;
+		margin-top: 0;
+		// margin-bottom: .5rem;
+	}
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	// text-transform: capitalize;
+	// margin-bottom: $headings-margin-bottom;
+
+	a {
+		color: $color-heading;
+	}
+
+	// &.tisa-pro {
+	// 	font-weight: normal;
+	// 	font-family: $TisaPro;
+	// }
+
+	small {
+		color: $CopyColor;
+		font-size: 60%;
+	}
+}
+
+h1, .h1 { @include font($size: $font-size-64, $weight: normal, $line-height: $headings-line-height); }
+h2, .h2 { @include font($size: $font-size-56, $weight: normal, $line-height: $headings-line-height); }
+h3, .h3 { @include font($size: $font-size-44, $weight: normal, $line-height: 1.4); }
+h4, .h4 { @include font($size: $font-size-36, $weight: normal, $line-height: 1.4); }
+h5, .h5 { @include font($size: $font-size-30, $weight: normal, $line-height: 1.4); }
+h6, .h6 { @include font($size: $font-size-20, $weight: normal, $line-height: $headings-line-height); }
+
+code {
+	background-color: darken($color-dark-light, 70%);
+	color: $color-white;
+	border-radius: .2rem;
+	padding: .1rem .3rem .2rem;
+}
+
+//$font-size-h1;
+em,
+li {
+  @include font($size: $font-size-24, $weight: 500);
+  color: $color-heading;
+
+  > a {
+  	color: $color-heading;
+
+  	@include hover {
+  		color: darken($color-heading, 7%);
+  	}
+  }
+}
+
+label {
+  @include font($size: $font-size-24, $weight: 700);
+  color: $color-heading;
+  margin-bottom: .25rem;
+}
+
+i {
+	line-height: 1;
+}
+
+/* Paragraph */
+p {
+  @include font($size: $font-size-28, $weight: 400);
+	color: $color-text;
+	line-height: $line-height;
+	margin-top: 0;
+	margin-bottom: 1rem;
+}
+
+/* Links */
+a {
+	color: $CopyColor;
+	text-decoration: $link-hover-decoration;
+
+	@include hover-focus {
+		color: darken($color-heading, 7%);
+		text-decoration: $link-hover-decoration;
+	}
+
+	@include focus {
+		outline: none;
+	}
+}
+
+.uppercase {
+    text-transform: uppercase;
+}
+.letter-space {
+    letter-spacing: 2px;
+}
+.big-letter-space {
+    letter-spacing: 6px;
+}

@@ -26,7 +26,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using Humanizer;
 using Newtonsoft.Json;
-
+using org.secc.PersonMatch;
 using Rock;
 using Rock.Attribute;
 using Rock.Communication;
@@ -35,13 +35,13 @@ using Rock.Field;
 using Rock.Financial;
 using Rock.Model;
 using Rock.Security;
+using Rock.Tasks;
 using Rock.Utility;
 using Rock.Web;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using Helper = Rock.Attribute.Helper;
-using org.secc.PersonMatch;
 
 namespace RockWeb.Plugins.org_secc.Event
 {
@@ -59,7 +59,7 @@ namespace RockWeb.Plugins.org_secc.Event
         Description = "The connection status to use for new individuals (default: 'Web Prospect'.)",
         IsRequired = true,
         AllowMultiple = false,
-        DefaultValue = Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT,
+        DefaultValue = Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PROSPECT,
         Order = 0 )]
 
     [DefinedValueField( "Record Status",
@@ -2392,20 +2392,24 @@ namespace RockWeb.Plugins.org_secc.Event
                 string themeRoot = ResolveRockUrlIncludeRoot( "~~/" );
 
                 // Send/Resend a confirmation
-                var confirmation = new Rock.Transactions.SendRegistrationConfirmationTransaction();
-                confirmation.RegistrationId = registration.Id;
-                confirmation.AppRoot = appRoot;
-                confirmation.ThemeRoot = themeRoot;
-                Rock.Transactions.RockQueue.TransactionQueue.Enqueue( confirmation );
+                var confirmationMessage = new ProcessSendRegistrationConfirmation.Message
+                {
+                    RegistrationId = registration.Id,
+                    AppRoot = appRoot,
+                    ThemeRoot = themeRoot
+                };
+                confirmationMessage.Send();
 
                 if ( isNewRegistration )
                 {
                     // Send notice of a new registration
-                    var notification = new Rock.Transactions.SendRegistrationNotificationTransaction();
-                    notification.RegistrationId = registration.Id;
-                    notification.AppRoot = appRoot;
-                    notification.ThemeRoot = themeRoot;
-                    Rock.Transactions.RockQueue.TransactionQueue.Enqueue( notification );
+                    var notificationMessage = new Rock.Tasks.ProcesSendRegistrationNotification.Message
+                    {
+                        RegistrationId = registration.Id,
+                        AppRoot = appRoot,
+                        ThemeRoot = themeRoot
+                    };
+                    notificationMessage.Send();
                 }
 
                 var registrationService = new RegistrationService( new RockContext() );
@@ -2448,19 +2452,21 @@ namespace RockWeb.Plugins.org_secc.Event
 
                                 if ( DigitalSignatureComponent != null )
                                 {
-                                    var sendDocumentTxn = new Rock.Transactions.SendDigitalSignatureRequestTransaction();
-                                    sendDocumentTxn.SignatureDocumentTemplateId = RegistrationTemplate.RequiredSignatureDocumentTemplateId.Value;
-                                    sendDocumentTxn.AppliesToPersonAliasId = registrant.PersonAlias.Id;
-                                    sendDocumentTxn.AssignedToPersonAliasId = assignedTo.PrimaryAliasId ?? 0;
-                                    sendDocumentTxn.DocumentName = string.Format( "{0}_{1}", RegistrationInstanceState.Name.RemoveSpecialCharacters(), registrant.PersonAlias.Person.FullName.RemoveSpecialCharacters() );
-                                    sendDocumentTxn.Email = email;
-                                    Rock.Transactions.RockQueue.TransactionQueue.Enqueue( sendDocumentTxn );
+                                    var sendDocumentMessage = new ProcessSendDigitalSignatureRequest.Message
+                                    {
+                                        SignatureDocumentTemplateId = RegistrationTemplate.RequiredSignatureDocumentTemplateId.Value,
+                                        AppliesToPersonAliasId = registrant.PersonAlias.Id,
+                                        AssignedToPersonAliasId = assignedTo.PrimaryAliasId ?? 0,
+                                        DocumentName = string.Format( "{0}_{1}", RegistrationInstanceState.Name.RemoveSpecialCharacters(), registrant.PersonAlias.Person.FullName.RemoveSpecialCharacters() ),
+                                        Email = email
+                                    };
+                                    sendDocumentMessage.Send();
                                 }
                             }
                         }
 
-                        newRegistration.LaunchWorkflow( RegistrationTemplate.RegistrationWorkflowTypeId, newRegistration.ToString() );
-                        newRegistration.LaunchWorkflow( RegistrationInstanceState.RegistrationWorkflowTypeId, newRegistration.ToString() );
+                        newRegistration.LaunchWorkflow( RegistrationTemplate.RegistrationWorkflowTypeId, newRegistration.ToString(), null, null );
+                        newRegistration.LaunchWorkflow( RegistrationInstanceState.RegistrationWorkflowTypeId, newRegistration.ToString(), null, null );
                     }
 
                     RegistrationInstanceState = newRegistration.RegistrationInstance;
@@ -3185,8 +3191,12 @@ namespace RockWeb.Plugins.org_secc.Event
                                 rockContext.SaveChanges();
                             }
 
-                            var updateDocumentTxn = new Rock.Transactions.UpdateDigitalSignatureDocumentTransaction( document.Id );
-                            Rock.Transactions.RockQueue.TransactionQueue.Enqueue( updateDocumentTxn );
+                            var updateDocumentTask = new UpdateDigitalSignatureDocument.Message
+                            {
+                                SignatureDocumentId = document.Id
+                            };
+                            updateDocumentTask.Send();
+
                         }
                     }
                     catch ( System.Exception ex )

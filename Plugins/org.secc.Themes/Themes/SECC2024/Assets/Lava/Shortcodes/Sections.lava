@@ -1,0 +1,81 @@
+
+{% comment %}
+*********************************** NAME ***************************************
+Southeast Sections
+
+*********************************** TagType ************************************
+Block
+
+*********************************** TAG NAME ***********************************
+se-sections
+
+*********************************** DESCRIPTION ********************************
+This shortcode is to help pull together a simple section with an image on the left or the right, and then stack nicely on mobile.
+
+********************************* DOCUMENTATION ********************************
+<p>
+    Check out the examples at this link (you can also copy the code below for quick use):  https://rock.secc.org/page/2616
+</p>
+
+{[ seccsection layout:'right' ]}
+    <h3 class="g-font-weight--700 g-line-height">Title</h3>
+    <h5 class="g-line-height">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut ex nisl, mollis a ultrices eu, tempor pulvinar leo. Quisque et elementum erat, sit amet elementum leo. Vestibulum vehicula dui nulla, sit amet interdum nisl laoreet eget. Suspendisse a purus dui. Praesent auctor nibh sit amet ex laoreet, nec aliquet est volutpat. Mauris eu enim eget lectus blandit finibus vel vitae magna. Praesent eu nisi mattis, lacinia enim ut, interdum nunc. Sed aliquet pellentesque mauris sollicitudin maximus. Proin venenatis nibh ac sodales tincidunt. Suspendisse accumsan dolor at nisi finibus, vestibulum vehicula elit bibendum. Nulla sed velit ipsum. Vestibulum sed magna sit amet tortor sodales commodo../h5>
+{[ endseccsection ]}
+
+************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
+{% endcomment %}
+
+{% comment %} Right Side Image {% endcomment %}
+{% if layout == "right" %}
+    <section>
+        <div class="container">
+            <div class="row g-padding-y-150--xs g-display-flex--lg">
+                <div class="col-lg-6 col-md-6 col-md-push-6 clearfix text-center">
+                    {% if image != "" -%}
+                        <img src="{{ image | Escape }}" class="img-responsive img-circle" style="margin: 0 auto; width: {{ imagewidth }}">
+                    {% endif -%}
+                </div>
+                <div class="col-lg-6 col-md-6 col-md-pull-6 clearfix g-padding-t-60--xs">
+                    <div class="g-padding-l-60--md g-width-100-percent--xs g-center--lg g-position--relative">
+                        {{ blockContent }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% elseif layout == "left" %}
+{% comment %} Left Side Image {% endcomment %}
+    <section>
+        <div class="container">
+            <div class="row g-padding-y-150--xs g-display-flex--lg">
+                <div class="col-lg-6 col-md-6 clearfix text-center">
+                    {% if image != "" -%}
+                        <img src="{{ image | Escape }}" class="img-responsive img-circle" style="margin: 0 auto; width: {{ imagewidth }}">
+                    {% endif -%}
+                </div>
+                <div class="col-lg-6 col-md-6 clearfix g-padding-t-60--xs">
+                    <div class="g-padding-l-60--md g-width-100-percent--xs g-center--lg g-position--relative">
+                        {{ blockContent }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% elseif layout == "center"%}
+    <section>
+        <div class="container g-padding-t-50--xs g-padding-b-150--xs g-padding-x-40--xs">
+            <div class="row g-padding-y-75--md">
+                <div class="text-center g-padding-x-80--md">
+                {{ blockContent }}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endif %}
+
+{% comment %}
+************************ PARAMETERS ********************
+layout       - right (default), left, or center
+image        - https://picsum.photos/500
+imagewidth   - 500px
+{% endcomment %}

@@ -252,7 +252,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             var kioskTypeCookie = this.Page.Request.Cookies["KioskTypeId"];
             if ( kioskTypeCookie != null )
             {
-                var kioskType = KioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
+                var kioskType = CheckinKioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
                 if ( kioskType != null && kioskType.CampusId == activeMCR.CampusId )
                 {
                     if ( MCRValidForKiosk( kioskType, activeMCR ) )
@@ -270,7 +270,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             return false;
         }
 
-        private bool MCRValidForKiosk( KioskTypeCache kioskType, MobileCheckinRecordCache mcr )
+        private bool MCRValidForKiosk( CheckinKioskTypeCache kioskType, MobileCheckinRecordCache mcr )
         {
             var groupTypeIds = new List<int>();
             foreach ( var a in mcr.AttendanceIds )
@@ -1582,11 +1582,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     return;
                 }
 
-                KioskTypeCache kioskType = null;
+                CheckinKioskTypeCache kioskType = null;
                 var kioskTypeCookie = this.Page.Request.Cookies["KioskTypeId"];
                 if ( kioskTypeCookie != null )
                 {
-                    kioskType = KioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
+                    kioskType = CheckinKioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
                 }
 
                 if ( kioskType.CampusId.HasValue && kioskType.CampusId != 0 && kioskType.CampusId != mobileCheckinRecord.CampusId )

@@ -99,7 +99,7 @@ namespace org.secc.LeagueApps
             object privateKey;
             if ( cert.HasCngKey() )
             {
-                privateKey = new RSACng( cert.GetCngPrivateKey() );
+                privateKey = new Security.Cryptography.RSACng( cert.GetCngPrivateKey() );
             }
             else
             {

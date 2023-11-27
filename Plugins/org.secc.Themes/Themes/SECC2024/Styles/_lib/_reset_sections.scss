@@ -1,0 +1,8 @@
+/* Reset Rock sections styles */
+section:not(.parallax),
+#PageBody > section,
+#AdminPageBody > section {
+    position: relative;
+    padding-top: 0px;
+    padding-bottom: 0px;
+}

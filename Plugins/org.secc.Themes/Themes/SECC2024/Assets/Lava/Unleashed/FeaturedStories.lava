@@ -1,0 +1,99 @@
+<style>
+    #Connect:before {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 200px;
+        background-color: #EFEFEF;
+        margin-top: -200px;
+    }
+    #Connect .card {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+</style>
+<section id="Connect" style="background-color: #EFEFEF">
+    <div class="container g-padding-b-200--xs g-padding-t-50--xs">
+
+        <div class="row g-padding-b-40--xs g-padding-t-20--lg">
+            <div class="col-lg-12 clearfix text-center">
+                <h5 class="uppercase g-font-weight--700 g-letter-spacing--5 g-color--2021-unleashed">Featured Stories</h5>
+    		</div>
+        </div>
+
+		<div class="row g-display-flex--lg">
+
+		    <div class="col-sm-12 col-md-4 event-calendar">
+                <div class="g-margin-x-30--xs g-margin-x-0--md g-padding-x-20--xs">
+                    {[ wow animate:'fadeInUp' duration:'.8s' delay:'0.3s' ]}
+                    <div class="clearfix card">
+                        <a href="https://issuu.com/southeastcommunications/docs/se_2020unleashed_digital/s/11623917" target="_blank">
+	                        <div class="img-hover">
+                                <img src="/Content/Media/Unleashed/Group179.jpg" class="event-image img-responsive g-width-100-percent--xs" onerror="this.style.display='none'">
+                            </div>		
+						</a>
+                        <div class="g-padding-x-80--xs g-padding-y-100--xs">
+                            <h5 class="g-font-weight--700 g-font-family--secondary g-color--2021-unleashed">Southeast Community Campuses</h5>
+                            <p class="g-color--2021-unleashed">Southeast established a new kind of campus in 2020—a community campus focused on community transformation and geared toward groups who encountered cultural barriers in attending an existing regional campus.</p>
+                            <br />
+                            <span class="g-width-100-percent--xs text-center g-display-inline-block--xs">
+                                <a href="https://issuu.com/southeastcommunications/docs/se_2020unleashed_digital/s/11623917" class="uppercase se-btn se-btn--unleashed uppercase g-letter-spacing--1" target="_blank">
+                                    <strong>Read Story</strong>
+                                </a>
+                            </span>
+                        </div>
+                    </div>
+                    {[ endwow ]}
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-4 event-calendar">
+                <div class="g-margin-x-30--xs g-margin-x-0--md g-padding-x-20--xs">
+                    {[ wow animate:'fadeInUp' duration:'.8s' delay:'0.5s' ]}
+                    <div class="clearfix card">
+                        <a href="https://issuu.com/southeastcommunications/docs/se_2020unleashed_digital/s/11623923" target="_blank">
+	                        <div class="img-hover">
+                                <img src="/Content/Media/Unleashed/Group180.jpg" class="event-image img-responsive g-width-100-percent--xs" onerror="this.style.display='none'">
+                            </div>		
+						</a>
+                        <div class="g-padding-x-80--xs g-padding-y-100--xs">
+                            <h5 class="g-font-weight--700 g-font-family--secondary g-color--2021-unleashed">Veterans Village</h5>
+                            <p class="g-color--2021-unleashed">Tiny homes, big possibilities. <i>Veterans Village</i> and <i>Awake Ministries</i> are standing in the gap for Shelby County veterans in need, providing them with much more than just a place to live.</p>
+                            <br />
+                            <span class="g-width-100-percent--xs text-center g-display-inline-block--xs">
+                                <a href="https://issuu.com/southeastcommunications/docs/se_2020unleashed_digital/s/11623923" class="uppercase se-btn se-btn--unleashed uppercase g-letter-spacing--1" target="_blank">
+                                    <strong>Read Story</strong>
+                                </a>
+                            </span>
+                        </div>
+                    </div>
+                    {[ endwow ]}
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-4 event-calendar">
+                <div class="g-margin-x-30--xs g-margin-x-0--md g-padding-x-20--xs">
+                    {[ wow animate:'fadeInUp' duration:'.8s' delay:'0.7s' ]}
+                    <div class="clearfix card">
+                        <a href="https://issuu.com/southeastcommunications/docs/se_2020unleashed_digital/94" target="_blank">
+	                        <div class="img-hover">
+                                <img src="/Content/Media/Unleashed/Group181.jpg" class="event-image img-responsive g-width-100-percent--xs" onerror="this.style.display='none'">
+                            </div>		
+						</a>
+                        <div class="g-padding-x-80--xs g-padding-y-100--xs">
+                            <h5 class="g-font-weight--700 g-font-family--secondary g-color--2021-unleashed">Proem</h5>
+                            <p class="g-color--2021-unleashed">Southeast Mission Partner Proem has grown tremendously in its 30 years of sharing the Gospel in Poland. Beginning with youth camps, it has planted churches, opened a preschool, and even started a worship band.</p>
+                            <br />
+                            <span class="g-width-100-percent--xs text-center g-display-inline-block--xs">
+                                <a href="https://issuu.com/southeastcommunications/docs/se_2020unleashed_digital/94" class="uppercase se-btn se-btn--unleashed uppercase g-letter-spacing--1" target="_blank">
+                                    <strong>Read Story</strong>
+                                </a>
+                            </span>
+                        </div>
+                    </div>
+                    {[ endwow ]}
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</section>

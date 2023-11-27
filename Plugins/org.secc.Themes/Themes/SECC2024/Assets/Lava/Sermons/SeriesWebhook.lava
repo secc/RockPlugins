@@ -1,0 +1,37 @@
+{"Series":
+    [
+        {%- assign itemComma = '' -%}
+        {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+        {%- for item in Items -%}
+            {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+            {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+            {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+            {{itemComma}}
+            {
+                "Id": {{item.Id}},
+                "Name":"{{item.Title | Replace:'"','\"'}}",
+                "Description":"{{item.Content | Replace:'"','\"'}}",
+                "Image": "{{ 'Global' | Attribute:'InternalApplicationRoot' }}GetFile.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}",
+                "Sermons": [
+                {%- assign childComma = '' -%}
+                {%- for message in item.ChildItems -%}
+                {{childComma}}
+                {
+			        "Id":{{ message.ChildContentChannelItem.Id }},
+			        "Title":"{{ message.ChildContentChannelItem.Title  | Replace:'"','\"' | NewlineToBr | Replace:'<br />',' ' }}",
+			        "Description":"{{ message.ChildContentChannelItem.Content  | Replace:'"','\"' | NewlineToBr | Replace:'<br />',' '  }}",
+			        "Image": "{{ 'Global' | Attribute:'InternalApplicationRoot' }}GetFile.ashx/{{message.ChildContentChannelItem | Attribute:'Image', 'RawValue'}}.jpg?guid={{message.ChildContentChannelItem | Attribute:'Image', 'RawValue'}}",
+			        "Audio": "{{ 'Global' | Attribute:'InternalApplicationRoot' }}GetFile.ashx/{{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}.mp3?guid={{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}",
+			        "Speaker": "{{message.ChildContentChannelItem | Attribute:'Speaker'}}",
+			        "VimeoStreamingUrl":"{{message.ChildContentChannelItem | Attribute:'VimeoStreamingUrl'}}",
+			        "VimeoDownloadUrl":"{{message.ChildContentChannelItem | Attribute:'VimeoDownloadUrl'}}"
+                }
+                {%- assign childComma = ',' -%}
+			    {%- endfor -%}
+			]
+            }
+            {%- assign itemComma = ',' -%}
+            {%- endif -%}
+        {%- endfor -%}
+    ]
+}

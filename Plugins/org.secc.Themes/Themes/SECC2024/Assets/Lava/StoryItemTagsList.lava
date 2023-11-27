@@ -1,0 +1,152 @@
+{% assign tagname = 'Global' | PageParameter:'tag_name'  %}
+
+<style>
+    .hide {
+        display: none;
+    }
+</style>
+
+<script>
+$(document).ready(function() {
+    getMoreStories(jQuery);
+
+    window.onscroll = function(e) {
+        var pageHeight=document.documentElement.offsetHeight,
+        windowHeight=window.innerHeight,
+        scrollPosition=window.scrollY || window.pageYOffset || document.body.scrollTop + (document.documentElement && document.documentElement.scrollTop || 0);
+
+        if (pageHeight - document.getElementById("SiteFooter").offsetHeight <= windowHeight+scrollPosition) {
+            getMoreStories(jQuery);
+        }
+    };
+
+    // Initialize Isotope
+    var $grid = $('.isotope_wrap').isotope({
+        // options
+        percentPosition: true,
+        itemSelector: '.isotope_item',
+        layoutMode: 'fitRows'
+    });
+
+    // reveal all items after init
+    var $items = $grid.find('.isotope_item');
+    $grid.imagesLoaded().progress( function() {
+      $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
+    });
+    $grid.isotope( 'revealItemElements', $items );
+});
+
+// Set sermon series to start at the next set since the first set is already loaded.
+var storiesOffset = 1;
+// This dertimines whether the API requests should continue or stop.
+var storiesContinueMakingRequests = true;
+// This determines whether an ajax request is already in the process or not.
+var storiesLoading = false;
+// load 6 to show
+var take = 6;
+
+function getMoreStories($) {
+
+	if (storiesContinueMakingRequests == true) {
+		$("#loading-animation").show();
+	}
+
+	// check and see if another request is being loaded
+	if (storiesLoading == false) {
+		$.ajax( {
+			url: '/api/ChannelItems/35/{{ tagname }}?take='+take+'&page='+storiesOffset+'&orderby=StartDateTime&reverse=true',
+			async: true,
+			beforeSend: function(data) {
+				storiesLoading = true; // start ajax loading process
+			},
+			error: function(jqXHR,error, errorThrown) {
+			   console.log('AJAX ERROR: ');
+               if (jqXHR.status&&jqXHR.status==400){
+                   console.log(jqXHR.responseText);
+               } else {
+				   console.log('URL Request: '+ '/api/ChannelItems/35/{{ tagname }}?take='+take+'&page='+storiesOffset+'&orderby=StartDateTime&reverse=true');
+                   console.log("jqXHR:");
+				   console.log(jqXHR);
+				   console.log("error:"+error);
+				   console.log("errorThrown:"+errorThrown);
+               }
+            },
+			success: function(data) {
+				//console.log(data);
+                var $grid = $('.isotope_wrap').isotope({
+                    // options
+                    percentPosition: true,
+                    itemSelector: '.isotope_item',
+                    layoutMode: 'fitRows'
+                });
+
+                $.each(data, function(i, story_group){
+                      var $elem = $('<div></div>', {
+                        "class": "isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar"
+                        }).append(
+                            $('<article/>', {
+                                "class": 'post_item_story g-margin-y-0--xs card'
+                            }).html(function() {
+                                var image_box = "<div class=\"post_featured_story\"> \
+                                                    <div class=\"post_thumb_story\" data-image=\"/GetImage.ashx?Guid="+ story_group.Attributes.Image +"\" data-title=\""+ story_group.Title +"\"> \
+                                                        <a class=\"hover_icon hover_icon_link\" href=\"/stories/"+ story_group.Slug +"\"> \
+                                                            <img class=\"img-responsive\" alt=\""+ story_group.Title +"\" src=\"/GetImage.ashx?Guid="+ story_group.Attributes.Image +"\" style=\"margin: 0 auto\"> \
+                                                        </a> \
+                                                    </div> \
+                                                </div>";
+                                    image_box += "<div class=\"massonry_border g-height-150--xs g-padding-x-20--xs g-padding-y-20--xs\"> \
+                                                    <h5 class=\"g-font-family--secondary\"> \
+                                                        <a class=\"g-letter-spacing--1\" href=\"/stories/"+ story_group.Slug +"\">"+ story_group.Title +"</a> \
+                                                    </h5> \
+                                                </div>";
+                                return image_box;
+                            })
+                        );
+
+                      $grid.isotope()
+                      .append( $elem )
+                      .isotope( 'appended', $elem )
+                      .isotope('layout');
+
+				});
+
+                // reveal all items after init
+                var $items = $grid.find('.isotope_new_item');
+                $grid.imagesLoaded().progress( function() {
+                $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
+                });
+                $grid.isotope( 'revealItemElements', $items );
+
+                $('.isotope_new_item').removeClass('isotope_new_item');
+
+				storiesOffset += 1;
+				$("#loading-animation").hide();
+				storiesLoading = false; // reset back to false to allow more requests
+
+                if (data.length == 0 || data.length == undefined) {
+                    storiesContinueMakingRequests = false;
+                    $("#loadStories").hide();
+                }
+			}
+
+		});
+
+	}
+}
+</script>
+
+<div class="container g-padding-y-100--xs g-padding-x-150--lg">
+    <div class="g-padding-l-50--lg">
+    <h5 class="uppercase g-color--gray-light">tagged in</h5>
+    <h2>{{ tagname }}</h2>
+    </div>
+</div>
+
+<!-- show all content channel items that has the tag -->
+<div class="container g-padding-b-150--xs g-padding-x-150--lg">
+    <div class="isotope_wrap">
+	</div>
+    <div class="text-center">
+        <img id="loading-animation" src="/Content/ExternalSite/WebImages/loading.gif" />
+    </div>
+</div>

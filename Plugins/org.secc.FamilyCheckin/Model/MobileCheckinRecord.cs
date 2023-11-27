@@ -21,7 +21,7 @@ namespace org.secc.FamilyCheckin.Model
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.ModelConfiguration;
     using System.Runtime.Serialization;
-    using Rock.Data;
+    using Rock.Lava;
     using Rock.Model;
     [Table( "_org_secc_FamilyCheckin_MobileCheckinRecord" )]
     [DataContract]
@@ -66,7 +66,7 @@ namespace org.secc.FamilyCheckin.Model
         /// <value>
         /// The family group.
         /// </value>
-        [LavaInclude]
+        [LavaVisible]
         public virtual Group FamilyGroup { get; set; }
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace org.secc.FamilyCheckin.Model
         /// <value>
         /// The campus.
         /// </value>
-        [LavaInclude]
+        [LavaVisible]
         public virtual Campus Campus { get; set; }
 
         /// <summary>
