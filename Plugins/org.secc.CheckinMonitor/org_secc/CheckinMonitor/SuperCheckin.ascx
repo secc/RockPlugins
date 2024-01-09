@@ -170,7 +170,7 @@
                         ControlToValidate="pnbAdult1Phone" ValidationExpression="^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$"></asp:RegularExpressionValidator>
                 </div>
                 <div class="col-xs-4 col-sm-2">
-                    <Rock:Toggle runat="server" ID="cbAdult1SMS" Label="Is Cell Phone?" OnCssClass="btn-success"
+                    <Rock:Toggle runat="server" ID="cbAdult1SMS" Checked="true" Label="Is Cell Phone?" OnCssClass="btn-success"
                         OffCssClass="btn-danger" OnText="Yes" OffText="No" />
                 </div>
             </div>
@@ -189,7 +189,7 @@
                     <Rock:PhoneNumberBox ID="pnbAdult2Phone" runat="server" Label="Phone Number"></Rock:PhoneNumberBox>
                 </div>
                 <div class="col-xs-4 col-sm-2">
-                    <Rock:Toggle runat="server" ID="cbAdult2SMS" Label="Is Cell Phone?" OnCssClass="btn-success"
+                    <Rock:Toggle runat="server" ID="cbAdult2SMS" Checked="true" Label="Is Cell Phone?" OnCssClass="btn-success"
                         OffCssClass="btn-danger" OnText="Yes" OffText="No" />
                 </div>
             </div>
