@@ -7,15 +7,6 @@
         height:250px;
         width:250px;
     }
-    img.PersonPhoto
-    {
-        display:block;
-        height:150px;
-        width:150px;
-        margin-left:auto;
-        margin-right:auto;
-        
-    }
     .personHeader {
         background-color:#000000;
         color:#ffffff;
@@ -27,26 +18,43 @@
 </style>
 <asp:UpdatePanel ID="upMain" runat="server">
     <ContentTemplate>
-        <asp:Panel ID="pnlPass" runat="server" Visible="true" >
+        <asp:Panel ID="pnlPass" runat="server" Visible="false" >
             <div Id="carousel-EventItem" class="carousel slide" data-ride="carousel" data-interval="false">
+                <asp:Repeater ID="rPassIndicator" runat="server">
+                    <HeaderTemplate>
+                        <ol class="carousel-indicators">
+                    </HeaderTemplate>
+                    <ItemTemplate>
+                        <li data-target="#carousel-EventItem" data-slide-to='<%# Eval("ItemOrder") %>' class='<%# ((int)Eval("ItemOrder")) == 0 ? "active" : String.Empty %>' />
+                    </ItemTemplate>
+                    <FooterTemplate>
+                        </ol>
+                    </FooterTemplate>
+                </asp:Repeater>
                 <div class="carousel-inner" role="listbox">
                     <asp:Repeater ID="rPasses" runat="server" >
                         <ItemTemplate>
                             <asp:Panel ID="pnlItem" runat="server" CssClass="item">
-                                <div class="col-xs-12 personHeader">
-                                    <%# Eval("RegistrantPerson.FullName") %>
+                                <div class="row">
+                                    <div class="col-xs-12 personHeader">
+                                        <%# Eval("RegistrantPerson.FullName") %>
+                                    </div>
                                 </div>
-                                <div class="col-xs-6">
-                                    <img src="<%# Eval("RegistrantPerson.PhotoUrl") %>" style="width:150px" />
+                                <div class="row">
+                                <div class="col-xs-4 PersonPhoto">
+                                    <img src="<%# Eval("RegistrantPerson.PhotoUrl") %>" style="width:100px;"   />
                                 </div>
-                                <div class="col-xs-6">
-                                    <i class="fas fa-ticket"></i> <%# Eval("EventName") %> <br />
-                                    <i class="far fa-calendar-alt"></i> <%# ((DateTime)Eval("EventDate")).ToLongDateString() %> <br />
-                                    <i class="far fa-map-marker"></i> <%# Eval("EventLocation") %>
+                                    <div class="col-xs-8">
+                                        <i class="fas fa-ticket"></i> <%# Eval("EventName") %> <br />
+                                        <i class="far fa-calendar-alt"></i><%# ((DateTime)Eval("EventDate")).ToLongDateString() %><br />
+                                        <i class="far fa-location"></i><%# Eval("EventLocation") %>
+                                    </div>
                                 </div>
-                                <div class="col-xs-12 QRImage">
-                                    <p>Please scan the QR Code to check-in at the event</p>
-                                    <img src='<%# Eval("QRUrl") %>' />
+                                <div class="row">
+                                    <div class="col-xs-12 QRImage">
+                                        <p>Please scan the QR Code to check-in at the event</p>
+                                        <img src='<%# Eval("QRUrl") %>' />
+                                    </div>
                                 </div>
                             </asp:Panel>
                         </ItemTemplate>
@@ -60,6 +68,14 @@
                     <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
                     <span class="sr-only">Next</span>
                 </a>
+            </div>
+        </asp:Panel>
+        <asp:Panel ID="pnlAlert" runat="server" Visible="false">
+            <div class="row">
+                <div class="col-xs-12" style="text-align:center;">
+                    <h2><asp:Literal ID="lPassNotFoundTitle" runat="server" /></h2>
+                    <p><asp:Literal ID="lPassNotFoundMessasge" runat="server" /></p>
+                </div>
             </div>
         </asp:Panel>
     </ContentTemplate>
