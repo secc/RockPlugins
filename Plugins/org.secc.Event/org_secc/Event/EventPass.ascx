@@ -2,6 +2,7 @@
 <style>
     .QRImage {
         text-align:center;
+        padding-bottom: 1.5em;
     }
     .QRImage img {
         height:250px;
@@ -15,11 +16,20 @@
         text-align:center;
     }
 
+    .carousel-indicators .active 
+    {
+    	background-color: #000;
+    }
+    .carousel-indicators li 
+    {
+    	border: 1px solid #000;
+    }
+
 </style>
 <asp:UpdatePanel ID="upMain" runat="server">
     <ContentTemplate>
         <asp:Panel ID="pnlPass" runat="server" Visible="false" >
-            <div Id="carousel-EventItem" class="carousel slide" data-ride="carousel" data-interval="false">
+            <div Id="carousel-EventItem" class="carousel slide" data-ride="carousel" data-interval="300000">
                 <asp:Repeater ID="rPassIndicator" runat="server">
                     <HeaderTemplate>
                         <ol class="carousel-indicators">
@@ -46,8 +56,8 @@
                                 </div>
                                     <div class="col-xs-8">
                                         <i class="fas fa-ticket"></i> <%# Eval("EventName") %> <br />
-                                        <i class="far fa-calendar-alt"></i><%# ((DateTime)Eval("EventDate")).ToLongDateString() %><br />
-                                        <i class="far fa-location"></i><%# Eval("EventLocation") %>
+                                        <i class="far fa-calendar-alt"></i> <%# ((DateTime)Eval("EventDate")).ToLongDateString() %><br />
+                                        <i class="fas fa-map-marker-alt"></i> <%# Eval("EventLocation") %>
                                     </div>
                                 </div>
                                 <div class="row">
