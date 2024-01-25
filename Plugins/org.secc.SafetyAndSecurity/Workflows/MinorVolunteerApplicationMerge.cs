@@ -53,14 +53,14 @@ namespace org.secc.SafetyAndSecurity
                 {
 
                     {"txtVolunteerName", string.Concat(
-                        action.Activity.Workflow.GetAttributeValue("FirstName"), ' ',
-                        action.Activity.Workflow.GetAttributeValue("MiddleName"), ' ',
+                        action.Activity.Workflow.GetAttributeValue("FirstName"), " ",
+                        action.Activity.Workflow.GetAttributeValue("MiddleName"), " ",
                         action.Activity.Workflow.GetAttributeValue("LastName"))},
                     {"txtDateOfBirth", action.Activity.Workflow.GetAttributeValue("DateofBirth").AsDateTime().Value.ToShortDateString()},
                     {"txtCurrentAddress", string.Concat(
-                        currentMailingAddress.Street1, ', ', 
-                        currentMailingAddress.City, ', ', 
-                        currentMailingAddress.State, ' ', 
+                        currentMailingAddress.Street1, ", ", 
+                        currentMailingAddress.City, ", ", 
+                        currentMailingAddress.State, " ", 
                         currentMailingAddress.PostalCode)},
                                         
                     {"ministryOfInterest", action.Activity.Workflow.GetAttributeValue("MinistryOfInterest") },
@@ -73,9 +73,9 @@ namespace org.secc.SafetyAndSecurity
 
                     {"txtRef1Name", action.Activity.Workflow.GetAttributeValue("Reference1Name")},
                     {"txtRef1Address", string.Concat(
-                        reference1Address.Street1, ', ', 
-                        reference1Address.City, ', ', 
-                        reference1Address.State, ' ', 
+                        reference1Address.Street1, ", ", 
+                        reference1Address.City, ", ", 
+                        reference1Address.State, " ", 
                         reference1Address.PostalCode)},
                     {"txtRef1Email", action.Activity.Workflow.GetAttributeValue("Reference1Email")}, 
                     {"txtRef1Phone", action.Activity.Workflow.GetAttributeValue("Reference1CellPhone")},
