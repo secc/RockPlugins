@@ -1,0 +1,54 @@
+	<div class="container-fluid text-center" style="padding: 0;">
+		<nav class="page-nav subnav text-center">
+			<ul class="list-inline">
+    		{% for childPage in Page.Pages %}
+                <li>
+    				<a {% if childPage.Current == 'true' %} class="active"{% endif%} href="{{ childPage.Url }}">{{ childPage.Title }}</a>
+                </li>
+            {% endfor %}
+			</ul>
+		</nav>
+	</div>
+<script>
+$('.stickynav').affix({
+  offset: {
+    top: function () {
+      return (this.top = $('#zone-feature').outerHeight(true) - $('.cd-main-header').outerHeight(true));
+    }
+  }
+});
+</script>
+<style>
+.page-menu.affix {
+    position: fixed;
+    top:70px;
+    background-color: rgb(232, 232, 232);
+}
+@media all and (min-width:1200px) {
+    .page-menu.affix {
+        top:80px;
+    }
+}
+.page-menu.affix + .block-instance {
+    margin-top: 100px;
+}
+.page-menu .page-nav.subnav {
+    padding:0;
+}
+.subnav a {
+    line-height: 10rem;
+    position: relative;
+    display: block;
+    padding: 0 30px;
+}
+.subnav a.active:after {
+    color: #878787;
+    border-bottom: solid 3px #878787;
+    display: block;
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 100%;
+    bottom: 0;
+}
+</style>

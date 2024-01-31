@@ -1,0 +1,177 @@
+/*----------------------------------
+  Colors
+------------------------------------*/
+
+$utils-colors: (
+	primary:              	(color: $WhiteColor),
+	red:                  	(color: $ErrorColor),
+	dark-red:               (color: #8c0000),
+	gold:                 	(color: #b99769),
+	body:             		(color: $WhiteColor),
+	dark:                 	(color: #222324),
+	dark-light:           	(color: #242526),
+	heading:              	(color: #242424),
+	white:                	(color: $WhiteColor),
+	text:            		(color: $CopyColor),
+	gray-dark:				(color: $DarkGrayColor),
+	gray-light:           	(color: $LightGreyColor),
+	gray-lighter:         	(color: rgba($LightGreyColor, 0.68)),
+	gray-lightest:         	(color: rgba($LightGreyColor, 0.18)),
+	black: 					(color: $BlackColor),
+	black-opacity:        	(color: rgba($BlackColor,.8)),
+	black-opacity-light:  	(color: rgba($BlackColor,.5)),
+	black-opacity-lighter:	(color: rgba($BlackColor,.3)),
+	black-opacity-lightest:	(color: rgba($BlackColor,.1)),
+	white-opacity:        	(color: rgba($WhiteColor,.8)),
+	white-opacity-light:  	(color: rgba($WhiteColor,.5)),
+	white-opacity-lighter:	(color: rgba($WhiteColor,.3)),
+	white-opacity-lightest:	(color: rgba($WhiteColor,.1)),
+	camp-mix: 				(color: #F58557),
+	camp-bb: 				(color: #36cae8),
+	camp-freedom: 			(color: #78ead3),
+	camp-sekids: 			(color: #FEC359),
+	doc-color-1:  			(color: #40babd),
+	doc-color-2:    		(color: #75c181),
+	doc-color-3:      		(color: #f77b6b),
+	doc-color-4: 			(color: #58bbee),
+	doc-color-5: 			(color: #F88C30),
+	doc-color-6: 			(color: #EA5395),
+	doc-color-7: 			(color: #8A40A7),
+	2019-easter-purple: 	(color: #804470),
+	2019-easter-920: 		(color: #804470),
+	2019-easter-CW: 		(color: #D75546),
+	2019-easter-EZ: 		(color: #F2AB4B),
+	2019-easter-IN: 		(color: #286A69),
+	2019-easter-LA: 		(color: #09AABA),
+	2019-easter-RV: 		(color: #3B9D8C),
+	2019-easter-SW: 		(color: #1C2045),
+	2019-easter-tan: 		(color: #FFE9CB),
+	2019-easter-red: 		(color: #DD5C3A),
+	2020-crisis-partner: 	(color: #E5A133),
+	2020-crisis-ministry: 	(color: #68C1BA),
+	2020-easter-grey: 	    (color: #3E3E3E),
+	2020-easter-tan: 	    (color: #E4E2D3),
+	2020-easter-green: 	    (color: #004121),
+	2020-seapp-blue: 	    (color: #67CED9),
+	2020-seapp-blue-dark:   (color: #28A5BB),
+	2020-seapp-dark: 	    (color: #121212),
+	2020-seapp-grey: 	    (color: #262626),
+	2021-unleashed: 		(color: #1D3557),
+	2021-unleashed-2: 		(color: #EB4F40),
+	linen:					(color: $Linen),
+	linen-lighter:			(color: $LinenLighter)
+);
+
+//Some alternate colors used for Nav Items, highlights, and callouts
+/* Text Colors */
+@each $color-name, $color in $utils-colors {
+	.g-color--#{$color-name} {
+  	color: map-get($color, color) !important;
+  }
+}
+
+/* Text Shadow Colors */
+@each $color-name, $color in $utils-colors {
+	.g-text-shadow--#{$color-name} {
+  	text-shadow: -1px 1px 1px map-get($color, color) !important;
+  }
+}
+@each $color-name, $color in $utils-colors {
+	.g-text-shadow--#{$color-name}--soft {
+	text-shadow: 0px 0px 25px map-get($color, color) !important;
+  }
+}
+
+/* Hover Colors */
+@each $color-name, $color in $utils-colors {
+	.g-color-hover--#{$color-name} {
+		@include hover {
+	  		color: map-get($color, color) !important;
+		}
+  	}
+}
+@each $color-name, $color in $utils-colors {
+	.g-bg-color-hover--#{$color-name} {
+		@include hover {
+	  		background-color: map-get($color, color) !important;
+		}
+  	}
+}
+
+.g-color--text[href] {
+	@include hover {
+		color: $color-primary !important;
+	}
+}
+
+.g-color--white-opacity[href] {
+	@include hover {
+		color: $color-primary  v
+	}
+}
+
+/*----------------------------------
+  Divider
+------------------------------------*/
+@each $color-name, $color in $utils-colors {
+	.g-hor-divider__solid__b--#{$color-name} {
+	  border-bottom: 1px solid map-get($color, color);
+	}
+}
+@each $color-name, $color in $utils-colors {
+	.g-hor-divider__solid__t--#{$color-name} {
+	  border-top: 1px solid map-get($color, color);
+	}
+}
+@each $color-name, $color in $utils-colors {
+	.g-ver-divider__solid__r--#{$color-name} {
+	  border-right: 1px solid map-get($color, color);
+	}
+}
+@each $color-name, $color in $utils-colors {
+	.g-ver-divider__solid__l--#{$color-name} {
+	  border-left: 1px solid map-get($color, color);
+	}
+}
+
+/*----------------------------------
+  Background
+------------------------------------*/
+
+@each $color-name, $color in $utils-colors {
+	.g-bg-color--#{$color-name} {
+	  background-color: map-get($color, color) !important;
+	}
+}
+
+/************************************************************************************************/
+/* Parallax Background Color using all colors from above (use this only if you need all colors) */
+/************************************************************************************************/
+// @each $color-name, $color in $utils-colors {
+// 	@for $i from 1 through 10 {
+// 	  .g-bg-parallax-color--#{$color-name}--#{$i * 10} {
+// 		@include gradient-horizontal-after(
+// 			$direction: 145deg,
+// 			$start-color: rgba(map-get($color, color),($i * 10 / 100)),
+// 			$end-color: rgba(map-get($color, color),($i * 10 / 100)),
+// 			$start-percent: 100%
+// 		);
+// 	  }
+// 	}
+// }
+
+/* Parallax Background Color */
+@for $i from 1 through 10 {
+
+	@each $color-name, $color in $utils-colors {
+		.g-bg-parallax-color--#{$color-name}--#{$i * 10} {
+			@include gradient-horizontal-after(
+	  	  		$direction: 145deg,
+	  	  		$start-color: rgba(map-get($color, color), ($i * 10 / 100)),
+	  	  		$end-color: rgba(map-get($color, color), ($i * 10 / 100)),
+	  	  		$start-percent: 100%
+	  	  	);
+		}
+	}
+
+}

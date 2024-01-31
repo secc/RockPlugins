@@ -1,0 +1,150 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/1000hz-bootstrap-validator/0.11.9/validator.min.js"></script>
+<div id="form-overlay">
+    <div class="cv-spinner">
+        <span class="spinner"></span>
+    </div>
+</div>
+<div id="placeYourLocation" data-toggle="validator" role="form">
+    <h5 class="entry-title g-font-weight--700">Put yourself on the map.</h5>
+    <div class="help-block">Your personal contact information will not be published or shared on our SE Online Viewers map. This information is only for registration purposes.</div>
+    <div class="form-group">
+        <label for="inputName" class="control-label">First Name</label>
+        <input type="text" class="form-control" id="inputName" placeholder="First Name" required>
+    </div>
+    <div class="form-group">
+        <label for="inputName" class="control-label">Last Name</label>
+        <input type="text" class="form-control" id="inputName" placeholder="Last Name" required>
+    </div>
+
+    <div class="form-group has-feedback">
+        <label for="inputEmail" class="control-label">Email</label>
+        <div class="input-group">
+        <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
+        <input type="email" class="form-control" id="inputEmail" data-error="This email address is invalid" required>
+        </div>
+        <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+        <div class="help-block with-errors">We'll never share your email with anyone else.</div>
+    </div>
+
+    <div class="form-group has-feedback">
+        <label for="inputPhoneNum" class="control-label">Cell Phone</label>
+        <div class="input-group">
+        <span class="input-group-addon"><i class="fa fa-phone-square"></i></span>
+        <input type="phone" class="form-control" id="inputPhoneNum" data-error="This phone address is invalid" required>
+        </div>
+        <span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+    </div>
+
+    <div class="form-group">
+        <label for="inputeAddress1">Address</label>
+        <select name="country" required>
+            {% definedvalue where:'DefinedTypeId == 45' %}
+                {% for country in definedvalueItems %}
+                <option value="{{ country.Value }}">{{ country.Description }}</option>
+                {% endfor %}
+            {% enddefinedvalue %}
+        </select>
+        <input type="text" class="form-control g-margin-y-10--xs" id="inputeAddress1" placeholder="Address Line 1" required>
+        <input type="text" class="form-control g-margin-b-10--xs" id="inputeAddress2" placeholder="Address Line 2">
+        <input type="text" class="form-control g-margin-b-10--xs" id="inputCity" placeholder="City" required>
+        <input type="text" class="form-control g-margin-b-10--xs" id="inputState" placeholder="State" required>
+        <input type="text" class="form-control g-margin-b-10--xs" id="inputZip" placeholder="Postal Code" required>
+    </div>
+    
+    <div class="form-group">
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" id="terms" data-error="To add yourself to the map, this is required." required>
+                Confirm that you are of age 18 or over.
+            </label>
+            <div class="help-block with-errors" style="color:red"></div>
+        </div>
+    </div>
+    <div class="form-group">
+        <button id="submitMap" type="submit" class="btn btn-primary">Submit</button>
+    </div>
+    </div>
+
+{% comment %} 
+* POST to Webhook-to-Workflow
+* https://rock.secc.org/Webhooks/LaunchWorkflow.ashx?WorkflowTypeId=521 
+{% endcomment %}
+<script>
+    $('#placeYourLocation').validator();
+
+    $(document).ajaxSend(function() {
+		$("#form-overlay").fadeIn(300);　
+	});
+
+    $( "#submitMap" ).click(function() {
+        // Sending and receiving data in JSON format using POST method
+        var data = { "FirstName": "YouDidIt", "LastName": "ItsBeautiful" };
+        console.log(JSON.stringify(data));
+        $.ajax({
+            type: "POST",
+            url: "https://rock.secc.org/Webhooks/LaunchWorkflow.ashx?WorkflowTypeId=521",
+            data: JSON.stringify(data),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(data){
+                setTimeout(function(){
+                    $("#form-overlay").fadeOut(300);
+                    $('#placeYourLocation').html('<strong>'+ data.Result + '!</strong> ' + data.Message);
+                    console.log('Success:',data);
+                },500);
+            },
+            error: function(errMsg) {
+                alert('Error: ' + errMsg.Message);
+                console.log('errMsg',errMsg);
+            }
+        });
+    });
+    
+    $("[name='country']").select2({
+        placeholder: "Select a country"
+    });
+</script>
+
+<style>
+#button{
+	display:block;
+	margin:20px auto;
+	padding:10px 30px;
+	background-color:#eee;
+	border:solid #ccc 1px;
+  cursor: pointer;
+}
+#form-overlay {	
+	position: fixed;
+	top: 0;
+	z-index: 100;
+	width: 100%;
+	height:100%;
+	display: none;
+	background: rgba(0,0,0,0.6);
+    position: absolute;
+    left: 0;
+}
+.cv-spinner {
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;  
+}
+.spinner {
+	width: 40px;
+	height: 40px;
+	border: 4px #ddd solid;
+	border-top: 4px #2e93e6 solid;
+	border-radius: 50%;
+	animation: sp-anime 0.8s infinite linear;
+}
+@keyframes sp-anime {
+	100% { 
+		transform: rotate(360deg); 
+	}
+}
+.is-hide{
+	display:none;
+}
+</style>

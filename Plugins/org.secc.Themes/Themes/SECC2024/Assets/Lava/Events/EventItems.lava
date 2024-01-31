@@ -1,0 +1,209 @@
+<style>
+.readmore_dates {
+   transition: height 100ms;
+   overflow: hidden;
+   display: none;
+}
+.grid {
+    display: grid;
+    grid-template-columns: 100%;
+}
+@media (min-width: 48em) {
+    .grid { grid-template-columns: 50% 50%; }
+}
+</style>
+
+<div class="">
+
+    {% if eventItemOccurrenceCount == 0 %}
+    <div class="">
+        <div class="text-center">
+            <div style="border: 1px solid rgba(32, 30, 29, 0.50); padding: 20px; border-radius: 5px;">
+                <p style="margin: 0px;">There are no events for this ministy at this time. Please try another campus or ministry.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="grid">
+        {% for eventItemList in EventItems limit:limitEvents %}
+            {% assign campusId = 0 %}
+            {% assign multiCampus = false %}
+            {% assign numOccurrences = eventItemList | Size %}
+            {% assign childCareIsAvailable = 'No' %}
+
+            {% for eventItemOccurrence in eventItemList %}
+                {% if campusId == 0 %}
+                    {% if eventItemOccurrence.EventItemOccurrence.CampusId == null %}
+                        {% assign multiCampus = true %}
+                    {% else %}
+                        {% assign campusId = eventItemOccurrence.EventItemOccurrence.CampusId %}
+                    {% endif %}
+                {% elseif eventItemOccurrence.EventItemOccurrence.CampusId != campusId %}
+                    {% assign multiCampus = true %}
+                {% endif %}
+				{% assign childcareTest = eventItemOccurrence.AttChildcareAvailable %}
+                {% if childcareTest == 'True' %}
+                    {% assign childCareIsAvailable = 'Yes' %}
+                {% endif %}
+            {% endfor %}
+
+            {% for eventItemOccurrence in eventItemList %}
+
+                {% assign eventItem = eventItemOccurrence.EventItemOccurrence.EventItem %}
+                {% comment %} **** Looping through the first occurance for each event item **** {% endcomment %}
+
+                {% assign eventLinkURL = '' %}
+                {% comment %} Setting Up Anchor Link for Details Page {% endcomment %}
+                {% if eventItemOccurrence.DetailPage != null %}
+                    {% assign eventLinkURL = eventItemOccurrence.DetailPage %}
+                {% else %}
+    			    {% assign urlSlug = eventItemOccurrence.URLSlugs | Split:'|' | First | Trim %}
+    				{% if urlSlug != '' %}
+    					{% assign eventLinkURL = DetailsPage | Replace:'/details','/' | Append:urlSlug %}
+    				{% else %}
+    					{% assign eventLinkURL = DetailsPage | Append:"?EventItemId=" | Append:eventItem.Id %}
+    				{% endif %}
+                {% endif %}
+
+                {% comment %} Include Campus Id if it already exists in the URL {% endcomment %}
+    			{% assign campusIdSize = pageParamCampusId | Size %}
+                {% if pageParamCampusId > 0 %}
+                    {% comment %} check for existing param, if not then show {% endcomment %}
+                    {% if eventLinkURL contains '?' %}
+                        {% assign eventLinkURL = eventLinkURL | Append:"&" %}
+                    {% else %}
+                        {% assign eventLinkURL = eventLinkURL | Append:"?" %}
+                    {% endif %}
+                    {% assign eventLinkURL = eventLinkURL | Append:"campusId=" | Append: pageParamCampusId %}
+                {% endif %}
+                <div class="event-calendar">
+                    <div class="clearfix card">
+                        {% assign scheduledDates = eventItemOccurrence.ICalendarContent | Split: 'RRULE' %}
+                        {% assign scheduledNumDates = scheduledDates | Size %}
+                        <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
+
+                            {% if eventItemOccurrence.Name != '' %}
+                                <h3 class="g-font-family--secondary g-font-size-24--xs g-font-size-32--md g-padding-b-20--xs g-padding-b-25--md" style="margin-bottom: 5px;">
+                                    {{ eventItemOccurrence.Name }}
+                                </h3>
+                            {% endif %}
+
+                            {% if eventItemOccurrence.Summary != '' %}
+                            <div class="readmore_dates">
+                                {{eventItemOccurrence.Summary}}
+                                <br />
+                            </div>
+                            {% endif %}
+
+
+                            {% if numOccurrences > 1 and multiCampus == true %}
+                                    <p class="g-font-size-14-xs g-font-weight--300">
+                                        <i class="fal fa-church"></i> Multiple Campuses
+                                    </p>
+                            {% elseif eventItemOccurrence.EventItemOccurrence.Campus.Name != null %}
+                            <p class="g-font-size-14-xs g-font-weight--300">
+                                <i class="fal fa-church"></i> {{eventItemOccurrence.EventItemOccurrence.Campus.Name}}
+                            </p>
+                            {% endif %}
+
+                            <p class="g-font-size-14-xs g-font-weight--300">
+                                <i class="fal fa-calendar"></i> {% if eventItemOccurrence.CustomDateText != null && eventItemOccurrence.CustomDateText != '' -%}
+                                    {{ eventItemOccurrence.CustomDateText }}
+                                {% else -%}
+                                    {% assign eventItemDatesIsHidden = eventItemOccurrence.AttEventDatesHide %}
+                                    {% unless eventItemDatesIsHidden == 'Yes' %}
+                                        {% assign useOnlyScheduleText = eventItemOccurrence.AttUseOnlyScheduleText %}
+                                        {% if useOnlyScheduleText == 'Yes' %}
+                                            {{eventItemOccurrence.AttScheduleText }}
+                                        {% else %}
+                                            {{ eventItemOccurrence.Date | Date: 'ddd, MMM dd'}}
+                                        {% endif %}
+                                    {% endunless %}
+                                    <br />
+                                    {% if numOccurrences > 1 and multiCampus == true %}
+                                        <small class="uppercase g-padding-b-20--xs g-font-weight--700">Multiple Dates</small>
+                                    {% elseif numOccurrences > 1 or scheduledNumDates > 1 %}
+                                        <small class="uppercase g-padding-b-20--xs g-font-weight--700">Recurring Event</small>
+                                    {% endif %}
+                                {% endif -%}
+                            </p>
+
+                            <p class="g-font-size-14-xs g-font-weight--300">
+                                <i class="fal fa-map-marker-alt"></i>
+                                {% if eventItemOccurrence.CustomLocationText != null && eventItemOccurrence.CustomLocationText != '' -%}
+                                    {{ eventItemOccurrence.CustomLocationText}}
+                                {% else %}
+                                {% if eventItemOccurrence.EventItemOccurrence.Location != '' %}
+                                        {{ eventItemOccurrence.EventItemOccurrence.Location }}
+                                    {% else %}
+                                        {% if numOccurrences > 1 and multiCampus == true %}
+                                            Multiple <br />Campuses
+                                        {% else %}
+                                            {{eventItemOccurrence.EventItemOccurrence.Campus.Name}} <br />Campus
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            </p>
+
+                            <!-- ChildCare -->
+                            {% if childCareIsAvailable == 'Yes' %}
+                                <p class="g-font-size-14-xs g-font-weight--300">
+                                    <i class="fal fa-child"></i> Children's Programming
+                                </p>
+                            {% endif %}
+                        </div><!-- END: caption -->
+
+                        <div class="text-center g-margin-b-25--xs g-margin-b-30--md g-margin-x-10--xs" style="display:flex; align-content:space-between;">
+                            <div class="" style="flex:1 1 0;">
+                                {[ sebutton title:'More Info' href:'{{ eventLinkURL }}' type:'light' target:'' addclasses:'g-width-90-percent--xs se-btn--sm' theme:'2024' ]}
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- END: isotope_item -->
+                {% comment %} **** Only need the first occurance, so break away. **** {% endcomment %}
+                {% break %}
+            {% endfor %}
+        {% endfor %}
+
+    </div><!-- END: isotope_wrap -->
+
+</div><!-- END: bootstrap container -->
+
+{% comment %}
+**********************************************************************************
+****** The code below will need to be included if this file isn't included *******
+******  anywhere else (such as 'FeaturedEvents.lava' or 'AllEvents.lava')  *******
+**********************************************************************************
+<script>
+$(window).load(function() {
+
+    // executes when complete page is fully loaded, including all frames, objects and images
+    // $('.readmore_dates').readmore({
+    //     speed: 100,
+    //     lessLink: '<a href="#" style="top:8px; position:relative;">close <span class="se-carat se-carat--up"></span></a>',
+    //     moreLink: '<a href="#" style="left: 14%;position:relative;top: -5px; position:relative;">open <span class="se-carat se-carat--down"></span></a>',
+    //     embedCSS: false,
+    //     collapsedHeight: 0,
+    //     beforeToggle: function(tr, el, ex) {
+    //         $(el).show();
+    //     },
+    //     afterToggle: function(trigger, element, expanded) {
+    //         $container.isotope(isoOptions); // re-initialize
+    //     }
+    // });
+
+    // Initialize Isotope
+    // var $grid = $('.isotope_wrap').isotope({
+    //     // options
+    //     percentPosition: true,
+    //     itemSelector: '.isotope_item',
+    //     layoutMode: 'fitRows'
+    // });
+    // reveal all items after init
+    // var $items = $grid.find('.isotope_item');
+    // $grid.addClass('is-showing-items')
+    // .isotope( 'revealItemElements', $items );
+});
+</script>
+{% endcomment %}

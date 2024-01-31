@@ -1,0 +1,43 @@
+<nav class="cd-nav">
+    {% assign personGuid = CurrentPerson.Guid %}
+    <ul id="cd-primary-nav" class="cd-primary-nav is-fixed {% unless personGuid != null %}logged-in{% endunless %}">
+        <li>
+            <a href="https://www.southeastchristian.org/locations">Locations</a>
+        </li>
+        <li>
+            <a href="https://www.southeastchristian.org/watch">Watch</a>
+        </li>
+        <li>
+            <a href="https://www.southeastchristian.org/who-we-are">Who We Are</a>
+        </li>
+        <li>
+            <a href="https://www.southeastchristian.org/find-your-place">Find Your Place</a>
+        </li>
+        <li>
+            <a href="https://www.southeastchristian.org/give">Give</a>
+        </li>
+
+        {% if CurrentPerson.Guid %}
+            <li id="GroupManager">
+                <a href="/MyAccount" class="g-position--relative">
+                    <img src="{{ Person.PhotoUrl }}&width=40" class="img-responsive img-circle g-display-inline-block--xs" style="max-width: 40px;
+                        background-color: white;
+                        border-radius: 40px;
+                        padding: 2px;
+                        width: 40px;" />
+                    <span class="mega-menu-hide g-padding-l-20--xs">My Account</span>
+                </a>
+            </li>
+        {% else %}
+        {% assign host = 'Global' | Page:'Host' %}
+	    {% assign url = 'Global' | Page:'Url' %}
+            <li><a href="/login?returnurl={{ url | Replace:host, '' | Replace:'http://','' | Replace:'https://','' }}" title="Login">Login<span></span></a></li>
+        {% endif %}
+        <li>
+            <a href="https://www.southeastchristian.org/more">More</a>
+        </li>
+        <li class="join-button">
+            <a href="https://www.southeastchristian.org/locations"><i class="fal fa-map-marker-alt hidden-large-desktop g-padding-x-10--xs"></i> Join Us For Church</a>
+        </li>
+    </ul> <!-- primary-nav -->
+</nav> <!-- cd-nav -->

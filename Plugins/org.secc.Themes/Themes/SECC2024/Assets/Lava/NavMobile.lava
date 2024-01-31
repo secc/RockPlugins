@@ -1,0 +1,66 @@
+<nav id="MobileNav" class="expandable-menu visible-xs">
+	<ul class="no-indent">
+		<li class="nav-section">
+			<h4>Southeast Home</h4>
+			<ul>
+				<li><a href="/sermons/">Sermons</a></li>
+				<li><a href="/beliefs">Beliefs</a></li>
+				<li><a href="/stories/">Stories</a></li>
+				<li><a href="/events/">Events</a></li>
+				<li><a href="/visit/">Visit</a></li>
+				<li class="dropdown"><button class="toggle">Connect</button>
+					<ul>
+						<li><a href="/connect/">Overview</a></li>
+						<li><a href="/connect/men/">Men</a></li>
+						<li><a href="/connect/women/">Women</a></li>
+						<li><a href="/connect/family/">Family</a></li>
+						<li><a href="/connect/children/">Children</a></li>
+						<li><a href="/connect/single/">Single Life</a></li>
+						<li><a href="/connect/students/">Students</a></li>
+						<li><a href="/connect/seniors/">Seniors</a></li>
+						<li class="dropdown">
+							<button class="toggle">Missions</button>
+							<ul>
+								<li><a href="/connect/missions/">Missions Overview</a></li>
+								<li><a href="/connect/missions/mission-partners.php">Mission Partners</a></li>
+								<li><a href="/connect/missions/education-partners/">Education Partners</a></li>
+								<li><a href="/connect/missions/church-plants.php">Church Plants</a></li>
+								<li><a href="/connect/missions/trips.php">Mission Trips</a></li>
+								<li><a href="/connect/missions/lifebridge/">LifeBridge</a></li>
+							</ul>
+						</li>
+						<li><a href="/connect/generous-living/">Generous Living</a></li>
+						<li><a href="/connect/deaf-and-disabilities-ministry/">Deaf &amp; Disabilities</a></li>
+						<li class="dropdown">
+							<button class="toggle">Care Ministry</button>
+							<ul>
+									<li><a href="/connect/care/">Care Overview</a></li>
+									<li><a href="/connect/care/care-faq/">Care FAQ</a></li>
+									<li><a href="/connect/care/encounter-groups/">Encounter Groups</a></li>
+									<li><a href="/connect/care/mentoring/">Mentoring</a></li>
+							</ul>
+						</li>
+						<li><a href="/connect/sports-fitness/">Sports &amp; Fitness</a></li>
+					</ul>
+				</li>
+				<li><a href="/serve/">Serve</a></li>
+				<li><a href="/contact/">Contact</a></li>
+				<li><a href="/about/">About</a></li>
+				<li><a href="/giving/">Give</a></li>
+				<li><a href="/next-mag">NEXT Magazine</a></li>
+				<li id="siteLoginMobile"><a href="/login">Login</a></li>
+			</ul>
+		</li>
+		<li class="nav-section">
+			<h4>Locations</h4>
+			<ul class="list-inline locations-grid">
+				<li><a href="/blankenbaker/" class="se-logo blankenbaker">920</a></li>
+				<li><a href="/indiana/" class="se-logo indiana">IN</a></li>
+				<li><a href="/crestwood/" class="se-logo crestwood">CW</a></li>
+				<li><a href="/southwest/" class="se-logo southwest">SW</a></li>
+				<li><a href="/lagrange/" class="se-logo lagrange">LA</a></li>
+        <li><a href="/elizabethtown/" class="se-logo elizabethtown">ET</a></li>
+			</ul>
+		</li>
+	</ul>
+</nav>

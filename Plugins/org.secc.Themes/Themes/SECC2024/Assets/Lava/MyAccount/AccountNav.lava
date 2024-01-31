@@ -1,0 +1,38 @@
+{% assign currentPage = 'Global' | Page:'Path' %}
+
+
+
+<!-- Sidebar -->
+<ul class="sidebar-nav">
+    <!-- <li>
+        <a href="/MyDashboard"><i class="fas fa-th-large fa-2x"></i> Dashboard</a>
+    </li> -->
+    <li {% if currentPage == '/MyAccount' %} class="active" {% endif %}>
+        <a class="g-font-weight--400 g-font-size-18--xs" href="/MyAccount"><i class="fal fa-user-circle fa-2x"></i> Account</a>
+    </li>
+    <li {% if currentPage == '/my-classes' %} class="active" {% endif %}>
+        <a class="g-font-weight--400 g-font-size-18--xs" href="/my-classes"><i class="fal fa-users-class fa-2x"></i> Classes</a>
+    </li>
+    <li {% if currentPage == '/MyGiving' %} class="active" {% endif %}>
+        <a class="g-font-weight--400 g-font-size-18--xs" href="/MyGiving"><i class="fal fa-heart fa-2x"></i> Giving</a>
+    </li>
+    {%-comment-%}Financial Coaching{%-endcomment-%}
+    {%- assign groupMembers = CurrentPerson | Group: "968132" -%}
+    {%- for groupMember in groupMembers -%}
+        {%- if groupMember.GroupRoleId == 826 -%}
+        <li {% if currentPage == '/MyAccount/MyFinancialCoachingCases' %} class="active" {% endif %}>
+            <a class="g-font-weight--400 g-font-size-18--xs" href="/MyAccount/MyFinancialCoachingCases"><i class="fal fa-comment-alt-dollar fa-2x"></i></i> Coaching</a>
+        </li>
+        {%- endif -%}
+    {%- endfor -%}
+    <li {% if currentPage == '/MyEvents' %} class="active" {% endif %}>
+        <a class="g-font-weight--400 g-font-size-18--xs" href="/MyEvents"><i class="fal fa-users fa-2x"></i> Events</a>
+    </li>
+    <li {% if currentPage == '/MySchedule' %} class="active" {% endif %}>
+        <a class="g-font-weight--400 g-font-size-18--xs" href="/MySchedule"><i class="fal fa-calendar-day fa-2x"></i> Schedule</a>
+    </li>
+    <li>
+        <a class="g-font-weight--400 g-font-size-18--xs" href="/logout"><i class="fal fa-sign-out-alt fa-2x fa-flip-horizontal"></i> Logout</a>
+    </li>
+</ul>
+<!-- /#sidebar-wrapper -->

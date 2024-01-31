@@ -1,0 +1,158 @@
+@import 'init';
+$MaxLevels: 6;
+$ExpandableSelector: "" !default;
+$ExpandableIndentation: 10px !default;
+
+
+@mixin levels($padding, $level:0) {
+	li {
+
+		@if ($level > 0) {
+			& > *:first-child {
+				padding-left: ($padding * ($level+1));
+			}
+		}
+
+		@if ($level < $MaxLevels) {
+			@include levels($padding, $level  + 1);
+		}
+	}
+}
+
+
+@mixin ExpandableStyles($indentation: $ExpandableIndentation, $vertical-padding: 0, $color: inherit, $divider: none, $no-indent-class: "no-indent", $indent-children-class: "indent-children", $pad-children-class: "pad-children") {
+
+	color: $color;
+	a, button {
+		color: inherit;
+		text-align: left;
+		display: inline-block;
+		width: 100%;
+	}
+
+	//Top Level items
+	& > ul > li {
+		//Put a border between top level items
+		& + li {
+			border-top: $divider;
+		}
+	}
+
+	// PADDING AND INDENTATION
+	//============================
+	//
+	// The indentation classes should
+	// be set on the menu's ul tags.
+
+	// We add some padding to all menu items by default
+	li > *:first-child {
+		padding-left: $indentation;
+		padding-top: $vertical-padding;
+		padding-bottom: $vertical-padding;
+	}
+	//Sometimes, we may want no padding;
+	&.no-gutter {
+		padding-left: 0;
+	}
+
+	//by default, we indent starting at the second level
+	li li {
+		margin-left: $indentation;
+	}
+
+	//optionally, we can kill indentation (though item padding remains)
+	.#{$no-indent-class} li li {
+		margin-left: 0;
+	}
+
+	//We also provide an explicit indent selector that
+	//can be use to force indenting on children when
+	//No indentation has been set on parents
+	.#{$indent-children-class} li li {
+		margin-left: $indentation;
+	}
+
+	//Another option is to use padding instead
+	//of indentation. This is useful if
+	//we want backgrounds or borders that go
+	//all the way across, with content that is
+	//indented
+	.#{$pad-children-class} {
+		li li { margin-left: 0; }
+		@include levels($indentation);
+	}
+
+	//Any content passed in should override
+	//styles set in the mixin, so include it
+	//at the bottom.
+	@content;
+}
+
+
+@mixin ExpandableMenu($indentation: $ExpandableIndentation,$color: inherit,$border: none) {
+	nav#{$ExpandableSelector}.expandable-menu {
+		@include ExpandableStyles($indentation:$indentation,$color:$color,$divider:$border);
+
+		// DROPDOWN FUNCTIONALITY
+		// ======================
+		//
+		// A dropdown is a menu item that will expand to show
+		// child menus when clicked
+		//
+		// -- Add a .dropdown class to an li tag to cause that
+		// item's child lists to be collapsed initially.
+		//
+		// -- To expand a dropdown menu and show it's child menu(s),
+		// an additional .active class to the li tag.
+		//
+		// --By default, only the next level will be expaned when an
+		// .active class is added to a .dropdown. To expand all nested
+		// menu's, add an additional .all class to the dropdown.
+		// i.e.
+		//	initially: <li class="dropdown all">
+		// 	Then to expand all children: <li class="dropdown all active">
+		//
+		// -- Add a child element of the li tag with a .toggle class
+		// to create an actionable button that can be used to expand
+		// the child menu(s) when clicked. Items with the .toggle class
+		// will include an indicator to the right of the item to show
+		// that it is a drop down menu. Additionally, transitions to
+		// rotate the indicator when the menu is expanded/collapsed
+		// will be included.
+		//
+		// To expand/collapse a dropdown, simply add a bit of javascript
+		// event handler on the .toggle element. The event handler can
+		// then toggle the .active class on the parent .dropdown element,
+		// which will expand/collapse the menu.
+
+
+		li.dropdown {
+
+			//Add an icon to the toggle to indicate that it can
+			//be clicked to expand/collapse the menu, and setup
+			//the transitions to animate it's rotation.
+			& > .toggle {
+				@include DropDown();
+			}
+
+			//When active, add a transform to rotate the indicator
+			//(note that the animation is already setup above).
+			&.open > .toggle {
+				@include RotateDropDown();
+			}
+
+			//Initially, all children of the dropdown are hidden (collapsed).
+			ul {
+				max-height: 0;
+				overflow: hidden;
+			}
+
+			//The magic. When the dropdown is active, the child(ren) are
+			//displayed (expanded).
+			&.open > ul,
+			&.all.open ul {
+				max-height: none;
+			}
+		}
+	}
+}

@@ -1,0 +1,48 @@
+{% comment %}
+    ******* Filtering System for Shareables Grid *****
+{% endcomment %}
+
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign campusIdSize = pageParamCampusId | Size %}
+{% assign pageParamCampus = 'Global' | PageParameter:'campus' | Downcase | Replace:"-","" %}
+{% assign selectedCampus = null %}
+{% for campus in Campuses %}
+	{% assign campusName = campus.Name | ToCssClass  %}
+	{% if campus.Id == pageParamCampusId or campusName == pageParamCampus %}
+		{% assign selectedCampus = campus %}
+		{% break %}
+	{% endif %}
+{% endfor %}
+
+        <div class="row g-padding-t-75--md">
+            <div class="col-md-offset-1 col-md-10 g-padding-b-40--xs text-center">
+                <h1 class="g-font-size--jumbo-1 g-font-family--secondary">Share</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xs-12 col-md-4 col-md-offset-4 g-padding-b-80--xs g-padding-x-80--xs" >
+                <select class="select2-campuses" name="campus">
+                <option></option>
+                <option value="all" data-shortcode="SE">All Locations</option>
+                {% for campus in Campuses %}
+                	{% assign publicCampus = campus | Attribute:'Public' %}
+                	{% if publicCampus == 'Yes' %}
+                        <option value=".campus-{{ campus.Name | Trim | ToCssClass }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | ToCssClass }}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
+                            {{ campus.Name }}
+                        </option>
+                	{% endif %}
+                {% endfor %}
+
+                </select>
+            </div>
+        </div>
+
+<style>
+.hide {
+    display: none;
+}
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #000;
+}
+</style>

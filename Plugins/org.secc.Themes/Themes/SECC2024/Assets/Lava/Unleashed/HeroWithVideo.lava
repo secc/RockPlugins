@@ -1,0 +1,132 @@
+<style>
+.modal-video:focus {
+    outline: none !important;
+}
+</style>
+
+<script src="/Themes/SECC2024/Scripts/jquery-modal-video-se.js"></script>
+<script>
+    $(document).ready(function() {
+        initModalVideo();
+        function initModalVideo(){
+            $(".js-modal-video").modalVideo({
+                channel: 'vimeo',
+                autoplay: true
+            });
+        }
+    });
+
+    var tmpCanInitParallax = jarallax.constructor.prototype.canInitParallax;
+    jarallax.constructor.prototype.canInitParallax = function(callback) {
+        // Intercept the set call for the video object and manually set the image
+        var imageHandler = {
+            set(target, prop, value) {
+            target[prop] = value;
+            if (prop == 'video') {
+                value.videoImage = "/Content/Media/Unleashed/Unleashed_header_yellow.jpg";
+                value.userEventsList['started'][0] = function () {
+
+                    self.image.$default_item = self.image.$item;
+                    self.image.$item = self.$video;
+
+                    // set video width and height
+                    self.image.width = self.video.videoWidth || 1280;
+                    self.image.height = self.video.videoHeight || 720;
+                    self.options.imgWidth = self.image.width;
+                    self.options.imgHeight = self.image.height;
+                    self.coverImage();
+                    self.clipContainer();
+                    self.onScroll();
+
+                    // hide image
+                    if (self.image.$default_item) {
+                        self.css(self.image.$default_item, {
+                            'transition': 'opacity .25s ease-in-out',
+                            '-moz-transition': 'opacity .25s ease-in-out',
+                            '-webkit-transition': 'opacity .25s ease-in-out',
+                            'opacity': 1,
+                        });
+                        setTimeout(function () {
+                            self.image.$default_item.style.opacity = 0;
+                        }, 500);
+                    }
+                };
+            }
+            return true;
+            }
+        };
+        // Use a proxy'ed JS object
+        var self = new Proxy(this, imageHandler);
+        self.defaultInitImgResult = true;
+        self.image.bgImage = 'url("/Content/Media/Unleashed/Unleashed_header_yellow.jpg")';
+
+        // save default user styles
+        var curStyle = self.$item.getAttribute('style');
+        if (curStyle) {
+            self.$item.setAttribute('data-jarallax-original-styles', curStyle);
+        }
+
+        // set new background
+        self.css(self.$item, {
+            'background-image': self.image.bgImage,
+            'background-position': 'center',
+            'background-size': 'cover',
+            'transition': 'opacity .25s ease-in-out',
+            '-moz-transition': 'opacity .25s ease-in-out',
+            '-webkit-transition': 'opacity .25s ease-in-out',
+            'opacity': 1,
+        });
+
+        // Now actually call the method against the proxy object
+        return tmpCanInitParallax.apply(self);
+    }
+</script>
+
+<section id="PageHeader">
+	<div class="page-header-parallax">
+        {[ parallax videourl:'https://vimeo.com/506825165' image:'/Content/Media/Unleashed/Unleashed_header_yellow.jpg' videostarttime:'10' videoendtime:'30' addclass:'menu-switch g-bg-parallax-color--black--30 g-bg-color--gray-lightest g-padding-b-50--xs' height:'70vh' position:'center center' speed:'-25' ]}
+           <div class="parallax-logo centered" style="max-width: none;">
+                <h1 class="g-font-weight--700 g-font-size-100--xs g-font-size-180--md g-color--white">unleashed</h1>
+                <h1>
+                    <a href="javascript:void(0)" class="js-modal-video" data-video-id="506825165"></a>
+                    <br>
+                    <a href="javascript:void(0)" class="js-modal-video text-center" data-video-id="506825165">
+                        <h3>
+                            WATCH
+                            <div class="play">
+                                <svg version="1.1" id="play" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" height="75px" width="75px" viewBox="0 0 100 100" enable-background="new 0 0 100 100" xml:space="preserve">
+                                <path class="stroke-solid" fill="none" stroke="white" d="M49.9,2.5C23.6,2.8,2.1,24.4,2.5,50.4C2.9,76.5,24.7,98,50.3,97.5c26.4-0.6,47.4-21.8,47.2-47.7
+                                    C97.3,23.7,75.7,2.3,49.9,2.5"></path>
+                                <path class="stroke-dotted" fill="none" stroke="white" d="M49.9,2.5C23.6,2.8,2.1,24.4,2.5,50.4C2.9,76.5,24.7,98,50.3,97.5c26.4-0.6,47.4-21.8,47.2-47.7
+                                    C97.3,23.7,75.7,2.3,49.9,2.5"></path>
+                                <path class="icon" fill="white" d="M38,69c-1,0.5-1.8,0-1.8-1.1V32.1c0-1.1,0.8-1.6,1.8-1.1l34,18c1,0.5,1,1.4,0,1.9L38,69z"></path>
+                                </svg>
+                            </div>
+                            Video
+                        </h3>
+                    </a>
+                </h1>
+            </div>
+        {[ endparallax ]}
+    </div>
+    <div class="page-menu" style="background-color: #FAFBF9;">
+		<div class="container-fluid text-center" style="padding: 0;">
+			<nav class="page-nav text-center">
+				<ul class="list-inline">
+					<li><a href="#Conference">Conference</a></li>
+					<li><a href="#Book">Book</a></li>
+					<li><a href="#Series">Series</a></li>
+					<li><a href="#Study">Group Study</a></li>
+					<li><a href="#App">App</a></li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+    <script>
+    var scroll = new SmoothScroll('div.page-menu a[href*="#"]', {
+        speed: 500, // Integer. How fast to complete the scroll in milliseconds
+        easing: 'easeInOutCubic', // Easing pattern to use
+        header: '.cd-main-header'
+    });
+    </script>
+</section>

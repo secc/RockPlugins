@@ -1,0 +1,54 @@
+/* ----------------------------------------------------------------------------------
+	Visit: Sets the style for certain aspects of the Visit Page
+----------------------------------------------------------------------------------- */
+
+#Visit {
+  .se-logo.stroke {
+    border-width: 2px !important;
+    border-style: solid !important;
+    border-color: #6D6A66;
+    background: 0 0;
+    color: #6D6A66;
+  }
+  .blankenbaker.stroke {
+    background: 0 0 !important;
+    color: #777600 !important;
+    border-color: #777600 !important;
+  }
+  .se-logo {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    border-top-right-radius: 0.36em !important;
+    border-bottom-left-radius: 0.36em !important;
+    border: none !important;
+    display: inline-block;
+    text-transform: uppercase !important;
+    font-weight: 900 !important;
+    font-family: proxima-nova-n6, proxima-nova, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+    background: #6D6A66;
+    color: #FFF;
+    width: 2.55em !important;
+    line-height: 2.4em !important;
+    text-align: center !important;
+    font-size: 15px;
+    padding: 0 !important;
+    outline: 0 !important;
+  }
+  .blankenbaker {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: #777600 !important;
+    color: #fff !important;
+  }
+  * {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+}
+
+:after, :before {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}

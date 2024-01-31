@@ -1,0 +1,185 @@
+
+	<div class="se-projects-container">
+		<a class="se-nav-trigger se-text-replace hidden" href="#">Menu<span aria-hidden="true" class="se-icon"></span></a>
+		<ul class="se-projects-previews">
+			<li>
+				<a href="#0">
+					<div class="se-project-title">
+						<h2>MSM</h2>
+						<p>Groups from 6th through 8th</p>
+					</div>
+				</a>
+			</li>
+
+			<li>
+				<a href="#0">
+					<div class="se-project-title">
+						<h2>HSM</h2>
+						<p>Groups from 9th through 12th </p>
+					</div>
+				</a>
+			</li>
+		</ul> <!-- .se-projects-previews -->
+
+		<ul class="se-projects">
+			<li>
+				<div class="preview-image">
+					<div class="se-project-title">
+						<h2>MSM</h2>
+						<p>Select your group below!</p>
+					</div>
+				</div>
+
+				{% group where:'ParentGroupId == 329703 && IsActive == True' securityenabled:'false' count:'true' %}
+					{% assign msmGroupsSize = count %}
+				{% endgroup%}
+
+				<div class="se-project-info">
+					<div class="container">
+						<div class="row">
+							{% if msmGroupsSize > 0 %}
+								{% group where:'ParentGroupId == 329703 && IsActive == True' sort:'Order asc' securityenabled:'false' %}
+									{% for group in groupItems %}
+										<div class="col-md-6 g-padding-y-10--xs">
+											<table>
+												<tr>
+													<td>
+														{% assign groupLocation = ''%}
+														{% for groupLocation in group.GroupLocations %}
+															{% if groupLocation.Location.GeoPoint != '' %}
+																<div class="groupLocation g-padding-x-20--xs img-responsive "
+																	style="background: url('https://maps.googleapis.com/maps/api/staticmap?size=400x400&zoom=17&maptype=roadmap&markers={{ groupLocation.Location.GeoPoint }}&scale=1&key={{ 'Global' | Attribute:'GoogleAPIKey' }}') no-repeat center;
+																			min-width: 100px;
+																			min-height: 100px;
+																			border-radius: 100%;
+																			border: 3px solid black;
+																			margin: 3px 25px;">
+																</div>
+																{% assign groupLocation = groupLocation.Location.Street1 | Append:', ' | Append:groupLocation.Location.Street2 | Append:', ' | Append:groupLocation.Location.City | Append:', ' | Append:groupLocation.Location.State | Append:', ' | Append:groupLocation.Location.PostalCode | Replace:', , ',', ' %}
+																{% break %}
+															{% endif %}
+														{% endfor %}
+														{% comment %} <img src="/themes/SECC2024/Assets/img/SE/Visit.svg" class="img-responsive g-width-100--xs g-display-inline-block--xs" style="vertical-align: middle;" /> {% endcomment %}
+														{% if groupLocation == '' %}
+															<div class="groupLocation g-padding-x-20--xs img-responsive"
+																style="background-color: #fff;
+																	   min-width: 100px;
+																	   min-height: 100px;
+																	   border-radius: 100%;
+																	   border: 3px solid black;
+																	   margin: 3px 25px;
+																	   position: relative;">
+																<i class="fa fa-2x fa-school g-center--xs"></i>
+															</div>
+														{% endif %}
+													</td>
+													<td>
+														<h4 class="g-font-weight--600">
+															<a href="/page/2565?GroupGuid={{group.Guid}}">{{group.Name}}</a>
+														</h4>
+														{% if groupLocation != ''%}{{ groupLocation }}<br />{% endif %}
+														{% assign gender = group | Attribute:'Gender'%}
+														{% if gender != ''%}Gender: {{group | Attribute:'Gender'}}<br />{% endif %}
+													</td>
+												</tr>
+											</table>
+										</div>
+									{% endfor %}
+								{% endgroup%}
+							{% else %}
+								<div class="col-md-12 g-padding-y-150--xs text-center">
+									<h4 class="g-font-weight--500">To see groups, you need a staff member to sign in and help you join a group!</h4>
+									<br />
+									<a href="/login?returnurl=/studentgroupsignup" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1">
+										<strong>Sign In</strong>
+									</a>
+								</div>
+							{% endif %}
+						</div>
+					</div>
+				</div> <!-- .se-project-info -->
+			</li>
+
+			<li>
+				<div class="preview-image">
+					<div class="se-project-title">
+						<h2>HSM</h2>
+						<p>Select your group below!</p>
+					</div>
+				</div>
+
+				{% group where:'ParentGroupId == 329704 && IsActive == True' securityenabled:'false' count:'true' %}
+					{% assign hsmGroupsSize = count %}
+				{% endgroup%}
+
+				<div class="se-project-info">
+					<div class="container">
+						<div class="row">
+							{% if hsmGroupsSize > 0 %}
+								{% group where:'ParentGroupId == 329704 && IsActive == True' sort:'Order asc' securityenabled:'false' %}
+									{% for group in groupItems %}
+										<div class="col-md-6 g-padding-y-10--xs">
+											<table>
+												<tr>
+													<td>
+														{% assign groupLocation = ''%}
+														{% for groupLocation in group.GroupLocations %}
+															{% if groupLocation.Location.GeoPoint != '' %}
+																<div class="groupLocation g-padding-x-20--xs img-responsive "
+																	style="background: url('https://maps.googleapis.com/maps/api/staticmap?size=400x400&zoom=17&maptype=roadmap&markers={{ groupLocation.Location.GeoPoint }}&scale=1&key={{ 'Global' | Attribute:'GoogleAPIKey' }}') no-repeat center;
+																			min-width: 100px;
+																			min-height: 100px;
+																			border-radius: 100%;
+																			border: 3px solid black;
+																			margin: 3px 25px;">
+																</div>
+																{% assign groupLocation = groupLocation.Location.Street1 | Append:', ' | Append:groupLocation.Location.Street2 | Append:', ' | Append:groupLocation.Location.City | Append:', ' | Append:groupLocation.Location.State | Append:', ' | Append:groupLocation.Location.PostalCode | Replace:', , ',', ' %}
+																{% break %}
+															{% endif %}
+														{% endfor %}
+														{% comment %} <img src="/themes/SECC2024/Assets/img/SE/Visit.svg" class="img-responsive g-width-100--xs g-display-inline-block--xs" style="vertical-align: middle;" /> {% endcomment %}
+														{% if groupLocation == '' %}
+															<div class="groupLocation g-padding-x-20--xs img-responsive"
+																style="background-color: #fff;
+																	   min-width: 100px;
+																	   min-height: 100px;
+																	   border-radius: 100%;
+																	   border: 3px solid black;
+																	   margin: 3px 25px;
+																	   position: relative;">
+																<i class="fa fa-2x fa-home g-center--xs"></i>
+															</div>
+														{% endif %}
+													</td>
+													<td>
+														<h4 class="g-font-weight--600">
+															<a href="/page/2565?GroupGuid={{group.Guid}}">{{group.Name}}</a>
+														</h4>
+														{% if groupLocation != ''%}{{ groupLocation }}<br />{% endif %}
+														{% assign gender = group | Attribute:'Gender'%}
+														{% if gender != ''%}Gender: {{group | Attribute:'Gender'}}<br />{% endif %}
+													</td>
+												</tr>
+											</table>
+										</div>
+									{% endfor %}
+								{% endgroup%}
+							{% else %}
+								<div class="col-md-12 g-padding-y-150--xs text-center">
+									<h4 class="g-font-weight--500">To see groups, you need a staff member to sign in and help you join a group!</h4>
+									<br />
+									<a href="/login?returnurl=/studentgroupsignup" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1">
+										<strong>Sign In</strong>
+									</a>
+								</div>
+							{% endif %}
+						</div>
+					</div>
+				</div> <!-- .se-project-info -->
+			</li>
+
+		</ul> <!-- .se-projects -->
+
+		<button class="scroll se-text-replace">Scroll</button>
+	</div> <!-- .se-project-container -->
+

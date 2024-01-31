@@ -1,0 +1,24 @@
+{
+	"mapwidth": "758",
+	"mapheight": "1000",
+	"categories": [],
+	"levels": [
+		{
+			"id": "first-floor",
+			"title": "First Floor",
+			"map": "/Content/ExternalSite/WebImages/mapplic_images/christmas/StevensMap.png",
+			"minimap": "/Content/ExternalSite/WebImages/mapplic_images/christmas/Map-S-First-Floor.jpg",
+			"show": "true",
+			"locations": [
+			]
+		},
+		{
+			"id": "second-floor",
+			"title": "Second Floor",
+			"map": "/Content/ExternalSite/WebImages/mapplic_images/christmas/StevensMapSecondFloor.png",
+			"minimap": "/Content/ExternalSite/WebImages/mapplic_images/christmas/Map-S-Second-Floor.jpg",
+			"locations": [
+			]
+		}
+	]
+}

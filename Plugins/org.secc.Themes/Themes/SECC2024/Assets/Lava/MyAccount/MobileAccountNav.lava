@@ -1,0 +1,259 @@
+{% assign currentPage = 'Global' | Page:'Path' %}
+<link rel="stylesheet" href="/Themes/SECC2024/Scripts/swiperjs/swiper-bundle.min.css">
+<script src="/Themes/SECC2024/Scripts/swiperjs/swiper-bundle.min.js"></script>
+
+<section class="g-display-block--xs g-display-block--sm g-display-none--md">
+<style>
+.swiper-container {
+    padding: 20px 60px;
+}
+.swiper-slide {
+    text-align: center;
+}
+.swipter-menu-item {}
+.swiper-slide a {
+    font-size: 1.4rem;
+    color: black;
+}
+.swiper-slide.active:before {
+    display: block;
+    content: '';
+    position: absolute;
+    background-color: #ccc;
+    width: 100%;
+    height: 40px;
+    left: 0;
+    bottom: -55px;
+    vertical-align: top;
+}
+.swiper-button-next:after {
+    font-family: none!important;
+    font-size: none!important;
+    text-transform: none!important;
+    letter-spacing: 0;
+    text-transform: none;
+    font-variant: initial;
+    line-height: 1;
+    content: '' !important;
+    display: block;
+    content: '';
+    position: absolute;
+    width: 6rem;
+    height: 200px;
+    right: -30px;
+    background-color: rgba(255,255,255,0);
+    background-image: -webkit-linear-gradient(0deg,rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%);
+    background-image: linear-gradient(90deg,rgba(255,255,255,0) 0%, rgb(255,255,255) 50%);
+    top: -100px;
+}
+.swiper-button-prev:after {
+    font-family: none!important;
+    font-size: none!important;
+    text-transform: none!important;
+    letter-spacing: 0;
+    text-transform: none;
+    font-variant: initial;
+    line-height: 1;
+    content: '' !important;
+    display: block;
+    content: '';
+    position: absolute;
+    width: 6rem;
+    height: 200px;
+    left: -30px;
+    background-color: rgba(255,255,255,0);
+    background-image: -webkit-linear-gradient(-90deg,rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%);
+    background-image: linear-gradient(-90deg,rgba(255,255,255,0) 0%, rgb(255,255,255) 50%);
+    top: -100px;
+}
+</style>
+<!-- Slider main container -->
+<div class="swiper-container g-padding-y-20--xs">
+    <!-- Additional required wrapper -->
+    <div class="swiper-wrapper">
+        <!-- Slides -->
+        <div class="swiper-slide {% if currentPage == '/MyAccount' %} active {% endif %}">
+            <div class="swiper-menu-item">
+                <a href="/MyAccount" class="g-font-size-18--xs"><i class="fal fa-user-circle fa-2x" style="vertical-align: middle"></i>
+                <br />Account</a>
+            </div>
+        </div>
+        <div class="swiper-slide {% if currentPage == '/my-classes' %} active {% endif %}">
+            <div class="swiper-menu-item">
+                <a href="/my-classes" class="g-font-size-18--xs"><i class="fal fa-users-class fa-2x" style="vertical-align: middle"></i>
+                <br />Classes</a>
+            </div>
+        </div>
+        <div class="swiper-slide {% if currentPage == '/MyGiving' %} active {% endif %}">
+            <div class="swiper-menu-item">
+                <a href="/MyGiving" class="g-font-size-18--xs"><i class="fal fa-heart fa-2x" style="vertical-align: middle"></i>
+                <br />Giving</a>
+            </div>
+        </div>
+        {%-comment-%}Financial Coaching{%-endcomment-%}
+    {%- assign groupMembers = CurrentPerson | Group: "968132" -%}
+    {%- for groupMember in groupMembers -%}
+        {%- if groupMember.GroupRoleId == 826 -%}
+            <div class="swiper-slide {% if currentPage == '/MyAccount/MyFinancialCoachingCases' %} active {% endif %}">
+                <div class="swiper-menu-item">
+                    <a href="/MyAccount/MyFinancialCoachingCases" class="g-font-size-18--xs"><i class="fal fa-comment-alt-dollar fa-2x" style="vertical-align: middle"></i>
+                    <br />Coaching</a>
+                </div>
+            </div>
+        {%- endif -%}
+    {%- endfor -%}
+        <div class="swiper-slide {% if currentPage == '/MyEvents' %} active {% endif %}">
+            <div class="swiper-menu-item">
+                <a href="/MyEvents" class="g-font-size-18--xs"><i class="fal fa-users fa-2x" style="vertical-align: middle"></i>
+                <br />Events</a>
+            </div>
+        </div>
+        <div class="swiper-slide {% if currentPage == '/MySchedule' %} active {% endif %}">
+            <div class="swiper-menu-item">
+                <a href="/MySchedule" class="g-font-size-18--xs"><i class="fal fa-calendar-day fa-2x" style="vertical-align: middle"></i>
+                <br />Schedule</a>
+            </div>
+        </div>
+        <div class="swiper-slide">
+            <div class="swiper-menu-item">
+                <a href="/logout" class="g-font-size-18--xs"><i class="fal fa-sign-out-alt fa-2x" style="vertical-align: middle"></i>
+                <br />Logout</a>
+            </div>
+        </div>
+    </div>
+    <!-- If we need navigation buttons -->
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-button-next"></div>
+</div>
+
+<script>
+function indexInClass(collection, activeClass) {
+    for (var i = 0; i < collection.length; i++) {
+        if (collection[i].classList.contains(activeClass))
+        return i;
+    }
+    return -1;
+}
+var myClass = document.getElementsByClassName('swiper-slide');
+var swiper = new Swiper('.swiper-container', {
+      initialSlide: indexInClass(myClass, 'active'),
+      slidesPerView: 4,
+      spaceBetween: 5,
+      centeredSlides: true,
+      centeredSlidesBounds: true,
+      resistance: true,
+      resistanceRatio: 1,
+      freeMode: true,
+      freeModeMomentumRatio: 0.5,
+      freeModeMomentumVelocityRatio: 0.5,
+      freeModeMomentumBounceRatio: 0.5,
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+      // Responsive breakpoints
+        breakpoints: {
+            200: {
+                slidesPerView: 2,
+                spaceBetween: 5
+            },
+            320: {
+                slidesPerView: 3,
+                spaceBetween: 10
+            },
+            // when window width is >= 480px
+            480: {
+                slidesPerView: 4,
+                spaceBetween: 20
+            },
+            // when window width is >= 640px
+            640: {
+                slidesPerView: 5,
+                spaceBetween: 30
+            }
+        }
+    });
+
+    //alert("The ID is: " + indexInClass(myClass, 'active'));
+    //swiper.slideTo(indexInClass(myClass, 'active'));
+</script>
+
+{% comment %} <style>
+.page-menu {
+    height: 9rem;
+}
+.page-menu .page-nav li {
+    padding: 0 1.5rem;
+    padding-bottom: 15px;
+}
+.page-menu .page-nav li a {
+    font-size: 1.2rem;
+}
+.page-menu .page-nav li.active {
+    border-bottom: 35px solid #ccc;
+}
+.page-menu .page-nav {
+    display: block;
+    overflow-y: hidden;
+    overflow-x: scroll;
+    white-space: nowrap;
+    padding-left: 30px;
+    padding-right: 30px;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 30px;
+    padding-top: 2.5rem;
+    height: 15rem;
+}
+.page-menu .page-nav:after {
+    display: block;
+    content: '';
+    position: absolute;
+    width: 6rem;
+    height: 200px;
+    right: 0;
+    background-color: rgba(255,255,255,0);
+    background-image: -webkit-linear-gradient(0deg,rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%);
+    background-image: linear-gradient(90deg,rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%);
+    top: 0;
+}
+</style>
+    <div class="page-menu page-menu g-bg-color--primary">
+		<div class="container-fluid text-center" style="padding: 0;">
+			<nav class="page-nav text-center">
+				<ul class="list-inline">
+				    <li {% if currentPage == '/MyAccount' %} class="active" {% endif %}>
+                        <a href="/MyAccount"><i class="fal fa-user-circle fa-2x" style="vertical-align: middle"></i>
+                        <br />Account</a>
+                    </li>
+				    <li {% if currentPage == '/my-classes' %} class="active" {% endif %}>
+                        <a href="/my-classes"><i class="fal fa-users-class fa-2x" style="vertical-align: middle"></i>
+                        <br />Classes</a>
+                    </li>
+                    <li {% if currentPage == '/MyGiving' %} class="active" {% endif %}>
+                        <a href="/MyGiving"><i class="fal fa-heart fa-2x" style="vertical-align: middle"></i>
+                        <br />Giving</a>
+                    </li>
+                    <li {% if currentPage == '/MyEvents' %} class="active" {% endif %}>
+                        <a href="/MyEvents"><i class="fal fa-users fa-2x" style="vertical-align: middle"></i>
+                        <br />Events</a>
+                    </li>
+                    <li {% if currentPage == '/MySchedule' %} class="active" {% endif %}>
+                        <a href="/MySchedule"><i class="fal fa-calendar-day fa-2x" style="vertical-align: middle"></i>
+                        <br />Schedule</a>
+                    </li>
+                    <li {% if currentPage == '/home?logout=true' %} class="active" {% endif %}>
+                        <a href="/home?logout=true"><i class="fal fa-sign-out-alt fa-2x" style="vertical-align: middle"></i>
+                        <br />Logout</a>
+                    </li>
+                </ul>
+			</nav>
+		</div>
+	</div>
+    <script>
+    var scroll = new SmoothScroll('a[href*="#"]', {
+            speed: 500, // Integer. How fast to complete the scroll in milliseconds
+            easing: 'easeInOutCubic', // Easing pattern to use
+            header: '.cd-main-header'
+        });
+    </script> {% endcomment %}
+</section>

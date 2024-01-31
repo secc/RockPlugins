@@ -1,0 +1,95 @@
+<script src="/Themes/SECC2024/Assets/vendor/ics/ics.deps.min.js" ></script>
+<script src="/Themes/SECC2024/Assets/vendor/ics/ics.js" ></script>
+<section id="JoinAGroup">
+    {[ parallax image:'/Content/Ministries/SE-Online/0N2A9758.jpg' addclass:'g-bg-parallax-color--black--40 g-padding-y-150--xs' height:'auto' position:'top top' speed:'-5' ]}
+            <div class="parallax-body container g-padding-y-150--md">
+                <div class="row">
+                    <div class="col-md-offset-1 col-md-10 text-center g-padding-x-80--md">
+                        <h1 class="g-font-family--secondary g-text-shadow--black--soft">Sunday Experiences</h1>
+                        <br>
+                        <br>
+                        {[ wow animate:'fadeInUp' duration:'.8s' ]}
+                        <div class="fluid-container isotope_wrap">
+                            {% schedule where:'CategoryId == 1311' sort:'Order' %}
+                                {% for item in scheduleItems %}
+                                    {%- assign LIVE = item | Attribute:'LIVE' -%}
+                                    {%- assign icsUniqueId = item.Id -%}
+                                    <div class="isotope_item
+                                        hide-on-load
+                                        col-md-4
+                                        col-sm-6
+                                        col-xs-12
+                                        text-center
+                                        ">
+                                            <div class="
+                                                g-bg-color--primary
+                                                g-padding-x-30--xs
+                                                g-position--relative" style="min-height: 125px;">
+                                                <div style="position: absolute;top: 50%;left: 50%;transform: translate(-50%, -50%);">
+                                                    <h3 class="g-color--dark g-font-weight--600 g-width-350--xs">
+                                                        {{ item.iCalendarContent | DatesFromICal | First | Date: 'h:mm tt' }} <small class="g-color--dark">EST</small>
+                                                    </h3>
+                                                    {% if LIVE == 'Yes' %}
+                                                    <h4 class="g-color--dark g-font-weight--600">(Live)</h4>
+                                                    {% endif %}
+                                                </div>
+                                                <a href="#ds" onclick="javascript:se_cal_{{ icsUniqueId }}.download('SEOnline{{ item.Name | Replace:' ','_' }}')">
+                                                {% comment %}
+                                                <!-- // You can use this for easy debugging -->
+                                                <a href="javscript:void(0)" onclick="javascript:makelogs(se_cal_{{ icsUniqueId }})">
+                                                {% endcomment %}
+                                                    <span class="g-position--absolute" style="bottom: 10px;right: 10px;">
+                                                        <i class="far fa-plus-circle fa-2x g-color--dark"></i>
+                                                    </span>
+                                                </a>
+                                            </div>
+                                    </div>
+                                    <script type="text/javascript">
+                                        // Demo
+                                        var se_cal_{{ icsUniqueId }} = ics();
+                                    	se_cal_{{ icsUniqueId }}.addEvent('SE Online', 'This is a one hour SE Online event: https://www.southeastchristian.org/online', '{{ item.Name }}', '{{ item.iCalendarContent | DatesFromICal | First | Date: 'MM/dd/yyyy h:mm tt' }}', '{{ item.iCalendarContent | DatesFromICal | First | DateAdd:1,'h' | Date: 'MM/dd/yyyy h:mm tt' }}');
+
+                                        {% comment %}
+                                        // You can use this for easy debugging
+                                        makelogs = function(obj) {
+                                          console.log('Events Array');
+                                          console.log('=================');
+                                          console.log(obj.events());
+                                          console.log('Calendar With Header');
+                                          console.log('=================');
+                                          console.log(obj.calendar());
+                                        }
+                                        {% endcomment %}
+                                    </script>
+                                {% endfor %}
+                            {% endschedule %}
+                        </div>
+
+                        <script>
+                        $(document).ready(function() {
+                        	$('.cd-main-header').removeClass('transparent-menu-enabled').removeClass('transparent-header');
+                        	$('.cd-main-content').removeClass('transparent-content');
+                        });
+                        $(window).load(function() {
+                            // Initialize Isotope
+                            var $grid = $('.isotope_wrap').isotope({
+                                // options
+                                percentPosition: true,
+                                itemSelector: '.isotope_item',
+                        		layoutMode: 'fitRows'
+                            });
+                            // reveal all items after init
+                            var $items = $grid.find('.isotope_item');
+                            $grid.addClass('is-showing-items')
+                              .isotope( 'revealItemElements', $items );
+                        });
+                        </script>
+
+                        {[ endwow ]}
+                        <br>
+                        <br>
+                    </div>
+                </div>
+            </div>
+    {[ endparallax ]}
+</section>

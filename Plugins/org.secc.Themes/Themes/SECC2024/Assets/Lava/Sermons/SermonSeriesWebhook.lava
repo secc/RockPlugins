@@ -1,0 +1,60 @@
+{% cache key:'webook-sermons-{{page}}' duration:'0' %}
+{%- if page != empty -%}
+    {%- assign pageNumber = page -%}
+{%- endif -%}
+{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+{%- assign offset = pageNumber | Minus:1 | Times: 12 -%}
+{%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' offset:'{{offset}}' limit:'12'  -%}
+{"Series":
+    [
+        {%- assign itemComma = '' -%}
+        {%- for item in contentchannelitemItems -%}
+            {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+            {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+            {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+                {%- assign imageGuid = item | Attribute:'Image', 'RawValue' -%}
+                {%- if imageGuid == '' -%}
+                    {%- assign firstSermon = item.ChildItems | First -%}
+                    {%- assign imageGuid = firstSermon.ChildContentChannelItem | Attribute:'Image', 'RawValue' -%}
+                {%- endif -%}
+                {{itemComma}}
+                {
+                    "Id": {{item.Id}},
+                    "Name":"{{item.Title | Replace:'"','\"'}}",
+                    "Description":"{{ item.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','<br>' | UrlDecode }}",
+                    "Image": "/GetImage.ashx/{{imageGuid}}.jpg?guid={{imageGuid}}&mode=crop&width=960&height=540",
+                    "Date":"{{item.StartDateTime}}",
+                    "Slug":"{{item.PrimarySlug}}",
+                    "Sermons": [
+                    {%- assign childComma = '' -%}
+                    {%- for message in item.ChildItems -%}
+                        {%- assign startDateTime = message.ChildContentChannelItem.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+                        {%- assign endDateTime = message.ChildContentChannelItem.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+                        {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+                            {{childComma}}
+                            {
+            			        "Id":{{ message.ChildContentChannelItem.Id }},
+            			        "Slug":"{{ message.ChildContentChannelItem.PrimarySlug }}",
+            			        "Title":"{{ message.ChildContentChannelItem.Title  | Replace:'"','\"' | NewlineToBr | Replace:'<br />',' ' }}",
+            			        "Date":"{{ message.ChildContentChannelItem.StartDateTime | Date:'MMMM d, yyyy' }}",
+            			        "Description":"{{ message.ChildContentChannelItem.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','<br>' | UrlDecode }}",
+            			        "Image": "/GetImage.ashx/{{message.ChildContentChannelItem | Attribute:'Image', 'RawValue'}}.jpg?guid={{message.ChildContentChannelItem | Attribute:'Image', 'RawValue'}}&mode=crop&width=960&height=540",
+            			        "Audio": "/GetFile.ashx/{{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}.mp3?guid={{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}",
+            			        "Speaker": "{{message.ChildContentChannelItem | Attribute:'Speaker'}}",
+            			        "VimeoStreamingUrl":"{{message.ChildContentChannelItem | Attribute:'VimeoStreamingUrl'}}",
+            			        "VimeoDownloadUrl":"{{message.ChildContentChannelItem | Attribute:'VimeoDownloadUrl'}}",
+            			        {% assign duration = message.ChildContentChannelItem | Attribute: 'Duration' %}
+            			        "Duration":{% if duration == empty %}0{% else %} {{ duration }} {% endif %}
+                            }
+                            {%- assign childComma = ',' -%}
+                        {%- endif -%}
+    			    {%- endfor -%}
+    			]
+                }
+                {%- assign itemComma = ',' -%}
+            {%- endif -%}
+        {%- endfor -%}
+    ]
+}
+{% endcontentchannelitem -%}
+{% endcache %}

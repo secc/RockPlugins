@@ -1,0 +1,31 @@
+@import '../bootstrap/mixins/vendor-prefixes';
+
+.se-panel {
+    background-color: $WhiteColor;
+    -webkit-box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
+    box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+
+    @include transition(all .3s ease);
+    @media (max-width: 768px) {
+        margin-left: 0px;
+        margin-right: 0px;
+        -webkit-box-shadow: 0 3px 12px 2px hsla(0,0%,78%,1);
+        box-shadow: 0 3px 12px 2px hsla(0,0%,78%,.5);
+    }
+    .caption a {
+        cursor: pointer;
+    }
+    
+    .bug {
+        background-color: $LightGreyColor;
+        top: -20px;
+        right: -20px;
+        width: 80px;
+        white-space: normal;
+        border-radius: 100%;
+        height: 80px;
+    }
+}

@@ -1,0 +1,42 @@
+                {%- assign role = partition -%}
+				{%- assign spotsLeft = role.Limit | Minus: role.Filled -%}
+				<div class="col-sm-6 col-md-4">
+					{% if spotsLeft > 0 and role.Limit > 0 %}
+						{% if partitionSize > 0 %}
+							<a href="#" onclick="doSlide('#{{divId}}_{{role.Value}}'); return false;">
+						{% else %}
+                            {%- assign groupId = partition.GroupId -%}
+							<a href="{{partition.Url}}&GroupId={{groupId}}">
+						{% endif %}
+					{% endif %}
+					<div class="serve-card serve-card g-margin-y-40--xs g-margin-x-auto--xs g-bg-color--2020-easter-tan">
+                        <div class="box text-center g-padding-t-60--xs g-position--relative g-bg-color--2020-easter-tan" style="min-height: 270px;">
+                            {% assign icon = role.Entity | Attribute:"Icon" %}
+							{% if icon != '' and icon != empty %}
+                                {% if icon == "fa fa-baby" or icon == "fa fa-child" %}
+                                    {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/TeddyBear.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                {% elseif icon contains "coffee" %}
+                                    {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/coffee.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                {% elseif icon contains "bread-slice" %}
+                                    {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/Communion.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                {% elseif icon contains "handshake" %}
+                                    {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/Leadership.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                {% elseif icon contains "camera" %}
+                                    {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/camera.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                {% elseif icon contains "puzzle-piece" %}
+                                    {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/sectionhost.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                {% elseif icon contains "traffic-cone" %}
+                                    {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/Traffic.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                {% elseif icon contains "user-tie" %}
+                                    {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/Usher.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
+                                {% else %}
+                                <i class="{{icon}} fa-5x g-color--dark"></i>
+                                {% endif %}
+							{% endif %}
+                            <h3 class="g-font-family--secondary g-padding-b-40--xs g-font-weight--600">{{ role.Entity.Name }}</h3>
+                        </div>
+					</div>
+					{% if spotsLeft > 0 and role.Limit > 0 %}
+						</a>
+					{% endif %}
+                </div>

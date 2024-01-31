@@ -1,0 +1,614 @@
+{% assign onlineCampusId = 12 %}
+
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign campusIdSize = pageParamCampusId | Size %}
+{% assign pageParamCampus = 'Global' | PageParameter:'campus' | Downcase | Replace:"-","" %}
+{% if pageParamCampus == 'seonline' %}
+	{% assign selectedCampus = '-1' %}
+	{% assign selectedCampusName = 'SE Online' %}
+{% else %}
+	{% assign selectedCampus = null %}
+	{% for campus in Campuses %}
+		{% assign campusName = campus.Name | Downcase | Replace:" ",""  %}
+		{% if campus.Id == pageParamCampusId or campusName == pageParamCampus %}
+			{% assign selectedCampus = campus.Id %}
+			{% assign selectedCampusName = campus.Name %}
+			{% break %}
+		{% endif %}
+	{% endfor %}
+{% endif %}
+
+<style>
+.grid {
+    display: grid;
+    grid-template-columns: 100%;
+}
+@media (min-width: 48em) {
+    .grid { grid-template-columns: 50% 50%; }
+}
+.readmore_dates {
+   transition: height 100ms;
+   overflow: hidden;
+   display: none;
+}
+.isotope_item {
+    z-index: 1;
+}
+.se-dropdown {
+	border: 1px rgba(29, 31, 33, 0.20) solid;
+    border-radius: 4px;
+	cursor: pointer;
+	padding: 5px 70px 5px 15px;
+	display: block;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	color: black;
+	line-height: 28px;
+	text-transform: uppercase;
+	font-weight: 600;
+	box-sizing: border-box;
+	display: inline-block;
+	margin: 0;
+	position: relative;
+	vertical-align: middle;
+	margin-top: 5px;
+	min-width: 170px;
+	z-index: 10;
+	width: 100%;
+}
+.se-dropdown .arrow {
+	height: auto;
+	position: absolute;
+	top: 19px;
+	right: 15px;
+	width: 20px;
+}
+.se-dropdown .arrow b {
+	border-color: white;
+	border-style: none;
+	border-width: 0px;
+	height: 0;
+	position: absolute;
+	width: 0;
+}
+.se-dropdown .arrow b:before {
+	width: 10px;
+	height: 10px;
+	content: "";
+	border: solid #000000;
+	border-width: 0 2px 2px 0;
+	display: inline-block;
+	position: absolute;
+	top: 55%;
+	left: 50%;
+	transition: all 0.4s ease;
+	transform: translate(-50%, -50%) rotate(45deg);
+	-webkit-transform: translate(-50%, -50%) rotate(45deg);
+}
+.se-dropdown + div {
+	box-shadow:0px 0px 5px 1px rgba(0, 0, 0, 0.15);
+	padding: 15px;
+	display: none;
+	position: absolute;
+	background-color: #FFFFFF;
+    background-image: linear-gradient(rgba(254, 240, 228, 0.3),rgba(254, 240, 228, 0.3));
+	overflow: visible;
+	box-sizing: border-box;
+	z-index: 1051;
+	margin-bottom: 20px;
+}
+.se-dropdown[aria-expanded="true"] + div {
+	display: block;
+}
+.se-dropdown[aria-expanded="true"] .arrow b:before {
+	transform: translate(-50%, -50%) rotate(-135deg);
+	-webkit-transform: translate(-50%, -50%) rotate(-135deg);
+	top: 3px;
+}
+
+.se-input {
+	background-color: white;
+	border: 1px rgba(29, 31, 33, 0.20) solid;
+    border-radius: 4px;
+	padding: 5px 70px 5px 15px;
+	display: block;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	color: black;
+	line-height: 28px;
+	text-transform: uppercase;
+	font-weight: 600;
+	box-sizing: border-box;
+	display: inline-block;
+	margin: 0;
+	position: relative;
+	vertical-align: middle;
+	margin-top: 5px;
+	min-width: 170px;
+	z-index: 10;
+}
+.se-zipcode-loading {
+	position: absolute;
+	right: 25px;
+	top: 18px;
+	z-index: 30;
+}
+@media (max-width:991px)
+{
+	.se-dropdown + div {
+		position: relative;
+	}
+}
+</style>
+
+<div class="container g-width-100-percent--xs">
+    <div class="">
+        <div class="col-md-4 g-padding-t-150--xs g-padding-b-50--xs" >
+			<div class="">
+				<h2 class="g-font-family--secondary">Find a Group</h2>
+				<p class="g-font-weight--400 g-line-height--sm g-padding-t-20--xs g-padding-t-50--md" style="color: #616264;">Find a group that interests you by selecting meeting day and/or ministry. Click on the image to see more details or to register.</p>
+			</div>
+            <div id="groupFilters" class="g-display-block--xs g-padding-t-50--sm">
+
+				<div style="display:none;" class="g-display-inline-block--xs g-padding-x-5--xs" tabindex="0" style="outline: none;">
+					<select class="select2-campuses" name="campus">
+					<option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
+					<option value="-1" data-shortcode="SEO" data-campus="seonline"{% if selectedCampus == '-1' %} selected="selected"{% endif %}>
+						SE Online
+					</option>
+					{% for campus in Campuses %}
+						{% assign publicCampus = campus | Attribute:'Public' %}
+						{% if publicCampus == 'Yes' %}
+							<option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ",""}}"{% if selectedCampus.Id > 0 and selectedCampus == campus.Id %} selected="selected"{% endif %}>
+								{{ campus.Name }}
+							</option>
+						{% endif %}
+					{% endfor %}
+					</select>
+				</div>
+
+				<div class="g-display-inline-block--xs g-padding-x-5--xs" tabindex="0" style="outline: none;">
+                    <span id="MeetsOnFilter" class="se-dropdown" data-toggle="dropdown-content" data-reveal="daysOfTheWeek" aria-expanded="false" data-control="#groupFilters">
+                        Meets On <span class="count"></span>
+                        <span class="arrow" role="presentation"><b role="presentation"></b></span>
+                    </span>
+                    <div id="daysOfTheWeek" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
+                        <p>Select a day of the week:</p>
+                        <div class="g-width-500--xs text-center">
+                            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Sunday" data-toggle="tooltip" data-placement="bottom" title="Sunday">S</a>
+                            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Monday" data-toggle="tooltip" data-placement="bottom" title="Monday">M</a>
+                            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Tuesday" data-toggle="tooltip" data-placement="bottom" title="Tuesday">T</a>
+                            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Wednesday" data-toggle="tooltip" data-placement="bottom" title="Wednesday">W</a>
+                            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Thursday" data-toggle="tooltip" data-placement="bottom" title="Thursday">T</a>
+                            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Friday" data-toggle="tooltip" data-placement="bottom" title="Friday">F</a>
+                            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Saturday" data-toggle="tooltip" data-placement="bottom" title="Saturday">S</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="g-display-inline-block--xs g-padding-x-5--xs" tabindex="0" style="outline: none;">
+                    <span id="GroupTypeFilter"class="se-dropdown" data-toggle="dropdown-content" data-reveal="typeSelected" aria-expanded="false" data-control="#groupFilters">
+                        Type <span class="count"></span>
+                        <span class="arrow" role="presentation"><b role="presentation"></b></span>
+                    </span>
+                    <div id="typeSelected" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
+                      <p>Select categories of your interests:</p>
+                      {%- definedvalue where:'DefinedTypeId==52' -%}
+                          {%- assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' -%}
+                          {%- for definedValue in definedvalueItemsSorted -%}
+                              {%- if definedValue != '' -%}
+                                  <a class="button se-btn se-btn--tag no-transitions uppercase g-margin-y-5--xs g-margin-x-5--xs" data-type="{{ definedValue.Id }}">{{ definedValue.Value | Capitalize }}</a>
+                            {%- endif -%}
+                          {%- endfor -%}
+                      {%- enddefinedvalue -%}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-8 g-padding-y-50--xs">
+            <div class="{%comment%}grid{%endcomment%}isotope_wrap g-margin-b-80--xs">
+                {% for group in Groups %}
+                    {% if group.IsActive and group.IsPublic %}
+
+                        {% assign skip = true %}
+                        {% assign groupCampusId = group.CampusId %}
+                        {% if groupCampusId == empty or groupCampusId == null or group or groupCampusId == onlineCampusId %}
+					{% assign skip = false %}
+				{% endif %}
+				{% if skip == true %}
+					{% continue %}
+				{% endif %}
+
+                {% assign groupUrl = group.Campus | Attribute:'Slug' %}
+                {% assign groupLocations = group.GroupLocations %}
+                {% assign otc = group | Attribute: 'OpentoChildren' %}
+                {% comment %}
+                    explain what is happening with groupTypes
+                {% endcomment %}
+                {% assign groupTypes = group | Attribute: 'SmallGroupTopic','Object' %}
+
+                {%- assign meetingType = '' -%}
+
+
+				{% if group.Schedule.WeeklyDayOfWeek != null and group.Schedule.WeeklyDayOfWeek != "" -%}
+					{% assign dayOfWeek = group.Schedule.WeeklyDayOfWeek %}
+					{% capture dateText -%}
+                    {{ group.Schedule.WeeklyDayOfWeek }} {{  group.Schedule.WeeklyTimeOfDay | Date:'@ h:mm tt' }}</h6>
+					{% endcapture %}
+				{% elseif group.Schedule.iCalendarContent != empty and group.Schedule.iCalendarContent != null %}
+					{% assign scheduledDate = group.Schedule.iCalendarContent | DatesFromICal | First %}
+					{% if scheduledDate != empty and scheduledDate != null %}
+						{% assign dayOfWeek = scheduledDate | Date:'dddd' %}
+						{% assign dateText = scheduledDate | Date:'dddd<br>@ h:mm tt' %}
+                        {% else %}
+						{% comment %}
+							AT THIS POINT THE GROUP 'S ICALENDAR HAS EXPIRED
+							DON'T SHOW THIS GROUP ANY MORE
+						{% endcomment %}
+						{% continue %}
+					{% endif %}
+				{% else %}
+					{% assign dayOfWeek = '' %}
+					{% assign dateText = 'Contact for meeting details.' %}
+				{% endif %}
+
+                <div class="homegroup event-calendar isotope_item g-width-100-percent--xs g-width-49-percent--lg"
+                    data-groupid="{{group.Id}}"
+                     data-campus="{{ group.Campus.Name | Downcase | Replace:" ","" | Default: "seonline"}}"
+                     data-day="{{ dayOfWeek }}"
+                     data-handicap-accessible="{{ handicapAcc | Downcase }}"
+                     data-open-to-children="{{ otc | Downcase }}"
+                     data-type="{%- for groupType in groupTypes -%}{%- if forloop.first -%}{%- else -%},{%- endif -%}{{ groupType.Id }} {%- endfor -%}{{ groupTypes.Id }}"
+                     data-zipcode="{{ groupZipCode | Truncate:5,'' }}">
+                     <div class="clearfix card g-margin-b-20--xs g-padding-t-60--xs" >
+
+                        <div class="caption g-margin-b-40--xs g-padding-x-60--xs">
+                            <h3 class="g-font-family--secondary g-font-size-24--xs g-font-size-32--md g-padding-b-20--xs g-padding-b-25--md" style="margin-bottom: 5px;">
+                                {{ group.Name }}
+                            </h3>
+                            {% if group.Description != '' %}
+                            <div class="readmore_dates">
+                                {{group.Description}}
+                                <br />
+                            </div>
+                            {% endif %}
+
+                            <p class="g-font-size-14-xs g-font-weight--300">
+                                <i class="fal fa-calendar"></i> {{dateText}}
+                            </p>
+                        </div>
+
+                        <div class="text-center g-margin-b-25--xs g-margin-b-30--md g-margin-x-10--xs" style="display:flex; align-content:space-between;">
+                            <div class="" style="flex:1 1 0;">
+                                {[ sebutton title:'Contact' href:'/onlinegroups/contact/{{ group.Guid }}' type:'light' target:'' addclasses:'g-width-90-percent--xs se-btn--sm' theme:'2024' ]}
+                            </div>
+                            <div class="" style="flex:1 1 0;">
+                                {[ sebutton title:'Register' href:'/onlinegroups/signup/{{ group.Id }}' type:'light' target:'' addclasses:'g-width-90-percent--xs se-btn--sm' theme:'2024' ]}
+                            </div>
+                        </div>
+
+
+
+                    </div>
+                </div>
+
+            {% endif %}
+            {%endfor%}
+        </div>
+    </div>
+</div>
+</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Readmore.js/2.2.0/readmore.min.js"></script>
+<script>
+    $('[data-toggle="tooltip"]').tooltip();
+
+    function toggleDropdown($selected) {
+        // close all of the others - before opening this
+        $('[data-control="#groupFilters"]').not($selected).attr('aria-expanded','false');
+        //$('.select2-selection').select2('close');
+        $selected.attr('aria-expanded', function (i, attr) {
+            return attr == 'true' ? 'false' : 'true'
+        });
+    }
+
+    /* When the user clicks on the button,
+    toggle between hiding and showing the dropdown content */
+    $('[data-toggle="dropdown-content"]').mousedown(function(e) {
+        e.preventDefault();
+        var $this = $( this );
+        $this.parent().focus();
+        toggleDropdown($this);
+    });
+
+    $('[data-control="#groupFilters"]').parent().focusout(function(e) {
+        e.preventDefault();
+        var $this = $( this );
+        // var toggleId = $this.children("[data-toggle="dropdown-content"]").attr('data-reveal');
+        $this.children("[data-toggle='dropdown-content']").attr('aria-expanded', 'false');
+    });
+
+    // Initialize Isotope/Groups
+    var $grid = $('.isotope_wrap').isotope({
+      itemSelector: '.isotope_item',
+      percentPosition: true,
+      layoutMode: 'fitRows'
+    });
+
+	// initialize ReadmoreJS
+        $('.readmore_dates').readmore({
+            speed: 200,
+            lessLink: '<a class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
+            moreLink: '<a class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
+            embedCSS: false,
+            collapsedHeight: 0,
+            beforeToggle: function(tr, el, ex) {
+              $(el).show();
+            },
+            afterToggle: function( trigger, element, expanded ) {
+                if ( expanded ) {
+                    element.css( "height", "" );
+                    element.css( "height", element.height() + "px" );
+                }
+                $('.isotope_wrap').isotope(isoOptions); // re-initialize
+            }
+        });
+
+    if (Modernizr.mq('only all and (max-width: 720px)')) {
+        // Not using isotope or readmore on mobile - it's heavy on JS (breaks old iphones)
+        $('.isotope_wrap').addClass('is-showing-items');
+    } else {
+        var isoOptions = {
+            itemSelector: '.isotope_item',
+            percentPosition: true,
+            layoutMode: 'fitRows'
+        };
+
+        // init Isotope
+        $grid.addClass('is-showing-items').isotope(isoOptions);
+    }
+
+    // bind to buttons related to the day of the week
+    $daysOfTheWeek = $('#daysOfTheWeek').on( 'click', '.button', function(e) {
+      e.preventDefault();
+
+      var $this = $( this );
+      var filterValue = $this.attr('data-filter');
+      $this.toggleClass('active');
+      buildDaysFilters(filterValue);
+      reapplyIso();
+    });
+
+    // bind to campus dropdown selection
+    var campusSelected = '';
+    $('.select2-campuses').select2({
+      placeholder: 'All Locations'
+    });
+    $('.select2-campuses').on('select2:select', function (e) {
+        e.preventDefault();
+        var data = e.params.data;
+        campusSelected = $(data.element).data('campus');
+        buildCampusFilters(campusSelected);
+        reapplyIso();
+    });
+
+    // bind to buttons related to the day of the week
+    $typeSelected = $('#typeSelected').on( 'click', '.button', function(e) {
+      e.preventDefault();
+      var $this = $( this );
+      var filterValue = $this.attr('data-type');
+      $this.toggleClass('active');
+      buildTypeFilters(filterValue);
+      reapplyIso();
+    });
+
+    // handling types selected
+    var types_selected = [];
+    function buildTypeFilters(type) {
+        if (~types_selected.indexOf(type)) {
+            // remove from array (toggling)
+            types_selected.splice($.inArray(type, types_selected),1);
+        } else {
+            // add to array
+            if (type != '' && type != undefined) {
+                types_selected.push(type);
+            }
+        }
+    }
+
+    // handling campuses selected
+    var campus_filters_selected = [];
+    function buildCampusFilters(campus) {
+        // reset campus array, campuses are only selected one at a time
+        campus_filters_selected = [];
+        // add to array
+        if (campus != '' && campus != undefined) {
+            campus_filters_selected.push(campus);
+        }
+        // push a new URL state with filter parameter
+        var newPath = updatePath('campus',campus);
+        // console.debug(campus_filters_selected);
+    }
+    {% if selectedCampus.Id > 0 %}
+    // this initializes the campus selection based on the URL params
+    buildCampusFilters('{{ selectedCampusName | Downcase | Replace:" ",""}}');
+    {% endif %}
+
+
+    // handling days selected
+    var days_selected = [];
+    function buildDaysFilters(day) {
+        if (~days_selected.indexOf(day)) {
+            // remove from array (toggling)
+            days_selected.splice($.inArray(day, days_selected),1);
+        } else {
+            // add to array
+            if (day != '' && day != undefined) {
+                days_selected.push(day);
+            }
+        }
+     }
+
+     function runFilters() {
+         var filterSelectors = [];
+         // if days are selected
+         if (days_selected.length != 0) {
+             filterSelectors.push(createFilters(days_selected, 'data-day'));
+         }
+         // if types are selected
+         if (types_selected.length != 0) {
+             filterSelectors.push(createFilters(types_selected, 'data-type'));
+         }
+         // if campus are selected
+         if (campus_filters_selected.length != 0) {
+             filterSelectors.push(createFilters(campus_filters_selected, 'data-campus'));
+         }
+         var filterArray = [];
+         if (filterSelectors.length!=0){
+             filterSelectors.forEach(function(filterSet, index, array) {
+                if (index==0) {
+                    filterArray = filterSet;
+                } else {
+                    var tempArray = [];
+                    filterArray.forEach(function(primaryFilter) {
+                        filterSet.forEach(function(secondaryFilter) {
+                            tempArray.push(primaryFilter+secondaryFilter);
+                        });
+                    });
+                    filterArray = tempArray;
+                }
+             });
+         }
+         // console.log(filterArray.join(','));
+         return filterArray.join(',');
+     }
+
+     function reapplyIso() {
+         updateFilterCounts()
+         $grid.isotope({
+           itemSelector: '.isotope_item',
+           percentPosition: true,
+           layoutMode: 'fitRows',
+           filter: runFilters()
+         });
+     }
+
+     function updateFilterCounts() {
+         // handling selected filters
+         if(days_selected.length) {
+             $("span#MeetsOnFilter span.count").html("("+days_selected.length+")");
+         } else {
+             $("span#MeetsOnFilter span.count").html("");
+         }
+         if(types_selected.length) {
+             $("span#GroupTypeFilter span.count").html("("+types_selected.length+")");
+         } else {
+             $("span#GroupTypeFilter span.count").html("");
+         }
+     }
+
+     function createFilters(arrayList, selector) {
+         var output = [];
+         if (arrayList.length != 0) {
+             // make string of selectors
+             arrayList.forEach(function(item, index, array) {
+                 output.push('['+selector+'*="'+item+'"]');
+             });
+         }
+         return output;
+     }
+
+
+     //This is for the zipcode :)
+    $input = $('.se-input')
+
+    $input.keydown( function (e) {
+        if (e.keyCode == 13) {
+            e.preventDefault();
+        }
+    });
+
+     loadQueryStringParam();
+
+     ///////////////////////////////////////////////////
+     ///////////////// URL Filtering ///////////////////
+     ///////////////////////////////////////////////////
+     function parseQueryString() {
+         var str = window.location.search;
+         var objURL = {};
+         str.replace(
+             new RegExp( "([^?=&]+)(=([^&]*))?", "g" ),
+             function( $0, $1, $2, $3, $4 ){
+                 objURL[ $1 ] = $3;
+             }
+         );
+         // console.log(objURL);
+         return objURL;
+     };
+
+     function loadQueryStringParam() {
+         var params = parseQueryString();
+         // console.log(params);
+         if (params) {
+
+             // preselect options
+             if(params["meet"]) {
+                 var types = params["meet"].split(',');
+                 for (i = 0; i < types.length; i++) {
+                     $('#daysOfTheWeek').find('[data-filter='+types[i]+']').filter(function () {
+                        buildDaysFilters(types[i]);
+                        return $(this).toggleClass('active');
+                     });
+                 }
+             }
+             if(params["type"]) {
+             }
+             if(params["zipcode"]) {
+
+             }
+             updateFilterCounts();
+             reapplyIso();
+         }
+
+     }
+
+     function updatePath(key, value) {
+         var baseUrl = [location.protocol, '//', location.host].join('');
+         var parts = location.pathname.split('/');
+         var urlParams = new URLSearchParams(window.location.search);
+
+         // Set some defaults;
+         parts[1] = 'onlinegroups';
+         parts[2] = parts[2]||'southeast';
+         // Set default part one of Groups
+         if (key == 'campus') {
+             parts[2] = value||'southeast';
+         }
+         window.history.pushState({}, '', baseUrl + parts.join('/'));
+         // console.log( "key: " + key);
+         // console.log( "value:" + value );
+         // console.log( "parts:" + parts );
+         return parts.join( '/' );
+     }
+
+     ///////////////////////////////////////////////////
+     ////////////// Listen for Back Clicks /////////////
+     ///////////////////////////////////////////////////
+     window.onpopstate = function(event) {
+       reapplyIso();
+     };
+
+
+	var prm = Sys.WebForms.PageRequestManager.getInstance();
+    //Raised before processing of an asynchronous postback starts and the postback request is sent to the server.
+    // Raised after an asynchronous postback is finished and control has been returned to the browser.
+    prm.add_endRequest(pageLoad);
+    // Listen for PostBack
+    function pageLoad() {
+			reapplyIso();
+	}
+</script>

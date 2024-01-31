@@ -1,0 +1,88 @@
+<style>
+.readmore_summary {
+   transition: height 100ms;
+   overflow: hidden;
+   display: none;
+}
+.se-carat {
+    left: -2.5rem;
+}
+</style>
+
+{% assign itemCount = Items | Size %}
+{% if itemCount > 0 %}
+<div id="podcasts-results" class="container g-padding-y-0--xs g-padding-y-20--md g-padding-x-20--xs">
+    <div class="isotope_wrap">
+        {% for item in Items %}
+            {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+            {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+            {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+            {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
+    		{% assign podcastURL = item | Attribute:'PodcastURL','RawValue' %}
+            {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+            <div class="isotope_item col-xs-12 col-sm-6 col-md-6 col-lg-4 event-calendar">
+                <div class="clearfix card g-margin-x-20--xs">
+                    <div class="img-hover">
+    					<a class="hover_icon hover_icon_link" href="{{ podcastURL }}" target="_blank">
+                        	<img src="/GetImage.ashx?Guid={{ ImageGuid }}" class="event-image img-responsive g-margin-x-auto--xs" onerror="this.style.display='none'">
+    					</a>
+                    </div>
+                    <div class="caption g-padding-y-40--xs">
+                        <div class="g-padding-x-40--xs">
+                            <h5 class="g-font-family--secondary g-padding-r-60--xs">{{ item.Title }}</h5>
+                        </div>
+                        <div class="readmore_summary">
+                            <div class="g-padding-x-40--xs g-padding-b-20--xs">
+                                <p>{{ item.Content }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {%- endif -%}
+        {% endfor %}
+	</div>
+</div>
+{% endif %}
+
+<script src="/Themes/SECC2019/Scripts/readmore.min.js"></script>
+<script>
+    $(window).load(function() {
+        $('.js-group-item').tooltip();
+
+        var isoOptions = {
+            percentPosition: true,
+            itemSelector: '.isotope_item',
+            layoutMode: 'fitRows'
+        };
+
+        // Initialize Connection Opportunities Isotope
+        var $grid = $('.isotope_wrap').isotope(isoOptions);
+        // reveal all items after init
+        var $items = $grid.find('.isotope_item');
+        $grid.imagesLoaded( function() {
+            // Re-Initialize ReadmoreJS
+            $('.readmore_summary').readmore({
+                speed: 200,
+                lessLink: '<a class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
+                moreLink: '<a class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
+                heightMargin: 32,
+                collapsedHeight: 0,
+                embedCSS: true,
+                blockCSS: 'display: contents; width: 100%;',
+                beforeToggle: function(tr, el, ex) {
+                  $(el).show();
+                },
+                afterToggle: function( trigger, element, expanded ) {
+                    if ( expanded ) {
+                        element.css( "height", "" );
+                        element.css( "height", element.height() + "px" );
+                    }
+                    $('.isotope_wrap').isotope(isoOptions); // re-initialize
+                }
+            });
+          // init Isotope after all images have loaded
+          $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
+        });
+    });
+</script>

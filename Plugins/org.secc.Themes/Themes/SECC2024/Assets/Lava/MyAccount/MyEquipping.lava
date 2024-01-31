@@ -1,0 +1,47 @@
+{% assign amtOfCourses = Courses | Size %}
+{% if amtOfCourses > 0 %}
+    <style>
+    .card-max-w {
+        max-width: 400px;
+    }
+    </style>
+    <section>
+    <h5 class="g-padding-l-60--xs g-font-weight--600">Public</h5>
+    {% assign riseUrl = "https://southeast.rise.com/learn/course/" %}
+    {[ swiperjs ]}
+        {% for course in Courses %}
+            {% assign Course = course.Course %}
+            [[ item ]]
+                <div class="event-calendar g-margin-b-5--xs">
+                    <div class="card card-max-w">
+                        {% assign ImageGuid = Course | Attribute:'Image','RawValue' %}
+                        {% if ImageGuid != "" %}
+                        <a href="{{ riseUrl | Append:Course.CourseId }}" class="eventCardLink" target="_blank">
+                            <div class="img-hover">
+                                <img src="/GetImage.ashx?Guid={{ ImageGuid }}&w=500&h=281&mode=crop" class="event-image img-responsive" onerror="this.style.display='none'">
+                            </div>
+                        </a> 
+                        {% endif %}
+                        <div class="g-padding-x-30--xs g-padding-y-30--xs text-left">
+                            {% assign completion = false %}
+                            {% for exerience in course.Experiences %}
+                                {% comment %}<strong>{{ exerience.VerbValueId }}</strong><br />{% endcomment %}
+                                {% if exerience.VerbValueId == 34449 or exerience.VerbValueId == 34523 %}
+                                {% assign completion = true %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if completion == false %}
+                            <p class="g-color--gray-light g-font-size-18--xs g-margin-b-0--xs uppercase"><i class="fas fa-circle g-font-size-50--xs pull-right g-color--gray-lightest"></i> not yet completed</p>
+                            {% else %}
+                            <p class="g-color--gray-light g-font-size-18--xs g-margin-b-0--xs uppercase"><i class="fas fa-check-circle g-font-size-50--xs pull-right g-color--dark"></i> completed</p>
+                            {% endif %}
+                            <a href="{{ riseUrl | Append:Course.CourseId }}" class="eventCardLink" target="_blank"><h5 class="g-font-weight--600">{{ Course.Name }}</h5></a>
+                            <p class="g-color--gray-light g-font-size-24--xs g-margin-b-0--xs">{{ Course | Attribute:'Description' }}</p>
+                        </div>
+                    </div>
+                </div>
+            [[ enditem ]]
+        {% endfor %}
+    {[ endswiperjs ]}
+    </section>
+{% endif %}

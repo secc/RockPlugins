@@ -1,0 +1,63 @@
+{% comment %}
+*********************************** NAME ***************************************
+{% endcomment %}
+* Teresa Registration Callout
+
+{% comment %}
+*********************************** TagType ************************************
+{% endcomment %}
+Block
+
+{% comment %}
+*********************************** TAG NAME ***********************************
+{% endcomment %}
+regcallout
+
+{% comment %}
+*********************************** DESCRIPTION ********************************
+{% endcomment %}
+A callout! This will help organize what needs to be called out when a registration is completed; such as an extra step for child care registrations.
+
+{% comment %}
+********************************* DOCUMENTATION ********************************
+{% endcomment %}
+
+Use this block-code to include a callout.
+
+    {[ regcallout title:'Sign up for childcare!' button_link:'https://www.southeastchristian.org/registration/920chRWBEpmSum19' button_title:'PM Childcare' ]}
+    Additional Info Goes Here
+    {[ endregcallout ]}
+
+This block shortcode creates a div container with some styles. As always there are several parameters; all of them are optional though.
+
+title - ''
+bold - yes
+button_title - Register
+button_link - ''
+
+{% comment %}
+************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
+{% endcomment %}
+
+<div class="well clearfix g-ver-divider__solid__l--dark" style="border-left-width: 5px;border-left-color:#428bca;">
+    {%- if title != '' -%}
+        <h2 {% if bold != 'no' %}class="g-font-weight--800"{% endif %}>{{- title -}}</h2>
+    {%- endif -%}
+    <p>
+        {{ blockContent }}
+    </p>
+    {%- if button_link != '' -%}
+    <br />
+    <a href="{{- button_link -}}" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1">
+        <strong>{{- button_title -}}</strong>
+    </a>
+    {%- endif -%}
+</div>
+
+{% comment %}
+************************ PARAMETERS ********************
+{% endcomment %}
+title -
+button_link  -
+button_title - Register
+bold - yes
