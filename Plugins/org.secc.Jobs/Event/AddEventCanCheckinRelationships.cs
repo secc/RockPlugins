@@ -2,21 +2,25 @@
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
-
+using System.Web.UI.HtmlControls;
 using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Plugin.HotFixes;
 using Rock.Web.Cache;
 
 namespace org.secc.Jobs.Event
 {
-    [TextField( "Job Configuration Json",
-        Description = "Job Configuration JSON Object",
+    [RegistrationInstanceField("Registration Instance",
+        Description = "The registration instance to set relationships for",
         IsRequired = true,
-        DefaultValue = "",
-        Order = 0 )]
+        Key = "RegistrationInstance",
+        Order = 0)]
+    [DateTimeField("Expiration Date Time", 
+        Description = "When the relationship should expire.",
+        IsRequired = true)]
     [DisplayName("Create Event Check In Relationships")]
     [DisallowConcurrentExecution]
     public class AddEventCanCheckinRelationships : IJob
@@ -27,8 +31,8 @@ namespace org.secc.Jobs.Event
         {
             JobDataMap dataMap = context.JobDetail.JobDataMap;
 
-            var configurationJson = dataMap.GetString( "JobConfigurationJson" );
-            var config = configurationJson.FromJsonOrNull<EventCheckinConfiguration>();
+            var registrationInstanceGuid = dataMap.GetString( "RegistrationInstance" ).AsGuid();
+            var expirationDateTime = dataMap.GetString( "ExpirationDateTime" ).AsDateTime();
 
             using (var rockContext = new RockContext())
             {
@@ -39,7 +43,7 @@ namespace org.secc.Jobs.Event
                 var registrationInstance = new RegistrationInstanceService( rockContext )
                     .Queryable().AsNoTracking()
                     .Include(r => r.Registrations)
-                    .Where( r => r.Id == config.RegistrationInstanceId )
+                    .Where( r => r.Guid == registrationInstanceGuid )
                     .FirstOrDefault();
 
                 if(registrationInstance == null)
@@ -53,9 +57,9 @@ namespace org.secc.Jobs.Event
                     {
                         return;
                     }
-                    var registeredByPerson = personAliasService.GetByAliasId( registration.PersonAliasId.Value );
+                    var registeredByPerson = registration.PersonAlias.Person;
 
-                    var familyMemberPersonIds = personService.GetFamilyMembers( registeredByPerson.Id, false, false )
+                    var familyMemberPersonIds = personService.GetFamilyMembers( registeredByPerson.Id, true, false )
                         .Select( m => m.PersonId )
                         .ToList();
 
@@ -69,7 +73,15 @@ namespace org.secc.Jobs.Event
                     {
                         if(!familyMemberPersonIds.Contains(registrant.PersonAlias.PersonId))
                         {
-                            BuildCanCheckinRelationship( registeredByPerson.Id, registrant.PersonAlias.PersonId, config.ExpirationDate );
+                            try
+                            {
+                                BuildCanCheckinRelationship( registeredByPerson.Id, registrant.PersonAlias.PersonId, expirationDateTime.Value );
+                            }
+                            catch (NullReferenceException)
+                            {
+                                //could not validate group
+                            }
+                            
 
                         }
                     }
@@ -84,24 +96,140 @@ namespace org.secc.Jobs.Event
             var knownRelationshipGroupType = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS.AsGuid() );
 
             var ownerRole = knownRelationshipGroupType.Roles.FirstOrDefault( r => r.Guid == ownerRoleGuid );
+            var regularCheckinRole = knownRelationshipGroupType.Roles.FirstOrDefault( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_KNOWN_RELATIONSHIPS_CAN_CHECK_IN.AsGuid() );
+
             var eventCanCheckinRole = knownRelationshipGroupType.Roles.FirstOrDefault( r => r.Guid == EventCanCheckinRelationshipGuid.AsGuid() );
             var eventAllowCheckinByRole = knownRelationshipGroupType.Roles.FirstOrDefault( r => r.Guid == EventAllowCheckinByRelationshipGuid.AsGuid() );
 
+
+
+            var currentTime = RockDateTime.Now;
             using (var relationshipContext = new RockContext())
             {
                 var groupService = new GroupService( relationshipContext );
                 var groupMemberService = new GroupMemberService( relationshipContext );
 
-                
+                var registeredByGroupId = groupMemberService.Queryable()
+                    .Where( m => m.PersonId == registeredByPersonId )
+                    .Where( m => m.GroupRoleId == ownerRole.Id )
+                    .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
+                    .Where( m => m.Group.IsActive )
+                    .Select( m => m.GroupId )
+                    .FirstOrDefault();
+
+                var registrantGroupId = groupMemberService.Queryable()
+                    .Where( m => m.PersonId == registrantPersonId )
+                    .Where( m => m.GroupRoleId == ownerRole.Id )
+                    .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
+                    .Where( m => m.Group.IsActive )
+                    .Select( m => m.GroupId )
+                    .FirstOrDefault();
+
+                if(registeredByGroupId == 0 )
+                {
+                    registeredByGroupId = CreateKnownRelationshipGroup( knownRelationshipGroupType, registeredByPersonId );
+                }
+
+                if(registrantGroupId == 0)
+                {
+                    registrantGroupId = CreateKnownRelationshipGroup( knownRelationshipGroupType, registrantPersonId );
+                }
+
+                var canCheckin = groupMemberService.Queryable()
+                    .Where( m => m.GroupId == registeredByGroupId )
+                    .Where( m => m.GroupMemberStatus == GroupMemberStatus.Active )
+                    .Where( m => m.PersonId == registrantPersonId )
+                    .Where( m => m.GroupRoleId == regularCheckinRole.Id || m.GroupRoleId == eventCanCheckinRole.Id )
+                    .Any();
+
+                if(canCheckin)
+                {
+                    return;
+                }
+
+                var checkinGroupMember = new GroupMember
+                {
+                    PersonId = registrantPersonId,
+                    GroupId = registeredByGroupId,
+                    GroupMemberStatus = GroupMemberStatus.Active,
+                    GroupRoleId = eventCanCheckinRole.Id,
+                    IsSystem = false,
+                    DateTimeAdded = currentTime,
+                    IsArchived = false,
+
+                };
+                groupMemberService.Add( checkinGroupMember );
+                var allowCheckinGroupMember = new GroupMember
+                {
+                    PersonId = registeredByPersonId,
+                    GroupId = registrantGroupId,
+                    GroupMemberStatus = GroupMemberStatus.Active,
+                    GroupRoleId = eventAllowCheckinByRole.Id,
+                    IsSystem = false,
+                    DateTimeAdded = currentTime,
+                    IsArchived = false
+                };
+                groupMemberService.Add( allowCheckinGroupMember );
+
+                relationshipContext.SaveChanges();
+
+                checkinGroupMember.LoadAttributes( relationshipContext );
+                checkinGroupMember.SetAttributeValue( "ExpirationDateTime", expirationDate );
+                checkinGroupMember.SaveAttributeValue( "ExpirationDateTime", relationshipContext );
+
+                allowCheckinGroupMember.LoadAttributes( relationshipContext );
+                allowCheckinGroupMember.SetAttributeValue( "ExpirationDateTime", expirationDate );
+                allowCheckinGroupMember.SaveAttributeValue( "ExpirationDateTime", relationshipContext );
+
+                relationshipContext.SaveChanges();
+
             }
         }
 
-
-        public class EventCheckinConfiguration
+        private int CreateKnownRelationshipGroup(GroupTypeCache gt, int personId)
         {
-            public int WorkflowId { get; set; }
-            public int RegistrationInstanceId { get; set; }
-            public DateTime ExpirationDate { get; set; }
+            var ownerRole = gt.Roles
+                .Where( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_KNOWN_RELATIONSHIPS_OWNER.AsGuid() )
+                .FirstOrDefault();
+
+            using (var groupContext = new RockContext())
+            {
+                var currentTime = RockDateTime.Now;
+                var groupService = new GroupService( groupContext );
+                var groupMemberService = new GroupMemberService( groupContext );
+
+                var group = new Group
+                {
+                    IsSystem = false,
+                    GroupTypeId = gt.Id,
+                    Name = "Known Relationships",
+                    IsActive = true,
+                    IsArchived = false,
+                    IsPublic = false,
+                    IsSecurityRole = false,
+                    Order = 0
+
+                };
+                groupService.Add( group );
+                groupContext.SaveChanges();
+
+                var groupMember = new GroupMember
+                {
+                    IsSystem = false,
+                    IsNotified = false,
+                    IsArchived = false,
+                    GroupId = group.Id,
+                    PersonId = personId,
+                    GroupRoleId = ownerRole.Id,
+                    GroupMemberStatus = GroupMemberStatus.Active,
+                    DateTimeAdded = currentTime
+                };
+                groupMemberService.Add( groupMember );
+                groupContext.SaveChanges();
+
+                return group.Id;
+            }
         }
+
     }
 }
