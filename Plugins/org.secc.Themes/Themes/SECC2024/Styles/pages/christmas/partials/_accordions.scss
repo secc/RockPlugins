@@ -1,0 +1,88 @@
+/* --------------------------------------------------
+	6.0 FAQ - Accordions
+-------------------------------------------------- */
+
+
+
+.accordions-1 {
+
+	.panel {
+		border-radius: 0;
+		border: none;
+		box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.2);
+
+		.panel-heading {
+			position: relative;
+
+			&::before {
+			  position: absolute;
+			  top: 50%;
+			  right: 7%;
+			  margin: -5px 0 0;
+			  display: inline-block;
+			  width: 24px;
+			  height: 11px;
+			  content: "";
+			  background: transparent url("/Content/ExternalSite/arrow_select.png") center no-repeat;
+			  border: none;
+			}
+
+            cursor: pointer;
+			background: rgba($color-4, 1);
+			padding: 25px 14% 25px 25px;
+			border: none;
+			border-radius: 0;
+			text-align: left;
+
+			.panel-title {
+				@extend h6;
+
+				a {
+
+					&:focus {
+						text-decoration: none;
+					}
+				}
+			}
+		} // .panel-heading
+
+		.panel-collapse {
+
+			.panel-body {
+				border: none;
+                border-radius: 0;
+				border-top: 1px solid rgba($color-1, 0.7);
+				background: rgba($color-4, 0.9);
+				padding: 30px 50px;
+				text-align: left;
+			} // .panel-body
+		} // .panel-collapse
+	} // .panel
+
+	.panel+.panel {
+		margin-top: 20px;
+	}
+} // .accordions-1
+
+.faq-contact-links {
+	color: rgba($DarkGrayColor, 0.8);
+	font-size: .9em;
+
+	i {
+		color: rgba($DarkGrayColor, 0.8);
+	}
+
+	a {
+		color: $DarkGrayColor;
+		padding-bottom: 4px;
+		border-bottom: 1px solid rgba(17,17,17, 0);
+		transition: all .3s;
+
+
+		&:hover {
+			color: $DarkGrayColor;
+			padding-bottom: 1px;
+			border-bottom: 1px solid rgba(17,17,17, 1);
+		}
+	}
+}

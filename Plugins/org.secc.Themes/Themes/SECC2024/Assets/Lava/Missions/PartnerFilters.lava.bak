@@ -1,0 +1,193 @@
+{% comment %}
+    ******* Filtering System for Partner Items *****
+{% endcomment %}
+
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign campusIdSize = pageParamCampusId | Size %}
+{% assign pageParamCampus = 'Global' | PageParameter:'campus' | Downcase | Replace:"-","" %}
+{% assign selectedCampus = null %}
+{% for campus in Campuses %}
+	{% assign campusName = campus.Name | Downcase | Replace:" ",""  %}
+	{% if campus.Id == pageParamCampusId or campusName == pageParamCampus %}
+		{% assign selectedCampus = campus %}
+		{% break %}
+	{% endif %}
+{% endfor %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12 col-md-12" >
+            <div class="filterbox">
+
+                <div class="row">
+                    <div class="col-xs-12 text-center">
+                        <h3 class="g-font-weight--600">Local Missions Partners</h3>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-12 col-md-offset-3 col-md-3 g-padding-y-40--md" >
+                        <select class="select2-campuses" name="campus" value-group="campus">
+                          <option></option>
+                          <option value="all" data-shortcode="SE">All Campuses</option>
+                          {% for campus in Campuses %}
+                          	{% assign publicCampus = campus | Attribute:'Public' %}
+                          	{% if publicCampus == 'Yes' %}
+                        <option value=".campus-{{ campus.Name | Trim | ToCssClass }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | ToCssClass }}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
+                            {{ campus.Name }}
+                          </option>
+                          	{% endif %}
+                          {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-xs-12 col-md-3 g-padding-y-20--xs g-padding-y-40--sm" >
+                    <select class="select2-ministries" name="ministry" value-group="ministry">
+                        <option></option>
+                        <option value="all">All Causes</option>
+                        {% assign ministrySlug = 'Global' | PageParameter:'ministry' | Downcase  %}
+                        {% definedvalue where:'DefinedTypeId==278' %}
+                            {% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
+                            {% for definedValue in definedvalueItemsSorted %}
+                									<option value=".cause-{{ definedValue.Value | ToCssClass }}" data-cause="{{definedValue.Value}}" {% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
+                            {% endfor %}
+                        {% enddefinedvalue %}
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hide {
+    display: none;
+}
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #000000;
+}
+</style>
+
+<script src="/Themes/SECC2019/Scripts/readmore.min.js"></script>
+
+<script>
+$(document).ready(function() {
+
+    //loadQueryStringParam();
+
+    ///////////////////////////////////////////////////
+    /////////////// Initialize Select2 ////////////////
+    ///////////////////////////////////////////////////
+
+    $('.select2-campuses').select2({
+      placeholder: 'Select a Campus'
+    });
+/*
+    $('.select2-campuses').on('select2:select', function (e) {
+        // prevent from submiting default form actionn
+        e.preventDefault();
+        // pull in lava ID
+        var data = e.params.data;
+        //runCampusFilters(data);
+
+        // get filter value from option value
+        var filterValue = this.value == "all" ? "" : this.value;
+        //console.log(filterValue);
+
+        // use filterFn if matches value
+        $grid.isotope({ filter: filterValue });
+
+    });
+*/
+    $('.select2-ministries').select2({
+      placeholder: 'Select a Cause'
+    });
+/*
+    $('.select2-ministries').on('select2:select', function (e) {
+        // prevent from submiting default form actionn
+        e.preventDefault();
+        // pull in lava ID
+        var data = e.params.data;
+//        runCampusFilters(data);
+
+        // get filter value from option value
+        var filterValue = this.value == "all" ? "" : this.value;
+        //console.log(filterValue);
+
+        // use filterFn if matches value
+        $grid.isotope({ filter: filterValue });
+    });
+*/
+
+// store filter for each group
+var filters = {};
+
+$('.filterbox').on( 'change', function( event ) {
+  var $select = $( event.target );
+  // get group key
+  var filterGroup = $select.attr('value-group');
+  // set filter for group
+  filters[ filterGroup ] = event.target.value == "all" ? "" : event.target.value;
+  // combine filters
+  var filterValue = concatValues( filters );
+  // set filter for Isotope
+  console.log(filterValue);
+  $grid.isotope({ filter: filterValue });
+});
+
+// flatten object by concatting values
+function concatValues( obj ) {
+  var value = '';
+  for ( var prop in obj ) {
+    value += obj[ prop ];
+  }
+  return value;
+}
+
+	if (Modernizr.mq('only all and (max-width: 720px)')) {
+		// don't use isotope or readmore on mobile - it's heavy on JS (breaks old iphones)
+		$('.isotope_wrap').addClass('is-showing-items');
+	} else {
+		// hide descriptions
+		$('.readmore_dates').readmore({
+			speed: 200,
+			lessLink: '<a class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
+			moreLink: '<a class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
+			embedCSS: false,
+			collapsedHeight: 0,
+			beforeToggle: function(tr, el, ex) {
+				$(el).show();
+			},
+			afterToggle: function(trigger, element, expanded) {
+				$('.isotope_wrap').isotope(isoOptions); // re-initialize
+			}
+		});
+
+		var isoOptions = {
+			itemSelector: '.isotope_item',
+			percentPosition: true,
+			layoutMode: 'fitRows'
+		};
+		// Re-Initialize Isotope
+	    var $grid = $('.isotope_wrap').isotope(isoOptions);
+
+		// reveal all items after init
+		var $items = $grid.find('.isotope_item');
+		$grid.imagesLoaded().progress( function() {
+			$grid.addClass('is-showing-items').isotope('layout');
+		});
+		$grid.isotope( 'revealItemElements', $items );
+	}
+
+
+    // re-init jarallax
+    jarallax(document.querySelectorAll('.jarallax'), {
+        disableParallax: /iPad|iPhone|iPod|Android/,
+        disableVideo: /iPad|iPhone|iPod|Android/
+    });
+});
+
+
+</script>

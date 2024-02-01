@@ -1,0 +1,82 @@
+<div id="LocationsMenu">
+		<div class="container">
+			<div class="row">
+				<div class="col-sm-4 col-lg-3 visit-us">
+					<h1 class="copy">Visit Us</h1>
+					<ul class="list-unstyled">
+						<li><a href="/blankenbaker/"><span class="se-logo stroke blankenbaker">920</span></a></li>
+						<li><a href="/indiana/"><span class="se-logo stroke indiana">IN</span></a></li>
+						<li><a href="/crestwood/"><span class="se-logo stroke crestwood">CW</span></a></li>
+						<li><a href="/southwest/"><span class="se-logo stroke southwest">SW</span></a></li>
+						<li><a href="/lagrange/"><span class="se-logo stroke lagrange">LA</span></a></li>
+						<li><a href="/elizabethtown/"><span class="se-logo stroke elizabethtown">ET</span></a></li>
+					</ul>
+					<a href="/locations.php">Find a location near you</a>
+				</div>
+				<div class="col-sm-7 col-lg-8 col-sm-offset-1 location-rotator">
+					<h1 class="copy">Locations &amp; Service Times</h1>
+					<div class="location-buttons">
+						<button class="se-logo blankenbaker" data-class="blankenbaker" data-target=".location-rotator">920</button>
+						<button class="se-logo" data-class="indiana" data-target=".location-rotator">IN</button>
+						<button class="se-logo" data-class="crestwood" data-target=".location-rotator">CW</button>
+						<button class="se-logo" data-class="southwest" data-target=".location-rotator">SW</button>
+						<button class="se-logo" data-class="lagrange" data-target=".location-rotator">LA</button>
+            <button class="se-logo" data-class="elizabethtown" data-target=".location-rotator">ET</button>
+					</div>
+
+					{% for campus in Campuses %}
+    					{% assign publicCampus = campus | Attribute:'Public' %}
+						{% assign slug = campus | Attribute:'Slug' %}
+						{% if publicCampus == 'Yes' %}
+
+						<div class="campus {{ slug | Downcase }}-info {% if campus.ShortCode == '920' %} active{% endif %}">
+							<div class="campus-map">
+								<a href="https://www.google.com/maps/dir/Current+Location/{{campus.Location.Street1 | | Replace:' ','+' }}+{{campus.Location.City}}+{{campus.Location.State}}+{{campus.Location.PostalCode}}">
+									<img src="/Themes/SECC2014/Assets/img/campuses/{{ campus.ShortCode }}/small-map.png" class="img-responsive" />
+								</a>
+								<a href="https://www.google.com/maps/dir/Current+Location/{{campus.Location.Street1 | | Replace:' ','+' }}+{{campus.Location.City}}+{{campus.Location.State}}+{{campus.Location.PostalCode}}">Get Directions to {{ campus.Name }} Campus</a>
+							</div>
+							<div class="campus-details">
+								<h3>{{ campus.Name }} Campus</h3>
+								<address>
+									{{ campus.Location.Street1 }}<br />
+									{{ campus.Location.City }}, {{ campus.Location.State }} {{ campus.Location.PostalCode }}<br />
+									{{ campus.PhoneNumber }}<br />
+								</address>
+								<h5>{{ campus.Name }} Service Times:</h5>
+								<p>
+									{%assign campusServicesJSON = campus | Attribute:'SiteScheduleInformation' %}
+									{%assign interpreted = false %}
+									{% if campusServicesJSON != "" %}
+										{% assign campusServices = campusServicesJSON | FromJSON %}
+
+										{% for serviceDay in campusServices.adult %}
+											{{serviceDay.day}}:
+											{% assign timesCount = serviceDay.times | Size %}
+
+											{% for times in serviceDay.times %}
+												{{times.time}}{% if (times.interpreted == true %}*{%assign interpreted = true %}{% endif %}
+												{% if (forloop.rindex0 == 0 %}<br />{% break %}
+												{% elseif (forloop.rindex0 == 1 and timesCount > 2) %} &amp;{% else %},{% endif %}
+											{% endfor %}
+
+										{% endfor %}
+
+
+									{% endif %}
+
+									{% if interpreted == true %}<small>*Interpreted for the deaf</small>{% endif %}
+								</p>
+								<p>
+									<a href="/{{slug}}/">Learn more about {{ campus.Name }} Campus</a><br />
+									<!--a href="#">Make this location my default campus</a-->
+								</p>
+							</div>
+						</div>
+						{% endif %}
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+
+	</div>

@@ -1,0 +1,119 @@
+{% assign partnerItemOccurrenceCount = Items | Size %}
+
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% assign pageParamCampus = 'Global' | PageParameter:'Campus' %}
+{% if pageParamCampusId == empty and pageParamCampus != empty and pageParamCampus != null and pageParamCampus != 'allCampuses' %}
+   {% assign pageParamCampus = 'Global' | PageParameter:'campus' %}
+   {% campus where:'Public == true' %}
+       {% for campus in campusItems %}
+           {% assign campusSlug = campus | Attribute: 'Slug' %}
+           {% if campus.Name == pageParamCampus or campusSlug == pageParamCampus %}
+               {% assign pageParamCampusId = campus.Id %}
+           {% endif %}
+       {% endfor %}
+   {% endcampus %}
+{% endif %}
+
+<style>
+.readmore_dates {
+  transition: height 100ms;
+  overflow: hidden;
+  display: none;
+}
+</style>
+
+<div id="partner-results" class="container-fluid">
+
+ <div class="container">
+
+   {% if partnerItemOccurrenceCount == 0 %}
+   <div class="row">
+       <div class="col-xs-12 text-center">
+           <div style="border: 1px solid rgba(32, 30, 29, 0.50); padding: 20px; border-radius: 5px;">
+               <p style="margin: 0px;">There are no partners for this ministry at this time. Please try another campus or ministry.</p>
+           </div>
+       </div>
+   </div>
+   {% endif %}
+
+   <div class="isotope_wrap">
+       {% for Item in Items limit:limitPartners %}
+          {%- assign filterCampus = Item | Attribute: 'PartnerCampus' | Split:',' -%}
+          {%- assign filterCause = Item | Attribute: 'PartnerCause' | Split:',' -%}
+               <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar{% for class in filterCampus %} campus-{{ class | Trim | ToCssClass }}{% endfor %}{% for class in filterCause %} cause-{{ class | Trim | ToCssClass }}{% endfor %}">
+                   <div class="clearfix card">
+                       <a href="{{ Item | Attribute:'PartnerURL','RawValue' }}" class='eventCardLink' target="_blank">
+                         {% assign partnerImage = Item | Attribute:'Image', 'RawValue' %}
+                           {% if partnerImage != null and partnerImage != 0 %}
+                           <div class="img-hover">
+                               <img src="/GetImage.ashx?Guid={{ partnerImage }}&w=720&h=380&mode=pad&bgcolor=white&anchor=middlecenter&scale=both&paddingWidth=60" class="event-image img-responsive" onerror="this.style.display='none'">
+                           </div>
+                           {% endif %}
+                       </a>
+
+                       {% assign scheduledDates = eventItemOccurrence.ICalendarContent | Split: 'RRULE' %}
+                       {% assign scheduledNumDates = scheduledDates | Size %}
+                       <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
+
+                                   <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">{{ Item | Attribute:'Location' }}</h6>
+
+                           {% if Item.Title != '' %}
+                               <h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">{{ Item.Title }}</h5>
+                           {% endif %}
+
+                           {% if Item.Content != '' %}
+                           <div class="readmore_dates">
+                               {{ Item.Content }}
+                               <br />
+                           </div>
+                           {% endif %}
+
+                       </div><!-- END: caption -->
+
+                   </div>
+               </div><!-- END: isotope_item -->
+       {% endfor %}
+
+   </div><!-- END: isotope_wrap -->
+
+ </div><!-- END: bootstrap container -->
+
+</div>
+
+<script type="text/javascript">
+   // This function gets called when a pageLoad() function is called from the Filters
+   function InitLoadedRequest(visstring, elem, msg)
+   {
+       // Re-Initialize Isotope
+       var $grid = $('.isotope_wrap').isotope({
+         itemSelector: '.isotope_item',
+         percentPosition: true,
+         layoutMode: 'fitRows'
+       });
+
+       var isoOptions = {
+       itemSelector: '.isotope_item',
+       percentPosition: true,
+       layoutMode: 'fitRows'
+     };
+
+       $grid.imagesLoaded( function() {
+           // Re-Initialize ReadmoreJS
+           $('.readmore_dates').readmore({
+               speed: 200,
+               lessLink: '<a href="#" class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
+           moreLink: '<a href="#" class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
+           embedCSS: false,
+               collapsedHeight: 0,
+               beforeToggle: function(tr, el, ex) {
+                   $(el).show();
+               },
+               afterToggle: function(trigger, element, expanded) {
+                   $('.isotope_wrap').isotope(isoOptions); // re-initialize
+               }
+           });
+           // init Isotope after all images have loaded
+           $grid.addClass('is-showing-items').isotope(isoOptions);
+       });
+   }
+</script>

@@ -1,0 +1,101 @@
+{% comment %}
+//////////////////////////////
+  Include the styles!
+  {% include '/Themes/SECC2024/Assets/Lava/OAuth/TabStyling.lava' %}
+//////////////////////////////
+{% endcomment %}
+<div class="g-bg-color--gray-lightest g-display-block--xs g-width-100-percent--xs clearfix">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-md-4 col-md-offset-4 g-padding-t-40--xs">
+                <h2 class="g-font-family--secondary text-center g-padding-b-10--xs">Sign In</h2>
+                <h5 class="text-center">using any of the following services:</h5>
+                <br />
+            </div>
+        </div>
+    </div>
+    <div class="material-tabs">
+        <div class="tabbed-section__selector">
+            <a class="tabbed-section__selector-tab-1 active" >
+                Sign In
+            </a>
+            <a class="tabbed-section__selector-tab-2" >
+                <i class="fas fa-comment-dots"></i> Mobile
+            </a>
+            <span class="tabbed-section__highlighter"></span>
+        </div>
+        <div class="tabbed-section-1 visible">
+            <div class="row">
+                <div class="col-md-12">
+                    {% comment %}
+                    //////////////////////////////
+                      OAuth Rock Block Goes Here
+                    //////////////////////////////
+                    {% endcomment %}
+                </div>
+            </div>
+        </div>
+
+        <div class="tabbed-section-2 hidden">
+            <div class="row">
+                    {% comment %}
+                    ////////////////////////////
+                      SMS Rock Block Goes Here
+                    ////////////////////////////
+                    {% endcomment %}
+            </div>
+        </div>
+    </div><!-- End material-tabs -->
+
+    {% comment %}
+    The code below is for any OAuth Buttons we might include in the future.
+    ////////////////////////////
+    <div class="container g-padding-b-150--xs" style="clear:both;">
+        <div class="row">
+            <div class="col-xs-12">
+
+                <div style="margin: 0 auto; max-width: 480px; padding: 0px 10px;">
+                    <h5 class="text-center">or</h5>
+                    <br />
+
+                    <div class="google-btn g-margin-b-20--xs">
+                      <div class="google-icon-wrapper">
+                        <img class="google-icon-svg" src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"/>
+                      </div>
+                      <p class="btn-text"><b>Sign in with Google</b></p>
+                    </div>
+
+                    <div class="google-btn g-margin-b-20--xs">
+                      <div class="google-icon-wrapper">
+                        <img class="google-icon-svg" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Microsoft_Office_logo.png/202px-Microsoft_Office_logo.png"/>
+                      </div>
+                      <p class="btn-text"><b>Sign in with Office 365</b></p>
+                    </div>
+
+                    <div class="google-btn g-margin-b-20--xs">
+                      <div class="google-icon-wrapper">
+                        <img class="google-icon-svg" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/1009px-Apple_logo_black.svg.png"/>
+                      </div>
+                      <p class="btn-text"><b>Sign in with Apple</b></p>
+                    </div>
+
+                    <div class="google-btn g-margin-b-20--xs">
+                      <div class="google-icon-wrapper">
+                        <img class="google-icon-svg" src="https://upload.wikimedia.org/wikipedia/commons/c/cd/Facebook_logo_%28square%29.png"/>
+                      </div>
+                      <p class="btn-text"><b>Sign in with Facebook</b></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    ////////////////////////////
+    {% endcomment %}
+
+</div> <!-- End Background Color -->
+{% comment %}
+//////////////////////////////
+  Include the JS!
+  {% include '/Themes/SECC2024/Assets/Lava/OAuth/TabJS.lava' %}
+//////////////////////////////
+{% endcomment %}

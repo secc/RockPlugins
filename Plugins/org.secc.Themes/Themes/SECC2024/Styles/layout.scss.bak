@@ -1,0 +1,581 @@
+@import '_lib/init';
+@import '_lib/type';
+/* @import '_lib/site-navigation'; */
+
+/******************************************************
+* LAYOUT.SCSS
+*	Main site layout styles go in this file.
+*	Iclude styles for the site header and footer,
+*	main body and sidebars, etc.
+*	All styles for components/sections that are used
+*	site wide.
+\******************************************************/
+
+html {
+	text-rendering: optimizeLegibility; // emphasizes legibility over rendering speed and geometric precision
+	-webkit-font-smoothing: antialiased;
+}
+
+#sub-connect-menu {
+	display: none;
+}
+
+#PageCanvas {
+	background: $PrimaryBackground;
+}
+
+#SiteHeader {
+	display: none;
+}
+
+nav.cd-nav ul {
+	font-family: "Ivy Journal", serif;
+	//padding-left: 32px;
+	li a {
+		font-size: 2rem;
+		margin-top: 20px;
+	}
+	li.join-button a {
+		font-size: 1rem;
+		font-family: Inter, sans-serif;
+	}
+	.join-button {
+		margin: 20px;
+	}
+}
+
+.join-button > a {
+	display: inline!important;
+  	border: 1px solid rgba(29, 31, 33, 0.20)!important;
+  	padding: 20px!important;
+  	border-radius: 5px;
+	font-size: 16px;
+}
+
+@include large-desktops {
+	nav.cd-nav ul li a{
+		font-family: Inter, san-serif;
+		font-size: 16px!important;
+		margin: 0;
+		padding-left: 1.25rem;
+	}
+
+	.join-button {
+		position: absolute;
+		right: 4rem;
+	}
+	nav.cd-nav ul .join-button {
+		margin: 0;
+	}
+
+}
+
+@include hd-displays {
+	nav.cd-nav ul li a{
+		padding-left: 3rem;
+	}
+}
+
+section:not(.parallax),
+#PageBody > section,
+#AdminPageBody > section {
+	position: relative;
+	padding-top: 5em;
+	padding-bottom: 5em;
+	@include phones {
+		padding-top: 2em;
+		padding-bottom: 2em;
+	}
+
+	&#PageHeader {
+		padding-top: 0;
+	}
+	.outline {
+		padding: 2em;
+	    border: 1px solid #efefef;
+	    margin-bottom: 1em;
+	}
+	&.with-header {
+		padding-top: 0;
+		header {
+			margin-bottom: 5em;
+			@include phones { margin-bottom: 2em; }
+			background: $HighlightColor;
+			color: #ffffff;
+			padding: 1em 0;
+			text-align: center;
+
+			h1 {
+				text-transform: uppercase;
+				color: rgba(#fff, 0.4);
+			}
+		}
+	}
+}
+
+#Breadcrumbs, #PageBreadCrumbs {
+	.breadcrumb {
+		background-color: none;
+	}
+	padding: .4em 0;
+	font-size: .9em;
+
+	li {
+		padding: 0;
+		& + li::before { content: "> "; }
+
+		a { color: inherit;}
+	}
+}
+
+nav ul {
+	margin		: 0;
+	padding		: 0;
+	list-style	: none;
+	font-family : $Inter;
+}
+
+
+
+
+#SiteFooter {
+	background: #1D1F21;
+
+	ul {
+		margin-bottom: 0;
+		padding-left: 0;
+		list-style: none;
+
+		ul { margin-left: 1em; }
+
+		& + ul { margin-top: 0.7em; }
+	}	
+
+	section.signoff {
+		//background: $WhiteColor;
+		
+		h3 {
+			color: white;
+			font-size: 16px;
+			font-weight: 600;
+			padding-bottom: 16px;
+		}
+		li, p {
+			color: rgba(#fff, 0.5);
+			font-weight: 400;
+			padding: 8px 0;
+		}
+		li {
+			font-size: 14px;
+		}
+		a {
+			color: rgba(#fff, 0.5);
+		}
+
+		a:hover,
+		a:active {
+			color: #fff;
+		}
+
+		padding-top: 2em;
+		padding-bottom: 2em;
+		font-size: $font-size-24;
+		p {
+			font-size: 16px;
+		}
+		.se-brand-logo {
+			max-width: 300px;
+		}
+		.pull-right {
+			text-align: right;
+			p {
+				font-size: $font-size-24;
+			}
+		}
+		.social {
+			text-align: right;
+			i {
+				font-size: $font-size-60;
+			}
+		}
+		@include phones {
+			.social {
+				text-align: center;
+			}
+			.pull-left,
+			.pull-right {
+				float: none !important;
+				text-align: center;
+			}
+		}
+	}
+
+	#GetInTouch {
+		width: 100%; 
+		height: 100%; 
+		padding: 48px; 
+		background: rgba(0, 0, 0, 0.15); 
+		border-radius: 16px; 
+		justify-content: space-between; 
+		align-items: flex-start; 
+		display: inline-flex
+
+		div {
+			flex-direction: column; justify-content: center; align-items: flex-start; gap: 16px; display: inline-flex
+		}
+	}
+
+	.git-container {
+		width: 100%;
+		height: 100%;
+		padding: 48px;
+		background: rgba(0, 0, 0, 0.15);
+		border-radius: 16px;
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		@include tablets {
+			& {
+				align-items: center;
+			}
+		}
+		@include phones {
+			& {				
+				align-items: center;
+				flex-direction: column;
+				justify-content: space-between;
+			}
+		}
+	}
+	
+	.text-section {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: flex-start;
+		gap: 16px;	
+		@include phones {
+			& {
+				align-items: center;
+			}
+		}
+	}
+	
+	.title {
+		color: white;
+		font-size: 20px;
+		font-family: 'Inter', sans-serif;
+		font-weight: 600;
+		line-height: 30px;
+		word-wrap: break-word;
+	}
+	
+	.subtitle {
+		opacity: 0.50;
+		color: white;
+		font-size: 16px;
+		font-family: 'Inter', sans-serif;
+		font-weight: 400;
+		line-height: 24px;
+		word-wrap: break-word;
+	}
+	
+	.contact-section {
+		display: flex;
+		justify-content: flex-start;
+		align-items: flex-start;
+		gap: 15px;
+		@include mobile-devices {
+			& {
+				flex-direction: column;
+			}
+		}
+
+		@include phones {
+			& {
+				align-items: center;				
+			}
+		}
+	}
+	
+	.contact-item {
+		padding: 8px 20px;
+		border-radius: 4px;
+		border: 1px rgba(255, 255, 255, 0.30) solid;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 8px;
+		@include phones {
+			& {
+				text-align: center;
+				width: 100%;
+			}
+		}
+	}
+	
+	.label {
+		color: white;
+		font-size: 16px;
+		font-family: 'Inter', sans-serif;
+		font-weight: 600;
+		line-height: 24px;
+		word-wrap: break-word;
+	}
+	
+	.value {
+		color: #8E8F90;
+		font-size: 16px;
+		font-family: 'Inter', sans-serif;
+		font-weight: 400;
+		line-height: 24px;
+		word-wrap: break-word;
+	}
+
+	.social-icons a {
+		color: white!important;
+		font-size: $font-size-32;
+		padding: 0 1em;
+		@include mobile-devices {
+			padding: 0 0.5em;			
+		}
+		@include small-desktops {
+			padding: 0 0.5em;			
+		}
+	}
+
+	.footer-links {
+		display: flex;
+		flex-direction: row-reverse;
+		justify-content: space-between;
+		@include mobile-devices {
+			align-items: center;
+			flex-direction: column;
+		}
+	}
+
+	.fine-print {
+		align-items: flex-start;
+		display: flex;
+		flex-direction: row-reverse;
+		font-size: 14px;
+		@include phones {
+			align-items: center;
+			flex-direction: column;
+		}
+		
+	}
+
+	.legal {
+		display: flex;
+		a {
+			padding-left: 1em;
+		}
+		@include phones {
+			align-items: center;
+			flex-direction: column;
+		}
+	}
+	
+}
+
+.secc-content {
+	width: 100%;
+	//height: 100%;
+	//min-height: 800px;
+	overflow-x: auto;
+	-webkit-overflow-scrolling:touch;
+
+	iframe {
+		width: 100%;
+		border: none;
+	}
+}
+#PageBody > .secc-content {
+	margin-top: 2.5em;
+}
+
+#PageHeader  {
+	color: white;
+
+	@include non-phones {
+		min-height: 360px;
+	}
+
+	header {
+		margin: 4em 0 5em 0;
+		text-align: center;
+		@include tablets {
+			margin: 5em 0 6em 0;
+		}
+		@include phones {
+			margin: 2em 0 2.5em 0;
+		}
+		h1 {
+			font-size: 7em;
+			margin-left: -40%;
+			@include tablets {
+				font-size: 6em;
+				margin-left: -50%;
+			}
+			@include phones {
+				margin: 0 auto;
+				font-size: 5em;
+			}
+		}
+	}
+
+	.next-info {
+	    color: black;
+	    font-size: .9em;
+	    font-family: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
+	    font-weight: 700;
+	    -webkit-font-smoothing: antialiased;
+	    -moz-osx-font-smoothing: grayscale;
+	    position: absolute;
+	    width: 30%;
+	    height: 100%;
+	    right: 0;
+	    top: 0;
+	    overflow: visible;
+	    background: rgba(255, 255, 255, 0.8);
+		padding: 1.5em;
+		img {
+			margin: 0 auto;
+			width: 100%;
+			max-width: 200px;
+		}
+		.mobile-intro {
+			display: none;
+		}
+
+		@include large-desktops {
+			width: 25%;
+		}
+
+		@include tablets {
+			width: 46%;
+			.description {
+				display: inline;
+			}
+		}
+
+		@include phones {
+			position: relative;
+			width: 100%;
+			float: none;
+			text-align: left;
+
+			img {
+				margin: 0;
+				float: left;
+				width: 80%;
+				max-width: 100px;
+			}
+			.mobile-intro {
+				display: inline;
+				text-align: right;
+			}
+			.description {
+				display: none;
+			}
+		}
+	}
+
+	&.parallax {
+		/* Set a specific height */
+	    //height: 500px;
+
+	    /* Create the parallax scrolling effect */
+		z-index: 0;
+        position: relative;
+	    background-attachment: fixed;
+	    background-position: center;
+	    background-repeat: no-repeat;
+	    background-size: cover;
+		-webkit-background-size: cover; /* safari may need this */
+		-moz-background-size: cover;
+        -o-background-size: cover;
+		box-sizing: content-box;
+
+		/* Preserve aspet ratio */
+		min-width: 100%;
+		min-height: 100%;
+
+		@include phones {
+			font-size: 0.7em;
+			// background:
+			// 	/* top, transparent red, faked with gradient */
+			//     linear-gradient(
+			//       rgba(0, 0, 0, 0.45),
+			//       rgba(0, 0, 0, 0.45)
+			//     ),
+			// 	/* The image used */
+			// 	url('/_/img/events/events_cover_sm.jpg') no-repeat 50% top;
+	    }
+		h1 {
+			font-size: 6em;
+			text-transform: uppercase;
+			padding: 0.2em 0;
+			@include tablets {
+				font-size: 5em;
+				padding: 0.1em 0;
+			}
+			@include phones {
+				font-size: 4em;
+			}
+		}
+	}
+}
+
+/*********************************************************************
+*  PHONES
+*  ======
+*
+*   Styles in this section apply to phones and other small devices
+**********************************************************************/
+
+@include phones {
+	#DocumentWrapper {
+		position	: absolute;
+		width		: 100%;
+		height		: 100%;
+	}
+
+	/*#MobileNav {
+		position	: absolute;
+		top			: 0px;
+		left		: 0px;
+		width		: $MobileMenuWidth;
+		height		: 100%;
+		overflow-y	: scroll;
+		z-index		: 1;
+		background	: $SiteNavBackground;
+		color 		: $SiteNavColor;
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
+
+	#MegaMenus {
+		display: none !important;
+	}*/
+
+	#PageCanvas {
+		position	: absolute;
+		top			: 0px;
+		left		: 0px;
+		width		: 100%;
+		min-height	: 100%;
+		z-index		: 2;
+
+		@include Transition(left 500ms ease-out);
+		@include BoxShadow(-2px, 0px);
+
+		/*body.menu-open & {
+			left	: $MobileMenuWidth;
+			position: fixed;
+		}*/
+	}
+}

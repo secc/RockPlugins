@@ -1,0 +1,40 @@
+{% if campusesParam != null %}
+
+    {% if campusesInfo != null %}
+    <section class="g-padding-t-100--xs">
+        <div class="clearfix g-padding-t-0--xs g-padding-x-150--md">
+            <div class="row">
+                <div class="col-xs-12">
+                    {{ campusesInfo }}
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif%}
+
+    <section class="g-padding-t-50--xs">
+        {[ wow animate:'fadeIn' duration:'.8s' ]}
+        <ul class="list-inline clearfix g-padding-t-0--xs g-padding-b-150--xs g-padding-x-150--md text-center g-margin-x-auto--xs">
+
+            {% assign campusesSorted = Campuses | Sort:'Order','Asc' %}
+            {% for campus in campusesSorted %}
+                {% assign publicCampus = campus | Attribute:'Public' %}
+                {% assign slug = campus | Attribute:'Slug' %}
+                {% if publicCampus == 'Yes' %}
+                    {% assign CampusImageThumb = campus | Attribute:'CampusThumbnail','Object' %}
+                    <li>
+                        <div class="g-padding-b-60--xs">
+                            <a class="text-center" href="/location/{{slug}}{{ campusesParam }}">
+                                <img src="/GetImage.ashx?Guid={{ CampusImageThumb.Guid }}" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                                <br />
+                                <h5 class="g-font-weight--700">{{ campus.Name }}</h5>
+                            </a>
+                        </div>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+        </ul>
+        {[ endwow ]}
+    </section>
+{% endif %}

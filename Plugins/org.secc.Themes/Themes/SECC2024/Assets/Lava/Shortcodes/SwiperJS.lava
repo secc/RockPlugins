@@ -1,0 +1,122 @@
+{%- assign id = uniqueid -%}
+{{ '/Themes/SECC2024/Scripts/swiperjs/swiper-bundle.min.css' | AddCssLink }}
+{{ '/Themes/SECC2024/Scripts/swiperjs/swiper-bundle.min.js' | AddScriptLink }}
+
+<style>
+    .swiper-container-{{id}} {
+      width: 100%;
+      height: 100%;
+    }
+    .swiper-container-{{id}} .swiper-btn {
+        background-color: white;
+        background-image: none;
+        border-radius: 50%;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        color: black;
+        height: 6rem;
+        width: 6rem;
+        box-shadow: 0 6px 8px 0 rgba(0,0,0,.2);
+        opacity: 1;
+        transition: opacity .4s cubic-bezier(.38,.41,.27,1),transform .2s cubic-bezier(.235,0,.05,.95);
+    }
+    .swiper-container-{{id}} .swiper-button-next.swiper-button-disabled,
+    .swiper-container-{{id}} .swiper-button-prev.swiper-button-disabled {
+        opacity: 0;
+        cursor: auto;
+        pointer-events: none;
+    }
+    .swiper-container-{{id}} .swiper-button-next::after {
+        content: "\F105";  /* this is your text. You can also use UTF-8 character codes as I do here */
+        font-family: 'FontAwesome';
+        background-image: none;
+        background-repeat: no-repeat;
+        background-size: 100% auto;
+        background-position: center;
+    }
+    .swiper-container-{{id}} .swiper-button-prev::after {
+        content: "\F104";  /* this is your text. You can also use UTF-8 character codes as I do here */
+        font-family: 'FontAwesome';
+        background-image: none;
+        background-repeat: no-repeat;
+        background-size: 100% auto;
+        background-position: center;
+    }
+    @media only screen and (max-width: 600px) {
+        .swiper-container-{{id}} .swiper-btn {
+            display: none;
+        }
+    }
+</style>
+
+<!-- Slider main container -->
+<div class="swiper-container-{{id}} g-padding-y-20--xs">
+    <!-- Additional required wrapper -->
+    <div class="swiper-wrapper">
+
+        {%- for item in items -%}
+        <!-- Slides -->
+        <div class="swiper-slide">
+            {{ item.content }}
+        </div>
+        {%- endfor -%}
+
+    </div>
+
+    <!-- Add Pagination -->
+    <div class="swiper-button-prev swiper-btn text-center g-display-block--xs">
+        <i class="fas fa-angle-left g-center--xs g-font-size-34--xs"></i>
+    </div>
+    <div class="swiper-button-next swiper-btn text-center g-display-block--xs">
+        <i class="fas fa-angle-right g-center--xs g-font-size-34--xs"></i>
+    </div>
+</div>
+<script>
+var swiper = new Swiper('.swiper-container-{{id}}', {
+    slidesPerView: 3.5,
+    freeMode: true,
+    navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+    },
+    mousewheel: {
+     forceToAxis: true
+    },
+    breakpoints: {
+        // when window width is >= 200px, etc.
+        200: {
+            slidesPerView: 1.15,
+            spaceBetween: 20
+        },
+        320: {
+            slidesPerView: 1.15,
+            spaceBetween: 20
+        },
+        480: {
+            slidesPerView: 2.15,
+            spaceBetween: 20
+        },
+        640: {
+            slidesPerView: 2.15,
+            spaceBetween: 20
+        },
+        768: {
+            slidesPerView: 1.15,
+            spaceBetween: 5
+        },
+        970: {
+            slidesPerView: 2.15,
+            spaceBetween: 5
+        },
+        1080: {
+            slidesPerView: 3.15,
+            spaceBetween: 5
+        },
+        1400: {
+            slidesPerView: 4.15,
+            spaceBetween: 5
+        }
+    }
+});
+</script>

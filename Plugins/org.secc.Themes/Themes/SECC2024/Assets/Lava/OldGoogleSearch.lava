@@ -1,0 +1,212 @@
+<br />
+<br />
+<div id="iframeHolder" class="container-fluid" style="white-space: nowrap;">
+    <!-- iFrame gets loaded dynamically here -->
+</div>
+<br />
+<br />
+
+<script type="text/javascript">
+    // grab the value of the search created by the enduser
+    function getParamValue(paramName) {
+        var url = window.location.search.substring(1); //get rid of "?" in querystring
+        var qArray = url.split('&'); //get key-value pairs
+        for (var i = 0; i < qArray.length; i++)
+        {
+            var pArr = qArray[i].split('='); //split key and value
+            if (pArr[0] == paramName)
+                return pArr[1]; //return value
+        }
+    }
+
+    // Create the iFrame to load the search result from Google
+    var iframeSrc = "/content/search/search.html?q=" + getParamValue('q');
+    function createGoogleResultFrame() {
+        frame = document.createElement("iframe");
+        frame.setAttribute("src", iframeSrc);
+        frame.setAttribute("id", "myIFrame");
+        frame.setAttribute("height", "auto");
+        frame.setAttribute("width", "100%");
+        frame.frameBorder = 0;
+        frame.style.width = 100 + "%";
+        frame.style.height = 100 + "vh";
+        frame.style.border = "none";
+        frame.style.margin = "0";
+        document.getElementById("iframeHolder").appendChild(frame);
+    }
+    // init/load iframe
+    createGoogleResultFrame();
+
+    // resize the iframe to eliminate the iframe scrollbar
+    var resizeIFrame = function(event) {
+        var loc = document.location;
+        if (event.origin != loc.protocol + '//' + loc.host) return;
+
+        var myIFrame = document.getElementById('myIFrame');
+        if (myIFrame) {
+            myIFrame.style.height = event.data.h + "px";
+            myIFrame.style.width  = event.data.w + "px";
+        }
+    };
+    if (window.addEventListener) {
+        window.addEventListener("message", resizeIFrame, false);
+    } else if (window.attachEvent) {
+        window.attachEvent("onmessage", resizeIFrame);
+    }
+</script>
+
+{% comment %}
+    include the code below in a separate HTML file - which is the iframe src file (search.html)
+
+    <head>
+    	<link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2014/Styles/pages/connect/init.css"/>
+    	<link rel="stylesheet" href="https://www.southeastchristian.org/_/css/search.css" />
+    	<link rel="stylesheet" href="https://www.southeastchristian.org/_/css/site-styles.css">
+    	<style>
+
+    	h1.section-header {
+    	    margin-bottom: 44px;
+    	}
+    	.section-header {
+    	    position: relative;
+    	    z-index: 1;
+    	    overflow: hidden;
+    	    text-align: center;
+    	    text-transform: uppercase;
+    	    color: #383735;
+    	}
+    	@media (min-width: 768px) {
+    	    .section-header::before {
+    	        margin-left: -53%;
+    	        text-align: right;
+    	    }
+    	}
+
+    	@media (min-width: 768px) {
+    	    .section-header::after, .section-header::before {
+    	        position: absolute;
+    	        top: 51%;
+    	        overflow: hidden;
+    	        width: 50%;
+    	        height: 1px;
+    	        content: '\a0';
+    	        background-color: rgba(160,157,153,.3);
+    	    }
+    	}
+
+    	#InlineSearch{
+    		font-size:1.5em;
+    		width:50%;
+    		margin:0 auto;
+    		display:-webkit-box;
+    		display:-moz-box;
+    		display:-ms-flexbox;
+    		display:-webkit-flex;
+    		display:flex;
+    		-webkit-box-flex-flow:row nowrap;
+    		-moz-box-flex-flow:row nowrap;
+    		-webkit-flex-flow:row nowrap;
+    		-ms-flex-flow:row nowrap;
+    		flex-flow:row nowrap
+    	}
+    	@media (max-width:991px){
+    		#InlineSearch{
+    			width:100%
+    	}
+    	}
+    	#InlineSearch input{
+    		-webkit-box-flex:8 auto;
+    		-moz-box-flex:8 auto;
+    		-webkit-flex:8 auto;
+    		-ms-flex:8 auto;
+    		flex:8 auto;
+    		margin-right:8px
+    	}
+    	#InlineSearch button{
+    		-webkit-box-flex:1 auto;
+    		-moz-box-flex:1 auto;
+    		-webkit-flex:1 auto;
+    		-ms-flex:1 auto;
+    		flex:1 auto;
+    		background:#383735;
+    		padding:2px 8px;
+    		border-radius:4px;
+    		color:#fff
+    	}
+
+    	.glyphicon {
+    	    font-size: .8em;
+    	}
+
+    	.glyphicon {
+    	    position: relative;
+    	    top: 1px;
+    	    display: inline-block;
+    	    font-family: 'Glyphicons Halflings';
+    	    font-style: normal;
+    	    font-weight: 400;
+    	    line-height: 1;
+    	    -webkit-font-smoothing: antialiased;
+    	    -moz-osx-font-smoothing: grayscale;
+    	}
+
+    	</style>
+    </head>
+    <body onload="resizeIFrame();" style="white-space: nowrap;">
+    	<section>
+    		<div class="container">
+    			<h1 class="section-header">Search</h1>
+
+    			<form method="GET" id="InlineSearch">
+    				<input type="text" id="googleQuery" name="q" value="" />
+    				<button onclick="$('#InlineSearch').submit();"><span class="glyphicon glyphicon-search"></span></button>
+    			</form>
+
+    			<gcse:searchresults-only></gcse:searchresults-only>
+    		</div>
+    	</section>
+    	<!-- Page Scripts go here -->
+    	<script>
+    		var q = getParamValue('q');
+    		document.getElementById('googleQuery').value = q;
+
+    		(function() {
+    			var cx = '017451143928353547937:2467z7nsdck';
+    			var gcse = document.createElement('script');
+    			gcse.type = 'text/javascript';
+    			gcse.async = true;
+    			gcse.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//www.google.com/cse/cse.js?cx=' + cx;
+    			var s = document.getElementsByTagName('script')[0];
+    			s.parentNode.insertBefore(gcse, s);
+    		})();
+
+    		function resizeIFrame(){
+    		   if (parent.postMessage) {
+    		     var body   = document.body,
+    		        html   = document.documentElement,
+    		        loc    = document.location,
+    		        height = Math.max(body.scrollHeight, body.offsetHeight,
+    		                          html.clientHeight, html.scrollHeight, html.offsetHeight),
+    		        width  = Math.max(body.scrollWidth, body.offsetWidth, //add a bit of margin
+    		                          html.clientWidth, html.scrollWidth, html.offsetWidth) + 5;
+
+    		      parent.postMessage({ h: height, w: width }, loc.protocol + '//' + loc.host);
+    		   }
+    		}
+
+    		function getParamValue(paramName)
+            {
+                var url = window.location.search.substring(1); //get rid of "?" in querystring
+                var qArray = url.split('&'); //get key-value pairs
+                for (var i = 0; i < qArray.length; i++)
+                {
+                    var pArr = qArray[i].split('='); //split key and value
+                    if (pArr[0] == paramName)
+                        return pArr[1]; //return value
+                }
+            }
+    	</script>
+    </body>
+    </html>
+
+{% comment %}

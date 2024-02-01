@@ -1,0 +1,213 @@
+{% comment %}
+*********************************** NAME ***************************************
+* Simple Image Carousel
+
+*********************************** TagType ************************************
+Block
+
+*********************************** TAG NAME ***********************************
+simpleimagecarousel
+
+*********************************** DESCRIPTION ********************************
+Use this short-code to include a slider of full-width images.
+
+********************************* DOCUMENTATION ********************************
+<p>This is a super simple slider using Ken Wheeler's "Slick Slider." <br>It's responsive, swipable and light weight.<br></p><p><br></p><pre>{[ simpleimagecarousel sliderscount:'4' ]}  {[ simpleimagecarousel ]}   </pre><p><br>Visit Ken's site for the source code and docs. <br><br>Source: https://kenwheeler.github.io/slick/<br></p>
+************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
+{% endcomment %}
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.css' | AddCssLink }}
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick-theme.css' | AddCssLink }}
+{{ 'https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.min.js' | AddScriptLink }}
+<style type="text/css">
+.slick-dots li button:before {
+    color: rgba(0,0,0,0.8);
+}
+.slick-dots li.slick-active button:before {
+    color: black;
+}
+
+.quote b {
+    font-weight: 700;
+}
+
+.quote span.starting-quote:after, .quote span.ending-quote:after {
+	position: absolute;
+	font-size: 45px;
+	padding: 10px;
+	line-height: 1;
+    font-weight: 400;
+	color: black;
+}
+.quote span.starting-quote:after {
+    content: "\201C";
+    margin-top: -20px;
+    margin-left: -30px;
+}
+
+
+.quote span.ending-quote:after {
+    content: "\201D";
+    margin-top: -14px;
+    margin-left: -6px;
+}
+
+.next {
+    cursor: pointer;
+    height: 50px;
+    left: 95%;
+    top: 50%;
+    position: absolute;
+    transform: translateX(-50%) translateY(-50%);
+    transition: transform .1s;
+    width: 50px;
+    z-index: 10;
+}
+.next-top, .next-bottom {
+  background-color: #666;
+  height: 4px;
+  left: -5px;
+  position: absolute;
+  top: 50%;
+  width: 100%;
+}
+.next-top:after, .next-bottom:after {
+  background-color: #fff;
+  content: '';
+  height: 100%;
+  position: absolute;
+  top: 0;
+  transition: all 0.15s;
+}
+.next-top {
+  transform: rotate(45deg);
+  transform-origin: bottom right;
+}
+.next-top:after {
+  left: 100%;
+  right: 0;
+  transition-delay: 0s;
+}
+.next-bottom {
+  transform: rotate(-45deg);
+  transform-origin: top right;
+}
+.next-bottom:after {
+  left: 0;
+  right: 100%;
+  transition-delay: 0.15s;
+}
+.next:active {
+  transform: translateX(-50%) translateY(-50%) scale(0.9);
+}
+
+.prev {
+  cursor: pointer;
+    height: 120px;
+    left: 5%;
+    top: 50%;
+    position: absolute;
+    transform: translateX(-50%) translateY(-50%);
+    transition: transform .1s;
+    width: 50px;
+    z-index: 10;
+}
+.prev-top, .prev-bottom {
+  background-color: #666;
+  height: 4px;
+  left: -5px;
+  position: absolute;
+  top: 50%;
+  width: 100%;
+}
+.prev-top:after, .prev-bottom:after {
+  background-color: #fff;
+  content: '';
+  height: 100%;
+  position: absolute;
+  top: 0;
+  transition: all 0.15s;
+}
+.prev-top {
+  transform: rotate(-45deg);
+  transform-origin: bottom left;
+}
+.prev-top:after {
+  left: 100%;
+  right: 0;
+  transition-delay: 0.15s;
+}
+.prev-bottom {
+  transform: rotate(45deg);
+  transform-origin: bottom left;
+}
+.prev-bottom:after {
+  left: 0;
+  right: 100%;
+  transition-delay: 0s;
+}
+.prev:active {
+  transform: translateX(-50%) translateY(-50%) scale(0.9);
+}
+.no-fouc {
+	display: none;
+}
+@media (min-width: 768px) and (max-width: 900px) {
+    .slick-arrow {
+        display: none !important;
+    }
+}
+@media (max-width: 767px) {
+    .slick-arrow {
+        display: none !important;
+    }
+}
+</style>
+
+{% assign id = uniqueid | Replace: '-','' -%}
+
+<div id="{{ id }}" class="no-fouc">
+    {{ blockContent }}
+</div>
+
+<script>
+//initialise carousel
+function slickCarousel{{ id }}() {
+    $('#{{ id }}').slick({
+      dots: true,
+      infinite: true,
+      autoplay: true,
+      autoplaySpeed: {{ autoplayspeed }},
+      speed: 800,
+      slidesToShow: {{ slidestoshow }},
+      slidesToScroll: {{ slidestoscroll }},
+      adaptiveHeight: {{ adaptiveHeight }},
+      fade: {{ fade }},
+      focusOnSelect: true,
+      arrows: true,
+      nextArrow: '<div class="next"><div class="next-top"></div><div class="next-bottom"></div></div>',
+      prevArrow: '<div class="prev"><div class="prev-top"></div><div class="prev-bottom"></div></div>'
+    });
+    console.log("slider init");
+}
+
+{% comment %}
+  USE THIS FOR CUSTOM ARROWS
+  nextArrow: '<div class="next"><div class="next-top"></div><div class="next-bottom"></div></div>',
+  prevArrow: '<div class="prev"><div class="prev-top"></div><div class="prev-bottom"></div></div>'
+{% endcomment %}
+
+$( document ).ready(function() {
+    $('.no-fouc').removeClass('no-fouc');
+    $(slickCarousel{{ id }}());
+});
+</script>
+{% comment %}
+************************ PARAMETERS ********************
+
+slidestoshow   - 1
+slidestoscroll - 1
+adaptiveHeight - false
+fade           - false
+autoplayspeed  - 553200
+
+{% endcomment %}

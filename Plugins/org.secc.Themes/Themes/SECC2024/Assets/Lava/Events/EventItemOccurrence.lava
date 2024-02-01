@@ -1,0 +1,208 @@
+{% comment %}
+ This file is required to be used within a for loop for EventItemOccurrences (See "Details.lava" file for where its included).
+
+ Example:
+ {% for EventItemOccurrence in Event.EventItemOccurrences %}
+    {% include '~~/Assets/Lava/Events/EventItemOccurrence.lava' %}
+ {% endfor %}
+
+{% endcomment %}
+
+
+
+
+
+{% assign scheduledDates =  EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
+{% assign scheduledNumDates = scheduledDates | Size %}
+
+<div class="caption g-margin-b-40--xs g-padding-x-60--xs g-padding-t-60--xs">
+    {% if EventItemOccurrence.Name != '' %}
+        <h3 class="g-font-family--secondary g-font-size-24--xs g-font-size-32--md g-padding-b-20--xs g-padding-b-25--md g-margin-b-5--xs">{{ Event.Name }}</h3>
+    {% endif %}
+    {% if numOccurrences > 1 and multiCampus == true %}
+        <p class="g-font-size-14-xs g-font-weight--300">
+            <i class="fal fa-church"></i> Multiple Campuses
+        </p>
+    {% else %}
+        <p class="g-font-size-14-xs g-font-weight--300">
+            <i class="fal fa-church"></i> {{ EventItemOccurrence.Campus.Name}} Campus
+        </p>
+    {% endif %}
+    {% assign childcare = EventItemOccurrence | Attribute: 'ChildcareAvailable' %}
+    {% assign list_regs_horiz = EventItemOccurrence | Attribute: 'ListRegistrationHorizontally' %}
+
+    {% assign scheduledDates = EventItemOccurrence.Schedule.iCalendarContent | DatesFromICal:'all' %}
+    {% assign scheduledNumDates = scheduledDates | Size %}
+    {% assign scheduleText =  EventItemOccurrence | Attribute: 'ScheduleText' %}
+    {% assign useOnlyScheduleText = EventItemOccurrence | Attribute: 'UseOnlyScheduleText' %}
+    <p class="g-font-size-14-xs g-font-weight--300">
+        {% if scheduleText != empty %}
+            <i class="fal fa-calendar"></i> {{scheduleText}}
+        {% endif %}
+        {% if useOnlyScheduleText != 'Yes' %}
+            {% if scheduledDates != empty %}
+                {% for scheduledDate in scheduledDates limit:1 %}
+                    <i class="fal fa-calendar"></i> {{  scheduledDate | Date:'dddd, MMM d, @ h:mm tt' }}
+                {% endfor %}
+            {% else %}
+                {% if scheduleText == empty %}
+                    {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+                        <i class="fal fa-calendar"></i> Date and/or time has not been set yet. Please {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} for more details.
+                        {% else %}
+                        <i class="fal fa-calendar"></i> Date and/or time has not been set yet. Please contact for more details.
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        {% elseif useOnlyScheduleText != 'Yes' %}
+            {% if scheduledDates != empty %}
+                {% for scheduledDate in scheduledDates offset:1 %}
+                        {{  scheduledDate | Date:'dddd, MMM d, @ h:mm tt' }}
+                {% endfor %}
+            {% endif %}
+        {% endif %}
+    </p>
+
+    <p class="g-font-size-14-xs g-font-weight--300">
+        <i class="fal fa-map-marker-alt"></i> {% if EventItemOccurrence.Location != '' %}
+            {{ EventItemOccurrence.Location }}
+            {% else %}
+            {% if numOccurrences > 1 and multiCampus == true %}
+                Multiple <br />Campuses
+                {% else %}
+                {{EventItemOccurrence.Campus.Name}} <br />Campus
+            {% endif %}
+        {% endif %}
+    </p>
+
+    {% if childcare == 'Yes' %}
+        <p class="g-font-size-14-xs g-font-weight--300">
+                <span><i class="fal fa-child"></i> Children's Programming</span>
+        </p>
+    {% endif %}
+
+
+    {% if (EventItemOccurrence.ContactPersonAlias.Person.Fullname | Trim != '') or EventItemOccurrence.ContactEmail != '' or EventItemOccurrence.ContactPhone != '' %}
+        <p class="g-font-size-14-xs g-font-weight--300">
+            <i class="fal fa-address-book"></i> Contact: {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}{{ EventItemOccurrence.ContactPersonAlias.Person.FullName }}&emsp;{% endif %}{% if EventItemOccurrence.ContactEmail != '' %}<a href="mailto:{{ EventItemOccurrence.ContactEmail }}">{{ EventItemOccurrence.ContactEmail }}</a>&emsp;{% endif %}{{ EventItemOccurrence.ContactPhone }}
+        </p>
+        {%comment%}
+            <!--Removing notes because no one uses them-->
+
+            <div class="col-xs-12 g-padding-y-20--xs g-padding-x-60--xs">
+
+                <hr class="" style="border-color: rgba(124, 124, 124, 0.68); margin: 0 auto;" />
+
+                <h6 class="g-padding-t-40--xs">
+                    <span class="g-font-weight--800 uppercase">Contact</span><br />
+                    {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+                        {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} <br />
+                    {% endif %}
+                    {% if EventItemOccurrence.ContactEmail != '' %}
+                        <a href="mailto:{{ EventItemOccurrence.ContactEmail }}">{{ EventItemOccurrence.ContactEmail }}</a><br />
+                    {% endif %}
+                    {{ EventItemOccurrence.ContactPhone }}
+                </h6>
+                {% if EventItemOccurrence.Note != '' %}
+                    <h6 class="g-padding-t-20--xs">
+                        <span class="g-font-weight--800 uppercase">Note</span><br />
+                        {{ EventItemOccurrence.Note }}
+                    </h6>
+                {% endif %}
+            </div>
+        {% endcomment %}
+    {% endif %}
+</div><!-- END: caption -->
+
+    <div class="text-center g-margin-b-25--xs g-margin-b-30--md g-margin-x-10--xs">
+        {% assign altLinks = EventItemOccurrence | Attribute: 'AlternativeRegistrations' %}
+
+        {% if list_regs_horiz == 'Yes' and altLinks.size == 2 %}<div class="g-width-100-percent--xs g-hor-divider__solid__t--gray-lighter">{% endif %}
+
+        {% if altLinks != empty %}
+
+            {% for links in altLinks %}
+
+                {% assign linkkv = links | PropertyToKeyValue %}
+
+                {% if list_regs_horiz == 'Yes' and forloop.length == 2 %}
+                    <div class="col-xs-6">
+                        {% if linkkv.Value contains 'http://' or linkkv.Value contains 'https://' %}
+                            <!--  relative URL-->
+                            {[ sebutton title:'{{linkkv.Key}}' href:'{{linkkv.Value}}' type:'light' target:'_blank' addclasses:'g-width-90-percent--xs se-btn--sm' theme:'2024' ]}
+                        {% else %}
+                            {[ sebutton title:'{{linkkv.Key}}' href:'{{linkkv.Value}}' type:'light' target:'' addclasses:'g-width-90-percent--xs se-btn--sm' theme:'2024' ]}
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="g-width-100-percent--xs">
+                        {% if linkkv.Value contains 'http://' or linkkv.Value contains 'https://' %}
+                            <!--  relative URL-->
+                            {[ sebutton title:'{{linkkv.Key}}' href:'{{linkkv.Value}}' type:'light' target:'_blank' addclasses:'g-width-90-percent--xs se-btn--sm' theme:'2024' ]}
+                        {% else %}
+                            {[ sebutton title:'{{linkkv.Key}}' href:'{{linkkv.Value}}' type:'light' target:'' addclasses:'g-width-90-percent--xs se-btn--sm' theme:'2024' ]}
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+            {% endfor %}
+
+            {% else %}
+            {% for linkage in EventItemOccurrence.Linkages %}
+                {% if linkage.RegistrationInstanceId > 0 ) %}
+
+                    {% assign daysTillStartDate = 'Now' | DateDiff:linkage.RegistrationInstance.StartDateTime,'m' %}
+                    {% assign daysTillEndDate = 'Now' | DateDiff:linkage.RegistrationInstance.EndDateTime,'m' %}
+                    {% assign showRegistration = true %}
+                    {% assign registrationMessage = '' %}
+
+                    {% if daysTillStartDate and daysTillStartDate > 0 %}
+                        {% assign showRegistration = false %}
+                        {% capture registrationMessage %}<h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Registration opens on<br> {{ linkage.RegistrationInstance.StartDateTime | Date:'dddd, MMMM d, yyyy' }}</h6>{% endcapture %}
+                    {% endif %}
+
+                    {% if daysTillEndDate and daysTillEndDate < 0 %}
+                        {% assign showRegistration = false %}
+                        {% capture registrationMessage %}<h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">Registration closed on<br> {{ linkage.RegistrationInstance.EndDateTime | Date:'dddd, MMMM d, yyyy' }}</h6>{% endcapture %}
+                    {% endif %}
+
+                    {% if list_regs_horiz == 'Yes' and forloop.length == 2 %}
+                        <div class="col-xs-6">
+                            {% if showRegistration == true %}
+                                {% assign registerButtonTitle = linkage.PublicName %}
+                                {% if registerButtonTitle == '' %}
+                                    {% assign registerButtonTitle = 'Register' %}
+                                {% endif %}
+                                {% if linkage.UrlSlug != empty %}
+                                    {[ sebutton title:'{{ registerButtonTitle }}' href:'{{ RegistrationPage }}/{{ linkage.UrlSlug }}' type:'light' target:'' addclasses:'g-width-90-percent--xs se-btn--sm' theme:'2024' ]}
+                                {% else %}
+                                    {[ sebutton title:'{{ registerButtonTitle }}' href:'{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}' type:'light' target:'' addclasses:'g-width-90-percent--xs se-btn--sm' theme:'2024' ]}
+                                {% endif %}
+                                <br />
+                                {% else %}
+                                {{ registrationMessage }}
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="g-width-100-percent--xs g-hor-divider__solid__t--gray-lighter">
+                            {% if showRegistration == true %}
+                                {% assign registerButtonTitle = linkage.PublicName %}
+                                {% if registerButtonTitle == '' %}
+                                    {% assign registerButtonTitle = 'Register' %}
+                                {% endif %}
+                                {% if linkage.UrlSlug != empty %}
+                                    {[ sebutton title:'{{ registerButtonTitle }}' href:'{{ RegistrationPage }}/{{ linkage.UrlSlug }}' type:'light' target:'' addclasses:'g-width-90-percent--xs se-btn--sm' theme:'2024' ]}
+                                {% else %}
+                                    {[ sebutton title:'{{ registerButtonTitle }}' href:'{{ RegistrationPage }}?RegistrationInstanceId={{ linkage.RegistrationInstanceId }}&EventOccurrenceID={{ EventItemOccurrence.Id }}' type:'light' target:'' addclasses:'g-width-90-percent--xs se-btn--sm' theme:'2024' ]}
+                                {% endif %}
+                                <br />
+                                {% else %}
+                                {{ registrationMessage }}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        {% if list_regs_horiz == 'Yes' and altLinks.size == 2 %}</div>{% endif %}
+    </div>

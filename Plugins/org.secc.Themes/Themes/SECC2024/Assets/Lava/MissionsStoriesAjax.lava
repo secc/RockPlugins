@@ -1,0 +1,134 @@
+{% assign tagname = 'Missions'  %}
+
+<div id="story-results" class="container g-padding-y-50--xs g-padding-y-120--lg">
+    <div class="masonry_wrap2">
+    </div>
+    <p class="text-center g-margin-b-40--xs"><a href="/stories/tag/Missions" class="uppercase se-btn se-btn--dark-brd g-letter-spacing--3">
+        <strong>See More</strong>
+    </a></p>
+
+</div>
+
+<style>
+  .masonry_item {
+      padding-left: 15px;
+      padding-right: 15px;
+  }
+  .masonry_item .post_thumb_story {
+    position: relative;
+    display: block;
+    height: 0;
+    padding: 0;
+    overflow: hidden;
+    margin-bottom: 30px;
+    -webkit-transition: all 0.3s ease;
+    -o-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+  }
+  .masonry_item .post_thumb_story .hover_icon_link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100%;
+    width: 100%;
+    border: 0;
+    background-size: cover;
+    background-position: center center;
+  }
+  .masonry_item .post_thumb_story:hover {
+    -webkit-box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
+    box-shadow: 0px 0px 15px 1px rgba(0, 0, 0, 0.15);
+    transform: translateY(-10px);
+  }
+  .masonry_item .post_thumb_story .hover_icon_link:before {
+    background: transparent linear-gradient(180deg, #00000000 0%, #000000BF 100%) 0% 0% no-repeat padding-box;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 355px;
+    width: 100%;
+    content:"";
+  }
+  .masonry_item .post_thumb_story .hover_icon_link .story_link {
+    color: #fff;
+    position: absolute;
+    left:0;
+    bottom:0;
+    padding: 37px;
+  }
+  .masonry_item .post_thumb_story .hover_icon_link .story_link h5 {
+    color: #fff;
+    margin-bottom: 10px;
+  }
+  .masonry_item:nth-child(2) .post_thumb_story,
+  .masonry_item:nth-child(4) .post_thumb_story,
+  .masonry_item:nth-child(5) .post_thumb_story {
+    padding-bottom: 153.859649%;
+  }
+  .masonry_item:nth-child(1) .post_thumb_story,
+  .masonry_item:nth-child(3) .post_thumb_story,
+  .masonry_item:nth-child(6) .post_thumb_story {
+    padding-bottom: 73.684211%;
+  }
+</style>
+<script>
+// load 6 to show
+var take = 6;
+
+	$.ajax({
+		url: '/api/ChannelItems/35/{{ tagname }}?take='+take+'&orderby=StartDateTime&reverse=true',
+		async: true,
+		beforeSend: function(data) {
+			storiesLoading = true; // start ajax loading process
+		},
+		error: function(jqXHR,error, errorThrown) {
+		   console.log('AJAX ERROR: ');
+             if (jqXHR.status&&jqXHR.status==400){
+                 console.log(jqXHR.responseText);
+             } else {
+			   console.log('URL Request: '+ '/api/ChannelItems/35/{{ tagname }}?take='+take+'&orderby=StartDateTime&reverse=true');
+                 console.log("jqXHR:");
+			   console.log(jqXHR);
+			   console.log("error:"+error);
+			   console.log("errorThrown:"+errorThrown);
+             }
+          },
+		success: function(data) {
+			//console.log(data);
+
+      // Initialize Isotope/Stories
+      var $grid = $('.masonry_wrap2').isotope({
+        itemSelector: '.masonry_item',
+        percentPosition: true,
+        layoutMode: 'masonry'
+      });
+      $.each(data, function(i, story_group){
+            var $elem = $('<div></div>', {
+              "class": "masonry_item col-xs-12 col-md-6 col-lg-4"
+              }).append(
+                  $('<article/>', {
+                      "class": 'post_item_story g-margin-y-0--xs'
+                  }).html(function() {
+                      var image_box = "<div class=\"post_featured_story\"> \
+                                          <div class=\"post_thumb_story\" data-image=\"/GetImage.ashx?Guid="+ story_group.Attributes.Image +"\" data-title=\""+ story_group.Title +"\"> \
+                                              <a class=\"hover_icon hover_icon_link\" href=\"/stories/"+ story_group.Slug +"\" \
+                                                  style=\"background-image:url(/GetImage.ashx?Guid="+ story_group.Attributes.Image +")\"> \
+                                                <div class=\"story_link\"><h5 class=\"g-font-family--secondary\">"+ story_group.Title +"</h5><span>See More</span></div> \
+                                              </a> \
+                                          </div> \
+                                      </div>";
+                      return image_box;
+                  })
+              );
+
+            $grid.isotope()
+            .append( $elem )
+            .isotope( 'appended', $elem )
+            .isotope('layout');
+
+      });
+
+		}
+	});
+</script>

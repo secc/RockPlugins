@@ -1,0 +1,130 @@
+<script src="/Themes/SECC2024/Scripts/moment/moment-with-locales.min.js"></script>
+<script src="/Themes/SECC2024/Scripts/moment/moment.min.js"></script>
+
+{% comment %}  March 1 at 12:00am {% endcomment %}
+{% assign launch = '3/8/2020 08:00:00pm' %}
+{% assign launchDate = 0308200000 %}
+{% assign JSlaunch = '03-08-2020 20:00:00Z' %}
+
+{% assign currentDate = 'Now' | Date:'MMddHHmmss' | AsDouble %}
+
+{% comment %}  This is to set the page {% endcomment %}
+{% assign now = 'Now' | Date:'M/d/yyyy HH:mm:sstt' | Downcase %}
+{% comment %}
+Launching: {{launch}}<br />
+Current Time: {{now}}<br /><br />
+{% endcomment %}
+{% assign daysLeft = now | DateDiff:launch,'d' %}
+{% assign daysLeftInHours = daysLeft | Times:24  %}
+{% assign daysLeftInMinutes = daysLeft | Times:24 | Times:60  %}
+{% assign daysLeftInSeconds = daysLeft | Times:24 | Times:60 | Times:60  %}
+{% comment %}{{ daysLeft | Format:'D2' }} days{% endcomment %}
+{% assign hoursLeft = now | DateDiff:launch,'h' | Minus:daysLeftInHours %}
+{% assign hoursLeftInMinutes = hoursLeft | Times:60  %}
+{% assign hoursLeftInSeconds = hoursLeftInMinutes | Times:60  %}
+{% comment %}{{ hoursLeft | Format:'D2' }} hours{% endcomment %}
+{% assign minutesLeft = now | DateDiff:launch,'m' | Minus:daysLeftInMinutes | Minus:hoursLeftInMinutes %}
+{% assign minutesLeftInSeconds = minutesLeft | Times:60  %}
+{% comment %}{{ minutesLeft | Format:'D2' }} minutes{% endcomment %}
+{% comment %}
+{{ now | DateDiff:launch,'s' | Minus:daysLeftInSeconds | Minus:hoursLeftInSeconds | Minus:minutesLeftInSeconds | Format:'D2' }} seconds
+{% endcomment %}
+
+{% unless currentDate >= launchDate %}
+    {% comment %}
+    *
+    *
+    *
+    *** Steven Schulte commented this out because we now have a countdown in the header of every page - permantely (unless noted otherwise) ***
+    *
+    *
+    *
+    {% endcomment %}
+    <style type="text/css">
+      #seonline_counter_tix { overflow: auto; width: auto; height: 100%; }
+      #seonline_counter_tix .description, #seonline_counter_tix .time li .label { font-size: 0.8em; }
+      #seonline_counter_tix .time { list-style: none; margin: 10px 0 0 0; display: inline-block; }
+      #seonline_counter_tix .time li { float: left; padding: 0 10px 0 0; text-align: center;}
+      #seonline_counter_tix .time li:first-child { padding: 0 10px 0 15px; }
+      #seonline_counter_tix .time li:last-child { padding: 0 15px 0 0; }
+      #seonline_counter_tix .time li span { font-size: 1.2em; color: black}
+      #seonline_counter_tix .live { display: none }
+    </style>
+
+    <div id="Tickets" class="container-fluid g-hor-divider__solid__b--gray-lightest g-padding-y-150--xs g-bg-color--gray-lightest" style="border-width: 2px;">
+        <div class="row">
+            <div class="col-md-12 text-center g-padding-y-10--md g-padding-b-45--xs g-padding-b-0--sm">
+                <div id="seonline_counter_tix">
+                  <span class="g-display-inline-block--xs g-margin-t-45--xs g-padding-x-15--xs" style="vertical-align: top;">
+                     <h5 class="notlive uppercase g-color--black g-font-weight--700" style="vertical-align:middle">Free Tickets Coming Soon</h5>
+                  </span>
+
+                  <br />
+
+                  <ul class="time g-margin-x-auto--xs" style="padding:0px;">
+                    <li><h2 class="g-font-weight--700"><span class="SEdays">{{ daysLeft | Format:'D2' }}</span></h2> <span class="label uppercase" style="top: -10px;position: relative;">days</span></li>
+                    <li><h2 class="g-font-weight--700"><span class="SEhours">{{ hoursLeft | Format:'D2' }}</span></h2> <span class="label uppercase" style="top: -10px;position: relative;">hours</span></li>
+                    <li><h2 class="g-font-weight--700"><span class="SEminutes">{{ minutesLeft | Format:'D2' }}</span></h2> <span class="label uppercase" style="top: -10px;position: relative;">mins</span></li>
+                    <li><h2 class="g-font-weight--700"><span class="SEseconds">{{ now | DateDiff:launch,'s' | Minus:daysLeftInSeconds | Minus:hoursLeftInSeconds | Minus:minutesLeftInSeconds | Format:'D2' }}</span></h2> <span class="label uppercase" style="top: -10px;position: relative;">secs</span></li>
+                  </ul>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+
+        window.onload = function(e){
+            {% assign serverNow = 'Now' | Date:'MM-dd-yyyy HH:mm:ssZ' %}
+            var serverTime = moment('{{ serverNow }}', 'MM-DD-YYYY HH:mm:ssZ zz').valueOf(),
+                eventTime = moment('{{ JSlaunch }}', 'MM-DD-YYYY HH:mm:ssZ zz').valueOf(),
+                currentTime = moment().valueOf(),
+                localDiffTime = serverTime - currentTime,
+                diffTime = eventTime - (currentTime + localDiffTime),
+                duration = moment.duration(diffTime),
+                interval = 1000; // milliseconds
+
+            console.log('server time is:'+serverTime);
+            console.log('current local time is:'+currentTime);
+            console.log('difference in time is:'+localDiffTime);
+
+            // if time to countdown
+            if(diffTime > 0) {
+                // Show clock
+                // $clock.show();
+
+                var $d = $('#seonline_counter_tix .SEdays'),
+                    $h = $('#seonline_counter_tix .SEhours'),
+                    $m = $('#seonline_counter_tix .SEminutes'),
+                    $s = $('#seonline_counter_tix .SEseconds');
+
+                setInterval(function(){
+                    // if duration is >= 0
+                    if (duration.asSeconds() <= 0) {
+                        location.reload();
+                        //setTimeout(function() { location.reload(); }, 300);
+                        clearInterval(intervalId);
+                    } else {
+                        console.log((diffTime) + ' milliseconds');
+                        duration = moment.duration(duration - interval);
+                        var d = moment.duration(duration).days(),
+                            h = moment.duration(duration).hours(),
+                            m = moment.duration(duration).minutes(),
+                            s = moment.duration(duration).seconds();
+
+                        d = $.trim(d).length === 1 ? '0' + d : d;
+                        h = $.trim(h).length === 1 ? '0' + h : h;
+                        m = $.trim(m).length === 1 ? '0' + m : m;
+                        s = $.trim(s).length === 1 ? '0' + s : s;
+
+                        // show how many hours, minutes and seconds are left
+                        $d.text(d);
+                        $h.text(h);
+                        $m.text(m);
+                        $s.text(s);
+                    }
+                }, interval);
+            }
+        };
+    </script>
+{% endunless %}

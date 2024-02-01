@@ -1,0 +1,220 @@
+form {
+	label {
+		display: block;
+		/* margin-top: 20px; */
+		margin-bottom: 5px;
+		font-weight: 700;
+
+		&.check,&.radio {
+			display: inline;
+			font-weight: 400;
+		}
+	}
+
+	&.stacked {
+		label { display: inline-block; }
+	}
+
+	select {
+		background-color: #fff;
+		padding-top: 2px;
+		padding-bottom: 2px;
+	}
+
+	input,
+	select,
+	textarea {
+		outline: none;
+		border: none;
+		width: 100%;
+		/*background-color: rgba($LightGrayColor, 0.2);*/		
+		/*border-radius: 0px !important;*/
+
+		&:-ms-input-placeholder {
+	   		color: $LightGrayColor;
+		}
+		&[type="radio"],
+		&[type="checkbox"],
+		&[type="submit"],
+		&[type="image"],
+		&[type="reset"] {
+			border: none;
+			width: auto;
+		}
+	}
+
+	input,
+	textarea,
+	select option {
+		font-weight: 400;
+	}
+
+	select {
+		font-weight: 600;
+	}
+
+	fieldset {
+		border: none;
+	}
+
+	button[disabled].btn-normal, input[disabled].btn-normal {
+		color: $LightGrayColor;
+		border-color: $LightGrayColor;
+
+		&:hover {
+			color: $LightGrayColor;
+			border-color: $LightGrayColor;
+			background: rgba(#ffffff, .2);
+		}
+	}
+
+	div:not(.rock-modal) {
+		 > div:not(.modal-footer):not(.modal-body):not(.modal-header):not(.modal-header) {
+			> .btn:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on),
+			> .btn-default:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on),
+			> .btn-primary:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on),
+			> .primary:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on),
+			> .btn-action:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on),
+			> .btn-link:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on) {
+				@include btn;
+				margin: 4px 2px;
+			}
+
+			> .btn-primary:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on),
+			> .btn-primary:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on) {
+				@include btn-style(
+					$color: $WhiteColor,
+					$padding: 0.5rem 1.5rem,
+					$bg: $color-dark padding-box no-repeat,
+					$brd-width: 1px,
+					$brd-style: solid,
+					$brd-color: $color-dark,
+					$brd-radius: 4px !important,
+					//$hvr-bg: linear-gradient($WhiteColor, $WhiteColor) padding-box no-repeat,
+					$hvr-color: $BlackColor,
+					$hvr-brd-color: $BtnBorderColor
+				);
+				background-size: 0% 100%;
+				&:hover,
+				&:focus,
+				&:active  {
+					background-image: linear-gradient($WhiteColor, $WhiteColor);
+					background-size: 100% 100%;
+				}
+			}
+
+			> .btn-action:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on),
+			> .btn-default:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on) {
+				@include btn-style(
+					$color: $color-dark,
+					$padding: 0.5rem 1.5rem,
+					$bg: $WhiteColor padding-box no-repeat,
+					$brd-width: 1px,
+					$brd-style: solid,
+					$brd-color: $BtnBorderColor,
+					$brd-radius: 4px !important,
+					//$hvr-bg: lighten($color-dark, 18%),
+					$hvr-color: $WhiteColor,
+					$hvr-brd-color: $color-dark
+				);
+				background-size: 0% 100%;
+				&:hover,
+				&:focus,
+				&:active  {
+					background-size: 100% 100%;
+					background-image: linear-gradient($color-dark, $color-dark);
+				}
+			}
+
+			> .btn-link:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on) {
+				@include btn-style(
+					$color: $color-dark,
+					$padding: 0.5rem 1.5rem,
+					$bg: $WhiteColor padding-box no-repeat,
+					$brd-width: 1px,
+					$brd-style: solid,
+					$brd-color: $BtnBorderColor,
+					$brd-radius: 4px !important,
+					//$hvr-bg: lighten($color-dark, 18%),
+					$hvr-color: $WhiteColor,
+					$hvr-brd-color: $color-dark
+				);
+				background-size: 0% 100%;
+				&:hover,
+				&:focus,
+				&:active  {
+					background-size: 100% 100%;
+					background-image: linear-gradient($color-dark, $color-dark);
+				}
+			}
+		}
+	}
+}
+
+label .validator {
+	font-weight: 400;
+	float: right;
+}
+
+.form-processing {
+	display: none;
+}
+
+.error {
+	color: $ErrorColor;
+	font-weight: bold;
+
+	label & {
+		float: right;
+		font-weight: 400;
+	}
+}
+
+input.error {
+	border: 1px solid $ErrorColor;
+	background-color: lighten($ErrorColor, 55%);
+	color: $CopyColor;
+	font-weight: 400;
+}
+
+.error-summary {
+	margin: 15px 0px;
+	font-size: .8em;
+
+}
+
+.registration-entry div[id$=pnlCostAndFees] {
+    border: 1px solid #999;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.registrationentry-summary .fee-table {
+    margin: 0px;
+}
+
+.registration-entry .registration-heading {
+    background-color: #f1f1f1;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+.registration-entry .progress {
+    background-image: none;
+    background-color: white;
+    margin: 10px 0px;
+    border-radius: 0px;
+    height: 10px;
+}
+.registration-entry .progress-bar {
+    background-image: none;
+}
+.registration-entry .well {
+    background-image: none;
+    box-shadow: none;
+}
+.registration-entry input[id$=tbDiscountCode] {
+    height: 39px;
+}
+.registration-entry a[id$=lbDiscountApply] {
+    margin-top: 0px !important;
+}
