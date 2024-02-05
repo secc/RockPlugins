@@ -58,6 +58,11 @@ namespace org.secc.Jobs.Event
                     }
                     var registeredByPerson = registration.PersonAlias.Person;
 
+                    if (registeredByPerson.IsDeceased)
+                    {
+                        continue; //skip deceased record
+                    }
+
                     var familyMemberPersonIds = personService.GetFamilyMembers( registeredByPerson.Id, true, false )
                         .Select( m => m.PersonId )
                         .ToList();
@@ -70,6 +75,11 @@ namespace org.secc.Jobs.Event
 
                     foreach (var registrant in registrants)
                     {
+                        if (registrant.PersonAlias.Person.IsDeceased)
+                        {
+                            continue;  //skip deceased record
+                        }
+
                         if (!familyMemberPersonIds.Contains( registrant.PersonAlias.PersonId ))
                         {
                             try
