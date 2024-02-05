@@ -12,10 +12,10 @@ using Rock.Web.Cache;
 
 namespace org.secc.Jobs.Event
 {
-    [RegistrationInstanceField( "Registration Instance",
-        Description = "The registration instance to set relationships for",
+    [RegistrationTemplateField( "Registration Template",
+        Description = "The registration template that contain the instances to set relationships for.",
         IsRequired = true,
-        Key = "RegistrationInstance",
+        Key = "RegistrationTemplate",
         Order = 0 )]
     [DateTimeField( "Expiration Date Time",
         Description = "When the relationship should expire.",
@@ -30,73 +30,70 @@ namespace org.secc.Jobs.Event
         {
             JobDataMap dataMap = context.JobDetail.JobDataMap;
 
-            var registrationInstanceGuid = dataMap.GetString( "RegistrationInstance" ).AsGuid();
+            var registrationTemplateGuid = dataMap.GetString( "RegistrationTemplate" ).AsGuid();
             var expirationDateTime = dataMap.GetString( "ExpirationDateTime" ).AsDateTime();
 
             using (var rockContext = new RockContext())
             {
                 var personService = new PersonService( rockContext );
-                var personAliasService = new PersonAliasService( rockContext );
+                //var personAliasService = new PersonAliasService( rockContext );
                 var registrantService = new RegistrationRegistrantService( rockContext );
 
-                var registrationInstance = new RegistrationInstanceService( rockContext )
+                var registrationInstances = new RegistrationInstanceService( rockContext )
                     .Queryable().AsNoTracking()
                     .Include( r => r.Registrations )
-                    .Where( r => r.Guid == registrationInstanceGuid )
-                    .FirstOrDefault();
+                    .Where( r => r.RegistrationTemplate.Guid == registrationTemplateGuid )
+                    .Where( r => r.IsActive )
+                    .ToList();
 
-                if (registrationInstance == null)
+                foreach (var registrationInstance in registrationInstances)
                 {
-                    return;
-                }
-
-                foreach (var registration in registrationInstance.Registrations)
-                {
-                    if (!registration.PersonAliasId.HasValue)
+                    foreach (var registration in registrationInstance.Registrations)
                     {
-                        return;
-                    }
-                    var registeredByPerson = registration.PersonAlias.Person;
-
-                    if (registeredByPerson.IsDeceased)
-                    {
-                        continue; //skip deceased record
-                    }
-
-                    var familyMemberPersonIds = personService.GetFamilyMembers( registeredByPerson.Id, true, false )
-                        .Select( m => m.PersonId )
-                        .ToList();
-
-
-                    var registrants = registrantService.Queryable().AsNoTracking()
-                        .Include( r => r.PersonAlias.Person )
-                        .Where( r => r.RegistrationId == registration.Id )
-                        .ToList();
-
-                    foreach (var registrant in registrants)
-                    {
-                        if (registrant.PersonAlias.Person.IsDeceased)
+                        if (!registration.PersonAliasId.HasValue)
                         {
-                            continue;  //skip deceased record
+                            continue; // no personaliasid for registration owner
+                        }
+                        var registeredByPerson = registration.PersonAlias.Person;
+
+                        if (registeredByPerson.IsDeceased)
+                        {
+                            continue; //skip deceased record
                         }
 
-                        if (!familyMemberPersonIds.Contains( registrant.PersonAlias.PersonId ))
+                        var familyMemberPersonIds = personService.GetFamilyMembers( registeredByPerson.Id, true, false )
+                            .Select( m => m.PersonId )
+                            .ToList();
+
+
+                        var registrants = registrantService.Queryable().AsNoTracking()
+                            .Include( r => r.PersonAlias.Person )
+                            .Where( r => r.RegistrationId == registration.Id )
+                            .ToList();
+
+                        foreach (var registrant in registrants)
                         {
-                            try
+                            if (registrant.PersonAlias.Person.IsDeceased)
                             {
-                                BuildCanCheckinRelationship( registeredByPerson.Id, registrant.PersonAlias.PersonId, expirationDateTime.Value );
-                            }
-                            catch (NullReferenceException)
-                            {
-                                //could not validate group
+                                continue;  //skip deceased record
                             }
 
+                            if (!familyMemberPersonIds.Contains( registrant.PersonAlias.PersonId ))
+                            {
+                                try
+                                {
+                                    BuildCanCheckinRelationship( registeredByPerson.Id, registrant.PersonAlias.PersonId, expirationDateTime.Value );
+                                }
+                                catch (NullReferenceException)
+                                {
+                                    //could not validate group
+                                }
+                            }
+                        } // end registrants
 
-                        }
-                    }
-
-                }
-            }
+                    } // end registrations
+                } // end instance
+            } // end db context
         }
 
         private void BuildCanCheckinRelationship( int registeredByPersonId, int registrantPersonId, DateTime expirationDate )
