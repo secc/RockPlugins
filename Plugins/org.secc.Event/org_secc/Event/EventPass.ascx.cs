@@ -56,8 +56,8 @@ namespace RockWeb.Plugins.org_secc.Event
         }
 
 
-        private int? registrationId = null;
-        private int? registrationRegistrantId = null;
+        private Guid? registrationGuid = null;
+        private Guid? registrantGuid = null;
         bool isActiveItemSet = false;
 
         protected override void OnInit( EventArgs e )
@@ -68,8 +68,8 @@ namespace RockWeb.Plugins.org_secc.Event
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-            registrationId = PageParameter( "Registration" ).AsIntegerOrNull();
-            registrationRegistrantId = PageParameter( "Registrant" ).AsIntegerOrNull();
+            registrationGuid = PageParameter( "Registration" ).AsGuidOrNull();
+            registrantGuid = PageParameter( "Registrant" ).AsGuidOrNull();
             if (!IsPostBack)
             {
                 LoadPasses();
@@ -88,7 +88,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
         private void LoadPasses()
         {
-            if (!registrationId.HasValue && !registrationRegistrantId.HasValue)
+            if (!registrationGuid.HasValue && !registrantGuid.HasValue)
             {
                 ShowNoPassesFound();
                 return;
@@ -111,14 +111,14 @@ namespace RockWeb.Plugins.org_secc.Event
                 .Include( r => r.Registration.RegistrationInstance )
                 .Include( r => r.PersonAlias.Person );
 
-            if (registrationRegistrantId.HasValue)
+            if (registrantGuid.HasValue)
             {
-                registrantQry = registrantQry.Where( r => r.Id.Equals( registrationRegistrantId.Value ) );
+                registrantQry = registrantQry.Where( r => r.Guid.Equals( registrantGuid.Value ) );
             }
 
-            if (registrationId.HasValue)
+            if (registrationGuid.HasValue)
             {
-                registrantQry = registrantQry.Where( r => r.RegistrationId.Equals( registrationId.Value ) );
+                registrantQry = registrantQry.Where( r => r.Registration.Guid.Equals( registrationGuid.Value ) );
             }
 
             if (!GetAttributeValue( AttributeKey.IncludeWaitList ).AsBoolean())
