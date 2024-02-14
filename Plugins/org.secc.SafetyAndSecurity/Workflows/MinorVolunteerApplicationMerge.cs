@@ -32,10 +32,10 @@ namespace org.secc.SafetyAndSecurity
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Minor Volunteer Application Merge" )]
     [BinaryFileField( MinorVolunteerApplicationMerge.PDF_FORM_BINARY_FILE_TYPE, "Minor Volunteer Application PDF", "The Confidential Volunteer Application for Minors PDF form", true )]
-    
+    [BinaryFileTypeField( "Binary File Type", "The Guid for the background check binary file type", true, "5C701472-8A6B-4BBE-AEC6-EC833C859F2D", key: "binaryFileType" )]
+
     class MinorVolunteerApplicationMerge : ActionComponent
     {
-        public const string BACKGROUND_CHECK_BINARY_FILE_TYPE = "5C701472-8A6B-4BBE-AEC6-EC833C859F2D";
         public const string PDF_FORM_BINARY_FILE_TYPE = "D587ECCB-F548-452A-A442-FE383CBED283";
 
         public override bool Execute( RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
@@ -50,46 +50,42 @@ namespace org.secc.SafetyAndSecurity
             Location reference1Address = locationService.Get( action.Activity.Workflow.GetAttributeValue( "Reference1Address" ).AsGuid() );
 
             Dictionary<string, string> fields = new Dictionary<string, string>()
-                {
-
-                    {"txtVolunteerName", string.Concat(
-                        action.Activity.Workflow.GetAttributeValue("FirstName"), " ",
-                        action.Activity.Workflow.GetAttributeValue("MiddleName"), " ",
-                        action.Activity.Workflow.GetAttributeValue("LastName"))},
-                    {"txtDateOfBirth", action.Activity.Workflow.GetAttributeValue("DateofBirth").AsDateTime().Value.ToShortDateString()},
-                    {"txtCurrentAddress", string.Concat(
-                        currentMailingAddress.Street1, ", ", 
-                        currentMailingAddress.City, ", ", 
-                        currentMailingAddress.State, " ", 
-                        currentMailingAddress.PostalCode)},
+            {
+                {"txtVolunteerName", string.Concat(
+                    action.Activity.Workflow.GetAttributeValue("FirstName"), " ",
+                    action.Activity.Workflow.GetAttributeValue("MiddleName"), " ",
+                    action.Activity.Workflow.GetAttributeValue("LastName"))},
+                {"txtDateOfBirth", action.Activity.Workflow.GetAttributeValue("DateofBirth").AsDateTime().Value.ToShortDateString()},
+                {"txtCurrentAddress", string.Concat(
+                    currentMailingAddress.Street1, ", ", 
+                    currentMailingAddress.City, ", ", 
+                    currentMailingAddress.State, " ", 
+                    currentMailingAddress.PostalCode)},
                                         
-                    {"ministryOfInterest", action.Activity.Workflow.GetAttributeValue("MinistryOfInterest") },
+                {"ministryOfInterest", action.Activity.Workflow.GetAttributeValue("MinistryOfInterest") },
 
-                    {"txtParentSignature", "{{t:s;r:y;o:\"Parent\";}}" },
-                    {"txtDate", "{{t:d;r:y;o:\"Parent\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
-                    {"txtParentName", action.Activity.Workflow.GetAttributeValue("Parent")},
-                    {"txtParentPhone", action.Activity.Workflow.GetAttributeValue("ParentCellPhone")},
-                    {"txtParentEmail", action.Activity.Workflow.GetAttributeValue("ParentEmail")},                    
+                {"txtParentSignature", "{{t:s;r:y;o:\"Parent\";}}" },
+                {"txtDate", "{{t:d;r:y;o:\"Parent\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
+                {"txtParentName", action.Activity.Workflow.GetAttributeValue("Parent")},
+                {"txtParentPhone", action.Activity.Workflow.GetAttributeValue("ParentCellPhone")},
+                {"txtParentEmail", action.Activity.Workflow.GetAttributeValue("ParentEmail")},                    
 
-                    {"txtRef1Name", action.Activity.Workflow.GetAttributeValue("Reference1Name")},
-                    {"txtRef1Address", string.Concat(
-                        reference1Address.Street1, ", ", 
-                        reference1Address.City, ", ", 
-                        reference1Address.State, " ", 
-                        reference1Address.PostalCode)},
-                    {"txtRef1Email", action.Activity.Workflow.GetAttributeValue("Reference1Email")}, 
-                    {"txtRef1Phone", action.Activity.Workflow.GetAttributeValue("Reference1CellPhone")},
-                    {"txtRef1Relationship", action.Activity.Workflow.GetAttributeValue("Reference1Relationship")},
-                    {"radRef1MonthsKnown", action.Activity.Workflow.GetAttributeValue("Reference1MonthsKnown")},
-                    {"txtRef1Staff", action.Activity.Workflow.GetAttributeValue("Reference1Staff").AsBoolean()?"Yes":"No"}             
-
-                };
+                {"txtRef1Name", action.Activity.Workflow.GetAttributeValue("Reference1Name")},
+                {"txtRef1Address", string.Concat(
+                    reference1Address.Street1, ", ", 
+                    reference1Address.City, ", ", 
+                    reference1Address.State, " ", 
+                    reference1Address.PostalCode)},
+                {"txtRef1Email", action.Activity.Workflow.GetAttributeValue("Reference1Email")}, 
+                {"txtRef1Phone", action.Activity.Workflow.GetAttributeValue("Reference1CellPhone")},
+                {"txtRef1Relationship", action.Activity.Workflow.GetAttributeValue("Reference1Relationship")},
+                {"radRef1MonthsKnown", action.Activity.Workflow.GetAttributeValue("Reference1MonthsKnown")},
+                {"txtRef1Staff", action.Activity.Workflow.GetAttributeValue("Reference1Staff").AsBoolean()?"Yes":"No"}             
+            };
 
             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
-            BinaryFile PDF = null;
-            
-            PDF = binaryFileService.Get( GetActionAttributeValue( action, "MinorVolunteerApplicationPDF" ).AsGuid() );
-            
+            BinaryFile PDF = binaryFileService.Get( GetActionAttributeValue( action, "MinorVolunteerApplicationPDF" ).AsGuid() );
+
             var pdfBytes = PDF.ContentStream.ReadBytesToEnd();
 
             using ( MemoryStream ms = new MemoryStream() )
@@ -114,20 +110,20 @@ namespace org.secc.SafetyAndSecurity
                 pdfStamper.Dispose();
                 pdfStamper = null;
 
-                BinaryFile renderedPDF = new BinaryFile();
-                renderedPDF.IsTemporary = false;
-                renderedPDF.IsSystem = false;
-                renderedPDF.Guid = Guid.NewGuid();
-                renderedPDF.MimeType = PDF.MimeType;
-                renderedPDF.FileName = "MinorVolunteerApplication_" + person.FirstName + person.LastName + ".pdf";
-                renderedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( BACKGROUND_CHECK_BINARY_FILE_TYPE ) ).Id;
-                renderedPDF.DatabaseData = null;
+                BinaryFile renderedPDF = new BinaryFile
+                {
+                    IsTemporary = false,
+                    IsSystem = false,
+                    Guid = Guid.NewGuid(),
+                    MimeType = PDF.MimeType,
+                    FileName = "MinorVolunteerApplication_" + person.FirstName + person.LastName + ".pdf",
+                    BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( GetActionAttributeValue( action, "binaryFileType" ) ) ).Id,
+                    DatabaseData = null
+                };
 
                 var bytes = ms.ToArray();
                 renderedPDF.FileSize = bytes.Length;
                 renderedPDF.ContentStream = new MemoryStream( bytes );
-               
-
 
                 binaryFileService.Add( renderedPDF );
                 rockContext.SaveChanges();
