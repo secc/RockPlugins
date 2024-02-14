@@ -68,10 +68,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CompleteWorkflows.cs" />
+    <Compile Include="Event\AddEventCanCheckinRelationships.cs" />
     <Compile Include="FrontPorchDeviceRemoval.cs" />
     <Compile Include="GroupLeaderMedicationNotifications.cs" />
     <Compile Include="MigratePickleballCredits.cs" />
+    <Compile Include="Migrations\001_EventRelationshipRoles.cs" />
     <Compile Include="RemoveDevicesFromPersons.cs" />
+    <Compile Include="RemoveEventCanCheckinRelationships.cs" />
     <Compile Include="SetFirstAttendanceDate.cs" />
     <Compile Include="PushPayDownloadCheckNumbers.cs" />
     <Compile Include="StoreAttendanceFromInteraction.cs" />

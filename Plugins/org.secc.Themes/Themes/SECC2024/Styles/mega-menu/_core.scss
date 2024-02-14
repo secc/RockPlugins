@@ -40,6 +40,11 @@ input {
 	font-size: 1.6rem;
 }
 
+input[type="checkbox"],
+input[type="radio"] {
+	font-size: inherit;
+}
+
 input[type="search"]::-ms-clear {
 	/* removes close icon - IE */
     display: none;

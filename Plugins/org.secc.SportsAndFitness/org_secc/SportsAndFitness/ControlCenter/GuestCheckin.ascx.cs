@@ -126,7 +126,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     LoadHostGuestFields( workflowGuid );
                     LoadHosts();
                     break;
-                case "cancelCheckin":
+                case "cancelcheckin":
                     CancelGuestCheckin( workflowGuid );
                     break;
 
