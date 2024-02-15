@@ -32,10 +32,10 @@ namespace org.secc.SafetyAndSecurity
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Minor Volunteer Application Merge" )]
     [BinaryFileField( MinorVolunteerApplicationMerge.PDF_FORM_BINARY_FILE_TYPE, "Minor Volunteer Application PDF", "The Confidential Volunteer Application for Minors PDF form", true )]
-    [BinaryFileTypeField( "Binary File Type", "The Guid for the background check binary file type", true, "5C701472-8A6B-4BBE-AEC6-EC833C859F2D", key: "binaryFileType" )]
 
     class MinorVolunteerApplicationMerge : ActionComponent
     {
+        public const string BACKGROUND_CHECK_BINARY_FILE_TYPE = "5C701472-8A6B-4BBE-AEC6-EC833C859F2D";
         public const string PDF_FORM_BINARY_FILE_TYPE = "D587ECCB-F548-452A-A442-FE383CBED283";
 
         public override bool Execute( RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
@@ -117,7 +117,7 @@ namespace org.secc.SafetyAndSecurity
                     Guid = Guid.NewGuid(),
                     MimeType = PDF.MimeType,
                     FileName = "MinorVolunteerApplication_" + person.FirstName + person.LastName + ".pdf",
-                    BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( GetActionAttributeValue( action, "binaryFileType" ) ) ).Id,
+                    BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( BACKGROUND_CHECK_BINARY_FILE_TYPE ) ).Id,
                     DatabaseData = null
                 };
 
