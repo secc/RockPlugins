@@ -60,12 +60,12 @@
                     <asp:Repeater ID="rPasses" runat="server" >
                         <ItemTemplate>
                             <asp:Panel ID="pnlItem" runat="server" CssClass="item">
-                                <div class="row top-row">
+                                <div class="row">
                                     <div class="col-xs-12 personHeader">
                                         <%# Eval("RegistrantPerson.FullName") %>
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row top-row">
                                 <div class="col-xs-4 PersonPhoto">
                                     <img src="<%# Eval("RegistrantPerson.PhotoUrl") %>" style="width:100px;"   />
                                 </div>
