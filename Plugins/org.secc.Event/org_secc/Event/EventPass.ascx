@@ -25,6 +25,21 @@
     	border: 1px solid #000;
     }
 
+    @media screen and (orientation:portrait) { 
+        .top-row { width: 100%;} 
+        .bottom-row { width: 100%; } 
+    }
+    @media screen and (orientation:landscape) { 
+        .top-row {
+            float: left;
+            width: 49.5%;
+        } 
+        .bottom-row {
+            float: right;
+            width: 49.5%;
+        } 
+    }
+
 </style>
 <asp:UpdatePanel ID="upMain" runat="server">
     <ContentTemplate>
@@ -45,7 +60,7 @@
                     <asp:Repeater ID="rPasses" runat="server" >
                         <ItemTemplate>
                             <asp:Panel ID="pnlItem" runat="server" CssClass="item">
-                                <div class="row">
+                                <div class="row top-row">
                                     <div class="col-xs-12 personHeader">
                                         <%# Eval("RegistrantPerson.FullName") %>
                                     </div>
@@ -60,7 +75,7 @@
                                         <i class="fas fa-map-marker-alt"></i> <%# Eval("EventLocation") %>
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row bottom-row">
                                     <div class="col-xs-12 QRImage">
                                         <p>Please scan the QR Code to check-in at the event</p>
                                         <img src='<%# Eval("QRUrl") %>' />
