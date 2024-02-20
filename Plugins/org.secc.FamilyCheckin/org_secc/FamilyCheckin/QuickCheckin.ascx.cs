@@ -27,6 +27,7 @@ using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
@@ -543,7 +544,21 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             btnMessage.AddCssClass( "btn btn-default col-xs-8 disabled" );
             hgcAreaRow.Controls.Add( btnMessage );
 
-            btnMessage.Text = "There are no classes available for " + person.Person.NickName + " to check-in, or all rooms are currently full.";
+
+            var checkinTypeId = CurrentCheckInState.CheckInType.Id;
+            var checkinType = GroupTypeCache.Get( checkinTypeId );
+            var noClassesMessage = checkinType.GetAttributeValue( "FamilyCheckin_NoCheckinOptionsAvailable" );
+
+            if(noClassesMessage.IsNullOrWhiteSpace())
+            {
+                noClassesMessage = $"There are not classes available for {person.Person.NickName}  to check-in, or all rooms are currently full.";
+            }
+            var mergeFields = LavaHelper.GetCommonMergeFields( null );
+            mergeFields.Add( "Person", person.Person );
+
+
+            btnMessage.Text = noClassesMessage.ResolveMergeFields( mergeFields );
+
             foreach ( var locationId in person.GroupTypes.SelectMany( gt => gt.Groups ).SelectMany( g => g.Locations ).Select( l => l.Location.Id ).ToList() )
             {
                 var attendances = AttendanceCache.GetByLocationId( locationId );
