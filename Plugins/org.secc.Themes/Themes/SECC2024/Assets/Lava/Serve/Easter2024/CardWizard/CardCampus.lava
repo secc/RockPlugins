@@ -1,0 +1,35 @@
+                {%- assign campus = partition -%}
+				{%- assign spotsLeft = campus.Limit | Minus: campus.Filled -%}
+				<div class="col-sm-6 col-md-4" style="margin-bottom: 20px;">
+					{% if spotsLeft > 0 and campus.Limit > 0 %}
+						{% if partitionSize > 0 %}
+							<a href="#" onclick="doSlide('#{{divId}}_{{campus.Value}}'); return false;">
+						{% else %}
+							<a href="{{partition.Url}}&GroupId={{partition.GroupId}}">
+						{% endif %}
+					{% endif %}
+                    <div class="serve-card serve-card g-margin-y-40--xs g-margin-x-auto--xs">
+                    <a href="#" onclick="doSlide('#{{divId}}_{{campus.Value}}'); return false;">
+                        <div class="box text-center g-padding-y-49--xs g-position--relative g-bg-color--white card">
+
+                            <span class="label label-default g-position--absolute" style="background-color: #EDBA61;top: -20px;right: -20px;width: 80px;white-space: normal;border-radius: 100%;height: 80px;">
+                                <span class="g-center--xs">
+                                    <span style="line-height: 20px;" class="g-font-weight--700 g-font-size-22--xs g-color--primary">{% if campus.Limit == null %}Unlimited{% else %}{% if spotsLeft <= 0 %}Full{% else %}{{spotsLeft}}</span>
+                                        <span style="line-height: 10px;" class="uppercase g-font-weight--300 g-font-size-24--xs">
+                                            <small class="g-color--primary g-font-size-14--xs">{{ 'Spot' | PluralizeForQuantity:spotsLeft }} Open{% endif %}</small>
+                                        </span>{% endif %}
+                                </span>
+                            </span>
+
+                            <h4 class="g-font-weight--300 g-margin-t-10--xs g-padding-y-50--xs">
+                                <i class="fal fa-church churchIcon g-font-size-40--xs" aria-hidden="true"></i><br>
+                                <span class="g-font-family--secondary g-font-size-24--xs">
+                                    {{ campus.Entity.Name }}
+                                </span>
+                            </h4>
+                        </div>
+					</div>
+					{% if spotsLeft > 0 and campus.Limit > 0 %}
+						</a>
+					{% endif %}
+                </div>
