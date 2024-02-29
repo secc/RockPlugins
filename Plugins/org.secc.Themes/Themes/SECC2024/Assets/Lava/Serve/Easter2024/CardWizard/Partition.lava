@@ -54,13 +54,13 @@
 					{% assign partitionSize = partition.Partitions | Size %}
 					{% if partitionSize > 0 or CardWizardMode == "Single" %}
 						{% if partition.PartitionType == 'DefinedType' %}
-							{% if forloop.first %}<h3 class="g-font-family--secondary  text-center g-padding-b-20--xs">Please select from the following:</h>{% endif %}
+							{% if forloop.first %}<h3 class="g-font-family--secondary text-center g-padding-b-20--xs">Please select from the following:</h>{% endif %}
 							{% include '~~/Assets/Lava/Serve/Easter2024/CardWizard/CardDefinedType.lava' %}
 						{% elseif partition.PartitionType == 'Schedule' %}
-							{% if forloop.first %}<h3 class="g-font-family--secondary  text-center g-padding-b-20--xs">Please select your schedule:</h3>{% endif %}
+							{% if forloop.first %}<h3 class="g-font-family--secondary text-center g-padding-b-20--xs">Please select your schedule:</h3>{% endif %}
 							{% include '~~/Assets/Lava/Serve/Easter2024/CardWizard/CardSchedule.lava' %}
 						{% elseif partition.PartitionType == 'Campus' %}
-						{% if forloop.first %}<h2 class="g-font-family--secondary text-center g-padding-b-20--xs">Serve With Us</h2><p class="text-center col-sm-10 col-sm-offset-1">Help make our Easter services special for all who attend! There are a variety of ways you can serve. Click below to learn more about volunteer opportunities.</p>{% endif %}
+						{% if forloop.first %}<h2 class="g-font-family--secondary text-center g-padding-b-20--xs">Serve With Us</h2><p class="text-center col-sm-8 col-sm-offset-2">Help make our Easter services special for all who attend! There are a variety of ways you can serve. Click below to learn more about volunteer opportunities. For ways to serve at all other campuses, please visit the Connection Desk.</p>{% endif %}
 							{% include '~~/Assets/Lava/Serve/Easter2024/CardWizard/CardCampus.lava' %}
 						{% elseif partition.PartitionType == 'Role' %}
 							{% if forloop.first %}<h3 class="g-font-family--secondary text-center g-padding-b-20--xs">Please select your serving role:</h3>{% endif %}
@@ -69,7 +69,7 @@
 					{% else %}
 						{% assign parameterName = partition.ParameterName %}
 						{% assign type = partition.PartitionType %}
-						<h3 class="text-center g-padding-b-20--xs">
+						<h3 class="g-font-family--secondary text-center g-padding-b-20--xs">
 						{% if partition.PartitionType == 'DefinedType' and forloop.first %}
 							Please select from the following:
 						{% elseif partition.PartitionType == 'Schedule' and forloop.first %}
@@ -96,8 +96,8 @@
 			{% if parameterName != '' and CardWizardMode != "Single" %}
 			<div class="row">
 				<div class="col-sm-10 col-sm-offset-1">
-					<a href="{{partition.Url}}" data-type="{{type}}" data-group-id="{{groupId}}" data-role="{{partition.RoleGuid}}" data-parameter-name="{{parameterName}}" title="Sign Up" class="btn btn-primary pull-right signup-button uppercase g-letter-spacing--1">
-						<strong>Sign Up</strong>
+					<a href="{{partition.Url}}" data-type="{{type}}" data-group-id="{{groupId}}" data-role="{{partition.RoleGuid}}" data-parameter-name="{{parameterName}}" title="Sign Up" class="btn btn-primary pull-right signup-button g-letter-spacing--1">
+						Sign Me Up!
 					</a>
 				</div>
 			</div>

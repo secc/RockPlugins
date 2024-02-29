@@ -1,6 +1,6 @@
                 {%- assign campus = partition -%}
 				{%- assign spotsLeft = campus.Limit | Minus: campus.Filled -%}
-				<div class="col-sm-6 col-md-4" style="margin-bottom: 20px;">
+				<div class="col-sm-6" style="margin-bottom: 20px;">
 					{% if spotsLeft > 0 and campus.Limit > 0 %}
 						{% if partitionSize > 0 %}
 							<a href="#" onclick="doSlide('#{{divId}}_{{campus.Value}}'); return false;">

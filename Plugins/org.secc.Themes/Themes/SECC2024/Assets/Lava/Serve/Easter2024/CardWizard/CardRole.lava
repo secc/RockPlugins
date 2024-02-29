@@ -30,7 +30,7 @@
                                 {% elseif icon contains "user-tie" %}
                                     {[ vivus svg:'/Content/Serve/2019/Christmas/Icons/Usher.svg' fill:'#000000' max-width:'120px;' duration:'10' ]}
                                 {% else %}
-                                <i class="{{icon}} fa-5x g-color--dark"></i>
+                                <i class="{{icon}} fa-5x g-color--dark g-padding-y-20--xs"></i>
                                 {% endif %}
 							{% endif %}
                             <span class="label label-default g-position--absolute" style="background-color: #EDBA61;top: -20px;right: -20px;width: 80px;white-space: normal;border-radius: 100%;height: 80px;">
