@@ -158,7 +158,7 @@ namespace org.secc.Rest.Controllers
                         string cleanNumber = PhoneNumber.CleanNumber( account.MobileNumber );
                         var phoneNumber = new PhoneNumber { NumberTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id };
                         person.PhoneNumbers.Add( phoneNumber );
-                        phoneNumber.CountryCode = cleanNumber.Length > 10 ? cleanNumber.Left( 10 - cleanNumber.Length ) : PhoneNumber.DefaultCountryCode();
+                        phoneNumber.CountryCode = cleanNumber.Length > 10 ? cleanNumber.Left( cleanNumber.Length - 10 ) : PhoneNumber.DefaultCountryCode();
                         phoneNumber.Number = cleanNumber.Right( 10 );
                         phoneNumber.IsMessagingEnabled = true;
                     }
