@@ -1,41 +1,126 @@
+<style>
+    .footer_row {
+        justify-content: space-between;
+        align-items: flex-start;
+        display: flex;
+    }
+    .footer_row.is-centered {
+    align-items: center;
+    }
+    .footer_links {
+        grid-column-gap: 4rem;
+        display: flex;
+      }
+      .footer_link-group {
+        grid-row-gap: 0.5rem;
+        flex-direction: column;
+        align-items: flex-start;
+        display: flex;
+      }
+    @media screen and (max-width: 991px) {
+        .footer_links {
+            width: 100%;
+            grid-column-gap: 2rem;
+            grid-row-gap: 2rem;
+            flex: 1;
+            grid-template-rows: auto auto;
+            grid-template-columns: 1fr 1fr;
+            grid-auto-columns: 1fr;
+            display: grid;
+        }
+        .footer_row {
+            grid-column-gap: 6rem;
+            grid-row-gap: 2rem;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .footer_row.is-centered {
+            grid-row-gap: 2rem;
+            flex-direction: column-reverse;
+        }
+    }
+    @media screen and (max-width: 767px) {
+        .footer_links {
+            grid-column-gap: 2rem;
+            grid-row-gap: 16px;
+            grid-template-rows: auto auto;
+            grid-template-columns: 1fr 1fr;
+            grid-auto-columns: 1fr;
+        }
+        .footer_link-group {
+            align-items: flex-start;
+            margin-bottom: 1.6rem;
+        }
+        .footer_row {
+            grid-column-gap: 4rem;
+            grid-row-gap: 2rem;
+            align-items: flex-start;
+        }
+        .footer_row.is-centered {
+            flex-direction: column-reverse;
+        }
+    }
+    @media screen and (max-width: 479px) {
+        .footer_links {
+            grid-column-gap: 1.6rem;
+            grid-row-gap: 1.6rem;
+        }
+        .footer_link-group {
+            grid-row-gap: 0.3rem;
+            margin-bottom: 0;
+        }
+        .footer_row {
+            flex-direction: column;
+        }
+    }
+</style>
 <div id="MainFooter" class="g-padding-y-100--xs">
-    <div class="row">
-        <div class="col-xs-12 col-md-4 g-padding-b-100--xs g-padding-b-0--lg">
+    <div class="footer_row">
+        <div class="g-padding-b-100--xs g-padding-b-0--lg">
             <img src="/Themes/SECC2024/Assets/img/SE/Southeast_logo_wordmark.svg" alt="Southeast Christian Church wordmark">
         </div>
-        <div class="col-xs-6 col-md-2 g-padding-b-75--xs">
-            <h3>Locations</h3>
-            <ul>
-                <li>Service Times</li>
-                <li>What To Expect</li>
-            </ul>
-        </div>
-        <div class="col-xs-6 col-md-2 g-padding-b-75--xs">
-            <h3>Resources</h3>
-            <ul>
-                <li>Watch Live</li>
-                <li>Sermon Library</li>
-            </ul>
-        </div>
-        <div class="col-xs-6 col-md-2 g-padding-b-75--xs">
-            <h3>Who We Are</h3>
-            <ul>
-                <li>Leadership</li>
-                <li>What We Believe</li>
-                <li>What is the Gospel?</li>
-                <li>Values</li>
-                <li>Baptism</li>
-                <li>Our Story</li>
-            </ul>
-        </div>
-        <div class="col-xs-6 col-md-2 g-padding-b-75--xs">
-            <h3>Find Your Place</h3>
-            <ul>
-                <li>Events</li>
-                <li>Groups</li>
-                <li>Serve</li>
-                <li>Jobs</li>
-            </ul>
+        <div class="footer_links">
+            <div class="g-padding-b-75--xs footer_link-group">
+                <h3><a href="https://www.southeastchristian.org/Locations">Locations</a></h3>
+                <ul>
+                    <li><a href="https://www.southeastchristian.org/Locations#locations">Service Times</a></li>
+                    <li><a href="https://www.southeastchristian.org/Locations#whattoexpect">What To Expect</a></li>
+                </ul>
+            </div>
+            <div class="footer_link-group g-padding-b-75--xs">
+                <h3><a href="https://www.southeastchristian.org/watch">Watch</a></h3>
+                <ul>
+                    <li><a href="https://www.southeastchristian.org/watch">Watch Live</a></li>
+                    <li><a href="https://www.southeastchristian.org/watch/#library">Sermon Library</a></li>
+                </ul>
+            </div>
+            <div class="footer_link-group g-padding-b-75--xs">
+                <h3><a href="https://www.southeastchristian.org/who-we-are">Who We Are</a></h3>
+                <ul>
+                    <li><a href="https://www.southeastchristian.org/who-we-are/#leadership">Leadership</a></li>
+                    <li><a href="https://www.southeastchristian.org/who-we-are/#gospel">What is the Gospel?</a></li>
+                    <li><a href="https://www.southeastchristian.org/who-we-are/#statement">What We Believe</a></li>
+                    <li><a href="https://www.southeastchristian.org/who-we-are/who-we-are/#mantras">Mantras</a></li>
+                    <li><a href="https://www.southeastchristian.org/who-we-are/who-we-are/#baptism">Baptism</a></li>
+                    <li><a href="https://www.southeastchristian.org/who-we-are/#story">Our Story</a></li>
+                </ul>
+            </div>
+            <div class="footer_link-group g-padding-b-75--xs">
+                <h3><a href="https://www.southeastchristian.org/find-your-place">Find Your Place</a></h3>
+                <ul>
+                    <li><a href="https://www.southeastchristian.org/find-your-place/#events">Events</a></li>
+                    <li><a href="https://www.southeastchristian.org/groups">Groups</a></li>
+                    <li><a href="https://www.southeastchristian.org/serve">Serve</a></li>
+                    <li><a href="https://www.southeastchristian.org/give">Give</a></li>
+                </ul>
+            </div>
+            <div class="footer_link-group g-padding-b-75--xs">
+                <h3><a href="https://www.southeastchristian.org/find-your-place">Leader Resources</a></h3>
+                <ul>
+                    <li><a href="https://www.southeastchristian.org/smallgroupapp">Group Manager</a></li>
+                    <li><a href="https://www.southeastchristian.org/page/646">Group Treasurer Reports</a></li>
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -68,10 +153,10 @@
 
     <div class="footer-links">
         <div class="social-icons g-margin-b-100--xs g-margin-b-0--lg">
-            <a href="#youtube"><i class="fab fa-youtube"></i></a>
-            <a href="#facebook"><i class="fab fa-facebook"></i></a>
-            <a href="#twitter"><i class="fab fa-twitter"></i></a>
-            <a href="#instagram"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.youtube.com/user/southeastchrist"><i class="fab fa-youtube"></i></a>
+            <a href="https://twitter.com/southeastchrist"><i class="fab fa-twitter"></i></a>
+            <a href="https://www.facebook.com/southeastchrist/"><i class="fab fa-facebook"></i></a>
+            <a href="https://www.instagram.com/southeastchrist/"><i class="fab fa-instagram"></i></a>
         </div>
         <div class="fine-print">
             <div class="legal">
@@ -79,7 +164,7 @@
                     <p><a href="/privacy-policy">Privacy Policy</a></p>
                 </div>
                 <div class="">
-                    <p><a href="/terms">Terms & Conditions</a></p>
+                    <p><a href="/terms">Terms of Service</a></p>
                 </div>
             </div>
             <div class="copyright">

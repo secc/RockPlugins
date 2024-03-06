@@ -16,6 +16,10 @@
 				}
 			}
 		}
+
+		&:checked {
+			background-color: $BlackColor!important;
+		}
 	}
 
 	label {

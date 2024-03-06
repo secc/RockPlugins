@@ -32,26 +32,29 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="antlr.runtime, Version=2.7.6.2, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\Ical.Net.2.3.5\lib\net46\antlr.runtime.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\Ical.Net.2.3.5\lib\net45\antlr.runtime.dll</HintPath>
     </Reference>
-    <Reference Include="DDay.iCal, Version=1.0.2.575, Culture=neutral, PublicKeyToken=null" />
+    <Reference Include="DDay.iCal, Version=1.0.2.575, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)\RockRMS\RockWeb\Bin\DDay.iCal.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="Ical.Net, Version=2.1.0.20780, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)packages\Ical.Net.2.3.5\lib\net46\Ical.Net.dll</HintPath>
+    <Reference Include="Ical.Net, Version=2.1.0.20781, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)\packages\Ical.Net.2.3.5\lib\net45\Ical.Net.dll</HintPath>
     </Reference>
     <Reference Include="Ical.Net.Collections, Version=2.1.0.20780, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)packages\Ical.Net.2.3.5\lib\net46\Ical.Net.Collections.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\Ical.Net.2.3.5\lib\net45\Ical.Net.Collections.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NodaTime, Version=1.3.0.0, Culture=neutral, PublicKeyToken=4226afe0d9b296d1, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)packages\Ical.Net.2.3.5\lib\net46\NodaTime.dll</HintPath>
+      <HintPath>$(SolutionDir)\packages\Ical.Net.2.3.5\lib\net45\NodaTime.dll</HintPath>
     </Reference>
     <Reference Include="Quartz">
       <HintPath>$(SolutionDir)\libs\Quartz\Quartz.dll</HintPath>
@@ -69,12 +72,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CompleteWorkflows.cs" />
+    <Compile Include="Event\AddEventCanCheckinRelationships.cs" />
     <Compile Include="FrontPorchDeviceRemoval.cs" />
     <Compile Include="GroupLeaderMedicationNotifications.cs" />
     <Compile Include="MigratePickleballCredits.cs" />
-    <Compile Include="Migrations\AddOtherPhoneTypes.cs" />
+    <Compile Include="Migrations\001_EventRelationshipRoles.cs" />
     <Compile Include="RemoveDevicesFromPersons.cs" />
-    <Compile Include="Rock13\PhoneNumberCleanup.cs" />
+    <Compile Include="RemoveEventCanCheckinRelationships.cs" />
     <Compile Include="SetFirstAttendanceDate.cs" />
     <Compile Include="PushPayDownloadCheckNumbers.cs" />
     <Compile Include="StoreAttendanceFromInteraction.cs" />
@@ -94,9 +98,17 @@
       <Project>{13568622-324e-4493-b605-c9896e725d30}</Project>
       <Name>Rock.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock.Lava.Shared\Rock.Lava.Shared.csproj">
+    <ProjectReference Include="$(SolutionDir)\Rock.Lava.DotLiquid\Rock.Lava.DotLiquid.csproj">
+      <Project>{79aa470a-dc63-4cb4-b0b6-77285f60c69b}</Project>
+      <Name>Rock.Lava.DotLiquid</Name>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Rock.Lava.Shared\Rock.Lava.Shared.csproj">
       <Project>{8820cd93-70ee-496d-b17b-0c4c68dd4957}</Project>
       <Name>Rock.Lava.Shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)\Rock.Lava\Rock.Lava.csproj">
+      <Project>{37e293dd-f282-4a34-91fa-5fb8503d5672}</Project>
+      <Name>Rock.Lava</Name>
     </ProjectReference>
     <ProjectReference Include="..\org.secc.FamilyCheckin\org.secc.FamilyCheckin.csproj">
       <Project>{3e94706b-c20e-413f-aafb-38af995fe033}</Project>

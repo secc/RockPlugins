@@ -149,7 +149,7 @@
             prayerControlDiv.index = 1;
             map.controls[google.maps.ControlPosition.TOP_RIGHT].push(prayerControlDiv);
             */
-            
+
             //map2 = createMap("NewPrayerWalkMap");
             var prayerwalkMarkers = [];
             // a new Info Window is created
@@ -161,11 +161,11 @@
                 /* delete marker if already clicked */
                 placeMarkerAndPanTo(e.latLng, map1);
             });
-            
+
             function placeMarkerAndPanTo(latLng, map1) {
                 deleteMarkers(); // remove existing clicks if any
                 var geocoder = new google.maps.Geocoder;
-                
+
                 var lat = latLng.lat().toString();
                 var lng = latLng.lng().toString();
 
@@ -182,20 +182,20 @@
                 var marker = new google.maps.Marker({
                     position: latLng,
                     icon: {
-                        url: "/Themes/SECC2019/Assets/img/SE/PrayerWalkAdd.svg",
+                        url: "/Themes/SECC2024/Assets/img/SE/PrayerWalkAdd.svg",
                         // This marker is 20 pixels wide by 32 pixels high.
                         size: new google.maps.Size(44, 64)
                     },
                     map: map1
                 });
-                
+
                 /*map.panTo(latLng);*/
                 newMarker.push(marker);
                 infowindow.open(map1, marker);
                 geocodeLatLng(geocoder, latLng);
             }
 
-            /*            
+            /*
             // This event expects a click on a marker
             // When this event is fired the Info Window content is created
             // and the Info Window is opened.
@@ -227,7 +227,7 @@
                 resetNewMarkers();
                 newMarker = [];
             }
-            
+
             {%- workflow where:'WorkflowTypeId == 477' -%}
                 {% for w in workflowItems %}
 					{% assign lat = w | Attribute:'Lat' | AsDouble %}
@@ -237,7 +237,7 @@
 						prayerwalkMarkers[prayerwalkMarkers.length] = new google.maps.Marker({
 							position: new google.maps.LatLng({{ lat }},{{ long }}),
 							icon: {
-								url: "/Themes/SECC2019/Assets/img/SE/PrayerWalk4.svg",
+								url: "/Themes/SECC2024/Assets/img/SE/PrayerWalk4.svg",
 								// This marker is 20 pixels wide by 32 pixels high.
 								size: new google.maps.Size(30, 44)
 							},

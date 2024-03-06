@@ -1,7 +1,7 @@
 .select2-selection--single {
   background-color: transparent;
-  border: 2px solid $BlackColor;
-  border-radius: 0px;
+  border: 1px solid rgba(29, 31, 33, 0.20);
+  border-radius: 4px;
   &:focus {
       outline: none;
   }
@@ -9,8 +9,8 @@
   .select2-selection__rendered {
     color: $BlackColor;
     line-height: 28px;
-    text-transform: uppercase;
-    font-weight: 600;
+    // text-transform: uppercase;
+    font-weight: 400;
     // text-align: center;
 
     &:focus {
@@ -21,7 +21,7 @@
   .select2-selection__clear {
     cursor: pointer;
     float: right;
-    font-weight: bold;
+    font-weight: 400;
   }
 
   .select2-selection__placeholder {

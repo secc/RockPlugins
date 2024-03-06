@@ -105,7 +105,7 @@
             <li>
                 <div class="g-padding-b-60--xs">
                     <a class="text-center" href="/camp/mix/blankenbaker">
-                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/920.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                        <img src="/Themes/SECC2024/Assets/img/SE/Campuses/920.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
                         <br />
                         <h5 class="g-font-weight--700">Blankenbaker</h5>
                     </a>
@@ -115,7 +115,7 @@
             <li>
                 <div class="g-padding-b-60--xs">
                     <a class="text-center" href="/camp/mix/indiana">
-                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/IN.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                        <img src="/Themes/SECC2024/Assets/img/SE/Campuses/IN.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
                         <br />
                         <h5 class="g-font-weight--700">Indiana</h5>
                     </a>
@@ -125,7 +125,7 @@
             <li>
                 <div class="g-padding-b-60--xs">
                     <a class="text-center" href="/camp/mix/crestwood">
-                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/CW.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                        <img src="/Themes/SECC2024/Assets/img/SE/Campuses/CW.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
                         <br />
                         <h5 class="g-font-weight--700">Crestwood</h5>
                     </a>
@@ -135,7 +135,7 @@
             <li>
                 <div class="g-padding-b-60--xs">
                     <a class="text-center" href="/camp/mix/southwest">
-                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/SW.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                        <img src="/Themes/SECC2024/Assets/img/SE/Campuses/SW.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
                         <br />
                         <h5 class="g-font-weight--700">Southwest</h5>
                     </a>
@@ -145,7 +145,7 @@
             <li>
                 <div class="g-padding-b-60--xs">
                     <a class="text-center" href="/camp/mix/lagrange">
-                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/LA.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                        <img src="/Themes/SECC2024/Assets/img/SE/Campuses/LA.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
                         <br />
                         <h5 class="g-font-weight--700">La Grange</h5>
                     </a>
@@ -155,7 +155,7 @@
             <li>
                 <div class="g-padding-b-60--xs">
                     <a class="text-center" href="/camp/mix/elizabethtown">
-                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/ET.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                        <img src="/Themes/SECC2024/Assets/img/SE/Campuses/ET.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
                         <br />
                         <h5 class="g-font-weight--700">Elizabethtown</h5>
                     </a>
@@ -165,7 +165,7 @@
             <li>
                 <div class="g-padding-b-60--xs">
                     <a class="text-center" href="/camp/mix/rivervalley">
-                        <img src="/Themes/SECC2019/Assets/img/SE/Campuses/RV.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
+                        <img src="/Themes/SECC2024/Assets/img/SE/Campuses/RV.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs">
                         <br />
                         <h5 class="g-font-weight--700">River Valley</h5>
                     </a>

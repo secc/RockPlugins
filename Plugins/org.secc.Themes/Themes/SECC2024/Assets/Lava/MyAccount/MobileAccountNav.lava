@@ -1,6 +1,6 @@
 {% assign currentPage = 'Global' | Page:'Path' %}
-<link rel="stylesheet" href="/Themes/SECC2019/Scripts/swiperjs/swiper-bundle.min.css">
-<script src="/Themes/SECC2019/Scripts/swiperjs/swiper-bundle.min.js"></script>
+<link rel="stylesheet" href="/Themes/SECC2024/Scripts/swiperjs/swiper-bundle.min.css">
+<script src="/Themes/SECC2024/Scripts/swiperjs/swiper-bundle.min.js"></script>
 
 <section class="g-display-block--xs g-display-block--sm g-display-none--md">
 <style>
@@ -73,20 +73,20 @@
     <div class="swiper-wrapper">
         <!-- Slides -->
         <div class="swiper-slide {% if currentPage == '/MyAccount' %} active {% endif %}">
-            <div clas="swipter-menu-item">
-                <a href="/MyAccount"><i class="fal fa-user-circle fa-2x" style="vertical-align: middle"></i>
+            <div class="swiper-menu-item">
+                <a href="/MyAccount" class="g-font-size-18--xs"><i class="fal fa-user-circle fa-2x" style="vertical-align: middle"></i>
                 <br />Account</a>
             </div>
         </div>
         <div class="swiper-slide {% if currentPage == '/my-classes' %} active {% endif %}">
-            <div clas="swipter-menu-item">
-                <a href="/my-classes"><i class="fal fa-users-class fa-2x" style="vertical-align: middle"></i>
+            <div class="swiper-menu-item">
+                <a href="/my-classes" class="g-font-size-18--xs"><i class="fal fa-users-class fa-2x" style="vertical-align: middle"></i>
                 <br />Classes</a>
             </div>
         </div>
         <div class="swiper-slide {% if currentPage == '/MyGiving' %} active {% endif %}">
-            <div clas="swipter-menu-item">
-                <a href="/MyGiving"><i class="fal fa-heart fa-2x" style="vertical-align: middle"></i>
+            <div class="swiper-menu-item">
+                <a href="/MyGiving" class="g-font-size-18--xs"><i class="fal fa-heart fa-2x" style="vertical-align: middle"></i>
                 <br />Giving</a>
             </div>
         </div>
@@ -95,28 +95,28 @@
     {%- for groupMember in groupMembers -%}
         {%- if groupMember.GroupRoleId == 826 -%}
             <div class="swiper-slide {% if currentPage == '/MyAccount/MyFinancialCoachingCases' %} active {% endif %}">
-                <div clas="swipter-menu-item">
-                    <a href="/MyAccount/MyFinancialCoachingCases"><i class="fal fa-comment-alt-dollar fa-2x" style="vertical-align: middle"></i>
+                <div class="swiper-menu-item">
+                    <a href="/MyAccount/MyFinancialCoachingCases" class="g-font-size-18--xs"><i class="fal fa-comment-alt-dollar fa-2x" style="vertical-align: middle"></i>
                     <br />Coaching</a>
                 </div>
             </div>
         {%- endif -%}
     {%- endfor -%}
         <div class="swiper-slide {% if currentPage == '/MyEvents' %} active {% endif %}">
-            <div clas="swipter-menu-item">
-                <a href="/MyEvents"><i class="fal fa-users fa-2x" style="vertical-align: middle"></i>
+            <div class="swiper-menu-item">
+                <a href="/MyEvents" class="g-font-size-18--xs"><i class="fal fa-users fa-2x" style="vertical-align: middle"></i>
                 <br />Events</a>
             </div>
         </div>
         <div class="swiper-slide {% if currentPage == '/MySchedule' %} active {% endif %}">
-            <div clas="swipter-menu-item">
-                <a href="/MySchedule"><i class="fal fa-calendar-day fa-2x" style="vertical-align: middle"></i>
+            <div class="swiper-menu-item">
+                <a href="/MySchedule" class="g-font-size-18--xs"><i class="fal fa-calendar-day fa-2x" style="vertical-align: middle"></i>
                 <br />Schedule</a>
             </div>
         </div>
         <div class="swiper-slide">
-            <div clas="swipter-menu-item">
-                <a href="/logout"><i class="fal fa-sign-out-alt fa-2x" style="vertical-align: middle"></i>
+            <div class="swiper-menu-item">
+                <a href="/logout" class="g-font-size-18--xs"><i class="fal fa-sign-out-alt fa-2x" style="vertical-align: middle"></i>
                 <br />Logout</a>
             </div>
         </div>

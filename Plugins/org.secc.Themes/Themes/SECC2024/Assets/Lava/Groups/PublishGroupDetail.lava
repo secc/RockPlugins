@@ -8,21 +8,19 @@
             <img src="{{photo}}" class="event-image img-responsive" onerror="this.style.display='none'">
         </div>
         <div class="col-md-8">
-			<div class="g-padding-b-20--xs g-text-center--xs g-text-left--lg g-padding-t-30--xs g-padding-t-0--lg">
+			<div class="g-padding-b-10--xs g-text-center--xs g-text-left--lg g-padding-t-30--xs g-padding-t-0--lg">
                     {[ socialshare facebooktitle:'{{ PublishGroup.Title }}' emailsubject:'{{ PublishGroup.Title | Escape }}' facebookimage:'{{ photo }}' facebooksummary:'{{ PublishGroup.Description | StripHtml }}' ]}
             </div>
             <h3 class="g-font-family--secondary">{{PublishGroup.Title}}</h3>
-            <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">{{ PublishGroup.Group.Campus.Name }}</h6>
+            <h6 class="uppercase g-padding-b-10--xs g-font-weight--700 g-font-size-14--xs">{{ PublishGroup.Group.Campus.Name }}</h6>
 
-            {{ PublishGroup.Description }}
-            <br>
-            <br>
+            <p class="g-font-family--secondary">{{ PublishGroup.Description }}</p>
 
                 <div class="event-calendar g-width-600--sm g-margin-x-auto--xs g-margin-x-0--lg">
                     {% if PublishGroup.ScheduleText != empty %}
     					<div class="event-items {% if PublishGroup.ChildcareAvailable != true %}col-xs-offset-2 col-md-offset-0{% endif %} col-xs-4 {% if PublishGroup.MeetingLocation != null and PublishGroup.MeetingLocation != empty  %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter{% endif %}">
-    						 <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
-    						 <h6>
+    						 <div class="event-icon g-width-50-percent--xs --calendar"><!-- Calendar SVG Image --></div>
+    						 <h6 class="g-font-size-14--xs">
     							{{ PublishGroup.ScheduleText }}
     							{% if PublishGroup.StartDate and PublishGroup.StartDate != empty %}
     							<br>
@@ -34,8 +32,8 @@
 
     				{% if PublishGroup.MeetingLocation != null and PublishGroup.MeetingLocation != empty%}
     					<div class="event-items g-padding-x-10--xs col-xs-4 {% if PublishGroup.ChildcareAvailable == true %}g-ver-divider__solid__r--gray-lighter{% endif %}">
-    						 <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
-    						 <h6>
+    						 <div class="event-icon g-width-50-percent--xs --location"><!-- Marker / Location SVG Image --></div>
+    						 <h6 class="g-font-size-14--xs">
     							{{ PublishGroup.MeetingLocation }}
     						 </h6>
     					</div>
@@ -45,8 +43,8 @@
 					<!-- ChildCare -->
 					{% if PublishGroup.ChildcareAvailable == true %}
 					<div class="event-items col-xs-4 g-padding-x-10--xs">
-						<div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
-						<h6>Children's<br>Programming<br> Available</h6>
+						<div class="event-icon g-font-size-14--xs --teddy-bear"><!-- Teddy Bear SVG Image --></div>
+						<h6 class="g-font-size-14--xs">Children's<br>Programming<br> Available</h6>
 					</div>
 					{% endif %}
                  </div>

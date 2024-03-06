@@ -1,5 +1,5 @@
-<script src="/Themes/SECC2019/Assets/vendor/ics/ics.deps.min.js" ></script>
-<script src="/Themes/SECC2019/Assets/vendor/ics/ics.js" ></script>
+<script src="/Themes/SECC2024/Assets/vendor/ics/ics.deps.min.js" ></script>
+<script src="/Themes/SECC2024/Assets/vendor/ics/ics.js" ></script>
 <section id="JoinAGroup">
     {[ parallax image:'/Content/Ministries/SE-Online/0N2A9758.jpg' addclass:'g-bg-parallax-color--black--40 g-padding-y-150--xs' height:'auto' position:'top top' speed:'-5' ]}
             <div class="parallax-body container g-padding-y-150--md">

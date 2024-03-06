@@ -1,5 +1,5 @@
 .select2-dropdown {
-  background-color: #FFFFFF;
+  background-color: $WhiteColor;
   border: 1px solid #efefef;
   overflow: hidden;
   box-sizing: border-box;
@@ -11,6 +11,7 @@
 }
 
 .select2-results {
+  background-color: $LinenLighter;
   display: block;
 }
 
@@ -18,6 +19,9 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  li {
+    font-size: 1rem;
+  }
 }
 
 .select2-results__option {

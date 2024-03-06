@@ -1,5 +1,5 @@
-<script src="/Themes/SECC2019/Scripts/moment/moment-with-locales.min.js"></script>
-<script src="/Themes/SECC2019/Scripts/moment/moment.min.js"></script>
+<script src="/Themes/SECC2024/Scripts/moment/moment-with-locales.min.js"></script>
+<script src="/Themes/SECC2024/Scripts/moment/moment.min.js"></script>
 
 {% comment %}  March 1 at 12:00am {% endcomment %}
 {% assign launch = '3/8/2020 08:00:00pm' %}

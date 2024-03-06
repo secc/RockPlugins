@@ -1,4 +1,4 @@
-@import 'bourbon'; // http://bourbon.io/
+@import '../../../../Styles/bourbon/bourbon'; // http://bourbon.io/
 
 @import '../partials/variables'; // colors, fonts etc...
 
@@ -31,7 +31,7 @@ body {
 
 a {
 	color: $color-2;
-	text-decoration: none;
+	text-decoration: none;	
 }
 
 /* --------------------------------

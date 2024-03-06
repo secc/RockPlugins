@@ -166,7 +166,7 @@
                     <article id="bem-styles" class="doc-section g-padding-t-20--xs g-margin-y-0--xs">
                         <h3 class="g-margin-b-10--xs g-hor-divider__solid__b--gray-lightest"><b>Global BEM Styles - Theme Files</b></h3>
                         <div class="section-block">
-                            Most of you won't need this, but for developer's references, you can find all of the Global BEM CSS classes below (and more) under <code>/Themes/SECC2019/Styles/global/_global.scss</code>.
+                            Most of you won't need this, but for developer's references, you can find all of the Global BEM CSS classes below (and more) under <code>/Themes/SECC2024/Styles/global/_global.scss</code>.
                         </div>
                     </article>
 
@@ -930,7 +930,7 @@ min-height: 100%;</code></pre>
         font-weight: bold;
     }
 </style>
-<script src="/Themes/SECC2019/Scripts/gumshoe/gumshoe.polyfills.min.js" ></script>
+<script src="/Themes/SECC2024/Scripts/gumshoe/gumshoe.polyfills.min.js" ></script>
 <script>
     function collapseSection(element) {
       // get the height of the element's inner content, regardless of its actual size

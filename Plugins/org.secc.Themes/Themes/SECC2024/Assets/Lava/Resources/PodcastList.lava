@@ -45,7 +45,7 @@
 </div>
 {% endif %}
 
-<script src="/Themes/SECC2019/Scripts/readmore.min.js"></script>
+<script src="/Themes/SECC2024/Scripts/readmore.min.js"></script>
 <script>
     $(window).load(function() {
         $('.js-group-item').tooltip();

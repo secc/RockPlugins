@@ -1,5 +1,5 @@
-<script src="https://www.southeastchristian.org/Themes/SECC2019/Scripts/ResizeSensor/ResizeSensor.min.js"></script>
-<script src="https://www.southeastchristian.org/Themes/SECC2019/Scripts/ResizeSensor/ElementQueries.min.js"></script>
+<script src="https://www.southeastchristian.org/Themes/SECC2024/Scripts/ResizeSensor/ResizeSensor.min.js"></script>
+<script src="https://www.southeastchristian.org/Themes/SECC2024/Scripts/ResizeSensor/ElementQueries.min.js"></script>
 <style>
   .panel-id-alert-drawer-040220 .panel-block > .panel-heading,
   .panel-id-alert-drawer-040220 .panel-default > .panel-heading {

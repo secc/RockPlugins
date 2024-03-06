@@ -106,7 +106,7 @@
     <link rel="stylesheet" href="<%# ResolveRockUrl("/Styles/developer.css", true) %>"/>
 
     <!-- GDPR -->
-    <link rel="stylesheet" href="/Themes/SECC2019/Scripts/GDPR/gdpr.css" />
+    <link rel="stylesheet" href="/Themes/SECC2024/Scripts/GDPR/gdpr.css" />
 
     <asp:ContentPlaceHolder ID="css" runat="server" />
 
@@ -135,15 +135,15 @@
     <script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/jquery.mobile.custom.min.js", true) %>"></script>
     <script src="<%# ResolveRockUrl("~~/Assets/Vendor/mega-site-navigation/js/main.js", true) %>"></script>
 
-    <script src="/Themes/SECC2019/Scripts/jarrallax/jarallax.min.js"></script>
-    <script src="/Themes/SECC2019/Scripts/jarrallax/jarallax-video.min.js" ></script>
-    <link rel="stylesheet" href="/Themes/SECC2019/Scripts/jarrallax/jarallax.css" />
-    <script src="/Themes/SECC2019/Scripts/jarrallax/object-fit-images/ofi.min.js" ></script>
-    <script src="/Themes/SECC2019/Scripts/vivus/vivus.min.js" ></script>
-    <link rel="stylesheet" href="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe.css?v=4.1.2-1.0.4" />
-    <link rel="stylesheet" href="/Themes/SECC2019/Assets/vendor/photo_swipe/default-skin/default-skin.css?v=4.1.2-1.0.4" />
-    <script src="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe.js"></script>
-    <script src="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe-ui-default.js"></script>
+    <script src="/Themes/SECC2024/Scripts/jarrallax/jarallax.min.js"></script>
+    <script src="/Themes/SECC2024/Scripts/jarrallax/jarallax-video.min.js" ></script>
+    <link rel="stylesheet" href="/Themes/SECC2024/Scripts/jarrallax/jarallax.css" />
+    <script src="/Themes/SECC2024/Scripts/jarrallax/object-fit-images/ofi.min.js" ></script>
+    <script src="/Themes/SECC2024/Scripts/vivus/vivus.min.js" ></script>
+    <link rel="stylesheet" href="/Themes/SECC2024/Assets/vendor/photo_swipe/photoswipe.css?v=4.1.2-1.0.4" />
+    <link rel="stylesheet" href="/Themes/SECC2024/Assets/vendor/photo_swipe/default-skin/default-skin.css?v=4.1.2-1.0.4" />
+    <script src="/Themes/SECC2024/Assets/vendor/photo_swipe/photoswipe.js"></script>
+    <script src="/Themes/SECC2024/Assets/vendor/photo_swipe/photoswipe-ui-default.js"></script>
     <!--
     Start of global snippet: Please do not remove
     Place this snippet between the <head> and </head> tags on every page of your site.
@@ -159,13 +159,13 @@
     </script>
     <!-- End of global snippet: Please do not remove -->
     <!-- GDPR Compliance -->
-    <script type="text/javascript" src="/Themes/SECC2019/Scripts/GDPR/jquery.ihavecookies.js"></script>
+    <script type="text/javascript" src="/Themes/SECC2024/Scripts/GDPR/jquery.ihavecookies.js"></script>
     <script type="text/javascript">
         var options = {
             title: 'Accept Cookies & Privacy Policy?',
             message: 'This website uses cookies to enhance user experience and to analyze performance and traffic on our website. We also share information about your use of our site with our social media, advertising and analytics partners.',
             delay: 600,
-            expires: 1,
+            expires: 30,
             link: '/privacy-policy',
             onAccept: function () {
                 var myPreferences = $.fn.ihavecookies.cookie();
@@ -250,9 +250,6 @@
 
 
         </form>
-
-        <!-- Back To Top -->
-        <a href="javascript:void(0);" class="s-back-to-top js__back-to-top"></a>
 
     </div>
 </body>

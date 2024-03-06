@@ -2,18 +2,20 @@
     {% assign personGuid = CurrentPerson.Guid %}
     <ul id="cd-primary-nav" class="cd-primary-nav is-fixed {% unless personGuid != null %}logged-in{% endunless %}">
         <li>
-            <a href="#Locations">Locations</a>
+            <a href="https://www.southeastchristian.org/locations">Locations</a>
         </li>
         <li>
-            <a href="#Watch">Watch</a>
+            <a href="https://www.southeastchristian.org/watch">Watch</a>
         </li>
         <li>
-            <a href="#About">Who We Are</a>
+            <a href="https://www.southeastchristian.org/who-we-are">Who We Are</a>
         </li>
         <li>
-            <a href="#Place">Find Your Place</a>
+            <a href="https://www.southeastchristian.org/find-your-place">Find Your Place</a>
         </li>
-        <li><a href="/give">Give</a></li>
+        <li>
+            <a href="https://www.southeastchristian.org/give">Give</a>
+        </li>
 
         {% if CurrentPerson.Guid %}
             <li id="GroupManager">
@@ -32,10 +34,10 @@
             <li><a href="/login?returnurl={{ url | Replace:host, '' | Replace:'http://','' | Replace:'https://','' }}" title="Login">Login<span></span></a></li>
         {% endif %}
         <li>
-            <a href="#Locations">More</a>
+            <a href="https://www.southeastchristian.org/more">More</a>
         </li>
         <li class="join-button">
-            <a href="#Join"><i class="fal fa-map-marker-alt hidden-large-desktop g-padding-x-20--xs"></i> Join Us For Church</a>
+            <a href="https://www.southeastchristian.org/locations"><i class="fal fa-map-marker-alt hidden-large-desktop g-padding-x-10--xs"></i> Join Us For Church</a>
         </li>
     </ul> <!-- primary-nav -->
 </nav> <!-- cd-nav -->

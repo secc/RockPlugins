@@ -27,6 +27,7 @@ using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
@@ -41,14 +42,14 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [BooleanField( "Is Mobile Checkin", "If this block is used for mobile check-in set true", false, key: AttributeKeys.IsMobileCheckin )]
 
     [CodeEditorField( "Completion HTML",
-        "Text that appears when someone completes their check-in proccess  <span class='tip tip-html'></span>", CodeEditorMode.Html,
+        "Text that appears when someone completes their check-in proccess  <span class='tip tip-html'></span>", CodeEditorMode.Lava,
         key: AttributeKeys.CompletionHTML,
         defaultValue: "<h2>Welcome.</h2> <h2>We are preparing your security labels now.</h2>",
         order: 100
         )]
 
     [CodeEditorField( "No Eligible Family Members",
-        "Text that appears when no one in the family is able to check-in.  <span class='tip tip-html'></span>", CodeEditorMode.Html,
+        "Text that appears when no one in the family is able to check-in.  <span class='tip tip-html'></span>", CodeEditorMode.Lava,
         key: AttributeKeys.NoneFound,
         defaultValue: "<h2>We are sorry</h2><h3>There are no members of your family who are able to check-in at this kiosk right now.</h3><h4>Check-in may become available for your family members at a future time today.<br />If you need assistance or believe this is in error, please contact one of our volunteers.</h4>",
         order: 101
@@ -115,8 +116,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             if ( !Page.IsPostBack )
             {
-                ltCompletion.Text = GetAttributeValue( AttributeKeys.CompletionHTML );
-                ltNoneFound.Text = GetAttributeValue( AttributeKeys.NoneFound );
+                var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, null, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
+
+                ltCompletion.Text = GetAttributeValue( AttributeKeys.CompletionHTML ).ResolveMergeFields( mergeFields );
+                ltNoneFound.Text = GetAttributeValue( AttributeKeys.NoneFound ).ResolveMergeFields( mergeFields );
+
+                
 
                 //Clear UI state from session
                 Session["modalActive"] = false;
@@ -539,7 +544,21 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             btnMessage.AddCssClass( "btn btn-default col-xs-8 disabled" );
             hgcAreaRow.Controls.Add( btnMessage );
 
-            btnMessage.Text = "There are no classes available for " + person.Person.NickName + " to check-in, or all rooms are currently full.";
+
+            var checkinTypeId = CurrentCheckInState.CheckInType.Id;
+            var checkinType = GroupTypeCache.Get( checkinTypeId );
+            var noClassesMessage = checkinType.GetAttributeValue( "FamilyCheckin_NoCheckinOptionsAvailable" );
+
+            if(noClassesMessage.IsNullOrWhiteSpace())
+            {
+                noClassesMessage = $"There are not classes available for {person.Person.NickName}  to check-in, or all rooms are currently full.";
+            }
+            var mergeFields = LavaHelper.GetCommonMergeFields( null );
+            mergeFields.Add( "Person", person.Person );
+
+
+            btnMessage.Text = noClassesMessage.ResolveMergeFields( mergeFields );
+
             foreach ( var locationId in person.GroupTypes.SelectMany( gt => gt.Groups ).SelectMany( g => g.Locations ).Select( l => l.Location.Id ).ToList() )
             {
                 var attendances = AttendanceCache.GetByLocationId( locationId );

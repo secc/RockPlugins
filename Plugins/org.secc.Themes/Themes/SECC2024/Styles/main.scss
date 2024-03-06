@@ -77,6 +77,20 @@ a {
 	}
 }
 
+p a {
+	//color: $LinkColor;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.20);
+	color: inherit;
+	&:hover {
+		//color: inherit;
+		border-bottom: 1px solid #1D1F21;
+		font-weight: inherit;
+	}
+	&.btn-normal {
+		color: inherit;
+	}
+}
+
 a.line {
     text-decoration: underline;
 }

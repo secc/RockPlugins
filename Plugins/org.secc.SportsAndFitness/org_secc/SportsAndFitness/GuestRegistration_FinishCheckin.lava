@@ -1,0 +1,12 @@
+{% comment %}
+    Emergency Contact Finish header
+{% endcomment %}
+<div class="row">
+    <div class="col-sm-6 col-sm-offset-3">
+        <h2 style="text-align: center;">Registration Complete</h2>
+        <p>{{ Guest.NickName }} you have successfully signed in to Sports
+        and Fitness. Please check-in with a Control Center Host to complete
+        checking in.</p>
+    </div>
+</div>
+

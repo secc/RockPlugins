@@ -112,12 +112,12 @@
                             <br />
                             <h1 class="g-font-family--secondary g-font-size-150--lg g-font-size-80--xs g-text-shadow--black--soft">{{ campus.Name }}</h1>
                             <br />
-                            {% if campusSlug == "multination" or campusSlug == "beechmont" %}   
+                            {% if campusSlug == "multination" or campusSlug == "beechmont" %}
                                <h5 class="g-font-weight--600 g-text-shadow--black--soft"><strong>A Community Campus of Southeast Christian Church</strong></h1>
                             {% endif %}
                             <br />
                             {% if CampusVimeoId != '' %}
-                                <script src="/Themes/SECC2019/Scripts/jquery-modal-video-se.js"></script>
+                                <script src="/Themes/SECC2024/Scripts/jquery-modal-video-se.js"></script>
                                 <script>
                                 $(document).ready(function() {
 
@@ -185,7 +185,7 @@
                     <div class="g-ver-center--md g-text-center--xs g-text-left--md g-padding-l-40--md">
                         <h2 class="g-font-size--jumbo-2 g-font-family--secondary">Location</h2>
                         <p class="g-font-weight--400 g-line-height--sm g-margin-b-0--xs">
-                            {% if campusSlug == "multination" or campusSlug == "beechmont" %}   
+                            {% if campusSlug == "multination" or campusSlug == "beechmont" %}
                                 {{ campus.Name }}<br />
                             {% else %}
                                 Southeast Christian Church<br />

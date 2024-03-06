@@ -1,4 +1,23 @@
+<style>
+    .g-color--para {
+        color: #8E8F90;
+        font-size: 20px;
+    }
 
+    .g-color--para * { /*making sure that all child elements inherit these text styles*/
+        color: inherit;
+        font-size: inherit;
+    }
+</style>
+
+<section>
+    <div>
+        <h1 class="g-font-family--secondary g-color--white g-margin-b-30--xs">{{ Opportunity.Name }}</h1>
+        <div class="g-font-family--primary g-color--para">{{ Opportunity.Description }}</div>
+    </div>
+</section>
+
+{% comment %}
 {% if Opportunity.PhotoId %}
 <section>
     <div>
@@ -20,3 +39,4 @@
         </div>
     </div>
 </section>
+{% endcomment %}

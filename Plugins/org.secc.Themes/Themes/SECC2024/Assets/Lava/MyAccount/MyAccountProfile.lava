@@ -1,158 +1,181 @@
 {% if Person.AgeClassification == 'Child' %}
-	{% assign isAdult = false  %}
-{% else %}
-	{% assign isAdult = true  %}
-{% endif %}
+    {% assign isAdult = false %}
+    {% else %}
+    {% assign isAdult = true %}
+    {% endif %}
 
+    <div class="se-panel g-margin-x-20--xs g-bg-color--linen-lighter">
+        <div class="clearfix g-margin-b-20--xs">
 
-<div class="se-panel g-margin-x-20--xs">
-    <div class="clearfix g-margin-b-20--xs" >
+            <span class="g-position--absolute g-padding-y-20--xs g-padding-x-15--xs"
+                style="right: 0px;top: 6px;z-index:100;">
+                {%if isAdult -%}
+                <a href="/MyAccount/Edit/{{ Person.Guid }}" title="Change Account Info"
+                    class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
+                    <i class="fas fa-user-edit"></i>
+                </a>
+                {% endif -%}
+            </span>
 
-        <span class="g-position--absolute g-padding-y-20--xs g-padding-x-15--xs" style="right: 0px;top: 6px;z-index:100;">
-            {%if isAdult -%}
-			<a href="/MyAccount/Edit/{{ Person.Guid }}" title="Change Account Info" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
-                <i class="fas fa-user-edit"></i>
-            </a>
-			{% endif -%}
-        </span>
-
-        <div class="fluid-container">
-            <div class="col-md-5 g-padding-x-80--xs g-padding-y-80--xs">
-                <div class="g-width-100-percent--xs g-position--relative g-display-block--xs text-center">
-                    {%if isAdult -%}
-                    <a href="/MyAccount/Edit/{{ Person.Guid }}">
-                    {% endif -%}
-                        <div class="g-display-inline-block--xs g-margin-x-auto--xs g-position--relative">
-                            <img src="{{ Person.PhotoUrl }}" title="Change Image" class="img-responsive img-circle">
-                            {%if isAdult -%}
-                            <style>
-                            #changePhoto {
-                                position: absolute;
-                                right: 7.5%;
-                                display: inline-block;
-                                bottom: 7.5%;
-                                background-color: white;
-                                width: 60px;
-                                height: 60px;
-                                border-radius: 100%;
-                                border: 2px solid black;
-                                text-align: center;
-                                line-height: 60px;
-                                font-size: 28px;
-                                color: #4c4c4c;
-                                transition: all .2s ease-out;
-                            }
-                            #changePhoto:hover {
-                                color: #000;
-                            }
-                            </style>
-                            <span id="changePhoto">
-                                <i class="fas fa-camera-retro"></i>
-                            </span>
+            <div class="fluid-container">
+                <div class="col-md-5 g-padding-x-70--xs g-padding-t-80--lg">
+                    <div class="g-width-100-percent--xs g-position--relative g-display-block--xs text-center">
+                        {%if isAdult -%}
+                        <a href="/MyAccount/Edit/{{ Person.Guid }}">
                             {% endif -%}
-                        </div>
-                    {%if isAdult -%}
-                    </a>
-                    {% endif -%}
-                </div>
-            </div>
-            <div class="col-md-7 g-padding-b-80--xs g-padding-t-80--lg">
-                <h3 class="g-font-weight--700 g-padding-b-20--xs">
-                    {% if Person.NickName %}
-                        {{ Person.NickName }} {{ Person.LastName }}
-                    {% endif %}
-                </h3>
-                <div class="container-fluid g-padding-x-0--xs">
-                    <div class="col-xs-6 g-padding-x-0--xs">
-                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase">
-                            Age
-                        </p>
-                    </div>
-                    <div class="col-xs-6 g-padding-x-0--xs">
-                        {% if Person.NickName %}
-                            {{ Person.Age }} Years ({{ Person.BirthDate | Date:'M/d/yyyy'}})
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="container-fluid g-padding-x-0--xs">
-                    <div class="col-xs-6 g-padding-x-0--xs">
-                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase">
-                            Gender
-                        </p>
-                    </div>
-                    <div class="col-xs-6 g-padding-x-0--xs">
-                        {% if Person.Gender %}
-                            {{ Person.Gender }}
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="container-fluid g-padding-x-0--xs">
-                    <div class="col-xs-6 g-padding-x-0--xs">
-                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase">
-                            Marital Status
-                        </p>
-                    </div>
-                    <div class="col-xs-6 g-padding-x-0--xs">
-                        {% definedvalue where:'DefinedTypeId == 7' sort:'Value' %}
-                         {% for definedValueItem in definedvalueItems %}
-                            {% if Person.MaritalStatusValueId == definedValueItem.Id %}
-                                {{ definedValueItem.Value }}{% if Person.AnniversaryDate != null %} ({{ Person.AnniversaryDate | Date:'M/d' }}){% endif %}
-                            {% endif %}
-    					 {% endfor %}
-    					{% enddefinedvalue %}
-    				</div>
-                </div>
-                <div class="container-fluid g-padding-x-0--xs">
-                    <div class="col-xs-6 g-padding-x-0--xs">
-                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase">
-                            Email
-                        </p>
-                    </div>
-                    <div class="col-xs-6 g-padding-x-0--xs">
-                        {{ Person.Email }}
-    				</div>
-                </div>
+                            <div class="g-display-inline-block--xs g-margin-x-auto--xs g-position--relative">
+                                <img src="{{ Person.PhotoUrl }}" title="Change Image" class="img-responsive img-circle">
+                                {%if isAdult -%}
+                                <style>
+                                    #changePhoto {
+                                        position: absolute;
+                                        right: 7.5%;
+                                        display: inline-block;
+                                        bottom: 7.5%;
+                                        background-color: white;
+                                        width: 60px;
+                                        height: 60px;
+                                        border-radius: 100%;
+                                        border: 2px solid black;
+                                        text-align: center;
+                                        line-height: 60px;
+                                        font-size: 28px;
+                                        color: #4c4c4c;
+                                        transition: all .2s ease-out;
+                                    }
 
-                <div class="container-fluid g-padding-x-0--xs">
-                    <div class="col-xs-6 g-padding-x-0--xs">
-                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase">
-                            Address
-                        </p>
+                                    #changePhoto:hover {
+                                        color: #000;
+                                    }
+
+                                    .account-settings {
+                                        display: flex;
+                                        flex-wrap: wrap;
+                                        justify-content: space-between;
+                                    }
+                                </style>
+                                <span id="changePhoto">
+                                    <i class="fas fa-camera-retro"></i>
+                                </span>
+                                {% endif -%}
+                            </div>
+                            {%if isAdult -%}
+                        </a>
+                    {% endif -%}
+                        <a class="btn btn-primary se-btn--xs" role="button" data-toggle="collapse" href="#QREventPass" aria-expanded="false" aria-controls="QREventPass">
+                            QR Event Pass
+                        </a>
+                        <div class="collapse" id="QREventPass">
+                            <img src="{{ 'Global' | Attribute:'PublicApplicationRoot'}}GetQRCode.ashx?data={{ CurrentPerson | GetPersonAlternateId }}">
+                        </div>
                     </div>
-                    <div class="col-xs-6 g-padding-x-0--xs">
-                        {% assign personalHome =  Person | Address:'Home' %}
-						{% if personalHome != '' %}
-						    {{ personalHome }}
-						{% endif %}
-                        <br />
-    				</div>
                 </div>
-                <div class="container-fluid g-padding-x-0--xs">
-                    <div class="col-xs-6 g-padding-x-0--xs">
-                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase">
-                            Phone
-                        </p>
+                <div class="col-md-7 g-padding-b-80--xs g-padding-t-80--lg">
+                    <h2
+                        class="g-font-family--secondary g-padding-b-20--xs g-padding-b-30--sm g-padding-b-20--xs g-padding-b-40--md g-padding-b-50--lg">
+                        {% if Person.NickName %}
+                        {{ Person.NickName }} {{ Person.LastName }}
+                        {% endif %}
+                    </h2>
+                    <div class="container-fluid g-padding-x-0--xs">
+                        <div class="col-xs-6 g-padding-x-0--xs">
+                            <p class="g-margin-y-0--xs g-font-weight--600">
+                                Age
+                            </p>
+                        </div>
+                        <div class="col-xs-6 g-padding-x-0--xs">
+                            {% if Person.NickName %}
+                            {{ Person.Age }} Years ({{ Person.BirthDate | Date:'M/d/yyyy'}})
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="col-xs-6 g-padding-x-0--xs">
-                        {% for phone in Person.PhoneNumbers %}
-						{{ phone.NumberFormatted }} <small>({{ phone.NumberTypeValue.Value }})</small><br />
-						{% endfor %}
-    				</div>
-                </div>
-                <div class="container-fluid g-padding-x-0--xs">
-                    <hr />
-                    <div class="col-xs-12 col-md-6 g-padding-x-0--xs">
-                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase g-padding-r-10--xs">
-                            Account Settings
-                        </p>
+                    <div class="container-fluid g-padding-x-0--xs">
+                        <div class="col-xs-6 g-padding-x-0--xs">
+                            <p class="g-margin-y-0--xs g-font-weight--600">
+                                Gender
+                            </p>
+                        </div>
+                        <div class="col-xs-6 g-padding-x-0--xs">
+                            {% if Person.Gender %}
+                            {{ Person.Gender }}
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="col-xs-12 col-md-6 g-padding-x-0--xs">
-                        <a href="~/ChangePassword">Change Password</a><br>
-                        <a href="~/Subscribe">Subscribe to Communication Lists</a><br>
-                        <a href="~/Unsubscribe">Unsubscribe from Lists</a>
-    				</div>
+                    <div class="container-fluid g-padding-x-0--xs">
+                        <div class="col-xs-6 g-padding-x-0--xs">
+                            <p class="g-margin-y-0--xs g-font-weight--600">
+                                Marital Status
+                            </p>
+                        </div>
+                        <div class="col-xs-6 g-padding-x-0--xs">
+                            {% definedvalue where:'DefinedTypeId == 7' sort:'Value' %}
+                            {% for definedValueItem in definedvalueItems %}
+                            {% if Person.MaritalStatusValueId == definedValueItem.Id %}
+                            {{ definedValueItem.Value }}{% if Person.AnniversaryDate != null %} ({{ Person.AnniversaryDate | Date:'M/d' }}){% endif %}
+                            {% endif %}
+                            {% endfor %}
+                            {% enddefinedvalue %}
+                        </div>
+                    </div>
+                    <div class="container-fluid g-padding-x-0--xs">
+                        <div class="col-xs-6 g-padding-x-0--xs">
+                            <p class="g-margin-y-0--xs g-font-weight--600">
+                                Email
+                            </p>
+                        </div>
+                        <div class="col-xs-6 g-padding-x-0--xs">
+                            {{ Person.Email }}
+                        </div>
+                    </div>
+
+                    <div class="container-fluid g-padding-x-0--xs">
+                        <div class="col-xs-6 g-padding-x-0--xs">
+                            <p class="g-margin-y-0--xs g-font-weight--600">
+                                Address
+                            </p>
+                        </div>
+                        <div class="col-xs-6 g-padding-x-0--xs">
+                            {% assign personalHome = Person | Address:'Home' %}
+                            {% if personalHome != '' %}
+                            {{ personalHome }}
+                            {% endif %}
+                            <br />
+                        </div>
+                    </div>
+                    <div class="container-fluid g-padding-x-0--xs">
+                        <div class="col-xs-6 g-padding-x-0--xs">
+                            <p class="g-margin-y-0--xs g-font-weight--600">
+                                Phone
+                            </p>
+                        </div>
+                        <div class="col-xs-6 g-padding-x-0--xs">
+                            {% for phone in Person.PhoneNumbers %}
+                            {{ phone.NumberFormatted }} <small>({{ phone.NumberTypeValue.Value }})</small><br />
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="container-fluid g-padding-x-0--xs">
+                        <hr />
+                        <div class="col-xs-12 g-padding-x-0--xs">
+                            <h3
+                                class="g-margin-y-0--xs g-font-weight--600 text-uppercase g-padding-r-10--xs g-padding-b-10--xs g-padding-b-20--sm g-padding-b-30--md g-padding-b-40--lg">
+                                Account Settings
+                            </h3>
+                            <div class="account-settings g-padding-x-0--xs">
+                                <p>
+                                    <a href="~/ChangePassword">Change Password</a>
+                                </p>
+
+                                <p>
+                                    <a href="~/Subscribe">Communication Preferences</a>
+                                </p>
+                                <p>
+                                    <a href="~/Unsubscribe">Email Preferences</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>

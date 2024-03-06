@@ -37,10 +37,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)Rock\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)\RockWeb\Bin\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)Rock\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)\RockWeb\Bin\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="FFmpeg.NET, Version=3.4.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\xFFmpeg.NET.3.4.0\lib\netstandard2.0\FFmpeg.NET.dll</HintPath>
@@ -121,6 +123,7 @@
     <Compile Include="WorkflowAttributes\AttributeMatrixDeleteRow.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixAddRow.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixCopy.cs" />
+    <Compile Include="WorkflowAttributes\CopyAttributesFromWorkflow.cs" />
     <Compile Include="SignatureDocument\StoreSignedDocument.cs" />
     <Compile Include="WorkflowAttributes\SECCSetAttriuteValue.cs" />
     <Compile Include="WorkflowControl\ClearAuthCache.cs" />

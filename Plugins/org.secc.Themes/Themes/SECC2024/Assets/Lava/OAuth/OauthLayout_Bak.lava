@@ -1,7 +1,7 @@
 {% comment %}
 //////////////////////////////
   Include the styles!
-  {% include '/Themes/SECC2019/Assets/Lava/OAuth/TabStyling.lava' %}
+  {% include '/Themes/SECC2024/Assets/Lava/OAuth/TabStyling.lava' %}
 //////////////////////////////
 {% endcomment %}
 <div class="g-bg-color--gray-lightest g-display-block--xs g-width-100-percent--xs clearfix">
@@ -96,6 +96,6 @@
 {% comment %}
 //////////////////////////////
   Include the JS!
-  {% include '/Themes/SECC2019/Assets/Lava/OAuth/TabJS.lava' %}
+  {% include '/Themes/SECC2024/Assets/Lava/OAuth/TabJS.lava' %}
 //////////////////////////////
 {% endcomment %}

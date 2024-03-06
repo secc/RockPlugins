@@ -121,7 +121,7 @@ aria-labelledby="buttons-lava-shortcodes" aria-expanded="false" style="height: 0
         <p>Check out this <a href="https://rock.secc.org/page/2619" target="_blank">link</a> for more examples and use cases: <a href="https://rock.secc.org/page/2619" target="_blank">https://rock.secc.org/page/2619</a>
     </div>
 </div>
-</div> 
+</div>
 <!-- END: Buttons Shortcode Documentation -->
 
 <!-- START: Sections Shortcode Documentation -->
@@ -168,8 +168,8 @@ aria-labelledby="sections-lava-shortcodes" aria-expanded="false" style="height: 
 {%- endraw -%}
         <br />
     </div>
-</div> 
-</div> 
+</div>
+</div>
 <!-- END: FAQ Shortcode Documentation -->
 
 <!-- START: FAQ Shortcode Documentation -->
@@ -277,7 +277,7 @@ aria-labelledby="faq-lava-shortcodes" aria-expanded="false" style="height: 0px;"
             {[ endfaq ]}
         </div>
     </div>
-</div> 
+</div>
 </div>
 <!-- END: FAQ Shortcode Documentation -->
 
@@ -298,7 +298,7 @@ aria-labelledby="faq-lava-shortcodes" aria-expanded="false" style="height: 0px;"
         font-weight: bold;
     }
 </style>
-<script src="/Themes/SECC2019/Scripts/gumshoe/gumshoe.polyfills.min.js" ></script>
+<script src="/Themes/SECC2024/Scripts/gumshoe/gumshoe.polyfills.min.js" ></script>
 <script>
 var header = document.querySelector('.cd-main-header');
 var spy = new Gumshoe('#doc-menu a', {

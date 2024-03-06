@@ -14,19 +14,19 @@
 	{% endif %}
 {% endfor %}
 
-<div class="container">
-    <div class="row">
-        <div class="col-xs-12 col-sm-12 col-md-12" >
+<div class="">
+    <div class="">
+        <div class="" >
             <div class="filterbox">
 
-                <div class="row">
-                    <div class="col-xs-12 col-md-6">
-                        <h3 class="g-font-weight--600">Find an Event</h3>
-                        <p class="g-font-weight--400 g-line-height--sm">Find an Event Find an event that interests you by selecting a campus and/or ministry. Click on the image to see more details or to register.</p>
+                <div class="">
+                    <div class="">
+                        <h2 class="g-font-family--secondary">Find an Event</h2>
+                        <p class="g-font-weight--400 g-line-height--sm g-padding-t-20--xs g-padding-t-50--md" style="color: #616264;">Find an Event Find an event that interests you by selecting a campus and/or ministry. Click on the image to see more details or to register.</p>
                         <br />
                     </div>
 
-                    <div class="col-xs-12 col-md-3 g-padding-y-40--md" >
+                    <div class="g-padding-y-40--md" >
                         <select class="select2-campuses" name="campus">
                         <option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
                         {% for campus in Campuses %}
@@ -41,7 +41,7 @@
                         </select>
                     </div>
 
-                    <div class="col-xs-12 col-md-3 g-padding-y-20--xs g-padding-y-40--sm" >
+                    <div class="g-padding-y-20--xs g-padding-y-40--sm" >
                         <select class="select2-ministries" name="minitry">
                         <option value="allMinistries">All Ministries</option>
 
@@ -95,7 +95,7 @@
 </div>
 {% endcomment %}
 
-<script src="/Themes/SECC2019/Scripts/readmore.min.js"></script>
+<script src="/Themes/SECC2024/Scripts/readmore.min.js"></script>
 
 <script>
 $(document).ready(function() {
@@ -274,7 +274,7 @@ function processPageLoad(pnlContent_ID, params) {
     }
 }
 
-function updatePath(key, value) {    
+function updatePath(key, value) {
     baseUrl = [location.protocol, '//', location.host].join('');
     parts = location.pathname.split('/');
     // Set some defaults;
@@ -294,7 +294,7 @@ function updatePath(key, value) {
                     console.log( "parts:" + parts );
                     return parts.join( '/' );
                 }
-                
+
 
 var parseQueryString = function() {
 
