@@ -22,7 +22,7 @@ using Newtonsoft.Json;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Exceptions;
 using org.secc.FamilyCheckin.Model;
-using org.secc.FamilyCheckin.Utilities;
+using CheckinUtils = org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
@@ -472,7 +472,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         private void DisplayPersonCheckinAreas( CheckInPerson checkInPerson, Panel hgcRow )
         {
             //Insure that all locations are linked properly from historical preselect
-            var locationLinkAttribute = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() );
+            var locationLinkAttribute = AttributeCache.Get( CheckinUtils.Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() );
 
             foreach ( var grouptype in checkInPerson.GroupTypes.Where( gt => gt.Selected ).ToList() )
             {
@@ -1227,7 +1227,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         /// <param name="schedule"></param>
         private void ClearRoomSelection( CheckInPerson checkInPerson, CheckInSchedule schedule )
         {
-            var locationLinkAttribute = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() );
+            var locationLinkAttribute = AttributeCache.Get( CheckinUtils.Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() );
             List<CheckInGroupType> groupTypes = GetGroupTypes( checkInPerson, schedule );
 
             foreach ( var groupType in groupTypes )
@@ -1320,7 +1320,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             ClearRoomSelection( checkInPerson, schedule );
             checkInPerson.Selected = true;
 
-            var locationLinkAttribute = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() );
+            var locationLinkAttribute = AttributeCache.Get( CheckinUtils.Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() );
             if ( locationLinkAttribute != null && group.Group.GetAttributeValue( locationLinkAttribute.Key ).AsBoolean() )
             {
                 LinkLocations( checkInPerson, group, room );
@@ -1494,7 +1494,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                                 checkInLocation.Selected = true;
                                 checkInLocation.PreSelected = true;
 
-                                var locationLinkAttribute = AttributeCache.Get( Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() );
+                                var locationLinkAttribute = AttributeCache.Get( CheckinUtils.Constants.GROUP_ATTRIBUTE_LINK_LOCATIONS.AsGuid() );
                                 if ( locationLinkAttribute != null )
                                 {
 
@@ -1619,21 +1619,21 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 if ( mobileCheckinRecord.Attendances.Any( a => a.EndDateTime != null ) )
                 {
                     var people = mobileCheckinRecord.Attendances.Select( a => a.PersonAlias.Person ).DistinctBy( p => p.Id ).ToList();
-                    labels = CheckinLabelGen.GenerateLabels( people, CurrentCheckInState.Kiosk.Device, GetAttributeValue( "AggregatedLabel" ).AsGuidOrNull() );
+                    labels = CheckinUtils.CheckinLabelGen.GenerateLabels( people, CurrentCheckInState.Kiosk.Device, GetAttributeValue( "AggregatedLabel" ).AsGuidOrNull() );
                 }
                 else
                 {
                     labels = JsonConvert.DeserializeObject<List<CheckInLabel>>( mobileCheckinRecord.SerializedCheckInState );
                 }
 
-                LabelPrinter labelPrinter = new LabelPrinter()
+                CheckinUtils.LabelPrinter labelPrinter = new CheckinUtils.LabelPrinter()
                 {
                     Request = Request,
                     Labels = labels
                 };
 
-                var mobileDidAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_DID_ATTEND ).Id;
-                var mobileNotAttendId = DefinedValueCache.Get( Constants.DEFINED_VALUE_MOBILE_NOT_ATTEND ).Id;
+                var mobileDidAttendId = DefinedValueCache.Get( CheckinUtils.Constants.DEFINED_VALUE_MOBILE_DID_ATTEND ).Id;
+                var mobileNotAttendId = DefinedValueCache.Get( CheckinUtils.Constants.DEFINED_VALUE_MOBILE_NOT_ATTEND ).Id;
 
                 foreach ( var attendance in mobileCheckinRecord.Attendances )
                 {
@@ -1699,7 +1699,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private void ProcessLabels()
         {
-            LabelPrinter labelPrinter = new LabelPrinter( CurrentCheckInState, Request );
+            CheckinUtils.LabelPrinter labelPrinter = new CheckinUtils.LabelPrinter( CurrentCheckInState, Request );
             labelPrinter.PrintNetworkLabels();
             var script = labelPrinter.GetClientScript();
             script += "setTimeout( function(){ __doPostBack( '" + btnCancel.UniqueID + "', 'OnClick' ); },4000)";
