@@ -963,11 +963,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 Location _address = Person.GetHomeLocation();
                 if ( _address != null )
                 {
-                    return ( _address.Street1 ?? "" )
+                    var address =  ( _address.Street1 ?? "" )
                             + ( !string.IsNullOrWhiteSpace( _address.Street2 ) ? "<br />" + _address.Street2 : "" )
                             + ( !( string.IsNullOrWhiteSpace( City ) && string.IsNullOrWhiteSpace( State ) && string.IsNullOrWhiteSpace( Zipcode ) ) ? "<br />" : "" )
                             + ( !string.IsNullOrWhiteSpace( City ) ? City + ", " : "" )
-                            + State + Zipcode;
+                            + State + " " + Zipcode;
+                    return address.Trim();
                 }
                 return "";
             }
