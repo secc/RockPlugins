@@ -21,7 +21,7 @@ namespace org.secc.Jobs
         {
             var startdate = new DateTime( 2024, 3, 25 );
             var enddate = new DateTime( 2024, 3, 31 );
-            var easterCheckinScheduleParentCategoryIds = new List<int>() { 2228, 254, 1624, 314, 616, 248, 505, 2167, 1191, 1618, 1765, 1685, 265 };
+            var easterCheckinScheduleParentCategoryIds = new List<int>() { 2228, 254, 1624, 314, 616, 248, 505, 2167, 1191, 1618, 1765, 1685, 265, 646 };
             var easterServiceScheduleCategoryIds = new List<int>() { 2213, 337, 338, 339, 578, 853, 1180, 1311, 1335, 1336, 1512, 1607, 1614, 1631, 1650, 1890, 2170 };
 
             var rockContext = new RockContext();
