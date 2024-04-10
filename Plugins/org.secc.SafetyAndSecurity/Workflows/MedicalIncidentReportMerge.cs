@@ -73,8 +73,8 @@ namespace org.secc.SafetyAndSecurity
 
                 {"personSignature", "{{t:s;r:y;o:\"Person\";}}" },
                 {"personSigDatetime", "{{t:d;r:y;o:\"Person\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
-                {"witnessSignature", "{{t:s;r:y;o:\"Witness\";}}" },
-                {"witnessSigDatetime", "{{t:d;r:y;o:\"Witness\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" }
+                {"witnessSignature", "{{t:s;r:y;o:\"Person\";}}" },
+                {"witnessSigDatetime", "{{t:d;r:y;o:\"Person\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" }
             };
 
             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
