@@ -62,6 +62,7 @@ namespace org.secc.SafetyAndSecurity
                 {"timeArrived", action.Activity.Workflow.GetAttributeValue("timeArrived")},
                 {"emsHospital", action.Activity.Workflow.GetAttributeValue("emsHospital").AsBoolean()?"Yes":"No"},
                 {"hospital", action.Activity.Workflow.GetAttributeValue("hospital")},
+                {"emsRefusalWitness", action.Activity.Workflow.GetAttributeValue("emsRefusalWitness")},
                 {"treatment", action.Activity.Workflow.GetAttributeValue("treatment")},
                 {"pulseRate", action.Activity.Workflow.GetAttributeValue("pulseRate")},
                 {"respirations", action.Activity.Workflow.GetAttributeValue("respirations")},
@@ -72,9 +73,7 @@ namespace org.secc.SafetyAndSecurity
                 {"incidentDesc", action.Activity.Workflow.GetAttributeValue("incidentDesc")},
 
                 {"personSignature", "{{t:s;r:y;o:\"Person\";}}" },
-                {"personSigDatetime", "{{t:d;r:y;o:\"Person\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
-                {"witnessSignature", "{{t:s;r:y;o:\"Person\";}}" },
-                {"witnessSigDatetime", "{{t:d;r:y;o:\"Person\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" }
+                {"personSigDatetime", "{{t:d;r:y;o:\"Person\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" }
             };
 
             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
