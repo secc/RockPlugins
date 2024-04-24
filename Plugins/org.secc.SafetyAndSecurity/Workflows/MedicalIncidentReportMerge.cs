@@ -56,15 +56,16 @@ namespace org.secc.SafetyAndSecurity
                 {"parentPhone", action.Activity.Workflow.GetAttributeValue("parentPhone")},
                 {"datetimeIncident", action.Activity.Workflow.GetAttributeValue("datetimeIncident")},
                 {"locationIncident", action.Activity.Workflow.GetAttributeValue("locationIncident")},
-                {"witness", action.Activity.Workflow.GetAttributeValue("witness")},
+                {"witness", action.Activity.Workflow.GetAttributeValue("witness").Replace("^", " - ")},
                 {"emsCalled", action.Activity.Workflow.GetAttributeValue("emsCalled").AsBoolean()?"Yes":"No"},
                 {"timeCalled", action.Activity.Workflow.GetAttributeValue("timeCalled")},
                 {"timeArrived", action.Activity.Workflow.GetAttributeValue("timeArrived")},
                 {"emsHospital", action.Activity.Workflow.GetAttributeValue("emsHospital").AsBoolean()?"Yes":"No"},
                 {"hospital", action.Activity.Workflow.GetAttributeValue("hospital")},
-                {"emsRefusalWitness", action.Activity.Workflow.GetAttributeValue("emsRefusalWitness")},
+                {"emsRefusalWitness", action.Activity.Workflow.GetAttributeValue("emsRefusalWitness").Replace("^", " - ")},
                 {"treatment", action.Activity.Workflow.GetAttributeValue("treatment")},
                 {"pulseRate", action.Activity.Workflow.GetAttributeValue("pulseRate")},
+                {"O2Oxygen", action.Activity.Workflow.GetAttributeValue("O2Oxygen")},
                 {"respirations", action.Activity.Workflow.GetAttributeValue("respirations")},
                 {"bloodPressure", action.Activity.Workflow.GetAttributeValue("bloodPressure")},
                 {"bloodSugar", action.Activity.Workflow.GetAttributeValue("bloodSugar")},
@@ -90,8 +91,27 @@ namespace org.secc.SafetyAndSecurity
 
 
                 foreach ( var field in fields )
+                {
                     if ( pdfFormFields.Fields.ContainsKey( field.Key ) )
-                        pdfFormFields.SetField( field.Key, field.Value );
+                    {
+                        if ( field.Key == "personSignature" || field.Key == "personSigDatetime" )
+                        {
+                            if ( action.Activity.Workflow.GetAttributeValue( "emsHospital" ).AsBoolean() )
+                            {
+                                pdfFormFields.SetField( field.Key, "" );
+                            }
+                            else
+                            {
+                                pdfFormFields.SetField( field.Key, field.Value );
+                            }
+                        }
+                        else
+                        {
+                            pdfFormFields.SetField( field.Key, field.Value );
+                        }
+                    }   
+                }
+                    
 
                 // flatten the form to remove editting options, set it to false
                 // to leave the form open to subsequent manual edits
