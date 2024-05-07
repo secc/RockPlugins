@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Web.Http;
 using org.secc.Rest.Models;
 using Rock;
@@ -48,15 +49,20 @@ namespace org.secc.Rest.Controllers
         /// Gets the members of the provided group.
         /// </summary>
         /// <param name="groupId">The group ID</param>
-        /// <returns></returns>
-        [Authenticate, Secured]        
+        /// <returns></returns> 
         [HttpGet]
         [System.Web.Http.Route( "api/GroupApp/GetGroupMembers/{groupId}" )]
         public IHttpActionResult GetGroupMembers( int groupId )
         {
             var group = _groupService.Get( groupId );
+            var currentUser = UserLoginService.GetCurrentUser();
 
-            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, GetPerson() ) )
+            if ( currentUser == null )
+            {
+                return ( IHttpActionResult ) ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden );
+            }
+
+            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
             {
                 throw new HttpResponseException( HttpStatusCode.Unauthorized );
             }
