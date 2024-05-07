@@ -80,7 +80,7 @@
                                         <div class="col-sm-6">
                                             <Rock:EmailBox ID="tbEmail" runat="server" SourceTypeName="Rock.Model.Person" PropertyName="Email" Label="Email" />
                                         </div>
-                                        <div class="col-sm-6">
+                                        <div class="col-sm-12">
                                             <Rock:RockCheckBox ID="cbIsEmailActive" runat="server" Label="Email Status" Text="Is Active" />
                                         </div>
                                         <div class="col-sm-12">

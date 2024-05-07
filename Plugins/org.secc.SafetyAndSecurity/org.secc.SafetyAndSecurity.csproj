@@ -68,8 +68,9 @@
     <Compile Include="Model\AlertNotification.cs" />
     <Compile Include="Model\AlertMessageService.cs" />
     <Compile Include="Model\AlertNotificationServiceService.cs" />
+    <Compile Include="Workflows\MedicalIncidentReportMerge.cs" />
     <Compile Include="Workflows\MinorVolunteerApplicationMerge.cs" />
-	<Compile Include="Workflows\ExternalChurchReferenceMerge.cs" />
+    <Compile Include="Workflows\ExternalChurchReferenceMerge.cs" />
     <Compile Include="Workflows\ReferenceValidation.cs" />
     <Compile Include="Workflows\MinistrySafeRequest.cs" />
     <Compile Include="Workflows\MinistrySafeUpdate.cs" />
