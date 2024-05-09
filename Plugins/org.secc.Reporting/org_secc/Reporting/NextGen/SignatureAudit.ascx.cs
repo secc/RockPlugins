@@ -115,7 +115,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     signatureMember.Warning = true;
                 }
                 //For Adults Only
-                else if ( person.Age > 18 )
+                else if ( person.Age >= 18 )
                 {
                     foreach ( var document in member.AdultDocuments )
                     {
