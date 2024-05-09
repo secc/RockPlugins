@@ -59,7 +59,7 @@ namespace org.secc.Rest.Controllers
 
             if ( currentUser == null )
             {
-                return ( IHttpActionResult ) ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden );
+                return Content( HttpStatusCode.Forbidden, "No User Found" );
             }
 
             if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
