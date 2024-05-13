@@ -20,6 +20,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Rest;
 using System;
+using org.secc.Rest.Models;
 
 namespace org.secc.Rest.Controllers
 {
@@ -41,8 +42,8 @@ namespace org.secc.Rest.Controllers
 
             var rockContext = new RockContext();
             rockContext.Configuration.ProxyCreationEnabled = false;
-            var groupServiceHelper = new GroupServiceHelper( rockContext );
 
+            var groupServiceHelper = new GroupServiceHelper( rockContext );
             var groupTypeIds = groupServiceHelper.GetGroupTypeIdsFromDefinedType( "Group App Group Types" );
             var groupsAsLeader = groupServiceHelper.GetGroupsAsLeader( currentUser.Person.Id, groupTypeIds );
 
@@ -79,14 +80,20 @@ namespace org.secc.Rest.Controllers
             return groupTypeDefinedValues.Select( dv => int.Parse( dv.Value ) ).ToList();
         }
 
-        public List<Group> GetGroupsAsLeader( int currentPersonId, List<int> groupTypeIds )
+        public List<GroupAppGroup> GetGroupsAsLeader( int currentPersonId, List<int> groupTypeIds )
         {
             return new GroupMemberService( _rockContext )
                 .Queryable( "Group, GroupRole" )
                 .Where( gm => gm.PersonId == currentPersonId &&
                              gm.GroupRole.IsLeader &&
                              groupTypeIds.Contains( gm.Group.GroupTypeId ) )
-                .Select( gm => gm.Group )
+                .Select( gm => new GroupAppGroup
+                {
+                    Id = gm.Group.Id,
+                    Name = gm.Group.Name,
+                    IsActive = gm.Group.IsActive,
+                    IsArchived = gm.Group.IsArchived
+                } )
                 .Distinct()
                 .ToList();
         }

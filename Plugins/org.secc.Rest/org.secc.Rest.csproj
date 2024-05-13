@@ -90,6 +90,7 @@
     <Compile Include="Handlers\SessionControllerHandler.cs" />
     <Compile Include="Handlers\SessionRouteHandler.cs" />
     <Compile Include="Models\ChannelItem.cs" />
+    <Compile Include="Models\GroupAppGroup.cs" />
     <Compile Include="Models\GroupAppGroupMember.cs" />
     <Compile Include="Models\Sermon.cs" />
     <Compile Include="Models\SermonSeries.cs" />
