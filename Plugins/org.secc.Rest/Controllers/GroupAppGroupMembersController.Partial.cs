@@ -12,19 +12,16 @@
 // limitations under the License.
 // </copyright>
 
-using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web.Http;
 using org.secc.Rest.Models;
 using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Rest;
-using Rock.Rest.Filters;
 
 namespace org.secc.Rest.Controllers
 {
@@ -54,25 +51,29 @@ namespace org.secc.Rest.Controllers
         [System.Web.Http.Route( "api/GroupApp/GetGroupMembers/{groupId}" )]
         public IHttpActionResult GetGroupMembers( int groupId )
         {
-            var group = _groupService.Get( groupId );
             var currentUser = UserLoginService.GetCurrentUser();
 
             if ( currentUser == null )
             {
-                return Content( HttpStatusCode.Forbidden, "No User Found" );
+                return StatusCode( HttpStatusCode.Unauthorized );
+            }
+
+            var group = _groupService.Get( groupId );
+            if ( group == null )
+            {
+                return NotFound();
             }
 
             if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
             {
-                throw new HttpResponseException( HttpStatusCode.Unauthorized );
+                return StatusCode( HttpStatusCode.Forbidden );
             }
 
             var groupMemberList = new List<GroupAppGroupMember>();
-                        
+
             var homeLocationTypeId = _definedValueService.GetByGuid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;
 
-            var groupMembers = _groupMemberService.Queryable()
-                .Where( gm => gm.GroupId == groupId )
+            var groupMembers = _groupMemberService.GetByGroupId( groupId )
                 .ToList();
 
             foreach ( var groupMember in groupMembers )
@@ -91,12 +92,12 @@ namespace org.secc.Rest.Controllers
                         ?.Location.GetFullStreetAddress(),
                     Email = person.Email,
                     Phone = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).ToString(),
-                PhotoId = person.PhotoId ?? 0
+                    PhotoId = person.PhotoId ?? 0
                 };
 
                 groupMemberList.Add( groupAppGroupMember );
             }
-    
+
             return Ok( groupMemberList );
         }
     }
