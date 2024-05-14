@@ -62,6 +62,9 @@ namespace org.secc.FamilyCheckin
                     .ToList();
 
                 var checkInLabels = CheckinLabelGen.GenerateLabels( people, checkInState.Kiosk.Device, GetAttributeValue( action, "AggregatedLabel" ).AsGuidOrNull() );
+                
+                //For logging purposes, storing checkInLabels as a workflow attribute
+                action.Activity.Workflow.SetAttributeValue( "checkInLabels", checkInLabels.ToString() );
 
                 var groupType = checkInState.CheckIn.CurrentFamily.People
                     .Where( p => p.Selected )
