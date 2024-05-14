@@ -85,7 +85,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                         gm.Person.Aliases.Select( pa => pa.Id ).Contains( d.AppliesToPersonAliasId ?? 0 ) ).ToList(),
                     AdultDocuments = documentQry.Where( d =>
                         d.SignedByPersonAliasId != null &&
-                        minorDocumentTemplateIds.Contains( d.SignatureDocumentTemplateId ) &&
+                        adultDocumentTemplateIds.Contains( d.SignatureDocumentTemplateId ) &&
                         gm.Person.Aliases.Select( pa => pa.Id ).Contains( d.AppliesToPersonAliasId ?? 0 ) ).ToList()
                 } )
                 .ToList();
