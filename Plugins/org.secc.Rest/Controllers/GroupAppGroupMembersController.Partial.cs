@@ -73,15 +73,12 @@ namespace org.secc.Rest.Controllers
             var homeLocationTypeId = _definedValueService.GetByGuid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;
 
             var groupMembers = _groupMemberService.GetByGroupId( groupId )
-                .ToList();
-
-            var orderedGroupMembers = groupMembers
                 .OrderByDescending( gm => gm.GroupRole.IsLeader )
                 .ThenBy( gm => gm.Person.LastName )
                 .ThenBy( gm => gm.Person.NickName )
                 .ToList();
 
-            foreach ( var groupMember in orderedGroupMembers )
+            foreach ( var groupMember in groupMembers )
             {
                 var person = _personService.Get( groupMember.PersonId );
                 var familyGroup = person.GetFamily();
