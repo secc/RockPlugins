@@ -15,7 +15,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using System.Web.Http;
 using org.secc.Rest.Models;
 using Rock;
@@ -76,7 +75,13 @@ namespace org.secc.Rest.Controllers
             var groupMembers = _groupMemberService.GetByGroupId( groupId )
                 .ToList();
 
-            foreach ( var groupMember in groupMembers )
+            var orderedGroupMembers = groupMembers
+                .OrderByDescending( gm => gm.GroupRole.IsLeader )
+                .ThenBy( gm => gm.Person.LastName )
+                .ThenBy( gm => gm.Person.NickName )
+                .ToList();
+
+            foreach ( var groupMember in orderedGroupMembers )
             {
                 var person = _personService.Get( groupMember.PersonId );
                 var familyGroup = person.GetFamily();
