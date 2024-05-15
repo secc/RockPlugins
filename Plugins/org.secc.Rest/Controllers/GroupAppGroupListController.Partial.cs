@@ -37,7 +37,7 @@ namespace org.secc.Rest.Controllers
             var currentUser = UserLoginService.GetCurrentUser();
             if ( currentUser == null )
             {
-                return Content( HttpStatusCode.Forbidden, "No User Found" );
+                return StatusCode( HttpStatusCode.Unauthorized );
             }
 
             var rockContext = new RockContext();
