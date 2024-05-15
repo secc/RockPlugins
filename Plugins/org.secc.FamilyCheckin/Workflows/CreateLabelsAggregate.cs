@@ -68,24 +68,16 @@ namespace org.secc.FamilyCheckin
                 StringBuilder combinedLabelsBuilder = new StringBuilder();
                 foreach ( var label in checkInLabels )
                 {
-                    combinedLabelsBuilder.Append( ", " );
+                    combinedLabelsBuilder.Append( "; " );
                     combinedLabelsBuilder.AppendLine( "Label Type:" + label.LabelType );
-                    combinedLabelsBuilder.AppendLine( "Order:" + label.Order );
-                    combinedLabelsBuilder.AppendLine( "PersonId:" + label.PersonId );
-                    combinedLabelsBuilder.AppendLine( "PrinterDeviceId:" + label.PrinterDeviceId );
-                    combinedLabelsBuilder.AppendLine( "PrinterAddress:" + label.PrinterAddress );
-                    combinedLabelsBuilder.AppendLine( "PrintFrom:" + label.PrintFrom );
-                    combinedLabelsBuilder.AppendLine( "PrintTo:" + label.PrintTo );
-                    combinedLabelsBuilder.AppendLine( "FileGuid:" + label.FileGuid );
                     combinedLabelsBuilder.AppendLine( "LabelFile:" + label.LabelFile );
-                    combinedLabelsBuilder.AppendLine( "LabelKey:" + label.LabelKey );
                     combinedLabelsBuilder.AppendLine( "MergeFields:" );
                     foreach ( var mergeField in label.MergeFields )
                     {
                         combinedLabelsBuilder.AppendLine( $"    {mergeField.Key}: {mergeField.Value}" );
                     }
                 }
-                string combinedLabels = combinedLabelsBuilder.ToString().TrimStart( ',', ' ' );
+                string combinedLabels = combinedLabelsBuilder.ToString().TrimStart( ';', ' ' );
                 action.Activity.Workflow.SetAttributeValue( "checkInLabels", combinedLabels );
 
                 var groupType = checkInState.CheckIn.CurrentFamily.People
