@@ -16,8 +16,6 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web.Http;
 using Rock;
 using Rock.Data;
@@ -41,7 +39,7 @@ namespace org.secc.Rest.Controllers
         /// <param name="groupId">The group ID</param>
         /// <returns>List<Group></returns> 
         [HttpGet]
-        [System.Web.Http.Route( "api/GroupApp/GetAttendanceSchedules/{groupId}" )]
+        [System.Web.Http.Route( "api/GroupApp/AttendanceSchedules/{groupId}" )]
         public IHttpActionResult GetAttendanceSchedules( int groupId )
         {
             var currentUser = UserLoginService.GetCurrentUser();
@@ -49,7 +47,7 @@ namespace org.secc.Rest.Controllers
                 return StatusCode( HttpStatusCode.Unauthorized );
 
             var group = new GroupService( _context ).Get( groupId );
-            if ( group == null )            
+            if ( group == null )
                 return NotFound();
 
             if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
@@ -62,6 +60,51 @@ namespace org.secc.Rest.Controllers
 
             return Ok( groupScheduleOccurrences );
         }
+
+        /// <summary>
+        /// Get all the attendance records for a group based on the occurrence date
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <param name="schedule"></param>
+        /// <param name="occurrenceDate"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [System.Web.Http.Route( "api/GroupApp/Attendance/{groupId}/{scheduleId}/{occurrenceDate}" )]
+        public IHttpActionResult GetGroupAttendance( int groupId, int scheduleId, DateTime occurrenceDate )
+        {
+            var currentUser = UserLoginService.GetCurrentUser();
+            if ( currentUser == null )
+                return StatusCode( HttpStatusCode.Unauthorized );
+
+            var group = new GroupService( _context ).Get( groupId );
+            if ( group == null )
+                return NotFound();
+
+            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
+                return StatusCode( HttpStatusCode.Forbidden );
+
+            var attendees = new AttendanceService( _context )
+                .Queryable()
+                .Where(
+                    a => a.Occurrence.GroupId == group.Id &&
+                    a.Occurrence.ScheduleId == scheduleId &&
+                    a.Occurrence.OccurrenceDate == occurrenceDate &&
+                    a.DidAttend == true
+                )
+                .Select( a => a.PersonAlias.PersonId )
+                .ToList();
+
+            var groupMemberIds = new GroupMemberService( _context )
+                .Queryable()
+                .Where(
+                    gm => gm.GroupId == group.Id &&
+                    attendees.Contains( gm.Person.Id )
+                )
+                .Select( gm => gm.Id );
+
+            return Ok( groupMemberIds );
+        }
+
 
         private List<GroupScheduleOccurence> GetListOfOccurrences( Group group )
         {
@@ -215,6 +258,6 @@ namespace org.secc.Rest.Controllers
         public override string ToString()
         {
             return $"G:{GroupId}^L:{LocationId}^S:{ScheduleId}^D:{OccurrenceDate:yyyyMMdd}";
-        } 
+        }
     }
 }
