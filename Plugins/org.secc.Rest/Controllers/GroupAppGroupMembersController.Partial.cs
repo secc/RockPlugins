@@ -86,6 +86,7 @@ namespace org.secc.Rest.Controllers
                 var groupAppGroupMember = new GroupAppGroupMember
                 {
                     Id = groupMember.Id,
+                    PersonId = person.Id,
                     Name = person.FullName,
                     GroupRole = groupMember.GroupRole.Name,
                     Status = groupMember.GroupMemberStatus.ToString(),

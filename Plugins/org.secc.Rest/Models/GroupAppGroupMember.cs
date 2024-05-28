@@ -5,6 +5,7 @@ namespace org.secc.Rest.Models
     public class GroupAppGroupMember
     {
         public int Id { get; set; }
+        public int PersonId { get; set; }
         public string Name { get; set; }
         public string GroupRole { get; set; }
         public string Status { get; set; }
