@@ -93,5 +93,63 @@ namespace org.secc.Rest.Controllers
 
             return Ok( resultList );
         }
+
+        /// <summary>
+        /// Post an attendance record with a groupId, occurrenceDate, and groupMemberId
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        [System.Web.Http.Route( "api/GroupApp/Attendance/" )]
+        public IHttpActionResult PostGroupAttendance( int groupId, DateTime occurrenceDate, int groupMemberId, int? scheduleId = null, int? locationId = null)
+        {
+            var currentUser = UserLoginService.GetCurrentUser();
+            if ( currentUser == null )
+                return StatusCode( HttpStatusCode.Unauthorized );
+
+            var group = new GroupService( _context ).Get( groupId );
+            if ( group == null )
+                return NotFound();
+
+            if ( !group.IsAuthorized( Rock.Security.Authorization.EDIT, currentUser.Person ) || !group.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person ))
+                return StatusCode( HttpStatusCode.Forbidden );
+
+            scheduleId = scheduleId.HasValue ? scheduleId.Value : group.ScheduleId;
+            locationId = locationId.HasValue ? locationId.Value : group.GroupLocations?.FirstOrDefault()?.Id;
+
+            var groupMember = new GroupMemberService( _context ).Get( groupMemberId );
+
+            var attendanceService = new AttendanceService( _context );
+            var personAliasService = new PersonAliasService( _context );
+
+            var attendanceData = attendanceService
+                        .Queryable( "PersonAlias" )
+                        .Where( a => a.Occurrence.GroupId == groupId && a.Occurrence.LocationId == locationId && a.Occurrence.ScheduleId == scheduleId && a.Occurrence.OccurrenceDate == occurrenceDate );
+
+            var attendanceItem = attendanceData.Where( a => a.PersonAlias.PersonId == groupMember.Person.Id )
+                                .FirstOrDefault();
+            if ( attendanceItem == null )
+            {
+                var attendancePerson = new PersonService( _context ).Get( groupMember.Person.Id );
+                if ( attendancePerson != null && attendancePerson.PrimaryAliasId.HasValue )
+                {
+                    attendanceItem = attendanceService.AddOrUpdate( attendancePerson.PrimaryAliasId.Value, occurrenceDate, groupId, locationId, scheduleId, group.CampusId );
+                }
+            }
+
+            if ( attendanceItem != null )
+            {
+                attendanceItem.DidAttend = true;
+                attendanceItem.Note = "Checked in via Group App";
+                attendanceItem.ModifiedByPersonAliasId = currentUser.Person.PrimaryAlias.Id;
+                if ( attendanceItem.CreatedByPersonAliasId == null )
+                {
+                    attendanceItem.CreatedByPersonAliasId = currentUser.Person.PrimaryAlias.Id;
+                }
+            }
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
     }
 }
