@@ -30,6 +30,7 @@ namespace RockWeb.Plugins.org_secc.Imaging
     [Category( "SECC > Imaging" )]
     [Description( "Uses sql to update person images from binary files cropping the images with AI" )]
     [IntegerField("Execution Delay","How many milliseconds to delay between each execution to stay under transaction per second limit.",false,0)]
+    [RegistrationTemplateField( "Registration Template", "The registration template for which pictures are being updated", false, key: "registrationTemplate", )]
 
     public partial class UpdatePersonImage : Rock.Web.UI.RockBlock
     {
@@ -50,6 +51,12 @@ namespace RockWeb.Plugins.org_secc.Imaging
         }
 
         #endregion
+
+        protected void btnLoad_SQL( object sender, EventArgs e )
+        {
+            var registrationTemplate = GetAttributeValue( "registrationTemplate" );
+            ceQuery.Text = registrationTemplate.ToString();
+        }
 
         protected void btnRun_Click( object sender, EventArgs e )
         {
