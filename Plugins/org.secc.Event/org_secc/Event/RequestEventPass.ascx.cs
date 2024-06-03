@@ -4,6 +4,7 @@ using NuGet;
 using RestSharp.Extensions;
 using Rock;
 using Rock.Attribute;
+using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
@@ -73,11 +74,12 @@ namespace RockWeb.Plugins.org_secc.Event
 
         private void DownloadPass(Guid binaryFileGuid)
         {
-            //todo: add logic here
+            Response.Redirect( ResolveRockUrl( $"~/GetFile.ashx?Guid={binaryFileGuid}" ), true );
         }
 
         private void ProcessRequest()
         {
+            var rockContext = new RockContext();
             pnlRequest.Visible = false;
             if (CurrentPerson == null)
             {
@@ -111,7 +113,10 @@ namespace RockWeb.Plugins.org_secc.Event
                 return;
             }
 
-            var passBinaryFileGuid = CurrentPerson.GetAttributeValue( attribute.Guid ).AsGuidOrNull();
+            var person = new PersonService( rockContext ).Get( CurrentPerson.Guid );
+            person.LoadAttributes( rockContext );
+            var passBinaryFileGuid = person.GetAttributeValue( attribute.Key ).AsGuidOrNull();
+
 
             if(!passBinaryFileGuid.HasValue)
             {
