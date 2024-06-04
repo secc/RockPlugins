@@ -2,9 +2,8 @@
 
 <asp:UpdatePanel runat="server">
     <ContentTemplate>
-        <Rock:RegistrationInstancePicker runat="server" ID="btnLoad" OnClick="btnLoad_SQL" Label="Registration Instance" Help="Choose a registration instance to sync photos"/>
-        <Rock:CodeEditor runat="server" EditorMode="Sql" ID="ceQuery"
-            Help="Return colums of [PersonId] and [BinaryFileId]" Label="SQL Query" />
+        <Rock:RegistrationTemplatePicker runat="server" ID="rtpTemplatePicker" AllowMultiSelect="true" Label="Registration Template(s)" Help="Choose registration templates to sync photos" />
+        <Rock:RockCheckBox runat="server" ID="cbOverwritePhotos" Label="Overwrite current photos on child profiles & update missing photos for adult profiles (exlcuding staff)" Help="Selecting 'No' will ensure that only children & adults with a missing profile photo are updated" />
         <Rock:BootstrapButton runat="server" ID="btnRun" OnClick="btnRun_Click" Text="Run" CssClass="btn btn-primary" />
     </ContentTemplate>
 </asp:UpdatePanel>
