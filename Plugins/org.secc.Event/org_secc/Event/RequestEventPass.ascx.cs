@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
-using NuGet;
-using RestSharp.Extensions;
+using System.Collections.Generic;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -9,6 +8,7 @@ using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
+
 
 
 namespace RockWeb.Plugins.org_secc.Event
@@ -68,13 +68,21 @@ namespace RockWeb.Plugins.org_secc.Event
         private void GeneratePass()
         {
             var workflowGuid = GetAttributeValue( AttributeKeys.EventPassWorkflowKey ).AsGuid();
-            CurrentPerson.LaunchWorkflow( workflowGuid, $"Event Pass - {CurrentPerson.FullName}" );
+            var workflowAttributes = new Dictionary<string, string>
+            {
+                { "EmailAddress", tbEmail.Text.Trim() },
+                { "PhoneNumber", tbPhone.Text.Trim() },
+                { "DeliveryPreference", cblDeliveryMethod.SelectedValue }
+            };
+
+
+            CurrentPerson.LaunchWorkflow( workflowGuid, $"Event Pass - {CurrentPerson.FullName}", workflowAttributes );
 
         }
 
         private void DownloadPass(Guid binaryFileGuid)
         {
-            Response.Redirect( ResolveRockUrl( $"~/GetFile.ashx?Guid={binaryFileGuid}" ), true );
+            Response.Redirect( ResolveRockUrl( $"~/GetFile.ashx?Guid={binaryFileGuid}&attachment=true" ), true );
         }
 
         private void ProcessRequest()
@@ -182,9 +190,22 @@ namespace RockWeb.Plugins.org_secc.Event
             }
 
             GeneratePass();
+            var messageType = string.Empty;
+            switch (cblDeliveryMethod.SelectedValue.ToLower())
+            {
+                case "emal":
+                    messageType = "an email";
+                    break;
+                case "sms":
+                    messageType = "a text message";
+                    break;
+                default:
+                    messageType = $"a {cblDeliveryMethod.SelectedItem.Text.ToLower()}";
+                    break;
+            }
 
             nbMessages.Title = "Pass Request Submitted";
-            nbMessages.Text = $"<p>Your pass request has been submitted. You will recieve an {cblDeliveryMethod.SelectedItem.Text} with a link to download your pass.";
+            nbMessages.Text = $"<p>Your pass request has been submitted. You will recieve {messageType} with a link to download your pass.";
             nbMessages.NotificationBoxType = NotificationBoxType.Success;
             nbMessages.Visible = true;
 
