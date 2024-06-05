@@ -1,6 +1,6 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -28,11 +28,16 @@ namespace RockWeb.Plugins.org_secc.Event
         IsRequired = true,
         Key = AttributeKeys.EventPassWorkflowKey,
         Order = 1 )]
-    [AttributeField("Pass Person Attribute",
+    [AttributeField( "Pass Person Attribute",
         Description = "The Person Attribute that contains the Event Pass.",
         EntityTypeGuid = Rock.SystemGuid.EntityType.PERSON,
         Key = AttributeKeys.PassAttributeKey,
-        Order = 2)]
+        Order = 2 )]
+    [BooleanField( "Contact Fields Editable",
+        Description = "Are email and mobile phone numbers editable.",
+        DefaultBooleanValue = false,
+        Key = AttributeKeys.ContactFieldsEditableKey,
+        Order = 3 )]
     public partial class RequestEventPass : RockBlock
     {
         private static class AttributeKeys
@@ -40,6 +45,7 @@ namespace RockWeb.Plugins.org_secc.Event
             public const string BlockTitleKey = "BlockTitle";
             public const string EventPassWorkflowKey = "EventPassWorkflow";
             public const string PassAttributeKey = "PassAttribute";
+            public const string ContactFieldsEditableKey = "ContactFieldsEditable";
         }
 
         #region Control Methods
@@ -80,7 +86,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
         }
 
-        private void DownloadPass(Guid binaryFileGuid)
+        private void DownloadPass( Guid binaryFileGuid )
         {
             Response.Redirect( ResolveRockUrl( $"~/GetFile.ashx?Guid={binaryFileGuid}&attachment=true" ), true );
         }
@@ -96,9 +102,9 @@ namespace RockWeb.Plugins.org_secc.Event
             }
 
             var attribute = AttributeCache.Get( GetAttributeValue( AttributeKeys.PassAttributeKey ) );
-            if(attribute == null)
+            if (attribute == null)
             {
-                if(this.UserCanAdministrate)
+                if (this.UserCanAdministrate)
                 {
                     nbMessages.Title = "Missing Person Attribute";
                     nbMessages.Text = "Event Pass Person Attribute not found.";
@@ -109,9 +115,9 @@ namespace RockWeb.Plugins.org_secc.Event
             }
 
             var workflow = WorkflowTypeCache.Get( GetAttributeValue( AttributeKeys.EventPassWorkflowKey ) );
-            if(workflow == null)
+            if (workflow == null)
             {
-                if(this.UserCanAdministrate)
+                if (this.UserCanAdministrate)
                 {
                     nbMessages.Title = "Missing Workflow";
                     nbMessages.Text = "Event Pass Workflow not found.";
@@ -126,7 +132,7 @@ namespace RockWeb.Plugins.org_secc.Event
             var passBinaryFileGuid = person.GetAttributeValue( attribute.Key ).AsGuidOrNull();
 
 
-            if(!passBinaryFileGuid.HasValue)
+            if (!passBinaryFileGuid.HasValue)
             {
                 LoadRequestForm();
             }
@@ -140,27 +146,31 @@ namespace RockWeb.Plugins.org_secc.Event
         private void LoadRequestForm()
         {
             pnlRequest.Visible = true;
+            var contactFieldsAreEditable = GetAttributeValue( AttributeKeys.ContactFieldsEditableKey ).AsBoolean();
 
             lName.Text = CurrentPerson.FullName;
 
-            if (CurrentPerson.Email.IsNullOrWhiteSpace())
+            if(CurrentPerson.Email.IsNotNullOrWhiteSpace())
+            {
+                tbEmail.Text = CurrentPerson.Email;
+                tbEmail.ReadOnly = !contactFieldsAreEditable;
+            }
+            else
             {
                 tbEmail.ReadOnly = false;
             }
-            else
-            {
-                tbEmail.Text = CurrentPerson.Email;
-            }
+
 
 
             var mobilePhone = CurrentPerson.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
-            if (mobilePhone == null)
+            if (mobilePhone != null )
             {
-                tbPhone.ReadOnly = false;
+                tbPhone.Text = mobilePhone.NumberFormatted;
+                tbPhone.ReadOnly = !contactFieldsAreEditable;
             }
             else
             {
-                tbPhone.Text = mobilePhone.NumberFormatted;
+                tbPhone.ReadOnly = false;
             }
 
         }
@@ -170,17 +180,17 @@ namespace RockWeb.Plugins.org_secc.Event
         protected void lbApplePass_Click( object sender, EventArgs e )
         {
             var errorMessage = string.Empty;
-            if(cblDeliveryMethod.SelectedValue.Equals("email", StringComparison.InvariantCultureIgnoreCase) && tbEmail.Text.IsNullOrWhiteSpace())
+            if (cblDeliveryMethod.SelectedValue.Equals( "email", StringComparison.InvariantCultureIgnoreCase ) && tbEmail.Text.IsNullOrWhiteSpace())
             {
                 errorMessage = "Email Address is required.";
             }
 
-            if(cblDeliveryMethod.SelectedValue.Equals("sms", StringComparison.InvariantCultureIgnoreCase) && tbPhone.Text.IsNullOrWhiteSpace())
+            if (cblDeliveryMethod.SelectedValue.Equals( "sms", StringComparison.InvariantCultureIgnoreCase ) && tbPhone.Text.IsNullOrWhiteSpace())
             {
                 errorMessage = "Mobile Phone Number is required.";
             }
 
-            if(!errorMessage.IsNullOrWhiteSpace())
+            if (!errorMessage.IsNullOrWhiteSpace())
             {
                 nbMessages.Title = "<strong>Required Fields Missing</strong>";
                 nbMessages.Text = $"<p>{errorMessage}</p>";
