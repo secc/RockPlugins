@@ -102,5 +102,91 @@ namespace org.secc.Rest.Controllers
 
             return Ok( groupMemberList );
         }
+
+        /// <summary>
+        /// Creates a communication for all group members or one specific group member (indicated by groupMemberId).
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <param name="groupMemberId"></param>
+        /// 
+        [HttpPost]
+        [System.Web.Http.Route( "api/GroupApp/GroupMembers/{groupId}/Communicate" )]
+        public IHttpActionResult Communicate( int groupId, [FromBody] MessageModel message, int? groupMemberId = null )
+        {
+            var currentUser = UserLoginService.GetCurrentUser();
+
+            if ( currentUser == null )
+            {
+                return StatusCode( HttpStatusCode.Unauthorized );
+            }
+
+            var group = _groupService.Get( groupId );
+            if ( group == null )
+            {
+                return NotFound();
+            }
+
+            if ( !group.IsAuthorized( Rock.Security.Authorization.EDIT, currentUser.Person ) || !group.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person ) )
+            {
+                return StatusCode( HttpStatusCode.Forbidden );
+            }
+
+            if ( groupMemberId != null )
+            {
+                var groupMember = _groupMemberService.Get( groupMemberId.Value );
+                if ( groupMember == null )
+                {
+                    return NotFound();
+                }
+            }
+            var groupMembers = _groupMemberService.GetByGroupId( groupId ).ToList();
+
+            if ( groupMemberId.HasValue )
+            {
+                groupMembers = groupMembers.Where( gm => gm.Id == groupMemberId ).ToList();
+            }
+
+            CreateCommunication( message.Subject, message.Body, groupMembers, currentUser.Person);
+
+            return Ok();
+        }
+
+        public class MessageModel
+        {
+            public string Subject { get; set; }
+            public string Body { get; set; }
+        }
+
+        public Communication CreateCommunication( string subject, string body, List<GroupMember> groupMembers, Person currentPerson )
+        {
+            var communication = new Communication
+            {
+                Subject = subject,
+                Message = body,
+                Status = CommunicationStatus.Approved,
+                CreatedByPersonAliasId = currentPerson.PrimaryAliasId,
+                SenderPersonAliasId = currentPerson.PrimaryAliasId
+            };
+
+            foreach ( var groupMember in groupMembers )
+            {
+                var recipient = new CommunicationRecipient
+                {
+                    PersonAliasId = groupMember.Person.PrimaryAliasId,
+                    Communication = communication
+                };
+
+                communication.Recipients.Add( recipient );
+            }
+
+            var communicationService = new CommunicationService( _context );
+            communicationService.Add( communication );
+            _context.SaveChanges();
+
+            return communication;
+        }
+
+
     }
+
 }
