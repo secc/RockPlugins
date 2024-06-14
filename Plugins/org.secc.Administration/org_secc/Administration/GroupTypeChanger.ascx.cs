@@ -20,6 +20,7 @@ using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.UI;
@@ -33,6 +34,8 @@ namespace RockWeb.Plugins.org_secc.Administration
     [DisplayName( "Group Type Changer" )]
     [Category( "SECC > Administration" )]
     [Description( "Tool to change the group type of a group." )]
+
+    [BooleanField( "Use Field Type Instead of Key", "Should the field type of each attribute be displayed instead of the attribute's key?", false, "", 0, "UseFieldType" )]
 
     public partial class GroupTypeChanger : RockBlock
     {
@@ -72,7 +75,8 @@ namespace RockWeb.Plugins.org_secc.Administration
                 }
                 var newGroupType = new GroupTypeService( new RockContext() ).Get( groupTypeId );
                 BindRoles( newGroupType, group.GroupType.Roles );
-                DisplayAttributes();
+                DisplayMemberAttributes();
+                DisplayGroupAttributes();
             }
 
         }
@@ -101,12 +105,13 @@ namespace RockWeb.Plugins.org_secc.Administration
                 var newGroupType = new GroupTypeService( rockContext ).Get( groupTypeId );
 
                 BindRoles( newGroupType, group.GroupType.Roles );
-                DisplayAttributes();
-
+                DisplayMemberAttributes();
+                DisplayGroupAttributes();
             }
             else
             {
-                pnlAttributes.Visible = false;
+                pnlMemberAttributes.Visible = false;
+                pnlGroupAttributes.Visible = false;
                 pnlRoles.Visible = false;
                 btnSave.Visible = false;
             }
@@ -128,6 +133,16 @@ namespace RockWeb.Plugins.org_secc.Administration
                         ID = role.Id.ToString() + "_ddlRole"
                     };
                     BindRoleDropDown( newGroupType, ddlRole );
+
+                    // Automatically match up roles with the same name
+                    foreach ( var selectableRole in newGroupType.Roles )
+                    {
+                        if ( role.Name == selectableRole.Name )
+                        {
+                            ddlRole.SetValue( selectableRole.Id );
+                        }
+                    }
+
                     phRoles.Controls.Add( ddlRole );
                 }
             }
@@ -137,15 +152,15 @@ namespace RockWeb.Plugins.org_secc.Administration
             }
         }
 
-        private void DisplayAttributes()
+        private void DisplayMemberAttributes()
         {
-            phAttributes.Controls.Clear();
+            phMemberAttributes.Controls.Clear();
 
             var newGroupTypeId = ddlGroupTypes.SelectedValue.AsInteger();
 
             if ( newGroupTypeId == 0 )
             {
-                pnlAttributes.Visible = false;
+                pnlMemberAttributes.Visible = false;
                 return;
             }
 
@@ -162,6 +177,7 @@ namespace RockWeb.Plugins.org_secc.Administration
                     ).ToList();
             if ( attributes.Any() )
             {
+                bool useFieldType = GetAttributeValue( "UseFieldType" ).AsBoolean();
                 var newGroupTypeIdString = newGroupTypeId.ToString();
                 var selectableAttributes = attributeService.Queryable()
                     .Where( a =>
@@ -173,46 +189,116 @@ namespace RockWeb.Plugins.org_secc.Administration
                     .Select( a => new
                     {
                         Id = a.Id.ToString(),
-                        Name = a.Name + " [" + a.Key + "]"
+                        Name = a.Name + " [" + ( useFieldType ? a.FieldType.Name : a.Key ) + "]"
                     } )
                     .ToList();
 
-                var groupIdString = group.Id.ToString();
-                var groupAttributes = attributeService.Queryable()
-                    .Where( a =>
-                        a.EntityTypeQualifierColumn == "GroupId"
-                        && a.EntityTypeQualifierValue == groupIdString
-                        && a.EntityTypeId == groupMemberEntityId
-                        )
-                    .ToList()
-                    .Select( a => new
-                    {
-                        Id = a.Id.ToString(),
-                        Name = a.Name + " [" + a.Key + "]"
-                    } )
-                    .ToList();
+                // Inserts a blank option so that transferring an attribute is not required
+                selectableAttributes.Insert( 0, new { Id = "0", Name = "" } );
 
-                selectableAttributes.AddRange( groupAttributes );
-
-
-                pnlAttributes.Visible = true;
+                pnlMemberAttributes.Visible = true;
                 foreach ( var attribute in attributes )
                 {
                     RockDropDownList ddlAttribute = new RockDropDownList()
                     {
                         ID = attribute.Id.ToString() + "_ddlAttribute",
-                        Label = attribute.Name,
+                        Label = attribute.Name + ( useFieldType ? $" [{attribute.FieldType.Name}]" : "" ),
                         DataValueField = "Id",
                         DataTextField = "Name"
                     };
                     ddlAttribute.DataSource = selectableAttributes;
                     ddlAttribute.DataBind();
-                    phAttributes.Controls.Add( ddlAttribute );
+
+                    // Automatically match up attributes with ones with the same name
+                    foreach ( var selectableAttribute in selectableAttributes )
+                    {
+                        if ( attribute.Name == selectableAttribute.Name.Split( '[' )[0].Trim() )
+                        {
+                            ddlAttribute.SetValue( selectableAttribute.Id );
+                        }
+                    }
+
+                    phMemberAttributes.Controls.Add( ddlAttribute );
                 }
             }
             else
             {
-                pnlAttributes.Visible = false;
+                pnlMemberAttributes.Visible = false;
+            }
+        }
+
+        private void DisplayGroupAttributes()
+        {
+            phGroupAttributes.Controls.Clear();
+
+            var newGroupTypeId = ddlGroupTypes.SelectedValue.AsInteger();
+
+            if ( newGroupTypeId == 0 )
+            {
+                pnlGroupAttributes.Visible = false;
+                return;
+            }
+
+            var attributeService = new AttributeService( rockContext );
+
+            var groupEntityId = new EntityTypeService( rockContext ).Get( Rock.SystemGuid.EntityType.GROUP.AsGuid() ).Id;
+            var stringGroupTypeId = group.GroupTypeId.ToString();
+
+            var attributes = attributeService.Queryable()
+                .Where( a =>
+                    a.EntityTypeQualifierColumn == "GroupTypeId"
+                    && a.EntityTypeQualifierValue == stringGroupTypeId
+                    && a.EntityTypeId == groupEntityId
+                    ).ToList();
+            if ( attributes.Any() )
+            {
+                bool useFieldType = GetAttributeValue( "UseFieldType" ).AsBoolean();
+                var newGroupTypeIdString = newGroupTypeId.ToString();
+                var selectableAttributes = attributeService.Queryable()
+                    .Where( a =>
+                        a.EntityTypeQualifierColumn == "GroupTypeId"
+                        && a.EntityTypeQualifierValue == newGroupTypeIdString
+                        && a.EntityTypeId == groupEntityId
+                        )
+                    .ToList()
+                    .Select( a => new
+                    {
+                        Id = a.Id.ToString(),
+                        Name = a.Name + " [" + ( useFieldType ? a.FieldType.Name : a.Key ) + "]"
+                    } )
+                    .ToList();
+
+                // Inserts a blank option so that transferring an attribute is not required
+                selectableAttributes.Insert( 0, new { Id = "0", Name = "" } );
+
+                pnlGroupAttributes.Visible = true;
+                foreach ( var attribute in attributes )
+                {
+                    RockDropDownList ddlAttribute = new RockDropDownList()
+                    {
+                        ID = attribute.Id.ToString() + "_ddlAttribute",
+                        Label = attribute.Name + ( useFieldType ? $" [{attribute.FieldType.Name}]" : "" ),
+                        DataValueField = "Id",
+                        DataTextField = "Name"
+                    };
+                    ddlAttribute.DataSource = selectableAttributes;
+                    ddlAttribute.DataBind();
+
+                    // Automatically match up attributes with ones with the same name
+                    foreach ( var selectableAttribute in selectableAttributes )
+                    {
+                        if ( attribute.Name == selectableAttribute.Name.Split( '[' )[0].Trim() )
+                        {
+                            ddlAttribute.SetValue( selectableAttribute.Id );
+                        }
+                    }
+
+                    phGroupAttributes.Controls.Add( ddlAttribute );
+                }
+            }
+            else
+            {
+                pnlGroupAttributes.Visible = false;
             }
         }
 
@@ -224,10 +310,10 @@ namespace RockWeb.Plugins.org_secc.Administration
 
         protected void btnSave_Click( object sender, EventArgs e )
         {
-            //Get the old groupTypeId before we change it
+            // Get the old groupTypeId before we change it
             var stringGroupTypeId = group.GroupTypeId.ToString();
 
-            //Map group roles
+            // Map group roles
             group.GroupTypeId = ddlGroupTypes.SelectedValue.AsInteger();
             var groupMembers = group.Members;
             foreach ( var role in group.GroupType.Roles )
@@ -240,10 +326,14 @@ namespace RockWeb.Plugins.org_secc.Administration
                 }
             }
 
-            //Map attributes
+            // Map attributes
             var attributeService = new AttributeService( rockContext );
             var attributeValueService = new AttributeValueService( rockContext );
 
+            Dictionary<string, int> memberDeletedAttributes = new Dictionary<string, int>();
+            Dictionary<string, string> groupDeletedAttributes = new Dictionary<string, string>();
+
+            // Map group member attributes
             var groupMemberEntityId = new EntityTypeService( rockContext ).Get( Rock.SystemGuid.EntityType.GROUP_MEMBER.AsGuid() ).Id;
 
             var attributes = attributeService.Queryable()
@@ -254,25 +344,112 @@ namespace RockWeb.Plugins.org_secc.Administration
                     ).ToList();
             foreach ( var attribute in attributes )
             {
-                var ddlAttribute = ( RockDropDownList ) phAttributes.FindControl( attribute.Id.ToString() + "_ddlAttribute" );
+                var ddlAttribute = ( RockDropDownList )phMemberAttributes.FindControl( attribute.Id.ToString() + "_ddlAttribute" );
+                // If the dropdown is found
                 if ( ddlAttribute != null )
                 {
                     var newAttributeId = ddlAttribute.SelectedValue.AsInteger();
-                    if ( newAttributeId != 0 )
+                    // For every group member in the group
+                    foreach ( var member in groupMembers )
                     {
-                        foreach ( var member in groupMembers )
+                        var attributeEntity = attributeValueService.Queryable()
+                            .Where( av => av.EntityId == member.Id && av.AttributeId == attribute.Id )
+                            .FirstOrDefault();
+                        // If the attribute value is found
+                        if ( attributeEntity != null )
                         {
-                            var attributeEntity = attributeValueService.Queryable()
-                                .Where( av => av.EntityId == member.Id && av.AttributeId == attribute.Id )
-                                .FirstOrDefault();
-                            if ( attributeEntity != null )
+                            // If a new attribute mapping was selected
+                            if ( newAttributeId != 0 )
                             {
+                                // Map attribute value to new attribute
                                 attributeEntity.AttributeId = newAttributeId;
                             }
+                            else
+                            {
+                                // Remove inapplicable attribute value
+
+                                // Count how many records were affected for each attribute (don't count empty records)
+                                if ( attributeEntity.Value != "" && attributeEntity.Value != null )
+                                {
+                                    int currentCount;
+                                    memberDeletedAttributes.TryGetValue( attributeEntity.AttributeName, out currentCount );
+                                    memberDeletedAttributes[attributeEntity.AttributeName] = currentCount + 1;
+                                }
+
+                                attributeValueService.Delete( attributeEntity );
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            // Map group attributes
+            var groupEntityId = new EntityTypeService( rockContext ).Get( Rock.SystemGuid.EntityType.GROUP.AsGuid() ).Id;
+
+            var groupAttributes = attributeService.Queryable()
+                .Where( a =>
+                    a.EntityTypeQualifierColumn == "GroupTypeId"
+                    && a.EntityTypeQualifierValue == stringGroupTypeId
+                    && a.EntityTypeId == groupEntityId
+                    ).ToList();
+            foreach ( var attribute in groupAttributes )
+            {
+                var ddlAttribute = ( RockDropDownList )phMemberAttributes.FindControl( attribute.Id.ToString() + "_ddlAttribute" );
+                // If the dropdown is found
+                if ( ddlAttribute != null )
+                {
+                    var newAttributeId = ddlAttribute.SelectedValue.AsInteger();
+
+                    var attributeEntity = attributeValueService.Queryable()
+                        .Where( av => av.EntityId == group.Id && av.AttributeId == attribute.Id )
+                        .FirstOrDefault();
+                    // If the attribute value is found
+                    if ( attributeEntity != null )
+                    {
+                        // If a new attribute mapping was selected
+                        if ( newAttributeId != 0 )
+                        {
+                            // Map attribute value to new attribute
+                            attributeEntity.AttributeId = newAttributeId;
+                        }
+                        else
+                        {
+                            // Remove inapplicable attribute value and
+                            // count how many records were affected (don't count empty records)
+                            if ( attributeEntity.Value != "" && attributeEntity.Value != null )
+                            {
+                                groupDeletedAttributes.Add( attributeEntity.AttributeName, attributeEntity.Value );
+                            }
+                            attributeValueService.Delete( attributeEntity );
                         }
                     }
                 }
             }
+
+            if ( memberDeletedAttributes.Count > 0 || groupDeletedAttributes.Count > 0 )
+            {
+                nbSuccess.Text = "<br>Some attributes were not mapped to new attributes and have been automatically deleted.<br>";
+                if ( memberDeletedAttributes.Count > 0 )
+                {
+                    nbSuccess.Text += "<b>Deleted Group Member Attributes</b><br><ul>";
+                    foreach ( var deletedAttribute in memberDeletedAttributes )
+                    {
+                        nbSuccess.Text += $"<li>{ deletedAttribute.Key }<ul><li>Records Affected: { deletedAttribute.Value }</li></ul></li>";
+                    }
+                    nbSuccess.Text += "</ul>";
+                }
+                if ( groupDeletedAttributes.Count > 0 )
+                {
+                    nbSuccess.Text += "<b>Deleted Group Attributes</b><br><ul>";
+                    foreach ( var deletedAttribute in groupDeletedAttributes )
+                    {
+                        nbSuccess.Text += $"<li>{deletedAttribute.Key}<ul><li>Value: {deletedAttribute.Value}</li></ul></li>";
+                    }
+                    nbSuccess.Text += "</ul>";
+                }
+            }
+
             rockContext.SaveChanges();
             nbSuccess.Visible = true;
         }

@@ -2,7 +2,7 @@
 
 <asp:UpdatePanel ID="upReport" runat="server">
     <ContentTemplate>
-        <Rock:NotificationBox runat="server" ID="nbSuccess" Visible="false" NotificationBoxType="Success" Text="GroupType successfully changed."></Rock:NotificationBox>
+        <Rock:NotificationBox runat="server" ID="nbSuccess" Visible="false" NotificationBoxType="Success" Heading="<span style='font-size: 20px'>GroupType successfully changed.</span>"></Rock:NotificationBox>
         <div class="row">
             <div class="col-sm-6">
                 <Rock:RockLiteral ID="ltName" runat="server" Label="Group Name"></Rock:RockLiteral>
@@ -12,7 +12,7 @@
             </div>
         </div>
         <Rock:RockDropDownList runat="server" ID="ddlGroupTypes" Label="New Group Type" DataValueField="Id" DataTextField="Name"
-            AutoPostBack="true" OnSelectedIndexChanged="ddlGroupTypes_SelectedIndexChanged">
+            AutoPostBack="true" OnSelectedIndexChanged="ddlGroupTypes_SelectedIndexChanged" EnhanceForLongLists="true">
         </Rock:RockDropDownList>
         <div class="col-sm-6">
             <asp:Panel runat="server" ID="pnlRoles" Visible="false">
@@ -21,13 +21,19 @@
             </asp:Panel>
         </div>
         <div class="col-sm-6">
-            <asp:Panel runat="server" ID="pnlAttributes" Visible="false">
+            <asp:Panel runat="server" ID="pnlMemberAttributes" Visible="false">
                 <h3>Group Member Group Type Attribute Mappings</h3>
-                <asp:PlaceHolder runat="server" ID="phAttributes" />
+                <asp:PlaceHolder runat="server" ID="phMemberAttributes" />
+            </asp:Panel>
+        </div>
+        <div class="col-sm-6">
+            <asp:Panel runat="server" ID="pnlGroupAttributes" Visible="false">
+                <h3>Group Attribute Mappings</h3>
+                <asp:PlaceHolder runat="server" ID="phGroupAttributes" />
             </asp:Panel>
         </div>
         <div class="col-xs-12">
-            <Rock:BootstrapButton runat="server" ID="btnSave" CssClass="btn btn-success" Text="Save"
+            <Rock:BootstrapButton runat="server" ID="btnSave" CssClass="btn btn-primary" Text="Save"
                  Visible="false" OnClick="btnSave_Click"></Rock:BootstrapButton>
         </div>
 
