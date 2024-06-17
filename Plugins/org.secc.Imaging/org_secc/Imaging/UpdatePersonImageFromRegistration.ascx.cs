@@ -70,13 +70,7 @@ namespace RockWeb.Plugins.org_secc.Imaging
             //Create a list of registrants from all selected registration templates
             var registrants = registrationRegistrantService.Queryable()
                 .Where( rr => overwritePhotos
-                                ? ( templateIds.Contains( ( int ) rr.Registration.RegistrationInstance.RegistrationTemplateId )
-                                    && (
-                                        ( rr.PersonAlias.Person.AgeClassification != AgeClassification.Adult ) // Child
-                                            || // Or
-                                        ( rr.PersonAlias.Person.AgeClassification == AgeClassification.Adult || rr.PersonAlias.Person.Email.IndexOf( "secc.org" ) == -1 ) // Adult whose email is not secc.org
-                                        )
-                                    )
+                                ? ( templateIds.Contains( ( int ) rr.Registration.RegistrationInstance.RegistrationTemplateId ) && rr.PersonAlias.Person.Email.IndexOf( "secc.org" ) == -1 )
                                 : ( templateIds.Contains( ( int ) rr.Registration.RegistrationInstance.RegistrationTemplateId ) && !rr.PersonAlias.Person.PhotoId.HasValue ) )
                 .Select( rr => new
                 {
