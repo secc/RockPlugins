@@ -62,7 +62,7 @@ namespace org.secc.Imaging.AI
 
             if ( isLargeImage )
             {
-                url = url + "&w=" + ( binaryFile.Width.Value / 2 ).ToString();
+                url = url + "&w=2000";
             }
 
             var detectedFace = await DetectFace( url );
