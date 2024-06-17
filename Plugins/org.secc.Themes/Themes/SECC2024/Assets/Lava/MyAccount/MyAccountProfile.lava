@@ -18,7 +18,7 @@
             </span>
 
             <div class="fluid-container">
-                <div class="col-md-5 g-padding-x-70--xs g-padding-t-80--lg">
+                <div class="col-md-5 g-padding-x-70--xs g-padding-t-80--xs">
                     <div class="g-width-100-percent--xs g-position--relative g-display-block--xs text-center">
                         {%if isAdult -%}
                         <a href="/MyAccount/Edit/{{ Person.Guid }}">
@@ -62,9 +62,19 @@
                             {%if isAdult -%}
                         </a>
                     {% endif -%}
-                        <a class="btn btn-primary se-btn--xs" role="button" data-toggle="collapse" href="#QREventPass" aria-expanded="false" aria-controls="QREventPass">
-                            QR Event Pass
-                        </a>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <a class="btn btn-primary se-btn--xs" role="button" data-toggle="collapse" href="#QREventPass" aria-expanded="false" aria-controls="QREventPass">
+                                    QR Event Pass
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a id="lbRequestApplePass" >
+                                    <img src="/Content/Apps/EventPass/AddToAppleWallet.svg" style="width:90%">
+                                </a>
+                            </div>
+                        </div>
+
                         <div class="collapse" id="QREventPass">
                             <img src="{{ 'Global' | Attribute:'PublicApplicationRoot'}}GetQRCode.ashx?data={{ CurrentPerson | GetPersonAlternateId }}">
                         </div>
@@ -179,3 +189,18 @@
             </div>
         </div>
     </div>
+<script type="text/javascript">
+    $("#lbRequestApplePass").on('click', function(e) {
+        e.preventDefault();
+        debugger;
+        GeneratePass("{{ CurrentPerson.PrimaryAlias.Guid }}");
+        $(this).css('pointer-events', 'none');
+    });
+
+    function GeneratePass( personGuid ){
+
+        $("#hfPassInfo").val( personGuid );
+        $("#lbGenerateApplePass").trigger( "click" );
+
+    }
+</script>
