@@ -104,7 +104,7 @@ namespace RockWeb.Plugins.org_secc.Crm
                 if(fileGuid != Guid.Empty)
                 {
                     var rockUrl = ResolveRockUrl( $"~/GetFile.ashx?guid={fileGuid}&attachment=true" );
-                    Response.Redirect( rockUrl, true );
+                    Response.Redirect( rockUrl, false );
                 }
             }
         }

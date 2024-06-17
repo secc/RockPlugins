@@ -48,6 +48,14 @@ namespace RockWeb.Plugins.org_secc.Event
             public const string ContactFieldsEditableKey = "ContactFieldsEditable";
         }
 
+        protected Guid? PersonAliasGuid
+        {
+            get
+            {
+                return PageParameter( "Person" ).AsGuidOrNull();
+            }
+        }
+
         #region Control Methods
         protected override void OnInit( EventArgs e )
         {
@@ -69,10 +77,15 @@ namespace RockWeb.Plugins.org_secc.Event
         }
         #endregion
 
-        #region Internal Metods
+
+
+        #region Internal Methods
 
         private void GeneratePass()
         {
+            var rockContext = new RockContext();
+            Person person = GetPerson( rockContext );
+
             var workflowGuid = GetAttributeValue( AttributeKeys.EventPassWorkflowKey ).AsGuid();
             var workflowAttributes = new Dictionary<string, string>
             {
@@ -82,13 +95,25 @@ namespace RockWeb.Plugins.org_secc.Event
             };
 
 
-            CurrentPerson.LaunchWorkflow( workflowGuid, $"Event Pass - {CurrentPerson.FullName}", workflowAttributes );
+            person.LaunchWorkflow( workflowGuid, $"Event Pass - {person.FullName}", workflowAttributes );
 
         }
 
         private void DownloadPass( Guid binaryFileGuid )
         {
             Response.Redirect( ResolveRockUrl( $"~/GetFile.ashx?Guid={binaryFileGuid}&attachment=true" ), true );
+        }
+
+        private Person GetPerson( RockContext rockContext )
+        {
+            if(PersonAliasGuid.HasValue)
+            {
+                return new PersonAliasService( rockContext ).GetPerson( PersonAliasGuid.Value );
+            }
+            else
+            {
+                return new PersonService(rockContext).Get( CurrentPerson.Guid );
+            }
         }
 
         private void ProcessRequest()
@@ -127,14 +152,15 @@ namespace RockWeb.Plugins.org_secc.Event
                 return;
             }
 
-            var person = new PersonService( rockContext ).Get( CurrentPerson.Guid );
+            Person person = GetPerson( rockContext );
+
             person.LoadAttributes( rockContext );
             var passBinaryFileGuid = person.GetAttributeValue( attribute.Key ).AsGuidOrNull();
 
 
             if (!passBinaryFileGuid.HasValue)
             {
-                LoadRequestForm();
+                LoadRequestForm(person);
             }
             else
             {
@@ -143,16 +169,16 @@ namespace RockWeb.Plugins.org_secc.Event
 
         }
 
-        private void LoadRequestForm()
+        private void LoadRequestForm(Person p)
         {
             pnlRequest.Visible = true;
             var contactFieldsAreEditable = GetAttributeValue( AttributeKeys.ContactFieldsEditableKey ).AsBoolean();
 
-            lName.Text = CurrentPerson.FullName;
+            lName.Text = p.FullName;
 
-            if(CurrentPerson.Email.IsNotNullOrWhiteSpace())
+            if(p.Email.IsNotNullOrWhiteSpace())
             {
-                tbEmail.Text = CurrentPerson.Email;
+                tbEmail.Text = p.Email;
                 tbEmail.ReadOnly = !contactFieldsAreEditable;
             }
             else
@@ -162,7 +188,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
 
 
-            var mobilePhone = CurrentPerson.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
+            var mobilePhone = p.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() );
             if (mobilePhone != null )
             {
                 tbPhone.Text = mobilePhone.NumberFormatted;

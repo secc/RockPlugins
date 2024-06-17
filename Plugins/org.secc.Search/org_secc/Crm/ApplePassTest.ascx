@@ -16,8 +16,7 @@
 <script type="text/javascript">
     function GeneratePass ( personGuid )
     {
-        $( "#hfPassInfo" ).val( personGuid );
-        debugger;
+        $( "#hfPassInfo" ).val( personGuid );;
         $( "#lbGenerateApplePass" ).trigger( "click" );
     }
 

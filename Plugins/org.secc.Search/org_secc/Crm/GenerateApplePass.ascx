@@ -15,4 +15,7 @@
         <asp:HiddenField ID="hfPassInfo" runat="server" ClientIDMode="Static" />
         <asp:Button ID="lbGenerateApplePass" runat="server" Text="Generate" ClientIDMode="Static" style="display:none;visibility:hidden" OnClick="lbGeneratePass_Click" />
     </ContentTemplate>
+    <Triggers>
+       <asp:PostBackTrigger ControlID="lbGenerateApplePass" />
+    </Triggers>
 </asp:UpdatePanel>
