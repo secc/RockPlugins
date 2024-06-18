@@ -64,13 +64,13 @@
                     {% endif -%}
                         <div class="row">
                             <div class="col-md-6">
-                                <a class="btn btn-primary se-btn--xs" role="button" data-toggle="collapse" href="#QREventPass" aria-expanded="false" aria-controls="QREventPass">
-                                    QR Event Pass
+                                <a role="button" data-toggle="collapse" href="#QREventPass" aria-expanded="false" aria-controls="QREventPass">
+                                   <img src="/Content/Apps/EventPass/QREventPass.svg" style="width:200px;" />
                                 </a>
                             </div>
                             <div class="col-md-6">
                                 <a id="lbRequestApplePass" >
-                                    <img src="/Content/Apps/EventPass/AddToAppleWallet.svg" style="width:90%">
+                                    <img src="/Content/Apps/EventPass/AddToAppleWallet.svg" style="width:200px;" />
                                 </a>
                             </div>
                         </div>
