@@ -12,6 +12,7 @@
 // limitations under the License.
 // </copyright>
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -21,6 +22,7 @@ using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Rest;
+using Rock.Web.Cache;
 
 namespace org.secc.Rest.Controllers
 {
@@ -157,34 +159,69 @@ namespace org.secc.Rest.Controllers
             public string Body { get; set; }
         }
 
-        public Communication CreateCommunication( string subject, string body, List<GroupMember> groupMembers, Person currentPerson )
+        public void CreateCommunication( string subject, string body, List<GroupMember> groupMembers, Person currentPerson )
         {
-            var communication = new Communication
+            var communication = UpdateCommunication( _context );
+            if ( communication != null )
             {
-                Subject = subject,
-                Message = body,
-                Status = CommunicationStatus.Approved,
-                CreatedByPersonAliasId = currentPerson.PrimaryAliasId,
-                SenderPersonAliasId = currentPerson.PrimaryAliasId
-            };
+                communication.CommunicationType = CommunicationType.Email;
+                communication.IsBulkCommunication = false;
+                communication.FutureSendDateTime = null;
+                communication.CreatedByPersonAliasId = currentPerson.PrimaryAliasId;
+                communication.ReplyToEmail = currentPerson.Email;
+                communication.SenderPersonAliasId = currentPerson.PrimaryAliasId;
+                communication.FromName = currentPerson.FullName;
+                communication.FromEmail = currentPerson.Email;
+                communication.Subject = subject;
+                communication.Message = body;
+                communication.ReviewedDateTime = RockDateTime.Now;
+                communication.FutureSendDateTime = RockDateTime.Now;
+                communication.ReviewerPersonAliasId = currentPerson.PrimaryAliasId;
+                communication.Status = CommunicationStatus.Approved;
 
-            foreach ( var groupMember in groupMembers )
-            {
-                var recipient = new CommunicationRecipient
+                foreach ( var groupMember in groupMembers )
                 {
-                    PersonAliasId = groupMember.Person.PrimaryAliasId,
-                    Communication = communication
-                };
+                    var recipient = new CommunicationRecipient
+                    {                        
+                        PersonAliasId = groupMember.Person.PrimaryAliasId,
+                        CreatedByPersonAliasId = currentPerson.PrimaryAliasId,
+                        Communication = communication,
+                        MediumEntityTypeId = EntityTypeCache.Get( new Guid( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_EMAIL ) ).Id
+                    };
 
-                communication.Recipients.Add( recipient );
+                    communication.Recipients.Add( recipient );
+                }
+
+                _context.SaveChanges();
+                var transaction = new Rock.Transactions.SendCommunicationTransaction();
+                transaction.CommunicationId = communication.Id;
+                transaction.PersonAlias = currentPerson.PrimaryAlias;
+                Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
             }
+            return;
+        }
 
-            var communicationService = new CommunicationService( _context );
+        private Communication UpdateCommunication( RockContext context )
+        {
+            var communicationService = new CommunicationService( context );
+            var recipientService = new CommunicationRecipientService( context );
+
+            Rock.Model.Communication communication = null;
+            IQueryable<CommunicationRecipient> qryRecipients = null;
+
+            communication = new Rock.Model.Communication();
             communicationService.Add( communication );
-            _context.SaveChanges();
+
+            qryRecipients = communication.GetRecipientsQry( context );
+
+            communication.IsBulkCommunication = false;
+
+            communication.FutureSendDateTime = null;
 
             return communication;
         }
+
+
 
 
     }
