@@ -21,6 +21,7 @@ using Rock.Model;
 using Rock.Rest;
 using System;
 using org.secc.Rest.Models;
+using Rock;
 
 namespace org.secc.Rest.Controllers
 {
@@ -48,6 +49,47 @@ namespace org.secc.Rest.Controllers
             var groupsAsLeader = groupServiceHelper.GetGroupsAsLeader( currentUser.Person.Id, groupTypeIds );
 
             return Ok( groupsAsLeader );
+
+        }
+
+        /// <summary>
+        /// Returns the groups for which the current user is a group member with a role including "leader" from the group types defined in the "Group App Group Type
+        /// </summary>
+        /// <returns>List<Group></returns> 
+        [HttpGet]
+        [System.Web.Http.Route( "api/GroupApp/GetGroup/{groupId}" )]
+        public IHttpActionResult GetGroup(int groupId)
+        {
+            var currentUser = UserLoginService.GetCurrentUser();
+            if ( currentUser == null )
+            {
+                return StatusCode( HttpStatusCode.Unauthorized );
+            }
+            var group = new GroupService( new RockContext() ).Get( groupId );
+            if ( group == null )
+            {
+                return NotFound();
+            }
+            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
+            {
+                return StatusCode( HttpStatusCode.Forbidden );
+            }
+
+            group.LoadAttributes();
+
+            var emailParentsEnabled = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
+            
+
+            return Ok(                 
+                new
+                {
+                    group.Name,
+                    group.TypeId,
+                    group.IsActive,
+                    group.IsArchived,
+                    emailParentsEnabled
+                }
+                );
 
         }
     }
