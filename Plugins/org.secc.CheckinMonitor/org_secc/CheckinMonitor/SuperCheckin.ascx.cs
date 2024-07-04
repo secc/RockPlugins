@@ -1426,7 +1426,6 @@ try{{
                         checkinPerson.Selected = true;
                         foreach ( var groupType in checkinPerson.GroupTypes )
                         {
-                            // support checkin my membership with attendance on membership group
                             if ( groupTypeIds.Contains( groupType.GroupType.Id ) )
                             {
                                 groupType.Selected = true;
@@ -1454,6 +1453,7 @@ try{{
                                     .Where( g => membershipGroupGuids.Contains( g.Guid ) )
                                     .Where( g => groupTypeIds.Contains( g.GroupTypeId ) )
                                     .Any();
+
                                 if(attendanceMatch)
                                 {
                                     groupType.Selected = true;
