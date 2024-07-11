@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Web.Http;
@@ -22,6 +23,8 @@ using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Rest;
+using Rock.Rest.Controllers;
+//using Rock.SystemGuid;
 using Rock.Web.Cache;
 
 namespace org.secc.Rest.Controllers
@@ -221,9 +224,129 @@ namespace org.secc.Rest.Controllers
             return communication;
         }
 
+        /// <summary>
+        /// Adds group members to the provided group.
+        /// <param name="groupId">The group ID</param>        
+        /// </summary>
+        [HttpPost]
+        [System.Web.Http.Route( "api/GroupApp/GroupMembers/{groupId}/Add" )]
+        public IHttpActionResult AddGroupMembers( int groupId, [FromBody] GroupAppAddGroupMember personToAdd )
+        {
+            var currentUser = UserLoginService.GetCurrentUser();
+
+            if ( currentUser == null )
+            {
+                return StatusCode( HttpStatusCode.Unauthorized );
+            }
+
+            var group = _groupService.Get( groupId );
+            if ( group == null )
+            {
+                return NotFound();
+            }
+
+            if ( !group.IsAuthorized( Rock.Security.Authorization.EDIT, currentUser.Person ) || !group.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person ) )
+            {
+                return StatusCode( HttpStatusCode.Forbidden );
+            }
+
+            if ( personToAdd == null || ( personToAdd.FirstName.IsNullOrWhiteSpace() || personToAdd.LastName.IsNullOrWhiteSpace() ) || ( personToAdd.DateOfBirth == null && string.IsNullOrWhiteSpace( personToAdd.Email ) && personToAdd.MobileNumber.IsNullOrWhiteSpace() ) )
+            {
+                return BadRequest();
+            }
+
+            Person person = null;
+
+            var phoneNumber = personToAdd.MobileNumber.IsNullOrWhiteSpace() ? null : personToAdd.MobileNumber.AsNumeric();
+
+            // look to see if there are any people in the database matching the info provided: name + either DOB, email, or mobile number
+            var personQuery = new PersonService( _context ).Queryable();
+            personQuery = personQuery.Where( p => p.LastName == personToAdd.LastName && (p.FirstName == personToAdd.FirstName || p.NickName == personToAdd.FirstName) );
+            if ( personToAdd.DateOfBirth != null )
+            {
+                personQuery = personQuery.Where( p => p.BirthDate == personToAdd.DateOfBirth );
+            }
+            if ( !string.IsNullOrWhiteSpace( personToAdd.Email ) )
+            {
+                personQuery = personQuery.Where( p => p.Email == personToAdd.Email );
+            }
+            if ( !string.IsNullOrWhiteSpace( phoneNumber ) )
+            {
+                personQuery = personQuery.Where( p => p.PhoneNumbers.Any( n => n.Number == phoneNumber ) );
+            }
+
+            person = personQuery.FirstOrDefault();
+
+            if ( person == null )
+            {
+                // if no person was found, create a new person
+                person = new Person
+                {
+                    FirstName = personToAdd.FirstName,
+                    LastName = personToAdd.LastName,                    
+                    Email = personToAdd.Email,
+                    IsEmailActive = true,
+                    EmailPreference = EmailPreference.EmailAllowed,
+                    ReviewReasonNote = "Added via GroupApp",
+                    RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id,
+                    ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id,
+                    RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id,
+                    Gender = Gender.Unknown,
+                    CreatedByPersonAliasId = currentUser.Person.PrimaryAliasId,
+                };
+                person.UpdatePhoneNumber( DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id,
+                        PhoneNumber.DefaultCountryCode(), phoneNumber, true, false, _context );
+                person.SetBirthDate( personToAdd.DateOfBirth );
+            }
+
+            // Save the person
+            var personService = new PersonService( _context );
+            PersonService.SaveNewPerson( person, _context, group.CampusId, false );
+            _context.SaveChanges();
+
+            // add person to the group
+            var groupMember = new GroupMember
+            {
+                GroupId = groupId,
+                PersonId = person.Id,
+                GroupRoleId = group.GroupType.DefaultGroupRoleId ?? group.GroupType.Roles.FirstOrDefault().Id,
+                GroupMemberStatus = GroupMemberStatus.Active,
+                DateTimeAdded = RockDateTime.Now,
+                CreatedByPersonAliasId = currentUser.Person.PrimaryAliasId
+            };
+
+            var groupMemberService = new GroupMemberService( _context );
+            var member = groupMemberService.AddOrRestoreGroupMember( group, person.Id, groupMember.GroupRoleId );
+            _context.SaveChanges();
+
+            // Add Table Number
+            // check if the group has a group member attribute for table number
+
+            var currentGroupMember = groupMemberService.GetByPersonId( ( int ) currentUser.PersonId ).AsQueryable().AsNoTracking()
+                        .Where( gm => gm.GroupId == group.Id ).FirstOrDefault();
+            currentGroupMember.LoadAttributes();
+            var currentGroupMemberTableNumber = currentGroupMember.GetAttributeValue( "TableNumber" );
+            if ( currentGroupMemberTableNumber != null )
+            {
+                member.LoadAttributes();
+                member.SetAttributeValue( "TableNumber", currentGroupMemberTableNumber );
+                member.SaveAttributeValue( "TableNumber" );
+            }
+
+            return Ok();
+        }
 
 
 
+    }
+
+    public class GroupAppAddGroupMember
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public string MobileNumber { get; set; }
+        public string Email { get; set; }
     }
 
 }
