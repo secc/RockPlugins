@@ -41,7 +41,7 @@
                 <h1 class="panel-title">Person Actions</h1>
             </div>
             <div class="panel-body">
-                <Rock:RockLiteral ID="lTest" runat="server"></Rock:RockLiteral>
+                <Rock:NotificationBox ID="nbPersonActions" runat="server" />
                 <ul>
                     <li>
                         <asp:LinkButton ID="lbUpdatePin" runat="server" CommandName="UpdatePIN">
@@ -115,6 +115,26 @@
                     </div>
                     <div class="col-xs-6 col-md-9" style="padding-top:30px;">
                         <asp:LinkButton ID="lbSavePIN" runat="server" CssClass="btn btn-sm btn-primary" CausesValidation="false">Add</asp:LinkButton>
+                    </div>
+                </div>
+            </Content>
+        </Rock:ModalDialog>
+        <Rock:ModalDialog ID="mdlAddCredits" runat="server" SaveButtonText="Add Credits" >
+            <Content>
+                <div class="row">
+                    <div class="col-xs-6">
+                        <label class="control-label">Existing Credits</label>
+                    </div>
+                    <div class="col-xs-6" >
+                        <Rock:NumberBox ID="tbExistingCredits" runat="server" CssClass="input-width-md" ReadOnly="true" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6">
+                        <label class="control-label">Credits To Add</label>
+                    </div>
+                    <div class="col-xs-6">
+                        <Rock:NumberBox ID="tbCreditsToAdd" runat="server" CssClass="input-width-md" Placeholder="0"/>
                     </div>
                 </div>
             </Content>

@@ -5,6 +5,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Web.UI.WebControls;
+using CSScriptLibrary;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -37,16 +38,25 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         Category = "Linked Pages",
         Key = AttributeKeys.ChildcareHistoryPage )]
 
+    [GroupField("Group Fitness Group",
+        Description = "Group that includes people who are signed up for Group Fitness.",
+        IsRequired = true,
+        Key = AttributeKeys.GroupFitnessGroup)]
+
     public partial class PersonActions : RockBlock
     {
         public class AttributeKeys
         {
             public const string SFHistoryPage = "SFHistoryPage";
+            public const string GroupFitnessGroup = "GroupFitnessGroup";
             public const string GroupFitnessHistoryPage = "GFHistoryPage";
             public const string ChildcareHistoryPage = "ChildcareHistoryPage";
+
         }
 
         Person _selectedPerson = null;
+
+        CreditType? _creditType = null;
 
         protected Person SelectedPerson
         {
@@ -60,6 +70,26 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             }
         }
 
+        protected CreditType? SelectedCreditType
+        {
+            get
+            {
+                if(_creditType == null)
+                {
+                    _creditType = (CreditType?) ViewState[$"{this.BlockId}_CreditType"];
+                }
+
+                return _creditType;
+            }
+            set
+            {
+                _creditType = value;
+                ViewState[$"{this.BlockId}_CreditType"] = _creditType;
+            }
+        }
+
+        
+
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
@@ -70,12 +100,20 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             lbGroupFitnessHistory.Click += PersonAction_Click;
             lbChildcareHistory.Click += PersonAction_Click;
             lbSavePIN.Click += lbSavePIN_Click;
+            mdlAddCredits.SaveClick += mdlAddCredits_SaveClick;
         }
+
 
 
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
+            nbPersonActions.Visible = false;
+
+            if(!IsPostBack)
+            {
+                _creditType = null;
+            }
         }
 
         private void lbSavePIN_Click( object sender, EventArgs e )
@@ -96,6 +134,20 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             mdlPINs.Hide();
         }
 
+        private void mdlAddCredits_SaveClick( object sender, EventArgs e )
+        {
+            switch (SelectedCreditType)
+            {
+                case CreditType.Childcare:
+                    SaveChildcareCredits();
+                    break;
+                case CreditType.GroupFitness:
+                    SaveGroupFitnessCredits();
+                    break;
+            }
+            mdlAddCredits.Hide();
+        }
+
         private void PersonAction_Click( object sender, EventArgs e )
         {
             var action = ((LinkButton) sender).CommandName.ToLower();
@@ -107,10 +159,10 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     mdlPINs.Show();
                     break;
                 case "childcarecredit":
-                    lTest.Text = "Childcare Credits";
+                    LoadCreditModel( CreditType.Childcare );
                     break;
                 case "groupfitnesscredit":
-                    lTest.Text = "Group Finess Credit";
+                    LoadCreditModel( CreditType.GroupFitness );
                     break;
                 case "sportsandfitnesshistory":
                     LoadPage( AttributeKeys.SFHistoryPage, true );
@@ -199,6 +251,91 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             }
         }
 
+        private void LoadChildcareModel()
+        {
+            if(SelectedPerson == null)
+            {
+                return;
+            }
+            mdlAddCredits.Title = "Add Childcare Credits";
+
+            var familyGroupId = SelectedPerson.PrimaryFamilyId;
+            if(!familyGroupId.HasValue)
+            {
+                nbPersonActions.Title = "<strong>Family Not Found</strong>";
+                nbPersonActions.Text = $"<p>Please contact Rock Support {SelectedPerson.FullName}'s family not found.";
+                nbPersonActions.Visible = true;
+                return;
+            }
+
+            using (var rockContext = new RockContext())
+            {
+                var groupService = new GroupService( rockContext );
+                var family = groupService.Get( familyGroupId.Value );
+                family.LoadAttributes();
+                var credits = family.GetAttributeValue( "SportsandFitnessChildcareCredit" ).AsInteger();
+
+                tbExistingCredits.Text = credits.ToString();
+            }
+
+            mdlAddCredits.Show();
+
+        }
+
+        private void LoadCreditModel(CreditType ct)
+        {
+            SelectedCreditType = ct;
+            tbExistingCredits.Text = string.Empty;
+            tbCreditsToAdd.Text = string.Empty;
+
+            switch (SelectedCreditType)
+            {
+                case CreditType.Childcare:
+                    LoadChildcareModel();
+                    break;
+                case CreditType.GroupFitness:
+                    LoadGroupFitnessModel();
+                    break;
+                default:
+                    break;
+            }
+           
+        }
+
+        private void LoadGroupFitnessModel()
+        {
+            if(SelectedPerson == null)
+            {
+                return;
+            }
+            mdlAddCredits.Title = "Add Group Fitness Credits";
+            var groupGuid = GetAttributeValue( AttributeKeys.GroupFitnessGroup ).AsGuid();
+
+            using (var rockContext = new RockContext())
+            {
+                var groupMemberService = new GroupMemberService( rockContext );
+                var groupMember = groupMemberService.Queryable()
+                    .Where( m => m.PersonId == SelectedPerson.Id )
+                    .Where( m => m.Group.Guid == groupGuid )
+                    .FirstOrDefault();
+
+                if(groupMember == null)
+                {
+                    tbExistingCredits.Text = "0";
+                }
+                else
+                {
+                    groupMember.LoadAttributes( rockContext );
+                    var existingCredits = groupMember.GetAttributeValue( "Sessions" ).AsInteger();
+                    tbExistingCredits.Text = existingCredits.ToString();
+                }
+            }
+
+            mdlAddCredits.Show();
+
+        }
+
+
         private void LoadPage( string linkedPageAttributeKey, bool includePerson )
         {
             var qsValues = new Dictionary<string, string>();
@@ -257,6 +394,95 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             }
 
 
+        }
+
+        private void SaveChildcareCredits()
+        {
+            if(SelectedPerson == null)
+            {
+                return;
+            }
+
+            var familyid = SelectedPerson.PrimaryFamilyId;
+
+            using (var rockContext = new RockContext())
+            {
+                var family = new GroupService( rockContext ).Get( familyid.Value );
+                family.LoadAttributes( rockContext );
+                var credits = family.GetAttributeValue( "SportsandFitnessChildcareCredit" ).AsInteger();
+                credits += tbCreditsToAdd.Text.AsInteger();
+
+                family.SetAttributeValue( "SportsandFitnessChildcareCredit", credits );
+                family.SaveAttributeValue( "SportsandFitnessChildcareCredit" );
+                rockContext.SaveChanges();
+                tbCreditsToAdd.Text = "0";
+            }
+        }
+
+        private void SaveGroupFitnessCredits()
+        {
+            if(SelectedPerson == null)
+            {
+                return;
+            }
+
+            var groupFitnessGroupGuid = GetAttributeValue( AttributeKeys.GroupFitnessGroup ).AsGuid();
+
+            using (var rockContext = new RockContext())
+            {
+                var groupService = new GroupService( rockContext );
+
+                var groupMemberService = new GroupMemberService( rockContext );
+                var groupFitnessGroup = groupService.Get( groupFitnessGroupGuid );
+
+
+                var groupMember = groupMemberService.Queryable()
+                    .Where( m => m.PersonId == SelectedPerson.Id )
+                    .Where( m => m.GroupId == groupFitnessGroup.Id )
+                    .FirstOrDefault();
+
+                var defaultRoleId = GroupTypeCache.Get( groupFitnessGroup.GroupTypeId ).DefaultGroupRoleId;
+
+                if(groupMember == null)
+                {
+                    groupMember = new GroupMember
+                    {
+                        GroupId = groupFitnessGroup.Id,
+                        PersonId = SelectedPerson.Id,
+                        GroupMemberStatus = GroupMemberStatus.Active,
+                        Guid = Guid.NewGuid(),
+                        IsArchived = false,
+                        CreatedByPersonAliasId = CurrentPersonAliasId,
+                        ModifiedByPersonAliasId = CurrentPersonAliasId,
+                        GroupRoleId = defaultRoleId.Value
+                    };
+
+                    groupMemberService.Add( groupMember );
+                    rockContext.SaveChanges();
+                }
+
+                if(groupMember.GroupMemberStatus != GroupMemberStatus.Active)
+                {
+                    groupMember.GroupMemberStatus = GroupMemberStatus.Active;
+                    groupMember.InactiveDateTime = null;
+                    groupMember.ModifiedByPersonAliasId = CurrentPersonAliasId;
+                }
+
+                if(groupMember.IsArchived)
+                {
+                    groupMember.IsArchived = false;
+                    groupMember.ModifiedByPersonAliasId = CurrentPersonAliasId;
+                }
+
+                groupMember.LoadAttributes( rockContext );
+                var sessions = groupMember.GetAttributeValue( "Sessions" ).AsInteger();
+                sessions += tbCreditsToAdd.Text.AsInteger();
+                groupMember.SetAttributeValue( "Sessions", sessions );
+                groupMember.SaveAttributeValue( "Sessions" );
+
+                rockContext.SaveChanges();
+                tbCreditsToAdd.Text = "0";
+            }
         }
 
         private bool SavePIN(int personId, string pin)
@@ -343,6 +569,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             public int UserLoginId { get; set; }
             public string PIN { get; set; }
             public int? PersonId { get; set; }
+        }
+
+        public enum CreditType
+        {
+            Childcare,
+            GroupFitness
         }
 
 
