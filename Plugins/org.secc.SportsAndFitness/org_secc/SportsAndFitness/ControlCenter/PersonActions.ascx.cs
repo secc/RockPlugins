@@ -5,10 +5,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Web.UI.WebControls;
-using CSScriptLibrary;
-using Microsoft.Ajax.Utilities;
-using org.secc.Microframe;
-using PayPal.PayPalAPIInterfaceService.Model;
+
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -61,6 +58,8 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         CreditType? _creditType = null;
 
+        List<ActionCommands> _enabledActions = null;
+
         protected Person SelectedPerson
         {
             get
@@ -91,19 +90,31 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             }
         }
 
+        protected List<ActionCommands> EnabledActions
+        {
+            get
+            {
+                if(_enabledActions == null)
+                {
+                    _enabledActions = LoadEnabledActions();
+                }
+                return _enabledActions;
+            }
+            set
+            {
+                _enabledActions = value;
+                ViewState[$"{this.BlockId}_EnabledActions"] = _enabledActions;
+            }
+        }
+
         
 
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-            lbUpdatePin.Click += PersonAction_Click;
-            lbChildcareCredits.Click += PersonAction_Click;
-            lbGroupFitnessCredits.Click += PersonAction_Click;
-            lbSportsAndFitnessHistory.Click += PersonAction_Click;
-            lbGroupFitnessHistory.Click += PersonAction_Click;
-            lbChildcareHistory.Click += PersonAction_Click;
             lbSavePIN.Click += lbSavePIN_Click;
             mdlAddCredits.SaveClick += mdlAddCredits_SaveClick;
+            rptActions.ItemDataBound += rptActions_ItemDataBound;
         }
 
 
@@ -112,13 +123,14 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         {
             base.OnLoad( e );
             nbPersonActions.Visible = false;
-            LoadHighlightLabels();
+
 
             if (!IsPostBack)
             {
                 _creditType = null;
-                
+                LoadActionCommands();
             }
+
         }
 
         private void lbSavePIN_Click( object sender, EventArgs e )
@@ -153,10 +165,16 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             mdlAddCredits.Hide();
         }
 
-        private void PersonAction_Click( object sender, EventArgs e )
+        protected void rptActions_ItemCommand( object source, RepeaterCommandEventArgs e )
         {
-            var action = ((LinkButton) sender).CommandName.ToLower();
+            var lbAction = (LinkButton) e.Item.FindControl( "lbAction" );
 
+            if(lbAction == null)
+            {
+                return;
+            }
+
+            var action = lbAction.CommandName.ToLower();
             switch (action)
             {
                 case "updatepin":
@@ -182,6 +200,39 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     break;
             }
         }
+
+        private void rptActions_ItemDataBound( object sender, RepeaterItemEventArgs e )
+        {
+            if (e.Item.ItemType != ListItemType.Item && e.Item.ItemType != ListItemType.AlternatingItem)
+            {
+                return;
+            }
+
+            Literal lCount = (Literal) e.Item.FindControl( "lCount" );
+            ActionCommands actionCmd = (ActionCommands) e.Item.DataItem;
+
+            switch (actionCmd.CommandName.ToLower())
+            {
+                case "updatepin":
+                    SetPINLabelText( actionCmd.Count, lCount );
+                    lCount.Visible = true;
+                    break;
+                case "childcarecredit":
+                    SetChildcareCreditText( actionCmd.Count, lCount );
+                    lCount.Visible = true;
+                    break;
+                case "groupfitnesscredit":
+                    SetGroupFitnessLabelText( actionCmd.Count, lCount );
+                    lCount.Visible = true;
+                    break;
+                default:
+                    lCount.Visible = false;
+                    break;
+            }
+
+
+        }
+
         protected void rptPIN_ItemCommand( object source, RepeaterCommandEventArgs e )
         {
             if(e.CommandName == "DeletePIN")
@@ -255,6 +306,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 }
                 return person;
             }
+        }
+
+        private void LoadActionCommands()
+        {
+            rptActions.DataSource = EnabledActions.OrderBy( a => a.Order );
+            rptActions.DataBind();
         }
 
         private void LoadChildcareModel()
@@ -341,13 +398,72 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         }
 
-        private void LoadHighlightLabels()
+        private List<ActionCommands> LoadEnabledActions()
         {
-            LoadPINHighlightLabel();
-            LoadChildcareHighlightLabel();
-            LoadGroupFitnessHighlightLabel();
-        }
+            List<ActionCommands> actions = null;
 
+            actions = (List<ActionCommands>) ViewState[$"{this.BlockId}_EnabledActions"];
+
+            if(actions != null && actions.Any())
+            {
+                return actions;
+            }
+
+
+            actions = new List<ActionCommands>
+            {
+                new ActionCommands
+                {
+                    Name = "Manage PIN",
+                    CommandName = "UpdatePIN",
+                    IconCSS = "fas fa-hashtag",
+                    Count = GetPINCount(),
+                    Order = 0
+                },
+                new ActionCommands
+                {
+                    Name = "Childcare Credits",
+                    CommandName = "ChildcareCredit",
+                    IconCSS = "fas fa-coins",
+                    Count = GetChildcareCreditCount(),
+                    Order = 1
+                },
+                new ActionCommands
+                {
+                    Name = "Group Fitness Sessions",
+                    CommandName = "GroupFitnessCredit",
+                    IconCSS = "fas fa-coins",
+                    Count = GetGroupFitnessSessionCount(),
+                    Order = 2
+                },
+                new ActionCommands
+                {
+                    Name = "Sports &amp; Fitness History",
+                    CommandName = "SportsAndFitnessHistory",
+                    IconCSS = "fas fa-basketball-ball",
+                    Count = null,
+                    Order = 3
+                },
+                new ActionCommands
+                {
+                    Name = "Group Fitness History",
+                    CommandName = "GroupFitnessHistory",
+                    IconCSS = "fas fa-dumbell",
+                    Count = null,
+                    Order = 4
+                },
+                new ActionCommands
+                {
+                    Name = "View Childcare History",
+                    CommandName = "ChildcareHistory",
+                    IconCSS = "far fa-shapes",
+                    Count = null,
+                    Order = 5
+                }
+            };
+
+            return actions;
+        }
 
         private void LoadPage( string linkedPageAttributeKey, bool includePerson )
         {
@@ -361,13 +477,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             this.NavigateToLinkedPage( linkedPageAttributeKey, qsValues );
         }
 
-        private void LoadChildcareHighlightLabel()
+        private int? GetChildcareCreditCount()
         {
-            hlChildcare.Visible = false;
 
             if (SelectedPerson == null || !SelectedPerson.PrimaryFamilyId.HasValue)
             {
-                return;
+                return null;
             }
 
             using (var rockContext = new RockContext())
@@ -375,34 +490,18 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 var familyGroup = new GroupService( rockContext ).Get( SelectedPerson.PrimaryFamilyId.Value );
 
                 familyGroup.LoadAttributes( rockContext );
-                var credits = familyGroup.GetAttributeValue( "SportsandFitnessChildcareCredit" ).AsInteger();
+                return familyGroup.GetAttributeValue( "SportsandFitnessChildcareCredit" ).AsInteger();
 
-                hlChildcare.Text = $"{credits} {(Math.Abs( credits ) != 1 ? "Credits" : "Credit")} Remaining";
-
-                if (credits == 0)
-                {
-                    hlChildcare.LabelType = Rock.Web.UI.Controls.LabelType.Default;
-                }
-                else if (credits > 0)
-                {
-                    hlChildcare.LabelType = Rock.Web.UI.Controls.LabelType.Success;
-                }
-                else
-                {
-                    hlChildcare.LabelType = Rock.Web.UI.Controls.LabelType.Warning;
-                }
-
-                hlChildcare.Visible = true;
             }
         }
 
-        private void LoadGroupFitnessHighlightLabel()
+        private int? GetGroupFitnessSessionCount()
         {
-            hlGroupFitness.Visible = false;
-
+ 
             if (SelectedPerson == null)
             {
-                return;
+                return null;
+                ;
             }
 
             using (var rockContext = new RockContext())
@@ -417,41 +516,26 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
                 if (groupMember == null)
                 {
-                    hlGroupFitness.Text = "Not Enrolled";
-                    hlGroupFitness.LabelType = Rock.Web.UI.Controls.LabelType.Danger;
+                    return null;
                 }
                 else
                 {
                     groupMember.LoadAttributes( rockContext );
-                    var credits = groupMember.GetAttributeValue( "Sessions" ).AsInteger();
-
-                    hlGroupFitness.Text = $"{credits} {(Math.Abs( credits ) != 1 ? "Credits" : "Credit")} Remaining.";
-
-
-                    if (credits == 0)
-                    {
-                        hlGroupFitness.LabelType = Rock.Web.UI.Controls.LabelType.Default;
-                    }
-                    else if (credits > 0)
-                    {
-                        hlGroupFitness.LabelType = Rock.Web.UI.Controls.LabelType.Success;
-                    }
-                    else
-                    {
-                        hlGroupFitness.LabelType = Rock.Web.UI.Controls.LabelType.Warning;
-                    }
+                    return groupMember.GetAttributeValue( "Sessions" ).AsInteger();
                 }
-                hlGroupFitness.Visible = true;
+            
             }
         }
 
-        private void LoadPINHighlightLabel()
+        private int?  GetPINCount()
         {
-            hlPIN.Visible = false;
-            if (SelectedPerson == null)
+
+            if(SelectedPerson == null)
             {
-                return;
+                return null;
             }
+
+
             var userLoginEntityType = EntityTypeCache.Get( typeof( UserLogin ) );
             var pinAuthenticationEntityType = EntityTypeCache.Get( typeof( PINAuthentication ) );
             var sfPINPurposeDV = DefinedValueCache.Get( new Guid( "e98517ec-1805-456b-8453-ef8480bd487f" ) );
@@ -466,7 +550,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     .Where( v => v.Attribute.EntityTypeId == userLoginEntityType.Id )
                     .Where( v => v.Attribute.Key == "PINPurpose" );
 
-                var userLogins = userLoginService.Queryable().AsNoTracking()
+                return userLoginService.Queryable().AsNoTracking()
                     .Where( l => l.EntityTypeId == pinAuthenticationEntityType.Id )
                     .Where( l => l.PersonId == SelectedPerson.Id )
                     .Join( pinPurposeQry, l => l.Id, p => p.EntityId,
@@ -478,18 +562,6 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     .Where( p => p.PurposeValue == sfPINPurposeDV.Id )
                     .Count();
 
-                if (userLogins == 0)
-                {
-                    hlPIN.Text = "0 Logins";
-                    hlPIN.LabelType = Rock.Web.UI.Controls.LabelType.Default;
-                }
-                else
-                {
-                    var pinText = "Login" + (userLogins > 1 ? "s" : "");
-                    hlPIN.Text = $"{userLogins} {pinText}";
-                    hlPIN.LabelType = Rock.Web.UI.Controls.LabelType.Success;
-                }
-                hlPIN.Visible = true;
 
             }
         }
@@ -562,7 +634,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 family.SaveAttributeValue( "SportsandFitnessChildcareCredit" );
                 rockContext.SaveChanges();
                 tbCreditsToAdd.Text = "0";
-                //LoadChildcareHighlightLabel();
+
+                var action = EnabledActions.Where( a => a.CommandName.Equals( "childcarecredit", StringComparison.InvariantCultureIgnoreCase ) )
+                    .SingleOrDefault();
+
+                action.Count = GetChildcareCreditCount();
+                LoadActionCommands();
             }
         }
 
@@ -629,7 +706,13 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
                 rockContext.SaveChanges();
                 tbCreditsToAdd.Text = "0";
-                //LoadGroupFitnessHighlightLabel();
+
+                var action = EnabledActions
+                    .Where( a => a.CommandName.Equals( "groupfitnesscredit", StringComparison.InvariantCultureIgnoreCase ) )
+                    .SingleOrDefault();
+
+                action.Count = GetGroupFitnessSessionCount();
+                LoadActionCommands();
             }
         }
 
@@ -708,8 +791,93 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 nbPIN.Visible = true;
                 return false;
             }
-
+            var pinAction = EnabledActions.Where( a => a.CommandName.Equals("updatepin", StringComparison.InvariantCultureIgnoreCase) ).SingleOrDefault();
+            pinAction.Count = GetPINCount();
+            LoadActionCommands();
             return true;
+        }
+
+
+        private void SetChildcareCreditText(int? count, Literal l)
+        {
+            var labelCSS = "";
+            var labelText = "";
+
+            if(!count.HasValue)
+            {
+                count = 0;
+            }
+
+            labelText = $"{count} {(Math.Abs(count.Value) == 1 ? "Credit" : "Credits")} Remaining";
+
+            if(count <= 0)
+            {
+                labelCSS = "label label-default";
+            }
+            else
+            {
+                labelCSS = "label label-success";
+            }
+
+            l.Text = $"<div class=\"{labelCSS}\">{labelText}</div>";
+
+        }
+
+        private void SetGroupFitnessLabelText(int? count, Literal l)
+        {
+            var labelCss = "";
+            var labelText = "";
+
+            if(!count.HasValue)
+            {
+                labelCss = "label label-warning";
+                labelText = "Not Enrolled";
+            }
+            else if(count <= 0)
+            {
+                labelCss = "label label-default";
+                labelText = $"{count} Credits Remaining";
+            }
+            else if(count > 0)
+            {
+                labelCss = "label label-success";
+                labelText = $"{count} {(count == 1 ? "Credit" : "Credits")} Remaining";
+            }
+
+            l.Text = $"<div class=\"{labelCss}\">{labelText}</div>";
+
+        }
+
+
+        private void SetPINLabelText(int? count, Literal l)
+        {
+
+            var labelcss = "";
+            var labelText = "";
+            if(!count.HasValue)
+            {
+                count = 0;
+            }
+
+            if(count == 0)
+            {
+                labelcss = "label label-default";
+                labelText = "No PIN Numbers";
+
+            }
+            else if(Math.Abs(count.Value) == 1)
+            {
+                labelText = $"{count} PIN Number";
+                labelcss = $"label {( count == -1 ? "label-danger" : "label-success")}";
+            }
+            else
+            {
+                labelText = $"{count} PIN Numbers";
+                labelcss = $"label label-success";
+            }
+
+            l.Text = $"<div class=\"{labelcss}\">{labelText}</div>";
+
         }
 
         public class PINSummary
@@ -719,12 +887,24 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             public int? PersonId { get; set; }
         }
 
+        public class ActionCommands
+        {
+            public string Name { get; set; }
+            public string CommandName { get; set; }
+            public string IconCSS { get; set; }
+            public int? Count { get; set; }
+            public int Order { get; set; }
+        }
+
         public enum CreditType
         {
             Childcare,
             GroupFitness
         }
 
+
+
+       
 
     }
 }

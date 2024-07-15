@@ -43,45 +43,17 @@
             <div class="panel-body">
                 <Rock:NotificationBox ID="nbPersonActions" runat="server" />
                 <ul>
-                    <li>
-                        <asp:LinkButton ID="lbUpdatePin" runat="server" CommandName="UpdatePIN">
-                            <i class="fas fa-hashtag"></i>
-                            <h3>Update PIN</h3>
-                            <Rock:HighlightLabel ID="hlPIN" runat="server" Visible="false" />
-                        </asp:LinkButton>
-                    </li>
-                    <li>
-                        <asp:LinkButton ID="lbChildcareCredits" runat="server" CommandName="ChildcareCredit">
-                            <i class="fas fa-coins"></i>
-                            <h3>Childcare Credits</h3>
-                            <Rock:HighlightLabel ID="hlChildcare" runat="server" Visible="false" />
-                        </asp:LinkButton>
-                    </li>
-                    <li>
-                        <asp:LinkButton ID="lbGroupFitnessCredits" runat="server" CommandName="GroupFitnessCredit">
-                            <i class="fas fa-coins"></i>
-                            <h3>Group Fitness Sessions</h3>
-                            <Rock:HighlightLabel ID="hlGroupFitness" runat="server" Visible="false" />
-                        </asp:LinkButton>
-                    </li>
-                    <li>
-                        <asp:LinkButton ID="lbSportsAndFitnessHistory" runat="server" CommandName="SportsAndFitnessHistory">
-                            <i class="fas fa-basketball-ball"></i>
-                                <h3>View Sports &amp; Fitness History</h3>
-                        </asp:LinkButton>
-                    </li>
-                    <li>
-                        <asp:LinkButton ID="lbGroupFitnessHistory" runat="server" CommandName="GroupFitnessHistory" >
-                            <i class="fas fa-dumbell"></i>
-                            <h3>View Group Fitness History</h3>
-                        </asp:LinkButton>
-                    </li>
-                    <li>
-                        <asp:LinkButton ID="lbChildcareHistory" runat="server" CommandName="ChildcareHistory">
-                            <i class="far fa-shapes"></i>
-                            <h3>View Childcare History</h3>
-                        </asp:LinkButton>
-                    </li>
+                    <asp:Repeater ID="rptActions" runat="server" OnItemCommand="rptActions_ItemCommand">
+                        <ItemTemplate>
+                            <li>
+                                <asp:LinkButton ID="lbAction" runat="server" CausesValidation="false" CommandName='<%# Eval("CommandName") %>' >
+                                    <i class="<%# Eval("IconCSS") %>"></i>
+                                    <h3><%# Eval("Name") %></h3>
+                                    <asp:Literal ID="lCount" runat="server" />
+                                </asp:LinkButton>
+                            </li>
+                        </ItemTemplate>
+                    </asp:Repeater>
                 </ul>
             </div>
         </div>
