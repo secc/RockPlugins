@@ -98,7 +98,7 @@ namespace org.secc.Rest.Controllers
                         .FirstOrDefault( gl => gl.GroupLocationTypeValueId == homeLocationTypeId )
                         ?.Location.GetFullStreetAddress(),
                     Email = person.Email,
-                    Phone = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).ToString(),
+                    Phone = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid())?.ToString(),
                     PhotoId = person.PhotoId ?? 0
                 };
 
