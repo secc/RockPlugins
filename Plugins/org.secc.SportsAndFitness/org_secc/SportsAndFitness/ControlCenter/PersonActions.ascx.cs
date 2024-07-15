@@ -6,6 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Web.UI.WebControls;
 using CSScriptLibrary;
+using Microsoft.Ajax.Utilities;
+using org.secc.Microframe;
+using PayPal.PayPalAPIInterfaceService.Model;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -109,10 +112,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         {
             base.OnLoad( e );
             nbPersonActions.Visible = false;
+            LoadHighlightLabels();
 
-            if(!IsPostBack)
+            if (!IsPostBack)
             {
                 _creditType = null;
+                
             }
         }
 
@@ -233,6 +238,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
                 rockContext.SaveChanges();
                 LoadPINList();
+                //LoadPINHighlightLabel();
             }
         }
 
@@ -335,6 +341,13 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         }
 
+        private void LoadHighlightLabels()
+        {
+            LoadPINHighlightLabel();
+            LoadChildcareHighlightLabel();
+            LoadGroupFitnessHighlightLabel();
+        }
+
 
         private void LoadPage( string linkedPageAttributeKey, bool includePerson )
         {
@@ -346,6 +359,139 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             }
 
             this.NavigateToLinkedPage( linkedPageAttributeKey, qsValues );
+        }
+
+        private void LoadChildcareHighlightLabel()
+        {
+            hlChildcare.Visible = false;
+
+            if (SelectedPerson == null || !SelectedPerson.PrimaryFamilyId.HasValue)
+            {
+                return;
+            }
+
+            using (var rockContext = new RockContext())
+            {
+                var familyGroup = new GroupService( rockContext ).Get( SelectedPerson.PrimaryFamilyId.Value );
+
+                familyGroup.LoadAttributes( rockContext );
+                var credits = familyGroup.GetAttributeValue( "SportsandFitnessChildcareCredit" ).AsInteger();
+
+                hlChildcare.Text = $"{credits} {(Math.Abs( credits ) != 1 ? "Credits" : "Credit")} Remaining";
+
+                if (credits == 0)
+                {
+                    hlChildcare.LabelType = Rock.Web.UI.Controls.LabelType.Default;
+                }
+                else if (credits > 0)
+                {
+                    hlChildcare.LabelType = Rock.Web.UI.Controls.LabelType.Success;
+                }
+                else
+                {
+                    hlChildcare.LabelType = Rock.Web.UI.Controls.LabelType.Warning;
+                }
+
+                hlChildcare.Visible = true;
+            }
+        }
+
+        private void LoadGroupFitnessHighlightLabel()
+        {
+            hlGroupFitness.Visible = false;
+
+            if (SelectedPerson == null)
+            {
+                return;
+            }
+
+            using (var rockContext = new RockContext())
+            {
+                var gfGroup = new GroupService( rockContext ).Get( GetAttributeValue( AttributeKeys.GroupFitnessGroup ).AsGuid() );
+                var groupMember = new GroupMemberService( rockContext ).Queryable()
+                    .Where( g => g.GroupId == gfGroup.Id )
+                    .Where( g => g.PersonId == SelectedPerson.Id )
+                    .Where( g => g.GroupMemberStatus == GroupMemberStatus.Active )
+                    .Where( g => !g.IsArchived )
+                    .FirstOrDefault();
+
+                if (groupMember == null)
+                {
+                    hlGroupFitness.Text = "Not Enrolled";
+                    hlGroupFitness.LabelType = Rock.Web.UI.Controls.LabelType.Danger;
+                }
+                else
+                {
+                    groupMember.LoadAttributes( rockContext );
+                    var credits = groupMember.GetAttributeValue( "Sessions" ).AsInteger();
+
+                    hlGroupFitness.Text = $"{credits} {(Math.Abs( credits ) != 1 ? "Credits" : "Credit")} Remaining.";
+
+
+                    if (credits == 0)
+                    {
+                        hlGroupFitness.LabelType = Rock.Web.UI.Controls.LabelType.Default;
+                    }
+                    else if (credits > 0)
+                    {
+                        hlGroupFitness.LabelType = Rock.Web.UI.Controls.LabelType.Success;
+                    }
+                    else
+                    {
+                        hlGroupFitness.LabelType = Rock.Web.UI.Controls.LabelType.Warning;
+                    }
+                }
+                hlGroupFitness.Visible = true;
+            }
+        }
+
+        private void LoadPINHighlightLabel()
+        {
+            hlPIN.Visible = false;
+            if (SelectedPerson == null)
+            {
+                return;
+            }
+            var userLoginEntityType = EntityTypeCache.Get( typeof( UserLogin ) );
+            var pinAuthenticationEntityType = EntityTypeCache.Get( typeof( PINAuthentication ) );
+            var sfPINPurposeDV = DefinedValueCache.Get( new Guid( "e98517ec-1805-456b-8453-ef8480bd487f" ) );
+
+
+            using (var rockContext = new RockContext())
+            {
+                var userLoginService = new UserLoginService( rockContext );
+                var attributeValueService = new AttributeValueService( rockContext );
+
+                var pinPurposeQry = attributeValueService.Queryable().AsNoTracking()
+                    .Where( v => v.Attribute.EntityTypeId == userLoginEntityType.Id )
+                    .Where( v => v.Attribute.Key == "PINPurpose" );
+
+                var userLogins = userLoginService.Queryable().AsNoTracking()
+                    .Where( l => l.EntityTypeId == pinAuthenticationEntityType.Id )
+                    .Where( l => l.PersonId == SelectedPerson.Id )
+                    .Join( pinPurposeQry, l => l.Id, p => p.EntityId,
+                        ( l, p ) => new { UserLogin = l, PurposeValue = p.Value } )
+                    .Select( l => new { l.UserLogin.Id, l.PurposeValue } )
+                    .ToList()
+                    .SelectMany( l => l.PurposeValue.SplitDelimitedValues().AsIntegerList(),
+                        ( l, p ) => new { l.Id, PurposeValue = p } )
+                    .Where( p => p.PurposeValue == sfPINPurposeDV.Id )
+                    .Count();
+
+                if (userLogins == 0)
+                {
+                    hlPIN.Text = "0 Logins";
+                    hlPIN.LabelType = Rock.Web.UI.Controls.LabelType.Default;
+                }
+                else
+                {
+                    var pinText = "Login" + (userLogins > 1 ? "s" : "");
+                    hlPIN.Text = $"{userLogins} {pinText}";
+                    hlPIN.LabelType = Rock.Web.UI.Controls.LabelType.Success;
+                }
+                hlPIN.Visible = true;
+
+            }
         }
 
         private void LoadPINList()
@@ -416,6 +562,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 family.SaveAttributeValue( "SportsandFitnessChildcareCredit" );
                 rockContext.SaveChanges();
                 tbCreditsToAdd.Text = "0";
+                //LoadChildcareHighlightLabel();
             }
         }
 
@@ -482,6 +629,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
                 rockContext.SaveChanges();
                 tbCreditsToAdd.Text = "0";
+                //LoadGroupFitnessHighlightLabel();
             }
         }
 

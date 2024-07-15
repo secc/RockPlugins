@@ -47,18 +47,21 @@
                         <asp:LinkButton ID="lbUpdatePin" runat="server" CommandName="UpdatePIN">
                             <i class="fas fa-hashtag"></i>
                             <h3>Update PIN</h3>
+                            <Rock:HighlightLabel ID="hlPIN" runat="server" Visible="false" />
                         </asp:LinkButton>
                     </li>
                     <li>
                         <asp:LinkButton ID="lbChildcareCredits" runat="server" CommandName="ChildcareCredit">
                             <i class="fas fa-coins"></i>
                             <h3>Childcare Credits</h3>
+                            <Rock:HighlightLabel ID="hlChildcare" runat="server" Visible="false" />
                         </asp:LinkButton>
                     </li>
                     <li>
                         <asp:LinkButton ID="lbGroupFitnessCredits" runat="server" CommandName="GroupFitnessCredit">
                             <i class="fas fa-coins"></i>
                             <h3>Group Fitness Sessions</h3>
+                            <Rock:HighlightLabel ID="hlGroupFitness" runat="server" Visible="false" />
                         </asp:LinkButton>
                     </li>
                     <li>
