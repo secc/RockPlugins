@@ -21,6 +21,7 @@ using Rock.Model;
 using Rock.Rest;
 using System;
 using org.secc.Rest.Models;
+using Rock;
 
 namespace org.secc.Rest.Controllers
 {
@@ -50,6 +51,84 @@ namespace org.secc.Rest.Controllers
             return Ok( groupsAsLeader );
 
         }
+
+        /// <summary>
+        /// Returns the groups for which the current user is a group member with a role including "leader" from the group types defined in the "Group App Group Type
+        /// </summary>
+        /// <returns>List<Group></returns> 
+        [System.Web.Http.Route( "api/GroupApp/GetGroup/{groupId}" )]
+        public IHttpActionResult GetGroup( int groupId, bool getContent = false, bool getAllowEmailParents = false )
+        {
+            var currentUser = UserLoginService.GetCurrentUser();
+            if ( currentUser == null )
+            {
+                return StatusCode( HttpStatusCode.Unauthorized );
+            }
+            var group = new GroupService( new RockContext() ).Get( groupId );
+            if ( group == null )
+            {
+                return NotFound();
+            }
+            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
+            {
+                return StatusCode( HttpStatusCode.Forbidden );
+            }
+
+            if ( !getContent && !getAllowEmailParents )
+            {
+                return Ok( new
+                {
+                    group.Name,
+                    group.TypeId,
+                    group.IsActive,
+                    group.IsArchived,
+                }
+                );
+            }
+            else
+            {
+                group.LoadAttributes();
+                var groupContentItems = new List<GroupContentItem>();
+                bool? emailParentsEnabled = null;
+
+                if ( getContent )
+                {
+                    var groupServiceHelper = new GroupServiceHelper( new RockContext() );
+                    groupContentItems = groupServiceHelper.GetGroupContentItems( groupId );
+                }
+
+                if ( getAllowEmailParents )
+                {
+                    emailParentsEnabled = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
+                }
+
+                return Ok(
+                    new
+                    {
+                        group.Name,
+                        group.TypeId,
+                        group.IsActive,
+                        group.IsArchived,
+                        groupContentItems,
+                        emailParentsEnabled
+                    }
+                );
+            }
+        }
+    }
+
+    public class GroupContentItem
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string Content { get; set; }
+        public DateTime StartDateTime { get; set; }
+        public DateTime? EndDateTime { get; set; }
+        public Guid? SeriesParallaxBackground { get; set; }
+        public Guid? LeaderGuide { get; set; }
+        public Guid? ParticipantGuide { get; set; }
+        public Guid? IceBreakers { get; set; }
+
     }
 
     public class GroupServiceHelper
@@ -96,6 +175,43 @@ namespace org.secc.Rest.Controllers
                 } )
                 .Distinct()
                 .ToList();
+        }
+
+        public List<GroupContentItem> GetGroupContentItems( int groupId )
+        {
+            var group = new GroupService( _rockContext ).Get( groupId );
+            if ( group == null )
+            {
+                return new List<GroupContentItem>();
+            }
+            group.LoadAttributes();
+            var groupContentChannelItems = new ContentChannelItemService( _rockContext).GetByGuids(group.GetAttributeValue( "NeighborhoodGroupContent" ).SplitDelimitedValues().AsGuidList());
+            var groupContentItems = new List<GroupContentItem>();
+
+            foreach ( var item in groupContentChannelItems )
+            {
+                if ( item.StartDateTime < Rock.RockDateTime.Now && ( item.ExpireDateTime > Rock.RockDateTime.Now || item.ExpireDateTime == null ) )
+                {
+                    item.LoadAttributes();
+                    var groupContentItem = new GroupContentItem
+                    {
+                        Id = item.Id,
+                        Title = item.Title,
+                        Content = item.Content,
+                        StartDateTime = item.StartDateTime,
+                        EndDateTime = item.ExpireDateTime,
+                        SeriesParallaxBackground = item.GetAttributeValue( "SeriesParallaxBackground" ).AsGuidOrNull(),
+                        LeaderGuide = item.GetAttributeValue( "LeaderGuide" ).AsGuidOrNull(),
+                        ParticipantGuide = item.GetAttributeValue( "ParticipantGuide" ).AsGuidOrNull(),
+                        IceBreakers = item.GetAttributeValue( "IceBreakers" ).AsGuidOrNull()
+                    };
+                    
+                    groupContentItems.Add( groupContentItem );
+                }
+            }
+
+
+            return groupContentItems;
         }
     }
 }
