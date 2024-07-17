@@ -113,7 +113,6 @@ namespace org.secc.Rest.Controllers
         /// </summary>
         /// <param name="groupId"></param>
         /// <param name="groupMemberId"></param>
-        /// 
         [HttpPost]
         [System.Web.Http.Route( "api/GroupApp/GroupMembers/{groupId}/Communicate" )]
         public IHttpActionResult Communicate( int groupId, [FromBody] MessageModel message, int? groupMemberId = null )
@@ -136,6 +135,11 @@ namespace org.secc.Rest.Controllers
                 return StatusCode( HttpStatusCode.Forbidden );
             }
 
+            if ( message == null || message.FromAddress.IsNullOrWhiteSpace() || message.Subject.IsNullOrWhiteSpace() || message.Body.IsNullOrWhiteSpace() )
+            {
+                return BadRequest( "Invalid request. Please provide a valid 'FromAddress', 'Subject', and 'Body' in the message." );
+            }
+
             if ( groupMemberId != null )
             {
                 var groupMember = _groupMemberService.Get( groupMemberId.Value );
@@ -151,13 +155,14 @@ namespace org.secc.Rest.Controllers
                 groupMembers = groupMembers.Where( gm => gm.Id == groupMemberId ).ToList();
             }
 
-            CreateCommunication( message.Subject, message.Body, groupMembers, currentUser.Person);
+            CreateCommunication( message.Subject, message.Body, groupMembers, currentUser.Person );
 
             return Ok();
         }
 
         public class MessageModel
         {
+            public string FromAddress { get; set; }
             public string Subject { get; set; }
             public string Body { get; set; }
         }
@@ -252,7 +257,7 @@ namespace org.secc.Rest.Controllers
 
             if ( personToAdd == null || ( personToAdd.FirstName.IsNullOrWhiteSpace() || personToAdd.LastName.IsNullOrWhiteSpace() ) || ( personToAdd.DateOfBirth == null && string.IsNullOrWhiteSpace( personToAdd.Email ) && personToAdd.MobileNumber.IsNullOrWhiteSpace() ) )
             {
-                return BadRequest();
+                return BadRequest( "Invalid request. Please provide a valid First Name and Last Name and/or a valid Date of Birth, Email, or Mobile Number." );
             }
 
             Person person = null;
@@ -297,12 +302,18 @@ namespace org.secc.Rest.Controllers
                 person.UpdatePhoneNumber( DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id,
                         PhoneNumber.DefaultCountryCode(), phoneNumber, true, false, _context );
                 person.SetBirthDate( personToAdd.DateOfBirth );
+
+                // Save the person
+                var personService = new PersonService( _context );
+                PersonService.SaveNewPerson( person, _context, group.CampusId, false );
+                _context.SaveChanges();
             }
 
-            // Save the person
-            var personService = new PersonService( _context );
-            PersonService.SaveNewPerson( person, _context, group.CampusId, false );
-            _context.SaveChanges();
+            // if person already in the group return bad request
+            if ( _groupMemberService.GetByGroupId( groupId ).Any( gm => gm.PersonId == person.Id ) )
+            {
+                return BadRequest( "Person is already a member of the group." );
+            }
 
             // add person to the group
             var groupMember = new GroupMember
@@ -335,9 +346,6 @@ namespace org.secc.Rest.Controllers
 
             return Ok();
         }
-
-
-
     }
 
     public class GroupAppAddGroupMember
