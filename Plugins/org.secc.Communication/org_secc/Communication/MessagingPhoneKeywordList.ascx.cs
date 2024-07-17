@@ -191,6 +191,10 @@ namespace RockWeb.Plugins.org_secc.Communication
             }
             lStatus.Text = $"<span class='{cssClass}'>{labelText}</span>";
 
+            var phrases = string.Join( "<br />", item.PhrasesToMatch );
+            Literal lPhrases = e.Row.FindControl( "lKeywordPhrases" ) as Literal;
+            lPhrases.Text = phrases;
+
         }
 
         private void gKeywords_RowSelected( object sender, RowEventArgs e )
