@@ -443,18 +443,18 @@ namespace RockWeb.Plugins.org_secc.Communication
                 {
                     keywords.Add( new KeywordSummary
                     {
-                        KeywordId = item.Id,
-                        PhoneNumberId = item.PhoneNumberId,
-                        Name = item.Name,
-                        Description = item.Description,
-                        ResponseMessage = item.ResponseMessage,
-                        StartDate = item.StartDate.HasValue ? item.StartDate.Value.ToLocalTime() : item.StartDate,
-                        EndDate = item.EndDate.HasValue ? item.EndDate.Value.ToLocalTime() : item.EndDate,
-                        Order = item.Order ?? 0,
-                        CreatedOn = item.CreatedOnDateTime,
-                        ModifiedOn = item.ModifiedOnDateTime,
-                        IsActive = item.IsActive,
-                        PhrasesToMatch = item.PhrasesToMatch
+                        KeywordId = item.Value.Id,
+                        PhoneNumberId = item.Value.PhoneNumberId,
+                        Name = item.Value.Name,
+                        Description = item.Value.Description,
+                        ResponseMessage = item.Value.ResponseMessage,
+                        StartDate = item.Value.StartDate.HasValue ? item.Value.StartDate.Value.ToLocalTime() : item.Value.StartDate,
+                        EndDate = item.Value.EndDate.HasValue ? item.Value.EndDate.Value.ToLocalTime() : item.Value.EndDate,
+                        Order = item.Key,
+                        CreatedOn = item.Value.CreatedOnDateTime,
+                        ModifiedOn = item.Value.ModifiedOnDateTime,
+                        IsActive = item.Value.IsActive,
+                        PhrasesToMatch = item.Value.PhrasesToMatch
                     } );
 
                 }

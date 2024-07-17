@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Rock;
+using Rock.Model;
 
 namespace org.secc.Communication.Messaging.Model
 {
@@ -22,16 +23,16 @@ namespace org.secc.Communication.Messaging.Model
         [JsonProperty( "description" )]
         public string Description { get; set; }
         [JsonProperty( "keywords" )]
-        public List<Keyword> Keywords { get; set; } = new List<Keyword>();
-        [JsonProperty( "createdOn" )]
+        public SortedList<int, Keyword> Keywords { get; set; } = new SortedList<int, Keyword>();
+        [JsonProperty("createdOn")]
         public DateTime? CreatedOnDateTime { get; set; }
-        [JsonProperty( "modifiedOn" )]
+        [JsonProperty("modifiedOn")]
         public DateTime? ModifiedOnDateTime { get; set; }
-        [JsonProperty( "createdBy" )]
+        [JsonProperty("createdBy")]
         public MessagingPerson CreatedBy { get; set; }
-        [JsonProperty( "modifiedBy" )]
+        [JsonProperty("modifiedBy")]
         public MessagingPerson ModifiedBy { get; set; }
-        [JsonProperty( "ownedBy" )]
+        [JsonProperty("ownedBy")]
         public MessagingOwner OwnedBy { get; set; }
 
         [JsonIgnore]
@@ -57,15 +58,15 @@ namespace org.secc.Communication.Messaging.Model
         {
             get
             {
-                if (Keywords == null)
+                if ( Keywords == null )
                 {
                     return 0;
                 }
 
                 return Keywords
-                    .Where( k => k.IsActive )
-                    .Where( k => (!k.StartDate.HasValue || k.StartDate <= RockDateTime.Now) &&
-                        (!k.EndDate.HasValue || k.EndDate >= RockDateTime.Now) )
+                    .Where( k => k.Value.IsActive )
+                    .Where( k => ( !k.Value.StartDate.HasValue || k.Value.StartDate <= RockDateTime.Now ) &&
+                        ( !k.Value.EndDate.HasValue || k.Value.EndDate >= RockDateTime.Now ) )
                     .Count();
             }
         }
@@ -75,7 +76,7 @@ namespace org.secc.Communication.Messaging.Model
             get
             {
                 var twilioNumber = Number.Replace( "+1", String.Empty );
-                return Rock.Model.PhoneNumber.FormattedNumber( "1", twilioNumber, false );
+                return Rock.Model.PhoneNumber.FormattedNumber("1", twilioNumber, false );
             }
         }
     }
