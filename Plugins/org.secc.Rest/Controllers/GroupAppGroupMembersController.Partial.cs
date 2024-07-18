@@ -309,26 +309,28 @@ namespace org.secc.Rest.Controllers
                 _context.SaveChanges();
             }
 
-            // if person already in the group return bad request
-            if ( _groupMemberService.GetByGroupId( groupId ).Any( gm => gm.PersonId == person.Id ) )
-            {
-                return BadRequest( "Person is already a member of the group." );
+            var groupMemberService = new GroupMemberService( _context );
+            
+            // is person already in the group?            
+            var groupMember = _groupMemberService.GetByGroupId( groupId ).Where( gm => gm.PersonId == person.Id && gm.IsArchived == false ).FirstOrDefault();            
+
+            // create a new group member
+            if ( groupMember.IsNull())
+            {                         
+                groupMember = new GroupMember
+                {
+                    GroupId = groupId,
+                    PersonId = person.Id,
+                    GroupRoleId = group.GroupType.DefaultGroupRoleId ?? group.GroupType.Roles.FirstOrDefault().Id,
+                    GroupMemberStatus = GroupMemberStatus.Active,
+                    DateTimeAdded = RockDateTime.Now,
+                    CreatedByPersonAliasId = currentUser.Person.PrimaryAliasId
+                };
+
+                groupMember = groupMemberService.AddOrRestoreGroupMember( group, person.Id, groupMember.GroupRoleId );
             }
 
-            // add person to the group
-            var groupMember = new GroupMember
-            {
-                GroupId = groupId,
-                PersonId = person.Id,
-                GroupRoleId = group.GroupType.DefaultGroupRoleId ?? group.GroupType.Roles.FirstOrDefault().Id,
-                GroupMemberStatus = GroupMemberStatus.Active,
-                DateTimeAdded = RockDateTime.Now,
-                CreatedByPersonAliasId = currentUser.Person.PrimaryAliasId
-            };
-
-            var groupMemberService = new GroupMemberService( _context );
-            var member = groupMemberService.AddOrRestoreGroupMember( group, person.Id, groupMember.GroupRoleId );
-            _context.SaveChanges();
+            
 
             // Add Table Number
             // check if the group has a group member attribute for table number
@@ -339,10 +341,12 @@ namespace org.secc.Rest.Controllers
             var currentGroupMemberTableNumber = currentGroupMember.GetAttributeValue( "TableNumber" );
             if ( currentGroupMemberTableNumber != null )
             {
-                member.LoadAttributes();
-                member.SetAttributeValue( "TableNumber", currentGroupMemberTableNumber );
-                member.SaveAttributeValue( "TableNumber" );
+                groupMember.LoadAttributes();
+                groupMember.SetAttributeValue( "TableNumber", currentGroupMemberTableNumber );
+                groupMember.SaveAttributeValue( "TableNumber" );
             }
+            
+            _context.SaveChanges();
 
             return Ok();
         }
