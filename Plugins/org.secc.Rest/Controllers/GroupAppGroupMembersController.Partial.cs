@@ -328,6 +328,7 @@ namespace org.secc.Rest.Controllers
                 };
 
                 groupMember = groupMemberService.AddOrRestoreGroupMember( group, person.Id, groupMember.GroupRoleId );
+                _context.SaveChanges();
             }
 
             
@@ -343,7 +344,7 @@ namespace org.secc.Rest.Controllers
             {
                 groupMember.LoadAttributes();
                 groupMember.SetAttributeValue( "TableNumber", currentGroupMemberTableNumber );
-                groupMember.SaveAttributeValue( "TableNumber" );
+                groupMember.SaveAttributeValues();
             }
             
             _context.SaveChanges();
