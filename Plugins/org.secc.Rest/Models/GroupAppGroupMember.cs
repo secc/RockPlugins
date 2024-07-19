@@ -11,6 +11,6 @@ namespace org.secc.Rest.Models
         public string Address { get; set; }
         public string Email { get; set;}
         public string Phone { get; set;}
-        public int PhotoId { get; set; }
+        public string PhotoURL { get; set; }
     }
 }
