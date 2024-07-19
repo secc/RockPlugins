@@ -73,15 +73,14 @@ namespace org.secc.Rest.Controllers
                 return StatusCode( HttpStatusCode.Forbidden );
             }
 
+
             var groupMemberList = new List<GroupAppGroupMember>();
 
-            var homeLocationTypeId = _definedValueService.GetByGuid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;
+            var homeLocationTypeId = _definedValueService.GetByGuid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;            
 
-            var groupMembers = _groupMemberService.GetByGroupId( groupId )
-                .OrderByDescending( gm => gm.GroupRole.IsLeader )
-                .ThenBy( gm => gm.Person.LastName )
-                .ThenBy( gm => gm.Person.NickName )
-                .ToList();
+            var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
+            var groupMembers = groupMemberServiceHelper.GetGroupMembers( group, currentUser.Person );
+
 
             foreach ( var groupMember in groupMembers )
             {
@@ -148,7 +147,8 @@ namespace org.secc.Rest.Controllers
                     return NotFound();
                 }
             }
-            var groupMembers = _groupMemberService.GetByGroupId( groupId ).ToList();
+            var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
+            var groupMembers = groupMemberServiceHelper.GetGroupMembers( group, currentUser.Person );
 
             if ( groupMemberId.HasValue )
             {
@@ -360,6 +360,66 @@ namespace org.secc.Rest.Controllers
         public DateTime? DateOfBirth { get; set; }
         public string MobileNumber { get; set; }
         public string Email { get; set; }
+    }
+
+    public class GroupMemberServiceHelper
+    {
+        private readonly RockContext _rockContext;
+
+        public GroupMemberServiceHelper( RockContext rockContext )
+        {
+            _rockContext = rockContext;
+        }
+
+        public List<GroupMember> GetGroupMembers( Group group, Person currentPerson = null )
+        {
+            var groupMemberService = new GroupMemberService( _rockContext );
+            var groupMembers = new List<GroupMember>();
+
+            if (currentPerson.IsNotNull())
+            {
+                var currentGroupMember = groupMemberService.GetByPersonId(currentPerson.Id).AsQueryable().AsNoTracking()
+                    .Where(groupmember => groupmember.GroupId == group.Id).FirstOrDefault();
+
+                if (currentGroupMember.IsNotNull())
+                {
+                    currentGroupMember.LoadAttributes();
+                    var currentGroupMemberTableNumber = currentGroupMember.GetAttributeValue("TableNumber");
+                    
+                    if (currentGroupMemberTableNumber.IsNotNull())
+                    {
+                        var tableNumberAttributeIds = new AttributeService( _rockContext )
+                        .Queryable()
+                        .Where( a => a.Key == "TableNumber" )
+                        .Select( a => a.Id )
+                        .ToList();
+
+                        groupMembers = groupMemberService.GetByGroupId( group.Id )
+                            .Join( new AttributeValueService( _rockContext ).Queryable(),
+                                    gm => gm.Id,
+                                    av => av.EntityId,
+                                    ( gm, av ) => new { GroupMember = gm, AttributeValue = av } )
+                            .Where( x => tableNumberAttributeIds.Contains(x.AttributeValue.AttributeId) && x.AttributeValue.Value == currentGroupMemberTableNumber && x.GroupMember.IsArchived == false)
+                            .Select( x => x.GroupMember )
+                            .OrderByDescending( gm => gm.GroupRole.IsLeader )
+                            .ThenBy( gm => gm.Person.LastName )
+                            .ThenBy( gm => gm.Person.NickName )
+                            .ToList();
+                        
+                        return groupMembers;
+                    }
+                }
+            }
+
+            groupMembers = groupMemberService.GetByGroupId( group.Id )
+                .Where( gm => gm.IsArchived == false )
+                .OrderByDescending( gm => gm.GroupRole.IsLeader )
+                .ThenBy( gm => gm.Person.LastName )
+                .ThenBy( gm => gm.Person.NickName )
+                .ToList();
+
+            return groupMembers;
+        }
     }
 
 }
