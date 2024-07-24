@@ -351,6 +351,58 @@ namespace org.secc.Rest.Controllers
 
             return Ok();
         }
+
+        /// <summary>
+        /// Removes a group member from the provided group.
+        /// <param name="groupId">The group ID</param>
+        /// <param name="groupMemberId">The group member ID</param>"
+        /// 
+        [HttpDelete]
+        [System.Web.Http.Route( "api/GroupApp/GroupMembers/{groupId}/Remove/{groupMemberId}" )]
+        public IHttpActionResult RemoveGroupMember(int groupId, int groupMemberId )
+        {
+            var currentUser = UserLoginService.GetCurrentUser();
+
+            if ( currentUser == null )
+            {
+                return StatusCode( HttpStatusCode.Unauthorized );
+            }
+
+            var group = _groupService.Get( groupId );
+            if ( group == null )
+            {
+                return NotFound();
+            }
+
+            if ( !group.IsAuthorized( Rock.Security.Authorization.EDIT, currentUser.Person ) || !group.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person ) )
+            {
+                return StatusCode( HttpStatusCode.Forbidden );
+            }
+
+            if ( groupMemberId > 0 )
+            {
+                var _rockContext = new RockContext();
+                var groupMemberServiceHelper = new GroupMemberServiceHelper( _rockContext );
+
+                int? groupTypeId = group.GroupTypeId;
+                var groupTypeCache = GroupTypeCache.Get( groupTypeId.Value );
+                if ( groupTypeCache.EnableGroupHistory == true )
+
+                {
+                    groupMemberServiceHelper.ArchiveMember( group, groupMemberId, currentUser.Person );
+                }
+                else
+                {
+                    groupMemberServiceHelper.DeactivateMember( groupMemberId, currentUser.Person );
+                }
+                return Ok();
+            }
+            else
+            {
+                return BadRequest( "Invalid request. Please provide a valid group member ID." );
+            }           
+
+        }
     }
 
     public class GroupAppAddGroupMember
@@ -419,6 +471,38 @@ namespace org.secc.Rest.Controllers
                 .ToList();
 
             return groupMembers;
+        }
+
+        public void ArchiveMember( Group group, int groupMemberId, Person currentPerson )
+        {
+            //Select multiple group members because someone can be a member of
+            //a group more than once as long as their role is different
+            var gMember = new GroupMemberService( _rockContext ).Get( groupMemberId );
+            var groupMembers = group.Members.Where( m => m.Person.Id == gMember.PersonId );
+            if ( groupMembers.Any() )
+            {
+                foreach ( var groupMember in groupMembers )
+                {
+                    var gm = new GroupMemberService( _rockContext ).Get( groupMember.Id );
+                    if ( gm != null )
+                    {
+                        gm.IsArchived = true;
+                        gm.ArchivedByPersonAliasId = currentPerson.PrimaryAliasId;
+                        gm.ArchivedDateTime = RockDateTime.Now;
+                    }
+                }
+                _rockContext.SaveChanges();
+            }
+        }
+        public void DeactivateMember( int groupMemberId, Person currentPerson )
+        {
+            var groupMemberService = new GroupMemberService( _rockContext );
+            var groupMember = groupMemberService.Get( groupMemberId );
+            if ( groupMember.IsNotNull() )
+            {
+                groupMember.GroupMemberStatus = GroupMemberStatus.Inactive;
+                _rockContext.SaveChanges();
+            }
         }
     }
 
