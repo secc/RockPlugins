@@ -37,26 +37,28 @@ namespace org.secc.RecurringCommunications.Jobs
         Order = 0)]
     public class SendRecurringCommunications : IJob
     {
+        int _commandTimeout = 30;
+
         public void Execute( IJobExecutionContext context )
         {
             JobDataMap dataMap = context.JobDetail.JobDataMap;
-            var commandTimeout = dataMap.GetIntegerFromString( "SQLCommandTimeout" );
+            _commandTimeout = dataMap.GetIntegerFromString( "SQLCommandTimeout" );
 
             RockContext rockContext = new RockContext();
-            rockContext.Database.CommandTimeout = commandTimeout;
+            rockContext.Database.CommandTimeout = _commandTimeout;
             RecurringCommunicationService recurringCommunicationService = new RecurringCommunicationService( rockContext );
             var communications = recurringCommunicationService.Queryable( "Schedule" ).ToList();
             int count = 0;
             var errors = new List<RecurringCommunication>();
 
-            foreach ( var communication in communications )
+            foreach (var communication in communications)
             {
                 var lastExpectedRun = communication.Schedule
                     .GetScheduledStartTimes( RockDateTime.Now.AddDays( -1 ), RockDateTime.Now )
                     .LastOrDefault();
-                if ( lastExpectedRun != null && lastExpectedRun > DateTime.MinValue )
+                if (lastExpectedRun != null && lastExpectedRun > DateTime.MinValue)
                 {
-                    if ( communication.LastRunDateTime == null || communication.LastRunDateTime <= lastExpectedRun )
+                    if (communication.LastRunDateTime == null || communication.LastRunDateTime <= lastExpectedRun)
                     {
                         communication.LastRunDateTime = RockDateTime.Now;
                         rockContext.SaveChanges();
@@ -64,7 +66,7 @@ namespace org.secc.RecurringCommunications.Jobs
                         {
                             EnqueRecurringCommunication( communication.Id );
                         }
-                        catch ( Exception e )
+                        catch (Exception e)
                         {
                             ExceptionLogService.LogException( new Exception( $"Error Sending Recurring Communication: ID {communication.Id}", e ) );
                             errors.Add( communication );
@@ -87,6 +89,7 @@ namespace org.secc.RecurringCommunications.Jobs
         private void EnqueRecurringCommunication( int id )
         {
             RockContext rockContext = new RockContext();
+            rockContext.Database.CommandTimeout = _commandTimeout;
             CommunicationService communicationService = new CommunicationService( rockContext );
             RecurringCommunicationService recurringCommunicationService = new RecurringCommunicationService( rockContext );
             var recurringCommunication = recurringCommunicationService.Get( id );
