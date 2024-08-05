@@ -26,20 +26,20 @@ namespace org.secc.Jobs
         IsRequired = true,
         DefinedTypeGuid = "729dd959-6081-4b47-b639-cf7be460a8df",
         Key = "Location" )]
-    [DefinedValueField("Facilities Ministry Area", 
+    [DefinedValueField( "Facilities Ministry Area",
         Description = "The defiend value for the Facilities Ministry Area",
         AllowMultiple = false,
         IsRequired = true,
         DefinedTypeGuid = "d5074ec8-9572-492c-b074-1b91d4c7a176",
-        Key = "MinistryArea")]
-    [TextField("Location Attribute Key",
-        Description = "SECC Location Person Attribute Key", 
+        Key = "MinistryArea" )]
+    [TextField( "Location Attribute Key",
+        Description = "SECC Location Person Attribute Key",
         IsRequired = true,
-        Key = "LocationAttributeKey")]
-    [TextField("Ministry Area Attribute Key", 
-        Description = "Ministry Area Person Attribute Key", 
+        Key = "LocationAttributeKey" )]
+    [TextField( "Ministry Area Attribute Key",
+        Description = "Ministry Area Person Attribute Key",
         IsRequired = true,
-        Key = "MinistryAreaKey")]
+        Key = "MinistryAreaKey" )]
 
     [DisallowConcurrentExecution]
     public class UpdateFacilitiesTeamLocation : IJob
@@ -54,10 +54,10 @@ namespace org.secc.Jobs
             JobDataMap datamap = context.JobDetail.JobDataMap;
             var rockContext = new RockContext();
 
-            CentralSupportDV  = DefinedValueCache.Get( datamap.GetString( "Location" ).AsGuid(), rockContext );
+            CentralSupportDV = DefinedValueCache.Get( datamap.GetString( "Location" ).AsGuid(), rockContext );
             FacilitiesDV = DefinedValueCache.Get( datamap.GetString( "MinistryArea" ).AsGuid(), rockContext );
             LocationKey = datamap.GetString( "LocationAttributeKey" ).Trim();
-            MinistryKey= datamap.GetString( "MinistryAreaKey" ).Trim();
+            MinistryKey = datamap.GetString( "MinistryAreaKey" ).Trim();
 
             var facilityStaffToMove = GetStaffMembersToUpdate( rockContext );
 
@@ -87,10 +87,30 @@ namespace org.secc.Jobs
             }
 
 
+            var capitalSql = @"
+                SELECT capital_request_id
+                FROM dbo._org_secc_purchasing_capitalrequest
+                WHERE location_luid <> @CentralSupport
+                    AND ministry_luid = @Facilities ";
+
+            sqlParams = new List<SqlParameter>();
+            sqlParams.Add( new SqlParameter( "@CentralSupport", CentralSupportDV.Id ) );
+            sqlParams.Add( new SqlParameter( "@Facilities", FacilitiesDV.Id ) );
+
+            var capitalRequests = rockContext.Database.SqlQuery<int>( capitalSql, sqlParams.ToArray() )
+                .ToList();
+
+            foreach(var id in capitalRequests)
+            {
+                UpdateCapitalRequests(id, rockContext);
+            }
+
+
+
 
         }
 
-        private List<StaffMemberSummary> GetStaffMembersToUpdate(RockContext rockContext)
+        private List<StaffMemberSummary> GetStaffMembersToUpdate( RockContext rockContext )
         {
             var attributeValueService = new AttributeValueService( rockContext );
             var personService = new PersonService( rockContext );
@@ -124,23 +144,34 @@ namespace org.secc.Jobs
                 .ToList();
         }
 
-        private void UpdateRequisition(int id, RockContext context)
+        private void UpdateCapitalRequests(int id, RockContext context)
+        {
+            var sql = @"UPDATE dbo._org_secc_purchasing_CapitalRequest
+                    SET location_luid = @LocationLUID
+                    WHERE capital_request_id = @CapitalRequestId ";
+
+            var sqlParams = new List<SqlParameter>();
+            sqlParams.Add( new SqlParameter( "@LocationLUID", CentralSupportDV.Id ) );
+            sqlParams.Add( new SqlParameter( "@CapitalRequestId", id ) );
+
+            context.Database.ExecuteSqlCommand( sql, sqlParams.ToArray() );
+        }
+
+        private void UpdateRequisition( int id, RockContext context )
         {
             var sql = @"UPDATE dbo._org_secc_Purchasing_Requisition 
                         SET location_luid = @LocationLUID
                         WHERE requisition_id = @RequisitionId ";
 
             var sqlParams = new List<SqlParameter>();
-            sqlParams.Add( new SqlParameter("@LocationLUID", CentralSupportDV.Id ));
+            sqlParams.Add( new SqlParameter( "@LocationLUID", CentralSupportDV.Id ) );
             sqlParams.Add( new SqlParameter( "@RequisitionId", id ) );
 
             context.Database.ExecuteSqlCommand( sql, sqlParams.ToArray() );
-            
-
 
         }
 
-        private void UpdateStaffMember(StaffMemberSummary s)
+        private void UpdateStaffMember( StaffMemberSummary s )
         {
             using (var rockContext = new RockContext())
             {
