@@ -27,7 +27,7 @@ using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 
-[DisplayName( "Children's Pre-Registration" )]
+[DisplayName( "Childrens Pre-Registration" )]
 [Category( "SECC > Check-in" )]
 [Description( "A tool for pre-registering families in Rock especially geared toward children's ministry." )]
 
@@ -42,7 +42,7 @@ using Rock.Web.UI.Controls;
     <li>When the service is over, return to the same room where you dropped off your children and present your other tag to check them out.</li>
 </ul> " )]
 [TextField( "Allergies Key", "The key name of the person attribute to save allergy information in.", defaultValue: "Allergy" )]
-[TextField( "Special Note Key", "The key name of the person attribute to save special information in.", defaultValue: "LegalNotes" )]
+[TextField( "Medical Notes Key", "The key name of the person attribute to save medical/special/other needs notes information in.", defaultValue: "MedicalNotes" )]
 [TextField( "Medical Consent Key", "The key name of the person attribute to record medical consent.", defaultValue: "MedicalConsent" )]
 public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.UI.RockBlock
 {
