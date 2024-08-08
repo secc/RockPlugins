@@ -35,7 +35,7 @@ using Rock.Web.UI.Controls;
 [CodeEditorField( "Confirmation", "Confirmation content.", CodeEditorMode.Html, defaultValue: @"<p>We're so excited to worship with you!</p>
 <h2>Now What ?</h2>
 <ul>
-    <li>When you arrive, just head to the Children's Ministry Check-in Desk to check-in your children.</li>
+    <li>When you arrive, just head to the Children's Ministry Check-in Desk to check in your children.</li>
     <li>If you have any questions when you are trying to check in children, please see a volunteer to help you.</li>
     <li>You will receive a tag to place on each child, as well as a tag for you to use to pick up your children after the service.</li>
     <li>Then, just take your children to the room listed on their tag.</li >
@@ -43,6 +43,7 @@ using Rock.Web.UI.Controls;
 </ul> " )]
 [TextField( "Allergies Key", "The key name of the person attribute to save allergy information in.", defaultValue: "Allergy" )]
 [TextField( "Special Note Key", "The key name of the person attribute to save special information in.", defaultValue: "LegalNotes" )]
+[TextField( "Medical Consent Key", "The key name of the person attribute to record medical consent.", defaultValue: "MedicalConsent" )]
 public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.UI.RockBlock
 {
     protected void Page_Load( object sender, EventArgs e )
@@ -55,6 +56,8 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
     protected override void OnLoad( EventArgs e )
     {
         base.OnLoad( e );
+
+        dpSignatureDate.SelectedDate = RockDateTime.Today;
 
         if ( !Page.IsPostBack )
         {
@@ -76,6 +79,18 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         }
     }
 
+    protected void cbHasAllergies_CheckedChanged( object sender, EventArgs e )
+    {
+        tbAllergies.Visible = cbHasAllergies.Checked;
+        tbAllergies.Required = cbHasAllergies.Checked;
+    }
+
+    protected void cbHasSpecialNote_CheckedChanged( object sender, EventArgs e )
+    {
+        tbSpecialNote.Visible = cbHasSpecialNote.Checked;
+        tbSpecialNote.Required = cbHasSpecialNote.Checked;
+    }
+
     protected void btnRegistrationNext_Click( object sender, EventArgs e )
     {
         pnlRegistration.Visible = false;
@@ -85,6 +100,10 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
     protected void btnChildNext_Click( object sender, EventArgs e )
     {
         storeChild();
+        cbHasAllergies.Checked = false;
+        tbAllergies.Visible = false;
+        cbHasSpecialNote.Checked = false;
+        tbSpecialNote.Visible = false;
         pnlChild.Visible = false;
         pnlChildSummary.Visible = true;
     }
@@ -104,6 +123,10 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
     protected void btnChildAddAnother_Click( object sender, EventArgs e )
     {
         storeChild();
+        cbHasAllergies.Checked = false;
+        tbAllergies.Visible = false;
+        cbHasSpecialNote.Checked = false;
+        tbSpecialNote.Visible = false;
     }
 
     protected void btnChildAddAnotherFromSummary_Click( object sender, EventArgs e )
@@ -132,6 +155,11 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
 
     protected void btnReviewFinish_Click( object sender, EventArgs e )
     {
+        if ( cbMedicalConsent.Checked == false )
+        {
+            showReview();
+            return;
+        }
         processRegistration();
         pnlReview.Visible = false;
         pnlConfirmationContent.Controls.Add( new HtmlGenericControl() { InnerHtml = GetAttributeValue( "Confirmation" ) } );
@@ -266,6 +294,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 {
                     if ( gm.Person.BirthDate == child.DateOfBirth && gm.Person.FirstName == child.FirstName )
                     {
+                        child.MedicalConsent = $"{tbSignature.Text} {String.Format( "{0:MM/dd/yy}", dpSignatureDate.SelectedDate )}";
                         child.SaveAttributes( gm.Person );
                         updated = true;
                         break;
@@ -332,6 +361,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             // Now create all the children
             foreach ( Child child in children )
             {
+                child.MedicalConsent = $"{tbSignature.Text} {String.Format( "{0:MM/dd/yy}", dpSignatureDate.SelectedDate )}";
                 child.SaveAsPerson( family.Id, rockContext );
             }
 
@@ -421,7 +451,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         rlName.Text = tbFirstname.Text + " " + tbLastName.Text;
         rlPhone.Text = pnbPhone.Text;
         rlDOB.Text = dpBirthday.SelectedDate.HasValue ? dpBirthday.SelectedDate.Value.ToShortDateString() : "";
-        if ( CampusCache.All().Count() > 1 )
+        if ( CampusCache.All().Count() > 1 && rlCampus.Text.IsNotNullOrWhiteSpace() )
         {
             rlCampus.Text = CampusCache.Get( cpCampus.Text.AsInteger() ).Name;
         }
@@ -479,6 +509,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         child.AllergiesKey = GetAttributeValue( "AllergiesKey" );
         child.SpecialNote = tbSpecialNote.Text;
         child.SpecialNoteKey = GetAttributeValue( "SpecialNoteKey" );
+        child.MedicalConsentKey = GetAttributeValue( "MedicalConsentKey" );
 
         // Now clear the form
         tbChildFirstname.Text = "";
@@ -515,6 +546,8 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         public string AllergiesKey { get; set; }
         public string SpecialNote { get; set; }
         public string SpecialNoteKey { get; set; }
+        public string MedicalConsent { get; set; }
+        public string MedicalConsentKey { get; set; }
 
         // Default comparer for Child type.
         public int CompareTo( object obj )
@@ -575,8 +608,24 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             {
                 person.SetAttributeValue( SpecialNoteKey, SpecialNote );
             }
+            if ( !string.IsNullOrWhiteSpace( MedicalConsentKey ) )
+            {
+                person.SetAttributeValue( MedicalConsentKey, MedicalConsent );
+            }
             person.SaveAttributeValues();
         }
 
+    }
+
+    protected void cvMedicalConsent_ServerValidate( object source, ServerValidateEventArgs e )
+    {
+        if ( pnlReview.Visible )
+        {
+            e.IsValid = ( cbMedicalConsent.Checked == true );
+        }
+        else
+        {
+            e.IsValid = true;
+        }
     }
 }
