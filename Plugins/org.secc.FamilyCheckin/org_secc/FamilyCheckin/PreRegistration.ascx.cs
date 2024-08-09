@@ -42,7 +42,7 @@ using Rock.Web.UI.Controls;
     <li>When the service is over, return to the same room where you dropped off your children and present your other tag to check them out.</li>
 </ul> " )]
 [TextField( "Allergies Key", "The key name of the person attribute to save allergy information in.", defaultValue: "Allergy" )]
-[TextField( "Medical Notes Key", "The key name of the person attribute to save medical/special/other needs notes information in.", defaultValue: "MedicalNotes" )]
+[TextField( "Medical Note Key", "The key name of the person attribute to save medical/special/other needs notes information in.", defaultValue: "MedicalNotes" )]
 [TextField( "Medical Consent Key", "The key name of the person attribute to record medical consent.", defaultValue: "MedicalConsent" )]
 public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.UI.RockBlock
 {
@@ -180,7 +180,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             rblGender.SelectedValue = children[i.Value].Gender;
             gpGrade.SelectedValue = children[i.Value].Grade.ToString();
             tbAllergies.Text = children[i.Value].Allergies;
-            tbSpecialNote.Text = children[i.Value].SpecialNote;
+            tbSpecialNote.Text = children[i.Value].MedicalNote;
         }
         pnlChildSummary.Visible = false;
         pnlChild.Visible = true;
@@ -242,7 +242,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             info.Controls.Add( new RockLiteral() { Label = "Birthdate:", Text = child.DateOfBirth.ToShortDateString() + " (" + child.DateOfBirth.Age() + " Yrs)" } );
             info.Controls.Add( new RockLiteral() { Label = "Grade:", Text = ( child.Grade == null ? "Pre-school" : DefinedValueCache.Get( child.Grade.Value ).Description ) } );
             info.Controls.Add( new RockLiteral() { Label = "Allergies:", Text = !string.IsNullOrEmpty( child.Allergies ) ? child.Allergies : "[None]" } );
-            info.Controls.Add( new RockLiteral() { Label = "Special&nbsp;Needs:", Text = !string.IsNullOrEmpty( child.SpecialNote ) ? child.SpecialNote : "[None]" } );
+            info.Controls.Add( new RockLiteral() { Label = "Special&nbsp;Needs:", Text = !string.IsNullOrEmpty( child.MedicalNote ) ? child.MedicalNote : "[None]" } );
 
             infoContainer.Controls.Add( info );
             //cardContainer.Controls.Add(new HtmlGenericControl() { InnerHtml = "<hr>" });
@@ -393,7 +393,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             }
 
 
-            if ( !groupLocationService.Queryable()
+            if (family != null && !groupLocationService.Queryable()
                 .Where( gl =>
                     gl.GroupId == family.Id &&
                     gl.GroupLocationTypeValueId == homeLocationType.Id &&
@@ -507,10 +507,10 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         child.Grade = gpGrade.SelectedValue.AsGuidOrNull();
         child.Allergies = tbAllergies.Text;
         child.AllergiesKey = GetAttributeValue( "AllergiesKey" );
-        child.SpecialNote = tbSpecialNote.Text;
-        child.SpecialNoteKey = GetAttributeValue( "SpecialNoteKey" );
+        child.MedicalNote = tbSpecialNote.Text;
+        child.MedicalNoteKey = GetAttributeValue( "MedicalNoteKey" );
         child.MedicalConsentKey = GetAttributeValue( "MedicalConsentKey" );
-
+        
         // Now clear the form
         tbChildFirstname.Text = "";
         tbChildLastname.Text = "";
@@ -544,8 +544,8 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         public Guid? Grade { get; set; }
         public string Allergies { get; set; }
         public string AllergiesKey { get; set; }
-        public string SpecialNote { get; set; }
-        public string SpecialNoteKey { get; set; }
+        public string MedicalNote { get; set; }
+        public string MedicalNoteKey { get; set; }
         public string MedicalConsent { get; set; }
         public string MedicalConsentKey { get; set; }
 
@@ -604,9 +604,9 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             {
                 person.SetAttributeValue( AllergiesKey, Allergies );
             }
-            if ( !string.IsNullOrWhiteSpace( SpecialNoteKey ) )
+            if ( !string.IsNullOrWhiteSpace( MedicalNoteKey ) )
             {
-                person.SetAttributeValue( SpecialNoteKey, SpecialNote );
+                person.SetAttributeValue( MedicalNoteKey, MedicalNote );
             }
             if ( !string.IsNullOrWhiteSpace( MedicalConsentKey ) )
             {
