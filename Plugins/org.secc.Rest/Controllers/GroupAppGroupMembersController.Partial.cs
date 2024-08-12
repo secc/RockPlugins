@@ -73,15 +73,14 @@ namespace org.secc.Rest.Controllers
                 return StatusCode( HttpStatusCode.Forbidden );
             }
 
+
             var groupMemberList = new List<GroupAppGroupMember>();
 
-            var homeLocationTypeId = _definedValueService.GetByGuid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;
+            var homeLocationTypeId = _definedValueService.GetByGuid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;            
 
-            var groupMembers = _groupMemberService.GetByGroupId( groupId )
-                .OrderByDescending( gm => gm.GroupRole.IsLeader )
-                .ThenBy( gm => gm.Person.LastName )
-                .ThenBy( gm => gm.Person.NickName )
-                .ToList();
+            var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
+            var groupMembers = groupMemberServiceHelper.GetGroupMembers( group, currentUser.Person );
+
 
             foreach ( var groupMember in groupMembers )
             {
@@ -99,7 +98,7 @@ namespace org.secc.Rest.Controllers
                         ?.Location.GetFullStreetAddress(),
                     Email = person.Email,
                     Phone = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid())?.ToString(),
-                    PhotoId = person.PhotoId ?? 0
+                    PhotoURL = person.PhotoUrl
                 };
 
                 groupMemberList.Add( groupAppGroupMember );
@@ -113,7 +112,6 @@ namespace org.secc.Rest.Controllers
         /// </summary>
         /// <param name="groupId"></param>
         /// <param name="groupMemberId"></param>
-        /// 
         [HttpPost]
         [System.Web.Http.Route( "api/GroupApp/GroupMembers/{groupId}/Communicate" )]
         public IHttpActionResult Communicate( int groupId, [FromBody] MessageModel message, int? groupMemberId = null )
@@ -136,6 +134,11 @@ namespace org.secc.Rest.Controllers
                 return StatusCode( HttpStatusCode.Forbidden );
             }
 
+            if ( message == null || message.FromAddress.IsNullOrWhiteSpace() || message.Subject.IsNullOrWhiteSpace() || message.Body.IsNullOrWhiteSpace() )
+            {
+                return BadRequest( "Invalid request. Please provide a valid 'FromAddress', 'Subject', and 'Body' in the message." );
+            }
+
             if ( groupMemberId != null )
             {
                 var groupMember = _groupMemberService.Get( groupMemberId.Value );
@@ -144,20 +147,22 @@ namespace org.secc.Rest.Controllers
                     return NotFound();
                 }
             }
-            var groupMembers = _groupMemberService.GetByGroupId( groupId ).ToList();
+            var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
+            var groupMembers = groupMemberServiceHelper.GetGroupMembers( group, currentUser.Person );
 
             if ( groupMemberId.HasValue )
             {
                 groupMembers = groupMembers.Where( gm => gm.Id == groupMemberId ).ToList();
             }
 
-            CreateCommunication( message.Subject, message.Body, groupMembers, currentUser.Person);
+            CreateCommunication( message.Subject, message.Body, groupMembers, currentUser.Person );
 
             return Ok();
         }
 
         public class MessageModel
         {
+            public string FromAddress { get; set; }
             public string Subject { get; set; }
             public string Body { get; set; }
         }
@@ -252,7 +257,7 @@ namespace org.secc.Rest.Controllers
 
             if ( personToAdd == null || ( personToAdd.FirstName.IsNullOrWhiteSpace() || personToAdd.LastName.IsNullOrWhiteSpace() ) || ( personToAdd.DateOfBirth == null && string.IsNullOrWhiteSpace( personToAdd.Email ) && personToAdd.MobileNumber.IsNullOrWhiteSpace() ) )
             {
-                return BadRequest();
+                return BadRequest( "Invalid request. Please provide a valid First Name and Last Name and/or a valid Date of Birth, Email, or Mobile Number." );
             }
 
             Person person = null;
@@ -297,27 +302,36 @@ namespace org.secc.Rest.Controllers
                 person.UpdatePhoneNumber( DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id,
                         PhoneNumber.DefaultCountryCode(), phoneNumber, true, false, _context );
                 person.SetBirthDate( personToAdd.DateOfBirth );
+
+                // Save the person
+                var personService = new PersonService( _context );
+                PersonService.SaveNewPerson( person, _context, group.CampusId, false );
+                _context.SaveChanges();
             }
 
-            // Save the person
-            var personService = new PersonService( _context );
-            PersonService.SaveNewPerson( person, _context, group.CampusId, false );
-            _context.SaveChanges();
-
-            // add person to the group
-            var groupMember = new GroupMember
-            {
-                GroupId = groupId,
-                PersonId = person.Id,
-                GroupRoleId = group.GroupType.DefaultGroupRoleId ?? group.GroupType.Roles.FirstOrDefault().Id,
-                GroupMemberStatus = GroupMemberStatus.Active,
-                DateTimeAdded = RockDateTime.Now,
-                CreatedByPersonAliasId = currentUser.Person.PrimaryAliasId
-            };
-
             var groupMemberService = new GroupMemberService( _context );
-            var member = groupMemberService.AddOrRestoreGroupMember( group, person.Id, groupMember.GroupRoleId );
-            _context.SaveChanges();
+            
+            // is person already in the group?            
+            var groupMember = _groupMemberService.GetByGroupId( groupId ).Where( gm => gm.PersonId == person.Id && gm.IsArchived == false ).FirstOrDefault();            
+
+            // create a new group member
+            if ( groupMember.IsNull())
+            {                         
+                groupMember = new GroupMember
+                {
+                    GroupId = groupId,
+                    PersonId = person.Id,
+                    GroupRoleId = group.GroupType.DefaultGroupRoleId ?? group.GroupType.Roles.FirstOrDefault().Id,
+                    GroupMemberStatus = GroupMemberStatus.Active,
+                    DateTimeAdded = RockDateTime.Now,
+                    CreatedByPersonAliasId = currentUser.Person.PrimaryAliasId
+                };
+
+                groupMember = groupMemberService.AddOrRestoreGroupMember( group, person.Id, groupMember.GroupRoleId );
+                _context.SaveChanges();
+            }
+
+            
 
             // Add Table Number
             // check if the group has a group member attribute for table number
@@ -328,16 +342,67 @@ namespace org.secc.Rest.Controllers
             var currentGroupMemberTableNumber = currentGroupMember.GetAttributeValue( "TableNumber" );
             if ( currentGroupMemberTableNumber != null )
             {
-                member.LoadAttributes();
-                member.SetAttributeValue( "TableNumber", currentGroupMemberTableNumber );
-                member.SaveAttributeValue( "TableNumber" );
+                groupMember.LoadAttributes();
+                groupMember.SetAttributeValue( "TableNumber", currentGroupMemberTableNumber );
+                groupMember.SaveAttributeValues();
             }
+            
+            _context.SaveChanges();
 
             return Ok();
         }
 
+        /// <summary>
+        /// Removes a group member from the provided group.
+        /// <param name="groupId">The group ID</param>
+        /// <param name="groupMemberId">The group member ID</param>"
+        /// 
+        [HttpDelete]
+        [System.Web.Http.Route( "api/GroupApp/GroupMembers/{groupId}/Remove/{groupMemberId}" )]
+        public IHttpActionResult RemoveGroupMember(int groupId, int groupMemberId )
+        {
+            var currentUser = UserLoginService.GetCurrentUser();
 
+            if ( currentUser == null )
+            {
+                return StatusCode( HttpStatusCode.Unauthorized );
+            }
 
+            var group = _groupService.Get( groupId );
+            if ( group == null )
+            {
+                return NotFound();
+            }
+
+            if ( !group.IsAuthorized( Rock.Security.Authorization.EDIT, currentUser.Person ) || !group.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person ) )
+            {
+                return StatusCode( HttpStatusCode.Forbidden );
+            }
+
+            if ( groupMemberId > 0 )
+            {
+                var _rockContext = new RockContext();
+                var groupMemberServiceHelper = new GroupMemberServiceHelper( _rockContext );
+
+                int? groupTypeId = group.GroupTypeId;
+                var groupTypeCache = GroupTypeCache.Get( groupTypeId.Value );
+                if ( groupTypeCache.EnableGroupHistory == true )
+
+                {
+                    groupMemberServiceHelper.ArchiveMember( group, groupMemberId, currentUser.Person );
+                }
+                else
+                {
+                    groupMemberServiceHelper.DeactivateMember( groupMemberId, currentUser.Person );
+                }
+                return Ok();
+            }
+            else
+            {
+                return BadRequest( "Invalid request. Please provide a valid group member ID." );
+            }           
+
+        }
     }
 
     public class GroupAppAddGroupMember
@@ -347,6 +412,98 @@ namespace org.secc.Rest.Controllers
         public DateTime? DateOfBirth { get; set; }
         public string MobileNumber { get; set; }
         public string Email { get; set; }
+    }
+
+    public class GroupMemberServiceHelper
+    {
+        private readonly RockContext _rockContext;
+
+        public GroupMemberServiceHelper( RockContext rockContext )
+        {
+            _rockContext = rockContext;
+        }
+
+        public List<GroupMember> GetGroupMembers( Group group, Person currentPerson = null )
+        {
+            var groupMemberService = new GroupMemberService( _rockContext );
+            var groupMembers = new List<GroupMember>();
+
+            if (currentPerson.IsNotNull())
+            {
+                var currentGroupMember = groupMemberService.GetByPersonId(currentPerson.Id).AsQueryable().AsNoTracking()
+                    .Where(groupmember => groupmember.GroupId == group.Id).FirstOrDefault();
+
+                if (currentGroupMember.IsNotNull())
+                {
+                    currentGroupMember.LoadAttributes();
+                    var currentGroupMemberTableNumber = currentGroupMember.GetAttributeValue("TableNumber");
+                    
+                    if (currentGroupMemberTableNumber.IsNotNull())
+                    {
+                        var tableNumberAttributeIds = new AttributeService( _rockContext )
+                        .Queryable()
+                        .Where( a => a.Key == "TableNumber" )
+                        .Select( a => a.Id )
+                        .ToList();
+
+                        groupMembers = groupMemberService.GetByGroupId( group.Id )
+                            .Join( new AttributeValueService( _rockContext ).Queryable(),
+                                    gm => gm.Id,
+                                    av => av.EntityId,
+                                    ( gm, av ) => new { GroupMember = gm, AttributeValue = av } )
+                            .Where( x => tableNumberAttributeIds.Contains(x.AttributeValue.AttributeId) && x.AttributeValue.Value == currentGroupMemberTableNumber && x.GroupMember.IsArchived == false)
+                            .Select( x => x.GroupMember )
+                            .OrderByDescending( gm => gm.GroupRole.IsLeader )
+                            .ThenBy( gm => gm.Person.LastName )
+                            .ThenBy( gm => gm.Person.NickName )
+                            .ToList();
+                        
+                        return groupMembers;
+                    }
+                }
+            }
+
+            groupMembers = groupMemberService.GetByGroupId( group.Id )
+                .Where( gm => gm.IsArchived == false )
+                .OrderByDescending( gm => gm.GroupRole.IsLeader )
+                .ThenBy( gm => gm.Person.LastName )
+                .ThenBy( gm => gm.Person.NickName )
+                .ToList();
+
+            return groupMembers;
+        }
+
+        public void ArchiveMember( Group group, int groupMemberId, Person currentPerson )
+        {
+            //Select multiple group members because someone can be a member of
+            //a group more than once as long as their role is different
+            var gMember = new GroupMemberService( _rockContext ).Get( groupMemberId );
+            var groupMembers = group.Members.Where( m => m.Person.Id == gMember.PersonId );
+            if ( groupMembers.Any() )
+            {
+                foreach ( var groupMember in groupMembers )
+                {
+                    var gm = new GroupMemberService( _rockContext ).Get( groupMember.Id );
+                    if ( gm != null )
+                    {
+                        gm.IsArchived = true;
+                        gm.ArchivedByPersonAliasId = currentPerson.PrimaryAliasId;
+                        gm.ArchivedDateTime = RockDateTime.Now;
+                    }
+                }
+                _rockContext.SaveChanges();
+            }
+        }
+        public void DeactivateMember( int groupMemberId, Person currentPerson )
+        {
+            var groupMemberService = new GroupMemberService( _rockContext );
+            var groupMember = groupMemberService.Get( groupMemberId );
+            if ( groupMember.IsNotNull() )
+            {
+                groupMember.GroupMemberStatus = GroupMemberStatus.Inactive;
+                _rockContext.SaveChanges();
+            }
+        }
     }
 
 }

@@ -159,12 +159,21 @@
                     <div class="col-sm-3">
                         <Rock:GradePicker runat="server" ID="gpGrade" Label="Grade"></Rock:GradePicker>
                     </div>
+                </div>
+                <div class="row">
                     <div class="col-sm-3">
-                        <Rock:RockTextBox runat="server" ID="tbAllergies" Label="Allergies" />
+                        <Rock:Toggle runat="server" ID="cbHasAllergies" Label="Does this child have allergies?" OnCheckedChanged="cbHasAllergies_CheckedChanged" AutoPostBack="true" OnText="Yes" OffText="No" />
                     </div>
-
+                    <div class="col-sm-9">
+                        <Rock:RockTextBox runat="server" ID="tbAllergies" Label="Allergies" visible="false" />
+                    </div>
+                </div>
+                <div class="row">
                     <div class="col-sm-3">
-                        <Rock:RockTextBox runat="server" ID="tbSpecialNote" Label="Medical/Special/Other Needs" />
+                        <Rock:Toggle runat="server" ID="cbHasSpecialNote" Label="Does this child have Medical/Special/Other Needs?" OnCheckedChanged="cbHasSpecialNote_CheckedChanged" AutoPostBack="true" OnText="Yes" OffText="No" />
+                    </div>
+                    <div class="col-sm-9">
+                        <Rock:RockTextBox runat="server" ID="tbSpecialNote" Label="Medical/Special/Other Needs" visible="false" />
                     </div>
                 </div>
             </div>
@@ -237,6 +246,18 @@
                         <Rock:RockLiteral runat="server" Label="Campus:" ID="rlCampus" />
                         <Rock:RockLiteral runat="server" Label="Address:" ID="rlAddress" CssClass="address" />
                         <Rock:RockLiteral runat="server" Label="Extra Information:" ID="rlExtraInformation" />
+                    </div>
+                </div>
+                <div class="row well g-padding-x-0--xs g-width-100-percent--xs g-margin-x-auto--xs">
+                    <div class="col-sm-12">
+                        <asp:CustomValidator runat="server" ID="cvMedicalConsent" OnServerValidate="cvMedicalConsent_ServerValidate" ErrorMessage="Medical Consent is required" CssClass="alert alert-danger g-margin-b-10--xs"/>
+                        <Rock:RockCheckBox runat="server" Label="I authorize first aid and/or medical treatment for my child and I release Southeast Christian Church, its employees, and its volunteers from any and all responsibility, including negligence." ID="cbMedicalConsent" Required="true" RequiredErrorMessage="Medical Consent is required" CssClass="required border-danger" />
+                    </div>
+                    <div class="col-sm-9">
+                        <Rock:RockTextBox runat="server" ID="tbSignature" Label="Please Enter Your Full Name" Required="true" RequiredErrorMessage="Signature is required" />
+                    </div>
+                    <div class="col-sm-3">
+                        <Rock:DatePicker runat="server" ID="dpSignatureDate" Label="Date" Required="true" RequiredErrorMessage="Date is required" Enabled="false" Visible="false"/>
                     </div>
                 </div>
             </div>
