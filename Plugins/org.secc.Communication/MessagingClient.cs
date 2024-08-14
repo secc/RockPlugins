@@ -143,7 +143,7 @@ namespace org.secc.Communication
 
         public void AddKeyword( string phoneId, Keyword k )
         {
-            var url = $"{settings.MessagingUrl}/phonenumbers/{phoneId}/keywords?code={settings.MessagingKey}";
+            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords?code={settings.MessagingKey}";
             var restClient = new RestClient( url );
             var request = new RestRequest( Method.POST );
             request.RequestFormat = DataFormat.Json;
