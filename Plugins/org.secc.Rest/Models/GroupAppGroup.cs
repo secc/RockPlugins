@@ -6,6 +6,8 @@
         public string Name { get; set; }
         public bool IsActive { get; set; }
         public bool IsArchived { get; set; }
+        public bool IsLeader { get; set; }
+        public bool EmailParentsEnabled { get; set; }
 
     }
 }

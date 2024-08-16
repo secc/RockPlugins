@@ -46,7 +46,7 @@ namespace org.secc.Rest.Controllers
 
             var groupServiceHelper = new GroupServiceHelper( rockContext );
             var groupTypeIds = groupServiceHelper.GetGroupTypeIdsFromDefinedType( "Group App Group Types" );
-            var groupsAsLeader = groupServiceHelper.GetGroupsAsLeader( currentUser.Person.Id, groupTypeIds );
+            var groupsAsLeader = groupServiceHelper.GetGroups( currentUser.Person.Id, groupTypeIds );
 
             return Ok( groupsAsLeader );
 
@@ -81,7 +81,7 @@ namespace org.secc.Rest.Controllers
                     group.Name,
                     group.TypeId,
                     group.IsActive,
-                    group.IsArchived,
+                    group.IsArchived
                 }
                 );
             }
@@ -159,19 +159,20 @@ namespace org.secc.Rest.Controllers
             return groupTypeDefinedValues.Select( dv => int.Parse( dv.Value ) ).ToList();
         }
 
-        public List<GroupAppGroup> GetGroupsAsLeader( int currentPersonId, List<int> groupTypeIds )
+        public List<GroupAppGroup> GetGroups( int currentPersonId, List<int> groupTypeIds )
         {
             return new GroupMemberService( _rockContext )
-                .Queryable( "Group, GroupRole" )
+                .Queryable( "Group, GroupRole, Schedule" )
                 .Where( gm => gm.PersonId == currentPersonId &&
-                             gm.GroupRole.IsLeader &&
-                             groupTypeIds.Contains( gm.Group.GroupTypeId ) )
+                             groupTypeIds.Contains( gm.Group.GroupTypeId )
+                             && gm.Group.IsActive && !gm.Group.IsArchived)
                 .Select( gm => new GroupAppGroup
                 {
                     Id = gm.Group.Id,
                     Name = gm.Group.Name,
                     IsActive = gm.Group.IsActive,
-                    IsArchived = gm.Group.IsArchived
+                    IsArchived = gm.Group.IsArchived,
+                    IsLeader = gm.GroupRole.IsLeader
                 } )
                 .Distinct()
                 .ToList();

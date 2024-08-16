@@ -12,5 +12,6 @@ namespace org.secc.Rest.Models
         public string Email { get; set;}
         public string Phone { get; set;}
         public string PhotoURL { get; set; }
+        public bool IsLeader { get; set; }
     }
 }

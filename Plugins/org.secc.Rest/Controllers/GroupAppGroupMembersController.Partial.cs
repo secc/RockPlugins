@@ -98,7 +98,8 @@ namespace org.secc.Rest.Controllers
                         ?.Location.GetFullStreetAddress(),
                     Email = person.Email,
                     Phone = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid())?.ToString(),
-                    PhotoURL = person.PhotoUrl
+                    PhotoURL = person.PhotoUrl,
+                    IsLeader = groupMember.GroupRole.IsLeader
                 };
 
                 groupMemberList.Add( groupAppGroupMember );
