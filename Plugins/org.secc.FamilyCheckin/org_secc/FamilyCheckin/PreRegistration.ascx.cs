@@ -286,7 +286,10 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         // If we get exactly one match given the specificity of the search criteria this is probably a safe bet
         if ( match )
         {
+            var medicalConsentKey = GetAttributeValue( "MedicalConsentKey" );
+            var medicalConsent = $"{tbSignature.Text} {String.Format( "{0:MM/dd/yy}", dpSignatureDate.SelectedDate )}";
             bool updated = false;
+
             // See if the family member already exists
             foreach ( Child child in children )
             {
@@ -294,7 +297,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 {
                     if ( gm.Person.BirthDate == child.DateOfBirth && gm.Person.FirstName == child.FirstName )
                     {
-                        child.MedicalConsent = $"{tbSignature.Text} {String.Format( "{0:MM/dd/yy}", dpSignatureDate.SelectedDate )}";
+                        child.MedicalConsent = medicalConsent;
                         child.SaveAttributes( gm.Person );
                         updated = true;
                         break;
@@ -305,6 +308,14 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 {
                     // If we get here, it's time to create a new family member
                     var newChild = child.SaveAsPerson( matchingPeople.FirstOrDefault().GetFamily().Id, rockContext );
+                    newChild.LoadAttributes();
+
+                    if ( !string.IsNullOrWhiteSpace( medicalConsentKey ) )
+                    {
+                        newChild.SetAttributeValue( medicalConsentKey, medicalConsent );
+                    }
+                    newChild.SaveAttributeValues();
+
                     family = newChild.GetFamily();
                 }
             }
@@ -393,7 +404,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             }
 
 
-            if (family != null && !groupLocationService.Queryable()
+            if ( family != null && !groupLocationService.Queryable()
                 .Where( gl =>
                     gl.GroupId == family.Id &&
                     gl.GroupLocationTypeValueId == homeLocationType.Id &&
@@ -510,7 +521,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         child.MedicalNote = tbSpecialNote.Text;
         child.MedicalNoteKey = GetAttributeValue( "MedicalNoteKey" );
         child.MedicalConsentKey = GetAttributeValue( "MedicalConsentKey" );
-        
+
         // Now clear the form
         tbChildFirstname.Text = "";
         tbChildLastname.Text = "";
