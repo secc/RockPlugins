@@ -100,10 +100,6 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
     protected void btnChildNext_Click( object sender, EventArgs e )
     {
         storeChild();
-        cbHasAllergies.Checked = false;
-        tbAllergies.Visible = false;
-        cbHasSpecialNote.Checked = false;
-        tbSpecialNote.Visible = false;
         pnlChild.Visible = false;
         pnlChildSummary.Visible = true;
     }
@@ -116,17 +112,13 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
     protected void btnChildSummaryNext_Click( object sender, EventArgs e )
     {
         pnlChildSummary.Visible = false;
-        pnlCampus.Visible = true;
+        pnlAdditionalInfo.Visible = true;
         pnlAskCampus.Visible = CampusCache.All().Count() > 1;
     }
 
     protected void btnChildAddAnother_Click( object sender, EventArgs e )
     {
         storeChild();
-        cbHasAllergies.Checked = false;
-        tbAllergies.Visible = false;
-        cbHasSpecialNote.Checked = false;
-        tbSpecialNote.Visible = false;
     }
 
     protected void btnChildAddAnotherFromSummary_Click( object sender, EventArgs e )
@@ -135,22 +127,47 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         pnlChild.Visible = true;
     }
 
+    protected void btnAddKnownRelationship_Click( object sender, EventArgs e )
+    {
+        pnlAdult.Visible = true;
+        pnlAdditionalInfo.Visible = false;
+    }
+    protected void btnAdultAddAnother_Click( object sender, EventArgs e )
+    {
+        if ( pnbAdultPhone.Text.IsNotNullOrWhiteSpace() || ebAdultEmail.Text.IsNotNullOrWhiteSpace() || dpAdultDateOfBirth.SelectedDate.HasValue )
+            storeAdult();
+    }
+    protected void btnAdultNext_Click( object sender, EventArgs e )
+    {
+        if ( pnbAdultPhone.Text.IsNotNullOrWhiteSpace() || ebAdultEmail.Text.IsNotNullOrWhiteSpace() || dpAdultDateOfBirth.SelectedDate.HasValue )
+        {
+            storeAdult();
+            pnlAdult.Visible = false;
+            pnlAdditionalInfo.Visible = true;
+        }
+    }
+    protected void btnAdultCancel_Click( object sender, EventArgs e )
+    {
+        pnlAdult.Visible = false;
+        pnlAdditionalInfo.Visible = true;
+    }
+
     protected void btnCampusBack_Click( object sender, EventArgs e )
     {
-        pnlCampus.Visible = false;
+        pnlAdditionalInfo.Visible = false;
         pnlChildSummary.Visible = true;
     }
 
     protected void btnCampusNext_Click( object sender, EventArgs e )
     {
-        pnlCampus.Visible = false;
+        pnlAdditionalInfo.Visible = false;
         showReview();
     }
 
     protected void btnReviewBack_Click( object sender, EventArgs e )
     {
         pnlReview.Visible = false;
-        pnlCampus.Visible = true;
+        pnlAdditionalInfo.Visible = true;
     }
 
     protected void btnReviewFinish_Click( object sender, EventArgs e )
@@ -186,6 +203,26 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         pnlChild.Visible = true;
         SaveViewState();
     }
+
+    protected void btnEditAdult_Click( object sender, EventArgs e )
+    {
+        BootstrapButton btn = ( BootstrapButton ) sender;
+        int? i = btn.CommandArgument.AsIntegerOrNull();
+        if ( i != null )
+        {
+            ViewState["CurrentAdult"] = i;
+            List<KnownAdult> knownAdults = ( ( List<KnownAdult> ) ViewState["KnownAdults"] );
+            tbAdultFirstName.Text = knownAdults[i.Value].FirstName;
+            tbAdultLastName.Text = knownAdults[i.Value].LastName;
+            dpAdultDateOfBirth.Text = knownAdults[i.Value].DateOfBirth.ToShortDateString();
+            ebAdultEmail.Text = knownAdults[i.Value].Email;
+            pnbAdultPhone.Text = knownAdults[i.Value].MobileNumber;
+        }
+        pnlAdditionalInfo.Visible = false;
+        pnlAdult.Visible = true;
+        SaveViewState();
+    }
+
     protected void btnDeleteChild_Click( object sender, EventArgs e )
     {
         BootstrapButton btn = ( BootstrapButton ) sender;
@@ -201,6 +238,21 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 pnlChild.Visible = true;
             }
 
+        }
+        SaveViewState();
+    }
+    protected void btnDeleteAdult_Click( object sender, EventArgs e )
+    {
+        BootstrapButton btn = ( BootstrapButton ) sender;
+        int? i = btn.CommandArgument.AsIntegerOrNull();
+        if ( i != null )
+        {
+            List<KnownAdult> knownAdults = ( ( List<KnownAdult> ) ViewState["KnownAdults"] );
+            knownAdults.Remove( knownAdults[i.Value] );
+            if ( !knownAdults.Any() )
+            {
+                ViewState["KnownAdults"] = null;
+            }
         }
         SaveViewState();
     }
@@ -267,6 +319,71 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         }
     }
 
+    private void populateKnownRelationshipSummary()
+    {
+
+        phKnownRelationshipSummary.Controls.Clear();
+
+        List<KnownAdult> knownAdults = ( ( List<KnownAdult> ) ViewState["KnownAdults"] );
+
+        if ( knownAdults == null )
+        {
+            btnAddKnownRelationship.Text = "Add Known Relationship";
+            return;
+        }
+
+        if ( knownAdults.Count > 0 )
+            btnAddKnownRelationship.Text = "Add Another Known Relationship";
+
+        HtmlGenericControl count = new HtmlGenericControl();
+        count.InnerHtml = "<div class=\"col-sm-12\"><h3>" + knownAdults.Count + ( knownAdults.Count == 1 ? " Known Adult" : " Known Adults" ) + " Entered:</h4></div>";
+        phKnownRelationshipSummary.Controls.Add( count );
+        int i = 0;
+        foreach ( KnownAdult adult in knownAdults )
+        {
+            Panel adultContainer = new Panel();
+            adultContainer.CssClass = "col-sm-6 col-md-4";
+            phKnownRelationshipSummary.Controls.Add( adultContainer );
+
+            Panel cardContainer = new Panel();
+            cardContainer.CssClass = "contact-card text-center";
+            adultContainer.Controls.Add( cardContainer );
+
+            cardContainer.Controls.Add( new HtmlGenericControl() { InnerHtml = "<div class=\"title\">" + adult.FirstName + " " + adult.LastName + "</div>" } );
+
+            Panel infoContainer = new Panel();
+            infoContainer.CssClass = "clearfix info";
+            cardContainer.Controls.Add( infoContainer );
+
+
+            HtmlGenericControl info = new HtmlGenericControl();
+            info.Controls.Add( new RockLiteral() { Label = "Birthdate:", Text = adult.DateOfBirth != DateTime.MinValue ? adult.DateOfBirth.ToShortDateString() : "[Not Set]" } );
+            info.Controls.Add( new RockLiteral() { Label = "Email:", Text = !string.IsNullOrEmpty( adult.Email ) ? adult.Email : "[Not Set]" } );
+            info.Controls.Add( new RockLiteral() { Label = "Mobile:", Text = !string.IsNullOrEmpty( adult.MobileNumber ) ? adult.MobileNumber : "[Not Set]" } );
+
+            infoContainer.Controls.Add( info );
+            //cardContainer.Controls.Add(new HtmlGenericControl() { InnerHtml = "<hr>" });
+
+            BootstrapButton button = new BootstrapButton();
+            button.AddCssClass( "btn btn-link" );
+            button.ID = "editAdult_" + i;
+            button.CommandArgument = i.ToString();
+            button.Click += btnEditAdult_Click;
+            button.Text = "Edit";
+            cardContainer.Controls.Add( button );
+
+            button = new BootstrapButton();
+            button.AddCssClass( "btn btn-link" );
+            button.ID = "removeAdult_" + i;
+            button.CommandArgument = i.ToString();
+            button.Click += btnDeleteAdult_Click;
+            button.Text = "Remove";
+            cardContainer.Controls.Add( button );
+
+            i++;
+        }
+    }
+
     private void processRegistration()
     {
         // Setup the Rock context
@@ -274,6 +391,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         var groupLocationService = new GroupLocationService( rockContext );
         Group family = null;
         List<Child> children = ( ( List<Child> ) ViewState["Children"] );
+        List<Person> createdChildren = new List<Person>();
         PersonService personService = new PersonService( rockContext );
         var matchingPeople = personService.GetByMatch( tbFirstname.Text, tbLastName.Text, dpBirthday.SelectedDate, ebEmail.Text, pnbPhone.Text, acAddress.Street1, acAddress.PostalCode );
         bool match = matchingPeople.Count() == 1;
@@ -317,6 +435,8 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                     newChild.SaveAttributeValues();
 
                     family = newChild.GetFamily();
+
+                    createdChildren.Add( newChild );
                 }
             }
             rockContext.SaveChanges();
@@ -373,7 +493,8 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             foreach ( Child child in children )
             {
                 child.MedicalConsent = $"{tbSignature.Text} {String.Format( "{0:MM/dd/yy}", dpSignatureDate.SelectedDate )}";
-                child.SaveAsPerson( family.Id, rockContext );
+                var newChild = child.SaveAsPerson( family.Id, rockContext );
+                createdChildren.Add( newChild );
             }
 
 
@@ -453,6 +574,53 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             rockContext.SaveChanges();
         }
 
+        // Add known relationships
+        List<KnownAdult> knownAdults = ( ( List<KnownAdult> ) ViewState["KnownAdults"] );
+        if ( knownAdults != null )
+        {
+            foreach ( KnownAdult adult in knownAdults )
+            {
+                // do a person match to see if the person already exists
+                var matchingAdults = personService.GetByMatch( adult.FirstName, adult.LastName, adult.DateOfBirth, adult.Email, adult.MobileNumber, null, null );
+                if ( matchingAdults.Count() == 1 )
+                {
+                    // add a known check-in relationship from this person to each child in the createdChildren list
+                    foreach ( Person child in createdChildren )
+                    {
+                        addKnownRelationship( matchingAdults.FirstOrDefault(), child );
+                    }
+                }
+                else
+                {
+                    Person newPerson = new Person()
+                    {
+                        FirstName = adult.FirstName,
+                        LastName = adult.LastName,
+                        RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id,
+                        ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id,
+                        RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id,
+                        Email = adult.Email
+                    };
+
+                    // save the person to the person service
+                    personService.Add( newPerson );
+                    rockContext.SaveChanges();
+
+                    newPerson.UpdatePhoneNumber( DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id, PhoneNumber.DefaultCountryCode(), adult.MobileNumber, false, false, rockContext );
+
+                    rockContext.SaveChanges();
+
+                    // add a known check-in relationship from this person to each child in the createdChildren list
+                    foreach ( Person child in createdChildren )
+                    {
+                        addKnownRelationship( newPerson, child );
+                    }
+                }
+            }
+        }
+
+        rockContext.SaveChanges();
+
     }
 
 
@@ -486,6 +654,17 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         foreach ( Child child in children )
         {
             pnlChildren.Controls.Add( new HtmlGenericControl() { InnerHtml = child.FirstName + " " + child.LastName + ", age " + child.DateOfBirth.Age() + " yrs<br />" } );
+        }
+
+        List<KnownAdult> knownAdults = ( ( List<KnownAdult> ) ViewState["KnownAdults"] );
+        if ( knownAdults != null && knownAdults.Count > 0 )
+        {
+            pnlKnownAdults.Visible = true;
+
+            foreach ( KnownAdult adult in knownAdults )
+            {
+                pnlKnownAdultsList.Controls.Add( new HtmlGenericControl() { InnerHtml = adult.FirstName + " " + adult.LastName + "<br />" } );
+            }
         }
     }
 
@@ -530,16 +709,64 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         gpGrade.SelectedIndex = 0;
         tbAllergies.Text = "";
         tbSpecialNote.Text = "";
+        cbHasAllergies.Checked = false;
+        tbAllergies.Visible = false;
+        cbHasSpecialNote.Checked = false;
+        tbSpecialNote.Visible = false;
 
         ( ( List<Child> ) ViewState["Children"] ).Sort();
         SaveViewState();
         btnChildCancel.Visible = true;
     }
 
+    private void storeAdult()
+    {
+        if ( ViewState["KnownAdults"] == null )
+        {
+            ViewState["KnownAdults"] = new List<KnownAdult>();
+        }
+        List<KnownAdult> knownAdults = ( List<KnownAdult> ) ViewState["KnownAdults"];
+        KnownAdult adult = null;
+        if ( ViewState["CurrentAdult"] != null )
+        {
+            int currentIndex;
+            if ( int.TryParse( ViewState["CurrentAdult"].ToString(), out currentIndex ) && currentIndex < knownAdults.Count )
+            {
+                adult = knownAdults[currentIndex];
+            }
+        }
+        if ( adult == null )
+        {
+            adult = new KnownAdult();
+            knownAdults.Add( adult );
+        }
+        ViewState["CurrentChild"] = null;
+
+        adult.FirstName = tbAdultFirstName.Text;
+        adult.LastName = tbAdultLastName.Text;
+        if ( dpAdultDateOfBirth.SelectedDate.HasValue )
+        {
+            adult.DateOfBirth = dpAdultDateOfBirth.SelectedDate.Value;
+        }
+        adult.Email = ebAdultEmail.Text;
+        adult.MobileNumber = pnbAdultPhone.Text;
+
+        // Now clear the form
+        tbAdultFirstName.Text = "";
+        tbAdultLastName.Text = "";
+        dpAdultDateOfBirth.SelectedDate = null;
+        ebAdultEmail.Text = "";
+        pnbAdultPhone.Text = "";
+
+        knownAdults.Sort();
+        SaveViewState();
+    }
+
     protected override void EnsureChildControls()
     {
         base.EnsureChildControls();
         populateChildSummary();
+        populateKnownRelationshipSummary();
     }
 
     /// <summary>
@@ -628,6 +855,42 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
 
     }
 
+    /// <summary>
+    /// Inner class for storing known adult details in the ViewState
+    /// </summary>
+    [Serializable]
+    protected class KnownAdult : IComparable
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public DateTime DateOfBirth { get; set; }
+        public string Email { get; set; }
+        public string MobileNumber { get; set; }
+
+        // Default comparer for KnownAdult type.
+        public int CompareTo( object obj )
+        {
+            // A null value means that this object is greater.
+            if ( obj == null || obj.GetType() != typeof( KnownAdult ) )
+            {
+                return 1;
+            }
+
+            var other = ( KnownAdult ) obj;
+
+            // Compare by LastName first
+            int lastNameComparison = this.LastName.CompareTo( other.LastName );
+            if ( lastNameComparison != 0 )
+            {
+                return lastNameComparison;
+            }
+
+            // If LastName is the same, compare by FirstName
+            return this.FirstName.CompareTo( other.FirstName );
+        }
+
+    }
+
     protected void cvMedicalConsent_ServerValidate( object source, ServerValidateEventArgs e )
     {
         if ( pnlReview.Visible )
@@ -638,5 +901,24 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         {
             e.IsValid = true;
         }
+    }
+    protected void cvKnownAdultInfo_ServerValidate( object source, ServerValidateEventArgs e )
+    {
+        if ( pnlAdult.Visible )
+        {
+            e.IsValid = ( pnbAdultPhone.Text.IsNotNullOrWhiteSpace() || ebAdultEmail.Text.IsNotNullOrWhiteSpace() || dpAdultDateOfBirth.SelectedDate.HasValue );
+        }
+        else
+        {
+            e.IsValid = true;
+        }
+    }
+
+    protected void addKnownRelationship( Person knownAdult, Person child )
+    {
+        var rockContext = new RockContext();
+        var groupMemberService = new GroupMemberService( rockContext );
+        groupMemberService.CreateKnownRelationship( knownAdult.Id, child.Id, 9 );
+        rockContext.SaveChanges();
     }
 }
