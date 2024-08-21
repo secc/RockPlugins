@@ -357,7 +357,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
 
 
             HtmlGenericControl info = new HtmlGenericControl();
-            info.Controls.Add( new RockLiteral() { Label = "Birthdate:", Text = adult.DateOfBirth != DateTime.MinValue ? adult.DateOfBirth.ToShortDateString() : "[Not Set]" } );
+            info.Controls.Add( new RockLiteral() { Label = "Birthdate:", Text = ( adult.DateOfBirth != DateTime.MinValue && adult.DateOfBirth != null ) ? adult.DateOfBirth.ToShortDateString() : "[Not Set]" } );
             info.Controls.Add( new RockLiteral() { Label = "Email:", Text = !string.IsNullOrEmpty( adult.Email ) ? adult.Email : "[Not Set]" } );
             info.Controls.Add( new RockLiteral() { Label = "Mobile:", Text = !string.IsNullOrEmpty( adult.MobileNumber ) ? adult.MobileNumber : "[Not Set]" } );
 
@@ -580,6 +580,10 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         {
             foreach ( KnownAdult adult in knownAdults )
             {
+                if ( adult.DateOfBirth == DateTime.MinValue )
+                {
+                    adult.DateOfBirth = null;
+                }
                 // do a person match to see if the person already exists
                 var matchingAdults = personService.GetByMatch( adult.FirstName, adult.LastName, adult.DateOfBirth, adult.Email, adult.MobileNumber, null, null );
                 if ( matchingAdults.Count() == 1 )
@@ -864,7 +868,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public DateTime DateOfBirth { get; set; }
+        public DateTime? DateOfBirth { get; set; }
         public string Email { get; set; }
         public string MobileNumber { get; set; }
 
