@@ -599,7 +599,8 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                         RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id,
                         ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id,
                         RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id,
-                        Email = adult.Email
+                        Email = adult.Email,
+                        AgeClassification = AgeClassification.Adult
                     };
 
                     // save the person to the person service
