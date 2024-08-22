@@ -416,6 +416,11 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                     if ( gm.Person.BirthDate == child.DateOfBirth && gm.Person.FirstName == child.FirstName )
                     {
                         child.MedicalConsent = medicalConsent;
+                        if ( gm.Person.Gender != ( child.Gender == "Male" ? Gender.Male : Gender.Female ) )
+                        {
+                            var childPerson = personService.Get( gm.Person.Id );
+                            childPerson.Gender = ( child.Gender == "Male" ? Gender.Male : Gender.Female );
+                        }
                         child.SaveAttributes( gm.Person );
                         updated = true;
                         break;
@@ -426,6 +431,8 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 {
                     // If we get here, it's time to create a new family member
                     var newChild = child.SaveAsPerson( matchingPeople.FirstOrDefault().GetFamily().Id, rockContext );
+                    newChild.Gender = child.Gender == "Male" ? Gender.Male : Gender.Female;
+
                     newChild.LoadAttributes();
 
                     if ( !string.IsNullOrWhiteSpace( medicalConsentKey ) )
