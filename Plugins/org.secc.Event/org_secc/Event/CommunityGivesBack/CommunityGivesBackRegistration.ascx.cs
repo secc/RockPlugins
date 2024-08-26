@@ -1,63 +1,64 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
-using System.Web;
+using System.Runtime.Serialization;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.UI;
 using Rock.Web.Cache;
+using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using Nest;
+
+
 
 
 namespace RockWeb.Plugins.org_secc.CommunityGivesBack
 {
 
-    [DisplayName("Community Gives Back Registration")]
-    [Category("SECC > Community Gives Back")]
-    [Description("Registration for the Community Gives Back program")]
+    [DisplayName( "Community Gives Back Registration" )]
+    [Category( "SECC > Community Gives Back" )]
+    [Description( "Registration for the Community Gives Back program" )]
 
-    [DefinedTypeField("Community Gives Back Schools",
+    [DefinedTypeField( "Community Gives Back Schools",
         Description = "Defined Type that contains the list of Community Gives Back Schools.",
         IsRequired = true,
         Key = AttributeKeys.SchoolList,
-        Order = 0)]
-    [CodeEditorField("Acknowledgement Text",
+        Order = 0 )]
+    [CodeEditorField( "Acknowledgement Text",
         Description = "Lava Template that includes the data sharing agreement.",
         EditorMode = CodeEditorMode.Lava,
         EditorTheme = CodeEditorTheme.Rock,
         Order = 1,
-        Key = AttributeKeys.AcknowledgementText)]
-    [CodeEditorField("Confirmation Text",
+        Key = AttributeKeys.AcknowledgementText )]
+    [CodeEditorField( "Confirmation Text",
         Description = "Lava Template that includes the Confirmation Text when a user completes the form.",
         IsRequired = false,
         EditorMode = CodeEditorMode.Lava,
         EditorTheme = CodeEditorTheme.Rock,
         Order = 2,
-        Key = AttributeKeys.ConfirmationText)]
-    [LavaCommandsField("Enabled Lava Commands",
+        Key = AttributeKeys.ConfirmationText )]
+    [LavaCommandsField( "Enabled Lava Commands",
         Description = "The lava commands that are enabled on this block.",
         IsRequired = false,
         Order = 3,
-        Key = AttributeKeys.LavaCommands)]
-    [WorkflowTypeField("Registration Workflow Type",
+        Key = AttributeKeys.LavaCommands )]
+    [WorkflowTypeField( "Registration Workflow Type",
         Description = "Community Gives Back Workflow Type",
         IsRequired = true,
         AllowMultiple = false,
         Order = 4,
-        Key = AttributeKeys.RegistrationWorkflow)]
-    [BooleanField("Auto Populate Registration Data",
+        Key = AttributeKeys.RegistrationWorkflow )]
+    [BooleanField( "Auto Populate Registration Data",
         Description = "Auto Populate Registration Data when avaliable. Default is True.",
         DefaultBooleanValue = true,
         IsRequired = false,
         Order = 5,
-        Key = AttributeKeys.AutoPopulate)]
+        Key = AttributeKeys.AutoPopulate )]
     public partial class CommunityGivesBackRegistration : RockBlock
     {
         public class AttributeKeys
@@ -71,6 +72,18 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
 
         }
 
+        protected List<SupportedSchool> SchoolList
+        {
+            get
+            {
+                return ViewState[this.BlockId + "_SchoolList"] as List<SupportedSchool>;
+            }
+            set
+            {
+                ViewState[this.BlockId + "_SchoolList"] = value;
+            }
+        }
+
         #region Base Control Methods
         protected override void OnInit( EventArgs e )
         {
@@ -80,8 +93,10 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
+            LoadSchoolList();
             if (!Page.IsPostBack)
             {
+
                 LoadStep( ActiveStep.ACKNOWLEDGEMENT );
             }
         }
@@ -91,7 +106,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
 
         protected void btnAcknowledgeNext_Click( object sender, EventArgs e )
         {
-            if(!cbAgreeToTerms.Checked)
+            if (!cbAgreeToTerms.Checked)
             {
                 pnlValidateTermsAgree.Visible = true;
                 return;
@@ -128,30 +143,110 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
         }
 
 
+        protected void ddlSchools_SelectedIndexChanged( object sender, EventArgs e )
+        {
+            var selectedValue = ddlSchools.SelectedValue.AsInteger();
+
+            var school = SchoolList.FirstOrDefault( s => s.Id == selectedValue );
+
+            if (school == null)
+            {
+                nudSponsorships.Enabled = false;
+            }
+            else
+            {
+                nudSponsorships.Enabled = true;
+                nudSponsorships.Maximum = school.AvailableSponsorships;
+            }
+        }
+
         #endregion
+
+        private void LoadSchoolList()
+        {
+
+            if (SchoolList != null)
+            {
+                return;
+            }
+
+            var rockContext = new RockContext();
+            var definedTypeGuid = GetAttributeValue( AttributeKeys.SchoolList ).AsGuid();
+            var workflowTypeCache = WorkflowTypeCache.Get( GetAttributeValue( AttributeKeys.RegistrationWorkflow ).AsGuid() );
+            var workflowTypeString = workflowTypeCache.Id.ToString();
+
+            var definedValueEntityType = EntityTypeCache.Get( typeof( DefinedValue ) );
+            var workflowEntityType = EntityTypeCache.Get( typeof( Workflow ) );
+
+            var attributeValueService = new AttributeValueService( rockContext );
+
+            var workflowAttributeValues = attributeValueService.Queryable().AsNoTracking()
+                .Where( v => v.Attribute.EntityTypeId == workflowTypeCache.Id )
+                .Where( v => v.Attribute.EntityTypeQualifierColumn == "WorkflowTypeId" )
+                .Where( v => v.Attribute.EntityTypeQualifierValue == workflowTypeString );
+
+            var signups = new WorkflowService( rockContext ).Queryable().AsNoTracking()
+                .Where( w => w.WorkflowTypeId == workflowTypeCache.Id )
+                .Join( workflowAttributeValues, w => w.Id, v => v.EntityId,
+                    ( w, v ) => new { WorkflowId = w.Id, AttributeKey = v.Attribute.Key, Value = v.Value } )
+                .GroupBy( w => w.WorkflowId )
+                .Select( w => new
+                {
+                    WorkflowId = w.Key,
+                    SchoolGuid = w.FirstOrDefault( v => v.AttributeKey == "School" ),
+                    Sponsorships = w.FirstOrDefault( v => v.AttributeKey == "StudentsToSponsor" )
+                } )
+                .ToList()
+                .GroupBy( s => s.SchoolGuid )
+                .Select( s => new { School = DefinedValueCache.Get( s.Key.Value.AsGuid() ), SponsoredStudents = s.Sum( s1 => s1.Sponsorships.Value.AsInteger() ) } )
+                .ToList();
+
+            var definedType = DefinedTypeCache.Get( definedTypeGuid );
+            var definedTypeIdStr = definedType.Id.ToString();
+            var sponsorshipAvailableValues = attributeValueService.Queryable().AsNoTracking()
+                .Where( v => v.Attribute.EntityTypeId == definedValueEntityType.Id )
+                .Where( v => v.Attribute.EntityTypeQualifierColumn == "DefinedTypeId" )
+                .Where( v => v.Attribute.EntityTypeQualifierValue == definedTypeIdStr )
+                .Where( v => v.Attribute.Key == "SponsorshipsAvailable" )
+                .Select( v => new { DefinedValueId = v.EntityId, TotalSponsorships = v.ValueAsNumeric } )
+                .ToList();
+
+            SchoolList = definedType.DefinedValues.Where( v => v.IsActive )
+                .Select( d => new SupportedSchool
+                {
+                    Id = d.Id,
+                    Guid = d.Guid,
+                    Name = d.Value,
+                    TotalSponsorships = ((int?) sponsorshipAvailableValues.Where( a => a.DefinedValueId == d.Id ).Select( a => a.TotalSponsorships ).FirstOrDefault()) ?? 0,
+                    ClaimedSponsorships = signups.Where( s => s.School.Id == d.Id ).Select( s => s.SponsoredStudents ).FirstOrDefault()
+                } )
+                .Where( v => v.AvailableSponsorships > 0 )
+                .ToList();
+        }
 
         private void LoadAcknowledgement()
         {
             var rockContext = new RockContext();
             var acknowledgementTemplate = GetAttributeValue( AttributeKeys.AcknowledgementText );
 
-            if(acknowledgementTemplate.IsNullOrWhiteSpace())
+            if (acknowledgementTemplate.IsNullOrWhiteSpace())
             {
                 LoadStep( ActiveStep.CONTACT_INFO );
             }
 
             var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, CurrentPerson );
             lAcknowledgement.Text = acknowledgementTemplate.ResolveMergeFields( mergeFields, GetAttributeValue( AttributeKeys.LavaCommands ) );
-            pnlValidateTermsAgree.Visible = true;
+            pnlValidateTermsAgree.Visible = false;
+            pnlAcknowledgement.Visible = true;
         }
 
         private void LoadContactInfo()
         {
             var autoPopulateContactInfo = GetAttributeValue( AttributeKeys.AutoPopulate ).AsBoolean();
 
-            if(autoPopulateContactInfo && CurrentPerson != null)
+            if (autoPopulateContactInfo && CurrentPerson != null)
             {
-                if(tbFirstName.Text.IsNullOrWhiteSpace() &&
+                if (tbFirstName.Text.IsNullOrWhiteSpace() &&
                     tbLastName.Text.IsNullOrWhiteSpace() &&
                     tbEmail.Text.IsNullOrWhiteSpace() &&
                     tbMobilePhone.Text.IsNullOrWhiteSpace())
@@ -170,13 +265,30 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
 
         private void LoadSchoolSelection()
         {
-            //populate school selection
+            if (ddlSchools.Items.Count == 0 || ddlSchools.SelectedValue == "0")
+            {
+                ddlSchools.DataValueField = "Id";
+                ddlSchools.DataTextField = "DataTextField";
+                ddlSchools.DataSource = SchoolList.OrderBy( s => s.Name ).ToList();
+                ddlSchools.DataBind();
+
+                ddlSchools.Items.Insert( 0, new ListItem( "", "0" ) );
+                nudSponsorships.Enabled = false;
+            }
+            else
+            {
+                nudSponsorships.Enabled = true;
+            }
+
+            pnlSelectSchool.Visible = true;
+
         }
 
-        private void LoadStep(ActiveStep visiblePanel)
+        private void LoadStep( ActiveStep visiblePanel )
         {
             pnlAcknowledgement.Visible = false;
             pnlContactInformation.Visible = false;
+            pnlSelectSchool.Visible = false;
 
             switch (visiblePanel)
             {
@@ -208,9 +320,11 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             COMPLETE
         }
 
-        public class School
+        [Serializable]
+        public class SupportedSchool 
         {
             public int Id { get; set; }
+            public Guid Guid { get; set; }
             public string Name { get; set; }
             public int TotalSponsorships { get; set; }
             public int ClaimedSponsorships { get; set; }
@@ -221,7 +335,16 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
                     return TotalSponsorships - ClaimedSponsorships;
                 }
             }
+            public string DataTextField
+            {
+                get
+                {
+                    return $"{Name} - {AvailableSponsorships} Available";
+                }
+            }
         }
+
+
 
 
     }
