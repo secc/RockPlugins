@@ -237,7 +237,7 @@
                 <div class="row well g-padding-x-0--xs g-width-100-percent--xs g-margin-x-auto--xs">
                     <div class="container">
                         <h3 class="g-font-family--primary">Known Relationships</h3>
-                        <p>Additional adults who should be able to check in your child(ren)</p>
+                        <p>Additional adults who are allowed to check in your child(ren)</p>
                         <div class="row">
                             <asp:PlaceHolder runat="server" ID="phKnownRelationshipSummary"></asp:PlaceHolder>
                         </div>
@@ -322,5 +322,32 @@
                 </div>
             </div>
         </asp:Panel>
-    </ContentTemplate>
+                
+        <script type="text/javascript">
+            // Add Pre-K to the Grade Picker
+            function addPreK ()
+            {
+                var gradePicker = document.querySelector( "[id$='gpGrade']" );
+                if ( gradePicker == null )
+                {
+                    return;
+                }
+                var option = document.createElement( "option" );
+                option.text = "Pre-K / Preschool";
+                option.value = "";
+                gradePicker.add( option, gradePicker.options[ 1 ] );
+            }
+
+            $( document ).ready( function ()
+            {
+                addPreK()
+            } );
+
+            Sys.WebForms.PageRequestManager.getInstance().add_pageLoaded( function ()
+            {
+                addPreK()
+            } );
+        </script>
+        
+    </ContentTemplate>    
 </asp:UpdatePanel>
