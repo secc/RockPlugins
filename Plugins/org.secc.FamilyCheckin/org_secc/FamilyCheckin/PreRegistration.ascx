@@ -197,10 +197,53 @@
             </div>
         </asp:Panel>
 
-        <asp:Panel runat="server" ID="pnlCampus" Visible="false">
+        <asp:Panel runat="server" ID="pnlAdult" Visible="false">
+            <div class="form-container">
+                <h1 class="g-padding-t-50--xs g-margin-b-30--xs g-font-size-30--xs g-font-family--secondary">Tell Us About Each Known Adult</h1>
+                <p class="step-description g-margin-b-30--xs g-font-family--primary">Please provide the information below about each known adult who should be allowed to check in your child(ren). If you have additional adults to add, you will be able to add them on the next screen.</p>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <Rock:RockTextBox runat="server" Label="Adult's First Name" Required="true" ID="tbAdultFirstName" />
+                    </div>
+                    <div class="col-sm-6">
+                        <Rock:RockTextBox runat="server" Label="Adult's Last Name" Required="true" ID="tbAdultLastName" />
+                    </div>
+                </div>
+                <p>Please enter at least one of the following:</p>
+                <div class="row">
+                    <asp:CustomValidator runat="server" ID="cvKnownAdultInfo" OnServerValidate="cvKnownAdultInfo_ServerValidate" ErrorMessage="Please enter at least one of the following: mobile phone number, date of birth, or email address" CssClass="alert alert-danger g-margin-b-10--xs"/>
+                    <div class="col-sm-9">
+                        <Rock:PhoneNumberBox runat="server" Label="Mobile Phone" Required="false" ID="pnbAdultPhone" />
+                    </div>
+                    <div class="col-sm-3">
+                        <Rock:DatePicker runat="server" Label="Date of Birth" Required="false" ID="dpAdultDateOfBirth" StartView="decade" />
+                    </div>
+                    <div class="col-sm-12">
+                        <Rock:EmailBox runat="server" ID="ebAdultEmail" Label="Email" Required="false" />
+                    </div>
+                </div>                
+            </div>
+            <div class="panel-footer clearfix">
+                <Rock:BootstrapButton runat="server" ID="btnAdultAddAnother" Text="Add Another Adult" CssClass="btn btn-primary" OnClick="btnAdultAddAnother_Click" />
+                <Rock:BootstrapButton runat="server" ID="btnAdultNext" Text="Next" CssClass="btn btn-primary" OnClick="btnAdultNext_Click" />
+                <asp:LinkButton runat="server" ID="btnAdultCancel" Text="Cancel" CssClass="btn btn-primary" OnClick="btnAdultCancel_Click" Visible="true" CausesValidation="false" />
+            </div>
+        </asp:Panel>
+
+        <asp:Panel runat="server" ID="pnlAdditionalInfo" Visible="false">
             <div class="form-container">
                 <h1 class="g-padding-t-50--xs g-margin-b-30--xs g-font-size-30--xs g-font-family--secondary">Just a Few More Things</h1>
                 <p class="step-description g-margin-b-30--xs g-font-family--primary">Help us capture any information we may have missed.</p>
+                <div class="row well g-padding-x-0--xs g-width-100-percent--xs g-margin-x-auto--xs">
+                    <div class="container">
+                        <h3 class="g-font-family--primary">Known Relationships</h3>
+                        <p>Additional adults who are allowed to check in your child(ren)</p>
+                        <div class="row">
+                            <asp:PlaceHolder runat="server" ID="phKnownRelationshipSummary"></asp:PlaceHolder>
+                        </div>
+                        <Rock:BootstrapButton runat="server" ID="btnAddKnownRelationship" Text="Add Known Relationship" CssClass="btn btn-primary" OnClick="btnAddKnownRelationship_Click" />
+                    </div>
+                </div>
                 <asp:Panel runat="server" ID="pnlAskCampus" class="row">
                     <div class="col-xs-12">
                         <Rock:CampusPicker runat="server" ID="cpCampus" Label="If you know, what campus will you be attending?" />
@@ -210,7 +253,7 @@
                     <div class="col-xs-12">
                         <Rock:RockTextBox runat="server" ID="tbExtraInformation" TextMode="MultiLine" Rows="5" Label="Extra information we need to know. (Bringing grandchildren or guests, security concerns, etc.)"></Rock:RockTextBox>
                     </div>
-                </div>
+                </div>                
             </div>
             <div class="panel-footer clearfix">
                 <Rock:BootstrapButton runat="server" ID="btnCampusBack" Text="Back" CssClass="btn btn-primary" OnClick="btnCampusBack_Click" />
@@ -246,7 +289,11 @@
                         <Rock:RockLiteral runat="server" Label="Campus:" ID="rlCampus" />
                         <Rock:RockLiteral runat="server" Label="Address:" ID="rlAddress" CssClass="address" />
                         <Rock:RockLiteral runat="server" Label="Extra Information:" ID="rlExtraInformation" />
-                    </div>
+                        <asp:Panel runat="server" ID="pnlKnownAdults" Visible="false">    
+                            <h3 class="g-font-family--primary g-margin-b-10--xs">Known Adults</h3>
+                            <asp:Panel runat="server" ID="pnlKnownAdultsList"></asp:Panel>    
+                        </asp:Panel>
+                    </div>                    
                 </div>
                 <div class="row well g-padding-x-0--xs g-width-100-percent--xs g-margin-x-auto--xs">
                     <div class="col-sm-12">
@@ -262,7 +309,7 @@
                 </div>
             </div>
             <div class="panel-footer clearfix">
-                <Rock:BootstrapButton runat="server" ID="btnReviewBack" Text="Back" CssClass="btn btn-primary" OnClick="btnReviewBack_Click" />
+                <Rock:BootstrapButton runat="server" ID="btnReviewBack" Text="Back" CssClass="btn btn-primary" OnClick="btnReviewBack_Click" CausesValidation="false" />
                 <Rock:BootstrapButton runat="server" ID="btnReviewFinish" Text="Finish" CssClass="btn btn-primary" OnClick="btnReviewFinish_Click" />
             </div>
         </asp:Panel>
@@ -275,5 +322,32 @@
                 </div>
             </div>
         </asp:Panel>
-    </ContentTemplate>
+                
+        <script type="text/javascript">
+            // Add Pre-K to the Grade Picker
+            function addPreK ()
+            {
+                var gradePicker = document.querySelector( "[id$='gpGrade']" );
+                if ( gradePicker == null )
+                {
+                    return;
+                }
+                var option = document.createElement( "option" );
+                option.text = "Pre-K / Preschool";
+                option.value = "";
+                gradePicker.add( option, gradePicker.options[ 1 ] );
+            }
+
+            $( document ).ready( function ()
+            {
+                addPreK()
+            } );
+
+            Sys.WebForms.PageRequestManager.getInstance().add_pageLoaded( function ()
+            {
+                addPreK()
+            } );
+        </script>
+        
+    </ContentTemplate>    
 </asp:UpdatePanel>
