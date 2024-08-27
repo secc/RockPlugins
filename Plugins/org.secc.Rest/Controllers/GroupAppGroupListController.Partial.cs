@@ -11,17 +11,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Net;
 using System.Web.Http;
+using org.secc.Rest.Models;
+using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Rest;
-using System;
-using org.secc.Rest.Models;
-using Rock;
 
 namespace org.secc.Rest.Controllers
 {
@@ -46,9 +45,9 @@ namespace org.secc.Rest.Controllers
 
             var groupServiceHelper = new GroupServiceHelper( rockContext );
             var groupTypeIds = groupServiceHelper.GetGroupTypeIdsFromDefinedType( "Group App Group Types" );
-            var groupsAsLeader = groupServiceHelper.GetGroups( currentUser.Person.Id, groupTypeIds );
+            var groupList = groupServiceHelper.GetGroups( currentUser.Person.Id, groupTypeIds );
 
-            return Ok( groupsAsLeader );
+            return Ok( groupList );
 
         }
 
@@ -161,21 +160,25 @@ namespace org.secc.Rest.Controllers
 
         public List<GroupAppGroup> GetGroups( int currentPersonId, List<int> groupTypeIds )
         {
-            return new GroupMemberService( _rockContext )
-                .Queryable( "Group, GroupRole, Schedule" )
-                .Where( gm => gm.PersonId == currentPersonId &&
-                             groupTypeIds.Contains( gm.Group.GroupTypeId )
-                             && gm.Group.IsActive && !gm.Group.IsArchived)
-                .Select( gm => new GroupAppGroup
-                {
-                    Id = gm.Group.Id,
-                    Name = gm.Group.Name,
-                    IsActive = gm.Group.IsActive,
-                    IsArchived = gm.Group.IsArchived,
-                    IsLeader = gm.GroupRole.IsLeader
-                } )
-                .Distinct()
-                .ToList();
+            var groupMembers = new GroupMemberService( _rockContext )
+            .Queryable( "Group, GroupRole, Group.Campus, Group.Campus.Location, Group.GroupLocations, Group.GroupLocations.Location" )
+            .Where( gm => gm.PersonId == currentPersonId &&
+                         groupTypeIds.Contains( gm.Group.GroupTypeId ) )
+            .ToList();
+
+            return groupMembers.Select( gm => new GroupAppGroup
+            {
+                Id = gm.Group?.Id ?? 0,
+                Name = gm.Group?.Name ?? string.Empty,
+                IsActive = gm.Group?.IsActive ?? false,
+                IsArchived = gm.Group?.IsArchived ?? false,
+                IsLeader = gm.GroupRole?.IsLeader ?? false,
+                LocationName = gm.Group?.GroupLocations.FirstOrDefault() == null ? // If there are no group locations, use the campus location name
+                    ( gm.Group?.Campus?.Location?.Name ?? string.Empty ) : // If there's a campus name, use that
+                        gm.Group.GroupLocations.FirstOrDefault()?.Location?.Name ?? // If there is a group location name, use that
+                        ( gm.Group.GroupLocations.FirstOrDefault()?.Location?.Street1 ?? string.Empty ), // otherwise, use the group location address                            
+                LocationAddress = gm.Group?.GroupLocations.FirstOrDefault()?.Location?.FormattedAddress ?? string.Empty
+            } ).Distinct().ToList();
         }
 
         public List<GroupContentItem> GetGroupContentItems( int groupId )
@@ -186,7 +189,7 @@ namespace org.secc.Rest.Controllers
                 return new List<GroupContentItem>();
             }
             group.LoadAttributes();
-            var groupContentChannelItems = new ContentChannelItemService( _rockContext).GetByGuids(group.GetAttributeValue( "NeighborhoodGroupContent" ).SplitDelimitedValues().AsGuidList());
+            var groupContentChannelItems = new ContentChannelItemService( _rockContext ).GetByGuids( group.GetAttributeValue( "NeighborhoodGroupContent" ).SplitDelimitedValues().AsGuidList() );
             var groupContentItems = new List<GroupContentItem>();
 
             foreach ( var item in groupContentChannelItems )
@@ -206,7 +209,7 @@ namespace org.secc.Rest.Controllers
                         ParticipantGuide = item.GetAttributeValue( "ParticipantGuide" ).AsGuidOrNull(),
                         IceBreakers = item.GetAttributeValue( "IceBreakers" ).AsGuidOrNull()
                     };
-                    
+
                     groupContentItems.Add( groupContentItem );
                 }
             }
