@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Rock;
@@ -93,12 +92,13 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-            LoadSchoolList();
+  
             if (!Page.IsPostBack)
             {
-
+                SchoolList = null;
                 LoadStep( ActiveStep.ACKNOWLEDGEMENT );
             }
+            LoadSchoolList();
         }
         #endregion
 
@@ -123,6 +123,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
 
         protected void btnConfirmationFinish_Click( object sender, EventArgs e )
         {
+            ProcessRegistration();
             LoadStep( ActiveStep.COMPLETE );
         }
 
@@ -190,7 +191,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             var attributeValueService = new AttributeValueService( rockContext );
 
             var workflowAttributeValues = attributeValueService.Queryable().AsNoTracking()
-                .Where( v => v.Attribute.EntityTypeId == workflowTypeCache.Id )
+                .Where( v => v.Attribute.EntityTypeId == workflowEntityType.Id )
                 .Where( v => v.Attribute.EntityTypeQualifierColumn == "WorkflowTypeId" )
                 .Where( v => v.Attribute.EntityTypeQualifierValue == workflowTypeString );
 
@@ -202,12 +203,12 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
                 .Select( w => new
                 {
                     WorkflowId = w.Key,
-                    SchoolGuid = w.FirstOrDefault( v => v.AttributeKey == "School" ),
-                    Sponsorships = w.FirstOrDefault( v => v.AttributeKey == "StudentsToSponsor" )
+                    SchoolGuid = w.FirstOrDefault( v => v.AttributeKey == "School" ).Value,
+                    Sponsorships = w.FirstOrDefault( v => v.AttributeKey == "StudentsToSponsor" ).Value
                 } )
                 .ToList()
                 .GroupBy( s => s.SchoolGuid )
-                .Select( s => new { School = DefinedValueCache.Get( s.Key.Value.AsGuid() ), SponsoredStudents = s.Sum( s1 => s1.Sponsorships.Value.AsInteger() ) } )
+                .Select( s => new { SchoolGuid = s.Key.AsGuid(), SponsoredStudents = s.Sum( s1 => s1.Sponsorships.AsInteger() ) } )
                 .ToList();
 
             var definedType = DefinedTypeCache.Get( definedTypeGuid );
@@ -220,6 +221,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
                 .Select( v => new { DefinedValueId = v.EntityId, TotalSponsorships = v.ValueAsNumeric } )
                 .ToList();
 
+
             SchoolList = definedType.DefinedValues.Where( v => v.IsActive )
                 .Select( d => new SupportedSchool
                 {
@@ -227,7 +229,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
                     Guid = d.Guid,
                     Name = d.Value,
                     TotalSponsorships = ((int?) sponsorshipAvailableValues.Where( a => a.DefinedValueId == d.Id ).Select( a => a.TotalSponsorships ).FirstOrDefault()) ?? 0,
-                    ClaimedSponsorships = signups.Where( s => s.School.Id == d.Id ).Select( s => s.SponsoredStudents ).FirstOrDefault()
+                    ClaimedSponsorships = signups.Where( s => s.SchoolGuid == d.Guid ).Select( s => s.SponsoredStudents ).FirstOrDefault()
                 } )
                 .Where( v => v.AvailableSponsorships > 0 )
                 .ToList();
@@ -264,6 +266,11 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             lConfirmationText.Text = GetAttributeValue( AttributeKeys.ConfirmationText ).ResolveMergeFields( mergeFields, GetAttributeValue( AttributeKeys.LavaCommands ) );
 
             pnlConfirmation.Visible = true;
+        }
+
+        private void LoadCompletePanel()
+        {
+            pnlComplete.Visible = true;
         }
 
         private void LoadContactInfo()
@@ -315,6 +322,8 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             pnlAcknowledgement.Visible = false;
             pnlContactInformation.Visible = false;
             pnlSelectSchool.Visible = false;
+            pnlConfirmation.Visible = false;
+            pnlComplete.Visible = false;
 
             switch (visiblePanel)
             {
@@ -331,10 +340,40 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
                     LoadConfirmation();
                     break;
                 case ActiveStep.COMPLETE:
+                    LoadCompletePanel();
                     break;
                 default:
                     break;
             }
+        }
+
+        private void ProcessRegistration()
+        {
+            var workflowTypeGuid = GetAttributeValue( AttributeKeys.RegistrationWorkflow ).AsGuid();
+            var school = SchoolList.FirstOrDefault( s => s.Id == ddlSchools.SelectedValueAsInt() );
+
+            var attributeValues = new Dictionary<string, string>();
+
+            attributeValues.Add( "FirstName", tbFirstName.Text.Trim() );
+            attributeValues.Add( "LastName", tbLastName.Text.Trim() );
+            attributeValues.Add( "Email", tbEmail.Text.Trim() );
+            attributeValues.Add( "MobilePhone", tbMobilePhone.Text.Trim() );
+            attributeValues.Add( "School", school.Guid.ToString() );
+            attributeValues.Add( "StudentstoSponsor", nudSponsorships.Value.ToString() );
+            attributeValues.Add( "SponsorSiblingGroup", rblSiblingGroups.SelectedValue.AsBoolean().ToString() );
+            attributeValues.Add( "InfoShareDate", RockDateTime.Now.ToShortDateTimeString() );
+
+            var transaction = new Rock.Transactions.LaunchWorkflowTransaction( workflowTypeGuid,
+                $"{attributeValues["FirstName"]} {attributeValues["LastName"]} - Sponsorship Registration" );
+
+            if(CurrentPersonAliasId.HasValue)
+            {
+                transaction.InitiatorPersonAliasId = CurrentPersonAliasId;
+            }
+
+            transaction.WorkflowAttributeValues = attributeValues;
+            Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+
         }
 
 
