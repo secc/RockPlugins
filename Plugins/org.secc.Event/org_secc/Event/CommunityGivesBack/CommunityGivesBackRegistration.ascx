@@ -83,5 +83,29 @@
                 </div>
             </div>
         </asp:Panel>
+        <asp:Panel ID="pnlConfirmation" runat="server" CssClass="panel panel-default" Visible="false">
+            <div class="panel-heading">Please Confirm</div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <asp:Literal ID="lConfirmationText" runat="server" />
+                    </div>
+                </div>
+                <div class="actions">
+                    <asp:Button ID="btnConfirmationBack" runat="server" CssClass="btn btn-back" Text="&lsaquo; Back" OnClick="btnConfirmationBack_Click" Enabled="true" CausesValidation="false" />
+                    <span class="pull-right">
+                        <asp:Button ID="btnConfirmationFinish" runat="server" CssClass="btn btn-primary" Text="Finish &rsaquo;" OnClick="btnConfirmationFinish_Click" Enabled="true" CausesValidation="false" />
+                    </span>
+                </div>
+            </div>
+        </asp:Panel>
+        <asp:Panel ID="pnlComplete" runat="server" CssClass="panel" Visible="false">
+            <div class="panel-body">
+                <div class="alert alert-success">
+                    <h3>Registration Complete</h3>
+                </div>
+                <p>Thank you for registering to serve our local community during this Christmas Season. A representative from your chosen school with be in contact with you soon. If there are any questions, please contact Becky King at BKing@secc.org.</p>
+            </div>
+        </asp:Panel>
     </ContentTemplate>
 </asp:UpdatePanel>

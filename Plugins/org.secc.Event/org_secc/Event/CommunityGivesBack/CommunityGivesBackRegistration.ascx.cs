@@ -116,6 +116,15 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             LoadStep( ActiveStep.CONTACT_INFO );
         }
 
+        protected void btnConfirmationBack_Click( object sender, EventArgs e )
+        {
+            LoadStep( ActiveStep.SCHOOL_SELECTION );
+        }
+
+        protected void btnConfirmationFinish_Click( object sender, EventArgs e )
+        {
+            LoadStep( ActiveStep.COMPLETE );
+        }
 
         protected void btnContactBack_Click( object sender, EventArgs e )
         {
@@ -134,7 +143,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
 
         protected void btnSchoolNext_Click( object sender, EventArgs e )
         {
-
+            LoadStep( ActiveStep.CONFIRMATION );
         }
 
         protected void cbAgreeToTerms_CheckedChanged( object sender, EventArgs e )
@@ -240,6 +249,23 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             pnlAcknowledgement.Visible = true;
         }
 
+        private void LoadConfirmation()
+        {
+            var school = SchoolList.Where( s => s.Id == ddlSchools.SelectedValue.AsInteger() ).FirstOrDefault();
+
+            var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, CurrentPerson );
+            mergeFields.Add( "RegistrantFirstName", tbFirstName.Text.Trim() );
+            mergeFields.Add( "RegistrantLastName", tbLastName.Text.Trim() );
+            mergeFields.Add( "RegistrantEmail", tbEmail.Text.Trim() );
+            mergeFields.Add( "MobileNumber", tbMobilePhone.Text.Trim() );
+            mergeFields.Add( "SchoolName", school.Name );
+            mergeFields.Add( "ChildrenSponsored", nudSponsorships.Value );
+            mergeFields.Add( "SponsorSiblingGroup", rblSiblingGroups.SelectedItem.Text );
+            lConfirmationText.Text = GetAttributeValue( AttributeKeys.ConfirmationText ).ResolveMergeFields( mergeFields, GetAttributeValue( AttributeKeys.LavaCommands ) );
+
+            pnlConfirmation.Visible = true;
+        }
+
         private void LoadContactInfo()
         {
             var autoPopulateContactInfo = GetAttributeValue( AttributeKeys.AutoPopulate ).AsBoolean();
@@ -302,6 +328,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
                     LoadSchoolSelection();
                     break;
                 case ActiveStep.CONFIRMATION:
+                    LoadConfirmation();
                     break;
                 case ActiveStep.COMPLETE:
                     break;
@@ -343,6 +370,8 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
                 }
             }
         }
+
+
 
 
 
