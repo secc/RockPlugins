@@ -13,6 +13,7 @@
 // </copyright>
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Web.Http;
@@ -80,7 +81,8 @@ namespace org.secc.Rest.Controllers
                     group.Name,
                     group.TypeId,
                     group.IsActive,
-                    group.IsArchived
+                    group.IsArchived,
+                    NextSchedule = group.Schedule.GetNextStartDateTime( RockDateTime.Today )
                 }
                 );
             }
@@ -108,12 +110,13 @@ namespace org.secc.Rest.Controllers
                         group.TypeId,
                         group.IsActive,
                         group.IsArchived,
+                        NextSchedule = group.Schedule.GetNextStartDateTime( RockDateTime.Today ),
                         groupContentItems,
                         emailParentsEnabled
                     }
                 );
             }
-        }
+        }        
     }
 
     public class GroupContentItem
@@ -161,12 +164,12 @@ namespace org.secc.Rest.Controllers
         public List<GroupAppGroup> GetGroups( int currentPersonId, List<int> groupTypeIds )
         {
             var groupMembers = new GroupMemberService( _rockContext )
-            .Queryable( "Group, GroupRole, Group.Campus, Group.Campus.Location, Group.GroupLocations, Group.GroupLocations.Location" )
+            .Queryable( "Group, GroupRole, Group.Campus, Group.Campus.Location, Group.GroupLocations, Group.GroupLocations.Location, Group.Schedule" )
             .Where( gm => gm.PersonId == currentPersonId &&
                          groupTypeIds.Contains( gm.Group.GroupTypeId ) )
             .ToList();
 
-            return groupMembers.Select( gm => new GroupAppGroup
+            var groupList = groupMembers.Select( gm => new GroupAppGroup
             {
                 Id = gm.Group?.Id ?? 0,
                 Name = gm.Group?.Name ?? string.Empty,
@@ -177,8 +180,13 @@ namespace org.secc.Rest.Controllers
                     ( gm.Group?.Campus?.Location?.Name ?? string.Empty ) : // If there's a campus name, use that
                         gm.Group.GroupLocations.FirstOrDefault()?.Location?.Name ?? // If there is a group location name, use that
                         ( gm.Group.GroupLocations.FirstOrDefault()?.Location?.Street1 ?? string.Empty ), // otherwise, use the group location address                            
-                LocationAddress = gm.Group?.GroupLocations.FirstOrDefault()?.Location?.FormattedAddress ?? string.Empty
-            } ).Distinct().ToList();
+                LocationAddress = gm.Group?.GroupLocations.FirstOrDefault()?.Location?.FormattedAddress ?? string.Empty,
+                NextSchedule = ( bool ) ( gm.Group?.IsActive ) && ( bool ) ( !gm.Group?.IsArchived ) ? gm.Group?.Schedule?.GetNextStartDateTime( RockDateTime.Today ) ?? // if the first result is null,
+                    //construct the next occurrence from the weeklydayofweek and weeklytimeofday properties on the schedule
+                    ( GetNextWeeklyOccurrence( gm.Group?.Schedule ) ) : null
+            } ).Distinct().OrderByDescending( g => g.IsLeader ).ThenBy( g => g.NextSchedule ).ToList();
+
+            return groupList;
         }
 
         public List<GroupContentItem> GetGroupContentItems( int groupId )
@@ -216,6 +224,32 @@ namespace org.secc.Rest.Controllers
 
 
             return groupContentItems;
+        }
+
+        private DateTime? GetNextWeeklyOccurrence( Schedule schedule )
+        {
+            if ( schedule == null || !schedule.WeeklyDayOfWeek.HasValue || !schedule.WeeklyTimeOfDay.HasValue || !schedule.IsActive )
+            {
+                return null;
+            }
+
+            var today = RockDateTime.Today;
+            var daysUntilNextOccurrence = ( ( int ) schedule.WeeklyDayOfWeek.Value - ( int ) today.DayOfWeek + 7 ) % 7;
+            if ( daysUntilNextOccurrence == 0 && schedule.WeeklyTimeOfDay.Value < RockDateTime.Now.TimeOfDay )
+            {
+                daysUntilNextOccurrence = 7;
+            }
+
+            var nextOccurrenceDate = today.AddDays( daysUntilNextOccurrence );
+            var nextOccurrenceDateTime = nextOccurrenceDate.Add( schedule.WeeklyTimeOfDay.Value );
+
+            // Check if the next occurrence is past the end date of the schedule
+            if ( schedule.EffectiveEndDate.HasValue && nextOccurrenceDateTime > schedule.EffectiveEndDate.Value )
+            {
+                return null;
+            }
+
+            return nextOccurrenceDateTime;
         }
     }
 }

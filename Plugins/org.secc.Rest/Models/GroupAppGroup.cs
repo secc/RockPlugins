@@ -1,4 +1,6 @@
-﻿namespace org.secc.Rest.Models
+﻿using System;
+
+namespace org.secc.Rest.Models
 {
     public class GroupAppGroup
     {
@@ -10,6 +12,6 @@
         public bool EmailParentsEnabled { get; set; }
         public string LocationName { get; set; }
         public string LocationAddress { get; set; }
-
+        public DateTime? NextSchedule { get; set; }
     }
 }
