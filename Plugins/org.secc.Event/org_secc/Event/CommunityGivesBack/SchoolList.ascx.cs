@@ -14,6 +14,7 @@ using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using System.Data.Entity;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 
 namespace RockWeb.Plugins.org_secc.CommunityGivesBack
@@ -42,6 +43,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
         }
 
         private List<SchoolDataItem> _schools = null;
+        private int? _selectedSchoolId = null;
 
         protected List<SchoolDataItem> Schools
         {
@@ -60,11 +62,39 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             }
         }
 
+        protected int? SelectedSchoolId
+        {
+            get
+            {
+                if(_selectedSchoolId == null)
+                {
+                    _selectedSchoolId = ViewState[BlockId + "_SelectedSchoolId"] as int?;
+                }
+                return _selectedSchoolId;
+            }
+            set
+            {
+                _selectedSchoolId = value;
+                ViewState[BlockId + "_SelectedSchoolId"] = _selectedSchoolId;
+            }
+        }
+
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-            gSchoolList.GridRebind += gSchoolList_GridRebind;
             this.BlockUpdated += SchoolList_BlockUpdated;
+
+            gSchoolList.GridRebind += gSchoolList_GridRebind;
+            gSchoolList.Actions.ShowMergePerson = false;
+            gSchoolList.Actions.ShowExcelExport = true;
+            gSchoolList.Actions.ShowAdd = true;
+            gSchoolList.Actions.ShowMergeTemplate = false;
+            gSchoolList.RowItemText = "School";
+
+            gSchoolList.Actions.AddClick += gSchoolList_AddClick;
+            gSchoolList.RowSelected += gSchoolList_RowSelected;
+            mdlSchoolEdit.SaveClick += mdlSchoolEdit_SaveClick;
+            
         }
 
 
@@ -72,9 +102,11 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
         {
             base.OnLoad( e );
 
-            BuildSchoolList();
             if(!IsPostBack)
             {
+                SelectedSchoolId = null;
+                Schools = null;
+                BuildSchoolList();
                 LoadSchoolGrid();
             }
 
@@ -86,6 +118,33 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             LoadSchoolGrid();
         }
 
+        private void gSchoolList_AddClick( object sender, EventArgs e )
+        {
+            ClearSchoolModal();
+            mdlSchoolEdit.Show();
+        }
+
+        protected void gSchoolListItem_Edit( object sender, RowEventArgs e )
+        {
+            LoadSchoolForEdit((int) e.RowKeyValue);
+        }
+
+        private void gSchoolList_RowSelected( object sender, RowEventArgs e )
+        {
+            var schoolId = (int) e.RowKeyValue;
+            //todo: redirect user to details page
+
+        }
+
+        private void mdlSchoolEdit_SaveClick( object sender, EventArgs e )
+        {
+            if(SaveSchoolRecord())
+            {
+                mdlSchoolEdit.Hide();
+                BuildSchoolList();
+                LoadSchoolGrid();
+            }
+        }
 
         private void SchoolList_BlockUpdated( object sender, EventArgs e )
         {
@@ -178,14 +237,42 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
 
                 } ).ToList();
 
-
-            
-
-
-
         }
 
-        public void LoadSchoolGrid()
+        private void ClearSchoolModal()
+        {
+            SelectedSchoolId = null;
+            tbSchoolName.Text = string.Empty;
+            tbTeacherName.Text = string.Empty;
+            tbTeacherEmail.Text = string.Empty;
+            tbSponsorships.Text = string.Empty;
+            cbActive.Checked = true;
+        }
+
+        private void LoadSchoolForEdit(int id)
+        {
+            ClearSchoolModal();
+            using (var rockContext = new RockContext())
+            {
+                var school = new DefinedValueService( rockContext ).Get( id );
+                if(school == null)
+                {
+                    SelectedSchoolId = null;
+                    return;
+                }
+                SelectedSchoolId = school.Id;
+                school.LoadAttributes( rockContext );
+                tbSchoolName.Text = school.Value;
+                tbTeacherName.Text = school.GetAttributeValue( "ResourceTeacherName" );
+                tbTeacherEmail.Text = school.GetAttributeValue( "ResourceTeacherEmail" );
+                tbSponsorships.Text = school.GetAttributeValue( "SponsorshipsAvailable" ).AsInteger().ToString();
+                cbActive.Checked = school.IsActive;
+            }
+
+            mdlSchoolEdit.Show();
+        }
+
+        private void LoadSchoolGrid()
         {
             if(Schools == null)
             {
@@ -196,6 +283,41 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             gSchoolList.DataBind();
 
             pnlSchoolList.Visible = true;
+        }
+
+        private bool SaveSchoolRecord()
+        {
+            var rockContext = new RockContext();
+            var definedValueService = new DefinedValueService( rockContext );
+
+            var school = new DefinedValue();
+            if(SelectedSchoolId.HasValue && SelectedSchoolId > 0)
+            {
+                school = definedValueService.Get( SelectedSchoolId.Value );
+            }
+            else
+            {
+                school.DefinedTypeId = DefinedTypeCache.GetId( GetAttributeValue( AttributeKeys.SchoolDefinedType ).AsGuid() ).Value;
+                school.Guid = Guid.NewGuid();
+                definedValueService.Add( school );
+            }
+
+            school.Value = tbSchoolName.Text.Trim();
+            school.IsActive = cbActive.Checked;
+
+            rockContext.SaveChanges();
+
+            school.LoadAttributes( rockContext );
+            school.SetAttributeValue( "ResourceTeacherName", tbTeacherName.Text.Trim() );
+            school.SetAttributeValue( "ResourceTeacherEmail", tbTeacherEmail.Text.Trim() );
+            school.SetAttributeValue( "SponsorshipsAvailable", tbSponsorships.Text.AsInteger() );
+
+            school.SaveAttributeValues( rockContext );
+            rockContext.SaveChanges();
+
+
+            return school.Id > 0;
+
         }
 
 
@@ -217,5 +339,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
                 }
             }
         }
+
+
     }
 }

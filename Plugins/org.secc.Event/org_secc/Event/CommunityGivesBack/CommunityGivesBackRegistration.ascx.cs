@@ -222,7 +222,10 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
                 .ToList();
 
 
-            SchoolList = definedType.DefinedValues.Where( v => v.IsActive )
+            SchoolList = new DefinedValueService( rockContext ).Queryable()
+                .Where( v => v.DefinedTypeId == definedType.Id )
+                .Where( v => v.IsActive )
+                .ToList()
                 .Select( d => new SupportedSchool
                 {
                     Id = d.Id,
@@ -350,30 +353,28 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
         private void ProcessRegistration()
         {
             var workflowTypeGuid = GetAttributeValue( AttributeKeys.RegistrationWorkflow ).AsGuid();
+            var workflowTypeCache = WorkflowTypeCache.Get( workflowTypeGuid );
             var school = SchoolList.FirstOrDefault( s => s.Id == ddlSchools.SelectedValueAsInt() );
 
-            var attributeValues = new Dictionary<string, string>();
 
-            attributeValues.Add( "FirstName", tbFirstName.Text.Trim() );
-            attributeValues.Add( "LastName", tbLastName.Text.Trim() );
-            attributeValues.Add( "Email", tbEmail.Text.Trim() );
-            attributeValues.Add( "MobilePhone", tbMobilePhone.Text.Trim() );
-            attributeValues.Add( "School", school.Guid.ToString() );
-            attributeValues.Add( "StudentstoSponsor", nudSponsorships.Value.ToString() );
-            attributeValues.Add( "SponsorSiblingGroup", rblSiblingGroups.SelectedValue.AsBoolean().ToString() );
-            attributeValues.Add( "InfoShareDate", RockDateTime.Now.ToShortDateTimeString() );
-
-            var transaction = new Rock.Transactions.LaunchWorkflowTransaction( workflowTypeGuid,
-                $"{attributeValues["FirstName"]} {attributeValues["LastName"]} - Sponsorship Registration" );
-
+            var workflowTitle = $"{tbFirstName.Text.Trim()} {tbLastName.Text.Trim()} - Sponsorship Registration";
+            var workflow = Workflow.Activate( workflowTypeCache, workflowTitle );
             if(CurrentPersonAliasId.HasValue)
             {
-                transaction.InitiatorPersonAliasId = CurrentPersonAliasId;
+                workflow.InitiatorPersonAliasId = CurrentPersonAliasId;
             }
 
-            transaction.WorkflowAttributeValues = attributeValues;
-            Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+            workflow.SetAttributeValue( "FirstName", tbFirstName.Text.Trim() );
+            workflow.SetAttributeValue( "LastName", tbLastName.Text.Trim() );
+            workflow.SetAttributeValue( "Email", tbEmail.Text.Trim() );
+            workflow.SetAttributeValue( "MobilePhone", tbMobilePhone.Text.Trim() );
+            workflow.SetAttributeValue( "School", school.Guid.ToString() );
+            workflow.SetAttributeValue( "StudentstoSponsor", nudSponsorships.Value.ToString() );
+            workflow.SetAttributeValue( "SponsorSiblingGroup", rblSiblingGroups.SelectedValue.AsBoolean().ToString() );
+            workflow.SetAttributeValue( "InfoShareDate", RockDateTime.Now.ToRfc822DateTime() );
 
+            List<string> errors = new List<string>();
+            new WorkflowService( new RockContext() ).Process( workflow, out errors );
         }
 
 
