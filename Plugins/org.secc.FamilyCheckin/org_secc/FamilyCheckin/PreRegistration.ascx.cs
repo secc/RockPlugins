@@ -501,6 +501,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             {
                 child.MedicalConsent = $"{tbSignature.Text} {String.Format( "{0:MM/dd/yy}", dpSignatureDate.SelectedDate )}";
                 var newChild = child.SaveAsPerson( family.Id, rockContext );
+                newChild.Gender = child.Gender == "Male" ? Gender.Male : Gender.Female;
                 createdChildren.Add( newChild );
             }
 
