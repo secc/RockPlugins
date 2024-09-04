@@ -14,7 +14,7 @@ using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using System.Data.Entity;
-using DocumentFormat.OpenXml.Wordprocessing;
+using Org.BouncyCastle.Crypto.Parameters;
 
 
 namespace RockWeb.Plugins.org_secc.CommunityGivesBack
@@ -32,19 +32,29 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             Description = "Community Gives Back Workflow Type",
             IsRequired = true,
             AllowMultiple = false,
-            Order = 4,
+            Order = 1,
             Key = AttributeKeys.RegistrationWorkflow )]
+    [LinkedPage("School Registration Page",
+        Description = "Page that contains a list of the sponsorship registrations.",
+        IsRequired = false,
+        Key = AttributeKeys.RegistrationListPage,
+        Order = 2)]
     public partial class SchoolList : RockBlock
     {
         public class AttributeKeys
         {
             public const string SchoolDefinedType = "SchoolDefinedType";
             public const string RegistrationWorkflow = "RegistrationWorkflow";
+            public const string RegistrationListPage = "RegistrationListPage";
         }
+
+        #region Fields
 
         private List<SchoolDataItem> _schools = null;
         private int? _selectedSchoolId = null;
+        #endregion
 
+        #region Properties
         protected List<SchoolDataItem> Schools
         {
             get
@@ -78,7 +88,9 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
                 ViewState[BlockId + "_SelectedSchoolId"] = _selectedSchoolId;
             }
         }
+        #endregion 
 
+        #region Base Control Methods
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
@@ -102,7 +114,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
         {
             base.OnLoad( e );
 
-            if(!IsPostBack)
+            if (!IsPostBack)
             {
                 SelectedSchoolId = null;
                 Schools = null;
@@ -110,9 +122,10 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
                 LoadSchoolGrid();
             }
 
-
         }
+        #endregion
 
+        #region Events
         private void gSchoolList_GridRebind( object sender, GridRebindEventArgs e )
         {
             LoadSchoolGrid();
@@ -132,8 +145,10 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
         private void gSchoolList_RowSelected( object sender, RowEventArgs e )
         {
             var schoolId = (int) e.RowKeyValue;
-            //todo: redirect user to details page
-
+            var schoolGuid = DefinedValueCache.Get( schoolId ).Guid;
+            var pageParams = new Dictionary<string, string>();
+            pageParams.Add( "School", schoolGuid.ToString() );
+            NavigateToLinkedPage( AttributeKeys.RegistrationListPage, pageParams );
         }
 
         private void mdlSchoolEdit_SaveClick( object sender, EventArgs e )
@@ -153,6 +168,9 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             LoadSchoolGrid();
         }
 
+        #endregion
+
+        #region Methods
         private void BuildSchoolList()
         {
             if(Schools != null)
@@ -319,8 +337,9 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             return school.Id > 0;
 
         }
+        #endregion
 
-
+        #region Helper Class
         [Serializable]
         public class SchoolDataItem
         {
@@ -339,7 +358,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
                 }
             }
         }
-
+        #endregion
 
     }
 }

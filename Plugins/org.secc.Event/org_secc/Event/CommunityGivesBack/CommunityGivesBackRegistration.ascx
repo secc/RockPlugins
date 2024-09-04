@@ -16,7 +16,7 @@
                             </ul>
                         </asp:Panel>
 
-                        <Rock:RockCheckBox ID="cbAgreeToTerms" runat="server" Label="I have read and agree to these terms." AutoPostBack="true" OnCheckedChanged="cbAgreeToTerms_CheckedChanged" />
+                        <Rock:RockCheckBox ID="cbAgreeToTerms" runat="server" Label="I have read and agree to these terms." CssClass="required" AutoPostBack="true" OnCheckedChanged="cbAgreeToTerms_CheckedChanged" />
                         <span class="pull-right">
                             <asp:Button ID="btnAcknowledgeNext" runat="server" CssClass="btn btn-primary" Text="Next &rsaquo;" OnClick="btnAcknowledgeNext_Click" Enabled="false" />
                         </span>
