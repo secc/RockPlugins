@@ -22,6 +22,7 @@ using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Rest;
+using Rock.Web.Cache;
 
 namespace org.secc.Rest.Controllers
 {
@@ -172,6 +173,7 @@ namespace org.secc.Rest.Controllers
             var groupList = groupMembers.Select( gm => new GroupAppGroup
             {
                 Id = gm.Group?.Id ?? 0,
+                GroupTypeId = gm.Group?.GroupTypeId,
                 Name = gm.Group?.Name ?? string.Empty,
                 IsActive = gm.Group?.IsActive ?? false,
                 IsArchived = gm.Group?.IsArchived ?? false,
@@ -183,7 +185,10 @@ namespace org.secc.Rest.Controllers
                 LocationAddress = gm.Group?.GroupLocations.FirstOrDefault()?.Location?.FormattedAddress ?? string.Empty,
                 NextSchedule = ( bool ) ( gm.Group?.IsActive ) && ( bool ) ( !gm.Group?.IsArchived ) ? gm.Group?.Schedule?.GetNextStartDateTime( RockDateTime.Today ) ?? // if the first result is null,
                     //construct the next occurrence from the weeklydayofweek and weeklytimeofday properties on the schedule
-                    ( GetNextWeeklyOccurrence( gm.Group?.Schedule ) ) : null
+                    ( GetNextWeeklyOccurrence( gm.Group?.Schedule ) ) : null,
+                Url = gm.Group?.IsPublic == true ?
+                        GlobalAttributesCache.Value( "PublicApplicationRoot" ) + "groups/homegroups/registration/" + gm.Group?.Id
+                    : null
             } ).Distinct().OrderByDescending( g => g.IsLeader ).ThenBy( g => g.NextSchedule ).ToList();
 
             return groupList;

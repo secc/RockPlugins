@@ -5,6 +5,7 @@ namespace org.secc.Rest.Models
     public class GroupAppGroup
     {
         public int Id { get; set; }
+        public int? GroupTypeId { get; set; }
         public string Name { get; set; }
         public bool IsActive { get; set; }
         public bool IsArchived { get; set; }
@@ -13,5 +14,6 @@ namespace org.secc.Rest.Models
         public string LocationName { get; set; }
         public string LocationAddress { get; set; }
         public DateTime? NextSchedule { get; set; }
+        public string Url { get; set; }
     }
 }
