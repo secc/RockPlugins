@@ -27,25 +27,10 @@ cp -r "$PathToRock" "$PathToTempSrcFolder"
 
 # Copy Plugins
 echo "Copying secc plugins to temporary src folder"
-#cp -r "$PathToPlugins" "$PathToTempSrcFolder/Rock/secc"
+cp -r "$PathToPlugins" "$PathToTempSrcFolder/Rock/secc"
 
 # Add all Plugin projects to the Rock solution
-#find "$PathToTempSrcFolder/Rock/secc" -name "*.csproj" ! -path "*/Tools/*" -exec dotnet sln "$PathToTempSrcFolder/Rock/Rock.sln" add {} \;
-
-
-
-# Update the Net framwork version
-if [ -n "$UpdateSeccNetFramework" ]; then
-    echo "Updating .NET Framework version to $UpdateSeccNetFramework..."
-#    find "$PathToTempSrcFolder/Rock/secc" -name "*.csproj" ! -path "*/Tools/*" -exec sed -i "s|<TargetFrameworkVersion>.*</TargetFrameworkVersion>|<TargetFrameworkVersion>$UpdateSeccNetFramework</TargetFrameworkVersion>|g" {} \;
-    # This is needed for V1.13.7
-    echo "Adding SECC Plugin references to Rock.Common so it works for version 13"
- #   find "$PathToTempSrcFolder/Rock/secc" -name "*.csproj" ! -path "*/Tools/*" -exec sh -c 'dotnet add "$1" reference "$2"' _ {} "$PathToTempSrcFolder/Rock/Rock.Common/Rock.Common.csproj" \;
-
-
-else
-    echo "UpdateSeccNetFramework is empty. Skipping .NET Framework version update."
-fi
+find "$PathToTempSrcFolder/Rock/secc" -name "*.csproj" ! -path "*/Tools/*" -exec dotnet sln "$PathToTempSrcFolder/Rock/Rock.sln" add {} \;
 
 if [ -d "$PathToRock/Rock.JavaScript.EditorJs" ]; then 
     echo "Installing Rock.Javascript.EditorJs dependencies"
@@ -57,7 +42,7 @@ if [ -d "$PathToRock/Rock.JavaScript.EditorJs" ]; then
     cd -
 fi 
 # Create Symbolic links
-#./makelinks.sh 
+./makelinks.sh 
 
 # Copy connection strings
 cp web.ConnectionStrings.config $PathToTempSrcFolder/Rock/RockWeb/web.ConnectionStrings.config
