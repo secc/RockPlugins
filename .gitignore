@@ -11,3 +11,4 @@ Tools/**/packages/
 .DS_Store
 prepros-6.config
 .system
+.idea
