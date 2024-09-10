@@ -1,6 +1,6 @@
 {% assign currentDate = 'Now' | Date:'yyyyMMddHHmm' | AsDouble %}
 
-<link rel="stylesheet" href="/Themes/SECC2024/Styles/pages/easter2019/base.css" />
+<link rel="stylesheet" href="/Themes/SECC2019/Styles/pages/easter2019/base.css" />
 <script src="https://use.typekit.net/osx6gkw.js"></script>
 <script>try{Typekit.load({ async: true });}catch(e){}</script>
 
@@ -135,7 +135,7 @@
                                             <h4 class="uppercase g-font-weight--800">
                                                 Blankenbaker<br>
                                             </h4>
-                                            <img src="/Themes/SECC2024/Assets/img/SE/Campuses/920.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/920.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
                                             </div>
                                           </a>
                                       </div>
@@ -148,7 +148,7 @@
                                             <h4 class="uppercase g-font-weight--800">
                                                 Indiana<br>
                                             </h4>
-                                            <img src="/Themes/SECC2024/Assets/img/SE/Campuses/IN.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/IN.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
                                             </div>
                                           </a>
                                       </div>
@@ -161,7 +161,7 @@
                                             <h4 class="uppercase g-font-weight--800">
                                                 Crestwood<br>
                                             </h4>
-                                            <img src="/Themes/SECC2024/Assets/img/SE/Campuses/CW.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/CW.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
                                             </div>
                                           </a>
                                       </div>
@@ -175,7 +175,7 @@
                                             <h4 class="uppercase g-font-weight--800">
                                                 Southwest<br>
                                             </h4>
-                                            <img src="/Themes/SECC2024/Assets/img/SE/Campuses/SW.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/SW.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
                                             </div>
                                           </a>
                                       </div>
@@ -188,7 +188,7 @@
                                             <h4 class="uppercase g-font-weight--800">
                                                 La Grange<br>
                                             </h4>
-                                            <img src="/Themes/SECC2024/Assets/img/SE/Campuses/LA.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/LA.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
                                             </div>
                                           </a>
                                       </div>
@@ -201,7 +201,7 @@
                                             <h4 class="uppercase g-font-weight--800">
                                                 Elizabethtown<br>
                                             </h4>
-                                            <img src="/Themes/SECC2024/Assets/img/SE/Campuses/ET.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/ET.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
                                             </div>
                                           </a>
                                       </div>
@@ -214,7 +214,7 @@
                                             <h4 class="uppercase g-font-weight--800">
                                                 River Valley<br>
                                             </h4>
-                                            <img src="/Themes/SECC2024/Assets/img/SE/Campuses/RV.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
+                                            <img src="/Themes/SECC2019/Assets/img/SE/Campuses/RV.jpg" class="img-circle g-width-250--xs g-margin-y-20--xs" style="padding: 3px;">
                                             </div>
                                           </a>
                                       </div>
@@ -286,7 +286,7 @@
                 {% for campus in Campuses %}
                     {% assign publicCampus = campus | Attribute:'Public' %}
                     {% assign slug = campus | Attribute:'Slug' %}
-                        [[ marker location:'{{ campus.Location.Latitude }},{{ campus.Location.Longitude }}' title:'{{ campus.Name }} Campus' icon:'/Themes/SECC2024/Assets/img/Easter2019/map/marker-{{ campus | Attribute:'Slug' }}.png' ]]
+                        [[ marker location:'{{ campus.Location.Latitude }},{{ campus.Location.Longitude }}' title:'{{ campus.Name }} Campus' icon:'/Themes/SECC2019/Assets/img/Easter2019/map/marker-{{ campus | Attribute:'Slug' }}.png' ]]
                             <h3 class="text-center uppercase g-font-weight--800" style="margin: 10px 0px;">{{ campus.Name }}</h3>
                             <p class="text-center"><a style="width: 100%;" class="folio-project uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" onclick="googleCallbackLocations('/easter{{ campus | Attribute:'Slug' | Capitalize }} #campus-easter-info', this)" href="javascript:void(0)">Campus Info</a></p>
                             <p class="text-center"><a style="width: 100%;" class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" target="_blank" href="https://www.google.com/maps/dir/Current+Location/{{ campus.Location.Street1 | Replace:' ','+' }}+{{ campus.Location.City | Replace:' ','+' }}+{{ campus.Location.State | Replace:' ','+' }}+{{ campus.Location.PostalCode | Replace:' ','+' }}">Directions</a></p>

@@ -6,7 +6,7 @@
 }
 </style>
 
-<div class="">
+<div class="container">
 
     {% if eventItemOccurrenceCount == 0 and noMessages == true %}
     <div class="row">
@@ -72,7 +72,6 @@
                 {% endif %}
                 <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-day="{{ eventItemOccurrence.Date | Date: 'dddd'}}">
                     <div class="clearfix card">
-                        {%comment%}
                         <a href="{{ eventLinkURL }}" class='eventCardLink'>
                             {% if eventItemOccurrence.EventItemPhotoId != null and eventItemOccurrence.EventItemPhotoId != 0 %}
                             <div class="img-hover">
@@ -84,7 +83,6 @@
                             </div>
                             {% endif %}
                         </a>
-                        {%endcomment%}
 
                         {% assign scheduledDates = eventItemOccurrence.ICalendarContent | Split: 'RRULE' %}
                         {% assign scheduledNumDates = scheduledDates | Size %}

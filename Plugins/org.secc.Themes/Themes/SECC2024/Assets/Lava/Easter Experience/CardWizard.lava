@@ -1,6 +1,6 @@
 <div id="signup-parent" style="height: 1362px;">
     <div id="signup-container" style="display: none;">
-		{% include '~/Themes/SECC2024/Assets/Lava/Easter Experience/CardWizard/Partition.lava' %}
+		{% include '~/Themes/SECC2019/Assets/Lava/Easter Experience/CardWizard/Partition.lava' %}
     </div>
 </div>
 <style>

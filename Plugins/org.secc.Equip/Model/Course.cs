@@ -5,6 +5,7 @@ using System.Data.Entity.ModelConfiguration;
 using System.Linq;
 using System.Runtime.Serialization;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Security;
 
@@ -57,21 +58,21 @@ namespace org.secc.Equip.Model
         [DataMember]
         public int? AllowedGroupId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual Group AllowedGroup { get; set; }
 
         [DataMember]
         public int? AllowedDataViewId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual DataView AllowedDataView { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual BinaryFile Image { get; set; }
 
         /// <summary>Gets or sets the category.</summary>
         /// <value>The category.</value>
-        [LavaInclude]
+        [LavaVisible]
         public virtual Category Category { get; set; }
 
         [DataMember]
@@ -79,7 +80,7 @@ namespace org.secc.Equip.Model
 
         /// <summary>Gets or sets the course chapters.</summary>
         /// <value>The course chapters.</value>
-        [LavaInclude]
+        [LavaVisible]
         public virtual ICollection<Chapter> Chapters { get; set; }
 
         [NotMapped]
@@ -115,7 +116,13 @@ namespace org.secc.Equip.Model
             if ( this.AllowedDataView != null )
             {
                 var errorMessages = new List<string>();
-                var qry = AllowedDataView.GetQuery( null, new RockContext(), 300, out errorMessages );
+                var qryArgs = new DataViewGetQueryArgs
+                {
+                    DbContext = new RockContext(),
+                    DatabaseTimeoutSeconds = 300,
+                    SortProperty = null
+                };
+                var qry = AllowedDataView.GetQuery( qryArgs );
                 if ( qry.Any( e => e.Id == person.Id ) )
                 {
                     return true;

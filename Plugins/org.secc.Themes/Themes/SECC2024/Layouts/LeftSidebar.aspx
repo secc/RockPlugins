@@ -21,10 +21,10 @@
 
 
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <Rock:Zone Name="Sidebar 1" runat="server" />
             </div>
-            <div class="col-md-8">
+            <div class="col-md-9">
                 <Rock:Zone Name="Main" runat="server" />
             </div>
         </div>

@@ -114,7 +114,7 @@
                             </h5>
                         </a>
                     </div>
-                    <script src="/Themes/SECC2024/Scripts/jquery-modal-video.js"></script>
+                    <script src="/Themes/SECC2019/Scripts/jquery-modal-video.js"></script>
                     <script>
                     $(document).ready(function() {
                         initModalVideo();

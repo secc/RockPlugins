@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>org.secc.PayPalExpress</RootNamespace>
     <AssemblyName>org.secc.PayPalExpress</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -42,13 +42,11 @@
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="PayPalCoreSDK, Version=1.7.0.0, Culture=neutral, PublicKeyToken=5b4afc1ccaef40fb, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\PayPalCoreSDK.1.7.0\lib\net451\PayPalCoreSDK.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="PayPalCoreSDK, Version=1.7.1.0, Culture=neutral, PublicKeyToken=5b4afc1ccaef40fb, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)packages\PayPalCoreSDK.1.7.1\lib\net451\PayPalCoreSDK.dll</HintPath>
     </Reference>
     <Reference Include="PayPalMerchantSDK, Version=2.16.117.0, Culture=neutral, PublicKeyToken=5b4afc1ccaef40fb, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\PayPalMerchantSDK.2.16.117\lib\net20\PayPalMerchantSDK.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -78,6 +76,14 @@
     <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
       <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)\Rock.Common\Rock.Common.csproj">
+      <Project>{13568622-324e-4493-b605-c9896e725d30}</Project>
+      <Name>Rock.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)\Rock.Lava.Shared\Rock.Lava.Shared.csproj">
+      <Project>{8820cd93-70ee-496d-b17b-0c4c68dd4957}</Project>
+      <Name>Rock.Lava.Shared</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

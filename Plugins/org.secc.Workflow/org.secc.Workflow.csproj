@@ -8,9 +8,10 @@
     <OutputType>Library</OutputType>
     <RootNamespace>org.secc.Workflow</RootNamespace>
     <AssemblyName>org.secc.Workflow</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -50,24 +51,25 @@
     <Reference Include="Magick.NET.Core, Version=4.1.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\Magick.NET.Core.4.1.0\lib\net40\Magick.NET.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Logging, Version=1.1.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\Microsoft.IdentityModel.Logging.1.1.5\lib\net451\Microsoft.IdentityModel.Logging.dll</HintPath>
+    <Reference Include="Microsoft.IdentityModel.Logging, Version=5.2.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)packages\Microsoft.IdentityModel.Logging.5.2.1\lib\net451\Microsoft.IdentityModel.Logging.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.IdentityModel.Tokens, Version=5.1.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\Microsoft.IdentityModel.Tokens.5.1.5\lib\net451\Microsoft.IdentityModel.Tokens.dll</HintPath>
+    <Reference Include="Microsoft.IdentityModel.Tokens, Version=5.2.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)packages\Microsoft.IdentityModel.Tokens.5.2.1\lib\net451\Microsoft.IdentityModel.Tokens.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
-    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=5.1.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\System.IdentityModel.Tokens.Jwt.5.1.5\lib\net451\System.IdentityModel.Tokens.Jwt.dll</HintPath>
+    <Reference Include="System.IdentityModel.Tokens.Jwt, Version=5.2.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>$(SolutionDir)packages\System.IdentityModel.Tokens.Jwt.5.2.1\lib\net451\System.IdentityModel.Tokens.Jwt.dll</HintPath>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
@@ -88,6 +90,14 @@
     <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
       <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
       <Name>Rock</Name>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)\Rock.Common\Rock.Common.csproj">
+      <Project>{13568622-324e-4493-b605-c9896e725d30}</Project>
+      <Name>Rock.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)\Rock.Lava.Shared\Rock.Lava.Shared.csproj">
+      <Project>{8820cd93-70ee-496d-b17b-0c4c68dd4957}</Project>
+      <Name>Rock.Lava.Shared</Name>
     </ProjectReference>
     <ProjectReference Include="..\org.secc.PersonMatch\org.secc.PersonMatch.csproj">
       <Project>{26cc0ba6-968b-4464-9992-d1d3510af9ab}</Project>

@@ -21,20 +21,7 @@ namespace org.secc.GroupManager.Migrations
     {
         public override void Up()
         {
-            Sql( @"
-ALTER TABLE [dbo].[_org_secc_GroupManager_PublishGroup] ADD PRIMARY KEY (ID); 
-
-CREATE INDEX[IX_GroupId] ON[dbo].[_org_secc_GroupManager_PublishGroup]([GroupId] )
-CREATE INDEX[IX_ImageId] ON[dbo].[_org_secc_GroupManager_PublishGroup]([ImageId])
-CREATE INDEX[IX_StartDateTime] ON[dbo].[_org_secc_GroupManager_PublishGroup]([StartDateTime])
-CREATE INDEX[IX_EndDateTime] ON[dbo].[_org_secc_GroupManager_PublishGroup]([EndDateTime])
-CREATE INDEX[IX_RequestorAliasId] ON[dbo].[_org_secc_GroupManager_PublishGroup]([RequestorAliasId])
-CREATE INDEX[IX_ContactPersonAliasId] ON[dbo].[_org_secc_GroupManager_PublishGroup]([ContactPersonAliasId])
-CREATE INDEX[IX_CreatedByPersonAliasId] ON[dbo].[_org_secc_GroupManager_PublishGroup]([CreatedByPersonAliasId])
-CREATE INDEX[IX_ModifiedByPersonAliasId] ON[dbo].[_org_secc_GroupManager_PublishGroup]([ModifiedByPersonAliasId])
-CREATE UNIQUE INDEX[IX_Guid] ON[dbo].[_org_secc_GroupManager_PublishGroup]([Guid])
-
-ALTER TABLE _org_secc_GroupManager_PublishGroup ADD CONSTRAINT FK__org_secc_GroupManager_PublishGroup_GroupId FOREIGN KEY (GroupId) REFERENCES [Group](Id);
+            Sql( @"ALTER TABLE _org_secc_GroupManager_PublishGroup ADD CONSTRAINT FK__org_secc_GroupManager_PublishGroup_GroupId FOREIGN KEY (GroupId) REFERENCES [Group](Id);
 ALTER TABLE _org_secc_GroupManager_PublishGroup ADD CONSTRAINT FK__org_secc_GroupManager_PublishGroup_ContactPersonAliasId FOREIGN KEY (ContactPersonAliasId) REFERENCES [PersonAlias](Id);
 ALTER TABLE _org_secc_GroupManager_PublishGroup ADD CONSTRAINT FK__org_secc_GroupManager_PublishGroup_RequestorAliasId FOREIGN KEY (RequestorAliasId) REFERENCES [PersonAlias](Id);
 ALTER TABLE _org_secc_GroupManager_PublishGroup ADD CONSTRAINT FK__org_secc_GroupManager_PublishGroup_CreatedByPersonAliasId FOREIGN KEY (CreatedByPersonAliasId) REFERENCES [PersonAlias](Id);

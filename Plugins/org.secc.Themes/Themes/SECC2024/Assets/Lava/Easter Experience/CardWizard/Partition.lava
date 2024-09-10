@@ -36,16 +36,16 @@
 					{% if partitionSize > 0 or CardWizardMode == "Single" %}
 						{% if partition.PartitionType == 'DefinedType' %}
 							{% if forloop.first %}<h3 class="section-header">Please select from the following:</h3>{% endif %}
-							{% include '~/Themes/SECC2024/Assets/Lava/Easter Experience/CardWizard/CardDefinedType.lava' %}
+							{% include '~/Themes/SECC2019/Assets/Lava/Easter Experience/CardWizard/CardDefinedType.lava' %}
 						{% elseif partition.PartitionType == 'Schedule' %}
 							{% if forloop.first %}<h3 class="section-header">Please select your schedule:</h3>{% endif %}
-							{% include '~/Themes/SECC2024/Assets/Lava/Easter Experience/CardWizard/CardSchedule.lava' %}
+							{% include '~/Themes/SECC2019/Assets/Lava/Easter Experience/CardWizard/CardSchedule.lava' %}
 						{% elseif partition.PartitionType == 'Campus' %}
 							{% if forloop.first %}<h3 class="section-header">Please select your campus:</h3>{% endif %}
-							{% include '~/Themes/SECC2024/Assets/Lava/Easter Experience/CardWizard/CardCampus.lava' %}
+							{% include '~/Themes/SECC2019/Assets/Lava/Easter Experience/CardWizard/CardCampus.lava' %}
 						{% elseif partition.PartitionType == 'Role' %}
 							{% if forloop.first %}<h3 class="section-header">Please select your serving role:</h3>{% endif %}
-							{% include '~/Themes/SECC2024/Assets/Lava/Easter Experience/CardWizard/CardRole.lava' %}
+							{% include '~/Themes/SECC2019/Assets/Lava/Easter Experience/CardWizard/CardRole.lava' %}
 						{% endif %}
 					{% else %}
 						{% assign parameterName = partition.ParameterName %}
@@ -59,7 +59,7 @@
 						{% elseif partition.PartitionType == 'Role' and forloop.first %}
 							<h3 class="section-header">Please select your serving role(s):</h3>
 						{% endif %}
-						{% include '~/Themes/SECC2024/Assets/Lava/Easter Experience/CardWizard/PartitionList.lava' %}
+						{% include '~/Themes/SECC2019/Assets/Lava/Easter Experience/CardWizard/PartitionList.lava' %}
 					{% endif %}
 	            {% endfor %}
 	            </div>
@@ -81,7 +81,7 @@
 			{% if partitionSize > 0 %}
 				{% assign Tree = partition.Partitions %}
 				{% assign parentPartition = partition %}
-				{% include '~/Themes/SECC2024/Assets/Lava/Easter Experience/CardWizard/Partition.lava' %}
+				{% include '~/Themes/SECC2019/Assets/Lava/Easter Experience/CardWizard/Partition.lava' %}
 			{% endif %}
         {% endfor %}
 		{% assign level =  level | Minus:1 %}

@@ -4,7 +4,6 @@
 
 .se-btn {
 	@include btn;
-	@include btn-size($fsize:$font-size-root, $fweight: 500, $padding: 20px 24px);
 }
 
 .se-action-btn {
@@ -25,56 +24,39 @@
 
 /* Sizes
 ------------------------------ */
-.se-btn--xs { @include btn-size($fsize: $font-size-12, $fweight: 300, $padding: .75rem); }
-.se-btn--sm { @include btn-size($fsize: $font-size-14, $fweight: 300, $padding: 1rem); }
-.se-btn--md { @include btn-size($fsize: $font-size-24, $fweight: 300, $padding: 1rem 2.5rem); }
+.se-btn--xs { @include btn-size($fsize: $font-size-18, $fweight: 400, $padding: .5rem 1.25rem); }
+.se-btn--sm { @include btn-size($fsize: $font-size-20, $fweight: 700, $padding: 0.65em 1.75em); text-transform: uppercase; }
+.se-btn--md { @include btn-size($fsize: $font-size-24, $fweight: 400, $padding: 1rem 2.5rem); }
 .se-btn-icon--md { @include btn-size($fsize: $font-size-16, $padding: .9375rem 1.5625rem .75rem); }
-.se-btn-lg { @include btn-size($fsize: $font-size-18, $fweight: 300, $padding: .5rem 1.25rem);}
 
 /* Styles
 ------------------------------ */
 .se-btn--primary-brd {
 	@include btn-style(
-		$color: $color-dark,
-		$bg: $WhiteColor no-repeat padding-box,
-		$brd-width: 1px,
-		$brd-style: solid,
-		$brd-color: $BtnBorderColor,
-		$brd-radius: 4px,
-		//$hvr-bg: linear-gradient(to right, $color-dark 50%, $WhiteColor 50%) right,
-		$hvr-color: $WhiteColor,
-		$hvr-brd-color: $color-dark
-	);
-	background-size: 0% 100%;
-	//background-repeat: no-repeat;
-	&:hover,
-	&:focus,
-	&:active {
-		background-size: 100% 100%;
-		background-image: linear-gradient($color-dark, $color-dark);
-	}
+	$color: $color-primary,
+	$padding: 1rem 3rem,
+	$bg: transparent,
+	$brd-width: .4rem,
+	$brd-style: solid,
+	$brd-color: $color-primary,
+	$brd-radius: 3rem,
+	$hvr-bg: lighten($color-primary, 18%),
+	$hvr-color: $color-dark,
+	$hvr-brd-color: $color-primary);
 }
 
 .se-btn--dark-brd {
 	@include btn-style(
-		$color: $WhiteColor,	
-		$bg: $color-dark no-repeat padding-box,
-		$brd-width: 1px,
-		$brd-style: solid,
-		$brd-color: $color-dark,
-		$brd-radius: 4px,
-		//$hvr-bg: linear-gradient($WhiteColor, $WhiteColor) padding-box no-repeat,
-		$hvr-color: $color-dark,
-		$hvr-brd-color: $BtnBorderColor
-	);
-	background-size: 0% 100%;
-	//background-repeat: no-repeat;
-	&:hover,
-	&:focus,
-	&:active {
-		background-image: linear-gradient($WhiteColor, $WhiteColor);
-		background-size: 100% 100%;
-	}
+	$color: $color-dark,
+	$padding: 1rem 3rem,
+	$bg: transparent,
+	$brd-width: .4rem,
+	$brd-style: solid,
+	$brd-color: $color-dark,
+	$brd-radius: 3rem,
+	$hvr-bg: lighten($color-dark, 18%),
+	$hvr-color: $color-primary,
+	$hvr-brd-color: $color-dark);
 }
 
 .se-btn--tag {
@@ -148,7 +130,7 @@
 }
 
 /* ---- 2.1 Defualt Buttons ---- */
-//.btn {
+.btn {
 	/*@include btn-style(
 	$dspy: inline-block,
 	$wht-space: normal,
@@ -192,13 +174,13 @@
 	&:focus {
 		outline: none;
 	}*/
-//}
+}
 
 .btn-block {
 	width: 100% !important;
 }
 
-//.btn-doors {
+.btn-doors {
 	/*@extend .btn;
 	background: none;
 	color: $CopyColor;
@@ -295,7 +277,7 @@
                     transform: translate3d(50%, -10%, 0) skewX(-20deg);
 		}
 	}*/
-//}
+}
 
 // Spin animation
 @keyframes spin {

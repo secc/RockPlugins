@@ -22,16 +22,15 @@ namespace org.secc.Reporting.Migrations
     {
         public override void Up()
         {
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_Reporting_DataViewSQLFilterStore",
                 c => new
                 {
                     Hash = c.String( nullable: false, maxLength: 64 ),
                     EntityId = c.Int( nullable: false ),
-                } )
-                .PrimaryKey( t => new { t.Hash, t.EntityId } )
-                .Index( t => t.Hash );
-
+                } );
+            AddPrimaryKey( "dbo._org_secc_Reporting_DataViewSQLFilterStore", new[] { "Hash", "EntityId" } );
+            AddIndex( "dbo._org_secc_Reporting_DataViewSQLFilterStore", "Hash" );
 
         }
 

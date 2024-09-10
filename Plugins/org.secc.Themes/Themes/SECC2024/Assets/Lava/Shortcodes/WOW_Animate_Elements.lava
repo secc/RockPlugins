@@ -39,7 +39,7 @@ Note: This command requires a full page reload in order for your changes to be d
 ************************ MARKUP FOR THIS SHORTCODE IS BELOW ********************
 {% endcomment %}
 
-<script src="https://www.southeastchristian.org/Themes/SECC2024/Scripts/WOW/wow.min.js" ></script>
+<script src="https://www.southeastchristian.org/Themes/SECC2019/Scripts/WOW/wow.min.js" ></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css" rel="stylesheet" type="text/css"/>
 <style>
     .wow { visibility: hidden; }

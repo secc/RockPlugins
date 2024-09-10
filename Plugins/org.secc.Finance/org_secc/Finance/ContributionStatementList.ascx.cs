@@ -38,7 +38,7 @@ using System.Text.RegularExpressions;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using DotLiquid;
-using iTextSharp.text.pdf;
+using iText.Kernel.Pdf;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -47,7 +47,7 @@ using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using Document = iTextSharp.text.Document;
+using Document = iText.Layout.Document;
 using ListItem = System.Web.UI.WebControls.ListItem;
 
 namespace RockWeb.Plugins.org_secc.Finance
@@ -60,7 +60,7 @@ namespace RockWeb.Plugins.org_secc.Finance
     [BinaryFileTypeField]
     [CustomDropdownListField( "Document Type", "The document type for contribution statements.", "SELECT Guid as Value,Name as Text FROM DocumentType", Key = "DocumentType" )]
     [CustomEnhancedListField( "Print & Mail Dataviews", "Any dataviews which indicate people/businesses for who statements will be mailed.", "SELECT Guid as Value,Name as Text FROM DataView", Key = "PrintAndMail" )]
-    [IntegerField("Page Load Timeout", "The time in seconds to wait before the page times out. The default is 300 seconds (5 minutes).", false, 300, Key ="PageLoadTimeout")]
+    [IntegerField( "Page Load Timeout", "The time in seconds to wait before the page times out. The default is 300 seconds (5 minutes).", false, 300, Key = "PageLoadTimeout" )]
 
     public partial class ContributionStatementList : RockBlock, ICustomGridColumns
     {
@@ -75,7 +75,7 @@ namespace RockWeb.Plugins.org_secc.Finance
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
-            Server.ScriptTimeout = GetAttributeValue("PageLoadTimeout").AsInteger();
+            Server.ScriptTimeout = GetAttributeValue( "PageLoadTimeout" ).AsInteger();
             Guid binaryFileTypeGuid = Guid.NewGuid();
             if ( Guid.TryParse( GetAttributeValue( "BinaryFileType" ), out binaryFileTypeGuid ) )
             {
@@ -102,16 +102,12 @@ namespace RockWeb.Plugins.org_secc.Finance
         {
             var files = GetBinaryFiles().Select( d => d.BinaryFile );
 
-            PdfImportedPage importedPage;
-
             var outputStream = new MemoryStream();
+            var pdfWriter = new PdfWriter( outputStream );
+            var pdfDocument = new PdfDocument( pdfWriter );
 
-            Document sourceDocument = new Document();
-            PdfCopy pdfCopyProvider = new PdfCopy( sourceDocument, outputStream );
-
-            //output file Open  
-            sourceDocument.Open();
-
+            //Open the output file  
+            pdfDocument.AddNewPage();
 
             Regex regex = new Regex( @"/Type\s*/Page[^s]" );
             List<int> invalidFileIds = new List<int>();
@@ -127,31 +123,33 @@ namespace RockWeb.Plugins.org_secc.Finance
                             int pages = matches.Count;
 
                             PdfReader reader = new PdfReader( file.ContentStream );
+                            PdfDocument readerDocument = new PdfDocument( reader );
+
                             //Add pages in new file  
                             for ( int i = 1; i <= pages; i++ )
                             {
-                                importedPage = pdfCopyProvider.GetImportedPage( reader, i );
-                                pdfCopyProvider.AddPage( importedPage );
+                                PdfPage importedPage = readerDocument.GetPage( i );
+                                pdfDocument.AddPage( importedPage );
                             }
                             reader.Close();
                         }
                     }
                 }
-                catch 
+                catch
                 {
                     invalidFileIds.Add( file.Id );
                 }
 
             }
 
-            if( invalidFileIds.Any())
+            if ( invalidFileIds.Any() )
             {
                 nbBadFiles.Visible = true;
                 nbBadFiles.Text = "Invalid Files:<br />" + invalidFileIds.Select( i => i.ToString() ).ToList().AsDelimited( "," );
             }
 
             // Finish up the output
-            sourceDocument.Close();
+            pdfDocument.Close();
 
             this.Page.EnableViewState = false;
             this.Page.Response.Clear();
@@ -225,7 +223,7 @@ namespace RockWeb.Plugins.org_secc.Finance
         protected void gBinaryFile_Delete( object sender, RowEventArgs e )
         {
             var rockContext = new RockContext();
-            
+
             //Have to delete the Documents through a SQL Query becasue Rock doesn't support
             //a Binary File being available from two documents in Entity Framework
 

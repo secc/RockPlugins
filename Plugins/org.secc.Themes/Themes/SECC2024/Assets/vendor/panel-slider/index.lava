@@ -1,4 +1,4 @@
-
+	
 	<div class="se-projects-container">
 		<a class="se-nav-trigger se-text-replace hidden" href="#">Menu<span aria-hidden="true" class="se-icon"></span></a>
 		<ul class="se-projects-previews">
@@ -36,7 +36,7 @@
 
 				<div class="se-project-info">
 					<div class="container">
-						<div class="row">
+						<div class="row">	
 							{% if msmGroupsSize > 0 %}
 								{% group where:'ParentGroupId == 329703 && IsActive == True' sort:'Order asc' securityenabled:'false' %}
 									{% for group in groupItems %}
@@ -54,12 +54,12 @@
 																			border-radius: 100%;
 																			border: 3px solid black;
 																			margin: 3px 25px;">
-																</div>
+																</div> 
 																{% assign groupLocation = groupLocation.Location.Street1 | Append:', ' | Append:groupLocation.Location.Street2 | Append:', ' | Append:groupLocation.Location.City | Append:', ' | Append:groupLocation.Location.State | Append:', ' | Append:groupLocation.Location.PostalCode | Replace:', , ',', ' %}
 																{% break %}
 															{% endif %}
 														{% endfor %}
-														{% comment %} <img src="/themes/SECC2024/Assets/img/SE/Visit.svg" class="img-responsive g-width-100--xs g-display-inline-block--xs" style="vertical-align: middle;" /> {% endcomment %}
+														{% comment %} <img src="/themes/SECC2019/Assets/img/SE/Visit.svg" class="img-responsive g-width-100--xs g-display-inline-block--xs" style="vertical-align: middle;" /> {% endcomment %}
 														{% if groupLocation == '' %}
 															<div class="groupLocation g-padding-x-20--xs img-responsive"
 																style="background-color: #fff;
@@ -70,7 +70,7 @@
 																	   margin: 3px 25px;
 																	   position: relative;">
 																<i class="fa fa-2x fa-school g-center--xs"></i>
-															</div>
+															</div> 
 														{% endif %}
 													</td>
 													<td>
@@ -114,7 +114,7 @@
 
 				<div class="se-project-info">
 					<div class="container">
-						<div class="row">
+						<div class="row">	
 							{% if hsmGroupsSize > 0 %}
 								{% group where:'ParentGroupId == 329704 && IsActive == True' sort:'Order asc' securityenabled:'false' %}
 									{% for group in groupItems %}
@@ -132,12 +132,12 @@
 																			border-radius: 100%;
 																			border: 3px solid black;
 																			margin: 3px 25px;">
-																</div>
+																</div> 
 																{% assign groupLocation = groupLocation.Location.Street1 | Append:', ' | Append:groupLocation.Location.Street2 | Append:', ' | Append:groupLocation.Location.City | Append:', ' | Append:groupLocation.Location.State | Append:', ' | Append:groupLocation.Location.PostalCode | Replace:', , ',', ' %}
 																{% break %}
 															{% endif %}
 														{% endfor %}
-														{% comment %} <img src="/themes/SECC2024/Assets/img/SE/Visit.svg" class="img-responsive g-width-100--xs g-display-inline-block--xs" style="vertical-align: middle;" /> {% endcomment %}
+														{% comment %} <img src="/themes/SECC2019/Assets/img/SE/Visit.svg" class="img-responsive g-width-100--xs g-display-inline-block--xs" style="vertical-align: middle;" /> {% endcomment %}
 														{% if groupLocation == '' %}
 															<div class="groupLocation g-padding-x-20--xs img-responsive"
 																style="background-color: #fff;
@@ -148,7 +148,7 @@
 																	   margin: 3px 25px;
 																	   position: relative;">
 																<i class="fa fa-2x fa-home g-center--xs"></i>
-															</div>
+															</div> 
 														{% endif %}
 													</td>
 													<td>

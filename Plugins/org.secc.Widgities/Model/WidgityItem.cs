@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using Rock.Data;
-using Rock.Model;
+using Rock.Lava;
 
 namespace org.secc.Widgities.Model
 {
@@ -18,13 +13,13 @@ namespace org.secc.Widgities.Model
         [DataMember]
         public int WidgityId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual Widgity Widgity { get; set; }
 
         [DataMember]
         public int WidgityTypeId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public WidgityType WidgityType { get; set; }
 
         [DataMember]

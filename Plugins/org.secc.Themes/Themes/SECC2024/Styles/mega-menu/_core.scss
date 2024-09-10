@@ -40,11 +40,6 @@ input {
 	font-size: 1.6rem;
 }
 
-input[type="checkbox"],
-input[type="radio"] {
-	font-size: inherit;
-}
-
 input[type="search"]::-ms-clear {
 	/* removes close icon - IE */
     display: none;
@@ -63,11 +58,11 @@ Main components
 
 -------------------------------- */
 
-//.cd-main-content, .cd-main-header {
+.cd-main-content, .cd-main-header {
 	/* Force Hardware Acceleration in WebKit */
 	/*@include transform(translateZ(0));
 	will-change: transform;*/
-//}
+}
 
 .cd-main-content, .cd-main-header {
 	position: relative;
@@ -552,10 +547,10 @@ main {
 
 	overflow: hidden;
 
-	//.see-all a {
+	.see-all a {
 		/* different style for the See all button on mobile and tablet */
 		// color: $color-4;
-	//}
+	}
 
 	.cd-nav-gallery .cd-nav-item,
 	.cd-nav-icons .cd-nav-item,
@@ -815,14 +810,14 @@ main {
 
 @include MQ(L) {
 
-    //#join-button a {
-	//	border: 1px solid black;
-	//	border-radius: 5px;
-	//	display: inline;
-	//	padding: 20px;
-	//	position: absolute;
-	//	right: 6rem;
-	//}
+    #join-button a {
+		border: 1px solid black;
+		border-radius: 5px;
+		display: inline;
+		padding: 20px;
+		position: absolute;
+		right: 6rem;
+	}
 
 	.MobileGroupManager {
 		display: none;
@@ -859,9 +854,9 @@ main {
 				color: $color-4;
 				border-bottom: 3px solid $color-3;
 				transition: all .3s;
-				//&:hover {
+				&:hover {
 					// background-color: lighten($color-3, 30%);
-				//}
+				}
 			}
 			&.is-hidden {
 				/* reset mobile style */
@@ -876,8 +871,8 @@ main {
 		}
 
 		> li {
-			float: left;			
-			margin-left: 0;
+			float: left;
+			margin-left: 1.5em;
 		}
 
 		> li > a {
@@ -1197,9 +1192,9 @@ main {
 					padding: 40px 0 40px 120px;
 				}
 
-				//&:hover {
+				&:hover {
 					// background: lighten($color-3, 8%);
-				//}
+				}
 
 				h3 {
 					color: $color-4;
@@ -1286,9 +1281,9 @@ main {
 		        //padding: 0 0 0 85px;
 		        position: relative;
 
-		        //&:hover {
+		        &:hover {
 		            // background: lighten($color-3, 8%);
-		        //}
+		        }
 
 				span.niche {
 					width: 75px;
@@ -1552,9 +1547,9 @@ support for no js
 		display: none;
 	}
 
-	//.logged-in {
+	.logged-in {
 		// padding: 0 140px 0 0;
-	//}
+	}
 	.no-js .cd-primary-nav {
 		position: absolute;
 		z-index: $above-content;

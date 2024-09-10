@@ -1,6 +1,6 @@
 {% assign currentPage = 'Global' | Page:'Path' %}
-<link rel="stylesheet" href="/Themes/SECC2024/Scripts/swiperjs/swiper-bundle.min.css">
-<script src="/Themes/SECC2024/Scripts/swiperjs/swiper-bundle.min.js"></script>
+<link rel="stylesheet" href="/Themes/SECC2019/Scripts/swiperjs/swiper-bundle.min.css">
+<script src="/Themes/SECC2019/Scripts/swiperjs/swiper-bundle.min.js"></script>
 
 <section class="g-display-block--xs g-display-block--sm g-display-none--md">
 <style>
@@ -15,12 +15,56 @@
     font-size: 1.4rem;
     color: black;
 }
-.swiper-button-next::after, .swiper-button-prev::after {
-    color: black!important;
+.swiper-slide.active:before {
+    display: block;
+    content: '';
+    position: absolute;
+    background-color: #ccc;
+    width: 100%;
+    height: 40px;
+    left: 0;
+    bottom: -55px;
+    vertical-align: top;
 }
-.swiper-button-prev, .swiper-button-next {
-    background: rgba(255,255,255,0.75);
-    box-shadow: 0px 0px 10px 10px rgba(255,255,255,0.75);
+.swiper-button-next:after {
+    font-family: none!important;
+    font-size: none!important;
+    text-transform: none!important;
+    letter-spacing: 0;
+    text-transform: none;
+    font-variant: initial;
+    line-height: 1;
+    content: '' !important;
+    display: block;
+    content: '';
+    position: absolute;
+    width: 6rem;
+    height: 200px;
+    right: -30px;
+    background-color: rgba(255,255,255,0);
+    background-image: -webkit-linear-gradient(0deg,rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%);
+    background-image: linear-gradient(90deg,rgba(255,255,255,0) 0%, rgb(255,255,255) 50%);
+    top: -100px;
+}
+.swiper-button-prev:after {
+    font-family: none!important;
+    font-size: none!important;
+    text-transform: none!important;
+    letter-spacing: 0;
+    text-transform: none;
+    font-variant: initial;
+    line-height: 1;
+    content: '' !important;
+    display: block;
+    content: '';
+    position: absolute;
+    width: 6rem;
+    height: 200px;
+    left: -30px;
+    background-color: rgba(255,255,255,0);
+    background-image: -webkit-linear-gradient(-90deg,rgba(255,255,255,0) 0%, rgba(255,255,255,0.8) 50%);
+    background-image: linear-gradient(-90deg,rgba(255,255,255,0) 0%, rgb(255,255,255) 50%);
+    top: -100px;
 }
 </style>
 <!-- Slider main container -->
@@ -29,20 +73,20 @@
     <div class="swiper-wrapper">
         <!-- Slides -->
         <div class="swiper-slide {% if currentPage == '/MyAccount' %} active {% endif %}">
-            <div class="swiper-menu-item">
-                <a href="/MyAccount" class="g-font-size-18--xs"><i class="fal fa-user-circle fa-2x" style="vertical-align: middle"></i>
+            <div clas="swipter-menu-item">
+                <a href="/MyAccount"><i class="fal fa-user-circle fa-2x" style="vertical-align: middle"></i>
                 <br />Account</a>
             </div>
         </div>
         <div class="swiper-slide {% if currentPage == '/my-classes' %} active {% endif %}">
-            <div class="swiper-menu-item">
-                <a href="/my-classes" class="g-font-size-18--xs"><i class="fal fa-users-class fa-2x" style="vertical-align: middle"></i>
+            <div clas="swipter-menu-item">
+                <a href="/my-classes"><i class="fal fa-users-class fa-2x" style="vertical-align: middle"></i>
                 <br />Classes</a>
             </div>
         </div>
         <div class="swiper-slide {% if currentPage == '/MyGiving' %} active {% endif %}">
-            <div class="swiper-menu-item">
-                <a href="/MyGiving" class="g-font-size-18--xs"><i class="fal fa-heart fa-2x" style="vertical-align: middle"></i>
+            <div clas="swipter-menu-item">
+                <a href="/MyGiving"><i class="fal fa-heart fa-2x" style="vertical-align: middle"></i>
                 <br />Giving</a>
             </div>
         </div>
@@ -51,28 +95,28 @@
     {%- for groupMember in groupMembers -%}
         {%- if groupMember.GroupRoleId == 826 -%}
             <div class="swiper-slide {% if currentPage == '/MyAccount/MyFinancialCoachingCases' %} active {% endif %}">
-                <div class="swiper-menu-item">
-                    <a href="/MyAccount/MyFinancialCoachingCases" class="g-font-size-18--xs"><i class="fal fa-comment-alt-dollar fa-2x" style="vertical-align: middle"></i>
+                <div clas="swipter-menu-item">
+                    <a href="/MyAccount/MyFinancialCoachingCases"><i class="fal fa-comment-alt-dollar fa-2x" style="vertical-align: middle"></i>
                     <br />Coaching</a>
                 </div>
             </div>
         {%- endif -%}
     {%- endfor -%}
         <div class="swiper-slide {% if currentPage == '/MyEvents' %} active {% endif %}">
-            <div class="swiper-menu-item">
-                <a href="/MyEvents" class="g-font-size-18--xs"><i class="fal fa-users fa-2x" style="vertical-align: middle"></i>
+            <div clas="swipter-menu-item">
+                <a href="/MyEvents"><i class="fal fa-users fa-2x" style="vertical-align: middle"></i>
                 <br />Events</a>
             </div>
         </div>
         <div class="swiper-slide {% if currentPage == '/MySchedule' %} active {% endif %}">
-            <div class="swiper-menu-item">
-                <a href="/MySchedule" class="g-font-size-18--xs"><i class="fal fa-calendar-day fa-2x" style="vertical-align: middle"></i>
+            <div clas="swipter-menu-item">
+                <a href="/MySchedule"><i class="fal fa-calendar-day fa-2x" style="vertical-align: middle"></i>
                 <br />Schedule</a>
             </div>
         </div>
         <div class="swiper-slide">
-            <div class="swiper-menu-item">
-                <a href="/logout" class="g-font-size-18--xs"><i class="fal fa-sign-out-alt fa-2x" style="vertical-align: middle"></i>
+            <div clas="swipter-menu-item">
+                <a href="/logout"><i class="fal fa-sign-out-alt fa-2x" style="vertical-align: middle"></i>
                 <br />Logout</a>
             </div>
         </div>

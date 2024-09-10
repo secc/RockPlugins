@@ -19,10 +19,8 @@
   }
 
   .select2-search--dropdown {
-    background-color: #fff;
-    background-image: linear-gradient($LinenLighter, $LinenLighter);
     .select2-search__field {
-      border: 1px solid rgba(29, 31, 33, 0.20);
+      border: 3px solid rgba(239, 239, 239, 0.5);
     }
     .select2-search__field:focus {
       outline: 0px;
@@ -31,7 +29,7 @@
 
   .select2-search--inline {
     .select2-search__field {
-      background: #fff;
+      background: transparent;
       border: none;
       outline: 0;
       box-shadow: none;
@@ -59,7 +57,7 @@
     }
 
     &[aria-selected=true] {
-      font-weight: bold;
+      background-color: #ddd;
     }
 
     .select2-results__option {
@@ -98,7 +96,6 @@
 
   .select2-results__option--highlighted[aria-selected] {
     background-color: #e5e4e4;
-    //font-weight: bold;
   }
 
   .select2-results__group {

@@ -49,17 +49,17 @@
 									{% assign avatar = person.PhotoUrl %}
 								{% elseif familyMember.GroupRoleId == 3 %}
 									{% if person.Gender == "Male" %}
-										{% assign avatar = "/Themes/SECC2024/Assets/img/SE/Users/Man_Avatar.svg" %}
+										{% assign avatar = "/Themes/SECC2019/Assets/img/SE/Users/Man_Avatar.svg" %}
 									{% elseif person.Gender == "Female" %}
-										{% assign avatar = "/Themes/SECC2024/Assets/img/SE/Users/Woman_Avatar.svg" %}
+										{% assign avatar = "/Themes/SECC2019/Assets/img/SE/Users/Woman_Avatar.svg" %}
 									{% else %}
 										<!-- Bi-gender? -->
 									{% endif %}
 								{% elseif familyMember.GroupRoleId == 4 %}
 									{% if person.Gender == "Male" %}
-										{% assign avatar = "/Themes/SECC2024/Assets/img/SE/Users/Boy_Avatar.svg" %}
+										{% assign avatar = "/Themes/SECC2019/Assets/img/SE/Users/Boy_Avatar.svg" %}
 									{% elseif person.Gender == "Female" %}
-										{% assign avatar = "/Themes/SECC2024/Assets/img/SE/Users/Girl_Avatar.svg" %}
+										{% assign avatar = "/Themes/SECC2019/Assets/img/SE/Users/Girl_Avatar.svg" %}
 									{% else %}
 										<!-- Bi-gender? -->
 									{% endif %}

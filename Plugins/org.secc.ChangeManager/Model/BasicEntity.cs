@@ -14,6 +14,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Configuration;
+using HashidsNet;
+using Rock;
 using Rock.Data;
 
 namespace org.secc.ChangeManager.Model
@@ -40,6 +43,23 @@ namespace org.secc.ChangeManager.Model
 
         public Dictionary<string, object> AdditionalLavaFields { get; set; }
 
+
+        public string IdKey
+        {
+            get
+            {
+                try
+                {
+                    return GetHash( Id );
+                }
+                catch
+                {
+                    return string.Empty;
+                }
+            }
+            private set { /* Make DataContract happy. */ }
+        }
+
         public IEntity Clone()
         {
             return this;
@@ -48,6 +68,21 @@ namespace org.secc.ChangeManager.Model
         public Dictionary<string, object> ToDictionary()
         {
             return new Dictionary<string, object>();
+        }
+
+        private string GetHash(int id)
+        {
+            var salt = ConfigurationManager.AppSettings["DataEncryptionKey"].Left( 40 );
+            var hasher = new Hashids( salt, 10 );
+            return hasher.Encode( id );
+        }
+
+        private int? GetId(string hashedKey)
+        {
+            var salt = ConfigurationManager.AppSettings["DataEncryptionKey"].Left( 40 );
+            var hasher = new Hashids( salt, 10 );
+            var ids = hasher.Decode( hashedKey );
+            return ids.Length == 1 ? ( int? ) ids[0] : null;
         }
     }
 }

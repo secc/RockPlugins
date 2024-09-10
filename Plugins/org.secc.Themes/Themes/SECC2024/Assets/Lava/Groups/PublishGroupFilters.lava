@@ -16,8 +16,7 @@
 {% endfor %}
 <style>
 	.se-dropdown {
-		border: 1px solid rgba(29, 31, 33, 0.20);
-		border-radius: 4px;
+		border: 2px solid black;
 		cursor: pointer;
 		padding: 5px 70px 5px 15px;
 		display: block;
@@ -26,8 +25,8 @@
 		overflow: hidden;
 		color: black;
 		line-height: 28px;
-		/*text-transform: uppercase;*/
-		font-weight: 400;
+		text-transform: uppercase;
+		font-weight: 600;
 		box-sizing: border-box;
 		display: inline-block;
 		margin: 0;
@@ -87,99 +86,96 @@
 		-webkit-transform: translate(-50%, -50%) rotate(-135deg);
 		top: 3px;
 	}
-	#daysOfTheWeek {
-		background-image: linear-gradient(rgba(250, 240, 230, .3),rgba(250, 240, 230, 0.3)),linear-gradient(#fff,#fff);
-	}
 </style>
 
 
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-sm-12">
+            <div class="filterbox">
+                <div class="row">
+                    <div class="col-xs-12 col-md-12">
+                        <h3 class="g-font-weight--600">Find a Group</h3>
+                        <p class="g-font-weight--400 g-line-height--sm">Find a group that interests you by selecting a campus and/or ministry. Click on the image to see more details or to register.</p>
+                        <br />
+                    </div>
 
-<div class="filterbox">
-	<div class="">
-		<div class="">
-			<h2 class="g-font-family--secondary">Find a Group</h2>
-			<p class="g-font-weight--400 g-line-height--sm g-padding-t-20--xs g-padding-t-50--md" style="color: #616264;">Find a group that interests you by selecting a campus and/or ministry. Click on the image to see more details or to register.</p>
-			<br />
-		</div>
+                    <div class="col-xs-12 col-md-3 g-padding-y-40--md" >
+                        <select class="select2-campuses" name="campus">
+                        <option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
+                        {% for campus in Campuses %}
+                        	{% assign publicCampus = campus | Attribute:'Public' %}
+                        	{% if publicCampus == 'Yes' %}
+                                <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ",""}}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
+                                    {{ campus.Name }}
+                                </option>
+                        	{% endif %}
+                        {% endfor %}
+                        </select>
+                    </div>
 
-		<div class="g-padding-y-10--xs" >
-			<select class="select2-campuses g-width-100-percent--xs g-width-50-percent--md" name="campus">
-			<option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
-			{% for campus in Campuses %}
-				{% assign publicCampus = campus | Attribute:'Public' %}
-				{% if publicCampus == 'Yes' %}
-					<option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ",""}}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
-						{{ campus.Name }}
-					</option>
-				{% endif %}
-			{% endfor %}
-			</select>
-		</div>
+                    <div class="col-xs-12 col-md-3 g-padding-y-20--xs g-padding-y-40--sm" >
+                        <select class="select2-ministries" name="ministry">
+                        <option value="allMinistries">All Ministries</option>
 
-		<div class="g-padding-y-10--xs" >
-			<select class="select2-ministries g-width-100-percent--xs g-width-50-percent--md" name="ministry">
-			<option value="allMinistries">All Ministries</option>
-
-			{% assign availAudienceIds = '' %}
-				{%comment%}{% assign webrequestroot = 'Global' | Attribute:'PublicApplicationRoot' | Append:'/Webhooks/Lava.ashx/publishgroups/' %}{%endcomment%}
-				{% assign urlArray = 'Global' | Page:'Url' | Split:'/' %}
-				{% assign webrequestroot = "https://" | Append:urlArray[1] | Append:'/Webhooks/Lava.ashx/publishgroups/' %}
-			{% assign webrequest = webrequestroot %}
-			{% if selectedCampus != null %}
-				{% assign webrequest = webrequest | Append:selectedCampus.Id %}
-			{% endif %}
-			{% webrequest url:'{{ webrequest }}' %}
-				{% for item in results %}
-					{% for data in item.AvailAudienceIds %}
-						{% assign availAudienceIds = availAudienceIds | Append:',' | Append:data.Key %}
-					{% endfor %}
-				{% endfor %}
-			{% endwebrequest %}
-			{% assign ministrySlug = 'Global' | PageParameter:'ministry' | Downcase  %}
-			{% definedvalue where:'DefinedTypeId==16' %}
-				{% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
-				{% for definedValue in definedvalueItemsSorted %}
-					{% assign idRepresentation = definedValue.Id | AsString %}
-					{% assign validAudience = availAudienceIds | Split:',' | Contains:idRepresentation %}
-					{% if validAudience %}
-						{% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
-						{% if publicFilter == "Yes" %}
-							{% assign urlSlug = definedValue | Attribute:'URLSlug' %}
-							<option value="{{ definedValue.Id }}" data-ministry="{{urlSlug}}" {% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
+						{% assign availAudienceIds = '' %}
+							{% assign webrequestroot = 'Global' | Attribute:'PublicApplicationRoot' | Append:'/Webhooks/Lava.ashx/publishgroups/' %}
+						{% assign webrequest = webrequestroot %}
+						{% if selectedCampus != null %}
+							{% assign webrequest = webrequest | Append:selectedCampus.Id %}
 						{% endif %}
-					{% endif %}
-				{% endfor %}
-			{% enddefinedvalue %}
-			</select>
-		</div>
+						{% webrequest url:'{{ webrequest }}' %}
+							{% for item in results %}
+								{% for data in item.AvailAudienceIds %}
+									{% assign availAudienceIds = availAudienceIds | Append:',' | Append:data.Key %}
+								{% endfor %}
+							{% endfor %}
+						{% endwebrequest %}
+						{% assign ministrySlug = 'Global' | PageParameter:'ministry' | Downcase  %}
+                        {% definedvalue where:'DefinedTypeId==16' %}
+                            {% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
+                            {% for definedValue in definedvalueItemsSorted %}
+								{% assign idRepresentation = definedValue.Id | AsString %}
+								{% assign validAudience = availAudienceIds | Split:',' | Contains:idRepresentation %}
+								{% if validAudience %}
+									{% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
+									{% if publicFilter == "Yes" %}
+										{% assign urlSlug = definedValue | Attribute:'URLSlug' %}
+										<option value="{{ definedValue.Id }}" data-ministry="{{urlSlug}}" {% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
+									{% endif %}
+								{% endif %}
+                            {% endfor %}
+                        {% enddefinedvalue %}
+                        </select>
+                    </div>
 
-		<div class="g-padding-y-10--xs g-width-100-percent--xs g-width-50-percent--md" tabindex="0" >
-			<span class="se-dropdown" data-toggle="dropdown-content" data-reveal="daysOfTheWeek" aria-expanded="false" data-control="#groupFilters">
-				Meets On<span class="g-font-weight--100" id="dayOfTheWeekText"></span>
-				<span class="arrow" role="presentation"><b role="presentation"></b></span>
-			</span>
-			<div id="daysOfTheWeek" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
-				<p>Select a day of the week:</p>
-				<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Sunday" data-toggle="tooltip" data-placement="bottom" title="Sunday">S</a>
-				<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Monday" data-toggle="tooltip" data-placement="bottom" title="Monday">M</a>
-				<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Tuesday" data-toggle="tooltip" data-placement="bottom" title="Tuesday">T</a>
-				<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Wednesday" data-toggle="tooltip" data-placement="bottom" title="Wednesday">W</a>
-				<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Thursday" data-toggle="tooltip" data-placement="bottom" title="Thursday">T</a>
-				<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Friday" data-toggle="tooltip" data-placement="bottom" title="Friday">F</a>
-				<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Saturday" data-toggle="tooltip" data-placement="bottom" title="Saturday">S</a>
-			</div>
-		</div>
-		{%comment%}
-		Not relevant for on-campus groups
-		<div class="g-padding-y-10--xs" tabindex="0" >
-			<a class="button se-btn se-btn--tag uppercase no-transitions" id="groupType"
-				data-filter="True" data-toggle="tooltip" data-placement="bottom" title="Show Only Groups That Meet Online">Online Group</a>
-			</div>
-		{%endcomment%}
-	</div>
+					<div class="col-xs-12 col-md-3 g-padding-y-40--md" tabindex="0" >
+						<span class="se-dropdown" data-toggle="dropdown-content" data-reveal="daysOfTheWeek" aria-expanded="false" data-control="#groupFilters">
+							Meets On<span class="g-font-weight--100" id="dayOfTheWeekText"></span>
+							<span class="arrow" role="presentation"><b role="presentation"></b></span>
+						</span>
+						<div id="daysOfTheWeek" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
+							<p>Select a day of the week:</p>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Sunday" data-toggle="tooltip" data-placement="bottom" title="Sunday">S</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Monday" data-toggle="tooltip" data-placement="bottom" title="Monday">M</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Tuesday" data-toggle="tooltip" data-placement="bottom" title="Tuesday">T</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Wednesday" data-toggle="tooltip" data-placement="bottom" title="Wednesday">W</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Thursday" data-toggle="tooltip" data-placement="bottom" title="Thursday">T</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Friday" data-toggle="tooltip" data-placement="bottom" title="Friday">F</a>
+							<a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Saturday" data-toggle="tooltip" data-placement="bottom" title="Saturday">S</a>
+						</div>
+					</div>
 
+					<div class="col-xs-12 col-md-3 g-padding-y-50--md g-padding-y-20--xs" tabindex="0" >
+						<a class="button se-btn se-btn--tag uppercase no-transitions" id="groupType"
+						data-filter="True" data-toggle="tooltip" data-placement="bottom" title="Show Only Groups That Meet Online">Online Group</a>
+					</div>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </div>
-
 
 <style>
 .hide {
@@ -210,7 +206,7 @@
 </div>
 {% endcomment %}
 
-<script src="/Themes/SECC2024/Scripts/readmore.min.js"></script>
+<script src="/Themes/SECC2019/Scripts/readmore.min.js"></script>
 
 <script>
 $(document).ready(function() {
@@ -289,7 +285,6 @@ $(document).ready(function() {
 		collapsedHeight: 0,
 		beforeToggle: function(tr, el, ex) {
 			$(el).show();
-			$('.isotope_wrap').isotope(isoOptions); // re-initialize
 		},
 		afterToggle: function(trigger, element, expanded) {
 			$('.isotope_wrap').isotope(isoOptions); // re-initialize
@@ -317,25 +312,6 @@ $(document).ready(function() {
         disableParallax: /iPad|iPhone|iPod|Android/,
         disableVideo: /iPad|iPhone|iPod|Android/
     });
-
-	///////////////////////////////////////////////////////////////
-    /////////////// Select2, History, & Width Detect //////////////
-    ///////////////////////////////////////////////////////////////
-
-	/*
-	$(window).on('resize', function() {
-		//reapplyIso();
-		$('.select2-campuses').select2({ width: '100%' });
-		$('.select2-ministries').select2({ width: '100%' });
-	});
-
-	$(window).on('popstate', function(event) {
-		event.preventDefault();
-	   	// alert("pop");
-		loadQueryStringParam();
-	 	reapplyIso();
-	});
-	*/
 });
 
 //Close meets on window on blur
@@ -426,7 +402,7 @@ $(document).ready(function() {
 		 }
 
 		 showNoResults = (array) => {
-        	console.log('Total Items:'+array.length)
+        	//console.log('Total Items:'+array.length)
 			if (array.length == 0) {
 				$('#noresultmsg').show();
 			} else {
@@ -623,11 +599,9 @@ function updatePath(key, value) {    baseUrl = [location.protocol, '//', locatio
         parts[4] = value||'all';
     }
     window.history.pushState({}, '', baseUrl + parts.join('/'));
-    /*
-	console.log("key: " + key);
+    /*console.log("key: " + key);
     console.log( "value:" + value );
-	console.log( "parts:" + parts );
-	*/
+                    console.log( "parts:" + parts );*/
 	return parts.join( '/' );
 }
 
@@ -704,6 +678,4 @@ function InitLoadedRequest(visstring, elem, msg) {
             $grid.addClass('is-showing-items').isotope(isoOptions);
         });
 }
-
-
 </script>

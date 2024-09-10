@@ -70,7 +70,7 @@
 }
 </style>
 
-<script src="/Themes/SECC2024/Scripts/readmore.min.js"></script>
+<script src="/Themes/SECC2019/Scripts/readmore.min.js"></script>
 
 <script>
 $(document).ready(function() {

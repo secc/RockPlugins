@@ -79,9 +79,9 @@
 
 .g-width-auto--xs { width: auto; }
 
-@for $i from 1 through 100 {
-  .g-width-#{$i}-percent--xs {
-    width: ($i * 1%);
+@for $i from 1 through 10 {
+  .g-width-#{$i * 10}-percent--xs {
+    width: ($i * 10%);
   }
 }
 
@@ -107,9 +107,9 @@
 @include media-breakpoint-up(sm) {
 	.g-width-auto--sm { width: auto; }
 
-	@for $i from 1 through 100 {
-	  .g-width-#{$i}-percent--sm {
-	    width: ($i * 1%);
+	@for $i from 1 through 10 {
+	  .g-width-#{$i * 10}-percent--sm {
+	    width: ($i * 10%);
 	  }
 	}
 
@@ -136,9 +136,9 @@
 @include media-breakpoint-up(md) {
 	.g-width-auto--md { width: auto; }
 
-	@for $i from 1 through 100 {
-	  .g-width-#{$i}-percent--md {
-	    width: ($i * 1%);
+	@for $i from 1 through 10 {
+	  .g-width-#{$i * 10}-percent--md {
+	    width: ($i * 10%);
 	  }
 	}
 
@@ -165,9 +165,9 @@
 @include media-breakpoint-up(lg) {
 	.g-width-auto--lg { width: auto; }
 
-	@for $i from 1 through 100 {
-	  .g-width-#{$i}-percent--lg {
-	    width: ($i * 1%);
+	@for $i from 1 through 10 {
+	  .g-width-#{$i * 10}-percent--lg {
+	    width: ($i * 10%);
 	  }
 	}
 
@@ -347,53 +347,7 @@
 	.g-margin-b-250--lg { margin-bottom: 15.625rem; }
 }
 
-// Margin Bottom Negative
 
-.g-margin-b-n-2--xs { margin-bottom: -0.125rem; }
-.g-margin-b-n-4--xs { margin-bottom: -0.25rem; }
-
-@for $i from 0 through 50 {
-  .g-margin-b-n-#{$i * 5}--xs {
-    margin-bottom: -($i * 0.3125rem);
-  }
-}
-
-/* Small screen / phone */
-@include media-breakpoint-up(sm) {
-	.g-margin-b-n-2--sm { margin-bottom: -.125rem; }
-	.g-margin-b-n-4--sm { margin-bottom: -.25rem; }
-
-	@for $i from 0 through 50 {
-	  .g-margin-b-n-#{$i * 5}--sm {
-	    margin-bottom: -($i * .3125rem);
-	  }
-	}
-}
-
-/* Medium screen / tablet */
-@include media-breakpoint-up(md) {
-	.g-margin-b-n-2--md { margin-bottom: -.125rem; }
-	.g-margin-b-n-4--md { margin-bottom: -.25rem; }
-
-	@for $i from 0 through 50 {
-	  .g-margin-b-n-#{$i * 5}--md {
-	    margin-bottom: -($i * .3125rem);
-	  }
-	}
-}
-
-
-/* Extra large screen / wide desktop */
-@include media-breakpoint-up(lg) {
-	.g-margin-b-n-2--lg { margin-bottom: -.125rem; }
-	.g-margin-b-n-4--lg { margin-bottom: -.25rem; }
-
-	@for $i from 0 through 50 {
-	  .g-margin-b-n-#{$i * 5}--lg {
-	    margin-bottom: -($i * .3125rem);
-	  }
-	}
-}
 
 /*----------------------------------
   Margin Top
@@ -432,41 +386,6 @@
 	}
 }
 
-// Margin Top Negative
-
-@for $i from 0 through 50 {
-	.g-margin-t-n-#{$i * 5}--xs {
-	  margin-top: -($i * .3125rem);
-	}
-  }
-  
-  /* Small screen / phone */
-  @include media-breakpoint-up(sm) {
-	  @for $i from 0 through 50 {
-		.g-margin-t-n-#{$i * 5}--sm {
-		  margin-top: -($i * .3125rem);
-		}
-	  }
-  }
-  
-  /* Medium screen / tablet */
-  @include media-breakpoint-up(md) {
-	  @for $i from 0 through 50 {
-		.g-margin-t-n-#{$i * 5}--md {
-		  margin-top: -($i * .3125rem);
-		}
-	  }
-  }
-  
-  /* Extra large screen / wide desktop */
-  @include media-breakpoint-up(lg) {
-	  @for $i from 0 through 50 {
-		.g-margin-t-n-#{$i * 5}--lg {
-		  margin-top: -($i * .3125rem);
-		}
-	  }
-  }
-
 
 /*----------------------------------
   Margin Left
@@ -480,7 +399,7 @@
 
 /* Small screen / phone */
 @include media-breakpoint-up(sm) {
-	@for $i from 0 through 50 {
+	@for $i from 0 through 30 {
 	  .g-margin-l-#{$i * 5}--sm {
 	    margin-left: ($i * .3125rem);
 	  }
@@ -489,7 +408,7 @@
 
 /* Medium screen / tablet */
 @include media-breakpoint-up(md) {
-	@for $i from 0 through 50 {
+	@for $i from 0 through 30 {
 	  .g-margin-l-#{$i * 5}--md {
 	    margin-left: ($i * .3125rem);
 	  }
@@ -498,52 +417,19 @@
 
 /* Extra large screen / wide desktop */
 @include media-breakpoint-up(lg) {
-	@for $i from 0 through 50 {
+	@for $i from 0 through 30 {
 	  .g-margin-l-#{$i * 5}--lg {
 	    margin-left: ($i * .3125rem);
 	  }
 	}
 }
 
-// Margin Left Negative
-@for $i from 0 through 50 {
-	.g-margin-l-n-#{$i * 5}--xs {
-	  margin-left: -($i * .3125rem);
-	}
-  }
-  
-  /* Small screen / phone */
-  @include media-breakpoint-up(sm) {
-	  @for $i from 0 through 50 {
-		.g-margin-l-n-#{$i * 5}--sm {
-		  margin-left: -($i * .3125rem);
-		}
-	  }
-  }
-  
-  /* Medium screen / tablet */
-  @include media-breakpoint-up(md) {
-	  @for $i from 0 through 50 {
-		.g-margin-l-n-#{$i * 5}--md {
-		  margin-left: -($i * .3125rem);
-		}
-	  }
-  }
-  
-  /* Extra large screen / wide desktop */
-  @include media-breakpoint-up(lg) {
-	  @for $i from 0 through 50 {
-		.g-margin-l-n-#{$i * 5}--lg {
-		  margin-left: -($i * .3125rem);
-		}
-	  }
-  }
 
 /*----------------------------------
   Margin Right
 ------------------------------------*/
 
-@for $i from 0 through 50 {
+@for $i from 0 through 30 {
   .g-margin-r-#{$i * 5}--xs {
     margin-right: ($i * .3125rem);
   }
@@ -551,7 +437,7 @@
 
 /* Small screen / phone */
 @include media-breakpoint-up(sm) {
-	@for $i from 0 through 50 {
+	@for $i from 0 through 30 {
 	  .g-margin-r-#{$i * 5}--sm {
 	    margin-right: ($i * .3125rem);
 	  }
@@ -560,7 +446,7 @@
 
 /* Medium screen / tablet */
 @include media-breakpoint-up(md) {
-	@for $i from 0 through 50 {
+	@for $i from 0 through 30 {
 	  .g-margin-r-#{$i * 5}--md {
 	    margin-right: ($i * .3125rem);
 	  }
@@ -569,46 +455,12 @@
 
 /* Extra large screen / wide desktop */
 @include media-breakpoint-up(lg) {
-	@for $i from 0 through 50 {
+	@for $i from 0 through 30 {
 	  .g-margin-r-#{$i * 5}--lg {
 	    margin-right: ($i * .3125rem);
 	  }
 	}
 }
-
-// Margin Right Negative
-@for $i from 0 through 50 {
-	.g-margin-r-n-#{$i * 5}--xs {
-	  margin-right: -($i * .3125rem);
-	}
-  }
-  
-  /* Small screen / phone */
-  @include media-breakpoint-up(sm) {
-	  @for $i from 0 through 50 {
-		.g-margin-r-n-#{$i * 5}--sm {
-		  margin-right: -($i * .3125rem);
-		}
-	  }
-  }
-  
-  /* Medium screen / tablet */
-  @include media-breakpoint-up(md) {
-	  @for $i from 0 through 50 {
-		.g-margin-r-n-#{$i * 5}--md {
-		  margin-right: -($i * .3125rem);
-		}
-	  }
-  }
-  
-  /* Extra large screen / wide desktop */
-  @include media-breakpoint-up(lg) {
-	  @for $i from 0 through 50 {
-		.g-margin-r-n-#{$i * 5}--lg {
-		  margin-right: -($i * .3125rem);
-		}
-	  }
-  }
 
 /*----------------------------------
   Maring X (left & right)

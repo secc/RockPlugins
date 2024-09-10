@@ -27,8 +27,9 @@ form {
 		outline: none;
 		border: none;
 		width: 100%;
-		/*background-color: rgba($LightGrayColor, 0.2);*/		
-		/*border-radius: 0px !important;*/
+		/*background-color: rgba($LightGrayColor, 0.2);*/
+		font-weight: 600;
+		border-radius: 0px !important;
 
 		&:-ms-input-placeholder {
 	   		color: $LightGrayColor;
@@ -41,16 +42,6 @@ form {
 			border: none;
 			width: auto;
 		}
-	}
-
-	input,
-	textarea,
-	select option {
-		font-weight: 400;
-	}
-
-	select {
-		font-weight: 600;
 	}
 
 	fieldset {
@@ -83,69 +74,45 @@ form {
 			> .btn-primary:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on),
 			> .btn-primary:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on) {
 				@include btn-style(
-					$color: $WhiteColor,
-					$padding: 0.5rem 1.5rem,
-					$bg: $color-dark padding-box no-repeat,
-					$brd-width: 1px,
-					$brd-style: solid,
-					$brd-color: $color-dark,
-					$brd-radius: 4px !important,
-					//$hvr-bg: linear-gradient($WhiteColor, $WhiteColor) padding-box no-repeat,
-					$hvr-color: $BlackColor,
-					$hvr-brd-color: $BtnBorderColor
-				);
-				background-size: 0% 100%;
-				&:hover,
-				&:focus,
-				&:active  {
-					background-image: linear-gradient($WhiteColor, $WhiteColor);
-					background-size: 100% 100%;
-				}
+				$color: $color-dark,
+				$padding: 0.5rem 1.5rem,
+				$bg: transparent,
+				$brd-width: .4rem,
+				$brd-style: solid,
+				$brd-color: $color-dark,
+				$brd-radius: 3rem !important,
+				$hvr-bg: lighten($color-dark, 18%),
+				$hvr-color: $color-primary,
+				$hvr-brd-color: $color-dark);
 			}
 
 			> .btn-action:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on),
 			> .btn-default:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on) {
 				@include btn-style(
-					$color: $color-dark,
-					$padding: 0.5rem 1.5rem,
-					$bg: $WhiteColor padding-box no-repeat,
-					$brd-width: 1px,
-					$brd-style: solid,
-					$brd-color: $BtnBorderColor,
-					$brd-radius: 4px !important,
-					//$hvr-bg: lighten($color-dark, 18%),
-					$hvr-color: $WhiteColor,
-					$hvr-brd-color: $color-dark
-				);
-				background-size: 0% 100%;
-				&:hover,
-				&:focus,
-				&:active  {
-					background-size: 100% 100%;
-					background-image: linear-gradient($color-dark, $color-dark);
-				}
+				$color: $color-dark,
+				$padding: 0.5rem 1.5rem,
+				$bg: transparent,
+				$brd-width: .4rem,
+				$brd-style: solid,
+				$brd-color: lighten($color-dark, 60%),
+				$brd-radius: 3rem !important,
+				$hvr-bg: lighten($color-dark, 18%),
+				$hvr-color: $color-primary,
+				$hvr-brd-color: $color-dark);
 			}
 
 			> .btn-link:not(.note-btn):not(.js-toggle-off):not(.js-toggle-on) {
 				@include btn-style(
-					$color: $color-dark,
-					$padding: 0.5rem 1.5rem,
-					$bg: $WhiteColor padding-box no-repeat,
-					$brd-width: 1px,
-					$brd-style: solid,
-					$brd-color: $BtnBorderColor,
-					$brd-radius: 4px !important,
-					//$hvr-bg: lighten($color-dark, 18%),
-					$hvr-color: $WhiteColor,
-					$hvr-brd-color: $color-dark
-				);
-				background-size: 0% 100%;
-				&:hover,
-				&:focus,
-				&:active  {
-					background-size: 100% 100%;
-					background-image: linear-gradient($color-dark, $color-dark);
-				}
+				$color: $color-dark,
+				$padding: 0.5rem 1.5rem,
+				$bg: transparent,
+				$brd-width: .4rem,
+				$brd-style: solid,
+				$brd-color: lighten($color-dark, 80%),
+				$brd-radius: 3rem !important,
+				$hvr-bg: lighten($color-dark, 18%),
+				$hvr-color: $color-primary,
+				$hvr-brd-color: $color-dark);
 			}
 		}
 	}

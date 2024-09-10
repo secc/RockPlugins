@@ -23,7 +23,7 @@ namespace org.secc.FamilyCheckin.Migrations
         public override void Up()
         {
             var sql = string.Format( $@"
-DECLARE @entityTypeId INT = (SELECT TOP (1) [Id] FROM [EntityTypE] WHERE [Name] = 'org.secc.FamilyCheckin.Model.Kiosk')
+DECLARE @entityTypeId INT = (SELECT TOP (1) [Id] FROM [EntityType] WHERE [Name] = 'org.secc.FamilyCheckin.Model.Kiosk')
 
 INSERT INTO [Category] (IsSystem, EntityTypeId, [Name], [Guid], [Order], [Description])
 VALUES

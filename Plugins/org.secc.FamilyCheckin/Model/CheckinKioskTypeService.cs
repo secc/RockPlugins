@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -12,21 +12,18 @@
 // limitations under the License.
 // </copyright>
 //
+using org.secc.FamilyCheckin.Data;
 using Rock.Data;
 
-namespace org.secc.Jira.Data
+namespace org.secc.FamilyCheckin.Model
 {
-    public class JiraService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
+    public class CheckinKioskTypeService : FamilyCheckinService<CheckinKioskType>
     {
-        public JiraService( RockContext context )
-            : base( context )
-        {
-        }
 
-        public virtual bool CanDelete( T item, out string errorMessage )
-        {
-            errorMessage = string.Empty;
-            return true;
-        }
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CheckinKioskTypeService"/> class.
+        /// </summary>
+        /// <param name="context">The context.</param>
+        public CheckinKioskTypeService( RockContext context ) : base( context ) { }
     }
 }

@@ -23,12 +23,12 @@ namespace org.secc.FamilyCheckin.Model
     using System.Linq;
     using System.Runtime.Serialization;
     using Rock;
-    using Rock.Data;
+    using Rock.Lava;
     using Rock.Model;
 
     [Table( "_org_secc_FamilyCheckin_KioskType" )]
     [DataContract]
-    public partial class KioskType : Rock.Data.Model<KioskType>, Rock.Security.ISecured, Rock.Data.IRockEntity
+    public partial class CheckinKioskType : Rock.Data.Model<CheckinKioskType>, Rock.Security.ISecured, Rock.Data.IRockEntity
     {
         public override string ToString()
         {
@@ -50,7 +50,7 @@ namespace org.secc.FamilyCheckin.Model
         [DataMember]
         public int? CampusId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual Campus Campus { get; set; }
 
         [DataMember]
@@ -125,7 +125,7 @@ namespace org.secc.FamilyCheckin.Model
     /// <summary>
     /// File Configuration class.
     /// </summary>
-    public partial class KioskTypeConfiguration : EntityTypeConfiguration<KioskType>
+    public partial class KioskTypeConfiguration : EntityTypeConfiguration<CheckinKioskType>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="KioskTypeConfiguration"/> class.

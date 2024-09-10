@@ -35,6 +35,7 @@ using System.Web.Security;
 using Rock;
 using Rock.Attribute;
 using Rock.Security;
+using Rock.Tasks;
 
 namespace RockWeb.Plugins.org_secc.Security
 {
@@ -154,11 +155,15 @@ namespace RockWeb.Plugins.org_secc.Security
             {
                 if ( CurrentUser != null )
                 {
-                    var transaction = new Rock.Transactions.UserLastActivityTransaction();
-                    transaction.UserId = CurrentUser.Id;
-                    transaction.LastActivityDate = RockDateTime.Now;
-                    transaction.IsOnLine = false;
-                    Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+                    var taskMessage = new Rock.Tasks.UpdateUserLastActivity.Message()
+                    {
+                        UserId = CurrentUser.Id,
+                        LastActivityDate = RockDateTime.Now,
+                        IsOnline = false
+                    };
+
+                    taskMessage.Send();
+
                 }
 
                 FormsAuthentication.SignOut();

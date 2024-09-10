@@ -1,6 +1,6 @@
 {%- assign id = uniqueid -%}
-{{ '/Themes/SECC2024/Scripts/swiperjs/swiper-bundle.min.css' | AddCssLink }}
-{{ '/Themes/SECC2024/Scripts/swiperjs/swiper-bundle.min.js' | AddScriptLink }}
+{{ '/Themes/SECC2019/Scripts/swiperjs/swiper-bundle.min.css' | AddCssLink }}
+{{ '/Themes/SECC2019/Scripts/swiperjs/swiper-bundle.min.js' | AddScriptLink }}
 
 <style>
     .swiper-container-{{id}} {
@@ -21,7 +21,7 @@
         opacity: 1;
         transition: opacity .4s cubic-bezier(.38,.41,.27,1),transform .2s cubic-bezier(.235,0,.05,.95);
     }
-    .swiper-container-{{id}} .swiper-button-next.swiper-button-disabled,
+    .swiper-container-{{id}} .swiper-button-next.swiper-button-disabled, 
     .swiper-container-{{id}} .swiper-button-prev.swiper-button-disabled {
         opacity: 0;
         cursor: auto;
@@ -54,14 +54,14 @@
 <div class="swiper-container-{{id}} g-padding-y-20--xs">
     <!-- Additional required wrapper -->
     <div class="swiper-wrapper">
-
+        
         {%- for item in items -%}
         <!-- Slides -->
         <div class="swiper-slide">
             {{ item.content }}
         </div>
         {%- endfor -%}
-
+        
     </div>
 
     <!-- Add Pagination -->
