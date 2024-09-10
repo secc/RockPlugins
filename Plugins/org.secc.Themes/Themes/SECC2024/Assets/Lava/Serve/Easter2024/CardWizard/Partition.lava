@@ -1,0 +1,114 @@
+		{% if level > 0 %}
+			{% assign divId = partition.ParentIdentifier | Append:'_' | Append: partition.Value %}
+		{% else %}
+			{% assign url = '' %}
+			{% assign level = 0 %}
+			{% assign divId = 'signup' %}
+			{% assign show = 'Global' | PageParameter:'show' %}
+			{% assign foundDiv = false %}
+		{% endif %}
+		{% assign level = level | Plus:1 %}
+
+
+		<div id="{{divId}}" data-level="{{level}}" class="container-fluid slide-box {% if show == '' and show == empty and level == 1 %}{% assign foundDiv = true %}active" style="left: 0%;{% elseif show == divId %}{% assign foundDiv = true %}active" style="left: 0%;{% endif %}">
+
+			{% if level == 1 %}
+			<div class="row g-padding-b-10--xs">
+				<div class="col-xs-12">
+					<header class="text-center"  style="padding-bottom: 0px;">
+						<br />
+						<h2 class="uppercase
+						g-font-weight--900
+						g-font-size-40--xs
+						g-font-size-60--md
+						g-font-size-80--lg">&nbsp;</h2>
+					</header>
+				</div>
+			</div>
+
+			{% elseif level > 1 %}
+			<div class="row g-padding-b-30--xs">
+				<div class="col-xs-12">
+					<br />
+					<a href="#" onclick="doSlide('#{{partition.ParentIdentifier}}'); return false;" title="Go Back" class="pull-left se-action-btn g-padding-y-15--xs g-padding-x-30--xs g-color--dark g-position--absolute">
+						<i class="far fa-chevron-left g-margin-r-10--xs"></i> {{ partition.PartitionType }}
+					</a>
+					<br />
+					<header class="text-center"  style="padding-bottom: 0px;">
+						<br />
+						<h3 class="g-font-family--secondary">{{ parentPartition.Entity.Name }}</h3>
+						{% if partition.PartitionType == "Campus" %}
+							<p class="text-center col-sm-10 col-sm-offset-1 g-padding-t-10--xs">There are many ways you can serve during our Easter services. Click on the serving roles below for more information and to sign up!  </p>
+						{% else %}
+							<p class="text-center col-sm-10 col-sm-offset-1 g-padding-">{{ parentPartition.Entity.Description }}</p>
+						{% endif %}
+					</header>
+				</div>
+			</div>
+			{% endif %}
+
+			<div class="row">
+	            <div class="col-sm-10 col-sm-offset-1">
+				{% assign parameterName = '' %}
+	            {% for partition in Tree %}
+					{% assign partitionSize = partition.Partitions | Size %}
+					{% if partitionSize > 0 or CardWizardMode == "Single" %}
+						{% if partition.PartitionType == 'DefinedType' %}
+							{% if forloop.first %}<h3 class="g-font-family--secondary text-center g-padding-b-20--xs">Please select from the following:</h>{% endif %}
+							{% include '~~/Assets/Lava/Serve/Easter2024/CardWizard/CardDefinedType.lava' %}
+						{% elseif partition.PartitionType == 'Schedule' %}
+							{% if forloop.first %}<h3 class="g-font-family--secondary text-center g-padding-b-20--xs">Please select your schedule:</h3>{% endif %}
+							{% include '~~/Assets/Lava/Serve/Easter2024/CardWizard/CardSchedule.lava' %}
+						{% elseif partition.PartitionType == 'Campus' %}
+						{% if forloop.first %}<h2 class="g-font-family--secondary text-center g-padding-b-20--xs">Serve With Us</h2><p class="text-center col-sm-8 col-sm-offset-2">Help make our Easter services special for all who attend! There are a variety of ways you can serve. Click below to learn more about volunteer opportunities. For ways to serve at all other campuses, please visit the Connection Desk.</p>{% endif %}
+							{% include '~~/Assets/Lava/Serve/Easter2024/CardWizard/CardCampus.lava' %}
+						{% elseif partition.PartitionType == 'Role' %}
+							{% if forloop.first %}<h3 class="g-font-family--secondary text-center g-padding-b-20--xs">Please select your serving role:</h3>{% endif %}
+							{% include '~~/Assets/Lava/Serve/Easter2024/CardWizard/CardRole.lava' %}
+						{% endif %}
+					{% else %}
+						{% assign parameterName = partition.ParameterName %}
+						{% assign type = partition.PartitionType %}
+						<h3 class="g-font-family--secondary text-center g-padding-b-20--xs">
+						{% if partition.PartitionType == 'DefinedType' and forloop.first %}
+							Please select from the following:
+						{% elseif partition.PartitionType == 'Schedule' and forloop.first %}
+							Please select your schedule(s):
+						{% elseif partition.PartitionType == 'Campus' and forloop.first %}
+							Please select from the following:
+						{% elseif partition.PartitionType == 'Role' and forloop.first %}
+							Please select your serving role(s):
+						{% endif %}
+						</h3>
+						<style>
+						.check input:checked + .icon-box {
+						    background: #EDBA61 !important;
+						}
+						</style>
+						{% include '~~/Assets/Lava/Serve/Easter2024/CardWizard/PartitionList.lava' %}
+
+						{%- assign groupId = partition.GroupId -%}
+					{% endif %}
+	            {% endfor %}
+	            </div>
+			</div>
+
+			{% if parameterName != '' and CardWizardMode != "Single" %}
+			<div class="row">
+				<div class="col-sm-10 col-sm-offset-1">
+					<a href="{{partition.Url}}" data-type="{{type}}" data-group-id="{{groupId}}" data-role="{{partition.RoleGuid}}" data-parameter-name="{{parameterName}}" title="Sign Up" class="btn btn-primary pull-right signup-button g-letter-spacing--1">
+						Sign Me Up!
+					</a>
+				</div>
+			</div>
+			{% endif %}
+        </div>
+        {% for partition in Tree %}
+			{% assign partitionSize = partition.Partitions | Size %}
+			{% if partitionSize > 0 %}
+				{% assign Tree = partition.Partitions %}
+				{% assign parentPartition = partition %}
+				{% include '~~/Assets/Lava/Serve/Easter2024/CardWizard/Partition.lava' %}
+			{% endif %}
+        {% endfor %}
+		{% assign level =  level | Minus:1 %}

@@ -1,0 +1,15 @@
+{% comment %}
+    Emergency contact header
+{% endcomment %}
+
+<h2 style="text-align: center;">Verify Emergency Contacts</h2>
+{% if ContactCount == 0 %}
+    <div class="alert alert-validation">
+        <h3><i class="fas fa-exclamation-triangle"> </i> No Emergency Contacts</h3>
+        <p>An emergency contact is required to check in.  Please click the <strong>Add</strong> button
+            to add a contact.</p>
+    </div>
+{% else %}
+<p>Please verify that your emergency contact(s) are up to date.  If they are not please click the
+    <strong>Edit</strong> to update.</p>
+{% endif %}

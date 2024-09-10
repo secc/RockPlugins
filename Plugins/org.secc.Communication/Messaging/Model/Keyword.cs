@@ -39,6 +39,8 @@ namespace org.secc.Communication.Messaging.Model
         public MessagingPerson ModifiedBy { get; set; }
         [JsonProperty("ContactPerson")]
         public MessagingPerson ContactPerson { get; set; }
+        [JsonProperty("Order")]
+        public int? Order { get; set; }
         [JsonProperty( "IsActive" )]
         public bool IsActive { get; set; }
 

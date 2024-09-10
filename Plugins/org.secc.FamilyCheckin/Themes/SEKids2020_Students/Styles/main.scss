@@ -1015,3 +1015,8 @@ fieldset[disabled] .btn {
     padding-left: 5px !important;
     padding-right: 5px !important;
 }
+
+.checkin-header h1,
+.checkin-body p {
+  color: $ThemeColor_4!important;
+}

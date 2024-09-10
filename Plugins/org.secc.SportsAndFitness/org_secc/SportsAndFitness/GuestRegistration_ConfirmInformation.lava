@@ -1,0 +1,43 @@
+{% comment %}
+    Guest registration - Confirm Information
+{% endcomment %}
+<div class="row">
+    <div class="col-sm-6 col-sm-offset-3">
+        <h2 style="text-align:center;">Confirm Information</h2>
+        <p>Welcome! Please confirm that your information is correct.</p>
+        <div class="row">
+            <div class="col-sm-6">
+                <label>Name</label>
+            </div>
+            <div class="col-sm-6">
+                {{ Guest.FullName }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <label>Mobile Phone</label>
+            </div>
+            <div class="col-sm-6">
+                {{ Guest | PhoneNumber:'Mobile' }}
+            </div>
+        </div>
+        {% if Guest.Email != '' %}
+        <div class="row">
+            <div class="col-sm-6">
+                <label>Email</label>
+            </div>
+            <div class="col-sm-6">
+                {{ Guest.Email }}
+            </div>
+        </div>
+        {% endif %}
+        <div class="row">
+            <div class="col-sm-6">
+                <label>Birthdate</label>
+            </div>
+            <div class="col-sm-6">
+                {{ Guest.BirthDate | Date:'M/d' }}
+            </div>
+        </div>
+    </div>
+</div>

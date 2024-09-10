@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
-using System.Web.UI;
 using System.Web.UI.WebControls;
 using Newtonsoft.Json;
-using org.secc.FamilyCheckin;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -34,9 +32,10 @@ namespace RockWeb.Plugins.org_secc.Reporting
         DefaultValue = "Worship Attendance Entry",
         Order = 1,
         Key = AttributeKey.PanelTitle )]
-    [CategoryField( "Worship Attendance Parent Category",
+    [CategoryField( "Worship Attendance Parent Categories",
         Description = "Parent Schedule Category for Weekly Worship Service Attendance.",
         EntityTypeName = "Rock.Model.Schedule",
+        AllowMultiple = true,
         IsRequired = true,
         Order = 2,
         Key = AttributeKey.ScheduleCategory )]
@@ -139,7 +138,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
         {
             var scheduleID = ddlSchedule.SelectedValueAsInt();
 
-            if(scheduleID.HasValue)
+            if (scheduleID.HasValue)
             {
                 var schedule = WorshipSchedules.SingleOrDefault( s => s.ScheduleId == scheduleID && s.CampusId == SelectedCampus.Id );
 
@@ -198,12 +197,12 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 .FirstOrDefault();
 
             return metricValue;
-                
+
         }
 
         private void LoadForm()
         {
-            if(SelectedCampus == null)
+            if (SelectedCampus == null)
             {
                 SetNotification( "<i class=\"fas fa-exclamation-triangle\"></i> Campus Not Selected",
                     "Campus must be provided to enter worship attendance",
@@ -216,7 +215,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
             var campusSchedules = WorshipSchedules.Where( s => s.CampusId == SelectedCampus.Id ).ToList();
 
-            if(!campusSchedules.Any())
+            if (!campusSchedules.Any())
             {
                 SetNotification( "<i class=\"fas fa-exclamation-triangle\"></i> No Services Found",
                     $"No Services found for today at {SelectedCampus.Name} Campus.",
@@ -230,7 +229,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
             ddlSchedule.Items.Clear();
             ddlSchedule.Items.Add( new ListItem( string.Empty, string.Empty ) );
-            foreach (var item in campusSchedules.OrderBy(s => s.StartDateTime))
+            foreach (var item in campusSchedules.OrderBy( s => s.StartDateTime ))
             {
                 var listItem = new ListItem( $"{item.StartDateTime: h:mm tt}", item.ScheduleId.ToString() );
                 ddlSchedule.Items.Add( listItem );
@@ -252,24 +251,33 @@ namespace RockWeb.Plugins.org_secc.Reporting
         }
 
         private void LoadSchedules()
-        {          
+        {
 
             var cachedValue = RockCache.Get( _serviceCachceKey, true ) as string;
 
-            if(cachedValue !=  null)
+            if (cachedValue != null)
             {
-                _worshipSchedules = JsonConvert.DeserializeObject<List<WorshipScheduleSummary>>(cachedValue);
+                _worshipSchedules = JsonConvert.DeserializeObject<List<WorshipScheduleSummary>>( cachedValue );
                 return;
             }
-            
+
 
             var rockContext = new RockContext();
-            var baseCategoryGuid = GetAttributeValue( AttributeKey.ScheduleCategory ).AsGuid();
+            var baseCategoryGuids = GetAttributeValue( AttributeKey.ScheduleCategory ).SplitDelimitedValues()
+                .Select( v => v.AsGuid() );
 
             var categoryService = new CategoryService( rockContext );
             var scheduleService = new ScheduleService( rockContext );
-            var categoryIds = categoryService.GetAllDescendents( baseCategoryGuid )
-                .Select( c => c.Id ).ToList();
+            var categoryIds = new List<int>();
+
+            foreach ( var categoryGuid in baseCategoryGuids )
+            {
+                categoryIds.AddRange(
+                    categoryService.GetAllDescendents( categoryGuid )
+                            .Select( c => c.Id ).ToList()
+                );
+            }
+
 
             var campusAttributeGuid = GetAttributeValue( AttributeKey.ScheduleCampus ).AsGuid();
             var campusAttributeValues = new AttributeValueService( rockContext ).Queryable().AsNoTracking()
@@ -290,6 +298,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
             {
                 var todaysOccurrences = schedule.Schedule
                     .GetScheduledStartTimes( RockDateTime.Today, RockDateTime.Today.AddDays( 1 ).AddSeconds( -1 ) );
+                    
                 if (todaysOccurrences.Count == 0)
                 {
                     continue;
@@ -305,7 +314,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                     };
 
                     var metricValue = GetMetricValue( service, rockContext );
-                    if(metricValue != null)
+                    if (metricValue != null)
                     {
                         service.Attendance = (int?) metricValue.YValue;
                         service.MetricValueId = metricValue.Id;
@@ -317,14 +326,14 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
             var expirationMinutes = 60;
             //expire cache before midnight
-            if(RockDateTime.Now.AddMinutes(expirationMinutes) > RockDateTime.Today.AddDays(1))
+            if (RockDateTime.Now.AddMinutes( expirationMinutes ) > RockDateTime.Today.AddDays( 1 ))
             {
                 expirationMinutes = RockDateTime.Today.AddDays( 1 ).Subtract( Rock.RockDateTime.Now ).Minutes;
             }
 
             _worshipSchedules = worshipSchedule;
 
-            RockCache.AddOrUpdate( _serviceCachceKey, null, JsonConvert.SerializeObject(worshipSchedule), RockDateTime.Now.AddMinutes(expirationMinutes));
+            RockCache.AddOrUpdate( _serviceCachceKey, null, JsonConvert.SerializeObject( worshipSchedule ), RockDateTime.Now.AddMinutes( expirationMinutes ) );
 
 
         }
@@ -361,7 +370,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 var metricValueService = new MetricValueService( rockContext );
                 MetricValue metricValue = null;
 
-                if(worshipService.MetricValueId.HasValue)
+                if (worshipService.MetricValueId.HasValue)
                 {
                     metricValue = metricValueService.Get( worshipService.MetricValueId.Value );
                 }
@@ -388,14 +397,14 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
                 rockContext.SaveChanges();
 
-                if(!worshipService.MetricValueId.HasValue)
+                if (!worshipService.MetricValueId.HasValue)
                 {
                     worshipService.MetricValueId = metricValue.Id;
                 }
             }
 
-            RockCache.AddOrUpdate( _serviceCachceKey, JsonConvert.SerializeObject(WorshipSchedules) );
-            SetNotification( "<i class=\"fas fa-check-square\"></i> Attendance Saved", "<br />Worship Attendance Successfully Saved", NotificationBoxType.Success);
+            RockCache.AddOrUpdate( _serviceCachceKey, JsonConvert.SerializeObject( WorshipSchedules ) );
+            SetNotification( "<i class=\"fas fa-check-square\"></i> Attendance Saved", "<br />Worship Attendance Successfully Saved", NotificationBoxType.Success );
 
 
 
@@ -430,13 +439,13 @@ namespace RockWeb.Plugins.org_secc.Reporting
             }
         }
 
-        private void SetNotification(string title, string message, NotificationBoxType boxType = NotificationBoxType.Default)
+        private void SetNotification( string title, string message, NotificationBoxType boxType = NotificationBoxType.Default )
         {
             nbMessage.Title = title;
             nbMessage.Text = message;
             nbMessage.NotificationBoxType = boxType;
 
-            if(title.IsNullOrWhiteSpace() && message.IsNullOrWhiteSpace())
+            if (title.IsNullOrWhiteSpace() && message.IsNullOrWhiteSpace())
             {
                 nbMessage.Visible = false;
             }

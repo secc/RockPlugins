@@ -1085,33 +1085,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
         {
             if ( person != null )
             {
-                if ( !CurrentGroup.Members
-                    .Any( m =>
-                        m.PersonId == person.Id &&
-                        m.GroupRoleId == _defaultGroupRole.Id ) )
-                {
-                    var groupMemberService = new GroupMemberService( rockContext );
-                    var groupMember = new GroupMember();
-                    groupMember.PersonId = person.Id;
-                    groupMember.GroupRoleId = _defaultGroupRole.Id;
-                    groupMember.GroupMemberStatus = ( GroupMemberStatus ) GetAttributeValue( "GroupMemberStatus" ).AsInteger();
-                    groupMember.GroupId = CurrentGroup.Id;
-                    groupMemberService.Add( groupMember );
-                    rockContext.SaveChanges();
-                }
-                else
-                {
-                    foreach ( var groupMember in CurrentGroup.Members
-                        .Where( m => m.PersonId == person.Id &&
-                            m.GroupRoleId == _defaultGroupRole.Id ) )
-                    {
-                        var groupMemberService = new GroupMemberService( rockContext );
-                        var efGroupMember = groupMemberService.Get( groupMember.Guid );
-                        efGroupMember.GroupMemberStatus = ( GroupMemberStatus ) GetAttributeValue( "GroupMemberStatus" ).AsInteger();
-                        debug.Text += groupMember.Person.FullName;
-                    }
-                    rockContext.SaveChanges();
-                }
+                var groupMemberService = new GroupMemberService( rockContext );
+                var group = new GroupService( rockContext ).Get( CurrentGroup.Guid );
+                var member = groupMemberService.AddOrRestoreGroupMember( group, person.Id, _defaultGroupRole.Id );
+                member.GroupMemberStatus = (GroupMemberStatus) GetAttributeValue( "GroupMemberStatus" ).AsInteger();
+                rockContext.SaveChanges();
+
+
             }
         }
 
@@ -1284,11 +1264,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 Location _address = Person.GetHomeLocation();
                 if ( _address != null )
                 {
-                    return ( _address.Street1 ?? "" )
+                    var address =  ( _address.Street1 ?? "" )
                             + ( !string.IsNullOrWhiteSpace( _address.Street2 ) ? "<br />" + _address.Street2 : "" )
                             + ( !( string.IsNullOrWhiteSpace( City ) && string.IsNullOrWhiteSpace( State ) && string.IsNullOrWhiteSpace( Zipcode ) ) ? "<br />" : "" )
                             + ( !string.IsNullOrWhiteSpace( City ) ? City + ", " : "" )
-                            + State + Zipcode;
+                            + State + " " +  Zipcode;
+                    return address.Trim();
                 }
                 return "";
             }
