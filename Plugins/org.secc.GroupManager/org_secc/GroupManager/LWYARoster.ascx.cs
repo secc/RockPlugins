@@ -20,6 +20,7 @@ using System.Linq;
 using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using CSScriptLibrary;
 using org.secc.GroupManager;
 using Rock;
 using Rock.Attribute;
@@ -1081,11 +1082,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 var groupMemberService = new GroupMemberService( rockContext );
                 var group = new GroupService( rockContext ).Get( CurrentGroup.Guid );
-                var member = groupMemberService.AddOrRestoreGroupMember( group, person.Id, _defaultGroupRole.Id );
-                member.GroupMemberStatus = (GroupMemberStatus) GetAttributeValue( "GroupMemberStatus" ).AsInteger();
-                rockContext.SaveChanges();
+                var member = groupMemberService.Queryable().FirstOrDefault( gm => gm.GroupId == group.Id && gm.PersonId == person.Id && gm.GroupRoleId == _defaultGroupRole.Id );
 
-
+                if ( member == null || member.IsArchived )
+                {
+                    member = groupMemberService.AddOrRestoreGroupMember( group, person.Id, _defaultGroupRole.Id );
+                    member.GroupMemberStatus = ( GroupMemberStatus ) GetAttributeValue( "GroupMemberStatus" ).AsInteger();
+                    rockContext.SaveChanges();
+                }
             }
         }
 
