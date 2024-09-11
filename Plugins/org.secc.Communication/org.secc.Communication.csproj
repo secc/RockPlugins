@@ -76,6 +76,7 @@
     <Compile Include="Components\MessagingServiceSettings.cs" />
     <Compile Include="Data\CommunicationDataContext.cs" />
     <Compile Include="Data\CommunicationDataService.cs" />
+    <Compile Include="Jobs\SendScheduleReminder.cs" />
     <Compile Include="Jobs\SyncTwilioHistory.cs" />
     <Compile Include="MessagingClient.cs" />
     <Compile Include="Messaging\KeywordReorderItem.cs" />
