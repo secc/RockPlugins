@@ -1,7 +1,7 @@
 PathToPlugins="C:\Users\Julio\Documents\repos\secc-rock-upgrade\RockPlugins"
 PathToRock="C:\Users\Julio\Documents\repos\secc-rock-upgrade\Rock"
-PathToTempSrcFolder="C:\Users\Julio\Documents\repos\secc-rock-upgrade\src"
-UpdateSeccNetFramework="v4.7.2" # Set to empty string to not update the framework version
+PathToTempSrcFolder="C:\Users\Julio\Documents\repos\secc-rock-upgrade\src2"
+Port=6234
 
 # Check Node.js version
 required_version="16"
@@ -16,6 +16,7 @@ fi
 if [ -d "$PathToTempSrcFolder" ]; then
     echo "removing temporary src folder"
     rm -rf "$PathToTempSrcFolder"
+    
 else
     echo "$PathToTempSrcFolder does not exist."
 fi
@@ -41,14 +42,18 @@ if [ -d "$PathToRock/Rock.JavaScript.EditorJs" ]; then
     npm install
     cd -
 fi 
+
+# Replace port number in Rock.sln
+sed -i "s/6229/$Port/g" "$PathToTempSrcFolder/Rock/Rock.sln"
+
 # Create Symbolic links
-./makelinks.sh 
+./makelinks.sh "$PathToTempSrcFolder/Rock/secc/Plugins" "$PathToTempSrcFolder/Rock/RockWeb/Plugins"
 
 # Copy connection strings
 cp web.ConnectionStrings.config $PathToTempSrcFolder/Rock/RockWeb/web.ConnectionStrings.config
 
 # Setup Database
-#./start-db.sh 
+./start-db.sh 
 
 
 
