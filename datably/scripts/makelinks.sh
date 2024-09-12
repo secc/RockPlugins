@@ -1,5 +1,5 @@
-CurrentPluginsPath="C:/Users/Julio/Documents/repos/secc-rock-upgrade/src/Rock/secc/Plugins"
-DesiredPluginsPath="C:/Users/Julio/Documents/repos/secc-rock-upgrade/src/Rock/RockWeb/Plugins"
+CurrentPluginsPath=$1
+DesiredPluginsPath=$2
 
 # Delete the target folder to start fresh
 if [ -d "$DesiredPluginsPath/org_secc" ]; then
