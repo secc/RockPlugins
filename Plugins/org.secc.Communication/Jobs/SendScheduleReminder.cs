@@ -27,7 +27,7 @@ namespace org.secc.Communication.Jobs
         IsRequired = true,
         Key = AttributeKeys.CommunicationTemplateKey,
         Order = 1 )]
-    [DataViewField( "Distribution List",
+    [DataViewField( "Dataview - Distribution List",
         Description = "The distribution list of recipients who should be sent the communication",
         IsRequired = true,
         EntityType = typeof( Person ),
