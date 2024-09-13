@@ -9,6 +9,7 @@ using Rock.Attribute;
 using Rock.Data;
 using Rock.Jobs;
 using Rock.Model;
+using Twilio.Rest.Api.V2010.Account;
 
 
 namespace org.secc.Communication.Jobs
@@ -68,11 +69,13 @@ namespace org.secc.Communication.Jobs
 
         }
 
+        private TimeSpan _defaultTimeSpan = new TimeSpan( 8, 0, 0 );
+
         private Schedule EventSchedule { get; set; }
         private SystemCommunication CommunicationTemplate { get; set; }
         private Guid DataviewGuid { get; set; }
         private int SendDaysAhead { get; set; }
-        private TimeSpan SendTime { get; set; }
+        private TimeSpan? SendTime { get; set; }
         private List<string> CommunicationMethods { get; set; }
 
 
@@ -101,18 +104,23 @@ namespace org.secc.Communication.Jobs
             DataviewGuid = datamap.GetString( AttributeKeys.DistributionDataviewKey ).AsGuid();
             SendDaysAhead = datamap.GetString( AttributeKeys.SendDaysKey ).AsInteger();
             CommunicationMethods = datamap.GetString( AttributeKeys.CommunicationMethodKey ).SplitDelimitedValues().ToList();
-            SendTime = DateTime.ParseExact( datamap.GetString( AttributeKeys.SendTimeKey ), "hh:mm tt", CultureInfo.InvariantCulture ).TimeOfDay;
-            
 
-            var currentDate = RockDateTime.Now.Date;
-            var nextOccurrence = EventSchedule.GetNextStartDateTime( currentDate );
-            if (nextOccurrence.HasValue)
+            SendTime = datamap.GetString( AttributeKeys.SendTimeKey ).AsTimeSpan();
+
+            if(!SendTime.HasValue)
             {
-                var days = (nextOccurrence.Value.Date - currentDate).Days;
+                SendTime = _defaultTimeSpan;
+            }
 
-                if (days == SendDaysAhead)
+            var enddate = DateTime.Today.AddDays( (SendDaysAhead) + 1 ).Date;
+            var upcomingOccurrences = EventSchedule.GetScheduledStartTimes( DateTime.Today.Date, enddate );
+
+            foreach (var occurrence in upcomingOccurrences)
+            {
+                if((occurrence.Date - DateTime.Today.Date).Days == SendDaysAhead)
                 {
                     sendReminders = true;
+                    break;
                 }
             }
 
@@ -124,7 +132,7 @@ namespace org.secc.Communication.Jobs
 
             CreateCommunications();
 
-            context.Result = $"Reminder Communications created for Schedule {EventSchedule.Name} - Will be sent at {RockDateTime.Today.Add(SendTime).ToShortDateTimeString()}";
+            context.Result = $"Reminder Communications created for Schedule {EventSchedule.Name} - Will be sent at {RockDateTime.Today.Add(SendTime.Value).ToShortDateTimeString()}";
 
         }
 
@@ -155,7 +163,9 @@ namespace org.secc.Communication.Jobs
                         Message = CommunicationTemplate.Body,
                         SystemCommunicationId = CommunicationTemplate.Id,
                         Status = CommunicationStatus.Approved,
-                        FutureSendDateTime = RockDateTime.Today.Add( SendTime )
+                        FutureSendDateTime = RockDateTime.Today.Add( SendTime.Value ),
+                        CreatedByPersonAliasId = systemAdminAlias,
+                        ModifiedByPersonAliasId = systemAdminAlias,
 
                     };
 
@@ -183,7 +193,9 @@ namespace org.secc.Communication.Jobs
                         SMSMessage = CommunicationTemplate.SMSMessage,
                         SystemCommunicationId = CommunicationTemplate.Id,
                         Status = CommunicationStatus.Approved,
-                        FutureSendDateTime = RockDateTime.Today.Add( SendTime )
+                        FutureSendDateTime = RockDateTime.Today.Add( SendTime.Value ),
+                        CreatedByPersonAliasId = systemAdminAlias,
+                        ModifiedByPersonAliasId = systemAdminAlias,
                     };
 
                     smsCommunication.Recipients = new List<CommunicationRecipient>();
