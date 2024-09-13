@@ -187,6 +187,7 @@ namespace org.secc.Communication.Jobs
                     var smsCommunication = new Rock.Model.Communication()
                     {
                         Name = CommunicationTemplate.Title,
+                        Subject = string.Empty,
                         CommunicationType = CommunicationType.SMS,
                         SenderPersonAliasId = systemAdminAlias,
                         SMSFromDefinedValueId = CommunicationTemplate.SMSFromDefinedValueId,
