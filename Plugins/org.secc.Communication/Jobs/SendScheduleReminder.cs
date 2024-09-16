@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
 using Quartz;
 using Rock;
@@ -9,7 +8,7 @@ using Rock.Attribute;
 using Rock.Data;
 using Rock.Jobs;
 using Rock.Model;
-using Twilio.Rest.Api.V2010.Account;
+using Rock.Web.Cache;
 
 
 namespace org.secc.Communication.Jobs
@@ -146,7 +145,8 @@ namespace org.secc.Communication.Jobs
                 .ToList();
 
             var communicationService = new CommunicationService( rockContext );
-
+            var emailMediumType = EntityTypeCache.Get( typeof( Rock.Communication.Medium.Email ) );
+            var smsMediumType = EntityTypeCache.Get( typeof( Rock.Communication.Medium.Sms ) );
 
             if (CommunicationTemplate.Body.IsNotNullOrWhiteSpace())
             {
@@ -173,7 +173,11 @@ namespace org.secc.Communication.Jobs
 
                     foreach (var p in recipients)
                     {
-                        emailCommunication.Recipients.Add( new CommunicationRecipient() { PersonAliasId = p.PrimaryAliasId } );
+                        emailCommunication.Recipients.Add( new CommunicationRecipient() {
+                            PersonAliasId = p.PrimaryAliasId,
+                            AdditionalMergeValuesJson = "{}",
+                            MediumEntityTypeId = emailMediumType.Id,
+                            Status = CommunicationRecipientStatus.Pending} );
                     }
                     communicationService.Add( emailCommunication );
                     rockContext.SaveChanges();
@@ -203,7 +207,13 @@ namespace org.secc.Communication.Jobs
 
                     foreach (var p in recipients)
                     {
-                        smsCommunication.Recipients.Add( new CommunicationRecipient { PersonAliasId = p.PrimaryAliasId } );
+                        smsCommunication.Recipients.Add( new CommunicationRecipient()
+                        {
+                            PersonAliasId = p.PrimaryAliasId,
+                            AdditionalMergeValuesJson = "{}",
+                            MediumEntityTypeId = smsMediumType.Id,
+                            Status = CommunicationRecipientStatus.Pending
+                        } );
                     }
                     communicationService.Add( smsCommunication );
                     rockContext.SaveChanges();
