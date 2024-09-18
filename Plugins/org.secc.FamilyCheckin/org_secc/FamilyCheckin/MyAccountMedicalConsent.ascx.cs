@@ -15,6 +15,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
@@ -25,26 +26,22 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 
-/// <summary>
-/// Template block for developers to use to start a new block.
-/// </summary>
 [DisplayName( "My Account Medical Consent" )]
 [Category( "SECC > Family Check In" )]
 [Description( "A block to prompt parents for medical consent for the minors in their family" )]
 
 #region Block Attributes
-[BooleanField( "Show No Minors Message", "Should a message be displayed when no minors are found who need consent?", true, "", 0 )]
+[BooleanField( "Show Message", "Should a message be displayed when no minors are found who need consent?", true, "", 0 )]
 [TextField( "Medical Consent Attribute Key", "The key of the person attribute that will be updated with the medical consent message", true, "MedicalConsent", "", 1 )]
 #endregion Block Attributes
 
 public partial class Plugins_org_secc_FamilyCheckin_MyAccountMedicalConsent : Rock.Web.UI.RockBlock
-
 {
     #region Attribute Keys
 
     private static class AttributeKey
     {
-        public const string ShowNoMinorsMessage = "ShowNoMinorsMessage";
+        public const string ShowMessage = "ShowMessage";
         public const string MedicalConsentAttributeKey = "MedicalConsentAttributeKey";
     }
 
@@ -52,88 +49,121 @@ public partial class Plugins_org_secc_FamilyCheckin_MyAccountMedicalConsent : Ro
 
     #region Base Control Methods
 
-    /// <summary>
-    /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
-    /// </summary>
-    /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
     protected override void OnLoad( EventArgs e )
     {
         base.OnLoad( e );
 
         if ( !Page.IsPostBack )
         {
-            var medicalConsentAttributeKey = GetAttributeValue( AttributeKey.MedicalConsentAttributeKey );
+            LoadConsentForm();
+        }
+    }
 
-            var rockContext = new RockContext();
+    private void LoadConsentForm()
+    {
+        var medicalConsentAttributeKey = GetAttributeValue( AttributeKey.MedicalConsentAttributeKey );
+        var rockContext = new RockContext();
+        var familyGroup = new GroupService( rockContext ).Get( ( int ) CurrentPerson.PrimaryFamilyId );
+        var minors = familyGroup.Members.Where( m => m.Person.Age < 18 ).ToList();
 
-            var familyGroup = new GroupService( rockContext ).Get( ( int ) CurrentPerson.PrimaryFamilyId );
-            var minors = familyGroup.Members.Where( m => m.Person.Age < 18 ).ToList();
-            if ( minors.Count == 0 )
+        if ( minors.Count == 0 )
+        {
+            ShowNoMinorsMessage();
+        }
+
+        if ( AllMinorsHaveConsent( minors, medicalConsentAttributeKey, rockContext ) )
+        {
+            if ( GetAttributeValue( AttributeKey.ShowMessage ).AsBoolean() )
             {
-                if ( GetAttributeValue( AttributeKey.ShowNoMinorsMessage ).AsBoolean() )
+                ShowAllMinorsHaveConsentMessage();
+            }
+        }
+        else
+        {
+            ShowConsentForm( minors, familyGroup, rockContext );
+        }
+    }
+
+    private void ShowNoMinorsMessage()
+    {
+        if ( GetAttributeValue( AttributeKey.ShowMessage ).AsBoolean() )
+        {
+            nbNoMinors.Visible = true;
+        }
+    }
+
+    private bool AllMinorsHaveConsent( IEnumerable<GroupMember> minors, string medicalConsentAttributeKey, RockContext rockContext )
+    {
+        foreach ( var minor in minors )
+        {
+            var person = minor.Person;
+            person.LoadAttributes( rockContext );
+
+            if ( person.GetAttributeValue( medicalConsentAttributeKey ).IsNullOrWhiteSpace() )
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void ShowAllMinorsHaveConsentMessage()
+    {
+        if ( GetAttributeValue( AttributeKey.ShowMessage ).AsBoolean() )
+        {
+            nbAllMinorsHaveConsent.Visible = true;
+        }
+    }
+
+    private void ShowConsentForm( IEnumerable<GroupMember> minors, Group familyGroup, RockContext rockContext )
+    {
+        h4FamilyName.InnerText = $"{CurrentPerson.PrimaryFamily.Name} Household";
+        sCurrentPersonFullName.InnerText = CurrentPerson.FullName;
+        sCurrentPersonCellNumber.InnerText = CurrentPerson.GetPhoneNumber( DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Guid )?.NumberFormatted;
+        sCurrentPersonAddress.InnerText = familyGroup.GroupLocations.FirstOrDefault( gl => gl.GroupLocationTypeValue.Value == "Home" )?.Location?.GetFullStreetAddress();
+        aUpdateCurrentPerson.HRef = $"{GlobalAttributesCache.Value( "PublicApplicationRoot" )}MyAccount/Edit/{CurrentPerson.Guid}";
+
+        ShowOtherAdults( familyGroup );
+        ShowMinors( minors );
+
+        pnlConsent.Visible = true;
+    }
+
+    private void ShowOtherAdults( Group familyGroup )
+    {
+        var adultRoleId = GroupTypeCache.GetFamilyGroupType().Roles
+                            .FirstOrDefault( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() )?.Id;
+
+        if ( adultRoleId.HasValue )
+        {
+            var otherAdults = familyGroup.Members
+                .Where( m => m.GroupRoleId == adultRoleId.Value && m.PersonId != CurrentPerson.Id )
+                .Select( m => m.Person )
+                .ToList();
+
+            if ( otherAdults.Any() )
+            {
+                HtmlGenericControl otherAdult;
+                foreach ( var adult in otherAdults )
                 {
-                    nbNoMinors.Visible = true;
-                }
-                return;
-            }
-
-            // check if all minors already have a value for the medical consent attribute
-            foreach ( var minor in minors )
-            {
-                var person = minor.Person;
-                person.LoadAttributes( rockContext );
-
-                if ( person.GetAttributeValue( medicalConsentAttributeKey ).IsNullOrWhiteSpace() )
-                {
-                    // if any minor does not have a value for the medical consent attribute, show the consent form
-                    h4FamilyName.InnerText = $"{CurrentPerson.PrimaryFamily.Name} Household";
-                    sCurrentPersonFullName.InnerText = CurrentPerson.FullName;
-                    sCurrentPersonCellNumber.InnerText = CurrentPerson.GetPhoneNumber( DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Guid )?.NumberFormatted;
-                    sCurrentPersonAddress.InnerText = familyGroup.GroupLocations.FirstOrDefault( gl => gl.GroupLocationTypeValue.Value == "Home" )?.Location?.GetFullStreetAddress();
-                    aUpdateCurrentPerson.HRef = $"{GlobalAttributesCache.Value( "PublicApplicationRoot" )}MyAccount/Edit/{CurrentPerson.Guid}";
-
-                    var adultRoleId = GroupTypeCache.GetFamilyGroupType().Roles
-                                        .FirstOrDefault( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid() )?.Id;
-
-                    if ( adultRoleId.HasValue )
+                    var phoneNumber = adult.GetPhoneNumber( DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Guid )?.NumberFormatted;
+                    otherAdult = new HtmlGenericControl( "div" )
                     {
-                        var otherAdults = familyGroup.Members
-                            .Where( m => m.GroupRoleId == adultRoleId.Value && m.PersonId != CurrentPerson.Id )
-                            .Select( m => m.Person )
-                            .ToList();
-
-                        if ( otherAdults.Any() )
-                        {
-                            String phoneNumber;
-                            foreach ( var adult in otherAdults )
-                            {
-                                phoneNumber = adult.GetPhoneNumber( DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Guid )?.NumberFormatted;
-                                pnlOtherAdults.Controls.Add( new HtmlGenericControl( "p") {
-                                    InnerHtml = adult.FullName + "<br />" + phoneNumber + "<br />" +
-                                    $"</p><a href=\"{GlobalAttributesCache.Value( "PublicApplicationRoot" )}MyAccount/Edit/{adult.Guid}\" class=\"btn btn-primary btn-xs\">Update Info</a>"
-                                } );
-                            }
-                            pnlOtherAdults.Visible = true;
-                        }
-                    }
-
-                    foreach ( var child in minors )
-                    {
-                        pnlChildren.Controls.Add( new HtmlGenericControl("p") { InnerHtml = child.Person.FullName + "(" + child.Person.Age + ")" } );
-                    }
-
-                    pnlConsent.Visible = true;
-                    return;
+                        InnerHtml = $"<p>{adult.FullName}<br />{phoneNumber}</p><a href=\"{GlobalAttributesCache.Value( "PublicApplicationRoot" )}MyAccount/Edit/{adult.Guid}\" class=\"btn btn-primary btn-xs\">Update Info</a>"
+                    };
+                    otherAdult.AddCssClass( "col-sm-6 other-adult" );
+                    pnlOtherAdults.Controls.Add( otherAdult );
                 }
+                pnlOtherAdults.Visible = true;
             }
+        }
+    }
 
-            // if all minors already have a value for the medical consent attribute, show the success message
-            if ( GetAttributeValue( AttributeKey.ShowNoMinorsMessage ).AsBoolean() )
-            {
-                nbAllMinorsHaveConsent.Visible = true;
-            }
-
-            return;
+    private void ShowMinors( IEnumerable<GroupMember> minors )
+    {
+        foreach ( var child in minors )
+        {
+            pnlChildren.Controls.Add( new HtmlGenericControl( "p" ) { InnerHtml = $"{child.Person.FullName} ({child.Person.Age})" } );
         }
     }
 
@@ -141,20 +171,15 @@ public partial class Plugins_org_secc_FamilyCheckin_MyAccountMedicalConsent : Ro
 
     #region Events
 
-    // Handlers called by the controls on your block.
-
     protected void btnConsent_Click( object sender, EventArgs e )
     {
         var medicalConsent = $"{CurrentPerson.FullName} {RockDateTime.Today.ToShortDateString()}";
-
         var rockContext = new RockContext();
         var familyGroup = new GroupService( rockContext ).Get( ( int ) CurrentPerson.PrimaryFamilyId );
         var minors = familyGroup.Members.Where( m => m.Person.Age < 18 ).ToList();
 
-        // for each child
         foreach ( var minor in minors )
         {
-            // Assuming you want to update the medical consent attribute for each minor
             var person = minor.Person;
             person.LoadAttributes( rockContext );
             person.SetAttributeValue( GetAttributeValue( AttributeKey.MedicalConsentAttributeKey ), medicalConsent );
@@ -164,13 +189,6 @@ public partial class Plugins_org_secc_FamilyCheckin_MyAccountMedicalConsent : Ro
         pnlConsent.Visible = false;
         pnlSuccess.Visible = true;
     }
-
-    #endregion
-
-    #region Methods
-
-    // helper functional methods (like BindGrid(), etc.)
-
 
     #endregion
 }
