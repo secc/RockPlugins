@@ -8,13 +8,13 @@
             <Rock:NotificationBox ID="nbAllMinorsHaveConsent" runat="server"
                 Text="All minors in your family already have medical consent." Visible="false" CssClass="success" />
 
-            <asp:Panel ID="pnlConsent" runat="server" Visible="false" CssClass="alert alert-danger">
+            <asp:Panel ID="pnlConsent" runat="server" Visible="false" CssClass="alert alert-danger g-margin-x-20--xs">
                 <div class="">
-                    <h3 class="g-font-family--primary g-margin-b-10--xs">Household Information</h3>
+                    <h3 class="g-font-family--primary g-margin-b-5--xs g-font-weight--500">Household Information</h3>
                     <p>Please verify your household information and help us update our ministry consent</p>
                     <div class="row">
                         <div class="col-sm-6">
-                            <h4 ID="h4FamilyName" runat="server"></h4>
+                            <h4 ID="h4FamilyName" runat="server" class="g-font-weight--500 g-margin-b-5--xs"></h4>
                             <p ID="sCurrentPersonAddress" runat="server"></p>
                             <div class="row">
                                 <div class="col-sm-6">
@@ -29,7 +29,7 @@
                             </div>
                         </div>
                         <div class="col-sm-6">
-                            <h4 class="g-font-family--primary g-margin-b-10--xs">Minor Children</h4>
+                            <h4 class="g-font-family--primary g-margin-b-5--xs g-font-weight--500">Minor Children</h4>
                             <asp:Panel runat="server" ID="pnlChildren"></asp:Panel>
                         </div>
                     </div>
@@ -46,7 +46,7 @@
                     </div>
                 </div>
             </asp:Panel>
-            <asp:Panel ID="pnlSuccess" runat="server" Visible="false" CssClass="alert alert-success">
+            <asp:Panel ID="pnlSuccess" runat="server" Visible="false" CssClass="alert alert-success g-margin-x-20--xs">
                 <p ID="pSuccess" runat="server">Thank you for your assistance. Medical consent has been recorded.</p>
             </asp:Panel>
         </ContentTemplate>
