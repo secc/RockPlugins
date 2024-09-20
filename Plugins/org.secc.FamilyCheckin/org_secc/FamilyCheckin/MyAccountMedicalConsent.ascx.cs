@@ -69,6 +69,7 @@ public partial class Plugins_org_secc_FamilyCheckin_MyAccountMedicalConsent : Ro
         if ( minors.Count == 0 )
         {
             ShowNoMinorsMessage();
+            return;
         }
 
         if ( AllMinorsHaveConsent( minors, medicalConsentAttributeKey, rockContext ) )
@@ -77,6 +78,7 @@ public partial class Plugins_org_secc_FamilyCheckin_MyAccountMedicalConsent : Ro
             {
                 ShowAllMinorsHaveConsentMessage();
             }
+            return;
         }
         else
         {
