@@ -88,6 +88,15 @@
                     </Rock:Grid>
 
                     <Rock:HtmlEditor runat="server" Label="HTML Message" Height="300" ID="tbMessage" SourceTypeName="org.secc.FamilyCheckin.Model.KioskType, org.secc.FamilyCheckin" PropertyName="Message"></Rock:HtmlEditor>
+                    <h3>Medical Consent</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <Rock:RockCheckBox ID="cbRequireMedicalConsent" runat="server" Label="Require Medical Consent" Help="Check if this kiosk type requires a family to consent to medical assistance for minors." />
+                        </div>
+                        <div class="col-md-6">
+                            <Rock:NumberBox ID="tbMedicalConsentMaxSkips" runat="server" Label="Maximum Skips" CssClass="input-width-md" Visible="false" />
+                        </div>
+                    </div>
                 </fieldset>
 
 
