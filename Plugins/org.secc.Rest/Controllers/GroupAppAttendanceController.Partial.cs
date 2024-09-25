@@ -81,28 +81,38 @@ namespace org.secc.Rest.Controllers
                 } )
                 .ToList();
 
+            var occurrences = new AttendanceOccurrenceService( _context )
+            .Queryable()
+            .Where( o => o.GroupId == group.Id && o.OccurrenceDate == occurrenceDate )
+            .ToList();
+
             var finalResult = from attendee in attendees
-                              join groupMember in groupMembers
-                              on attendee.PersonId equals groupMember.PersonId
+                              join groupMember in groupMembers on attendee.PersonId equals groupMember.PersonId
+                              join occurrence in occurrences on attendee.OccurrenceId equals occurrence.Id
                               select new
                               {
                                   AttendanceId = attendee.Id,
                                   GroupMemberId = groupMember.Id,
-                                  attendee.OccurrenceId
+                                  attendee.OccurrenceId,
+                                  DidNotMeet = occurrence.DidNotOccur
                               };
 
-            var resultList = finalResult.ToList();
+            if ( !finalResult.Any() )
+            {
+                var didNotMeetValue = occurrences.FirstOrDefault()?.DidNotOccur ?? false;
+                return Ok( new { DidNotMeet = didNotMeetValue } );
+            }
 
-            return Ok( resultList );
+            return Ok( finalResult );
         }
 
         /// <summary>
         /// Post an attendance record with a groupId, occurrenceDate, and groupMemberId
         /// </summary>
-        /// <returns></returns>
+        /// <returns>IHttpActionResult</returns>
         [HttpPost]
         [System.Web.Http.Route( "api/GroupApp/Attendance/" )]
-        public IHttpActionResult PostGroupAttendance( int groupId, DateTime occurrenceDate, int groupMemberId, int? scheduleId = null, int? locationId = null)
+        public IHttpActionResult PostGroupAttendance( int groupId, DateTime occurrenceDate, int groupMemberId, int? scheduleId = null, int? locationId = null )
         {
             var currentUser = UserLoginService.GetCurrentUser();
             if ( currentUser == null )
@@ -112,7 +122,7 @@ namespace org.secc.Rest.Controllers
             if ( group == null )
                 return NotFound();
 
-            if ( !group.IsAuthorized( Rock.Security.Authorization.EDIT, currentUser.Person ) || !group.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person ))
+            if ( !group.IsAuthorized( Rock.Security.Authorization.EDIT, currentUser.Person ) || !group.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person ) )
                 return StatusCode( HttpStatusCode.Forbidden );
 
             locationId = locationId.HasValue ? locationId.Value : group.GroupLocations?.FirstOrDefault()?.Id;
@@ -146,6 +156,74 @@ namespace org.secc.Rest.Controllers
             {
                 attendanceItem.DidAttend = true;
                 attendanceItem.Note = "Checked in via Group App";
+                attendanceItem.ModifiedByPersonAliasId = currentUser.Person.PrimaryAlias.Id;
+                if ( attendanceItem.CreatedByPersonAliasId == null )
+                {
+                    attendanceItem.CreatedByPersonAliasId = currentUser.Person.PrimaryAlias.Id;
+                }
+            }
+
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Endpoint to mark "We Did Not Meet"
+        /// </summary>
+        /// <returns>IHttpActionResult</returns>
+        [HttpPost]
+        [System.Web.Http.Route( "api/GroupApp/Attendance/DidNotMeet" )]
+        public IHttpActionResult PostDidNotMeet( int groupId, DateTime occurrenceDate, int? scheduleId = null, int? locationId = null, bool didNotMeet = true )
+        {
+            var currentUser = UserLoginService.GetCurrentUser();
+            if ( currentUser == null )
+                return StatusCode( HttpStatusCode.Unauthorized );
+
+            var group = new GroupService( _context ).Get( groupId );
+            if ( group == null )
+                return NotFound();
+
+            if ( !group.IsAuthorized( Rock.Security.Authorization.EDIT, currentUser.Person ) || !group.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person ) )
+                return StatusCode( HttpStatusCode.Forbidden );
+
+            locationId = locationId ?? ( group.GroupLocations.Any() ? ( int? ) group.GroupLocations
+                        .Where( l => l.GroupLocationTypeValueId == 19 || l.GroupLocationTypeValueId == 209 )
+                        .Select( l => l.LocationId ).FirstOrDefault()
+                    : null );
+
+            scheduleId = scheduleId ?? group.ScheduleId ?? null;
+
+            var attendanceOccurrenceService = new AttendanceOccurrenceService( _context );
+            var occurrence = attendanceOccurrenceService.GetOrAdd( occurrenceDate, groupId, locationId, scheduleId );
+            occurrence.DidNotOccur = didNotMeet;
+
+            if ( ( bool ) !didNotMeet )
+            {
+                _context.SaveChanges();
+
+                return Ok();
+            }
+
+            var attendanceService = new AttendanceService( _context );
+
+
+            var attendanceData = attendanceService
+                .Queryable( "PersonAlias" )
+                .Where( a => a.Occurrence.GroupId == groupId && a.Occurrence.LocationId == locationId && a.Occurrence.OccurrenceDate == occurrenceDate );
+
+
+            if ( scheduleId.HasValue )
+            {
+                attendanceData = attendanceData.Where( a => a.Occurrence.ScheduleId == scheduleId );
+            }
+
+            var attendanceItems = attendanceData.ToList();
+
+            foreach ( var attendanceItem in attendanceItems )
+            {
+                attendanceItem.DidAttend = false;
+                attendanceItem.Note = "Group did not meet";
                 attendanceItem.ModifiedByPersonAliasId = currentUser.Person.PrimaryAlias.Id;
                 if ( attendanceItem.CreatedByPersonAliasId == null )
                 {
@@ -211,7 +289,6 @@ namespace org.secc.Rest.Controllers
                         .Take( 50 )
                         .ToList();
 
-
                     occurrences.AddRange( previousScheduleDates
                         .Select( p => new GroupScheduleOccurence
                         {
@@ -219,11 +296,10 @@ namespace org.secc.Rest.Controllers
                             GroupId = group.Id,
                             ScheduleId = group.ScheduleId,
                             LocationId = group.GroupLocations.Any() ? ( int? ) group.GroupLocations.Select( l => l.LocationId ).FirstOrDefault() : null,
-                            StartDateTime = group.Schedule.GetNextStartDateTime( p )
+                            StartDateTime = group.Schedule.GetNextStartDateTime( p ),
+                            DidNotMeet = false // Default value
                         } )
                         .ToList() );
-
-
 
                     foreach ( var occurrence in existingOccurrences )
                     {
@@ -239,6 +315,7 @@ namespace org.secc.Rest.Controllers
                             {
                                 selectedOccurrence.LocationId = occurrence.LocationId;
                             }
+                            selectedOccurrence.DidNotMeet = occurrence.DidNotOccur; // Update DidNotMeet property
                         }
                     }
                 }
@@ -258,7 +335,8 @@ namespace org.secc.Rest.Controllers
                             GroupId = group.Id,
                             ScheduleId = group.ScheduleId,
                             LocationId = group.GroupLocations.Any() ? ( int? ) group.GroupLocations.Select( l => l.LocationId ).FirstOrDefault() : null,
-                            StartDateTime = lastSchedule.Add( group.Schedule.WeeklyTimeOfDay ?? new TimeSpan( 0, 0, 0 ) )
+                            StartDateTime = lastSchedule.Add( group.Schedule.WeeklyTimeOfDay ?? new TimeSpan( 0, 0, 0 ) ),
+                            DidNotMeet = false // Default value
                         } );
 
                         lastSchedule = lastSchedule.AddDays( -7 );
@@ -274,6 +352,7 @@ namespace org.secc.Rest.Controllers
                         if ( selectedOccurrence != null )
                         {
                             selectedOccurrence.OccurrenceId = occurrence.Id;
+                            selectedOccurrence.DidNotMeet = occurrence.DidNotOccur; // Update DidNotMeet property
                         }
                     }
                 }
@@ -291,7 +370,8 @@ namespace org.secc.Rest.Controllers
                     GroupId = occ.GroupId,
                     LocationId = occ.LocationId,
                     ScheduleId = occ.ScheduleId,
-                    OccurrenceDate = occ.OccurrenceDate
+                    OccurrenceDate = occ.OccurrenceDate,
+                    DidNotMeet = occ.DidNotOccur // Update DidNotMeet property
                 };
 
                 if ( occ.Schedule == null )
@@ -334,10 +414,11 @@ namespace org.secc.Rest.Controllers
         public int? ScheduleId { get; set; }
         public DateTime OccurrenceDate { get; set; }
         public DateTime? StartDateTime { get; set; }
+        public Boolean? DidNotMeet { get; set; }
 
         public override string ToString()
         {
-            return $"G:{GroupId}^L:{LocationId}^S:{ScheduleId}^D:{OccurrenceDate:yyyyMMdd}";
+            return $"OccurrenceId: {OccurrenceId}, GroupId: {GroupId}, LocationId: {LocationId}, ScheduleId: {ScheduleId}, OccurrenceDate: {OccurrenceDate}, StartDateTime: {StartDateTime}, DidNotMeet: {DidNotMeet}";
         }
     }
 }
