@@ -44,6 +44,14 @@ using Rock.Web.UI.Controls;
 [TextField( "Allergies Key", "The key name of the person attribute to save allergy information in.", defaultValue: "Allergy" )]
 [TextField( "Medical Note Key", "The key name of the person attribute to save medical/special/other needs notes information in.", defaultValue: "MedicalNotes" )]
 [TextField( "Medical Consent Key", "The key name of the person attribute to record medical consent.", defaultValue: "MedicalConsent" )]
+[DefinedValueField(
+        "Connection Status",
+        Description = "The connection status for any new people that are created from this form (default = 'Prospect').",
+        DefinedTypeGuid = "2E6540EA-63F0-40FE-BE50-F2A84735E600",
+        IsRequired = true,
+        AllowMultiple = false,
+        DefaultValue = "b91ba046-bc1e-400c-b85d-638c1f4e0ce2" )]
+
 public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.UI.RockBlock
 {
     protected void Page_Load( object sender, EventArgs e )
@@ -389,6 +397,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         // Setup the Rock context
         var rockContext = new RockContext();
         var groupLocationService = new GroupLocationService( rockContext );
+        var connectionStatus = DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() );
         Group family = null;
         List<Child> children = ( ( List<Child> ) ViewState["Children"] );
         List<Person> createdChildren = new List<Person>();
@@ -430,7 +439,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 if ( !updated )
                 {
                     // If we get here, it's time to create a new family member
-                    var newChild = child.SaveAsPerson( matchingPeople.FirstOrDefault().GetFamily().Id, rockContext );
+                    var newChild = child.SaveAsPerson( matchingPeople.FirstOrDefault().GetFamily().Id, rockContext, connectionStatus.Id );
                     newChild.Gender = child.Gender == "Male" ? Gender.Male : Gender.Female;
 
                     newChild.LoadAttributes();
@@ -469,7 +478,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 adult.BirthYear = dpBirthday.SelectedDate.Value.Year;
             }
             adult.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-            adult.ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
+            adult.ConnectionStatusValueId = connectionStatus.Id;
             adult.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
             adult.UpdatePhoneNumber( mobilePhone.Id, pnbPhone.CountryCode, pnbPhone.Number, false, false, rockContext );
             adult.Email = ebEmail.Text;
@@ -488,7 +497,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                     adult2.BirthYear = dpBirthday2.SelectedDate.Value.Year;
                 }
                 adult2.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-                adult2.ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
+                adult2.ConnectionStatusValueId = connectionStatus.Id;
                 adult2.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
                 adult2.UpdatePhoneNumber( mobilePhone.Id, pnbPhone2.CountryCode, pnbPhone2.Number, false, false, rockContext );
                 adult2.Email = ebEmail2.Text;
@@ -500,7 +509,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             foreach ( Child child in children )
             {
                 child.MedicalConsent = $"{tbSignature.Text} {String.Format( "{0:MM/dd/yy}", dpSignatureDate.SelectedDate )}";
-                var newChild = child.SaveAsPerson( family.Id, rockContext );
+                var newChild = child.SaveAsPerson( family.Id, rockContext, connectionStatus.Id );
                 newChild.Gender = child.Gender == "Male" ? Gender.Male : Gender.Female;
                 createdChildren.Add( newChild );
             }
@@ -609,7 +618,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                         FirstName = adult.FirstName,
                         LastName = adult.LastName,
                         RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id,
-                        ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id,
+                        ConnectionStatusValueId = connectionStatus.Id,
                         RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id,
                         Email = adult.Email,
                         AgeClassification = AgeClassification.Adult
@@ -819,9 +828,8 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         /// <param name="familyId">The family to add this child to</param>
         /// <param name="rockContext">The RockContext</param>
         /// <returns></returns>
-        public Person SaveAsPerson( int familyId, RockContext rockContext )
+        public Person SaveAsPerson( int familyId, RockContext rockContext, int ConnectionStatusValueId )
         {
-
             var familyGroupType = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY );
             var childRoleId = familyGroupType.Roles
                 .Where( r => r.Guid.Equals( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() ) )
@@ -834,7 +842,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             person.BirthMonth = this.DateOfBirth.Month;
             person.BirthYear = this.DateOfBirth.Year;
             person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
-            person.ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id;
+            person.ConnectionStatusValueId = ConnectionStatusValueId;
             person.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
             if ( this.Grade.HasValue )
             {
