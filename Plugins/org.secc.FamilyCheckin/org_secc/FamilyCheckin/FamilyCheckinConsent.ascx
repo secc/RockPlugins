@@ -13,6 +13,9 @@
         color: #000;
         /*font-size: 1em;*/
     }
+    #pnlCheckinPrompt h4 {
+        font-weight:bold;
+    }
 
     #pnlCheckinPrompt .actions {
         padding-top:15px;

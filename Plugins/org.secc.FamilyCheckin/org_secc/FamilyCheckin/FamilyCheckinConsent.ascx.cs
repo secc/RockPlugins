@@ -109,6 +109,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     .Where( p => p.PrimaryFamilyId == familyId )
                     .Where( p => p.AgeClassification == AgeClassification.Adult )
                     .Where( p => p.PhoneNumbers.Where( n => n.Number.EndsWith( searchValue ) ).Any() )
+                    .OrderBy(p => p.Id)
                     .FirstOrDefault();
             }
             else if(CurrentCheckInState.CheckIn.CheckedInByPersonAliasId.HasValue)
