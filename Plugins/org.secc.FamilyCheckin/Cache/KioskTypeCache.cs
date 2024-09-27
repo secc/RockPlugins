@@ -94,10 +94,10 @@ namespace org.secc.FamilyCheckin.Cache
         [DataMember]
         public List<int> GroupTypeIds { get; set; }
 
-        [LavaInclude]
+        [DataMember]
         public bool RequiresMedicalConsent { get; set; } = false;
 
-        [LavaInclude]
+        [DataMember]
         public int? MedicalConsentMaxSkips { get; set; } = null;
 
         public List<GroupTypeCache> GroupTypes { get => GroupTypeCache.All().Where( g => GroupTypeIds.Contains( g.Id ) ).ToList(); }
