@@ -24,6 +24,7 @@ using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
+using Rock.Attribute;
 using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
@@ -35,8 +36,22 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [DisplayName( "Kiosk Type Detail" )]
     [Category( "SECC > Check-in" )]
     [Description( "Displays the details of the given device." )]
+
+    [BooleanField("Show Medical Consent Skips",
+        Description = "A flag indicating if the Medical Consent Skips funcationality should be displayed. Default is false.",
+        ControlType = Rock.Field.Types.BooleanFieldType.BooleanControlType.Checkbox,
+        DefaultBooleanValue = false,
+        IsRequired = false,
+        Order = 0,
+        Key = AttributeKeys.ShowMedicalConsentSkips )]
     public partial class KioskTypeDetail : RockBlock, IDetailBlock
     {
+
+        public class AttributeKeys
+        {
+            public const string ShowMedicalConsentSkips = "ShowMedicalConsentSkips";
+        }
+
         #region Fields
         string AttributeKey_RequireMedicalConsent = "ShowMedicalConsent";
         string AttributeKey_MedicalConsentSkips = "MedicalConsentSkipsAllowed";
@@ -105,8 +120,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             gSchedules.Actions.AddClick += gSchedules_AddClick;
             gSchedules.GridRebind += gSchedules_GridRebind;
 
-            cbRequireMedicalConsent.AutoPostBack = true;
-            cbRequireMedicalConsent.CheckedChanged += cbRequireMedicalConsent_CheckedChanged;
+            if (GetAttributeValue( AttributeKeys.ShowMedicalConsentSkips ).AsBoolean())
+            {
+                cbRequireMedicalConsent.AutoPostBack = true;
+                cbRequireMedicalConsent.CheckedChanged += cbRequireMedicalConsent_CheckedChanged;
+            }
+            else
+            {
+                tbMedicalConsentMaxSkips.Visible = false;
+            }
         }
 
 
@@ -431,7 +453,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             {
                 cbRequireMedicalConsent.Checked = kioskType.GetAttributeValue( AttributeKey_RequireMedicalConsent ).AsBoolean();
                 var skipsAllowed = kioskType.GetAttributeValue( AttributeKey_MedicalConsentSkips ).AsInteger();
-                tbMedicalConsentMaxSkips.Visible = cbRequireMedicalConsent.Checked;
+                tbMedicalConsentMaxSkips.Visible = cbRequireMedicalConsent.Checked && GetAttributeValue(AttributeKeys.ShowMedicalConsentSkips).AsBoolean();
                 tbMedicalConsentMaxSkips.Text = skipsAllowed >= 0 ? skipsAllowed.ToString() : string.Empty;
 
             }
