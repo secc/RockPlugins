@@ -13,10 +13,10 @@ copy_plugin() {
     #C:\Users\jcach\Documents\repos\secc-rock-upgrade\src\Rock\RockWeb\Plugins\org_secc\Authentication
     local PluginName=$1
     
-    mkdir -p "$DesiredPluginsPath/org_secc/$PluginName"
+    mkdir -p "$DesiredPluginsPath/org_secc"
     # Add a symbolic link in the RockWeb/Plugins/... pointing to the plugin physical location
     ls $CurrentPluginsPath/org.secc.$PluginName/org_secc/$PluginName
-    ln -s "$CurrentPluginsPath/org.secc.$PluginName/org_secc/" "$DesiredPluginsPath/org_secc/$PluginName"
+    ln -s "$CurrentPluginsPath/org.secc.$PluginName/org_secc/$PluginName" "$DesiredPluginsPath/org_secc/$PluginName"
     echo "Linked $PluginName plugin"
 }
 

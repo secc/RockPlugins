@@ -40,6 +40,12 @@ if [ "$IncludePlugins" = true ]; then
 find "$PathToTempSrcFolder/Rock/secc" -name "*.csproj" ! -path "*/Tools/*" -exec dotnet sln "$PathToTempSrcFolder/Rock/Rock.sln" add {} \;
 fi 
 
+# Create Symbolic links
+if [ "$IncludePlugins" = true ]; then
+echo "Creating symbolic links"
+./makelinks.sh "$PathToTempSrcFolder/Rock/secc/Plugins" "$PathToTempSrcFolder/Rock/RockWeb/Plugins"
+fi 
+
 if [ -d "$PathToRock/Rock.JavaScript.EditorJs" ]; then 
     echo "Installing Rock.Javascript.EditorJs dependencies"
     cd "$PathToRock/Rock.JavaScript.EditorJs"
@@ -53,11 +59,7 @@ fi
 # Replace port number in Rock.sln
 sed -i "s/6229/$Port/g" "$PathToTempSrcFolder/Rock/Rock.sln"
 
-# Create Symbolic links
-if [ "$IncludePlugins" = true ]; then
-echo "Creating symbolic links"
-./makelinks.sh "$PathToTempSrcFolder/Rock/secc/Plugins" "$PathToTempSrcFolder/Rock/RockWeb/Plugins"
-fi 
+
 
 if [ "$ApplyMigrations" = true ]; then
     echo "Applying migrations"
