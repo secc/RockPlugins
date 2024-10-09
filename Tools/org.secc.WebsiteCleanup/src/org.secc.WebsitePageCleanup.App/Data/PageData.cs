@@ -116,6 +116,19 @@ namespace org.secc.WebsitePageCleanup.App.Data
             return id;
         }
 
+        public void TruncateWebpageLog()
+        {
+            string sql = @"TRUNCATE TABLE [dbo].[_org_secc_WebPageCleanupLog]";
+
+            using (var sqlConn = new SqlConnection( connectionString ))
+            {
+                var sqlCmd = new SqlCommand( sql );
+                sqlConn.Open();
+                sqlCmd.ExecuteNonQuery();
+                sqlConn.Close();
+            }
+        }
+
         public void UpdateWebpageLogItem( PageCleanupItem p )
         {
             string SP_NAME = "[dbo].[_org_secc_WebPageCleanup_LogUpdate]";
@@ -156,7 +169,7 @@ namespace org.secc.WebsitePageCleanup.App.Data
             }
         }
 
-        private int GetInteractionCount(InteractionFilter filter)
+        public int GetInteractionCount(InteractionFilter filter)
         {
             string SP_NAME = "[dbo].[_org_secc_WebPageClenaup_GetPageInteractionCount]";
             int interactionCount = 0;

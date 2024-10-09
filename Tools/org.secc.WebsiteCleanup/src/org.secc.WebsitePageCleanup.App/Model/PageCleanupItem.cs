@@ -1,4 +1,4 @@
-﻿
+﻿using org.secc.WebsitePageCleanup.App.Data;
 
 namespace org.secc.WebsitePageCleanup.App.Model;
 
@@ -12,6 +12,41 @@ public class PageCleanupItem
     public Guid Guid { get; set; }
     public int? InteractionCount { get; set; }
     public PageStatus PageStatus { get; set; } = PageStatus.NOT_PROCESSED;
+
+
+    public void LoadInteractionCount(int channelId, DateTime startDate, DateTime endDate, string connectionString)
+    {
+        var pageData = new PageData( connectionString );
+        var filter = new InteractionFilter
+        {
+            ChannelId = channelId,
+            PageId = PageId,
+            StartDate = startDate,
+            EndDate = endDate
+        };
+
+        InteractionCount = pageData.GetInteractionCount( filter );
+    }
+
+    public void SaveLogItem( string connectionString)
+    {
+        var pageData = new PageData( connectionString );
+        Id = pageData.InsertWebpageLogItem( this );
+
+
+    }
+
+    public static int? GetInteractionChannel(int siteId, string connectionString)
+    {
+        var pageData = new PageData( connectionString );
+        return pageData.GetInteractionChannelIdBySiteId( siteId );
+    }
+
+    public static List<PageCleanupItem> GetSitePages(int siteId, string connectionString)
+    {
+        var data = new PageData( connectionString );
+        return data.GetSitePages( siteId );
+    }
 }
 
 
