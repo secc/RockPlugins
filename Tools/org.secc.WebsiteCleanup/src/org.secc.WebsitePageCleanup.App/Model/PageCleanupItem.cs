@@ -9,7 +9,6 @@ public class PageCleanupItem
     public int LayoutId { get; set; }
     public string InternalName { get; set; } = string.Empty;
     public int? ParentPageId { get; set; } = null;
-    public Guid Guid { get; set; }
     public int? InteractionCount { get; set; }
     public PageStatus PageStatus { get; set; } = PageStatus.NOT_PROCESSED;
 

@@ -13,6 +13,7 @@ public class Program( Configuration _configuration )
         var configPath = GetConfigPath( configFileName );
         var config = LoadConfiguration( configPath );
         var program = new Program( config );
+        program.ProcessPages();
     }
 
 
@@ -23,7 +24,7 @@ public class Program( Configuration _configuration )
 
     }
 
-    static Configuration LoadConfiguration(string configPath)
+    static Configuration LoadConfiguration( string configPath )
     {
         Configuration config;
         using (var sr = new StreamReader( configPath ))
@@ -44,10 +45,10 @@ public class Program( Configuration _configuration )
 
         var interactionChannel = PageCleanupItem.GetInteractionChannel( configuration.SiteId, connectionString );
 
-        if(!interactionChannel.HasValue)
+        if (!interactionChannel.HasValue)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine( "Interaction Color Not Found." );
+            Console.WriteLine( "Interaction Channel Not Found." );
             Console.ResetColor();
             return;
         }
@@ -64,7 +65,7 @@ public class Program( Configuration _configuration )
             foreach (var page in pages.Where( p => p.PageStatus == PageStatus.NOT_PROCESSED ))
             {
 
-                var hasUnprocessedChildren = pages.Where( p => p.PageId == page.PageId )
+                var hasUnprocessedChildren = pages.Where( p => p.ParentPageId == page.PageId )
                     .Where( p => p.PageStatus == PageStatus.NOT_PROCESSED )
                     .Any();
 
@@ -103,7 +104,7 @@ public class Program( Configuration _configuration )
         }
 
         Console.WriteLine( "Processing Complete." );
-        
+
     }
 
 

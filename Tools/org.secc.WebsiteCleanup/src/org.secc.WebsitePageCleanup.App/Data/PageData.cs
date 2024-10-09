@@ -56,12 +56,11 @@ namespace org.secc.WebsitePageCleanup.App.Data
 
                     page.LayoutId = (int) dr["LayoutId"];
 
-                    if (dr.IsDBNull( dr.GetOrdinal( "InternalName" ) ))
+                    if (!dr.IsDBNull( dr.GetOrdinal( "InternalName" ) ))
                     {
                         page.InternalName = dr["InternalName"].ToString()!;
                     }
                     sitePages.Add( page );
-                    dr.NextResult();
                 }
 
                 dr.Close();
@@ -80,7 +79,8 @@ namespace org.secc.WebsitePageCleanup.App.Data
                 var sqlCmd = new SqlCommand( SP_NAME, sqlConn );
                 sqlCmd.CommandType = System.Data.CommandType.StoredProcedure;
                 var idParam = new SqlParameter( "@Id", 0 );
-                idParam.Direction = System.Data.ParameterDirection.InputOutput;
+                idParam.DbType = System.Data.DbType.Int32;
+                idParam.Direction = System.Data.ParameterDirection.Output;
 
                 sqlCmd.Parameters.Add( idParam );
                 sqlCmd.Parameters.Add( new SqlParameter( "@PageId", p.PageId ) );
@@ -171,7 +171,7 @@ namespace org.secc.WebsitePageCleanup.App.Data
 
         public int GetInteractionCount(InteractionFilter filter)
         {
-            string SP_NAME = "[dbo].[_org_secc_WebPageClenaup_GetPageInteractionCount]";
+            string SP_NAME = "[dbo].[_org_secc_WebPageCleanup_GetPageInteractionCount]";
             int interactionCount = 0;
             using (var sqlConn = new SqlConnection( connectionString ))
             {
