@@ -13,7 +13,6 @@
 // </copyright>
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Web.Http;
@@ -104,6 +103,16 @@ namespace org.secc.Rest.Controllers
                     emailParentsEnabled = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
                 }
 
+                DateTime? nextSchedule;
+                if ( group.Schedule != null )
+                {
+                    nextSchedule = group.Schedule.GetNextStartDateTime( RockDateTime.Today );
+                }
+                else
+                {
+                    nextSchedule = null;
+                }
+
                 return Ok(
                     new
                     {
@@ -111,13 +120,13 @@ namespace org.secc.Rest.Controllers
                         group.TypeId,
                         group.IsActive,
                         group.IsArchived,
-                        NextSchedule = group.Schedule.GetNextStartDateTime( RockDateTime.Today ),
+                        NextSchedule = nextSchedule,
                         groupContentItems,
                         emailParentsEnabled
                     }
                 );
             }
-        }        
+        }
     }
 
     public class GroupContentItem
@@ -184,7 +193,7 @@ namespace org.secc.Rest.Controllers
                         ( gm.Group.GroupLocations.FirstOrDefault()?.Location?.Street1 ?? string.Empty ), // otherwise, use the group location address                            
                 LocationAddress = gm.Group?.GroupLocations.FirstOrDefault()?.Location?.FormattedAddress ?? string.Empty,
                 NextSchedule = ( bool ) ( gm.Group?.IsActive ) && ( bool ) ( !gm.Group?.IsArchived ) ? gm.Group?.Schedule?.GetNextStartDateTime( RockDateTime.Today ) ?? // if the first result is null,
-                    //construct the next occurrence from the weeklydayofweek and weeklytimeofday properties on the schedule
+                                                                                                                                                                         //construct the next occurrence from the weeklydayofweek and weeklytimeofday properties on the schedule
                     ( GetNextWeeklyOccurrence( gm.Group?.Schedule ) ) : null,
                 Url = gm.Group?.IsPublic == true ?
                         GlobalAttributesCache.Value( "PublicApplicationRoot" ) + "groups/homegroups/registration/" + gm.Group?.Id
