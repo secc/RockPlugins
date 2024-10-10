@@ -288,16 +288,19 @@
                                         a geographic area {% endcomment %}
                                 {%- endcase -%}
                             {%- endfor -%}
-
+                            {%- assign dayofWeek = group.Schedule.WeeklyDayOfWeek -%}
+                            {%- if dayofWeek == null or dayofWeek == '' -%}
+                                {%- assign dayofWeek = group.Schedule.iCalendarContent  | DatesFromICal  | First | Date:'dddd' -%}
+                            {%- endif -%}
                             <div class="homegroup event-calendar isotope_item g-width-100-percent--xs g-width-49-percent--lg"
                                 data-groupid="{{group.Id}}"
                                 data-campus="{{ group.Campus.Name | Downcase | Replace:" ",""}}"
-                                data-day="{{ group.Schedule.WeeklyDayOfWeek }}"
+                                data-day="{{ dayofWeek }}"
                                 data-handicap-accessible="{{ handicapAcc | Downcase }}"
                                 data-open-to-children="{{ otc | Downcase }}"
                                 data-type="{%- for groupType in groupTypes -%}{%- if forloop.first -%}{%- else -%},{%- endif -%}{{ groupType.Id }} {%- endfor -%}{{ groupTypes.Id }}"
                                 data-zipcode="{{ groupZipCode | Truncate:5,'' }}">
-                                <div class="clearfix card" >
+                                <div class="clearfix card">
 
                                     <div class="caption g-padding-x-25--xs g-padding-x-30--md g-padding-t-30--xs g-padding-t-40--md g-margin-b-20--xs g-margin-b-25--md">
                                         <div class="distance-container hidden">
@@ -329,6 +332,8 @@
                                             <i class="fal fa-calendar"></i>
                                             {% if group.Schedule.WeeklyDayOfWeek != null and group.Schedule.WeeklyDayOfWeek != "" %}
                                                 {{ group.Schedule.WeeklyDayOfWeek }} {{  group.Schedule.WeeklyTimeOfDay | Date:'@ h:mm tt' }}
+                                            {% else if dayofWeek != ''  %}
+                                                {{ dayofWeek }} - Contact for Details
                                             {% else %}
                                                 Contact for details
                                             {% endif %}
@@ -390,7 +395,11 @@
                                         </div>
                                     </div>
 
-
+                                    <div class="mobile-only" style="position:absolute;top:1rem;right:1rem;">
+                                        <a onclick="shareMessage('{{ group.Name | Replace:"'","\'"}}','Join me at {{ group.Name | Replace:"'","\'"}}!','{{ 'Global' | Attribute:'PublicApplicationRoot' }}groups/homegroups/registration/{{ group.Id }}')">
+                                            <i class="fas fa-share-alt" style="color:#1D1F21"></i>
+                                        </a>
+                                    </div>
 
                                 </div>
                             </div>
@@ -1019,4 +1028,35 @@
     // // console.log(c);
     // runCampusFilters(c);
     };
+</script>
+
+<script>
+    function shareMessage(title, message, url) {
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            text: message + '\n',
+            url: url
+        })
+            .then(() => console.log("Message shared successfully!"))
+            .catch((error) => console.error("Error sharing message:", error));
+    } else {
+        console.log("Share API is not supported in this browser.");
+    }
+}
+
+function isMobileDevice() {
+    return /Mobi|Android/i.test(navigator.userAgent);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var elements = document.getElementsByClassName('mobile-only');
+    for (var i = 0; i < elements.length; i++) {
+        if (isMobileDevice()) {
+            elements[i].style.display = 'block';
+        } else {
+            elements[i].style.display = 'none';
+        }
+    }
+});
 </script>
