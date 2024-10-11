@@ -197,7 +197,8 @@ namespace org.secc.Rest.Controllers
                     ( GetNextWeeklyOccurrence( gm.Group?.Schedule ) ) : null,
                 Url = gm.Group?.IsPublic == true ?
                         GlobalAttributesCache.Value( "PublicApplicationRoot" ) + "groups/homegroups/registration/" + gm.Group?.Id
-                    : null
+                    : null,
+                GroupTracker =  ( gm.Group?.GroupTypeId == 107 || gm.Group?.GroupTypeId == 109) && gm.Group?.CampusId == 1 
             } ).Distinct().OrderByDescending( g => g.IsLeader ).ThenBy( g => g.NextSchedule ).ToList();
 
             return groupList;
