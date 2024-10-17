@@ -1,5 +1,6 @@
 CurrentPluginsPath=$1
 DesiredPluginsPath=$2
+DeployMode=$3
 
 # Delete the target folder to start fresh
 if [ -d "$DesiredPluginsPath/org_secc" ]; then
@@ -13,11 +14,18 @@ copy_plugin() {
     #C:\Users\jcach\Documents\repos\secc-rock-upgrade\src\Rock\RockWeb\Plugins\org_secc\Authentication
     local PluginName=$1
     
-    mkdir -p "$DesiredPluginsPath/org_secc/$PluginName"
+    mkdir -p "$DesiredPluginsPath/org_secc"
     # Add a symbolic link in the RockWeb/Plugins/... pointing to the plugin physical location
     ls $CurrentPluginsPath/org.secc.$PluginName/org_secc/$PluginName
-    ln -s "$CurrentPluginsPath/org.secc.$PluginName/org_secc/" "$DesiredPluginsPath/org_secc/$PluginName"
-    echo "Linked $PluginName plugin"
+
+    if [ $DeployMode = true ]; then 
+        echo "Copying code to RockWeb for plugin: $PluginName"
+        cp -r "$CurrentPluginsPath/org.secc.$PluginName/org_secc/$PluginName" "$DesiredPluginsPath/org_secc/$PluginName"
+    else 
+         echo "Adding Symbolic Link for plugin: $PluginName"
+         ln -s "$CurrentPluginsPath/org.secc.$PluginName/org_secc/$PluginName" "$DesiredPluginsPath/org_secc/$PluginName"
+    fi 
+   
 }
 
 
