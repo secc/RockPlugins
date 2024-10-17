@@ -59,6 +59,8 @@ public partial class Plugins_org_secc_FamilyCheckin_MyAccountMedicalConsent : Ro
 
     private void LoadConsentForm()
     {
+        if ( CurrentPerson.Age < 19 )
+            return;
         var medicalConsentAttributeKey = GetAttributeValue( AttributeKey.MedicalConsentAttributeKey );
         var rockContext = new RockContext();
         var familyGroup = new GroupService( rockContext ).Get( ( int ) CurrentPerson.PrimaryFamilyId );
