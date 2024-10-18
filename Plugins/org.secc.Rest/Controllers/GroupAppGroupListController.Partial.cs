@@ -89,18 +89,18 @@ namespace org.secc.Rest.Controllers
             else
             {
                 group.LoadAttributes();
-                var groupContentItems = new List<GroupContentItem>();
-                bool? emailParentsEnabled = null;
+                var GroupContentItems = new List<GroupContentItem>();
+                bool? EmailParentsEnabled = null;
 
                 if ( getContent )
                 {
                     var groupServiceHelper = new GroupServiceHelper( new RockContext() );
-                    groupContentItems = groupServiceHelper.GetGroupContentItems( groupId );
+                    GroupContentItems = groupServiceHelper.GetGroupContentItems( groupId );
                 }
 
                 if ( getAllowEmailParents )
                 {
-                    emailParentsEnabled = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
+                    EmailParentsEnabled = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
                 }
 
                 DateTime? nextSchedule;
@@ -121,8 +121,8 @@ namespace org.secc.Rest.Controllers
                         group.IsActive,
                         group.IsArchived,
                         NextSchedule = nextSchedule,
-                        groupContentItems,
-                        emailParentsEnabled
+                        GroupContentItems,
+                        EmailParentsEnabled
                     }
                 );
             }

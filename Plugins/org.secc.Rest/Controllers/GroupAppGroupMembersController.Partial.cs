@@ -23,7 +23,6 @@ using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Rest;
-using Rock.Rest.Controllers;
 //using Rock.SystemGuid;
 using Rock.Web.Cache;
 
@@ -76,7 +75,7 @@ namespace org.secc.Rest.Controllers
 
             var groupMemberList = new List<GroupAppGroupMember>();
 
-            var homeLocationTypeId = _definedValueService.GetByGuid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;            
+            var homeLocationTypeId = _definedValueService.GetByGuid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;
 
             var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
             var groupMembers = groupMemberServiceHelper.GetGroupMembers( group, currentUser.Person );
@@ -97,7 +96,7 @@ namespace org.secc.Rest.Controllers
                         .FirstOrDefault( gl => gl.GroupLocationTypeValueId == homeLocationTypeId )
                         ?.Location.GetFullStreetAddress(),
                     Email = person.Email,
-                    Phone = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid())?.ToString(),
+                    Phone = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() )?.ToString(),
                     PhotoURL = person.PhotoUrl,
                     IsLeader = groupMember.GroupRole.IsLeader
                 };
@@ -115,7 +114,7 @@ namespace org.secc.Rest.Controllers
         /// <param name="groupMemberId"></param>
         [HttpPost]
         [System.Web.Http.Route( "api/GroupApp/GroupMembers/{groupId}/Communicate" )]
-        public IHttpActionResult Communicate( int groupId, [FromBody] MessageModel message, int? groupMemberId = null )
+        public IHttpActionResult Communicate( int groupId, [FromBody] MessageModel message )
         {
             var currentUser = UserLoginService.GetCurrentUser();
 
@@ -135,40 +134,49 @@ namespace org.secc.Rest.Controllers
                 return StatusCode( HttpStatusCode.Forbidden );
             }
 
-            if ( message == null || message.FromAddress.IsNullOrWhiteSpace() || message.Subject.IsNullOrWhiteSpace() || message.Body.IsNullOrWhiteSpace() )
+            if ( message == null || message.Subject.IsNullOrWhiteSpace() || message.Body.IsNullOrWhiteSpace() )
             {
-                return BadRequest( "Invalid request. Please provide a valid 'FromAddress', 'Subject', and 'Body' in the message." );
+                return BadRequest( "Invalid request. Please provide a valid 'Subject' and 'Body' in the message." );
             }
 
-            if ( groupMemberId != null )
+            if ( message.GroupMemberId != 0 )
             {
-                var groupMember = _groupMemberService.Get( groupMemberId.Value );
+                var groupMember = _groupMemberService.Get( message.GroupMemberId );
                 if ( groupMember == null )
                 {
                     return NotFound();
                 }
             }
-            var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
-            var groupMembers = groupMemberServiceHelper.GetGroupMembers( group, currentUser.Person );
 
-            if ( groupMemberId.HasValue )
+            if ( message.SendToParents )
             {
-                groupMembers = groupMembers.Where( gm => gm.Id == groupMemberId ).ToList();
+                group.LoadAttributes();
+                var groupContentItems = new List<GroupContentItem>();
+                bool? emailParentsEnabled = null;
+                emailParentsEnabled = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
+                if ( emailParentsEnabled == false )
+                {
+                    return BadRequest( "Invalid request. \"Allow Email Parents\" is not configured for this group." );
+                }
             }
 
-            CreateCommunication( message.Subject, message.Body, groupMembers, currentUser.Person );
+            var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
+            var recipients = groupMemberServiceHelper.GetRecipients( groupId, message.GroupMemberId, message.SendToParents );
 
-            return Ok();
+            CreateCommunication( message.Subject, message.Body, recipients, currentUser.Person );
+
+            return Ok( recipients.AsQueryable().Select( r => r.FullName ) );
         }
 
         public class MessageModel
         {
-            public string FromAddress { get; set; }
             public string Subject { get; set; }
             public string Body { get; set; }
+            public int GroupMemberId { get; set; }
+            public bool SendToParents { get; set; } = false;
         }
 
-        public void CreateCommunication( string subject, string body, List<GroupMember> groupMembers, Person currentPerson )
+        public void CreateCommunication( string subject, string body, List<Person> recipients, Person currentPerson )
         {
             var communication = UpdateCommunication( _context );
             if ( communication != null )
@@ -180,7 +188,7 @@ namespace org.secc.Rest.Controllers
                 communication.ReplyToEmail = currentPerson.Email;
                 communication.SenderPersonAliasId = currentPerson.PrimaryAliasId;
                 communication.FromName = currentPerson.FullName;
-                communication.FromEmail = currentPerson.Email;
+                communication.FromEmail = "noreply@secc.org";
                 communication.Subject = subject;
                 communication.Message = body;
                 communication.ReviewedDateTime = RockDateTime.Now;
@@ -188,11 +196,11 @@ namespace org.secc.Rest.Controllers
                 communication.ReviewerPersonAliasId = currentPerson.PrimaryAliasId;
                 communication.Status = CommunicationStatus.Approved;
 
-                foreach ( var groupMember in groupMembers )
+                foreach ( var r in recipients )
                 {
                     var recipient = new CommunicationRecipient
-                    {                        
-                        PersonAliasId = groupMember.Person.PrimaryAliasId,
+                    {
+                        PersonAliasId = r.PrimaryAliasId,
                         CreatedByPersonAliasId = currentPerson.PrimaryAliasId,
                         Communication = communication,
                         MediumEntityTypeId = EntityTypeCache.Get( new Guid( Rock.SystemGuid.EntityType.COMMUNICATION_MEDIUM_EMAIL ) ).Id
@@ -267,7 +275,7 @@ namespace org.secc.Rest.Controllers
 
             // look to see if there are any people in the database matching the info provided: name + either DOB, email, or mobile number
             var personQuery = new PersonService( _context ).Queryable();
-            personQuery = personQuery.Where( p => p.LastName == personToAdd.LastName && (p.FirstName == personToAdd.FirstName || p.NickName == personToAdd.FirstName) );
+            personQuery = personQuery.Where( p => p.LastName == personToAdd.LastName && ( p.FirstName == personToAdd.FirstName || p.NickName == personToAdd.FirstName ) );
             if ( personToAdd.DateOfBirth != null )
             {
                 personQuery = personQuery.Where( p => p.BirthDate == personToAdd.DateOfBirth );
@@ -289,7 +297,7 @@ namespace org.secc.Rest.Controllers
                 person = new Person
                 {
                     FirstName = personToAdd.FirstName,
-                    LastName = personToAdd.LastName,                    
+                    LastName = personToAdd.LastName,
                     Email = personToAdd.Email,
                     IsEmailActive = true,
                     EmailPreference = EmailPreference.EmailAllowed,
@@ -311,13 +319,13 @@ namespace org.secc.Rest.Controllers
             }
 
             var groupMemberService = new GroupMemberService( _context );
-            
+
             // is person already in the group?            
-            var groupMember = _groupMemberService.GetByGroupId( groupId ).Where( gm => gm.PersonId == person.Id && gm.IsArchived == false ).FirstOrDefault();            
+            var groupMember = _groupMemberService.GetByGroupId( groupId ).Where( gm => gm.PersonId == person.Id && gm.IsArchived == false ).FirstOrDefault();
 
             // create a new group member
-            if ( groupMember.IsNull())
-            {                         
+            if ( groupMember.IsNull() )
+            {
                 groupMember = new GroupMember
                 {
                     GroupId = groupId,
@@ -332,7 +340,7 @@ namespace org.secc.Rest.Controllers
                 _context.SaveChanges();
             }
 
-            
+
 
             // Add Table Number
             // check if the group has a group member attribute for table number
@@ -347,7 +355,7 @@ namespace org.secc.Rest.Controllers
                 groupMember.SetAttributeValue( "TableNumber", currentGroupMemberTableNumber );
                 groupMember.SaveAttributeValues();
             }
-            
+
             _context.SaveChanges();
 
             return Ok();
@@ -360,7 +368,7 @@ namespace org.secc.Rest.Controllers
         /// 
         [HttpDelete]
         [System.Web.Http.Route( "api/GroupApp/GroupMembers/{groupId}/Remove/{groupMemberId}" )]
-        public IHttpActionResult RemoveGroupMember(int groupId, int groupMemberId )
+        public IHttpActionResult RemoveGroupMember( int groupId, int groupMemberId )
         {
             var currentUser = UserLoginService.GetCurrentUser();
 
@@ -401,7 +409,7 @@ namespace org.secc.Rest.Controllers
             else
             {
                 return BadRequest( "Invalid request. Please provide a valid group member ID." );
-            }           
+            }
 
         }
     }
@@ -424,22 +432,87 @@ namespace org.secc.Rest.Controllers
             _rockContext = rockContext;
         }
 
+        public List<Person> GetRecipients( int groupId, int? groupMemberId, bool sendToParents )
+        {
+            var groupMemberService = new GroupMemberService( _rockContext );
+            var recipients = new List<Person>();
+
+            if ( groupMemberId != 0 )
+            {
+                var groupMember = groupMemberService.Get( ( int ) groupMemberId );
+
+                if ( sendToParents )
+                {
+                    var adults = GetParents( groupMember.Person );
+                    recipients.AddRange( adults );
+                }
+                else
+                {
+                    recipients.Add( groupMember.Person );
+                }
+            }
+            else
+            {
+                var groupService = new GroupService( _rockContext );
+                // Get the group members of the specified groupId
+                var groupMembers = GetGroupMembers( groupService.Get( groupId ) );
+                if ( sendToParents )
+                {
+
+                    // Iterate through each group member
+                    foreach ( var groupMember in groupMembers )
+                    {
+                        // Get the parents of the current group member
+                        var groupMemberParents = GetParents( groupMember.Person );
+
+                        // Add the parents to the list
+                        recipients.AddRange( groupMemberParents );
+                    }
+                }
+                else
+                {
+                    foreach ( var groupMember in groupMembers )
+                    {
+                        recipients.Add( groupMember.Person );
+                    }
+                }
+            }
+
+            return recipients;
+        }
+
+        public List<Person> GetParents( Person person )
+        {
+            var parents = new List<Person>();
+            var families = person.GetFamilies().ToList();
+            var adultGuid = new Guid( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT );
+            foreach ( var family in families )
+            {
+                var familyRoleGuid = family.Members.Where( gm => gm.PersonId == person.Id ).FirstOrDefault().GroupRole.Guid;
+                if ( familyRoleGuid != adultGuid )
+                {
+                    parents.AddRange( family.Members.Where( m => m.GroupRole.Guid == adultGuid ).Select( m => m.Person ).ToList() );
+                }
+            }
+            return parents;
+        }
+
         public List<GroupMember> GetGroupMembers( Group group, Person currentPerson = null )
         {
             var groupMemberService = new GroupMemberService( _rockContext );
             var groupMembers = new List<GroupMember>();
 
-            if (currentPerson.IsNotNull())
+            if ( currentPerson.IsNotNull() )
             {
-                var currentGroupMember = groupMemberService.GetByPersonId(currentPerson.Id).AsQueryable().AsNoTracking()
-                    .Where(groupmember => groupmember.GroupId == group.Id).FirstOrDefault();
+                var currentGroupMember = groupMemberService.GetByPersonId( currentPerson.Id ).AsQueryable().AsNoTracking()
+                    .Where( groupmember => groupmember.GroupId == group.Id ).FirstOrDefault();
 
-                if (currentGroupMember.IsNotNull())
+                if ( currentGroupMember.IsNotNull() )
                 {
                     currentGroupMember.LoadAttributes();
-                    var currentGroupMemberTableNumber = currentGroupMember.GetAttributeValue("TableNumber");
-                    
-                    if (currentGroupMemberTableNumber.IsNotNull())
+                    var currentGroupMemberTableNumber = currentGroupMember.GetAttributeValue( "TableNumber" );
+
+                    if ( currentGroupMemberTableNumber.IsNotNull() )
                     {
                         var tableNumberAttributeIds = new AttributeService( _rockContext )
                         .Queryable()
@@ -452,13 +525,13 @@ namespace org.secc.Rest.Controllers
                                     gm => gm.Id,
                                     av => av.EntityId,
                                     ( gm, av ) => new { GroupMember = gm, AttributeValue = av } )
-                            .Where( x => tableNumberAttributeIds.Contains(x.AttributeValue.AttributeId) && x.AttributeValue.Value == currentGroupMemberTableNumber && x.GroupMember.IsArchived == false)
+                            .Where( x => tableNumberAttributeIds.Contains( x.AttributeValue.AttributeId ) && x.AttributeValue.Value == currentGroupMemberTableNumber && x.GroupMember.IsArchived == false )
                             .Select( x => x.GroupMember )
                             .OrderByDescending( gm => gm.GroupRole.IsLeader )
                             .ThenBy( gm => gm.Person.LastName )
                             .ThenBy( gm => gm.Person.NickName )
                             .ToList();
-                        
+
                         return groupMembers;
                     }
                 }
