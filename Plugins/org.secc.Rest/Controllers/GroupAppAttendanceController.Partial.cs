@@ -125,7 +125,7 @@ namespace org.secc.Rest.Controllers
             if ( !group.IsAuthorized( Rock.Security.Authorization.EDIT, currentUser.Person ) || !group.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person ) )
                 return StatusCode( HttpStatusCode.Forbidden );
 
-            locationId = locationId.HasValue ? locationId.Value : group.GroupLocations?.FirstOrDefault()?.Id;
+            locationId = locationId.HasValue ? locationId.Value : group.GroupLocations?.FirstOrDefault()?.Location?.Id;
 
             var groupMember = new GroupMemberService( _context ).Get( groupMemberId );
 
