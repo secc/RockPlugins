@@ -56,7 +56,7 @@
                                 <Rock:RockTextBox runat="server" ID="tbLocationName" Label="Location Name" ValidateRequestMode="Disabled" />
                             </div>
                             <div class="col-md-12">
-                                <Rock:DefinedValuesPickerEnhanced runat="server" EnhanceForLongLists="true" ID="ddlAudience" Label="Audience" />
+                                <Rock:DefinedValuePicker runat="server" ID="ddlAudience" EnhanceForLongLists="true" Label="Audience" />
                             </div>
                         </div>
                     </div>

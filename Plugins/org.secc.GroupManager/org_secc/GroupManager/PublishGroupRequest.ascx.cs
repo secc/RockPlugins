@@ -148,7 +148,7 @@ namespace RockWeb.Plugins.GroupManager
                 btnDraft.Visible = false;
                 ddlStatus.SelectedValue = publishGroup.PublishGroupStatus.ConvertToInt().ToString();
             }
-            else if (!mUserCanEditGroup)
+            else if ( !mUserCanEditGroup )
             {
                 pnlEdit.Visible = false;
                 pnlSelectGroup.Visible = false;
@@ -160,6 +160,7 @@ namespace RockWeb.Plugins.GroupManager
             }
 
             ddlAudience.DefinedTypeId = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.MARKETING_CAMPAIGN_AUDIENCE_TYPE.AsGuid() ).Id;
+
             ddlDayOfWeek.BindToEnum<DayOfWeek>( true );
 
             var groupPageId = PageCache.Get( Rock.SystemGuid.Page.GROUP_VIEWER.AsGuid() ).Id;
@@ -213,7 +214,7 @@ namespace RockWeb.Plugins.GroupManager
             tbConfirmationSubject.Text = publishGroup.ConfirmationSubject;
             ceConfirmationBody.Text = publishGroup.ConfirmationBody;
 
-            ddlAudience.SetValues( publishGroup.AudienceValues.Select( i => i.Id.ToString() ) );
+            ddlAudience.SetValue( publishGroup.AudienceValues.Select( i => i.Id.ToString() ).FirstOrDefault() );
 
             if ( publishGroup.Attributes.Any() )
             {
@@ -294,7 +295,7 @@ namespace RockWeb.Plugins.GroupManager
             if ( PageParameter( PageParameterKeys.PublishGroupId ).IsNotNullOrWhiteSpace() )
             {
                 var publishGroup = publishGroupService.Get( PageParameter( PageParameterKeys.PublishGroupId ).AsInteger() );
-                if ( publishGroup != null && publishGroup.Group != null)
+                if ( publishGroup != null && publishGroup.Group != null )
                 {
                     return publishGroup;
                 }
@@ -352,7 +353,6 @@ namespace RockWeb.Plugins.GroupManager
         /// <param name="publishGroupStatus">The publish group status.</param>
         private void Save( PublishGroupStatus publishGroupStatus )
         {
-
             RockContext rockContext = new RockContext();
             PublishGroupService publishGroupService = new PublishGroupService( rockContext );
             PublishGroup publishGroup = GetPublishGroup( rockContext, publishGroupService );
@@ -425,7 +425,7 @@ namespace RockWeb.Plugins.GroupManager
             publishGroup.ChildcareOptions = ( ChildcareOptions ) ddlChildcareOptions.SelectedValue.AsInteger();
             publishGroup.ChildcareAvailable = ddlChildcareOptions.SelectedValue.AsInteger() > 0;
             publishGroup.ChildcareRegistrationLink = publishGroup.ChildcareAvailable ? tbChildcareRegistrationLink.Text : "";
-            publishGroup.AudienceValues = GetSelectedAudiences( rockContext );
+            publishGroup.AudienceValues = GetSelectedAudience( rockContext );
             publishGroup.ContactPersonAliasId = pContactPerson.PersonAliasId.Value;
             publishGroup.RequestorAliasId = CurrentPersonAliasId.Value;
             publishGroup.ContactEmail = tbContactEmail.Text;
@@ -477,10 +477,10 @@ namespace RockWeb.Plugins.GroupManager
             NavigateToParentPage( new Dictionary<string, string> { { "GroupId", publishGroup.GroupId.ToString() } } );
         }
 
-        /// <summary>Gets the selected audiences.</summary>
+        /// <summary>Gets the selected audience.</summary>
         /// <param name="rockContext">The rock context.</param>
         /// <returns></returns>
-        private ICollection<DefinedValue> GetSelectedAudiences( RockContext rockContext )
+        private ICollection<DefinedValue> GetSelectedAudience( RockContext rockContext )
         {
             DefinedValueService definedValueService = new DefinedValueService( rockContext );
             var audienceId = ddlAudience.SelectedDefinedValuesId;
