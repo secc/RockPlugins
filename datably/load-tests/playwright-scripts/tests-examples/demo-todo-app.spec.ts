@@ -1,5 +1,4 @@
-// @ts-check
-const { test, expect } = require('@playwright/test');
+import { test, expect, type Page } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('https://demo.playwright.dev/todomvc');
@@ -9,7 +8,7 @@ const TODO_ITEMS = [
   'buy some cheese',
   'feed the cat',
   'book a doctors appointment'
-];
+] as const;
 
 test.describe('New Todo', () => {
   test('should allow me to add todo items', async ({ page }) => {
@@ -148,8 +147,8 @@ test.describe('Item', () => {
   });
 
   test('should allow me to un-mark items as complete', async ({ page }) => {
-     // create a new todo locator
-     const newTodo = page.getByPlaceholder('What needs to be done?');
+    // create a new todo locator
+    const newTodo = page.getByPlaceholder('What needs to be done?');
 
     // Create two items.
     for (const item of TODO_ITEMS.slice(0, 2)) {
@@ -261,12 +260,13 @@ test.describe('Counter', () => {
   test('should display the current number of todo items', async ({ page }) => {
     // create a new todo locator
     const newTodo = page.getByPlaceholder('What needs to be done?');
-
+    
     // create a todo count locator
     const todoCount = page.getByTestId('todo-count')
 
     await newTodo.fill(TODO_ITEMS[0]);
     await newTodo.press('Enter');
+
     await expect(todoCount).toContainText('1');
 
     await newTodo.fill(TODO_ITEMS[1]);
@@ -342,7 +342,7 @@ test.describe('Routing', () => {
   test('should allow me to display active items', async ({ page }) => {
     const todoItem = page.getByTestId('todo-item');
     await page.getByTestId('todo-item').nth(1).getByRole('checkbox').check();
-    
+
     await checkNumberOfCompletedTodosInLocalStorage(page, 1);
     await page.getByRole('link', { name: 'Active' }).click();
     await expect(todoItem).toHaveCount(2);
@@ -350,7 +350,7 @@ test.describe('Routing', () => {
   });
 
   test('should respect the back button', async ({ page }) => {
-    const todoItem = page.getByTestId('todo-item');
+    const todoItem = page.getByTestId('todo-item'); 
     await page.getByTestId('todo-item').nth(1).getByRole('checkbox').check();
 
     await checkNumberOfCompletedTodosInLocalStorage(page, 1);
@@ -393,7 +393,7 @@ test.describe('Routing', () => {
 
   test('should highlight the currently applied filter', async ({ page }) => {
     await expect(page.getByRole('link', { name: 'All' })).toHaveClass('selected');
-
+    
     //create locators for active and completed links
     const activeLink = page.getByRole('link', { name: 'Active' });
     const completedLink = page.getByRole('link', { name: 'Completed' });
@@ -408,7 +408,7 @@ test.describe('Routing', () => {
   });
 });
 
-async function createDefaultTodos(page) {
+async function createDefaultTodos(page: Page) {
   // create a new todo locator
   const newTodo = page.getByPlaceholder('What needs to be done?');
 
@@ -418,32 +418,20 @@ async function createDefaultTodos(page) {
   }
 }
 
-/**
- * @param {import('@playwright/test').Page} page
- * @param {number} expected
- */
- async function checkNumberOfTodosInLocalStorage(page, expected) {
+async function checkNumberOfTodosInLocalStorage(page: Page, expected: number) {
   return await page.waitForFunction(e => {
     return JSON.parse(localStorage['react-todos']).length === e;
   }, expected);
 }
 
-/**
- * @param {import('@playwright/test').Page} page
- * @param {number} expected
- */
- async function checkNumberOfCompletedTodosInLocalStorage(page, expected) {
+async function checkNumberOfCompletedTodosInLocalStorage(page: Page, expected: number) {
   return await page.waitForFunction(e => {
-    return JSON.parse(localStorage['react-todos']).filter(i => i.completed).length === e;
+    return JSON.parse(localStorage['react-todos']).filter((todo: any) => todo.completed).length === e;
   }, expected);
 }
 
-/**
- * @param {import('@playwright/test').Page} page
- * @param {string} title
- */
-async function checkTodosInLocalStorage(page, title) {
+async function checkTodosInLocalStorage(page: Page, title: string) {
   return await page.waitForFunction(t => {
-    return JSON.parse(localStorage['react-todos']).map(i => i.title).includes(t);
+    return JSON.parse(localStorage['react-todos']).map((todo: any) => todo.title).includes(t);
   }, title);
 }

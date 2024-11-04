@@ -1,0 +1,27 @@
+config:
+  # This is a test server run by team Artillery
+  # It's designed to be highly scalable
+  target: https://www.artillery.io
+  engines:
+    playwright: { }
+  processor: 'playwright-scripts/user-actions/user-actions.ts'
+  timeout: 10000
+  phases:
+    - duration: 60
+      arrivalRate: 1
+      rampTo: 1
+      name: Load test
+  # Load & configure a couple of useful plugins
+  # https://docs.art/reference/extensions
+  plugins:
+    ensure: {}
+    apdex: {}
+    metrics-by-endpoint: {}
+  ensure:
+    thresholds:
+      - http.response_time.p99: 5000
+      - http.response_time.p95: 8000
+scenarios:
+  - engine: playwright
+    testFunction: 'loginAndNavigateRoutes'
+
