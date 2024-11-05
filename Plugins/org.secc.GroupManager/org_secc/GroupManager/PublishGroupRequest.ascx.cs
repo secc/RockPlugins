@@ -103,7 +103,7 @@ namespace RockWeb.Plugins.GroupManager
             base.OnInit( e );
 
             PublishGroup publishGroup = GetPublishGroup();
-            if ( publishGroup != null )
+            if (publishGroup != null)
             {
                 publishGroup.LoadAttributes();
                 Rock.Attribute.Helper.AddEditControls( publishGroup, phAttributeEdits, false );
@@ -116,11 +116,11 @@ namespace RockWeb.Plugins.GroupManager
         /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
         protected override void OnLoad( EventArgs e )
         {
-            if ( !Page.IsPostBack )
+            if (!Page.IsPostBack)
             {
                 ddlStatus.BindToEnum<PublishGroupStatus>();
                 PublishGroup publishGroup = GetPublishGroup();
-                if ( publishGroup != null )
+                if (publishGroup != null)
                 {
                     publishGroup.LoadAttributes();
                     pnlEdit.Visible = true;
@@ -142,13 +142,13 @@ namespace RockWeb.Plugins.GroupManager
         /// <param name="publishGroup">The publish group.</param>
         private void DisplayForm( PublishGroup publishGroup )
         {
-            if ( IsUserAuthorized( Rock.Security.Authorization.EDIT ) )
+            if (IsUserAuthorized( Rock.Security.Authorization.EDIT ))
             {
                 btnSave.Text = "Save";
                 btnDraft.Visible = false;
                 ddlStatus.SelectedValue = publishGroup.PublishGroupStatus.ConvertToInt().ToString();
             }
-            else if ( !mUserCanEditGroup )
+            else if (!mUserCanEditGroup)
             {
                 pnlEdit.Visible = false;
                 pnlSelectGroup.Visible = false;
@@ -167,7 +167,7 @@ namespace RockWeb.Plugins.GroupManager
 
             tbName.Text = publishGroup.Title;
             tbSlug.Text = GetSlug( publishGroup );
-            if ( tbSlug.Text.IsNotNullOrWhiteSpace() )
+            if (tbSlug.Text.IsNotNullOrWhiteSpace())
             {
                 lSlug.Visible = true;
                 lSlug.Text = GetAttributeValue( AttributeKeys.GroupRegistrationUrl ) + tbSlug.Text;
@@ -179,7 +179,7 @@ namespace RockWeb.Plugins.GroupManager
             iGroupImage.Required = publishGroup.PublishGroupStatus == PublishGroupStatus.Approved;
             drPublishDates.UpperValue = publishGroup.EndDateTime;
             drPublishDates.LowerValue = publishGroup.StartDateTime;
-            ddlDayOfWeek.SelectedValue = publishGroup.WeeklyDayOfWeek != null ? ( ( int ) publishGroup.WeeklyDayOfWeek ).ToString() : "";
+            ddlDayOfWeek.SelectedValue = publishGroup.WeeklyDayOfWeek != null ? ((int) publishGroup.WeeklyDayOfWeek).ToString() : "";
             tTimeOfDay.SelectedTime = publishGroup.WeeklyTimeOfDay;
             dpStartDate.SelectedDate = publishGroup.StartDate;
             tbCustomSchedule.Text = publishGroup.CustomSchedule;
@@ -203,7 +203,7 @@ namespace RockWeb.Plugins.GroupManager
 
             ddlChildcareOptions.SelectedValue = publishGroup.ChildcareOptions.ConvertToInt().ToString();
             tbChildcareRegistrationLink.Text = publishGroup.ChildcareRegistrationLink;
-            if ( publishGroup.ContactPersonAlias != null )
+            if (publishGroup.ContactPersonAlias != null)
             {
                 pContactPerson.SetValue( publishGroup.ContactPersonAlias.Person );
             }
@@ -216,7 +216,7 @@ namespace RockWeb.Plugins.GroupManager
 
             ddlAudience.SetValue( publishGroup.AudienceValues.Select( i => i.Id.ToString() ).FirstOrDefault() );
 
-            if ( publishGroup.Attributes.Any() )
+            if (publishGroup.Attributes.Any())
             {
                 pnlAttributes.Visible = true;
                 phAttributeEdits.Controls.Clear();
@@ -226,7 +226,7 @@ namespace RockWeb.Plugins.GroupManager
 
         private string GetSlug( PublishGroup publishGroup )
         {
-            if ( publishGroup.Slug.IsNotNullOrWhiteSpace() )
+            if (publishGroup.Slug.IsNotNullOrWhiteSpace())
             {
                 return publishGroup.Slug;
             }
@@ -240,14 +240,14 @@ namespace RockWeb.Plugins.GroupManager
 
             var i = 0;
 
-            while ( takenSlug != null )
+            while (takenSlug != null)
             {
                 i++;
                 var testSlug = slug + i.ToString();
                 takenSlug = publishGroupService.Queryable().Where( pg => pg.Slug == testSlug ).FirstOrDefault();
             }
 
-            if ( i != 0 )
+            if (i != 0)
             {
                 slug += i.ToString();
             }
@@ -259,7 +259,7 @@ namespace RockWeb.Plugins.GroupManager
         /// <param name="childcareOptions">The childcare options.</param>
         private void SwitchChildcareOptions( ChildcareOptions childcareOptions )
         {
-            switch ( childcareOptions )
+            switch (childcareOptions)
             {
                 case ChildcareOptions.NoChildcare:
                 case ChildcareOptions.ChildcareNoRegistration:
@@ -292,21 +292,21 @@ namespace RockWeb.Plugins.GroupManager
         {
             rockContext = rockContext ?? new RockContext();
             publishGroupService = publishGroupService ?? new PublishGroupService( rockContext );
-            if ( PageParameter( PageParameterKeys.PublishGroupId ).IsNotNullOrWhiteSpace() )
+            if (PageParameter( PageParameterKeys.PublishGroupId ).IsNotNullOrWhiteSpace())
             {
                 var publishGroup = publishGroupService.Get( PageParameter( PageParameterKeys.PublishGroupId ).AsInteger() );
-                if ( publishGroup != null && publishGroup.Group != null )
+                if (publishGroup != null && publishGroup.Group != null)
                 {
                     return publishGroup;
                 }
             }
 
-            if ( PageParameter( PageParameterKeys.GroupId ).IsNotNullOrWhiteSpace() )
+            if (PageParameter( PageParameterKeys.GroupId ).IsNotNullOrWhiteSpace())
             {
                 int groupId = PageParameter( PageParameterKeys.GroupId ).AsInteger();
                 GroupService groupService = new GroupService( rockContext );
                 var group = groupService.Get( groupId );
-                if ( group != null )
+                if (group != null)
                 {
                     mUserCanEditGroup = group.IsAuthorized( Rock.Security.Authorization.EDIT, CurrentPerson );
 
@@ -315,7 +315,7 @@ namespace RockWeb.Plugins.GroupManager
                     .ToList()
                     .LastOrDefault();
 
-                    if ( publishGroup != null )
+                    if (publishGroup != null)
                     {
                         return publishGroup;
                     }
@@ -332,13 +332,13 @@ namespace RockWeb.Plugins.GroupManager
                         ChildcareRegistrationDescription = GetAttributeValue( AttributeKeys.ChildcareRegistrationDetails )
                     };
 
-                    if ( group.Schedule != null )
+                    if (group.Schedule != null)
                     {
                         publishGroup.WeeklyDayOfWeek = group.Schedule.WeeklyDayOfWeek;
                         publishGroup.WeeklyTimeOfDay = group.Schedule.WeeklyTimeOfDay;
                     }
 
-                    if ( group.GroupLocations.Any() )
+                    if (group.GroupLocations.Any())
                     {
                         publishGroup.MeetingLocation = group.GroupLocations.FirstOrDefault().Location.Name;
                     }
@@ -364,7 +364,7 @@ namespace RockWeb.Plugins.GroupManager
             var isDuplicateSlug = publishGroupService.Queryable()
                 .Where( pg => pg.Slug == slug && pg.Id != publishGroup.Id && pg.GroupId != publishGroup.Group.Id )
                 .Any();
-            if ( isDuplicateSlug )
+            if (isDuplicateSlug)
             {
                 nbSlug.Visible = true;
                 return;
@@ -377,28 +377,28 @@ namespace RockWeb.Plugins.GroupManager
 
 
             bool isApprover = false;
-            if ( IsUserAuthorized( Rock.Security.Authorization.EDIT ) )
+            if (IsUserAuthorized( Rock.Security.Authorization.EDIT ))
             {
                 isApprover = true;
             }
 
-            if ( isApprover )
+            if (isApprover)
             {
                 publishGroupStatus = ddlStatus.SelectedValueAsEnum<PublishGroupStatus>();
             }
-            else if ( publishGroupStatus != PublishGroupStatus.Draft )
+            else if (publishGroupStatus != PublishGroupStatus.Draft)
             {
-                if ( ddlRegistration.SelectedValue == "4" ||
-                    ( ddlChildcareOptions.SelectedValue == "2" && ddlChildcareNeedRegistration.SelectedValue == "2" ) )  //Childcare required && Registration needed.
+                if (ddlRegistration.SelectedValue == "4" ||
+                    (ddlChildcareOptions.SelectedValue == "2" && ddlChildcareNeedRegistration.SelectedValue == "2"))  //Childcare required && Registration needed.
                 {
                     publishGroupStatus = PublishGroupStatus.PendingIT;
                 }
             }
 
-            if ( publishGroup.PublishGroupStatus == PublishGroupStatus.Approved )
+            if (publishGroup.PublishGroupStatus == PublishGroupStatus.Approved)
             {
                 var tempGroup = publishGroup.Group;
-                publishGroup = ( PublishGroup ) publishGroup.Clone();
+                publishGroup = (PublishGroup) publishGroup.Clone();
                 publishGroup.Guid = Guid.NewGuid();
                 publishGroup.Id = 0;
                 publishGroup.Group = tempGroup;
@@ -417,12 +417,12 @@ namespace RockWeb.Plugins.GroupManager
             publishGroup.StartDate = dpStartDate.SelectedDate;
             publishGroup.MeetingLocation = tbLocationName.Text;
             publishGroup.IsHidden = cbIsHidden.Checked;
-            publishGroup.RegistrationRequirement = ( RegistrationRequirement ) ddlRegistration.SelectedValue.AsInteger();
+            publishGroup.RegistrationRequirement = (RegistrationRequirement) ddlRegistration.SelectedValue.AsInteger();
             publishGroup.RegistrationLink = publishGroup.RegistrationRequirement == RegistrationRequirement.CustomRegistration ? tbRegistrationLink.Text : "";
             publishGroup.RegistrationDescription = tbRegistrationDetails.Text;
             publishGroup.ChildcareRegistrationDescription = ddlChildcareNeedRegistration.SelectedValue == "2" ? tbChildcareRegistrationDetails.Text : "";
             publishGroup.AllowSpouseRegistration = cbAllowSpouseRegistration.Checked;
-            publishGroup.ChildcareOptions = ( ChildcareOptions ) ddlChildcareOptions.SelectedValue.AsInteger();
+            publishGroup.ChildcareOptions = (ChildcareOptions) ddlChildcareOptions.SelectedValue.AsInteger();
             publishGroup.ChildcareAvailable = ddlChildcareOptions.SelectedValue.AsInteger() > 0;
             publishGroup.ChildcareRegistrationLink = publishGroup.ChildcareAvailable ? tbChildcareRegistrationLink.Text : "";
             publishGroup.AudienceValues = GetSelectedAudience( rockContext );
@@ -435,12 +435,12 @@ namespace RockWeb.Plugins.GroupManager
             publishGroup.ConfirmationSubject = tbConfirmationSubject.Text;
             publishGroup.ConfirmationBody = ceConfirmationBody.Text;
 
-            if ( publishGroup.Id == 0 )
+            if (publishGroup.Id == 0)
             {
                 publishGroupService.Add( publishGroup );
             }
 
-            if ( isApprover && publishGroupStatus == PublishGroupStatus.Approved )
+            if (isApprover && publishGroupStatus == PublishGroupStatus.Approved)
             {
                 publishGroup.Group.IsActive = true;
                 publishGroup.Group.IsPublic = true;
@@ -449,11 +449,11 @@ namespace RockWeb.Plugins.GroupManager
             };
 
             //Set the binary file to not be temporary
-            if ( publishGroup.ImageId.HasValue )
+            if (publishGroup.ImageId.HasValue)
             {
                 BinaryFileService binaryFileService = new BinaryFileService( rockContext );
                 var binaryFile = binaryFileService.Get( publishGroup.ImageId.Value );
-                if ( binaryFile != null )
+                if (binaryFile != null)
                 {
                     binaryFile.IsTemporary = false;
                 }
@@ -463,13 +463,13 @@ namespace RockWeb.Plugins.GroupManager
 
             publishGroup.LoadAttributes( rockContext );
 
-            if ( publishGroup.Attributes.Any() )
+            if (publishGroup.Attributes.Any())
             {
                 Rock.Attribute.Helper.GetEditValues( phAttributeEdits, publishGroup );
                 publishGroup.SaveAttributeValues( rockContext );
             }
 
-            if ( publishGroup.PublishGroupStatus != PublishGroupStatus.Draft )
+            if (publishGroup.PublishGroupStatus != PublishGroupStatus.Draft)
             {
                 publishGroup.LaunchWorkflow( GetAttributeValue( AttributeKeys.Workflow ).AsGuidOrNull() );
             }
@@ -491,7 +491,7 @@ namespace RockWeb.Plugins.GroupManager
         /// <param name="selection">The selection.</param>
         private void SwitchRegistrationRequirement( RegistrationRequirement selection )
         {
-            switch ( selection )
+            switch (selection)
             {
                 case RegistrationRequirement.NoRegistration:
                     cbAllowSpouseRegistration.Visible = false;
@@ -542,8 +542,8 @@ namespace RockWeb.Plugins.GroupManager
         /// <summary>Checks the registation for conflict.</summary>
         private void CheckRegistationConflict()
         {
-            if ( ddlChildcareOptions.SelectedValue == "2"
-                && ( ddlRegistration.SelectedValue == "0" || ddlRegistration.SelectedValue == "3" ) )
+            if (ddlChildcareOptions.SelectedValue == "2"
+                && (ddlRegistration.SelectedValue == "0" || ddlRegistration.SelectedValue == "3"))
             {
                 nbRegistrationError.Visible = true;
             }
@@ -561,6 +561,14 @@ namespace RockWeb.Plugins.GroupManager
             tbConfirmationFromEmail.Required = true;
             tbConfirmationSubject.Required = true;
             ceConfirmationBody.Required = true;
+        }
+
+        private void ShowConfirmationModal()
+        {
+            lConfirmDayTime.Text = $"{ddlDayOfWeek.SelectedItem.Text} {(tTimeOfDay.SelectedTime.HasValue ? tTimeOfDay.SelectedTime.Value.ToTimeString() : String.Empty)}";
+            lConfirmStartDate.Text = dpStartDate.SelectedDate.ToShortDateString();
+            lPublishDates.Text = drPublishDates.LowerValue.Value.ToShortDateTimeString() + " - " + drPublishDates.UpperValue.Value.ToShortDateTimeString();
+            mdlConfirmGroup.Show();
         }
 
         /// <summary>Updates the childcare fields.</summary>
@@ -599,6 +607,16 @@ namespace RockWeb.Plugins.GroupManager
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void btnSave_Click( object sender, EventArgs e )
         {
+            if (!IsUserAuthorized( Rock.Security.Authorization.EDIT ))
+            {
+                var publishGroup = GetPublishGroup();
+                if (publishGroup != null && publishGroup.Id > 0)
+                {
+                    ShowConfirmationModal();
+                    return;
+                }
+
+            }
             Save( PublishGroupStatus.PendingApproval );
         }
 
@@ -612,28 +630,28 @@ namespace RockWeb.Plugins.GroupManager
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void pRequestor_SelectPerson( object sender, EventArgs e )
         {
-            if ( !pContactPerson.PersonId.HasValue )
+            if (!pContactPerson.PersonId.HasValue)
             {
                 return;
             }
             var person = new PersonService( new RockContext() ).Get( pContactPerson.PersonId.Value );
-            if ( tbContactEmail.Text.IsNullOrWhiteSpace() )
+            if (tbContactEmail.Text.IsNullOrWhiteSpace())
             {
                 tbContactEmail.Text = person.Email;
             }
-            if ( tbContactPhoneNumber.Text.IsNullOrWhiteSpace() )
+            if (tbContactPhoneNumber.Text.IsNullOrWhiteSpace())
             {
                 var number = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_WORK.AsGuid() );
-                if ( number != null )
+                if (number != null)
                 {
                     tbContactPhoneNumber.Text = number.NumberFormatted;
                 }
             }
-            if ( tbConfirmationFromEmail.Text.IsNullOrWhiteSpace() )
+            if (tbConfirmationFromEmail.Text.IsNullOrWhiteSpace())
             {
                 tbConfirmationFromEmail.Text = person.Email;
             }
-            if ( tbConfirmationFromName.Text.IsNullOrWhiteSpace() )
+            if (tbConfirmationFromName.Text.IsNullOrWhiteSpace())
             {
                 tbConfirmationFromName.Text = person.FullName;
             }
@@ -644,7 +662,7 @@ namespace RockWeb.Plugins.GroupManager
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void ddlRegistration_SelectedIndexChanged( object sender, EventArgs e )
         {
-            var selection = ( RegistrationRequirement ) ddlRegistration.SelectedValue.AsInteger();
+            var selection = (RegistrationRequirement) ddlRegistration.SelectedValue.AsInteger();
 
             SwitchRegistrationRequirement( selection );
             CheckRegistationConflict();
@@ -655,7 +673,7 @@ namespace RockWeb.Plugins.GroupManager
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         protected void ddlChildcareRegistration_SelectedIndexChanged( object sender, EventArgs e )
         {
-            var childcareOption = ( ChildcareOptions ) ddlChildcareOptions.SelectedValue.AsInteger();
+            var childcareOption = (ChildcareOptions) ddlChildcareOptions.SelectedValue.AsInteger();
             SwitchChildcareOptions( childcareOption );
             CheckRegistationConflict();
         }
@@ -691,7 +709,7 @@ namespace RockWeb.Plugins.GroupManager
             var isDuplicateSlug = publishGroupService.Queryable()
                 .Where( pg => pg.Slug == slug && pg.Id != publishGroup.Id && pg.GroupId != publishGroup.Group.Id )
                 .Any();
-            if ( isDuplicateSlug )
+            if (isDuplicateSlug)
             {
                 lSlug.Visible = false;
                 nbSlug.Visible = true;
@@ -702,6 +720,11 @@ namespace RockWeb.Plugins.GroupManager
                 lSlug.Visible = true;
                 lSlug.Text = GetAttributeValue( AttributeKeys.GroupRegistrationUrl ) + slug;
             }
+        }
+
+        protected void mdlConfirmGroup_SaveClick( object sender, EventArgs e )
+        {
+            Save( PublishGroupStatus.PendingApproval );
         }
     }
 }
