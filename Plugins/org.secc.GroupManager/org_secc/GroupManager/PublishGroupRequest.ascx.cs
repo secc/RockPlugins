@@ -685,7 +685,7 @@ namespace RockWeb.Plugins.GroupManager
         {
             UpdateChildcareFields();
         }
-        #endregion
+
 
         protected void btnLink_Click( object sender, EventArgs e )
         {
@@ -726,5 +726,7 @@ namespace RockWeb.Plugins.GroupManager
         {
             Save( PublishGroupStatus.PendingApproval );
         }
+
+        #endregion
     }
 }
