@@ -567,7 +567,7 @@ namespace RockWeb.Plugins.GroupManager
         {
             lConfirmDayTime.Text = $"{ddlDayOfWeek.SelectedItem.Text} {(tTimeOfDay.SelectedTime.HasValue ? tTimeOfDay.SelectedTime.Value.ToTimeString() : String.Empty)}";
             lConfirmStartDate.Text = dpStartDate.SelectedDate.ToShortDateString();
-            lPublishDates.Text = drPublishDates.LowerValue.Value.ToShortDateTimeString() + " - " + drPublishDates.UpperValue.Value.ToShortDateTimeString();
+            lPublishDates.Text = drPublishDates.LowerValue.Value.ToShortDateString() + " - " + drPublishDates.UpperValue.Value.ToShortDateString();
             mdlConfirmGroup.Show();
         }
 
