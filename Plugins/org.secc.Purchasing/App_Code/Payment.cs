@@ -132,10 +132,11 @@ namespace org.secc.Purchasing
             Charges = LoadCharges();
         }
 
-        public void DeactivateCharges( string uid )
+        public void DeactivateCharges( string uid, bool bypassIntacct = false )
         {
             foreach ( var item in Charges )
             {
+                item.BypassIntacct = bypassIntacct;
                 item.Active = false;
                 item.Save( uid );
             }

@@ -146,6 +146,20 @@ namespace org.secc.Purchasing
             }
         }
 
+        private bool bypassIntacct = false;
+        [XmlIgnore]
+        public bool BypassIntacct
+        {
+            get
+            {
+                return bypassIntacct;
+            }
+            set
+            {
+                bypassIntacct = value;
+            }
+        }
+
 
         #endregion
 
@@ -351,7 +365,7 @@ namespace org.secc.Purchasing
                 ValErrors.Add( "AccountID", "Account ID must be greater than 0." );
 
             // Only validate the account id if the amount is not zero
-            if ( Amount != 0 && CompanyID > 0 && FundID > 0 && DepartmentID > 0 && AccountID > 0 )
+            if ( Amount != 0 && CompanyID > 0 && FundID > 0 && DepartmentID > 0 && AccountID > 0 && !bypassIntacct )
             {
                 if ( Account == null || Account.AccountNo <= 0 )
                 {
