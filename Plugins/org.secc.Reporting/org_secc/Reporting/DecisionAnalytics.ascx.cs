@@ -92,18 +92,34 @@ namespace RockWeb.Plugins.org_secc.Reporting
         #endregion
 
         #region Events
+        protected void btnApply_Click( object sender, EventArgs e )
+        {
 
+        }
+
+        protected void gResults_RowSelected( object sender, RowEventArgs e )
+        {
+
+        }
+
+        protected void gResults_RowDataBound( object sender, GridViewRowEventArgs e )
+        {
+
+        }
         #endregion
 
         #region Methods
         private void LoadBoundFields()
         {
             LoadGradeRanges();
-            LoadDecisionType();
+            LoadDecisionTypes();
+            LoadEventTypes();
         }
 
-        private void LoadDecisionType()
+
+        private void LoadDecisionTypes()
         {
+            ddlDecisionType.Items.Clear();
             var decisionTypes = new List<string>();
             using (var rockContext = new RockContext())
             {
@@ -121,7 +137,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                     .Select( q => q.Value )
                     .FirstOrDefault();
 
-                decisionTypes.AddRange( values.SplitDelimitedValues() );                
+                decisionTypes.AddRange( values.SplitDelimitedValues(false));                
             }
 
             foreach (var value in decisionTypes)
@@ -131,8 +147,42 @@ namespace RockWeb.Plugins.org_secc.Reporting
             ddlDecisionType.Items.Insert( 0, new ListItem( "", "" ) );
         }
 
+        private void LoadEventTypes()
+        {
+            ddlEventType.Items.Clear();
+            var eventTypes = new List<string>();
+
+            using (var rockContext = new RockContext())
+            {
+                var workflowETID = EntityTypeCache.GetId( typeof( Workflow ) );
+                var workflowTypeIdStr = workflowTypeId.ToString();
+
+                var values = new AttributeService( rockContext ).Queryable()
+                    .Include( a => a.AttributeQualifiers )
+                    .Where( a => a.EntityTypeId == workflowETID )
+                    .Where( a => a.EntityTypeQualifierColumn == "WorkflowTypeId" )
+                    .Where( a => a.EntityTypeQualifierValue == workflowTypeIdStr )
+                    .Where( a => a.Key == eventAttributeKey )
+                    .FirstOrDefault()
+                    .AttributeQualifiers.Where( q => q.Key == "values" )
+                    .Select( q => q.Value )
+                    .FirstOrDefault();
+
+                eventTypes.AddRange( values.SplitDelimitedValues( false ) );
+            }
+
+            foreach (var value in eventTypes)
+            {
+                ddlEventType.Items.Add( new ListItem( value, value ) );
+            }
+            ddlEventType.Items.Insert( 0, new ListItem( "", "" ) );
+        }
+
         private void LoadGradeRanges()
         {
+            ddlLowerGrade.Items.Clear();
+            ddlUpperGrade.Items.Clear();
+
             var rockContext = new RockContext();
             var dvservice = new DefinedValueService( rockContext );
             var avService = new AttributeValueService( rockContext );
@@ -155,8 +205,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 .OrderBy( d => d.Order )
                 .ToList();
 
-            ddlLowerGrade.Items.Clear();
-            ddlUpperGrade.Items.Clear();
+
             foreach (var grade in grades)
             {
                 ddlLowerGrade.Items.Add( new ListItem( grade.Abbreviation, grade.Id.ToString() ) );
@@ -167,7 +216,16 @@ namespace RockWeb.Plugins.org_secc.Reporting
             ddlUpperGrade.Items.Insert( 0, new ListItem( "", "" ) );
                                                                                                                                            
         }
+
+        private void UpdateDataset()
+        {
+
+        }
+
+
         #endregion
+
+
 
     }
 }
