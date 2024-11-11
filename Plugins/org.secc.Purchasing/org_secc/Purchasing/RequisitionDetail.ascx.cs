@@ -553,6 +553,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if ( !Page.IsPostBack )
             {
+                BypassIntacctValidation = true;
                 RequisitionID = 0;
                 LoadRequisitionTypes();
                 BindMinistryList();
