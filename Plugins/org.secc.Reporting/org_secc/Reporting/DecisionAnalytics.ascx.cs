@@ -94,7 +94,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
         #region Events
         protected void btnApply_Click( object sender, EventArgs e )
         {
-
+            
         }
 
         protected void gResults_RowSelected( object sender, RowEventArgs e )

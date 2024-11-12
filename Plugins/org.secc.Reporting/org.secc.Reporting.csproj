@@ -76,7 +76,9 @@ xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Reporting.pdb" "$(SolutionDir)Rock
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataFilter\SQLFilter.cs" />
+    <Compile Include="DataFilter\SQLFilter.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Data\ReportingContext.cs" />
     <Compile Include="Data\ReportingService.cs" />
     <Compile Include="Helpers.cs" />
@@ -86,6 +88,7 @@ xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Reporting.pdb" "$(SolutionDir)Rock
     <Compile Include="Model\DataViewSqlFilterStore.cs" />
     <Compile Include="Model\DataViewSqlFilterStoreService.cs" />
     <Compile Include="Model\DecisionReport.cs" />
+    <Compile Include="Model\DecisionReportService.cs" />
     <Compile Include="Transactions\SqlFilterCleanupTransaction.cs" />
   </ItemGroup>
   <ItemGroup>
