@@ -101,27 +101,6 @@ namespace org.secc.Purchasing
                 // Fetch the account
                 mAccount = ApiClient.GetGLAccounts().Where( a => a.AccountNo == AccountID ).FirstOrDefault();
 
-                // Now verify that the location and department are valid
-                if ( mAccount != null )
-                {
-                    var restrictedData = ApiClient.GetDimensionRestrictedData( mAccount );
-
-                    // If we get here with no data, then the restricted data is just not available so go ahead and allow it
-                    if ( restrictedData.Count > 0 )
-                    {
-                        if ( !restrictedData.Any( r => r.Dimension == "DEPARTMENT" && r.IdValues.Contains( DepartmentID ) ) )
-                        {
-                            mAccount = null;
-                        }
-
-                        if ( !restrictedData.Any( r => r.Dimension == "LOCATION" && r.IdValues.Contains( FundID ) ) )
-                        {
-                            mAccount = null;
-                        }
-                    }
-
-                }
-
                 return mAccount;
             }
         }
