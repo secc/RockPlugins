@@ -1292,7 +1292,11 @@ namespace org.secc.Connection
             // Try to sort by order than by string value
             if ( partition.PartitionType != "Schedule" )
             {
-                partitionList = partitionList.OrderBy( a => a["Entity"].GetType().GetProperty( "Order" ) != null ? a["Entity"].GetType().GetProperty( "Order" ).GetValue( a["Entity"], null ) : 0 ).ThenBy( a => a["Entity"].ToString() ).ToList();
+                partitionList = partitionList
+                    .OrderBy( a => a["Entity"].GetType().GetProperty( "GroupTypeId" ) != null ? a["Entity"].GetType().GetProperty( "GroupTypeId" ).GetValue( a["Entity"], null ) : 0 )
+                    .ThenBy( a => a["Entity"].GetType().GetProperty( "Order" ) != null ? a["Entity"].GetType().GetProperty( "Order" ).GetValue( a["Entity"], null ) : 0 )
+                    .ThenBy( a => a["Entity"].ToString() )
+                    .ToList();
             }
             return partitionList;
         }
