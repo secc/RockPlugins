@@ -68,6 +68,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
     [LinkedPage( "Capital Request Detail Page", "Page that shows the Capital Request", true, "", "General" )]
     [BooleanField( "Enable Notifications", "Enable Notification Emails", false, "General" )]
     [SecurityRoleField( "Requester roles that override notification block during beta.", "Requester roles that override notification block during beta period. If a requester is in this role, their requisitions will still trigger email notifications. This is a temporary role during the beta period.", false, "", "Notifications" )]
+    [BooleanField("Validate GL Account", "Yes", "No", "Should the account information be validated against our GL Account List.", DefaultBooleanValue = true,  Key = "ValidateAccounts")]
     public partial class RequisitionDetail : RockBlock
     {
 
@@ -553,7 +554,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if ( !Page.IsPostBack )
             {
-                BypassIntacctValidation = true;
+                BypassIntacctValidation = !GetAttributeValue("ValidateAccounts").AsBoolean();
                 RequisitionID = 0;
                 LoadRequisitionTypes();
                 BindMinistryList();
