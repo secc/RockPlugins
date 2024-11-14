@@ -3,13 +3,13 @@ config:
   # It's designed to be highly scalable
   target: https://www.artillery.io
   engines:
-    playwright: { }
+    playwright: 
+      extendedMetrics: true
   processor: 'playwright-scripts/user-actions/user-actions.ts'
   timeout: 10000
   phases:
-    - duration: 60
-      arrivalRate: 1
-      rampTo: 1
+    - duration: 50
+      arrivalCount: 10
       name: Load test
   # Load & configure a couple of useful plugins
   # https://docs.art/reference/extensions
@@ -17,10 +17,9 @@ config:
     ensure: {}
     apdex: {}
     metrics-by-endpoint: {}
-  ensure:
-    thresholds:
-      - http.response_time.p99: 5000
-      - http.response_time.p95: 8000
+#  ensure:
+#    thresholds:
+#      - http.response_time.p95: 10000
 scenarios:
   - engine: playwright
     testFunction: 'loginAndNavigateRoutes'

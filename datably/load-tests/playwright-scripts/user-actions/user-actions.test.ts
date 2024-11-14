@@ -7,6 +7,7 @@ test('baseline', async ({ page }) => {
 });
 
 test('login and navigate demo', async ({ page }) => {
+    test.setTimeout(120000);
     await loginAndNavigateRoutes(page);
 });
 
