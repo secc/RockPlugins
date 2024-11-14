@@ -7,10 +7,8 @@ import {login} from "./support/login";
 export async function baseline(page: Page){
 
   await page.goto('');
-    const user = 'julio.cachay@datably.io';
-    const password = 'Chattanooga25!';
 
-    await login(page, user, password);
+    await login(page);
 
     await page.goto('1/events');
 
@@ -22,14 +20,9 @@ export async function baseline(page: Page){
  * @constructor
  */
 export async function loginAndNavigateRoutes(page: Page){
-
-
-    const user = 'julio.cachay@datably.io';
-    const password = 'Chattanooga25!';
-
     await page.goto('');
 
-    await login(page, user, password);
+    await login(page);
 
     // keep me logged in
     await page.getByText(/Keep/).check();
