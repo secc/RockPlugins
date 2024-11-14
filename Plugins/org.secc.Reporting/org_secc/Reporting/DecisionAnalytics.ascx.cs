@@ -13,7 +13,12 @@ using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using Rock.Data;
+using org.secc.Reporting.Data;
+using org.secc.Reporting.Model;
 using System.Data.Entity;
+using System.Web.DynamicData;
+using System.Linq.Dynamic;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 
 namespace RockWeb.Plugins.org_secc.Reporting
@@ -72,8 +77,19 @@ namespace RockWeb.Plugins.org_secc.Reporting
             base.OnInit( e );
             dvpConnectionStatus.DefinedTypeId = DefinedTypeCache.GetId( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS.AsGuid() );
             dvpBaptismType.DefinedTypeId = DefinedTypeCache.GetId( Guid.Parse( "75FEF4A0-90E2-46AC-9A83-76672F0FB402" ) );
+            gResults.Actions.ShowAdd = false;
+            gResults.Actions.ShowBulkUpdate = true;
+            gResults.Actions.ShowCommunicate = true;
+            gResults.Actions.ShowMergePerson = false;
+            gResults.ExportFilename = "Decisons";
+            gResults.PersonIdField = "PersonId";
+
+            lbClearFilters.CausesValidation = false;
+            lbClearFilters.Click += lbClearFilters_Click;
+
             
         }
+
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
@@ -94,7 +110,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
         #region Events
         protected void btnApply_Click( object sender, EventArgs e )
         {
-            
+            UpdateDataset();
         }
 
         protected void gResults_RowSelected( object sender, RowEventArgs e )
@@ -106,9 +122,34 @@ namespace RockWeb.Plugins.org_secc.Reporting
         {
 
         }
+
+        private void lbClearFilters_Click( object sender, EventArgs e )
+        {
+            ClearFilters();
+        }
         #endregion
 
         #region Methods
+
+        private void ClearFilters()
+        {
+            drpDecisionDate.LowerValue = null;
+            drpDecisionDate.UpperValue = null;
+            ppDecisions.SetValue( null );
+            cblGender.SelectedValue = null;
+            nreAgeRange.LowerValue = null;
+            nreAgeRange.UpperValue = null;
+            ddlLowerGrade.SelectedIndex = 0;
+            ddlUpperGrade.SelectedIndex = 0;
+
+            dvpConnectionStatus.SetValues( new List<int>() );
+            pkFamilyCampus.SetValue( (int?)null );
+            pkDecisionCampus.SetValue( (int?) null );
+            ddlDecisionType.SelectedIndex = 0;
+            ddlEventType.SelectedIndex = 0;
+            dvpBaptismType.SelectedValue = null;
+        }
+
         private void LoadBoundFields()
         {
             LoadGradeRanges();
@@ -219,7 +260,112 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
         private void UpdateDataset()
         {
+            using (var reportContext = new RockContext())
+            {
+                var drService = new DecisionReportService( reportContext );
 
+                var decisionQry = drService.Queryable().AsNoTracking();
+
+                if(drpDecisionDate.LowerValue.HasValue)
+                {
+                    decisionQry = decisionQry.Where( q => q.FormDate >= drpDecisionDate.LowerValue.Value );
+                }
+
+                if(drpDecisionDate.UpperValue.HasValue)
+                {
+                    decisionQry = decisionQry.Where( q => q.FormDate <= drpDecisionDate.UpperValue.Value );
+                }
+
+                if(ppDecisions.SelectedValue.HasValue)
+                {
+                    decisionQry = decisionQry.Where( q => q.PersonId == ppDecisions.PersonId.Value );
+                }
+
+                if(cblGender.SelectedValues.Any())
+                {
+                    var selectedGenders = cblGender.SelectedValues;
+                    decisionQry = decisionQry.Where( q => selectedGenders.Contains( q.Gender ) );
+                }
+
+                if(nreAgeRange.LowerValue.HasValue)
+                {
+                    decisionQry = decisionQry.Where( q => q.Age >= nreAgeRange.LowerValue.Value );
+                }
+
+
+                if(nreAgeRange.UpperValue.HasValue)
+                {
+                    decisionQry = decisionQry.Where( q => q.Age <= nreAgeRange.UpperValue.Value );
+                }
+
+
+                // grade min and maxes are flipped due to how graduation years work the lower the grade
+                // the higher the graduation year.
+                if (ddlLowerGrade.SelectedValueAsInt().HasValue)
+                {
+                    var maxGraduationYear = RockDateTime.CurrentGraduationYear +
+                        DefinedValueCache.Get( ddlLowerGrade.SelectedValueAsInt().Value ).Value.AsInteger();
+
+                    decisionQry = decisionQry.Where( q => q.GraduationYear <= maxGraduationYear );
+                }
+
+                if(ddlUpperGrade.SelectedValueAsInt().HasValue)
+                {
+                    var minGraduationYear = RockDateTime.CurrentGraduationYear +
+                        DefinedValueCache.Get( ddlUpperGrade.SelectedValueAsInt().Value ).Value.AsInteger();
+
+                    decisionQry = decisionQry.Where( q => q.GraduationYear >= minGraduationYear );
+                }
+
+                if(dvpConnectionStatus.SelectedDefinedValuesId.Any())
+                {
+                    var selectedConnectionStatuses = dvpConnectionStatus.SelectedDefinedValuesId;
+
+                    decisionQry = decisionQry.Where( q => selectedConnectionStatuses.Contains( q.ConnectionStatusValueId ) );
+                }
+
+                if(pkFamilyCampus.SelectedCampusId.HasValue)
+                {
+                    decisionQry = decisionQry.Where( q => q.FamilyCampusId == pkFamilyCampus.SelectedCampusId.Value );
+                }
+
+                if(pkDecisionCampus.SelectedCampusId.HasValue)
+                {
+                    decisionQry = decisionQry.Where( q => q.DecisionCampusId == pkDecisionCampus.SelectedCampusId.Value );
+                }
+
+                if(ddlDecisionType.SelectedValue.IsNotNullOrWhiteSpace())
+                {
+                    decisionQry = decisionQry.Where( q => q.DecisionType.Equals( ddlDecisionType.SelectedValue, StringComparison.InvariantCultureIgnoreCase ) );
+
+                }
+
+                if(ddlEventType.SelectedValue.IsNotNullOrWhiteSpace())
+                {
+                    decisionQry = decisionQry.Where( q => q.EventName.Equals( ddlEventType.SelectedValue, StringComparison.InvariantCultureIgnoreCase ) );
+                }
+
+                if(dvpBaptismType.SelectedValuesAsInt.Any())
+                {
+                    var baptismTypeIds = dvpBaptismType.SelectedValuesAsInt;
+                    decisionQry = decisionQry.Where( q => baptismTypeIds.Contains( q.BaptismTypeValueId ?? -1 ) );
+                }
+
+
+                var decisions = decisionQry.
+                    OrderBy( q => q.FormDate )
+                    .ToList();
+
+
+                gResults.DataSource = decisions;
+                gResults.DataBind();
+
+
+                pnlGridResults.Visible = decisions.Any();
+                pnlUpdateMessage.Visible = !decisions.Any();
+
+                
+            }
         }
 
 

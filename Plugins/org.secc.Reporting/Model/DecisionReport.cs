@@ -2,8 +2,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
+using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
+using Newtonsoft.Json;
+using Rock;
 using Rock.Data;
+using Rock.Web.Cache;
 
 namespace org.secc.Reporting.Model
 {
@@ -101,7 +106,89 @@ namespace org.secc.Reporting.Model
         [MaxLength(50)]
         public string HomeCountry { get; set; }
 
+        [JsonIgnore]
+        public string FullName
+        {
+            get
+            {
+                return $"{NickName} {LastName}";
+            }
+        }
 
+        [JsonIgnore]
+        public string FullNameReversed
+        {
+            get
+            {
+                return $"{LastName}, {NickName}";
+            }
+        }
+
+        [JsonIgnore]
+        public string FullAddress
+        {
+            get
+            {
+                var sb = new StringBuilder();
+                if(HomeStreet1.IsNullOrWhiteSpace())
+                {
+                    return null;
+                }
+                sb.Append( $"{HomeStreet1} " );
+
+                if(HomeStreet2.IsNotNullOrWhiteSpace())
+                {
+                    sb.Append( $"{HomeStreet2} " );
+                }
+                sb.Append( $"{HomeCity}, {HomeState} {HomePostalCode}" );
+                return sb.ToString();
+            }
+        }
+
+        [JsonIgnore]
+        public string FullAddressHtml
+        {
+            get
+            {
+                System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                if(HomeStreet1.IsNullOrWhiteSpace())
+                {
+                    return null;
+                }
+
+                sb.Append( $"{HomeStreet1}" );
+
+                if(HomeStreet2.IsNotNullOrWhiteSpace())
+                {
+                    sb.Append( $" {HomeStreet2}" );
+                }
+                sb.Append( $"<br /> {HomeCity}, {HomeState} {HomePostalCode}" );
+
+                return sb.ToString();
+            }
+        }
+
+        public string Grade
+        {
+            get
+            {
+                string grade = null;
+                if(GraduationYear.HasValue)
+                {
+                    var gradeOffset = GraduationYear - RockDateTime.CurrentGraduationYear;
+
+                    if (gradeOffset >= 0)
+                    {
+                        var gradeValue = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.SCHOOL_GRADES.AsGuid() )
+                            .DefinedValues.Where( v => v.Value == gradeOffset.ToString() ).FirstOrDefault();
+
+                        grade = gradeValue.GetAttributeValue( "Abbreviation" );
+                    }
+                }
+                return grade;
+            }
+            
+        }
 
     }
     public partial class DecisionReportConfiguration : EntityTypeConfiguration<DecisionReport>
