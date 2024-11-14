@@ -14,6 +14,12 @@ namespace org.secc.Reporting.Model
         {
         }
 
+
+
+        public override void Add( DecisionReport item )
+        {
+            throw new NotImplementedException();
+        }
         public override bool Delete( DecisionReport item )
         {
             throw new NotImplementedException();
@@ -24,5 +30,6 @@ namespace org.secc.Reporting.Model
             errorMessage = "Not Implemented";
             return false;
         }
+
     }
 }

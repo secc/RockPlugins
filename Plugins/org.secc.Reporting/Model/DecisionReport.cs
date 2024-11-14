@@ -17,7 +17,7 @@ namespace org.secc.Reporting.Model
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int WorkflowId { get; set; }
         [DataMember]
-        public int PesonAliasId { get; set; }
+        public int PersonAliasId { get; set; }
         [DataMember]
         public int PersonId { get; set; }
         [DataMember]
@@ -81,7 +81,7 @@ namespace org.secc.Reporting.Model
         [DataMember]
         public DateTime? MembershipDate { get; set; }
         [DataMember]
-        public DateTime MembershipClassDate { get; set; }
+        public DateTime? MembershipClassDate { get; set; }
         [DataMember]
         [MaxLength(100)]
         public string HomeStreet1 { get; set; }
