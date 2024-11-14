@@ -1,5 +1,4 @@
 import {Page} from "@playwright/test";
-import {getUri} from "./support/getUri";
 import {login} from "./support/login";
 
 /**
@@ -7,13 +6,13 @@ import {login} from "./support/login";
  */
 export async function baseline(page: Page){
 
-  await page.goto(getUri(''));
+  await page.goto('');
     const user = 'julio.cachay@datably.io';
     const password = 'Chattanooga25!';
 
     await login(page, user, password);
 
-    await page.goto(getUri('1/events'));
+    await page.goto('1/events');
 
 }
 
@@ -28,7 +27,7 @@ export async function loginAndNavigateRoutes(page: Page){
     const user = 'julio.cachay@datably.io';
     const password = 'Chattanooga25!';
 
-    await page.goto(getUri(''));
+    await page.goto('');
 
     await login(page, user, password);
 
@@ -37,11 +36,11 @@ export async function loginAndNavigateRoutes(page: Page){
 
     await page.waitForTimeout(1000);
 
-    await page.goto(getUri('person/172382'));
+    await page.goto('person/172382');
 
     await page.waitForTimeout(2000);
       
-    await page.goto(getUri('reporting/dataviews?DataViewId=4164&ExpandedIds=C307%2CC439%2CC413%2CC2107%2CC1124'));
+    await page.goto('reporting/dataviews?DataViewId=4164&ExpandedIds=C307%2CC439%2CC413%2CC2107%2CC1124');
 
    // await page.waitForTimeout(1000);
 

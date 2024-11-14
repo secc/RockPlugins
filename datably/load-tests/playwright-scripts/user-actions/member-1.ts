@@ -1,6 +1,5 @@
 import {Page} from "@playwright/test";
 import {login} from "./support/login";
-import {getUri} from "./support/getUri";
 
 export async function member1(page: Page)
 {
@@ -11,7 +10,7 @@ export async function member1(page: Page)
 
     await page.waitForTimeout(1000);
 
-    await page.goto(getUri('MyAccount'));
+    await page.goto('MyAccount');
 
 
 
