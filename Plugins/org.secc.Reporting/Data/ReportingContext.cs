@@ -22,6 +22,7 @@ namespace org.secc.Reporting.Data
         #region Models
 
         public DbSet<DataViewSQLFilterStore> DataViewSQLFilterStores { get; set; }
+        public DbSet<DecisionReport> DecisionReports { get; set; }
 
         #endregion
 
