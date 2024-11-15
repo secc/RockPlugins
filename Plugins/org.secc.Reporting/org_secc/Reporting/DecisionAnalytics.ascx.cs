@@ -1,53 +1,50 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.Design;
+using System.Data.Entity;
 using System.Linq;
-using System.Web;
-using System.Web.UI;
+using System.Linq.Dynamic;
 using System.Web.UI.WebControls;
-
+using DocumentFormat.OpenXml.Bibliography;
+using Newtonsoft.Json;
+using org.secc.Reporting.Model;
 using Rock;
 using Rock.Attribute;
+using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using Rock.Data;
-using org.secc.Reporting.Data;
-using org.secc.Reporting.Model;
-using System.Data.Entity;
-using System.Web.DynamicData;
-using System.Linq.Dynamic;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 
 namespace RockWeb.Plugins.org_secc.Reporting
 {
 
-    [DisplayName("Decision Analytics")]
-    [Category("SECC > Reporting")]
-    [Description("Reports of people who made a next step decision.")]
+    [DisplayName( "Decision Analytics" )]
+    [Category( "SECC > Reporting" )]
+    [Description( "Reports of people who made a next step decision." )]
 
-    [WorkflowTypeField("Decision Guide Workflow",
+    [WorkflowTypeField( "Decision Guide Workflow",
         Description = "The workflow form that the decision guide uses to record a person's decision.",
         AllowMultiple = false,
         IsRequired = true,
         DefaultValue = "57F2615F-133D-4FC0-8024-181CA3E596E2",
         Key = AttributeKeys.DecisionWorkflowKey,
-        Order = 0)]
-    [TextField("Decision Type Key",
+        Order = 0 )]
+    [TextField( "Decision Type Key",
         Description = "The key for the Decision Type attribute.",
         IsRequired = true,
         DefaultValue = "WhatDecision",
         Key = AttributeKeys.DecisionTypeAttributeKey,
-        Order = 1)]
-    [TextField("Campus Key",
+        Order = 1 )]
+    [TextField( "Campus Key",
         Description = "Attribute Key of the campus where the decision was made.",
         IsRequired = true,
-        DefaultValue ="Campus",
+        DefaultValue = "Campus",
         Key = AttributeKeys.CampusAttributeKey,
-        Order = 2)]
-    [TextField("Event Key",
+        Order = 2 )]
+    [TextField( "Event Key",
         Description = "The key of the Event attribute.",
         IsRequired = true,
         DefaultValue = "Event",
@@ -66,10 +63,39 @@ namespace RockWeb.Plugins.org_secc.Reporting
             public const string EventAttributeKey = "EventAttributeKey";
         }
 
+        private List<DecisionReport> decisions = null;
         private int workflowTypeId;
         private string decisionTypeAttributeKey;
         private string campusAttributeKey;
         public string eventAttributeKey;
+
+        public List<DecisionReport> Decisions
+        {
+            get
+            {
+                if(decisions != null)
+                {
+                    return decisions;
+                }
+                else
+                {
+                    var json = ViewState[$"{this.BlockId}_Decisions"] as string;
+                    if(json.IsNotNullOrWhiteSpace())
+                    {
+                        decisions = JsonConvert.DeserializeObject<List<DecisionReport>>( json );
+                    }
+                }
+
+                return decisions;
+            }
+            set
+            {
+                decisions = value;
+                ViewState[$"{this.BlockId}_Decisions"] = JsonConvert.SerializeObject( decisions );
+
+            }
+
+        }
 
         #region Base Control Methods
         protected override void OnInit( EventArgs e )
@@ -83,11 +109,12 @@ namespace RockWeb.Plugins.org_secc.Reporting
             gResults.Actions.ShowMergePerson = false;
             gResults.ExportFilename = "Decisons";
             gResults.PersonIdField = "PersonId";
+            gResults.GridRebind += gResults_GridRebind;
 
             lbClearFilters.CausesValidation = false;
             lbClearFilters.Click += lbClearFilters_Click;
 
-            
+
         }
 
         protected override void OnLoad( EventArgs e )
@@ -99,7 +126,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
             campusAttributeKey = GetAttributeValue( AttributeKeys.CampusAttributeKey );
             eventAttributeKey = GetAttributeValue( AttributeKeys.EventAttributeKey );
 
-            if(!IsPostBack)
+            if (!IsPostBack)
             {
                 LoadBoundFields();
             }
@@ -115,12 +142,27 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
         protected void gResults_RowSelected( object sender, RowEventArgs e )
         {
+            if (e.Row.RowType != DataControlRowType.DataRow)
+            {
+                return;
+            }
 
+            var workflowId = e.RowKeyValue as int?;
+
+            if (workflowId.HasValue)
+            {
+                LoadDetailModal( workflowId.Value );
+            }
         }
 
         protected void gResults_RowDataBound( object sender, GridViewRowEventArgs e )
         {
 
+        }
+
+        private void gResults_GridRebind( object sender, GridRebindEventArgs e )
+        {
+            UpdateDataset();
         }
 
         private void lbClearFilters_Click( object sender, EventArgs e )
@@ -143,7 +185,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
             ddlUpperGrade.SelectedIndex = 0;
 
             dvpConnectionStatus.SetValues( new List<int>() );
-            pkFamilyCampus.SetValue( (int?)null );
+            pkFamilyCampus.SetValue( (int?) null );
             pkDecisionCampus.SetValue( (int?) null );
             ddlDecisionType.SelectedIndex = 0;
             ddlEventType.SelectedIndex = 0;
@@ -164,7 +206,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
             var decisionTypes = new List<string>();
             using (var rockContext = new RockContext())
             {
-                var workflowETID = EntityTypeCache.GetId( typeof( Workflow) );
+                var workflowETID = EntityTypeCache.GetId( typeof( Workflow ) );
                 var workflowTypeIdStr = workflowTypeId.ToString();
 
                 var values = new AttributeService( rockContext ).Queryable()
@@ -178,7 +220,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                     .Select( q => q.Value )
                     .FirstOrDefault();
 
-                decisionTypes.AddRange( values.SplitDelimitedValues(false));                
+                decisionTypes.AddRange( values.SplitDelimitedValues( false ) );
             }
 
             foreach (var value in decisionTypes)
@@ -186,6 +228,77 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 ddlDecisionType.Items.Add( new ListItem( value, value ) );
             }
             ddlDecisionType.Items.Insert( 0, new ListItem( "", "" ) );
+        }
+
+        private void LoadDetailModal( int workflowId )
+        {
+            var decision = Decisions.Where( d => d.WorkflowId == workflowId )
+                .FirstOrDefault();
+
+            if(decision == null)
+            {
+                return;
+            }
+
+            pnlParentInfo.Visible = false;
+            pnlPersonInfo.Visible = false;
+
+            mdPersonInfo.Title = decision.FullName;
+            lAddress.Text = decision.FullAddressHtml;
+
+
+            if(decision.Age < 18 )
+            {
+                lParentName.Text = decision.ParentGuardianName;
+                lParentPhone.Text = decision.ParentPhone;
+                lParentEmail.Text = decision.Email;
+                pnlParentInfo.Visible = true;
+            }
+            else
+            {
+                lMobilePhone.Text = decision.MobilePhone;
+                lEmail.Text = decision.Email;
+                pnlPersonInfo.Visible = true;
+            }
+
+            if(decision.BaptismDate.HasValue)
+            {
+                lBaptism.Text = $"{decision.BaptismDate.ToShortDateString()} {decision.BaptismTypeValue}";
+            }
+            else
+            {
+                lBaptism.Text = "<span class=\"label label-danger\">No Baptism Info</span>";
+            }
+
+            if(decision.StatementOfFaithSignedDate.HasValue)
+            {
+                lStatementOfFaith.Text = decision.StatementOfFaithSignedDate.Value.ToShortDateString();
+            }
+            else
+            {
+                lStatementOfFaith.Text = "<span class=\"label label-danger\">Not Signed</span>";
+            }
+
+            if (decision.MembershipDate.HasValue)
+            {
+                lMembershipDate.Text = decision.MembershipDate.Value.ToShortDateString();
+            }
+            else
+            {
+                lMembershipDate.Text = "<span class=\"label label-danger\">No Member Info</span>";
+            }
+
+            if(decision.MembershipClassDate.HasValue)
+            {
+                lMembershipClass.Text = decision.MembershipClassDate.Value.ToShortDateString();
+            }
+            else
+            {
+                lMembershipClass.Text = "<span class=\"label label-danger\">Has Not Attended</span>";
+            }
+
+            mdPersonInfo.Show();
+
         }
 
         private void LoadEventTypes()
@@ -255,7 +368,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
             }
             ddlLowerGrade.Items.Insert( 0, new ListItem( "", "" ) );
             ddlUpperGrade.Items.Insert( 0, new ListItem( "", "" ) );
-                                                                                                                                           
+
         }
 
         private void UpdateDataset()
@@ -266,34 +379,34 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
                 var decisionQry = drService.Queryable().AsNoTracking();
 
-                if(drpDecisionDate.LowerValue.HasValue)
+                if (drpDecisionDate.LowerValue.HasValue)
                 {
                     decisionQry = decisionQry.Where( q => q.FormDate >= drpDecisionDate.LowerValue.Value );
                 }
 
-                if(drpDecisionDate.UpperValue.HasValue)
+                if (drpDecisionDate.UpperValue.HasValue)
                 {
                     decisionQry = decisionQry.Where( q => q.FormDate <= drpDecisionDate.UpperValue.Value );
                 }
 
-                if(ppDecisions.SelectedValue.HasValue)
+                if (ppDecisions.SelectedValue.HasValue)
                 {
                     decisionQry = decisionQry.Where( q => q.PersonId == ppDecisions.PersonId.Value );
                 }
 
-                if(cblGender.SelectedValues.Any())
+                if (cblGender.SelectedValues.Any())
                 {
                     var selectedGenders = cblGender.SelectedValues;
                     decisionQry = decisionQry.Where( q => selectedGenders.Contains( q.Gender ) );
                 }
 
-                if(nreAgeRange.LowerValue.HasValue)
+                if (nreAgeRange.LowerValue.HasValue)
                 {
                     decisionQry = decisionQry.Where( q => q.Age >= nreAgeRange.LowerValue.Value );
                 }
 
 
-                if(nreAgeRange.UpperValue.HasValue)
+                if (nreAgeRange.UpperValue.HasValue)
                 {
                     decisionQry = decisionQry.Where( q => q.Age <= nreAgeRange.UpperValue.Value );
                 }
@@ -309,7 +422,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                     decisionQry = decisionQry.Where( q => q.GraduationYear <= maxGraduationYear );
                 }
 
-                if(ddlUpperGrade.SelectedValueAsInt().HasValue)
+                if (ddlUpperGrade.SelectedValueAsInt().HasValue)
                 {
                     var minGraduationYear = RockDateTime.CurrentGraduationYear +
                         DefinedValueCache.Get( ddlUpperGrade.SelectedValueAsInt().Value ).Value.AsInteger();
@@ -317,54 +430,54 @@ namespace RockWeb.Plugins.org_secc.Reporting
                     decisionQry = decisionQry.Where( q => q.GraduationYear >= minGraduationYear );
                 }
 
-                if(dvpConnectionStatus.SelectedDefinedValuesId.Any())
+                if (dvpConnectionStatus.SelectedDefinedValuesId.Any())
                 {
                     var selectedConnectionStatuses = dvpConnectionStatus.SelectedDefinedValuesId;
 
                     decisionQry = decisionQry.Where( q => selectedConnectionStatuses.Contains( q.ConnectionStatusValueId ) );
                 }
 
-                if(pkFamilyCampus.SelectedCampusId.HasValue)
+                if (pkFamilyCampus.SelectedCampusId.HasValue)
                 {
                     decisionQry = decisionQry.Where( q => q.FamilyCampusId == pkFamilyCampus.SelectedCampusId.Value );
                 }
 
-                if(pkDecisionCampus.SelectedCampusId.HasValue)
+                if (pkDecisionCampus.SelectedCampusId.HasValue)
                 {
                     decisionQry = decisionQry.Where( q => q.DecisionCampusId == pkDecisionCampus.SelectedCampusId.Value );
                 }
 
-                if(ddlDecisionType.SelectedValue.IsNotNullOrWhiteSpace())
+                if (ddlDecisionType.SelectedValue.IsNotNullOrWhiteSpace())
                 {
                     decisionQry = decisionQry.Where( q => q.DecisionType.Equals( ddlDecisionType.SelectedValue, StringComparison.InvariantCultureIgnoreCase ) );
 
                 }
 
-                if(ddlEventType.SelectedValue.IsNotNullOrWhiteSpace())
+                if (ddlEventType.SelectedValue.IsNotNullOrWhiteSpace())
                 {
                     decisionQry = decisionQry.Where( q => q.EventName.Equals( ddlEventType.SelectedValue, StringComparison.InvariantCultureIgnoreCase ) );
                 }
 
-                if(dvpBaptismType.SelectedValuesAsInt.Any())
+                if (dvpBaptismType.SelectedValuesAsInt.Any())
                 {
                     var baptismTypeIds = dvpBaptismType.SelectedValuesAsInt;
                     decisionQry = decisionQry.Where( q => baptismTypeIds.Contains( q.BaptismTypeValueId ?? -1 ) );
                 }
 
 
-                var decisions = decisionQry.
+                Decisions = decisionQry.
                     OrderBy( q => q.FormDate )
                     .ToList();
 
 
-                gResults.DataSource = decisions;
+                gResults.DataSource = Decisions;
                 gResults.DataBind();
 
 
-                pnlGridResults.Visible = decisions.Any();
-                pnlUpdateMessage.Visible = !decisions.Any();
+                pnlGridResults.Visible = Decisions.Any();
+                pnlUpdateMessage.Visible = !Decisions.Any();
 
-                
+
             }
         }
 
