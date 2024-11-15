@@ -52,6 +52,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
     [SystemCommunicationField( "Approved Notification Template", "The email template that is used to notify the requester that the capital request has been approved.", true, "", "Approval" )]
     [SystemCommunicationField( "Returned Notification Template", "The email template that is used to notify the requester that the capital request has been returned/denied by a requester.", true, "", "Approval" )]
     [LinkedPage( "Requisition Detail Page", "The page to use to display the detail of the requisition.", true, null, "Requisition" )]
+    [BooleanField( "Validate GL Account", "Yes", "No", "Should the account information be validated against our GL Account List.", DefaultBooleanValue = true, Key = "ValidateAccounts" )]
+
     public partial class CapitalRequestDetail : RockBlock
     {
         #region Fields
@@ -271,6 +273,28 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
+        private bool BypassIntacctValidation
+        {
+            get
+            {
+                bool bypass = false;
+                if (ViewState[BlockId + "_BypassIntacct"] != null)
+                {
+                    bypass = (bool) ViewState[BlockId + "_BypassIntacct"];
+                }
+                else
+                {
+                    ViewState[BlockId + "_BypassIntacct"] = bypass;
+                }
+
+                return bypass;
+            }
+            set
+            {
+                ViewState[BlockId + "_BypassIntacct"] = value;
+            }
+        }
+
 
         #endregion
 
@@ -297,6 +321,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             CurrentPerson.LoadAttributes();
             if ( !Page.IsPostBack )
             {
+                BypassIntacctValidation = !GetAttributeValue( "ValidateAccounts" ).AsBoolean();
                 LoadMinistryAreaList();
                 LoadLocationList();
                 LoadVendorList();
@@ -1847,6 +1872,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
                 CurrentCapitalRequest.ProjectId = txtProject.Text;
 
+                CurrentCapitalRequest.BypassIntacct = BypassIntacctValidation;
                 CurrentCapitalRequest.Save( CurrentUser.UserName );
                 CERId = CurrentCapitalRequest.CapitalRequestId;
                 return true;

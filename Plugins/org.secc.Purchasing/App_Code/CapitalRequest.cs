@@ -258,6 +258,19 @@ namespace org.secc.Purchasing
             }
         }
 
+        private bool bypassIntacct = false;
+        [XmlIgnore]
+        public bool BypassIntacct
+        {
+            get
+            {
+                return bypassIntacct;
+            }
+            set
+            {
+                bypassIntacct = value;
+            }
+        }
 
         #endregion
 
@@ -1337,7 +1350,7 @@ namespace org.secc.Purchasing
                 }
             }
 
-            if ( GLCompanyId != null && GLFundId != null && GLDepartmentId != null && GLAccountId != null )
+            if ( GLCompanyId != null && GLFundId != null && GLDepartmentId != null && GLAccountId != null && !BypassIntacct)
             {
                 string jsonSettings = Rock.Security.Encryption.DecryptString( GlobalAttributesCache.Get().GetValue( "IntacctAPISettings" ) );
                 var apiClient = JsonConvert.DeserializeObject<ApiClient>( jsonSettings );
@@ -1355,23 +1368,6 @@ namespace org.secc.Purchasing
                     if ( !apiClient.GetDepartments().Any( d => d.Id == GLDepartmentId ) )
                     {
                         valErrors.Add( "General Ledger Account", "General ledger account is not valid (Department does not exist)." );
-                    }
-
-
-                    var restrictedData = apiClient.GetDimensionRestrictedData( account );
-
-                    // If we get here with no data, then the restricted data is just not available so go ahead and allow it
-                    if ( restrictedData.Count > 0 )
-                    {
-                        if ( !GLDepartmentId.HasValue || !restrictedData.Any( r => r.Dimension == "DEPARTMENT" && r.IdValues.Contains( GLDepartmentId.Value ) ) )
-                        {
-                            account = null;
-                        }
-
-                        if ( !GLFundId.HasValue || !restrictedData.Any( r => r.Dimension == "LOCATION" && r.IdValues.Contains( GLFundId.Value ) ) )
-                        {
-                            account = null;
-                        }
                     }
 
                 }
