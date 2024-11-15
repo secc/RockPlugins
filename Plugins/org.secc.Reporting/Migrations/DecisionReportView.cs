@@ -25,7 +25,7 @@ namespace org.secc.Reporting.Migrations
             var dropView = @"
                 IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = 'dbo' and TABLE_NAME='_org_secc_DecisionForm_Analytics')
                 BEGIN 
-                    DROP VIEW [dbo].[_org_secc_DecisionForm_Analytics
+                    DROP VIEW [dbo].[_org_secc_DecisionForm_Analytics]
                 END
             ";
 
@@ -37,7 +37,7 @@ namespace org.secc.Reporting.Migrations
             var dropView = @"
                 IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_SCHEMA = 'dbo' and TABLE_NAME='_org_secc_DecisionForm_Analytics')
                 BEGIN 
-                    DROP VIEW [dbo].[_org_secc_DecisionForm_Analytics
+                    DROP VIEW [dbo].[_org_secc_DecisionForm_Analytics]
                 END
             ";
 
