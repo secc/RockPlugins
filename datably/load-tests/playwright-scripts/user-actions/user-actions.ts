@@ -5,13 +5,11 @@ import {login} from "./support/login";
  * A very simple test for demo purposes
  */
 export async function baseline(page: Page){
-
-  await page.goto('');
+    await page.goto('');
 
     await login(page);
 
-    await page.goto('1/events');
-
+    // await page.goto('1/events');
 }
 
 /**
@@ -32,32 +30,32 @@ export async function loginAndNavigateRoutes(page: Page){
     await page.goto('person/172382');
 
     await page.waitForTimeout(2000);
-      
+
     await page.goto('reporting/dataviews?DataViewId=4164&ExpandedIds=C307%2CC439%2CC413%2CC2107%2CC1124');
 
-   // await page.waitForTimeout(1000);
 
-  //await page.goto(getUri('1/events'));
+    // 
+    // await page.waitForTimeout(1000);
 
-  //  await page.waitForTimeout(1000);
+    // await page.goto('1/events');
 
- // await page.click('text=ACCEPT COOKIES');
+    // await page.waitForTimeout(1000);
 
-   // await page.waitForTimeout(1000);
+    // await page.click('text=ACCEPT COOKIES');
 
- //   await page.reload();
+    // await page.waitForTimeout(1000);
 
-    //await page.waitForTimeout(1000);
+    // await page.reload();
 
- //  await page.goto(getUri('1/upcomingEvents'));
+    // await page.waitForTimeout(1000);
 
-   //await page.waitForTimeout(1000);
+    // await page.goto('1/upcomingEvents');
 
- //  await page.goto(getUri('about/baptism'));
+    // await page.waitForTimeout(1000);
 
- // await page.goto(getUri('person/172382'));
+    // await page.goto('about/baptism');
 
-  // await login(page, user, password);
+    // await page.goto('person/172382');
 
- 
+    // await login(page);
 }
