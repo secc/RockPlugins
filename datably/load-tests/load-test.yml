@@ -6,7 +6,7 @@ config:
     playwright: 
       extendedMetrics: true
   processor: 'playwright-scripts/user-actions/user-actions.ts'
-  timeout: 10000
+  timeout: 180000
   phases:
     - duration: 50
       arrivalCount: 10
@@ -22,5 +22,15 @@ config:
 #      - http.response_time.p95: 10000
 scenarios:
   - engine: playwright
-    testFunction: 'loginAndNavigateRoutes'
+    testFunction: 'SRU13_CreateADataViewAndReport'
+  - engine: playwright
+    testFunction: 'SRU15_CheckingAPersonProfile'
+  - engine: playwright
+    testFunction: 'SRU16_ViewingEventRegistration'
+  - engine: playwright
+    testFunction: 'SRU17_VisitExternalPageAccountAndBrowse'
+  - engine: playwright
+    testFunction: 'SRU18_Groups'
+  - engine: playwright
+    testFunction: 'SRU19_EventExternalPage'
 

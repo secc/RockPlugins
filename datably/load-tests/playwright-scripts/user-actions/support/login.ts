@@ -2,6 +2,7 @@ import {Page} from "@playwright/test";
 
 export async function login(page: Page)
 {
+    page.setDefaultTimeout(120000);
     const user = process.env.USERNAME;
     const password = process.env.PASSWORD;
 
