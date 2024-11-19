@@ -12,11 +12,9 @@ async function wait(page:Page)
  */
 export async function baseline(page: Page){
 
-    await page.goto('');
+  await page.goto('');
 
     await login(page);
-
-    await page.goto('1/events');
 
 }
 
@@ -83,13 +81,13 @@ export async function SRU15_CheckingAPersonProfile(page: Page)
      // Go to Josh History / Attendance
      await goto(page, 'person/124835/History/Attendance');
 
-     
+
      // Go to Josh History / Attendance
      await goto(page, 'page/3224?PersonId=124835');
 
      // Go to Josh History / Communication
      await goto(page, 'page/178?PersonId=124835');
-     
+
 
     await page.waitForLoadState();
 }
@@ -116,7 +114,7 @@ export async function SRU16_ViewingEventRegistration(page: Page)
      // See one particular participant payment details
      await goto(page, 'finance/transactions/3668131');
 
-     
+
      // Go to Discounts
      await goto(page, 'web/event-registrations/4733/discounts');
 
@@ -143,7 +141,7 @@ export async function SRU17_VisitExternalPageAccountAndBrowse(page: Page)
         await page.click('text=Accept Cookies');
         await page.waitForTimeout(500);
       } catch (e) {
-        
+
       }
 
 
@@ -153,7 +151,7 @@ export async function SRU17_VisitExternalPageAccountAndBrowse(page: Page)
      // Go to Giving
      await goto(page, 'MyGiving');
 
-     
+
      // Go to My Events
      await goto(page, 'MyEvents');
 
@@ -166,7 +164,7 @@ export async function SRU17_VisitExternalPageAccountAndBrowse(page: Page)
 
     /*
     At this point in the card attached video, we are navigating in
-    southeastchristian.org page no in the Azure site. So I am skipping the 
+    southeastchristian.org page no in the Azure site. So I am skipping the
     next steps.
     */
     await page.waitForLoadState();
@@ -195,7 +193,7 @@ export async function SRU18_Groups(page: Page)
      // Go to campus group: Chappel in the woords -> Classic Workship
      await goto(page, 'groups/oncampus/details/groups/oncampus/details/senioradultclassicworship');
 
-    
+
 
       // Go to Well Home Group registration
     await goto(page, 'groups/homegroups/registration/381305');
@@ -203,7 +201,7 @@ export async function SRU18_Groups(page: Page)
 
     /*
     At this point in the card attached video, we are navigating in
-    southeastchristian.org page no in the Azure site. So I am skipping the 
+    southeastchristian.org page no in the Azure site. So I am skipping the
     next steps.
     */
     await page.waitForLoadState();
@@ -220,13 +218,13 @@ export async function SRU19_EventExternalPage(page: Page)
     await goto(page, 'events/details?EventItemId=806&campusId=8');
 
 
-     // Click BlankenBaker 
+     // Click BlankenBaker
      await goto(page, 'registration/BBPassionConf25');
 
      // Click Next
      await page.click('text=Next');
 
-     
+
     await page.waitForLoadState();
 }
 
