@@ -10,4 +10,6 @@ export async function login(page: Page)
 
     const loginButton = page.locator('input:has-text("Login")');
     await loginButton.click();
+
+    await page.waitForTimeout(2000);
 }
