@@ -67,44 +67,72 @@ namespace org.secc.Rest.Controllers
                 return NotFound();
             }
 
-            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
+            bool isGroupMember = _groupMemberService.Queryable()
+                .Any( gm => gm.GroupId == group.Id 
+                    && gm.PersonId == currentUser.Person.Id 
+                    && gm.IsArchived == false 
+                    && gm.GroupMemberStatus == GroupMemberStatus.Active );
+
+            if ( isGroupMember || group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
+            {
+
+
+                var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
+                var groupMembers = groupMemberServiceHelper.GetGroupMembers( group, currentUser.Person );
+                var currentUserGroupMember = groupMembers.FirstOrDefault( gm => gm.PersonId == currentUser.Person.Id );
+                var isCurrentUserLeader = currentUserGroupMember?.GroupRole.IsLeader ?? false;
+
+                var groupMemberList = new List<GroupAppGroupMember>();
+
+                var tableBasedGroupTypeIds = _definedValueService
+                    .GetByDefinedTypeGuid( new Guid( "90526a36-fda6-4c90-997c-636b82b793d8" ) )
+                    .Select( dv => dv.Id )
+                    .ToList();
+
+                var isTableBasedGroup = tableBasedGroupTypeIds.Contains( group.GroupTypeId );
+
+                if ( !isCurrentUserLeader && isTableBasedGroup )
+                {
+                    var tableNumberAttribute = currentUser.Person.GetAttributeValue( "TableNumber" );
+                    if ( string.IsNullOrEmpty( tableNumberAttribute ) )
+                    {
+                        return Ok( groupMemberList ); // Return empty list if no table number assigned
+                    }
+
+                    groupMembers = groupMembers.Where( gm => gm.Person.GetAttributeValue( "TableNumber" ) == tableNumberAttribute ).ToList();
+                }
+
+                var homeLocationTypeId = _definedValueService.GetByGuid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;
+
+                foreach ( var groupMember in groupMembers )
+                {
+                    var person = _personService.Get( groupMember.PersonId );
+                    var familyGroup = person.GetFamily();
+
+                    var groupAppGroupMember = new GroupAppGroupMember
+                    {
+                        Id = groupMember.Id,
+                        Name = person.FullName,
+                        GroupRole = groupMember.GroupRole.Name,
+                        Status = isCurrentUserLeader ? groupMember.GroupMemberStatus.ToString() : null,
+                        Address = isCurrentUserLeader ? familyGroup.GroupLocations
+                            .FirstOrDefault( gl => gl.GroupLocationTypeValueId == homeLocationTypeId )
+                            ?.Location.GetFullStreetAddress() : null,
+                        Email = isCurrentUserLeader ? person.Email : null,
+                        Phone = isCurrentUserLeader ? person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() )?.ToString() : null,
+                        PhotoURL = person.PhotoUrl,
+                        IsLeader = groupMember.GroupRole.IsLeader
+                    };
+
+                    groupMemberList.Add( groupAppGroupMember );
+                }
+
+                return Ok( groupMemberList );
+            }
+            else
             {
                 return StatusCode( HttpStatusCode.Forbidden );
             }
-
-
-            var groupMemberList = new List<GroupAppGroupMember>();
-
-            var homeLocationTypeId = _definedValueService.GetByGuid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;
-
-            var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
-            var groupMembers = groupMemberServiceHelper.GetGroupMembers( group, currentUser.Person );
-
-
-            foreach ( var groupMember in groupMembers )
-            {
-                var person = _personService.Get( groupMember.PersonId );
-                var familyGroup = person.GetFamily();
-
-                var groupAppGroupMember = new GroupAppGroupMember
-                {
-                    Id = groupMember.Id,
-                    Name = person.FullName,
-                    GroupRole = groupMember.GroupRole.Name,
-                    Status = groupMember.GroupMemberStatus.ToString(),
-                    Address = familyGroup.GroupLocations
-                        .FirstOrDefault( gl => gl.GroupLocationTypeValueId == homeLocationTypeId )
-                        ?.Location.GetFullStreetAddress(),
-                    Email = person.Email,
-                    Phone = person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() )?.ToString(),
-                    PhotoURL = person.PhotoUrl,
-                    IsLeader = groupMember.GroupRole.IsLeader
-                };
-
-                groupMemberList.Add( groupAppGroupMember );
-            }
-
-            return Ok( groupMemberList );
         }
 
         /// <summary>

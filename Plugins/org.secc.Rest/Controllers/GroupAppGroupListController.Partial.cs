@@ -27,6 +27,14 @@ namespace org.secc.Rest.Controllers
 {
     public partial class GroupAppGroupListController : ApiControllerBase
     {
+        private readonly GroupMemberService _groupMemberService;
+
+        public GroupAppGroupListController()
+        {
+            var rockContext = new RockContext();
+            _groupMemberService = new GroupMemberService( rockContext );
+        }
+
         /// <summary>
         /// Returns the groups for which the current user is a group member with a role including "leader" from the group types defined in the "Group App Group Type
         /// </summary>
@@ -69,62 +77,73 @@ namespace org.secc.Rest.Controllers
             {
                 return NotFound();
             }
-            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
+
+            bool isGroupMember = _groupMemberService.Queryable()
+                .Any( gm => gm.GroupId == group.Id
+                    && gm.PersonId == currentUser.Person.Id
+                    && gm.IsArchived == false
+                    && gm.GroupMemberStatus == GroupMemberStatus.Active );
+
+            if ( isGroupMember || !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
             {
-                return StatusCode( HttpStatusCode.Forbidden );
-            }
 
-            if ( !getContent && !getAllowEmailParents )
-            {
-                return Ok( new
-                {
-                    group.Name,
-                    group.TypeId,
-                    group.IsActive,
-                    group.IsArchived,
-                    NextSchedule = group.Schedule.GetNextStartDateTime( RockDateTime.Today )
-                }
-                );
-            }
-            else
-            {
-                group.LoadAttributes();
-                var GroupContentItems = new List<GroupContentItem>();
-                bool? EmailParentsEnabled = null;
 
-                if ( getContent )
+                if ( !getContent && !getAllowEmailParents )
                 {
-                    var groupServiceHelper = new GroupServiceHelper( new RockContext() );
-                    GroupContentItems = groupServiceHelper.GetGroupContentItems( groupId );
-                }
-
-                if ( getAllowEmailParents )
-                {
-                    EmailParentsEnabled = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
-                }
-
-                DateTime? nextSchedule;
-                if ( group.Schedule != null )
-                {
-                    nextSchedule = group.Schedule.GetNextStartDateTime( RockDateTime.Today );
-                }
-                else
-                {
-                    nextSchedule = null;
-                }
-
-                return Ok(
-                    new
+                    return Ok( new
                     {
                         group.Name,
                         group.TypeId,
                         group.IsActive,
                         group.IsArchived,
-                        NextSchedule = nextSchedule,
-                        GroupContentItems,
-                        EmailParentsEnabled
+                        NextSchedule = group.Schedule.GetNextStartDateTime( RockDateTime.Today )
                     }
-                );
+                    );
+                }
+                else
+                {
+                    group.LoadAttributes();
+                    var GroupContentItems = new List<GroupContentItem>();
+                    bool? EmailParentsEnabled = null;
+
+                    if ( getContent )
+                    {
+                        var groupServiceHelper = new GroupServiceHelper( new RockContext() );
+                        GroupContentItems = groupServiceHelper.GetGroupContentItems( groupId );
+                    }
+
+                    if ( getAllowEmailParents )
+                    {
+                        EmailParentsEnabled = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
+                    }
+
+                    DateTime? nextSchedule;
+                    if ( group.Schedule != null )
+                    {
+                        nextSchedule = group.Schedule.GetNextStartDateTime( RockDateTime.Today );
+                    }
+                    else
+                    {
+                        nextSchedule = null;
+                    }
+
+                    return Ok(
+                        new
+                        {
+                            group.Name,
+                            group.TypeId,
+                            group.IsActive,
+                            group.IsArchived,
+                            NextSchedule = nextSchedule,
+                            GroupContentItems,
+                            EmailParentsEnabled
+                        }
+                    );
+                }
+            }
+            else
+            {
+                return StatusCode( HttpStatusCode.Forbidden );
             }
         }
     }
@@ -198,7 +217,7 @@ namespace org.secc.Rest.Controllers
                 Url = gm.Group?.IsPublic == true ?
                         GlobalAttributesCache.Value( "PublicApplicationRoot" ) + "groups/homegroups/registration/" + gm.Group?.Id
                     : null,
-                GroupTracker =  ( gm.Group?.GroupTypeId == 107 || gm.Group?.GroupTypeId == 109) && gm.Group?.CampusId == 1 
+                GroupTracker = ( gm.Group?.GroupTypeId == 107 || gm.Group?.GroupTypeId == 109 ) && gm.Group?.CampusId == 1
             } ).Distinct().OrderByDescending( g => g.IsLeader ).ThenBy( g => g.NextSchedule ).ToList();
 
             return groupList;
