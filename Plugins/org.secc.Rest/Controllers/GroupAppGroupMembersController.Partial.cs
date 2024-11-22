@@ -68,9 +68,9 @@ namespace org.secc.Rest.Controllers
             }
 
             bool isGroupMember = _groupMemberService.Queryable()
-                .Any( gm => gm.GroupId == group.Id 
-                    && gm.PersonId == currentUser.Person.Id 
-                    && gm.IsArchived == false 
+                .Any( gm => gm.GroupId == group.Id
+                    && gm.PersonId == currentUser.Person.Id
+                    && gm.IsArchived == false
                     && gm.GroupMemberStatus == GroupMemberStatus.Active );
 
             if ( isGroupMember || group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
@@ -191,7 +191,7 @@ namespace org.secc.Rest.Controllers
             var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
             var recipients = groupMemberServiceHelper.GetRecipients( groupId, message.GroupMemberId, message.SendToParents );
 
-            CreateCommunication( message.Subject, message.Body, recipients, currentUser.Person );
+            CreateCommunication( message.Subject, message.Body, recipients, currentUser.Person, group );
 
             return Ok( recipients.AsQueryable().Select( r => r.FullName ) );
         }
@@ -204,7 +204,7 @@ namespace org.secc.Rest.Controllers
             public bool SendToParents { get; set; } = false;
         }
 
-        public void CreateCommunication( string subject, string body, List<Person> recipients, Person currentPerson )
+        public void CreateCommunication( string subject, string body, List<Person> recipients, Person currentPerson, Group group )
         {
             var communication = UpdateCommunication( _context );
             if ( communication != null )
@@ -217,8 +217,8 @@ namespace org.secc.Rest.Controllers
                 communication.SenderPersonAliasId = currentPerson.PrimaryAliasId;
                 communication.FromName = currentPerson.FullName;
                 communication.FromEmail = "noreply@secc.org";
-                communication.Subject = subject;
-                communication.Message = body;
+                communication.Subject = "SE Groups: " + subject;
+                communication.Message = "{{ 'Global' | Attribute:'EmailHeader' }}" + $"<h2>Message from {currentPerson.FullName} via {group.Name} group:</h2><br><br>" + body.Replace( "\n", "<br>" ).Replace( "\r", "<br>" ) + "{{'Global' | Attribute:'EmailFooter'}}";
                 communication.ReviewedDateTime = RockDateTime.Now;
                 communication.FutureSendDateTime = RockDateTime.Now;
                 communication.ReviewerPersonAliasId = currentPerson.PrimaryAliasId;
