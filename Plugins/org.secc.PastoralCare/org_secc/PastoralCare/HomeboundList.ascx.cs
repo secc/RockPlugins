@@ -106,7 +106,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
         {
             using ( var rockContext = new RockContext() )
             {
-
+                rockContext.Database.CommandTimeout = 60;
                 var contextEntity = this.ContextEntity();
 
                 var workflowService = new WorkflowService( rockContext );
