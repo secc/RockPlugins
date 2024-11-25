@@ -113,7 +113,7 @@ namespace org.secc.Rest.Controllers
                     {
                         Id = groupMember.Id,
                         Name = person.FullName,
-                        GroupRole = groupMember.GroupRole.Name,
+                        GroupRole = groupMember.GroupRole.IsLeader ? "Leader" : "Member",
                         Status = isCurrentUserLeader ? groupMember.GroupMemberStatus.ToString() : null,
                         Address = isCurrentUserLeader ? familyGroup.GroupLocations
                             .FirstOrDefault( gl => gl.GroupLocationTypeValueId == homeLocationTypeId )
