@@ -5,11 +5,11 @@ config:
   engines:
     playwright: 
       extendedMetrics: true
-  processor: 'playwright-scripts/user-actions/user-actions.ts'
+  processor: 'temp/user-actions/user-actions.ts'
   timeout: 180000
   phases:
-    - duration: 50
-      arrivalCount: 10
+    - duration: 600
+      arrivalCount: 50
       name: Load test
   # Load & configure a couple of useful plugins
   # https://docs.art/reference/extensions
@@ -33,4 +33,5 @@ scenarios:
     testFunction: 'SRU18_Groups'
   - engine: playwright
     testFunction: 'SRU19_EventExternalPage'
+  
 
