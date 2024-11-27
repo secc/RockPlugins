@@ -1,5 +1,6 @@
 import {Page} from "@playwright/test";
 import {login} from "./support/login";
+import goto from "./support/goto";
 
 
 async function wait(page:Page)
@@ -18,18 +19,12 @@ export async function baseline(page: Page){
 
 }
 
-async function goto(page: Page, url:string)
-{
-    await page.goto(url);
-    await page.waitForLoadState();
-}
-
 
 
 export async function SRU13_CreateADataViewAndReport(page: Page)
 {
 
-    await page.goto('');
+    await goto(page,'');
 
     await login(page);
 
@@ -61,7 +56,7 @@ export async function SRU13_CreateADataViewAndReport(page: Page)
 export async function SRU15_CheckingAPersonProfile(page: Page)
 {
 
-    await page.goto('');
+    await goto(page, '');
 
     await login(page);
 
@@ -95,7 +90,7 @@ export async function SRU15_CheckingAPersonProfile(page: Page)
 export async function SRU16_ViewingEventRegistration(page: Page)
 {
 
-    await page.goto('');
+    await goto(page, '');
 
     await login(page);
 
@@ -127,7 +122,7 @@ export async function SRU16_ViewingEventRegistration(page: Page)
 export async function SRU17_VisitExternalPageAccountAndBrowse(page: Page)
 {
 
-    await page.goto('');
+    await goto(page, '');
 
     await login(page);
 
@@ -173,7 +168,7 @@ export async function SRU17_VisitExternalPageAccountAndBrowse(page: Page)
 export async function SRU18_Groups(page: Page)
 {
 
-    await page.goto('');
+    await goto(page, '');
 
     await login(page);
 
@@ -210,7 +205,7 @@ export async function SRU18_Groups(page: Page)
 export async function SRU19_EventExternalPage(page: Page)
 {
 
-    await page.goto('');
+    await goto(page, '');
 
     await login(page);
 
