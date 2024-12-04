@@ -51,9 +51,12 @@ namespace org.secc.Rest.Controllers
 
             var rockContext = new RockContext();
             rockContext.Configuration.ProxyCreationEnabled = false;
-
+            
             var groupServiceHelper = new GroupServiceHelper( rockContext );
-            var groupTypeIds = groupServiceHelper.GetGroupTypeIdsFromDefinedType( "Group App Group Types" );
+            var groupTypeIds = new DefinedValueService( rockContext )
+                    .GetByDefinedTypeGuid( new Guid( "f75bdfa7-582b-4e0d-9715-5e47b0eb57cf" ) )
+                    .Select( dv => int.Parse( dv.Value ) )
+                    .ToList();
             var groupList = groupServiceHelper.GetGroups( currentUser.Person.Id, groupTypeIds );
 
             return Ok( groupList );
@@ -169,25 +172,6 @@ namespace org.secc.Rest.Controllers
         public GroupServiceHelper( RockContext rockContext )
         {
             _rockContext = rockContext;
-        }
-
-        public List<int> GetGroupTypeIdsFromDefinedType( string definedTypeName )
-        {
-            var definedTypeService = new DefinedTypeService( _rockContext );
-            var groupTypeDefinedType = definedTypeService
-                .Queryable()
-                .FirstOrDefault( dt => dt.Name == definedTypeName );
-
-            if ( groupTypeDefinedType == null )
-                return new List<int>();
-
-            var definedValueService = new DefinedValueService( _rockContext );
-            var groupTypeDefinedValues = definedValueService
-                .Queryable()
-                .Where( dv => dv.DefinedTypeId == groupTypeDefinedType.Id )
-                .ToList();
-
-            return groupTypeDefinedValues.Select( dv => int.Parse( dv.Value ) ).ToList();
         }
 
         public List<GroupAppGroup> GetGroups( int currentPersonId, List<int> groupTypeIds )

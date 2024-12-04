@@ -86,7 +86,7 @@ namespace org.secc.Rest.Controllers
 
                 var tableBasedGroupTypeIds = _definedValueService
                     .GetByDefinedTypeGuid( new Guid( "90526a36-fda6-4c90-997c-636b82b793d8" ) )
-                    .Select( dv => dv.Id )
+                    .Select( dv => int.Parse( dv.Value ) )
                     .ToList();
 
                 var isTableBasedGroup = tableBasedGroupTypeIds.Contains( group.GroupTypeId );
