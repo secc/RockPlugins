@@ -15,12 +15,12 @@ namespace org.secc.Reporting.Model
         public List<DecisionReportItem> Forms { get; set; }
         public List<DecisionReportItem> Steps { get; set; }
 
-        public static DecisionReport LoadFromDataset(Guid datasetGuid)
+        public static DecisionReport LoadFromDataset( Guid datasetGuid )
         {
             using (var rockContext = new RockContext())
             {
                 rockContext.Database.CommandTimeout = 60;
-                var dataset = new PersistedDatasetService( new Rock.Data.RockContext() )
+                var dataset = new PersistedDatasetService( rockContext )
                         .Get( datasetGuid );
 
                 if (dataset == null)
@@ -58,7 +58,7 @@ namespace org.secc.Reporting.Model
         public string FirstName { get; set; }
         public string NickName { get; set; }
         public int? Age { get; set; }
-        [JsonProperty("IsMinor")]
+        [JsonProperty( "IsMinor" )]
         public int IsMinorRaw { get; set; }
         [JsonIgnore]
         public bool IsMinor { get { return IsMinorRaw == 1; } }
@@ -106,7 +106,7 @@ namespace org.secc.Reporting.Model
         {
             get
             {
-                if(!GraduationYear.HasValue || GraduationYear < RockDateTime.CurrentGraduationYear)
+                if (!GraduationYear.HasValue || GraduationYear < RockDateTime.CurrentGraduationYear)
                 {
                     return null;
                 }
@@ -117,7 +117,7 @@ namespace org.secc.Reporting.Model
                     .DefinedValues.Where( v => v.Value == gradeoffset.ToString() )
                     .FirstOrDefault();
 
-                if(gradeDv == null)
+                if (gradeDv == null)
                 {
                     return null;
                 }
@@ -132,14 +132,14 @@ namespace org.secc.Reporting.Model
         {
             get
             {
-                if(HomeStreet1.IsNullOrWhiteSpace())
+                if (HomeStreet1.IsNullOrWhiteSpace())
                 {
                     return string.Empty;
                 }
                 var sb = new StringBuilder();
                 sb.Append( $"{HomeStreet1}" );
 
-                if(HomeStreet2.IsNotNullOrWhiteSpace())
+                if (HomeStreet2.IsNotNullOrWhiteSpace())
                 {
                     sb.Append( $" {HomeStreet2}" );
                 }
@@ -164,7 +164,7 @@ namespace org.secc.Reporting.Model
         {
             get
             {
-                if(IsMinor)
+                if (IsMinor)
                 {
                     return null;
                 }
@@ -178,7 +178,7 @@ namespace org.secc.Reporting.Model
         {
             get
             {
-                if(IsMinor)
+                if (IsMinor)
                 {
                     return null;
                 }
@@ -191,7 +191,7 @@ namespace org.secc.Reporting.Model
         {
             get
             {
-                if(IsMinor)
+                if (IsMinor)
                 {
                     return null;
                 }
@@ -199,7 +199,7 @@ namespace org.secc.Reporting.Model
                 var sb = new StringBuilder();
                 sb.Append( $"{HomeStreet1} " );
 
-                if(HomeStreet2.IsNotNullOrWhiteSpace())
+                if (HomeStreet2.IsNotNullOrWhiteSpace())
                 {
                     sb.Append( $"{HomeStreet2} " );
                 }

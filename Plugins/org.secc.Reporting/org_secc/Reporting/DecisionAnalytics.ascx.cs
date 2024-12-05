@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.Design;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Dynamic;
 using System.Web.UI.WebControls;
-using DocumentFormat.OpenXml.Bibliography;
 using Newtonsoft.Json;
 using org.secc.Reporting.Model;
 using Rock;
@@ -73,14 +71,14 @@ namespace RockWeb.Plugins.org_secc.Reporting
         {
             get
             {
-                if(decisions != null)
+                if (decisions != null)
                 {
                     return decisions;
                 }
                 else
                 {
                     var json = ViewState[$"{this.BlockId}_Decisions"] as string;
-                    if(json.IsNotNullOrWhiteSpace())
+                    if (json.IsNotNullOrWhiteSpace())
                     {
                         decisions = JsonConvert.DeserializeObject<List<DecisionReportItem>>( json );
                     }
@@ -234,10 +232,10 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
         private void LoadDetailModal( string recordType, int id )
         {
-            var decision = Decisions.Where( d => d.Id == id  && d.RecordType == recordType)
+            var decision = Decisions.Where( d => d.Id == id && d.RecordType == recordType )
                 .FirstOrDefault();
 
-            if(decision == null)
+            if (decision == null)
             {
                 return;
             }
@@ -249,7 +247,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
             lAddress.Text = decision.FullAddressHtml;
 
 
-            if(decision.Age < 18 )
+            if (decision.Age < 18)
             {
                 lParentName.Text = decision.ParentGuardianName;
                 lParentPhone.Text = decision.ParentPhone;
@@ -263,7 +261,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 pnlPersonInfo.Visible = true;
             }
 
-            if(decision.BaptismDate.HasValue)
+            if (decision.BaptismDate.HasValue)
             {
                 lBaptism.Text = $"{decision.BaptismDate.ToShortDateString()} {decision.BaptismTypeValue}";
             }
@@ -272,7 +270,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 lBaptism.Text = "<span class=\"label label-danger\">No Baptism Info</span>";
             }
 
-            if(decision.StatementOfFaithSignedDate.HasValue)
+            if (decision.StatementOfFaithSignedDate.HasValue)
             {
                 lStatementOfFaith.Text = decision.StatementOfFaithSignedDate.Value.ToShortDateString();
             }
@@ -290,7 +288,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 lMembershipDate.Text = "<span class=\"label label-danger\">No Member Info</span>";
             }
 
-            if(decision.MembershipClassDate.HasValue)
+            if (decision.MembershipClassDate.HasValue)
             {
                 lMembershipClass.Text = decision.MembershipClassDate.Value.ToShortDateString();
             }
@@ -375,113 +373,110 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
         private void UpdateDataset()
         {
-            using (var reportContext = new RockContext())
+
+            var decisionQry = DecisionReport.LoadFromDataset( "4af2fb1f-92a6-417f-b988-b03668014f3c".AsGuid() )
+                .ConsolidateItems().AsQueryable();
+
+
+
+            if (drpDecisionDate.LowerValue.HasValue)
             {
-                var decisionQry = DecisionReport.LoadFromDataset( "4af2fb1f-92a6-417f-b988-b03668014f3c".AsGuid() )
-                    .ConsolidateItems().AsQueryable();
+                decisionQry = decisionQry.Where( q => q.FormDate >= drpDecisionDate.LowerValue.Value );
+            }
+
+            if (drpDecisionDate.UpperValue.HasValue)
+            {
+                decisionQry = decisionQry.Where( q => q.FormDate <= drpDecisionDate.UpperValue.Value );
+            }
+
+            if (ppDecisions.SelectedValue.HasValue)
+            {
+                decisionQry = decisionQry.Where( q => q.PersonId == ppDecisions.PersonId.Value );
+            }
+
+            if (cblGender.SelectedValues.Any())
+            {
+                var selectedGenders = cblGender.SelectedValues;
+                decisionQry = decisionQry.Where( q => selectedGenders.Contains( q.Gender ) );
+            }
+
+            if (nreAgeRange.LowerValue.HasValue)
+            {
+                decisionQry = decisionQry.Where( q => q.Age >= nreAgeRange.LowerValue.Value );
+            }
 
 
-
-                if (drpDecisionDate.LowerValue.HasValue)
-                {
-                    decisionQry = decisionQry.Where( q => q.FormDate >= drpDecisionDate.LowerValue.Value );
-                }
-
-                if (drpDecisionDate.UpperValue.HasValue)
-                {
-                    decisionQry = decisionQry.Where( q => q.FormDate <= drpDecisionDate.UpperValue.Value );
-                }
-
-                if (ppDecisions.SelectedValue.HasValue)
-                {
-                    decisionQry = decisionQry.Where( q => q.PersonId == ppDecisions.PersonId.Value );
-                }
-
-                if (cblGender.SelectedValues.Any())
-                {
-                    var selectedGenders = cblGender.SelectedValues;
-                    decisionQry = decisionQry.Where( q => selectedGenders.Contains( q.Gender ) );
-                }
-
-                if (nreAgeRange.LowerValue.HasValue)
-                {
-                    decisionQry = decisionQry.Where( q => q.Age >= nreAgeRange.LowerValue.Value );
-                }
+            if (nreAgeRange.UpperValue.HasValue)
+            {
+                decisionQry = decisionQry.Where( q => q.Age <= nreAgeRange.UpperValue.Value );
+            }
 
 
-                if (nreAgeRange.UpperValue.HasValue)
-                {
-                    decisionQry = decisionQry.Where( q => q.Age <= nreAgeRange.UpperValue.Value );
-                }
+            // grade min and maxes are flipped due to how graduation years work the lower the grade
+            // the higher the graduation year.
+            if (ddlLowerGrade.SelectedValueAsInt().HasValue)
+            {
+                var maxGraduationYear = RockDateTime.CurrentGraduationYear +
+                    DefinedValueCache.Get( ddlLowerGrade.SelectedValueAsInt().Value ).Value.AsInteger();
 
+                decisionQry = decisionQry.Where( q => q.GraduationYear <= maxGraduationYear );
+            }
 
-                // grade min and maxes are flipped due to how graduation years work the lower the grade
-                // the higher the graduation year.
-                if (ddlLowerGrade.SelectedValueAsInt().HasValue)
-                {
-                    var maxGraduationYear = RockDateTime.CurrentGraduationYear +
-                        DefinedValueCache.Get( ddlLowerGrade.SelectedValueAsInt().Value ).Value.AsInteger();
+            if (ddlUpperGrade.SelectedValueAsInt().HasValue)
+            {
+                var minGraduationYear = RockDateTime.CurrentGraduationYear +
+                    DefinedValueCache.Get( ddlUpperGrade.SelectedValueAsInt().Value ).Value.AsInteger();
 
-                    decisionQry = decisionQry.Where( q => q.GraduationYear <= maxGraduationYear );
-                }
+                decisionQry = decisionQry.Where( q => q.GraduationYear >= minGraduationYear );
+            }
 
-                if (ddlUpperGrade.SelectedValueAsInt().HasValue)
-                {
-                    var minGraduationYear = RockDateTime.CurrentGraduationYear +
-                        DefinedValueCache.Get( ddlUpperGrade.SelectedValueAsInt().Value ).Value.AsInteger();
+            if (dvpConnectionStatus.SelectedDefinedValuesId.Any())
+            {
+                var selectedConnectionStatuses = dvpConnectionStatus.SelectedDefinedValuesId;
 
-                    decisionQry = decisionQry.Where( q => q.GraduationYear >= minGraduationYear );
-                }
+                decisionQry = decisionQry.Where( q => selectedConnectionStatuses.Contains( q.ConnectionStatusValueId ?? -1 ) );
+            }
 
-                if (dvpConnectionStatus.SelectedDefinedValuesId.Any())
-                {
-                    var selectedConnectionStatuses = dvpConnectionStatus.SelectedDefinedValuesId;
+            if (pkFamilyCampus.SelectedCampusId.HasValue)
+            {
+                decisionQry = decisionQry.Where( q => q.FamilyCampusId == pkFamilyCampus.SelectedCampusId.Value );
+            }
 
-                    decisionQry = decisionQry.Where( q => selectedConnectionStatuses.Contains( q.ConnectionStatusValueId ?? -1 ) );
-                }
+            if (pkDecisionCampus.SelectedCampusId.HasValue)
+            {
+                decisionQry = decisionQry.Where( q => q.DecisionCampusId == pkDecisionCampus.SelectedCampusId.Value );
+            }
 
-                if (pkFamilyCampus.SelectedCampusId.HasValue)
-                {
-                    decisionQry = decisionQry.Where( q => q.FamilyCampusId == pkFamilyCampus.SelectedCampusId.Value );
-                }
-
-                if (pkDecisionCampus.SelectedCampusId.HasValue)
-                {
-                    decisionQry = decisionQry.Where( q => q.DecisionCampusId == pkDecisionCampus.SelectedCampusId.Value );
-                }
-
-                if (ddlDecisionType.SelectedValue.IsNotNullOrWhiteSpace())
-                {
-                    decisionQry = decisionQry.Where( q => q.DecisionType.Equals( ddlDecisionType.SelectedValue, StringComparison.InvariantCultureIgnoreCase ) );
-
-                }
-
-                if (ddlEventType.SelectedValue.IsNotNullOrWhiteSpace())
-                {
-                    decisionQry = decisionQry.Where( q => q.EventName.Equals( ddlEventType.SelectedValue, StringComparison.InvariantCultureIgnoreCase ) );
-                }
-
-                if (dvpBaptismType.SelectedValuesAsInt.Any())
-                {
-                    var baptismTypeIds = dvpBaptismType.SelectedValuesAsInt;
-                    decisionQry = decisionQry.Where( q => baptismTypeIds.Contains( q.BaptismTypeValueId ?? -1 ) );
-                }
-
-
-                Decisions = decisionQry.
-                    OrderBy( q => q.FormDate )
-                    .ToList();
-
-
-                gResults.DataSource = Decisions;
-                gResults.DataBind();
-
-
-                pnlGridResults.Visible = Decisions.Any();
-                pnlUpdateMessage.Visible = !Decisions.Any();
-
+            if (ddlDecisionType.SelectedValue.IsNotNullOrWhiteSpace())
+            {
+                decisionQry = decisionQry.Where( q => q.DecisionType.Equals( ddlDecisionType.SelectedValue, StringComparison.InvariantCultureIgnoreCase ) );
 
             }
+
+            if (ddlEventType.SelectedValue.IsNotNullOrWhiteSpace())
+            {
+                decisionQry = decisionQry.Where( q => q.EventName.Equals( ddlEventType.SelectedValue, StringComparison.InvariantCultureIgnoreCase ) );
+            }
+
+            if (dvpBaptismType.SelectedValuesAsInt.Any())
+            {
+                var baptismTypeIds = dvpBaptismType.SelectedValuesAsInt;
+                decisionQry = decisionQry.Where( q => baptismTypeIds.Contains( q.BaptismTypeValueId ?? -1 ) );
+            }
+
+
+            Decisions = decisionQry.
+                OrderBy( q => q.FormDate )
+                .ToList();
+
+
+            gResults.DataSource = Decisions;
+            gResults.DataBind();
+
+
+            pnlGridResults.Visible = Decisions.Any();
+            pnlUpdateMessage.Visible = !Decisions.Any();
+
         }
 
 
