@@ -1,127 +1,96 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Data.Entity.ModelConfiguration;
+using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text;
 using Newtonsoft.Json;
-
 using Rock;
 using Rock.Data;
+using Rock.Model;
 using Rock.Web.Cache;
 
 namespace org.secc.Reporting.Model
 {
-    [Table( "_org_secc_DecisionForm_Analytics", Schema = "dbo" )]
-    [DataContract]
-    [HideFromReporting]
-    public partial class DecisionReport : Model<DecisionReport>
+    public class DecisionReport
     {
-        [Key]
-        [DataMember]
-        [DatabaseGenerated( DatabaseGeneratedOption.None )]
-        public int WorkflowId { get; set; }
-        [DataMember]
-        public int PersonAliasId { get; set; }
-        [DataMember]
-        public int PersonId { get; set; }
-        [DataMember]
-        [MaxLength( 50 )]
-        public string LastName { get; set; }
-        [DataMember]
-        [MaxLength( 50 )]
-        public string NickName { get; set; }
-        [DataMember]
-        public int? Age { get; set; }
-        [DataMember]
-        [MaxLength( 1 )]
-        public string Gender { get; set; }
-        [DataMember]
-        [MaxLength( 75 )]
-        public string Email { get; set; }
-        [MaxLength( 50 )]
-        [DataMember]
-        public string MobilePhone { get; set; }
-        [DataMember]
-        public int? GraduationYear { get; set; }
-        [DataMember]
-        public int? HomeLocationId { get; set; }
-        [DataMember]
-        public int ConnectionStatusValueId { get; set; }
-        [DataMember]
-        [MaxLength( 250 )]
-        public string ConnectionStatusValue { get; set; }
-        [DataMember]
-        public DateTime? BaptismDate { get; set; }
-        [DataMember]
+        public List<DecisionReportItem> Forms { get; set; }
+        public List<DecisionReportItem> Steps { get; set; }
 
-        public string DecisionType { get; set; }
-        [DataMember]
-        public DateTime? FormDate { get; set; }
-        [DataMember]
-        public int DecisionCampusId { get; set; }
-        [DataMember]
-        [MaxLength( 100 )]
-        public string DecisionCampusName { get; set; }
-        [DataMember]
-        public int? FamilyCampusId { get; set; }
-        [DataMember]
-        [MaxLength( 100 )]
-        public string FamilyCampusName { get; set; }
-        [DataMember]
-        public string EventName { get; set; }
-        [DataMember]
-        public int? BaptismTypeValueId { get; set; }
-        [DataMember]
-        [MaxLength( 250 )]
-        public string BaptismTypeValue { get; set; }
-        [DataMember]
-        public string ParentGuardianName { get; set; }
-        [DataMember]
-        public string ParentEmail { get; set; }
-        [DataMember]
-        public string ParentPhone { get; set; }
-        [DataMember]
-        public DateTime? StatementOfFaithSignedDate { get; set; }
-        [DataMember]
-        public DateTime? MembershipDate { get; set; }
-        [DataMember]
-        public DateTime? MembershipClassDate { get; set; }
-        [DataMember]
-        [MaxLength( 100 )]
-        public string HomeStreet1 { get; set; }
-        [DataMember]
-        [MaxLength( 100 )]
-        public string HomeStreet2 { get; set; }
-        [DataMember]
-        [MaxLength( 50 )]
-        public string HomeCity { get; set; }
-        [DataMember]
-        [MaxLength( 50 )]
-        public string HomeState { get; set; }
-        [DataMember]
-        [MaxLength( 50 )]
-        public string HomePostalCode { get; set; }
-        [DataMember]
-        [MaxLength( 50 )]
-        public string HomeCountry { get; set; }
-
-        [JsonIgnore]
-        public string EmailGridValue
+        public static DecisionReport LoadFromDataset(Guid datasetGuid)
         {
-            get
+            using (var rockContext = new RockContext())
             {
-                if (Age < 18)
+                rockContext.Database.CommandTimeout = 60;
+                var dataset = new PersistedDatasetService( new Rock.Data.RockContext() )
+                        .Get( datasetGuid );
+
+                if (dataset == null)
                 {
-                    return string.Empty;
+                    return null;
                 }
-                else
-                {
-                    return Email;
-                }
+
+                var report = JsonConvert.DeserializeObject<DecisionReport>( dataset.ResultData );
+
+                return report;
             }
+
+
         }
+
+        public List<DecisionReportItem> ConsolidateItems()
+        {
+            var consolidatedList = new List<DecisionReportItem>();
+
+            consolidatedList.AddRange( Forms );
+            consolidatedList.AddRange( Steps );
+
+            return consolidatedList;
+        }
+
+    }
+
+    public class DecisionReportItem
+    {
+        public string RecordType { get; set; }
+        public int Id { get; set; }
+        public int PersonAliasId { get; set; }
+        public int PersonId { get; set; }
+        public string LastName { get; set; }
+        public string FirstName { get; set; }
+        public string NickName { get; set; }
+        public int? Age { get; set; }
+        [JsonProperty("IsMinor")]
+        public int IsMinorRaw { get; set; }
+        [JsonIgnore]
+        public bool IsMinor { get { return IsMinorRaw == 1; } }
+        public string Gender { get; set; }
+        public string Email { get; set; }
+        public string MobilePhone { get; set; }
+        public int? GraduationYear { get; set; }
+        public int? HomeLocationId { get; set; }
+        public int? ConnectionStatusValueId { get; set; }
+        public string ConnectionStatusValue { get; set; }
+        public DateTime? BaptismDate { get; set; }
+        public string DecisionType { get; set; }
+        public DateTime FormDate { get; set; }
+        public int? DecisionCampusId { get; set; }
+        public string DecisionCampusName { get; set; }
+        public int? FamilyCampusId { get; set; }
+        public string FamilyCampusName { get; set; }
+        public string EventName { get; set; }
+        public int? BaptismTypeValueId { get; set; }
+        public string BaptismTypeValue { get; set; }
+        public string ParentGuardianName { get; set; }
+        public string ParentEmail { get; set; }
+        public string ParentPhone { get; set; }
+        public DateTime? StatementOfFaithSignedDate { get; set; }
+        public DateTime? MembershipDate { get; set; }
+        public DateTime? MembershipClassDate { get; set; }
+        public string HomeStreet1 { get; set; }
+        public string HomeStreet2 { get; set; }
+        public string HomeCity { get; set; }
+        public string HomeState { get; set; }
+        public string HomePostalCode { get; set; }
+        public string HomeCountry { get; set; }
 
         [JsonIgnore]
         public string FullName
@@ -133,48 +102,28 @@ namespace org.secc.Reporting.Model
         }
 
         [JsonIgnore]
-        public string FullNameReversed
+        public string Grade
         {
             get
             {
-                return $"{LastName}, {NickName}";
-            }
-        }
-
-        [JsonIgnore]
-        public string FullAddress
-        {
-            get
-            {
-                var sb = new StringBuilder();
-                if (HomeStreet1.IsNullOrWhiteSpace())
+                if(!GraduationYear.HasValue || GraduationYear < RockDateTime.CurrentGraduationYear)
                 {
                     return null;
                 }
-                sb.Append( $"{HomeStreet1} " );
 
-                if (HomeStreet2.IsNotNullOrWhiteSpace())
-                {
-                    sb.Append( $"{HomeStreet2} " );
-                }
-                sb.Append( $"{HomeCity}, {HomeState} {HomePostalCode}" );
-                return sb.ToString();
-            }
-        }
+                var gradeoffset = GraduationYear.Value - RockDateTime.CurrentGraduationYear;
 
-        [JsonIgnore]
-        public string FullAddressGrid
-        {
-            get
-            {
-                if(Age < 18)
+                var gradeDv = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.SCHOOL_GRADES.AsGuid() )
+                    .DefinedValues.Where( v => v.Value == gradeoffset.ToString() )
+                    .FirstOrDefault();
+
+                if(gradeDv == null)
                 {
-                    return String.Empty;
+                    return null;
                 }
-                else
-                {
-                    return FullAddress;
-                }
+
+                return gradeDv.GetAttributeValue( "Abbreviation" );
+
             }
         }
 
@@ -183,18 +132,18 @@ namespace org.secc.Reporting.Model
         {
             get
             {
-                System.Text.StringBuilder sb = new System.Text.StringBuilder();
-                if (HomeStreet1.IsNullOrWhiteSpace())
+                if(HomeStreet1.IsNullOrWhiteSpace())
                 {
-                    return null;
+                    return string.Empty;
                 }
-
+                var sb = new StringBuilder();
                 sb.Append( $"{HomeStreet1}" );
 
-                if (HomeStreet2.IsNotNullOrWhiteSpace())
+                if(HomeStreet2.IsNotNullOrWhiteSpace())
                 {
                     sb.Append( $" {HomeStreet2}" );
                 }
+
                 sb.Append( $"<br /> {HomeCity}, {HomeState} {HomePostalCode}" );
 
                 return sb.ToString();
@@ -202,26 +151,12 @@ namespace org.secc.Reporting.Model
         }
 
         [JsonIgnore]
-        public string Grade
+        public string FullNameReversed
         {
             get
             {
-                string grade = null;
-                if (GraduationYear.HasValue)
-                {
-                    var gradeOffset = GraduationYear - RockDateTime.CurrentGraduationYear;
-
-                    if (gradeOffset >= 0)
-                    {
-                        var gradeValue = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.SCHOOL_GRADES.AsGuid() )
-                            .DefinedValues.Where( v => v.Value == gradeOffset.ToString() ).FirstOrDefault();
-
-                        grade = gradeValue.GetAttributeValue( "Abbreviation" );
-                    }
-                }
-                return grade;
+                return $"{LastName},{NickName}";
             }
-
         }
 
         [JsonIgnore]
@@ -229,27 +164,50 @@ namespace org.secc.Reporting.Model
         {
             get
             {
-                if (Age < 18)
+                if(IsMinor)
                 {
-                    return string.Empty;
+                    return null;
                 }
-                else
-                {
-                    return MobilePhone;
-                }
+
+                return MobilePhone;
             }
         }
 
-
-
-
-    }
-    public partial class DecisionReportConfiguration : EntityTypeConfiguration<DecisionReport>
-    {
-        public DecisionReportConfiguration()
+        [JsonIgnore]
+        public string EmailGridValue
         {
-            HasKey( s => s.WorkflowId );
-            HasEntitySetName( "DecisionReport" );
+            get
+            {
+                if(IsMinor)
+                {
+                    return null;
+                }
+                return Email;
+            }
+        }
+
+        [JsonIgnore]
+        public string FullAddressGrid
+        {
+            get
+            {
+                if(IsMinor)
+                {
+                    return null;
+                }
+
+                var sb = new StringBuilder();
+                sb.Append( $"{HomeStreet1} " );
+
+                if(HomeStreet2.IsNotNullOrWhiteSpace())
+                {
+                    sb.Append( $"{HomeStreet2} " );
+                }
+
+                sb.Append( $"{HomeCity}, {HomeState} {HomePostalCode}" );
+
+                return sb.ToString();
+            }
         }
     }
 }

@@ -57,7 +57,7 @@
                             </asp:Panel>
                             <asp:Panel ID="pnlGridResults" runat="server" Visible="false">
                                 <Rock:Grid ID="gResults" runat="server" AllowSorting="true" RowItemText="Decision" ExportSource="ColumnOutput"
-                                    ExportFilename="GivingAnalytics" OnRowSelected="gResults_RowSelected" OnRowDataBound="gResults_RowDataBound" DataKeyNames="Id">
+                                    ExportFilename="GivingAnalytics" OnRowSelected="gResults_RowSelected" OnRowDataBound="gResults_RowDataBound" DataKeyNames="RecordType, Id">
                                     <Columns>
                                         <Rock:RockBoundField HeaderText="Id" DataField="WorkflowId" Visible="false" />
                                         <Rock:RockBoundField HeaderText="Name" DataField="FullName" SortExpression="FullNameReversed" />

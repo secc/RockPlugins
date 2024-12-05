@@ -63,13 +63,13 @@ namespace RockWeb.Plugins.org_secc.Reporting
             public const string EventAttributeKey = "EventAttributeKey";
         }
 
-        private List<DecisionReport> decisions = null;
+        private List<DecisionReportItem> decisions = null;
         private int workflowTypeId;
         private string decisionTypeAttributeKey;
         private string campusAttributeKey;
         public string eventAttributeKey;
 
-        public List<DecisionReport> Decisions
+        public List<DecisionReportItem> Decisions
         {
             get
             {
@@ -82,7 +82,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                     var json = ViewState[$"{this.BlockId}_Decisions"] as string;
                     if(json.IsNotNullOrWhiteSpace())
                     {
-                        decisions = JsonConvert.DeserializeObject<List<DecisionReport>>( json );
+                        decisions = JsonConvert.DeserializeObject<List<DecisionReportItem>>( json );
                     }
                 }
 
@@ -147,11 +147,13 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 return;
             }
 
-            var workflowId = e.RowKeyValue as int?;
+            var id = e.RowKeyValues["Id"] as int?;
 
-            if (workflowId.HasValue)
+            var recordType = e.RowKeyValues["RecordType"] as string;
+
+            if (id.HasValue)
             {
-                LoadDetailModal( workflowId.Value );
+                LoadDetailModal( recordType, id.Value );
             }
         }
 
@@ -230,9 +232,9 @@ namespace RockWeb.Plugins.org_secc.Reporting
             ddlDecisionType.Items.Insert( 0, new ListItem( "", "" ) );
         }
 
-        private void LoadDetailModal( int workflowId )
+        private void LoadDetailModal( string recordType, int id )
         {
-            var decision = Decisions.Where( d => d.WorkflowId == workflowId )
+            var decision = Decisions.Where( d => d.Id == id  && d.RecordType == recordType)
                 .FirstOrDefault();
 
             if(decision == null)
@@ -375,9 +377,10 @@ namespace RockWeb.Plugins.org_secc.Reporting
         {
             using (var reportContext = new RockContext())
             {
-                var drService = new DecisionReportService( reportContext );
+                var decisionQry = DecisionReport.LoadFromDataset( "4af2fb1f-92a6-417f-b988-b03668014f3c".AsGuid() )
+                    .ConsolidateItems().AsQueryable();
 
-                var decisionQry = drService.Queryable().AsNoTracking();
+
 
                 if (drpDecisionDate.LowerValue.HasValue)
                 {
@@ -434,7 +437,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 {
                     var selectedConnectionStatuses = dvpConnectionStatus.SelectedDefinedValuesId;
 
-                    decisionQry = decisionQry.Where( q => selectedConnectionStatuses.Contains( q.ConnectionStatusValueId ) );
+                    decisionQry = decisionQry.Where( q => selectedConnectionStatuses.Contains( q.ConnectionStatusValueId ?? -1 ) );
                 }
 
                 if (pkFamilyCampus.SelectedCampusId.HasValue)

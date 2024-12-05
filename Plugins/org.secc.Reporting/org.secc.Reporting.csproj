@@ -86,10 +86,9 @@ xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Reporting.pdb" "$(SolutionDir)Rock
     <Compile Include="Migrations\DecisionReportView.cs" />
     <Compile Include="Migrations\WorshipAttendanceHistory.cs" />
     <Compile Include="Migrations\Configuration.cs" />
+    <Compile Include="Model\DecisionReport.cs" />
     <Compile Include="Model\DataViewSqlFilterStore.cs" />
     <Compile Include="Model\DataViewSqlFilterStoreService.cs" />
-    <Compile Include="Model\DecisionReport.cs" />
-    <Compile Include="Model\DecisionReportService.cs" />
     <Compile Include="Transactions\SqlFilterCleanupTransaction.cs" />
   </ItemGroup>
   <ItemGroup>
