@@ -202,6 +202,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             tbChildFirstname.Text = children[i.Value].FirstName;
             tbChildLastname.Text = children[i.Value].LastName;
             bpChildBirthday.Text = children[i.Value].DateOfBirth.ToShortDateString();
+            cbGuest.Checked = children[i.Value].IsGuest;
             rblGender.SelectedValue = children[i.Value].Gender;
             gpGrade.SelectedValue = children[i.Value].Grade.ToString();
             tbAllergies.Text = children[i.Value].Allergies;
@@ -298,6 +299,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
 
 
             HtmlGenericControl info = new HtmlGenericControl();
+            info.Controls.Add( new RockLiteral() { Label = "Guest?:", Text = child.IsGuest ? "Yes" : "No" } );
             info.Controls.Add( new RockLiteral() { Label = "Gender:", Text = child.Gender } );
             info.Controls.Add( new RockLiteral() { Label = "Birthdate:", Text = child.DateOfBirth.ToShortDateString() + " (" + child.DateOfBirth.Age() + " Yrs)" } );
             info.Controls.Add( new RockLiteral() { Label = "Grade:", Text = ( child.Grade == null ? "Pre-school" : DefinedValueCache.Get( child.Grade.Value ).Description ) } );
@@ -420,47 +422,76 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             // See if the family member already exists
             foreach ( Child child in children )
             {
-                foreach ( GroupMember gm in matchingPeople.FirstOrDefault().GetFamilyMembers() )
+                if ( child.IsGuest )
                 {
-                    if ( gm.Person.BirthDate == child.DateOfBirth && gm.Person.FirstName == child.FirstName )
+                    Person thisChild;
+                    var childMatch = personService.GetByMatch( child.FirstName, child.LastName, child.DateOfBirth );
+                    if ( !childMatch.Any() )
                     {
-                        child.MedicalConsent = medicalConsent;
-                        if ( gm.Person.Gender != ( child.Gender == "Male" ? Gender.Male : Gender.Female ) )
+                        // Create a new family for the guest child
+                        var newFamily = new Group
                         {
-                            var childPerson = personService.Get( gm.Person.Id );
-                            childPerson.Gender = ( child.Gender == "Male" ? Gender.Male : Gender.Female );
-                        }
-                        child.SaveAttributes( gm.Person );
-                        updated = true;
-                        break;
+                            Name = child.LastName + " Family",
+                            GroupTypeId = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() ).Id
+                        };
+                        new GroupService( rockContext ).Add( newFamily );
+                        rockContext.SaveChanges();
+
+                        // Create the new child in the new family
+                        thisChild = child.SaveAsPerson( newFamily.Id, rockContext, connectionStatus.Id );
+                        thisChild.Gender = child.Gender == "Male" ? Gender.Male : Gender.Female;
+                        createdChildren.Add( thisChild );
                     }
-
-                }
-                if ( !updated )
-                {
-                    // If we get here, it's time to create a new family member
-                    var newChild = child.SaveAsPerson( matchingPeople.FirstOrDefault().GetFamily().Id, rockContext, connectionStatus.Id );
-                    newChild.Gender = child.Gender == "Male" ? Gender.Male : Gender.Female;
-
-                    newChild.LoadAttributes();
-
-                    if ( !string.IsNullOrWhiteSpace( medicalConsentKey ) )
+                    else
                     {
-                        newChild.SetAttributeValue( medicalConsentKey, medicalConsent );
+                        thisChild = childMatch.FirstOrDefault();
                     }
-                    newChild.SaveAttributeValues();
-
-                    family = newChild.GetFamily();
-
-                    createdChildren.Add( newChild );
+                    addKnownRelationship( matchingPeople.FirstOrDefault(), thisChild );
                 }
-            }
-            rockContext.SaveChanges();
+                else
+                {
+                    foreach ( GroupMember gm in matchingPeople.FirstOrDefault().GetFamilyMembers() )
+                    {
+                        if ( gm.Person.BirthDate == child.DateOfBirth && gm.Person.FirstName == child.FirstName )
+                        {
+                            child.MedicalConsent = medicalConsent;
+                            if ( gm.Person.Gender != ( child.Gender == "Male" ? Gender.Male : Gender.Female ) )
+                            {
+                                var childPerson = personService.Get( gm.Person.Id );
+                                childPerson.Gender = ( child.Gender == "Male" ? Gender.Male : Gender.Female );
+                            }
+                            child.SaveAttributes( gm.Person );
+                            updated = true;
+                            break;
+                        }
 
-            var personWorkflowGuid = GetAttributeValue( "PersonWorkflow" );
-            if ( !string.IsNullOrWhiteSpace( personWorkflowGuid ) )
-            {
-                matchingPeople.FirstOrDefault().PrimaryAlias.LaunchWorkflow( new Guid( personWorkflowGuid ), matchingPeople.FirstOrDefault().ToString() + " Pre-Registration", new Dictionary<string, string>() { { "ExtraInformation", tbExtraInformation.Text } } );
+                    }
+                    if ( !updated )
+                    {
+                        // If we get here, it's time to create a new family member
+                        var newChild = child.SaveAsPerson( matchingPeople.FirstOrDefault().GetFamily().Id, rockContext, connectionStatus.Id );
+                        newChild.Gender = child.Gender == "Male" ? Gender.Male : Gender.Female;
+
+                        newChild.LoadAttributes();
+
+                        if ( !string.IsNullOrWhiteSpace( medicalConsentKey ) )
+                        {
+                            newChild.SetAttributeValue( medicalConsentKey, medicalConsent );
+                        }
+                        newChild.SaveAttributeValues();
+
+                        family = newChild.GetFamily();
+
+                        createdChildren.Add( newChild );
+                    }
+                }
+                rockContext.SaveChanges();
+
+                var personWorkflowGuid = GetAttributeValue( "PersonWorkflow" );
+                if ( !string.IsNullOrWhiteSpace( personWorkflowGuid ) )
+                {
+                    matchingPeople.FirstOrDefault().PrimaryAlias.LaunchWorkflow( new Guid( personWorkflowGuid ), matchingPeople.FirstOrDefault().ToString() + " Pre-Registration", new Dictionary<string, string>() { { "ExtraInformation", tbExtraInformation.Text } } );
+                }
             }
         }
         else
@@ -469,6 +500,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
 
             // Create the adult
             Person adult = new Person();
+            List<Person> adults = new List<Person>();
             adult.FirstName = tbFirstname.Text;
             adult.LastName = tbLastName.Text;
             if ( dpBirthday.SelectedDate != null )
@@ -484,6 +516,9 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             adult.Email = ebEmail.Text;
 
             family = PersonService.SaveNewPerson( adult, rockContext, cpCampus.SelectedCampusId );
+
+            // add adult to adults
+            adults.Add( adult );
 
             if ( !string.IsNullOrWhiteSpace( tbFirstName2.Text ) )
             {
@@ -503,15 +538,48 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 adult2.Email = ebEmail2.Text;
 
                 PersonService.AddPersonToFamily( adult2, true, family.Id, 3, rockContext );
+                adults.Add( adult2 );
             }
 
             // Now create all the children
             foreach ( Child child in children )
             {
-                child.MedicalConsent = $"{tbSignature.Text} {String.Format( "{0:MM/dd/yy}", dpSignatureDate.SelectedDate )}";
-                var newChild = child.SaveAsPerson( family.Id, rockContext, connectionStatus.Id );
-                newChild.Gender = child.Gender == "Male" ? Gender.Male : Gender.Female;
-                createdChildren.Add( newChild );
+                if ( child.IsGuest )
+                {
+                    Person thisChild;
+                    var childMatch = personService.GetByMatch( child.FirstName, child.LastName, child.DateOfBirth, null, null, null, null );
+                    if ( !childMatch.Any() )
+                    {
+                        // Create a new family for the guest child
+                        var newFamily = new Group
+                        {
+                            Name = child.LastName + " Family",
+                            GroupTypeId = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_FAMILY.AsGuid() ).Id
+                        };
+                        new GroupService( rockContext ).Add( newFamily );
+                        rockContext.SaveChanges();
+
+                        // Create the new child in the new family
+                        thisChild = child.SaveAsPerson( newFamily.Id, rockContext, connectionStatus.Id );
+                        thisChild.Gender = child.Gender == "Male" ? Gender.Male : Gender.Female;
+                        createdChildren.Add( thisChild );
+                    }
+                    else
+                    {
+                        thisChild = childMatch.FirstOrDefault();
+                    }
+                    foreach ( var knownAdult in adults )
+                    {
+                        addKnownRelationship( knownAdult, thisChild );
+                    }
+                }
+                else
+                {
+                    child.MedicalConsent = $"{tbSignature.Text} {String.Format( "{0:MM/dd/yy}", dpSignatureDate.SelectedDate )}";
+                    var newChild = child.SaveAsPerson( family.Id, rockContext, connectionStatus.Id );
+                    newChild.Gender = child.Gender == "Male" ? Gender.Male : Gender.Female;
+                    createdChildren.Add( newChild );
+                }
             }
 
 
@@ -715,6 +783,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         {
             child.DateOfBirth = bpChildBirthday.SelectedDate.Value;
         }
+        child.IsGuest = cbGuest.Checked;
         child.Gender = rblGender.Text;
         child.Grade = gpGrade.SelectedValue.AsGuidOrNull();
         child.Allergies = tbAllergies.Text;
@@ -727,6 +796,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         tbChildFirstname.Text = "";
         tbChildLastname.Text = "";
         bpChildBirthday.SelectedDate = null;
+        cbGuest.Checked = false;
         rblGender.ClearSelection();
         gpGrade.SelectedIndex = 0;
         tbAllergies.Text = "";
@@ -800,6 +870,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public DateTime DateOfBirth { get; set; }
+        public bool IsGuest { get; set; }
         public string Gender { get; set; }
         public Guid? Grade { get; set; }
         public string Allergies { get; set; }

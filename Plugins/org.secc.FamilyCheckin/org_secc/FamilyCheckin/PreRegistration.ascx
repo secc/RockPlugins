@@ -150,13 +150,16 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-sm-3">
+                    <div class="col-sm-4">
+                        <Rock:RockCheckBox runat="server" ID="cbGuest" Label="Guest?" Help="Check this box if this child is a guest rather than a member of your immediate family" />                        
+                    </div>
+                    <div class="col-sm-4">
                         <Rock:RockRadioButtonList runat="server" ID="rblGender" Label="Gender" Required="true" RepeatDirection="Horizontal">
                             <asp:ListItem Text="Boy" Value="Male" />
                             <asp:ListItem Text="Girl" Value="Female" />
                         </Rock:RockRadioButtonList>
                     </div>
-                    <div class="col-sm-3">
+                    <div class="col-sm-4">
                         <Rock:GradePicker runat="server" ID="gpGrade" Label="Grade"></Rock:GradePicker>
                     </div>
                 </div>
