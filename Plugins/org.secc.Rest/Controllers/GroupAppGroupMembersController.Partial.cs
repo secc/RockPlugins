@@ -85,11 +85,19 @@ namespace org.secc.Rest.Controllers
                 var groupMemberList = new List<GroupAppGroupMember>();
 
                 var tableBasedGroupTypeIds = _definedValueService
-                    .GetByDefinedTypeGuid( new Guid( "90526a36-fda6-4c90-997c-636b82b793d8" ) )
-                    .Select( dv => int.Parse( dv.Value ) )
-                    .ToList();
+                 .GetByDefinedTypeGuid( new Guid( "90526a36-fda6-4c90-997c-636b82b793d8" ) )
+                 .ToList();
 
-                var isTableBasedGroup = tableBasedGroupTypeIds.Contains( group.GroupTypeId );
+                var parsedGroupTypeIds = new List<int>();
+                foreach ( var dv in tableBasedGroupTypeIds )
+                {
+                    if ( int.TryParse( dv.Value, out int groupTypeId ) )
+                    {
+                        parsedGroupTypeIds.Add( groupTypeId );
+                    }
+                }
+
+                var isTableBasedGroup = parsedGroupTypeIds.Contains( group.GroupTypeId );
 
                 if ( !isCurrentUserLeader && isTableBasedGroup )
                 {

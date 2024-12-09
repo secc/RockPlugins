@@ -51,12 +51,21 @@ namespace org.secc.Rest.Controllers
 
             var rockContext = new RockContext();
             rockContext.Configuration.ProxyCreationEnabled = false;
-            
+
             var groupServiceHelper = new GroupServiceHelper( rockContext );
-            var groupTypeIds = new DefinedValueService( rockContext )
-                    .GetByDefinedTypeGuid( new Guid( "f75bdfa7-582b-4e0d-9715-5e47b0eb57cf" ) )
-                    .Select( dv => int.Parse( dv.Value ) )
-                    .ToList();
+            var definedValues = new DefinedValueService( rockContext )
+                .GetByDefinedTypeGuid( new Guid( "f75bdfa7-582b-4e0d-9715-5e47b0eb57cf" ) )
+                .ToList();
+
+            var groupTypeIds = new List<int>();
+            foreach ( var dv in definedValues )
+            {
+                if ( int.TryParse( dv.Value, out int groupTypeId ) )
+                {
+                    groupTypeIds.Add( groupTypeId );
+                }
+            }
+
             var groupList = groupServiceHelper.GetGroups( currentUser.Person.Id, groupTypeIds );
 
             return Ok( groupList );
