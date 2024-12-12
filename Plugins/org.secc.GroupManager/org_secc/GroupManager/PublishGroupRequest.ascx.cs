@@ -232,7 +232,6 @@ namespace RockWeb.Plugins.GroupManager
             if ( isHomeGroup ) //Pre-populating the form for Home Groups & disabling the fields
             {
                 tbDescription.Text = publishGroup.Group.Description;
-                tbDescription.ReadOnly = true;
                 ddlDayOfWeek.SelectedValue = publishGroup.Group.Schedule.WeeklyDayOfWeek != null ? ( ( int ) publishGroup.Group.Schedule.WeeklyDayOfWeek ).ToString() : "";
                 ddlDayOfWeek.Enabled = false;
                 tTimeOfDay.SelectedTime = publishGroup.Group.Schedule.WeeklyTimeOfDay;
