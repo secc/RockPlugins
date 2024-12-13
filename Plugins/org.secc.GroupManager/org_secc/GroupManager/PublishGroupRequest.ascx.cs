@@ -93,6 +93,7 @@ namespace RockWeb.Plugins.GroupManager
         #endregion
 
         bool mUserCanEditGroup = false;
+        bool isHomeGroup = false;
 
         #region Page Cycle
 
@@ -107,6 +108,11 @@ namespace RockWeb.Plugins.GroupManager
             {
                 publishGroup.LoadAttributes();
                 Rock.Attribute.Helper.AddEditControls( publishGroup, phAttributeEdits, false );
+            }
+
+            if ( publishGroup.Group.GroupTypeId == 60 ) // Determines if publish group is a home group
+            {
+                isHomeGroup = true;
             }
         }
 
@@ -221,6 +227,34 @@ namespace RockWeb.Plugins.GroupManager
                 pnlAttributes.Visible = true;
                 phAttributeEdits.Controls.Clear();
                 Rock.Attribute.Helper.AddEditControls( publishGroup, phAttributeEdits, true );
+            }
+
+            if ( isHomeGroup ) //Pre-populating the form for Home Groups & disabling the fields
+            {
+                tbDescription.Text = publishGroup.Group.Description;
+                ddlDayOfWeek.SelectedValue = publishGroup.Group.Schedule.WeeklyDayOfWeek != null ? ( ( int ) publishGroup.Group.Schedule.WeeklyDayOfWeek ).ToString() : "";
+                ddlDayOfWeek.Enabled = false;
+                tTimeOfDay.SelectedTime = publishGroup.Group.Schedule.WeeklyTimeOfDay;
+                tTimeOfDay.Enabled = false;
+                dpStartDate.SelectedDate = publishGroup.Group.Schedule.EffectiveStartDate;
+                dpStartDate.Enabled = false;
+                tbCustomSchedule.Text = publishGroup.Group.Schedule.iCalendarContent;
+                tbCustomSchedule.ReadOnly = true;
+                tbLocationName.Text = publishGroup.Group.GroupLocations.FirstOrDefault()?.Location.PostalCode;
+                tbLocationName.ReadOnly = true;
+                ddlRegistration.SelectedValue = "1";
+                ddlRegistration.Enabled = false;
+                tbConfirmationFromName.Text = "Southeast Christian Church";
+                tbConfirmationFromName.ReadOnly = true;
+                tbConfirmationFromEmail.Text = "noreply@secc.org";
+                tbConfirmationFromEmail.ReadOnly = true;
+                tbConfirmationSubject.Text = "Group Confirmation | " + publishGroup.Group.Name;
+                tbConfirmationSubject.ReadOnly = true;
+                ceConfirmationBody.Text = "{{ 'Global' | Attribute:'EmailHeader' }} Thank you for registering for the home group: " + publishGroup.Group.Name + ". The group leaders will reach out to you shortly with further details. We look forward to seeing you. {{ 'Global' | Attribute:'EmailFooter' }}";
+                SwitchRegistrationRequirement( RegistrationRequirement.RegistrationAvailable );
+                cbAllowSpouseRegistration.Checked = true;
+                ddlChildcareOptions.SelectedValue = "0";
+                ddlChildcareOptions.Enabled = false;
             }
         }
 
