@@ -1,95 +1,97 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using Newtonsoft.Json;
 using Rock;
 using Rock.Data;
-using Rock.Model;
 using Rock.Web.Cache;
 
 namespace org.secc.Reporting.Model
 {
-    public class DecisionReport
+    [Table( "_org_secc_Reporting_DecisionForm" )]
+    [DataContract]
+    [HideFromReporting]
+    public class DecisionReportItem : Model<DecisionReportItem>, IRockEntity
     {
-        public List<DecisionReportItem> Forms { get; set; }
-        public List<DecisionReportItem> Steps { get; set; }
-
-        public static DecisionReport LoadFromDataset( Guid datasetGuid )
-        {
-            using (var rockContext = new RockContext())
-            {
-                rockContext.Database.CommandTimeout = 60;
-                var dataset = new PersistedDatasetService( rockContext )
-                        .Get( datasetGuid );
-
-                if (dataset == null)
-                {
-                    return null;
-                }
-
-                var report = JsonConvert.DeserializeObject<DecisionReport>( dataset.ResultData );
-
-                return report;
-            }
-
-
-        }
-
-        public List<DecisionReportItem> ConsolidateItems()
-        {
-            var consolidatedList = new List<DecisionReportItem>();
-
-            consolidatedList.AddRange( Forms );
-            consolidatedList.AddRange( Steps );
-
-            return consolidatedList;
-        }
-
-    }
-
-    public class DecisionReportItem
-    {
+        [DataMember]
         public string RecordType { get; set; }
-        public int Id { get; set; }
+        [DataMember]
+        [Column("RecordId")]
+        public int ReportItemId { get; set; }
+        [DataMember]
         public int PersonAliasId { get; set; }
+        [DataMember]
         public int PersonId { get; set; }
+        [DataMember]
         public string LastName { get; set; }
+        [DataMember]
         public string FirstName { get; set; }
+        [DataMember]
         public string NickName { get; set; }
+        [DataMember]
         public int? Age { get; set; }
-        [JsonProperty( "IsMinor" )]
-        public int IsMinorRaw { get; set; }
-        [JsonIgnore]
-        public bool IsMinor { get { return IsMinorRaw == 1; } }
+        [DataMember]
+
+        public bool IsMinor { get; set; }
+        [DataMember]
         public string Gender { get; set; }
+        [DataMember]
         public string Email { get; set; }
+        [DataMember]
         public string MobilePhone { get; set; }
+        [DataMember]
         public int? GraduationYear { get; set; }
+        [DataMember]
         public int? HomeLocationId { get; set; }
+        [DataMember]
         public int? ConnectionStatusValueId { get; set; }
+        [DataMember]
         public string ConnectionStatusValue { get; set; }
+        [DataMember]
         public DateTime? BaptismDate { get; set; }
+        [DataMember]
         public string DecisionType { get; set; }
+        [DataMember]
         public DateTime FormDate { get; set; }
+        [DataMember]
         public int? DecisionCampusId { get; set; }
+        [DataMember]
         public string DecisionCampusName { get; set; }
+        [DataMember]
         public int? FamilyCampusId { get; set; }
+        [DataMember]
         public string FamilyCampusName { get; set; }
+        [DataMember]
         public string EventName { get; set; }
+        [DataMember]
         public int? BaptismTypeValueId { get; set; }
+        [DataMember]
         public string BaptismTypeValue { get; set; }
+        [DataMember]
         public string ParentGuardianName { get; set; }
+        [DataMember]
         public string ParentEmail { get; set; }
+        [DataMember]
         public string ParentPhone { get; set; }
+        [DataMember]
         public DateTime? StatementOfFaithSignedDate { get; set; }
+        [DataMember]
         public DateTime? MembershipDate { get; set; }
+        [DataMember]    
         public DateTime? MembershipClassDate { get; set; }
+        [DataMember]
         public string HomeStreet1 { get; set; }
+        [DataMember]
         public string HomeStreet2 { get; set; }
+        [DataMember]
         public string HomeCity { get; set; }
+        [DataMember]
         public string HomeState { get; set; }
+        [DataMember]
         public string HomePostalCode { get; set; }
+        [DataMember]
         public string HomeCountry { get; set; }
 
         [JsonIgnore]

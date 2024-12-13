@@ -67,6 +67,7 @@ xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Reporting.pdb" "$(SolutionDir)Rock
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web" />
@@ -83,12 +84,14 @@ xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Reporting.pdb" "$(SolutionDir)Rock
     <Compile Include="Data\ReportingService.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="Migrations\001_Init.cs" />
+    <Compile Include="Migrations\DecisonFormReportTable.cs" />
     <Compile Include="Migrations\DecisionReportView.cs" />
     <Compile Include="Migrations\WorshipAttendanceHistory.cs" />
     <Compile Include="Migrations\Configuration.cs" />
-    <Compile Include="Model\DecisionReport.cs" />
     <Compile Include="Model\DataViewSqlFilterStore.cs" />
     <Compile Include="Model\DataViewSqlFilterStoreService.cs" />
+    <Compile Include="Model\DecisionReportItem.cs" />
+    <Compile Include="Model\DecisionReportItemService.cs" />
     <Compile Include="Transactions\SqlFilterCleanupTransaction.cs" />
   </ItemGroup>
   <ItemGroup>

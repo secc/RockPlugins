@@ -374,8 +374,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
         private void UpdateDataset()
         {
 
-            var decisionQry = DecisionReport.LoadFromDataset( "4af2fb1f-92a6-417f-b988-b03668014f3c".AsGuid() )
-                .ConsolidateItems().AsQueryable();
+            var decisionQry = new DecisionReportItemService( new RockContext() ).Queryable().AsNoTracking();
 
 
 
@@ -465,9 +464,11 @@ namespace RockWeb.Plugins.org_secc.Reporting
             }
 
 
-            Decisions = decisionQry.
-                OrderBy( q => q.FormDate )
+            Decisions = decisionQry.ToList()
+                .GroupBy( d => new { d.PersonId, d.DecisionType, FormDate = d.FormDate.ToShortDateString() } )
+                .Select( d => d.OrderBy( d1 => d1.Id ).FirstOrDefault() )
                 .ToList();
+
 
 
             gResults.DataSource = Decisions;
