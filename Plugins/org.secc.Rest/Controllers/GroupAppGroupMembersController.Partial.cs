@@ -23,7 +23,6 @@ using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Rest;
-//using Rock.SystemGuid;
 using Rock.Web.Cache;
 
 namespace org.secc.Rest.Controllers
@@ -427,19 +426,14 @@ namespace org.secc.Rest.Controllers
             if ( groupMemberId > 0 )
             {
                 var _rockContext = new RockContext();
-                var groupMemberServiceHelper = new GroupMemberServiceHelper( _rockContext );
-
-                int? groupTypeId = group.GroupTypeId;
-                var groupTypeCache = GroupTypeCache.Get( groupTypeId.Value );
-                if ( groupTypeCache.EnableGroupHistory == true )
-
+                var groupMemberService = new GroupMemberService( _rockContext );
+                var groupMember = groupMemberService.Get( groupMemberId );
+                if ( groupMember == null )
                 {
-                    groupMemberServiceHelper.ArchiveMember( group, groupMemberId, currentUser.Person );
+                    return NotFound();
                 }
-                else
-                {
-                    groupMemberServiceHelper.DeactivateMember( groupMemberId, currentUser.Person );
-                }
+                groupMemberService.Delete( groupMember );
+                _rockContext.SaveChanges();
                 return Ok();
             }
             else
@@ -582,38 +576,5 @@ namespace org.secc.Rest.Controllers
 
             return groupMembers;
         }
-
-        public void ArchiveMember( Group group, int groupMemberId, Person currentPerson )
-        {
-            //Select multiple group members because someone can be a member of
-            //a group more than once as long as their role is different
-            var gMember = new GroupMemberService( _rockContext ).Get( groupMemberId );
-            var groupMembers = group.Members.Where( m => m.Person.Id == gMember.PersonId );
-            if ( groupMembers.Any() )
-            {
-                foreach ( var groupMember in groupMembers )
-                {
-                    var gm = new GroupMemberService( _rockContext ).Get( groupMember.Id );
-                    if ( gm != null )
-                    {
-                        gm.IsArchived = true;
-                        gm.ArchivedByPersonAliasId = currentPerson.PrimaryAliasId;
-                        gm.ArchivedDateTime = RockDateTime.Now;
-                    }
-                }
-                _rockContext.SaveChanges();
-            }
-        }
-        public void DeactivateMember( int groupMemberId, Person currentPerson )
-        {
-            var groupMemberService = new GroupMemberService( _rockContext );
-            var groupMember = groupMemberService.Get( groupMemberId );
-            if ( groupMember.IsNotNull() )
-            {
-                groupMember.GroupMemberStatus = GroupMemberStatus.Inactive;
-                _rockContext.SaveChanges();
-            }
-        }
     }
-
 }
