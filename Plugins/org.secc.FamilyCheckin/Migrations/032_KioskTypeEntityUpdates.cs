@@ -8,7 +8,7 @@ using Rock.Plugin;
 
 namespace org.secc.FamilyCheckin.Migrations
 {
-    [MigrationNumber(31,"1.13.0")]
+    [MigrationNumber(32,"1.13.0")]
     public partial class KioskTypeEntityUpdates : Migration
     {
         public override void Up()

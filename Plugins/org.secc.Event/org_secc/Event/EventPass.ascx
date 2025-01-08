@@ -71,8 +71,8 @@
                                 </div>
                                     <div class="col-xs-8">
                                         <i class="fas fa-ticket"></i> <%# Eval("EventName") %> <br />
-                                        <i class="far fa-calendar-alt"></i> <%# ((DateTime)Eval("EventDate")).ToLongDateString() %><br />
-                                        <i class="fas fa-map-marker-alt"></i> <%# Eval("EventLocation") %>
+                                        <%# string.Format(Eval("EventDate") == null ? "" : "<i class='far fa-calendar-alt'></i> {0:D}<br />", Eval("EventDate") ) %>
+                                        <%# string.Format(Eval("EventLocation") == null ? "" : "<i class=fas fa-map-marker-alt</i> {0}", Eval("EventLocation")) %>
                                     </div>
                                 </div>
                                 <div class="row bottom-row">

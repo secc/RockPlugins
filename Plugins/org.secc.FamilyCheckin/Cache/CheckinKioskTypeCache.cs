@@ -28,6 +28,12 @@ namespace org.secc.FamilyCheckin.Cache
     [DataContract]
     public class CheckinKioskTypeCache : ModelCache<CheckinKioskTypeCache, Model.CheckinKioskType>
     {
+        public class AttributeKeys
+        {
+            public static string RequireMedicalConsent = "ShowMedicalConsent";
+            public static string MedicalConsentSkipsAllowed = "MedicalConsentSkipsAllowed";
+        }
+
         [DataMember]
         public string Name { get; set; }
 
@@ -88,6 +94,12 @@ namespace org.secc.FamilyCheckin.Cache
         [DataMember]
         public List<int> GroupTypeIds { get; set; }
 
+        [DataMember]
+        public bool RequiresMedicalConsent { get; set; } = false;
+
+        [DataMember]
+        public int? MedicalConsentMaxSkips { get; set; } = null;
+
         public List<GroupTypeCache> GroupTypes { get => GroupTypeCache.All().Where( g => GroupTypeIds.Contains( g.Id ) ).ToList(); }
 
 
@@ -130,6 +142,18 @@ namespace org.secc.FamilyCheckin.Cache
             GroupTypeIds = kioskType.GroupTypes.Select( gt => gt.Id ).ToList();
             Message = kioskType.Message;
             CheckInSchedules = kioskdata.CheckInSchedules.Select( s => s.Clone( false ) ).ToList();
+
+            kioskType.LoadAttributes( rockContext );
+            RequiresMedicalConsent = kioskType.GetAttributeValue( AttributeKeys.RequireMedicalConsent ).AsBoolean();
+            var medConsentMaxSkips = kioskType.GetAttributeValue( AttributeKeys.MedicalConsentSkipsAllowed ).AsInteger();
+            if(medConsentMaxSkips == -1)
+            {
+                MedicalConsentMaxSkips = null;
+            }
+            else
+            {
+                MedicalConsentMaxSkips = medConsentMaxSkips;
+            }
         }
 
         public bool IsOpen( DateTime? dateTime = null )

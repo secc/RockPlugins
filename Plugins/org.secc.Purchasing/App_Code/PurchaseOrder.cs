@@ -804,7 +804,7 @@ namespace org.secc.Purchasing
             return HasBeenRemoved;
         }
 
-        public bool RemovePayment( int paymentID, string uid )
+        public bool RemovePayment( int paymentID, string uid, bool bypassIntacct = false )
         {
             bool HasBeenRemoved = false;
             Payment p = Payments.FirstOrDefault( x => x.PaymentID == paymentID );
@@ -812,7 +812,7 @@ namespace org.secc.Purchasing
             //PO is not closed.
             if ( !Status.GetAttributeValue( "IsClosed" ).AsBoolean() && p.PaymentID > 0 )
             {
-                p.DeactivateCharges( uid );
+                p.DeactivateCharges( uid, bypassIntacct );
                 p.Active = false;
                 p.Save( uid );
                 RefreshPayments();

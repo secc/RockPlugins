@@ -18,7 +18,7 @@ using Rock.Plugin;
 
 namespace org.secc.Migrations
 {
-    [MigrationNumber( 17, "1.13.0" )]
+    [MigrationNumber( 19, "1.13.0" )]
     class WorshipAttendanceTrigger : Migration
     {
 

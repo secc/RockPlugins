@@ -123,6 +123,7 @@
     <Compile Include="WorkflowAttributes\AttributeMatrixDeleteRow.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixAddRow.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixCopy.cs" />
+    <Compile Include="WorkflowAttributes\BinaryFileFromBase64String.cs" />
     <Compile Include="WorkflowAttributes\CopyAttributesFromWorkflow.cs" />
     <Compile Include="SignatureDocument\StoreSignedDocument.cs" />
     <Compile Include="WorkflowAttributes\SECCSetAttriuteValue.cs" />

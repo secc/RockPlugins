@@ -50,6 +50,8 @@
   <ItemGroup>
     <Compile Include="Connection\SafetyAndSecurity_ConnectionVerification.cs" />
     <Compile Include="Metric\WorshipAttendanceTrigger.cs" />
+    <Compile Include="GroupApp\GroupAppGroupTypeMigration.cs" />
+    <Compile Include="GroupApp\GroupAppTableBasedGroupsMigration.cs" />
     <Compile Include="Pages\SuperCheckin_PageData.cs" />
     <Compile Include="Pages\FamilyCheckin_PageData.cs" />
     <Compile Include="Pages\GroupManager_PageData.cs" />
@@ -74,6 +76,7 @@
       <Name>Rock</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Migrations.*" "$(SolutionDir)RockWeb\bin"

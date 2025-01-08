@@ -57,7 +57,7 @@ namespace org.secc.PersonMatch
 
                 firstName = firstName ?? string.Empty;
                 lastName = lastName ?? string.Empty;
-                email = email.ToLower() ?? string.Empty;
+                email = email == null ? string.Empty : email.ToLower() ?? string.Empty;
                 phone = PhoneNumber.CleanNumber( phone ?? string.Empty );
                 List<Person> matchingPersons = new List<Person>();
 

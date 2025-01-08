@@ -129,6 +129,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
         {
             using ( RockContext rockContext = new RockContext() )
             {
+                rockContext.Database.CommandTimeout = 60;
                 var newQry = GetQuery( rockContext );
 
                 SortProperty sortProperty = gReport.SortProperty;

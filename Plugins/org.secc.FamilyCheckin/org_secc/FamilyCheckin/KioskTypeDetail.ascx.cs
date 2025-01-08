@@ -24,6 +24,7 @@ using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Utilities;
 using Rock;
+using Rock.Attribute;
 using Rock.Constants;
 using Rock.Data;
 using Rock.Model;
@@ -35,8 +36,26 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [DisplayName( "Kiosk Type Detail" )]
     [Category( "SECC > Check-in" )]
     [Description( "Displays the details of the given device." )]
-    public partial class KioskTypeDetail : RockBlock
+    [BooleanField("Show Medical Consent Skips",
+        Description = "A flag indicating if the Medical Consent Skips funcationality should be displayed. Default is false.",
+        ControlType = Rock.Field.Types.BooleanFieldType.BooleanControlType.Checkbox,
+        DefaultBooleanValue = false,
+        IsRequired = false,
+        Order = 0,
+        Key = AttributeKeys.ShowMedicalConsentSkips )]
+    public partial class KioskTypeDetail : RockBlock, IDetailBlock
     {
+
+        public class AttributeKeys
+        {
+            public const string ShowMedicalConsentSkips = "ShowMedicalConsentSkips";
+        }
+
+        #region Fields
+        string AttributeKey_RequireMedicalConsent = "ShowMedicalConsent";
+        string AttributeKey_MedicalConsentSkips = "MedicalConsentSkipsAllowed";
+        #endregion
+
         #region Properties
 
         private Dictionary<int, string> Locations
@@ -99,7 +118,19 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             gSchedules.Actions.ShowAdd = true;
             gSchedules.Actions.AddClick += gSchedules_AddClick;
             gSchedules.GridRebind += gSchedules_GridRebind;
+
+            if (GetAttributeValue( AttributeKeys.ShowMedicalConsentSkips ).AsBoolean())
+            {
+                cbRequireMedicalConsent.AutoPostBack = true;
+                cbRequireMedicalConsent.CheckedChanged += cbRequireMedicalConsent_CheckedChanged;
+            }
+            else
+            {
+                tbMedicalConsentMaxSkips.Visible = false;
+            }
         }
+
+
 
         /// <summary>
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
@@ -240,8 +271,22 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 rockContext.SaveChanges();
 
-                CheckinKioskTypeCache.Remove( kioskType.Id );
-                CheckinKioskTypeCache.Get( kioskType.Id );
+                kioskType.LoadAttributes( rockContext );
+                kioskType.SetAttributeValue( AttributeKey_RequireMedicalConsent, cbRequireMedicalConsent.Checked.ToString() );
+                if(cbRequireMedicalConsent.Checked && tbMedicalConsentMaxSkips.Text.AsIntegerOrNull().HasValue)
+                {
+                    kioskType.SetAttributeValue( AttributeKey_MedicalConsentSkips, tbMedicalConsentMaxSkips.Text.AsInteger() );
+                }
+                else
+                {
+                    kioskType.SetAttributeValue( AttributeKey_MedicalConsentSkips, null );
+                }
+                kioskType.SaveAttributeValues( rockContext );
+
+                rockContext.SaveChanges();
+
+                KioskTypeCache.Remove( kioskType.Id );
+                KioskTypeCache.Get( kioskType.Id );
                 KioskDeviceHelpers.Clear( kioskType.GroupTypes.Select( gt => gt.Id ).ToList() );
 
                 NavigateToParentPage();
@@ -256,6 +301,11 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         protected void btnCancel_Click( object sender, EventArgs e )
         {
             NavigateToParentPage();
+        }
+
+        private void cbRequireMedicalConsent_CheckedChanged( object sender, EventArgs e )
+        {
+            tbMedicalConsentMaxSkips.Visible = cbRequireMedicalConsent.Checked;
         }
 
         protected void gLocations_AddClick( object sender, EventArgs e )
@@ -353,8 +403,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             if ( !kioskTypeId.Equals( 0 ) )
             {
-                kioskType = new CheckinKioskTypeService( checkinContext ).Get( kioskTypeId );
-                lActionTitle.Text = ActionTitle.Edit( CheckinKioskType.FriendlyTypeName ).FormatAsHtmlTitle();
+                kioskType = new KioskTypeService( checkinContext ).Get( kioskTypeId );
+                lActionTitle.Text = ActionTitle.Edit( KioskType.FriendlyTypeName ).FormatAsHtmlTitle();
+                kioskType.LoadAttributes( checkinContext );
+
             }
 
             if ( kioskType == null )
@@ -397,6 +449,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             BindLocations();
             BindSchedules();
 
+            if(kioskType.Id > 0)
+            {
+                cbRequireMedicalConsent.Checked = kioskType.GetAttributeValue( AttributeKey_RequireMedicalConsent ).AsBoolean();
+                var skipsAllowed = kioskType.GetAttributeValue( AttributeKey_MedicalConsentSkips ).AsInteger();
+                tbMedicalConsentMaxSkips.Visible = cbRequireMedicalConsent.Checked && GetAttributeValue(AttributeKeys.ShowMedicalConsentSkips).AsBoolean();
+                tbMedicalConsentMaxSkips.Text = skipsAllowed >= 0 ? skipsAllowed.ToString() : string.Empty;
+
+            }
+
             // render UI based on Authorized and IsSystem
             bool readOnly = false;
 
@@ -417,7 +478,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             tbName.ReadOnly = readOnly;
             tbDescription.ReadOnly = readOnly;
-
+            tbMedicalConsentMaxSkips.ReadOnly = readOnly;
             btnSave.Visible = !readOnly;
         }
 

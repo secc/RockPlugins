@@ -119,6 +119,8 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
         {
             using ( var rockContext = new RockContext() )
             {
+                rockContext.Database.CommandTimeout = 60;
+
                 var workflowService = new WorkflowService( rockContext );
                 var attributeService = new AttributeService( rockContext );
                 var attributeValueService = new AttributeValueService( rockContext );

@@ -7,7 +7,9 @@ Tools/org.secc.OAuthTestClient/.vs/
 Tools/**/bin/
 Tools/**/obj/
 Tools/**/packages/
+Tools/**/appSettings.json
 .vs
 .DS_Store
 prepros-6.config
 .system
+

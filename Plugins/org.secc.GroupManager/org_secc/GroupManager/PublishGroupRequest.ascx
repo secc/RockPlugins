@@ -56,7 +56,7 @@
                                 <Rock:RockTextBox runat="server" ID="tbLocationName" Label="Location Name" ValidateRequestMode="Disabled" />
                             </div>
                             <div class="col-md-12">
-                                <Rock:DefinedValuesPickerEnhanced runat="server" EnhanceForLongLists="true" ID="ddlAudience" Label="Audience" />
+                                <Rock:DefinedValuePicker runat="server" ID="ddlAudience" EnhanceForLongLists="true" Label="Audience" />
                             </div>
                         </div>
                     </div>
@@ -169,5 +169,38 @@
         <asp:Panel runat="server" ID="pnlSelectGroup" Visible="false">
             <Rock:GroupPicker runat="server" ID="gpGroup" OnSelectItem="gpGroup_SelectItem" />
         </asp:Panel>
+        <Rock:ModalDialog ID="mdlConfirmGroup" runat="server" Title="Group Confirmation" SaveButtonText="Confirm" CancelLinkVisible="true" OnSaveClick="mdlConfirmGroup_SaveClick">
+            <Content>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <p>Please review the following information before publishing this group.</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <label class="control-label">Group Day/Time:</label>
+                    </div>
+                    <div class="col-sm-8">
+                        <asp:Literal ID="lConfirmDayTime" runat="server" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <label class="control-label">Start Date:</label>
+                    </div>
+                    <div class="col-sm-8">
+                        <asp:Literal ID="lConfirmStartDate" runat="server" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <label class="control-label">Publish Dates:</label>
+                    </div>
+                    <div class="col-sm-8">
+                        <asp:Literal ID="lPublishDates" runat="server" />
+                    </div>
+                </div>
+            </Content>
+        </Rock:ModalDialog>
     </ContentTemplate>
 </asp:UpdatePanel>

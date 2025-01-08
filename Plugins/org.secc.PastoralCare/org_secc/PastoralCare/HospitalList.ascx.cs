@@ -134,6 +134,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
         {
             using ( RockContext rockContext = new RockContext() )
             {
+                rockContext.Database.CommandTimeout = 60;
                 var qry = GetQuery( rockContext );
 
                 var campus = CampusCache.Get( pCampus.SelectedCampusId ?? 0 );

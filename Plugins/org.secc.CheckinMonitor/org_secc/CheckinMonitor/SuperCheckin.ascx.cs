@@ -1428,6 +1428,36 @@ try{{
                             {
                                 groupType.Selected = true;
                             }
+
+                            var gtc = GroupTypeCache.Get( groupType.GroupType.Id );
+                            var checkinByMembershipId = GroupTypeCache.GetId( Constants.GROUP_TYPE_BY_MEMBERSHIP.AsGuid() );
+                            if (!groupType.Selected && gtc.InheritedGroupTypeId == checkinByMembershipId)
+                            {
+                                var membershipGroupAttributeGuid = Constants.GROUP_ATTRIBUTE_MEMBERSHIP_GROUP.AsGuid();
+
+                                var membershipGroupQry = new AttributeValueService( rockContext ).Queryable()
+                                    .Where( av => av.Attribute.Guid == membershipGroupAttributeGuid );
+
+                                var groupService = new GroupService( rockContext );
+                                var checkinGroupIds = groupType.Groups.Select( g => g.Group.Id ).ToList();
+                                var membershipGroupGuids = groupService.Queryable()
+                                   .GroupJoin( membershipGroupQry, a1 => a1.Id, m => m.EntityId, ( a1, m ) => new
+                                        { CheckinGroupId = a1.Id, MembershipGroupAv = m.DefaultIfEmpty().FirstOrDefault() } )
+                                   .Where( g => checkinGroupIds.Contains( g.CheckinGroupId ) )
+                                   .ToList()
+                                   .Select( m => m.MembershipGroupAv.Value.AsGuid() ).ToList();
+
+                                var attendanceMatch = groupService.Queryable()
+                                    .Where( g => membershipGroupGuids.Contains( g.Guid ) )
+                                    .Where( g => groupTypeIds.Contains( g.GroupTypeId ) )
+                                    .Any();
+
+                                if(attendanceMatch)
+                                {
+                                    groupType.Selected = true;
+                                }
+                                                              
+                            }
                         }
                     }
                     else

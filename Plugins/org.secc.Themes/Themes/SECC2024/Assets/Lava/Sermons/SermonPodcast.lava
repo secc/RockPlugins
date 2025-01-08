@@ -2,22 +2,24 @@
 <?xml version="1.0"?>
 {%- assign timezone = 'Now' | Date:'zzz' | Replace:':','' -%}
 {%- assign imageURL = 'Global' | Attribute:'PublicApplicationRoot' | Append:'content/podcasts/SELogoPodcast.jpg' -%}
-<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:secc="http://www.secc.org/dtds/sermons-1.0.dtd" version="2.0">
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:podcast="https://podcastindex.org/namespace/1.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:secc="http://www.secc.org/dtds/sermons-1.0.dtd" xmlns:content="http://purl.org/rss/1.0/modules/content/">
     <channel>
         <title>Southeast Christian Church</title>
         <description>Southeast Christian Church in Louisville, KY invites you to join us in Connecting with Jesus and one another through our weekly podcast with teaching from Senior Pastor Kyle Idleman.</description>
         <link>https://www.southeastchristian.org</link>
+        <atom:link href="{{ 'Global' | Attribute:'PublicApplicationRoot' }}sermonsRSSFeed" rel="self" type="application/rss+xml" />
         <copyright> Copyright {{ 'Now' | Date: 'yyyy' }} Southeast Christian Church, Inc. All rights reserved.</copyright>
+        <verification>774057</verification>
         <language>en-us</language>
         <webmaster>rockhelp@secc.org</webmaster>
-        <managingEditor>web@secc.org</managingEditor>
+        <managingEditor>jmckenzie@secc.org</managingEditor>
         <ttl>{{ Channel.TimeToLive }}</ttl>
         <lastBuildDate>{{ 'Now' | Date:'ddd, dd MMM yyyy HH:mm:00' }} {{ timezone }}</lastBuildDate>
         <itunes:new-feed-url>{{ 'Global' | Attribute:'PublicApplicationRoot' }}sermonsRSSFeed</itunes:new-feed-url>
         <itunes:subtitle>The audio podcast of Southeast Christian Church</itunes:subtitle>
         <itunes:author>Southeast Christian Church, Louisville, KY</itunes:author>
         <itunes:summary>Southeast Christian Church in Louisville, KY invites you to join us in Connecting with Jesus and one another through our weekly podcast with teaching from Senior Pastor Kyle Idleman.</itunes:summary>
-        <itunes:owner><itunes:name>Southeast Christian Church</itunes:name><itunes:email>web@secc.org</itunes:email></itunes:owner>
+        <itunes:owner><itunes:name>Southeast Christian Church</itunes:name><itunes:email>jmckenzie@secc.org</itunes:email></itunes:owner>
         <itunes:keywords>Southeast Christian Church, Kyle Idleman, Sermons, Louisville Kentucky</itunes:keywords>
         <itunes:image href="{{ imageURL }}"/>
         <itunes:explicit>false</itunes:explicit>
@@ -47,7 +49,8 @@
                             "MediaUrl":"{{echoMessage.ChildContentChannelItem | Attribute:'Audio','Path' | Replace:'~/',''}}",
                             "MediaGuid":"{{echoMessage.ChildContentChannelItem | Attribute:'Audio','RawValue'}}",
                             "StartDateTime":"{{echoMessage.ChildContentChannelItem.StartDateTime | Date: 'yyyyMMddHHmmss'}}",
-                            "Item":{{ echoMessage.ChildContentChannelItem | ToJSON }}
+                            "Item":{{ echoMessage.ChildContentChannelItem | ToJSON }},
+                            "Size":{{ echoMessage.ChildContentChannelItem | Attribute:'Audio','FileSize' }}
                         },
                     {%- endfor -%}
                     ]
@@ -60,8 +63,8 @@
                         <title>{{ echoMessage.Item.Title | Escape }}</title>
                         <secc:title>{{ echoMessage.Item.Title | Escape }}</secc:title>
                         <description>{{ echoMessage.Item.Title | Escape }}</description>
-                        <link>{{ 'Global' | Attribute:'PublicApplicationRoot' }}GetFile.ashx/sermon.mp3?guid={{ echoMessage.MediaGuid }}</link>
-                        <enclosure url="{{ 'Global' | Attribute:'PublicApplicationRoot' }}GetFile.ashx/sermon.mp3?guid={{ echoMessage.MediaGuid }}" length="{{ size }}" type="audio/mpeg"></enclosure>
+                        <link>https://www.southeastchristian.org/watch</link>
+                        <enclosure url="{{ 'Global' | Attribute:'PublicApplicationRoot' }}GetFile.ashx/sermon.mp3?guid={{ echoMessage.MediaGuid }}" length="{{ echoMessage.Size }}" type="audio/mpeg"></enclosure>
                         <guid>{{ echoMessage.MediaGuid }}</guid>
                         <pubDate>{{ echoMessage.Item.StartDateTime | Date:'ddd, dd MMM yyyy' }} EST</pubDate>
                         <copyright>{{ echoMessage.Item.StartDateTime | Date:'yyyy' }}</copyright>
@@ -75,7 +78,7 @@
                 {%- assign mediaURL = item | Attribute:'Audio','Path' | Replace:'~/','' -%}
                 {%- assign mediaGuid = item | Attribute:'Audio','RawValue' -%}
                 {%- assign expireDays = 'Now' | DateDiff: parent.ExpireDateTime, 'd' -%}
-                    {%- assign size = item | Attribute:'AudioFileSize' -%}
+                    {%- assign size = item | Attribute:'Audio','FileSize' -%}
                     {%- assign duration = item | Attribute:'Duration' -%}
                     {%- assign summary = item.Content | StripHTML | Escape -%}
                     {%- assign speaker = item | Attribute:'Speaker' | Escape -%}
@@ -86,7 +89,7 @@
                         <title>{{ parent.Title | Escape }}: {{ item.Title | Escape }}</title>
                         <secc:title>{{ item.Title | Escape }}</secc:title>
                         <description>{{ summary }} Speaker: {{ speaker }}</description>
-                        <link>{{ 'Global' | Attribute:'PublicApplicationRoot' }}GetFile.ashx/sermon.mp3?guid={{ mediaGuid }}</link>
+                        <link>https://www.southeastchristian.org/watch</link>
                         <enclosure url="{{ 'Global' | Attribute:'PublicApplicationRoot' }}GetFile.ashx/sermon.mp3?guid={{ mediaGuid }}" length="{{ size }}" type="audio/mpeg"></enclosure>
                         <guid>{{ mediaGuid }}</guid>
                         <pubDate>{{ pubdate }} EST</pubDate>
@@ -97,7 +100,7 @@
                         <itunes:keywords>sermon</itunes:keywords>
                         <itunes:author>{{ speaker }}</itunes:author>
                         <itunes:image href="{{ imageURL }}"></itunes:image>
-                        <itunes:explicit>No</itunes:explicit>
+                        <itunes:explicit>false</itunes:explicit>
                         <secc:vimeo>{{ vimeoId }}</secc:vimeo>
                         <secc:series>{{ parent.Title | Escape }}</secc:series>
                     </item>

@@ -127,7 +127,8 @@
     <Compile Include="Migrations\010_AttendanceQualifiers.cs" />
     <Compile Include="Migrations\009_ExpirationTime.cs" />
     <Compile Include="Migrations\008_MobileCheckinRecord.cs" />
-    <Compile Include="Migrations\031_KioskTypeEntityUpdates.cs" />
+    <Compile Include="Migrations\031_MedicalConsentKioskTypeAttributes.cs" />	
+    <Compile Include="Migrations\032_KioskTypeEntityUpdates.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\003_UpdateCacheTags.cs" />
     <Compile Include="Model\CheckinKioskTypeService.cs" />

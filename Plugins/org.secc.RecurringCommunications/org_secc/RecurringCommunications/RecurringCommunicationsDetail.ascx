@@ -23,7 +23,7 @@
                             <Rock:RockTextBox runat="server" ID="tbFromName" Label="From Name" Required="true" />
                             <Rock:EmailBox runat="server" ID="tbFromEmail" Label="From Email" Required="true" />
                             <Rock:RockTextBox runat="server" ID="tbSubject" Label="Subject" Required="true" />
-                            <Rock:HtmlEditor runat="server" ID="ceEmailBody" Label="Email Body" Required="true" Height="400" />
+                            <Rock:CodeEditor ID="ceEmailBody" Label="Email Body"  EditorHeight="400" runat="server" EditorMode="Html" EditorTheme="Rock"   />
 
                         </fieldset>
                     </asp:Panel>

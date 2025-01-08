@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Text;
 using Newtonsoft.Json;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
@@ -62,6 +63,22 @@ namespace org.secc.FamilyCheckin
                     .ToList();
 
                 var checkInLabels = CheckinLabelGen.GenerateLabels( people, checkInState.Kiosk.Device, GetAttributeValue( action, "AggregatedLabel" ).AsGuidOrNull() );
+
+                //For logging purposes, storing checkInLabels as a workflow attribute
+                StringBuilder combinedLabelsBuilder = new StringBuilder();
+                foreach ( var label in checkInLabels )
+                {
+                    combinedLabelsBuilder.Append( "; " );
+                    combinedLabelsBuilder.AppendLine( "Label Type:" + label.LabelType );
+                    combinedLabelsBuilder.AppendLine( "LabelFile:" + label.LabelFile );
+                    combinedLabelsBuilder.AppendLine( "MergeFields:" );
+                    foreach ( var mergeField in label.MergeFields )
+                    {
+                        combinedLabelsBuilder.AppendLine( $"    {mergeField.Key}: {mergeField.Value}" );
+                    }
+                }
+                string combinedLabels = combinedLabelsBuilder.ToString().TrimStart( ';', ' ' );
+                action.Activity.Workflow.SetAttributeValue( "checkInLabels", combinedLabels );
 
                 var groupType = checkInState.CheckIn.CurrentFamily.People
                     .Where( p => p.Selected )

@@ -49,6 +49,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
     [AttributeField( Rock.SystemGuid.EntityType.PERSON, "Ministry Area Person Attribute", "The person attribute that stores the user's Ministry Area.", false, false, null, "Staff Selector" )]
     [AttributeField( Rock.SystemGuid.EntityType.PERSON, "Position Person Attribute", "The person attribute that stores the user's job position.", false, false, null, "Staff Selector" )]
+    [BooleanField( "Validate GL Account", "Yes", "No", "Should the account information be validated against our GL Account List.", DefaultBooleanValue = true, Key = "ValidateAccounts" )]
+
     public partial class PODetail : RockBlock
     {
         #region Fields
@@ -58,6 +60,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private AttributeService attributeService;
         private Rock.Data.RockContext rockContext;
         #endregion
+
+        private bool bypassIntacctVerification = false;
 
         #region Module Settings
         public string DefaultShipToNameSetting { get { return GetAttributeValue( "DefaultShipToName" ); } }
@@ -221,6 +225,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         protected void Page_Load( object sender, EventArgs e )
         {
             SetSummaryError( String.Empty );
+            bypassIntacctVerification = !GetAttributeValue( "ValidateAccounts" ).AsBoolean();
             if ( !Page.IsPostBack )
             {
                 hlinkPOAlert.NavigateUrl = string.Format( "~/default.aspx?page={0}", PurchaseOrderListPageSetting );
@@ -1270,7 +1275,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void RemovePayment( int paymentID )
         {
-            if ( CurrentPurchaseOrder.RemovePayment( paymentID, CurrentUser.UserName ) )
+            if ( CurrentPurchaseOrder.RemovePayment( paymentID, CurrentUser.UserName, bypassIntacctVerification ) )
                 LoadPO();
             else
                 SetSummaryError( "Unable to remove selected payment." );
@@ -3172,6 +3177,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                             }
                             if ( Charge.Amount != ChargeAmount )
                             {
+                                Charge.BypassIntacct = bypassIntacctVerification;
                                 Charge.Amount = ChargeAmount;
                                 Charge.Save( CurrentUser.UserName );
                             }
