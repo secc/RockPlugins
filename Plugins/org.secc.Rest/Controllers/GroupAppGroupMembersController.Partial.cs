@@ -23,6 +23,7 @@ using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Rest;
+using Rock.Tasks;
 using Rock.Web.Cache;
 
 namespace org.secc.Rest.Controllers
@@ -245,10 +246,9 @@ namespace org.secc.Rest.Controllers
                 }
 
                 _context.SaveChanges();
-                var transaction = new Rock.Transactions.SendCommunicationTransaction();
+                var transaction = new ProcessSendCommunication.Message();
                 transaction.CommunicationId = communication.Id;
-                transaction.PersonAlias = currentPerson.PrimaryAlias;
-                Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+                transaction.Send();
             }
             return;
         }
@@ -338,7 +338,7 @@ namespace org.secc.Rest.Controllers
                     EmailPreference = EmailPreference.EmailAllowed,
                     ReviewReasonNote = "Added via GroupApp",
                     RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id,
-                    ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT.AsGuid() ).Id,
+                    ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PROSPECT.AsGuid() ).Id,
                     RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id,
                     Gender = Gender.Unknown,
                     CreatedByPersonAliasId = currentUser.Person.PrimaryAliasId,
@@ -359,7 +359,7 @@ namespace org.secc.Rest.Controllers
             var groupMember = _groupMemberService.GetByGroupId( groupId ).Where( gm => gm.PersonId == person.Id && gm.IsArchived == false ).FirstOrDefault();
 
             // create a new group member
-            if ( groupMember.IsNull() )
+            if ( groupMember == null )
             {
                 groupMember = new GroupMember
                 {
@@ -532,17 +532,17 @@ namespace org.secc.Rest.Controllers
             var groupMemberService = new GroupMemberService( _rockContext );
             var groupMembers = new List<GroupMember>();
 
-            if ( currentPerson.IsNotNull() )
+            if ( currentPerson != null )
             {
                 var currentGroupMember = groupMemberService.GetByPersonId( currentPerson.Id ).AsQueryable().AsNoTracking()
                     .Where( groupmember => groupmember.GroupId == group.Id ).FirstOrDefault();
 
-                if ( currentGroupMember.IsNotNull() )
+                if ( currentGroupMember != null )
                 {
                     currentGroupMember.LoadAttributes();
                     var currentGroupMemberTableNumber = currentGroupMember.GetAttributeValue( "TableNumber" );
 
-                    if ( currentGroupMemberTableNumber.IsNotNull() )
+                    if ( currentGroupMemberTableNumber != null )
                     {
                         var tableNumberAttributeIds = new AttributeService( _rockContext )
                         .Queryable()

@@ -95,7 +95,7 @@ namespace RockWeb.Plugins.org_secc.Event
             };
 
 
-            person.LaunchWorkflow( workflowGuid, $"Event Pass - {person.FullName}", workflowAttributes );
+            person.LaunchWorkflow( workflowGuid, $"Event Pass - {person.FullName}", workflowAttributes, null );
 
         }
 

@@ -285,8 +285,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 rockContext.SaveChanges();
 
-                KioskTypeCache.Remove( kioskType.Id );
-                KioskTypeCache.Get( kioskType.Id );
+                CheckinKioskTypeCache.Remove( kioskType.Id );
+                CheckinKioskTypeCache.Get( kioskType.Id );
                 KioskDeviceHelpers.Clear( kioskType.GroupTypes.Select( gt => gt.Id ).ToList() );
 
                 NavigateToParentPage();
@@ -403,8 +403,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             if ( !kioskTypeId.Equals( 0 ) )
             {
-                kioskType = new KioskTypeService( checkinContext ).Get( kioskTypeId );
-                lActionTitle.Text = ActionTitle.Edit( KioskType.FriendlyTypeName ).FormatAsHtmlTitle();
+                kioskType = new CheckinKioskTypeService( checkinContext ).Get( kioskTypeId );
+                lActionTitle.Text = ActionTitle.Edit( CheckinKioskType.FriendlyTypeName ).FormatAsHtmlTitle();
                 kioskType.LoadAttributes( checkinContext );
 
             }
