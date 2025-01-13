@@ -13,7 +13,7 @@ dotenv.config({ path: '.env' });
 export default defineConfig({
   globalSetup: require.resolve('./global-setup.ts'),
   globalTimeout: 60000,
-  testDir: './user-actions',
+  testDir: './',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -26,7 +26,6 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
   },
