@@ -231,7 +231,7 @@ namespace RockWeb.Plugins.GroupManager
 
             if ( isHomeGroup ) //Pre-populating the form for Home Groups & disabling the fields
             {
-                tbDescription.Text = publishGroup.Group.Description;
+                tbDescription.Text = publishGroup.Description.IsNotNullOrWhiteSpace() ? publishGroup.Description : publishGroup.Group.Description;
                 ddlDayOfWeek.SelectedValue = publishGroup.Group.Schedule.WeeklyDayOfWeek != null ? ( ( int ) publishGroup.Group.Schedule.WeeklyDayOfWeek ).ToString() : "";
                 ddlDayOfWeek.Enabled = false;
                 tTimeOfDay.SelectedTime = publishGroup.Group.Schedule.WeeklyTimeOfDay;
@@ -252,7 +252,7 @@ namespace RockWeb.Plugins.GroupManager
                 tbConfirmationSubject.ReadOnly = true;
                 ceConfirmationBody.Text = "{{ 'Global' | Attribute:'EmailHeader' }} Thank you for registering for the home group: " + publishGroup.Group.Name + ". The group leaders will reach out to you shortly with further details. We look forward to seeing you. {{ 'Global' | Attribute:'EmailFooter' }}";
                 SwitchRegistrationRequirement( RegistrationRequirement.RegistrationAvailable );
-                cbAllowSpouseRegistration.Checked = true;
+                cbAllowSpouseRegistration.Checked = publishGroup.AllowSpouseRegistration;
                 ddlChildcareOptions.SelectedValue = "0";
                 ddlChildcareOptions.Enabled = false;
             }
