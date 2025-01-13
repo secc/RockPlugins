@@ -252,7 +252,6 @@ namespace RockWeb.Plugins.GroupManager
                 tbConfirmationSubject.ReadOnly = true;
                 ceConfirmationBody.Text = "{{ 'Global' | Attribute:'EmailHeader' }} Thank you for registering for the home group: " + publishGroup.Group.Name + ". The group leaders will reach out to you shortly with further details. We look forward to seeing you. {{ 'Global' | Attribute:'EmailFooter' }}";
                 SwitchRegistrationRequirement( RegistrationRequirement.RegistrationAvailable );
-                cbAllowSpouseRegistration.Checked = publishGroup.AllowSpouseRegistration;
                 ddlChildcareOptions.SelectedValue = "0";
                 ddlChildcareOptions.Enabled = false;
             }
