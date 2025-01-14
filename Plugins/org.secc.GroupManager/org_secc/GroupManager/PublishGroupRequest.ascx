@@ -103,7 +103,7 @@
                             <div class="col-md-8 registrationInformation">
                                 <Rock:UrlLinkBox runat="server" ID="tbRegistrationLink" Label="Custom Registration Website" Visible="false" />
                                 <Rock:Toggle runat="server" ID="cbAllowSpouseRegistration" Label="Allow spouse to register at the same time?"
-                                    OnCssClass="btn-danger" OffCssClass="btn-success" OnText="Yes" OffText="No"
+                                    OnCssClass="btn-success" OffCssClass="btn-danger" OnText="Yes" OffText="No"
                                     Visible="false" />
                             </div>
                             <div class="col-md-12">
