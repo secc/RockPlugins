@@ -162,7 +162,7 @@
                         <hr />
                         <Rock:RockDropDownList runat="server" ID="ddlStatus" Label="Status" AutoPostBack="true" OnSelectedIndexChanged="ddlStatus_SelectedIndexChanged" />
                         <Rock:BootstrapButton runat="server" ID="btnDraft" Text="Save Draft" CssClass="btn btn-default" OnClick="btnDraft_Click" />
-                        <Rock:BootstrapButton runat="server" ID="btnSave" Text="Publish" CssClass="btn btn-primary" OnClick="btnSave_Click" />
+                        <Rock:BootstrapButton runat="server" ID="btnPublish" Text="Publish" CssClass="btn btn-primary" OnClick="btnPublish_Click" />
                     </div>
                 </div>
             </div>

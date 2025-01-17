@@ -150,7 +150,7 @@ namespace RockWeb.Plugins.GroupManager
         {
             if (IsUserAuthorized( Rock.Security.Authorization.EDIT ))
             {
-                btnSave.Text = "Save";
+                btnPublish.Text = "Save";
                 btnDraft.Visible = false;
                 ddlStatus.SelectedValue = publishGroup.PublishGroupStatus.ConvertToInt().ToString();
             }
@@ -237,7 +237,6 @@ namespace RockWeb.Plugins.GroupManager
                 tTimeOfDay.SelectedTime = publishGroup.Group.Schedule.WeeklyTimeOfDay;
                 tTimeOfDay.Enabled = false;
                 dpStartDate.SelectedDate = publishGroup.Group.Schedule.EffectiveStartDate;
-                dpStartDate.Enabled = false;
                 tbCustomSchedule.Text = publishGroup.Group.Schedule.iCalendarContent;
                 tbCustomSchedule.ReadOnly = true;
                 tbLocationName.Text = publishGroup.Group.GroupLocations.FirstOrDefault()?.Location.PostalCode;
@@ -473,7 +472,7 @@ namespace RockWeb.Plugins.GroupManager
                 publishGroupService.Add( publishGroup );
             }
 
-            if (isApprover && publishGroupStatus == PublishGroupStatus.Approved)
+            if (publishGroupStatus == PublishGroupStatus.Approved )
             {
                 publishGroup.Group.IsActive = true;
                 publishGroup.Group.IsPublic = true;
@@ -635,11 +634,13 @@ namespace RockWeb.Plugins.GroupManager
             NavigateToCurrentPage( new Dictionary<string, string> { { PageParameterKeys.GroupId, gpGroup.SelectedValue } } );
         }
 
-        /// <summary>Handles the Click event of the btnSave control.</summary>
+        /// <summary>Handles the Click event of the btnPublish control.</summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void btnSave_Click( object sender, EventArgs e )
+        protected void btnPublish_Click( object sender, EventArgs e )
         {
+            iGroupImage.Required = true;
+
             if (!IsUserAuthorized( Rock.Security.Authorization.EDIT ))
             {
                 var publishGroup = GetPublishGroup();
@@ -650,7 +651,8 @@ namespace RockWeb.Plugins.GroupManager
                 }
 
             }
-            Save( PublishGroupStatus.PendingApproval );
+            
+            Save( PublishGroupStatus.Approved );
         }
 
         protected void btnDraft_Click( object sender, EventArgs e )
