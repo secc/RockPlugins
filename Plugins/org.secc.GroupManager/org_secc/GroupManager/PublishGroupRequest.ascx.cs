@@ -236,7 +236,7 @@ namespace RockWeb.Plugins.GroupManager
                 ddlDayOfWeek.Enabled = false;
                 tTimeOfDay.SelectedTime = publishGroup.Group.Schedule.WeeklyTimeOfDay;
                 tTimeOfDay.Enabled = false;
-                dpStartDate.SelectedDate = publishGroup.Group.Schedule.EffectiveStartDate.IsNotNullOrWhiteSpace() ? publishGroup.Group.Schedule.EffectiveStartDate : publishGroup.StartDate;
+                dpStartDate.SelectedDate = publishGroup.Group.Schedule.EffectiveStartDate.HasValue ? publishGroup.Group.Schedule.EffectiveStartDate : publishGroup.StartDate;
                 tbCustomSchedule.Text = publishGroup.Group.Schedule.iCalendarContent;
                 tbCustomSchedule.ReadOnly = true;
                 tbLocationName.Text = publishGroup.Group.GroupLocations.FirstOrDefault()?.Location.PostalCode;
