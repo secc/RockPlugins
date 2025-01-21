@@ -476,9 +476,13 @@ namespace RockWeb.Plugins.GroupManager
             {
                 publishGroup.Group.IsActive = true;
                 publishGroup.Group.IsPublic = true;
-                //remove all other publish groups for this computer
+            }
+
+            if (publishGroupStatus != PublishGroupStatus.Draft )
+            {
+                //Remove all other publish groups for this computer
                 publishGroupService.DeleteRange( publishGroupService.Queryable().Where( pg => pg.GroupId == publishGroup.GroupId && pg.Id != publishGroup.Id ) );
-            };
+            }
 
             //Set the binary file to not be temporary
             if (publishGroup.ImageId.HasValue)
@@ -647,6 +651,7 @@ namespace RockWeb.Plugins.GroupManager
                 if (publishGroup != null && publishGroup.Id > 0)
                 {
                     ShowConfirmationModal();
+                    return;
                 }
 
             }
@@ -758,7 +763,7 @@ namespace RockWeb.Plugins.GroupManager
 
         protected void mdlConfirmGroup_SaveClick( object sender, EventArgs e )
         {
-            Save( PublishGroupStatus.PendingApproval );
+            Save( PublishGroupStatus.Approved );
         }
 
         #endregion
