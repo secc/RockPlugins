@@ -102,8 +102,9 @@
                             </div>
                             <div class="col-md-8 registrationInformation">
                                 <Rock:UrlLinkBox runat="server" ID="tbRegistrationLink" Label="Custom Registration Website" Visible="false" />
-                                <Rock:Toggle runat="server" ID="cbAllowSpouseRegistration" OnCssClass="btn-primary" OffCssClass="btn-warning"
-                                    OnText="Yes" OffText="No" Label="Allow spouse to register at the same time?" Visible="false" />
+                                <Rock:Toggle runat="server" ID="cbAllowSpouseRegistration" Label="Allow spouse to register at the same time?"
+                                    OnCssClass="btn-success" OffCssClass="btn-danger" OnText="Yes" OffText="No"
+                                    Visible="false" />
                             </div>
                             <div class="col-md-12">
                                 <Rock:RockTextBox runat="server" ID="tbRegistrationDetails" TextMode="MultiLine" Height="200" Label="Registration Request Details" />
@@ -161,7 +162,7 @@
                         <hr />
                         <Rock:RockDropDownList runat="server" ID="ddlStatus" Label="Status" AutoPostBack="true" OnSelectedIndexChanged="ddlStatus_SelectedIndexChanged" />
                         <Rock:BootstrapButton runat="server" ID="btnDraft" Text="Save Draft" CssClass="btn btn-default" OnClick="btnDraft_Click" />
-                        <Rock:BootstrapButton runat="server" ID="btnSave" Text="Publish" CssClass="btn btn-primary" OnClick="btnSave_Click" />
+                        <Rock:BootstrapButton runat="server" ID="btnPublish" Text="Publish" CssClass="btn btn-primary" OnClick="btnPublish_Click" />
                     </div>
                 </div>
             </div>

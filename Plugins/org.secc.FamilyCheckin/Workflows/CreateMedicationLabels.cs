@@ -16,7 +16,11 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Web;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
@@ -133,12 +137,14 @@ namespace org.secc.FamilyCheckin
                                     var checkInLabel = new CheckInLabel( labelCache, mergeObjects );
 
                                     var index = 0;
-                                    foreach ( string mergeFieldText in medicationText )
+                                    foreach (string mergeFieldText in medicationText)
                                     {
                                         checkInLabel.MergeFields.Add( mergeFieldText, index == 0 ? "No Medication Information Found" : "" );
-                                        checkInLabel.MergeFields.Add( instructionsText[index], "" );
+                                        checkInLabel.MergeFields.Add( instructionsText[index], index == 0 ? "Scan QR to Register Medication" : "" );                                                                              
                                         index++;
                                     }
+                                    checkInLabel.MergeFields.Add( "NoMedsQR", @"^FO244,244^GFA,1517,1936,16,:Z64:eJxdlc9rG0cUx99obdYoxmuDhEtRdopPxTkkvengaGWQyVUF6xbqf8G3+iC6Uy1UxoHoPwhBuYg19A/IwazQoT22kNySsEE9FFPoChpYzGan3zer9Y+MQOyXz755897MfHcymUxoQoomL9fwqHytMysTkdCR1FoTdGplVmzp+Ja+4fpfnd77J/jd0n9LPNMxUV9Oo4bIGi6RQydETS+IWlbuGn3M2vBCp6Sa3iy6MFw56rjX7VtvRL9Grrt6iHg/bSJ/3oJ2csT7CTRmh5baphT8XhbkF+rFkqecX+jpB6NPvJTzW3qel5zzg+eIR36dcn5LfzRccbw/jUh8ilyZF/m9ICbUfzueUH8R75v4G476Sbyp72e16/rJyrz5rfpJZHJ6Xf8drvqdTp9WnjY6T13Z6RyZfjf39lqtlnvd/+ZeA6PQ+gt+cHDQ7oOvrKysHhx0iEfTy7zYiqkc0DIS0W3txaLknXbfi2S0+ldnpd0me8gNivHTuRPHZNuswaXOZZKQMzL6hg/fdmtedL9dP8rlIiFbK/RG50S8PHBNrLNCI/5L/plI9Hzwuv6k2+Sn2EDycmoJHeMtP0HDSWbUgMZcmjeAuUsF/+PoXZ/LWBfvI8ziB0GAF8xw4g3ybTtIv+v1DqFl4pAeMT89PVPMHeUPh7Nsq3ifuT+wLr/ZgTh7HVZ2x+STnZLgybBmJyGtrJQq1cFkxDomX62+I+H8ljnvPzD3A2UFr79+NXlO7gZzm6xg8ZVN6+RKjh+Bpy9+USUfKmu2kE+669RwOX4Ynl/uOPN0EI7H413EY8MF/YgDOI0TG/HQlbUW/azjOMZ6h2iu2Fxyhx6GD87z0Junz/LdB1ch2Ykd6IX95Njh84/+p1ag04E6HeH8c/8Te6YXXF/BK2H46vxqJ/z27KLqIB7lewFzNJz7gwm84Gpt7VS53D/mfskd8N3h1XnI/T9zqxu7VV5/kD7i/cH9xetYP/p/GYbPXXdjg3j9s+xR/fAQ3GU90ONwgverbrX6awX991MrKuYn3H+tWHuzmDXun6/8zIrgAKUePLysqN3xS6pW6AL5tR3gTjZwfn4izq+x/0Qt/HLifBr7X/ClLvlSE22nVN/vteu61+0iP3kpeTNjjzHvP+HwyqmxR9wPv+Dzkpv7JvrbUf0Hkv8t7x/uf4wj7OSF7sMfIpmTzEueXvNer9cVbbE/9fOadLrm/luRNZvrvDg/7N+RmE6NTgq/Vta85Ow/m7Xa9tsp5v8+Mf4D//Dgf8T3l/0L/iE1c6z/pOTzJd/abD4Wjz39p96SWFvhf9qMnAr/9ac3uvDfOxz+eV/IqRAJx7N9ZHvkoTUxzp+Jh7tLWGyM82f89w5PmvX+puEL8OL6z2BAMmb/43iCQaOBvAqTHxwGJj8aLth/0SGScBxp6od9YWb+vowU1+9j7yL+vuTL75cqufHvkzrJz23mR6um/zAwfJ9giOa8wNuE5gpKfYfz/sHgDmtU7x2uECkM/qfl3//wIwrw:B84A" );
+
                                     addLabel( checkInLabel, checkInState, groupType, group, rockContext );
                                 }
                                 else
@@ -182,6 +188,7 @@ namespace org.secc.FamilyCheckin
 
                                             index++;
                                         }
+                                        checkInLabel.MergeFields.Add( "NoMedsQR", "" );
 
                                         addLabel( checkInLabel, checkInState, groupType, group, rockContext );
 
