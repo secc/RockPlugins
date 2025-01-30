@@ -188,7 +188,9 @@ namespace org.secc.Rest.Controllers
             var groupMembers = new GroupMemberService( _rockContext )
             .Queryable( "Group, GroupRole, Group.Campus, Group.Campus.Location, Group.GroupLocations, Group.GroupLocations.Location, Group.Schedule" )
             .Where( gm => gm.PersonId == currentPersonId &&
-                         groupTypeIds.Contains( gm.Group.GroupTypeId ) )
+                         groupTypeIds.Contains( gm.Group.GroupTypeId )
+                         && gm.IsArchived == false 
+                         && gm.GroupMemberStatus == GroupMemberStatus.Active )
             .ToList();
 
             var groupList = groupMembers.Select( gm => new GroupAppGroup

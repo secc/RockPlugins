@@ -150,7 +150,7 @@ namespace RockWeb.Plugins.GroupManager
         {
             if (IsUserAuthorized( Rock.Security.Authorization.EDIT ))
             {
-                btnSave.Text = "Save";
+                btnPublish.Text = "Save";
                 btnDraft.Visible = false;
                 ddlStatus.SelectedValue = publishGroup.PublishGroupStatus.ConvertToInt().ToString();
             }
@@ -231,13 +231,12 @@ namespace RockWeb.Plugins.GroupManager
 
             if ( isHomeGroup ) //Pre-populating the form for Home Groups & disabling the fields
             {
-                tbDescription.Text = publishGroup.Group.Description;
+                tbDescription.Text = publishGroup.Description.IsNotNullOrWhiteSpace() ? publishGroup.Description : publishGroup.Group.Description;
                 ddlDayOfWeek.SelectedValue = publishGroup.Group.Schedule.WeeklyDayOfWeek != null ? ( ( int ) publishGroup.Group.Schedule.WeeklyDayOfWeek ).ToString() : "";
                 ddlDayOfWeek.Enabled = false;
                 tTimeOfDay.SelectedTime = publishGroup.Group.Schedule.WeeklyTimeOfDay;
                 tTimeOfDay.Enabled = false;
-                dpStartDate.SelectedDate = publishGroup.Group.Schedule.EffectiveStartDate;
-                dpStartDate.Enabled = false;
+                dpStartDate.SelectedDate = publishGroup.Group.Schedule.EffectiveStartDate.HasValue ? publishGroup.Group.Schedule.EffectiveStartDate : publishGroup.StartDate;
                 tbCustomSchedule.Text = publishGroup.Group.Schedule.iCalendarContent;
                 tbCustomSchedule.ReadOnly = true;
                 tbLocationName.Text = publishGroup.Group.GroupLocations.FirstOrDefault()?.Location.PostalCode;
@@ -252,7 +251,6 @@ namespace RockWeb.Plugins.GroupManager
                 tbConfirmationSubject.ReadOnly = true;
                 ceConfirmationBody.Text = "{{ 'Global' | Attribute:'EmailHeader' }} Thank you for registering for the home group: " + publishGroup.Group.Name + ". The group leaders will reach out to you shortly with further details. We look forward to seeing you. {{ 'Global' | Attribute:'EmailFooter' }}";
                 SwitchRegistrationRequirement( RegistrationRequirement.RegistrationAvailable );
-                cbAllowSpouseRegistration.Checked = true;
                 ddlChildcareOptions.SelectedValue = "0";
                 ddlChildcareOptions.Enabled = false;
             }
@@ -475,13 +473,17 @@ namespace RockWeb.Plugins.GroupManager
                 publishGroupService.Add( publishGroup );
             }
 
-            if (isApprover && publishGroupStatus == PublishGroupStatus.Approved)
+            if (publishGroupStatus == PublishGroupStatus.Approved )
             {
                 publishGroup.Group.IsActive = true;
                 publishGroup.Group.IsPublic = true;
-                //remove all other publish groups for this computer
+            }
+
+            if (publishGroupStatus != PublishGroupStatus.Draft )
+            {
+                //Remove all other publish groups for this computer
                 publishGroupService.DeleteRange( publishGroupService.Queryable().Where( pg => pg.GroupId == publishGroup.GroupId && pg.Id != publishGroup.Id ) );
-            };
+            }
 
             //Set the binary file to not be temporary
             if (publishGroup.ImageId.HasValue)
@@ -637,11 +639,13 @@ namespace RockWeb.Plugins.GroupManager
             NavigateToCurrentPage( new Dictionary<string, string> { { PageParameterKeys.GroupId, gpGroup.SelectedValue } } );
         }
 
-        /// <summary>Handles the Click event of the btnSave control.</summary>
+        /// <summary>Handles the Click event of the btnPublish control.</summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
-        protected void btnSave_Click( object sender, EventArgs e )
+        protected void btnPublish_Click( object sender, EventArgs e )
         {
+            iGroupImage.Required = true;
+
             if (!IsUserAuthorized( Rock.Security.Authorization.EDIT ))
             {
                 var publishGroup = GetPublishGroup();
@@ -652,7 +656,8 @@ namespace RockWeb.Plugins.GroupManager
                 }
 
             }
-            Save( PublishGroupStatus.PendingApproval );
+            
+            Save( PublishGroupStatus.Approved );
         }
 
         protected void btnDraft_Click( object sender, EventArgs e )
@@ -759,7 +764,7 @@ namespace RockWeb.Plugins.GroupManager
 
         protected void mdlConfirmGroup_SaveClick( object sender, EventArgs e )
         {
-            Save( PublishGroupStatus.PendingApproval );
+            Save( PublishGroupStatus.Approved );
         }
 
         #endregion

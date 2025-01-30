@@ -22,27 +22,20 @@
         padding-bottom:15px;
     }
 
-    #pnlCheckinPrompt .btn-no {
-        background-color: #d9534f !important;
-        border-color: #d43f3a !important;
-        border-radius:16px;
-    }
-    #pnlCheckinPrompt .btn-yes {
-        background-color:#16c98d !important;
-        border-color: #16c98d !important;
+    #pnlCheckinPrompt .action-prompt
+    {
+        font-size:20px;
+        font-weight:normal;
     }
 
-    #pnlCheckinPrompt .btn-skip {
-        background-color: #1d1f21 !important;
-        border-color: #1d1f21 !important;
-
-    }
     #pnlCheckinPrompt .btn {
         width:150px !important;
         color: #ffffff !important;
+        margin-left:20px;
+        margin-right:20px;
         font-weight:bolder !important;
         border-radius:16px;
-        box-shadow:
+        background-color:#000000;
     }
 </style>
 <asp:UpdatePanel ID="upMain" runat="server" >
@@ -59,10 +52,9 @@
                         <asp:Panel ID="pnlVerifyInfo" runat="server" CssClass="row" Visible="false">
                             <div class="col-sm-12">
                                 <div class="actions">
-                                    <Rock:BootstrapButton ID="btnInfoYes" runat="server" CssClass="btn btn-lg btn-yes" Text="Yes"  />
-                                    <span class="pull-right">
-                                        <Rock:BootstrapButton ID="btnInfoNo" runat="server" CssClass="btn btn-lg btn-no" Text="No" />
-                                    </span>
+                                    <span class="action-prompt">Is all information correct?</span>
+                                    <Rock:BootstrapButton ID="btnInfoYes" runat="server"  CssClass="btn btn-lg" Text="Yes"  />
+                                    <Rock:BootstrapButton ID="btnInfoNo" runat="server" CssClass="btn btn-lg" Text="No" />
                                 </div>
                             </div>
                         </asp:Panel>
@@ -71,10 +63,10 @@
                             <asp:Literal ID="lConsentMessage" runat="server" />
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <Rock:BootstrapButton ID="btnMedicalIConsentYes" runat="server" CssClass="btn btn-lg btn-yes" Text="I Consent" />
-                                    <span class="pull-right">
-                                        <Rock:BootstrapButton ID="btnMedicalConsentSkip" runat="server" CssClass="btn btn-lg btn-skip" Text="Skip" />
-                                    </span>
+                                    <div class="actions">
+                                        <Rock:BootstrapButton ID="btnMedicalIConsentYes" runat="server" CssClass="btn btn-lg" Text="I Consent" />
+                                        <Rock:BootstrapButton ID="btnMedicalConsentSkip" runat="server" CssClass="btn btn-lg" Text="Skip" />
+                                    </div>
                                 </div>
                             </div>
                         </asp:Panel>
