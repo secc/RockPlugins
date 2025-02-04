@@ -1,4 +1,6 @@
-﻿import d from './data.json';
+﻿import d1 from './data1.json';
+import d2 from './data2.json';
+import d3 from './data3.json';
 
 type CheckInData = {
     Id: number;
@@ -18,8 +20,13 @@ const activeCheckIns: string[] = [
     'BB Other Volunteers'
 ]
 
-export default function getData(): CheckInData[] {
-    var data = d as CheckInData[];
-    data = data.filter(d => activeCheckIns.includes(d.ConfigurationName));
-    return data;
+export default function getData(set: 1 | 2 | 3): CheckInData[] {
+    switch (set) {
+        case 1:
+            return (d1 as CheckInData[]).filter(d => activeCheckIns.includes(d.ConfigurationName));
+        case 2:
+            return (d2 as CheckInData[]).filter(d => activeCheckIns.includes(d.ConfigurationName));
+        case 3:
+            return (d3 as CheckInData[]).filter(d => activeCheckIns.includes(d.ConfigurationName));
+    }
 }
