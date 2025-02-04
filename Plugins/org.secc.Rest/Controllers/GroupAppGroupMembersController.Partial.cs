@@ -104,7 +104,7 @@ namespace org.secc.Rest.Controllers
                     var tableNumberAttribute = currentUser.Person.GetAttributeValue( "TableNumber" );
                     if ( string.IsNullOrEmpty( tableNumberAttribute ) )
                     {
-                        return Ok( groupMemberList ); // Return empty list if no table number assigned
+                        return Ok( "You are not assigned to a table" );
                     }
 
                     groupMembers = groupMembers.Where( gm => gm.Person.GetAttributeValue( "TableNumber" ) == tableNumberAttribute ).ToList();
