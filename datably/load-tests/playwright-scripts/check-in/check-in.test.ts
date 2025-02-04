@@ -4,7 +4,7 @@ import getData from "./data/dataExporter";
 
 test('check-in', async ({ context }) => {
     test.setTimeout(60_000);
-    const data = getData();
+    const data = getData(0);
     
     const page = await context.newPage();
     // for (const family of data) {
