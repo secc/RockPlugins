@@ -5,7 +5,6 @@ dotenv.config({ path: '.env' });
 
 export default defineConfig({
   globalSetup: require.resolve('./global-setup.ts'),
-  globalTimeout: 120_000,
   testDir: './',
   fullyParallel: true,
   
