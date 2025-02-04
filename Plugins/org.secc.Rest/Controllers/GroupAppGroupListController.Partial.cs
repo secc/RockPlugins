@@ -108,7 +108,7 @@ namespace org.secc.Rest.Controllers
                         group.TypeId,
                         group.IsActive,
                         group.IsArchived,
-                        NextSchedule = group.Schedule.GetNextStartDateTime( RockDateTime.Today )
+                        NextSchedule = group.Schedule.GetNextStartDateTime( RockDateTime.Today.AddHours( -3 ) )
                     }
                     );
                 }
@@ -132,7 +132,7 @@ namespace org.secc.Rest.Controllers
                     DateTime? nextSchedule;
                     if ( group.Schedule != null )
                     {
-                        nextSchedule = group.Schedule.GetNextStartDateTime( RockDateTime.Today );
+                        nextSchedule = group.Schedule.GetNextStartDateTime( RockDateTime.Today.AddHours( -3 ) );
                     }
                     else
                     {
@@ -189,7 +189,7 @@ namespace org.secc.Rest.Controllers
             .Queryable( "Group, GroupRole, Group.Campus, Group.Campus.Location, Group.GroupLocations, Group.GroupLocations.Location, Group.Schedule" )
             .Where( gm => gm.PersonId == currentPersonId &&
                          groupTypeIds.Contains( gm.Group.GroupTypeId )
-                         && gm.IsArchived == false 
+                         && gm.IsArchived == false
                          && gm.GroupMemberStatus == GroupMemberStatus.Active )
             .ToList();
 
@@ -206,8 +206,8 @@ namespace org.secc.Rest.Controllers
                         gm.Group.GroupLocations.FirstOrDefault()?.Location?.Name ?? // If there is a group location name, use that
                         ( gm.Group.GroupLocations.FirstOrDefault()?.Location?.Street1 ?? string.Empty ), // otherwise, use the group location address                            
                 LocationAddress = gm.Group?.GroupLocations.FirstOrDefault()?.Location?.FormattedAddress ?? string.Empty,
-                NextSchedule = ( bool ) ( gm.Group?.IsActive ) && ( bool ) ( !gm.Group?.IsArchived ) ? gm.Group?.Schedule?.GetNextStartDateTime( RockDateTime.Today ) ?? // if the first result is null,
-                                                                                                                                                                         //construct the next occurrence from the weeklydayofweek and weeklytimeofday properties on the schedule
+                NextSchedule = ( bool ) ( gm.Group?.IsActive ) && ( bool ) ( !gm.Group?.IsArchived ) ? gm.Group?.Schedule?.GetNextStartDateTime( RockDateTime.Today.AddHours( -3 ) ) ?? // if the first result is null,
+                                                                                                                                                                                       //construct the next occurrence from the weeklydayofweek and weeklytimeofday properties on the schedule
                     ( GetNextWeeklyOccurrence( gm.Group?.Schedule ) ) : null,
                 Url = gm.Group?.IsPublic == true ?
                         GlobalAttributesCache.Value( "PublicApplicationRoot" ) + "groups/homegroups/registration/" + gm.Group?.Id
@@ -262,7 +262,7 @@ namespace org.secc.Rest.Controllers
                 return null;
             }
 
-            var today = RockDateTime.Today;
+            var today = RockDateTime.Today.AddHours( -3 );
             var daysUntilNextOccurrence = ( ( int ) schedule.WeeklyDayOfWeek.Value - ( int ) today.DayOfWeek + 7 ) % 7;
             if ( daysUntilNextOccurrence == 0 && schedule.WeeklyTimeOfDay.Value < RockDateTime.Now.TimeOfDay )
             {
