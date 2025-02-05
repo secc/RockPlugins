@@ -23,7 +23,6 @@ using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Rest;
-using Rock.Tasks;
 using Rock.Web.Cache;
 
 namespace org.secc.Rest.Controllers
@@ -246,9 +245,10 @@ namespace org.secc.Rest.Controllers
                 }
 
                 _context.SaveChanges();
-                var transaction = new ProcessSendCommunication.Message();
+                var transaction = new Rock.Transactions.SendCommunicationTransaction();
                 transaction.CommunicationId = communication.Id;
-                transaction.Send();
+                transaction.PersonAlias = currentPerson.PrimaryAlias;
+                Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
             }
             return;
         }
@@ -338,8 +338,8 @@ namespace org.secc.Rest.Controllers
                     EmailPreference = EmailPreference.EmailAllowed,
                     ReviewReasonNote = "Added via GroupApp",
                     RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id,
-                    ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PROSPECT.AsGuid() ).Id,
-                    RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() ).Id,
+                    ConnectionStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_VISITOR.AsGuid() ).Id,
+                    RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id,
                     Gender = Gender.Unknown,
                     CreatedByPersonAliasId = currentUser.Person.PrimaryAliasId,
                 };
@@ -359,7 +359,7 @@ namespace org.secc.Rest.Controllers
             var groupMember = _groupMemberService.GetByGroupId( groupId ).Where( gm => gm.PersonId == person.Id && gm.IsArchived == false ).FirstOrDefault();
 
             // create a new group member
-            if ( groupMember == null )
+            if ( groupMember.IsNull() )
             {
                 groupMember = new GroupMember
                 {
@@ -532,17 +532,17 @@ namespace org.secc.Rest.Controllers
             var groupMemberService = new GroupMemberService( _rockContext );
             var groupMembers = new List<GroupMember>();
 
-            if ( currentPerson != null )
+            if ( currentPerson.IsNotNull() )
             {
                 var currentGroupMember = groupMemberService.GetByPersonId( currentPerson.Id ).AsQueryable().AsNoTracking()
                     .Where( groupmember => groupmember.GroupId == group.Id ).FirstOrDefault();
 
-                if ( currentGroupMember != null )
+                if ( currentGroupMember.IsNotNull() )
                 {
                     currentGroupMember.LoadAttributes();
                     var currentGroupMemberTableNumber = currentGroupMember.GetAttributeValue( "TableNumber" );
 
-                    if ( currentGroupMemberTableNumber != null )
+                    if ( currentGroupMemberTableNumber.IsNotNull() )
                     {
                         var tableNumberAttributeIds = new AttributeService( _rockContext )
                         .Queryable()
