@@ -111,6 +111,7 @@ xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Reporting.pdb" "$(SolutionDir)Rock
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CampMedicationReport.cs" />
     <Compile Include="DataFilter\SQLFilter.cs">
       <SubType>Component</SubType>
     </Compile>
