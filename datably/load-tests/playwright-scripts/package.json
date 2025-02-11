@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test:check-in": "playwright test check-in.test.ts",
-    "test:check-in:d": "playwright test check-in.test.ts --debug",
-    "test:dataExporter": "cd check-in/data && tsc dataExporter.ts --resolveJsonModule --esModuleInterop && node dataExporter.js && rm dataExporter.js"
+    "codegen": "playwright codegen",
+    "test:c": "playwright test check-in.test.ts --workers=24",
+    "test:cd": "playwright test check-in.test.ts --debug",
+    "test:data-export": "cd check-in/data && tsc dataExporter.ts --resolveJsonModule --esModuleInterop && node dataExporter.js && rm dataExporter.js"
   },
   "keywords": [],
   "author": "",

@@ -15,7 +15,9 @@ type CheckInData = {
     Number: string;
 }
 
-export default function getData(set: 0 | 1 | 2 | 3): CheckInData[] {
+type DataSet = 0 | 1 | 2 | 3;
+
+export function getData(set: DataSet = 0): CheckInData[] {
     switch (set) {
         case 0:
             return d as CheckInData[];
@@ -26,4 +28,11 @@ export default function getData(set: 0 | 1 | 2 | 3): CheckInData[] {
         case 3:
             return d3 as CheckInData[];
     }
+}
+
+export function getUniqueConfigurationNames(set: DataSet = 0): string[] {
+    const data = getData(set);
+    const configNames = data.map(d => d.ConfigurationName);
+    const uniqueNames = configNames.filter((item, index, arr) => arr.indexOf(item) === index);
+    return uniqueNames.sort();
 }

@@ -6,7 +6,6 @@ dotenv.config({ path: '.env' });
 
 export default defineConfig({
   globalSetup: require.resolve('./global-setup.ts'),
-  testDir: './',
   fullyParallel: true,
   
   reporter: 'html',
