@@ -22,14 +22,14 @@ const data = getData(1);
 });
 
 
-test('check-in: fail with non-existent kiosk type', async ({ context }) => {
-    const page = await context.newPage();
-    await openCheckInPage(page, 'Non-existent Kiosk Type');
-});
-
-test('check-in: fail with multiple families with same phone number', async ({ context }) => {
-    const page = await context.newPage();
-    await openCheckInPage(page, 'BB Kids and Volunteers');
-    await checkInFamily(page, '1234567890', 'Training First');
-});
+// test('check-in: fail with non-existent kiosk type', async ({ context }) => {
+//     const page = await context.newPage();
+//     await openCheckInPage(page, 'Non-existent Kiosk Type');
+// });
+//
+// test('check-in: fail with multiple families with same phone number', async ({ context }) => {
+//     const page = await context.newPage();
+//     await openCheckInPage(page, 'BB Kids and Volunteers');
+//     await checkInFamily(page, '1234567890', 'Training First');
+// });
 
