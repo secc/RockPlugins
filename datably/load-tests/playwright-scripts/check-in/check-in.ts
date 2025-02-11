@@ -81,8 +81,7 @@ export async function checkInFamily(page: Page, phoneNumber: string, schedule: s
     await checkInFamilyMembers(page, scheduleTexts);
     
     const checkInButton = page.getByRole('link', { name: 'Check-In', exact: true });
-    await checkInButton.waitFor({ state: 'visible' });
-    
+    await expect(checkInButton).toBeVisible();
     // TODO reinitiate actual check-in when ready
     await page.locator('#ctl00_main_ctl02_ctl01_ctl00_btnCancel').click();
     // await checkInButton.click();

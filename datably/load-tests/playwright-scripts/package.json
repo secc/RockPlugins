@@ -5,6 +5,7 @@
   "scripts": {
     "codegen": "playwright codegen",
     "test:c": "playwright test check-in.test.ts --workers=24",
+    "test:cs": "playwright test check-in.test.ts --workers=1",
     "test:cd": "playwright test check-in.test.ts --debug",
     "test:data-export": "cd check-in/data && tsc dataExporter.ts --resolveJsonModule --esModuleInterop && node dataExporter.js && rm dataExporter.js"
   },
