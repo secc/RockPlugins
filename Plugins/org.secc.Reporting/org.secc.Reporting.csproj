@@ -68,6 +68,7 @@ xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Reporting.pdb" "$(SolutionDir)Rock
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Data" />
     <Reference Include="System.IO, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\System.IO.4.3.0\lib\net462\System.IO.dll</HintPath>
       <Private>True</Private>
@@ -112,9 +113,7 @@ xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Reporting.pdb" "$(SolutionDir)Rock
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CampMedicationReport.cs" />
-    <Compile Include="DataFilter\SQLFilter.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="DataFilter\SQLFilter.cs" />
     <Compile Include="Data\ReportingContext.cs" />
     <Compile Include="Data\ReportingService.cs" />
     <Compile Include="Helpers.cs" />
