@@ -74,6 +74,7 @@
     <Compile Include="Migrations\003_MeetingDetails.cs" />
     <Compile Include="Migrations\002_SpouseRegistration.cs" />
     <Compile Include="Migrations\001_Init.cs" />
+    <Compile Include="Migrations\011_AddCampAllergyReportProc.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\PublishGroupService.cs" />
     <Compile Include="Model\PublishGroup.cs" />
