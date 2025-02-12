@@ -5,13 +5,15 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env' });
 
 export default defineConfig({
-  globalTimeout: 7_200_000, // 2 hrs
-  globalSetup: require.resolve('./global-setup.ts'),
-  fullyParallel: true,
   timeout: 0,
   expect: {
     timeout: 0,
   },
+  globalTimeout: 7_200_000, // 2 hrs
+  globalSetup: require.resolve('./global-setup.ts'),
+  
+  workers: '50%', // % of CPU cores or a number
+  fullyParallel: true,
   
   reporter: 'html',
   use: {

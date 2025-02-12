@@ -4,9 +4,15 @@
   "main": "index.js",
   "scripts": {
     "codegen": "playwright codegen",
-    "test:c": "playwright test check-in.test.ts --workers=24",
-    "test:cs": "playwright test check-in.test.ts --workers=1",
-    "test:cd": "playwright test check-in.test.ts --debug",
+    
+    "test:check-in": "playwright test check-in/runners/check-in.test.ts",
+    "test:check-in:debug": "playwright test check-in.test.ts --debug",
+    "test:check-in:sequential": "playwright test check-in.test.ts --workers=1",
+    
+    "test:check-in:1": "playwright test check-in/runners/check-in-1.test.ts",
+    "test:check-in:2": "playwright test check-in/runners/check-in-2.test.ts",
+    "test:check-in:3": "playwright test check-in/runners/check-in-3.test.ts",
+    
     "test:data-export": "cd check-in/data && tsc dataExporter.ts --resolveJsonModule --esModuleInterop && node dataExporter.js && rm dataExporter.js"
   },
   "keywords": [],

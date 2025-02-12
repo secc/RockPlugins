@@ -1,19 +1,22 @@
 ﻿import {test} from "@playwright/test";
-import {checkInFamily, openCheckInPage} from "./check-in";
-import {getData, getUniqueConfigurationNames} from "./data/dataExporter";
+import {getData, getUniqueConfigurationNames} from "../data/dataExporter";
+import openCheckInPage from "../scripts/openCheckInPage";
+import checkInFamily from "../scripts/checkInFamily";
 
-const data = getData(1);
+const data = getData(0);
 
-// getUniqueConfigurationNames().forEach((config) => {
-[getUniqueConfigurationNames()[1]].forEach((config) => {
+getUniqueConfigurationNames().forEach((config) => {
     test(config, async ({ page }) => {
         await openCheckInPage(page, config);
-
+        
         let i = 1;
         const families = data.filter(d => d.ConfigurationName === config);
         for (const family of families) {
             console.log(`Checking in family ${i++}: ${family.Number}`);
             await checkInFamily(page, family.Number, 'Training First');
+            
+            if (i === 10)
+                return;
         }
     });
 });

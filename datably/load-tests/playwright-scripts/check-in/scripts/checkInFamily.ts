@@ -2,37 +2,9 @@
 
 const white = 'rgb(255, 255, 255)';
 
-export async function openCheckInPage(page: Page, kioskType: string) {
-    await page.goto(`${process.env.BASE_URL}/familycheckin`);
-    if (page.url().includes('/page/2814')) {
-        await login(page);
-        await assertKioskTypeAndCreate(page, kioskType);
-    }
-}
-
-async function login(page: Page) {
-    await page.getByLabel('Username').fill(process.env.USERNAME);
-    await page.getByLabel('Password').fill(process.env.PASSWORD);
-    
-    await page.getByRole('button', { name: 'Login' }).click();
-}
-
-async function assertKioskTypeAndCreate(page: Page, kioskType: string) {
-    const kioskTypes = await page.getByLabel('Kiosk Type').innerText();
-    if (!kioskTypes.includes(kioskType)) {
-        console.error(`Kiosk type \"${kioskType}\" not found.`);
-        return;
-    }
-    
-    await page.getByLabel('Kiosk Name').fill('Load Test Kiosk for ' + kioskType);
-    await page.getByLabel('Kiosk Type').selectOption({ label: kioskType });
-
-    await page.getByRole('link', { name: 'Start' }).click();
-}
-
-export async function checkInFamily(page: Page, phoneNumber: string, schedule: string) {
+export default async function checkInFamily(page: Page, phoneNumber: string, schedule: string) {
     await expect(page).toHaveURL(/\/page\/438/);
-    
+
     const searchButton = page.getByRole('link', { name: 'Search' });
     await expect(searchButton).toBeVisible();
 
@@ -48,9 +20,9 @@ export async function checkInFamily(page: Page, phoneNumber: string, schedule: s
             return;
         }
     }
-    
+
     await expect(page).toHaveURL(/\/page\/439/);
-    
+
     // Exit check-in for this family if we hit these error pages.
     const errorHeadings = [
         'Please see a SE!KIDS Representative.',
@@ -58,8 +30,8 @@ export async function checkInFamily(page: Page, phoneNumber: string, schedule: s
     ]
     for (const error of errorHeadings) {
         if (await page.getByRole('heading', { name: error }).isVisible()) {
-            console.error(`\tFamily with number ${phoneNumber} received \"${error}\"`);
-            
+            console.error(`\tFamily with number ${phoneNumber} received error: \"${error}\"`);
+
             await page.getByRole('link', { name: 'OK' }).click();
             await expect(page).toHaveURL(/\/page\/438/);
             return;
@@ -68,35 +40,41 @@ export async function checkInFamily(page: Page, phoneNumber: string, schedule: s
 
     const scheduleTexts = await selectSchedule(page, schedule);
 
-    let checkInButtonVisible = await page.getByText('Select Room To Checkin').nth(0).isVisible();
+    let checkInButtonVisible = await page.getByText('Select Room To Checkin').first().isVisible();
     while (!checkInButtonVisible) {
         if (await page.getByText('504').isVisible()) {
-            console.error('\tHit gateway timeout. Starting next family...');
+            console.error('\tHit gateway timeout.');
+            await page.goto(`${process.env.BASE_URL}/page/438`);
+            return;
+        }
+        else if (await page.getByText('has already been checked-in').first().isVisible()) {
+            console.error(`\tFamily with number ${phoneNumber} has already been checked-in.`);
+            await page.goto(`${process.env.BASE_URL}/page/438`);
             return;
         }
 
-        checkInButtonVisible = await page.getByText('Select Room To Checkin').nth(0).isVisible();
+        checkInButtonVisible = await page.getByText('Select Room To Checkin').first().isVisible();
     }
-    
+
     await checkInFamilyMembers(page, scheduleTexts);
-    
+
     const checkInButton = page.getByRole('link', { name: 'Check-In', exact: true });
     await expect(checkInButton).toBeVisible();
-    // TODO reinitiate actual check-in when ready
-    await page.locator('#ctl00_main_ctl02_ctl01_ctl00_btnCancel').click();
-    // await checkInButton.click();
-    // await expect(page.getByText('Welcome.')).toBeVisible();
-    
+
+    await checkInButton.click();
+    await expect(page.getByText('Welcome')).toBeVisible();
+
+    // Wait for the page to automatically route
     await expect(page).toHaveURL(/\/page\/438/);
 }
 
 async function selectSchedule(page: Page, schedule: string): Promise<string[]> {
-    
+
     const headingIsVisible = await page.getByRole('heading', { name: 'Please Select One Or More' }).isVisible();
     if (!headingIsVisible) {
         return [schedule];
     }
-    
+
     // Remove the last 4 as they are not schedule links.
     const scheduleLinks = (await page.getByRole('link').all()).slice(0, -4);
 
@@ -104,7 +82,7 @@ async function selectSchedule(page: Page, schedule: string): Promise<string[]> {
     for (const scheduleLink of scheduleLinks) {
         const text = await scheduleLink.textContent();
         scheduleTexts.push(text);
-        
+
         let background = await getBackgroundColor(scheduleLink);
 
         // If the background is white, the schedule is not selected.
@@ -112,7 +90,7 @@ async function selectSchedule(page: Page, schedule: string): Promise<string[]> {
             await scheduleLink.click();
             while (background === white) {
                 background = await getBackgroundColor(scheduleLink);
-            }    
+            }
         }
         else if (text !== schedule && background !== white) {
             await scheduleLink.click();
@@ -121,9 +99,9 @@ async function selectSchedule(page: Page, schedule: string): Promise<string[]> {
             }
         }
     }
-    
+
     await page.getByRole('link', { name: 'Next' }).click();
-    
+
     return scheduleTexts;
 }
 
@@ -135,9 +113,9 @@ async function checkInFamilyMembers(page: Page, scheduleTexts: string[]) {
     for (const link of links) {
         const text = await link.textContent();
         if (validatePersonLink(text, scheduleTexts)) {
-            // .first() fixes the issue where multiple people have the same name, however it deselects the 
+            // Using .first() fixes the issue where multiple people have the same name, however it deselects the 
             // first duplicated person and never selects the second, so neither person will be checked in.
-            // We anticipate this will not have a significant impact on the load test.
+            // We anticipate this to not have a significant impact on the load test.
             personLinks.push(page.getByRole('link', { name: text, exact: true }).first());
         }
     }
@@ -150,7 +128,7 @@ async function checkInFamilyMembers(page: Page, scheduleTexts: string[]) {
 async function checkInPerson(page: Page, personLink: Locator) {
     const text = await personLink.textContent();
     console.log(`\tChecking in ${text}`);
-    
+
     await personLink.click();
 
     let background = await getBackgroundColor(personLink);
@@ -159,7 +137,7 @@ async function checkInPerson(page: Page, personLink: Locator) {
     while (background === white) {
         const roomSelectionModal = page.locator('#ctl00_main_ctl02_ctl01_ctl00_mdChoose_modal_dialog_panel');
         if (await roomSelectionModal.isVisible()) {
-            await roomSelectionModal.getByRole('link').nth(0).click();
+            await roomSelectionModal.getByRole('link').first().click();
             await expect(roomSelectionModal).toBeVisible({ visible: false });
         }
 
@@ -179,11 +157,15 @@ function validatePersonLink(text: string, invalidTexts: string[]) {
             return false;
         }
     }
-    
+
     return !(text.includes('Select Room To Checkin')
+        || text.includes('|')
+        || text.includes(':')
+        || text.includes('-')
+        || text.includes('+')
+        || text.includes('&')
         || text === 'Check-in'
         || text === 'Check-In'
         || text === 'Next'
-        || text === '+'
         || text === '');
 }
