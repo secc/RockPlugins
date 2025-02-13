@@ -16,7 +16,7 @@ export default async function checkInFamily(page: Page, phoneNumber: string, sch
         // Exit check-in for this family if there are other families with the same phone number.
         // We don't have the data for the family names, so we can't differentiate between them.
         if (await familySelector.isVisible()) {
-            console.error(`\tMultiple families with phone number \"${phoneNumber}\" found.`);
+            console.error(`\tMultiple families with phone number ${phoneNumber} found.`);
             return;
         }
         
