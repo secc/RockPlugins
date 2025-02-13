@@ -19,6 +19,11 @@ export default async function checkInFamily(page: Page, phoneNumber: string, sch
             console.error(`\tMultiple families with phone number \"${phoneNumber}\" found.`);
             return;
         }
+        
+        if (await page.getByText('Sorry, we could not find your').isVisible()) {
+            console.error(`\tFamily with number ${phoneNumber} not found.`);
+            return;
+        }
     }
 
     await expect(page).toHaveURL(/\/page\/439/);
