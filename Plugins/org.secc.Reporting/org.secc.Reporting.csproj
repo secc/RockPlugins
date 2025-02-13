@@ -125,6 +125,7 @@ xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Reporting.pdb" "$(SolutionDir)Rock
     <Compile Include="Data\ReportingService.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="Migrations\001_Init.cs" />
+    <Compile Include="Migrations\005_MedicationReportStoredProcedure.cs" />
     <Compile Include="Migrations\DecisonFormReportTable.cs" />
     <Compile Include="Migrations\DecisionReportView.cs" />
     <Compile Include="Migrations\WorshipAttendanceHistory.cs" />
