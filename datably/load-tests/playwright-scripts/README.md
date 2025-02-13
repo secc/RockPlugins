@@ -1,14 +1,14 @@
 ﻿## Check-In Load Tests
 These tests are for analyzing the load that the dev server can handle when checking in users.
 
-They rely on data found in the `/data` directory. 
+The tests rely on data found in the `./check-in/data` directory. 
 
 The tests are split up into three equivalent sections, with each section needing to be run from its own Virtual Machine so the load balancer will move the network traffic properly.
 
 ### Running the Load Tests
 For each VM:
 - Download the repository
-- Navigate to the `datably/load-tests/playwright-scripts` directory
+- Navigate to this directory
 - Run `npm ci`
 - Create a `.env` file in the current directory, using `.env.example` as a template
   - `BASE_URL` is already set with the URL of the Datably dev server for your convenience
@@ -26,3 +26,5 @@ Note that the load tests can only be run once per check-in session, since we cou
 The Playwright engine is configured to run a certain number of tests in parallel, equal to 50% of the number of CPU cores on the host machine. This can be adjusted from `playwright.config.ts` by setting the `workers` property. 
 
 To increase the amount of load as much as possible, you can set `workers` to `23`, since the number of tests is dependent on the number of different check-in configurations in the data, which is 23. However, this will have the effect of greatly slowing down the host machine if it has 23 or less CPU cores.
+
+To decrease the load, you can lower the value for `workers`. Setting it to `1` will run the tests sequentially.
