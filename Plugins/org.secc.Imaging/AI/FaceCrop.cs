@@ -14,7 +14,6 @@
 //
 using System;
 using System.Collections.Generic;
-using System.Data.Entity.Core.Metadata.Edm;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -66,7 +65,7 @@ namespace org.secc.Imaging.AI
 
             if ( isLargeImage )
             {
-                url = url + "&w=" + ( binaryFile.Width.Value * scaleFactor ).ToString();
+                url = url + "&maxwidth=" + ( binaryFile.Width.Value * scaleFactor ).ToString();
             }
 
             var detectedFace = await DetectFace( url );
@@ -119,7 +118,7 @@ namespace org.secc.Imaging.AI
             var centerY = top + height / 2;
 
             // Calculate the crop rectangle to be centered around the face
-    var cropSize = Math.Min( src.Width, src.Height );
+            var cropSize = Math.Min( src.Width, src.Height );
             var cropLeft = Math.Max( 0, centerX - cropSize / 2 );
             var cropTop = Math.Max( 0, centerY - cropSize / 2 );
             var cropRect = new Rectangle( cropLeft, cropTop, Math.Min( cropSize, src.Width - cropLeft ), Math.Min( cropSize, src.Height - cropTop ) );
@@ -136,7 +135,6 @@ namespace org.secc.Imaging.AI
                 }
 
                 g.DrawImage( src, new Rectangle( 0, 0, target.Width, target.Height ), cropRect, GraphicsUnit.Pixel );
-
             }
 
             ImageCodecInfo myImageCodecInfo;
