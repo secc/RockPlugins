@@ -14,6 +14,7 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Core.Metadata.Edm;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -97,36 +98,31 @@ namespace org.secc.Imaging.AI
         {
             var left = detectedFace.FaceRectangle.Left;
             var width = detectedFace.FaceRectangle.Width;
-            var right = left + width;
             var top = detectedFace.FaceRectangle.Top;
             var height = detectedFace.FaceRectangle.Height;
-            var bottom = top + height;
 
             // Adjust numbers for scaled image
             if ( scaleFactor != 1.0 )
             {
                 left = ( int ) ( left / scaleFactor );
                 width = ( int ) ( width / scaleFactor );
-                right = ( int ) ( right / scaleFactor );
                 top = ( int ) ( top / scaleFactor );
                 height = ( int ) ( height / scaleFactor );
-                bottom = ( int ) ( bottom / scaleFactor );
             }
 
             var roll = Math.Round( detectedFace.FaceAttributes.HeadPose.Roll, 2 );
 
             Bitmap src = Image.FromStream( imageStream ) as Bitmap;
 
-            var maxDist = ( new List<int>
-                    { width / 2,
-                        left,
-                        top,
-                        src.Width - right,
-                        src.Height - bottom
-                    } )
-            .Min();
+            // Calculate the center of the face
+            var centerX = left + width / 2;
+            var centerY = top + height / 2;
 
-            Rectangle cropRect = new Rectangle( left - maxDist, top - maxDist, width + ( maxDist * 2 ), height + ( maxDist * 2 ) );
+            // Calculate the crop rectangle to be centered around the face
+    var cropSize = Math.Min( src.Width, src.Height );
+            var cropLeft = Math.Max( 0, centerX - cropSize / 2 );
+            var cropTop = Math.Max( 0, centerY - cropSize / 2 );
+            var cropRect = new Rectangle( cropLeft, cropTop, Math.Min( cropSize, src.Width - cropLeft ), Math.Min( cropSize, src.Height - cropTop ) );
 
             Bitmap target = new Bitmap( 500, 500 );
 
