@@ -49,20 +49,23 @@ namespace org.secc.Imaging.AI
         public async Task<bool> UpdatePhoto( Rock.Model.Person person, BinaryFile binaryFile )
         {
             //Microsoft face doesn't do well with jumbo images
-            //Send them a half size image instead
+            // Send them a scaled image instead
             bool isLargeImage = false;
-            if ( binaryFile.Width.HasValue && binaryFile.Width.Value > 2000 )
+            double scaleFactor = 1.0;
+            if ( binaryFile.Width.HasValue && ( binaryFile.Width.Value > 2000 || binaryFile.Height.Value > 2000 ) )
             {
                 isLargeImage = true;
+                scaleFactor = Math.Min( 2000.0 / binaryFile.Width.Value, 2000.0 / binaryFile.Height.Value );
             }
+
             //for debugging
             var url = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" )
                 .EnsureTrailingForwardslash()
-                + "/GetImage.ashx?Guid=" + binaryFile.Guid.ToString();
+                + "GetImage.ashx?Guid=" + binaryFile.Guid.ToString();
 
             if ( isLargeImage )
             {
-                url = url + "&w=" + ( binaryFile.Width.Value / 2 ).ToString();
+                url = url + "&w=" + ( binaryFile.Width.Value * scaleFactor ).ToString();
             }
 
             var detectedFace = await DetectFace( url );
@@ -71,12 +74,11 @@ namespace org.secc.Imaging.AI
                 return false;
             }
 
-            var stream = CropDetectedFace( detectedFace, binaryFile.ContentStream, isLargeImage );
+            var stream = CropDetectedFace( detectedFace, binaryFile.ContentStream, scaleFactor );
 
             UpdatePersonPhoto( person, stream );
 
             stream.Dispose();
-
 
             return true;
         }
@@ -91,7 +93,7 @@ namespace org.secc.Imaging.AI
             return detectedFaces.FirstOrDefault();
         }
 
-        private MemoryStream CropDetectedFace( DetectedFace detectedFace, Stream imageStream, bool isLargeImage )
+        private MemoryStream CropDetectedFace( DetectedFace detectedFace, Stream imageStream, double scaleFactor )
         {
             var left = detectedFace.FaceRectangle.Left;
             var width = detectedFace.FaceRectangle.Width;
@@ -100,15 +102,15 @@ namespace org.secc.Imaging.AI
             var height = detectedFace.FaceRectangle.Height;
             var bottom = top + height;
 
-            //Adjust numbers for half sized image
-            if ( isLargeImage )
+            // Adjust numbers for scaled image
+            if ( scaleFactor != 1.0 )
             {
-                left = left * 2;
-                width = width * 2;
-                right = right * 2;
-                top = top * 2;
-                height = height * 2;
-                bottom = bottom * 2;
+                left = ( int ) ( left / scaleFactor );
+                width = ( int ) ( width / scaleFactor );
+                right = ( int ) ( right / scaleFactor );
+                top = ( int ) ( top / scaleFactor );
+                height = ( int ) ( height / scaleFactor );
+                bottom = ( int ) ( bottom / scaleFactor );
             }
 
             var roll = Math.Round( detectedFace.FaceAttributes.HeadPose.Roll, 2 );
