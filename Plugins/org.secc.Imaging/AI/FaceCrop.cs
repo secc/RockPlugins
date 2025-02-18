@@ -123,6 +123,16 @@ namespace org.secc.Imaging.AI
             var cropTop = Math.Max( 0, centerY - cropSize / 2 );
             var cropRect = new Rectangle( cropLeft, cropTop, Math.Min( cropSize, src.Width - cropLeft ), Math.Min( cropSize, src.Height - cropTop ) );
 
+            // Ensure the crop rectangle is a square
+            if ( cropRect.Width != cropRect.Height )
+            {
+                int size = Math.Min( cropRect.Width, cropRect.Height );
+                cropRect.Width = size;
+                cropRect.Height = size;
+                cropRect.X = centerX - size / 2;
+                cropRect.Y = centerY - size / 2;
+            }
+
             Bitmap target = new Bitmap( 500, 500 );
 
             using ( Graphics g = Graphics.FromImage( target ) )
