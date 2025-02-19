@@ -68,7 +68,7 @@ namespace org.secc.Imaging.AI
                 url = url + "&w=" + ( ( int ) ( binaryFile.Width.Value * scaleFactor ) ).ToString();
             }
 
-            var detectedFace = await DetectFace( url );
+            var detectedFace = await DetectFace( url, person );
             if ( detectedFace == null )
             {
                 return false;
@@ -84,14 +84,35 @@ namespace org.secc.Imaging.AI
             return true;
         }
 
-        private async Task<DetectedFace> DetectFace( string imageUrl )
+        private async Task<DetectedFace> DetectFace( string imageUrl, Rock.Model.Person person )
         {
-            var detectedFaces = await faceClient.Face.DetectWithUrlAsync( imageUrl,
-                    returnFaceAttributes: new List<FaceAttributeType> { FaceAttributeType.HeadPose },
+            try
+            {
+                var detectedFaces = await faceClient.Face.DetectWithUrlAsync( imageUrl,
+                    returnFaceAttributes: new List<FaceAttributeType>
+                    {
+                        FaceAttributeType.HeadPose
+                    },
                     // We specify detection model 1 because we are retrieving attributes.
                     detectionModel: DetectionModel.Detection01,
                     recognitionModel: RecognitionModel.Recognition04 );
-            return detectedFaces.FirstOrDefault();
+                if ( !detectedFaces.Any() || detectedFaces.Count > 1 )
+                {
+                    return null;
+                }
+                else
+                {
+                    return detectedFaces.First();
+                }
+            }
+            catch ( APIErrorException ex )
+            {
+                throw ex;
+            }
+            catch ( Exception ex )
+            {
+                throw ex;
+            }
         }
 
         private MemoryStream CropDetectedFace( DetectedFace detectedFace, Stream imageStream, double scaleFactor )
