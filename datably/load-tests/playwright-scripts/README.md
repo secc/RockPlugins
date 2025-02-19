@@ -11,12 +11,16 @@ For each VM:
 - Navigate to this directory
 - Run `npm ci`
 - Create a `.env` file in the current directory, using `.env.example` as a template
-  - `BASE_URL` is already set with the URL of the Datably dev server for your convenience
+  - `BASE_URL` is already set with the URL of the Datably development server for your convenience
   - `USERNAME` and `PASSWORD` refer to the credentials that will be used to sign in before creating a new kiosk
+  - `CHECK_IN_VM_COUNT` refers to the total number of VMs running the load tests
+  - `CHECK_IN_VM_NUMBER` refers to the specific VM running load tests
+    - Each VM should have a unique value for this variable and it should lie within the range `0 to (CHECK_IN_VM_COUNT - 1)`
+    - This value determines which families the VM will be responsible for checking in
 
-After the `.env` files have been created and the node packages have been installed on all VMs, run the following command on each:
+After the `.env` files have been created and the node packages have been installed on all VMs, run the following command on each from this directory:
 
-`npm run test:check-in:n`, where `n` is the number for the VM (1, 2, or 3)
+`npm run test:check-in`
 
 The console should output progress updates, such as when it is checking in a user and if the script runs into any issues.
 

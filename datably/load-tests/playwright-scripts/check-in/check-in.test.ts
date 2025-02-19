@@ -1,9 +1,12 @@
 ﻿import {test} from "@playwright/test";
-import {getData, getUniqueConfigurationNames} from "../data/dataExporter";
-import openCheckInPage from "../scripts/openCheckInPage";
-import checkInFamily from "../scripts/checkInFamily";
+import {getData, getUniqueConfigurationNames} from "./data/dataExporter";
+import checkInFamily from "./user-actions/checkInFamily";
+import openCheckInPage from "./user-actions/openCheckInPage";
 
-const data = getData(0);
+const vm = Number(process.env.CHECK_IN_VM_NUMBER);
+const vmCount = Number(process.env.CHECK_IN_VM_COUNT);
+
+const data = getData().filter(x => x.Id % vmCount == vm);
 
 getUniqueConfigurationNames().forEach((config) => {
     test(config, async ({ page }) => {

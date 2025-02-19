@@ -1,37 +1,24 @@
 ﻿import d from './data.json';
-import d1 from './data1.json';
-import d2 from './data2.json';
-import d3 from './data3.json';
 
 type CheckInData = {
     Id: number;
-    ConfigurationId: number;
+    // ConfigurationId: number;
     ConfigurationName: string;
-    CampusId: number;
-    CampusName: string;
-    ScheduleId: number;
-    ScheduleName: string;
-    PrimaryFamilyId: number;
+    // CampusId: number;
+    // CampusName: string;
+    // ScheduleId: number;
+    // ScheduleName: string;
+    // PrimaryFamilyId: number;
     Number: string;
+    // KioskId: number;
 }
 
-type DataSet = 0 | 1 | 2 | 3;
-
-export function getData(set: DataSet = 0): CheckInData[] {
-    switch (set) {
-        case 0:
-            return d as CheckInData[];
-        case 1:
-            return d1 as CheckInData[];
-        case 2:
-            return d2 as CheckInData[];
-        case 3:
-            return d3 as CheckInData[];
-    }
+export function getData(): CheckInData[] {
+    return d as CheckInData[];
 }
 
-export function getUniqueConfigurationNames(set: DataSet = 0): string[] {
-    const data = getData(set);
+export function getUniqueConfigurationNames(): string[] {
+    const data = getData();
     const configNames = data.map(d => d.ConfigurationName);
     const uniqueNames = configNames.filter((item, index, arr) => arr.indexOf(item) === index);
     return uniqueNames.sort();
