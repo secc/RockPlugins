@@ -16,5 +16,6 @@ namespace org.secc.Rest.Models
         public DateTime? NextSchedule { get; set; }
         public string Url { get; set; }
         public bool GroupTracker { get; set; } = false;
+        public bool IsTableBased { get; set; } = false;
     }
 }

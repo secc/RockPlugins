@@ -53,12 +53,13 @@ namespace org.secc.Rest.Controllers
             rockContext.Configuration.ProxyCreationEnabled = false;
 
             var groupServiceHelper = new GroupServiceHelper( rockContext );
-            var definedValues = new DefinedValueService( rockContext )
+            var definedValueService = new DefinedValueService( rockContext );
+            var groupTypeDefinedValues = definedValueService
                 .GetByDefinedTypeGuid( new Guid( "f75bdfa7-582b-4e0d-9715-5e47b0eb57cf" ) )
                 .ToList();
 
             var groupTypeIds = new List<int>();
-            foreach ( var dv in definedValues )
+            foreach ( var dv in groupTypeDefinedValues )
             {
                 if ( int.TryParse( dv.Value, out int groupTypeId ) )
                 {
@@ -66,7 +67,20 @@ namespace org.secc.Rest.Controllers
                 }
             }
 
-            var groupList = groupServiceHelper.GetGroups( currentUser.Person.Id, groupTypeIds );
+            var tableBasedGroupTypeDefinedValues = definedValueService
+                .GetByDefinedTypeGuid( new Guid( "90526a36-fda6-4c90-997c-636b82b793d8" ) )
+                .ToList();
+
+            var tableBasedGroupTypeIds = new List<int>();
+            foreach ( var dv in tableBasedGroupTypeDefinedValues )
+            {
+                if ( int.TryParse( dv.Value, out int groupTypeId ) )
+                {
+                    tableBasedGroupTypeIds.Add( groupTypeId );
+                }
+            }
+
+            var groupList = groupServiceHelper.GetGroups( currentUser.Person.Id, groupTypeIds, tableBasedGroupTypeIds );
 
             return Ok( groupList );
 
@@ -160,20 +174,6 @@ namespace org.secc.Rest.Controllers
         }
     }
 
-    public class GroupContentItem
-    {
-        public int Id { get; set; }
-        public string Title { get; set; }
-        public string Content { get; set; }
-        public DateTime StartDateTime { get; set; }
-        public DateTime? EndDateTime { get; set; }
-        public Guid? SeriesParallaxBackground { get; set; }
-        public Guid? LeaderGuide { get; set; }
-        public Guid? ParticipantGuide { get; set; }
-        public Guid? IceBreakers { get; set; }
-
-    }
-
     public class GroupServiceHelper
     {
         private readonly RockContext _rockContext;
@@ -183,7 +183,7 @@ namespace org.secc.Rest.Controllers
             _rockContext = rockContext;
         }
 
-        public List<GroupAppGroup> GetGroups( int currentPersonId, List<int> groupTypeIds )
+        public List<GroupAppGroup> GetGroups( int currentPersonId, List<int> groupTypeIds, List<int> tableBasedGroupTypeIds )
         {
             var groupMembers = new GroupMemberService( _rockContext )
             .Queryable( "Group, GroupRole, Group.Campus, Group.Campus.Location, Group.GroupLocations, Group.GroupLocations.Location, Group.Schedule" )
@@ -207,12 +207,13 @@ namespace org.secc.Rest.Controllers
                         ( gm.Group.GroupLocations.FirstOrDefault()?.Location?.Street1 ?? string.Empty ), // otherwise, use the group location address                            
                 LocationAddress = gm.Group?.GroupLocations.FirstOrDefault()?.Location?.FormattedAddress ?? string.Empty,
                 NextSchedule = ( bool ) ( gm.Group?.IsActive ) && ( bool ) ( !gm.Group?.IsArchived ) ? gm.Group?.Schedule?.GetNextStartDateTime( RockDateTime.Today ) ?? // if the first result is null,
-                                                                                                                                                                                       //construct the next occurrence from the weeklydayofweek and weeklytimeofday properties on the schedule
+                                                                                                                                                                         //construct the next occurrence from the weeklydayofweek and weeklytimeofday properties on the schedule
                     ( GetNextWeeklyOccurrence( gm.Group?.Schedule ) ) : null,
                 Url = gm.Group?.IsPublic == true ?
                         GlobalAttributesCache.Value( "PublicApplicationRoot" ) + "groups/homegroups/registration/" + gm.Group?.Id
                     : null,
-                GroupTracker = ( gm.Group?.GroupTypeId == 107 || gm.Group?.GroupTypeId == 109 ) && gm.Group?.CampusId == 1
+                GroupTracker = ( gm.Group?.GroupTypeId == 107 || gm.Group?.GroupTypeId == 109 ) && gm.Group?.CampusId == 1,
+                IsTableBased = tableBasedGroupTypeIds.Contains( gm.Group?.GroupTypeId ?? 0 )
             } ).Distinct().OrderByDescending( g => g.IsLeader ).ThenBy( g => g.NextSchedule ).ToList();
 
             return groupList;
