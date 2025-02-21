@@ -264,8 +264,17 @@ namespace org.secc.Rest.Controllers
             }
 
             var today = RockDateTime.Today;
+            var now = RockDateTime.Now;
+            var startTimeToday = today.Add( schedule.WeeklyTimeOfDay.Value );
+
+            // Check if the current time is within 3 hours after the start time today
+            if ( now >= startTimeToday && now <= startTimeToday.AddHours( 3 ) )
+            {
+                return startTimeToday;
+            }
+
             var daysUntilNextOccurrence = ( ( int ) schedule.WeeklyDayOfWeek.Value - ( int ) today.DayOfWeek + 7 ) % 7;
-            if ( daysUntilNextOccurrence == 0 && schedule.WeeklyTimeOfDay.Value < RockDateTime.Now.TimeOfDay )
+            if ( daysUntilNextOccurrence == 0 && schedule.WeeklyTimeOfDay.Value < now.TimeOfDay )
             {
                 daysUntilNextOccurrence = 7;
             }
