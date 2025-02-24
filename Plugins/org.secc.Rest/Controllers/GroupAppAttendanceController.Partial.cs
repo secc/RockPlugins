@@ -169,6 +169,176 @@ namespace org.secc.Rest.Controllers
         }
 
         /// <summary>
+        /// Endpoint to check if self has been marked present
+        /// </summary>
+        /// <returns>IHttpActionResult</returns>
+        [HttpGet]
+        [System.Web.Http.Route( "api/GroupApp/Attendance/SelfReport")]
+        public IHttpActionResult GetSelfReport( int groupId )
+        {
+            var currentUser = UserLoginService.GetCurrentUser();
+            if ( currentUser == null )
+            {
+                return StatusCode( HttpStatusCode.Unauthorized );
+            }
+
+            var group = new GroupService( _context ).Get( groupId );
+            if ( group == null )
+            {
+                return NotFound();
+            }
+
+            // Check if the person is a member of the group
+            var groupMemberService = new GroupMemberService( _context );
+            var groupMember = groupMemberService
+                .Queryable()
+                .Where( gm => gm.GroupId == groupId && gm.PersonId == currentUser.Person.Id )
+                .FirstOrDefault();
+
+            if ( groupMember == null )
+            {
+                return StatusCode( HttpStatusCode.Forbidden );
+            }
+
+            // Get today's occurrence date
+            var occurrenceDate = RockDateTime.Today;
+
+            // Get the group's schedule
+            var schedule = group.Schedule;
+            if ( schedule == null )
+            {
+                return BadRequest( "Group does not have a schedule." );
+            }
+
+            var occurrences = GetListOfOccurrences( group );
+
+            // boolean that represents if the first or second occurrence in occurrences happens today
+            var occurrenceToday = occurrences.Take( 2 ).FirstOrDefault( o => o.OccurrenceDate.Date == occurrenceDate.Date );
+
+            if ( !occurrences.Any() || !occurrenceToday.IsNotNull() )
+            {
+                return BadRequest( "No occurrence scheduled for today." );
+            }
+
+            // check if there is attendance record for the currentuser for the occurrence
+            var attendanceService = new AttendanceService( _context );
+            var attendance = attendanceService
+                .Queryable()
+                .Where( a => a.Occurrence.GroupId == groupId && a.Occurrence.OccurrenceDate == occurrenceDate && a.PersonAlias.PersonId == currentUser.Person.Id )
+                .FirstOrDefault();
+            if ( attendance == null )
+            {
+                return Ok( false );
+            }
+
+            return Ok(true);
+        }
+
+        /// <summary>
+        /// Endpoint to mark self present or not
+        /// </summary>
+        /// <returns>IHttpActionresult</returns>
+        [HttpPost]
+        [System.Web.Http.Route( "api/GroupApp/Attendance/SelfReport" )]
+        public IHttpActionResult PostSelfReport( int groupId, int? locationId = null, bool? present = true )
+        {
+            var currentUser = UserLoginService.GetCurrentUser();
+            if ( currentUser == null )
+            {
+                return StatusCode( HttpStatusCode.Unauthorized );
+            }
+
+            var group = new GroupService( _context ).Get( groupId );
+            if ( group == null )
+            {
+                return NotFound();
+            }
+
+            // Check if the person is a member of the group
+            var groupMemberService = new GroupMemberService( _context );
+            var groupMember = groupMemberService
+                .Queryable()
+                .Where( gm => gm.GroupId == groupId && gm.PersonId == currentUser.Person.Id )
+                .FirstOrDefault();
+
+            if ( groupMember == null )
+            {
+                return StatusCode( HttpStatusCode.Forbidden );
+            }
+
+            // Get today's occurrence date
+            var occurrenceDate = RockDateTime.Today;
+
+            // Get the group's schedule
+            var schedule = group.Schedule;
+            if ( schedule == null )
+            {
+                return BadRequest( "Group does not have a schedule." );
+            }
+            
+            var occurrences = GetListOfOccurrences( group );
+
+            // boolean that represents if the first or second occurrence in occurrences happens today
+            var occurrenceToday = occurrences.Take( 2 ).FirstOrDefault( o => o.OccurrenceDate.Date == occurrenceDate.Date );
+
+            if ( !occurrences.Any() || !occurrenceToday.IsNotNull() )
+            {
+                return BadRequest( "No occurrence scheduled for today." );
+            }
+
+            // Check if current time is within one hour before or after the scheduled start time
+            var currentTime = RockDateTime.Now;
+            if ( currentTime < occurrences.FirstOrDefault()?.StartDateTime?.AddHours( -1 ) || currentTime > occurrences.FirstOrDefault()?.StartDateTime?.AddHours( 1 ) )
+            {
+                return BadRequest( "You can only mark attendance within one hour before or after the scheduled start time." );
+            }
+
+            // Get the group's location
+            locationId = locationId ?? ( group.GroupLocations.Any() ? ( int? ) group.GroupLocations
+                        .Where( l => l.GroupLocationTypeValueId == 19 || l.GroupLocationTypeValueId == 209 )
+                        .Select( l => l.LocationId ).FirstOrDefault()
+                    : null );
+
+            // Find or create the AttendanceOccurrence
+            var attendanceOccurrenceService = new AttendanceOccurrenceService( _context );
+            var occurrence = attendanceOccurrenceService.GetOrAdd( occurrenceDate, groupId, locationId, schedule.Id );
+
+            // Mark attendance
+            var attendanceService = new AttendanceService( _context );
+            var attendance = attendanceService
+                .Queryable()
+                .Where( a => a.OccurrenceId == occurrence.Id && a.PersonAlias.PersonId == currentUser.Person.Id )
+                .FirstOrDefault();
+
+            if ( attendance == null )
+            {
+                attendance = new Attendance
+                {
+                    OccurrenceId = occurrence.Id,
+                    PersonAliasId = currentUser.Person.PrimaryAliasId.Value,
+                    DidAttend = present,
+                    Note = "Self check-in via Group App",
+                    StartDateTime = currentTime
+                };
+                attendanceService.Add( attendance );
+            }
+            else
+            {
+                attendance.DidAttend = present;
+                attendance.Note = "Self check-in via Group App";
+                attendance.StartDateTime = currentTime;
+            }
+
+            _context.SaveChanges();
+
+            if ( present == true )
+                return Ok( "You have been marked present." );
+            else
+                return Ok( "You have been marked not present.");
+        }
+
+
+        /// <summary>
         /// Endpoint to mark "We Did Not Meet"
         /// </summary>
         /// <returns>IHttpActionResult</returns>
@@ -264,7 +434,7 @@ namespace org.secc.Rest.Controllers
             return Ok( groupScheduleOccurrences );
         }
 
-        private List<GroupScheduleOccurence> GetListOfOccurrences( Group group )
+        internal List<GroupScheduleOccurence> GetListOfOccurrences( Group group )
         {
             RockContext rockContext = _context;
             var startDate = RockDateTime.Today.AddYears( -1 );
