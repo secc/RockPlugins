@@ -99,8 +99,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             Person parentGuardian = null;
 
             var familyId = CurrentCheckInState.CheckIn.CurrentFamily.Group.Id;
-            var phoneSearchType = DefinedTypeCache.Get( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER.AsGuid() );
-            var personActiveStatus = DefinedTypeCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() );
+            var phoneSearchType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER.AsGuid() );
+            var personActiveStatus = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() );
+            var userLoginSearchType = DefinedValueCache.Get( org.secc.FamilyCheckin.Utilities.Constants.CHECKIN_SEARCH_TYPE_USERLOGIN.AsGuid() );
 
             if(CurrentCheckInState.CheckIn.SearchType.Id == phoneSearchType.Id)
             {
@@ -112,7 +113,15 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     .OrderBy(p => p.Id)
                     .FirstOrDefault();
             }
-            else if(CurrentCheckInState.CheckIn.CheckedInByPersonAliasId.HasValue)
+            else if (CurrentCheckInState.CheckIn.SearchType.Id == userLoginSearchType.Id)
+            {
+                var searchValue = CurrentCheckInState.CheckIn.SearchValue;
+                parentGuardian = new UserLoginService( rockContext ).Queryable().AsNoTracking()
+                    .Where( u => u.UserName == searchValue )
+                    .Select( u => u.Person )
+                    .FirstOrDefault();
+            }
+            else if (CurrentCheckInState.CheckIn.CheckedInByPersonAliasId.HasValue)
             {
                 parentGuardian = new PersonAliasService( rockContext )
                     .GetPerson( CurrentCheckInState.CheckIn.CheckedInByPersonAliasId.Value );
@@ -150,7 +159,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             var personService = new PersonService( rockContext );
 
             var familyId = CurrentCheckInState.CheckIn.CurrentFamily.Group.Id;
-            var phoneSearchType = DefinedTypeCache.Get( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER.AsGuid() );
+            var phoneSearchType = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.CHECKIN_SEARCH_TYPE_PHONE_NUMBER.AsGuid() );
+            var userLoginSearchType = DefinedValueCache.Get( org.secc.FamilyCheckin.Utilities.Constants.CHECKIN_SEARCH_TYPE_USERLOGIN.AsGuid() );
             Person phoneOwner = null;
 
             if (CurrentCheckInState.CheckIn.SearchType.Id == phoneSearchType.Id)
@@ -163,6 +173,20 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     .FirstOrDefault();
 
                 if (phoneOwner == null)
+                {
+                    NavigateToNextPage();
+                    return;
+                }
+            }
+            if(CurrentCheckInState.CheckIn.SearchType.Id == userLoginSearchType.Id )
+            {
+                var searchValue = CurrentCheckInState.CheckIn.SearchValue;
+                phoneOwner = new UserLoginService( rockContext ).Queryable().AsNoTracking()
+                    .Where( u => u.UserName == searchValue )
+                    .Select( u => u.Person )
+                    .FirstOrDefault();
+
+                if(phoneOwner == null)
                 {
                     NavigateToNextPage();
                     return;
