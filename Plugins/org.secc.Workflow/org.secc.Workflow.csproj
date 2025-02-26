@@ -109,6 +109,7 @@
   <ItemGroup>
     <Compile Include="CMS\ClearCacheTags.cs" />
     <Compile Include="Communication\SendSms.cs" />
+    <Compile Include="Media\BinaryFileRemove.cs" />
     <Compile Include="Media\ImageMontage.cs" />
     <Compile Include="Media\FFmpeg.cs" />
     <Compile Include="Person\GetPersonFromFields.cs" />
