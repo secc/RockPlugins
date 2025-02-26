@@ -173,7 +173,7 @@ namespace org.secc.Rest.Controllers
         /// </summary>
         /// <returns>IHttpActionResult</returns>
         [HttpGet]
-        [System.Web.Http.Route( "api/GroupApp/Attendance/SelfReport")]
+        [System.Web.Http.Route( "api/GroupApp/Attendance/SelfReport" )]
         public IHttpActionResult GetSelfReport( int groupId )
         {
             var currentUser = UserLoginService.GetCurrentUser();
@@ -224,14 +224,14 @@ namespace org.secc.Rest.Controllers
             var attendanceService = new AttendanceService( _context );
             var attendance = attendanceService
                 .Queryable()
-                .Where( a => a.Occurrence.GroupId == groupId && a.Occurrence.OccurrenceDate == occurrenceDate && a.PersonAlias.PersonId == currentUser.Person.Id )
+                .Where( a => a.Occurrence.GroupId == groupId && a.Occurrence.OccurrenceDate == occurrenceDate && a.PersonAlias.PersonId == currentUser.Person.Id && a.DidAttend == true )
                 .FirstOrDefault();
             if ( attendance == null )
             {
                 return Ok( false );
             }
 
-            return Ok(true);
+            return Ok( true );
         }
 
         /// <summary>
@@ -275,7 +275,7 @@ namespace org.secc.Rest.Controllers
             {
                 return BadRequest( "Group does not have a schedule." );
             }
-            
+
             var occurrences = GetListOfOccurrences( group );
 
             // boolean that represents if the first or second occurrence in occurrences happens today
@@ -334,7 +334,7 @@ namespace org.secc.Rest.Controllers
             if ( present == true )
                 return Ok( "You have been marked present." );
             else
-                return Ok( "You have been marked not present.");
+                return Ok( "You have been marked not present." );
         }
 
 
