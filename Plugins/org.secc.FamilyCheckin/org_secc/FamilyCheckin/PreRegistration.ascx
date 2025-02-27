@@ -151,7 +151,7 @@
                 </div>
                 <div class="row">
                     <div class="col-sm-4">
-                        <Rock:RockCheckBox runat="server" ID="cbGuest" Label="Guest?" Help="Check this box if this child is a guest rather than a member of your immediate family" />                        
+                        <Rock:RockCheckBox runat="server" ID="cbGuest" Label="Is this child a member of your household?" Help="Check this box if this child is a member of your household rather than your guest" checked="true"/>                        
                     </div>
                     <div class="col-sm-4">
                         <Rock:RockRadioButtonList runat="server" ID="rblGender" Label="Gender" Required="true" RepeatDirection="Horizontal">
@@ -336,7 +336,7 @@
                     return;
                 }
                 var option = document.createElement( "option" );
-                option.text = "Pre-K / Preschool";
+                option.text = "Newborn to Pre-K";
                 option.value = "";
                 gradePicker.add( option, gradePicker.options[ 1 ] );
             }

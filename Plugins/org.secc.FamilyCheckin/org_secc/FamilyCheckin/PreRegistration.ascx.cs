@@ -202,7 +202,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             tbChildFirstname.Text = children[i.Value].FirstName;
             tbChildLastname.Text = children[i.Value].LastName;
             bpChildBirthday.Text = children[i.Value].DateOfBirth.ToShortDateString();
-            cbGuest.Checked = children[i.Value].IsGuest;
+            cbGuest.Checked = !children[i.Value].IsGuest;
             rblGender.SelectedValue = children[i.Value].Gender;
             gpGrade.SelectedValue = children[i.Value].Grade.ToString();
             tbAllergies.Text = children[i.Value].Allergies;
@@ -299,12 +299,12 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
 
 
             HtmlGenericControl info = new HtmlGenericControl();
-            info.Controls.Add( new RockLiteral() { Label = "Guest?:", Text = child.IsGuest ? "Yes" : "No" } );
             info.Controls.Add( new RockLiteral() { Label = "Gender:", Text = child.Gender } );
             info.Controls.Add( new RockLiteral() { Label = "Birthdate:", Text = child.DateOfBirth.ToShortDateString() + " (" + child.DateOfBirth.Age() + " Yrs)" } );
             info.Controls.Add( new RockLiteral() { Label = "Grade:", Text = ( child.Grade == null ? "Pre-school" : DefinedValueCache.Get( child.Grade.Value ).Description ) } );
             info.Controls.Add( new RockLiteral() { Label = "Allergies:", Text = !string.IsNullOrEmpty( child.Allergies ) ? child.Allergies : "[None]" } );
             info.Controls.Add( new RockLiteral() { Label = "Special&nbsp;Needs:", Text = !string.IsNullOrEmpty( child.MedicalNote ) ? child.MedicalNote : "[None]" } );
+            info.Controls.Add( new RockLiteral() { Label = "Member of Household?:", Text = !child.IsGuest ? "Yes" : "No" } );
 
             infoContainer.Controls.Add( info );
             //cardContainer.Controls.Add(new HtmlGenericControl() { InnerHtml = "<hr>" });
@@ -783,7 +783,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         {
             child.DateOfBirth = bpChildBirthday.SelectedDate.Value;
         }
-        child.IsGuest = cbGuest.Checked;
+        child.IsGuest = !cbGuest.Checked;
         child.Gender = rblGender.Text;
         child.Grade = gpGrade.SelectedValue.AsGuidOrNull();
         child.Allergies = tbAllergies.Text;
@@ -796,7 +796,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
         tbChildFirstname.Text = "";
         tbChildLastname.Text = "";
         bpChildBirthday.SelectedDate = null;
-        cbGuest.Checked = false;
+        cbGuest.Checked = true;
         rblGender.ClearSelection();
         gpGrade.SelectedIndex = 0;
         tbAllergies.Text = "";
