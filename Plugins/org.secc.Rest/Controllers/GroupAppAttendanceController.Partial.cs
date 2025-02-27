@@ -248,6 +248,11 @@ namespace org.secc.Rest.Controllers
                 return StatusCode( HttpStatusCode.Unauthorized );
             }
 
+            if ( currentUser.Person.AgeClassification != AgeClassification.Adult )
+            {
+                return StatusCode( HttpStatusCode.Forbidden );
+            }
+
             var group = new GroupService( _context ).Get( groupId );
             if ( group == null )
             {

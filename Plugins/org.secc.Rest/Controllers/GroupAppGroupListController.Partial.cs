@@ -201,6 +201,7 @@ namespace org.secc.Rest.Controllers
                 IsActive = gm.Group?.IsActive ?? false,
                 IsArchived = gm.Group?.IsArchived ?? false,
                 IsLeader = gm.GroupRole?.IsLeader ?? false,
+                IsAdult = gm.Person?.AgeClassification == AgeClassification.Adult,
                 LocationName = gm.Group?.GroupLocations.FirstOrDefault() == null ? // If there are no group locations, use the campus location name
                     ( gm.Group?.Campus?.Location?.Name ?? string.Empty ) : // If there's a campus name, use that
                         gm.Group.GroupLocations.FirstOrDefault()?.Location?.Name ?? // If there is a group location name, use that
