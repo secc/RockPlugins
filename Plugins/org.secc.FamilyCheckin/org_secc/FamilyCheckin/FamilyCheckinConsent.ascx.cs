@@ -178,7 +178,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                     return;
                 }
             }
-            if(CurrentCheckInState.CheckIn.SearchType.Id == userLoginSearchType.Id )
+            else if (CurrentCheckInState.CheckIn.SearchType.Id == userLoginSearchType.Id )
             {
                 var searchValue = CurrentCheckInState.CheckIn.SearchValue;
                 phoneOwner = new UserLoginService( rockContext ).Queryable().AsNoTracking()
