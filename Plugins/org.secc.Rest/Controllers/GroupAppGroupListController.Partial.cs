@@ -186,7 +186,7 @@ namespace org.secc.Rest.Controllers
         public List<GroupAppGroup> GetGroups( int currentPersonId, List<int> groupTypeIds, List<int> tableBasedGroupTypeIds )
         {
             var groupMembers = new GroupMemberService( _rockContext )
-            .Queryable( "Group, GroupRole, Group.Campus, Group.Campus.Location, Group.GroupLocations, Group.GroupLocations.Location, Group.Schedule" )
+            .Queryable( "Group, GroupRole, Group.Campus, Group.Campus.Location, Group.GroupLocations, Group.GroupLocations.Location, Group.Schedule, Person" )
             .Where( gm => gm.PersonId == currentPersonId &&
                          groupTypeIds.Contains( gm.Group.GroupTypeId )
                          && gm.IsArchived == false
