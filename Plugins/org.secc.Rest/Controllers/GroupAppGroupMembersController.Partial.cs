@@ -128,7 +128,8 @@ namespace org.secc.Rest.Controllers
                         Email = isCurrentUserLeader ? person.Email : null,
                         Phone = isCurrentUserLeader ? person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() )?.ToString() : null,
                         PhotoURL = person.PhotoUrl,
-                        IsLeader = groupMember.GroupRole.IsLeader
+                        IsLeader = groupMember.GroupRole.IsLeader,
+                        IsCurrentUser = groupMember.PersonId == currentUser.Person.Id
                     };
 
                     groupMemberList.Add( groupAppGroupMember );

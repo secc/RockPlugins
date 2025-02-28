@@ -220,6 +220,12 @@ namespace org.secc.Rest.Controllers
                 return BadRequest( "No occurrence scheduled for today." );
             }
 
+            // Check if the current occurrence was set to DidNotMeet and return an error if it was
+            if ( occurrenceToday.DidNotMeet == true )
+            {
+                return BadRequest( "This attendance occurrence was marked as \"Did Not Meet\"." );
+            }
+
             // check if there is attendance record for the currentuser for the occurrence
             var attendanceService = new AttendanceService( _context );
             var attendance = attendanceService
@@ -246,6 +252,11 @@ namespace org.secc.Rest.Controllers
             if ( currentUser == null )
             {
                 return StatusCode( HttpStatusCode.Unauthorized );
+            }
+
+            if ( currentUser.Person.AgeClassification != AgeClassification.Adult )
+            {
+                return StatusCode( HttpStatusCode.Forbidden );
             }
 
             var group = new GroupService( _context ).Get( groupId );
@@ -291,6 +302,12 @@ namespace org.secc.Rest.Controllers
             if ( currentTime < occurrences.FirstOrDefault()?.StartDateTime?.AddHours( -1 ) || currentTime > occurrences.FirstOrDefault()?.StartDateTime?.AddHours( 1 ) )
             {
                 return BadRequest( "You can only mark attendance within one hour before or after the scheduled start time." );
+            }
+
+            // Check if the current occurrence was set to DidNotMeet and return an error if it was
+            if ( occurrences.FirstOrDefault()?.DidNotMeet == true)
+            {
+                return BadRequest( "This attendance occurrence was marked as \"Did Not Meet\"." );
             }
 
             // Get the group's location

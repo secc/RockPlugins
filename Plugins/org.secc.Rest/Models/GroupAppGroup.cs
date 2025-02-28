@@ -10,6 +10,7 @@ namespace org.secc.Rest.Models
         public bool IsActive { get; set; }
         public bool IsArchived { get; set; }
         public bool IsLeader { get; set; }
+        public bool IsAdult { get; set; }
         public bool EmailParentsEnabled { get; set; }
         public string LocationName { get; set; }
         public string LocationAddress { get; set; }
