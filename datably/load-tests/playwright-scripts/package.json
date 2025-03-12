@@ -2,7 +2,16 @@
   "name": "playwright-scripts",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "codegen": "playwright codegen",
+    
+    "test:check-in": "playwright test check-in.test.ts",
+    "test:check-in:d": "playwright test check-in.test.ts --debug",
+    "test:check-in:s": "playwright test check-in.test.ts --workers=1",
+    "test:check-in:ds": "playwright test check-in.test.ts --debug --workers=1",
+    
+    "test:data-export": "cd check-in/data && tsc dataExporter.ts --resolveJsonModule --esModuleInterop && node dataExporter.js && rm dataExporter.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -10,6 +19,7 @@
   "devDependencies": {
     "@playwright/test": "^1.48.2",
     "@types/node": "^22.8.1",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.7",
+    "typescript": "^5.7.3"
   }
 }

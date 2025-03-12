@@ -1,14 +1,9 @@
 import {test} from "@playwright/test";
-import {baseline, loginAndNavigateRoutes, SRU13_CreateADataViewAndReport, SRU15_CheckingAPersonProfile, SRU16_ViewingEventRegistration, SRU17_VisitExternalPageAccountAndBrowse, SRU18_Groups, SRU19_EventExternalPage} from "./user-actions";
+import {baseline, SRU13_CreateADataViewAndReport, SRU15_CheckingAPersonProfile, SRU16_ViewingEventRegistration, SRU17_VisitExternalPageAccountAndBrowse, SRU18_Groups, SRU19_EventExternalPage} from "./user-actions";
 
 
 test('baseline', async ({ page }) => {
     await baseline(page);
-});
-
-test('login and navigate demo', async ({ page }) => {
-    test.setTimeout(120000);
-    await loginAndNavigateRoutes(page);
 });
 
 test('SRU13_CreateADataViewAndReport', async ({ page }) => {

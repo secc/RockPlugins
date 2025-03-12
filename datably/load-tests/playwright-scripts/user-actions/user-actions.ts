@@ -1,6 +1,6 @@
 import {Page} from "@playwright/test";
 import {login} from "./support/login";
-import goto from "./support/goto";
+import goto from "../support/goto";
 
 
 async function wait(page:Page)
