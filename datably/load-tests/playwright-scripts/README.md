@@ -10,7 +10,7 @@ so the load balancer will move the network traffic properly.
 ### Running the Load Tests
 For each VM:
 - Download the repository
-- Navigate to directory of this README
+- Navigate to directory of this README in a terminal
 - Run `npm ci`
 - Run `npx playwright install`
 - Create a `.env` file in the current directory, using `.env.example` as a template
@@ -37,10 +37,10 @@ so that the load tests can be run multiple times per check-in session if needed.
 Once we receive that, we will update this documentation to include that process.
 
 ### How to increase/decrease load
-The Playwright engine is configured to run a certain number of tests in parallel, equal to 50% of the number of CPU cores on the host machine. This can be adjusted from `playwright.config.ts` by setting the `workers` property. 
+The Playwright engine is configured to run a certain number of tests in parallel, equal to the number of logical CPU cores on the host machine. This can be adjusted from `playwright.config.ts` by setting the `workers` property. 
 
-To increase the load as much as possible, you can set `workers` to `23`, 
-since the number of tests is dependent on the number of different check-in configurations in the data, which is 23. 
-However, this will have the effect of greatly slowing down the host machine if it has 23 or less CPU cores.
+To increase the load as much as possible, you can set `workers` to `23`.
+Since the number of tests running at once is dependent on the number of different check-in configurations in the data, a number greater than 23 will have the same behavior as if it were set to 23. 
+__Note: Running more parallel tests than logical CPU cores will have the effect of greatly slowing down the host machine along with the test suite.__
 
 To decrease the load, you can lower the value for `workers`. Setting it to `1` will run the tests sequentially.
