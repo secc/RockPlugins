@@ -74,8 +74,6 @@ namespace org.secc.Rest.Controllers
 
             if ( isGroupMember || group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
             {
-
-
                 var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
                 var groupMembers = groupMemberServiceHelper.GetGroupMembers( group, currentUser.Person );
                 var currentUserGroupMember = groupMembers.FirstOrDefault( gm => gm.PersonId == currentUser.Person.Id );
@@ -98,15 +96,19 @@ namespace org.secc.Rest.Controllers
 
                 var isTableBasedGroup = parsedGroupTypeIds.Contains( group.GroupTypeId );
 
-                if ( !isCurrentUserLeader && isTableBasedGroup )
+                if ( isTableBasedGroup )
                 {
-                    var tableNumberAttribute = currentUser.Person.GetAttributeValue( "TableNumber" );
+                    currentUserGroupMember.LoadAttributes();
+                    var tableNumberAttribute = currentUserGroupMember.GetAttributeValue( "TableNumber" );
                     if ( string.IsNullOrEmpty( tableNumberAttribute ) )
                     {
                         return Ok( "You are not assigned to a table" );
                     }
-
-                    groupMembers = groupMembers.Where( gm => gm.Person.GetAttributeValue( "TableNumber" ) == tableNumberAttribute ).ToList();
+                    foreach ( var gm in groupMembers )
+                    {
+                        gm.LoadAttributes();
+                    }
+                    groupMembers = groupMembers.Where( gm => gm.GetAttributeValue( "TableNumber" ) == tableNumberAttribute ).ToList();
                 }
 
                 var homeLocationTypeId = _definedValueService.GetByGuid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;
