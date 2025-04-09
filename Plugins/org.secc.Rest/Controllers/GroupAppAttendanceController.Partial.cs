@@ -446,9 +446,61 @@ namespace org.secc.Rest.Controllers
             if ( group.Schedule == null )
                 return NotFound();
 
-            var groupScheduleOccurrences = GetListOfOccurrences( group );
+            // Get all attendance occurrences from the past 12 months for this group
+            var startDate = RockDateTime.Today.AddYears( -1 );
+            var endDate = RockDateTime.Today.AddDays( 1 );
 
-            return Ok( groupScheduleOccurrences );
+            var attendanceOccurrenceService = new AttendanceOccurrenceService( _context );
+            var existingOccurrences = attendanceOccurrenceService
+                .Queryable()
+                .Include( o => o.Schedule )
+                .AsNoTracking()
+                .Where( o => o.GroupId == group.Id )
+                .Where( o => o.OccurrenceDate >= startDate && o.OccurrenceDate < endDate )
+                .ToList();
+
+            // Get occurrences based on group's schedule if it exists
+            var scheduledOccurrences = new List<GroupScheduleOccurence>();
+            if ( group.Schedule != null )
+            {
+                scheduledOccurrences = GetListOfOccurrences( group );
+            }
+
+            // Add any attendance occurrences that aren't in the scheduled occurrences
+            var existingOccurrenceIds = scheduledOccurrences
+                .Where( o => o.OccurrenceId.HasValue )
+                .Select( o => o.OccurrenceId.Value )
+                .ToList();
+
+            var missingOccurrences = existingOccurrences
+                .Where( o => !existingOccurrenceIds.Contains( o.Id ) )
+                .ToList();
+
+            foreach ( var occurrence in missingOccurrences )
+            {
+                var startDateTime = occurrence.Schedule?.GetNextStartDateTime( occurrence.OccurrenceDate )
+                    ?? ( ( bool ) ( occurrence.Schedule?.WeeklyTimeOfDay.HasValue )
+                        ? occurrence.OccurrenceDate.Add( occurrence.Schedule.WeeklyTimeOfDay.Value )
+                        : occurrence.OccurrenceDate );
+
+                scheduledOccurrences.Add( new GroupScheduleOccurence
+                {
+                    OccurrenceId = occurrence.Id,
+                    GroupId = occurrence.GroupId,
+                    LocationId = occurrence.LocationId,
+                    ScheduleId = occurrence.ScheduleId,
+                    OccurrenceDate = occurrence.OccurrenceDate,
+                    StartDateTime = startDateTime,
+                    DidNotMeet = occurrence.DidNotOccur
+                } );
+            }
+
+            // Sort by date descending so most recent occurrences appear first
+            var sortedOccurrences = scheduledOccurrences
+                .OrderByDescending( o => o.OccurrenceDate )
+                .ToList();
+
+            return Ok( sortedOccurrences );
         }
 
         internal List<GroupScheduleOccurence> GetListOfOccurrences( Group group )
