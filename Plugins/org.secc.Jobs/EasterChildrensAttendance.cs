@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data.Entity;
-using System.Data.SqlClient;
-using System.Linq;
-using Quartz;
+﻿using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.Entity;
+using System.Data.SqlClient;
+using System.Linq;
 
 
 namespace org.secc.Jobs
@@ -35,11 +35,24 @@ namespace org.secc.Jobs
         IsRequired = true,
         Key = "WorshipSchedules",
         Order = 2 )]
+    [IntegerField( "Command Timeout",
+        Description = "SQL Command Timeout in Seconds.  Minimum is 30s",
+        IsRequired = false,
+        Key = "CommandTimeout",
+        DefaultIntegerValue = 30,
+        Order = 3 )]
     public class EasterChildrensAttendance : IJob
     {
         public void Execute( IJobExecutionContext context )
         {
             var jobMap = context.JobDetail.JobDataMap;
+
+            var commandTimeout = jobMap.GetString( "CommandTimeout" ).AsInteger();
+
+            if (commandTimeout < 30)
+            {
+                commandTimeout = 30;
+            }
 
             var endDate = jobMap.GetString( "EasterDate" ).AsDateTime();
             var startDate = endDate.Value.AddDays( -6 );
@@ -56,6 +69,7 @@ namespace org.secc.Jobs
 
 
             var rockContext = new RockContext();
+            rockContext.Database.CommandTimeout = commandTimeout;
             var scheduleService = new ScheduleService( rockContext );
 
             var schedules = scheduleService.Queryable().AsNoTracking()
