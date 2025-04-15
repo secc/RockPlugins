@@ -1,41 +1,86 @@
-﻿using System;
+﻿using Quartz;
+using Rock;
+using Rock.Attribute;
+using Rock.Data;
+using Rock.Model;
+using Rock.Web.Cache;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
-using Quartz;
-using Rock;
-using Rock.Data;
-using Rock.Model;
-using Rock.Web.Cache;
 
 
 namespace org.secc.Jobs
 {
     [DisallowConcurrentExecution]
-    [DisplayName("Easter SEKids Attendance Analytics Pull")]
+    [DisplayName( "Easter SEKids Attendance Analytics Pull" )]
+    [DateField( "Easter Sunday Date",
+        Description = "The Sunday that Easter falls on.",
+        IsRequired = true,
+        Key = "EasterDate",
+        Order = 0 )]
+    [CategoryField( "SE!Kids Check-in Schedule Categories",
+        Description = "The Schedule Categories that contains the SE!Kids Easter Check-in Schedules. Multi Select is Enabled.",
+        AllowMultiple = true,
+        EntityTypeName = "Rock.Model.Schedule",
+        IsRequired = true,
+        Key = "CheckinSchedules",
+        Order = 1 )]
+    [CategoryField( "Worship Schedule Categories",
+        Description = "The Schedule Categories that contains the  Easter Worship Service Times. Multi Select is Enabled.",
+        AllowMultiple = true,
+        EntityTypeName = "Rock.Model.Schedule",
+        IsRequired = true,
+        Key = "WorshipSchedules",
+        Order = 2 )]
+    [IntegerField( "Command Timeout",
+        Description = "SQL Command Timeout in Seconds.  Minimum is 30s",
+        IsRequired = false,
+        Key = "CommandTimeout",
+        DefaultIntegerValue = 30,
+        Order = 3 )]
     public class EasterChildrensAttendance : IJob
     {
         public void Execute( IJobExecutionContext context )
         {
-            var startdate = new DateTime( 2024, 3, 25 );
-            var enddate = new DateTime( 2024, 3, 31 );
-            var easterCheckinScheduleParentCategoryIds = new List<int>() { 2228, 254, 1624, 314, 616, 248, 505, 2167, 1191, 1618, 1765, 1685, 265, 646 };
-            var easterServiceScheduleCategoryIds = new List<int>() { 2213, 337, 338, 339, 578, 853, 1180, 1311, 1335, 1336, 1512, 1607, 1614, 1631, 1650, 1890, 2170 };
+            var jobMap = context.JobDetail.JobDataMap;
+
+            var commandTimeout = jobMap.GetString( "CommandTimeout" ).AsInteger();
+
+            if (commandTimeout < 30)
+            {
+                commandTimeout = 30;
+            }
+
+            var endDate = jobMap.GetString( "EasterDate" ).AsDateTime();
+            var startDate = endDate.Value.AddDays( -6 );
+
+            var checkinScheduleCategoryGuids = jobMap.GetString( "CheckinSchedules" ).SplitDelimitedValues()
+                .Select( s => s.AsGuidOrNull() )
+                .Where( s => s.HasValue )
+                .ToList();
+
+            var worshipScheduleCategoryGuids = jobMap.GetString( "WorshipSchedules" ).SplitDelimitedValues()
+                .Select( s => s.AsGuidOrNull() )
+                .Where( s => s.HasValue )
+                .ToList();
+
 
             var rockContext = new RockContext();
+            rockContext.Database.CommandTimeout = commandTimeout;
             var scheduleService = new ScheduleService( rockContext );
 
             var schedules = scheduleService.Queryable().AsNoTracking()
-                .Where( s => easterServiceScheduleCategoryIds.Contains( s.CategoryId.Value ) )
+                .Where( s => worshipScheduleCategoryGuids.Contains( s.Category.Guid ) )
                 .Where( s => s.IsActive );
 
             var worshipSchedules = new List<ServiceSchedule>();
             foreach (var schedule in schedules)
             {
-                var nextStartDate = schedule.GetNextStartDateTime( startdate );
-                if(nextStartDate.HasValue && nextStartDate.Value.Date <= enddate)
+                var nextStartDate = schedule.GetNextStartDateTime( startDate );
+                if (nextStartDate.HasValue && nextStartDate.Value.Date <= endDate.Value)
                 {
                     schedule.LoadAttributes();
                     var campusGuids = schedule.GetAttributeValue( "Campus" ).SplitDelimitedValues();
@@ -55,14 +100,14 @@ namespace org.secc.Jobs
 
             var checkinSchedules = new List<ServiceSchedule>();
             var cSchedules = scheduleService.Queryable().AsNoTracking()
-                .Where( s => easterCheckinScheduleParentCategoryIds.Contains( s.CategoryId.Value ) )
+                .Where( s => checkinScheduleCategoryGuids.Contains( s.Category.Guid ) )
                 .Where( s => s.IsActive );
 
             foreach (var schedule in cSchedules)
             {
-                var nextStartDate = schedule.GetNextStartDateTime( startdate );
+                var nextStartDate = schedule.GetNextStartDateTime( startDate );
 
-                if(nextStartDate.HasValue && nextStartDate.Value.Date <= enddate)
+                if (nextStartDate.HasValue && nextStartDate.Value.Date <= endDate)
                 {
                     schedule.LoadAttributes();
                     var campusGuids = schedule.GetAttributeValue( "Campus" ).SplitDelimitedValues();
@@ -103,14 +148,14 @@ namespace org.secc.Jobs
             }
             // END Multination
             var groupTypeService = new GroupTypeService( rockContext );
-            var parentGroupTypes = groupTypeService.Queryable().Where(t => t.Name.ToLower().Contains("kids"))
+            var parentGroupTypes = groupTypeService.Queryable().Where( t => t.Name.ToLower().Contains( "kids" ) )
                 .ToList();
 
             var groupTypeIds = new List<int>();
-    
-            foreach(var gt in parentGroupTypes)
+
+            foreach (var gt in parentGroupTypes)
             {
-                groupTypeIds.AddRange( groupTypeService.GetCheckinAreaDescendants( gt.Guid ).Select(g => g.Id).ToList() );
+                groupTypeIds.AddRange( groupTypeService.GetCheckinAreaDescendants( gt.Guid ).Select( g => g.Id ).ToList() );
             }
 
             var volunteerGroupIds = new AttributeValueService( rockContext ).Queryable().Where( av => av.AttributeId == 10946 )
@@ -122,7 +167,7 @@ namespace org.secc.Jobs
             var attendanceBaseQuery = new AttendanceService( rockContext ).Queryable()
                 .Where( a => a.DidAttend == true )
                 .Where( a => a.DeviceId.HasValue )
-                .Where( a => a.Occurrence.SundayDate == enddate )
+                .Where( a => a.Occurrence.SundayDate == endDate )
                 .Where( a => groupTypeIds.Contains( a.Occurrence.Group.GroupTypeId ) )
                 .Where( a => !volunteerGroupIds.Contains( a.Occurrence.GroupId ) )
                 .Where( a => checkinScheduleIds.Contains( a.Occurrence.ScheduleId ?? -1 ) );
@@ -173,10 +218,15 @@ namespace org.secc.Jobs
             }
 
             var sqlContext = new RockContext();
-            var truncateDataTableSQL = "TRUNCATE TABLE dbo._org_secc_Easter_SEKidsAttendance";
-            sqlContext.Database.ExecuteSqlCommand( truncateDataTableSQL );
+            //var truncateDataTableSQL = "TRUNCATE TABLE dbo._org_secc_Easter_SEKidsAttendance";
+            var deleteCheckinSchedules = "DELETE FROM dbo._org_secc_Easter_SEKidsAttendance WHERE SundayDate = @SundayDate";
+            var deleteParams = new List<SqlParameter>();
+            deleteParams.Add( new SqlParameter( "@SundayDate", endDate.Value ) );
 
-            foreach (var item in attendanceValues.Where(s => s.ScheduleId > 0).ToList())
+
+            sqlContext.Database.ExecuteSqlCommand( deleteCheckinSchedules, deleteParams.ToArray() );
+
+            foreach (var item in attendanceValues.Where( s => s.ScheduleId > 0 ).ToList())
             {
                 List<SqlParameter> sp = new List<SqlParameter>
                 {
