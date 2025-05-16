@@ -256,9 +256,9 @@
                             <h3>Checked-In:</h3>
                             <Rock:Grid runat="server" DataKeyNames="Id" ID="gCheckedin" ShowFooter="false" ShowActionRow="false" DisplayType="Light">
                                 <Columns>
-                                    <Rock:RockBoundField DataField="Group.Name" HeaderText="Class"></Rock:RockBoundField>
-                                    <Rock:RockBoundField DataField="Location.Name" HeaderText="Location"></Rock:RockBoundField>
-                                    <Rock:RockBoundField DataField="Schedule.Name" HeaderText="Schedule"></Rock:RockBoundField>
+                                    <Rock:RockBoundField DataField="Occurrence.Group.Name" HeaderText="Class"></Rock:RockBoundField>
+                                    <Rock:RockBoundField DataField="Occurrence.Location.Name" HeaderText="Location"></Rock:RockBoundField>
+                                    <Rock:RockBoundField DataField="Occurrence.Schedule.Name" HeaderText="Schedule"></Rock:RockBoundField>
                                     <Rock:RockBoundField DataField="CreatedDateTime" HeaderText="Time Checked-In"></Rock:RockBoundField>
                                     <Rock:RockBoundField DataField="StartDateTime" HeaderText="Time Arrived"></Rock:RockBoundField>
                                     <Rock:LinkButtonField OnClick="Checkout_Click" Text="Checkout" CssClass="btn btn-sm btn-danger"></Rock:LinkButtonField>
@@ -269,9 +269,9 @@
                             <h3>History:</h3>
                             <Rock:Grid runat="server" DataKeyNames="Id" ID="gHistory" ShowFooter="false" ShowActionRow="false" DisplayType="Light">
                                 <Columns>
-                                    <Rock:RockBoundField DataField="Group.Name" HeaderText="Class"></Rock:RockBoundField>
-                                    <Rock:RockBoundField DataField="Location.Name" HeaderText="Location"></Rock:RockBoundField>
-                                    <Rock:RockBoundField DataField="Schedule.Name" HeaderText="Schedule"></Rock:RockBoundField>
+                                    <Rock:RockBoundField DataField="Occurrence.Group.Name" HeaderText="Class"></Rock:RockBoundField>
+                                    <Rock:RockBoundField DataField="Occurrence.Location.Name" HeaderText="Location"></Rock:RockBoundField>
+                                    <Rock:RockBoundField DataField="Occurrence.Schedule.Name" HeaderText="Schedule"></Rock:RockBoundField>
                                     <Rock:RockBoundField DataField="StartDateTime" HeaderText="Time Arrived"></Rock:RockBoundField>
                                     <Rock:RockBoundField DataField="EndDateTime" HeaderText="Time Departed"></Rock:RockBoundField>
                                     <Rock:RockBoundField DataField="AttendanceCode.Code" HeaderText="Code"></Rock:RockBoundField>
