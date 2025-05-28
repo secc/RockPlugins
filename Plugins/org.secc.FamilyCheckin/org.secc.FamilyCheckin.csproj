@@ -91,10 +91,12 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup>    
     <Compile Include="Attribute\CheckinGroupFieldAttribute.cs" />
     <Compile Include="Cache\BreakoutGroupItem.cs" />
     <Compile Include="Cache\CheckinCache.cs" />
+    <Compile Include="Cache\CheckinCacheConsumer.cs" />
+    <Compile Include="Cache\CheckinCacheMessage.cs" />
     <Compile Include="Cache\CheckinKioskTypeCache.cs" />
     <Compile Include="Cache\MobileCheckinRecordCache.cs" />
     <Compile Include="Cache\AttendanceCache.cs" />
@@ -123,11 +125,10 @@
     <Compile Include="Migrations\002_Message.cs" />
     <Compile Include="Migrations\013_GroupFilterAttributes.cs" />
     <Compile Include="Migrations\012_CheckinCampusFamilyDT.cs" />
-    <Compile Include="Migrations\011_KioskTypeTheme.cs" />
-    <Compile Include="Migrations\010_AttendanceQualifiers.cs" />
+    <Compile Include="Migrations\011_KioskTypeTheme.cs" />    <Compile Include="Migrations\010_AttendanceQualifiers.cs" />
     <Compile Include="Migrations\009_ExpirationTime.cs" />
     <Compile Include="Migrations\008_MobileCheckinRecord.cs" />
-    <Compile Include="Migrations\031_MedicalConsentKioskTypeAttributes.cs" />	
+    <Compile Include="Migrations\031_MedicalConsentKioskTypeAttributes.cs" />
     <Compile Include="Migrations\032_KioskTypeEntityUpdates.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\003_UpdateCacheTags.cs" />
