@@ -71,6 +71,16 @@ namespace org.secc.Imaging.AI
             var detectedFace = await DetectFace( url, person );
             if ( detectedFace == null )
             {
+                // Reset the stream position to the beginning
+                binaryFile.ContentStream.Position = 0;
+
+                // Copy the original image stream to a MemoryStream
+                using ( var originalStream = new MemoryStream() )
+                {
+                    binaryFile.ContentStream.CopyTo( originalStream );
+                    UpdatePersonPhoto( person, originalStream );
+                }
+
                 return false;
             }
 
