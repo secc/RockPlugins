@@ -401,6 +401,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             tbRatio.Text = roomRatio;
             tbFirmThreshold.Text = location.FirmRoomThreshold.ToString();
             tbSoftThreshold.Text = location.SoftRoomThreshold.ToString();
+            lLocationError.Visible = false;
             mdLocation.Show();
         }
 
@@ -1020,19 +1021,25 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void mdLocation_SaveClick( object sender, EventArgs e )
         {
+            lLocationError.Visible = false;
             using ( RockContext _rockContext = new RockContext() )
             {
-
                 LocationService locationService = new LocationService( _rockContext );
                 var location = locationService.Get( hfLocationId.ValueAsInt() );
                 if ( location == null )
                 {
                     return;
                 }
+
+                if(location.FirmRoomThreshold.HasValue && location.FirmRoomThreshold < tbSoftThreshold.Text.AsInteger())
+                {
+                    lLocationError.Visible = true;
+                    return;
+                }
+
                 location.LoadAttributes();
                 location.SetAttributeValue( Constants.LOCATION_ATTRIBUTE_ROOM_RATIO, tbRatio.Text.AsInteger() );
                 location.SaveAttributeValues();
-                location.FirmRoomThreshold = tbFirmThreshold.Text.AsInteger();
                 location.SoftRoomThreshold = tbSoftThreshold.Text.AsInteger();
                 _rockContext.SaveChanges();
                 mdLocation.Hide();
