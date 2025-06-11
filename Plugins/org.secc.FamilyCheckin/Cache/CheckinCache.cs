@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Rock.Web.Cache;
+using Newtonsoft.Json;
 using Rock.Bus;
-using Rock.Bus.Message;
 using Rock.Bus.Queue;
 using Rock.Logging;
-using Newtonsoft.Json;
+using Rock.Web.Cache;
 
 namespace org.secc.FamilyCheckin.Cache
 {
@@ -47,10 +46,11 @@ namespace org.secc.FamilyCheckin.Cache
                 var keys = AllKeys();
                 if ( !keys.Any() || !keys.Contains( qualifiedKey ) )
                 {
-                    UpdateKeys( keyFactory );                }
+                    UpdateKeys( keyFactory );
+                }
 
                 RockCache.AddOrUpdate( qualifiedKey, item );
-                PublishCacheUpdateMessage(qualifiedKey, item);
+                PublishCacheUpdateMessage( qualifiedKey, item );
             }
             else
             {
@@ -74,13 +74,13 @@ namespace org.secc.FamilyCheckin.Cache
                 UpdateKeys( keyFactory );
             }            //RockCacheManager<T>.Instance.Cache.AddOrUpdate( qualifiedKey, item, v => item );
             RockCache.AddOrUpdate( qualifiedKey, item );
-            PublishCacheUpdateMessage(qualifiedKey, item);
+            PublishCacheUpdateMessage( qualifiedKey, item );
         }
 
         public static void Remove( string qualifiedKey, Func<List<string>> keyFactory )
         {            //RockCacheManager<T>.Instance.Cache.Remove( qualifiedKey );
             RockCache.Remove( qualifiedKey );
-            PublishCacheUpdateMessage(qualifiedKey, default(T));
+            PublishCacheUpdateMessage( qualifiedKey, default( T ) );
             UpdateKeys( keyFactory );
         }
 
@@ -88,15 +88,17 @@ namespace org.secc.FamilyCheckin.Cache
         {
             UpdateKeys( keyFactory );
 
-            foreach ( var key in AllKeys() )            {
+            foreach ( var key in AllKeys() )
+            {
                 FlushItem( key );
             }
-            PublishCacheUpdateMessage(null, default(T));
-        }        public static void FlushItem( string qualifiedKey )
+            PublishCacheUpdateMessage( null, default( T ) );
+        }
+        public static void FlushItem( string qualifiedKey )
         {
             //RockCacheManager<T>.Instance.Cache.Remove( qualifiedKey );
             RockCache.Remove( qualifiedKey );
-            PublishCacheUpdateMessage(qualifiedKey, default(T));
+            PublishCacheUpdateMessage( qualifiedKey, default( T ) );
         }
 
         internal protected static string QualifiedKey( int id )
@@ -121,7 +123,7 @@ namespace org.secc.FamilyCheckin.Cache
 
         private static List<string> AllKeys()
         {
-         
+
             var keys = RockCache.Get( AllKey, AllRegion ) as List<string>;
             return keys ?? new List<string>();
         }
@@ -129,23 +131,23 @@ namespace org.secc.FamilyCheckin.Cache
         private static List<string> UpdateKeys( Func<List<string>> keyFactory )
         {
             var keys = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
-            RockCache.AddOrUpdate( AllKey, AllRegion, keys );            
+            RockCache.AddOrUpdate( AllKey, AllRegion, keys );
             return keys;
         }
 
-        private static void PublishCacheUpdateMessage(string key, T item)
+        private static void PublishCacheUpdateMessage( string key, T item )
         {
             var message = new CheckinCacheMessage
             {
                 Key = key,
-                Region = AllRegion,
-                CacheTypeName = typeof(T).AssemblyQualifiedName,
+                Region = null,
+                CacheTypeName = typeof( T ).AssemblyQualifiedName,
                 SenderNodeName = RockMessageBus.NodeName,
-                AdditionalData = item != null ? JsonConvert.SerializeObject(item) : null
+                AdditionalData = item != null ? JsonConvert.SerializeObject( item ) : null
             };
 
-            _ = RockMessageBus.PublishAsync<CacheEventQueue, CheckinCacheMessage>(message);
-            RockLogger.Log.Debug(RockLogDomains.Bus, $"Published Cache Update message. {message.ToDebugString()}.");
+            _ = RockMessageBus.PublishAsync<CacheEventQueue, CheckinCacheMessage>( message );
+            RockLogger.Log.Debug( RockLogDomains.Bus, $"Published Cache Update message. {message.ToDebugString()}." );
         }
     }
 }
