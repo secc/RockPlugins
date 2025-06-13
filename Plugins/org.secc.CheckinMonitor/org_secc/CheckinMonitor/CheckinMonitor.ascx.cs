@@ -38,6 +38,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [TextField( "Room Ratio Attribute Key", "Attribute key for room ratios", true, "RoomRatio" )]
     [DataViewField( "Approved People", "Data view which contains the members who may check-in.", entityTypeName: "Rock.Model.Person" )]
     [BinaryFileField( Rock.SystemGuid.BinaryFiletype.CHECKIN_LABEL, "Location Label", "Label to use to for printing a location label." )]
+    [BooleanField("Enable Hard Room Limit", "Enable editing of the Firm/Hard Room limit on a location.", true, Key = "EnableHardLimit")]
 
     public partial class CheckinMonitor : CheckInBlock
     {
@@ -88,7 +89,16 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 ViewState[ViewStateKeys.MinimizedGroupTypes] = new List<int>();
                 BindDropDown();
-                ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
+                if(GetAttributeValue("EnableHardLimit").AsBoolean())
+                {
+                    tbFirmThreshold.ReadOnly = false;
+                }
+                else
+                {
+                    tbFirmThreshold.ReadOnly = true;
+                }
+
+                    ScriptManager.RegisterStartupScript(upDevice, upDevice.GetType(), "startTimer", "startTimer();", true);
             }
 
             //Open modal if it is active
@@ -1041,6 +1051,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 location.SetAttributeValue( Constants.LOCATION_ATTRIBUTE_ROOM_RATIO, tbRatio.Text.AsInteger() );
                 location.SaveAttributeValues();
                 location.SoftRoomThreshold = tbSoftThreshold.Text.AsInteger();
+
+                if(GetAttributeValue("EnableHardLimit").AsBoolean())
+                {
+                    location.FirmRoomThreshold = tbFirmThreshold.Text.AsInteger();
+                }
+
                 _rockContext.SaveChanges();
                 mdLocation.Hide();
                 ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
