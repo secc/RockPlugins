@@ -51,7 +51,15 @@ namespace org.secc.Rest.Controllers
             if ( group == null )
                 return NotFound();
 
-            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
+            // Check if the current user is a leader in this group
+            var isGroupLeader = new GroupMemberService( _context )
+                .Queryable()
+                .Any( gm => gm.GroupId == groupId
+                       && gm.PersonId == currentUser.Person.Id
+                       && gm.GroupRole.IsLeader == true
+                       && gm.GroupMemberStatus == GroupMemberStatus.Active );
+
+            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) && !isGroupLeader )
                 return StatusCode( HttpStatusCode.Forbidden );
 
             var attendees = new AttendanceService( _context )
@@ -456,7 +464,15 @@ namespace org.secc.Rest.Controllers
             if ( group == null )
                 return NotFound();
 
-            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
+            // Check if the current user is a leader in this group
+            var isGroupLeader = new GroupMemberService( _context )
+                .Queryable()
+                .Any( gm => gm.GroupId == groupId
+                       && gm.PersonId == currentUser.Person.Id
+                       && gm.GroupRole.IsLeader == true
+                       && gm.GroupMemberStatus == GroupMemberStatus.Active );
+
+            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) && !isGroupLeader )
                 return StatusCode( HttpStatusCode.Forbidden );
 
             if ( group.Schedule == null )
