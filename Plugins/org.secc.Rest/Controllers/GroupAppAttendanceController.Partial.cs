@@ -122,7 +122,15 @@ namespace org.secc.Rest.Controllers
             if ( group == null )
                 return NotFound();
 
-            if ( !group.IsAuthorized( Rock.Security.Authorization.EDIT, currentUser.Person ) && !group.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person ) )
+            // Check if the current user is a leader in this group
+            var isGroupLeader = new GroupMemberService( _context )
+                .Queryable()
+                .Any( gm => gm.GroupId == groupId
+                       && gm.PersonId == currentUser.Person.Id
+                       && gm.GroupRole.IsLeader == true
+                       && gm.GroupMemberStatus == GroupMemberStatus.Active );
+
+            if ( !isGroupLeader )
                 return StatusCode( HttpStatusCode.Forbidden );
 
             locationId = locationId.HasValue ? locationId.Value : group.GroupLocations?.FirstOrDefault()?.Location?.Id;
@@ -371,7 +379,15 @@ namespace org.secc.Rest.Controllers
             if ( group == null )
                 return NotFound();
 
-            if ( !group.IsAuthorized( Rock.Security.Authorization.EDIT, currentUser.Person ) || !group.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person ) )
+            // Check if the current user is a leader in this group
+            var isGroupLeader = new GroupMemberService( _context )
+                .Queryable()
+                .Any( gm => gm.GroupId == groupId
+                       && gm.PersonId == currentUser.Person.Id
+                       && gm.GroupRole.IsLeader == true
+                       && gm.GroupMemberStatus == GroupMemberStatus.Active );
+
+            if ( !isGroupLeader )
                 return StatusCode( HttpStatusCode.Forbidden );
 
             locationId = locationId ?? ( group.GroupLocations.Any() ? ( int? ) group.GroupLocations
