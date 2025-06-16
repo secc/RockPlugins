@@ -122,7 +122,7 @@ namespace org.secc.Rest.Controllers
             if ( group == null )
                 return NotFound();
 
-            if ( !group.IsAuthorized( Rock.Security.Authorization.EDIT, currentUser.Person ) || !group.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person ) )
+            if ( !group.IsAuthorized( Rock.Security.Authorization.EDIT, currentUser.Person ) && !group.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person ) )
                 return StatusCode( HttpStatusCode.Forbidden );
 
             locationId = locationId.HasValue ? locationId.Value : group.GroupLocations?.FirstOrDefault()?.Location?.Id;
@@ -305,7 +305,7 @@ namespace org.secc.Rest.Controllers
             }
 
             // Check if the current occurrence was set to DidNotMeet and return an error if it was
-            if ( occurrences.FirstOrDefault()?.DidNotMeet == true)
+            if ( occurrences.FirstOrDefault()?.DidNotMeet == true )
             {
                 return BadRequest( "This attendance occurrence was marked as \"Did Not Meet\"." );
             }
