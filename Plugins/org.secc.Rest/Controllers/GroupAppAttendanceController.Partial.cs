@@ -185,6 +185,48 @@ namespace org.secc.Rest.Controllers
         }
 
         /// <summary>
+        /// Deletes an attendance record if the current user is a group leader for the group.
+        /// </summary>
+        /// <param name="attendanceId">The attendance record ID.</param>
+        /// <returns>IHttpActionResult</returns>
+        [HttpDelete]
+        [System.Web.Http.Route( "api/GroupApp/Attendances/{attendanceId}" )]
+        public IHttpActionResult DeleteAttendance( int attendanceId )
+        {
+            var currentUser = UserLoginService.GetCurrentUser();
+            if ( currentUser == null )
+                return StatusCode( HttpStatusCode.Unauthorized );
+
+            var attendanceService = new AttendanceService( _context );
+            var attendance = attendanceService.Get( attendanceId );
+            if ( attendance == null )
+                return NotFound();
+
+            // Get the group for this attendance
+            var group = attendance.Occurrence?.Group;
+            if ( group == null )
+                return NotFound();
+
+            // Check if the current user is a leader in this group
+            var isGroupLeader = new GroupMemberService( _context )
+                .Queryable()
+                .Any( gm => gm.GroupId == group.Id
+                        && gm.PersonId == currentUser.Person.Id
+                        && gm.GroupRole.IsLeader == true
+                        && gm.GroupMemberStatus == GroupMemberStatus.Active );
+
+            if ( !isGroupLeader )
+                return StatusCode( HttpStatusCode.Forbidden );
+
+            // Delete the attendance record
+            attendanceService.Delete( attendance );
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
+
+        /// <summary>
         /// Endpoint to check if self has been marked present
         /// </summary>
         /// <returns>IHttpActionResult</returns>
