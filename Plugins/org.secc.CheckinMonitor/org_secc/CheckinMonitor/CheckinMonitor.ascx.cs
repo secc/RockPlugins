@@ -1001,6 +1001,13 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                     // Query for the new occurrence using original context.
                     occurrence = occurrenceService.Get( occurrence.Id );
+                    
+                    // Update the occurrence cache to ensure synchronization across all nodes
+                    var occurrenceCache = OccurrenceCache.GetByOccurrence( occurrence );
+                    if ( occurrenceCache != null )
+                    {
+                        OccurrenceCache.AddOrUpdate( occurrenceCache );
+                    }
                 }
             }
             return occurrence;
