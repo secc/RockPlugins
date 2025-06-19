@@ -38,6 +38,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [TextField( "Room Ratio Attribute Key", "Attribute key for room ratios", true, "RoomRatio" )]
     [DataViewField( "Approved People", "Data view which contains the members who may check-in.", entityTypeName: "Rock.Model.Person" )]
     [BinaryFileField( Rock.SystemGuid.BinaryFiletype.CHECKIN_LABEL, "Location Label", "Label to use to for printing a location label." )]
+    [BooleanField("Enable Hard Room Limit", "Enable editing of the Firm/Hard Room limit on a location.", true, Key = "EnableHardLimit")]
 
     public partial class CheckinMonitor : CheckInBlock
     {
@@ -88,7 +89,16 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 ViewState[ViewStateKeys.MinimizedGroupTypes] = new List<int>();
                 BindDropDown();
-                ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
+                if(GetAttributeValue("EnableHardLimit").AsBoolean())
+                {
+                    tbFirmThreshold.ReadOnly = false;
+                }
+                else
+                {
+                    tbFirmThreshold.ReadOnly = true;
+                }
+
+                    ScriptManager.RegisterStartupScript(upDevice, upDevice.GetType(), "startTimer", "startTimer();", true);
             }
 
             //Open modal if it is active
@@ -401,6 +411,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             tbRatio.Text = roomRatio;
             tbFirmThreshold.Text = location.FirmRoomThreshold.ToString();
             tbSoftThreshold.Text = location.SoftRoomThreshold.ToString();
+            lLocationError.Visible = false;
             mdLocation.Show();
         }
 
@@ -1020,20 +1031,32 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void mdLocation_SaveClick( object sender, EventArgs e )
         {
+            lLocationError.Visible = false;
             using ( RockContext _rockContext = new RockContext() )
             {
-
                 LocationService locationService = new LocationService( _rockContext );
                 var location = locationService.Get( hfLocationId.ValueAsInt() );
                 if ( location == null )
                 {
                     return;
                 }
+
+                if(location.FirmRoomThreshold.HasValue && location.FirmRoomThreshold < tbSoftThreshold.Text.AsInteger())
+                {
+                    lLocationError.Visible = true;
+                    return;
+                }
+
                 location.LoadAttributes();
                 location.SetAttributeValue( Constants.LOCATION_ATTRIBUTE_ROOM_RATIO, tbRatio.Text.AsInteger() );
                 location.SaveAttributeValues();
-                location.FirmRoomThreshold = tbFirmThreshold.Text.AsInteger();
                 location.SoftRoomThreshold = tbSoftThreshold.Text.AsInteger();
+
+                if(GetAttributeValue("EnableHardLimit").AsBoolean())
+                {
+                    location.FirmRoomThreshold = tbFirmThreshold.Text.AsInteger();
+                }
+
                 _rockContext.SaveChanges();
                 mdLocation.Hide();
                 ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );

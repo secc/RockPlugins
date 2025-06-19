@@ -289,6 +289,7 @@ namespace RockWeb.Plugins.org_secc.Cms
             {
                 mergeFields.Add( "NickName", tbFirstName.Text );
                 mergeFields.Add( "LastName", tbLastName.Text );
+                mergeFields.Add( "Phone", tbPhone.Text );
                 mergeFields.Add( "Email", tbEmail.Text );
                 mergeFields.Add( "PublishGroup", publishGroup );
                 mergeFields.Add( "Group", group );

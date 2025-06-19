@@ -51,7 +51,15 @@ namespace org.secc.Rest.Controllers
             if ( group == null )
                 return NotFound();
 
-            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
+            // Check if the current user is a leader in this group
+            var isGroupLeader = new GroupMemberService( _context )
+                .Queryable()
+                .Any( gm => gm.GroupId == groupId
+                       && gm.PersonId == currentUser.Person.Id
+                       && gm.GroupRole.IsLeader == true
+                       && gm.GroupMemberStatus == GroupMemberStatus.Active );
+
+            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) && !isGroupLeader )
                 return StatusCode( HttpStatusCode.Forbidden );
 
             var attendees = new AttendanceService( _context )
@@ -122,7 +130,15 @@ namespace org.secc.Rest.Controllers
             if ( group == null )
                 return NotFound();
 
-            if ( !group.IsAuthorized( Rock.Security.Authorization.EDIT, currentUser.Person ) || !group.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person ) )
+            // Check if the current user is a leader in this group
+            var isGroupLeader = new GroupMemberService( _context )
+                .Queryable()
+                .Any( gm => gm.GroupId == groupId
+                       && gm.PersonId == currentUser.Person.Id
+                       && gm.GroupRole.IsLeader == true
+                       && gm.GroupMemberStatus == GroupMemberStatus.Active );
+
+            if ( !isGroupLeader )
                 return StatusCode( HttpStatusCode.Forbidden );
 
             locationId = locationId.HasValue ? locationId.Value : group.GroupLocations?.FirstOrDefault()?.Location?.Id;
@@ -167,6 +183,48 @@ namespace org.secc.Rest.Controllers
 
             return Ok();
         }
+
+        /// <summary>
+        /// Deletes an attendance record if the current user is a group leader for the group.
+        /// </summary>
+        /// <param name="attendanceId">The attendance record ID.</param>
+        /// <returns>IHttpActionResult</returns>
+        [HttpDelete]
+        [System.Web.Http.Route( "api/GroupApp/Attendances/{attendanceId}" )]
+        public IHttpActionResult DeleteAttendance( int attendanceId )
+        {
+            var currentUser = UserLoginService.GetCurrentUser();
+            if ( currentUser == null )
+                return StatusCode( HttpStatusCode.Unauthorized );
+
+            var attendanceService = new AttendanceService( _context );
+            var attendance = attendanceService.Get( attendanceId );
+            if ( attendance == null )
+                return NotFound();
+
+            // Get the group for this attendance
+            var group = attendance.Occurrence?.Group;
+            if ( group == null )
+                return NotFound();
+
+            // Check if the current user is a leader in this group
+            var isGroupLeader = new GroupMemberService( _context )
+                .Queryable()
+                .Any( gm => gm.GroupId == group.Id
+                        && gm.PersonId == currentUser.Person.Id
+                        && gm.GroupRole.IsLeader == true
+                        && gm.GroupMemberStatus == GroupMemberStatus.Active );
+
+            if ( !isGroupLeader )
+                return StatusCode( HttpStatusCode.Forbidden );
+
+            // Delete the attendance record
+            attendanceService.Delete( attendance );
+            _context.SaveChanges();
+
+            return Ok();
+        }
+
 
         /// <summary>
         /// Endpoint to check if self has been marked present
@@ -305,7 +363,7 @@ namespace org.secc.Rest.Controllers
             }
 
             // Check if the current occurrence was set to DidNotMeet and return an error if it was
-            if ( occurrences.FirstOrDefault()?.DidNotMeet == true)
+            if ( occurrences.FirstOrDefault()?.DidNotMeet == true )
             {
                 return BadRequest( "This attendance occurrence was marked as \"Did Not Meet\"." );
             }
@@ -371,7 +429,15 @@ namespace org.secc.Rest.Controllers
             if ( group == null )
                 return NotFound();
 
-            if ( !group.IsAuthorized( Rock.Security.Authorization.EDIT, currentUser.Person ) || !group.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person ) )
+            // Check if the current user is a leader in this group
+            var isGroupLeader = new GroupMemberService( _context )
+                .Queryable()
+                .Any( gm => gm.GroupId == groupId
+                       && gm.PersonId == currentUser.Person.Id
+                       && gm.GroupRole.IsLeader == true
+                       && gm.GroupMemberStatus == GroupMemberStatus.Active );
+
+            if ( !isGroupLeader )
                 return StatusCode( HttpStatusCode.Forbidden );
 
             locationId = locationId ?? ( group.GroupLocations.Any() ? ( int? ) group.GroupLocations
@@ -440,7 +506,15 @@ namespace org.secc.Rest.Controllers
             if ( group == null )
                 return NotFound();
 
-            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
+            // Check if the current user is a leader in this group
+            var isGroupLeader = new GroupMemberService( _context )
+                .Queryable()
+                .Any( gm => gm.GroupId == groupId
+                       && gm.PersonId == currentUser.Person.Id
+                       && gm.GroupRole.IsLeader == true
+                       && gm.GroupMemberStatus == GroupMemberStatus.Active );
+
+            if ( !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) && !isGroupLeader )
                 return StatusCode( HttpStatusCode.Forbidden );
 
             if ( group.Schedule == null )

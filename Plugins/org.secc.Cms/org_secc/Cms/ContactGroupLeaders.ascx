@@ -9,6 +9,7 @@
             
            <Rock:RockTextBox ID="tbFirstName" runat="server" Label="First Name" Required="true" />
            <Rock:RockTextBox ID="tbLastName" runat="server" Label="Last Name" Required="false" />
+	   <Rock:PhoneNumberBox ID="tbPhone" runat="server" Label="Phone" Required="true" />
            <Rock:EmailBox ID="tbEmail" runat="server" Label="Email" Required="true" />
            <Rock:RockTextBox ID="tbMessage" runat="server" Label="Message" Textmode="MultiLine" Rows="5" Required="true" />
 

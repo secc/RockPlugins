@@ -71,6 +71,13 @@ namespace org.secc.Imaging.AI
             var detectedFace = await DetectFace( url, person );
             if ( detectedFace == null )
             {
+
+                RockContext rockContext = new RockContext();
+                PersonService personService = new PersonService( rockContext );
+                person = personService.Get( person.Id );
+                person.PhotoId = binaryFile.Id;
+                rockContext.SaveChanges();
+
                 return false;
             }
 

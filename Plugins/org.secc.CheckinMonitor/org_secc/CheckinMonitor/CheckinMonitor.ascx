@@ -99,6 +99,11 @@
                         Text="<i class='fa fa-print'></i>" CssClass="btn btn-sm btn-default" />
                 </h1>
                 <asp:HiddenField ID="hfLocationId" runat="server" />
+                <asp:Literal ID="lLocationError" runat="server" Visible="false">
+                    <div class="alert alert-validation">
+                        <strong>Child Limit can not be larger than Hard Limit.</strong>
+                    </div>
+                </asp:Literal>
                 <Rock:RockTextBox ID="tbRatio" runat="server" Label="Number of kids for every adult" Help="The number of kids per adult allowed."></Rock:RockTextBox>
                 <Rock:RockTextBox ID="tbSoftThreshold" runat="server" Label="Child Limit" Help="Total number of children who can check into a room."></Rock:RockTextBox>
                 <Rock:RockTextBox ID="tbFirmThreshold" runat="server" Label="Hard Limit" Help="Total number of people who can occupy a room."></Rock:RockTextBox>
