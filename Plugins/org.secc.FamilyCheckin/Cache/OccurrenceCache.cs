@@ -95,6 +95,11 @@ namespace org.secc.FamilyCheckin.Cache
 
         public List<AttendanceCache> Attendances { get => AttendanceCache.GetByOccurrenceKey( this.AccessKey ); }
 
+        public static void Clear()
+        {
+            Clear( () => KeyFactory() );
+        }
+
         public bool IsFull
         {
             get
