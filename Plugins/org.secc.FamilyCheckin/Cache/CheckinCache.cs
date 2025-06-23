@@ -18,7 +18,9 @@ namespace org.secc.FamilyCheckin.Cache
 
         private static string AllKey => $"{typeof( T ).Name}:{AllString}";
 
-
+        public void PostCached()
+        {
+        }
 
         public static List<string> AllKeys( Func<List<string>> keyFactory, bool forceRefresh = false )
         {
