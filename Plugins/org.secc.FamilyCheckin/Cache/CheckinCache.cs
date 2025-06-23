@@ -9,7 +9,7 @@ using Rock.Web.Cache;
 
 namespace org.secc.FamilyCheckin.Cache
 {
-    public class CheckinCache<T>
+    public class CheckinCache<T> : IItemCache
     {
         private const string AllRegion = "AllItems";
         protected static readonly string AllString = "All";
@@ -148,6 +148,15 @@ namespace org.secc.FamilyCheckin.Cache
 
             _ = RockMessageBus.PublishAsync<CacheEventQueue, CheckinCacheMessage>( message );
             RockLogger.Log.Debug( RockLogDomains.Bus, $"Published Cache Update message. {message.ToDebugString()}." );
+        }
+
+        /// <summary>
+        /// Serializes the cache object to JSON format for compatibility with IItemCache interface
+        /// </summary>
+        /// <returns>JSON representation of the cache object</returns>
+        public virtual string ToJson()
+        {
+            return JsonConvert.SerializeObject( this );
         }
     }
 }
