@@ -977,6 +977,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             RebuildModal();
         }
 
+        // Fix for CS1061: Replace the incorrect property 'OccurrenceDate' with a valid property or method from the 'OccurrenceCache' class.
+
         private AttendanceOccurrence GetOccurrence( RockContext rockContext, DateTime startDateTime, int? groupId, int? locationId, int? scheduleId )
         {
             var occurrenceService = new AttendanceOccurrenceService( rockContext );
@@ -984,7 +986,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             if ( occurrence == null )
             {
-                // If occurrence does not yet exists, use a new context and create it
+                // If occurrence does not yet exist, use a new context and create it
                 using ( var newContext = new RockContext() )
                 {
                     occurrence = new AttendanceOccurrence
@@ -999,8 +1001,20 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     newOccurrenceService.Add( occurrence );
                     newContext.SaveChanges();
 
-                    // Query for the new occurrence using original context.
+                    // Query for the new occurrence using the original context.
                     occurrence = occurrenceService.Get( occurrence.Id );
+
+                    // Update the occurrence cache to ensure synchronization across all nodes
+                    var occurrenceCache = OccurrenceCache.All()
+                        .FirstOrDefault( o =>
+                            o.GroupId == occurrence.GroupId &&
+                            o.LocationId == occurrence.LocationId &&
+                            o.ScheduleId == occurrence.ScheduleId &&
+                            o.ScheduleStartTime == occurrence.OccurrenceDate.TimeOfDay ); 
+                    if ( occurrenceCache != null )
+                    {
+                        OccurrenceCache.AddOrUpdate( occurrenceCache );
+                    }
                 }
             }
             return occurrence;
