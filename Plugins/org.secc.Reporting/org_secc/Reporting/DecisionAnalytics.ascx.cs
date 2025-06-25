@@ -380,12 +380,12 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
             if (drpDecisionDate.LowerValue.HasValue)
             {
-                decisionQry = decisionQry.Where( q => q.FormDate >= drpDecisionDate.LowerValue.Value );
+                decisionQry = decisionQry.Where( q => q.FormDate.Date >= drpDecisionDate.LowerValue.Value );
             }
 
             if (drpDecisionDate.UpperValue.HasValue)
             {
-                decisionQry = decisionQry.Where( q => q.FormDate <= drpDecisionDate.UpperValue.Value );
+                decisionQry = decisionQry.Where( q => q.FormDate.Date <= drpDecisionDate.UpperValue.Value );
             }
 
             if (ppDecisions.SelectedValue.HasValue)
