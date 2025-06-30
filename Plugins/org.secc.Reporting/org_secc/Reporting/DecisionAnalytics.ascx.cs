@@ -376,16 +376,16 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
             var decisionQry = new DecisionReportItemService( new RockContext() ).Queryable().AsNoTracking();
 
-
-
+            var startDate = drpDecisionDate.LowerValue.Value.Date;
+            var endDate = drpDecisionDate.UpperValue.Value.Date.Add(new TimeSpan(23, 59, 59));
             if (drpDecisionDate.LowerValue.HasValue)
             {
-                decisionQry = decisionQry.Where( q => q.FormDate.Date >= drpDecisionDate.LowerValue.Value );
+                decisionQry = decisionQry.Where( q => q.FormDate >= startDate );
             }
 
             if (drpDecisionDate.UpperValue.HasValue)
             {
-                decisionQry = decisionQry.Where( q => q.FormDate.Date <= drpDecisionDate.UpperValue.Value );
+                decisionQry = decisionQry.Where( q => q.FormDate <= endDate );
             }
 
             if (ppDecisions.SelectedValue.HasValue)
