@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using DotLiquid;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -242,6 +243,18 @@ namespace org.secc.Finance.Utility
             }
 
             mergeFields.Add( "Pledges", pledges );
+
+            var SqlParams = new List<System.Data.SqlClient.SqlParameter>()
+            {
+                new System.Data.SqlClient.SqlParameter("PersonAliasId", targetPerson.PrimaryAliasId),
+                new System.Data.SqlClient.SqlParameter("@EndDate", dateRange.End.Value)
+            };
+
+            var moveSummary = rockContext.Database.SqlQuery<MoveCommitmentSummary>
+                    ("[dbo].[_org_secc_Commitment_GetTotalsByPersonId] @PersonAliasID, @EndDate", SqlParams.ToArray())
+                    .FirstOrDefault();
+
+            mergeFields.Add("MoveSummary", moveSummary);
         }
     }
 
@@ -368,5 +381,13 @@ namespace org.secc.Finance.Utility
         /// The order.
         /// </value>
         public int Order { get; set; }
+    }
+
+    public class MoveCommitmentSummary : DotLiquid.Drop
+    {
+        public int PersonId { get; set; }
+        public decimal AmountPledged { get; set; }
+        public decimal AmountGiven { get; set; }
+        public DateTime StatusDate { get; set; }
     }
 }
