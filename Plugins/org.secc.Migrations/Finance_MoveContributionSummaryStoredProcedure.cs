@@ -8,14 +8,14 @@ namespace org.secc.Migrations
     {
         public override void Up()
         {
-            Sql(@"
+			Sql(@"
                 IF EXISTS (SELECT * FROM Information_Schema.Routines
                     WHERE ROUTINE_TYPE = 'PROCEDURE' and ROUTINE_SCHEMA='dbo'
                         and ROUTINE_NAME = '_org_secc_Commitment_GetTotalsByPersonId' 
                 BEGIN
                     DROP PROCEDURE [dbo].[_org_secc_Commitment_GetTotalsByPersonId]
-                END
-
+                END");
+			Sql(@"
                 CREATE PROCEDURE [dbo].[_org_secc_Commitment_GetTotalsByPersonId]
 				(
 				 @PersonAliasID INT,
