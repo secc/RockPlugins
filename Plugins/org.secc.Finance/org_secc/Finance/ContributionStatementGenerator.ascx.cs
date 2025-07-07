@@ -243,6 +243,36 @@ namespace RockWeb.Plugins.org_secc.Finance
 					GROUP by GivingId, GivingGroupName",
                     contributionTypeId, lower, upper, null/*"2019-01-01T00:00:00,2019-12-31T00:00:00"*/).AsQueryable();
 
+            // Add in Move commitments
+            var moveCommitmentsNoGivingInPeriod = rockContext.Database.SqlQuery<GivingGroup>(@"
+                SELECT tx.LastGift as LastGift, 
+                    p.GivingId as GivingId,
+                    CASE WHEN ([P].[GivingId] LIKE N'G%') THEN [G].[Name] 
+                    ELSE CASE WHEN( [P].[NickName] IS NULL ) THEN N'' 
+                    ELSE [P].[NickName] END + N' ' + CASE WHEN( [P].[LastName] IS NULL ) THEN N'' ELSE [P].[LastName] END END AS [GivingGroupName]    
+                FROM _org_secc_Commitment c
+                inner join person p on c.PersonId = p.Id
+                left outer join [Group] g on p.GivingGroupId = g.Id
+                left outer join 
+                (
+                    Select  p1.GivingId, max(t.TransactionDateTime) as LastGift
+                    FROM FinancialTransactionDetail d
+                    INNER JOIN FinancialTransaction t on d.TransactionId = t.Id
+                    INNER JOIN PersonAlias pa on t.AuthorizedPersonAliasId = pa.Id
+                    INNER JOIN Person p1 on pa.PersonId = p1.Id
+                    WHERE t.TransactionTypeValueId = @p0
+                        and t.TransactionDateTime >= @p1
+                        and t.TransactionDateTime <= @p2
+                    GROUP BY p1.GivingId
+                ) tx on tx.GivingId = p.GivingId
+                where c.IsDeleted = 0
+                    and p.IsDeceased = 0
+                    and tx.GivingId is null
+
+            ", contributionTypeId, lower, upper).AsQueryable();
+
+            givingGroups = givingGroups.Union(moveCommitmentsNoGivingInPeriod);
+
             // Filter by Giving ID
             if ( tbGivingId.Text.IsNotNullOrWhiteSpace() )
             {
@@ -257,7 +287,6 @@ namespace RockWeb.Plugins.org_secc.Finance
 
 
             givingGroups = givingGroups.OrderByDescending( g => g.LastGift );
-
             return givingGroups;
         }
 
