@@ -11,7 +11,7 @@ namespace org.secc.Migrations
 			Sql(@"
                 IF EXISTS (SELECT * FROM Information_Schema.Routines
                     WHERE ROUTINE_TYPE = 'PROCEDURE' and ROUTINE_SCHEMA='dbo'
-                        and ROUTINE_NAME = '_org_secc_Commitment_GetTotalsByPersonId' 
+                        and ROUTINE_NAME = '_org_secc_Commitment_GetTotalsByPersonId') 
                 BEGIN
                     DROP PROCEDURE [dbo].[_org_secc_Commitment_GetTotalsByPersonId]
                 END");
@@ -158,7 +158,7 @@ namespace org.secc.Migrations
             Sql(@"
                 IF EXISTS (SELECT * FROM Information_Schema.Routines
                     WHERE ROUTINE_TYPE = 'PROCEDURE' and ROUTINE_SCHEMA='dbo'
-                        and ROUTINE_NAME = '_org_secc_Commitment_GetTotalsByPersonId' 
+                        and ROUTINE_NAME = '_org_secc_Commitment_GetTotalsByPersonId') 
                 BEGIN
                     DROP PROCEDURE [dbo].[_org_secc_Commitment_GetTotalsByPersonId]
                 END
