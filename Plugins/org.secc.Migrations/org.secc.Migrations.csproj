@@ -51,6 +51,7 @@
     <Compile Include="Connection\SafetyAndSecurity_ConnectionVerification.cs" />
     <Compile Include="Metric\WorshipAttendanceTrigger.cs" />
     <Compile Include="Finance_MoveContributionSummaryStoredProcedure.cs" />
+    <Compile Include="Finance_MoveContributionSummaryStoredProcedure_002.cs" />
     <Compile Include="GroupApp\GroupAppGroupTypeMigration.cs" />
     <Compile Include="GroupApp\GroupAppTableBasedGroupsMigration.cs" />
     <Compile Include="Pages\SuperCheckin_PageData.cs" />
