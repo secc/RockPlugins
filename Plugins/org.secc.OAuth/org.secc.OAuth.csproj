@@ -100,6 +100,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cache\AuthCache.cs" />
+    <Compile Include="Cache\AuthCacheConsumer.cs" />
+    <Compile Include="Cache\AuthCacheMessage.cs" />
     <Compile Include="Data\OAuthContext.cs" />
     <Compile Include="Data\OAuthService.cs" />
     <Compile Include="Migrations\201605201037000_CreatePlugin.cs" />
