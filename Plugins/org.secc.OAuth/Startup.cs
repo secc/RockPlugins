@@ -24,7 +24,6 @@ using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.Infrastructure;
 using Microsoft.Owin.Security.OAuth;
-using org.secc.OAuth.Cache;
 using org.secc.OAuth.Data;
 using org.secc.OAuth.Model;
 using Owin;
@@ -179,16 +178,21 @@ namespace org.secc.OAuth
         private void CreateAuthenticationCode( AuthenticationTokenCreateContext context )
         {
             context.SetToken( Guid.NewGuid().ToString( "n" ) + Guid.NewGuid().ToString( "n" ) );
-            AuthCache.AddOrUpdate(AuthCache.QualifiedKey(context.Token), new AuthCache() { Token = context.Token, Ticket = context.SerializeTicket() });
+            var authToken = new AuthToken
+            {
+                Token = context.Token,
+                Ticket = context.SerializeTicket()
+            };
+            AuthTokenService.AddToken(authToken);
         }
 
         private void ReceiveAuthenticationCode( AuthenticationTokenReceiveContext context )
         {
-            string value = AuthCache.Get( context.Token ).ToString();
-            if ( !string.IsNullOrWhiteSpace( value ) )
+            string value = AuthTokenService.GetTicket(context.Token);
+            if (!string.IsNullOrWhiteSpace(value))
             {
-                RockCache.Remove( context.Token );
-                context.DeserializeTicket( value );
+                AuthTokenService.DeleteToken(context.Token);
+                context.DeserializeTicket(value);
             }
         }
         #endregion
