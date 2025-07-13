@@ -116,7 +116,7 @@ END
 	WHERE AccountId in (SELECT AccountId FROM #tmpAccounts)
 		AND t.TransactionTypeValueId = 53
 		AND t.TransactionDateTime >= @MoveStartDate
-		and t.TransactionDateTime < DATEADD(DAY, 1, @EndDate)
+		and t.TransactionDateTime < @EndDate
 		and p.Id in (Select PersonId from #tmpFamilyAdultPersonIds)
 	UNION ALL
 	SELECT SUM(td.Amount) Amount
@@ -134,7 +134,7 @@ END
 	INNER JOIN #tmpFamilyAdultPersonIds p on sft.PersonId = p.PersonId
 	INNER JOIN FinancialTransaction t on sft.TransactionId = t.Id
 	WHERE t.TransactionDateTime > @MoveStartDate
-		AND t.TransactionDateTime < DATEADD(DAY, 1, @EndDate)
+		AND t.TransactionDateTime < @EndDate
 		and p.PersonId in (SELECT PersonId FROM #tmpFamilyAdultPersonIds )
 	) A
 
