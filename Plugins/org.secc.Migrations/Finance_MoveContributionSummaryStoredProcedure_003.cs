@@ -60,7 +60,7 @@ WHERE ft.TransactionCode in
 	'59335711261','59333337748','59333337700','59333337728','59333337716','59333337720','59333337724',
 	'59335536526','59333337732','59333337696','59333337712','59335918024','STOCK6','QCD4','QCD5',
 	'59264105875','59207562970','59258225816','59258225832','59287965126','59499728206','58395762776',
-	'QCD6'
+	'QCD6','SPLIT1','STOCK20'
 )
 
 CREATE TABLE #tmpAccounts
@@ -116,7 +116,7 @@ END
 	WHERE AccountId in (SELECT AccountId FROM #tmpAccounts)
 		AND t.TransactionTypeValueId = 53
 		AND t.TransactionDateTime >= @MoveStartDate
-		and t.TransactionDateTime < DATEADD(DAY, 1, @EndDate)
+		and t.TransactionDateTime < @EndDate
 		and p.Id in (Select PersonId from #tmpFamilyAdultPersonIds)
 	UNION ALL
 	SELECT SUM(td.Amount) Amount
@@ -134,7 +134,7 @@ END
 	INNER JOIN #tmpFamilyAdultPersonIds p on sft.PersonId = p.PersonId
 	INNER JOIN FinancialTransaction t on sft.TransactionId = t.Id
 	WHERE t.TransactionDateTime > @MoveStartDate
-		AND t.TransactionDateTime < DATEADD(DAY, 1, @EndDate)
+		AND t.TransactionDateTime < @EndDate
 		and p.PersonId in (SELECT PersonId FROM #tmpFamilyAdultPersonIds )
 	) A
 
