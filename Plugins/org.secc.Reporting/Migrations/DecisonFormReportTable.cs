@@ -71,6 +71,7 @@ namespace org.secc.Reporting.Migrations
 					ForeignKey NVARCHAR(100),
 					ModifiedDateTime DATETIME NULL,
 					ModifiedByPersonAliasId INT NULL,
+					Birthdate DATETIME NULL
 				)";
 
 			base.Sql( createTable );

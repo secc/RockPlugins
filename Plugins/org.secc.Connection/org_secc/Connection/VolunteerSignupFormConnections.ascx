@@ -28,10 +28,10 @@
 
                 <div class="row">
                     <div class="col-md-4" id="divHome" runat="server">
-                        <Rock:PhoneNumberBox ID="pnHome" runat="server" Label="Home Phone" />
+                        <Rock:PhoneNumberBox ID="pnHome" runat="server" Label="Home Phone" Required="true" />
                     </div>
                     <div class="col-md-4" id="divMobile" runat="server">
-                        <Rock:PhoneNumberBox ID="pnMobile" runat="server" Label="Mobile Phone" />
+                        <Rock:PhoneNumberBox ID="pnMobile" runat="server" Label="Mobile Phone" Required="true" />
                     </div>
                     <div class="col-md-4" id="divBirthdate" runat="server">
                         <Rock:BirthdayPicker ID="bpBirthdate" runat="server" Label="Birthday" Required="true" />

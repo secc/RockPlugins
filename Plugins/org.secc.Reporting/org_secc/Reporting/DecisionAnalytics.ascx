@@ -62,6 +62,7 @@
                                         <Rock:RockBoundField HeaderText="Id" DataField="WorkflowId" Visible="false" />
                                         <Rock:RockBoundField HeaderText="Name" DataField="FullName" SortExpression="FullNameReversed" />
                                         <Rock:RockBoundField HeaderText="Gender" DataField="Gender" SortExpression="Gender" />
+                                        <Rock:RockBoundField HeaderText="BirthDate" DataField="Birthdate" DataFormatString="{0:d}" />
                                         <Rock:RockBoundField HeaderText="Age" DataField="Age" SortExpression="Age" />
                                         <Rock:RockBoundField HeaderText="Grade" DataField="Grade" />
                                         <Rock:RockBoundField HeaderText="Mobile Phone" DataField="MobilePhoneGridValue" />

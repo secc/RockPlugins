@@ -91,7 +91,8 @@ namespace org.secc.Reporting.Migrations
 					a.CreatedByPersonAliasId,
 					a.ModifiedByPersonAliasId,
 					a.CreatedDateTime,
-					a.ModifiedDateTime
+					a.ModifiedDateTime,
+					a.BirthDate
 				FROM 
 				(
 					SELECT
@@ -149,7 +150,8 @@ namespace org.secc.Reporting.Migrations
 						w.CreatedByPersonAliasId,
 						w.ModifiedByPersonAliasId,
 						w.CreatedDateTime,
-						w.ModifiedDateTime
+						w.ModifiedDateTime,
+						p.Birthdate
 					FROM Workflow w
 					INNER JOIN AttributeValue personAV on w.Id = personAV.EntityId and personAV.AttributeId = 190707 
 					INNER JOIN PersonAlias pa on TRY_CAST(personAV.Value as UNIQUEIDENTIFIER) = pa.Guid

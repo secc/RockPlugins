@@ -283,8 +283,12 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-xs-12">
-                    <Rock:RockCheckBox ID="cbWaiverAgree" runat="server"  CssClass="form-control checkbox"   Text="I Agree"/>
+                    <div class="col-xs-3 col-md-1" style="margin-top:15px;">
+                        <label class="control-label">I Agree</label>
+                    </div>
+                    <div class="col-xs-3 col-md-1">
+                        <Rock:RockCheckBox ID="cbWaiverAgree" runat="server"  CssClass="form-control"  />
+                    </div>
                 </div>
 
             </div>
