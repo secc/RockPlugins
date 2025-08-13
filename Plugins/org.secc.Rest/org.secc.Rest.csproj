@@ -83,6 +83,7 @@
     <Compile Include="Controllers\GroupAppAttendanceController.Partial.cs" />
     <Compile Include="Controllers\GroupAppGroupListController.Partial.cs" />
     <Compile Include="Controllers\GroupAppGroupMembersController.Partial.cs" />
+	<Compile Include="Controllers\GroupAppGroupScheduleController.Partial.cs" />
     <Compile Include="Controllers\GroupMemberExtensionsController.Partial.cs" />
     <Compile Include="Controllers\GroupExtensionsController.Partial.cs" />
     <Compile Include="Controllers\PeopleExtensionsController.Partial.cs" />
