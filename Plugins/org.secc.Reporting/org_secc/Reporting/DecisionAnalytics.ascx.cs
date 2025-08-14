@@ -107,6 +107,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
             gResults.Actions.ShowMergePerson = false;
             gResults.ExportFilename = "Decisons";
             gResults.PersonIdField = "PersonId";
+            gResults.EntityIdField = "PersonId";
             gResults.GridRebind += gResults_GridRebind;
 
             lbClearFilters.CausesValidation = false;
