@@ -18,5 +18,6 @@ namespace org.secc.Rest.Models
         public string Url { get; set; }
         public bool GroupTracker { get; set; } = false;
         public bool IsTableBased { get; set; } = false;
+        public bool IsStudentGroup { get; set; } = false;
     }
 }

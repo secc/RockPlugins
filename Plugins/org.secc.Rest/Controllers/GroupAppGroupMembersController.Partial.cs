@@ -356,6 +356,20 @@ namespace org.secc.Rest.Controllers
                 _context.SaveChanges();
             }
 
+            // Set graduation year based on grade offset if provided and valid
+            if ( !string.IsNullOrWhiteSpace( personToAdd.GradeOffset ) && personToAdd.GradeOffset != "-1" )
+            {
+                if ( int.TryParse( personToAdd.GradeOffset, out int gradeOffsetValue ) && gradeOffsetValue >= 0 && gradeOffsetValue <= 12 )
+                {
+                    var graduationYear = Person.GraduationYearFromGradeOffset( gradeOffsetValue );
+                    if ( graduationYear.HasValue )
+                    {
+                        person.GraduationYear = graduationYear.Value;
+                        _context.SaveChanges();
+                    }
+                }
+            }
+
             var groupMemberService = new GroupMemberService( _context );
 
             // is person already in the group?            
@@ -377,8 +391,6 @@ namespace org.secc.Rest.Controllers
                 groupMember = groupMemberService.AddOrRestoreGroupMember( group, person.Id, groupMember.GroupRoleId );
                 _context.SaveChanges();
             }
-
-
 
             // Add Table Number
             // check if the group has a group member attribute for table number
@@ -454,6 +466,7 @@ namespace org.secc.Rest.Controllers
         public DateTime? DateOfBirth { get; set; }
         public string MobileNumber { get; set; }
         public string Email { get; set; }
+        public string GradeOffset { get; set; }
     }
 
     public class GroupMemberServiceHelper

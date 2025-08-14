@@ -65,7 +65,7 @@ namespace org.secc.Rest.Controllers
                 {
                     groupTypeIds.Add( groupTypeId );
                 }
-            }
+            }            
 
             var tableBasedGroupTypeDefinedValues = definedValueService
                 .GetByDefinedTypeGuid( new Guid( "90526a36-fda6-4c90-997c-636b82b793d8" ) )
@@ -80,7 +80,20 @@ namespace org.secc.Rest.Controllers
                 }
             }
 
-            var groupList = groupServiceHelper.GetGroups( currentUser.Person.Id, groupTypeIds, tableBasedGroupTypeIds );
+            var studentBasedGroupTypeDefinedValues = definedValueService
+                .GetByDefinedTypeGuid( new Guid( "3780965b-3da0-4609-9577-cf8d39ec601a" ) )
+                .ToList();
+
+            var studentGroupTypeIds = new List<int>();
+            foreach ( var dv in studentBasedGroupTypeDefinedValues )
+            {
+                if ( int.TryParse( dv.Value, out int groupTypeId ) )
+                {
+                    studentGroupTypeIds.Add( groupTypeId );
+                }
+            }
+
+            var groupList = groupServiceHelper.GetGroups( currentUser.Person.Id, groupTypeIds, tableBasedGroupTypeIds, studentGroupTypeIds );
 
             return Ok( groupList );
 
@@ -183,7 +196,7 @@ namespace org.secc.Rest.Controllers
             _rockContext = rockContext;
         }
 
-        public List<GroupAppGroup> GetGroups( int currentPersonId, List<int> groupTypeIds, List<int> tableBasedGroupTypeIds )
+        public List<GroupAppGroup> GetGroups( int currentPersonId, List<int> groupTypeIds, List<int> tableBasedGroupTypeIds, List<int> studentGroupTypeIds )
         {
             var groupMembers = new GroupMemberService( _rockContext )
             .Queryable( "Group, GroupRole, Group.Campus, Group.Campus.Location, Group.GroupLocations, Group.GroupLocations.Location, Group.Schedule, Person" )
@@ -214,7 +227,8 @@ namespace org.secc.Rest.Controllers
                         GlobalAttributesCache.Value( "PublicApplicationRoot" ) + "groups/homegroups/registration/" + gm.Group?.Id
                     : null,
                 GroupTracker = ( gm.Group?.GroupTypeId == 107 || gm.Group?.GroupTypeId == 109 ) && gm.Group?.CampusId == 1,
-                IsTableBased = tableBasedGroupTypeIds.Contains( gm.Group?.GroupTypeId ?? 0 )
+                IsTableBased = tableBasedGroupTypeIds.Contains( gm.Group?.GroupTypeId ?? 0 ),
+                IsStudentGroup = studentGroupTypeIds.Contains( gm.Group?.GroupTypeId ?? 0 )
             } ).Distinct().OrderByDescending( g => g.IsLeader ).ThenBy( g => g.NextSchedule ).ToList();
 
             return groupList;
