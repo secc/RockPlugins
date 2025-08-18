@@ -136,7 +136,7 @@ namespace org.secc.Rest.Controllers
 
                     // Check if the person is a minor (under 18) and get parent information
                     // Only include parent information if the current user is a group leader
-                    if ( isCurrentUserLeader && person.Age.HasValue && person.Age.Value < 19 )
+                    if ( isCurrentUserLeader && person.Age.HasValue && person.AgeClassification != AgeClassification.Adult )
                     {
                         var parents = groupMemberServiceHelper.GetParents( person );
                         foreach ( var parent in parents )
