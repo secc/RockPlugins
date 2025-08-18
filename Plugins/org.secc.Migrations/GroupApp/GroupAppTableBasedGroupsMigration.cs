@@ -1,6 +1,6 @@
 ﻿using Rock.Plugin;
 
-namespace org.secc.Migrations.GroupApp
+namespace org.secc.Migrations
 {
     [MigrationNumber( 18, "1.12.0" )]
     internal class GroupAppTableBasedGroupsMigration : Migration
