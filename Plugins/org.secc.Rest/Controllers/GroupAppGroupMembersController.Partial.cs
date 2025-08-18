@@ -134,6 +134,23 @@ namespace org.secc.Rest.Controllers
                         IsCurrentUser = groupMember.PersonId == currentUser.Person.Id
                     };
 
+                    // Check if the person is a minor (under 18) and get parent information
+                    // Only include parent information if the current user is a group leader
+                    if ( isCurrentUserLeader && person.Age.HasValue && person.AgeClassification != AgeClassification.Adult )
+                    {
+                        var parents = groupMemberServiceHelper.GetParents( person );
+                        foreach ( var parent in parents )
+                        {
+                            var parentInfo = new GroupAppParent
+                            {
+                                Name = parent.FullName,
+                                Phone = parent.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() )?.ToString(),
+                                Email = parent.Email
+                            };
+                            groupAppGroupMember.Parents.Add( parentInfo );
+                        }
+                    }
+
                     groupMemberList.Add( groupAppGroupMember );
                 }
 
