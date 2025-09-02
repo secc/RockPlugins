@@ -96,9 +96,9 @@ namespace org.secc.Reporting.Model
         [DataMember]
         public DateTime? Birthdate { get; set; }
         [DataMember]
-        public string? Serving { get; set; }
+        public string Serving { get; set; }
         [DataMember]
-        public string? InterestArea { get; set; }
+        public string InterestArea { get; set; }
 
         [JsonIgnore]
         public string FullName
