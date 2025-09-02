@@ -191,6 +191,8 @@ namespace RockWeb.Plugins.org_secc.Reporting
             ddlDecisionType.SelectedIndex = 0;
             ddlEventType.SelectedIndex = 0;
             dvpBaptismType.SelectedValue = null;
+            cblServing.SelectedValue = null;
+            cblInterestArea.SelectedValue = null;
         }
 
         private void LoadBoundFields()
@@ -296,6 +298,24 @@ namespace RockWeb.Plugins.org_secc.Reporting
             else
             {
                 lMembershipClass.Text = "<span class=\"label label-danger\">Has Not Attended</span>";
+            }
+
+            if ( decision.Serving.HasValue )
+            {
+                lServing.Text = decision.Serving.Value.ToString();
+            }
+            else
+            {
+                lServing.Text = "<span class=\"label label-danger\">No Serving Info</span>";
+            }
+
+            if ( decision.InterestArea.HasValue )
+            {
+                lInterestArea.Text = decision.InterestArea.Value.ToString();
+            }
+            else
+            {
+                lInterestArea.Text = "<span class=\"label label-danger\">No Serving Area of Interest Info</span>";
             }
 
             mdPersonInfo.Show();
@@ -464,17 +484,25 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 decisionQry = decisionQry.Where( q => baptismTypeIds.Contains( q.BaptismTypeValueId ?? -1 ) );
             }
 
+            if ( cblServing.SelectedValues.Any() )
+            {
+                var selectedServing = cblServing.SelectedValues;
+                decisionQry = decisionQry.Where( q => selectedServing.Contains( q.Serving ) );
+            }
+
+            if ( cblInterestArea.SelectedValues.Any() )
+            {
+                var selectedInterestAreas = cblInterestArea.SelectedValues;
+                decisionQry = decisionQry.Where( q => selectedInterestAreas.Contains( q.InterestArea ) );
+            }
 
             Decisions = decisionQry.ToList()
                 .GroupBy( d => new { d.PersonId, d.DecisionType, FormDate = d.FormDate.ToShortDateString() } )
                 .Select( d => d.OrderBy( d1 => d1.Id ).FirstOrDefault() )
                 .ToList();
 
-
-
             gResults.DataSource = Decisions;
             gResults.DataBind();
-
 
             pnlGridResults.Visible = Decisions.Any();
             pnlUpdateMessage.Visible = !Decisions.Any();
