@@ -924,7 +924,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 tbQRPin.Text = "";
                 mdQRPin.Hide();
             }
-            else if ( attendanceRecord != null )
+            else if ( attendanceRecord == null )
             {
                 maWarning.Show( "This QR code is not associated with a valid attendance record. Please check QR Code and try again.", ModalAlertType.Warning );
                 tbQRPin.Text = "";
