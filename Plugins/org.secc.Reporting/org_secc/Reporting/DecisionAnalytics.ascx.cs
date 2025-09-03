@@ -493,7 +493,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
             if ( cblInterestArea.SelectedValues.Any() )
             {
                 var selectedInterestAreas = cblInterestArea.SelectedValues;
-                decisionQry = decisionQry.Where( q => selectedInterestAreas.Contains( q.InterestArea ) );
+                decisionQry = decisionQry.Where( q => !string.IsNullOrEmpty( q.InterestArea ) && selectedInterestAreas.Any( val => q.InterestArea.Contains( val ) ) );
             }
 
             Decisions = decisionQry.ToList()
