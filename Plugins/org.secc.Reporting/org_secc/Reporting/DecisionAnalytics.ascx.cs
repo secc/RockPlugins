@@ -300,18 +300,18 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 lMembershipClass.Text = "<span class=\"label label-danger\">Has Not Attended</span>";
             }
 
-            if ( decision.Serving.HasValue )
+            if ( !string.IsNullOrEmpty(decision.Serving) )
             {
-                lServing.Text = decision.Serving.Value.ToString();
+                lServing.Text = decision.Serving;
             }
             else
             {
                 lServing.Text = "<span class=\"label label-danger\">No Serving Info</span>";
             }
 
-            if ( decision.InterestArea.HasValue )
+            if ( !string.IsNullOrEmpty(decision.InterestArea) )
             {
-                lInterestArea.Text = decision.InterestArea.Value.ToString();
+                lInterestArea.Text = decision.InterestArea;
             }
             else
             {
