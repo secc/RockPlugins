@@ -32,6 +32,18 @@
                             <Rock:RockDropDownList ID="ddlDecisionType" runat="server" Label="Decision Type" />
                             <Rock:RockDropDownList ID="ddlEventType" runat="server" Label="Event" />
                             <Rock:DefinedValuesPicker ID="dvpBaptismType" runat="server" Label="Baptism Type" RepeatColumns="2" />
+                            <Rock:RockCheckBoxList ID="cblServing" runat="server" Label="Serving?" RepeatDirection="Horizontal" RepeatColumns="2">
+                                <asp:ListItem Text="Yes" Value="Yes" />
+                                <asp:ListItem Text="No" Value="No" />
+                            </Rock:RockCheckBoxList>
+                            <Rock:RockCheckBoxList ID="cblInterestArea" runat="server" Label="Area of Interest" RepeatDirection="Horizontal" RepeatColumns="2">
+                                <asp:ListItem Text="Guest Experience" Value="Guest Experience" />
+                                <asp:ListItem Text="Connections" Value="Connections" />
+                                <asp:ListItem Text="SE!KIDS" Value="SE!KIDS" />
+                                <asp:ListItem Text="Student Ministry" Value="Student Ministry" />
+                                <asp:ListItem Text="Other" Value="Other" />
+                                <asp:ListItem Text="Help Me Decide" Value="Help Me Decide" />
+                            </Rock:RockCheckBoxList>
                             <div class="actions">
                                 <span class="pull-right-md">
                                     <asp:LinkButton ID="lbClearFilters" runat="server" CssClass="btn btn-sm btn-default">Clear Filters</asp:LinkButton>
@@ -79,8 +91,8 @@
                                         <Rock:RockBoundField HeaderText="SOF Date" DataField="StatementOfFaithSignedDate" DataFormatString="{0:d}" />
                                         <Rock:RockBoundField HeaderText="Membership Class" DataField="MembershipClassDate" DataFormatString="{0:d}" />
                                         <Rock:RockBoundField HeaderText="Membership" DataField="MembershipDate" DataFormatString="{0:d}" />
-
-
+                                        <Rock:RockBoundField HeaderText="Serving?" DataField="Serving" />
+                                        <Rock:RockBoundField HeaderText="Area of Interest" DataField="InterestArea" />
                                     </Columns>
                                 </Rock:Grid>
                             </asp:Panel>
@@ -109,6 +121,8 @@
                         <Rock:RockLiteral ID="lStatementOfFaith" runat="server" Label="Statement of Faith" />
                         <Rock:RockLiteral ID="lMembershipDate" runat="server" Label="Membership Date" />
                         <Rock:RockLiteral ID="lMembershipClass" runat="server" Label="Membership Class" />
+                        <Rock:RockLiteral ID="lServing" runat="server" Label="Serving?" />
+                        <Rock:RockLiteral ID="lInterestArea" runat="server" Label="Area of Interest" />
                     </div>
                 </div>
             </Content>
