@@ -70,6 +70,7 @@
     <Compile Include="CompleteWorkflows.cs" />
     <Compile Include="EasterChildrensAttendance.cs" />
     <Compile Include="Event\AddEventCanCheckinRelationships.cs" />
+    <Compile Include="Event\CopyCommunityGivesBackSchools.cs" />
     <Compile Include="FrontPorchDeviceRemoval.cs" />
     <Compile Include="GroupLeaderMedicationNotifications.cs" />
     <Compile Include="MigratePickleballCredits.cs" />
