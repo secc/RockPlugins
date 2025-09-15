@@ -6,17 +6,24 @@
                 <h1 class="panel-title">School List</h1>
             </div>
             <div class="panel-body">
-                <Rock:Grid ID="gSchoolList" runat="server" AllowSorting="true" RowItemText="Schools" DataKeyNames="Id">
-                    <Columns>
-                        <Rock:RockBoundField DataField="Campaign" HeaderText="Campaign" SortExpression="Campaign" />
-                        <Rock:RockBoundField DataField="Name" HeaderText="Name" SortExpression="Name" />
-                        <Rock:RockBoundField DataField="TeacherName" HeaderText="Teacher" SortExpression="Teacher" />
-                        <Rock:RockBoundField DataField="TotalSponsorships" HeaderText="Total Sponsorships" SortExpression="TotalSponsorships" />
-                        <Rock:RockBoundField DataField="Sponsored" HeaderText="Sponsored" SortExpression="Sponsored" />
-                        <Rock:RockBoundField DataField="AvailableSponsorships" HeaderText="Remaining" SortExpression="AvailableSponsorships" />
-                        <Rock:EditField OnClick="gSchoolListItem_Edit" />
-                    </Columns>
-                </Rock:Grid>
+                <div class="grid grid-panel">
+                    <Rock:GridFilter ID="rFilter" runat="server" OnDisplayFilterValue="rFilter_DisplayFilterValue" OnClearFilterClick="rFilter_ClearFilterClick">
+                        <Rock:RockCheckBoxList ID="cblCampaign" runat="server" Label="Campaign" />
+                    </Rock:GridFilter>
+
+                
+                    <Rock:Grid ID="gSchoolList" runat="server" AllowSorting="true" RowItemText="Schools" DataKeyNames="Id">
+                        <Columns>
+                            <Rock:RockBoundField DataField="Campaign" HeaderText="Campaign" SortExpression="Campaign" />
+                            <Rock:RockBoundField DataField="Name" HeaderText="Name" SortExpression="Name" />
+                            <Rock:RockBoundField DataField="TeacherName" HeaderText="Teacher" SortExpression="Teacher" />
+                            <Rock:RockBoundField DataField="TotalSponsorships" HeaderText="Total Sponsorships" SortExpression="TotalSponsorships" />
+                            <Rock:RockBoundField DataField="Sponsored" HeaderText="Sponsored" SortExpression="Sponsored" />
+                            <Rock:RockBoundField DataField="AvailableSponsorships" HeaderText="Remaining" SortExpression="AvailableSponsorships" />
+                            <Rock:EditField OnClick="gSchoolListItem_Edit" />
+                        </Columns>
+                    </Rock:Grid>
+                </div>
             </div>
         </asp:Panel>
         <Rock:ModalDialog id="mdlSchoolEdit" runat="server" Title="Add/Update School" ValidationGroup="valSchool" SaveButtonText="Save" >

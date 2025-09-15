@@ -1,4 +1,5 @@
-﻿using Rock;
+﻿using DocumentFormat.OpenXml.Drawing.Diagrams;
+using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
@@ -35,12 +36,6 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
         IsRequired = false,
         Key = AttributeKeys.RegistrationListPage,
         Order = 2)]
-    [CustomDropdownListField("Default Campaign",
-        Description = "The default campaign that this school list is associated wtih.",
-        ListSource = DefaultCampaignSql,
-        IsRequired = false,
-        Key = AttributeKeys.CGBCampaign,
-        Order =3)]
     public partial class SchoolList : RockBlock
     {
         public class AttributeKeys
@@ -48,7 +43,6 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             public const string SchoolDefinedType = "SchoolDefinedType";
             public const string RegistrationWorkflow = "RegistrationWorkflow";
             public const string RegistrationListPage = "RegistrationListPage";
-            public const string CGBCampaign = "CGBCampaign";
         }
 
         #region Fields
@@ -56,11 +50,6 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
         private List<SchoolDataItem> _schools = null;
         private int? _selectedSchoolId = null;
 
-        public const string DefaultCampaignSql = @"
-            SELECT DISTINCT av.[Value] as Value, av.[Value] as Text
-            FROM AttributeValue av 
-            INNER JOIN Attribute a on av.AttributeId = a.Id
-            WHERE a.[Guid] = 'BBE01EA2-357C-4289-AFF9-585CB5B3B88C'";
         #endregion
 
         #region Properties
@@ -134,7 +123,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
         {
             base.OnInit(e);
             this.BlockUpdated += SchoolList_BlockUpdated;
-
+            rFilter.ApplyFilterClick += rFilter_ApplyFilterClick;
             gSchoolList.GridRebind += gSchoolList_GridRebind;
             gSchoolList.Sorting += gSchoolList_Sorting;
             gSchoolList.Actions.ShowMergePerson = false;
@@ -148,6 +137,8 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             mdlSchoolEdit.SaveClick += mdlSchoolEdit_SaveClick;
 
         }
+
+
 
         private void gSchoolList_Sorting(object sender, GridViewSortEventArgs e)
         {
@@ -179,6 +170,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             {
                 SelectedSchoolId = null;
                 Schools = null;
+                SetFilter();
                 BuildSchoolList();
                 LoadSchoolGrid();
             }
@@ -222,9 +214,40 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             }
         }
 
+
+        private void rFilter_ApplyFilterClick(object sender, EventArgs e)
+        {
+            rFilter.SaveUserPreference("Campaign", "Campaign", string.Join(";", cblCampaign.SelectedValues));
+
+            Schools = null;
+            BuildSchoolList();
+            LoadSchoolGrid();
+        }
+
+        protected void rFilter_ClearFilterClick(object sender, EventArgs e)
+        {
+            rFilter.DeleteUserPreferences();
+            SetFilter();
+        }
+
+        protected void rFilter_DisplayFilterValue(object sender, GridFilter.DisplayFilterValueArgs e)
+        {
+            if (e.Key == "Campaign")
+            {
+                var campaignValues = new List<string>();
+                foreach (var v in e.Value.Split(';'))
+                {
+                    campaignValues.Add(v);
+                }
+
+                e.Value = string.Join(", ", campaignValues);
+            }
+        }
+
         private void SchoolList_BlockUpdated(object sender, EventArgs e)
         {
             Schools = null;
+            SetFilter();
             BuildSchoolList();
             LoadSchoolGrid();
         }
@@ -238,8 +261,6 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             {
                 return;
             }
-
-            var campaignName = GetAttributeValue(AttributeKeys.CGBCampaign);
 
             var rockContext = new RockContext();
 
@@ -319,9 +340,10 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
 
                 }).ToList();
 
-            if(!campaignName.IsNullOrWhiteSpace())
+            var campaigns = cblCampaign.SelectedValues.ToList();
+            if(campaigns.Any())
             {
-                Schools = Schools.Where(s => s.Campaign == campaignName).ToList();
+                Schools = Schools.Where(s => campaigns.Contains(s.Campaign)).ToList();
             }
 
             SchoolSortDirection = SortDirection.Ascending;
@@ -484,6 +506,42 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             return school.Id > 0;
 
         }
+
+        private void SetFilter()
+        {
+            var rockContext = new RockContext();
+            var definedValueEntityId = EntityTypeCache.Get(typeof(DefinedValue)).Id;
+            var definedType = DefinedTypeCache.Get(GetAttributeValue(AttributeKeys.SchoolDefinedType).AsGuid());
+
+            var definedTypeIdAsString = definedType.Id.ToString();
+
+            var campaigns = new AttributeValueService(rockContext)
+                .Queryable().AsNoTracking()
+                .Where(v => v.Attribute.EntityTypeId == definedValueEntityId)
+                .Where(v => v.Attribute.EntityTypeQualifierColumn == "DefinedTypeId")
+                .Where(v => v.Attribute.EntityTypeQualifierValue == definedTypeIdAsString)
+                .Where(v => v.Attribute.Key == "Year")
+                .Where(v => v.Value != "")
+                .Select(v => v.Value)
+                .Distinct()
+                .OrderBy(v => v)
+                .ToList();
+
+            cblCampaign.Items.Clear();
+
+            foreach (var c in campaigns)
+            {
+                cblCampaign.Items.Add(new ListItem(c, c));
+            }
+
+            var campaignValue = rFilter.GetUserPreference("Campaign");
+            if(!string.IsNullOrWhiteSpace(campaignValue))
+            {
+                cblCampaign.SetValues(campaignValue.Split(';').ToList());
+            }
+
+
+        }
         #endregion
 
         #region Helper Class
@@ -507,6 +565,8 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             }
         }
         #endregion
+
+
 
     }
 }
