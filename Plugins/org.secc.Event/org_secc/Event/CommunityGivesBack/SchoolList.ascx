@@ -8,6 +8,7 @@
             <div class="panel-body">
                 <Rock:Grid ID="gSchoolList" runat="server" AllowSorting="true" RowItemText="Schools" DataKeyNames="Id">
                     <Columns>
+                        <Rock:RockBoundField DataField="Campaign" HeaderText="Campaign" SortExpression="Campaign" />
                         <Rock:RockBoundField DataField="Name" HeaderText="Name" SortExpression="Name" />
                         <Rock:RockBoundField DataField="TeacherName" HeaderText="Teacher" SortExpression="Teacher" />
                         <Rock:RockBoundField DataField="TotalSponsorships" HeaderText="Total Sponsorships" SortExpression="TotalSponsorships" />
@@ -21,6 +22,7 @@
         <Rock:ModalDialog id="mdlSchoolEdit" runat="server" Title="Add/Update School" ValidationGroup="valSchool" SaveButtonText="Save" >
             <Content>
                 <asp:ValidationSummary ID="valSchool" runat="server" CssClass="alert alert-validation" HeaderText="Please update the following:" />
+                <Rock:RockTextBox ID="tbCampaign" runat="server" Label="Campaign" ValidationGroup="valSchool" Required="true" />
                 <Rock:RockTextBox ID="tbSchoolName" runat="server" Label="School" ValidationGroup="valSchool" Required="true" />
                 <Rock:RockTextBox ID="tbTeacherName" runat="server" Label="Teacher Name" ValidationGroup="valSchool" Required="true" />
                 <Rock:EmailBox ID="tbTeacherEmail" runat="server" Label="Teacher Email" ValidationGroup="valSchool" Required="true" />

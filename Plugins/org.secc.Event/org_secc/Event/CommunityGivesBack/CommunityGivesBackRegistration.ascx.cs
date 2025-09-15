@@ -58,6 +58,12 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
         IsRequired = false,
         Order = 5,
         Key = AttributeKeys.AutoPopulate )]
+    [CustomDropdownListField("Campaign",
+        Description = "The default campaign that this school list is associated wtih.",
+        ListSource = DefaultCampaignSql,
+        IsRequired = true,
+        Key = AttributeKeys.CGBCampaign,
+        Order = 3)]
     public partial class CommunityGivesBackRegistration : RockBlock
     {
         public class AttributeKeys
@@ -68,8 +74,15 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             public const string ConfirmationText = "ConfirmationText";
             public const string LavaCommands = "EnabledCommands";
             public const string AutoPopulate = "AutoPopulate";
+            public const string CGBCampaign = "CGBCampaign";
 
         }
+
+        public const string DefaultCampaignSql = @"
+            SELECT DISTINCT av.[Value] as Value, av.[Value] as Text
+            FROM AttributeValue av 
+            INNER JOIN Attribute a on av.AttributeId = a.Id
+            WHERE a.[Guid] = 'BBE01EA2-357C-4289-AFF9-585CB5B3B88C'";
 
         protected List<SupportedSchool> SchoolList
         {
@@ -213,17 +226,32 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
 
             var definedType = DefinedTypeCache.Get( definedTypeGuid );
             var definedTypeIdStr = definedType.Id.ToString();
-            var sponsorshipAvailableValues = attributeValueService.Queryable().AsNoTracking()
-                .Where( v => v.Attribute.EntityTypeId == definedValueEntityType.Id )
-                .Where( v => v.Attribute.EntityTypeQualifierColumn == "DefinedTypeId" )
-                .Where( v => v.Attribute.EntityTypeQualifierValue == definedTypeIdStr )
+
+            var baseAVQry = attributeValueService.Queryable().AsNoTracking()
+                .Where(v => v.Attribute.EntityTypeId == definedValueEntityType.Id)
+                .Where(v => v.Attribute.EntityTypeQualifierColumn == "DefinedTypeId")
+                .Where(v => v.Attribute.EntityTypeQualifierValue == definedTypeIdStr);
+
+            var sponsorshipAvailableValues = baseAVQry
                 .Where( v => v.Attribute.Key == "SponsorshipsAvailable" )
                 .Select( v => new { DefinedValueId = v.EntityId, TotalSponsorships = v.ValueAsNumeric } )
                 .ToList();
 
+            var selectedCampaign = GetAttributeValue(AttributeKeys.CGBCampaign);
+
+
+            var campaignDVIDs = baseAVQry
+                .Where(v => v.Attribute.Key == "Year")
+                .Where(v => v.Value == selectedCampaign)
+                .Select(v => v.EntityId.Value)
+                .ToList();
+
+
+
 
             SchoolList = new DefinedValueService( rockContext ).Queryable()
                 .Where( v => v.DefinedTypeId == definedType.Id )
+                .Where(v => campaignDVIDs.Contains(v.Id))
                 .Where( v => v.IsActive )
                 .ToList()
                 .Select( d => new SupportedSchool
