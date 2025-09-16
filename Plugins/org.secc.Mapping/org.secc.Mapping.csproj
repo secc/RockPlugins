@@ -63,11 +63,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Azure\AzureDistanceMatrix.cs" />
     <Compile Include="Data\MappingContext.cs" />
     <Compile Include="Data\MappingService.cs" />
     <Compile Include="Migrations\002_AddDefinedType.cs" />
     <Compile Include="Model\Destination.cs" />
-    <Compile Include="Bing\BingDistanceMatrix.cs" />
     <Compile Include="Migrations\001_Init.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\LocationDistanceStore.cs" />
