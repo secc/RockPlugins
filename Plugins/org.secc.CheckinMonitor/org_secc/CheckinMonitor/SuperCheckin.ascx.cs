@@ -1353,6 +1353,8 @@ try{{
 
         protected void btnPrint_Click( object sender, EventArgs e )
         {
+            tbQRCheckPurpose.Text = "QRCodeCheckReprint";
+
             var requireQRCodeCheck = GetAttributeValue( "QRCodeCheckReprint" ).AsBoolean();
             if ( requireQRCodeCheck )
             {
