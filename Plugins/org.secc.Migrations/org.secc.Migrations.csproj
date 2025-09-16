@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="033_Events_CommunityGivesBackCampaignAttribute.cs" />
     <Compile Include="Connection\SafetyAndSecurity_ConnectionVerification.cs" />
     <Compile Include="Metric\WorshipAttendanceTrigger.cs" />
     <Compile Include="Finance_MoveContributionSummaryStoredProcedure.cs" />
