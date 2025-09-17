@@ -32,9 +32,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BingMapsRESTToolkit, Version=1.1.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\BingMapsRESTToolkit.1.1.4\lib\net45\BingMapsRESTToolkit.dll</HintPath>
-    </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
@@ -102,7 +99,7 @@
     <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
 xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Mapping.dll" "$(SolutionDir)RockWeb\Bin"
 xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Mapping.pdb" "$(SolutionDir)RockWeb\Bin"
-xcopy /Y /R  "$(ProjectDir)bin\Debug\BingMapsRESTToolkit.dll" "$(SolutionDir)RockWeb\Bin"
+
 </PostBuildEvent>
   </PropertyGroup>
 </Project>
