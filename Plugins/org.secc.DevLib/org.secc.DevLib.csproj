@@ -50,7 +50,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Components\SettingsComponent.cs" />
+    <Compile Include="Components\SettingsComponent.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Components\SettingsContainer.cs" />
     <Compile Include="Extensions\Migration\RockMigrationExtensions.cs" />
     <Compile Include="Extensions\Migration\TableBuilderExtensions.cs" />
