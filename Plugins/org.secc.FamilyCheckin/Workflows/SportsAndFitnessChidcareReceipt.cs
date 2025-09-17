@@ -11,6 +11,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Workflow;
 using Rock.Workflow.Action.CheckIn;
+using CheckInLabel = Rock.CheckIn.CheckInLabel;
 
 
 namespace org.secc.FamilyCheckin.Workflows

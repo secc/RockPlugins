@@ -26,6 +26,7 @@ using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Workflow;
 using Rock.Workflow.Action.CheckIn;
+using CheckInLabel = Rock.CheckIn.CheckInLabel;
 
 namespace org.secc.FamilyCheckin
 {

@@ -20,6 +20,7 @@ namespace org.secc.FamilyCheckin.Model
     using System.Runtime.Serialization;
     using Rock.Data;
     using Rock.Model;
+    using Rock.Enums;
     [Table( "_org_secc_FamilyCheckin_Kiosk" )]
     [DataContract]
     public partial class Kiosk : Rock.Data.Model<Kiosk>, Rock.Security.ISecured, Rock.Data.IRockEntity, ICategorized

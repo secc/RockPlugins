@@ -9,6 +9,7 @@ using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
+using CheckInLabel = Rock.CheckIn.CheckInLabel;
 
 namespace org.secc.FamilyCheckin.Utilities
 {

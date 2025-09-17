@@ -23,6 +23,7 @@ using Rock;
 using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
+using CheckInLabel = Rock.CheckIn.CheckInLabel;
 
 namespace org.secc.FamilyCheckin.Utilities
 {
