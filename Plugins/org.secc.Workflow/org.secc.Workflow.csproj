@@ -83,6 +83,9 @@
     <Reference Include="Twilio, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\Twilio.5.1.0\lib\net451\Twilio.dll</HintPath>
     </Reference>
+	<Reference Include="Rock.Enums">
+      <HintPath>$(SolutionDir)\RockWeb\Bin\Rock.Enums.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)\DotLiquid\DotLiquid.csproj">
