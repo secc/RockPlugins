@@ -59,7 +59,7 @@ namespace org.secc.Mapping.Utilities
                     } )
                 .ToList();
 
-            return await BingDistanceMatrix.OrderDestinations( origin, destinations );
+            return await AzureDistanceMatrix.OrderDestinations( origin, destinations );
         }
     }
 }

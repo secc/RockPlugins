@@ -96,6 +96,10 @@ namespace org.secc.Reporting.Model
         public string HomeCountry { get; set; }
         [DataMember]
         public DateTime? Birthdate { get; set; }
+        [DataMember]
+        public string Serving { get; set; }
+        [DataMember]
+        public string InterestArea { get; set; }
 
         [JsonIgnore]
         public string FullName

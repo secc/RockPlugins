@@ -37,7 +37,7 @@ namespace org.secc.Mapping.Utilities
                 } )
                 .ToList();
 
-            var distances = await BingDistanceMatrix.OrderDestinations( origin, campusDestinations );
+            var distances = await AzureDistanceMatrix.OrderDestinations( origin, campusDestinations );
             return distances.Select( d => CampusCache.Get( d.EntityId ?? 0 ) ).ToList();
         }
     }
