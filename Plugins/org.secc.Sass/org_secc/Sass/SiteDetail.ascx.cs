@@ -66,7 +66,7 @@ namespace RockWeb.Plugins.org_secc.Sass
         Category = "",
         Order = 0 )]
 
-    public partial class SiteDetail : RockBlock, IDetailBlock
+    public partial class SiteDetail : RockBlock
     {
         #region Attribute Keys
         private static class AttributeKey

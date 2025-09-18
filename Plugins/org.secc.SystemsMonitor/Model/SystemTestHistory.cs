@@ -16,6 +16,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
 using System.Runtime.Serialization;
 using Rock.Data;
+using Rock.Lava;
 
 namespace org.secc.SystemsMonitor.Model
 {
@@ -26,7 +27,7 @@ namespace org.secc.SystemsMonitor.Model
         [DataMember]
         public int SystemTestId { get; set; }
 
-        [LavaInclude]
+        [LavaVisibleAttribute]
         public virtual SystemTest SystemTest { get; set; }
 
         [DataMember]

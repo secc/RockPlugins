@@ -1,12 +1,13 @@
 ﻿using Rock;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 
 namespace org.secc.Mapping
 {
     public class Destination
     {
-        [LavaInclude]
+        [LavaVisible]
         public int? EntityId { get; set; }
         private string _address = "";
         public string Address

@@ -492,6 +492,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
                 {
                     matchingPeople.FirstOrDefault().PrimaryAlias.LaunchWorkflow( new Guid( personWorkflowGuid ), matchingPeople.FirstOrDefault().ToString() + " Pre-Registration", new Dictionary<string, string>() { { "ExtraInformation", tbExtraInformation.Text } } );
                 }
+
             }
         }
         else
@@ -511,6 +512,7 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             }
             adult.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
             adult.ConnectionStatusValueId = connectionStatus.Id;
+
             adult.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
             adult.UpdatePhoneNumber( mobilePhone.Id, pnbPhone.CountryCode, pnbPhone.Number, false, false, rockContext );
             adult.Email = ebEmail.Text;
@@ -588,7 +590,12 @@ public partial class Plugins_org_secc_FamilyCheckin_PreRegistration : Rock.Web.U
             var personWorkflowGuid = GetAttributeValue( "PersonWorkflow" );
             if ( !string.IsNullOrWhiteSpace( personWorkflowGuid ) )
             {
-                adult.PrimaryAlias.LaunchWorkflow( new Guid( GetAttributeValue( "PersonWorkflow" ) ), adult.ToString() + " Pre-Registration", new Dictionary<string, string>() { { "ExtraInformation", tbExtraInformation.Text } } );
+                adult.PrimaryAlias.LaunchWorkflow(
+                    new Guid( GetAttributeValue( "PersonWorkflow" ) ),
+                    adult.ToString() + " Pre-Registration",
+                    new Dictionary<string, string>() { { "ExtraInformation", tbExtraInformation.Text } },
+                    null
+                    );
             }
         }
         // Save the family address

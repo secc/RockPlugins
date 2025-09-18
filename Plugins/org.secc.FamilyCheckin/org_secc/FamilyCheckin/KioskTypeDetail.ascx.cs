@@ -36,7 +36,6 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     [DisplayName( "Kiosk Type Detail" )]
     [Category( "SECC > Check-in" )]
     [Description( "Displays the details of the given device." )]
-
     [BooleanField("Show Medical Consent Skips",
         Description = "A flag indicating if the Medical Consent Skips funcationality should be displayed. Default is false.",
         ControlType = Rock.Field.Types.BooleanFieldType.BooleanControlType.Checkbox,
@@ -176,10 +175,10 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         protected void btnSave_Click( object sender, EventArgs e )
         {
-            KioskType kioskType = null;
+            CheckinKioskType kioskType = null;
 
             var rockContext = new RockContext();
-            var kioskTypeService = new KioskTypeService( rockContext );
+            var kioskTypeService = new CheckinKioskTypeService( rockContext );
             var attributeService = new AttributeService( rockContext );
             var locationService = new LocationService( rockContext );
             var scheduleService = new ScheduleService( rockContext );
@@ -194,7 +193,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             if ( kioskType == null )
             {
-                kioskType = new KioskType();
+                kioskType = new CheckinKioskType();
                 kioskTypeService.Add( kioskType );
 
             }
@@ -286,8 +285,8 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
                 rockContext.SaveChanges();
 
-                KioskTypeCache.Remove( kioskType.Id );
-                KioskTypeCache.Get( kioskType.Id );
+                CheckinKioskTypeCache.Remove( kioskType.Id );
+                CheckinKioskTypeCache.Get( kioskType.Id );
                 KioskDeviceHelpers.Clear( kioskType.GroupTypes.Select( gt => gt.Id ).ToList() );
 
                 NavigateToParentPage();
@@ -398,21 +397,22 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         public void ShowDetail( int kioskTypeId )
         {
             pnlDetails.Visible = true;
-            KioskType kioskType = null;
+            CheckinKioskType kioskType = null;
 
             var checkinContext = new RockContext();
 
             if ( !kioskTypeId.Equals( 0 ) )
             {
-                kioskType = new KioskTypeService( checkinContext ).Get( kioskTypeId );
-                lActionTitle.Text = ActionTitle.Edit( KioskType.FriendlyTypeName ).FormatAsHtmlTitle();
+                kioskType = new CheckinKioskTypeService( checkinContext ).Get( kioskTypeId );
+                lActionTitle.Text = ActionTitle.Edit( CheckinKioskType.FriendlyTypeName ).FormatAsHtmlTitle();
                 kioskType.LoadAttributes( checkinContext );
+
             }
 
             if ( kioskType == null )
             {
-                kioskType = new KioskType { Id = 0 };
-                lActionTitle.Text = ActionTitle.Add( KioskType.FriendlyTypeName ).FormatAsHtmlTitle();
+                kioskType = new CheckinKioskType { Id = 0 };
+                lActionTitle.Text = ActionTitle.Add( CheckinKioskType.FriendlyTypeName ).FormatAsHtmlTitle();
             }
 
             hfKioskTypeId.Value = kioskType.Id.ToString();
@@ -465,12 +465,12 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             if ( !IsUserAuthorized( Authorization.EDIT ) )
             {
                 readOnly = true;
-                nbEditModeMessage.Text = EditModeMessage.ReadOnlyEditActionNotAllowed( KioskType.FriendlyTypeName );
+                nbEditModeMessage.Text = EditModeMessage.ReadOnlyEditActionNotAllowed( CheckinKioskType.FriendlyTypeName );
             }
 
             if ( readOnly )
             {
-                lActionTitle.Text = ActionTitle.View( KioskType.FriendlyTypeName );
+                lActionTitle.Text = ActionTitle.View( CheckinKioskType.FriendlyTypeName );
                 btnCancel.Text = "Close";
             }
 
@@ -482,7 +482,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             btnSave.Visible = !readOnly;
         }
 
-        private void BindDropDownList( KioskType kioskType = null )
+        private void BindDropDownList( CheckinKioskType kioskType = null )
         {
             RockContext rockContext = new RockContext();
             GroupTypeService groupTypeService = new GroupTypeService( rockContext );
@@ -542,7 +542,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             BindGroupTypes();
         }
 
-        private void BindGroupTypes( KioskType kioskType = null )
+        private void BindGroupTypes( CheckinKioskType kioskType = null )
         {
 
             var groupTypeIds = new List<string>();

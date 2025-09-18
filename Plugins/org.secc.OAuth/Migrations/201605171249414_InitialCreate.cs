@@ -15,134 +15,145 @@
 namespace org.secc.OAuth.Migrations
 {
     using Rock.Plugin;
+
+
     [MigrationNumber( 1, "1.4.5" )]
     public partial class InitialCreate : Rock.Plugin.Migration
     {
         public override void Up()
         {
-            CreateTable(
+
+            //Adding four tables for OAuth Client, Scope, ClientScope, and Authorization
+            AddTable(
                 "dbo._org_secc_OAuth_Client",
                 c => new
                 {
-                    Id = c.Int( nullable: false, identity: true ),
-                    ClientName = c.String( maxLength: 255 ),
-                    ApiKey = c.Guid( nullable: false ),
-                    ApiSecret = c.Guid( nullable: false ),
+                    Id = c.Int(nullable: false, identity: true),
+                    ClientName = c.String(maxLength: 255),
+                    ApiKey = c.Guid(nullable: false),
+                    ApiSecret = c.Guid(nullable: false),
                     CallbackUrl = c.String(),
-                    Active = c.Boolean( nullable: false ),
+                    Active = c.Boolean(nullable: false),
                     CreatedDateTime = c.DateTime(),
                     ModifiedDateTime = c.DateTime(),
                     CreatedByPersonAliasId = c.Int(),
                     ModifiedByPersonAliasId = c.Int(),
-                    Guid = c.Guid( nullable: false ),
+                    Guid = c.Guid(nullable: false),
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
-                    ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "PersonAlias", t => t.ModifiedByPersonAliasId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true )
-                .Index( t => t.ForeignId )
-                .Index( t => t.ForeignGuid )
-                .Index( t => t.ForeignKey );
-
-            CreateTable(
+                    ForeignKey = c.String(maxLength: 100),
+                });
+            
+            AddTable(
                 "dbo._org_secc_OAuth_Scope",
                 c => new
                 {
-                    Id = c.Int( nullable: false, identity: true ),
-                    Identifier = c.String( maxLength: 255 ),
+                    Id = c.Int(nullable: false, identity: true),
+                    Identifier = c.String(maxLength: 255),
                     Description = c.String(),
-                    Active = c.Boolean( nullable: false ),
+                    Active = c.Boolean(nullable: false),
                     CreatedDateTime = c.DateTime(),
                     ModifiedDateTime = c.DateTime(),
                     CreatedByPersonAliasId = c.Int(),
                     ModifiedByPersonAliasId = c.Int(),
-                    Guid = c.Guid( nullable: false ),
+                    Guid = c.Guid(nullable: false),
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
-                    ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "PersonAlias", t => t.ModifiedByPersonAliasId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true )
-                .Index( t => t.ForeignId )
-                .Index( t => t.ForeignGuid )
-                .Index( t => t.ForeignKey );
+                    ForeignKey = c.String(maxLength: 100),
+                });
 
-
-
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_OAuth_ClientScope",
                 c => new
                 {
-                    Id = c.Int( nullable: false, identity: true ),
-                    ClientId = c.Int( nullable: false ),
-                    ScopeId = c.Int( nullable: false ),
-                    Active = c.Boolean( nullable: false ),
+                    Id = c.Int(nullable: false, identity: true),
+                    ClientId = c.Int(nullable: false),
+                    ScopeId = c.Int(nullable: false),
+                    Active = c.Boolean(nullable: false),
                     CreatedDateTime = c.DateTime(),
                     ModifiedDateTime = c.DateTime(),
                     CreatedByPersonAliasId = c.Int(),
                     ModifiedByPersonAliasId = c.Int(),
-                    Guid = c.Guid( nullable: false ),
+                    Guid = c.Guid(nullable: false),
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
-                    ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "PersonAlias", t => t.ModifiedByPersonAliasId )
-                .ForeignKey( "_org_secc_OAuth_Client", t => t.ClientId, cascadeDelete: true )
-                .ForeignKey( "_org_secc_OAuth_Scope", t => t.ScopeId, cascadeDelete: true )
-                .Index( t => t.ClientId )
-                .Index( t => t.ScopeId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true )
-                .Index( t => t.ForeignId )
-                .Index( t => t.ForeignGuid )
-                .Index( t => t.ForeignKey );
+                    ForeignKey = c.String(maxLength: 100),
+                });
 
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_OAuth_Authorization",
                 c => new
                 {
-                    Id = c.Int( nullable: false, identity: true ),
-                    ClientId = c.Int( nullable: false ),
-                    ScopeId = c.Int( nullable: false ),
-                    UserLoginId = c.Int( nullable: false ),
-                    Active = c.Boolean( nullable: false ),
+                    Id = c.Int(nullable: false, identity: true),
+                    ClientId = c.Int(nullable: false),
+                    ScopeId = c.Int(nullable: false),
+                    UserLoginId = c.Int(nullable: false),
+                    Active = c.Boolean(nullable: false),
                     CreatedDateTime = c.DateTime(),
                     ModifiedDateTime = c.DateTime(),
                     CreatedByPersonAliasId = c.Int(),
                     ModifiedByPersonAliasId = c.Int(),
-                    Guid = c.Guid( nullable: false ),
+                    Guid = c.Guid(nullable: false),
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
-                    ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "PersonAlias", t => t.ModifiedByPersonAliasId )
-                .ForeignKey( "_org_secc_OAuth_Client", t => t.ClientId, cascadeDelete: true )
-                .ForeignKey( "_org_secc_OAuth_Scope", t => t.ScopeId, cascadeDelete: true )
-                .ForeignKey( "UserLogin", t => t.UserLoginId, cascadeDelete: true )
-                .Index( t => t.ClientId )
-                .Index( t => t.ScopeId )
-                .Index( t => t.UserLoginId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true )
-                .Index( t => t.ForeignId )
-                .Index( t => t.ForeignGuid )
-                .Index( t => t.ForeignKey );
+                    ForeignKey = c.String(maxLength: 100),
+                });
 
+            //Adding primary keys for all four OAuth tables
+            AddPrimaryKey("dbo._org_secc_OAuth_Client", "Id");
+            AddPrimaryKey("dbo._org_secc_OAuth_Scope", "Id");
+            AddPrimaryKey("dbo._org_secc_OAuth_ClientScope", "Id");
+            AddPrimaryKey("dbo._org_secc_OAuth_Authorization", "Id");
+
+            //Adding foreign keys & indices for OAuth Client table
+            AddForeignKey("dbo._org_secc_OAuth_Client", "CreatedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_OAuth_Client", "ModifiedByPersonAliasId", "dbo.PersonAlias" );
+            AddIndex( "dbo._org_secc_OAuth_Client", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_OAuth_Client", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_OAuth_Client", "Guid", unique: true );
+            AddIndex( "dbo._org_secc_OAuth_Client", "ForeignId" );
+            AddIndex( "dbo._org_secc_OAuth_Client", "ForeignGuid" );
+            AddIndex( "dbo._org_secc_OAuth_Client", "ForeignKey" );
+
+            //Adding foreign keys & indices for OAuth Scope table
+            AddForeignKey( "dbo._org_secc_OAuth_Scope", "CreatedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_OAuth_Scope", "ModifiedByPersonAliasId", "dbo.PersonAlias");
+            AddIndex( "dbo._org_secc_OAuth_Scope", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_OAuth_Scope", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_OAuth_Scope", "Guid", unique: true );
+            AddIndex( "dbo._org_secc_OAuth_Scope", "ForeignId" );
+            AddIndex( "dbo._org_secc_OAuth_Scope", "ForeignGuid" );
+            AddIndex( "dbo._org_secc_OAuth_Scope", "ForeignKey" );
+
+            //Adding foreign keys & indices for OAuth ClientScope table
+            AddForeignKey( "dbo._org_secc_OAuth_ClientScope", "CreatedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_OAuth_ClientScope", "ModifiedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_OAuth_ClientScope", "ClientId", "_org_secc_OAuth_Client", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_OAuth_ClientScope", "ScopeId", "_org_secc_OAuth_Scope", cascadeDelete: true );
+            AddIndex( "dbo._org_secc_OAuth_ClientScope", "ClientId" );
+            AddIndex( "dbo._org_secc_OAuth_ClientScope", "ScopeId" );
+            AddIndex( "dbo._org_secc_OAuth_ClientScope", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_OAuth_ClientScope", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_OAuth_ClientScope", "Guid", unique: true );
+            AddIndex( "dbo._org_secc_OAuth_ClientScope", "ForeignId" );
+            AddIndex( "dbo._org_secc_OAuth_ClientScope", "ForeignGuid" );
+            AddIndex( "dbo._org_secc_OAuth_ClientScope", "ForeignKey" );
+
+            //Adding foreign keys & indices for OAuth Authorization table
+            AddForeignKey("dbo._org_secc_OAuth_Authorization", "CreatedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_OAuth_Authorization", "ModifiedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_OAuth_Authorization", "ClientId", "_org_secc_OAuth_Client", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_OAuth_Authorization", "ScopeId", "_org_secc_OAuth_Scope", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_OAuth_Authorization", "UserLoginId", "UserLogin", cascadeDelete: true );
+            AddIndex( "dbo._org_secc_OAuth_Authorization", "ClientId" );
+            AddIndex( "dbo._org_secc_OAuth_Authorization", "ScopeId" );
+            AddIndex( "dbo._org_secc_OAuth_Authorization", "UserLoginId" );
+            AddIndex( "dbo._org_secc_OAuth_Authorization", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_OAuth_Authorization", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_OAuth_Authorization", "Guid", unique: true );
+            AddIndex( "dbo._org_secc_OAuth_Authorization", "ForeignId" );
+            AddIndex( "dbo._org_secc_OAuth_Authorization", "ForeignGuid" );
+            AddIndex( "dbo._org_secc_OAuth_Authorization", "ForeignKey" );
         }
 
         public override void Down()

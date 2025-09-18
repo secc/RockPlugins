@@ -17,7 +17,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.IO;
-using iTextSharp.text.pdf;
+using iText.Forms;
+using iText.Kernel.Pdf;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -73,24 +74,29 @@ namespace org.secc.SafetyAndSecurity
 
             using ( MemoryStream ms = new MemoryStream() )
             {
-                PdfReader pdfReader = new PdfReader( pdfBytes );
-                PdfStamper pdfStamper = new PdfStamper( pdfReader, ms );
+                PdfReader pdfReader = new PdfReader( new MemoryStream( pdfBytes ) );
+                var pdfWriter = new PdfWriter( ms );
 
-                AcroFields pdfFormFields = pdfStamper.AcroFields;
+                var pdfDocument = new PdfDocument( pdfReader, pdfWriter );
+                var form = PdfAcroForm.GetAcroForm( pdfDocument, true );
+
+                var pdfFormFields = form.GetFormFields();
 
 
-                foreach ( var field in fields )
-                    if ( pdfFormFields.Fields.ContainsKey( field.Key ) )
-                        pdfFormFields.SetField( field.Key, field.Value );
+                foreach (var field in fields)
+                    if (pdfFormFields.ContainsKey( field.Key ))
+                    {
+                        form.GetField( field.Key ).SetValue( field.Key, field.Value );
+                    }
 
-                // flatten the form to remove editting options, set it to false
-                // to leave the form open to subsequent manual edits
-                pdfStamper.FormFlattening = true;
+                form.FlattenFields();
+                
 
                 // close the pdf
-                pdfStamper.Close();
-                //pdfReader.Close();
-                pdfStamper.Dispose();
+                pdfDocument.Close();
+                pdfReader.Close();
+                pdfWriter.Close();
+                pdfDocument = null;
 
                 BinaryFile renderedPDF = new BinaryFile
                 {

@@ -9,6 +9,7 @@ using org.secc.DevLib.SportsAndFitness;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Security.Authentication;
 using Rock.Web.Cache;
@@ -316,7 +317,9 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         #endregion
     }
-    public class PersonResults : ILiquidizable
+
+    public class PersonResults : Rock.Lava.ILiquidizable
+
     {
         public Person PersonResult { get; set; }
         public string ConnectionStatusValue { get; set; }
@@ -331,7 +334,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             return this;
         }
 
-        [LavaIgnore]
+       [LavaHidden]
         public List<string> AvailableKeys
         {
             get
@@ -351,7 +354,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             }
         }
 
-        [LavaIgnore]
+        [LavaHidden]
         public object this[object key]
         {
             get

@@ -24,6 +24,7 @@ using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Reporting;
+using Rock.Tasks;
 using Rock.Web.Cache;
 
 namespace org.secc.RecurringCommunications.Jobs
@@ -208,10 +209,11 @@ namespace org.secc.RecurringCommunications.Jobs
             }
             rockContext.SaveChanges();
 
-            var transaction = new Rock.Transactions.SendCommunicationTransaction();
-            transaction.CommunicationId = communication.Id;
-            transaction.PersonAlias = recurringCommunication.CreatedByPersonAlias;
-            Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+            var message = new ProcessSendCommunication.Message
+            {
+                CommunicationId = communication.Id
+            };
+            message.Send();
         }
 
     }

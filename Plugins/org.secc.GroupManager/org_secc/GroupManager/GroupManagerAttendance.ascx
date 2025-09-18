@@ -46,10 +46,6 @@
         border: 0px solid #c8c8c8;
         border-radius: 3px;
         color: #c8c8c8;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        -o-user-select: none;
         user-select: none;
     }
 

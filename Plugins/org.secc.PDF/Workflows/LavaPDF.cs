@@ -16,7 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using iTextSharp.text.pdf;
+using iText.Kernel.Pdf;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;

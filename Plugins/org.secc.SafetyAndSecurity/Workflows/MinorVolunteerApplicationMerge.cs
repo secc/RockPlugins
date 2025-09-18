@@ -17,12 +17,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.IO;
-using iTextSharp.text.pdf;
+using iText.Forms;
+using iText.Kernel.Pdf;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 using Rock.Workflow;
 
 namespace org.secc.SafetyAndSecurity
@@ -57,30 +57,30 @@ namespace org.secc.SafetyAndSecurity
                     action.Activity.Workflow.GetAttributeValue("LastName"))},
                 {"txtDateOfBirth", action.Activity.Workflow.GetAttributeValue("DateofBirth").AsDateTime().Value.ToShortDateString()},
                 {"txtCurrentAddress", string.Concat(
-                    currentMailingAddress.Street1, ", ", 
-                    currentMailingAddress.City, ", ", 
-                    currentMailingAddress.State, " ", 
+                    currentMailingAddress.Street1, ", ",
+                    currentMailingAddress.City, ", ",
+                    currentMailingAddress.State, " ",
                     currentMailingAddress.PostalCode)},
-                                        
+
                 {"ministryOfInterest", action.Activity.Workflow.GetAttributeValue("MinistryOfInterest") },
 
                 {"txtParentSignature", "{{t:s;r:y;o:\"Parent\";}}" },
                 {"txtDate", "{{t:d;r:y;o:\"Parent\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
                 {"txtParentName", action.Activity.Workflow.GetAttributeValue("Parent")},
                 {"txtParentPhone", action.Activity.Workflow.GetAttributeValue("ParentCellPhone")},
-                {"txtParentEmail", action.Activity.Workflow.GetAttributeValue("ParentEmail")},                    
+                {"txtParentEmail", action.Activity.Workflow.GetAttributeValue("ParentEmail")},
 
                 {"txtRef1Name", action.Activity.Workflow.GetAttributeValue("Reference1Name")},
                 {"txtRef1Address", string.Concat(
-                    reference1Address.Street1, ", ", 
-                    reference1Address.City, ", ", 
-                    reference1Address.State, " ", 
+                    reference1Address.Street1, ", ",
+                    reference1Address.City, ", ",
+                    reference1Address.State, " ",
                     reference1Address.PostalCode)},
-                {"txtRef1Email", action.Activity.Workflow.GetAttributeValue("Reference1Email")}, 
+                {"txtRef1Email", action.Activity.Workflow.GetAttributeValue("Reference1Email")},
                 {"txtRef1Phone", action.Activity.Workflow.GetAttributeValue("Reference1CellPhone")},
                 {"txtRef1Relationship", action.Activity.Workflow.GetAttributeValue("Reference1Relationship")},
                 {"radRef1MonthsKnown", action.Activity.Workflow.GetAttributeValue("Reference1MonthsKnown")},
-                {"txtRef1Staff", action.Activity.Workflow.GetAttributeValue("Reference1Staff").AsBoolean()?"Yes":"No"}             
+                {"txtRef1Staff", action.Activity.Workflow.GetAttributeValue("Reference1Staff").AsBoolean()?"Yes":"No"}
             };
 
             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
@@ -88,27 +88,29 @@ namespace org.secc.SafetyAndSecurity
 
             var pdfBytes = PDF.ContentStream.ReadBytesToEnd();
 
-            using ( MemoryStream ms = new MemoryStream() )
+            using (MemoryStream ms = new MemoryStream())
             {
-                PdfReader pdfReader = new PdfReader( pdfBytes );
-                PdfStamper pdfStamper = new PdfStamper( pdfReader, ms );
+                PdfReader pdfReader = new PdfReader( new MemoryStream( pdfBytes ) );
+                PdfWriter pdfWriter = new PdfWriter( ms );
 
-                AcroFields pdfFormFields = pdfStamper.AcroFields;
+                PdfDocument pdfDocument = new PdfDocument( pdfReader, pdfWriter );
+                var form = PdfAcroForm.GetAcroForm( pdfDocument, true );
+                var pdfFormFields = form.GetFormFields();
 
+                foreach (var field in fields)
+                {
+                    if (pdfFormFields.ContainsKey( field.Key ))
+                    {
+                        form.GetField( field.Key ).SetValue( field.Key, field.Value );
+                    }
+                }
 
-                foreach ( var field in fields )
-                    if ( pdfFormFields.Fields.ContainsKey( field.Key ) )
-                        pdfFormFields.SetField( field.Key, field.Value );
+                form.FlattenFields();
+                pdfDocument.Close();
+                pdfReader.Close();
+                pdfWriter.Close();
+                pdfDocument = null;
 
-                // flatten the form to remove editting options, set it to false
-                // to leave the form open to subsequent manual edits
-                pdfStamper.FormFlattening = true;
-
-                // close the pdf
-                pdfStamper.Close();
-                //pdfReader.Close();
-                pdfStamper.Dispose();
-                pdfStamper = null;
 
                 BinaryFile renderedPDF = new BinaryFile
                 {

@@ -21,6 +21,7 @@ using System.Runtime.Serialization;
 using Rock;
 using Rock.Communication;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Web.Cache;
 
@@ -33,7 +34,7 @@ namespace org.secc.SafetyAndSecurity.Model
         [DataMember]
         public int AlertNotificationId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public AlertNotification AlertNotification { get; set; }
 
         [DataMember]
@@ -75,7 +76,7 @@ namespace org.secc.SafetyAndSecurity.Model
                 smsMessage.FromNumber = fromValue;
                 smsMessage.Message = $"{( this.AlertNotification.Title != null ? this.AlertNotification.Title + ": " : "" )}{message}";
                 smsMessage.CreateCommunicationRecord = true;
-                smsMessage.communicationName = this.AlertNotification?.Title ?? "Alert Notification Message";
+                smsMessage.CommunicationName = this.AlertNotification?.Title ?? "Alert Notification Message";
 
                 foreach ( var person in recipients.ToList() )
                 {

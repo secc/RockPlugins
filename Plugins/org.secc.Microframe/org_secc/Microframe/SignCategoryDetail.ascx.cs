@@ -29,7 +29,7 @@ namespace RockWeb.Plugins.org_secc.Microframe
     [DisplayName( "Sign Category Detail" )]
     [Category( "SECC > Microframe" )]
     [Description( "Displays the details of the given sign category." )]
-    public partial class SignCategoryDetail : RockBlock, IDetailBlock
+    public partial class SignCategoryDetail : RockBlock
     {
         #region Control Methods
 

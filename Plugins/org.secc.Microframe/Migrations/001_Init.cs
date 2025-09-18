@@ -22,7 +22,7 @@ namespace org.secc.Microframe.Migrations
     {
         public override void Up()
         {
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_Microframe_Sign",
                 c => new
                 {
@@ -42,7 +42,7 @@ namespace org.secc.Microframe.Migrations
                     ForeignKey = c.String( maxLength: 100 ),
                 } );
 
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_Microframe_SignCategory",
                 c => new
                 {
@@ -60,7 +60,7 @@ namespace org.secc.Microframe.Migrations
                     ForeignKey = c.String( maxLength: 100 ),
                 } );
 
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_Microframe_SignSignCategory",
                 c => new
                 {

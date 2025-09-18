@@ -7,7 +7,7 @@ namespace org.secc.GroupManager.Migrations
     {
         public override void Up()
         {
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_GroupManager_PublishGroup",
                 c => new
                 {
@@ -38,35 +38,37 @@ namespace org.secc.GroupManager.Migrations
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
                     ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "dbo.PersonAlias", t => t.ContactPersonAliasId, cascadeDelete: true )
-                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "dbo.Group", t => t.GroupId, cascadeDelete: true )
-                .ForeignKey( "dbo.BinaryFile", t => t.ImageId )
-                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
-                .ForeignKey( "dbo.PersonAlias", t => t.RequestorAliasId, cascadeDelete: true )
-                .Index( t => t.GroupId )
-                .Index( t => t.ImageId )
-                .Index( t => t.StartDateTime )
-                .Index( t => t.EndDateTime )
-                .Index( t => t.RequestorAliasId )
-                .Index( t => t.ContactPersonAliasId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true );
-
-            CreateTable(
+                } );
+            AddTable(
                 "dbo._org_secc_GroupManager_PublishGroupAudienceValue",
                 c => new
                 {
                     PublishGroupdId = c.Int( nullable: false ),
                     DefinedValueId = c.Int( nullable: false ),
-                } )
-                .PrimaryKey( t => new { t.PublishGroupdId, t.DefinedValueId } )
-                .ForeignKey( "dbo._org_secc_GroupManager_PublishGroup", t => t.PublishGroupdId, cascadeDelete: true )
-                .ForeignKey( "dbo.DefinedValue", t => t.DefinedValueId, cascadeDelete: true )
-                .Index( t => t.PublishGroupdId );
+                } );
+
+            AddPrimaryKey( "dbo._org_secc_GroupManager_PublishGroup", "Id" );
+            AddPrimaryKey( "dbo._org_secc_GroupManager_PublishGroupAudienceValue", new string[] { "PublishGroupdId", "DefinedValueId" } );
+
+            AddForeignKey( "dbo._org_secc_GroupManager_PublishGroup", "ContactPersonAliasId", "dbo.PersonAlias", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_GroupManager_PublishGroup", "CreatedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_GroupManager_PublishGroup", "GroupId", "dbo.Group", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_GroupManager_PublishGroup", "ImageId", "dbo.BinaryFile" );
+            AddForeignKey( "dbo._org_secc_GroupManager_PublishGroup", "ModifiedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_GroupManager_PublishGroup", "RequestorAliasId", "dbo.PersonAlias" );
+            AddIndex( "dbo._org_secc_GroupManager_PublishGroup", "GroupId" );
+            AddIndex( "dbo._org_secc_GroupManager_PublishGroup", "ImageId" );
+            AddIndex( "dbo._org_secc_GroupManager_PublishGroup", "StartDateTime" );
+            AddIndex( "dbo._org_secc_GroupManager_PublishGroup", "EndDateTime" );
+            AddIndex( "dbo._org_secc_GroupManager_PublishGroup", "RequestorAliasId" );
+            AddIndex( "dbo._org_secc_GroupManager_PublishGroup", "ContactPersonAliasId" );
+            AddIndex( "dbo._org_secc_GroupManager_PublishGroup", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_GroupManager_PublishGroup", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_GroupManager_PublishGroup", "Guid", unique: true );
+
+            AddForeignKey( "dbo._org_secc_GroupManager_PublishGroupAudienceValue", "PublishGroupdId", "dbo._org_secc_GroupManager_PublishGroup", cascadeDelete: true );
+            AddForeignKey( "dbo._org_secc_GroupManager_PublishGroupAudienceValue", "DefinedValueId", "dbo.DefinedValue", cascadeDelete: true );
+            AddIndex( "dbo._org_secc_GroupManager_PublishGroupAudienceValue", "PublishGroupdId" );
 
 
         }
