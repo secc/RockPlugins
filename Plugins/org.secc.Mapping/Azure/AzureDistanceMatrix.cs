@@ -1,9 +1,9 @@
 // <copyright>
 // Copyright Southeast Christian Church
 //
-// Licensed under the  Southeast Christian Church License (the "License");
+// Licensed under the Southeast Christian Church License (the "License");
 // you may not use this file except in compliance with the License.
-// A copy of the License shoud be included with this file.
+// A copy of the License should be included with this file.
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -30,100 +29,116 @@ namespace org.secc.Mapping
 {
     public static class AzureDistanceMatrix
     {
-        private static readonly HttpClient client = new HttpClient();
-        
-        public static async Task<List<Destination>> OrderDestinations(string origin, List<Destination> destinations)
+        private static readonly HttpClient client = CreateHttpClient();
+
+        private static HttpClient CreateHttpClient()
+        {
+            var handler = new HttpClientHandler();
+            var client = new HttpClient( handler )
+            {
+                Timeout = TimeSpan.FromSeconds( 30 )
+            };
+            return client;
+        }
+
+        public static async Task<List<Destination>> OrderDestinations( string origin, List<Destination> destinations )
         {
             var destinationAddresses = new List<string>();
 
             // Get stored distances from database
             RockContext rockContext = new RockContext();
-            LocationDistanceStoreService locationDistanceStoreService = new LocationDistanceStoreService(rockContext);
-            locationDistanceStoreService.LoadDurations(origin, destinations);
+            LocationDistanceStoreService locationDistanceStoreService = new LocationDistanceStoreService( rockContext );
+            locationDistanceStoreService.LoadDurations( origin, destinations );
 
             // Get new distances from Azure Maps
-            foreach (var destination in destinations.Where(d => !d.IsCalculated && d.Address.IsNotNullOrWhiteSpace()))
+            foreach ( var destination in destinations.Where( d => !d.IsCalculated && d.Address.IsNotNullOrWhiteSpace() ) )
             {
-                destinationAddresses.Add(destination.Address);
+                destinationAddresses.Add( destination.Address );
             }
-            
-            if (destinationAddresses.Any())
+
+            if ( destinationAddresses.Any() )
             {
                 try
                 {
                     // Get the Azure Maps key from Rock
-                    string azureMapsKey = GlobalAttributesCache.Get().GetValue("AzureMapsKey");
-                    
+                    string azureMapsKey = GlobalAttributesCache.Get().GetValue( "AzureMapsKey" );
+
                     // Prepare the request payload for Azure Maps Route Matrix API
                     var payload = new
                     {
-                        origins = new[] { new { 
+                        origins = new[] { new {
                             address = origin
                         }},
-                        destinations = destinationAddresses.Select(address => new { 
-                            address = address 
-                        }).ToArray(),
+                        destinations = destinationAddresses.Select( address => new
+                        {
+                            address = address
+                        } ).ToArray(),
                         travelMode = "car",
                         routeType = "fastest"
                     };
 
-                    string requestUrl = $"https://atlas.microsoft.com/route/matrix/json?api-version=1.0&subscription-key={azureMapsKey}";
-                    
+                    string requestUrl = $"https://atlas.microsoft.com/route/matrix/json?api-version=1.0";
+
                     // Serialize payload to JSON
-                    string jsonPayload = JsonConvert.SerializeObject(payload);
-                    
+                    string jsonPayload = JsonConvert.SerializeObject( payload );
+
                     // Create HTTP request
-                    var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-                    var response = await client.PostAsync(requestUrl, content);
-                    
-                    if (response.IsSuccessStatusCode)
+                    var content = new StringContent( jsonPayload, Encoding.UTF8, "application/json" );
+                    using ( var request = new HttpRequestMessage( HttpMethod.Post, requestUrl ) )
                     {
-                        string jsonResponse = await response.Content.ReadAsStringAsync();
-                        var result = JObject.Parse(jsonResponse);
-                        
-                        // Process the response
-                        var matrix = result["matrix"];
-                        if (matrix != null && matrix.Count() > 0)
+                        request.Content = content;
+                        request.Headers.Add( "Ocp-Apim-Subscription-Key", azureMapsKey );
+                        var response = await client.SendAsync( request );
+
+                        if ( response.IsSuccessStatusCode )
                         {
-                            var routes = matrix[0];
-                            
-                            for (int i = 0; i < destinationAddresses.Count; i++)
+                            string jsonResponse = await response.Content.ReadAsStringAsync();
+                            var result = JObject.Parse( jsonResponse );
+
+                            // Process the response
+                            var matrix = result["matrix"];
+                            if ( matrix != null && matrix.HasValues )
                             {
-                                if (routes[i] != null)
+                                var routes = matrix[0];
+
+                                for ( int i = 0; i < destinationAddresses.Count; i++ )
                                 {
-                                    double travelDistance = routes[i]["response"]["routeSummary"]["lengthInMeters"].Value<double>() / 1609.344; // Convert meters to miles
-                                    double travelDuration = routes[i]["response"]["routeSummary"]["travelTimeInSeconds"].Value<double>() / 60; // Convert seconds to minutes
-                                    
-                                    var destinationsForAddress = destinations.Where(d => d.Address == destinationAddresses[i]).ToList();
-                                    foreach (var destination in destinationsForAddress)
+                                    if ( routes[i] != null )
                                     {
-                                        destination.TravelDistance = travelDistance;
-                                        destination.TravelDuration = travelDuration;
-                                        destination.IsCalculated = true;
-                                        locationDistanceStoreService.AddOrUpdate(origin, destination, "Azure");
+                                        double travelDistance = routes[i]["response"]["routeSummary"]["lengthInMeters"].Value<double>() / 1609.344; // Convert meters to miles
+                                        double travelDuration = routes[i]["response"]["routeSummary"]["travelTimeInSeconds"].Value<double>() / 60; // Convert seconds to minutes
+
+                                        var destinationsForAddress = destinations.Where( d => d.Address == destinationAddresses[i] ).ToList();
+                                        foreach ( var destination in destinationsForAddress )
+                                        {
+                                            destination.TravelDistance = travelDistance;
+                                            destination.TravelDuration = travelDuration;
+                                            destination.IsCalculated = true;
+                                            locationDistanceStoreService.AddOrUpdate( origin, destination, "Azure" );
+                                        }
                                     }
                                 }
+
+                                rockContext.SaveChanges();
                             }
-                            
-                            rockContext.SaveChanges();
+                        }
+                        else
+                        {
+                            // Log error
+                            Rock.Model.ExceptionLogService.LogException( new Exception( $"Azure Maps API error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}" ) );
                         }
                     }
-                    else
-                    {
-                        // Log error
-                        Rock.Model.ExceptionLogService.LogException(new Exception($"Azure Maps API error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}"));
-                    }
                 }
-                catch (Exception ex)
+                catch ( Exception ex )
                 {
                     // Log exception
-                    Rock.Model.ExceptionLogService.LogException(ex);
+                    Rock.Model.ExceptionLogService.LogException( ex );
                 }
             }
 
             return destinations
-                .Where(d => d.IsCalculated == true)
-                .OrderBy(d => d.TravelDuration)
+                .Where( d => d.IsCalculated == true )
+                .OrderBy( d => d.TravelDuration )
                 .ToList();
         }
     }
