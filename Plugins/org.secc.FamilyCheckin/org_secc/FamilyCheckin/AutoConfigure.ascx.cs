@@ -344,7 +344,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             Session["KioskMessage"] = kiosk.KioskType.Message;
 
             //Clean things up so we have the freshest possible version.
-            KioskTypeCache.Remove( kiosk.KioskTypeId ?? 0 );
+            CheckinKioskTypeCache.Remove( kiosk.KioskTypeId ?? 0 );
             KioskDevice.Remove( device.Id );
 
             Dictionary<string, string> pageParameters = new Dictionary<string, string>();
@@ -368,7 +368,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         {
             var rockContext = new RockContext();
 
-            var kioskTypeService = new KioskTypeService( rockContext );
+            var kioskTypeService = new CheckinKioskTypeService( rockContext );
             var kioskType = kioskTypeService.Get( ddlManualKioskType.SelectedValue.AsInteger() );
             if ( kioskType == null )
             {
@@ -397,7 +397,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         private void BindDropDownLists( Kiosk kiosk = null )
         {
             RockContext rockContext = new RockContext();
-            KioskTypeService kioskTypeService = new KioskTypeService( rockContext );
+            CheckinKioskTypeService kioskTypeService = new CheckinKioskTypeService( rockContext );
 
             var kioskTypes = kioskTypeService
                 .Queryable()

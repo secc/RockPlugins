@@ -564,7 +564,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             var groupMemberAttributeValueQry = attributeValueService.Queryable()
                .Where( av => groupMemberAttributeQry.Contains( av.AttributeId ) );
 
-            if ( groupId.IsNotNull() )
+            if ( groupId != null )
             {
                 var groupMemberList = groupMemberService.Queryable()
                    .Where( a => a.GroupId == groupId.Id && a.GroupMemberStatus == GroupMemberStatus.Active )

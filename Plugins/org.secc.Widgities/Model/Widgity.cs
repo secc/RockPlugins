@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 
 namespace org.secc.Widgities.Model
@@ -18,23 +16,23 @@ namespace org.secc.Widgities.Model
         [DataMember]
         public int WidgityTypeId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual WidgityType WidgityType { get; set; }
 
         [DataMember]
         public int EntityTypeId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual EntityType EntityType { get; set; }
 
         [DataMember]
         public Guid EntityGuid { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual ICollection<WidgityItem> WidgityItems { get; set; }
 
         [DataMember]
-        public int Order { get ; set ; }
+        public int Order { get; set; }
     }
 
     public partial class WidgityConfiguration : EntityTypeConfiguration<Widgity>

@@ -14,15 +14,16 @@
 //
 namespace org.secc.SystemsMonitor.Migrations
 {
-    using org.secc.DevLib.Extensions.Migration;
     using Rock.Plugin;
+    using Rock.Transactions;
 
     [MigrationNumber( 1, "1.10.0" )]
     public partial class Init : Migration
     {
         public override void Up()
         {
-            CreateTable(
+            //Adding two tables for SystemTest & SystemTestHistory
+            AddTable(
              "dbo._org_secc_SystemsMonitor_SystemTest",
              c => new
              {
@@ -41,19 +42,9 @@ namespace org.secc.SystemsMonitor.Migrations
                  ForeignId = c.Int(),
                  ForeignGuid = c.Guid(),
                  ForeignKey = c.String( maxLength: 100 ),
-             } )
-             .PrimaryKey( t => t.Id )
-             .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-             .ForeignKey( "dbo.EntityType", t => t.EntityTypeId )
-             .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
-             .Index( t => t.EntityTypeId )
-             .Index( t => t.CreatedByPersonAliasId )
-             .Index( t => t.ModifiedByPersonAliasId )
-             .Index( t => t.Guid, unique: true )
-             .Run( this );
-
-
-            CreateTable(
+             } );
+            
+            AddTable(
                 "dbo._org_secc_SystemsMonitor_SystemTestHistory",
                 c => new
                 {
@@ -70,16 +61,30 @@ namespace org.secc.SystemsMonitor.Migrations
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
                     ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
-                .ForeignKey( "dbo._org_secc_SystemsMonitor_SystemTest", t => t.SystemTestId )
-                .Index( t => t.SystemTestId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true )
-                .Run( this );
+                } );
+
+            //Adding primary keys for both tables
+            AddPrimaryKey( "dbo._org_secc_SystemsMonitor_SystemTest", "Id" );
+            AddPrimaryKey( "dbo._org_secc_SystemsMonitor_SystemTestHistory", "Id" );
+
+            //Adding foreign keys & indices for SystemTest table
+            AddForeignKey( "dbo._org_secc_SystemsMonitor_SystemTest", "CreatedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_SystemsMonitor_SystemTest", "EntityTypeId", "dbo.EntityType" );
+            AddForeignKey( "dbo._org_secc_SystemsMonitor_SystemTest", "ModifiedByPersonAliasId", "dbo.PersonAlias" );
+            AddIndex( "dbo._org_secc_SystemsMonitor_SystemTest", "EntityTypeId" );
+            AddIndex( "dbo._org_secc_SystemsMonitor_SystemTest", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_SystemsMonitor_SystemTest", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_SystemsMonitor_SystemTest", "Guid", unique: true );
+
+            //Adding foreign keys & indices for SystemTestHistory table
+            AddForeignKey( "dbo._org_secc_SystemsMonitor_SystemTestHistory", "CreatedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_SystemsMonitor_SystemTestHistory", "ModifiedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_SystemsMonitor_SystemTestHistory", "SystemTestId", "dbo._org_secc_SystemsMonitor_SystemTest" );
+            AddIndex( "dbo._org_secc_SystemsMonitor_SystemTestHistory", "SystemTestId" );
+            AddIndex( "dbo._org_secc_SystemsMonitor_SystemTestHistory", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_SystemsMonitor_SystemTestHistory", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_SystemsMonitor_SystemTestHistory", "Guid", unique: true );
+
         }
 
         public override void Down()

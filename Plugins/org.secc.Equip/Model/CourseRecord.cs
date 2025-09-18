@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 
 namespace org.secc.Equip.Model
@@ -25,7 +26,7 @@ namespace org.secc.Equip.Model
 
         /// <summary>Gets or sets the person alias.</summary>
         /// <value>The person alias.</value>
-        [LavaInclude]
+        [LavaVisible]
         public virtual PersonAlias PersonAlias { get; set; }
 
         /// <summary>Gets or sets the course identifier.</summary>
@@ -35,7 +36,7 @@ namespace org.secc.Equip.Model
 
         /// <summary>Gets or sets the course.</summary>
         /// <value>The course.</value>
-        [LavaInclude]
+        [LavaVisible]
         public virtual Course Course { get; set; }
 
         /// <summary>Gets or sets the completion date time.</summary>
@@ -51,7 +52,7 @@ namespace org.secc.Equip.Model
 
         /// <summary>Gets or sets the chapter records.</summary>
         /// <value>The chapter records.</value>
-        [LavaInclude]
+        [LavaVisible]
         public virtual ICollection<ChapterRecord> ChapterRecords { get; set; } = new Collection<ChapterRecord>();
     }
 

@@ -142,7 +142,7 @@ namespace org.secc.Jobs
                 smsMessage.Message += alarm.Name + "\n";
             }
             smsMessage.CreateCommunicationRecord = true;
-            smsMessage.communicationName = "System Monitor Alert Notification Message";
+            smsMessage.CommunicationName = "System Monitor Alert Notification Message";
 
             foreach ( var person in people )
             {

@@ -7,7 +7,7 @@
     {
         public override void Up()
         {
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_Communication_TwilioHistory",
                 c => new
                 {
@@ -30,13 +30,13 @@
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
                     ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true );
+                } );
+            AddPrimaryKey( "dbo._org_secc_Communication_TwilioHistory", "Id" );
+            AddForeignKey( "dbo._org_secc_Communication_TwilioHistory", "CreatedByPersonAliasId", "dbo.PersonAlias", "Id" );
+            AddForeignKey( "dbo._org_secc_Communication_TwilioHistory", "ModifiedByPersonAliasId", "dbo.PersonAlias", "Id" );
+            AddIndex( "dbo._org_secc_Communication_TwilioHistory", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_Communication_TwilioHistory", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_Communication_TwilioHistory", "Guid", unique: true );
         }
 
         public override void Down()

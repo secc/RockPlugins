@@ -20,6 +20,7 @@ using System.Runtime.Serialization;
 using Rock;
 using Rock.Data;
 using Rock.Model;
+using Rock.Lava;
 
 namespace org.secc.SystemsMonitor.Model
 {
@@ -36,7 +37,7 @@ namespace org.secc.SystemsMonitor.Model
         [DataMember]
         public int? EntityTypeId { get; set; }
 
-        [LavaInclude]
+        [LavaVisibleAttribute]
         public virtual EntityType EntityType { get; set; }
 
         [DataMember]

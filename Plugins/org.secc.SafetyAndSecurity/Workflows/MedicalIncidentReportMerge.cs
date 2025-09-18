@@ -17,12 +17,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.IO;
-using iTextSharp.text.pdf;
+using System.Linq;
+using iText.Forms;
+using iText.Kernel.Pdf;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 using Rock.Workflow;
 
 namespace org.secc.SafetyAndSecurity
@@ -80,48 +81,34 @@ namespace org.secc.SafetyAndSecurity
             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
             BinaryFile PDF = binaryFileService.Get( GetActionAttributeValue( action, "MedicalIncidentReportPDF" ).AsGuid() );
 
-            var pdfBytes = PDF.ContentStream.ReadBytesToEnd();
 
-            using ( MemoryStream ms = new MemoryStream() )
+
+            using (MemoryStream ms = new MemoryStream())
             {
-                PdfReader pdfReader = new PdfReader( pdfBytes );
-                PdfStamper pdfStamper = new PdfStamper( pdfReader, ms );
+                PdfDocument doc = new PdfDocument( new PdfReader( PDF.ContentStream ), new PdfWriter( ms ) );
+                PdfAcroForm form = PdfAcroForm.GetAcroForm( doc, true );
+                var pdfFields = form.GetFormFields();
 
-                AcroFields pdfFormFields = pdfStamper.AcroFields;
-
-
-                foreach ( var field in fields )
+                var emsHospital = action.Activity.Workflow.GetAttributeValue( "emsHospital" ).AsBoolean();
+                var signatureFieldKeys = new string[] { "personSignature", "personSigDatetime" };
+                foreach (var field in fields)
                 {
-                    if ( pdfFormFields.Fields.ContainsKey( field.Key ) )
+                    var fieldValue = field.Value;
+
+                    if (emsHospital && signatureFieldKeys.Contains( field.Key ))
                     {
-                        if ( field.Key == "personSignature" || field.Key == "personSigDatetime" )
-                        {
-                            if ( action.Activity.Workflow.GetAttributeValue( "emsHospital" ).AsBoolean() )
-                            {
-                                pdfFormFields.SetField( field.Key, "" );
-                            }
-                            else
-                            {
-                                pdfFormFields.SetField( field.Key, field.Value );
-                            }
-                        }
-                        else
-                        {
-                            pdfFormFields.SetField( field.Key, field.Value );
-                        }
-                    }   
+                        fieldValue = "";
+                    }
+
+                    if (pdfFields.ContainsKey( field.Key ))
+                    {
+                        pdfFields[field.Key].SetValue( fieldValue );
+                    }
                 }
-                    
 
-                // flatten the form to remove editting options, set it to false
-                // to leave the form open to subsequent manual edits
-                pdfStamper.FormFlattening = true;
+                form.FlattenFields();
+                doc.Close();
 
-                // close the pdf
-                pdfStamper.Close();
-                //pdfReader.Close();
-                pdfStamper.Dispose();
-                pdfStamper = null;
 
                 BinaryFile renderedPDF = new BinaryFile
                 {

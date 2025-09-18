@@ -26,7 +26,7 @@ namespace org.secc.FamilyCheckin.Model
         }
 
 
-        [LavaIgnore]
+        [LavaHidden]
         public object this[object key]
         {
             get
@@ -44,7 +44,7 @@ namespace org.secc.FamilyCheckin.Model
             }
         }
 
-        [LavaIgnore]
+        [LavaHidden]
         public List<string> AvailableKeys
         {
             get

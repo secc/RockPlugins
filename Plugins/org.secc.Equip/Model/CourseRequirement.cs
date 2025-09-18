@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Security;
 
@@ -23,7 +24,7 @@ namespace org.secc.Equip.Model
 
         /// <summary>Gets or sets the course.</summary>
         /// <value>The course.</value>
-        [LavaInclude]
+        [LavaVisible]
         public virtual Course Course { get; set; }
 
         /// <summary>Gets or sets the group identifier.</summary>
@@ -33,7 +34,7 @@ namespace org.secc.Equip.Model
 
         /// <summary>Gets or sets the group.</summary>
         /// <value>The group.</value>
-        [LavaInclude]
+        [LavaVisible]
         public virtual Group Group { get; set; }
 
         /// <summary>Gets or sets the data view identifier.</summary>
@@ -43,7 +44,7 @@ namespace org.secc.Equip.Model
 
         /// <summary>Gets or sets the data view.</summary>
         /// <value>The data view.</value>
-        [LavaInclude]
+        [LavaVisible]
         public virtual DataView DataView { get; set; }
 
         /// <summary>Gets or sets the days valid.</summary>
@@ -51,7 +52,7 @@ namespace org.secc.Equip.Model
         [DataMember]
         public int? DaysValid { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual ICollection<CourseRequirementStatus> CourseRequirementStatuses { get; set; }
 
         [NotMapped]

@@ -1621,7 +1621,12 @@ function(item) {
                     var ti = new TaskInfo { name = "Get First Five Dates", start = DateTime.Now };
                     taskInfos.Add( ti );
 
-                    var dataSet = AttendanceService.GetAttendanceAnalyticsAttendeeFirstDates(
+                    //Rock context & attendance service instance will be used w/ non-static method
+                    var rockContext = new RockContext();
+                    AttendanceService attendanceServiceInstance = new AttendanceService( rockContext );
+
+                    //Instance of attendance service used as the referenced object of a non-static method
+                    var dataSet = attendanceServiceInstance.GetAttendanceAnalyticsAttendeeFirstDatesDataSet(
                         groupTypeIdList, groupIdList, start, end, campusIdList, includeNullCampus, scheduleIdList );
                     if ( dataSet.Tables.Count > 0 )
                     {
@@ -1663,7 +1668,8 @@ function(item) {
                         person.Email = row["Email"].ToString();
                         person.GivingId = row["GivingId"].ToString();
                         person.Birthdate = row["BirthDate"] as DateTime?;
-                        person.Age = Person.GetAge( person.Birthdate );
+                        person.DeceasedDate = row["DeceasedDate"] as DateTime?;
+                        person.Age = Person.GetAge( person.Birthdate, person.DeceasedDate );
 
                         person.ConnectionStatusValueId = row["ConnectionStatusValueId"] as int?;
                         result.Person = person;
@@ -1677,7 +1683,8 @@ function(item) {
                             parent.Email = row["ParentEmail"].ToString();
                             parent.GivingId = row["ParentGivingId"].ToString();
                             parent.Birthdate = row["ParentBirthDate"] as DateTime?;
-                            parent.Age = Person.GetAge( parent.Birthdate );
+                            parent.DeceasedDate = row["ParentDeceasedDate"] as DateTime?;
+                            parent.Age = Person.GetAge( parent.Birthdate, parent.DeceasedDate );
                             result.Parent = parent;
                         }
 
@@ -1690,7 +1697,8 @@ function(item) {
                             child.Email = row["ChildEmail"].ToString();
                             child.GivingId = row["ChildGivingId"].ToString();
                             child.Birthdate = row["ChildBirthDate"] as DateTime?;
-                            child.Age = Person.GetAge( child.Birthdate );
+                            child.DeceasedDate = row["ChildDeceasedDate"] as DateTime?;
+                            child.Age = Person.GetAge( child.Birthdate, child.DeceasedDate );
                             result.Child = child;
                         }
 
@@ -1827,7 +1835,8 @@ function(item) {
                             person.Email = row["Email"].ToString();
                             person.GivingId = row["GivingId"].ToString();
                             person.Birthdate = row["BirthDate"] as DateTime?;
-                            person.Age = Person.GetAge( person.Birthdate );
+                            person.DeceasedDate = row["DeceasedDate"] as DateTime?;
+                            person.Age = Person.GetAge( person.Birthdate, person.DeceasedDate );
                             person.ConnectionStatusValueId = row["ConnectionStatusValueId"] as int?;
                             result.Person = person;
 
@@ -1840,7 +1849,8 @@ function(item) {
                                 parent.Email = row["ParentEmail"].ToString();
                                 parent.GivingId = row["ParentGivingId"].ToString();
                                 parent.Birthdate = row["ParentBirthDate"] as DateTime?;
-                                parent.Age = Person.GetAge( parent.Birthdate );
+                                parent.DeceasedDate = row["ParentDeceasedDate"] as DateTime?;
+                                parent.Age = Person.GetAge( parent.Birthdate, parent.DeceasedDate );
                                 result.Parent = parent;
                             }
 
@@ -1853,7 +1863,8 @@ function(item) {
                                 child.Email = row["ChildEmail"].ToString();
                                 child.GivingId = row["ChildGivingId"].ToString();
                                 child.Birthdate = row["ChildBirthDate"] as DateTime?;
-                                child.Age = Person.GetAge( child.Birthdate );
+                                child.DeceasedDate = row["ChildDeceasedDate"] as DateTime?;
+                                child.Age = Person.GetAge( child.Birthdate, child.DeceasedDate );
                                 result.Child = child;
                             }
 
@@ -2912,6 +2923,8 @@ function(item) {
             public string GivingId { get; set; }
 
             public DateTime? Birthdate { get; set; }
+
+            public DateTime? DeceasedDate { get; set; }
 
             public int? ConnectionStatusValueId { get; set; }
 

@@ -6,6 +6,7 @@ using System.Text;
 using Newtonsoft.Json;
 using Rock;
 using Rock.Data;
+using Rock.Model;
 using Rock.Web.Cache;
 
 namespace org.secc.Reporting.Model
@@ -114,12 +115,12 @@ namespace org.secc.Reporting.Model
         {
             get
             {
-                if (!GraduationYear.HasValue || GraduationYear < RockDateTime.CurrentGraduationYear)
+                if (!GraduationYear.HasValue || GraduationYear < PersonService.GetCurrentGraduationYear())
                 {
                     return null;
                 }
 
-                var gradeoffset = GraduationYear.Value - RockDateTime.CurrentGraduationYear;
+                var gradeoffset = GraduationYear.Value - PersonService.GetCurrentGraduationYear();
 
                 var gradeDv = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.SCHOOL_GRADES.AsGuid() )
                     .DefinedValues.Where( v => v.Value == gradeoffset.ToString() )

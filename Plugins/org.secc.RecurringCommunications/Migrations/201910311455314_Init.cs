@@ -21,7 +21,7 @@ namespace org.secc.RecurringCommunications.Migrations
     {
         public override void Up()
         {
-            CreateTable(
+            AddTable(
                 "dbo._org_secc_RecurringCommunications_RecurringCommunication",
                 c => new
                 {
@@ -49,19 +49,19 @@ namespace org.secc.RecurringCommunications.Migrations
                     ForeignId = c.Int(),
                     ForeignGuid = c.Guid(),
                     ForeignKey = c.String( maxLength: 100 ),
-                } )
-                .PrimaryKey( t => t.Id )
-                .ForeignKey( "dbo.PersonAlias", t => t.CreatedByPersonAliasId )
-                .ForeignKey( "dbo.DataView", t => t.DataViewId )
-                .ForeignKey( "dbo.PersonAlias", t => t.ModifiedByPersonAliasId )
-                .ForeignKey( "dbo.DefinedValue", t => t.PhoneNumberValueId )
-                .ForeignKey( "dbo.Schedule", t => t.ScheduleId, cascadeDelete: true )
-                .Index( t => t.DataViewId )
-                .Index( t => t.ScheduleId )
-                .Index( t => t.PhoneNumberValueId )
-                .Index( t => t.CreatedByPersonAliasId )
-                .Index( t => t.ModifiedByPersonAliasId )
-                .Index( t => t.Guid, unique: true );
+                } );
+            AddPrimaryKey( "dbo._org_secc_RecurringCommunications_RecurringCommunication", "Id" );
+            AddForeignKey( "dbo._org_secc_RecurringCommunications_RecurringCommunication", "CreatedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_RecurringCommunications_RecurringCommunication", "DataViewId", "dbo.DataView" );
+            AddForeignKey( "dbo._org_secc_RecurringCommunications_RecurringCommunication", "ModifiedByPersonAliasId", "dbo.PersonAlias" );
+            AddForeignKey( "dbo._org_secc_RecurringCommunications_RecurringCommunication", "PhoneNumberValueId", "dbo.DefinedValue" );
+            AddForeignKey( "dbo._org_secc_RecurringCommunications_RecurringCommunication", "ScheduleId", "dbo.Schedule", cascadeDelete: true );
+            AddIndex( "dbo._org_secc_RecurringCommunications_RecurringCommunication", "DataViewId" );
+            AddIndex( "dbo._org_secc_RecurringCommunications_RecurringCommunication", "ScheduleId" );
+            AddIndex( "dbo._org_secc_RecurringCommunications_RecurringCommunication", "PhoneNumberValueId" );
+            AddIndex( "dbo._org_secc_RecurringCommunications_RecurringCommunication", "CreatedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_RecurringCommunications_RecurringCommunication", "ModifiedByPersonAliasId" );
+            AddIndex( "dbo._org_secc_RecurringCommunications_RecurringCommunication", "Guid", unique: true );
         }
 
         public override void Down()

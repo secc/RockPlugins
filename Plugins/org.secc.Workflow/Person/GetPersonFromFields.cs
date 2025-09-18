@@ -65,7 +65,7 @@ namespace org.secc.Workflow.Person.Action
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_RECORD_STATUS, "Default Record Status", "The record status to use when creating a new person", false, false,
         Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING, "3: Other Settings", 11 )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Default Connection Status", "The connection status to use when creating a new person", false, false,
-        Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT, "3: Other Settings", 12 )]
+        Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PROSPECT, "3: Other Settings", 12 )]
     [WorkflowAttribute( "Family Group/Member", "A family group or family member to use if this creates a new person.",
         false, "", "3: Other Settings", 13, "FamilyAttribute", new string[] { "Rock.Field.Types.PersonFieldType", "Rock.Field.Types.GroupFieldType" } )]
     [BooleanField( "Match Only", "If Yes, this will NOT create new person records and the person will only be set if a single match is found.", false,
