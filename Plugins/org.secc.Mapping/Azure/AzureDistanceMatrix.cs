@@ -62,6 +62,11 @@ namespace org.secc.Mapping
                 {
                     // Get the Azure Maps key from Rock
                     string azureMapsKey = GlobalAttributesCache.Get().GetValue("AzureMapsKey");
+                    if (string.IsNullOrWhiteSpace(azureMapsKey))
+                    {
+                        Rock.Model.ExceptionLogService.LogException(new Exception("Azure Maps API key is missing or empty. Please configure the AzureMapsKey global attribute."));
+                        return destinations;
+                    }
                     
                     // Prepare the request payload for Azure Maps Route Matrix API
                     var payload = new
