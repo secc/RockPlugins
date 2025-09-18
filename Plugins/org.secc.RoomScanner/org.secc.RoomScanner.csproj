@@ -132,6 +132,9 @@
     <Reference Include="WebActivator, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\WebActivator.1.0.0.0\lib\WebActivator.dll</HintPath>
     </Reference>
+	<Reference Include="Rock.Enums">
+      <HintPath>$(SolutionDir)\RockWeb\Bin\Rock.Enums.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Models\AttendanceCodes.cs" />
