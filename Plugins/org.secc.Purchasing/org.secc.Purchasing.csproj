@@ -67,6 +67,9 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+	<Reference Include="Rock.Enums">
+      <HintPath>$(SolutionDir)\RockWeb\Bin\Rock.Enums.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Code\Approval.cs" />
