@@ -86,7 +86,7 @@ namespace org.secc.Mapping.Rest.Controllers
                 } )
                 .Where( d => d.LocationId.HasValue && d.EntityId.HasValue )
                 .ToList();
-            var output = await BingDistanceMatrix.OrderDestinations( address, destinations );
+            var output = await AzureDistanceMatrix.OrderDestinations( address, destinations );
             return output.ToDictionary( d => d.EntityId.ToString(), d => d.TravelDistance.ToString() );
         }
 
