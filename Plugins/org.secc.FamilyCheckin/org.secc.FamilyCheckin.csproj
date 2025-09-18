@@ -165,7 +165,9 @@
     <Compile Include="Workflows\LoadAllGroupTypes.cs" />
     <Compile Include="Workflows\LoadAllGroups.cs" />
     <Compile Include="Workflows\LoadPersonByParentPhone.cs" />
-    <Compile Include="Workflows\SaveSMSAttendance.cs" />
+    <Compile Include="Workflows\SaveSMSAttendance.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Workflows\SaveAttendance.cs" />
     <Compile Include="Workflows\SideloadGroups.cs" />
     <Compile Include="Workflows\ReprintAggregate.cs" />
