@@ -30,7 +30,16 @@ namespace org.secc.Mapping
 {
     public static class AzureDistanceMatrix
     {
-        private static readonly HttpClient client = new HttpClient();
+        // Configure HttpClient with reasonable timeout and connection lease settings to avoid socket exhaustion.
+        private static readonly HttpClient client;
+        static AzureDistanceMatrix()
+        {
+            var handler = new HttpClientHandler();
+            // Optionally, configure handler properties here (e.g., Proxy, AutomaticDecompression, etc.)
+            client = new HttpClient(handler);
+            client.Timeout = TimeSpan.FromSeconds(30); // Set a reasonable timeout
+            // Optionally, set DefaultRequestHeaders or other properties here
+        }
         
         public static async Task<List<Destination>> OrderDestinations(string origin, List<Destination> destinations)
         {
