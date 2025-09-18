@@ -19,6 +19,7 @@ using System.ComponentModel.Composition;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Workflow;
@@ -103,7 +104,7 @@ namespace org.secc.Workflow.WorkflowControl
             foreach ( var keyPair in sourceKeyMap )
             {
                 string value = keyPair.Value;
-                if ( value.HasMergeFields() )
+                if ( LavaHelper.IsLavaTemplate( value ) )
                 {
                     value = keyPair.Value.ResolveMergeFields( mergeFields );
                 }
@@ -120,7 +121,7 @@ namespace org.secc.Workflow.WorkflowControl
                         errorMessages.Add( string.Format( "'{0}' is not an attribute key in the activated workflow: '{1}'", value, workflow.Name ) );
                     }
                 }
-                else if ( keyPair.Key.HasMergeFields() )
+                else if ( LavaHelper.IsLavaTemplate( keyPair.Key ) )
                 {
                     if ( workflow.Attributes.ContainsKey( value ) )
                     {

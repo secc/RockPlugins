@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 
 namespace org.secc.Widgities.Model
@@ -41,10 +42,10 @@ namespace org.secc.Widgities.Model
         [DataMember]
         public int? CategoryId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual Category Category { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual ICollection<EntityType> EntityTypes { get; set; }
     }
 

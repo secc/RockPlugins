@@ -429,7 +429,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             foreach ( CommunionData row in getQuery<CommunionData>() )
             {
                 var i = 1;
-                SetExcelValue( worksheet.Cells[rowCounter, i++], row.PostalCode.IsNotNull() && row.PostalCode.Length > 5 ? row.PostalCode.Substring( 0, 5 ) : row.PostalCode );
+                SetExcelValue( worksheet.Cells[rowCounter, i++], row.PostalCode != null && row.PostalCode.Length > 5 ? row.PostalCode.Substring( 0, 5 ) : row.PostalCode );
                 SetExcelValue( worksheet.Cells[rowCounter, i++], row.Person.FullName );
                 SetExcelValue( worksheet.Cells[rowCounter, i++], row.Campus );
                 SetExcelValue( worksheet.Cells[rowCounter, i++], row.Location );

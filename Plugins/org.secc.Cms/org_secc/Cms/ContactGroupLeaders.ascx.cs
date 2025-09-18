@@ -28,6 +28,7 @@ using Rock.Attribute;
 using Rock.Communication;
 using Rock.Data;
 using Rock.Model;
+using Rock.Tasks;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 using Group = Rock.Model.Group;
@@ -391,10 +392,9 @@ namespace RockWeb.Plugins.org_secc.Cms
             }
             rockContext.SaveChanges();
 
-            var transaction = new Rock.Transactions.SendCommunicationTransaction();
+            var transaction = new ProcessSendCommunication.Message();
             transaction.CommunicationId = communication.Id;
-            transaction.PersonAlias = CurrentPersonAlias;
-            Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+            transaction.Send();
 
         }
 

@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Security;
 
@@ -31,7 +32,7 @@ namespace org.secc.Equip.Model
         [DataMember]
         public int ChapterId { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public virtual Chapter Chapter { get; set; }
 
         /// <summary>Gets or sets the passing score.</summary>
@@ -47,7 +48,7 @@ namespace org.secc.Equip.Model
         /// <summary>Gets or sets the entity type identifier.</summary>
         /// <value>The entity type identifier.</value>
         [DataMember]
-        [LavaIgnore]
+        [LavaHidden]
         public int EntityTypeId { get; set; }
 
         /// <summary>Gets or sets the type of the entity.</summary>

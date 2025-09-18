@@ -54,7 +54,7 @@ namespace org.secc.SafetyAndSecurity
             errorMessages = new List<string>();
             StringBuilder sbErrorMessages = new StringBuilder();
 
-            if ( !action.IsNotNull() )
+            if ( action == null )
             {
                 action.AddLogEntry( "ReferenceValidation: Input (action) is null." );
                 return false;

@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 
 namespace org.secc.Equip.Model
@@ -22,7 +19,7 @@ namespace org.secc.Equip.Model
 
         /// <summary>Gets or sets the course.</summary>
         /// <value>The course.</value>
-        [LavaInclude]
+        [LavaVisible]
         public virtual CourseRequirement CourseRequirement { get; set; }
 
         /// <summary>Gets or sets the person alias identifier.</summary>
@@ -32,7 +29,7 @@ namespace org.secc.Equip.Model
 
         /// <summary>Gets or sets the person alias.</summary>
         /// <value>The person alias.</value>
-        [LavaInclude]
+        [LavaVisible]
         public PersonAlias PersonAlias { get; set; }
 
         /// <summary>Gets or sets a value indicating whether this instance is complete.</summary>
@@ -46,7 +43,7 @@ namespace org.secc.Equip.Model
         [DataMember]
         public DateTime? ValidUntil { get; set; }
 
-        [LavaInclude]
+        [LavaVisible]
         public CourseRequirementState State
         {
             get

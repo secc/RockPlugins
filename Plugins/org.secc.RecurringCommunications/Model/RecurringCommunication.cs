@@ -17,6 +17,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
 using System.Runtime.Serialization;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Security;
 
@@ -30,11 +31,11 @@ namespace org.secc.RecurringCommunications.Model
         public string Name { get; set; }
         [DataMember]
         public int DataViewId { get; set; }
-        [LavaInclude]
+        [LavaVisible]
         public virtual DataView DataView { get; set; }
         [DataMember]
         public int ScheduleId { get; set; }
-        [LavaInclude]
+        [LavaVisible]
         public virtual Schedule Schedule { get; set; }
         [DataMember]
         public DateTime? LastRunDateTime { get; set; }
@@ -52,7 +53,7 @@ namespace org.secc.RecurringCommunications.Model
         public string SMSBody { get; set; }
         [DataMember]
         public int? PhoneNumberValueId { get; set; }
-        [LavaInclude]
+        [LavaVisible]
         public virtual DefinedValue PhoneNumberValue { get; set; }
         [DataMember]
         public string PushMessage { get; set; }
@@ -64,7 +65,7 @@ namespace org.secc.RecurringCommunications.Model
         public string ScheduleDescription { get; set; }
         [DataMember]
         public int? TransformationEntityTypeId { get; set; }
-        [LavaInclude]
+        [LavaVisible]
         public virtual EntityType TransformationEntityType { get; set; }
     }
 

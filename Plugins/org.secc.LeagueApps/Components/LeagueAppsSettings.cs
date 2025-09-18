@@ -87,7 +87,7 @@ namespace org.secc.LeagueApps.Components
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS,
         "Default Connection Status",
         Description = "The connection status to use for newly created people.",
-        DefaultValue = Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_WEB_PROSPECT,
+        DefaultValue = Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PROSPECT,
         IsRequired = true,
         Category = "People",
         Order = 8,

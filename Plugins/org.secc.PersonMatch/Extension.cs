@@ -103,29 +103,36 @@ namespace org.secc.PersonMatch
 
                     Boolean addressMatches = false;
                     // Check the address if it was passed
-                    if ( !string.IsNullOrEmpty( street1 ) && !string.IsNullOrEmpty( postalCode ) )
+                    try
                     {
-                        if ( person.GetHomeLocation() != null )
+                        if (!string.IsNullOrEmpty( street1 ) && !string.IsNullOrEmpty( postalCode ))
                         {
-                            if ( person.GetHomeLocation().Street1 == street1 )
+                            if (person.GetHomeLocation() != null)
                             {
-                                addressMatches = true;
-                            }
-                            // If it doesn't match, we need to geocode it and check it again
-                            if ( location == null && !string.IsNullOrEmpty( street1 ) && !string.IsNullOrEmpty( postalCode ) )
-                            {
-                                location = new Location();
-                                location.Street1 = street1;
-                                location.PostalCode = postalCode;
-                                locationService.Verify( location, true );
+                                if (person.GetHomeLocation().Street1 == street1)
+                                {
+                                    addressMatches = true;
+                                }
+                                // If it doesn't match, we need to geocode it and check it again
+                                if (location == null && !string.IsNullOrEmpty( street1 ) && !string.IsNullOrEmpty( postalCode ))
+                                {
+                                    location = new Location();
+                                    location.Street1 = street1;
+                                    location.PostalCode = postalCode;
+                                    locationService.Verify( location, true );
 
-                            }
-                            if ( location != null && !addressMatches && person.GetHomeLocation().Street1 == location.Street1 )
-                            {
-                                addressMatches = true;
+                                }
+                                if (location != null && !addressMatches && person.GetHomeLocation().Street1 == location.Street1)
+                                {
+                                    addressMatches = true;
+                                }
                             }
                         }
                     }
+                    catch (Exception)
+                    {
+                    }
+
 
                     // At least phone, email, or address have to match
                     if ( phoneExists || emailExists || addressMatches )

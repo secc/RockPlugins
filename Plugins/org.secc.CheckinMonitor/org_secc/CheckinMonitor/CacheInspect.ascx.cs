@@ -133,7 +133,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         private void VerifyCache()
         {
             List<string> errors = new List<string>();
-            KioskTypeCache.Verify( ref errors );
+            CheckinKioskTypeCache.Verify( ref errors );
             AttendanceCache.Verify( ref errors );
             MobileCheckinRecordCache.Verify( ref errors );
             OccurrenceCache.Verify( ref errors );
@@ -160,7 +160,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             pnlKioskTypes.Visible = true;
             pnlVerify.Visible = false;
 
-            var kioskTypes = KioskTypeCache.All().Select( k => new CacheContainer( k, k.Id ) ).ToList();
+            var kioskTypes = CheckinKioskTypeCache.All().Select( k => new CacheContainer( k, k.Id ) ).ToList();
             gKioskTypes.DataSource = kioskTypes;
             gKioskTypes.DataBind();
         }
@@ -195,8 +195,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         protected void gKioskTypes_RowSelected( object sender, RowEventArgs e )
         {
             var id = e.RowKeyValue.ToString().AsInteger();
-            var item = KioskTypeCache.Get( id );
-            KioskTypeCache.ClearForTemplateId( item.CheckinTemplateId ?? 0 );
+            var item = CheckinKioskTypeCache.Get( id );
+            CheckinKioskTypeCache.ClearForTemplateId( item.CheckinTemplateId ?? 0 );
         }
 
         protected void btnFlushAttendance_Click( object sender, EventArgs e )
@@ -213,8 +213,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         protected void btnFlushKioskTypes_Click( object sender, EventArgs e )
         {
-            KioskTypeCache.Clear();
-            KioskTypeCache.All();
+            CheckinKioskTypeCache.Clear();
+            CheckinKioskTypeCache.All();
 
         }
     }

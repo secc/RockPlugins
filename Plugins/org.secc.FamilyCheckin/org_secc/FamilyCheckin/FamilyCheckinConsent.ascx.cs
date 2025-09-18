@@ -42,7 +42,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
     public partial class FamilyCheckinConsent : CheckInBlock
     {
         #region Fields
-        KioskTypeCache KioskType = null;
+        CheckinKioskTypeCache KioskType = null;
         int AdultAge = 18;
         #endregion
 
@@ -59,7 +59,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             var kioskTypeCookie = this.Page.Request.Cookies["KioskTypeId"];
             if (kioskTypeCookie != null)
             {
-                KioskType = KioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
+                KioskType = CheckinKioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
             }
 
             if (KioskType == null)

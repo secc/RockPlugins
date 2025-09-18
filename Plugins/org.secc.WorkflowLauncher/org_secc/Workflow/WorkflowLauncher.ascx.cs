@@ -163,7 +163,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
                         Dictionary<String, String> attributes = new Dictionary<String, String>();
                         attributes.Add( "Group", groupMember.Group.Guid.ToString() );
                         attributes.Add( "Person", groupMember.Person.PrimaryAlias.Guid.ToString() );
-                        groupMember.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, groupMember.ToString(), attributes );
+                        groupMember.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, groupMember.ToString(), attributes, null );
                     }
                 }
                 else if ( ddlEntityType.SelectedValue == "Rock.Model.RegistrationInstance" )
@@ -175,7 +175,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
                     {
                         var registration = registrationService.Get( ddlRegistrations.SelectedValueAsInt().Value );
                         litOutput.Text += "Launching workflow for " + registration.ToString() + "<br />";
-                        registration.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, registration.ToString() );
+                        registration.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, registration.ToString(), null, null );
                     }
                     else if ( ddlRegistrationInstances.SelectedValueAsInt().HasValue && ddlRegistrationInstances.SelectedValueAsInt() > 0 )
                     {
@@ -185,7 +185,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
                         {
 
                             litOutput.Text += "Launching workflow for " + registration.ToString() + "<br />";
-                            registration.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, registration.ToString() );
+                            registration.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, registration.ToString(), null, null );
                         }
                     }
                 }
@@ -197,7 +197,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
                         var personService = new PersonService( rockContext );
                         var person = personService.Get( ddlEntities.SelectedValueAsInt().Value );
                         litOutput.Text += "Launching workflow for " + person.FullName + "<br />";
-                        person.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, person.FullName );
+                        person.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, person.FullName, null, null );
                     }
                     else if ( dvItemPicker.SelectedValueAsInt().HasValue && dvItemPicker.SelectedValueAsInt() > 0 )
                     {
@@ -213,7 +213,7 @@ namespace RockWeb.Plugins.org_secc.Workflow
                             foreach ( Person person in entities )
                             {
                                 litOutput.Text += "Launching workflow for " + person.FullName + "<br />";
-                                person.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, person.FullName );
+                                person.LaunchWorkflow( wtpWorkflowType.SelectedValueAsInt().Value, person.FullName, null, null );
                             }
                         }
                     }

@@ -32,7 +32,7 @@ namespace RockWeb.Plugins.org_secc.Microframe
     [DisplayName( "Sign Detail" )]
     [Category( "SECC > Microframe" )]
     [Description( "Displays the details of the given sign." )]
-    public partial class SignDetail : RockBlock, IDetailBlock
+    public partial class SignDetail : RockBlock
     {
 
         private Dictionary<int, string> SignCategories

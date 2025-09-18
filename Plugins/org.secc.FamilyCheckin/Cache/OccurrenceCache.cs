@@ -27,7 +27,7 @@ namespace org.secc.FamilyCheckin.Cache
 {
     [DataContract]
     [Serializable]
-    public class OccurrenceCache : ItemCache<OccurrenceCache>
+    public class OccurrenceCache : CheckinCache<OccurrenceCache>
     {
         private OccurrenceCache()
         {
@@ -37,11 +37,6 @@ namespace org.secc.FamilyCheckin.Cache
         {
             return $"{( IsActive ? "Active" : "Inactive" ) }{( IsVolunteer ? "Volunteer" : "" )}: {GroupName} in {LocationName} at {ScheduleName}";
         }
-
-        private const string _AllRegion = "AllItems";
-
-        private static readonly string KeyPrefix = typeof( OccurrenceCache ).Name;
-        private static string AllKey => $"{KeyPrefix}:{AllString}";
 
         [DataMember]
         //I'm using an access key because we may need to load this data before the actual occurrence is made
@@ -99,6 +94,11 @@ namespace org.secc.FamilyCheckin.Cache
         public int? FirmRoomThreshold { get; set; }
 
         public List<AttendanceCache> Attendances { get => AttendanceCache.GetByOccurrenceKey( this.AccessKey ); }
+
+        public static void Clear()
+        {
+            Clear( () => KeyFactory() );
+        }
 
         public bool IsFull
         {
@@ -183,21 +183,13 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static List<OccurrenceCache> All()
         {
-            var allKeys = RockCacheManager<List<string>>.Instance.Get( AllKey, _AllRegion );
-            if ( allKeys == null )
-            {
-                allKeys = GetOrAddKeys( () => AllKeys() );
-                if ( allKeys == null )
-                {
-                    return new List<OccurrenceCache>();
-                }
-            }
+            var allKeys = AllKeys( () => KeyFactory() );
 
             var allItems = new List<OccurrenceCache>();
 
             foreach ( var key in allKeys.ToList() )
             {
-                var value = Get( key );
+                var value = GetFromQualifiedKey( key );
                 if ( value != null )
                 {
                     allItems.Add( value );
@@ -205,7 +197,6 @@ namespace org.secc.FamilyCheckin.Cache
             }
 
             return allItems;
-
         }
 
         public static OccurrenceCache Get( int groupId, int locationId, int scheduleId )
@@ -215,7 +206,12 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static OccurrenceCache Get( string accessKey )
         {
-            return GetOrAddExisting( accessKey, () => LoadByAccessKey( accessKey ) );
+            return Get( QualifiedKey( accessKey ), () => LoadByAccessKey( accessKey ), () => KeyFactory() );
+        }
+
+        public static OccurrenceCache GetFromQualifiedKey( string qualifiedKey )
+        {
+            return Get( qualifiedKey, () => LoadByAccessKey( KeyFromQualifiedKey( qualifiedKey ) ), () => KeyFactory() );
         }
 
         private static OccurrenceCache LoadByAccessKey( string accessKey )
@@ -318,7 +314,7 @@ namespace org.secc.FamilyCheckin.Cache
             return candidate;
         }
 
-        private static List<string> AllKeys()
+        private static List<string> KeyFactory()
         {
             RockContext rockContext = new RockContext();
 
@@ -386,14 +382,14 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static void AddOrUpdate( OccurrenceCache occurrenceCache )
         {
-            UpdateCacheItem( occurrenceCache.AccessKey, occurrenceCache );
+            AddOrUpdate( QualifiedKey( occurrenceCache.AccessKey ), occurrenceCache, () => KeyFactory() );
         }
 
 
         public static void Verify( ref List<string> errors )
         {
             //Load Fresh Values
-            var freshKeys = AllKeys();
+            var freshKeys = KeyFactory();
             var freshCaches = new List<OccurrenceCache>();
             foreach ( var key in freshKeys )
             {
@@ -409,9 +405,9 @@ namespace org.secc.FamilyCheckin.Cache
             }
 
             All();
-            var currentKeys = RockCacheManager<List<string>>.Instance.Cache.Get( AllKey, _AllRegion );
+            var currentKeys = AllKeys( () => KeyFactory() );
 
-            var missingKeys = freshKeys.Except( currentKeys ).ToList();
+            var missingKeys = freshKeys.Except( currentKeys.Select( k => KeyFromQualifiedKey( k ) ) ).ToList();
             if ( missingKeys.Any() )
             {
                 foreach ( var key in missingKeys )
@@ -419,7 +415,7 @@ namespace org.secc.FamilyCheckin.Cache
                     errors.Add( $"Missing key: {key}." );
                 }
                 errors.Add( "Restored Missing Keys" );
-                RockCacheManager<List<string>>.Instance.Cache.AddOrUpdate( AllKey, _AllRegion, freshKeys, ( x ) => freshKeys );
+                // Keys will be refreshed on next access
             }
 
             foreach ( var freshCache in freshCaches )
@@ -427,7 +423,7 @@ namespace org.secc.FamilyCheckin.Cache
                 var cache = Get( freshCache.AccessKey );
                 var heal = false;
 
-                if ( cache.FirmRoomThreshold != freshCache.FirmRoomThreshold )
+                if ( cache?.FirmRoomThreshold != freshCache.FirmRoomThreshold )
                 {
                     heal = true;
                     errors.Add( $"Occurrence Cache missmatch (Key:{cache.AccessKey} Property:FirmRoomThreshold) Cache: {cache.FirmRoomThreshold} Actual:{freshCache.FirmRoomThreshold})" );
@@ -543,7 +539,7 @@ namespace org.secc.FamilyCheckin.Cache
 
                 if ( heal )
                 {
-                    UpdateCacheItem( freshCache.AccessKey, freshCache );
+                    AddOrUpdate( freshCache );
                 }
             }
         }

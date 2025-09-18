@@ -39,7 +39,7 @@ namespace org.secc.FamilyCheckin.Model
         [DataMember]
         public int? KioskTypeId { get; set; }
 
-        public virtual KioskType KioskType { get; set; }
+        public virtual CheckinKioskType KioskType { get; set; }
 
         [MaxLength( 45 )]
         [DataMember]

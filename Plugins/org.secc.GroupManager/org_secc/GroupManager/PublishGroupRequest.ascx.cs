@@ -154,7 +154,7 @@ namespace RockWeb.Plugins.GroupManager
                 btnDraft.Visible = false;
                 ddlStatus.SelectedValue = publishGroup.PublishGroupStatus.ConvertToInt().ToString();
             }
-            else if (!mUserCanEditGroup)
+            else if ( !mUserCanEditGroup )
             {
                 pnlEdit.Visible = false;
                 pnlSelectGroup.Visible = false;
@@ -327,7 +327,8 @@ namespace RockWeb.Plugins.GroupManager
             if (PageParameter( PageParameterKeys.PublishGroupId ).IsNotNullOrWhiteSpace())
             {
                 var publishGroup = publishGroupService.Get( PageParameter( PageParameterKeys.PublishGroupId ).AsInteger() );
-                if (publishGroup != null && publishGroup.Group != null)
+
+                if ( publishGroup != null && publishGroup.Group != null )
                 {
                     return publishGroup;
                 }
@@ -507,7 +508,7 @@ namespace RockWeb.Plugins.GroupManager
 
             if (publishGroup.PublishGroupStatus != PublishGroupStatus.Draft)
             {
-                publishGroup.LaunchWorkflow( GetAttributeValue( AttributeKeys.Workflow ).AsGuidOrNull() );
+                publishGroup.LaunchWorkflow( GetAttributeValue( AttributeKeys.Workflow ).AsGuidOrNull(), "", null, null );
             }
 
             NavigateToParentPage( new Dictionary<string, string> { { "GroupId", publishGroup.GroupId.ToString() } } );

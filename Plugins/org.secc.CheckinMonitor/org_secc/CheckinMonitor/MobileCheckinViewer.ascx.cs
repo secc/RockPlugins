@@ -38,7 +38,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [BinaryFileField( Rock.SystemGuid.BinaryFiletype.CHECKIN_LABEL, "Aggregated Label", "Binary file that is the parent pickup label", false )]
     public partial class MobileCheckinViewer : CheckInBlock
     {
-        protected KioskTypeCache KioskType;
+        protected CheckinKioskTypeCache KioskType;
 
         protected override void OnInit( EventArgs e )
         {
@@ -48,7 +48,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var kioskTypeCookie = this.Page.Request.Cookies["KioskTypeId"];
             if ( kioskTypeCookie != null )
             {
-                KioskType = KioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
+                KioskType = CheckinKioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
             }
 
             if ( KioskType == null )

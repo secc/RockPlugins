@@ -43,7 +43,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     public partial class CheckinMonitor : CheckInBlock
     {
 
-        KioskTypeCache KioskType = null;
+        CheckinKioskTypeCache KioskType = null;
         private static class ViewStateKeys
         {
             internal const string ModalLocationId = "ModalLocationId";
@@ -61,7 +61,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             var kioskTypeCookie = this.Page.Request.Cookies["KioskTypeId"];
             if ( kioskTypeCookie != null )
             {
-                KioskType = KioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
+                KioskType = CheckinKioskTypeCache.Get( kioskTypeCookie.Value.AsInteger() );
             }
 
             if ( KioskType == null )
@@ -292,7 +292,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                                 && totalCount >= ( locationOccurrence.FirmRoomThreshold ?? int.MaxValue ) )
                             {
                                 CloseOccurrence( locationOccurrence.GroupLocationId, locationOccurrence.ScheduleId );
-                                KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
+                                CheckinKioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
                                 KioskDeviceHelpers.Clear( CurrentCheckInState.ConfiguredGroupTypes );
                                 return;
                             }
@@ -769,7 +769,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     }
                     _rockContext.SaveChanges();
 
-                    KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
+                    CheckinKioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
                     KioskDeviceHelpers.Clear( CurrentCheckInState.ConfiguredGroupTypes );
                     OccurrenceCache.AddOrUpdate( occurrence );
                 }
@@ -977,6 +977,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             RebuildModal();
         }
 
+        // Fix for CS1061: Replace the incorrect property 'OccurrenceDate' with a valid property or method from the 'OccurrenceCache' class.
+
         private AttendanceOccurrence GetOccurrence( RockContext rockContext, DateTime startDateTime, int? groupId, int? locationId, int? scheduleId )
         {
             var occurrenceService = new AttendanceOccurrenceService( rockContext );
@@ -984,7 +986,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             if ( occurrence == null )
             {
-                // If occurrence does not yet exists, use a new context and create it
+                // If occurrence does not yet exist, use a new context and create it
                 using ( var newContext = new RockContext() )
                 {
                     occurrence = new AttendanceOccurrence
@@ -999,8 +1001,20 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     newOccurrenceService.Add( occurrence );
                     newContext.SaveChanges();
 
-                    // Query for the new occurrence using original context.
+                    // Query for the new occurrence using the original context.
                     occurrence = occurrenceService.Get( occurrence.Id );
+
+                    // Update the occurrence cache to ensure synchronization across all nodes
+                    var occurrenceCache = OccurrenceCache.All()
+                        .FirstOrDefault( o =>
+                            o.GroupId == occurrence.GroupId &&
+                            o.LocationId == occurrence.LocationId &&
+                            o.ScheduleId == occurrence.ScheduleId &&
+                            o.ScheduleStartTime == occurrence.OccurrenceDate.TimeOfDay ); 
+                    if ( occurrenceCache != null )
+                    {
+                        OccurrenceCache.AddOrUpdate( occurrenceCache );
+                    }
                 }
             }
             return occurrence;
@@ -1060,7 +1074,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 _rockContext.SaveChanges();
                 mdLocation.Hide();
                 ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
-                KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
+                CheckinKioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
                 KioskDeviceHelpers.Clear( CurrentCheckInState.ConfiguredGroupTypes );
 
                 //Update the occurrence caches with the new numbers
@@ -1321,7 +1335,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 CloseOccurrence( occcurrence.GroupLocationId, occcurrence.ScheduleId, false );
             }
 
-            KioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
+            CheckinKioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
             KioskDeviceHelpers.Clear( CurrentCheckInState.ConfiguredGroupTypes );
 
             BindTable();

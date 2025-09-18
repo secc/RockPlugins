@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using org.secc.Equip.Model;
 using Rock.Data;
 using Rock.Model;
@@ -89,7 +86,13 @@ namespace org.secc.Equip.Helpers
                 var errorMessages = new List<string>();
                 DataViewService dataViewService = new DataViewService( rockContext );
                 var dataview = dataViewService.Get( courseRequirement.DataViewId.Value );
-                var qry = dataview.GetQuery( null, rockContext, 300, out errorMessages );
+                var qryArgs = new DataViewGetQueryArgs
+                {
+                    DbContext = rockContext,
+                    DatabaseTimeoutSeconds = 300,
+                    SortProperty = null
+                };
+                var qry = dataview.GetQuery( qryArgs );
                 peopleQry = qry.Select( e => ( Person ) e );
             }
 
@@ -108,7 +111,13 @@ namespace org.secc.Equip.Helpers
                 var errorMessages = new List<string>();
                 DataViewService dataViewService = new DataViewService( rockContext );
                 var dataview = dataViewService.Get( courseRequirement.Course.AllowedDataViewId.Value );
-                var entityIds = dataview.GetQuery( null, rockContext, 300, out errorMessages ).Select( e => e.Id );
+                var qryArgs = new DataViewGetQueryArgs
+                {
+                    DbContext = rockContext,
+                    DatabaseTimeoutSeconds = 300,
+                    SortProperty = null
+                };
+                var entityIds = dataview.GetQuery( qryArgs ).Select( e => e.Id );
                 peopleQry = peopleQry.Where( p => entityIds.Contains( p.Id ) );
             }
 

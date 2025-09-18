@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Rock.Data;
+using Rock.Lava;
 
 namespace org.secc.Equip.Model
 {
@@ -39,7 +40,7 @@ namespace org.secc.Equip.Model
 
         /// <summary>Gets or sets the chapter.</summary>
         /// <value>The chapter.</value>
-        [LavaInclude]
+        [LavaVisible]
         public virtual Chapter Chapter { get; set; }
 
 
@@ -51,7 +52,7 @@ namespace org.secc.Equip.Model
 
         /// <summary>Gets or sets the course page records.</summary>
         /// <value>The course page records.</value>
-        [LavaInclude]
+        [LavaVisible]
         public virtual ICollection<CoursePageRecord> CoursePageRecords { get; set; } = new Collection<CoursePageRecord>();
     }
 

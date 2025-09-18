@@ -15,17 +15,17 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using Rock;
+using Rock.Attribute;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Web.UI;
-using Rock.Attribute;
-using System.Collections.Generic;
-using Rock;
-using Rock.Web.Cache;
 
 namespace RockWeb.Plugins.org_secc.Reporting
 {
@@ -35,10 +35,10 @@ namespace RockWeb.Plugins.org_secc.Reporting
     [DisplayName( "Birthday List Fetching Data" )]
     [Category( "SECC2 > Project" )]
     [Description( "A simple block to fetch some data from Rock" )]
-    [DataViewField( "Data View", entityTypeName:"Rock.Model.Person" )]
-    [MemoField( "Lava", required:false, allowHtml:true )]
-    [IntegerField( "Limit", required:false )]
-    
+    [DataViewField( "Data View", entityTypeName: "Rock.Model.Person" )]
+    [MemoField( "Lava", required: false, allowHtml: true )]
+    [IntegerField( "Limit", required: false )]
+
     public partial class BirthdayListFetchingData : RockBlock, ICustomGridColumns
     {
         #region Fields
@@ -78,7 +78,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
         protected override void OnLoad( EventArgs e )
         {
             base.OnLoad( e );
-                      
+
             if ( !Page.IsPostBack )
             {
                 BindGrid();
@@ -111,7 +111,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
         #region Methods
 
         private void BindGrid()
-        {                   
+        {
             Person person = new Person();
             var l = GetAttributeValue( "Limit" ).AsInteger();
             var tt = GetAttributeValue( "DataView" );
@@ -122,7 +122,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
                 .Get( newguid );
             List<string> list = new List<string>();
             var qry = items.GetQuery( new DataViewGetQueryArgs() );
-            var personList = (IQueryable<Person>)qry;
+            var personList = ( IQueryable<Person> ) qry;
             var plist = personList
                 .Where( p => p.BirthDate != null )
                 .OrderBy( p => p.DaysUntilBirthday );
@@ -139,7 +139,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
             }
             var lava = GetAttributeValue( "Lava" );
 
-            if ( string.IsNullOrWhiteSpace(lava) )
+            if ( string.IsNullOrWhiteSpace( lava ) )
             {
                 gPeople.DataSource = plistd;
                 gPeople.DataBind();
@@ -160,10 +160,10 @@ namespace RockWeb.Plugins.org_secc.Reporting
             {
                 mergeObjects = GetMergeFields( person );
             }
-            
-            while ( ( lava.HasLavaCommandFields() || lava.HasMergeFields() ) )
+
+            while ( ( lava.HasLavaCommandFields() || LavaHelper.IsLavaTemplate( lava ) ) )
             {
-                lava = lava.ResolveMergeFields( mergeObjects, null);
+                lava = lava.ResolveMergeFields( mergeObjects, null );
             }
             return lava;
         }
