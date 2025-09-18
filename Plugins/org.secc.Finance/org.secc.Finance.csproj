@@ -82,6 +82,9 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+	<Reference Include="Rock.Enums">
+      <HintPath>$(SolutionDir)\RockWeb\Bin\Rock.Enums.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)Rock\Rock.csproj">
