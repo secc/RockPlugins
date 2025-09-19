@@ -30,19 +30,17 @@ namespace org.secc.Jobs
     [WorkflowTypeField( "Workflow", "The workflow to launch for each row.", false, true, category: "Target" )]
 
     [DisallowConcurrentExecution]
-    public class WorkflowLauncher : IJob
+    public class WorkflowLauncher : Rock.Jobs.RockJob
     {
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
+            string query = GetAttributeValue( "SQLQuery" );
 
-            string query = dataMap.GetString( "SQLQuery" );
-
-            Guid? dataViewGuid = dataMap.GetString( "DataView" ).AsGuidOrNull();
-            Guid? workflowTypeGuid = dataMap.GetString( "Workflow" ).AsGuidOrNull();
+            Guid? dataViewGuid = GetAttributeValue( "DataView" ).AsGuidOrNull();
+            Guid? workflowTypeGuid = GetAttributeValue( "Workflow" ).AsGuidOrNull();
 
             // run a SQL query to do something
-            int? commandTimeout = dataMap.GetString( "CommandTimeout" ).AsIntegerOrNull();
+            int? commandTimeout = GetAttributeValue( "CommandTimeout" ).AsIntegerOrNull();
             int failed = 0;
             int successful = 0;
 
@@ -86,9 +84,7 @@ namespace org.secc.Jobs
                                     {
                                         failed++;
                                     }
-
                                 }
-
                             }
 
                             // If a dataview is specified, then we'll fire off workflows for that dataview
@@ -123,7 +119,7 @@ namespace org.secc.Jobs
                 throw;
             }
 
-            context.Result = string.Format( "Workflow Launch Results:<br />Success:  {0}<br />Failed: {1}{2}", successful, failed, errors.Count > 0 ? "<br />Errors: " + string.Join( "<br />", errors ) : "" );
+            Result = string.Format( "Workflow Launch Results:<br />Success:  {0}<br />Failed: {1}{2}", successful, failed, errors.Count > 0 ? "<br />Errors: " + string.Join( "<br />", errors ) : "" );
         }
     }
 }
