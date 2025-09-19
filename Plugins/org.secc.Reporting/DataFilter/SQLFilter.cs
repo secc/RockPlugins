@@ -161,7 +161,7 @@ function() {
             if ( controls.Count() >= 2 )
             {
                 SqlFilterCleanupTransaction sqlFilterCleanupTransaction = new SqlFilterCleanupTransaction();
-                RockQueue.TransactionQueue.Enqueue( sqlFilterCleanupTransaction );
+                sqlFilterCleanupTransaction.Enqueue();
 
                 CodeEditor tbSQL = controls[1] as CodeEditor;
                 return tbSQL.Text;
