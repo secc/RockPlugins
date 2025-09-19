@@ -23,14 +23,13 @@ namespace org.secc.Communication.Jobs
     [IntegerField( "Days Back", "The number of days back (including today) to sync.", defaultValue: 2 )]
 
     [DisallowConcurrentExecution]
-    public class SycnTwilioHistory : IJob
+    public class SycnTwilioHistory : Rock.Jobs.RockJob
     {
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
             var rockContext = new RockContext();
 
-            var daysBack = dataMap.GetString( "DaysBack" ).AsInteger();
+            var daysBack = GetAttributeValue( "DaysBack" ).AsInteger();
             if ( daysBack == 0 )
             {
                 daysBack = 2;
@@ -45,9 +44,8 @@ namespace org.secc.Communication.Jobs
 
                 rockContext.SaveChanges();
 
-                context.Result = string.Format( $"Synced {syncCount} text messages between {RockDateTime.Today.AddDays( 1 - daysBack ).ToString( "M/d/yyy" )} and {RockDateTime.Today.ToString( "M/d/yyy" )}" );
+                Result = string.Format( $"Synced {syncCount} text messages between {RockDateTime.Today.AddDays( 1 - daysBack ).ToString( "M/d/yyy" )} and {RockDateTime.Today.ToString( "M/d/yyy" )}" );
             }
-
         }
     }
 }
