@@ -30,83 +30,75 @@ namespace org.secc.Jobs
     [BooleanField( "Save Communication History", "Should a record of this communication be saved to the recipient's profile", false, "" )]
 
     [DisallowConcurrentExecution]
-    public class ConnectionsDigest : IJob
+    public class ConnectionsDigest : Rock.Jobs.RockJob
     {
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
             var rockContext = new RockContext();
 
-            var connectionOpportunities = dataMap.GetString( "ConnectionOpportunities" ).SplitDelimitedValues();
-            var systemEmail = dataMap.GetString( "Email" ).AsGuidOrNull();
-            if ( !systemEmail.HasValue )
+            var connectionOpportunities = GetAttributeValue("ConnectionOpportunities").SplitDelimitedValues();
+            var systemEmail = GetAttributeValue("Email").AsGuidOrNull();
+            if (!systemEmail.HasValue)
             {
-                throw new Exception( "System Email is required!" );
+                throw new Exception("System Email is required!");
             }
 
+            var saveCommHistory = GetAttributeValue("SaveCommunicationHistory").AsBoolean();
 
-            // get job type id
-            int jobId = Convert.ToInt16( context.JobDetail.Description );
-            var jobService = new ServiceJobService( rockContext );
-            var job = jobService.Get( jobId );
-
-            DateTime _midnightToday = RockDateTime.Today.AddDays( 1 );
+            DateTime _midnightToday = RockDateTime.Today.AddDays(1);
             var currentDateTime = RockDateTime.Now;
             var recipients = new List<RockEmailMessageRecipient>();
-            ConnectionRequestService connectionRequestService = new ConnectionRequestService( rockContext );
-            PersonService personService = new PersonService( rockContext );
-            var connectionRequestsQry = connectionRequestService.Queryable().Where( cr =>
-                                       connectionOpportunities.Contains( cr.ConnectionOpportunity.Guid.ToString() )
+            ConnectionRequestService connectionRequestService = new ConnectionRequestService(rockContext);
+            PersonService personService = new PersonService(rockContext);
+            var connectionRequestsQry = connectionRequestService.Queryable().Where(cr =>
+                                       connectionOpportunities.Contains(cr.ConnectionOpportunity.Guid.ToString())
                                        && cr.ConnectorPersonAliasId != null
                                        && (
                                             cr.ConnectionState == ConnectionState.Active
-                                            || ( cr.ConnectionState == ConnectionState.FutureFollowUp && cr.FollowupDate.HasValue && cr.FollowupDate.Value < _midnightToday )
-                                        ) );
+                                            || (cr.ConnectionState == ConnectionState.FutureFollowUp && cr.FollowupDate.HasValue && cr.FollowupDate.Value < _midnightToday)
+                                        ));
 
-
-            var connectionRequestGroups = connectionRequestsQry.GroupBy( cr => cr.ConnectorPersonAlias.PersonId );
-            foreach ( var group in connectionRequestGroups )
+            var connectionRequestGroups = connectionRequestsQry.GroupBy(cr => cr.ConnectorPersonAlias.PersonId);
+            foreach (var group in connectionRequestGroups)
             {
-                Person person = personService.Get( group.Key );
-                List<ConnectionOpportunity> opportunities = group.Select( a => a.ConnectionOpportunity ).Distinct().ToList();
-                var newConnectionRequests = group.Where( cr => cr.CreatedDateTime >= job.LastRunDateTime ).GroupBy( cr => cr.ConnectionOpportunityId ).ToList();
+                Person person = personService.Get(group.Key);
+                List<ConnectionOpportunity> opportunities = group.Select(a => a.ConnectionOpportunity).Distinct().ToList();
+                var newConnectionRequests = group.Where(cr => cr.CreatedDateTime >= ServiceJob.LastRunDateTime).GroupBy(cr => cr.ConnectionOpportunityId).ToList();
                 // Get all the idle connections
                 var idleConnectionRequests = group
-                                    .Where( cr => (
-                                            ( cr.ConnectionRequestActivities.Any() && cr.ConnectionRequestActivities.Max( ra => ra.CreatedDateTime ) < currentDateTime.AddDays( -cr.ConnectionOpportunity.ConnectionType.DaysUntilRequestIdle ) ) )
-                                            || ( !cr.ConnectionRequestActivities.Any() && cr.CreatedDateTime < currentDateTime.AddDays( -cr.ConnectionOpportunity.ConnectionType.DaysUntilRequestIdle ) )
+                                    .Where(cr => (
+                                            (cr.ConnectionRequestActivities.Any() && cr.ConnectionRequestActivities.Max(ra => ra.CreatedDateTime) < currentDateTime.AddDays(-cr.ConnectionOpportunity.ConnectionType.DaysUntilRequestIdle)))
+                                            || (!cr.ConnectionRequestActivities.Any() && cr.CreatedDateTime < currentDateTime.AddDays(-cr.ConnectionOpportunity.ConnectionType.DaysUntilRequestIdle))
                                            )
-                                    .Select( a => new { ConnectionOpportunityId = a.ConnectionOpportunityId, Id = a.Id } )
-                                    .GroupBy( cr => cr.ConnectionOpportunityId ).ToList();
+                                    .Select(a => new { ConnectionOpportunityId = a.ConnectionOpportunityId, Id = a.Id })
+                                    .GroupBy(cr => cr.ConnectionOpportunityId).ToList();
 
                 // get list of requests that have a status that is considered critical.
                 var criticalConnectionRequests = group
-                                        .Where( r =>
+                                        .Where(r =>
                                             r.ConnectionStatus.IsCritical
                                         )
-                                        .Select( a => new { ConnectionOpportunityId = a.ConnectionOpportunityId, Id = a.Id } )
-                                        .GroupBy( cr => cr.ConnectionOpportunityId ).ToList();
+                                        .Select(a => new { ConnectionOpportunityId = a.ConnectionOpportunityId, Id = a.Id })
+                                        .GroupBy(cr => cr.ConnectionOpportunityId).ToList();
 
-                var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
-                mergeFields.Add( "ConnectionOpportunities", opportunities );
-                mergeFields.Add( "ConnectionRequests", group.GroupBy( cr => cr.ConnectionOpportunity ).ToList() );
-                mergeFields.Add( "NewConnectionRequests", newConnectionRequests );
-                mergeFields.Add( "IdleConnectionRequestIds", idleConnectionRequests );
-                mergeFields.Add( "CriticalConnectionRequestIds", criticalConnectionRequests );
-                mergeFields.Add( "Person", person );
-                mergeFields.Add( "LastRunDate", job.LastRunDateTime );
+                var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields(null);
+                mergeFields.Add("ConnectionOpportunities", opportunities);
+                mergeFields.Add("ConnectionRequests", group.GroupBy(cr => cr.ConnectionOpportunity).ToList());
+                mergeFields.Add("NewConnectionRequests", newConnectionRequests);
+                mergeFields.Add("IdleConnectionRequestIds", idleConnectionRequests);
+                mergeFields.Add("CriticalConnectionRequestIds", criticalConnectionRequests);
+                mergeFields.Add("Person", person);
+                mergeFields.Add("LastRunDate", ServiceJob.LastRunDateTime);
 
-
-                recipients.Add( new RockEmailMessageRecipient( person, mergeFields ) );
-
+                recipients.Add(new RockEmailMessageRecipient(person, mergeFields));
             }
 
-            var emailMessage = new RockEmailMessage( systemEmail.Value );
-            emailMessage.SetRecipients( recipients );
-            emailMessage.CreateCommunicationRecord = dataMap.GetString( "SaveCommunicationHistory" ).AsBoolean();
+            var emailMessage = new RockEmailMessage(systemEmail.Value);
+            emailMessage.SetRecipients(recipients);
+            emailMessage.CreateCommunicationRecord = saveCommHistory;
             emailMessage.Send();
 
-            context.Result = string.Format( "Sent " + recipients.Count + " connection digest emails." );
+            Result = string.Format("Sent " + recipients.Count + " connection digest emails.");
         }
     }
 }
