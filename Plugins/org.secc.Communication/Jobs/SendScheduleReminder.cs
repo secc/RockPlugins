@@ -10,7 +10,6 @@ using Rock.Jobs;
 using Rock.Model;
 using Rock.Web.Cache;
 
-
 namespace org.secc.Communication.Jobs
 {
 
@@ -55,7 +54,7 @@ namespace org.secc.Communication.Jobs
         Order = 5 )]
 
     [DisallowConcurrentExecution]
-    public class SendScheduleReminder : IJob
+    public class SendScheduleReminder : Rock.Jobs.RockJob
     {
         public static class AttributeKeys
         {
@@ -65,7 +64,6 @@ namespace org.secc.Communication.Jobs
             public const string SendDaysKey = "DaysBeforeToSend";
             public const string SendTimeKey = "SendTime";
             public const string CommunicationMethodKey = "CommunicationMethod";
-
         }
 
         private TimeSpan _defaultTimeSpan = new TimeSpan( 8, 0, 0 );
@@ -77,62 +75,58 @@ namespace org.secc.Communication.Jobs
         private TimeSpan? SendTime { get; set; }
         private List<string> CommunicationMethods { get; set; }
 
-
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            var datamap = context.JobDetail.JobDataMap;
             var rockContext = new RockContext();
             var sendReminders = false;
 
-            var scheduleGuid = datamap.GetString( AttributeKeys.ScheduleKey ).AsGuid();
+            var scheduleGuid = GetAttributeValue( AttributeKeys.ScheduleKey ).AsGuid();
             EventSchedule = new ScheduleService( rockContext ).Get( scheduleGuid );
 
-
-            if (EventSchedule == null)
+            if ( EventSchedule == null )
             {
                 throw new RockJobWarningException( "Schedule Not Found." );
             }
 
-            CommunicationTemplate = new SystemCommunicationService( rockContext ).Get( datamap.GetString( AttributeKeys.CommunicationTemplateKey ).AsGuid() );
+            CommunicationTemplate = new SystemCommunicationService( rockContext ).Get( GetAttributeValue( AttributeKeys.CommunicationTemplateKey ).AsGuid() );
 
-            if(CommunicationTemplate == null || CommunicationTemplate.IsActive == false)
+            if ( CommunicationTemplate == null || CommunicationTemplate.IsActive == false )
             {
                 throw new RockJobWarningException( "System Communication Not Found or is Inactive." );
             }
 
-            DataviewGuid = datamap.GetString( AttributeKeys.DistributionDataviewKey ).AsGuid();
-            SendDaysAhead = datamap.GetString( AttributeKeys.SendDaysKey ).AsInteger();
-            CommunicationMethods = datamap.GetString( AttributeKeys.CommunicationMethodKey ).SplitDelimitedValues().ToList();
+            DataviewGuid = GetAttributeValue( AttributeKeys.DistributionDataviewKey ).AsGuid();
+            SendDaysAhead = GetAttributeValue( AttributeKeys.SendDaysKey ).AsInteger();
+            CommunicationMethods = GetAttributeValue( AttributeKeys.CommunicationMethodKey ).SplitDelimitedValues().ToList();
 
-            SendTime = datamap.GetString( AttributeKeys.SendTimeKey ).AsTimeSpan();
+            SendTime = GetAttributeValue( AttributeKeys.SendTimeKey ).AsTimeSpan();
 
-            if(!SendTime.HasValue)
+            if ( !SendTime.HasValue )
             {
                 SendTime = _defaultTimeSpan;
             }
 
-            var enddate = DateTime.Today.AddDays( (SendDaysAhead) + 1 ).Date;
+            var enddate = DateTime.Today.AddDays( ( SendDaysAhead ) + 1 ).Date;
             var upcomingOccurrences = EventSchedule.GetScheduledStartTimes( DateTime.Today.Date, enddate );
 
-            foreach (var occurrence in upcomingOccurrences)
+            foreach ( var occurrence in upcomingOccurrences )
             {
-                if((occurrence.Date - DateTime.Today.Date).Days == SendDaysAhead)
+                if ( ( occurrence.Date - DateTime.Today.Date ).Days == SendDaysAhead )
                 {
                     sendReminders = true;
                     break;
                 }
             }
 
-            if(!sendReminders)
+            if ( !sendReminders )
             {
-                context.Result = "No Reminders due to be sent.";
+                Result = "No Reminders due to be sent.";
                 return;
             }
 
             CreateCommunications();
 
-            context.Result = $"Reminder Communications created for Schedule {EventSchedule.Name} - Will be sent at {RockDateTime.Today.Add(SendTime.Value).ToShortDateTimeString()}";
-
+            Result = $"Reminder Communications created for Schedule {EventSchedule.Name} - Will be sent at {RockDateTime.Today.Add( SendTime.Value ).ToShortDateTimeString()}";
         }
 
         private void CreateCommunications()
@@ -141,16 +135,16 @@ namespace org.secc.Communication.Jobs
             var systemAdminAlias = new PersonService( rockContext ).Get( 1 ).PrimaryAliasId;
             var dataview = new DataViewService( rockContext ).Get( DataviewGuid );
 
-            var recipients = ((IQueryable<Person>) dataview.GetQuery( new DataViewGetQueryArgs { DbContext = rockContext } ))
+            var recipients = ( ( IQueryable<Person> ) dataview.GetQuery( new DataViewGetQueryArgs { DbContext = rockContext } ) )
                 .ToList();
 
             var communicationService = new CommunicationService( rockContext );
             var emailMediumType = EntityTypeCache.Get( typeof( Rock.Communication.Medium.Email ) );
             var smsMediumType = EntityTypeCache.Get( typeof( Rock.Communication.Medium.Sms ) );
 
-            if (CommunicationTemplate.Body.IsNotNullOrWhiteSpace())
+            if ( CommunicationTemplate.Body.IsNotNullOrWhiteSpace() )
             {
-                if (!CommunicationMethods.Any() || CommunicationMethods.Contains( "Email", StringComparer.InvariantCultureIgnoreCase ))
+                if ( !CommunicationMethods.Any() || CommunicationMethods.Contains( "Email", StringComparer.InvariantCultureIgnoreCase ) )
                 {
                     var emailCommunication = new Rock.Model.Communication()
                     {
@@ -171,22 +165,24 @@ namespace org.secc.Communication.Jobs
 
                     emailCommunication.Recipients = new List<CommunicationRecipient>();
 
-                    foreach (var p in recipients)
+                    foreach ( var p in recipients )
                     {
-                        emailCommunication.Recipients.Add( new CommunicationRecipient() {
+                        emailCommunication.Recipients.Add( new CommunicationRecipient()
+                        {
                             PersonAliasId = p.PrimaryAliasId,
                             AdditionalMergeValuesJson = "{}",
                             MediumEntityTypeId = emailMediumType.Id,
-                            Status = CommunicationRecipientStatus.Pending} );
+                            Status = CommunicationRecipientStatus.Pending
+                        } );
                     }
                     communicationService.Add( emailCommunication );
                     rockContext.SaveChanges();
                 }
             }
 
-            if(CommunicationTemplate.SMSMessage.IsNotNullOrWhiteSpace())
+            if ( CommunicationTemplate.SMSMessage.IsNotNullOrWhiteSpace() )
             {
-                if(!CommunicationMethods.Any() || CommunicationMethods.Contains("SMS", StringComparer.InvariantCultureIgnoreCase))
+                if ( !CommunicationMethods.Any() || CommunicationMethods.Contains( "SMS", StringComparer.InvariantCultureIgnoreCase ) )
                 {
                     var smsCommunication = new Rock.Model.Communication()
                     {
@@ -194,7 +190,7 @@ namespace org.secc.Communication.Jobs
                         Subject = string.Empty,
                         CommunicationType = CommunicationType.SMS,
                         SenderPersonAliasId = systemAdminAlias,
-                        SMSFromDefinedValueId = CommunicationTemplate.SMSFromDefinedValueId,
+                        SmsFromSystemPhoneNumberId = CommunicationTemplate.SmsFromSystemPhoneNumberId,
                         SMSMessage = CommunicationTemplate.SMSMessage,
                         SystemCommunicationId = CommunicationTemplate.Id,
                         Status = CommunicationStatus.Approved,
@@ -205,7 +201,7 @@ namespace org.secc.Communication.Jobs
 
                     smsCommunication.Recipients = new List<CommunicationRecipient>();
 
-                    foreach (var p in recipients)
+                    foreach ( var p in recipients )
                     {
                         smsCommunication.Recipients.Add( new CommunicationRecipient()
                         {
@@ -219,8 +215,6 @@ namespace org.secc.Communication.Jobs
                     rockContext.SaveChanges();
                 }
             }
-
-            
         }
     }
 }
