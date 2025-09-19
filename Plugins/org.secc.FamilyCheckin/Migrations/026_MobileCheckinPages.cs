@@ -28,7 +28,7 @@ namespace org.secc.FamilyCheckin.Migrations
             RockMigrationHelper.AddPage( "", "89B28C7B-4EBC-4676-9F83-E6890F75B29F", "Mobile Check-in | Welcome", "", "BB8DA185-885B-4D50-854D-9317A7736524", "" ); // Site:Mobile Check-in
             // Page: Select Options
             RockMigrationHelper.AddPage( "BB8DA185-885B-4D50-854D-9317A7736524", "C9CB02B0-A217-4DC4-80C4-09F6DCCB6C5C", "Select Options", "", "2177896E-B34D-42F9-B171-87D8501A7A34", "" ); // Site:Mobile Check-in
-            RockMigrationHelper.AddPageRoute( "BB8DA185-885B-4D50-854D-9317A7736524", "mobilecheckin" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "BB8DA185-885B-4D50-854D-9317A7736524", "mobilecheckin" );
             RockMigrationHelper.UpdateBlockType( "Include Admin CSS", "Loads the admin css when it's required.", "~/Plugins/org_secc/Sass/AdminCss.ascx", "SECC > CMS", "FB434022-10C8-4DC7-9782-ECB25A041517" ); //Block Type: Include Admin CSS
             RockMigrationHelper.UpdateBlockType( "Mobile Check-in Start", "Start page for the mobile check-in process.", "~/Plugins/org_secc/FamilyCheckin/MobileCheckinStart.ascx", "SECC > Check-in", "5E4CEAB7-3444-4510-A458-6A981B9903BC" ); //Block Type: Mobile Check-in Start
             RockMigrationHelper.AddBlock( "BB8DA185-885B-4D50-854D-9317A7736524", "", "5E4CEAB7-3444-4510-A458-6A981B9903BC", "Mobile Check-in Start", "Main", "<style> option {     background-color:#555; } </style>", "", 0, "E642D275-C639-42FA-ABA9-59CB4CBA793F" ); //Block of Type: Mobile Check-in Start

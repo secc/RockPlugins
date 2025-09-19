@@ -37,13 +37,13 @@ namespace org.secc.Migrations
             RockMigrationHelper.AddPage( "9384126F-BC6F-444F-A651-CE6EC91B6435", "5D0446D1-F0B7-4FF2-B1A3-CCA85A9C9A1C", "Call Intake Form", "", "32679C05-48C7-49DE-A3E3-3F83088DC8C7", "" ); // Site:Minister On Call
             // Page: Calendar
             RockMigrationHelper.AddPage( "9384126F-BC6F-444F-A651-CE6EC91B6435", "5D0446D1-F0B7-4FF2-B1A3-CCA85A9C9A1C", "Calendar", "", "0DAC0D0C-18C5-4A45-A53C-8885419CFD6F", "" ); // Site:Minister On Call
-            RockMigrationHelper.AddPageRoute( "9384126F-BC6F-444F-A651-CE6EC91B6435", "moc" );
-            RockMigrationHelper.AddPageRoute( "6B7F1BC8-5EF2-4215-8428-8730D6211F13", "moc/beforeyoubegin" );
-            RockMigrationHelper.AddPageRoute( "69EB92FC-474A-4729-96A7-A1DF51E30F06", "moc/careandcontacts" );
-            RockMigrationHelper.AddPageRoute( "795D11A5-8B69-4D64-843D-431B58B0A0F5", "moc/community" );
-            RockMigrationHelper.AddPageRoute( "F0942A07-9806-46C1-A9D8-91418D539EC3", "moc/nohelp" );
-            RockMigrationHelper.AddPageRoute( "32679C05-48C7-49DE-A3E3-3F83088DC8C7", "moc/callintakeform" );
-            RockMigrationHelper.AddPageRoute( "0DAC0D0C-18C5-4A45-A53C-8885419CFD6F", "moc/calendar" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "9384126F-BC6F-444F-A651-CE6EC91B6435", "moc" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "6B7F1BC8-5EF2-4215-8428-8730D6211F13", "moc/beforeyoubegin" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "69EB92FC-474A-4729-96A7-A1DF51E30F06", "moc/careandcontacts" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "795D11A5-8B69-4D64-843D-431B58B0A0F5", "moc/community" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "F0942A07-9806-46C1-A9D8-91418D539EC3", "moc/nohelp" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "32679C05-48C7-49DE-A3E3-3F83088DC8C7", "moc/callintakeform" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "0DAC0D0C-18C5-4A45-A53C-8885419CFD6F", "moc/calendar" );
             RockMigrationHelper.AddBlock( "9384126F-BC6F-444F-A651-CE6EC91B6435", "", "19B61D65-37E3-459F-A44F-DEF0089118A3", "Header Type Thing", "Header", "", "", 0, "367DCF5F-4DA2-4670-9125-D7D03B343744" ); //Block of Type: HTML Content
             RockMigrationHelper.AddBlock( "9384126F-BC6F-444F-A651-CE6EC91B6435", "", "19B61D65-37E3-459F-A44F-DEF0089118A3", "HTML Content", "Main", "", "", 0, "F5343899-8EB4-4967-8889-43F2F53282F1" ); //Block of Type: HTML Content
             RockMigrationHelper.AddBlock( "795D11A5-8B69-4D64-843D-431B58B0A0F5", "", "143A2345-3E26-4ED0-A2FE-42AAF11B4C0F", "Content Channel View", "Main", "", "", 1, "157184DA-3EE1-4986-AA52-B7EAFF555093" ); //Block of Type: Content Channel View

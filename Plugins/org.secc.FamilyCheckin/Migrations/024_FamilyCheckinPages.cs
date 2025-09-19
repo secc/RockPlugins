@@ -40,8 +40,8 @@ namespace org.secc.FamilyCheckin.Migrations
             RockMigrationHelper.AddPage( "4159825D-B2CE-4BC1-A5DB-917020059E89", "F497DC5C-877E-4D7C-A984-D58B636F63B5", "Mobile Check-ins", "", "47C8C26F-353D-45A8-8F16-7C09FA606AD3", "" ); // Site:Family Checkin
             // Page: Scanner Config   
             RockMigrationHelper.AddPage( "4159825D-B2CE-4BC1-A5DB-917020059E89", "F497DC5C-877E-4D7C-A984-D58B636F63B5", "Scanner Config", "", "908A0960-DF24-42DD-941E-64F8DCEE7EFC", "" ); // Site:Family Checkin
-            RockMigrationHelper.AddPageRoute( "F2F82210-0149-4F67-AD28-B618F3158E95", "familycheckin" );
-            RockMigrationHelper.AddPageRoute( "A9E89AD5-AEB1-4F3F-8DF4-525EEB077561", "supercheckinlite" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "F2F82210-0149-4F67-AD28-B618F3158E95", "familycheckin" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "A9E89AD5-AEB1-4F3F-8DF4-525EEB077561", "supercheckinlite" );
             RockMigrationHelper.UpdateBlockType( "QuickSearch", "QuickSearch block for helping parents find their family quickly.", "~/Plugins/org_secc/FamilyCheckin/QuickSearch.ascx", "SECC > Check-in", "315A175F-C682-4810-9F33-1BDB93904A4E" ); //Block Type: QuickSearch
             RockMigrationHelper.UpdateBlockType( "QuickCheckin", "QuickCheckin block for helping parents check in their family quickly.", "~/Plugins/org_secc/FamilyCheckin/QuickCheckin.ascx", "SECC > Check-in", "AF961217-4223-4F03-9658-11DAB4B24DCD" ); //Block Type: QuickCheckin
             RockMigrationHelper.UpdateBlockType( "Super Search", "Displays keypad for searching on phone numbers.", "~/Plugins/org_secc/CheckinMonitor/SuperSearch.ascx", "SECC > Check-in", "F7389CD6-861E-4254-83ED-5777399E06B2" ); //Block Type: Super Search

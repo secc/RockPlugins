@@ -35,10 +35,10 @@ namespace org.secc.OAuth.Migrations
             RockMigrationHelper.AddPage( "49F0DBFB-F2D7-4494-8E39-F7DDE4206336", "7823E618-D769-461E-BF21-42E71A0FBAD5", "OAuth Authorization", "OAuth Authorization", "DA7D63B0-73A8-4321-AB3F-AC041F67E85B", "" ); // Site:OAuth
             // Page: OAuth Logout
             RockMigrationHelper.AddPage( "49F0DBFB-F2D7-4494-8E39-F7DDE4206336", "7823E618-D769-461E-BF21-42E71A0FBAD5", "OAuth Logout", "", "82903D44-A105-4B40-BEB3-2D7F55536F4A", "" ); // Site:OAuth
-            RockMigrationHelper.AddPageRoute( "E9D51B46-09B8-4086-B499-9C613B11FE3C", "OAuth/Login" );
-            RockMigrationHelper.AddPageRoute( "DA7D63B0-73A8-4321-AB3F-AC041F67E85B", "OAuth/Authorize" );
-            RockMigrationHelper.AddPageRoute( "DA7D63B0-73A8-4321-AB3F-AC041F67E85B", "OAuth/Token" );
-            RockMigrationHelper.AddPageRoute( "DA7D63B0-73A8-4321-AB3F-AC041F67E85B", "OAuth/Logout" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "E9D51B46-09B8-4086-B499-9C613B11FE3C", "OAuth/Login" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "DA7D63B0-73A8-4321-AB3F-AC041F67E85B", "OAuth/Authorize" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "DA7D63B0-73A8-4321-AB3F-AC041F67E85B", "OAuth/Token" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "DA7D63B0-73A8-4321-AB3F-AC041F67E85B", "OAuth/Logout" );
             RockMigrationHelper.UpdateBlockType( "HTML Content", "Adds an editable HTML fragment to the page.", "~/Blocks/Cms/HtmlContentDetail.ascx", "CMS", "19B61D65-37E3-459F-A44F-DEF0089118A3" ); //Block Type: HTML Content
             RockMigrationHelper.UpdateBlockType( "OAuth Authorize", "Check to make sure the user has authorized this OAuth request (or prompt for permissions).", "~/Plugins/org_secc/OAuth/Authorize.ascx", "SECC > Security", "ED369489-5844-4BE5-8ACE-18A75F9E805C" ); //Block Type: OAuth Authorize
             RockMigrationHelper.UpdateBlockType( "OAuth Login", "Prompts user for login credentials during the OAuth Login process.", "~/Plugins/org_secc/OAuth/Login.ascx", "SECC > Security", "79698895-30F1-46A9-85D4-B6C55681781F" ); //Block Type: OAuth Login

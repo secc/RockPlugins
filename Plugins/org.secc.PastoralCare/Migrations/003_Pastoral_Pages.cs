@@ -145,8 +145,8 @@ namespace org.secc.PastoralCare.Migrations
             if ( !pageService.Queryable().Any( p => p.Guid == new Guid( "46416DF6-6157-42E3-9330-2BDE8E79DA4C" ) ) )
             {
                 RockMigrationHelper.AddPage( "A64D2C30-1205-41D4-B8FA-CCE4FBC47906", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Add Hospitalization", "", "46416DF6-6157-42E3-9330-2BDE8E79DA4C", "fa fa-hospital-o" ); // Site:Rock RMS
-                RockMigrationHelper.AddPageRoute( "46416DF6-6157-42E3-9330-2BDE8E79DA4C", "Pastoral/Hospitalization/{WorkflowId}" );
-                RockMigrationHelper.AddPageRoute( "46416DF6-6157-42E3-9330-2BDE8E79DA4C", "Pastoral/Hospitalization/" );
+                RockMigrationHelper.AddOrUpdatePageRoute( "46416DF6-6157-42E3-9330-2BDE8E79DA4C", "Pastoral/Hospitalization/{WorkflowId}" );
+                RockMigrationHelper.AddOrUpdatePageRoute( "46416DF6-6157-42E3-9330-2BDE8E79DA4C", "Pastoral/Hospitalization/" );
                 RockMigrationHelper.UpdateBlockType( "Workflow Entry", "Used to enter information for a workflow form entry action.", "~/Blocks/WorkFlow/WorkflowEntry.ascx", "WorkFlow", "A8BD05C8-6F89-4628-845B-059E686F089A" );
                 RockMigrationHelper.AddBlock( "46416DF6-6157-42E3-9330-2BDE8E79DA4C", "", "A8BD05C8-6F89-4628-845B-059E686F089A", "Hospitalization Entry", "Main", "", "", 0, "F2610A46-19FF-43E2-ACEC-AD0EAE57839B" );
                 RockMigrationHelper.AddBlockAttributeValue( "F2610A46-19FF-43E2-ACEC-AD0EAE57839B", "2F1D98C4-A8EF-4680-9F64-11BFC28D5597", @"314cc992-c90c-4d7d-aec6-09c0fb4c7a38" ); // Workflow Type  
@@ -156,8 +156,8 @@ namespace org.secc.PastoralCare.Migrations
             if ( !pageService.Queryable().Any( p => p.Guid == new Guid( "368DA4E7-E353-49BF-8AFD-862A66AC6878" ) ) )
             {
                 RockMigrationHelper.AddPage( "A64D2C30-1205-41D4-B8FA-CCE4FBC47906", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Add Nursing Home Resident", "", "368DA4E7-E353-49BF-8AFD-862A66AC6878", "fa fa-wheelchair" ); // Site:Rock RMS
-                RockMigrationHelper.AddPageRoute( "368DA4E7-E353-49BF-8AFD-862A66AC6878", "Pastoral/NursingHome/" );
-                RockMigrationHelper.AddPageRoute( "368DA4E7-E353-49BF-8AFD-862A66AC6878", "Pastoral/NursingHome/{WorkflowId}" );
+                RockMigrationHelper.AddOrUpdatePageRoute( "368DA4E7-E353-49BF-8AFD-862A66AC6878", "Pastoral/NursingHome/" );
+                RockMigrationHelper.AddOrUpdatePageRoute( "368DA4E7-E353-49BF-8AFD-862A66AC6878", "Pastoral/NursingHome/{WorkflowId}" );
                 RockMigrationHelper.UpdateBlockType( "Workflow Entry", "Used to enter information for a workflow form entry action.", "~/Blocks/WorkFlow/WorkflowEntry.ascx", "WorkFlow", "A8BD05C8-6F89-4628-845B-059E686F089A" );
                 RockMigrationHelper.AddBlock( "368DA4E7-E353-49BF-8AFD-862A66AC6878", "", "A8BD05C8-6F89-4628-845B-059E686F089A", "Nursing Home Resident Entry", "Main", "", "", 0, "F391E7AA-A0F6-4981-957E-B22897C56BE8" );
                 RockMigrationHelper.AddBlockAttributeValue( "F391E7AA-A0F6-4981-957E-B22897C56BE8", "2F1D98C4-A8EF-4680-9F64-11BFC28D5597", @"7818dfd9-e347-43b2-95e3-8fbf83ab962d" ); // Workflow Type  
@@ -167,8 +167,8 @@ namespace org.secc.PastoralCare.Migrations
             if ( !pageService.Queryable().Any( p => p.Guid == new Guid( "F6EBCC3B-208D-472A-A0D1-2051D16DB9FB" ) ) )
             {
                 RockMigrationHelper.AddPage( "A64D2C30-1205-41D4-B8FA-CCE4FBC47906", "D65F783D-87A9-4CC9-8110-E83466A0EADB", "Add Homebound Resident", "", "F6EBCC3B-208D-472A-A0D1-2051D16DB9FB", "fa fa-bed" ); // Site:Rock RMS
-                RockMigrationHelper.AddPageRoute( "F6EBCC3B-208D-472A-A0D1-2051D16DB9FB", "Pastoral/Homebound" );
-                RockMigrationHelper.AddPageRoute( "F6EBCC3B-208D-472A-A0D1-2051D16DB9FB", "Pastoral/Homebound/{WorkflowId}" );
+                RockMigrationHelper.AddOrUpdatePageRoute( "F6EBCC3B-208D-472A-A0D1-2051D16DB9FB", "Pastoral/Homebound" );
+                RockMigrationHelper.AddOrUpdatePageRoute( "F6EBCC3B-208D-472A-A0D1-2051D16DB9FB", "Pastoral/Homebound/{WorkflowId}" );
                 RockMigrationHelper.UpdateBlockType( "Workflow Entry", "Used to enter information for a workflow form entry action.", "~/Blocks/WorkFlow/WorkflowEntry.ascx", "WorkFlow", "A8BD05C8-6F89-4628-845B-059E686F089A" );
                 RockMigrationHelper.AddBlock( "F6EBCC3B-208D-472A-A0D1-2051D16DB9FB", "", "A8BD05C8-6F89-4628-845B-059E686F089A", "Homebound Resident Entry", "Main", "", "", 0, "96DB3ADF-6631-4F1C-BEB6-59BAC576078A" );
                 RockMigrationHelper.AddBlockAttributeValue( "96DB3ADF-6631-4F1C-BEB6-59BAC576078A", "2F1D98C4-A8EF-4680-9F64-11BFC28D5597", @"3621645f-fbd0-4741-90ec-e032354aa375" ); // Workflow Type  
@@ -178,7 +178,7 @@ namespace org.secc.PastoralCare.Migrations
             if ( !pageService.Queryable().Any( p => p.Guid == new Guid( "C3784593-107E-4BE8-92D1-C11F0143724D" ) ) )
             {
                 RockMigrationHelper.AddPage( "BF04BB7E-BE3A-4A38-A37C-386B55496303", "F66758C6-3E3D-4598-AF4C-B317047B5987", "Pastoral", "", "C3784593-107E-4BE8-92D1-C11F0143724D", "" ); // Site:Rock RMS
-                RockMigrationHelper.AddPageRoute( "C3784593-107E-4BE8-92D1-C11F0143724D", "Person/{PersonId}/Pastoral" );
+                RockMigrationHelper.AddOrUpdatePageRoute( "C3784593-107E-4BE8-92D1-C11F0143724D", "Person/{PersonId}/Pastoral" );
                 RockMigrationHelper.AddBlock( "C3784593-107E-4BE8-92D1-C11F0143724D", "", "230AEE8C-A2B7-465C-93BE-A92F23364082", "Hospital List", "SectionC1", "", "", 0, "F2C5B8F9-157F-4252-B162-9B34D02DBC4D" );
                 RockMigrationHelper.AddBlock( "C3784593-107E-4BE8-92D1-C11F0143724D", "", "AE9E0F36-3511-4536-966E-172275C94E06", "Nursing Home List", "SectionC1", "", "", 1, "E1C3F37B-A409-45D2-A01A-193A5DC8C4A7" );
                 RockMigrationHelper.AddBlock( "C3784593-107E-4BE8-92D1-C11F0143724D", "", "A21E269D-F50B-42C6-882A-126F3D29D6B2", "Homebound List", "SectionC1", "", "", 2, "1838271C-723C-46C5-B61F-14FB126132D1" );
@@ -194,7 +194,7 @@ namespace org.secc.PastoralCare.Migrations
             if ( !pageService.Queryable().Any( p => p.Guid == new Guid( "7A0E0BC4-3658-4FDA-A7F6-137D8A367AFC" ) ) )
             {
                 RockMigrationHelper.AddPage( "A64D2C30-1205-41D4-B8FA-CCE4FBC47906", "7CFA101B-2D20-4523-9EC5-3F30502797A5", "New Family", "", "7A0E0BC4-3658-4FDA-A7F6-137D8A367AFC", "" ); // Site:Rock RMS
-                RockMigrationHelper.AddPageRoute( "7A0E0BC4-3658-4FDA-A7F6-137D8A367AFC", "Pastoral/NewFamily" );
+                RockMigrationHelper.AddOrUpdatePageRoute( "7A0E0BC4-3658-4FDA-A7F6-137D8A367AFC", "Pastoral/NewFamily" );
                 RockMigrationHelper.AddBlock( "7A0E0BC4-3658-4FDA-A7F6-137D8A367AFC", "", "DE156975-597A-4C55-A649-FE46712F91C3", "Add Family", "Main", "", "", 0, "C09B6DED-31BD-4E6A-8C47-A6C650B2C570" );
 
                 Sql( "UPDATE [Page] SET DisplayInNavWhen = 2 WHERE Guid = '7A0E0BC4-3658-4FDA-A7F6-137D8A367AFC';" );

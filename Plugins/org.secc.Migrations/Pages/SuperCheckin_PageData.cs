@@ -33,7 +33,7 @@ namespace org.secc.Migrations
             RockMigrationHelper.AddPage( "EBAC52D5-15FE-495D-A517-D1581241D4B8", "4BB26D3D-0B21-488A-8BC1-B76536C85693", "Super Checkin", "", "0616F4DD-5449-4D85-B573-FDD07A155453", "" ); // Site:Super Checkin
             // Page: OZ Screen
             RockMigrationHelper.AddPage( "EBAC52D5-15FE-495D-A517-D1581241D4B8", "4BB26D3D-0B21-488A-8BC1-B76536C85693", "OZ Screen", "", "4330FAF3-31F1-43A5-B1B0-6BB9742DE10E", "" ); // Site:Super Checkin
-            RockMigrationHelper.AddPageRoute( "15E6506E-54EB-4C37-8384-C5C9378BF08E", "supercheckin" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "15E6506E-54EB-4C37-8384-C5C9378BF08E", "supercheckin" );
             RockMigrationHelper.UpdateBlockType( "Super Search", "Displays keypad for searching on phone numbers.", "~/Plugins/org_secc/CheckinMonitor/SuperSearch.ascx", "SECC > Check-in", "F7389CD6-861E-4254-83ED-5777399E06B2" ); //Block Type: Super Search
             RockMigrationHelper.UpdateBlockType( "Super Checkin", "Advanced tool for managing checkin.", "~/Plugins/org_secc/CheckinMonitor/SuperCheckin.ascx", "SECC > Check-in", "5A7058FF-3A26-44D2-B8F4-C1E550987E2D" ); //Block Type: Super Checkin
             RockMigrationHelper.UpdateBlockType( "Checkin Monitor", "Helps manage rooms and room ratios.", "~/Plugins/org_secc/CheckinMonitor/CheckinMonitor.ascx", "Check-in", "98BB67DA-385F-4DAE-85A1-7C8CE73F1B97" ); //Block Type: Checkin Monitor

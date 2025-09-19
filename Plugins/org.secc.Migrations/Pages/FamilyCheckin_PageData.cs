@@ -31,7 +31,7 @@ namespace org.secc.Migrations
             RockMigrationHelper.AddPage( "4159825D-B2CE-4BC1-A5DB-917020059E89", "8A87FF45-C694-43B5-9494-0B2D6A71FFA1", "QuickSearch", "", "ABF839C7-8A7B-4F51-9D33-63AA841EAD38", "" ); // Site:Family Checkin
             // Page: QuickCheckin
             RockMigrationHelper.AddPage( "4159825D-B2CE-4BC1-A5DB-917020059E89", "8A87FF45-C694-43B5-9494-0B2D6A71FFA1", "QuickCheckin", "", "71959598-BE24-4A51-9DB6-CC34993B523D", "" ); // Site:Family Checkin
-            RockMigrationHelper.AddPageRoute( "F2F82210-0149-4F67-AD28-B618F3158E95", "familycheckin" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "F2F82210-0149-4F67-AD28-B618F3158E95", "familycheckin" );
             RockMigrationHelper.UpdateBlockType( "QuickSearch", "QuickSearch block for helping parents find their family quickly.", "~/Plugins/org_secc/FamilyCheckin/QuickSearch.ascx", "Check-in", "315A175F-C682-4810-9F33-1BDB93904A4E" ); //Block Type: QuickSearch
             RockMigrationHelper.UpdateBlockType( "QuickCheckin", "QuickCheckin block for helping parents check in their family quickly.", "~/Plugins/org_secc/FamilyCheckin/QuickCheckin.ascx", "Check-in", "AF961217-4223-4F03-9658-11DAB4B24DCD" ); //Block Type: QuickCheckin
             RockMigrationHelper.AddBlock( "F2F82210-0149-4F67-AD28-B618F3158E95", "", "3B5FBE9A-2904-4220-92F3-47DD16E805C0", "Administration", "Main", "", "", 0, "1CFD1EC1-198C-4F4C-B87D-32DD19648B39" ); //Block of Type: Administration

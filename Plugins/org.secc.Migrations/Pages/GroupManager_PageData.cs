@@ -37,7 +37,7 @@ namespace org.secc.Migrations
             RockMigrationHelper.AddPage( "37053063-76C5-44EB-BC0A-043F10744CEC", "E5998D06-BCFB-48EC-8143-64592DF8CC13", "Resources", "", "C0881189-7F82-4669-B4D9-8FCFD5E5DCE1", "fa fa-info-circle" ); // Site:Group Manager
             // Page: Get Help
             RockMigrationHelper.AddPage( "37053063-76C5-44EB-BC0A-043F10744CEC", "E5998D06-BCFB-48EC-8143-64592DF8CC13", "Get Help", "", "00F0E543-F524-4A31-B040-B8613F91F854", "fa fa-plus-square" ); // Site:Group Manager
-            RockMigrationHelper.AddPageRoute( "20A6336A-C9F8-4F55-94BF-991B0D3B49D7", "groupmanager" );
+            RockMigrationHelper.AddOrUpdatePageRoute( "20A6336A-C9F8-4F55-94BF-991B0D3B49D7", "groupmanager" );
             RockMigrationHelper.UpdateBlockType( "Group Roster", "Presents members of group in roster format.", "~/Plugins/org_secc/GroupManager/GroupRoster.ascx", "Groups", "18555BDC-87C1-4AD2-B22F-64936289A0D7" ); //Block Type: Group Roster
             RockMigrationHelper.UpdateBlockType( "Group Manager Attendance", "Lists the group members for a specific occurrence datetime and allows selecting if they attended or not.", "~/Plugins/org_secc/GroupManager/GroupManagerAttendance.ascx", "Groups", "AF0E5AE5-593C-4B18-B559-88BEF743D3E7" ); //Block Type: Group Manager Attendance
             RockMigrationHelper.UpdateBlockType( "Small Group Content", "Block to display dynamic small group content for a group.", "~/Plugins/org_secc/GroupManager/SmallGroupContent.ascx", "Groups", "51C366D6-EBD8-4202-BA5A-B845A7903ADC" ); //Block Type: Small Group Content
