@@ -30,20 +30,19 @@ using Rock.Web.Cache;
 namespace org.secc.RecurringCommunications.Jobs
 {
     [DisallowConcurrentExecution]
-    [IntegerField("SQL Command Timeout",
+    [IntegerField( "SQL Command Timeout",
         Description = "The maximum amount of time that the RockContext can run a query prior to timing out. Default is 30 seconds.",
         IsRequired = false,
         DefaultIntegerValue = 30,
         Key = "SQLCommandTimeout",
-        Order = 0)]
-    public class SendRecurringCommunications : IJob
+        Order = 0 )]
+    public class SendRecurringCommunications : Rock.Jobs.RockJob
     {
         int _commandTimeout = 30;
 
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
-            _commandTimeout = dataMap.GetIntegerFromString( "SQLCommandTimeout" );
+            _commandTimeout = GetAttributeValue( "SQLCommandTimeout" ).AsIntegerOrNull() ?? 30;
 
             RockContext rockContext = new RockContext();
             rockContext.Database.CommandTimeout = _commandTimeout;
@@ -52,14 +51,14 @@ namespace org.secc.RecurringCommunications.Jobs
             int count = 0;
             var errors = new List<RecurringCommunication>();
 
-            foreach (var communication in communications)
+            foreach ( var communication in communications )
             {
                 var lastExpectedRun = communication.Schedule
                     .GetScheduledStartTimes( RockDateTime.Now.AddDays( -1 ), RockDateTime.Now )
                     .LastOrDefault();
-                if (lastExpectedRun != null && lastExpectedRun > DateTime.MinValue)
+                if ( lastExpectedRun != null && lastExpectedRun > DateTime.MinValue )
                 {
-                    if (communication.LastRunDateTime == null || communication.LastRunDateTime <= lastExpectedRun)
+                    if ( communication.LastRunDateTime == null || communication.LastRunDateTime <= lastExpectedRun )
                     {
                         communication.LastRunDateTime = RockDateTime.Now;
                         rockContext.SaveChanges();
@@ -67,7 +66,7 @@ namespace org.secc.RecurringCommunications.Jobs
                         {
                             EnqueRecurringCommunication( communication.Id );
                         }
-                        catch (Exception e)
+                        catch ( Exception e )
                         {
                             ExceptionLogService.LogException( new Exception( $"Error Sending Recurring Communication: ID {communication.Id}", e ) );
                             errors.Add( communication );
@@ -83,7 +82,7 @@ namespace org.secc.RecurringCommunications.Jobs
                 errorText = "There were errors with the following Recurring Communications: ";
                 errorText += string.Join( ", ", errors.Select( c => $"{c.Id}:{c.Name}" ) );
             }
-            context.Result = $"Sent {count} communication{( count == 1 ? "" : "s" )} {errorText}";
+            Result = $"Sent {count} communication{( count == 1 ? "" : "s" )} {errorText}";
         }
 
 
@@ -98,8 +97,6 @@ namespace org.secc.RecurringCommunications.Jobs
             {
                 return;
             }
-
-
 
             var communication = new Communication
             {
@@ -215,6 +212,5 @@ namespace org.secc.RecurringCommunications.Jobs
             };
             message.Send();
         }
-
     }
 }
