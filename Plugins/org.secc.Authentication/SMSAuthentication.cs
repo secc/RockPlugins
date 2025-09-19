@@ -36,7 +36,7 @@ namespace Rock.Security.ExternalAuthentication
     [ExportMetadata( "ComponentName", "SMS Authentication" )]
     [LinkedPage( "SMS Login Page", "Page that contains the SMS login block.", defaultValue: "C137E7F2-DDB6-404F-AFD3-4D741E0DA43A" )]
     [IntegerField( "BCrypt Cost Factor", "The higher this number, the more secure BCrypt can be. However it also will be slower.", false, 11 )]
-    [DefinedValueField( Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM, "From", "The number to originate message from (configured under Admin Tools > Communications > SMS From Values).", true, false, "", "", 3 )]
+    [SystemPhoneNumberField( "From", "The number to originate message from (configured under Admin Tools > Communications > SMS From Values).", true, false, "", "", 3 )]
     [TextField( "Message", "Message that will be sent along with the login code.", true, "Use {{ password }} to log in to {{ 'Global' | Attribute:'OrganizationName' }}.", order: 4 )]
     [IntegerField( "Minimum Age", "Minimum age which someone is allowed to log in.", true, 13 )]
     public class SMSAuthentication : AuthenticationComponent
@@ -280,10 +280,10 @@ namespace Rock.Security.ExternalAuthentication
             Guid? fromGuid = GetAttributeValue( "From" ).AsGuidOrNull();
             if ( fromGuid.HasValue )
             {
-                var fromValue = DefinedValueCache.Get( fromGuid.Value, rockContext );
-                if ( fromValue != null )
+                var systemPhoneNumber = SystemPhoneNumberCache.Get( fromGuid.Value );
+                if ( systemPhoneNumber != null )
                 {
-                    smsMessage.FromNumber = DefinedValueCache.Get( fromValue.Id, rockContext );
+                    smsMessage.FromSystemPhoneNumber = systemPhoneNumber;
                 }
             }
 
