@@ -107,7 +107,7 @@ namespace org.secc.RecurringCommunications.Jobs
                 FromEmail = recurringCommunication.FromEmail,
                 Subject = recurringCommunication.Subject,
                 Message = recurringCommunication.EmailBody,
-                SMSFromDefinedValueId = recurringCommunication.PhoneNumberValueId,
+                SmsFromSystemPhoneNumberId = recurringCommunication.PhoneNumberValueId,
                 SMSMessage = recurringCommunication.SMSBody,
                 PushTitle = recurringCommunication.PushTitle,
                 PushSound = recurringCommunication.PushSound,
