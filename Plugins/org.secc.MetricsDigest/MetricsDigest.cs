@@ -38,35 +38,30 @@ namespace org.secc.Jobs
     [SystemCommunicationField( "Email", "The email to send to the connectors", true )]
 
     [DisallowConcurrentExecution]
-    public class MetricsDigest : IJob
+    public class MetricsDigest : Rock.Jobs.RockJob
     {
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
             var rockContext = new RockContext();
             var jobService = new ServiceJobService( rockContext );
             GroupService groupService = new GroupService( rockContext );
             CategoryService categoryService = new CategoryService( rockContext );
             MetricService metricService = new MetricService( rockContext );
 
-            var metricCategories = MetricCategoriesFieldAttribute.GetValueAsGuidPairs( dataMap.GetString( "Metrics" ) );
-            DateRange dateRange = SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( dataMap.GetString( "DateRange" ) );
+            var metricCategories = MetricCategoriesFieldAttribute.GetValueAsGuidPairs( GetAttributeValue( "Metrics" ) );
+            DateRange dateRange = SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( GetAttributeValue( "DateRange" ) );
 
-            var systemEmail = dataMap.GetString( "Email" ).AsGuidOrNull();
+            var systemEmail = GetAttributeValue( "Email" ).AsGuidOrNull();
             if ( !systemEmail.HasValue )
             {
                 throw new Exception( "System Email is required!" );
             }
 
-            // get job type id
-            int jobId = Convert.ToInt16( context.JobDetail.Description );
-            var job = jobService.Get( jobId );
-
             DateTime _midnightToday = RockDateTime.Today.AddDays( 1 );
             var currentDateTime = RockDateTime.Now;
             int recipients = 0;
 
-            Group notificationGroup = groupService.Get( dataMap.GetString( "NotificationGroup" ).AsGuid() );
+            Group notificationGroup = groupService.Get( GetAttributeValue( "NotificationGroup" ).AsGuid() );
             List<MetricCount> metricCounts = CampusCache.All().Select( c => new MetricCount() { Campus = c, TotalEntered = 0, TotalMetrics = 0 } ).ToList();
             List<Metric> metrics = new List<Metric>();
 
@@ -86,7 +81,7 @@ namespace org.secc.Jobs
                             // Check to see if we also have a schedule partition
                             if ( metric.MetricPartitions.Any( mp => mp.EntityType.Name.Contains( "Schedule" ) ) )
                             {
-                                var services = GetServices( campus, dataMap, dateRange );
+                                var services = GetServices( campus, dateRange );
                                 metricCounts.Where( mc => mc.Campus == campus ).FirstOrDefault().TotalMetrics += services.Count;
                                 foreach ( var service in services )
                                 {
@@ -117,7 +112,7 @@ namespace org.secc.Jobs
                 mergeFields.Add( "MetricCounts", metricCounts );
                 mergeFields.Add( "Metrics", metrics );
                 mergeFields.Add( "DateRange", dateRange.ToString() );
-                mergeFields.Add( "LastRunDate", job.LastSuccessfulRunDateTime );
+                mergeFields.Add( "LastRunDate", ServiceJob.LastSuccessfulRunDateTime );
 
                 // Setup the email and send it out!
                 RockEmailMessage message = new RockEmailMessage( systemEmail.Value );
@@ -131,7 +126,7 @@ namespace org.secc.Jobs
                 message.Send();
             }
 
-            context.Result = string.Format( "Sent " + recipients + " metric entry digest emails." );
+            Result = string.Format( "Sent " + recipients + " metric entry digest emails." );
         }
 
 
@@ -139,13 +134,13 @@ namespace org.secc.Jobs
         /// Gets the services.
         /// </summary>
         /// <returns></returns>
-        private List<Schedule> GetServices( CampusCache campus, JobDataMap dataMap, DateRange dateRange )
+        private List<Schedule> GetServices( CampusCache campus, DateRange dateRange )
         {
             var services = new List<Schedule>();
-            if ( !string.IsNullOrWhiteSpace( dataMap.GetString( "ScheduleCategories" ) ) )
+            if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "ScheduleCategories" ) ) )
             {
-                List<Guid> categoryGuids = dataMap.GetString( "ScheduleCategories" ).Split( ',' ).Select( g => g.AsGuid() ).ToList();
-                string campusAttributeGuid = dataMap.GetString( "CampusAttribute" );
+                List<Guid> categoryGuids = GetAttributeValue( "ScheduleCategories" ).Split( ',' ).Select( g => g.AsGuid() ).ToList();
+                string campusAttributeGuid = GetAttributeValue( "CampusAttribute" );
 
                 using ( var rockContext = new RockContext() )
                 {
