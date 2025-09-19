@@ -36,7 +36,7 @@ namespace org.secc.PayPalReporting
     [SlidingDateRangeField( "Date Range", "The range of dates to import.", true, "Previous|24|Hour||" )]
 
     [DisallowConcurrentExecution]
-    public class ImportData : IJob
+    public class ImportData : Rock.Jobs.RockJob
     {
         PayPalReportingContext dbContext;
         TransactionService transactionService;
@@ -55,16 +55,12 @@ namespace org.secc.PayPalReporting
         }
 
         /// <summary>
-        /// Executes the specified context.
+        /// Executes the job
         /// </summary>
-        /// <param name="context">The context.</param>
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-
             // set the encryption protocols that are permissible for external SSL connections
             System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls | System.Net.SecurityProtocolType.Tls11 | System.Net.SecurityProtocolType.Tls12;
-
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
 
             int totalTransactions = 0;
             int feesSuccessful = 0;
@@ -76,10 +72,10 @@ namespace org.secc.PayPalReporting
             {
                 XMLReport report = new XMLReport();
                 report.Gateway = gateway;
-                report.URL = dataMap.GetString( "PayPalReportURL" );
-                report.name = dataMap.GetString( "ReportName" );
+                report.URL = GetAttributeValue( "PayPalReportURL" );
+                report.name = GetAttributeValue( "ReportName" );
 
-                DateRange dateRange = Rock.Web.UI.Controls.SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( dataMap.GetString( "DateRange" ) ?? "-1||" );
+                DateRange dateRange = Rock.Web.UI.Controls.SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( GetAttributeValue( "DateRange" ) ?? "-1||" );
                 DataTable data = report.RunReport( dateRange.Start ?? DateTime.Now.AddHours( 0 - 24 ), dateRange.End ?? DateTime.Now.Date.AddSeconds( -1 ) );
 
                 foreach ( DataRow row in data.Rows )
@@ -91,20 +87,19 @@ namespace org.secc.PayPalReporting
                 totalTransactions += data.Rows.Count;
             }
 
-
             // Now load all transaction fees
-            if ( dataMap.GetString( "FetchFees" ).AsBoolean() )
+            if ( GetAttributeValue( "FetchFees" ).AsBoolean() )
             {
-                if ( dataMap.GetString( "PayPalAPIUsername" ).IsNullOrWhiteSpace()
-                    || dataMap.GetString( "PayPalAPIPassword" ).IsNullOrWhiteSpace()
-                    || dataMap.GetString( "PayPalAPISignature" ).IsNullOrWhiteSpace() )
+                if ( GetAttributeValue( "PayPalAPIUsername" ).IsNullOrWhiteSpace()
+                    || GetAttributeValue( "PayPalAPIPassword" ).IsNullOrWhiteSpace()
+                    || GetAttributeValue( "PayPalAPISignature" ).IsNullOrWhiteSpace() )
                 {
                     throw new Exception( "In order to fetch fees, the PayPal API Username, Password, and Signature are required." );
                 }
 
-                String apiUsername = Encryption.DecryptString( dataMap.GetString( "PayPalAPIUsername" ) );
-                String apiPassword = Encryption.DecryptString( dataMap.GetString( "PayPalAPIPassword" ) );
-                String apiSignature = Encryption.DecryptString( dataMap.GetString( "PayPalAPISignature" ) );
+                String apiUsername = Encryption.DecryptString( GetAttributeValue( "PayPalAPIUsername" ) );
+                String apiPassword = Encryption.DecryptString( GetAttributeValue( "PayPalAPIPassword" ) );
+                String apiSignature = Encryption.DecryptString( GetAttributeValue( "PayPalAPISignature" ) );
                 List<Transaction> zeroFeeTrans = transactionService.Queryable()
                     .Where( tx => tx.Fees == 0 && !tx.IsZeroFee && tx.MerchantTransactionId != "" ).ToList();
                 API paypalAPI = new API();
@@ -130,15 +125,14 @@ namespace org.secc.PayPalReporting
 
             String message = "Payflow Transactions Retrieved: " + totalTransactions;
 
-            if ( dataMap.GetString( "FetchFees" ).AsBoolean() )
+            if ( GetAttributeValue( "FetchFees" ).AsBoolean() )
             {
                 message += " - Non-Zero Fee Transactions:" + feesSuccessful;
                 message += " - Zero Fee Transactions:" + feesFailed;
             }
 
-            context.Result = message;
+            Result = message;
         }
-
 
         /// <summary>
         /// Copy a data row to an actual Transaction entity
