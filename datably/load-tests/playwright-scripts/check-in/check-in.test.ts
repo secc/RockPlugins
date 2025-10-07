@@ -9,7 +9,22 @@ const vmCount = Number(process.env.CHECK_IN_VM_COUNT);
 const data = getData().filter(x => x.Id % vmCount == vm);
 
 getUniqueConfigurationNames().forEach((config) => {
-    test(config, async ({ page }) => {
+    test(config, async ({ browser }) => {
+        
+        const context = await browser.newContext();
+        
+        // If we do not add this cookie, /familycheckin returns a 404.
+        // I'm guessing this is because SECC has a web farm, but not all servers have check-in.
+        await context.addCookies([
+            {
+                name: 'last_site',
+                value: '7',
+                domain: 'rockbeta.secc.org',
+                path: '/'
+            },
+        ])
+        
+        const page = await context.newPage();
         await openCheckInPage(page, config);
         
         let i = 1;

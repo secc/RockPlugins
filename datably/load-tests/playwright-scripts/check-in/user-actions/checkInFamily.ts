@@ -8,6 +8,7 @@ export default async function checkInFamily(page: Page, phoneNumber: string, sch
     const searchButton = page.getByRole('link', { name: 'Search' });
     await expect(searchButton).toBeVisible();
 
+    await page.getByRole('link', { name: 'Clear' }).click();
     await page.keyboard.type(phoneNumber);
     await searchButton.click();
 
