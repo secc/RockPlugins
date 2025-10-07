@@ -130,7 +130,11 @@ namespace RockWeb.Plugins.org_secc.Security
             }
             var binaryData = binaryFile.ContentStream.ReadBytesToEnd();
 
-            X509Certificate2 signingCert = new X509Certificate2( binaryData, GetAttributeValue( AttributeKey.CertificatePassword ), X509KeyStorageFlags.Exportable );
+            X509Certificate2 signingCert = new X509Certificate2(
+                binaryData,
+                GetAttributeValue( AttributeKey.CertificatePassword ),
+                X509KeyStorageFlags.Exportable | X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet
+            );
 
             var attributeStatements = new Dictionary<string, string> {
                 {"FirstName", CurrentPerson.FirstName },
