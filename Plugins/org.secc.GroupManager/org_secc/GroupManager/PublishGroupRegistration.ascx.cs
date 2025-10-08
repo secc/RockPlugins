@@ -277,6 +277,21 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             homeLocation = new GroupLocation();
                             homeLocation.GroupLocationTypeValueId = _homeAddressType.Id;
                             homeLocation.IsMappedLocation = true;
+
+                            if ( homeLocation == null ){
+                                Console.WriteLine( "Home location is null!" );
+                            }
+                            
+                            if ( family == null )
+                            {
+                                Console.WriteLine( "Family is null!" );
+                            }
+
+                            if ( family.GroupLocations == null )
+                            {
+                                Console.WriteLine( "Family.GroupLocations is null!" );
+                            }
+
                             family.GroupLocations.Add( homeLocation );
                         }
                         else
