@@ -52,7 +52,7 @@ namespace org.secc.FamilyCheckin.Cache
                 }
 
                 RockCache.AddOrUpdate( qualifiedKey, item );
-                PublishCacheUpdateMessage( qualifiedKey, item );
+                // PublishCacheUpdateMessage( qualifiedKey, item );
             }
             else
             {

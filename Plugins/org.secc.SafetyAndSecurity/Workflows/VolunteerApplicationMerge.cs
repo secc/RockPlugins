@@ -23,7 +23,6 @@ using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.UniversalSearch;
 using Rock.Web.Cache;
 using Rock.Workflow;
 
@@ -36,7 +35,7 @@ namespace org.secc.SafetyAndSecurity
     [BinaryFileField( VolunteerApplicationMerge.PDF_FORM_BINARY_FILE_TYPE, "Adult Volunteer Application PDF", "The Confidential Volunteer Application for Adult PDF form", true )]
     [BinaryFileField( VolunteerApplicationMerge.PDF_FORM_BINARY_FILE_TYPE, "Minor Volunteer Application PDF", "The Confidential Volunteer Application for Minors PDF form", true )]
     [WorkflowAttribute( "Is Minor Application", "Mark as yes if the application is for minors", fieldTypeClassNames: new string[] { "Rock.Field.Types.BooleanFieldType" } )]
-    class VolunteerApplicationMerge : ActionComponent
+    public class VolunteerApplicationMerge : ActionComponent
     {
         public const string BACKGROUND_CHECK_BINARY_FILE_TYPE = "5C701472-8A6B-4BBE-AEC6-EC833C859F2D";
         public const string PDF_FORM_BINARY_FILE_TYPE = "D587ECCB-F548-452A-A442-FE383CBED283";
@@ -60,153 +59,16 @@ namespace org.secc.SafetyAndSecurity
             Location reference3Address = locationService.Get( action.Activity.Workflow.GetAttributeValue( "Reference3Address" ).AsGuid() );
             Location reference4Address = locationService.Get( action.Activity.Workflow.GetAttributeValue( "Reference4Address" ).AsGuid() );
 
-            Dictionary<string, string> fields = new Dictionary<string, string>()
-                {
-                    {"ministryOfInterest", action.Activity.Workflow.GetAttributeValue("MinistryOfInterest") },
-                    {"intPersonID", person.Id.ToString()},
-
-                    {"txtLastName", action.Activity.Workflow.GetAttributeValue("LastName")},
-                    {"txtFirstName",  action.Activity.Workflow.GetAttributeValue("FirstName")},
-                    {"txtMiddleName", action.Activity.Workflow.GetAttributeValue("MiddleName")},
-                    {"txtMaidenOtherName", action.Activity.Workflow.GetAttributeValue("MaidenOtherNames")},
-                    {"txtParent", action.Activity.Workflow.GetAttributeValue("Parent")},
-                    {"txtParentEmail", action.Activity.Workflow.GetAttributeValue("ParentEmail")},
-                    {"txtParentHomePhone", action.Activity.Workflow.GetAttributeValue("ParentHomePhone")},
-                    {"txtParentCellPhone", action.Activity.Workflow.GetAttributeValue("ParentCellPhone")},
-
-                    {"txtDateOfBirth", action.Activity.Workflow.GetAttributeValue("DateofBirth").AsDateTime().Value.ToShortDateString()},
-				    //{"txtSSN", action.Activity.Workflow.GetAttributeValue("")},
-				    {"radGender", action.Activity.Workflow.GetAttributeValue("")},
-                    {"radMale", action.Activity.Workflow.GetAttributeValue("Gender") == "Male"?"Yes":"No" },
-                    {"radFemale", action.Activity.Workflow.GetAttributeValue("Gender") == "Female"?"Yes":"No"},
-                    {"txtSCCAttendanceDuration", action.Activity.Workflow.GetAttributeValue("HowLongAttended")},
-                    {"txtSCCMember", person.ConnectionStatusValue.Guid==Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_MEMBER.AsGuid()?"Yes":"No"},
-                    {"txtSCCMemberPDFNo", person.ConnectionStatusValue.Guid==Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_MEMBER.AsGuid()?"No":"Yes"},
-                    {"txtSCCInvolvement", action.Activity.Workflow.GetAttributeValue("CurrentParticipation")},
-                    {"txtChurch", action.Activity.Workflow.GetAttributeValue("ChurchAtttended")},
-
-                    {"txtStreet", currentMailingAddress.Street1},
-                    {"txtCity", currentMailingAddress.City},
-                    {"txtState", currentMailingAddress.State},
-                    {"txtZip", currentMailingAddress.PostalCode},
-                    {"SaveUpToThisPoint", ""},
-                    {"txtPrevStreet", previousMailingAddress.Street1},
-                    {"txtPrevCity", previousMailingAddress.City},
-                    {"txtPrevState", previousMailingAddress.State},
-                    {"txtPrevZip", previousMailingAddress.PostalCode},
-                    {"radOutOfState", action.Activity.Workflow.GetAttributeValue("OutsideKentuckyIndiana")},
-                    {"radOutOfStatePDFYes", action.Activity.Workflow.GetAttributeValue("OutsideKentuckyIndiana").AsBoolean()?"Yes":"No"},
-                    {"radOutOfStatePDFNo", action.Activity.Workflow.GetAttributeValue("OutsideKentuckyIndiana").AsBoolean()?"No":"Yes"},
-                    {"txtOutOfState_Dates", action.Activity.Workflow.GetAttributeValue("WhenOutsideKentuckyIndiana")},
-                    {"txtOutOfState_State", action.Activity.Workflow.GetAttributeValue("StatesOutsideKentuckyIndiana")},
-                    {"txtEmployer", action.Activity.Workflow.GetAttributeValue("CurrentEmployer")},
-                    {"txtPosition", action.Activity.Workflow.GetAttributeValue("PositionHeld")},
-                    {"txtWorkPhone", action.Activity.Workflow.GetAttributeValue("WorkPhone")},
-                    {"txtHomePhone", action.Activity.Workflow.GetAttributeValue("HomePhone")},
-                    {"txtCellPhone", action.Activity.Workflow.GetAttributeValue("CellPhone")},
-
-                    //{"txtWorkEmail", action.Activity.Workflow.GetAttributeValue("")},
-
-                    {"txtEmail", person.Email},
-
-                    {"txtRef1Name", action.Activity.Workflow.GetAttributeValue("Reference1Name")},
-                    //{"txtRef1Relationship", action.Activity.Workflow.GetAttributeValue("")},
-				    {"radRef1YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference1Relationship")
-                                        + "/" + action.Activity.Workflow.GetAttributeValue("Reference1YearsKnown")},
-                    {"txtRef1Address", reference1Address.Street1},
-                    {"txtRef1City", reference1Address.City},
-                    {"txtRef1State", reference1Address.State},
-                    {"txtRef1Zip", reference1Address.PostalCode},
-				    //{"txtRef1PersPhone", action.Activity.Workflow.GetAttributeValue("")},
-				    //{"txtRef1PersPhoneTime", action.Activity.Workflow.GetAttributeValue("")},
-				    {"txtRef1WorkPhone", action.Activity.Workflow.GetAttributeValue("Reference1WorkPhone")},
-				    //{"txtRef1WorkPhoneTime", action.Activity.Workflow.GetAttributeValue("")},
-				    {"txtRef1HomePhone", action.Activity.Workflow.GetAttributeValue("Reference1HomePhone")},
-                    {"txtRef1CellPhone", action.Activity.Workflow.GetAttributeValue("Reference1CellPhone")},
-                    {"txtRef1Email", action.Activity.Workflow.GetAttributeValue("Reference1Email")},
-
-                    {"txtRef2Name", action.Activity.Workflow.GetAttributeValue("Reference2Name")},
-                    //{"txtRef2Relationship", action.Activity.Workflow.GetAttributeValue("")},
-				    {"radRef2YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference2Relationship")
-                                        + "/" + action.Activity.Workflow.GetAttributeValue("Reference2YearsKnown")},
-                    {"txtRef2Address", reference2Address.Street1},
-                    {"txtRef2City", reference2Address.City},
-                    {"txtRef2State", reference2Address.State},
-                    {"txtRef2Zip", reference2Address.PostalCode},
-				    //{"txtRef2PersPhone", action.Activity.Workflow.GetAttributeValue("")},
-				    //{"txtRef2PersPhoneTime", action.Activity.Workflow.GetAttributeValue("")},
-				    {"txtRef2WorkPhone", action.Activity.Workflow.GetAttributeValue("Reference2WorkPhone")},
-				    //{"txtRef2WorkPhoneTime", action.Activity.Workflow.GetAttributeValue("")},
-				    {"txtRef2HomePhone", action.Activity.Workflow.GetAttributeValue("Reference2HomePhone")},
-                    {"txtRef2CellPhone", action.Activity.Workflow.GetAttributeValue("Reference2CellPhone")},
-                    {"txtRef2Email", action.Activity.Workflow.GetAttributeValue("Reference2Email")},
-
-                    {"txtRef3Name", action.Activity.Workflow.GetAttributeValue("Reference3Name")},
-                    //{"txtRef3Relationship", action.Activity.Workflow.GetAttributeValue("")},
-				    {"radRef3YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference3Relationship")
-                                        + "/" + action.Activity.Workflow.GetAttributeValue("Reference3YearsKnown")},
-                    {"txtRef3Address", reference3Address.Street1},
-                    {"txtRef3City", reference3Address.City},
-                    {"txtRef3State", reference3Address.State},
-                    {"txtRef3Zip", reference3Address.PostalCode},
-				    //{"txtRef3PersPhone", action.Activity.Workflow.GetAttributeValue("")},
-				    //{"txtRef3PersPhoneTime", action.Activity.Workflow.GetAttributeValue("")},
-				    {"txtRef3WorkPhone", action.Activity.Workflow.GetAttributeValue("Reference3WorkPhone")},
-				    //{"txtRef3WorkPhoneTime", action.Activity.Workflow.GetAttributeValue("")},
-				    {"txtRef3HomePhone", action.Activity.Workflow.GetAttributeValue("Reference3HomePhone")},
-                    {"txtRef3CellPhone", action.Activity.Workflow.GetAttributeValue("Reference3CellPhone")},
-                    {"txtRef3Email", action.Activity.Workflow.GetAttributeValue("Reference3Email")},
-
-                    {"txtRef4Name", action.Activity.Workflow.GetAttributeValue("Reference4Name")},
-                    //{"txtRef4Relationship", action.Activity.Workflow.GetAttributeValue("")},
-				    {"radRef4YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference4Relationship")
-                                        + "/" + action.Activity.Workflow.GetAttributeValue("Reference4YearsKnown")},
-                    {"txtRef4Address", reference4Address?.Street1},
-                    {"txtRef4City", reference4Address?.City},
-                    {"txtRef4State", reference4Address?.State},
-                    {"txtRef4Zip", reference4Address?.PostalCode},
-				    //{"txtRef4PersPhone", action.Activity.Workflow.GetAttributeValue("")},
-				    //{"txtRef4PersPhoneTime", action.Activity.Workflow.GetAttributeValue("")},
-				    {"txtRef4WorkPhone", action.Activity.Workflow.GetAttributeValue("Reference4WorkPhone")},
-				    //{"txtRef4WorkPhoneTime", action.Activity.Workflow.GetAttributeValue("")},
-				    {"txtRef4HomePhone", action.Activity.Workflow.GetAttributeValue("Reference4HomePhone")},
-                    {"txtRef4CellPhone", action.Activity.Workflow.GetAttributeValue("Reference4CellPhone")},
-                    {"txtRef4Email", action.Activity.Workflow.GetAttributeValue("Reference4Email") },
-                
-                    //{"txtPhysLimitations", action.Activity.Workflow.GetAttributeValue("")},
-                    {"txtPhysLimitations",  action.Activity.Workflow.GetAttributeValue("PhysicalLimitationsExplanation") },
-                    {"txtPhysLimitationsPDF", action.Activity.Workflow.GetAttributeValue("PhysicalLimitationsExplanation")},
-                    {"radPhysLimitationsPDFYes", action.Activity.Workflow.GetAttributeValue("PhysicalLimitations").AsBoolean()?"Yes":"No" },
-                    {"radPhysLimitationsPDFNo", action.Activity.Workflow.GetAttributeValue("PhysicalLimitations").AsBoolean()?"No":"Yes" },
-                    {"radCrimePersons", action.Activity.Workflow.GetAttributeValue("Crime").AsBoolean()?"Yes":"No" },
-                    {"radCrimePersonsPDFNo", action.Activity.Workflow.GetAttributeValue("Crime").AsBoolean()?"No":"Yes" },
-                    //{"radCrimeProperty", action.Activity.Workflow.GetAttributeValue("")},
-				    {"radThreatToMinors", action.Activity.Workflow.GetAttributeValue("Threat").AsBoolean()?"Yes":"No" },
-                    {"radThreatToMinorsPDFNo", action.Activity.Workflow.GetAttributeValue("Threat").AsBoolean()?"No":"Yes" },
-                    {"radCrimeCounseled", action.Activity.Workflow.GetAttributeValue("CrimeCounsel").AsBoolean()?"Yes":"No" },
-                    {"radCrimeCounseledPDFYes", action.Activity.Workflow.GetAttributeValue("CrimeCounsel").AsBoolean()?"Yes":"No" },
-                    {"radCrimeCounseledPDFNo", action.Activity.Workflow.GetAttributeValue("CrimeCounsel").AsBoolean()?"No":"Yes" },
-                    {"radNeedsStaffContact", action.Activity.Workflow.GetAttributeValue("Contact").AsBoolean()?"Yes":"No"},
-                    {"radNeedsStaffContactPDFNo", action.Activity.Workflow.GetAttributeValue("Contact").AsBoolean()?"No":"Yes" },
-                    {"personDetailPage", GlobalAttributesCache.Value("InternalApplicationRoot") + "/Person/" + person.Id },
-
-                    {"txtAppSigned", "{{t:s;r:y;o:\"Applicant\";}}" },
-                    {"txtAppDated", "{{t:d;r:y;o:\"Applicant\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
-                    {"txtAppPrintedName", person.FullNameFormal },
-
-                    {"txtSOFSigned", "{{t:s;r:y;o:\"Applicant\";}}" },
-                    {"txtSOFDated", "{{t:d;r:y;o:\"Applicant\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
-                    {"txtSOFPrintedName", person.FullNameFormal },
-
-                    {"txtParentSignature", "{{t:s;r:y;o:\"Parent\";}}" },
-                    {"txtDate1", "{{t:d;r:y;o:\"Parent\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
-
-                    {"radReadSOFYes", action.Activity.Workflow.GetAttributeValue("ReadStatementOfFaith").AsBoolean()?"Yes":"No" },
-                    {"radReadSOFNo", action.Activity.Workflow.GetAttributeValue("ReadStatementOfFaith").AsBoolean()?"No":"Yes" },
-                    {"radAgreeSOFYes", action.Activity.Workflow.GetAttributeValue("AgreeStatementOfFaith").AsBoolean()?"Yes":"No" },
-                    {"radAgreeSOFNo", action.Activity.Workflow.GetAttributeValue("AgreeStatementOfFaith").AsBoolean()?"No":"Yes" },
-                    {"txtSOFCommentsAmendments", String.IsNullOrEmpty(action.Activity.Workflow.GetAttributeValue("CommentsStatementOfFaith"))?" ":action.Activity.Workflow.GetAttributeValue("CommentsStatementOfFaith") },
-                };
+            Dictionary<string, string> fields = BuildFieldDictionary(
+                action,
+                person,
+                currentMailingAddress,
+                previousMailingAddress,
+                reference1Address,
+                reference2Address,
+                reference3Address,
+                reference4Address
+            );
 
             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
             BinaryFile PDF = null;
@@ -222,60 +84,259 @@ namespace org.secc.SafetyAndSecurity
 
             var pdfBytes = PDF.ContentStream.ReadBytesToEnd();
 
+            var renderedPdfBytes = GeneratePdfWithFields( pdfBytes, fields, flattenFields: true );
+
+            BinaryFile renderedPDF = new BinaryFile();
+            renderedPDF.IsTemporary = false;
+            renderedPDF.IsSystem = false;
+            renderedPDF.Guid = Guid.NewGuid();
+            renderedPDF.MimeType = PDF.MimeType;
+            renderedPDF.FileName = "VolunteerApplication_" + person.FirstName + person.LastName + ".pdf";
+            renderedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( BACKGROUND_CHECK_BINARY_FILE_TYPE ) ).Id;
+            renderedPDF.DatabaseData = null;
+            renderedPDF.FileSize = renderedPdfBytes.Length;
+            renderedPDF.ContentStream = new MemoryStream( renderedPdfBytes );
+
+            binaryFileService.Add( renderedPDF );
+            rockContext.SaveChanges();
+
+            action.Activity.Workflow.SetAttributeValue( "PDF", renderedPDF.Guid );
+
+            return true;
+        }
+
+        /// <summary>
+        /// Builds the field dictionary for the PDF form from workflow attributes.
+        /// </summary>
+        /// <param name="action">The workflow action.</param>
+        /// <param name="person">The person.</param>
+        /// <param name="currentMailingAddress">The current mailing address.</param>
+        /// <param name="previousMailingAddress">The previous mailing address.</param>
+        /// <param name="reference1Address">The reference1 address.</param>
+        /// <param name="reference2Address">The reference2 address.</param>
+        /// <param name="reference3Address">The reference3 address.</param>
+        /// <param name="reference4Address">The reference4 address.</param>
+        /// <returns>Dictionary of PDF field names and values</returns>
+        private Dictionary<string, string> BuildFieldDictionary(
+            WorkflowAction action,
+            Person person,
+            Location currentMailingAddress,
+            Location previousMailingAddress,
+            Location reference1Address,
+            Location reference2Address,
+            Location reference3Address,
+            Location reference4Address )
+        {
+            // Get boolean values for radio buttons
+            bool isMale = action.Activity.Workflow.GetAttributeValue( "Gender" ) == "Male";
+            bool isFemale = action.Activity.Workflow.GetAttributeValue( "Gender" ) == "Female";
+            bool hasPhysicalLimitations = action.Activity.Workflow.GetAttributeValue("PhysicalLimitations").AsBoolean();
+            bool hasCrime = action.Activity.Workflow.GetAttributeValue("Crime").AsBoolean();
+            bool hasThreat = action.Activity.Workflow.GetAttributeValue("Threat").AsBoolean();
+            bool hasCrimeCounsel = action.Activity.Workflow.GetAttributeValue("CrimeCounsel").AsBoolean();
+            bool needsStaffContact = action.Activity.Workflow.GetAttributeValue("Contact").AsBoolean();
+            bool hasReadSOF = action.Activity.Workflow.GetAttributeValue("ReadStatementOfFaith").AsBoolean();
+            bool hasAgreeSOF = action.Activity.Workflow.GetAttributeValue("AgreeStatementOfFaith").AsBoolean();
+            bool isOutOfState = action.Activity.Workflow.GetAttributeValue("OutsideKentuckyIndiana").AsBoolean();
+
+            return new Dictionary<string, string>()
+            {
+                {"ministryOfInterest", action.Activity.Workflow.GetAttributeValue("MinistryOfInterest") },
+                {"intPersonID", person.Id.ToString()},
+
+                {"txtLastName", action.Activity.Workflow.GetAttributeValue("LastName")},
+                {"txtFirstName",  action.Activity.Workflow.GetAttributeValue("FirstName")},
+                {"txtMiddleName", action.Activity.Workflow.GetAttributeValue("MiddleName")},
+                {"txtMaidenOtherName", action.Activity.Workflow.GetAttributeValue("MaidenOtherNames")},
+                {"txtParent", action.Activity.Workflow.GetAttributeValue("Parent")},
+                {"txtParentEmail", action.Activity.Workflow.GetAttributeValue("ParentEmail")},
+                {"txtParentHomePhone", action.Activity.Workflow.GetAttributeValue("ParentHomePhone")},
+                {"txtParentCellPhone", action.Activity.Workflow.GetAttributeValue("ParentCellPhone")},
+
+                {"txtDateOfBirth", action.Activity.Workflow.GetAttributeValue("DateofBirth").AsDateTime().Value.ToShortDateString()},
+                {"radMale", isMale ? "Yes" : "Off"},
+                {"radFemale", isFemale ? "Yes" : "Off"},
+                {"txtSCCAttendanceDuration", action.Activity.Workflow.GetAttributeValue("HowLongAttended")},
+                {"txtSCCMember", person.ConnectionStatusValue.Guid==Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_MEMBER.AsGuid()?"Yes":"Off"},
+                {"txtSCCMemberPDFNo", person.ConnectionStatusValue.Guid==Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_MEMBER.AsGuid()?"Off":"Yes"},
+                {"txtSCCInvolvement", action.Activity.Workflow.GetAttributeValue("CurrentParticipation")},
+                {"txtChurch", action.Activity.Workflow.GetAttributeValue("ChurchAtttended")},
+
+                {"txtStreet", currentMailingAddress.Street1},
+                {"txtCity", currentMailingAddress.City},
+                {"txtState", currentMailingAddress.State},
+                {"txtZip", currentMailingAddress.PostalCode},
+                {"SaveUpToThisPoint", ""},
+                {"txtPrevStreet", previousMailingAddress.Street1},
+                {"txtPrevCity", previousMailingAddress.City},
+                {"txtPrevState", previousMailingAddress.State},
+                {"txtPrevZip", previousMailingAddress.PostalCode},
+
+                {"radOutOfStatePDFYes", isOutOfState ? "Yes" : "Off"},
+                {"radOutOfStatePDFNo", !isOutOfState ? "Yes" : "Off"},
+                
+                {"txtOutOfState_Dates", action.Activity.Workflow.GetAttributeValue("WhenOutsideKentuckyIndiana")},
+                {"txtOutOfState_State", action.Activity.Workflow.GetAttributeValue("StatesOutsideKentuckyIndiana")},
+                {"txtEmployer", action.Activity.Workflow.GetAttributeValue("CurrentEmployer")},
+                {"txtPosition", action.Activity.Workflow.GetAttributeValue("PositionHeld")},
+                {"txtWorkPhone", action.Activity.Workflow.GetAttributeValue("WorkPhone")},
+                {"txtHomePhone", action.Activity.Workflow.GetAttributeValue("HomePhone")},
+                {"txtCellPhone", action.Activity.Workflow.GetAttributeValue("CellPhone")},
+
+                {"txtEmail", person.Email},
+
+                {"txtRef1Name", action.Activity.Workflow.GetAttributeValue("Reference1Name")},
+                {"radRef1YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference1Relationship")
+                                    + "/" + action.Activity.Workflow.GetAttributeValue("Reference1YearsKnown")},
+                {"txtRef1Address", reference1Address.Street1},
+                {"txtRef1City", reference1Address.City},
+                {"txtRef1State", reference1Address.State},
+                {"txtRef1Zip", reference1Address.PostalCode},
+                {"txtRef1WorkPhone", action.Activity.Workflow.GetAttributeValue("Reference1WorkPhone")},
+                {"txtRef1HomePhone", action.Activity.Workflow.GetAttributeValue("Reference1HomePhone")},
+                {"txtRef1CellPhone", action.Activity.Workflow.GetAttributeValue("Reference1CellPhone")},
+                {"txtRef1Email", action.Activity.Workflow.GetAttributeValue("Reference1Email")},
+
+                {"txtRef2Name", action.Activity.Workflow.GetAttributeValue("Reference2Name")},
+                {"radRef2YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference2Relationship")
+                                    + "/" + action.Activity.Workflow.GetAttributeValue("Reference2YearsKnown")},
+                {"txtRef2Address", reference2Address.Street1},
+                {"txtRef2City", reference2Address.City},
+                {"txtRef2State", reference2Address.State},
+                {"txtRef2Zip", reference2Address.PostalCode},
+                {"txtRef2WorkPhone", action.Activity.Workflow.GetAttributeValue("Reference2WorkPhone")},
+                {"txtRef2HomePhone", action.Activity.Workflow.GetAttributeValue("Reference2HomePhone")},
+                {"txtRef2CellPhone", action.Activity.Workflow.GetAttributeValue("Reference2CellPhone")},
+                {"txtRef2Email", action.Activity.Workflow.GetAttributeValue("Reference2Email")},
+
+                {"txtRef3Name", action.Activity.Workflow.GetAttributeValue("Reference3Name")},
+                {"radRef3YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference3Relationship")
+                                    + "/" + action.Activity.Workflow.GetAttributeValue("Reference3YearsKnown")},
+                {"txtRef3Address", reference3Address.Street1},
+                {"txtRef3City", reference3Address.City},
+                {"txtRef3State", reference3Address.State},
+                {"txtRef3Zip", reference3Address.PostalCode},
+                {"txtRef3WorkPhone", action.Activity.Workflow.GetAttributeValue("Reference3WorkPhone")},
+                {"txtRef3HomePhone", action.Activity.Workflow.GetAttributeValue("Reference3HomePhone")},
+                {"txtRef3CellPhone", action.Activity.Workflow.GetAttributeValue("Reference3CellPhone")},
+                {"txtRef3Email", action.Activity.Workflow.GetAttributeValue("Reference3Email")},
+
+                {"txtRef4Name", action.Activity.Workflow.GetAttributeValue("Reference4Name")},
+                {"radRef4YearsKnow", action.Activity.Workflow.GetAttributeValue("Reference4Relationship")
+                                    + "/" + action.Activity.Workflow.GetAttributeValue("Reference4YearsKnown")},
+                {"txtRef4Address", reference4Address?.Street1},
+                {"txtRef4City", reference4Address?.City},
+                {"txtRef4State", reference4Address?.State},
+                {"txtRef4Zip", reference4Address?.PostalCode},
+                {"txtRef4WorkPhone", action.Activity.Workflow.GetAttributeValue("Reference4WorkPhone")},
+                {"txtRef4HomePhone", action.Activity.Workflow.GetAttributeValue("Reference4HomePhone")},
+                {"txtRef4CellPhone", action.Activity.Workflow.GetAttributeValue("Reference4CellPhone")},
+                {"txtRef4Email", action.Activity.Workflow.GetAttributeValue("Reference4Email") },
+
+                {"txtPhysLimitations",  action.Activity.Workflow.GetAttributeValue("PhysicalLimitationsExplanation") },
+                {"txtPhysLimitationsPDF", action.Activity.Workflow.GetAttributeValue("PhysicalLimitationsExplanation")},
+                
+                // Physical Limitations - set both Yes and No radio buttons
+                {"radPhysLimitationsPDFYes", hasPhysicalLimitations ? "Yes" : "Off" },
+                {"radPhysLimitationsPDFNo", !hasPhysicalLimitations ? "Yes" : "Off" },
+                
+                // Crime - set both Yes and No radio buttons
+                {"radCrimePersons", hasCrime ? "Yes" : "Off" },
+                {"radCrimePersonsPDFNo", !hasCrime ? "Yes" : "Off" },
+                
+                // Threat to Minors - set both Yes and No radio buttons
+                {"radThreatToMinors", hasThreat ? "Yes" : "Off" },
+                {"radThreatToMinorsPDFNo", !hasThreat ? "Yes" : "Off" },
+                
+                // Crime Counseled - set both Yes and No radio buttons
+                {"radCrimeCounseledPDFYes", hasCrimeCounsel ? "Yes" : "Off" },
+                {"radCrimeCounseledPDFNo", !hasCrimeCounsel ? "Yes" : "Off" },
+                
+                // Needs Staff Contact - set both Yes and No radio buttons
+                {"radNeedsStaffContact", needsStaffContact ? "Yes" : "Off"},
+                {"radNeedsStaffContactPDFNo", !needsStaffContact ? "Yes" : "Off"},
+                
+                {"personDetailPage", GlobalAttributesCache.Value("InternalApplicationRoot") + "/Person/" + person.Id },
+
+                {"txtAppSigned", "{{t:s;r:y;o:\"Applicant\";}}" },
+                {"txtAppDated", "{{t:d;r:y;o:\"Applicant\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
+                {"txtAppPrintedName", person.FullNameFormal },
+
+                {"txtSOFSigned", "{{t:s;r:y;o:\"Applicant\";}}" },
+                {"txtSOFDated", "{{t:d;r:y;o:\"Applicant\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
+                {"txtSOFPrintedName", person.FullNameFormal },
+
+                {"txtParentSignature", "{{t:s;r:y;o:\"Parent\";}}" },
+                {"txtDate1", "{{t:d;r:y;o:\"Parent\";l:\"Date\";dd:\""+DateTime.Now.ToShortDateString()+"\";}}" },
+
+                // Read Statement of Faith - set both Yes and No radio buttons
+                {"radReadSOFYes", hasReadSOF ? "Yes" : "Off" },
+                {"radReadSOFNo", !hasReadSOF ? "Yes" : "Off" },
+                
+                // Agree Statement of Faith - set both Yes and No radio buttons
+                {"radAgreeSOFYes", hasAgreeSOF ? "Yes" : "Off" },
+                {"radAgreeSOFNo", !hasAgreeSOF ? "Yes" : "Off" },
+                
+                {"txtSOFCommentsAmendments", String.IsNullOrEmpty(action.Activity.Workflow.GetAttributeValue("CommentsStatementOfFaith"))?" ":action.Activity.Workflow.GetAttributeValue("CommentsStatementOfFaith") },
+            };
+        }
+
+        /// <summary>
+        /// Generates a PDF by merging field values into a template PDF form.
+        /// </summary>
+        /// <param name="templatePdfBytes">The template PDF bytes.</param>
+        /// <param name="fields">The field dictionary with field names and values.</param>
+        /// <param name="flattenFields">if set to <c>true</c> flatten the form fields to make them non-editable.</param>
+        /// <returns>The generated PDF as a byte array</returns>
+        public byte[] GeneratePdfWithFields( byte[] templatePdfBytes, Dictionary<string, string> fields, bool flattenFields = true )
+        {
             using ( MemoryStream ms = new MemoryStream() )
             {
-                PdfReader pdfReader = new PdfReader( new MemoryStream( pdfBytes ) );
+                PdfReader pdfReader = new PdfReader( new MemoryStream( templatePdfBytes ) );
                 var pdfWriter = new PdfWriter( ms );
 
                 var pdfDocument = new PdfDocument( pdfReader, pdfWriter );
                 var form = PdfAcroForm.GetAcroForm( pdfDocument, true );
 
-                var pdfFormFields = form.GetFormFields();
+                if ( form != null )
+                {
+                    var pdfFormFields = form.GetFormFields();
 
-
-                foreach ( var field in fields )
-                    if ( pdfFormFields.ContainsKey( field.Key ) )
+                    foreach ( var field in fields )
                     {
-                        form.GetField( field.Key ).SetValue( field.Key, field.Value );
+                        if ( pdfFormFields.ContainsKey( field.Key ) && !string.IsNullOrEmpty( field.Value ) )
+                        {
+                            try
+                            {
+                                var pdfField = form.GetField( field.Key );
+                                if ( pdfField != null )
+                                {
+                                    pdfField.SetValue( field.Value ?? string.Empty );
+                                }
+                            }
+                            catch ( Exception )
+                            {
+                                // Ignore errors setting individual fields to prevent entire operation from failing
+                                // This can happen with font issues or field configuration problems
+                            }
+                        }
                     }
 
-                // flatten the form to remove editting options, set it to false
-                // to leave the form open to subsequent manual edits
-                if ( true )
-                {
-                    form.FlattenFields();
+                    // flatten the form to remove editing options, set it to false
+                    // to leave the form open to subsequent manual edits
+                    if ( flattenFields )
+                    {
+                        form.FlattenFields();
+                    }
                 }
 
                 // close the pdf
                 pdfDocument.Close();
                 pdfReader.Close();
                 pdfWriter.Close();
-                pdfDocument = null;
 
-                BinaryFile renderedPDF = new BinaryFile();
-                renderedPDF.IsTemporary = false;
-                renderedPDF.IsSystem = false;
-                renderedPDF.Guid = Guid.NewGuid();
-                renderedPDF.MimeType = PDF.MimeType;
-                renderedPDF.FileName = "VolunteerApplication_" + person.FirstName + person.LastName + ".pdf";
-                renderedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( new Guid( BACKGROUND_CHECK_BINARY_FILE_TYPE ) ).Id;
-                renderedPDF.DatabaseData = null;
-
-                var bytes = ms.ToArray();
-                renderedPDF.FileSize = bytes.Length;
-                renderedPDF.ContentStream = new MemoryStream( bytes );
-
-
-
-                binaryFileService.Add( renderedPDF );
-                rockContext.SaveChanges();
-
-                action.Activity.Workflow.SetAttributeValue( "PDF", renderedPDF.Guid );
+                return ms.ToArray();
             }
-
-
-            return true;
-
         }
     }
 }

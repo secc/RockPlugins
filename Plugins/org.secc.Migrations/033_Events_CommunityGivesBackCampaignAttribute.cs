@@ -27,9 +27,14 @@ namespace org.secc.Migrations
                 Rock.SystemGuid.FieldType.TEXT, "Year", "Year", "The campaign or year that this school sponsorship is a part of.", 
                 2165, "", yearAttributeGuid);
 
-            var definedValues = Rock.Web.Cache.DefinedTypeCache.Get("71bb065c-4368-439d-beab-8539c19c8c99")
-                .DefinedValues;
+            var definedType =  Rock.Web.Cache.DefinedTypeCache.Get("71bb065c-4368-439d-beab-8539c19c8c99");
+          
+            if(definedType == null)
+            {
+                return;
+            }
 
+            var definedValues = definedType.DefinedValues;
 
             //update existing schools to use 2024 campaign
             foreach ( var definedValue in definedValues )

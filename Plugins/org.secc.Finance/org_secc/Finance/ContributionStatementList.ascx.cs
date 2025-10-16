@@ -39,6 +39,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using DotLiquid;
 using iText.Kernel.Pdf;
+using iText.Kernel.Utils;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -106,40 +107,28 @@ namespace RockWeb.Plugins.org_secc.Finance
             var pdfWriter = new PdfWriter( outputStream );
             var pdfDocument = new PdfDocument( pdfWriter );
 
-            //Open the output file  
-            pdfDocument.AddNewPage();
+            var merger = new PdfMerger(pdfDocument);
 
-            Regex regex = new Regex( @"/Type\s*/Page[^s]" );
             List<int> invalidFileIds = new List<int>();
             foreach ( var file in files )
             {
                 try
                 {
-                    if ( file.MimeType == "application/pdf" )
+                    if (file.MimeType == "application/pdf")
                     {
-                        using ( StreamReader sr = new StreamReader( file.ContentStream ) )
+                        using (var reader = new PdfReader(file.ContentStream))
                         {
-                            MatchCollection matches = regex.Matches( sr.ReadToEnd() );
-                            int pages = matches.Count;
+                            var statementPDFDoc = new PdfDocument(reader);
+                            merger.Merge(statementPDFDoc, 1, statementPDFDoc.GetNumberOfPages());
 
-                            PdfReader reader = new PdfReader( file.ContentStream );
-                            PdfDocument readerDocument = new PdfDocument( reader );
-
-                            //Add pages in new file  
-                            for ( int i = 1; i <= pages; i++ )
-                            {
-                                PdfPage importedPage = readerDocument.GetPage( i );
-                                pdfDocument.AddPage( importedPage );
-                            }
-                            reader.Close();
+                            statementPDFDoc.Close();
                         }
                     }
                 }
                 catch
                 {
-                    invalidFileIds.Add( file.Id );
+                    invalidFileIds.Add(file.Id);
                 }
-
             }
 
             if ( invalidFileIds.Any() )
@@ -147,6 +136,8 @@ namespace RockWeb.Plugins.org_secc.Finance
                 nbBadFiles.Visible = true;
                 nbBadFiles.Text = "Invalid Files:<br />" + invalidFileIds.Select( i => i.ToString() ).ToList().AsDelimited( "," );
             }
+
+            merger.Close();
 
             // Finish up the output
             pdfDocument.Close();
