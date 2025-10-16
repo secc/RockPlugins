@@ -29,8 +29,7 @@ namespace org.secc.Communication.Components
         Description = "Rock Defined Value that contains the list of Twilio SMS Numbers",
         IsRequired = false,
         Category = "SMS Configuration",
-        Order = 2, 
-        DefaultValue = Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM,
+        Order = 2,
         Key = ComponentAttributeKeys.SMS_DEFINED_TYPE)]
 
     [CustomEnhancedListField(
