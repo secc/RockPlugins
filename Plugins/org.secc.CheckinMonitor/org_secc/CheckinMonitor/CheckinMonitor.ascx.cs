@@ -152,9 +152,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 occurrences = occurrences.Where( o => activeScheduleIds.Contains( o.ScheduleId ) ).ToList();
             }
 
-            // Pre-load all attendance records once
-            var allAttendances = AttendanceCache.All();
-
             List<GroupTypeCache> groupTypes = new List<GroupTypeCache>();
 
             foreach ( var id in CurrentCheckInState.ConfiguredGroupTypes )
@@ -255,8 +252,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         TableCell tcRatio = new TableCell();
                         int ratio = locationOccurrence.RoomRatio ?? 0;
 
-                        var attendances = allAttendances.Where( a => a.LocationId == locationOccurrence.LocationId &&
-                                                                    a.ScheduleId == locationOccurrence.ScheduleId ).ToList();
+                        var attendances = AttendanceCache.GetByLocationIdAndScheduleId( locationOccurrence.LocationId, locationOccurrence.ScheduleId );
                         var volunteerCount = attendances.Count( a => a.IsVolunteer );
                         var childCount = attendances.Count( a => !a.IsVolunteer );
                         var totalCount = attendances.Count;
@@ -459,13 +455,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "stopTimer", "stopTimer();", true );
             mdOccurrence.Show();
 
-            // Pre-load all attendance records once
-            var allAttendances = AttendanceCache.All();
-
-            // Filter in memory instead of making database calls
-            var attendances = allAttendances.Where( a =>
-                a.LocationId == locationId &&
-                a.ScheduleId == scheduleId ).ToList();
+            var attendances = AttendanceCache.GetByLocationIdAndScheduleId( locationId, scheduleId );
 
             var current = attendances.Where( a => a.AttendanceState == AttendanceState.InRoom ).OrderByDescending( a => a.IsVolunteer ).ToList();
             var reserved = attendances.Where( a => a.AttendanceState == AttendanceState.EnRoute || a.AttendanceState == AttendanceState.MobileReserve ).ToList();
