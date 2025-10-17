@@ -38,7 +38,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     [TextField( "Room Ratio Attribute Key", "Attribute key for room ratios", true, "RoomRatio" )]
     [DataViewField( "Approved People", "Data view which contains the members who may check-in.", entityTypeName: "Rock.Model.Person" )]
     [BinaryFileField( Rock.SystemGuid.BinaryFiletype.CHECKIN_LABEL, "Location Label", "Label to use to for printing a location label." )]
-    [BooleanField("Enable Hard Room Limit", "Enable editing of the Firm/Hard Room limit on a location.", true, Key = "EnableHardLimit")]
+    [BooleanField( "Enable Hard Room Limit", "Enable editing of the Firm/Hard Room limit on a location.", true, Key = "EnableHardLimit" )]
 
     public partial class CheckinMonitor : CheckInBlock
     {
@@ -89,7 +89,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 ViewState[ViewStateKeys.MinimizedGroupTypes] = new List<int>();
                 BindDropDown();
-                if(GetAttributeValue("EnableHardLimit").AsBoolean())
+                if ( GetAttributeValue( "EnableHardLimit" ).AsBoolean() )
                 {
                     tbFirmThreshold.ReadOnly = false;
                 }
@@ -98,7 +98,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     tbFirmThreshold.ReadOnly = true;
                 }
 
-                    ScriptManager.RegisterStartupScript(upDevice, upDevice.GetType(), "startTimer", "startTimer();", true);
+                ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "startTimer", "startTimer();", true );
             }
 
             //Open modal if it is active
@@ -151,6 +151,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 occurrences = occurrences.Where( o => activeScheduleIds.Contains( o.ScheduleId ) ).ToList();
             }
+
+            // Pre-load all attendance records once
+            var allAttendances = AttendanceCache.All();
 
             List<GroupTypeCache> groupTypes = new List<GroupTypeCache>();
 
@@ -252,7 +255,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         TableCell tcRatio = new TableCell();
                         int ratio = locationOccurrence.RoomRatio ?? 0;
 
-                        var attendances = AttendanceCache.GetByLocationIdAndScheduleId( locationOccurrence.LocationId, locationOccurrence.ScheduleId );
+                        var attendances = allAttendances.Where( a => a.LocationId == locationOccurrence.LocationId &&
+                                                                    a.ScheduleId == locationOccurrence.ScheduleId ).ToList();
                         var volunteerCount = attendances.Count( a => a.IsVolunteer );
                         var childCount = attendances.Count( a => !a.IsVolunteer );
                         var totalCount = attendances.Count;
@@ -300,8 +304,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         }
                         else if ( ( totalCount + reservedCount ) != 0
                             && (
-                                  ( ( totalCount + reservedCount ) + 3 ) >= ( locationOccurrence.FirmRoomThreshold ?? int.MaxValue )
-                                    || ( childCount + 3 ) >= ( locationOccurrence.SoftRoomThreshold ?? int.MaxValue - 3 ) + 3 ) )
+                                  ( ( ( totalCount + reservedCount ) + 3 ) >= ( locationOccurrence.FirmRoomThreshold ?? int.MaxValue )
+                                    || ( childCount + 3 ) >= ( locationOccurrence.SoftRoomThreshold ?? int.MaxValue - 3 ) + 3 ) ) )
                         {
                             tcCapacity.CssClass = "warning";
                         }
@@ -455,7 +459,13 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             ScriptManager.RegisterStartupScript( upDevice, upDevice.GetType(), "stopTimer", "stopTimer();", true );
             mdOccurrence.Show();
 
-            var attendances = AttendanceCache.GetByLocationIdAndScheduleId( locationId, scheduleId );
+            // Pre-load all attendance records once
+            var allAttendances = AttendanceCache.All();
+
+            // Filter in memory instead of making database calls
+            var attendances = allAttendances.Where( a =>
+                a.LocationId == locationId &&
+                a.ScheduleId == scheduleId ).ToList();
 
             var current = attendances.Where( a => a.AttendanceState == AttendanceState.InRoom ).OrderByDescending( a => a.IsVolunteer ).ToList();
             var reserved = attendances.Where( a => a.AttendanceState == AttendanceState.EnRoute || a.AttendanceState == AttendanceState.MobileReserve ).ToList();
@@ -750,29 +760,55 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     var occurrence = OccurrenceCache.All()
                         .Where( o => o.GroupLocationId == groupLocationId && o.ScheduleId == scheduleId )
                         .FirstOrDefault();
+
                     var schedule = groupLocation.Schedules.Where( s => s.Id == scheduleId ).FirstOrDefault();
                     if ( schedule != null )
                     {
+                        // Deactivating
                         groupLocation.Schedules.Remove( schedule );
                         RecordGroupLocationSchedule( groupLocation, schedule );
-                        occurrence.IsActive = false;
+
+                        // Save BEFORE cache operations
+                        _rockContext.SaveChanges();
+
+                        if ( occurrence != null )
+                        {
+                            occurrence.IsActive = false;
+                            OccurrenceCache.AddOrUpdate( occurrence );
+                        }
                     }
                     else
                     {
+                        // Activating
                         schedule = new ScheduleService( _rockContext ).Get( scheduleId );
                         if ( schedule != null )
                         {
                             groupLocation.Schedules.Add( schedule );
                             RemoveDisabledGroupLocationSchedule( groupLocation, schedule );
-                            occurrence.IsActive = true;
+
+                            // Save BEFORE cache operations
+                            _rockContext.SaveChanges();
+
+                            if ( occurrence != null )
+                            {
+                                occurrence.IsActive = true;
+                                OccurrenceCache.AddOrUpdate( occurrence );
+                            }
                         }
                     }
-                    _rockContext.SaveChanges();
 
+                    // Clear other related caches only
                     CheckinKioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
                     KioskDeviceHelpers.Clear( CurrentCheckInState.ConfiguredGroupTypes );
-                    OccurrenceCache.AddOrUpdate( occurrence );
+
+                    // Clear DefinedType cache to ensure disabled locations are synced
+                    var definedType = DefinedTypeCache.Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES.AsGuid() );
+                    if ( definedType != null )
+                    {
+                        DefinedTypeCache.Remove( definedType.Id );
+                    }
                 }
+
                 BindTable();
             }
         }
@@ -791,8 +827,15 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     return;
                 }
 
+                var definedValueId = definedValue.Id;
                 definedValueService.Delete( definedValue );
                 _rockContext.SaveChanges();
+
+                // Clear the specific DefinedValue cache
+                DefinedValueCache.Remove( definedValueId );
+
+                // Clear the parent DefinedType to remove it from the collection
+                DefinedTypeCache.Remove( definedType.Id );
             }
         }
 
@@ -811,6 +854,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     definedValue.Description = string.Format( "Deactivated {0} for schedule {1} at {2}", groupLocation.ToString(), schedule.Name, Rock.RockDateTime.Now.ToString() );
                     definedValue.DefinedTypeId = definedType.Id;
                     definedValue.IsSystem = false;
+                    
                     var orders = definedValueService.Queryable()
                            .Where( d => d.DefinedTypeId == definedType.Id )
                            .Select( d => d.Order )
@@ -819,8 +863,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     definedValue.Order = orders.Any() ? orders.Max() + 1 : 0;
 
                     definedValueService.Add( definedValue );
-
                     _rockContext.SaveChanges();
+                    
+                    // Clear the DefinedType cache to propagate to all web farm nodes
+                    DefinedTypeCache.Remove( definedType.Id );
                 }
             }
         }
@@ -1010,7 +1056,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             o.GroupId == occurrence.GroupId &&
                             o.LocationId == occurrence.LocationId &&
                             o.ScheduleId == occurrence.ScheduleId &&
-                            o.ScheduleStartTime == occurrence.OccurrenceDate.TimeOfDay ); 
+                            o.ScheduleStartTime == occurrence.OccurrenceDate.TimeOfDay );
                     if ( occurrenceCache != null )
                     {
                         OccurrenceCache.AddOrUpdate( occurrenceCache );
@@ -1055,7 +1101,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     return;
                 }
 
-                if(location.FirmRoomThreshold.HasValue && location.FirmRoomThreshold < tbSoftThreshold.Text.AsInteger())
+                if ( location.FirmRoomThreshold.HasValue && location.FirmRoomThreshold < tbSoftThreshold.Text.AsInteger() )
                 {
                     lLocationError.Visible = true;
                     return;
@@ -1066,7 +1112,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 location.SaveAttributeValues();
                 location.SoftRoomThreshold = tbSoftThreshold.Text.AsInteger();
 
-                if(GetAttributeValue("EnableHardLimit").AsBoolean())
+                if ( GetAttributeValue( "EnableHardLimit" ).AsBoolean() )
                 {
                     location.FirmRoomThreshold = tbFirmThreshold.Text.AsInteger();
                 }
