@@ -588,6 +588,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 foreach ( var person in people )
                 {
                     DataHelper.AddWithParentHistory( rockContext, person );
+                    AttendanceCache.SetWithParent( person.Id );
                 }
                 rockContext.SaveChanges();
                 return new Response( true, "Success", false );
@@ -616,6 +617,7 @@ namespace org.secc.RoomScanner.Rest.Controllers
                 foreach ( var person in people )
                 {
                     DataHelper.AddReturnToRoomHistory( rockContext, person );
+                    AttendanceCache.RemoveWithParent( person.Id );
                 }
                 rockContext.SaveChanges();
                 return new Response( true, "Success", false );
