@@ -70,13 +70,45 @@ namespace org.secc.FamilyCheckin.Cache
                 return;
             }
 
-            var keys = AllKeys();
-            if ( !keys.Any() || !keys.Contains( qualifiedKey ) )
+            int retryCount = 3;
+            int retryDelayMs = 100;
+            Exception lastException = null;
+
+            while ( retryCount > 0 )
             {
-                UpdateKeys( keyFactory );
-            }            //RockCacheManager<T>.Instance.Cache.AddOrUpdate( qualifiedKey, item, v => item );
-            RockCache.AddOrUpdate( qualifiedKey, item );
-            PublishCacheUpdateMessage( qualifiedKey, item );
+                try
+                {
+
+                    var keys = AllKeys();
+                    if ( !keys.Any() || !keys.Contains( qualifiedKey ) )
+                    {
+                        UpdateKeys( keyFactory );
+                    }            //RockCacheManager<T>.Instance.Cache.AddOrUpdate( qualifiedKey, item, v => item );
+                    RockCache.AddOrUpdate( qualifiedKey, item );
+                    PublishCacheUpdateMessage( qualifiedKey, item );
+                    return;
+                }
+                catch ( Exception ex )
+                {
+                    lastException = ex;
+                    retryCount--;
+
+                    if ( retryCount > 0 )
+                    {
+                        Rock.Model.ExceptionLogService.LogException(
+                            new Exception( $"Retrying cache update for {qualifiedKey}: {ex.Message}", ex ) );
+                        System.Threading.Thread.Sleep( retryDelayMs );
+                        retryDelayMs *= 2; // Exponential backoff
+                    }
+                }
+            }
+
+            // If we get here, all retries failed
+            if ( lastException != null )
+            {
+                Rock.Model.ExceptionLogService.LogException(
+                    new Exception( $"Failed to update cache after multiple attempts for key {qualifiedKey}", lastException ) );
+            }
         }
 
         public static void Remove( string qualifiedKey, Func<List<string>> keyFactory )
