@@ -22,7 +22,6 @@ using Humanizer;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
 using org.secc.FamilyCheckin.Utilities;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
@@ -744,7 +743,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         private void ToggleLocation( int groupLocationId, int scheduleId )
         {
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            
+
             try
             {
                 using ( var _rockContext = new RockContext() )
@@ -814,7 +813,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 if ( stopwatch.ElapsedMilliseconds > 1000 )
                 {
-                    Rock.Model.ExceptionLogService.LogException( 
+                    Rock.Model.ExceptionLogService.LogException(
                         new Exception( $"Toggle operation took {stopwatch.ElapsedMilliseconds}ms for GroupLocation {groupLocationId}, Schedule {scheduleId}" ) );
                 }
             }
@@ -875,7 +874,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     {
                         DefinedTypeId = definedTypeCache.Id,
                         Value = valueKey,
-                        Description = string.Format( "Deactivated {0} for schedule {1} at {2}", groupLocation.ToString(), schedule.Name, Rock.RockDateTime.Now.ToString() );
+                        Description = string.Format(
+                                "Deactivated {0} for schedule {1} at {2}",
+                                groupLocation.ToString(),
+                                schedule.Name,
+                                Rock.RockDateTime.Now.ToString()
+                            ),
                         IsActive = true,
                         IsSystem = false
                     };
