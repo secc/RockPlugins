@@ -13,6 +13,8 @@ using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using org.secc.FamilyCheckin.Cache;
+using Microsoft.Ajax.Utilities;
+using Rock.Web.UI.Controls;
 
 namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 {
@@ -46,10 +48,17 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         IsRequired = true,
         Order = 4,
         Key = "CheckinAreaGroupType" )]
+    [IntegerField("Maximum Guests",
+        Description = "The maximum number of guests that a host can have.",
+        IsRequired = false,
+        DefaultIntegerValue = 2,
+        Order = 5)]
 
 
     public partial class GuestCheckin : RockBlock
     {
+
+        int maximumGuests = 0;
         #region Block Control Methods
         protected override void OnInit( EventArgs e )
         {
@@ -59,6 +68,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             ddlLocation.SelectedIndexChanged += ddlLocation_SelectedIndexChanged;
             lbReturnToGuest.Click += lbReturnToGuest_Click;
             gHosts.RowCommand += gHosts_RowCommand;
+            gHosts.RowDataBound += gHosts_RowDataBound;
 
             gPendingCheckins.ItemType = "Guests";
             gPendingCheckins.EmptyDataText = "No Pending Guests.";
@@ -71,6 +81,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         {
             base.OnLoad( e );
             nbCheckinMessage.Visible = false;
+            maximumGuests = GetAttributeValue("MaximumGuests").AsInteger();
             if (!Page.IsPostBack)
             {
                 LoadPendingCheckins();
@@ -112,6 +123,21 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                      
                 default:
                     break;
+            }
+        }
+
+        private void gHosts_RowDataBound(object sender, GridViewRowEventArgs e)
+        {
+            var dataItem = e.Row.DataItem as SportsAndFitnessHost;
+
+            if (e.Row.RowType == DataControlRowType.DataRow)
+            {
+                var lbSelect = e.Row.FindControl("lbSelect") as LinkButton;
+                var hlMax = e.Row.FindControl("hlMaxGuests") as HighlightLabel;
+                bool canHaveMoreGuests = dataItem.GuestCount < maximumGuests;
+
+                lbSelect.Visible = canHaveMoreGuests;
+                hlMax.Visible = !canHaveMoreGuests;
             }
         }
 
@@ -287,7 +313,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         {
             var currentTime = RockDateTime.Now;
             var areaGroupType = GroupTypeCache.Get( GetAttributeValue( "CheckinAreaGroupType" ).AsGuid() );
-
+            var workflowType = WorkflowTypeCache.Get(GetAttributeValue("RegistrationWorkflow").AsGuid());
             using (var rockContext = new RockContext())
             {
                 var occurrenceService = new AttendanceOccurrenceService( rockContext );
@@ -323,21 +349,42 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     }
                 }
 
+                var workflowEntityType = EntityTypeCache.GetId(typeof(Workflow));
+                var hostAttribute = AttributeCache.GetByEntityTypeQualifier(workflowEntityType.Value, "WorkflowTypeId", workflowType.Id.ToString(), false)
+                    .Where(a => a.Key == "Host")
+                    .FirstOrDefault();
+
+                var attributeValueQry = new AttributeValueService(rockContext).Queryable().AsNoTracking()
+                    .Where(av => av.AttributeId == hostAttribute.Id)
+                    .Where(av => av.ValueAsPersonId.HasValue);
+
+                var today = currentTime.Date;
+                var hostsGuests = new WorkflowService(rockContext).Queryable().AsNoTracking()
+                    .Where(w => w.WorkflowTypeId == workflowType.Id)
+                    .Where(w => w.ActivatedDateTime.HasValue && w.ActivatedDateTime.Value > today )
+                    .Join(attributeValueQry, w => w.Id, av => av.EntityId, (w, av) => new { WorkflowId = w.Id, PersonId = av.ValueAsPersonId })
+                    .GroupBy(h => h.PersonId)
+                    .Select(h => new { PersonId = h.Key, GuestCount = h.Count() });
+                   
+
                 var attendanceService = new AttendanceService( rockContext );
 
                 var hostsQry = attendanceService.Queryable()
-                    .Where( a => occurrenceIds.Contains( a.OccurrenceId ) )
-                    .Where( a => a.DidAttend == true )
-                    .Where( a => a.EndDateTime == null )
-                    .Where( a => a.Note == null || !a.Note.StartsWith( "Guest" ) )
+                    .GroupJoin(hostsGuests, a => a.PersonAlias.PersonId, h => h.PersonId,
+                        (a, h) => new {Attendance = a, GuestCount = h.Select(h1 => h1.GuestCount).DefaultIfEmpty()})
+                    .Where( a => occurrenceIds.Contains( a.Attendance.OccurrenceId ) )
+                    .Where( a => a.Attendance.DidAttend == true )
+                    .Where( a => a.Attendance.EndDateTime == null )
+                    .Where( a => a.Attendance.Note == null || !a.Attendance.Note.StartsWith( "Guest" ) )
                     .Select( a => new SportsAndFitnessHost
                     {
-                        AttendanceId = a.Id,
-                        PersonId = a.PersonAlias.PersonId,
-                        Host = a.PersonAlias.Person,
-                        LocationId = a.Occurrence.LocationId.Value,
-                        Location = a.Occurrence.Location.Name,
-                        CheckinTime = a.StartDateTime
+                        AttendanceId = a.Attendance.Id,
+                        PersonId = a.Attendance.PersonAlias.PersonId,
+                        Host = a.Attendance.PersonAlias.Person,
+                        LocationId = a.Attendance.Occurrence.LocationId.Value,
+                        Location = a.Attendance.Occurrence.Location.Name,
+                        CheckinTime = a.Attendance.StartDateTime,
+                        GuestCount = a.GuestCount.FirstOrDefault()
                     } );
 
                 var selectedLocationId = 0;
@@ -523,6 +570,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
             public int LocationId { get; set; }
             public string Location { get; set; }
             public DateTime? CheckinTime { get; set; }
+            public int? GuestCount { get; set; }
 
 
         }
