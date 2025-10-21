@@ -13,41 +13,49 @@
 // </copyright>
 //
 
+using System;
+using System.Linq;
+using Rock.Data;
+using Rock.Model;
+
 namespace org.secc.Migrations
 {
     using Rock.Plugin;
 
-    [MigrationNumber(33, "1.12.9")]
+    [MigrationNumber( 33, "1.12.9" )]
     public partial class Events_CommunityGivesBackCampaignAttribute : Migration
     {
         public override void Up()
         {
             var yearAttributeGuid = "bbe01ea2-357c-4289-aff9-585cb5b3b88c";
-            RockMigrationHelper.AddDefinedTypeAttribute("71bb065c-4368-439d-beab-8539c19c8c99", 
-                Rock.SystemGuid.FieldType.TEXT, "Year", "Year", "The campaign or year that this school sponsorship is a part of.", 
-                2165, "", yearAttributeGuid);
+            RockMigrationHelper.AddDefinedTypeAttribute( "71bb065c-4368-439d-beab-8539c19c8c99",
+                Rock.SystemGuid.FieldType.TEXT, "Year", "Year", "The campaign or year that this school sponsorship is a part of.",
+                2165, "", yearAttributeGuid );
 
-            var definedType =  Rock.Web.Cache.DefinedTypeCache.Get("71bb065c-4368-439d-beab-8539c19c8c99");
-          
-            if(definedType == null)
+            using ( var rockContext = new RockContext() )
             {
-                return;
-            }
+                var definedTypeService = new DefinedTypeService( rockContext );
+                var definedType = definedTypeService.Get( new Guid( "71bb065c-4368-439d-beab-8539c19c8c99" ) );
 
-            var definedValues = definedType.DefinedValues;
+                if ( definedType == null )
+                {
+                    return;
+                }
 
-            //update existing schools to use 2024 campaign
-            foreach ( var definedValue in definedValues )
-            {
-                RockMigrationHelper.AddDefinedValueAttributeValue(definedValue.Guid.ToString(), yearAttributeGuid, "2024");
+                var definedValueService = new DefinedValueService( rockContext );
+                var definedValues = definedValueService.GetByDefinedTypeId( definedType.Id ).ToList();
+
+                //update existing schools to use 2024 campaign
+                foreach ( var definedValue in definedValues )
+                {
+                    RockMigrationHelper.AddDefinedValueAttributeValue( definedValue.Guid.ToString(), yearAttributeGuid, "2024" );
+                }
             }
         }
-        
+
         public override void Down()
         {
-           
+
         }
-
-
     }
 }
