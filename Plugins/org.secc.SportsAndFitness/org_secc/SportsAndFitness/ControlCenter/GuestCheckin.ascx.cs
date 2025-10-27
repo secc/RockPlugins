@@ -16,6 +16,7 @@ using org.secc.FamilyCheckin.Cache;
 using Microsoft.Ajax.Utilities;
 using Rock.Web.UI.Controls;
 
+
 namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 {
     [Category( "SECC > Sports and Fitness" )]
@@ -365,9 +366,14 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     .Join(attributeValueQry, w => w.Id, av => av.EntityId, (w, av) => new { WorkflowId = w.Id, PersonId = av.ValueAsPersonId })
                     .GroupBy(h => h.PersonId)
                     .Select(h => new { PersonId = h.Key, GuestCount = h.Count() });
-                   
 
+
+                var memberConnectionStatus = DefinedValueCache.Get(Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_MEMBER.AsGuid());
                 var attendanceService = new AttendanceService( rockContext );
+                var employees = new AttributeValueService(rockContext).Queryable().AsNoTracking()
+                    .Where(a => a.Attribute.Id == 740 && a.Value == "Southeast Christian Church")
+                    .Select(a => a.EntityId);
+
 
                 var hostsQry = attendanceService.Queryable()
                     .GroupJoin(hostsGuests, a => a.PersonAlias.PersonId, h => h.PersonId,
@@ -375,6 +381,8 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     .Where( a => occurrenceIds.Contains( a.Attendance.OccurrenceId ) )
                     .Where( a => a.Attendance.DidAttend == true )
                     .Where( a => a.Attendance.EndDateTime == null )
+                    .Where(a => a.Attendance.PersonAlias.Person.ConnectionStatusValueId == memberConnectionStatus.Id ||
+                        employees.Contains(a.Attendance.PersonAlias.PersonId))
                     .Where( a => a.Attendance.Note == null || !a.Attendance.Note.StartsWith( "Guest" ) )
                     .Select( a => new SportsAndFitnessHost
                     {
@@ -479,7 +487,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                         CreatedDateTime = w.Workflow.CreatedDateTime,
                         Status = w.Workflow.Status,
                         GuestPersonId = w.Attributes.Where( a => a.Attribute.Key == "Guest" ).Select( g => g.ValueAsPersonId ).FirstOrDefault(),
-                        WaiverAcceptedDate = w.Attributes.Where( a => a.Attribute.Key == "WaiverAcceptedDate" ).Select( g => g.ValueAsDateTime ).FirstOrDefault(),
+                        WaiverAcceptedDate = w.Attributes.Where(a => a.Attribute.Key == "WaiverAcceptedDate").Select(g => g.ValueAsDateTime).FirstOrDefault(),
                         EmergencyContactCount = w.Attributes.Where( a => a.Attribute.Key == "EmergencyContactCount" ).Select( g => g.ValueAsNumeric ).FirstOrDefault()
                     } );
 
