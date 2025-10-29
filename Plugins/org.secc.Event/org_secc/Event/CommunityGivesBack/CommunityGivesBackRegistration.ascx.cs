@@ -41,10 +41,17 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
         EditorTheme = CodeEditorTheme.Rock,
         Order = 2,
         Key = AttributeKeys.ConfirmationText )]
+    [CodeEditorField("Registration Complete Text",
+        Description = "Lava Template that includes the success/complete message when a user successfully signs up.",
+        IsRequired = true,
+        EditorMode = CodeEditorMode.Lava,
+        EditorTheme = CodeEditorTheme.Rock,
+        Order = 3,
+        Key = AttributeKeys.RegistrationCompleteText)]
     [LavaCommandsField( "Enabled Lava Commands",
         Description = "The lava commands that are enabled on this block.",
         IsRequired = false,
-        Order = 3,
+        Order = 4,
         Key = AttributeKeys.LavaCommands )]
     [WorkflowTypeField( "Registration Workflow Type",
         Description = "Community Gives Back Workflow Type",
@@ -63,7 +70,8 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
         ListSource = DefaultCampaignSql,
         IsRequired = true,
         Key = AttributeKeys.CGBCampaign,
-        Order = 3)]
+        Order = 6)]
+
     public partial class CommunityGivesBackRegistration : RockBlock
     {
         public class AttributeKeys
@@ -75,6 +83,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
             public const string LavaCommands = "EnabledCommands";
             public const string AutoPopulate = "AutoPopulate";
             public const string CGBCampaign = "CGBCampaign";
+            public const string RegistrationCompleteText = "CompleteText";
 
         }
 
@@ -301,6 +310,9 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
 
         private void LoadCompletePanel()
         {
+            var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields(this.RockPage, CurrentPerson);
+            lRegistrationCompleteText.Text = GetAttributeValue(AttributeKeys.RegistrationCompleteText).ResolveMergeFields(mergeFields, GetAttributeValue(AttributeKeys.LavaCommands));
+
             pnlComplete.Visible = true;
         }
 

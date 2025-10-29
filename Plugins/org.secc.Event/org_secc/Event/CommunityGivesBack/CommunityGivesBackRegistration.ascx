@@ -104,7 +104,9 @@
                 <div class="alert alert-success">
                     <h3>Registration Complete</h3>
                 </div>
-                <p>Thank you for registering to serve our local community during this Christmas Season. A representative from your chosen school with be in contact with you soon. If there are any questions, please contact Becky King at BKing@secc.org.</p>
+                <div class="col-xs-12">
+                    <asp:Literal ID="lRegistrationCompleteText" runat="server" />
+                </div>
             </div>
         </asp:Panel>
     </ContentTemplate>
