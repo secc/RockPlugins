@@ -844,9 +844,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     definedValueService.DeleteRange( definedValues );
                     _rockContext.SaveChanges();
                 }
-
-                // Clear the parent DefinedType to remove it from the collection
-                DefinedTypeCache.Remove( definedTypeCache.Id );
             }
         }
 
@@ -893,9 +890,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                     definedValueService.Add( definedValue );
                     _rockContext.SaveChanges();
-
-                    // Clear the DefinedType cache to propagate to all web farm nodes
-                    DefinedTypeCache.Remove( definedTypeCache.Id );
                 }
             }
         }
@@ -910,6 +904,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     var schedule = groupLocation.Schedules.Where( s => s.Id == scheduleId ).FirstOrDefault();
                     if ( schedule != null )
                     {
+
                         if ( groupLocation.Schedules.Contains( schedule ) )
                         {
                             RecordGroupLocationSchedule( groupLocation, schedule );
