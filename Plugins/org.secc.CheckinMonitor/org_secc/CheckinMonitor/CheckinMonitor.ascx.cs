@@ -754,7 +754,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         var groupLocationService = new GroupLocationService( _rockContext );
                         var scheduleService = new ScheduleService( _rockContext );
 
-                        // Lock the GroupLocation row to prevent concurrent modifications
                         var groupLocation = groupLocationService.Queryable()
                             .Where( gl => gl.Id == groupLocationId )
                             .FirstOrDefault();
@@ -774,8 +773,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                         if ( isCurrentlyActive )
                         {
-                            // Record as disabled FIRST, before removing from schedule
-                            RecordGroupLocationSchedule( groupLocation, schedule );
+                            // Record as disabled FIRST, pass the context
+                            RecordGroupLocationSchedule( _rockContext, groupLocation, schedule );
 
                             // Then remove from schedule
                             groupLocation.Schedules.Remove( schedule );
@@ -787,8 +786,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                             groupLocation.Schedules.Add( schedule );
                             _rockContext.SaveChanges();
 
-                            // Then remove from inactive list
-                            RemoveDisabledGroupLocationSchedule( groupLocation, schedule );
+                            // Then remove from inactive list, pass the context
+                            RemoveDisabledGroupLocationSchedule( _rockContext, groupLocation, schedule );
                         }
 
                         var occurrence = OccurrenceCache.All()
@@ -821,7 +820,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             BindTable();
         }
 
-        private void RemoveDisabledGroupLocationSchedule( GroupLocation groupLocation, Schedule schedule )
+        private void RemoveDisabledGroupLocationSchedule( RockContext rockContext, GroupLocation groupLocation, Schedule schedule )
         {
             var definedTypeCache = DefinedTypeCache.Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES );
             if ( definedTypeCache == null )
@@ -829,25 +828,21 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
 
-            using ( var _rockContext = new RockContext() )
+            var definedValueService = new DefinedValueService( rockContext );
+            var value = string.Format( "{0}|{1}", groupLocation.Id, schedule.Id );
+
+            var definedValues = definedValueService.Queryable()
+                .Where( v => v.DefinedTypeId == definedTypeCache.Id && v.Value == value )
+                .ToList();
+
+            if ( definedValues.Any() )
             {
-
-                var definedValueService = new DefinedValueService( _rockContext );
-                var value = string.Format( "{0}|{1}", groupLocation.Id, schedule.Id );
-
-                var definedValues = definedValueService.Queryable()
-                    .Where( v => v.DefinedTypeId == definedTypeCache.Id && v.Value == value )
-                    .ToList();
-
-                if ( definedValues.Any() )
-                {
-                    definedValueService.DeleteRange( definedValues );
-                    _rockContext.SaveChanges();
-                }
+                definedValueService.DeleteRange( definedValues );
+                rockContext.SaveChanges();
             }
         }
 
-        private void RecordGroupLocationSchedule( GroupLocation groupLocation, Schedule schedule )
+        private void RecordGroupLocationSchedule( RockContext rockContext, GroupLocation groupLocation, Schedule schedule )
         {
             var definedTypeCache = DefinedTypeCache.Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES );
             if ( definedTypeCache == null )
@@ -855,42 +850,39 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 return;
             }
 
-            using ( var _rockContext = new RockContext() )
+            var definedValueService = new DefinedValueService( rockContext );
+
+            var valueKey = groupLocation.Id.ToString() + "|" + schedule.Id.ToString();
+
+            var existingValue = definedValueService.Queryable()
+                .Where( v => v.DefinedTypeId == definedTypeCache.Id && v.Value == valueKey )
+                .FirstOrDefault();
+
+            if ( existingValue == null )
             {
-                var definedValueService = new DefinedValueService( _rockContext );
-
-                var valueKey = groupLocation.Id.ToString() + "|" + schedule.Id.ToString();
-
-                var existingValue = definedValueService.Queryable()
-                    .Where( v => v.DefinedTypeId == definedTypeCache.Id && v.Value == valueKey )
-                    .FirstOrDefault();
-
-                if ( existingValue == null )
+                var definedValue = new DefinedValue
                 {
-                    var definedValue = new DefinedValue
-                    {
-                        DefinedTypeId = definedTypeCache.Id,
-                        Value = valueKey,
-                        Description = string.Format(
-                                "Deactivated {0} for schedule {1} at {2}",
-                                groupLocation.ToString(),
-                                schedule.Name,
-                                Rock.RockDateTime.Now.ToString()
-                            ),
-                        IsActive = true,
-                        IsSystem = false
-                    };
+                    DefinedTypeId = definedTypeCache.Id,
+                    Value = valueKey,
+                    Description = string.Format(
+                            "Deactivated {0} for schedule {1} at {2}",
+                            groupLocation.ToString(),
+                            schedule.Name,
+                            Rock.RockDateTime.Now.ToString()
+                        ),
+                    IsActive = true,
+                    IsSystem = false
+                };
 
-                    var orders = definedValueService.Queryable()
-                           .Where( d => d.DefinedTypeId == definedTypeCache.Id )
-                           .Select( d => d.Order )
-                           .ToList();
+                var orders = definedValueService.Queryable()
+                       .Where( d => d.DefinedTypeId == definedTypeCache.Id )
+                       .Select( d => d.Order )
+                       .ToList();
 
-                    definedValue.Order = orders.Any() ? orders.Max() + 1 : 0;
+                definedValue.Order = orders.Any() ? orders.Max() + 1 : 0;
 
-                    definedValueService.Add( definedValue );
-                    _rockContext.SaveChanges();
-                }
+                definedValueService.Add( definedValue );
+                rockContext.SaveChanges();
             }
         }
 
@@ -907,7 +899,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                         if ( groupLocation.Schedules.Contains( schedule ) )
                         {
-                            RecordGroupLocationSchedule( groupLocation, schedule );
+                            RecordGroupLocationSchedule( _rockContext, groupLocation, schedule );
                             groupLocation.Schedules.Remove( schedule );
                             _rockContext.SaveChanges();
                             var occurrence = OccurrenceCache.All().Where( o => o.GroupLocationId == groupLocationId && o.ScheduleId == scheduleId ).FirstOrDefault();
