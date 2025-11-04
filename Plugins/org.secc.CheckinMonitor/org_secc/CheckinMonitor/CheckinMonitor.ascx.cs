@@ -774,21 +774,21 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                         if ( isCurrentlyActive )
                         {
-                            // Remove from schedule and add to inactive list
+                            // Record as disabled FIRST, before removing from schedule
+                            RecordGroupLocationSchedule( groupLocation, schedule );
+
+                            // Then remove from schedule
                             groupLocation.Schedules.Remove( schedule );
                             _rockContext.SaveChanges();
-
-                            // Record as disabled AFTER removing from schedule
-                            RecordGroupLocationSchedule( groupLocation, schedule );
                         }
                         else
                         {
-                            // Remove from inactive list first
-                            RemoveDisabledGroupLocationSchedule( groupLocation, schedule );
-
-                            // Then add to schedule
+                            // Add to schedule FIRST
                             groupLocation.Schedules.Add( schedule );
                             _rockContext.SaveChanges();
+
+                            // Then remove from inactive list
+                            RemoveDisabledGroupLocationSchedule( groupLocation, schedule );
                         }
 
                         var occurrence = OccurrenceCache.All()
