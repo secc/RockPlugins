@@ -41,8 +41,9 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
-	<Reference Include="Rock.Enums">
-      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Enums.dll</HintPath>
+	<Reference Include="$(SolutionDir)RockWeb\Bin\Rock.Enums.dll">
+	  <Project>{61DECE2B-0434-435E-8D65-49A4FDF98365}</Project>
+	  <Name>Rock.Enums</Name>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
