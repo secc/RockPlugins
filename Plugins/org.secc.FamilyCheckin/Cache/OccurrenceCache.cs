@@ -346,35 +346,17 @@ namespace org.secc.FamilyCheckin.Cache
                 }
             }
 
-            // Get disabled locations - use a fresh context to avoid caching issues
-            using ( var disabledContext = new RockContext() )
+            var dtDisabled = DefinedTypeCache.Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES );
+
+            foreach ( var dvInstance in dtDisabled.DefinedValues )
             {
-                var definedTypeService = new DefinedTypeService( disabledContext );
-                var dtDisabled = definedTypeService.Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES.AsGuid() );
-
-                if ( dtDisabled != null )
+                if ( keys.Contains( dvInstance.Value ) )
                 {
-                    // Load the DefinedValues directly from the database to avoid cache staleness
-                    var disabledValues = new DefinedValueService( disabledContext )
-                        .Queryable()
-                        .AsNoTracking()
-                        .Where( dv => dv.DefinedTypeId == dtDisabled.Id )
-                        .Select( dv => new { dv.Id, dv.Value } )
-                        .ToList();
-
-                    foreach ( var dvInstance in disabledValues )
-                    {
-                        if ( keys.Contains( dvInstance.Value ) )
-                        {
-                            // This location has a defined value indicating that it is disabled, but there is an active schedule, so remove the defined value
-                            RemoveDisabledGroupLocationSchedule( dvInstance.Id );
-                        }
-                        else
-                        {
-                            // This disabled location is not active, so add it to ensure it's in the cache
-                            keys.Add( dvInstance.Value );
-                        }
-                    }
+                    RemoveDisabledGroupLocationSchedule( dvInstance.Id );
+                }
+                else
+                {
+                    keys.Add( dvInstance.Value );
                 }
             }
 

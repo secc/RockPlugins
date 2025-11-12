@@ -754,7 +754,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     if ( schedule != null )
                     {
                         groupLocation.Schedules.Remove( schedule );
-                        RecordGroupLocationSchedule( groupLocation, schedule );
+                        RecordGroupLocationSchedule( _rockContext, groupLocation, schedule );
                         occurrence.IsActive = false;
                     }
                     else
@@ -763,7 +763,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         if ( schedule != null )
                         {
                             groupLocation.Schedules.Add( schedule );
-                            RemoveDisabledGroupLocationSchedule( groupLocation, schedule );
+                            RemoveDisabledGroupLocationSchedule( _rockContext, groupLocation, schedule );
                             occurrence.IsActive = true;
                         }
                     }
@@ -777,9 +777,9 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
         }
 
-        private void RemoveDisabledGroupLocationSchedule( GroupLocation groupLocation, Schedule schedule )
+        private void RemoveDisabledGroupLocationSchedule( RockContext _rockContext, GroupLocation groupLocation, Schedule schedule )
         {
-            using ( RockContext _rockContext = new RockContext() )
+            using ( _rockContext )
             {
 
                 var definedType = new DefinedTypeService( _rockContext ).Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES.AsGuid() );
@@ -792,13 +792,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
 
                 definedValueService.Delete( definedValue );
-                _rockContext.SaveChanges();
             }
         }
 
-        private void RecordGroupLocationSchedule( GroupLocation groupLocation, Schedule schedule )
+        private void RecordGroupLocationSchedule( RockContext _rockContext, GroupLocation groupLocation, Schedule schedule )
         {
-            using ( RockContext _rockContext = new RockContext() )
+            using ( _rockContext )
             {
                 var definedType = new DefinedTypeService( _rockContext ).Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES.AsGuid() );
                 var definedValueService = new DefinedValueService( _rockContext );
@@ -819,8 +818,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     definedValue.Order = orders.Any() ? orders.Max() + 1 : 0;
 
                     definedValueService.Add( definedValue );
-
-                    _rockContext.SaveChanges();
                 }
             }
         }
@@ -837,7 +834,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     {
                         if ( groupLocation.Schedules.Contains( schedule ) )
                         {
-                            RecordGroupLocationSchedule( groupLocation, schedule );
+                            RecordGroupLocationSchedule( _rockContext, groupLocation, schedule );
                             groupLocation.Schedules.Remove( schedule );
                             _rockContext.SaveChanges();
                             var occurrence = OccurrenceCache.All().Where( o => o.GroupLocationId == groupLocationId && o.ScheduleId == scheduleId ).FirstOrDefault();
