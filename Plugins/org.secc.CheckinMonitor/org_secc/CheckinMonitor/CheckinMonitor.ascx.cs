@@ -778,47 +778,40 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         }
 
         private void RemoveDisabledGroupLocationSchedule( RockContext _rockContext, GroupLocation groupLocation, Schedule schedule )
-        {
-            using ( _rockContext )
+        {            
+            var definedType = new DefinedTypeService( _rockContext ).Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES.AsGuid() );
+            var value = string.Format( "{0}|{1}", groupLocation.Id, schedule.Id );
+            var definedValueService = new DefinedValueService( _rockContext );
+            var definedValue = definedValueService.Queryable().Where( dv => dv.DefinedTypeId == definedType.Id && dv.Value == value ).FirstOrDefault();
+            if ( definedValue == null )
             {
-
-                var definedType = new DefinedTypeService( _rockContext ).Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES.AsGuid() );
-                var value = string.Format( "{0}|{1}", groupLocation.Id, schedule.Id );
-                var definedValueService = new DefinedValueService( _rockContext );
-                var definedValue = definedValueService.Queryable().Where( dv => dv.DefinedTypeId == definedType.Id && dv.Value == value ).FirstOrDefault();
-                if ( definedValue == null )
-                {
-                    return;
-                }
-
-                definedValueService.Delete( definedValue );
+                return;
             }
+
+            definedValueService.Delete( definedValue );
         }
 
         private void RecordGroupLocationSchedule( RockContext _rockContext, GroupLocation groupLocation, Schedule schedule )
         {
-            using ( _rockContext )
+            var definedType = new DefinedTypeService( _rockContext ).Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES.AsGuid() );
+            var definedValueService = new DefinedValueService( _rockContext );
+            var value = groupLocation.Id.ToString() + "|" + schedule.Id.ToString();
+
+            if ( !definedType.DefinedValues.Where( dv => dv.Value == value ).Any() )
             {
-                var definedType = new DefinedTypeService( _rockContext ).Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES.AsGuid() );
-                var definedValueService = new DefinedValueService( _rockContext );
-                var value = groupLocation.Id.ToString() + "|" + schedule.Id.ToString();
+                var definedValue = new DefinedValue() { Id = 0 };
+                definedValue.Value = value;
+                definedValue.Description = string.Format( "Deactivated {0} for schedule {1} at {2}", groupLocation.ToString(), schedule.Name, Rock.RockDateTime.Now.ToString() );
+                definedValue.DefinedTypeId = definedType.Id;
+                definedValue.IsSystem = false;
+                var orders = definedValueService.Queryable()
+                        .Where( d => d.DefinedTypeId == definedType.Id )
+                        .Select( d => d.Order )
+                        .ToList();
 
-                if ( !definedType.DefinedValues.Where( dv => dv.Value == value ).Any() )
-                {
-                    var definedValue = new DefinedValue() { Id = 0 };
-                    definedValue.Value = value;
-                    definedValue.Description = string.Format( "Deactivated {0} for schedule {1} at {2}", groupLocation.ToString(), schedule.Name, Rock.RockDateTime.Now.ToString() );
-                    definedValue.DefinedTypeId = definedType.Id;
-                    definedValue.IsSystem = false;
-                    var orders = definedValueService.Queryable()
-                           .Where( d => d.DefinedTypeId == definedType.Id )
-                           .Select( d => d.Order )
-                           .ToList();
+                definedValue.Order = orders.Any() ? orders.Max() + 1 : 0;
 
-                    definedValue.Order = orders.Any() ? orders.Max() + 1 : 0;
-
-                    definedValueService.Add( definedValue );
-                }
+                definedValueService.Add( definedValue );
             }
         }
 
