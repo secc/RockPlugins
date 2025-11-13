@@ -743,19 +743,22 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
         private void ToggleLocation( int groupLocationId, int scheduleId )
         {
-            RockLogger.Log.Information( "OTHER", "ToggleLocation started for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}", groupLocationId, scheduleId );
-            
+            RockLogger.Log.Information( "OTHER", "ToggleLocation started for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}, StackTrace: {StackTrace}",
+                groupLocationId, scheduleId, Environment.StackTrace );
+
             using ( RockContext _rockContext = new RockContext() )
             {
                 var groupLocation = new GroupLocationService( _rockContext ).Get( groupLocationId );
                 if ( groupLocation == null )
                 {
-                    RockLogger.Log.Warning( "OTHER", "ToggleLocation: GroupLocation not found for GroupLocationId: {GroupLocationId}", groupLocationId );
+                    RockLogger.Log.Warning( "OTHER", "ToggleLocation: GroupLocation not found for GroupLocationId: {GroupLocationId}, StackTrace: {StackTrace}",
+                        groupLocationId, Environment.StackTrace );
                     BindTable();
                     return;
                 }
 
-                RockLogger.Log.Debug( "OTHER", "ToggleLocation: Found GroupLocation {GroupLocationId} for Group {GroupId}", groupLocationId, groupLocation.GroupId );
+                RockLogger.Log.Debug( "OTHER", "ToggleLocation: Found GroupLocation {GroupLocationId} for Group {GroupId}, StackTrace: {StackTrace}",
+                    groupLocationId, groupLocation.GroupId, Environment.StackTrace );
 
                 var occurrence = OccurrenceCache.All()
                     .Where( o => o.GroupLocationId == groupLocationId && o.ScheduleId == scheduleId )
@@ -763,137 +766,145 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 if ( occurrence == null )
                 {
-                    RockLogger.Log.Warning( "OTHER", "ToggleLocation: No occurrence found for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}", groupLocationId, scheduleId );
+                    RockLogger.Log.Warning( "OTHER", "ToggleLocation: No occurrence found for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}, StackTrace: {StackTrace}",
+                        groupLocationId, scheduleId, Environment.StackTrace );
                 }
 
                 var schedule = groupLocation.Schedules.Where( s => s.Id == scheduleId ).FirstOrDefault();
                 if ( schedule != null )
                 {
-                    RockLogger.Log.Information( "OTHER", "ToggleLocation: Deactivating location - removing schedule {ScheduleId} ({ScheduleName}) from GroupLocation {GroupLocationId}", 
-                        scheduleId, schedule.Name, groupLocationId );
-                    
+                    RockLogger.Log.Information( "OTHER", "ToggleLocation: Deactivating location - removing schedule {ScheduleId} ({ScheduleName}) from GroupLocation {GroupLocationId}, StackTrace: {StackTrace}",
+                        scheduleId, schedule.Name, groupLocationId, Environment.StackTrace );
+
                     groupLocation.Schedules.Remove( schedule );
                     RecordGroupLocationSchedule( _rockContext, groupLocation, schedule );
-                    
+
                     if ( occurrence != null )
                     {
                         occurrence.IsActive = false;
-                        RockLogger.Log.Information( "OTHER", "ToggleLocation: Set occurrence IsActive to false for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}", 
-                            groupLocationId, scheduleId );
+                        RockLogger.Log.Information( "OTHER", "ToggleLocation: Set occurrence IsActive to false for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}, StackTrace: {StackTrace}",
+                            groupLocationId, scheduleId, Environment.StackTrace );
                     }
                 }
                 else
                 {
-                    RockLogger.Log.Information( "OTHER", "ToggleLocation: Activating location - adding schedule {ScheduleId} to GroupLocation {GroupLocationId}", 
-                        scheduleId, groupLocationId );
-                    
+                    RockLogger.Log.Information( "OTHER", "ToggleLocation: Activating location - adding schedule {ScheduleId} to GroupLocation {GroupLocationId}, StackTrace: {StackTrace}",
+                        scheduleId, groupLocationId, Environment.StackTrace );
+
                     schedule = new ScheduleService( _rockContext ).Get( scheduleId );
                     if ( schedule != null )
                     {
-                        RockLogger.Log.Debug( "OTHER", "ToggleLocation: Found schedule {ScheduleId} ({ScheduleName})", scheduleId, schedule.Name );
-                        
+                        RockLogger.Log.Debug( "OTHER", "ToggleLocation: Found schedule {ScheduleId} ({ScheduleName}), StackTrace: {StackTrace}",
+                            scheduleId, schedule.Name, Environment.StackTrace );
+
                         groupLocation.Schedules.Add( schedule );
                         RemoveDisabledGroupLocationSchedule( _rockContext, groupLocation, schedule );
-                        
+
                         if ( occurrence != null )
                         {
                             occurrence.IsActive = true;
-                            RockLogger.Log.Information( "OTHER", "ToggleLocation: Set occurrence IsActive to true for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}", 
-                                groupLocationId, scheduleId );
+                            RockLogger.Log.Information( "OTHER", "ToggleLocation: Set occurrence IsActive to true for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}, StackTrace: {StackTrace}",
+                                groupLocationId, scheduleId, Environment.StackTrace );
                         }
                     }
                     else
                     {
-                        RockLogger.Log.Error( "OTHER", "ToggleLocation: Schedule {ScheduleId} not found in database", scheduleId );
+                        RockLogger.Log.Error( "OTHER", "ToggleLocation: Schedule {ScheduleId} not found in database, StackTrace: {StackTrace}",
+                            scheduleId, Environment.StackTrace );
                     }
                 }
-                
-                RockLogger.Log.Debug( "OTHER", "ToggleLocation: Saving changes to database" );
+
+                RockLogger.Log.Debug( "OTHER", "ToggleLocation: Saving changes to database, StackTrace: {StackTrace}", Environment.StackTrace );
                 _rockContext.SaveChanges();
 
-                RockLogger.Log.Debug( "OTHER", "ToggleLocation: Clearing CheckinKioskTypeCache for template {TemplateId}", LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
+                RockLogger.Log.Debug( "OTHER", "ToggleLocation: Clearing CheckinKioskTypeCache for template {TemplateId}, StackTrace: {StackTrace}",
+                    LocalDeviceConfig.CurrentCheckinTypeId ?? 0, Environment.StackTrace );
                 CheckinKioskTypeCache.ClearForTemplateId( LocalDeviceConfig.CurrentCheckinTypeId ?? 0 );
-                
-                RockLogger.Log.Debug( "OTHER", "ToggleLocation: Clearing KioskDeviceHelpers cache" );
+
+                RockLogger.Log.Debug( "OTHER", "ToggleLocation: Clearing KioskDeviceHelpers cache, StackTrace: {StackTrace}", Environment.StackTrace );
                 KioskDeviceHelpers.Clear( CurrentCheckInState.ConfiguredGroupTypes );
-                
+
                 if ( occurrence != null )
                 {
-                    RockLogger.Log.Debug( "OTHER", "ToggleLocation: Updating OccurrenceCache for occurrence" );
+                    RockLogger.Log.Debug( "OTHER", "ToggleLocation: Updating OccurrenceCache for occurrence, StackTrace: {StackTrace}", Environment.StackTrace );
                     OccurrenceCache.AddOrUpdate( occurrence );
                 }
-                
-                RockLogger.Log.Information( "OTHER", "ToggleLocation completed successfully for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}", 
-                    groupLocationId, scheduleId );
+
+                RockLogger.Log.Information( "OTHER", "ToggleLocation completed successfully for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}, StackTrace: {StackTrace}",
+                    groupLocationId, scheduleId, Environment.StackTrace );
             }
             BindTable();
         }
 
         private void RemoveDisabledGroupLocationSchedule( RockContext _rockContext, GroupLocation groupLocation, Schedule schedule )
         {
-            RockLogger.Log.Information( "OTHER", "RemoveDisabledGroupLocationSchedule started for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}", 
-                groupLocation.Id, schedule.Id );
-            
+            RockLogger.Log.Information( "OTHER", "RemoveDisabledGroupLocationSchedule started for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}, StackTrace: {StackTrace}",
+                groupLocation.Id, schedule.Id, Environment.StackTrace );
+
             var definedType = new DefinedTypeService( _rockContext ).Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES.AsGuid() );
             if ( definedType == null )
             {
-                RockLogger.Log.Error( "OTHER", "RemoveDisabledGroupLocationSchedule: DefinedType {DefinedTypeGuid} not found", 
-                    Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES );
+                RockLogger.Log.Error( "OTHER", "RemoveDisabledGroupLocationSchedule: DefinedType {DefinedTypeGuid} not found, StackTrace: {StackTrace}",
+                    Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES, Environment.StackTrace );
                 return;
             }
 
-            RockLogger.Log.Debug( "OTHER", "RemoveDisabledGroupLocationSchedule: Found DefinedType {DefinedTypeId}", definedType.Id );
-            
+            RockLogger.Log.Debug( "OTHER", "RemoveDisabledGroupLocationSchedule: Found DefinedType {DefinedTypeId}, StackTrace: {StackTrace}",
+                definedType.Id, Environment.StackTrace );
+
             var value = string.Format( "{0}|{1}", groupLocation.Id, schedule.Id );
-            RockLogger.Log.Debug( "OTHER", "RemoveDisabledGroupLocationSchedule: Looking for DefinedValue with value: {Value}", value );
-            
+            RockLogger.Log.Debug( "OTHER", "RemoveDisabledGroupLocationSchedule: Looking for DefinedValue with value: {Value}, StackTrace: {StackTrace}",
+                value, Environment.StackTrace );
+
             var definedValueService = new DefinedValueService( _rockContext );
             var definedValue = definedValueService.Queryable().Where( dv => dv.DefinedTypeId == definedType.Id && dv.Value == value ).FirstOrDefault();
-            
+
             if ( definedValue == null )
             {
-                RockLogger.Log.Information( "OTHER", "RemoveDisabledGroupLocationSchedule: No disabled record found for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId} - nothing to remove", 
-                    groupLocation.Id, schedule.Id );
+                RockLogger.Log.Information( "OTHER", "RemoveDisabledGroupLocationSchedule: No disabled record found for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId} - nothing to remove, StackTrace: {StackTrace}",
+                    groupLocation.Id, schedule.Id, Environment.StackTrace );
                 return;
             }
 
-            RockLogger.Log.Information( "OTHER", "RemoveDisabledGroupLocationSchedule: Deleting DefinedValue {DefinedValueId} with value {Value}", 
-                definedValue.Id, value );
-            
+            RockLogger.Log.Information( "OTHER", "RemoveDisabledGroupLocationSchedule: Deleting DefinedValue {DefinedValueId} with value {Value}, StackTrace: {StackTrace}",
+                definedValue.Id, value, Environment.StackTrace );
+
             definedValueService.Delete( definedValue );
-            
-            RockLogger.Log.Information( "OTHER", "RemoveDisabledGroupLocationSchedule completed for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}", 
-                groupLocation.Id, schedule.Id );
+
+            RockLogger.Log.Information( "OTHER", "RemoveDisabledGroupLocationSchedule completed for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}, StackTrace: {StackTrace}",
+                groupLocation.Id, schedule.Id, Environment.StackTrace );
         }
 
         private void RecordGroupLocationSchedule( RockContext _rockContext, GroupLocation groupLocation, Schedule schedule )
         {
-            RockLogger.Log.Information( "OTHER", "RecordGroupLocationSchedule started for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}", 
-                groupLocation.Id, schedule.Id );
-            
+            RockLogger.Log.Information( "OTHER", "RecordGroupLocationSchedule started for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}, StackTrace: {StackTrace}",
+                groupLocation.Id, schedule.Id, Environment.StackTrace );
+
             var definedType = new DefinedTypeService( _rockContext ).Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES.AsGuid() );
             if ( definedType == null )
             {
-                RockLogger.Log.Error( "OTHER", "RecordGroupLocationSchedule: DefinedType {DefinedTypeGuid} not found", 
-                    Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES );
+                RockLogger.Log.Error( "OTHER", "RecordGroupLocationSchedule: DefinedType {DefinedTypeGuid} not found, StackTrace: {StackTrace}",
+                    Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES, Environment.StackTrace );
                 return;
             }
 
-            RockLogger.Log.Debug( "OTHER", "RecordGroupLocationSchedule: Found DefinedType {DefinedTypeId}", definedType.Id );
-            
+            RockLogger.Log.Debug( "OTHER", "RecordGroupLocationSchedule: Found DefinedType {DefinedTypeId}, StackTrace: {StackTrace}",
+                definedType.Id, Environment.StackTrace );
+
             var definedValueService = new DefinedValueService( _rockContext );
             var value = groupLocation.Id.ToString() + "|" + schedule.Id.ToString();
 
             if ( !definedType.DefinedValues.Where( dv => dv.Value == value ).Any() )
             {
-                RockLogger.Log.Information( "OTHER", "RecordGroupLocationSchedule: Creating new disabled record for value: {Value}", value );
-                
+                RockLogger.Log.Information( "OTHER", "RecordGroupLocationSchedule: Creating new disabled record for value: {Value}, StackTrace: {StackTrace}",
+                    value, Environment.StackTrace );
+
                 var definedValue = new DefinedValue() { Id = 0 };
                 definedValue.Value = value;
                 definedValue.Description = string.Format( "Deactivated {0} for schedule {1} at {2}", groupLocation.ToString(), schedule.Name, Rock.RockDateTime.Now.ToString() );
                 definedValue.DefinedTypeId = definedType.Id;
                 definedValue.IsSystem = false;
-                
+
                 var orders = definedValueService.Queryable()
                         .Where( d => d.DefinedTypeId == definedType.Id )
                         .Select( d => d.Order )
@@ -901,88 +912,90 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 definedValue.Order = orders.Any() ? orders.Max() + 1 : 0;
 
-                RockLogger.Log.Debug( "OTHER", "RecordGroupLocationSchedule: Adding DefinedValue with Order: {Order}, Description: {Description}", 
-                    definedValue.Order, definedValue.Description );
-                
+                RockLogger.Log.Debug( "OTHER", "RecordGroupLocationSchedule: Adding DefinedValue with Order: {Order}, Description: {Description}, StackTrace: {StackTrace}",
+                    definedValue.Order, definedValue.Description, Environment.StackTrace );
+
                 definedValueService.Add( definedValue );
-                
-                RockLogger.Log.Information( "OTHER", "RecordGroupLocationSchedule: Successfully recorded disabled GroupLocationSchedule for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}", 
-                    groupLocation.Id, schedule.Id );
+
+                RockLogger.Log.Information( "OTHER", "RecordGroupLocationSchedule: Successfully recorded disabled GroupLocationSchedule for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}, StackTrace: {StackTrace}",
+                    groupLocation.Id, schedule.Id, Environment.StackTrace );
             }
             else
             {
-                RockLogger.Log.Information( "OTHER", "RecordGroupLocationSchedule: Disabled record already exists for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}", 
-                    groupLocation.Id, schedule.Id );
+                RockLogger.Log.Information( "OTHER", "RecordGroupLocationSchedule: Disabled record already exists for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}, StackTrace: {StackTrace}",
+                    groupLocation.Id, schedule.Id, Environment.StackTrace );
             }
         }
 
         private void CloseOccurrence( int groupLocationId, int scheduleId, bool bindTable = true )
         {
-            RockLogger.Log.Information( "OTHER", "CloseOccurrence started for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}, BindTable: {BindTable}", 
-                groupLocationId, scheduleId, bindTable );
-            
+            RockLogger.Log.Information( "OTHER", "CloseOccurrence started for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}, BindTable: {BindTable}, StackTrace: {StackTrace}",
+                groupLocationId, scheduleId, bindTable, Environment.StackTrace );
+
             using ( RockContext _rockContext = new RockContext() )
             {
                 var groupLocation = new GroupLocationService( _rockContext ).Get( groupLocationId );
                 if ( groupLocation == null )
                 {
-                    RockLogger.Log.Warning( "OTHER", "CloseOccurrence: GroupLocation {GroupLocationId} not found", groupLocationId );
+                    RockLogger.Log.Warning( "OTHER", "CloseOccurrence: GroupLocation {GroupLocationId} not found, StackTrace: {StackTrace}",
+                        groupLocationId, Environment.StackTrace );
                     return;
                 }
 
-                RockLogger.Log.Debug( "OTHER", "CloseOccurrence: Found GroupLocation {GroupLocationId} for Group {GroupId}", 
-                    groupLocationId, groupLocation.GroupId );
-                
+                RockLogger.Log.Debug( "OTHER", "CloseOccurrence: Found GroupLocation {GroupLocationId} for Group {GroupId}, StackTrace: {StackTrace}",
+                    groupLocationId, groupLocation.GroupId, Environment.StackTrace );
+
                 var schedule = groupLocation.Schedules.Where( s => s.Id == scheduleId ).FirstOrDefault();
                 if ( schedule != null )
                 {
-                    RockLogger.Log.Debug( "OTHER", "CloseOccurrence: Found schedule {ScheduleId} ({ScheduleName}) in GroupLocation", 
-                        scheduleId, schedule.Name );
-                    
+                    RockLogger.Log.Debug( "OTHER", "CloseOccurrence: Found schedule {ScheduleId} ({ScheduleName}) in GroupLocation, StackTrace: {StackTrace}",
+                        scheduleId, schedule.Name, Environment.StackTrace );
+
                     if ( groupLocation.Schedules.Contains( schedule ) )
                     {
-                        RockLogger.Log.Information( "OTHER", "CloseOccurrence: Removing schedule {ScheduleId} from GroupLocation {GroupLocationId} and recording as disabled", 
-                            scheduleId, groupLocationId );
-                        
+                        RockLogger.Log.Information( "OTHER", "CloseOccurrence: Removing schedule {ScheduleId} from GroupLocation {GroupLocationId} and recording as disabled, StackTrace: {StackTrace}",
+                            scheduleId, groupLocationId, Environment.StackTrace );
+
                         RecordGroupLocationSchedule( _rockContext, groupLocation, schedule );
                         groupLocation.Schedules.Remove( schedule );
-                        
-                        RockLogger.Log.Debug( "OTHER", "CloseOccurrence: Saving changes to database" );
+
+                        RockLogger.Log.Debug( "OTHER", "CloseOccurrence: Saving changes to database, StackTrace: {StackTrace}", Environment.StackTrace );
                         _rockContext.SaveChanges();
-                        
+
                         var occurrence = OccurrenceCache.All().Where( o => o.GroupLocationId == groupLocationId && o.ScheduleId == scheduleId ).FirstOrDefault();
                         if ( occurrence != null )
                         {
-                            RockLogger.Log.Information( "OTHER", "CloseOccurrence: Setting occurrence IsActive to false for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}", 
-                                groupLocationId, scheduleId );
-                            
+                            RockLogger.Log.Information( "OTHER", "CloseOccurrence: Setting occurrence IsActive to false for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}, StackTrace: {StackTrace}",
+                                groupLocationId, scheduleId, Environment.StackTrace );
+
                             occurrence.IsActive = false;
                             OccurrenceCache.AddOrUpdate( occurrence );
                         }
                         else
                         {
-                            RockLogger.Log.Warning( "OTHER", "CloseOccurrence: No occurrence found in cache for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}", 
-                                groupLocationId, scheduleId );
+                            RockLogger.Log.Warning( "OTHER", "CloseOccurrence: No occurrence found in cache for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}, StackTrace: {StackTrace}",
+                                groupLocationId, scheduleId, Environment.StackTrace );
                         }
 
                         if ( bindTable )
                         {
-                            RockLogger.Log.Debug( "OTHER", "CloseOccurrence: Binding table" );
+                            RockLogger.Log.Debug( "OTHER", "CloseOccurrence: Binding table, StackTrace: {StackTrace}", Environment.StackTrace );
                             BindTable();
                         }
-                        
-                        RockLogger.Log.Information( "OTHER", "CloseOccurrence completed successfully for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}", 
-                            groupLocationId, scheduleId );
+
+                        RockLogger.Log.Information( "OTHER", "CloseOccurrence completed successfully for GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}, StackTrace: {StackTrace}",
+                            groupLocationId, scheduleId, Environment.StackTrace );
                     }
                     else
                     {
-                        RockLogger.Log.Warning( "OTHER", "CloseOccurrence: Schedule {ScheduleId} found but not in GroupLocation.Schedules collection", scheduleId );
+                        RockLogger.Log.Warning( "OTHER", "CloseOccurrence: Schedule {ScheduleId} found but not in GroupLocation.Schedules collection, StackTrace: {StackTrace}",
+                            scheduleId, Environment.StackTrace );
                     }
                 }
                 else
                 {
-                    RockLogger.Log.Warning( "OTHER", "CloseOccurrence: Schedule {ScheduleId} not found in GroupLocation {GroupLocationId}", 
-                        scheduleId, groupLocationId );
+                    RockLogger.Log.Warning( "OTHER", "CloseOccurrence: Schedule {ScheduleId} not found in GroupLocation {GroupLocationId}, StackTrace: {StackTrace}",
+                        scheduleId, groupLocationId, Environment.StackTrace );
                 }
             }
         }
