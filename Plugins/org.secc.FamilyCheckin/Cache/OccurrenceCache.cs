@@ -58,12 +58,12 @@ namespace org.secc.FamilyCheckin.Cache
                         var method = frame.GetMethod();
                         var fileName = System.IO.Path.GetFileName( frame.GetFileName() );
                         var lineNumber = frame.GetFileLineNumber();
-                        
+
                         if ( method != null )
                         {
                             var className = method.DeclaringType?.Name ?? "Unknown";
                             var methodName = method.Name;
-                            
+
                             if ( lineNumber > 0 && !string.IsNullOrEmpty( fileName ) )
                             {
                                 frames.Add( $"{className}.{methodName}({fileName}:{lineNumber})" );
@@ -202,12 +202,12 @@ namespace org.secc.FamilyCheckin.Cache
                 if ( !IsVolunteer )
                 {
                     capacity = Math.Min( FirmRoomThreshold.Value, SoftRoomThreshold.Value );
-                    LogDebug( "OccurrenceCache.IsFull: Non-volunteer occurrence {AccessKey} - using minimum capacity: {Capacity}", 
+                    LogDebug( "OccurrenceCache.IsFull: Non-volunteer occurrence {AccessKey} - using minimum capacity: {Capacity}",
                         AccessKey, capacity );
                 }
                 else
                 {
-                    LogDebug( "OccurrenceCache.IsFull: Volunteer occurrence {AccessKey} - using firm capacity: {Capacity}", 
+                    LogDebug( "OccurrenceCache.IsFull: Volunteer occurrence {AccessKey} - using firm capacity: {Capacity}",
                         AccessKey, capacity );
                 }
 
@@ -231,14 +231,14 @@ namespace org.secc.FamilyCheckin.Cache
                       .Count();
                 }
 
-                LogDebug( "OccurrenceCache.IsFull: Initial attendance count from cache for {AccessKey}: {AttendanceCount}/{Capacity}", 
+                LogDebug( "OccurrenceCache.IsFull: Initial attendance count from cache for {AccessKey}: {AttendanceCount}/{Capacity}",
                     AccessKey, attendanceCount, capacity );
 
                 //If we are within 2 of full, cache is too slow to be reliablly accurate
                 //.. to the database!!
                 if ( attendanceCount < capacity && attendanceCount >= capacity - 2 )
                 {
-                    LogInformation( "OccurrenceCache.IsFull: Near capacity threshold ({AttendanceCount}/{Capacity}) - checking database for accurate count", 
+                    LogInformation( "OccurrenceCache.IsFull: Near capacity threshold ({AttendanceCount}/{Capacity}) - checking database for accurate count",
                         attendanceCount, capacity );
 
                     var attendanceService = new AttendanceService( new RockContext() ).Queryable().AsNoTracking();
@@ -270,12 +270,12 @@ namespace org.secc.FamilyCheckin.Cache
 
                     }
 
-                    LogInformation( "OccurrenceCache.IsFull: Database attendance count for {AccessKey}: {AttendanceCount}/{Capacity}", 
+                    LogInformation( "OccurrenceCache.IsFull: Database attendance count for {AccessKey}: {AttendanceCount}/{Capacity}",
                         AccessKey, attendanceCount, capacity );
                 }
 
                 var isFull = attendanceCount >= capacity;
-                LogDebug( "OccurrenceCache.IsFull: Final result for {AccessKey}: IsFull={IsFull} ({AttendanceCount}/{Capacity})", 
+                LogDebug( "OccurrenceCache.IsFull: Final result for {AccessKey}: IsFull={IsFull} ({AttendanceCount}/{Capacity})",
                     AccessKey, isFull, attendanceCount, capacity );
 
                 return isFull;
@@ -286,7 +286,7 @@ namespace org.secc.FamilyCheckin.Cache
         public static List<OccurrenceCache> All()
         {
             LogDebug( "OccurrenceCache.All: Retrieving all occurrence cache entries" );
-            
+
             var allKeys = AllKeys( () => KeyFactory() );
             LogDebug( "OccurrenceCache.All: Found {KeyCount} keys", allKeys.Count );
 
@@ -311,21 +311,21 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static OccurrenceCache Get( int groupId, int locationId, int scheduleId )
         {
-            LogDebug( "OccurrenceCache.Get: Retrieving occurrence for GroupId: {GroupId}, LocationId: {LocationId}, ScheduleId: {ScheduleId}", 
+            LogDebug( "OccurrenceCache.Get: Retrieving occurrence for GroupId: {GroupId}, LocationId: {LocationId}, ScheduleId: {ScheduleId}",
                 groupId, locationId, scheduleId );
-            
+
             var occurrence = All().Where( o => o.GroupId == groupId && o.LocationId == locationId && o.ScheduleId == scheduleId ).FirstOrDefault();
-            
+
             if ( occurrence != null )
             {
                 LogDebug( "OccurrenceCache.Get: Found occurrence with AccessKey: {AccessKey}", occurrence.AccessKey );
             }
             else
             {
-                LogWarning( "OccurrenceCache.Get: No occurrence found for GroupId: {GroupId}, LocationId: {LocationId}, ScheduleId: {ScheduleId}", 
+                LogWarning( "OccurrenceCache.Get: No occurrence found for GroupId: {GroupId}, LocationId: {LocationId}, ScheduleId: {ScheduleId}",
                     groupId, locationId, scheduleId );
             }
-            
+
             return occurrence;
         }
 
@@ -333,7 +333,7 @@ namespace org.secc.FamilyCheckin.Cache
         {
             LogDebug( "OccurrenceCache.Get: Retrieving occurrence by AccessKey: {AccessKey}", accessKey );
             var occurrence = Get( QualifiedKey( accessKey ), () => LoadByAccessKey( accessKey ), () => KeyFactory() );
-            
+
             if ( occurrence != null )
             {
                 LogDebug( "OccurrenceCache.Get: Successfully retrieved occurrence for AccessKey: {AccessKey}", accessKey );
@@ -342,7 +342,7 @@ namespace org.secc.FamilyCheckin.Cache
             {
                 LogWarning( "OccurrenceCache.Get: Could not retrieve occurrence for AccessKey: {AccessKey}", accessKey );
             }
-            
+
             return occurrence;
         }
 
@@ -354,22 +354,22 @@ namespace org.secc.FamilyCheckin.Cache
         private static OccurrenceCache LoadByAccessKey( string accessKey )
         {
             LogInformation( "OccurrenceCache.LoadByAccessKey started for AccessKey: {AccessKey}", accessKey );
-            
+
             var keys = accessKey.SplitDelimitedValues();
 
             if ( keys.Length < 2 )
             {
-                LogWarning( "OccurrenceCache.LoadByAccessKey: Invalid AccessKey format (expected 2 parts, got {PartCount}): {AccessKey}", 
+                LogWarning( "OccurrenceCache.LoadByAccessKey: Invalid AccessKey format (expected 2 parts, got {PartCount}): {AccessKey}",
                     keys.Length, accessKey );
                 return null;
             }
 
             var groupLocationId = keys[0].AsInteger();
             var scheduleId = keys[1].AsInteger();
-            
-            LogDebug( "OccurrenceCache.LoadByAccessKey: Parsed AccessKey - GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}", 
+
+            LogDebug( "OccurrenceCache.LoadByAccessKey: Parsed AccessKey - GroupLocationId: {GroupLocationId}, ScheduleId: {ScheduleId}",
                 groupLocationId, scheduleId );
-            
+
             RockContext rockContext = new RockContext();
             GroupLocationService groupLocationService = new GroupLocationService( rockContext );
             ScheduleService scheduleService = new ScheduleService( rockContext );
@@ -379,12 +379,12 @@ namespace org.secc.FamilyCheckin.Cache
 
             if ( groupLocation == null || schedule == null )
             {
-                LogWarning( "OccurrenceCache.LoadByAccessKey: Could not load entities - GroupLocation: {GroupLocationFound}, Schedule: {ScheduleFound}", 
+                LogWarning( "OccurrenceCache.LoadByAccessKey: Could not load entities - GroupLocation: {GroupLocationFound}, Schedule: {ScheduleFound}",
                     groupLocation != null, schedule != null );
                 return null;
             }
 
-            LogDebug( "OccurrenceCache.LoadByAccessKey: Found GroupLocation {GroupLocationId} ({GroupName}) and Schedule {ScheduleId} ({ScheduleName})", 
+            LogDebug( "OccurrenceCache.LoadByAccessKey: Found GroupLocation {GroupLocationId} ({GroupName}) and Schedule {ScheduleId} ({ScheduleName})",
                 groupLocationId, groupLocation.Group.Name, scheduleId, schedule.Name );
 
             var volAttribute = AttributeCache.Get( Constants.VOLUNTEER_ATTRIBUTE_GUID.AsGuid() );
@@ -394,7 +394,7 @@ namespace org.secc.FamilyCheckin.Cache
             var childrenGroupIds = attributeValueService.Queryable().AsNoTracking()
                 .Where( av => av.AttributeId == volAttribute.Id && av.Value == "False" ).Select( av => av.EntityId.Value ).ToList();
 
-            LogDebug( "OccurrenceCache.LoadByAccessKey: Loaded {VolunteerCount} volunteer groups and {ChildrenCount} children groups", 
+            LogDebug( "OccurrenceCache.LoadByAccessKey: Loaded {VolunteerCount} volunteer groups and {ChildrenCount} children groups",
                 volunteerGroupIds.Count, childrenGroupIds.Count );
 
             OccurrenceCache occurrenceCache = new OccurrenceCache
@@ -422,7 +422,7 @@ namespace org.secc.FamilyCheckin.Cache
             location.LoadAttributes();
             occurrenceCache.RoomRatio = location.GetAttributeValue( Constants.LOCATION_ATTRIBUTE_ROOM_RATIO ).AsIntegerOrNull();
 
-            LogInformation( "OccurrenceCache.LoadByAccessKey: Successfully created occurrence - AccessKey: {AccessKey}, IsActive: {IsActive}, IsVolunteer: {IsVolunteer}, IsChildren: {IsChildren}, RoomRatio: {RoomRatio}", 
+            LogInformation( "OccurrenceCache.LoadByAccessKey: Successfully created occurrence - AccessKey: {AccessKey}, IsActive: {IsActive}, IsVolunteer: {IsVolunteer}, IsChildren: {IsChildren}, RoomRatio: {RoomRatio}",
                 accessKey, occurrenceCache.IsActive, occurrenceCache.IsVolunteer, occurrenceCache.IsChildren, occurrenceCache.RoomRatio );
 
             return occurrenceCache;
@@ -476,33 +476,37 @@ namespace org.secc.FamilyCheckin.Cache
 
         internal static OccurrenceCache GetByOccurrence( AttendanceOccurrence occurrence )
         {
-            LogDebug( "OccurrenceCache.GetByOccurrence: Searching for occurrence - GroupId: {GroupId}, LocationId: {LocationId}, ScheduleId: {ScheduleId}", 
+            LogDebug( "OccurrenceCache.GetByOccurrence: Searching for occurrence - GroupId: {GroupId}, LocationId: {LocationId}, ScheduleId: {ScheduleId}",
                 occurrence.GroupId, occurrence.LocationId, occurrence.ScheduleId );
-            
+
             var candidate = All()
                 .Where( o => o.GroupId == occurrence.GroupId
                         && o.LocationId == occurrence.LocationId
                         && o.ScheduleId == occurrence.ScheduleId )
                 .FirstOrDefault();
-            
+
             if ( candidate != null )
             {
                 LogDebug( "OccurrenceCache.GetByOccurrence: Found occurrence with AccessKey: {AccessKey}", candidate.AccessKey );
             }
             else
             {
-                LogWarning( "OccurrenceCache.GetByOccurrence: No occurrence found for GroupId: {GroupId}, LocationId: {LocationId}, ScheduleId: {ScheduleId}", 
+                LogWarning( "OccurrenceCache.GetByOccurrence: No occurrence found for GroupId: {GroupId}, LocationId: {LocationId}, ScheduleId: {ScheduleId}",
                     occurrence.GroupId, occurrence.LocationId, occurrence.ScheduleId );
             }
-            
+
             return candidate;
         }
 
         private static List<string> KeyFactory()
         {
-            LogInformation( "OccurrenceCache.KeyFactory: Starting key generation" );
-            
             RockContext rockContext = new RockContext();
+            var groupService = new GroupService( rockContext );
+            var disabledTypeGuid = Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES.AsGuid();
+            var definedTypeService = new DefinedTypeService( rockContext );
+            var definedValueService = new DefinedValueService( rockContext );
+
+            LogInformation( "OccurrenceCache.KeyFactory: Starting key generation" );
 
             var groupTypeIds = GroupTypeCache.All()
                 .Where( gt => gt.GroupTypePurposeValueId == DefinedValueCache.GetId( Rock.SystemGuid.DefinedValue.GROUPTYPE_PURPOSE_CHECKIN_TEMPLATE.AsGuid() ) )
@@ -510,8 +514,6 @@ namespace org.secc.FamilyCheckin.Cache
                 .Select( gt => gt.Id ).ToList();
 
             LogDebug( "OccurrenceCache.KeyFactory: Found {GroupTypeCount} check-in group types", groupTypeIds.Count );
-
-            var groupService = new GroupService( rockContext );
 
             var gls = groupService.Queryable().AsNoTracking()
                 .Where( g => g.IsActive && !g.IsArchived && groupTypeIds.Contains( g.GroupTypeId ) )
@@ -539,25 +541,32 @@ namespace org.secc.FamilyCheckin.Cache
 
             LogInformation( "OccurrenceCache.KeyFactory: Generated {KeyCount} keys from active group location schedules", keys.Count );
 
-            var dtDisabled = DefinedTypeCache.Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES );
-            
-            if ( dtDisabled == null )
+            var disabledType = definedTypeService.Get( disabledTypeGuid );
+
+            if ( disabledType == null )
             {
-                LogWarning( "OccurrenceCache.KeyFactory: Could not load disabled GroupLocationSchedules defined type" );
+                LogWarning( "OccurrenceCache.KeyFactory: Could not load disabled GroupLocationSchedules defined type (Guid: {Guid})", disabledTypeGuid );
             }
             else
             {
-                LogDebug( "OccurrenceCache.KeyFactory: Processing {DisabledCount} disabled GroupLocationSchedule entries", 
-                    dtDisabled.DefinedValues.Count );
+                // Load disabled entries directly from the database, not cache
+                var disabledDefinedValues = definedValueService.Queryable()
+                    .AsNoTracking()
+                    .Where( dv => dv.DefinedTypeId == disabledType.Id )
+                    .Select( dv => new { dv.Id, dv.Value } )
+                    .ToList();
+
+                LogDebug( "OccurrenceCache.KeyFactory: Processing {DisabledCount} disabled GroupLocationSchedule entries",
+                    disabledDefinedValues.Count );
 
                 var disabledKeysProcessed = 0;
                 var disabledKeysRemoved = 0;
                 var disabledKeysAdded = 0;
 
-                foreach ( var dvInstance in dtDisabled.DefinedValues )
+                foreach ( var dvInstance in disabledDefinedValues )
                 {
                     disabledKeysProcessed++;
-                    
+
                     if ( keys.Contains( dvInstance.Value ) )
                     {
                         LogInformation( "OccurrenceCache.KeyFactory: Removing disabled key that is now active: {Key}", dvInstance.Value );
@@ -572,7 +581,7 @@ namespace org.secc.FamilyCheckin.Cache
                     }
                 }
 
-                LogInformation( "OccurrenceCache.KeyFactory: Processed disabled entries - Total: {Total}, Removed (reactivated): {Removed}, Added (still disabled): {Added}", 
+                LogInformation( "OccurrenceCache.KeyFactory: Processed disabled entries - Total: {Total}, Removed (reactivated): {Removed}, Added (still disabled): {Added}",
                     disabledKeysProcessed, disabledKeysRemoved, disabledKeysAdded );
             }
 
@@ -584,7 +593,7 @@ namespace org.secc.FamilyCheckin.Cache
         private static void RemoveDisabledGroupLocationSchedule( int definedValueId )
         {
             LogInformation( "OccurrenceCache.RemoveDisabledGroupLocationSchedule: Removing disabled DefinedValue {DefinedValueId}", definedValueId );
-            
+
             using ( RockContext _rockContext = new RockContext() )
             {
                 var definedValueService = new DefinedValueService( _rockContext );
@@ -597,32 +606,32 @@ namespace org.secc.FamilyCheckin.Cache
 
                 var value = definedValue.Value;
                 var definedTypeId = definedValue.DefinedTypeId;
-                
-                LogDebug( "OccurrenceCache.RemoveDisabledGroupLocationSchedule: Deleting DefinedValue {DefinedValueId} with value: {Value}", 
+
+                LogDebug( "OccurrenceCache.RemoveDisabledGroupLocationSchedule: Deleting DefinedValue {DefinedValueId} with value: {Value}",
                     definedValueId, value );
-                
+
                 definedValueService.Delete( definedValue );
                 _rockContext.SaveChanges();
 
                 LogDebug( "OccurrenceCache.RemoveDisabledGroupLocationSchedule: Clearing DefinedValue and DefinedType caches" );
-                
+
                 // Clear both caches to ensure consistency
                 DefinedValueCache.Remove( definedValueId );
                 DefinedTypeCache.Remove( definedTypeId );
-                
-                LogInformation( "OccurrenceCache.RemoveDisabledGroupLocationSchedule: Successfully removed disabled DefinedValue {DefinedValueId} ({Value})", 
+
+                LogInformation( "OccurrenceCache.RemoveDisabledGroupLocationSchedule: Successfully removed disabled DefinedValue {DefinedValueId} ({Value})",
                     definedValueId, value );
             }
         }
 
         public static void AddOrUpdate( OccurrenceCache occurrenceCache )
         {
-            LogInformation( "OccurrenceCache.AddOrUpdate: Updating occurrence with AccessKey: {AccessKey}, IsActive: {IsActive}", 
+            LogInformation( "OccurrenceCache.AddOrUpdate: Updating occurrence with AccessKey: {AccessKey}, IsActive: {IsActive}",
                 occurrenceCache.AccessKey, occurrenceCache.IsActive );
-            
+
             AddOrUpdate( QualifiedKey( occurrenceCache.AccessKey ), occurrenceCache, () => KeyFactory() );
-            
-            LogInformation( "OccurrenceCache.AddOrUpdate: Successfully updated occurrence for AccessKey: {AccessKey}", 
+
+            LogInformation( "OccurrenceCache.AddOrUpdate: Successfully updated occurrence for AccessKey: {AccessKey}",
                 occurrenceCache.AccessKey );
         }
 
@@ -630,11 +639,11 @@ namespace org.secc.FamilyCheckin.Cache
         public static void Verify( ref List<string> errors )
         {
             LogInformation( "OccurrenceCache.Verify: Starting cache verification" );
-            
+
             //Load Fresh Values
             var freshKeys = KeyFactory();
             LogInformation( "OccurrenceCache.Verify: Generated {FreshKeyCount} fresh keys", freshKeys.Count );
-            
+
             var freshCaches = new List<OccurrenceCache>();
             foreach ( var key in freshKeys )
             {
@@ -661,7 +670,7 @@ namespace org.secc.FamilyCheckin.Cache
             if ( missingKeys.Any() )
             {
                 LogWarning( "OccurrenceCache.Verify: Found {MissingKeyCount} missing keys in cache", missingKeys.Count );
-                
+
                 foreach ( var key in missingKeys )
                 {
                     var errorMsg = $"Missing key: {key}.";
@@ -845,7 +854,7 @@ namespace org.secc.FamilyCheckin.Cache
                 }
             }
 
-            LogInformation( "OccurrenceCache.Verify: Verification complete - Total Mismatches: {MismatchCount}, Healed Entries: {HealedCount}", 
+            LogInformation( "OccurrenceCache.Verify: Verification complete - Total Mismatches: {MismatchCount}, Healed Entries: {HealedCount}",
                 mismatchCount, healedCount );
         }
     }
