@@ -267,7 +267,7 @@ namespace org.secc.Connection
                 }
 
                 var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( null );
-                mergeFields.Add( "Settings", Rock.Lava.RockFilters.FromJSON( GetAttributeValue( "Settings" ) ) );
+                mergeFields.Add( "Settings", GetAttributeValue( "Settings" ).FromJsonOrNull<object>() );
                 string url = "";
                 if ( Settings.SignupPage() != null )
                 {
