@@ -553,7 +553,7 @@ namespace org.secc.FamilyCheckin.Cache
                 var disabledDefinedValues = definedValueService.Queryable()
                     .AsNoTracking()
                     .Where( dv => dv.DefinedTypeId == disabledType.Id )
-                    .Select( dv => new { dv.Id, dv.Value } )
+                    .Select( dv => new { dv.Id, dv.Value, dv.CreatedDateTime } )
                     .ToList();
 
                 LogDebug( "OccurrenceCache.KeyFactory: Processing {DisabledCount} disabled GroupLocationSchedule entries",
@@ -569,22 +569,30 @@ namespace org.secc.FamilyCheckin.Cache
 
                     if ( keys.Contains( dvInstance.Value ) )
                     {
-                        LogInformation( "OccurrenceCache.KeyFactory: Removing disabled key that is now active: {Key}", dvInstance.Value );
-                        RemoveDisabledGroupLocationSchedule( dvInstance.Id );
-                        disabledKeysRemoved++;
-                    }
-                    else
-                    {
-                        LogDebug( "OccurrenceCache.KeyFactory: Adding disabled key: {Key}", dvInstance.Value );
-                        keys.Add( dvInstance.Value );
-                        disabledKeysAdded++;
-                    }
+                        LogInformation( "OccurrenceCache.KeyFactory: Matching key found: {Key}", dvInstance.Value );
+                        if ( dvInstance.CreatedDateTime < RockDateTime.Now.AddMinutes( -1 ) )
+                        {
+                            LogInformation( "OccurrenceCache.KeyFactory: Removing disabled key that is now active: {Key}", dvInstance.Value );
+                            RemoveDisabledGroupLocationSchedule( dvInstance.Id );
+                            disabledKeysRemoved++;
+                            continue;  // Skip adding - it's already in the active keys
+                        }
+                        else
+                        {
+                            LogDebug( "OccurrenceCache.KeyFactory: Disabled key {Key} was created recently at {CreatedDateTime}, keeping it disabled",
+                                dvInstance.Value, dvInstance.CreatedDateTime );
+                            continue;  // Skip adding - it's already in the active keys
+                        }
+                    }                    
+                    // Only add if NOT in active keys
+                    LogDebug( "OccurrenceCache.KeyFactory: Adding disabled key: {Key}", dvInstance.Value );
+                    keys.Add( dvInstance.Value );
+                    disabledKeysAdded++;
+                    
                 }
-
                 LogInformation( "OccurrenceCache.KeyFactory: Processed disabled entries - Total: {Total}, Removed (reactivated): {Removed}, Added (still disabled): {Added}",
                     disabledKeysProcessed, disabledKeysRemoved, disabledKeysAdded );
             }
-
             LogInformation( "OccurrenceCache.KeyFactory: Completed key generation - Total keys: {KeyCount}", keys.Count );
 
             return keys;

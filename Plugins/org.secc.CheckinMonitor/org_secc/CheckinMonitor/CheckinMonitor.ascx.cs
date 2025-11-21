@@ -956,8 +956,8 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         RockLogger.Log.Information( "OTHER", "CloseOccurrence: Removing schedule {ScheduleId} from GroupLocation {GroupLocationId} and recording as disabled, StackTrace: {StackTrace}",
                             scheduleId, groupLocationId, Environment.StackTrace );
 
-                        RecordGroupLocationSchedule( _rockContext, groupLocation, schedule );
                         groupLocation.Schedules.Remove( schedule );
+                        RecordGroupLocationSchedule( _rockContext, groupLocation, schedule );
 
                         RockLogger.Log.Debug( "OTHER", "CloseOccurrence: Saving changes to database, StackTrace: {StackTrace}", Environment.StackTrace );
                         _rockContext.SaveChanges();
