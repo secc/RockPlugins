@@ -27,7 +27,7 @@
                                 <Rock:RockDropDownList ID="ddlUpperGrade" runat="server" CssClass="input-width-md" />
                             </div>
                             <Rock:DefinedValuesPicker ID="dvpConnectionStatus" runat="server" Label="Connection Status" />
-                            <Rock:CampusPicker ID="pkFamilyCampus" runat="server" Label="Family Campus" IncludeInactive="false" />
+                            <Rock:CampusPicker ID="pkFamilyCampus" runat="server" Label="Primary Campus" IncludeInactive="false" />
                             <Rock:CampusPicker ID="pkDecisionCampus" runat="server" Label="Decision Campus" IncludeInactive="false" />
                             <Rock:RockDropDownList ID="ddlDecisionType" runat="server" Label="Decision Type" />
                             <Rock:RockDropDownList ID="ddlEventType" runat="server" Label="Event" />
