@@ -129,6 +129,8 @@ namespace RockWeb.Plugins.org_secc.Reporting
             {
                 LoadBoundFields();
             }
+
+            UpdateBaptismTypeVisibility();
         }
 
         #endregion
@@ -170,6 +172,11 @@ namespace RockWeb.Plugins.org_secc.Reporting
         {
             ClearFilters();
         }
+
+        protected void ddlDecisionType_SelectedIndexChanged( object sender, EventArgs e )
+        {
+            UpdateBaptismTypeVisibility();
+        }
         #endregion
 
         #region Methods
@@ -193,6 +200,8 @@ namespace RockWeb.Plugins.org_secc.Reporting
             dvpBaptismType.SelectedValue = null;
             cblServing.SelectedValue = null;
             cblInterestArea.SelectedValue = null;
+
+            UpdateBaptismTypeVisibility();
         }
 
         private void LoadBoundFields()
@@ -202,6 +211,19 @@ namespace RockWeb.Plugins.org_secc.Reporting
             LoadEventTypes();
         }
 
+        private void UpdateBaptismTypeVisibility()
+        {
+            var selectedDecisionType = ddlDecisionType.SelectedValue;
+            var showBaptismType = selectedDecisionType.IsNotNullOrWhiteSpace()
+                && selectedDecisionType.Equals( "Baptism", StringComparison.InvariantCultureIgnoreCase );
+
+            dvpBaptismType.Visible = showBaptismType;
+
+            if (!showBaptismType)
+            {
+                dvpBaptismType.SelectedValue = null;
+            }
+        }
 
         private void LoadDecisionTypes()
         {

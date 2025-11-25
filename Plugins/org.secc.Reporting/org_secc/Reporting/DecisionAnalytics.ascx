@@ -29,7 +29,7 @@
                             <Rock:DefinedValuesPicker ID="dvpConnectionStatus" runat="server" Label="Connection Status" />
                             <Rock:CampusPicker ID="pkFamilyCampus" runat="server" Label="Primary Campus" IncludeInactive="false" />
                             <Rock:CampusPicker ID="pkDecisionCampus" runat="server" Label="Decision Campus" IncludeInactive="false" />
-                            <Rock:RockDropDownList ID="ddlDecisionType" runat="server" Label="Decision Type" />
+                            <Rock:RockDropDownList ID="ddlDecisionType" runat="server" Label="Decision Type" AutoPostBack="true" OnSelectedIndexChanged="ddlDecisionType_SelectedIndexChanged" />
                             <Rock:RockDropDownList ID="ddlEventType" runat="server" Label="Event" />
                             <Rock:DefinedValuesPicker ID="dvpBaptismType" runat="server" Label="Baptism Type" RepeatColumns="2" />
                             <Rock:RockCheckBoxList ID="cblServing" runat="server" Label="Serving?" RepeatDirection="Horizontal" RepeatColumns="2">
