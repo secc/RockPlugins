@@ -27,9 +27,9 @@
                                 <Rock:RockDropDownList ID="ddlUpperGrade" runat="server" CssClass="input-width-md" />
                             </div>
                             <Rock:DefinedValuesPicker ID="dvpConnectionStatus" runat="server" Label="Connection Status" />
-                            <Rock:CampusPicker ID="pkFamilyCampus" runat="server" Label="Family Campus" IncludeInactive="false" />
+                            <Rock:CampusPicker ID="pkFamilyCampus" runat="server" Label="Primary Campus" IncludeInactive="false" />
                             <Rock:CampusPicker ID="pkDecisionCampus" runat="server" Label="Decision Campus" IncludeInactive="false" />
-                            <Rock:RockDropDownList ID="ddlDecisionType" runat="server" Label="Decision Type" />
+                            <Rock:RockDropDownList ID="ddlDecisionType" runat="server" Label="Decision Type" AutoPostBack="true" OnSelectedIndexChanged="ddlDecisionType_SelectedIndexChanged" />
                             <Rock:RockDropDownList ID="ddlEventType" runat="server" Label="Event" />
                             <Rock:DefinedValuesPicker ID="dvpBaptismType" runat="server" Label="Baptism Type" RepeatColumns="2" />
                             <Rock:RockCheckBoxList ID="cblServing" runat="server" Label="Serving?" RepeatDirection="Horizontal" RepeatColumns="2">
@@ -44,25 +44,16 @@
                                 <asp:ListItem Text="Other" Value="Other" />
                                 <asp:ListItem Text="Help Me Decide" Value="Help Me Decide" />
                             </Rock:RockCheckBoxList>
-                            <div class="actions">
-                                <span class="pull-right-md">
-                                    <asp:LinkButton ID="lbClearFilters" runat="server" CssClass="btn btn-sm btn-default">Clear Filters</asp:LinkButton>
-                                </span>
+                            <div class="actions text-right">
+                                <div>
+                                    <asp:LinkButton ID="lbClearFilters" runat="server" CssClass="btn btn-default" Style="border-radius: 4px;">Clear Filters</asp:LinkButton>
+                                    <asp:LinkButton ID="btnApply" runat="server" CssClass="btn btn-primary" ToolTip="Update Results" OnClick="btnApply_Click" Style="margin-left: 10px; border-radius: 4px;">
+                                        <i class="fa fa-refresh"></i> Update
+                                    </asp:LinkButton>
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-9">
-                            <div class="row analysis-types">
-                                <div class="col-sm-8">
-                                    <%-- Controls --%>
-                                </div>
-                                <div class="col-sm-4">
-                                    <div class="actions text-right">
-                                        <asp:LinkButton ID="btnApply" runat="server" CssClass="btn btn-primary" ToolTip="Update Results" OnClick="btnApply_Click">
-                                            <i class="fa fa-refresh"></i> Update
-                                        </asp:LinkButton>
-                                    </div>
-                                </div>
-                            </div>
                             <asp:Panel ID="pnlUpdateMessage" runat="server" Visible="true">
                                 <Rock:NotificationBox ID="nbUpdateMessage" runat="server" NotificationBoxType="Default" CssClass="text-center padding-all-lg"
                                     Heading="Confirm Settings" Text="<p>Confirm your settings and select the 'Update' button to display your results.</p>" />
