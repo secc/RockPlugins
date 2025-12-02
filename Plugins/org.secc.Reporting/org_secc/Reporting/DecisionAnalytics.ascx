@@ -45,7 +45,7 @@
                                 <asp:ListItem Text="Help Me Decide" Value="Help Me Decide" />
                             </Rock:RockCheckBoxList>
                             <div class="actions text-right">
-                                <div class="btn-group">
+                                <div>
                                     <asp:LinkButton ID="lbClearFilters" runat="server" CssClass="btn btn-default" Style="border-radius: 4px;">Clear Filters</asp:LinkButton>
                                     <asp:LinkButton ID="btnApply" runat="server" CssClass="btn btn-primary" ToolTip="Update Results" OnClick="btnApply_Click" Style="margin-left: 10px; border-radius: 4px;">
                                         <i class="fa fa-refresh"></i> Update

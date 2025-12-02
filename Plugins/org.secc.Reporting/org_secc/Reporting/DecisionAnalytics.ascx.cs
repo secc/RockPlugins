@@ -128,9 +128,8 @@ namespace RockWeb.Plugins.org_secc.Reporting
             if (!IsPostBack)
             {
                 LoadBoundFields();
+                UpdateBaptismTypeVisibility();
             }
-
-            UpdateBaptismTypeVisibility();
         }
 
         #endregion
@@ -215,7 +214,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
         {
             var selectedDecisionType = ddlDecisionType.SelectedValue;
             var showBaptismType = selectedDecisionType.IsNotNullOrWhiteSpace()
-                && selectedDecisionType.Equals( "Baptism", StringComparison.InvariantCultureIgnoreCase );
+                && selectedDecisionType.Equals( "Baptism", StringComparison.OrdinalIgnoreCase );
 
             dvpBaptismType.Visible = showBaptismType;
 
