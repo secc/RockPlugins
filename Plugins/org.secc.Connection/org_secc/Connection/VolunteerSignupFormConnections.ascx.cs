@@ -562,22 +562,23 @@ namespace org.secc.Connection
                     tbEmail.Text = registrant.Email.EncodeHtml();
                     bpBirthdate.SelectedDate = registrant.BirthDate;
 
-                    if ( pnPhone.Visible && _cellPhone != null )
+                    if ( pnPhone.Visible )
                     {
                         var cellPhoneNumber = registrant.PhoneNumbers.Where( p => p.NumberTypeValueId == _cellPhone.Id ).FirstOrDefault();
-                        if ( cellPhoneNumber != null )
+                        var homePhoneNumber = registrant.PhoneNumbers.Where( p => p.NumberTypeValueId == _homePhone.Id ).FirstOrDefault();
+
+                        // Prefer cell phone if it exists, otherwise use home phone
+                        if ( cellPhoneNumber != null && _cellPhone != null )
                         {
                             pnPhone.Number = cellPhoneNumber.NumberFormatted;
                             pnPhone.CountryCode = cellPhoneNumber.CountryCode;
+                            ddlPhoneType.SelectedValue = _cellPhone.Guid.ToString();
                         }
-                    }
-                    else if ( pnPhone.Visible && _homePhone != null )
-                    {
-                        var homePhoneNumber = registrant.PhoneNumbers.Where( p => p.NumberTypeValueId == _homePhone.Id ).FirstOrDefault();
-                        if ( homePhoneNumber != null )
+                        else if ( homePhoneNumber != null && _homePhone != null )
                         {
                             pnPhone.Number = homePhoneNumber.NumberFormatted;
                             pnPhone.CountryCode = homePhoneNumber.CountryCode;
+                            ddlPhoneType.SelectedValue = _homePhone.Guid.ToString();
                         }
                     }
 
