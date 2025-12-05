@@ -53,21 +53,20 @@ namespace org.secc.Connection
     [Category( "SECC > Connection" )]
     [Description( "Block used to sign up for a connection opportunity." )]
 
-    [BooleanField( "Display Home Phone", "Whether to display home phone", true, "", 0 )]
-    [BooleanField( "Display Mobile Phone", "Whether to display mobile phone", true, "", 1 )]
-    [BooleanField( "Display Birthdate", "Whether to display birthdate", true, "", 2 )]
-    [BooleanField( "Display Comments", "Whether to display the comments box", true, "", 3 )]
-    [TextField( "Connect Button Text", "The wording that should be used for the connect button", true, "Connect", "", 4 )]
-    [CodeEditorField( "Lava Template", "Lava template to use to display the response message.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"{% include '~~/Assets/Lava/OpportunityResponseMessage.lava' %}", "", 5 )]
-    [BooleanField( "Enable Debug", "Display a list of merge fields available for lava.", false, "", 6 )]
-    [BooleanField( "Enable Campus Context", "If the page has a campus context it's value will be used as a filter", true, "", 7 )]
-    [DefinedValueField( "2E6540EA-63F0-40FE-BE50-F2A84735E600", "Connection Status", "The connection status to use for new individuals (default: 'Web Prospect'.)", true, false, "368DD475-242C-49C4-A42C-7278BE690CC2", "", 8 )]
-    [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 9 )]
-    [TextField( "Group Member Attribute Keys - URL", "The key of any group member attributes that you would like to be set via the URL.  Enter as comma separated values.", false, key: "UrlKeys", order: 10 )]
-    [TextField( "Group Member Attribute Keys - Form", "The key of the group member attributes to show an edit control for on the opportunity signup.  Enter as comma separated values.", false, key: "FormKeys", order: 11 )]
-    [BooleanField( "Display Add Another", "Whether to display the \"Connect and Add Another\" button", false, "", 12 )]
-    [TextField( "Comment label text", "The wording that should be used for the comment box title", true, "Comments", "", 13 )]
-    [BooleanField( "Comments Required", "Whether the comment are required", true, "", 14 )]
+    [BooleanField( "Display Phone", "Whether to display phone", true, "", 0 )]
+    [BooleanField( "Display Birthdate", "Whether to display birthdate", true, "", 1 )]
+    [BooleanField( "Display Comments", "Whether to display the comments box", true, "", 2 )]
+    [TextField( "Connect Button Text", "The wording that should be used for the connect button", true, "Connect", "", 3 )]
+    [CodeEditorField( "Lava Template", "Lava template to use to display the response message.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 400, true, @"{% include '~~/Assets/Lava/OpportunityResponseMessage.lava' %}", "", 4 )]
+    [BooleanField( "Enable Debug", "Display a list of merge fields available for lava.", false, "", 5 )]
+    [BooleanField( "Enable Campus Context", "If the page has a campus context it's value will be used as a filter", true, "", 6 )]
+    [DefinedValueField( "2E6540EA-63F0-40FE-BE50-F2A84735E600", "Connection Status", "The connection status to use for new individuals (default: 'Web Prospect'.)", true, false, "368DD475-242C-49C4-A42C-7278BE690CC2", "", 7 )]
+    [DefinedValueField( "8522BADD-2871-45A5-81DD-C76DA07E2E7E", "Record Status", "The record status to use for new individuals (default: 'Pending'.)", true, false, "283999EC-7346-42E3-B807-BCE9B2BABB49", "", 8 )]
+    [TextField( "Group Member Attribute Keys - URL", "The key of any group member attributes that you would like to be set via the URL.  Enter as comma separated values.", false, key: "UrlKeys", order: 9 )]
+    [TextField( "Group Member Attribute Keys - Form", "The key of the group member attributes to show an edit control for on the opportunity signup.  Enter as comma separated values.", false, key: "FormKeys", order: 10 )]
+    [BooleanField( "Display Add Another", "Whether to display the \"Connect and Add Another\" button", false, "", 11 )]
+    [TextField( "Comment label text", "The wording that should be used for the comment box title", true, "Comments", "", 12 )]
+    [BooleanField( "Comments Required", "Whether the comment are required", true, "", 13 )]
 
     public partial class VolunteerSignupFormConnections : RockBlock
     {
@@ -177,6 +176,17 @@ namespace org.secc.Connection
             {
                 ShowDetail( PageParameter( "OpportunityId" ).AsInteger() );
             }
+        }
+
+        private void BindPhoneTypeDropdown()
+        {
+            ddlPhoneType.Items.Clear();
+
+            ddlPhoneType.Items.Add( new ListItem( "Mobile", _cellPhone.Guid.ToString() ) );
+            ddlPhoneType.Items.Add( new ListItem( "Home", _homePhone.Guid.ToString() ) );
+
+            // Set default to mobile
+            ddlPhoneType.SelectedValue = _cellPhone.Guid.ToString();
         }
 
 
@@ -317,14 +327,14 @@ namespace org.secc.Connection
                     {
                         var changes = new History.HistoryChangeList();
 
-                        if ( pnHome.Visible )
+                        // Save the phone number differently, depending on selected phone type
+                        if ( pnPhone.Visible && ddlPhoneType.SelectedValue == _cellPhone.Guid.ToString() )
                         {
-                            SavePhone( pnHome, person, _homePhone.Guid, changes );
+                            SavePhone( pnPhone, person, _cellPhone.Guid, changes );
                         }
-
-                        if ( pnMobile.Visible )
+                        else if ( pnPhone.Visible && ddlPhoneType.SelectedValue == _homePhone.Guid.ToString() )
                         {
-                            SavePhone( pnMobile, person, _cellPhone.Guid, changes );
+                            SavePhone( pnPhone, person, _homePhone.Guid, changes );
                         }
 
                         // Save the DOB
@@ -465,6 +475,8 @@ namespace org.secc.Connection
         {
             using ( var rockContext = new RockContext() )
             {
+                BindPhoneTypeDropdown();
+                
                 var opportunity = new ConnectionOpportunityService( rockContext ).Get( opportunityId );
                 if ( opportunity == null )
                 {
@@ -495,10 +507,7 @@ namespace org.secc.Connection
                 lTitle.Text = opportunity.Name;
                 btnConnect.Text = GetAttributeValue( "ConnectButtonText" );
 
-
-
-                divHome.Visible = pnHome.Visible = GetAttributeValue( "DisplayHomePhone" ).AsBoolean();
-                divMobile.Visible = pnMobile.Visible = GetAttributeValue( "DisplayMobilePhone" ).AsBoolean();
+                divPhone.Visible = pnPhone.Visible = divPhoneType.Visible = ddlPhoneType.Visible = GetAttributeValue( "DisplayPhone" ).AsBoolean();
                 divBirthdate.Visible = bpBirthdate.Visible = GetAttributeValue( "DisplayBirthdate" ).AsBoolean();
                 tbComments.Visible = GetAttributeValue( "DisplayComments" ).AsBoolean();
 
@@ -509,12 +518,12 @@ namespace org.secc.Connection
                 }
 
                 // If any of these aren't showing then set the width to be a bit wider on the columns
-                if ( !( divHome.Visible && divMobile.Visible && divBirthdate.Visible ) )
+                if ( !( divPhone.Visible && divBirthdate.Visible ) )
                 {
-                    divHome.RemoveCssClass( "col-md-4" );
-                    divHome.AddCssClass( "col-md-6" );
-                    divMobile.RemoveCssClass( "col-md-4" );
-                    divMobile.AddCssClass( "col-md-6" );
+                    divPhone.RemoveCssClass( "col-md-4" );
+                    divPhone.AddCssClass( "col-md-6" );
+                    divPhoneType.RemoveCssClass( "col-md-4" );
+                    divPhoneType.AddCssClass( "col-md-6" );
                     divBirthdate.RemoveCssClass( "col-md-4" );
                     divBirthdate.AddCssClass( "col-md-6" );
                 }
@@ -543,10 +552,8 @@ namespace org.secc.Connection
                     tbLastName.Text = null;
                     tbEmail.Text = null;
                     bpBirthdate.SelectedDate = null;
-                    pnHome.Number = null;
-                    pnHome.CountryCode = null;
-                    pnMobile.Number = null;
-                    pnMobile.CountryCode = null;
+                    pnPhone.Number = null;
+                    pnPhone.CountryCode = null;
                 }
                 else if ( registrant != null )
                 {
@@ -555,23 +562,22 @@ namespace org.secc.Connection
                     tbEmail.Text = registrant.Email.EncodeHtml();
                     bpBirthdate.SelectedDate = registrant.BirthDate;
 
-                    if ( pnHome.Visible && _homePhone != null )
-                    {
-                        var homePhoneNumber = registrant.PhoneNumbers.Where( p => p.NumberTypeValueId == _homePhone.Id ).FirstOrDefault();
-                        if ( homePhoneNumber != null )
-                        {
-                            pnHome.Number = homePhoneNumber.NumberFormatted;
-                            pnHome.CountryCode = homePhoneNumber.CountryCode;
-                        }
-                    }
-
-                    if ( pnMobile.Visible && _cellPhone != null )
+                    if ( pnPhone.Visible && _cellPhone != null )
                     {
                         var cellPhoneNumber = registrant.PhoneNumbers.Where( p => p.NumberTypeValueId == _cellPhone.Id ).FirstOrDefault();
                         if ( cellPhoneNumber != null )
                         {
-                            pnMobile.Number = cellPhoneNumber.NumberFormatted;
-                            pnMobile.CountryCode = cellPhoneNumber.CountryCode;
+                            pnPhone.Number = cellPhoneNumber.NumberFormatted;
+                            pnPhone.CountryCode = cellPhoneNumber.CountryCode;
+                        }
+                    }
+                    else if ( pnPhone.Visible && _homePhone != null )
+                    {
+                        var homePhoneNumber = registrant.PhoneNumbers.Where( p => p.NumberTypeValueId == _homePhone.Id ).FirstOrDefault();
+                        if ( homePhoneNumber != null )
+                        {
+                            pnPhone.Number = homePhoneNumber.NumberFormatted;
+                            pnPhone.CountryCode = homePhoneNumber.CountryCode;
                         }
                     }
 
