@@ -29,6 +29,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
+using CheckInLabel = Rock.CheckIn.CheckInLabel;
 
 namespace RockWeb.Plugins.org_secc.CheckinMonitor
 {
