@@ -8,7 +8,6 @@
             <Rock:Grid ID="gPendingCheckins" runat="server" AllowSorting="true" >
                 <Columns>
                     <Rock:PersonField HeaderText="Guest Name" DataField="Guest" SortExpression="Guest.LastName, Guest.NickName" />
-                    <Rock:RockBoundField HeaderText="Age" DataField="Guest.Age" SortExpression="Guest.Age" />
                     <Rock:TimeField HeaderText="Registered At" DataField="CreatedDateTime" SortExpression="CreatedDateTime" />
                     <Rock:BoolField HeaderText="Signed Waiver" DataField="HasSignedWaiver" SortExpression="HasSignedWaiver" />
                     <Rock:BoolField HeaderText="Emergency Contacts" DataField="HasEmergencyContacts" SortExpression="HasEmergencyContacts" />
@@ -43,15 +42,17 @@
             <Rock:Grid ID="gHosts" runat="server" AllowSorting="true">
                 <Columns>
                     <Rock:RockBoundField HeaderText="Host Name" DataField="Host.FullName" SortExpression="Host.FullNameReversed" />
-                    <Rock:RockBoundField HeaderText="Age" DataField="Host.Age" SortExpression="Host.Age" />
                     <Rock:RockBoundField HeaderText="Location" DataField="Location" SortExpression="Location" />
+                    <Rock:RockBoundField HeaderText="Guests" DataField="GuestCount" HeaderStyle-HorizontalAlign="Center" ItemStyle-HorizontalAlign="Center" />
                     <Rock:RockTemplateField>
                         <ItemTemplate>
                             <span class="pull-right">
                                 <asp:LinkButton ID="lbSelect" runat="server" CommandName="selecthost" CommandArgument='<%# Eval("AttendanceId") %>' CssClass="btn btn-default">
                                     <i class="fa fa-arrow-right"></i>
                                 </asp:LinkButton>
+                                <Rock:HighlightLabel ID="hlMaxGuests" runat="server" Visible="false" LabelType="Warning" Text="Has Maximum Guests" />
                             </span>
+                            
                         </ItemTemplate>
                     </Rock:RockTemplateField>
                 </Columns>

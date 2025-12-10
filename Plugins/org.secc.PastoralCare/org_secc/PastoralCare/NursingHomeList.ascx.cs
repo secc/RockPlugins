@@ -617,7 +617,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             int entityTypeId = entityTypeService.Queryable().Where( et => et.Name == typeof( Workflow ).FullName ).FirstOrDefault().Id;
             string status = ( contextEntity != null ? "Completed" : "Active" );
 
-            var workflowType = new WorkflowTypeService( rockContext ).Get( nursingHomeAdmissionWorkflow );
+            var workflowType = Rock.Web.Cache.WorkflowTypeCache.Get( nursingHomeAdmissionWorkflow );
             var workflowTypeIdAsString = workflowType.Id.ToString();
 
             var attributeIds = attributeService.Queryable()
@@ -625,7 +625,8 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 .Select( a => a.Id ).ToList();
 
             // Look up the activity type for "Visitation"
-            var visitationActivityIdAsString = workflowType.ActivityTypes.Where( at => at.Name == "Visitation Info" ).Select( at => at.Id.ToString() ).FirstOrDefault();
+            var visitationActivityId = workflowType.ActivityTypes.Where( at => at.Name == "Visitation Info" ).Select(at => at.Id).FirstOrDefault();
+            var visitationActivityIdAsString = visitationActivityId.ToString();
 
             var activityAttributeIds = attributeService.Queryable()
                 .Where( a => a.EntityTypeQualifierColumn == "ActivityTypeId" && a.EntityTypeQualifierValue == visitationActivityIdAsString )
@@ -640,6 +641,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                         wa => wa.Id,
                         av => av.EntityId.Value,
                         ( wa, av ) => new { WorkflowActivity = wa, AttributeValue = av } )
+                .Where(a => a.WorkflowActivity.ActivityTypeId == visitationActivityId )
                 .Where( a => activityAttributeIds.Contains( a.AttributeValue.AttributeId ) )
                 .GroupBy( wa => wa.WorkflowActivity )
                 .Select( obj => new { WorkflowActivity = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } );
