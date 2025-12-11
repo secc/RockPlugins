@@ -32,7 +32,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DotLiquid">
+    <Reference Include="DotLiquid, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>$(SolutionDir)RockWeb\Bin\DotLiquid.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework.SqlServer">
@@ -53,10 +54,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(SolutionDir)RockWeb\Bin\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Rock">
+    <Reference Include="Rock, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>$(SolutionDir)RockWeb\Bin\Rock.dll</HintPath>
     </Reference>
-    <Reference Include="Rock.Rest">
+    <Reference Include="Rock.Rest, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Rest.dll</HintPath>
     </Reference>
     <Reference Include="System" />

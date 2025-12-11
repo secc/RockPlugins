@@ -36,6 +36,10 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DotLiquid, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\DotLiquid.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(SolutionDir)\RockWeb\Bin\EntityFramework.dll</HintPath>
@@ -54,23 +58,39 @@
       <HintPath>$(SolutionDir)packages\Magick.NET.Core.4.1.0\lib\net40\Magick.NET.Core.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.IdentityModel.JsonWebTokens, Version=5.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\Rock\packages\Microsoft.IdentityModel.JsonWebTokens.5.5.0\lib\net461\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Microsoft.IdentityModel.JsonWebTokens.5.5.0\lib\net461\Microsoft.IdentityModel.JsonWebTokens.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.IdentityModel.Logging, Version=5.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\Rock\packages\Microsoft.IdentityModel.Logging.5.5.0\lib\net461\Microsoft.IdentityModel.Logging.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Microsoft.IdentityModel.Logging.5.5.0\lib\net461\Microsoft.IdentityModel.Logging.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.IdentityModel.Tokens, Version=5.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\Rock\packages\Microsoft.IdentityModel.Tokens.5.5.0\lib\net461\Microsoft.IdentityModel.Tokens.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Microsoft.IdentityModel.Tokens.5.5.0\lib\net461\Microsoft.IdentityModel.Tokens.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\Rock\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Common, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Enums, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Enums.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Lava.Shared, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Lava.Shared.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.IdentityModel.Tokens.Jwt, Version=5.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\Rock\packages\System.IdentityModel.Tokens.Jwt.5.5.0\lib\net461\System.IdentityModel.Tokens.Jwt.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\System.IdentityModel.Tokens.Jwt.5.5.0\lib\net461\System.IdentityModel.Tokens.Jwt.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
@@ -86,27 +106,8 @@
     <Reference Include="Twilio, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\Twilio.5.1.0\lib\net451\Twilio.dll</HintPath>
     </Reference>
-    <Reference Include="Rock.Enums">
-      <HintPath>$(SolutionDir)\RockWeb\Bin\Rock.Enums.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\DotLiquid\DotLiquid.csproj">
-      <Project>{00edcb8d-ef33-459c-ad62-02876bd24dff}</Project>
-      <Name>DotLiquid</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
-      <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
-      <Name>Rock</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock.Common\Rock.Common.csproj">
-      <Project>{13568622-324e-4493-b605-c9896e725d30}</Project>
-      <Name>Rock.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock.Lava.Shared\Rock.Lava.Shared.csproj">
-      <Project>{8820cd93-70ee-496d-b17b-0c4c68dd4957}</Project>
-      <Name>Rock.Lava.Shared</Name>
-    </ProjectReference>
     <ProjectReference Include="..\org.secc.PersonMatch\org.secc.PersonMatch.csproj">
       <Project>{26cc0ba6-968b-4464-9992-d1d3510af9ab}</Project>
       <Name>org.secc.PersonMatch</Name>

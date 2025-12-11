@@ -47,7 +47,23 @@
       <HintPath>$(SolutionDir)RockWeb\Bin\Microsoft.Data.OData.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\Rock\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Common, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Enums, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Enums.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Rest, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Rest.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -63,9 +79,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="Rock.Enums">
-      <HintPath>$(SolutionDir)\RockWeb\Bin\Rock.Enums.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\GroupTrackerController.cs" />
@@ -73,20 +86,6 @@
     <Compile Include="Models\GroupSummary.cs" />
     <Compile Include="Models\GroupWithOccurrence.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Rock.Rest\Rock.Rest.csproj">
-      <Project>{add1edd0-a4cb-4e82-b6ad-6ad1d556deae}</Project>
-      <Name>Rock.Rest</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Rock\Rock.csproj">
-      <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
-      <Name>Rock</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock.Common\Rock.Common.csproj">
-      <Project>{13568622-324e-4493-b605-c9896e725d30}</Project>
-      <Name>Rock.Common</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

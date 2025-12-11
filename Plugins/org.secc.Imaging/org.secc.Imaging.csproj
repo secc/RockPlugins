@@ -59,6 +59,18 @@
     <Reference Include="NReco.ImageGenerator, Version=1.1.3.0, Culture=neutral, PublicKeyToken=0ef6c878974c90ac, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\NReco.ImageGenerator.1.1.3\lib\net45\NReco.ImageGenerator.dll</HintPath>
     </Reference>
+    <Reference Include="Rock, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Common, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Rest, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Rest.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -99,18 +111,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
-      <Project>{185A31D7-3037-4DAE-8797-0459849A84BD}</Project>
-      <Name>Rock</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock.Rest\Rock.Rest.csproj">
-      <Project>{ADD1EDD0-A4CB-4E82-B6AD-6AD1D556DEAE}</Project>
-      <Name>Rock.Rest</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock.Common\Rock.Common.csproj">
-      <Project>{13568622-324e-4493-b605-c9896e725d30}</Project>
-      <Name>Rock.Common</Name>
-    </ProjectReference>
     <ProjectReference Include="..\org.secc.DevLib\org.secc.DevLib.csproj">
       <Project>{a6e9c252-af5b-4fa6-bce1-91a5540cbfb4}</Project>
       <Name>org.secc.DevLib</Name>

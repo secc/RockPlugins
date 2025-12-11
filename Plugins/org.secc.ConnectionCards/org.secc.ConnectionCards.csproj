@@ -35,6 +35,10 @@
     <Reference Include="Ghostscript.NET, Version=1.2.1.0, Culture=neutral, PublicKeyToken=f85051de34525b59, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\Ghostscript.NET.1.2.1\lib\net40\Ghostscript.NET.dll</HintPath>
     </Reference>
+    <Reference Include="Rock, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -48,12 +52,6 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\ConnectionCardsUtilties.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Rock\Rock.csproj">
-      <Project>{185A31D7-3037-4DAE-8797-0459849A84BD}</Project>
-      <Name>Rock</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

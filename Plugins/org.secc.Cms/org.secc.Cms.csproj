@@ -36,20 +36,6 @@
     <Compile Include="SectionZone.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Rock\Rock.csproj">
-      <Project>{185A31D7-3037-4DAE-8797-0459849A84BD}</Project>
-      <Name>Rock</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock.Rest\Rock.Rest.csproj">
-      <Project>{add1edd0-a4cb-4e82-b6ad-6ad1d556deae}</Project>
-      <Name>Rock.Rest</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Rock.Common\Rock.Common.csproj">
-      <Project>{13568622-324e-4493-b605-c9896e725d30}</Project>
-      <Name>Rock.Common</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
@@ -57,7 +43,19 @@
       <HintPath>$(SolutionDir)packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\Rock\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SolutionDir)RockWeb\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Common, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Rest, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Rest.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />

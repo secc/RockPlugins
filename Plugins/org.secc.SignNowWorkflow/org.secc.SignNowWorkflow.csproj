@@ -31,6 +31,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DotLiquid, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\DotLiquid.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
@@ -38,7 +42,23 @@
       <HintPath>$(SolutionDir)packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\Rock\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Common, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.SignNow, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.SignNow.dll</HintPath>
+    </Reference>
+    <Reference Include="SignNowSDK, Version=2.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\SignNowSDK.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -56,28 +76,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Workflows\SignNowCreate.cs" />
     <Compile Include="Workflows\SignNowDownload.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\DotLiquid\DotLiquid.csproj">
-      <Project>{00edcb8d-ef33-459c-ad62-02876bd24dff}</Project>
-      <Name>DotLiquid</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock.SignNow\Rock.SignNow.csproj">
-      <Project>{1f5956f2-2b0f-49b8-aaf1-2cc28f01426a}</Project>
-      <Name>Rock.SignNow</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
-      <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
-      <Name>Rock</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\SignNowSDK\SignNowSDK.csproj">
-      <Project>{69ac175c-3997-4514-8c9e-5d24811928c2}</Project>
-      <Name>SignNowSDK</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock.Common\Rock.Common.csproj">
-      <Project>{13568622-324e-4493-b605-c9896e725d30}</Project>
-      <Name>Rock.Common</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

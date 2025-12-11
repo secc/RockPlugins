@@ -32,6 +32,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DotLiquid, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\DotLiquid.dll</HintPath>
+    </Reference>
     <Reference Include="DotNetOpenAuth.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=2780ccd10d57b246, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\DotNetOpenAuth.Core.4.3.4.13329\lib\net45-full\DotNetOpenAuth.Core.dll</HintPath>
     </Reference>
@@ -66,10 +70,34 @@
       <HintPath>$(SolutionDir)packages\Microsoft.Owin.Security.OAuth.3.0.1\lib\net45\Microsoft.Owin.Security.OAuth.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\..\..\Rock\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SolutionDir)packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Common, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Enums, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Enums.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Lava.Shared, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Lava.Shared.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Migrations, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Migrations.dll</HintPath>
+    </Reference>
+    <Reference Include="Rock.Rest, Version=1.16.12.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SolutionDir)RockWeb\Bin\Rock.Rest.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Net.Http" />
@@ -98,9 +126,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Rock.Enums">
-      <HintPath>$(SolutionDir)\RockWeb\Bin\Rock.Enums.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\OAuthContext.cs" />
@@ -129,32 +154,6 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\Rock.Migrations\Rock.Migrations.csproj">
-      <Project>{704740d8-b539-4560-9f8c-681670c9d6ad}</Project>
-      <Name>Rock.Migrations</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock.Rest\Rock.Rest.csproj">
-      <Project>{add1edd0-a4cb-4e82-b6ad-6ad1d556deae}</Project>
-      <Name>Rock.Rest</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
-      <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>
-      <Name>Rock</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\DotLiquid\DotLiquid.csproj">
-      <Project>{00edcb8d-ef33-459c-ad62-02876bd24dff}</Project>
-      <Name>DotLiquid</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock.Common\Rock.Common.csproj">
-      <Project>{13568622-324e-4493-b605-c9896e725d30}</Project>
-      <Name>Rock.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Rock.Lava.Shared\Rock.Lava.Shared.csproj">
-      <Project>{8820cd93-70ee-496d-b17b-0c4c68dd4957}</Project>
-      <Name>Rock.Lava.Shared</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
