@@ -167,12 +167,13 @@ namespace org.secc.LeagueApps.Utilities
                     person.Gender = Gender.Unknown;
                 }
 
-                if(member.mobilePhone.IsNotNullOrWhiteSpace() && member.mobilePhone.StartsWith("+1"))
+                if ( member.mobilePhone.IsNotNullOrWhiteSpace() && member.mobilePhone.StartsWith( "+1" ) )
                 {
-                    var cleanNumber = PhoneNumber.CleanNumber( member.mobilePhone );
+                    var cleanNumber = PhoneNumber.CleanNumber( member.mobilePhone ) ?? String.Empty;
+                    var number = cleanNumber.Length >= 10 ? cleanNumber.Right( 10 ) : cleanNumber;
                     person.PhoneNumbers.Add( new PhoneNumber
                     {
-                        Number = cleanNumber.Right( 10 ),
+                        Number = number,
                         CountryCode = PhoneNumber.DefaultCountryCode(),
                         NumberTypeValueId = DefinedValueCache.GetId( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ),
                         IsUnlisted = false
