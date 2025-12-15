@@ -127,7 +127,17 @@ namespace org.secc.LeagueApps.Utilities
             {
                 person = matches.First();
             }
-            else
+
+            // Validate and clear invalid email for matched persons
+            if ( person != null && !string.IsNullOrWhiteSpace( person.Email ) )
+            {
+                if ( !person.Email.IsValidEmail() )
+                {
+                    person.Email = string.Empty;
+                }
+            }
+
+            if ( person == null )
             {
                 // Create the person
                 person = new Person();
