@@ -96,7 +96,7 @@ namespace org.secc.FamilyCheckin.Cache
                 }
                 finally
                 {
-                    _isRefreshing = 0;
+                    Interlocked.Exchange( ref _isRefreshing, 0 );
                 }
             } );
         }

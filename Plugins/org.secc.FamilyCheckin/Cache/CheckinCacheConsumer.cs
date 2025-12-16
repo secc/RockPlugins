@@ -64,7 +64,7 @@ namespace org.secc.FamilyCheckin.Cache
         /// <summary>
         /// Validates that a type inherits from CheckinCache&lt;T&gt; and has a parameterless constructor
         /// </summary>
-        private bool IsValidCheckinCacheType( Type type )
+        private static bool IsValidCheckinCacheType( Type type )
         {
             if ( type == null )
             {
