@@ -18,6 +18,8 @@ namespace org.secc.FamilyCheckin.Cache
 
         private static string AllKey => $"{typeof( T ).Name}:{AllString}";
 
+        private static readonly object _keysLock = new object();
+
         public void PostCached()
         {
         }
@@ -30,6 +32,7 @@ namespace org.secc.FamilyCheckin.Cache
                 keys = UpdateKeys( keyFactory );
             }
             return keys;
+
         }
 
         public static T Get( string qualifiedKey, Func<T> itemFactory, Func<List<string>> keyFactory )
@@ -163,11 +166,14 @@ namespace org.secc.FamilyCheckin.Cache
         /// </summary>
         private static void AddKeyToCache( string qualifiedKey )
         {
-            var keys = AllKeys();
-            if ( !keys.Contains( qualifiedKey ) )
+            lock ( _keysLock )
             {
-                keys.Add( qualifiedKey );
-                RockCache.AddOrUpdate( AllKey, AllRegion, keys );
+                var keys = AllKeys();
+                if ( !keys.Contains( qualifiedKey ) )
+                {
+                    keys.Add( qualifiedKey );
+                    RockCache.AddOrUpdate( AllKey, AllRegion, keys );
+                }
             }
         }
 
@@ -176,11 +182,14 @@ namespace org.secc.FamilyCheckin.Cache
         /// </summary>
         private static void RemoveKeyFromCache( string qualifiedKey )
         {
-            var keys = AllKeys();
-            if ( keys.Contains( qualifiedKey ) )
+            lock ( _keysLock )
             {
-                keys.Remove( qualifiedKey );
-                RockCache.AddOrUpdate( AllKey, AllRegion, keys );
+                var keys = AllKeys();
+                if ( keys.Contains( qualifiedKey ) )
+                {
+                    keys.Remove( qualifiedKey );
+                    RockCache.AddOrUpdate( AllKey, AllRegion, keys );
+                }
             }
         }
 
