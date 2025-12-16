@@ -35,6 +35,8 @@ namespace org.secc.FamilyCheckin.Cache
             var keys = GetCachedKeys();
             var now = DateTime.UtcNow;
             
+            // Read _lastKeysRefresh inside lock to prevent torn reads on 32-bit systems
+            // where DateTime (64-bit) reads may not be atomic
             DateTime lastKeysRefresh;
             lock ( _keysLock )
             {
@@ -116,6 +118,8 @@ namespace org.secc.FamilyCheckin.Cache
         /// <summary>
         /// Gets the currently cached keys without triggering a refresh.
         /// Returns a defensive copy to prevent concurrent modification issues.
+        /// The defensive copy is necessary because the keys list is modified by 
+        /// AddKeyToCache and RemoveKeyFromCache methods.
         /// </summary>
         private static List<string> GetCachedKeys()
         {
@@ -200,7 +204,8 @@ namespace org.secc.FamilyCheckin.Cache
             List<string> keysSnapshot;
             lock ( _keysLock )
             {
-                keysSnapshot = GetCachedKeys().ToList();
+                // GetCachedKeys() already returns a defensive copy
+                keysSnapshot = GetCachedKeys();
                 // Clear the keys list immediately while holding the lock
                 RockCache.AddOrUpdate( AllKey, AllRegion, new List<string>() );
                 _lastKeysRefresh = DateTime.MinValue;

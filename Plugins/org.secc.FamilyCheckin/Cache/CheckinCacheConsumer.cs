@@ -73,7 +73,8 @@ namespace org.secc.FamilyCheckin.Cache
                 return false;
             }
 
-            // Check if type is a CheckinCache<T> where T is itself
+            // Check if type inherits from CheckinCache<T> where T is the same type
+            // (self-referencing generic constraint, e.g., MyCache : CheckinCache<MyCache>)
             var baseType = type.BaseType;
             while ( baseType != null )
             {
