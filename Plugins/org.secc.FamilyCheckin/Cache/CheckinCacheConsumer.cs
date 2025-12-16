@@ -14,6 +14,10 @@ namespace org.secc.FamilyCheckin.Cache
     public class CheckinCacheConsumer : RockConsumer<CacheEventQueue, CheckinCacheMessage>
     {
         private const string AllKeysRegion = "AllItems";
+        
+        // Cache validation results to avoid repeated reflection overhead
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, bool> _typeValidationCache 
+            = new System.Collections.Concurrent.ConcurrentDictionary<Type, bool>();
 
         public override void Consume( CheckinCacheMessage message )
         {
@@ -38,7 +42,8 @@ namespace org.secc.FamilyCheckin.Cache
                 }
 
                 // Validate that the cacheType satisfies the generic constraint (CheckinCache<T>)
-                if ( !IsValidCheckinCacheType( cacheType ) )
+                // Use cached validation result to avoid repeated reflection overhead
+                if ( !_typeValidationCache.GetOrAdd( cacheType, IsValidCheckinCacheType ) )
                 {
                     RockLogger.Log.Error( RockLogDomains.Bus, $"Cache type {message.CacheTypeName} does not satisfy CheckinCache<T> constraint. Server: {RockMessageBus.NodeName}." );
                     return;

@@ -124,7 +124,7 @@ namespace org.secc.FamilyCheckin.Cache
         private static List<string> GetCachedKeys()
         {
             var keys = RockCache.Get( AllKey, AllRegion ) as List<string>;
-            return keys != null ? keys.ToList() : new List<string>();
+            return keys != null ? new List<string>( keys ) : new List<string>();
         }
 
         public static T Get( string qualifiedKey, Func<T> itemFactory, Func<List<string>> keyFactory )
