@@ -24,7 +24,7 @@ namespace org.secc.FamilyCheckin.Cache
         // Background refresh settings
         private static readonly TimeSpan KeysRefreshInterval = TimeSpan.FromSeconds( 10 );
         private static DateTime _lastKeysRefresh = DateTime.MinValue;
-        private static volatile bool _isRefreshing = false;
+        private static int _isRefreshing = 0; // 0 = false, 1 = true (for Interlocked operations)
 
         public void PostCached()
         {
@@ -34,9 +34,16 @@ namespace org.secc.FamilyCheckin.Cache
         {
             var keys = GetCachedKeys();
             var now = DateTime.UtcNow;
+            
+            DateTime lastKeysRefresh;
+            lock ( _keysLock )
+            {
+                lastKeysRefresh = _lastKeysRefresh;
+            }
+            
             var needsRefresh = forceRefresh
                 || !keys.Any()
-                || ( now - _lastKeysRefresh ) > KeysRefreshInterval;
+                || ( now - lastKeysRefresh ) > KeysRefreshInterval;
 
             if ( needsRefresh )
             {
@@ -48,6 +55,9 @@ namespace org.secc.FamilyCheckin.Cache
                 else
                 {
                     // Cache has data - trigger background refresh and return stale data
+                    // Note: During the background refresh window, the returned data may be slightly
+                    // stale but this is intentional for performance. Local key changes via
+                    // AddKeyToCache/RemoveKeyFromCache will update the cached list immediately.
                     TriggerBackgroundRefresh( keyFactory );
                 }
             }
@@ -57,22 +67,17 @@ namespace org.secc.FamilyCheckin.Cache
 
         /// <summary>
         /// Triggers a background refresh of the keys list if one isn't already in progress.
+        /// Uses Interlocked.CompareExchange for thread-safe flag checking.
+        /// Note: Background tasks may be abruptly terminated during application shutdown,
+        /// but the _isRefreshing flag will be reset on next application start.
         /// </summary>
         private static void TriggerBackgroundRefresh( Func<List<string>> keyFactory )
         {
-            if ( _isRefreshing )
+            // Atomically set _isRefreshing to 1 (true) only if it was 0 (false)
+            // CompareExchange returns the original value - if it was already 1, another thread is refreshing
+            if ( Interlocked.CompareExchange( ref _isRefreshing, 1, 0 ) == 1 )
             {
                 return;
-            }
-
-            lock ( _keysLock )
-            {
-                if ( _isRefreshing )
-                {
-                    return;
-                }
-
-                _isRefreshing = true;
             }
 
             ThreadPool.QueueUserWorkItem( _ =>
@@ -88,7 +93,7 @@ namespace org.secc.FamilyCheckin.Cache
                 }
                 finally
                 {
-                    _isRefreshing = false;
+                    _isRefreshing = 0;
                 }
             } );
         }
@@ -109,11 +114,12 @@ namespace org.secc.FamilyCheckin.Cache
 
         /// <summary>
         /// Gets the currently cached keys without triggering a refresh.
+        /// Returns a defensive copy to prevent concurrent modification issues.
         /// </summary>
         private static List<string> GetCachedKeys()
         {
             var keys = RockCache.Get( AllKey, AllRegion ) as List<string>;
-            return keys ?? new List<string>();
+            return keys != null ? keys.ToList() : new List<string>();
         }
 
         public static T Get( string qualifiedKey, Func<T> itemFactory, Func<List<string>> keyFactory )
@@ -131,10 +137,9 @@ namespace org.secc.FamilyCheckin.Cache
                 AddKeyToCache( qualifiedKey );
                 RockCache.AddOrUpdate( qualifiedKey, item );
             }
-            else
-            {
-                RemoveKeyFromCache( qualifiedKey );
-            }
+            // Note: When itemFactory returns null, we do not remove the key from cache
+            // as this might be due to a transient condition (e.g., database connection issue)
+            // rather than the item actually being deleted from the database.
 
             return item;
         }
@@ -195,17 +200,15 @@ namespace org.secc.FamilyCheckin.Cache
             lock ( _keysLock )
             {
                 keysSnapshot = GetCachedKeys().ToList();
+                // Clear the keys list immediately while holding the lock
+                RockCache.AddOrUpdate( AllKey, AllRegion, new List<string>() );
+                _lastKeysRefresh = DateTime.MinValue;
             }
 
+            // Now remove individual items outside the lock (this may take time)
             foreach ( var key in keysSnapshot )
             {
                 FlushItem( key );
-            }
-
-            lock ( _keysLock )
-            {
-                RockCache.AddOrUpdate( AllKey, AllRegion, new List<string>() );
-                _lastKeysRefresh = DateTime.MinValue;
             }
 
             PublishCacheUpdateMessage( null, default( T ) );
@@ -249,10 +252,9 @@ namespace org.secc.FamilyCheckin.Cache
                 {
                     keys.Add( qualifiedKey );
                     RockCache.AddOrUpdate( AllKey, AllRegion, keys );
+                    PublishKeyChangeMessage( qualifiedKey, isAdd: true );
                 }
             }
-
-            PublishKeyChangeMessage( qualifiedKey, isAdd: true );
         }
 
         /// <summary>
@@ -267,10 +269,9 @@ namespace org.secc.FamilyCheckin.Cache
                 {
                     keys.Remove( qualifiedKey );
                     RockCache.AddOrUpdate( AllKey, AllRegion, keys );
+                    PublishKeyChangeMessage( qualifiedKey, isAdd: false );
                 }
             }
-
-            PublishKeyChangeMessage( qualifiedKey, isAdd: false );
         }
 
         /// <summary>

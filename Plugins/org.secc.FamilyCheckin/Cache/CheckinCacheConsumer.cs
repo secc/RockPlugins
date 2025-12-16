@@ -37,6 +37,13 @@ namespace org.secc.FamilyCheckin.Cache
                     return;
                 }
 
+                // Validate that the cacheType satisfies the generic constraint (CheckinCache<T>)
+                if ( !IsValidCheckinCacheType( cacheType ) )
+                {
+                    RockLogger.Log.Error( RockLogDomains.Bus, $"Cache type {message.CacheTypeName} does not satisfy CheckinCache<T> constraint. Server: {RockMessageBus.NodeName}." );
+                    return;
+                }
+
                 var method = typeof( CheckinCacheConsumer ).GetMethod( nameof( ProcessCacheMessage ),
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance )
                     .MakeGenericMethod( cacheType );
@@ -50,16 +57,43 @@ namespace org.secc.FamilyCheckin.Cache
         }
 
         /// <summary>
+        /// Validates that a type inherits from CheckinCache&lt;T&gt;
+        /// </summary>
+        private bool IsValidCheckinCacheType( Type type )
+        {
+            if ( type == null )
+            {
+                return false;
+            }
+
+            // Check if type is a CheckinCache<T> where T is itself
+            var baseType = type.BaseType;
+            while ( baseType != null )
+            {
+                if ( baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof( CheckinCache<> ) )
+                {
+                    var genericArg = baseType.GetGenericArguments()[0];
+                    return genericArg == type;
+                }
+                baseType = baseType.BaseType;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Processes the cache message using the strongly-typed CheckinCache
         /// </summary>
         private void ProcessCacheMessage<T>( CheckinCacheMessage message ) where T : CheckinCache<T>, new()
         {
             string allKeysListCacheKey = $"{typeof( T ).Name}:All";
 
-            // Handle key change messages (ADD/REMOVE)
-            if ( message.Region == AllKeysRegion && ( message.AdditionalData == "ADD" || message.AdditionalData == "REMOVE" ) )
+            // Handle key change messages (ADD/REMOVE) - use case-insensitive comparison
+            if ( message.Region == AllKeysRegion && 
+                 ( string.Equals( message.AdditionalData, "ADD", StringComparison.OrdinalIgnoreCase ) || 
+                   string.Equals( message.AdditionalData, "REMOVE", StringComparison.OrdinalIgnoreCase ) ) )
             {
-                bool isAdd = message.AdditionalData == "ADD";
+                bool isAdd = string.Equals( message.AdditionalData, "ADD", StringComparison.OrdinalIgnoreCase );
                 CheckinCache<T>.ApplyKeyChange( message.Key, isAdd );
 
                 RockLogger.Log.Debug( RockLogDomains.Bus,
@@ -68,7 +102,10 @@ namespace org.secc.FamilyCheckin.Cache
             }
 
             // Handle item update messages (has serialized data)
-            if ( !string.IsNullOrEmpty( message.AdditionalData ) && message.AdditionalData != "ADD" && message.AdditionalData != "REMOVE" )
+            // Use case-insensitive comparison to avoid mismatched casing issues
+            if ( !string.IsNullOrEmpty( message.AdditionalData ) && 
+                 !string.Equals( message.AdditionalData, "ADD", StringComparison.OrdinalIgnoreCase ) && 
+                 !string.Equals( message.AdditionalData, "REMOVE", StringComparison.OrdinalIgnoreCase ) )
             {
                 try
                 {
