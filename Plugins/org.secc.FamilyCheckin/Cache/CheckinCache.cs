@@ -74,7 +74,8 @@ namespace org.secc.FamilyCheckin.Cache
         private static void TriggerBackgroundRefresh( Func<List<string>> keyFactory )
         {
             // Atomically set _isRefreshing to 1 (true) only if it was 0 (false)
-            // CompareExchange returns the original value - if it was already 1, another thread is refreshing
+            // CompareExchange returns the original value - if it was already 1, return early
+            // as another thread is already handling the refresh
             if ( Interlocked.CompareExchange( ref _isRefreshing, 1, 0 ) == 1 )
             {
                 return;
