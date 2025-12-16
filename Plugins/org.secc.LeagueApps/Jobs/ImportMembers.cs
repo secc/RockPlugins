@@ -85,11 +85,7 @@ namespace org.secc.LeagueApps.Jobs
                     }
                     catch ( Exception ex )
                     {
-                        var errorMsg = string.Format( "UserId: {0}, Name: {1} {2} - Error: {3}",
-                            member.userId,
-                            member.firstName ?? "Unknown",
-                            member.lastName ?? "Unknown",
-                            ex.Message );
+                        var errorMsg = $"UserId: {member.userId}, Name: {member.firstName ?? "Unknown"} {member.lastName ?? "Unknown"} - Error: {ex.Message}";
                         errors.Add( errorMsg );
                         ExceptionLogService.LogException( ex, null );
                     }
