@@ -14,6 +14,10 @@ namespace org.secc.FamilyCheckin.Cache
     public class CheckinCacheConsumer : RockConsumer<CacheEventQueue, CheckinCacheMessage>
     {
         private const string AllKeysRegion = "AllItems";
+        
+        // Cache validation results to avoid repeated reflection overhead
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, bool> _typeValidationCache 
+            = new System.Collections.Concurrent.ConcurrentDictionary<Type, bool>();
 
         public override void Consume( CheckinCacheMessage message )
         {
@@ -37,6 +41,14 @@ namespace org.secc.FamilyCheckin.Cache
                     return;
                 }
 
+                // Validate that the cacheType satisfies the generic constraint (CheckinCache<T>)
+                // Use cached validation result to avoid repeated reflection overhead
+                if ( !_typeValidationCache.GetOrAdd( cacheType, IsValidCheckinCacheType ) )
+                {
+                    RockLogger.Log.Error( RockLogDomains.Bus, $"Cache type {message.CacheTypeName} does not satisfy CheckinCache<T> constraint. Server: {RockMessageBus.NodeName}." );
+                    return;
+                }
+
                 var method = typeof( CheckinCacheConsumer ).GetMethod( nameof( ProcessCacheMessage ),
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance )
                     .MakeGenericMethod( cacheType );
@@ -50,16 +62,51 @@ namespace org.secc.FamilyCheckin.Cache
         }
 
         /// <summary>
+        /// Validates that a type inherits from CheckinCache&lt;T&gt; and has a parameterless constructor
+        /// </summary>
+        private static bool IsValidCheckinCacheType( Type type )
+        {
+            if ( type == null )
+            {
+                return false;
+            }
+
+            // Check if type has a parameterless constructor
+            var constructor = type.GetConstructor( Type.EmptyTypes );
+            if ( constructor == null )
+            {
+                return false;
+            }
+
+            // Check if type inherits from CheckinCache<T> where T is the same type
+            // (self-referencing generic constraint, e.g., MyCache : CheckinCache<MyCache>)
+            var baseType = type.BaseType;
+            while ( baseType != null )
+            {
+                if ( baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof( CheckinCache<> ) )
+                {
+                    var genericArg = baseType.GetGenericArguments()[0];
+                    return genericArg == type;
+                }
+                baseType = baseType.BaseType;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Processes the cache message using the strongly-typed CheckinCache
         /// </summary>
         private void ProcessCacheMessage<T>( CheckinCacheMessage message ) where T : CheckinCache<T>, new()
         {
             string allKeysListCacheKey = $"{typeof( T ).Name}:All";
 
-            // Handle key change messages (ADD/REMOVE)
-            if ( message.Region == AllKeysRegion && ( message.AdditionalData == "ADD" || message.AdditionalData == "REMOVE" ) )
+            // Handle key change messages (ADD/REMOVE) - use case-insensitive comparison
+            if ( message.Region == AllKeysRegion && 
+                 ( string.Equals( message.AdditionalData, "ADD", StringComparison.OrdinalIgnoreCase ) || 
+                   string.Equals( message.AdditionalData, "REMOVE", StringComparison.OrdinalIgnoreCase ) ) )
             {
-                bool isAdd = message.AdditionalData == "ADD";
+                bool isAdd = string.Equals( message.AdditionalData, "ADD", StringComparison.OrdinalIgnoreCase );
                 CheckinCache<T>.ApplyKeyChange( message.Key, isAdd );
 
                 RockLogger.Log.Debug( RockLogDomains.Bus,
@@ -68,7 +115,10 @@ namespace org.secc.FamilyCheckin.Cache
             }
 
             // Handle item update messages (has serialized data)
-            if ( !string.IsNullOrEmpty( message.AdditionalData ) && message.AdditionalData != "ADD" && message.AdditionalData != "REMOVE" )
+            // Use case-insensitive comparison to avoid mismatched casing issues
+            if ( !string.IsNullOrEmpty( message.AdditionalData ) && 
+                 !string.Equals( message.AdditionalData, "ADD", StringComparison.OrdinalIgnoreCase ) && 
+                 !string.Equals( message.AdditionalData, "REMOVE", StringComparison.OrdinalIgnoreCase ) )
             {
                 try
                 {
