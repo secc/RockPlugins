@@ -45,19 +45,12 @@ namespace org.secc.FamilyCheckin.Cache
             item = itemFactory();
             if ( item != null )
             {
-                var keys = AllKeys();
-                if ( !keys.Any() || !keys.Contains( qualifiedKey ) )
-                {
-                    UpdateKeys( keyFactory );
-                }
-
+                AddKeyToCache( qualifiedKey );
                 RockCache.AddOrUpdate( qualifiedKey, item );
-                // PublishCacheUpdateMessage( qualifiedKey, item );
             }
             else
             {
-                //This item is gone! Make sure it's not in our key list
-                UpdateKeys( keyFactory );
+                RemoveKeyFromCache( qualifiedKey );
             }
 
             return item;
@@ -78,12 +71,7 @@ namespace org.secc.FamilyCheckin.Cache
             {
                 try
                 {
-
-                    var keys = AllKeys();
-                    if ( !keys.Any() || !keys.Contains( qualifiedKey ) )
-                    {
-                        UpdateKeys( keyFactory );
-                    }            //RockCacheManager<T>.Instance.Cache.AddOrUpdate( qualifiedKey, item, v => item );
+                    AddKeyToCache( qualifiedKey );
                     RockCache.AddOrUpdate( qualifiedKey, item );
                     PublishCacheUpdateMessage( qualifiedKey, item );
                     return;
@@ -115,17 +103,18 @@ namespace org.secc.FamilyCheckin.Cache
         {            //RockCacheManager<T>.Instance.Cache.Remove( qualifiedKey );
             RockCache.Remove( qualifiedKey );
             PublishCacheUpdateMessage( qualifiedKey, default( T ) );
-            UpdateKeys( keyFactory );
+            RemoveKeyFromCache( qualifiedKey );
         }
 
         public static void Clear( Func<List<string>> keyFactory )
         {
-            UpdateKeys( keyFactory );
-
             foreach ( var key in AllKeys() )
             {
                 FlushItem( key );
             }
+
+            // Clear the keys list
+            RockCache.AddOrUpdate( AllKey, AllRegion, new List<string>() );
             PublishCacheUpdateMessage( null, default( T ) );
         }
         public static void FlushItem( string qualifiedKey )
@@ -167,6 +156,32 @@ namespace org.secc.FamilyCheckin.Cache
             var keys = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
             RockCache.AddOrUpdate( AllKey, AllRegion, keys );
             return keys;
+        }
+
+        /// <summary>
+        /// Adds a key to the cached keys list without triggering a full database refresh.
+        /// </summary>
+        private static void AddKeyToCache( string qualifiedKey )
+        {
+            var keys = AllKeys();
+            if ( !keys.Contains( qualifiedKey ) )
+            {
+                keys.Add( qualifiedKey );
+                RockCache.AddOrUpdate( AllKey, AllRegion, keys );
+            }
+        }
+
+        /// <summary>
+        /// Removes a key from the cached keys list without triggering a full database refresh.
+        /// </summary>
+        private static void RemoveKeyFromCache( string qualifiedKey )
+        {
+            var keys = AllKeys();
+            if ( keys.Contains( qualifiedKey ) )
+            {
+                keys.Remove( qualifiedKey );
+                RockCache.AddOrUpdate( AllKey, AllRegion, keys );
+            }
         }
 
         private static void PublishCacheUpdateMessage( string key, T item )
