@@ -20,17 +20,17 @@ namespace org.secc.FamilyCheckin.Cache
 
         // Throttle key refreshes to avoid excessive DB calls
         private static readonly object KeysUpdateLock = new object();
-        private static DateTime _lastKeysRefreshUtc = DateTime.MinValue;
-        private static readonly TimeSpan KeysRefreshInterval = TimeSpan.FromSeconds( 10 );
+        private static volatile int _lastKeysRefreshUnixSeconds = 0;
+        private static readonly int KeysRefreshIntervalSeconds = 10;
 
         public void PostCached()
         {
         }
 
-        public static List<string> AllKeys( Func<List<string>> keyFactory, bool forceRefresh = false )
+        public static List<string> AllKeys( Func<List<string>> keyFactory )
         {
             var keys = AllKeys();
-            if ( !keys.Any() || forceRefresh )
+            if ( !keys.Any() )
             {
                 keys = UpdateKeys( keyFactory );
             }
@@ -170,26 +170,20 @@ namespace org.secc.FamilyCheckin.Cache
         private static List<string> UpdateKeys( Func<List<string>> keyFactory )
         {
             // Return cached keys if within throttle window and we have something cached
-            var now = DateTime.UtcNow;
-            var currentKeys = AllKeys();
-            if ( currentKeys.Any() && ( now - _lastKeysRefreshUtc ) < KeysRefreshInterval )
-            {
-                return currentKeys;
-            }
-
+            // All reads/writes that determine throttling and the returned list
+            // are now done under the same lock to avoid TOCTOU races.
             lock ( KeysUpdateLock )
             {
-                // Double-check inside lock
-                now = DateTime.UtcNow;
-                currentKeys = AllKeys();
-                if ( currentKeys.Any() && ( now - _lastKeysRefreshUtc ) < KeysRefreshInterval )
+                var nowUnixSeconds = ( int ) ( DateTime.UtcNow - new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc ) ).TotalSeconds;
+                var currentKeys = AllKeys();
+                if ( currentKeys.Any() && ( nowUnixSeconds - _lastKeysRefreshUnixSeconds ) < KeysRefreshIntervalSeconds )
                 {
                     return currentKeys;
                 }
 
                 var keys = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
                 RockCache.AddOrUpdate( AllKey, AllRegion, keys );
-                _lastKeysRefreshUtc = now;
+                _lastKeysRefreshUnixSeconds = nowUnixSeconds;
                 return keys;
             }
         }
