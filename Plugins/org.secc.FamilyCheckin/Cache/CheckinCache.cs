@@ -20,8 +20,8 @@ namespace org.secc.FamilyCheckin.Cache
 
         // Throttle key refreshes to avoid excessive DB calls
         private static readonly object KeysUpdateLock = new object();
-        private static volatile int _lastKeysRefreshUnixSeconds = 0;
-        private static readonly int KeysRefreshIntervalSeconds = 10;
+        private static DateTime _lastKeysRefreshUtc = DateTime.MinValue;
+        private static readonly TimeSpan KeysRefreshInterval = TimeSpan.FromSeconds( 10 );
 
         public void PostCached()
         {
@@ -174,16 +174,16 @@ namespace org.secc.FamilyCheckin.Cache
             // are now done under the same lock to avoid TOCTOU races.
             lock ( KeysUpdateLock )
             {
-                var nowUnixSeconds = ( int ) ( DateTime.UtcNow - new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc ) ).TotalSeconds;
+                var now = DateTime.UtcNow;
                 var currentKeys = AllKeys();
-                if ( currentKeys.Any() && ( nowUnixSeconds - _lastKeysRefreshUnixSeconds ) < KeysRefreshIntervalSeconds )
+                if ( currentKeys.Any() && ( now - _lastKeysRefreshUtc ) < KeysRefreshInterval )
                 {
                     return currentKeys;
                 }
 
                 var keys = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
                 RockCache.AddOrUpdate( AllKey, AllRegion, keys );
-                _lastKeysRefreshUnixSeconds = nowUnixSeconds;
+                _lastKeysRefreshUtc = now;
                 return keys;
             }
         }
