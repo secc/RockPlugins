@@ -18,6 +18,11 @@ namespace org.secc.FamilyCheckin.Cache
 
         private static string AllKey => $"{typeof( T ).Name}:{AllString}";
 
+        // Throttle key refreshes to avoid excessive DB calls
+        private static readonly object KeysUpdateLock = new object();
+        private static DateTime _lastKeysRefreshUtc = DateTime.MinValue;
+        private static readonly TimeSpan KeysRefreshInterval = TimeSpan.FromSeconds( 10 );
+
         public void PostCached()
         {
         }
@@ -164,9 +169,29 @@ namespace org.secc.FamilyCheckin.Cache
 
         private static List<string> UpdateKeys( Func<List<string>> keyFactory )
         {
-            var keys = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
-            RockCache.AddOrUpdate( AllKey, AllRegion, keys );
-            return keys;
+            // Return cached keys if within throttle window and we have something cached
+            var now = DateTime.UtcNow;
+            var currentKeys = AllKeys();
+            if ( currentKeys.Any() && ( now - _lastKeysRefreshUtc ) < KeysRefreshInterval )
+            {
+                return currentKeys;
+            }
+
+            lock ( KeysUpdateLock )
+            {
+                // Double-check inside lock
+                now = DateTime.UtcNow;
+                currentKeys = AllKeys();
+                if ( currentKeys.Any() && ( now - _lastKeysRefreshUtc ) < KeysRefreshInterval )
+                {
+                    return currentKeys;
+                }
+
+                var keys = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
+                RockCache.AddOrUpdate( AllKey, AllRegion, keys );
+                _lastKeysRefreshUtc = now;
+                return keys;
+            }
         }
 
         private static void PublishCacheUpdateMessage( string key, T item )
