@@ -174,35 +174,47 @@ namespace org.secc.FamilyCheckin.Cache
             {
                 var now = DateTime.UtcNow;
                 var currentKeys = AllKeys();
-
+        
                 // If within throttle window and we have existing keys
                 if ( currentKeys.Any() && ( now - _lastKeysRefreshUtc ) < KeysRefreshInterval )
                 {
                     bool modified = false;
-
+        
                     // Ensure the specified key is present
                     if ( !string.IsNullOrEmpty( ensureKey ) && !currentKeys.Contains( ensureKey ) )
                     {
                         currentKeys.Add( ensureKey );
                         modified = true;
                     }
-
+        
                     // Remove the specified key
                     if ( !string.IsNullOrEmpty( removeKey ) && currentKeys.Contains( removeKey ) )
                     {
                         currentKeys.Remove( removeKey );
                         modified = true;
                     }
-
+        
                     if ( modified )
                     {
                         RockCache.AddOrUpdate( AllKey, AllRegion, currentKeys );
                     }
-
+        
                     return currentKeys;
                 }
-
+        
                 var keys = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
+        
+                // Apply ensureKey/removeKey operations to refreshed keys                
+                if ( !string.IsNullOrEmpty( ensureKey ) && !keys.Contains( ensureKey ) )
+                {
+                    keys.Add( ensureKey );
+                }
+        
+                if ( !string.IsNullOrEmpty( removeKey ) && keys.Contains( removeKey ) )
+                {
+                    keys.Remove( removeKey );
+                }
+        
                 RockCache.AddOrUpdate( AllKey, AllRegion, keys );
                 _lastKeysRefreshUtc = now;
                 return keys;
