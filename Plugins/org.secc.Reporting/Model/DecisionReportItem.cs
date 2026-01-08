@@ -175,7 +175,7 @@ namespace org.secc.Reporting.Model
             {
                 if (IsMinor)
                 {
-                    return null;
+                    return ParentPhone;
                 }
 
                 return MobilePhone;
@@ -189,7 +189,7 @@ namespace org.secc.Reporting.Model
             {
                 if (IsMinor)
                 {
-                    return null;
+                    return ParentEmail;
                 }
                 return Email;
             }
@@ -200,11 +200,6 @@ namespace org.secc.Reporting.Model
         {
             get
             {
-                if (IsMinor)
-                {
-                    return null;
-                }
-
                 var sb = new StringBuilder();
                 sb.Append( $"{HomeStreet1} " );
 
