@@ -107,7 +107,7 @@ namespace org.secc.LeagueApps.Utilities
             // If no matches found, try matching with suffix parsed out of last name
             if ( !matches.Any() && !string.IsNullOrWhiteSpace( member.lastName ) )
             {
-                var parsedName = ParseLastNameAndSuffix( member.lastName?.Trim() ?? string.Empty );
+                var parsedName = ParseLastNameAndSuffix( member.lastName.Trim() );
 
                 // Only retry if we actually found a suffix
                 if ( parsedName.SuffixValueId.HasValue )
