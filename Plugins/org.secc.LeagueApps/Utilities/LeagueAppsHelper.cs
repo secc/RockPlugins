@@ -128,7 +128,7 @@ namespace org.secc.LeagueApps.Utilities
             // If still no matches found, try matching with previous names using the original last name
             if ( !matches.Any() && !string.IsNullOrWhiteSpace( member.lastName ) && !string.IsNullOrWhiteSpace( email ) )
             {
-                matches = FindMatchByPreviousName( personService, rockContext, member.firstName?.Trim(), member.lastName?.Trim(), email );
+                matches = FindMatchByPreviousName( personService, rockContext, member.firstName?.Trim(), member.lastName.Trim(), email );
 
                 // Also try with the parsed base last name if we found a suffix
                 if ( !matches.Any() && suffixValueId.HasValue )
