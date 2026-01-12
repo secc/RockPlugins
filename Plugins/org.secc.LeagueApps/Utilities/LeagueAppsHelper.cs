@@ -362,28 +362,19 @@ namespace org.secc.LeagueApps.Utilities
         /// <returns>A queryable of matching persons.</returns>
         private static IQueryable<Person> FindMatchByPreviousName( PersonService personService, RockContext rockContext, string firstName, string lastName, string email )
         {
-            // Find people with matching first name and email
-            var potentialMatches = personService.Queryable()
+            // Build a query for people with matching first name and email,
+            // and who have a previous last name that matches the provided last name.
+            var personPreviousNameService = new PersonPreviousNameService( rockContext );
+
+            var query = personService.Queryable()
                 .Where( p => ( p.NickName == firstName || p.FirstName == firstName )
                             && p.Email == email )
-                .ToList();
+                .Where( p => personPreviousNameService.Queryable()
+                    .Any( ppn => ppn.PersonAlias.PersonId == p.Id
+                                 && ppn.LastName == lastName ) )
+                .Take( 1 );
 
-            foreach ( var potentialMatch in potentialMatches )
-            {
-                // Check if this person has a previous name that matches the last name
-                var personPreviousNameService = new PersonPreviousNameService( rockContext );
-                var hasPreviousName = personPreviousNameService.Queryable()
-                    .Any( ppn => ppn.PersonAlias.PersonId == potentialMatch.Id
-                               && ppn.LastName == lastName );
-
-                if ( hasPreviousName )
-                {
-                    // Found a match using previous name
-                    return new List<Person> { potentialMatch }.AsQueryable();
-                }
-            }
-
-            return Enumerable.Empty<Person>().AsQueryable();
+            return query;
         }
 
         /// <summary>
