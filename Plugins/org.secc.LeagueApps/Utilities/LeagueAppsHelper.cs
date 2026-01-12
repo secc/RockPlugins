@@ -362,8 +362,7 @@ namespace org.secc.LeagueApps.Utilities
                             && p.Email == email )
                 .Where( p => personPreviousNameService.Queryable()
                     .Any( ppn => ppn.PersonAlias.PersonId == p.Id
-                                 && ppn.LastName == lastName ) )
-                .Take( 1 );
+                                 && ppn.LastName == lastName ) );
 
             return query;
         }
