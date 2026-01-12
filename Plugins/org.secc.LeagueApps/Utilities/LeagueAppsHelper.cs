@@ -431,6 +431,7 @@ namespace org.secc.LeagueApps.Utilities
 
             if ( string.IsNullOrWhiteSpace( fullLastName ) )
             {
+                result.LastName = string.Empty;
                 return result;
             }
 
