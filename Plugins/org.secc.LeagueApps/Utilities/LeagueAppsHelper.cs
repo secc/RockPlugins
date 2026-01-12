@@ -126,7 +126,7 @@ namespace org.secc.LeagueApps.Utilities
             }
 
             // If still no matches found, try matching with previous names using the original last name
-            if ( !matches.Any() && !string.IsNullOrWhiteSpace( member.lastName ) && !string.IsNullOrWhiteSpace( email ) )
+            if ( !matches.Any() && !string.IsNullOrWhiteSpace( member.lastName ) && email != String.Empty )
             {
                 matches = FindMatchByPreviousName( personService, rockContext, member.firstName?.Trim(), member.lastName.Trim(), email );
 
