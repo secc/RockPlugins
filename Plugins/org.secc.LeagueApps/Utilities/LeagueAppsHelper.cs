@@ -25,15 +25,6 @@ using Rock.Web.Cache;
 
 namespace org.secc.LeagueApps.Utilities
 {
-    /// <summary>
-    /// Result of parsing a last name that may contain a suffix.
-    /// </summary>
-    public class ParsedLastName
-    {
-        public string LastName { get; set; }
-        public int? SuffixValueId { get; set; }
-    }
-
     public static class LeagueAppsHelper
     {
         public static Group GetFamilyByApiId( int leagueAppsGroupId )
@@ -102,21 +93,21 @@ namespace org.secc.LeagueApps.Utilities
 
             // First try standard matching with the full last name as provided
             var matches = personService.GetByMatch(
-                member.firstName.Trim(),
-                member.lastName.Trim(),
+                member.firstName?.Trim(),
+                member.lastName?.Trim(),
                 member.birthDate,
                 email, null,
                 member.address1,
                 member.zipCode );
 
             // Track parsed suffix info (for use when creating a new person or retrying matches)
-            string baseLastName = member.lastName.Trim();
+            string baseLastName = member.lastName?.Trim() ?? string.Empty;
             int? suffixValueId = null;
 
             // If no matches found, try matching with suffix parsed out of last name
             if ( !matches.Any() && !string.IsNullOrWhiteSpace( member.lastName ) )
             {
-                var parsedName = ParseLastNameAndSuffix( member.lastName.Trim() );
+                var parsedName = ParseLastNameAndSuffix( member.lastName?.Trim() ?? string.Empty );
 
                 // Only retry if we actually found a suffix
                 if ( parsedName.SuffixValueId.HasValue )
@@ -125,7 +116,7 @@ namespace org.secc.LeagueApps.Utilities
                     suffixValueId = parsedName.SuffixValueId;
 
                     matches = personService.GetByMatch(
-                        member.firstName.Trim(),
+                        member.firstName?.Trim(),
                         baseLastName,
                         member.birthDate,
                         email, null,
@@ -137,12 +128,12 @@ namespace org.secc.LeagueApps.Utilities
             // If still no matches found, try matching with previous names using the original last name
             if ( !matches.Any() && !string.IsNullOrWhiteSpace( member.lastName ) && !string.IsNullOrWhiteSpace( email ) )
             {
-                matches = FindMatchByPreviousName( personService, rockContext, member.firstName.Trim(), member.lastName.Trim(), email );
+                matches = FindMatchByPreviousName( personService, rockContext, member.firstName?.Trim(), member.lastName?.Trim(), email );
 
                 // Also try with the parsed base last name if we found a suffix
                 if ( !matches.Any() && suffixValueId.HasValue )
                 {
-                    matches = FindMatchByPreviousName( personService, rockContext, member.firstName.Trim(), baseLastName, email );
+                    matches = FindMatchByPreviousName( personService, rockContext, member.firstName?.Trim(), baseLastName, email );
                 }
             }
 
@@ -190,14 +181,14 @@ namespace org.secc.LeagueApps.Utilities
                 // Parse suffix now if we haven't already (for creating the new person correctly)
                 if ( !suffixValueId.HasValue && !string.IsNullOrWhiteSpace( member.lastName ) )
                 {
-                    var parsedName = ParseLastNameAndSuffix( member.lastName.Trim() );
+                    var parsedName = ParseLastNameAndSuffix( member.lastName?.Trim() ?? string.Empty );
                     baseLastName = parsedName.LastName;
                     suffixValueId = parsedName.SuffixValueId;
                 }
 
                 // Create the person
                 person = new Person();
-                person.FirstName = member.firstName.Trim();
+                person.FirstName = member.firstName?.Trim() ?? string.Empty;
                 person.LastName = baseLastName;
 
                 // Set the suffix if we parsed one
@@ -378,6 +369,39 @@ namespace org.secc.LeagueApps.Utilities
         }
 
         /// <summary>
+        /// Finds a person match by checking previous names.
+        /// This overload accepts pre-queried data for testability without database dependencies.
+        /// </summary>
+        /// <param name="potentialMatches">List of potential person matches with their previous names.</param>
+        /// <param name="firstName">The first name to match.</param>
+        /// <param name="lastName">The last name to check against previous names.</param>
+        /// <param name="email">The email to match.</param>
+        /// <returns>A list of matching PersonMatchInfo objects.</returns>
+        public static List<PersonMatchInfo> FindMatchByPreviousName( List<PersonMatchInfo> potentialMatches, string firstName, string lastName, string email )
+        {
+            if ( potentialMatches == null || !potentialMatches.Any() )
+            {
+                return new List<PersonMatchInfo>();
+            }
+
+            if ( string.IsNullOrWhiteSpace( firstName ) || string.IsNullOrWhiteSpace( lastName ) || string.IsNullOrWhiteSpace( email ) )
+            {
+                return new List<PersonMatchInfo>();
+            }
+
+            var matches = potentialMatches
+                .Where( p => ( string.Equals( p.NickName, firstName, StringComparison.OrdinalIgnoreCase ) ||
+                               string.Equals( p.FirstName, firstName, StringComparison.OrdinalIgnoreCase ) ) &&
+                         string.Equals( p.Email, email, StringComparison.OrdinalIgnoreCase ) &&
+                         p.PreviousLastNames != null &&
+                         p.PreviousLastNames.Any( pln => string.Equals( pln, lastName, StringComparison.OrdinalIgnoreCase ) ) )
+                .Take( 1 )
+                .ToList();
+
+            return matches;
+        }
+
+        /// <summary>
         /// Parses a last name to separate the base last name from any suffix (e.g., "Smith Jr." -> "Smith" + Jr suffix).
         /// Uses Rock's DefinedType cache to get suffix values.
         /// </summary>
@@ -453,7 +477,66 @@ namespace org.secc.LeagueApps.Utilities
     /// </summary>
     public class SuffixInfo
     {
+        /// <summary>
+        /// Gets or sets the defined value identifier for the suffix.
+        /// </summary>
         public int Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets the suffix value (e.g., "Jr.", "Sr.", "III").
+        /// </summary>
         public string Value { get; set; }
+    }
+
+    /// <summary>
+    /// Represents person information for matching purposes.
+    /// </summary>
+    public class PersonMatchInfo
+    {
+        /// <summary>
+        /// Gets or sets the person identifier.
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets the person's first name.
+        /// </summary>
+        public string FirstName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the person's nick name.
+        /// </summary>
+        public string NickName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the person's last name.
+        /// </summary>
+        public string LastName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the person's email address.
+        /// </summary>
+        public string Email { get; set; }
+
+        /// <summary>
+        /// Gets or sets the list of previous last names for this person.
+        /// </summary>
+        public List<string> PreviousLastNames { get; set; }
+    }
+
+    /// <summary>
+    /// Result of parsing a last name that may contain a suffix.
+    /// </summary>
+    public class ParsedLastName
+    {
+        /// <summary>
+        /// Gets or sets the base last name without the suffix.
+        /// </summary>
+        public string LastName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the defined value identifier of the parsed suffix, or null if no suffix was found.
+        /// </summary>
+        public int? SuffixValueId { get; set; }
     }
 }
