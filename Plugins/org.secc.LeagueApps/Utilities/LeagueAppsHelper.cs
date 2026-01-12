@@ -181,7 +181,7 @@ namespace org.secc.LeagueApps.Utilities
                 // Parse suffix now if we haven't already (for creating the new person correctly)
                 if ( !suffixValueId.HasValue && !string.IsNullOrWhiteSpace( member.lastName ) )
                 {
-                    var parsedName = ParseLastNameAndSuffix( member.lastName?.Trim() ?? string.Empty );
+                    var parsedName = ParseLastNameAndSuffix( member.lastName.Trim() );
                     baseLastName = parsedName.LastName;
                     suffixValueId = parsedName.SuffixValueId;
                 }
