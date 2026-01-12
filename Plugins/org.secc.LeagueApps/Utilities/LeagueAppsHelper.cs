@@ -441,7 +441,11 @@ namespace org.secc.LeagueApps.Utilities
             }
 
             // Order by length descending to check longer suffixes first (e.g., "III" before "II")
-            var orderedSuffixes = suffixes.OrderByDescending( s => s.Value.Length ).ToList();
+            // Filter out suffixes with null or empty values to prevent NullReferenceException
+            var orderedSuffixes = suffixes
+                .Where( s => !string.IsNullOrWhiteSpace( s.Value ) )
+                .OrderByDescending( s => s.Value.Length )
+                .ToList();
 
             foreach ( var suffix in orderedSuffixes )
             {
