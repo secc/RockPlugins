@@ -156,7 +156,22 @@ namespace RockWeb.Plugins.org_secc.Communication
         {
             foreach ( var attribute in groupMember.Attributes.Where( a => a.Value.IsGridColumn ).Select( a => a.Value ).ToList() )
             {
-                var control = attribute.FieldType.Field.FilterControl( attribute.QualifierValues, "filter_" + attribute.Id.ToString(), false, Rock.Reporting.FilterMode.SimpleFilter );
+                Control control;
+
+                // Check if this is a Campus or Campuses field type and override with multi-select picker
+                if ( attribute.FieldType.Guid == Rock.SystemGuid.FieldType.CAMPUS.AsGuid() ||
+                     attribute.FieldType.Guid == Rock.SystemGuid.FieldType.CAMPUSES.AsGuid() )
+                {
+                    var campusesPicker = new CampusesPicker();
+                    campusesPicker.ID = "filter_" + attribute.Id.ToString();
+                    campusesPicker.Label = attribute.Name;
+                    campusesPicker.Help = attribute.Description;
+                    campusesPicker.IncludeInactive = false;
+                    phFilter.Controls.Add( campusesPicker );
+                    continue;
+                }
+
+                control = attribute.FieldType.Field.FilterControl( attribute.QualifierValues, "filter_" + attribute.Id.ToString(), false, Rock.Reporting.FilterMode.SimpleFilter );
                 if ( control != null )
                 {
                     if ( control is IRockControl )
@@ -226,6 +241,56 @@ namespace RockWeb.Plugins.org_secc.Communication
             foreach ( var attribute in attributes )
             {
                 var filterControl = phFilter.FindControl( "filter_" + attribute.Id.ToString() );
+
+                // Handle Campus (single) or Campuses (multi) field types with multi-select picker
+                bool isCampusFieldType = attribute.FieldType.Guid == Rock.SystemGuid.FieldType.CAMPUS.AsGuid();
+                bool isCampusesFieldType = attribute.FieldType.Guid == Rock.SystemGuid.FieldType.CAMPUSES.AsGuid();
+
+                if ( ( isCampusFieldType || isCampusesFieldType ) && filterControl is CampusesPicker )
+                {
+                    var campusesPicker = ( CampusesPicker ) filterControl;
+                    var selectedCampusIds = campusesPicker.SelectedCampusIds;
+                    if ( selectedCampusIds.Any() )
+                    {
+                        // Convert selected campus IDs to GUIDs (lowercase) for attribute value comparison
+                        var selectedCampusGuids = selectedCampusIds
+                            .Select( id => CampusCache.Get( id )?.Guid.ToString().ToLower() )
+                            .Where( g => g != null )
+                            .ToList();
+
+                        // Get the entity type ID for GroupMember
+                        int entityTypeId = EntityTypeCache.GetId( typeof( GroupMember ) ) ?? 0;
+
+                        // Build a query for attribute values that contain any of the selected campus GUIDs
+                        var attributeValueService = new AttributeValueService( rockContext );
+
+                        // Start with base query for this attribute
+                        var avBaseQuery = attributeValueService.Queryable()
+                            .Where( av => av.Attribute.EntityTypeId == entityTypeId
+                                && av.Attribute.Key == attribute.Key
+                                && av.EntityId.HasValue );
+
+                        // Build OR conditions using Union for each selected campus GUID
+                        IQueryable<int?> matchingEntityIds = null;
+                        foreach ( var campusGuid in selectedCampusGuids )
+                        {
+                            var guidMatch = avBaseQuery
+                                .Where( av => av.Value.Contains( campusGuid ) )
+                                .Select( av => av.EntityId );
+
+                            matchingEntityIds = matchingEntityIds == null
+                                ? guidMatch
+                                : matchingEntityIds.Union( guidMatch );
+                        }
+
+                        if ( matchingEntityIds != null )
+                        {
+                            qry = qry.Where( gm => matchingEntityIds.Contains( gm.Id ) );
+                        }
+                    }
+                    continue;
+                }
+
                 qry = attribute.FieldType.Field.ApplyAttributeQueryFilter( qry, filterControl, attribute, groupMemberService, Rock.Reporting.FilterMode.SimpleFilter );
             }
 
@@ -241,7 +306,6 @@ namespace RockWeb.Plugins.org_secc.Communication
                     var dvQuery = dataView.GetQuery( new DataViewGetQueryArgs { DbContext = rockContext, DatabaseTimeoutSeconds = 60 } );
                     qry = qry.Where( m => dvQuery.Select( p => p.Id ).Contains( m.PersonId ) );
                 }
-
             }
 
             BuildCommunication( qry.ToList() );
