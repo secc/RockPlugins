@@ -261,20 +261,29 @@ namespace RockWeb.Plugins.org_secc.Communication
                         // Get the entity type ID for GroupMember
                         int entityTypeId = EntityTypeCache.GetId( typeof( GroupMember ) ) ?? 0;
 
-                        // Build a query for attribute values that contain any of the selected campus GUIDs
                         var attributeValueService = new AttributeValueService( rockContext );
 
-                        // Start with base query for this attribute
-                        var avBaseQuery = attributeValueService.Queryable()
+                        // Build patterns for SQL LIKE matching (exact GUID boundaries)
+                        // Pattern: value equals guid, starts with "guid,", ends with ",guid", or contains ",guid,"
+                        var patterns = selectedCampusGuids.SelectMany( guid => new[]
+                        {
+                            guid,                    // Exact match
+                            guid + ",%",             // First in comma-separated list
+                            "%," + guid,             // Last in comma-separated list
+                            "%," + guid + ",%"       // Middle of comma-separated list
+                        } ).ToList();
+
+                        // Single query using OR logic with SqlFunctions
+                        var matchingEntityIds = attributeValueService.Queryable()
                             .Where( av => av.Attribute.EntityTypeId == entityTypeId
                                 && av.Attribute.Key == attribute.Key
-                                && av.EntityId.HasValue );
-
-                        // Build a single query that matches any of the selected campus GUIDs
-                        var matchingEntityIds = avBaseQuery
-                            .Where( av => selectedCampusGuids.Any( guid => av.Value.Contains( guid ) ) )
-                            .Select( av => av.EntityId )
-                            .Distinct();
+                                && av.EntityId.HasValue
+                                && selectedCampusGuids.Any( guid =>
+                                    av.Value == guid ||
+                                    av.Value.StartsWith( guid + "," ) ||
+                                    av.Value.EndsWith( "," + guid ) ||
+                                    av.Value.Contains( "," + guid + "," ) ) )
+                            .Select( av => av.EntityId );
 
                         qry = qry.Where( gm => matchingEntityIds.Contains( gm.Id ) );
                     }
