@@ -270,23 +270,13 @@ namespace RockWeb.Plugins.org_secc.Communication
                                 && av.Attribute.Key == attribute.Key
                                 && av.EntityId.HasValue );
 
-                        // Build OR conditions using Union for each selected campus GUID
-                        IQueryable<int?> matchingEntityIds = null;
-                        foreach ( var campusGuid in selectedCampusGuids )
-                        {
-                            var guidMatch = avBaseQuery
-                                .Where( av => av.Value.Contains( campusGuid ) )
-                                .Select( av => av.EntityId );
+                        // Build a single query that matches any of the selected campus GUIDs
+                        var matchingEntityIds = avBaseQuery
+                            .Where( av => selectedCampusGuids.Any( guid => av.Value.Contains( guid ) ) )
+                            .Select( av => av.EntityId )
+                            .Distinct();
 
-                            matchingEntityIds = matchingEntityIds == null
-                                ? guidMatch
-                                : matchingEntityIds.Union( guidMatch );
-                        }
-
-                        if ( matchingEntityIds != null )
-                        {
-                            qry = qry.Where( gm => matchingEntityIds.Contains( gm.Id ) );
-                        }
+                        qry = qry.Where( gm => matchingEntityIds.Contains( gm.Id ) );
                     }
                     continue;
                 }
