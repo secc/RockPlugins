@@ -252,9 +252,9 @@ namespace RockWeb.Plugins.org_secc.Communication
                     var selectedCampusIds = campusesPicker.SelectedCampusIds;
                     if ( selectedCampusIds.Any() )
                     {
-                        // Convert selected campus IDs to GUIDs (lowercase) for attribute value comparison
+                        // Convert selected campus IDs to GUID strings for attribute value comparison
                         var selectedCampusGuids = selectedCampusIds
-                            .Select( id => CampusCache.Get( id )?.Guid.ToString().ToLower() )
+                            .Select( id => CampusCache.Get( id )?.Guid.ToString() )
                             .Where( g => g != null )
                             .ToList();
 
