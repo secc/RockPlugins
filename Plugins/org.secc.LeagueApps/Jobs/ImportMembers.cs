@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using org.secc.DevLib.Components;
 using org.secc.LeagueApps.Components;
 using org.secc.LeagueApps.Contracts;
@@ -7,6 +9,7 @@ using org.secc.LeagueApps.Utilities;
 using Quartz;
 using Rock;
 using Rock.Attribute;
+using Rock.Model;
 using Rock.Web.Cache;
 
 namespace org.secc.LeagueApps.Jobs
@@ -32,6 +35,7 @@ namespace org.secc.LeagueApps.Jobs
             List<Member> members = null;
 
             var count = 0;
+            var errors = new List<string>();
 
             do
             {
@@ -41,45 +45,63 @@ namespace org.secc.LeagueApps.Jobs
                     lastId = member.userId;
                     latestUpdated = member.lastUpdated;
 
-                    var person = LeagueAppsHelper.GetPersonByApiId( member.userId );
-
-                    if ( person == null && !createNew )
+                    try
                     {
-                        continue;
+                        var person = LeagueAppsHelper.GetPersonByApiId( member.userId );
+
+                        if ( person == null && !createNew )
+                        {
+                            continue;
+                        }
+
+
+                        if ( person == null )
+                        {
+                            person = LeagueAppsHelper.CreatePersonFromMember( member, connectionStatus );
+                        }
+
+                        if ( person == null )
+                        {
+                            continue;
+                        }
+
+
+                        var family = person.PrimaryFamily;
+
+                        if ( family == null )
+                        {
+                            continue;
+                        }
+
+
+                        family.LoadAttributes();
+                        if ( family.GetAttributeValue( Constants.LeagueAppsFamilyId ).IsNullOrWhiteSpace() )
+                        {
+                            family.SetAttributeValue( Constants.LeagueAppsFamilyId, member.groupId );
+                            family.SaveAttributeValues();
+                        }
+
+                        count++;
                     }
-
-
-                    if ( person == null )
+                    catch ( Exception ex )
                     {
-                        person = LeagueAppsHelper.CreatePersonFromMember( member, connectionStatus );
+                        var errorMsg = $"UserId: {member.userId}, Name: {member.firstName ?? "Unknown"} {member.lastName ?? "Unknown"} - Error: {ex.Message}";
+                        errors.Add( errorMsg );
+                        ExceptionLogService.LogException( ex, null );
                     }
-
-                    if ( person == null )
-                    {
-                        continue;
-                    }
-
-
-                    var family = person.PrimaryFamily;
-
-                    if ( family == null )
-                    {
-                        continue;
-                    }
-
-
-                    family.LoadAttributes();
-                    if ( family.GetAttributeValue( Constants.LeagueAppsFamilyId ).IsNullOrWhiteSpace() )
-                    {
-                        family.SetAttributeValue( Constants.LeagueAppsFamilyId, member.groupId );
-                        family.SaveAttributeValues();
-                    }
-
-                    count++;
                 }
             } while ( members != null && members.Any() );
 
-            context.Result = "Successfully imported " + count + " participants.";
+            var resultMsg = new StringBuilder();
+            resultMsg.AppendFormat( "Successfully imported {0} participant(s).", count );
+
+            if ( errors.Any() )
+            {
+                resultMsg.AppendFormat( " {0} error(s) occurred: ", errors.Count );
+                resultMsg.Append( string.Join( "; ", errors ) );
+            }
+
+            context.Result = resultMsg.ToString();
         }
     }
 }

@@ -68,7 +68,7 @@
                                         <Rock:RockBoundField HeaderText="BirthDate" DataField="Birthdate" DataFormatString="{0:d}" />
                                         <Rock:RockBoundField HeaderText="Age" DataField="Age" SortExpression="Age" />
                                         <Rock:RockBoundField HeaderText="Grade" DataField="Grade" />
-                                        <Rock:RockBoundField HeaderText="Mobile Phone" DataField="MobilePhoneGridValue" />
+                                        <Rock:RockBoundField HeaderText="Phone" DataField="MobilePhoneGridValue" />
                                         <Rock:RockBoundField HeaderText="Email" DataField="EmailGridValue" />
                                         <Rock:RockBoundField HeaderText="Address" DataField="FullAddressGrid" />
                                         <Rock:RockBoundField HeaderText="Connection Status" DataField="ConnectionStatusValue" />

@@ -18,14 +18,19 @@ namespace org.secc.FamilyCheckin.Cache
 
         private static string AllKey => $"{typeof( T ).Name}:{AllString}";
 
+        // Throttle key refreshes to avoid excessive DB calls
+        private static readonly object KeysUpdateLock = new object();
+        private static DateTime _lastKeysRefreshUtc = DateTime.MinValue;
+        private static readonly TimeSpan KeysRefreshInterval = TimeSpan.FromSeconds( 10 );
+
         public void PostCached()
         {
         }
 
-        public static List<string> AllKeys( Func<List<string>> keyFactory, bool forceRefresh = false )
+        public static List<string> AllKeys( Func<List<string>> keyFactory )
         {
             var keys = AllKeys();
-            if ( !keys.Any() || forceRefresh )
+            if ( !keys.Any() )
             {
                 keys = UpdateKeys( keyFactory );
             }
@@ -48,7 +53,7 @@ namespace org.secc.FamilyCheckin.Cache
                 var keys = AllKeys();
                 if ( !keys.Any() || !keys.Contains( qualifiedKey ) )
                 {
-                    UpdateKeys( keyFactory );
+                    UpdateKeys( keyFactory, ensureKey: qualifiedKey );
                 }
 
                 RockCache.AddOrUpdate( qualifiedKey, item );
@@ -57,7 +62,7 @@ namespace org.secc.FamilyCheckin.Cache
             else
             {
                 //This item is gone! Make sure it's not in our key list
-                UpdateKeys( keyFactory );
+                UpdateKeys( keyFactory, removeKey: qualifiedKey );
             }
 
             return item;
@@ -82,7 +87,7 @@ namespace org.secc.FamilyCheckin.Cache
                     var keys = AllKeys();
                     if ( !keys.Any() || !keys.Contains( qualifiedKey ) )
                     {
-                        UpdateKeys( keyFactory );
+                        UpdateKeys( keyFactory, ensureKey: qualifiedKey );
                     }            //RockCacheManager<T>.Instance.Cache.AddOrUpdate( qualifiedKey, item, v => item );
                     RockCache.AddOrUpdate( qualifiedKey, item );
                     PublishCacheUpdateMessage( qualifiedKey, item );
@@ -112,26 +117,28 @@ namespace org.secc.FamilyCheckin.Cache
         }
 
         public static void Remove( string qualifiedKey, Func<List<string>> keyFactory )
-        {            //RockCacheManager<T>.Instance.Cache.Remove( qualifiedKey );
+        {
             RockCache.Remove( qualifiedKey );
             PublishCacheUpdateMessage( qualifiedKey, default( T ) );
-            UpdateKeys( keyFactory );
+            UpdateKeys( keyFactory, removeKey: qualifiedKey );
         }
 
         public static void Clear( Func<List<string>> keyFactory )
         {
             UpdateKeys( keyFactory );
 
-            foreach ( var key in AllKeys() )
+            // Create a copy of the keys to avoid collection modification during enumeration
+            foreach ( var key in AllKeys().ToList() )
             {
-                FlushItem( key );
+                FlushItem( key, keyFactory );
             }
             PublishCacheUpdateMessage( null, default( T ) );
         }
-        public static void FlushItem( string qualifiedKey )
+        public static void FlushItem( string qualifiedKey, Func<List<string>> keyFactory )
         {
             //RockCacheManager<T>.Instance.Cache.Remove( qualifiedKey );
             RockCache.Remove( qualifiedKey );
+            UpdateKeys( keyFactory, removeKey: qualifiedKey );
             PublishCacheUpdateMessage( qualifiedKey, default( T ) );
         }
 
@@ -162,11 +169,57 @@ namespace org.secc.FamilyCheckin.Cache
             return keys ?? new List<string>();
         }
 
-        private static List<string> UpdateKeys( Func<List<string>> keyFactory )
+        private static List<string> UpdateKeys( Func<List<string>> keyFactory, string ensureKey = null, string removeKey = null )
         {
-            var keys = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
-            RockCache.AddOrUpdate( AllKey, AllRegion, keys );
-            return keys;
+            lock ( KeysUpdateLock )
+            {
+                var now = DateTime.UtcNow;
+                var currentKeys = AllKeys();
+
+                // If within throttle window and we have existing keys
+                if ( currentKeys.Any() && ( now - _lastKeysRefreshUtc ) < KeysRefreshInterval )
+                {
+                    bool modified = false;
+
+                    // Ensure the specified key is present
+                    if ( !string.IsNullOrEmpty( ensureKey ) && !currentKeys.Contains( ensureKey ) )
+                    {
+                        currentKeys.Add( ensureKey );
+                        modified = true;
+                    }
+
+                    // Remove the specified key
+                    if ( !string.IsNullOrEmpty( removeKey ) && currentKeys.Contains( removeKey ) )
+                    {
+                        currentKeys.Remove( removeKey );
+                        modified = true;
+                    }
+
+                    if ( modified )
+                    {
+                        RockCache.AddOrUpdate( AllKey, AllRegion, currentKeys );
+                    }
+
+                    return currentKeys;
+                }
+
+                var keys = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
+
+                // Apply ensureKey/removeKey operations to refreshed keys                
+                if ( !string.IsNullOrEmpty( ensureKey ) && !keys.Contains( ensureKey ) )
+                {
+                    keys.Add( ensureKey );
+                }
+
+                if ( !string.IsNullOrEmpty( removeKey ) && keys.Contains( removeKey ) )
+                {
+                    keys.Remove( removeKey );
+                }
+
+                RockCache.AddOrUpdate( AllKey, AllRegion, keys );
+                _lastKeysRefreshUtc = now;
+                return keys;
+            }
         }
 
         private static void PublishCacheUpdateMessage( string key, T item )

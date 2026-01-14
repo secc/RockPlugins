@@ -4,7 +4,7 @@
         <div class="col-md-12">
 
             <legend>Mobile Login</legend>
-            <asp:Panel ID="pnlPhoneNumber" runat="server">
+            <asp:Panel ID="pnlPhoneNumber" runat="server" DefaultButton="btnGenerate">
                 <asp:ValidationSummary ID="valSummary" runat="server" ValidationGroup="PhoneNumber" HeaderText="Please Correct the Following" CssClass="alert alert-danger" />
                 <p>
                     <asp:Label Text="" ID="lbPrompt" runat="server" />
@@ -18,7 +18,7 @@
                 <Rock:BootstrapButton ID="btnGenerate" runat="server" Text="Generate Code" CssClass="btn btn-primary" OnClick="btnGenerate_Click" ValidationGroup="PhoneNumber" CausesValidation="true" />
             </asp:Panel>
 
-            <asp:Panel runat="server" ID="pnlCode" Visible="false">
+            <asp:Panel runat="server" ID="pnlCode" Visible="false" DefaultButton="btnLogin">
                 <p>We have sent you a code please enter it here to login.</p>
                 <Rock:NotificationBox ID="nbError" Visible="false" NotificationBoxType="Danger" runat="server" />
                 <Rock:RockTextBox runat="server" Label="Code" ID="tbCode" Required="true" DisplayRequiredIndicator="false" ValidationGroup="Code" />

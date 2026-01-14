@@ -28,16 +28,8 @@
 // limitations under the License.
 // </copyright>
 //
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data.SqlClient;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Web.UI;
-using System.Web.UI.WebControls;
 using DotLiquid;
+using ImageResizer.ExtensionMethods;
 using iText.Kernel.Pdf;
 using iText.Kernel.Utils;
 using Rock;
@@ -48,7 +40,14 @@ using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using Document = iText.Layout.Document;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data.SqlClient;
+using System.IO;
+using System.Linq;
+using System.Web.UI;
+using System.Web.UI.WebControls;
 using ListItem = System.Web.UI.WebControls.ListItem;
 
 namespace RockWeb.Plugins.org_secc.Finance
@@ -78,7 +77,7 @@ namespace RockWeb.Plugins.org_secc.Finance
             base.OnInit( e );
             Server.ScriptTimeout = GetAttributeValue( "PageLoadTimeout" ).AsInteger();
             Guid binaryFileTypeGuid = Guid.NewGuid();
-            if ( Guid.TryParse( GetAttributeValue( "BinaryFileType" ), out binaryFileTypeGuid ) )
+            if (Guid.TryParse( GetAttributeValue( "BinaryFileType" ), out binaryFileTypeGuid ))
             {
                 var service = new BinaryFileTypeService( new RockContext() );
                 binaryFileType = service.Get( binaryFileTypeGuid );
@@ -101,56 +100,71 @@ namespace RockWeb.Plugins.org_secc.Finance
 
         public void ExportPdfs_Click( object sender, EventArgs e )
         {
-            var files = GetBinaryFiles().Select( d => d.BinaryFile );
+            var files = GetBinaryFiles().Select( d => d.BinaryFile ).ToList();
+            var path = Server.MapPath( "~/App_Data/Cache/ExportPDF.pdf" );
 
-            var outputStream = new MemoryStream();
-            var pdfWriter = new PdfWriter( outputStream );
-            var pdfDocument = new PdfDocument( pdfWriter );
-
-            var merger = new PdfMerger(pdfDocument);
-
-            List<int> invalidFileIds = new List<int>();
-            foreach ( var file in files )
+            if(System.IO.File.Exists( path ))
             {
-                try
-                {
-                    if (file.MimeType == "application/pdf")
-                    {
-                        using (var reader = new PdfReader(file.ContentStream))
-                        {
-                            var statementPDFDoc = new PdfDocument(reader);
-                            merger.Merge(statementPDFDoc, 1, statementPDFDoc.GetNumberOfPages());
-
-                            statementPDFDoc.Close();
-                        }
-                    }
-                }
-                catch
-                {
-                    invalidFileIds.Add(file.Id);
-                }
+                System.IO.File.Delete( path );
             }
 
-            if ( invalidFileIds.Any() )
+            var outputStream = new FileStream( path, FileMode.Create );
+
+
+            var invalidFileIds = new List<int>();
+            using (var pdfWriter = new PdfWriter( outputStream ))
+            {
+                using (var pdfDocument = new PdfDocument( pdfWriter ))
+                {
+                    var merger = new PdfMerger( pdfDocument );
+                    foreach (var file in files)
+                    {
+                        try
+                        {
+                            if (file.MimeType == "application/pdf")
+                            {
+                                var statementReader = new PdfReader( file.ContentStream );
+                                var statementDoc = new PdfDocument( statementReader );
+                                merger.Merge( statementDoc, 1, statementDoc.GetNumberOfPages() );
+
+                                statementDoc.Close();
+                                statementReader.Close();
+                            }
+
+                        }
+                        catch
+                        {
+                            invalidFileIds.Add( file.Id );
+                        }
+                    }
+                    merger.Close();
+                    pdfDocument.Close();
+                }
+                pdfWriter.Close();
+            }
+
+
+            if (invalidFileIds.Any())
             {
                 nbBadFiles.Visible = true;
                 nbBadFiles.Text = "Invalid Files:<br />" + invalidFileIds.Select( i => i.ToString() ).ToList().AsDelimited( "," );
             }
 
-            merger.Close();
-
-            // Finish up the output
-            pdfDocument.Close();
 
             this.Page.EnableViewState = false;
             this.Page.Response.Clear();
             Response.ContentType = "application/pdf";
             Response.AddHeader( "content-disposition", "attachment;filename=GivingStatementExport.pdf" );
 
+            outputStream = new FileStream( path, FileMode.Open );
+            outputStream.Position = 0;
             this.Page.Response.Charset = string.Empty;
-            this.Page.Response.BinaryWrite( outputStream.ToArray() );
+            this.Page.Response.BinaryWrite( outputStream.CopyToBytes() );
             this.Page.Response.Flush();
             this.Page.Response.End();
+
+            outputStream.Close();
+            System.IO.File.Delete( path );
         }
 
         /// <summary>
@@ -160,7 +174,7 @@ namespace RockWeb.Plugins.org_secc.Finance
         protected override void OnLoad( EventArgs e )
         {
             nbBadFiles.Visible = false;
-            if ( !Page.IsPostBack )
+            if (!Page.IsPostBack)
             {
                 BindGrid();
             }
@@ -228,10 +242,10 @@ namespace RockWeb.Plugins.org_secc.Finance
             var binaryFileService = new BinaryFileService( rockContext );
             BinaryFile binaryFile = binaryFileService.Get( e.RowKeyId );
 
-            if ( binaryFile != null )
+            if (binaryFile != null)
             {
                 string errorMessage;
-                if ( !binaryFileService.CanDelete( binaryFile, out errorMessage ) )
+                if (!binaryFileService.CanDelete( binaryFile, out errorMessage ))
                 {
                     mdGridWarning.Show( errorMessage, ModalAlertType.Information );
                     return;
@@ -243,7 +257,7 @@ namespace RockWeb.Plugins.org_secc.Finance
                 binaryFileService.Delete( binaryFile );
                 rockContext.SaveChanges();
 
-                if ( clearDeviceCache )
+                if (clearDeviceCache)
                 {
                     Rock.CheckIn.KioskDevice.Clear();
                     Rock.CheckIn.KioskLabel.Remove( guid );
@@ -272,14 +286,14 @@ namespace RockWeb.Plugins.org_secc.Finance
         /// </summary>
         private void BindFilter()
         {
-            if ( !Page.IsPostBack )
+            if (!Page.IsPostBack)
             {
                 // Set the default filter value for file name
                 tbName.Text = fBinaryFile.GetUserPreference( "File Name" );
 
                 // Set the filter value for Person
                 var personId = fBinaryFile.GetUserPreference( "Person" ).AsIntegerOrNull();
-                if ( personId.HasValue )
+                if (personId.HasValue)
                 {
                     var person = new PersonService( new RockContext() ).Get( personId.Value );
                     ppPerson.SetValue( person );
@@ -314,7 +328,7 @@ namespace RockWeb.Plugins.org_secc.Finance
             context.Database.CommandTimeout = 180;
 
             // If the document type is not set
-            if ( string.IsNullOrWhiteSpace( GetAttributeValue( "DocumentType" ) ) )
+            if (string.IsNullOrWhiteSpace( GetAttributeValue( "DocumentType" ) ))
             {
                 return null;
             }
@@ -325,7 +339,7 @@ namespace RockWeb.Plugins.org_secc.Finance
 
             // Add any query filters here
             string name = fBinaryFile.GetUserPreference( "File Name" );
-            if ( !string.IsNullOrWhiteSpace( name ) )
+            if (!string.IsNullOrWhiteSpace( name ))
             {
                 documentQuery = documentQuery.Where( d => d.BinaryFile.FileName.Contains( name ) );
             }
@@ -333,7 +347,7 @@ namespace RockWeb.Plugins.org_secc.Finance
             var personQuery = personService.Queryable( true );
 
             // Filter for a specific Person
-            if ( ppPerson.SelectedValue.HasValue && ppPerson.SelectedValue.Value > 0 )
+            if (ppPerson.SelectedValue.HasValue && ppPerson.SelectedValue.Value > 0)
             {
                 string givingId = personService.Queryable().Where( a => a.Id == ppPerson.SelectedValue ).Select( p => p.GivingId ).FirstOrDefault();
                 personQuery = personQuery.Where( p => p.GivingId == givingId );
@@ -351,12 +365,12 @@ namespace RockWeb.Plugins.org_secc.Finance
 
 
             List<Guid?> dataviews = GetAttributeValue( "PrintAndMail" ).SplitDelimitedValues().AsGuidOrNullList();
-            if ( list.Count() > 0 )
+            if (list.Count() > 0)
             {
-                if ( dataviews != null && dataviews.Count > 0 )
+                if (dataviews != null && dataviews.Count > 0)
                 {
                     var dataViewService = new DataViewService( context );
-                    foreach ( var dataviewguid in dataviews )
+                    foreach (var dataviewguid in dataviews)
                     {
                         list.FirstOrDefault().MailPersonIds.AddRange( dataViewService.Get( dataviewguid.Value ).GetQuery( new DataViewGetQueryArgs() ).OfType<Rock.Model.Person>().Select( p => p.Id ).ToList() );
                     }
@@ -364,11 +378,11 @@ namespace RockWeb.Plugins.org_secc.Finance
             }
 
             // Apply the Statement Delivery Preference filter
-            if ( cbDeliveryPreference.SelectedValue == "Electronic" )
+            if (cbDeliveryPreference.SelectedValue == "Electronic")
             {
                 list = list.Where( l => !l.MailPersonIds.Intersect( l.People.Select( p => p.Id ) ).Any() ).ToList();
             }
-            else if ( cbDeliveryPreference.SelectedValue == "Print & Mail" )
+            else if (cbDeliveryPreference.SelectedValue == "Print & Mail")
             {
                 list = list.Where( l => l.MailPersonIds.Intersect( l.People.Select( p => p.Id ) ).Any() ).ToList();
             }
@@ -376,9 +390,9 @@ namespace RockWeb.Plugins.org_secc.Finance
 
             var sortProperty = gBinaryFile.SortProperty;
             // Sort by Person Name
-            if ( sortProperty != null && sortProperty.Property == "PersonNames" )
+            if (sortProperty != null && sortProperty.Property == "PersonNames")
             {
-                if ( sortProperty.Direction == SortDirection.Ascending )
+                if (sortProperty.Direction == SortDirection.Ascending)
                 {
                     list = list.OrderBy( l => l.People.FirstOrDefault().LastName ).ToList();
                 }
@@ -388,9 +402,9 @@ namespace RockWeb.Plugins.org_secc.Finance
                 }
             }
             // Sort by Person Name
-            else if ( sortProperty != null && sortProperty.Property == "GivingId" )
+            else if (sortProperty != null && sortProperty.Property == "GivingId")
             {
-                if ( sortProperty.Direction == SortDirection.Ascending )
+                if (sortProperty.Direction == SortDirection.Ascending)
                 {
                     list = list.OrderBy( l => l.People.FirstOrDefault().GivingId ).ToList();
                 }
@@ -400,9 +414,9 @@ namespace RockWeb.Plugins.org_secc.Finance
                 }
             }
             // Sort by Delivery Preference
-            else if ( sortProperty != null && sortProperty.Property == "StatementDelivery" )
+            else if (sortProperty != null && sortProperty.Property == "StatementDelivery")
             {
-                if ( sortProperty.Direction == SortDirection.Ascending )
+                if (sortProperty.Direction == SortDirection.Ascending)
                 {
                     list = list.OrderBy( l => l.StatementDelivery ).ToList();
                 }
@@ -412,9 +426,9 @@ namespace RockWeb.Plugins.org_secc.Finance
                 }
             }
             // Sort by LastModified
-            else if ( sortProperty != null && sortProperty.Property == "ModifiedDateTime" )
+            else if (sortProperty != null && sortProperty.Property == "ModifiedDateTime")
             {
-                if ( sortProperty.Direction == SortDirection.Ascending )
+                if (sortProperty.Direction == SortDirection.Ascending)
                 {
                     list = list.OrderBy( l => l.BinaryFile.ModifiedDateTime ).ToList();
                 }
@@ -426,7 +440,7 @@ namespace RockWeb.Plugins.org_secc.Finance
             // Sort by Giving Id
             else
             {
-                if ( sortProperty == null || sortProperty.Direction == SortDirection.Ascending )
+                if (sortProperty == null || sortProperty.Direction == SortDirection.Ascending)
                 {
                     list = list.OrderBy( d => d.BinaryFile.FileName ).ToList();
                 }
