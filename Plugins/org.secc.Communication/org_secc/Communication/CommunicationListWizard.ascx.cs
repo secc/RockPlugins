@@ -283,7 +283,8 @@ namespace RockWeb.Plugins.org_secc.Communication
                                     av.Value.StartsWith( guid + "," ) ||
                                     av.Value.EndsWith( "," + guid ) ||
                                     av.Value.Contains( "," + guid + "," ) ) )
-                            .Select( av => av.EntityId.Value );
+                            .Select( av => av.EntityId.Value )
+                            .ToList();
 
                         qry = qry.Where( gm => matchingEntityIds.Contains( gm.Id ) );
                     }
