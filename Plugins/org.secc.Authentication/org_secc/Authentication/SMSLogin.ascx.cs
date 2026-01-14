@@ -12,6 +12,11 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Text.RegularExpressions;
+using System.Web.UI;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -20,30 +25,25 @@ using Rock.Security;
 using Rock.Security.ExternalAuthentication;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text.RegularExpressions;
-using System.Web.UI;
 
 namespace RockWeb.Plugins.org_secc.Authentication
 {
     /// <summary>
     /// User login using SMS for authentication.
     /// </summary>
-    [DisplayName("SMS Login")]
-    [Category("SECC > Security")]
-    [Description("User login using SMS for authentication.")]
+    [DisplayName( "SMS Login" )]
+    [Category( "SECC > Security" )]
+    [Description( "User login using SMS for authentication." )]
 
-    [CodeEditorField("Prompt Message", "Message to show before logging in.", CodeEditorMode.Html, CodeEditorTheme.Rock, 100, true, @"
+    [CodeEditorField( "Prompt Message", "Message to show before logging in.", CodeEditorMode.Html, CodeEditorTheme.Rock, 100, true, @"
 Please enter your cell phone number and we will text you a code to log in with. <br /><i>Text and data rates may apply</i>.
-", "", 0)]
-    [LinkedPage("Resolve Number Page", "Page to resolve duplicate or non-existant mobile numbers.", true, "", "", 1)]
-    [CodeEditorField("Resolve Message", "Message to show if a single mobile number could not be located.", CodeEditorMode.Html, CodeEditorTheme.Rock, 100, true, defaultValue: @"
+", "", 0 )]
+    [LinkedPage( "Resolve Number Page", "Page to resolve duplicate or non-existant mobile numbers.", true, "", "", 1 )]
+    [CodeEditorField( "Resolve Message", "Message to show if a single mobile number could not be located.", CodeEditorMode.Html, CodeEditorTheme.Rock, 100, true, defaultValue: @"
 We are sorry, but we could not determine which account this number belongs to. 
-        ", order: 2)]
+        ", order: 2 )]
 
-    [LinkedPage("Redirect Page", "Page to redirect user to upon successful login.", true, "", "", 3)]
+    [LinkedPage( "Redirect Page", "Page to redirect user to upon successful login.", true, "", "", 3 )]
     public partial class SMSLogin : Rock.Web.UI.RockBlock
     {
         #region Base Control Methods
@@ -52,17 +52,10 @@ We are sorry, but we could not determine which account this number belongs to.
         /// Raises the <see cref="E:System.Web.UI.Control.Load" /> event.
         /// </summary>
         /// <param name="e">The <see cref="T:System.EventArgs" /> object that contains the event data.</param>
-        protected override void OnLoad(EventArgs e)
+        protected override void OnLoad( EventArgs e )
         {
-            base.OnLoad(e);
-
-            if (!Page.IsPostBack)
-            {
-                if (!Page.IsPostBack)
-                {
-                    lbPrompt.Text = GetAttributeValue("PromptMessage");
-                }
-            }
+            base.OnLoad( e );
+            lbPrompt.Text = GetAttributeValue( "PromptMessage" );
         }
 
         #endregion
@@ -74,9 +67,9 @@ We are sorry, but we could not determine which account this number belongs to.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected void btnGenerate_Click(object sender, EventArgs e)
+        protected void btnGenerate_Click( object sender, EventArgs e )
         {
-            if (!Page.IsValid)
+            if ( !Page.IsValid )
             {
                 return;
             }
@@ -84,17 +77,18 @@ We are sorry, but we could not determine which account this number belongs to.
             pnlPhoneNumber.Visible = false;
 
             var smsAuthentication = new SMSAuthentication();
-            var success = smsAuthentication.SendSMSAuthentication(GetPhoneNumber());
+            var success = smsAuthentication.SendSMSAuthentication( GetPhoneNumber() );
 
-            if (success)
+            if ( success )
             {
                 pnlCode.Visible = true;
+                tbCode.Focus();
             }
             else
             {
-                lbResolve.Text = GetAttributeValue("ResolveMessage");
+                lbResolve.Text = GetAttributeValue( "ResolveMessage" );
                 pnlResolve.Visible = true;
-                if (!string.IsNullOrWhiteSpace(GetAttributeValue("ResolveNumberPage")))
+                if ( !string.IsNullOrWhiteSpace( GetAttributeValue( "ResolveNumberPage" ) ) )
                 {
                     btnResolve.Visible = true;
                 }
@@ -106,29 +100,29 @@ We are sorry, but we could not determine which account this number belongs to.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected void btnLogin_Click(object sender, EventArgs e)
+        protected void btnLogin_Click( object sender, EventArgs e )
         {
             nbError.Visible = false;
-            if (Page.IsValid)
+            if ( Page.IsValid )
             {
                 RockContext rockContext = new RockContext();
                 var smsAuthentication = new SMSAuthentication();
                 string error;
-                var person = smsAuthentication.GetNumberOwner(GetPhoneNumber(), rockContext, out error);
-                if (person == null)
+                var person = smsAuthentication.GetNumberOwner( GetPhoneNumber(), rockContext, out error );
+                if ( person == null )
                 {
                     nbError.Text = error;
                     nbError.Visible = true;
                     return;
                 }
 
-                var userLoginService = new UserLoginService(rockContext);
-                var userLogin = userLoginService.GetByUserName("SMS_" + person.Id.ToString());
-                if (userLogin != null && userLogin.EntityType != null)
+                var userLoginService = new UserLoginService( rockContext );
+                var userLogin = userLoginService.GetByUserName( "SMS_" + person.Id.ToString() );
+                if ( userLogin != null && userLogin.EntityType != null )
                 {
-                    if (smsAuthentication.Authenticate(userLogin, tbCode.Text))
+                    if ( smsAuthentication.Authenticate( userLogin, tbCode.Text ) )
                     {
-                        CheckUser(userLogin, Request.QueryString["returnurl"], true);
+                        CheckUser( userLogin, Request.QueryString["returnurl"], true );
                         return;
                     }
                 }
@@ -142,9 +136,9 @@ We are sorry, but we could not determine which account this number belongs to.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected void btnResolve_Click(object sender, EventArgs e)
+        protected void btnResolve_Click( object sender, EventArgs e )
         {
-            NavigateToPage(GetAttributeValue("ResolveNumberPage").AsGuid(), new Dictionary<string, string>() { { "MobilePhoneNumber", tbPhoneNumber.Text } });
+            NavigateToPage( GetAttributeValue( "ResolveNumberPage" ).AsGuid(), new Dictionary<string, string>() { { "MobilePhoneNumber", tbPhoneNumber.Text } } );
         }
 
         /// <summary>
@@ -152,7 +146,7 @@ We are sorry, but we could not determine which account this number belongs to.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        protected void btnCancel_Click(object sender, EventArgs e)
+        protected void btnCancel_Click( object sender, EventArgs e )
         {
             pnlResolve.Visible = false;
             pnlPhoneNumber.Visible = true;
@@ -167,7 +161,7 @@ We are sorry, but we could not determine which account this number belongs to.
         /// <returns></returns>
         private string GetPhoneNumber()
         {
-            return Regex.Replace(tbPhoneNumber.Text, @"^(\+)|\D", "$1");
+            return Regex.Replace( tbPhoneNumber.Text, @"^(\+)|\D", "$1" );
         }
 
         /// <summary>
@@ -176,19 +170,19 @@ We are sorry, but we could not determine which account this number belongs to.
         /// <param name="userLogin"></param>
         /// <param name="returnUrl"></param>
         /// <param name="rememberMe"></param>
-        private void CheckUser(UserLogin userLogin, string returnUrl, bool rememberMe)
+        private void CheckUser( UserLogin userLogin, string returnUrl, bool rememberMe )
         {
-            if (userLogin != null)
+            if ( userLogin != null )
             {
-                if ((userLogin.IsConfirmed ?? true) && !(userLogin.IsLockedOut ?? false))
+                if ( ( userLogin.IsConfirmed ?? true ) && !( userLogin.IsLockedOut ?? false ) )
                 {
-                    LoginUser(userLogin.UserName, returnUrl, rememberMe);
+                    LoginUser( userLogin.UserName, returnUrl, rememberMe );
                 }
                 else
                 {
-                    var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields(RockPage, CurrentPerson);
+                    var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
 
-                    if (userLogin.FailedPasswordAttemptCount > 5)
+                    if ( userLogin.FailedPasswordAttemptCount > 5 )
                     {
                         pnlCode.Visible = false;
                         pnlPhoneNumber.Visible = true;
@@ -208,23 +202,23 @@ We are sorry, but we could not determine which account this number belongs to.
         /// <param name="userName"></param>
         /// <param name="returnUrl"></param>
         /// <param name="rememberMe"></param>
-        private void LoginUser(string userName, string returnUrl, bool rememberMe)
+        private void LoginUser( string userName, string returnUrl, bool rememberMe )
         {
-            string redirectUrlSetting = LinkedPageUrl("RedirectPage");
+            string redirectUrlSetting = LinkedPageUrl( "RedirectPage" );
 
-            UserLoginService.UpdateLastLogin(userName);
+            UserLoginService.UpdateLastLogin( userName );
 
-            Authorization.SetAuthCookie(userName, rememberMe, false);
+            Authorization.SetAuthCookie( userName, rememberMe, false );
 
-            if (!string.IsNullOrWhiteSpace(returnUrl))
+            if ( !string.IsNullOrWhiteSpace( returnUrl ) )
             {
-                string redirectUrl = Server.UrlDecode(returnUrl);
-                Response.Redirect(redirectUrl);
+                string redirectUrl = Server.UrlDecode( returnUrl );
+                Response.Redirect( redirectUrl );
                 Context.ApplicationInstance.CompleteRequest();
             }
-            else if (!string.IsNullOrWhiteSpace(redirectUrlSetting))
+            else if ( !string.IsNullOrWhiteSpace( redirectUrlSetting ) )
             {
-                Response.Redirect(redirectUrlSetting);
+                Response.Redirect( redirectUrlSetting );
                 Context.ApplicationInstance.CompleteRequest();
             }
             else
