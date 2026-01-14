@@ -273,7 +273,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                             "%," + guid + ",%"       // Middle of comma-separated list
                         } ).ToList();
 
-                        // Single query using OR logic with SqlFunctions
+                        // Single query using OR logic with LINQ string methods
                         var matchingEntityIds = attributeValueService.Queryable()
                             .Where( av => av.Attribute.EntityTypeId == entityTypeId
                                 && av.Attribute.Key == attribute.Key
