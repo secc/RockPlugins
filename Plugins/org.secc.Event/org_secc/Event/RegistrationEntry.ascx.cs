@@ -2403,7 +2403,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 if ( isNewRegistration )
                 {
                     // Send notice of a new registration
-                    var notificationMessage = new Rock.Tasks.ProcesSendRegistrationNotification.Message
+                    var notificationMessage = new Rock.Tasks.ProcessSendRegistrationNotification.Message
                     {
                         RegistrationId = registration.Id,
                         AppRoot = appRoot,
