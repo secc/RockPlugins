@@ -78,7 +78,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
                 Guid? fromGuid = fromValue.AsGuidOrNull();
 
-                DefinedTypeCache smsPhoneNumbers = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM );
+                var smsPhoneNumbers = SystemPhoneNumberCache.All();
 
                 // If fromGuid is null but fromValue is not, then this is a phone number (match it up with the value from the DefinedType)
                 if ( fromGuid == null )
@@ -86,7 +86,10 @@ namespace RockWeb.Plugins.org_secc.Communication
                     try
                     {
                         fromValue = PhoneNumber.CleanNumber( fromValue );
-                        fromGuid = smsPhoneNumbers.DefinedValues.Where( dv => dv.Value.Right( 10 ) == fromValue.Right( 10 ) ).Select( dv => dv.Guid ).FirstOrDefault();
+                        fromGuid = smsPhoneNumbers
+                            .Where( dv => dv.Number != null && dv.Number.Right( 10 ) == fromValue.Right( 10 ) )
+                            .Select( dv => dv.Guid )
+                            .FirstOrDefault();
                         if ( fromGuid == Guid.Empty )
                         {
                             action.AddLogEntry( "Invalid sending number: Person or valid SMS phone number not found", true );
@@ -103,8 +106,10 @@ namespace RockWeb.Plugins.org_secc.Communication
 
                 if ( fromGuid.HasValue )
                 {
-                    fromId = smsPhoneNumbers.DefinedValues.Where( dv => dv.Guid == fromGuid || dv.GetAttributeValue( "ResponseRecipient" ) == fromGuid.ToString() ).Select( dv => dv.Id ).FirstOrDefault();
-
+                    fromId = smsPhoneNumbers
+                        .Where( dv => dv.Guid == fromGuid || dv.GetAttributeValue( "ResponseRecipient" ) == fromGuid.ToString() )
+                        .Select( dv => dv.Id )
+                        .FirstOrDefault();
                 }
             }
 
@@ -238,7 +243,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             {
                 var smsMessage = new RockSMSMessage();
                 smsMessage.SetRecipients( recipients );
-                smsMessage.FromNumber = DefinedValueCache.Get( fromId.Value );
+                smsMessage.FromSystemPhoneNumber = SystemPhoneNumberCache.Get( fromId.Value );
                 smsMessage.Message = message;
                 smsMessage.CreateCommunicationRecord = GetAttributeValue( action, "SaveCommunicationHistory" ).AsBoolean();
                 smsMessage.CommunicationName = action.ActionTypeCache.Name;
