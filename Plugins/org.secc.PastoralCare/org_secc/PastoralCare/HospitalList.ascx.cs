@@ -558,23 +558,28 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 .Select( a => a.Id ).ToList();
 
             // Look up the activity type for "Visitation"
-            var visitationActivityId = workflowType.ActivityTypes.Where( at => at.Name == "Visitation Info" ).Select( at => at.Id).FirstOrDefault();
+            var visitationActivityId = workflowType.ActivityTypes.Where( at => at.Name == "Visitation Info" ).Select( at => at.Id ).FirstOrDefault();
             var visitationActivityIdAsString = visitationActivityId.ToString();
             var activityAttributeIds = attributeService.Queryable()
                 .Where( a => a.EntityTypeQualifierColumn == "ActivityTypeId" && a.EntityTypeQualifierValue == visitationActivityIdAsString )
                 .Select( a => a.Id ).ToList();
 
+            var workflowAttributeValues = attributeValueService.Queryable().AsNoTracking()
+                .Where( av => attributeIds.Contains( av.AttributeId ) );
+
+            var activityAttributeValues = attributeValueService.Queryable().AsNoTracking()
+                .Where( av => activityAttributeIds.Contains( av.AttributeId ) );
+
             var wfTmpqry = workflowService.Queryable().AsNoTracking()
                     .Where( w => ( w.WorkflowType.Guid == hospitalWorkflow ) && ( w.Status == "Active" || w.Status == status ) );
 
-            var visitQry = workflowActivityService.Queryable()
+            var visitQry = workflowActivityService.Queryable().AsNoTracking()
                     .Join(
-                        attributeValueService.Queryable(),
+                        activityAttributeValues,
                         wa => wa.Id,
                         av => av.EntityId.Value,
                         ( wa, av ) => new { WorkflowActivity = wa, AttributeValue = av } )
-                .Where(a => a.WorkflowActivity.ActivityTypeId == visitationActivityId )
-                .Where( a => activityAttributeIds.Contains( a.AttributeValue.AttributeId ) )
+                .Where( a => a.WorkflowActivity.ActivityTypeId == visitationActivityId )
                 .GroupBy( wa => wa.WorkflowActivity )
                 .Select( obj => new { WorkflowActivity = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } );
 
@@ -591,11 +596,10 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             var visits = visitQry.ToList();
 
             var workflows = wfTmpqry.Join(
-                    attributeValueService.Queryable(),
+                    workflowAttributeValues,
                     obj => obj.Id,
                     av => av.EntityId.Value,
                     ( obj, av ) => new { Workflow = obj, AttributeValue = av } )
-                .Where( a => attributeIds.Contains( a.AttributeValue.AttributeId ) )
                 .GroupBy( obj => obj.Workflow )
                 .Select( obj => new { Workflow = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } )
                 .ToList();
