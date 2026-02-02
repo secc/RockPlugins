@@ -565,10 +565,12 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 .Select( a => a.Id ).ToList();
 
             var workflowAttributeValues = attributeValueService.Queryable().AsNoTracking()
-                .Where( av => attributeIds.Contains( av.AttributeId ) );
+                .Where( av => attributeIds.Contains( av.AttributeId ) )
+                .ToList();
 
             var activityAttributeValues = attributeValueService.Queryable().AsNoTracking()
-                .Where( av => activityAttributeIds.Contains( av.AttributeId ) );
+                .Where( av => activityAttributeIds.Contains( av.AttributeId ) )
+                .ToList();
 
             var wfTmpqry = workflowService.Queryable().AsNoTracking()
                 .Where( w => ( w.WorkflowType.Guid == hospitalWorkflow ) && ( w.Status == "Active" || w.Status == status ) );
