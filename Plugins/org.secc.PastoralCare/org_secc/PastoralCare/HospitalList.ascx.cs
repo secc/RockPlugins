@@ -533,6 +533,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
         private IQueryable<HospitalRow> GetQuery( RockContext rockContext )
         {
+            rockContext.Database.CommandTimeout = 180;
 
             var contextEntity = this.ContextEntity();
 
