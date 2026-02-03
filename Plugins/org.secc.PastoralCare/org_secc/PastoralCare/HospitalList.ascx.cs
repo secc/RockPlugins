@@ -29,6 +29,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.Entity;
@@ -542,11 +543,8 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             var attributeService = new AttributeService( rockContext );
             var attributeValueService = new AttributeValueService( rockContext );
             var personAliasService = new PersonAliasService( rockContext );
-            var definedValueService = new DefinedValueService( rockContext );
             var entityTypeService = new EntityTypeService( rockContext );
 
-
-            int entityTypeId = entityTypeService.Queryable().Where( et => et.Name == typeof( Workflow ).FullName ).FirstOrDefault().Id;
             string status = ( contextEntity != null ? "Completed" : "Active" );
 
             Guid hospitalWorkflow = GetAttributeValue( "HospitalAdmissionWorkflow" ).AsGuid();
@@ -556,14 +554,14 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
             var attributeIds = attributeService.Queryable()
                 .Where( a => a.EntityTypeQualifierColumn == "WorkflowTypeId" && a.EntityTypeQualifierValue == workflowTypeIdAsString )
-                .Select( a => a.Id ).ToList();
+                .Select( a => a.Id );
 
             // Look up the activity type for "Visitation"
             var visitationActivityId = workflowType.ActivityTypes.Where( at => at.Name == "Visitation Info" ).Select( at => at.Id ).FirstOrDefault();
             var visitationActivityIdAsString = visitationActivityId.ToString();
             var activityAttributeIds = attributeService.Queryable()
                 .Where( a => a.EntityTypeQualifierColumn == "ActivityTypeId" && a.EntityTypeQualifierValue == visitationActivityIdAsString )
-                .Select( a => a.Id ).ToList();
+                .Select( a => a.Id );
 
             var workflowAttributeValues = attributeValueService.Queryable().AsNoTracking()
                 .Where( av => attributeIds.Contains( av.AttributeId ) );
@@ -572,14 +570,14 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 .Where( av => activityAttributeIds.Contains( av.AttributeId ) );
 
             var wfTmpqry = workflowService.Queryable().AsNoTracking()
-                    .Where( w => ( w.WorkflowType.Guid == hospitalWorkflow ) && ( w.Status == "Active" || w.Status == status ) );
+                .Where( w => ( w.WorkflowType.Guid == hospitalWorkflow ) && ( w.Status == "Active" || w.Status == status ) );
 
             var visitQry = workflowActivityService.Queryable().AsNoTracking()
-                    .Join(
-                        activityAttributeValues,
-                        wa => wa.Id,
-                        av => av.EntityId.Value,
-                        ( wa, av ) => new { WorkflowActivity = wa, AttributeValue = av } )
+                .Join(
+                    activityAttributeValues,
+                    wa => wa.Id,
+                    av => av.EntityId.Value,
+                    ( wa, av ) => new { WorkflowActivity = wa, AttributeValue = av } )
                 .Where( a => a.WorkflowActivity.ActivityTypeId == visitationActivityId )
                 .GroupBy( wa => wa.WorkflowActivity )
                 .Select( obj => new { WorkflowActivity = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } );
@@ -605,81 +603,132 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
                 .Select( obj => new { Workflow = obj.Key, AttributeValues = obj.Select( a => a.AttributeValue ) } )
                 .ToList();
 
-            var qry = workflows.AsQueryable().GroupJoin( visits.AsQueryable(), wf => wf.Workflow.Id, wa => wa.WorkflowActivity.WorkflowId, ( wf, wa ) => new { Workflow = wf, WorkflowActivities = wa } )
-                .Select( obj => new { Workflow = obj.Workflow.Workflow, AttributeValues = obj.Workflow.AttributeValues, VisitationActivities = obj.WorkflowActivities } ).ToList();
+            var qry = workflows
+                .GroupJoin(
+                    visits,
+                    wf => wf.Workflow.Id,
+                    wa => wa.WorkflowActivity.WorkflowId,
+                    ( wf, wa ) => new { Workflow = wf, WorkflowActivities = wa } )
+                .Select( obj => new { Workflow = obj.Workflow.Workflow, AttributeValues = obj.Workflow.AttributeValues, VisitationActivities = obj.WorkflowActivities } )
+                .ToList();
 
+            Func<IEnumerable<AttributeValue>, Guid?> getPersonAliasGuid = avs =>
+            {
+                var guid = avs.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value.AsGuid() ).FirstOrDefault();
+                return guid != Guid.Empty ? ( Guid? ) guid : null;
+            };
+
+            Func<IEnumerable<AttributeValue>, Guid> getHospitalGuid = avs =>
+                avs.Where( av => av.AttributeKey == "Hospital" ).Select( av => av.Value.AsGuid() ).FirstOrDefault();
+
+            Func<IEnumerable<AttributeValue>, string, string> getValueFormatted = ( avs, key ) =>
+                avs.Where( av => av.AttributeKey == key ).Select( av => av.ValueFormatted ).FirstOrDefault();
+
+            Func<IEnumerable<AttributeValue>, string, DateTime?> getValueDate = ( avs, key ) =>
+                avs.Where( av => av.AttributeKey == key ).Select( av => av.ValueAsDateTime ).FirstOrDefault();
+
+            var personAliasGuids = qry
+                .Select( w => getPersonAliasGuid( w.AttributeValues ) )
+                .Where( g => g.HasValue )
+                .Select( g => g.Value )
+                .Distinct()
+                .ToList();
+
+            var personAliasLookup = personAliasService.Queryable().AsNoTracking()
+                .Where( pa => personAliasGuids.Contains( pa.Guid ) )
+                .Include( "Person" )
+                .ToDictionary( pa => pa.Guid, pa => pa );
 
             if ( contextEntity == null )
             {
-                // Make sure they aren't deceased
-                qry = qry.AsQueryable().Where( w => !
-                    ( personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ) != null ?
-                    personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() ).Person.IsDeceased :
-                    false ) ).ToList();
+                qry = qry.Where( w =>
+                {
+                    var personAliasGuid = getPersonAliasGuid( w.AttributeValues );
+                    if ( !personAliasGuid.HasValue )
+                    {
+                        return true;
+                    }
+
+                    PersonAlias personAlias;
+                    if ( personAliasLookup.TryGetValue( personAliasGuid.Value, out personAlias ) )
+                    {
+                        return !personAlias.Person.IsDeceased;
+                    }
+
+                    return true;
+                } ).ToList();
             }
 
-            var newQry = qry.Select( w => new HospitalRow
+            var hospitalGuids = qry
+                .Select( w => getHospitalGuid( w.AttributeValues ) )
+                .Where( g => g != Guid.Empty )
+                .Distinct()
+                .ToList();
+
+            var hospitalDefinedValues = hospitalGuids
+                .Select( g => DefinedValueCache.Get( g ) )
+                .Where( dv => dv != null )
+                .ToDictionary( dv => dv.Guid, dv => dv );
+
+            var newQry = qry.Select( w =>
             {
-                Id = w.Workflow.Id,
-                Workflow = w.Workflow,
-                Name = w.Workflow.Name,
-                Hospital = w.AttributeValues.Where( av => av.AttributeKey == "Hospital" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
-                HospitalAddress = new Func<string>( () =>
+                var personAliasGuid = getPersonAliasGuid( w.AttributeValues );
+                PersonAlias personAlias = null;
+                if ( personAliasGuid.HasValue )
                 {
-                    DefinedValueCache dv = DefinedValueCache.Get( w.AttributeValues.Where( av => av.AttributeKey == "Hospital" ).Select( av => av.Value ).FirstOrDefault().AsGuid() );
-                    return dv.AttributeValues["Qualifier1"].ValueFormatted + " " +
-                        dv.AttributeValues["Qualifier2"].ValueFormatted + " " +
-                        dv.AttributeValues["Qualifier3"].ValueFormatted + ", " +
-                        dv.AttributeValues["Qualifier4"].ValueFormatted;
-                } )(),
-                PersonToVisit = new Func<Person>( () =>
+                    personAliasLookup.TryGetValue( personAliasGuid.Value, out personAlias );
+                }
+
+                var person = personAlias != null ? personAlias.Person : new Person();
+
+                var hospitalGuid = getHospitalGuid( w.AttributeValues );
+                DefinedValueCache hospitalDefinedValue;
+                hospitalDefinedValues.TryGetValue( hospitalGuid, out hospitalDefinedValue );
+
+                var hospitalAddress = string.Empty;
+                if ( hospitalDefinedValue != null )
                 {
-                    PersonAlias pa = personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() );
-                    if ( pa != null )
+                    hospitalAddress = hospitalDefinedValue.AttributeValues["Qualifier1"].ValueFormatted + " " +
+                        hospitalDefinedValue.AttributeValues["Qualifier2"].ValueFormatted + " " +
+                        hospitalDefinedValue.AttributeValues["Qualifier3"].ValueFormatted + ", " +
+                        hospitalDefinedValue.AttributeValues["Qualifier4"].ValueFormatted;
+                }
+
+                return new HospitalRow
+                {
+                    Id = w.Workflow.Id,
+                    Workflow = w.Workflow,
+                    Name = w.Workflow.Name,
+                    Hospital = getValueFormatted( w.AttributeValues, "Hospital" ),
+                    HospitalAddress = hospitalAddress,
+                    PersonToVisit = person,
+                    Campus = new Func<string>( () =>
                     {
-                        return pa.Person;
-                    }
-                    return new Person();
-                } )(),
-                Campus = new Func<string>( () =>
-                {
-                    PersonAlias pa = personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() );
-                    if ( pa != null )
-                    {
-                        var campus = pa.Person.GetCampus();
+                        var campus = person.GetCampus();
                         return campus != null ? campus.Name : "[Unknown]";
-                    }
-                    return "[Unknown]";
-                } )(),
-                Age = new Func<int?>( () =>
-                {
-                    PersonAlias pa = personAliasService.Get( w.AttributeValues.Where( av => av.AttributeKey == "PersonToVisit" ).Select( av => av.Value ).FirstOrDefault().AsGuid() );
-                    if ( pa != null )
+                    } )(),
+                    Age = person.Age,
+                    Room = getValueFormatted( w.AttributeValues, "Room" ),
+                    NotifiedBy = getValueFormatted( w.AttributeValues, "NotifiedBy" ),
+                    AdmitDate = getValueDate( w.AttributeValues, "AdmitDate" ),
+                    Description = getValueFormatted( w.AttributeValues, "VisitationRequestDescription" ),
+                    Visits = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Count(),
+                    LastVisitor = new Func<string>( () =>
                     {
-                        return pa.Person.Age;
-                    }
-                    return null;
-                } )(),
-                Room = w.AttributeValues.Where( av => av.AttributeKey == "Room" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
-                NotifiedBy = w.AttributeValues.Where( av => av.AttributeKey == "NotifiedBy" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
-                AdmitDate = w.AttributeValues.Where( av => av.AttributeKey == "AdmitDate" ).Select( av => av.ValueAsDateTime ).FirstOrDefault(),
-                Description = w.AttributeValues.Where( av => av.AttributeKey == "VisitationRequestDescription" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
-                Visits = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Count(),
-                LastVisitor = new Func<string>( () =>
-                {
-                    var visitor = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Select( va => va.AttributeValues.Where( av => av.AttributeKey == "Visitor" ).LastOrDefault() ).LastOrDefault();
-                    if ( visitor != null )
-                    {
-                        return visitor.ValueFormatted;
-                    }
-                    return "N/A";
-                } )(),
-                LastVisitDate = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Select( va => va.AttributeValues.Where( av => av.AttributeKey == "VisitDate" ).LastOrDefault() ).Select( av => av == null ? "N/A" : av.ValueFormatted ).DefaultIfEmpty( "N/A" ).LastOrDefault(),
-                LastVisitNotes = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Select( va => va.AttributeValues.Where( av => av.AttributeKey == "VisitNote" ).LastOrDefault() ).Select( av => av == null ? "N/A" : av.ValueFormatted ).DefaultIfEmpty( "N/A" ).LastOrDefault(),
-                DischargeDate = w.AttributeValues.Where( av => av.AttributeKey == "DischargeDate" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
-                Status = w.Workflow.Status,
-                Communion = w.AttributeValues.Where( av => av.AttributeKey == "Communion" ).Select( av => av.ValueFormatted ).FirstOrDefault(),
-                Actions = ""
+                        var visitor = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Select( va => va.AttributeValues.Where( av => av.AttributeKey == "Visitor" ).LastOrDefault() ).LastOrDefault();
+                        if ( visitor != null )
+                        {
+                            return visitor.ValueFormatted;
+                        }
+                        return "N/A";
+                    } )(),
+                    LastVisitDate = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Select( va => va.AttributeValues.Where( av => av.AttributeKey == "VisitDate" ).LastOrDefault() ).Select( av => av == null ? "N/A" : av.ValueFormatted ).DefaultIfEmpty( "N/A" ).LastOrDefault(),
+                    LastVisitNotes = w.VisitationActivities.Where( a => a.AttributeValues != null && a.AttributeValues.Where( av => av.AttributeKey == "VisitDate" && !string.IsNullOrWhiteSpace( av.Value ) ).Any() ).Select( va => va.AttributeValues.Where( av => av.AttributeKey == "VisitNote" ).LastOrDefault() ).Select( av => av == null ? "N/A" : av.ValueFormatted ).DefaultIfEmpty( "N/A" ).LastOrDefault(),
+                    DischargeDate = getValueFormatted( w.AttributeValues, "DischargeDate" ),
+                    Status = w.Workflow.Status,
+                    Communion = getValueFormatted( w.AttributeValues, "Communion" ),
+                    Actions = ""
+                };
             } ).ToList().AsQueryable().OrderBy( p => p.Hospital ).ThenBy( p => p.PersonToVisit.LastName );
 
             return newQry;
