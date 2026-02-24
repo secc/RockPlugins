@@ -118,6 +118,7 @@
     <Compile Include="Registrations\SECCGenerateDiscountCode.cs" />
     <Compile Include="Registrations\SetAttributeFromRegistrantField.cs" />
     <Compile Include="Registrations\UpdateDiscountCodeWithAttribute.cs" />
+    <Compile Include="Registrations\UpdateRegistrationGroupWithPlacementGroup.cs" />
     <Compile Include="Schedule\ScheduleNextStartDate.cs" />
     <Compile Include="Twilio\Lookup.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixUpdateRow.cs" />
