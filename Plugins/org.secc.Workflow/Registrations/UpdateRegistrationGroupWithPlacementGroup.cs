@@ -32,7 +32,7 @@ namespace org.secc.Workflow.Registrations
     /// Synchronizes placement group assignments back to registration group member
     /// attributes. When a person is added to (or removed from) a placement group,
     /// this action finds their corresponding registration group member record and
-    /// updates the specified attribute with the placement group name.
+    /// updates the specified attribute.
     ///
     /// <para>This is designed for camp registration scenarios where placement
     /// information (bus, dorm room, small group, activity, etc.) needs to be stored
@@ -45,27 +45,53 @@ namespace org.secc.Workflow.Registrations
     /// when a person is registered for multiple camps (e.g., adult leaders at two
     /// camps, or HS campers who are also minor leaders at children's camp).</para>
     ///
-    /// <para><strong>Removal logic:</strong> When "Is Removal" is true, the action
-    /// checks if the person is still in another placement group of the same
-    /// GroupType for the same registration instance. If so, it updates the
-    /// attribute to that group's name. If not, it clears the attribute. This
-    /// prevents accidental data loss when a person is removed from a duplicate
-    /// placement after being correctly placed in the right group.</para>
+    /// <para><strong>Attribute Key and Value:</strong> Both the attribute key and
+    /// value can be set dynamically via workflow attributes. This supports scenarios
+    /// where multiple placement types share the same GroupType (e.g., all activity
+    /// placement groups use one GroupType, but "Archery - Day 2 1:00PM" should set
+    /// the "Archery" attribute to "Day 2 1:00PM"). A prior workflow step can parse
+    /// the group name to determine the correct key and value.</para>
     ///
-    /// <para><strong>Workflow Setup:</strong></para>
+    /// <para><strong>Group Name Prefix:</strong> When multiple placement types share
+    /// the same GroupType (e.g., activities), set the Group Name Prefix to scope
+    /// both the default value and replacement logic to groups matching that prefix.
+    /// For example, with prefix "Archery" and group name "Archery - Day 2 1:00PM":
+    /// the default value becomes "Day 2 1:00PM" (prefix and separator stripped),
+    /// and removal replacement only considers other "Archery" groups — not Zipline
+    /// or other activity groups.</para>
+    ///
+    /// <para><strong>Removal logic:</strong> When "Is Removal" is true and no
+    /// explicit Attribute Value is provided, the action checks if the person is
+    /// still in another placement group of the same GroupType (and matching the
+    /// Group Name Prefix, if set) for the same registration instance. If so, it
+    /// updates the attribute with that group's value. If not, it clears the
+    /// attribute. When an explicit Attribute Value IS provided (even if empty),
+    /// it is used directly — the prior workflow step is responsible for any
+    /// replacement logic.</para>
+    ///
+    /// <para><strong>Workflow Setup (simple — bus, housing, small group):</strong></para>
     /// <para>1. Create a workflow type triggered by "Group Member Added to Group"
-    ///    on the placement group type(s). Add this action with "Is Removal" = false.</para>
-    /// <para>2. Create a second workflow type triggered by "Group Member Removed
-    ///    from Group" on the same group type(s). Add this action with "Is Removal"
-    ///    = true.</para>
-    /// <para>3. Each workflow should have a Person attribute and a Group attribute
-    ///    populated by the trigger.</para>
-    /// <para>4. Create one pair of workflows per placement type (bus, dorm, etc.)
-    ///    or reuse the same workflow if the attribute key is the same.</para>
+    ///    on the placement group type. Set a fixed Attribute Key and leave
+    ///    Attribute Value and Group Name Prefix blank (defaults to the group
+    ///    name).</para>
+    /// <para>2. Create a matching removal workflow with "Is Removal" = true.</para>
+    ///
+    /// <para><strong>Workflow Setup (activities — shared group type):</strong></para>
+    /// <para>1. Create a workflow triggered by "Group Member Added to Group" on the
+    ///    activity placement group type.</para>
+    /// <para>2. Add a prior step to parse the activity name from the group name
+    ///    (e.g., "Archery" from "Archery - Day 2 1:00PM") and store it in a
+    ///    workflow attribute.</para>
+    /// <para>3. Add this action, pointing Attribute Key and Group Name Prefix to
+    ///    that workflow attribute. Leave Attribute Value blank — the prefix will
+    ///    be stripped automatically.</para>
+    /// <para>4. For the removal workflow, use the same setup. The built-in
+    ///    replacement logic will only consider groups matching the prefix.</para>
     /// </summary>
     [ActionCategory( "SECC > Registrations" )]
     [Description( "Updates a group member attribute on the registration group based on placement group membership. " +
-        "Handles both additions and removals, including resolution when a person is in multiple placement groups of the same type." )]
+        "Both the attribute key and value can be set dynamically via workflow attributes to support activities " +
+        "and other scenarios where the group name needs to be parsed." )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Update Registration Group With Placement Group" )]
 
@@ -79,18 +105,43 @@ namespace org.secc.Workflow.Registrations
         true, "", "", 1, "PlacementGroup",
         new string[] { "Rock.Field.Types.GroupFieldType" } )]
 
-    [TextField( "Group Member Attribute Key",
-        "The attribute key on the registration group member to update with the placement group name.",
+    [WorkflowTextOrAttribute( "Attribute Key", "Attribute Key Attribute",
+        "The attribute key on the registration group member to update. " +
+        "Can be a fixed text value or a workflow attribute set by a prior step " +
+        "(e.g., for activities where the key is parsed from the group name). <span class='tip tip-lava'></span>",
         true, "", "", 2, "GroupMemberAttributeKey" )]
+
+    [WorkflowTextOrAttribute( "Attribute Value", "Attribute Value Attribute",
+        "The value to set on the group member attribute. If left blank, defaults to the placement group name " +
+        "(with the Group Name Prefix and separator stripped, if set). " +
+        "Use a workflow attribute to provide a fully custom value. " +
+        "When provided, the built-in removal replacement logic is skipped. <span class='tip tip-lava'></span>",
+        false, "", "", 3, "AttributeValue" )]
+
+    [WorkflowTextOrAttribute( "Group Name Prefix", "Group Name Prefix Attribute",
+        "Optional. When placement groups of different types share the same GroupType (e.g., activities), " +
+        "set this to the activity name (e.g., 'Archery'). This does two things: " +
+        "(1) the default value strips the prefix and separator (e.g., 'Archery - Day 2 1:00PM' becomes 'Day 2 1:00PM'), and " +
+        "(2) removal replacement logic only considers groups whose names start with this prefix. " +
+        "The separator ' - ' is used by default. Leave blank for placement types that have their own GroupType. <span class='tip tip-lava'></span>",
+        false, "", "", 4, "GroupNamePrefix" )]
 
     [BooleanField( "Is Removal",
         "Set to true when this action is triggered by a group member removal. " +
-        "The action will check if the person is still in another placement group of the same type " +
-        "and update the attribute accordingly, or clear it if not.",
-        false, "", 3, "IsRemoval" )]
+        "When no explicit Attribute Value is provided, the action will check if the person is still in " +
+        "another placement group of the same type (filtered by Group Name Prefix if set) " +
+        "and update the attribute accordingly, or clear it if not. " +
+        "When an explicit Attribute Value IS provided, it is used directly.",
+        false, "", 5, "IsRemoval" )]
 
     public class UpdateRegistrationGroupWithPlacementGroup : ActionComponent
     {
+        /// <summary>
+        /// The separator used between the group name prefix and the value portion
+        /// of a placement group name (e.g., "Archery - Day 2 1:00PM").
+        /// </summary>
+        private const string GroupNameSeparator = " - ";
+
         /// <summary>
         /// Executes the action to update the registration group member's attribute
         /// with the placement group information.
@@ -120,9 +171,12 @@ namespace org.secc.Workflow.Registrations
                 return false;
             }
 
-            // 3. Read configuration values.
-            string attributeKey = GetAttributeValue( action, "GroupMemberAttributeKey" ).Replace( " ", "" );
-            bool isRemoval = GetAttributeValue( action, "IsRemoval" ).AsBoolean();
+            // 3. Read the attribute key (supports text, Lava, or workflow attribute).
+            string attributeKey = ResolveTextOrAttribute( action, "GroupMemberAttributeKey" );
+            if ( !string.IsNullOrWhiteSpace( attributeKey ) )
+            {
+                attributeKey = attributeKey.Replace( " ", "" );
+            }
 
             if ( string.IsNullOrWhiteSpace( attributeKey ) )
             {
@@ -131,7 +185,25 @@ namespace org.secc.Workflow.Registrations
                 return false;
             }
 
-            // 4. Find registration instances linked to this placement group.
+            // 4. Read the optional explicit attribute value.
+            //    If the action's AttributeValue field is configured (non-empty config),
+            //    use the resolved value directly — even if it resolves to empty string.
+            //    If the field is not configured at all, fall back to default behavior.
+            string attributeValueConfig = GetAttributeValue( action, "AttributeValue" );
+            bool hasExplicitValue = !string.IsNullOrWhiteSpace( attributeValueConfig );
+            string explicitValue = null;
+            if ( hasExplicitValue )
+            {
+                explicitValue = ResolveTextOrAttribute( action, "AttributeValue" ) ?? string.Empty;
+            }
+
+            // 5. Read the optional group name prefix for filtering and value extraction.
+            string groupNamePrefix = ResolveTextOrAttribute( action, "GroupNamePrefix" );
+            bool hasGroupNamePrefix = !string.IsNullOrWhiteSpace( groupNamePrefix );
+
+            bool isRemoval = GetAttributeValue( action, "IsRemoval" ).AsBoolean();
+
+            // 6. Find registration instances linked to this placement group.
             //    This checks both instance-level and template-level placement configurations.
             var registrationInstanceIds = GetLinkedRegistrationInstanceIds( rockContext, placementGroup.Id );
             if ( !registrationInstanceIds.Any() )
@@ -142,14 +214,14 @@ namespace org.secc.Workflow.Registrations
                 return true;
             }
 
-            // 5. Get all PersonAliasIds for this person (to match across aliases).
+            // 7. Get all PersonAliasIds for this person (to match across aliases).
             var personAliasIds = new PersonAliasService( rockContext )
                 .Queryable().AsNoTracking()
                 .Where( pa => pa.PersonId == person.Id )
                 .Select( pa => pa.Id )
                 .ToList();
 
-            // 6. Find RegistrationRegistrant records that link this person to a
+            // 8. Find RegistrationRegistrant records that link this person to a
             //    GroupMember in the registration group for the matching instances.
             //    RegistrationRegistrant.GroupMemberId is the key that directly
             //    identifies the correct registration group member record.
@@ -173,22 +245,32 @@ namespace org.secc.Workflow.Registrations
                 return true;
             }
 
-            // 7. Determine the attribute value to set.
+            // 9. Determine the attribute value to set.
             string valueToSet;
-            if ( isRemoval )
+            if ( hasExplicitValue )
             {
-                // On removal, check if the person is still in another placement
-                // group of the same GroupType. If so, use that group's name as
-                // the value. Otherwise, clear it.
-                valueToSet = FindReplacementPlacementGroupName(
-                    rockContext, person, placementGroup, registrationInstanceIds );
+                // An explicit value was provided (possibly by a prior workflow step
+                // that parsed the group name). Use it directly — the caller is
+                // responsible for any replacement logic on removal.
+                valueToSet = explicitValue;
+            }
+            else if ( isRemoval )
+            {
+                // No explicit value and this is a removal. Check if the person is
+                // still in another placement group of the same GroupType (and matching
+                // the group name prefix, if set). If so, use that group's name
+                // (with prefix stripped). Otherwise, clear it.
+                valueToSet = FindReplacementPlacementGroupValue(
+                    rockContext, person, placementGroup, registrationInstanceIds, groupNamePrefix );
             }
             else
             {
-                valueToSet = placementGroup.Name;
+                // No explicit value and this is an addition. Use the placement
+                // group name, stripping the prefix and separator if configured.
+                valueToSet = StripGroupNamePrefix( placementGroup.Name, groupNamePrefix );
             }
 
-            // 8. Load the registration group member records and update the attribute.
+            // 10. Load the registration group member records and update the attribute.
             var groupMembers = new GroupMemberService( rockContext )
                 .Queryable()
                 .Where( gm => registrationGroupMemberIds.Contains( gm.Id ) )
@@ -229,6 +311,62 @@ namespace org.secc.Workflow.Registrations
 
             errorMessages.ForEach( m => action.AddLogEntry( m, true ) );
             return true;
+        }
+
+        /// <summary>
+        /// Strips the group name prefix and separator from a placement group name.
+        /// For example, with prefix "Archery" and name "Archery - Day 2 1:00PM",
+        /// returns "Day 2 1:00PM". If no prefix is set or the name doesn't start
+        /// with the prefix, the full name is returned.
+        /// </summary>
+        private string StripGroupNamePrefix( string groupName, string prefix )
+        {
+            if ( string.IsNullOrWhiteSpace( prefix ) || string.IsNullOrWhiteSpace( groupName ) )
+            {
+                return groupName ?? string.Empty;
+            }
+
+            string prefixWithSeparator = prefix + GroupNameSeparator;
+            if ( groupName.StartsWith( prefixWithSeparator, StringComparison.OrdinalIgnoreCase ) )
+            {
+                return groupName.Substring( prefixWithSeparator.Length ).Trim();
+            }
+
+            // If the name equals just the prefix with no separator/suffix, return empty.
+            if ( groupName.Equals( prefix, StringComparison.OrdinalIgnoreCase ) )
+            {
+                return string.Empty;
+            }
+
+            // Prefix doesn't match the expected pattern — return the full name.
+            return groupName;
+        }
+
+        /// <summary>
+        /// Resolves a WorkflowTextOrAttribute value. If the configured value is a
+        /// valid Guid, it is treated as a workflow attribute reference and the
+        /// attribute's value is returned. Otherwise, the text is resolved as Lava
+        /// using the action's merge fields.
+        /// </summary>
+        private string ResolveTextOrAttribute( WorkflowAction action, string configKey )
+        {
+            string rawValue = GetAttributeValue( action, configKey );
+            if ( string.IsNullOrWhiteSpace( rawValue ) )
+            {
+                return rawValue;
+            }
+
+            Guid guid = rawValue.AsGuid();
+            if ( !guid.IsEmpty() )
+            {
+                // Value is a workflow attribute Guid — resolve to the attribute's value.
+                return action.GetWorkflowAttributeValue( guid );
+            }
+            else
+            {
+                // Value is literal text — resolve any Lava merge fields.
+                return rawValue.ResolveMergeFields( GetMergeFields( action ) );
+            }
         }
 
         /// <summary>
@@ -348,19 +486,22 @@ namespace org.secc.Workflow.Registrations
 
         /// <summary>
         /// When a person is removed from a placement group, checks if they are still
-        /// a member of another placement group of the same GroupType for the same
-        /// registration instance(s). Returns that group's name as a replacement value,
+        /// a member of another placement group of the same GroupType (and optionally
+        /// matching a group name prefix) for the same registration instance(s).
+        /// Returns the replacement group's value (with prefix stripped if applicable),
         /// or an empty string if no replacement exists.
-        /// 
-        /// This handles the scenario where a person was accidentally placed in the
-        /// wrong group and then the correct group, and the wrong group is subsequently
-        /// removed — the correct group's value is preserved.
+        ///
+        /// When <paramref name="groupNamePrefix"/> is set, only groups whose names
+        /// start with the prefix are considered as replacements. This prevents an
+        /// Archery removal from picking up a Zipline group when both share the same
+        /// Activity group type.
         /// </summary>
-        private string FindReplacementPlacementGroupName(
+        private string FindReplacementPlacementGroupValue(
             RockContext rockContext,
             Rock.Model.Person person,
             Group removedPlacementGroup,
-            List<int> registrationInstanceIds )
+            List<int> registrationInstanceIds,
+            string groupNamePrefix )
         {
             int groupEntityTypeId = EntityTypeCache.Get( typeof( Group ) ).Id;
             int registrationInstanceEntityTypeId = EntityTypeCache.Get( typeof( RegistrationInstance ) ).Id;
@@ -377,9 +518,9 @@ namespace org.secc.Workflow.Registrations
                 .Distinct()
                 .ToList();
 
-            // Find a group of the same GroupType (excluding the removed group) where
-            // the person is still an active member.
-            var replacementGroup = new GroupService( rockContext )
+            // Build the query for replacement groups: same GroupType, different group,
+            // person is still an active member.
+            var replacementQuery = new GroupService( rockContext )
                 .Queryable().AsNoTracking()
                 .Where( g =>
                     allPlacementGroupIds.Contains( g.Id )
@@ -387,10 +528,29 @@ namespace org.secc.Workflow.Registrations
                     && g.GroupTypeId == removedPlacementGroup.GroupTypeId
                     && g.Members.Any( m =>
                         m.PersonId == person.Id
-                        && m.GroupMemberStatus != GroupMemberStatus.Inactive ) )
-                .FirstOrDefault();
+                        && m.GroupMemberStatus != GroupMemberStatus.Inactive ) );
 
-            return replacementGroup?.Name ?? string.Empty;
+            // If a group name prefix is set, only consider groups matching it.
+            // This prevents cross-activity contamination (e.g., Archery removal
+            // picking up a Zipline group).
+            bool hasPrefix = !string.IsNullOrWhiteSpace( groupNamePrefix );
+            if ( hasPrefix )
+            {
+                string prefixWithSeparator = groupNamePrefix + GroupNameSeparator;
+                replacementQuery = replacementQuery.Where( g =>
+                    g.Name.StartsWith( prefixWithSeparator )
+                    || g.Name == groupNamePrefix );
+            }
+
+            var replacementGroup = replacementQuery.FirstOrDefault();
+
+            if ( replacementGroup == null )
+            {
+                return string.Empty;
+            }
+
+            // Strip the prefix from the replacement group's name to get the value.
+            return StripGroupNamePrefix( replacementGroup.Name, groupNamePrefix );
         }
     }
 }
