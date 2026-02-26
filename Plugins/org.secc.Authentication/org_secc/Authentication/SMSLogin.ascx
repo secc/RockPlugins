@@ -33,5 +33,28 @@
                 <Rock:BootstrapButton runat="server" ID="btnCancel" CssClass="btn btn-default" Text="Cancel" OnClick="btnCancel_Click" />
             </asp:Panel>
         </div>
+
+        <script type="text/javascript">
+            function smsLoginAutoSubmit() {
+                var codeInput = document.getElementById('<%= tbCode.ClientID %>');
+                var loginBtn = document.getElementById('<%= btnLogin.ClientID %>');
+                if (codeInput && loginBtn) {
+                    // Listen for the 'input' event which fires when iOS autofills the code
+                    codeInput.addEventListener('input', function () {
+                        var value = codeInput.value.replace(/\s/g, '');
+                        if (value.length >= 6) {
+                            // Small delay to let iOS finish its autofill process
+                            setTimeout(function () {
+                                loginBtn.click();
+                            }, 300);
+                        }
+                    });
+                }
+            }
+            // Run on initial load and after each async postback (UpdatePanel)
+            smsLoginAutoSubmit();
+            var prm = Sys.WebForms.PageRequestManager.getInstance();
+            prm.add_endRequest(smsLoginAutoSubmit);
+        </script>
     </ContentTemplate>
 </asp:UpdatePanel>
