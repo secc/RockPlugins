@@ -23,6 +23,7 @@
                 <Rock:NotificationBox ID="nbError" Visible="false" NotificationBoxType="Danger" runat="server" />
                 <Rock:RockTextBox runat="server" Label="Code" ID="tbCode" Required="true" DisplayRequiredIndicator="false" ValidationGroup="Code" />
                 <Rock:BootstrapButton runat="server" ID="btnLogin" Text="Login" CssClass="btn btn-primary" OnClick="btnLogin_Click" ValidationGroup="Code" CausesValidation="true" />
+                <span id="smsLoginStatus" aria-live="assertive" class="sr-only"></span>
             </asp:Panel>
 
             <asp:Panel runat="server" ID="pnlResolve" Visible="false">
@@ -33,5 +34,53 @@
                 <Rock:BootstrapButton runat="server" ID="btnCancel" CssClass="btn btn-default" Text="Cancel" OnClick="btnCancel_Click" />
             </asp:Panel>
         </div>
+
+        <script type="text/javascript">
+            function smsLoginSetup() {
+                // Phone number panel: handle Enter key to submit
+                var phonePanel = document.getElementById('<%= pnlPhoneNumber.ClientID %>');
+                var generateBtn = document.getElementById('<%= btnGenerate.ClientID %>');
+                if (phonePanel && generateBtn && !phonePanel.dataset.smsBound) {
+                    phonePanel.dataset.smsBound = 'true';
+                    phonePanel.addEventListener('keydown', function (e) {
+                        if (e.key === 'Enter' || e.keyCode === 13) {
+                            e.preventDefault();
+                            // Trigger blur so PhoneNumberBox formats the value
+                            // before validation runs
+                            if (document.activeElement) {
+                                document.activeElement.blur();
+                            }
+                            // Allow the blur/format handler to complete, then submit
+                            setTimeout(function () {
+                                generateBtn.click();
+                            }, 100);
+                        }
+                    });
+                }
+
+                // Code panel: auto-submit when 6 digits are entered
+                var codeInput = document.getElementById('<%= tbCode.ClientID %>');
+                var loginBtn = document.getElementById('<%= btnLogin.ClientID %>');
+                var statusEl = document.getElementById('smsLoginStatus');
+                if (codeInput && loginBtn && !codeInput.dataset.smsBound) {
+                    codeInput.dataset.smsBound = 'true';
+                    codeInput.addEventListener('input', function () {
+                        codeInput.value = codeInput.value.replace(/\D/g, '');
+                        if (codeInput.value.length >= 6) {
+                            if (statusEl) {
+                                statusEl.textContent = 'Code entered. Submitting automatically.';
+                            }
+                            setTimeout(function () {
+                                loginBtn.click();
+                            }, 50);
+                        }
+                    });
+                }
+            }
+            // Run on initial load and after each async postback (UpdatePanel)
+            smsLoginSetup();
+            var prm = Sys.WebForms.PageRequestManager.getInstance();
+            prm.add_endRequest(smsLoginSetup);
+        </script>
     </ContentTemplate>
 </asp:UpdatePanel>
