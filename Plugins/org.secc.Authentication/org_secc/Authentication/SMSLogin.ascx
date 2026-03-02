@@ -35,26 +35,37 @@
         </div>
 
         <script type="text/javascript">
-            function smsLoginAutoSubmit() {
+            function smsLoginSetup() {
+                // Phone number panel: handle Enter key to submit
+                var phonePanel = document.getElementById('<%= pnlPhoneNumber.ClientID %>');
+                var generateBtn = document.getElementById('<%= btnGenerate.ClientID %>');
+                if (phonePanel && generateBtn) {
+                    phonePanel.addEventListener('keydown', function (e) {
+                        if (e.key === 'Enter' || e.keyCode === 13) {
+                            e.preventDefault();
+                            generateBtn.click();
+                        }
+                    });
+                }
+
+                // Code panel: auto-submit when 6 digits are entered
                 var codeInput = document.getElementById('<%= tbCode.ClientID %>');
                 var loginBtn = document.getElementById('<%= btnLogin.ClientID %>');
                 if (codeInput && loginBtn) {
-                    // Listen for the 'input' event which fires when iOS autofills the code
                     codeInput.addEventListener('input', function () {
-                        var value = codeInput.value.replace(/\s/g, '');
-                        if (value.length >= 6) {
-                            // Small delay to let iOS finish its autofill process
+                        codeInput.value = codeInput.value.replace(/\D/g, '');
+                        if (codeInput.value.length >= 6) {
                             setTimeout(function () {
                                 loginBtn.click();
-                            }, 300);
+                            }, 50);
                         }
                     });
                 }
             }
             // Run on initial load and after each async postback (UpdatePanel)
-            smsLoginAutoSubmit();
+            smsLoginSetup();
             var prm = Sys.WebForms.PageRequestManager.getInstance();
-            prm.add_endRequest(smsLoginAutoSubmit);
+            prm.add_endRequest(smsLoginSetup);
         </script>
     </ContentTemplate>
 </asp:UpdatePanel>

@@ -57,6 +57,9 @@ We are sorry, but we could not determine which account this number belongs to.
             base.OnLoad( e );
             lbPrompt.Text = GetAttributeValue( "PromptMessage" );
             tbCode.Attributes["autocomplete"] = "one-time-code";
+            tbCode.Attributes["inputmode"] = "numeric";
+            tbCode.Attributes["pattern"] = "[0-9]*";
+            tbCode.Attributes["maxlength"] = "6";
         }
 
         #endregion
