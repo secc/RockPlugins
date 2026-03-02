@@ -43,7 +43,15 @@
                     phonePanel.addEventListener('keydown', function (e) {
                         if (e.key === 'Enter' || e.keyCode === 13) {
                             e.preventDefault();
-                            generateBtn.click();
+                            // Trigger blur so PhoneNumberBox formats the value
+                            // before validation runs
+                            if (document.activeElement) {
+                                document.activeElement.blur();
+                            }
+                            // Allow the blur/format handler to complete, then submit
+                            setTimeout(function () {
+                                generateBtn.click();
+                            }, 100);
                         }
                     });
                 }
