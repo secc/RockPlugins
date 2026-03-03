@@ -189,6 +189,15 @@ namespace RockWeb.Plugins.GroupManager
             tTimeOfDay.SelectedTime = publishGroup.WeeklyTimeOfDay;
             dpStartDate.SelectedDate = publishGroup.StartDate;
             tbCustomSchedule.Text = publishGroup.CustomSchedule;
+
+            // Disable day/time fields when custom schedule text is populated
+            // since the ScheduleText computed property prioritizes CustomSchedule
+            if ( publishGroup.CustomSchedule.IsNotNullOrWhiteSpace() )
+            {
+                ddlDayOfWeek.Enabled = false;
+                tTimeOfDay.Enabled = false;
+            }
+
             cbIsHidden.Checked = publishGroup.IsHidden;
             tbLocationName.Text = publishGroup.MeetingLocation;
             ddlRegistration.SelectedValue = publishGroup.RegistrationRequirement.ConvertToInt().ToString();
@@ -369,6 +378,8 @@ namespace RockWeb.Plugins.GroupManager
                     {
                         publishGroup.WeeklyDayOfWeek = group.Schedule.WeeklyDayOfWeek;
                         publishGroup.WeeklyTimeOfDay = group.Schedule.WeeklyTimeOfDay;
+                        publishGroup.StartDate = group.Schedule.EffectiveStartDate;
+                        publishGroup.CustomSchedule = group.Schedule.FriendlyScheduleText;
                     }
 
                     if (group.GroupLocations.Any())
