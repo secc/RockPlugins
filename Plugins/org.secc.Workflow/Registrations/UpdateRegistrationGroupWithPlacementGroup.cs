@@ -14,11 +14,10 @@
 //
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
+using System.Data.Entity;
 using System.Linq;
-
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -45,53 +44,58 @@ namespace org.secc.Workflow.Registrations
     /// when a person is registered for multiple camps (e.g., adult leaders at two
     /// camps, or HS campers who are also minor leaders at children's camp).</para>
     ///
-    /// <para><strong>Attribute Key and Value:</strong> Both the attribute key and
-    /// value can be set dynamically via workflow attributes. This supports scenarios
-    /// where multiple placement types share the same GroupType (e.g., all activity
-    /// placement groups use one GroupType, but "Archery - Day 2 1:00PM" should set
-    /// the "Archery" attribute to "Day 2 1:00PM"). A prior workflow step can parse
-    /// the group name to determine the correct key and value.</para>
+    /// <para><strong>Lava Merge Fields:</strong> The Attribute Key, Attribute Value,
+    /// and Group Name Prefix fields all support Lava with two custom merge fields:</para>
+    /// <para>• <c>PlacementGroupName</c> — Always the name of the placement group
+    ///   that triggered the workflow (the group being added to or removed from).</para>
+    /// <para>• <c>GroupName</c> — The "effective" group name: on add, this equals
+    ///   PlacementGroupName; on removal, this is the replacement group name (or
+    ///   empty if no replacement exists). Use this in the Attribute Value field so
+    ///   the same Lava template works for both add and removal scenarios.</para>
     ///
     /// <para><strong>Group Name Prefix:</strong> When multiple placement types share
     /// the same GroupType (e.g., activities), set the Group Name Prefix to scope
-    /// both the default value and replacement logic to groups matching that prefix.
-    /// For example, with prefix "Archery" and group name "Archery - Day 2 1:00PM":
-    /// the default value becomes "Day 2 1:00PM" (prefix and separator stripped),
-    /// and removal replacement only considers other "Archery" groups — not Zipline
-    /// or other activity groups.</para>
+    /// replacement logic to groups matching that prefix. For example, with prefix
+    /// "Archery", removal replacement only considers other "Archery" groups — not
+    /// Zipline or other activity groups. The prefix is also stripped from the default
+    /// value when no explicit Attribute Value is configured.</para>
     ///
-    /// <para><strong>Removal logic:</strong> When "Is Removal" is true and no
-    /// explicit Attribute Value is provided, the action checks if the person is
-    /// still in another placement group of the same GroupType (and matching the
-    /// Group Name Prefix, if set) for the same registration instance. If so, it
-    /// updates the attribute with that group's value. If not, it clears the
-    /// attribute. When an explicit Attribute Value IS provided (even if empty),
-    /// it is used directly — the prior workflow step is responsible for any
-    /// replacement logic.</para>
+    /// <para><strong>Removal logic:</strong> When "Is Removal" is true, the action
+    /// finds a replacement placement group of the same GroupType (and matching the
+    /// Group Name Prefix, if set) for the same registration instance. The
+    /// replacement group name is exposed as the <c>GroupName</c> merge field. If no
+    /// replacement exists, <c>GroupName</c> is empty. When no explicit Attribute
+    /// Value is configured, the default value is <c>GroupName</c> with the prefix
+    /// stripped (or empty to clear the attribute).</para>
     ///
-    /// <para><strong>Workflow Setup (simple — bus, housing, small group):</strong></para>
-    /// <para>1. Create a workflow type triggered by "Group Member Added to Group"
-    ///    on the placement group type. Set a fixed Attribute Key and leave
-    ///    Attribute Value and Group Name Prefix blank (defaults to the group
-    ///    name).</para>
-    /// <para>2. Create a matching removal workflow with "Is Removal" = true.</para>
+    /// <para><strong>Workflow Setup (simple — bus, small group):</strong></para>
+    /// <para>Create an add workflow and a removal workflow on the placement group
+    /// type. Set a fixed Attribute Key (e.g., "BusAssignment") and leave Attribute
+    /// Value and Group Name Prefix blank. The full group name is used as the value
+    /// and replacement works automatically.</para>
+    ///
+    /// <para><strong>Workflow Setup (housing — two attributes from one group):</strong></para>
+    /// <para>Use two instances of this action in each workflow. For group name
+    /// "Cedar Room 4":</para>
+    /// <para>• Action 1: Key = "Dorm", Value = <c>{{ GroupName | Split:' Room ' | First }}</c></para>
+    /// <para>• Action 2: Key = "Room", Value = <c>{{ GroupName | Split:' Room ' | Last }}</c></para>
+    /// <para>On removal, <c>GroupName</c> automatically resolves to the replacement
+    /// group name (or empty), so the same Lava works for both actions.</para>
     ///
     /// <para><strong>Workflow Setup (activities — shared group type):</strong></para>
-    /// <para>1. Create a workflow triggered by "Group Member Added to Group" on the
-    ///    activity placement group type.</para>
-    /// <para>2. Add a prior step to parse the activity name from the group name
-    ///    (e.g., "Archery" from "Archery - Day 2 1:00PM") and store it in a
-    ///    workflow attribute.</para>
-    /// <para>3. Add this action, pointing Attribute Key and Group Name Prefix to
-    ///    that workflow attribute. Leave Attribute Value blank — the prefix will
-    ///    be stripped automatically.</para>
-    /// <para>4. For the removal workflow, use the same setup. The built-in
-    ///    replacement logic will only consider groups matching the prefix.</para>
+    /// <para>For group name "Archery - Day 2 1:00PM":</para>
+    /// <para>• Attribute Key = <c>{{ PlacementGroupName | Split:' - ' | First }}</c>
+    ///   (resolves to "Archery")</para>
+    /// <para>• Group Name Prefix = <c>{{ PlacementGroupName | Split:' - ' | First }}</c>
+    ///   (same Lava; filters replacement to only other Archery groups)</para>
+    /// <para>• Leave Attribute Value blank — the prefix is stripped automatically,
+    ///   yielding "Day 2 1:00PM".</para>
     /// </summary>
     [ActionCategory( "SECC > Registrations" )]
     [Description( "Updates a group member attribute on the registration group based on placement group membership. " +
-        "Both the attribute key and value can be set dynamically via workflow attributes to support activities " +
-        "and other scenarios where the group name needs to be parsed." )]
+        "Both the attribute key and value can be set dynamically via Lava (with PlacementGroupName and GroupName " +
+        "merge fields) or workflow attributes to support housing, activities, and other scenarios where the " +
+        "group name needs to be parsed." )]
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Update Registration Group With Placement Group" )]
 
@@ -107,31 +111,30 @@ namespace org.secc.Workflow.Registrations
 
     [WorkflowTextOrAttribute( "Attribute Key", "Attribute Key Attribute",
         "The attribute key on the registration group member to update. " +
-        "Can be a fixed text value or a workflow attribute set by a prior step " +
-        "(e.g., for activities where the key is parsed from the group name). <span class='tip tip-lava'></span>",
+        "Can be a fixed text value, a workflow attribute, or Lava referencing {{ PlacementGroupName }} " +
+        "(e.g., <code>{{ PlacementGroupName | Split:' - ' | First }}</code> for activities). <span class='tip tip-lava'></span>",
         true, "", "", 2, "GroupMemberAttributeKey" )]
 
     [WorkflowTextOrAttribute( "Attribute Value", "Attribute Value Attribute",
-        "The value to set on the group member attribute. If left blank, defaults to the placement group name " +
+        "The value to set on the group member attribute. If left blank, defaults to the group name " +
         "(with the Group Name Prefix and separator stripped, if set). " +
-        "Use a workflow attribute to provide a fully custom value. " +
-        "When provided, the built-in removal replacement logic is skipped. <span class='tip tip-lava'></span>",
+        "Supports Lava with {{ GroupName }} (effective group — placement on add, replacement on removal) " +
+        "and {{ PlacementGroupName }} (always the triggering group). " +
+        "For housing: <code>{{ GroupName | Split:' Room ' | First }}</code>. <span class='tip tip-lava'></span>",
         false, "", "", 3, "AttributeValue" )]
 
     [WorkflowTextOrAttribute( "Group Name Prefix", "Group Name Prefix Attribute",
         "Optional. When placement groups of different types share the same GroupType (e.g., activities), " +
-        "set this to the activity name (e.g., 'Archery'). This does two things: " +
-        "(1) the default value strips the prefix and separator (e.g., 'Archery - Day 2 1:00PM' becomes 'Day 2 1:00PM'), and " +
-        "(2) removal replacement logic only considers groups whose names start with this prefix. " +
-        "The separator ' - ' is used by default. Leave blank for placement types that have their own GroupType. <span class='tip tip-lava'></span>",
+        "set this to scope replacement logic and strip the prefix from the default value. " +
+        "Supports Lava: <code>{{ PlacementGroupName | Split:' - ' | First }}</code>. " +
+        "The separator ' - ' is used for stripping. Leave blank for placement types with their own GroupType. <span class='tip tip-lava'></span>",
         false, "", "", 4, "GroupNamePrefix" )]
 
     [BooleanField( "Is Removal",
         "Set to true when this action is triggered by a group member removal. " +
-        "When no explicit Attribute Value is provided, the action will check if the person is still in " +
-        "another placement group of the same type (filtered by Group Name Prefix if set) " +
-        "and update the attribute accordingly, or clear it if not. " +
-        "When an explicit Attribute Value IS provided, it is used directly.",
+        "The action will look for a replacement placement group of the same type (filtered by Group Name Prefix). " +
+        "The replacement group name is available as {{ GroupName }} in the Attribute Value Lava template. " +
+        "If no replacement exists, {{ GroupName }} is empty and the attribute will be cleared.",
         false, "", 5, "IsRemoval" )]
 
     public class UpdateRegistrationGroupWithPlacementGroup : ActionComponent
@@ -171,8 +174,21 @@ namespace org.secc.Workflow.Registrations
                 return false;
             }
 
-            // 3. Read the attribute key (supports text, Lava, or workflow attribute).
-            string attributeKey = ResolveTextOrAttribute( action, "GroupMemberAttributeKey" );
+            bool isRemoval = GetAttributeValue( action, "IsRemoval" ).AsBoolean();
+
+            // 3. Build custom merge fields so that Lava in the Attribute Key, Value,
+            //    and Group Name Prefix fields can reference the placement group name.
+            //    PlacementGroupName is always the group that triggered the workflow.
+            //    GroupName will be set in step 9 to the effective group name.
+            var customMergeFields = new Dictionary<string, object>
+            {
+                { "PlacementGroupName", placementGroup.Name }
+            };
+
+            // 4. Resolve the attribute key (supports text, Lava, or workflow attribute).
+            //    Lava can reference {{ PlacementGroupName }} to derive the key from the
+            //    group name (e.g., {{ PlacementGroupName | Split:' - ' | First }} for activities).
+            string attributeKey = ResolveTextOrAttribute( action, "GroupMemberAttributeKey", customMergeFields );
             if ( !string.IsNullOrWhiteSpace( attributeKey ) )
             {
                 attributeKey = attributeKey.Replace( " ", "" );
@@ -185,23 +201,9 @@ namespace org.secc.Workflow.Registrations
                 return false;
             }
 
-            // 4. Read the optional explicit attribute value.
-            //    If the action's AttributeValue field is configured (non-empty config),
-            //    use the resolved value directly — even if it resolves to empty string.
-            //    If the field is not configured at all, fall back to default behavior.
-            string attributeValueConfig = GetAttributeValue( action, "AttributeValue" );
-            bool hasExplicitValue = !string.IsNullOrWhiteSpace( attributeValueConfig );
-            string explicitValue = null;
-            if ( hasExplicitValue )
-            {
-                explicitValue = ResolveTextOrAttribute( action, "AttributeValue" ) ?? string.Empty;
-            }
-
-            // 5. Read the optional group name prefix for filtering and value extraction.
-            string groupNamePrefix = ResolveTextOrAttribute( action, "GroupNamePrefix" );
-            bool hasGroupNamePrefix = !string.IsNullOrWhiteSpace( groupNamePrefix );
-
-            bool isRemoval = GetAttributeValue( action, "IsRemoval" ).AsBoolean();
+            // 5. Resolve the optional group name prefix for replacement filtering.
+            //    Lava can reference {{ PlacementGroupName }} here too.
+            string groupNamePrefix = ResolveTextOrAttribute( action, "GroupNamePrefix", customMergeFields );
 
             // 6. Find registration instances linked to this placement group.
             //    This checks both instance-level and template-level placement configurations.
@@ -245,32 +247,43 @@ namespace org.secc.Workflow.Registrations
                 return true;
             }
 
-            // 9. Determine the attribute value to set.
-            string valueToSet;
-            if ( hasExplicitValue )
+            // 9. Determine the effective group name and add it to merge fields.
+            //    On add: GroupName = placement group name.
+            //    On removal: find replacement group of the same GroupType (and
+            //    matching prefix); GroupName = replacement name or empty.
+            string effectiveGroupName;
+            if ( isRemoval )
             {
-                // An explicit value was provided (possibly by a prior workflow step
-                // that parsed the group name). Use it directly — the caller is
-                // responsible for any replacement logic on removal.
-                valueToSet = explicitValue;
-            }
-            else if ( isRemoval )
-            {
-                // No explicit value and this is a removal. Check if the person is
-                // still in another placement group of the same GroupType (and matching
-                // the group name prefix, if set). If so, use that group's name
-                // (with prefix stripped). Otherwise, clear it.
-                valueToSet = FindReplacementPlacementGroupValue(
+                var replacementGroup = FindReplacementPlacementGroup(
                     rockContext, person, placementGroup, registrationInstanceIds, groupNamePrefix );
+                effectiveGroupName = replacementGroup != null ? replacementGroup.Name : string.Empty;
             }
             else
             {
-                // No explicit value and this is an addition. Use the placement
-                // group name, stripping the prefix and separator if configured.
-                valueToSet = StripGroupNamePrefix( placementGroup.Name, groupNamePrefix );
+                effectiveGroupName = placementGroup.Name;
             }
 
-            // 10. Load the registration group member records and update the attribute.
+            customMergeFields["GroupName"] = effectiveGroupName;
+
+            // 10. Determine the attribute value to set.
+            //     If an explicit Attribute Value is configured, resolve it with merge
+            //     fields (Lava can use {{ GroupName }}, {{ PlacementGroupName }}).
+            //     Otherwise, use the effective group name with prefix stripped as the default.
+            string attributeValueConfig = GetAttributeValue( action, "AttributeValue" );
+            bool hasExplicitValue = !string.IsNullOrWhiteSpace( attributeValueConfig );
+
+            string valueToSet;
+            if ( hasExplicitValue )
+            {
+                valueToSet = ResolveTextOrAttribute( action, "AttributeValue", customMergeFields ) ?? string.Empty;
+            }
+            else
+            {
+                // Default: use the effective group name, stripping the prefix if set.
+                valueToSet = StripGroupNamePrefix( effectiveGroupName, groupNamePrefix );
+            }
+
+            // 11. Load the registration group member records and update the attribute.
             var groupMembers = new GroupMemberService( rockContext )
                 .Queryable()
                 .Where( gm => registrationGroupMemberIds.Contains( gm.Id ) )
@@ -346,9 +359,9 @@ namespace org.secc.Workflow.Registrations
         /// Resolves a WorkflowTextOrAttribute value. If the configured value is a
         /// valid Guid, it is treated as a workflow attribute reference and the
         /// attribute's value is returned. Otherwise, the text is resolved as Lava
-        /// using the action's merge fields.
+        /// using the action's merge fields plus any additional merge fields provided.
         /// </summary>
-        private string ResolveTextOrAttribute( WorkflowAction action, string configKey )
+        private string ResolveTextOrAttribute( WorkflowAction action, string configKey, Dictionary<string, object> additionalMergeFields = null )
         {
             string rawValue = GetAttributeValue( action, configKey );
             if ( string.IsNullOrWhiteSpace( rawValue ) )
@@ -365,7 +378,16 @@ namespace org.secc.Workflow.Registrations
             else
             {
                 // Value is literal text — resolve any Lava merge fields.
-                return rawValue.ResolveMergeFields( GetMergeFields( action ) );
+                var mergeFields = GetMergeFields( action );
+                if ( additionalMergeFields != null )
+                {
+                    foreach ( var kvp in additionalMergeFields )
+                    {
+                        mergeFields[kvp.Key] = kvp.Value;
+                    }
+                }
+
+                return rawValue.ResolveMergeFields( mergeFields );
             }
         }
 
@@ -485,18 +507,18 @@ namespace org.secc.Workflow.Registrations
         }
 
         /// <summary>
-        /// When a person is removed from a placement group, checks if they are still
-        /// a member of another placement group of the same GroupType (and optionally
-        /// matching a group name prefix) for the same registration instance(s).
-        /// Returns the replacement group's value (with prefix stripped if applicable),
-        /// or an empty string if no replacement exists.
+        /// When a person is removed from a placement group, finds a replacement
+        /// placement group of the same GroupType (and optionally matching a group
+        /// name prefix) for the same registration instance(s) where the person is
+        /// still an active member.
+        ///
+        /// Returns the replacement Group, or null if no replacement exists.
         ///
         /// When <paramref name="groupNamePrefix"/> is set, only groups whose names
-        /// start with the prefix are considered as replacements. This prevents an
-        /// Archery removal from picking up a Zipline group when both share the same
-        /// Activity group type.
+        /// start with the prefix are considered. This prevents an Archery removal
+        /// from picking up a Zipline group when both share the same GroupType.
         /// </summary>
-        private string FindReplacementPlacementGroupValue(
+        private Group FindReplacementPlacementGroup(
             RockContext rockContext,
             Rock.Model.Person person,
             Group removedPlacementGroup,
@@ -533,8 +555,7 @@ namespace org.secc.Workflow.Registrations
             // If a group name prefix is set, only consider groups matching it.
             // This prevents cross-activity contamination (e.g., Archery removal
             // picking up a Zipline group).
-            bool hasPrefix = !string.IsNullOrWhiteSpace( groupNamePrefix );
-            if ( hasPrefix )
+            if ( !string.IsNullOrWhiteSpace( groupNamePrefix ) )
             {
                 string prefixWithSeparator = groupNamePrefix + GroupNameSeparator;
                 replacementQuery = replacementQuery.Where( g =>
@@ -542,15 +563,7 @@ namespace org.secc.Workflow.Registrations
                     || g.Name == groupNamePrefix );
             }
 
-            var replacementGroup = replacementQuery.FirstOrDefault();
-
-            if ( replacementGroup == null )
-            {
-                return string.Empty;
-            }
-
-            // Strip the prefix from the replacement group's name to get the value.
-            return StripGroupNamePrefix( replacementGroup.Name, groupNamePrefix );
+            return replacementQuery.FirstOrDefault();
         }
     }
 }
