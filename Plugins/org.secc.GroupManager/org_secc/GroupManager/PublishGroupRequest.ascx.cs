@@ -384,7 +384,15 @@ namespace RockWeb.Plugins.GroupManager
 
                     if (group.GroupLocations.Any())
                     {
-                        publishGroup.MeetingLocation = group.GroupLocations.FirstOrDefault().Location.Name;
+                        var location = group.GroupLocations.FirstOrDefault().Location;
+                        if (location.Name.IsNotNullOrWhiteSpace())
+                        {
+                            publishGroup.MeetingLocation = location.Name;
+                        }
+                        else
+                        {
+                            publishGroup.MeetingLocation = location.ToString();
+                        }
                     }
 
                     return publishGroup;
