@@ -204,6 +204,10 @@ namespace org.secc.Workflow.Registrations
             // 5. Resolve the optional group name prefix for replacement filtering.
             //    Lava can reference {{ PlacementGroupName }} here too.
             string groupNamePrefix = ResolveTextOrAttribute( action, "GroupNamePrefix", customMergeFields );
+            if ( !string.IsNullOrWhiteSpace( groupNamePrefix ) )
+            {
+                groupNamePrefix = groupNamePrefix.Trim();
+            }
 
             // 6. Find registration instances linked to this placement group.
             //    This checks both instance-level and template-level placement configurations.
@@ -252,11 +256,13 @@ namespace org.secc.Workflow.Registrations
             //    On removal: find replacement group of the same GroupType (and
             //    matching prefix); GroupName = replacement name or empty.
             string effectiveGroupName;
+            bool replacementFound = false;
             if ( isRemoval )
             {
                 var replacementGroup = FindReplacementPlacementGroup(
                     rockContext, person, placementGroup, registrationInstanceIds, groupNamePrefix );
-                effectiveGroupName = replacementGroup != null ? replacementGroup.Name : string.Empty;
+                replacementFound = replacementGroup != null;
+                effectiveGroupName = replacementFound ? replacementGroup.Name : string.Empty;
             }
             else
             {
@@ -300,9 +306,9 @@ namespace org.secc.Workflow.Registrations
                     updatedCount++;
 
                     string logAction = isRemoval
-                        ? ( string.IsNullOrEmpty( valueToSet )
-                            ? "Cleared"
-                            : string.Format( "Updated to '{0}' (replacement found)", valueToSet ) )
+                        ? ( replacementFound
+                            ? string.Format( "Updated to '{0}' (replacement found)", valueToSet )
+                            : "Cleared" )
                         : string.Format( "Set to '{0}'", valueToSet );
 
                     action.AddLogEntry( string.Format(
@@ -527,10 +533,12 @@ namespace org.secc.Workflow.Registrations
         {
             int groupEntityTypeId = EntityTypeCache.Get( typeof( Group ) ).Id;
             int registrationInstanceEntityTypeId = EntityTypeCache.Get( typeof( RegistrationInstance ) ).Id;
+            int templatePlacementEntityTypeId = EntityTypeCache.Get( typeof( RegistrationTemplatePlacement ) ).Id;
 
-            // Find all placement group IDs linked to the same registration instances.
-            var allPlacementGroupIds = new RelatedEntityService( rockContext )
-                .Queryable().AsNoTracking()
+            var relatedEntityService = new RelatedEntityService( rockContext );
+
+            // Instance-level: placement groups linked directly to the registration instances.
+            var allPlacementGroupIds = relatedEntityService.Queryable().AsNoTracking()
                 .Where( re =>
                     re.SourceEntityTypeId == registrationInstanceEntityTypeId
                     && registrationInstanceIds.Contains( re.SourceEntityId )
@@ -539,6 +547,39 @@ namespace org.secc.Workflow.Registrations
                 .Select( re => re.TargetEntityId )
                 .Distinct()
                 .ToList();
+
+            // Template-level: resolve the registration instances back to their template
+            // placements, then find all groups linked at the template level.
+            var templateIds = new RegistrationInstanceService( rockContext )
+                .Queryable().AsNoTracking()
+                .Where( ri => registrationInstanceIds.Contains( ri.Id ) )
+                .Select( ri => ri.RegistrationTemplateId )
+                .Distinct()
+                .ToList();
+
+            var templatePlacementIds = new RegistrationTemplatePlacementService( rockContext )
+                .Queryable().AsNoTracking()
+                .Where( rtp => templateIds.Contains( rtp.RegistrationTemplateId ) )
+                .Select( rtp => rtp.Id )
+                .ToList();
+
+            if ( templatePlacementIds.Any() )
+            {
+                var templatePlacementGroupIds = relatedEntityService.Queryable().AsNoTracking()
+                    .Where( re =>
+                        re.SourceEntityTypeId == templatePlacementEntityTypeId
+                        && templatePlacementIds.Contains( re.SourceEntityId )
+                        && re.TargetEntityTypeId == groupEntityTypeId
+                        && re.PurposeKey == RelatedEntityPurposeKey.RegistrationTemplateGroupPlacementTemplate )
+                    .Select( re => re.TargetEntityId )
+                    .Distinct()
+                    .ToList();
+
+                allPlacementGroupIds = allPlacementGroupIds
+                    .Union( templatePlacementGroupIds )
+                    .Distinct()
+                    .ToList();
+            }
 
             // Build the query for replacement groups: same GroupType, different group,
             // person is still an active member.
