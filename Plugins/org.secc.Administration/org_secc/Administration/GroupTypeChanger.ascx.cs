@@ -227,10 +227,22 @@ namespace RockWeb.Plugins.org_secc.Administration
             //Get the old groupTypeId before we change it
             var stringGroupTypeId = group.GroupTypeId.ToString();
 
+            // Capture old roles before changing GroupTypeId,
+            // since the navigation property could potentially reload.
+            var oldRoles = group.GroupType.Roles.ToList();
+
             //Map group roles
-            group.GroupTypeId = ddlGroupTypes.SelectedValue.AsInteger();
+            var newGroupTypeId = ddlGroupTypes.SelectedValue.AsInteger();
+            group.GroupTypeId = newGroupTypeId;
             var groupMembers = group.Members;
-            foreach ( var role in group.GroupType.Roles )
+
+            // Update the denormalized GroupTypeId on every group member
+            foreach ( var member in groupMembers )
+            {
+                member.GroupTypeId = newGroupTypeId;
+            }
+
+            foreach ( var role in oldRoles )
             {
                 var ddlRole = ( RockDropDownList ) phRoles.FindControl( role.Id.ToString() + "_ddlRole" );
                 var roleMembers = groupMembers.Where( gm => gm.GroupRoleId == role.Id );
