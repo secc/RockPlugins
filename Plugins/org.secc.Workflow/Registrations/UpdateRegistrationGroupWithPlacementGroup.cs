@@ -259,6 +259,8 @@ namespace org.secc.Workflow.Registrations
                 string workflowGroupAttrKey = ResolveTextOrAttribute( action, "WorkflowGroupAttributeKey", customMergeFields );
                 if ( !string.IsNullOrWhiteSpace( workflowGroupAttrKey ) )
                 {
+                    workflowGroupAttrKey = workflowGroupAttrKey.Replace( " ", "" );
+
                     registrationGroupMemberIds = GetGroupMemberIdsFromRegistrationWorkflowType(
                         rockContext, registrationInstanceIds, workflowGroupAttrKey, person.Id );
 
@@ -682,52 +684,53 @@ namespace org.secc.Workflow.Registrations
                 .Select( a => a.DefaultValue )
                 .ToList();
 
-            var groupMemberIds = new List<int>();
-            var groupMemberService = new GroupMemberService( rockContext );
+            // Resolve all group IDs in bulk to avoid N+1 queries.
+            var groupIds = new List<int>();
 
-            foreach ( var groupValue in defaultValues )
+            var guidValues = defaultValues
+                .Where( v => !string.IsNullOrWhiteSpace( v ) )
+                .Select( v => v.AsGuidOrNull() )
+                .Where( g => g.HasValue )
+                .Select( g => g.Value )
+                .Distinct()
+                .ToList();
+
+            var intValues = defaultValues
+                .Where( v => !string.IsNullOrWhiteSpace( v ) && !v.AsGuidOrNull().HasValue )
+                .Select( v => v.AsIntegerOrNull() )
+                .Where( i => i.HasValue )
+                .Select( i => i.Value )
+                .Distinct()
+                .ToList();
+
+            if ( guidValues.Any() )
             {
-                if ( string.IsNullOrWhiteSpace( groupValue ) )
-                {
-                    continue;
-                }
-
-                // The default value may be a Group Guid (Group field type)
-                // or an integer Group Id.
-                int? groupId = null;
-                var groupGuid = groupValue.AsGuidOrNull();
-                if ( groupGuid.HasValue )
-                {
-                    groupId = new GroupService( rockContext )
-                        .Queryable().AsNoTracking()
-                        .Where( g => g.Guid == groupGuid.Value )
-                        .Select( g => g.Id )
-                        .Cast<int?>()
-                        .FirstOrDefault();
-                }
-                else
-                {
-                    groupId = groupValue.AsIntegerOrNull();
-                }
-
-                if ( !groupId.HasValue )
-                {
-                    continue;
-                }
-
-                // Find this person's group member record in the target group.
-                var memberIds = groupMemberService
+                var resolvedIds = new GroupService( rockContext )
                     .Queryable().AsNoTracking()
-                    .Where( gm =>
-                        gm.GroupId == groupId.Value
-                        && gm.PersonId == personId )
-                    .Select( gm => gm.Id )
+                    .Where( g => guidValues.Contains( g.Guid ) )
+                    .Select( g => g.Id )
                     .ToList();
 
-                groupMemberIds.AddRange( memberIds );
+                groupIds.AddRange( resolvedIds );
             }
 
-            return groupMemberIds.Distinct().ToList();
+            groupIds.AddRange( intValues );
+            groupIds = groupIds.Distinct().ToList();
+
+            if ( !groupIds.Any() )
+            {
+                return new List<int>();
+            }
+
+            // Find this person's group member records across all resolved groups.
+            return new GroupMemberService( rockContext )
+                .Queryable().AsNoTracking()
+                .Where( gm =>
+                    groupIds.Contains( gm.GroupId )
+                    && gm.PersonId == personId )
+                .Select( gm => gm.Id )
+                .Distinct()
+                .ToList();
         }
     }
 }
