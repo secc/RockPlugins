@@ -137,6 +137,15 @@ namespace org.secc.Workflow.Registrations
         "If no replacement exists, {{ GroupName }} is empty and the attribute will be cleared.",
         false, "", 5, "IsRemoval" )]
 
+    [WorkflowTextOrAttribute( "Workflow Group Attribute Key", "Workflow Group Attribute Key Attribute",
+        "Optional fallback for registrants not directly placed in the registration group (e.g., leaders " +
+        "who go through a connections process). Specify the attribute key on the WorkflowType referenced " +
+        "by the registration instance's RegistrationWorkflowTypeId that contains the registration group. " +
+        "When the initial registration group member lookup returns no results, the action reads this " +
+        "attribute from the WorkflowType to identify the registration group and find the person's " +
+        "group member record within it by matching PersonId.",
+        false, "", "", 6, "WorkflowGroupAttributeKey" )]
+
     public class UpdateRegistrationGroupWithPlacementGroup : ActionComponent
     {
         /// <summary>
@@ -245,10 +254,31 @@ namespace org.secc.Workflow.Registrations
 
             if ( !registrationGroupMemberIds.Any() )
             {
-                action.AddLogEntry( string.Format(
-                    "No registrant records with linked group members found for '{0}' in the matching registration instances.",
-                    person.FullName ) );
-                return true;
+                // 8b. Fallback: check the WorkflowType configured on the registration
+                //     instance for a group attribute (e.g., leaders placed via connections).
+                string workflowGroupAttrKey = ResolveTextOrAttribute( action, "WorkflowGroupAttributeKey", customMergeFields );
+                if ( !string.IsNullOrWhiteSpace( workflowGroupAttrKey ) )
+                {
+                    workflowGroupAttrKey = workflowGroupAttrKey.Replace( " ", "" );
+
+                    registrationGroupMemberIds = GetGroupMemberIdsFromRegistrationWorkflowType(
+                        rockContext, registrationInstanceIds, workflowGroupAttrKey, person.Id );
+
+                    if ( registrationGroupMemberIds.Any() )
+                    {
+                        action.AddLogEntry( string.Format(
+                            "Found {0} group member(s) for '{1}' via registration WorkflowType attribute '{2}'.",
+                            registrationGroupMemberIds.Count, person.FullName, workflowGroupAttrKey ) );
+                    }
+                }
+
+                if ( !registrationGroupMemberIds.Any() )
+                {
+                    action.AddLogEntry( string.Format(
+                        "No registrant records with linked group members found for '{0}' in the matching registration instances.",
+                        person.FullName ) );
+                    return true;
+                }
             }
 
             // 9. Determine the effective group name and add it to merge fields.
@@ -605,6 +635,102 @@ namespace org.secc.Workflow.Registrations
             }
 
             return replacementQuery.FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Fallback for registrants not directly placed in the registration group
+        /// (e.g., leaders who go through a connections process). Looks up the
+        /// workflow attribute definition (by key) for the WorkflowType configured
+        /// on each linked registration instance (via RegistrationWorkflowTypeId)
+        /// and reads its DefaultValue to get the target registration group, then
+        /// finds the person's GroupMember record in that group by matching PersonId.
+        /// </summary>
+        private List<int> GetGroupMemberIdsFromRegistrationWorkflowType(
+            RockContext rockContext,
+            List<int> registrationInstanceIds,
+            string workflowGroupAttributeKey,
+            int personId )
+        {
+            // Get the RegistrationWorkflowTypeIds from the linked registration instances.
+            var workflowTypeIds = new RegistrationInstanceService( rockContext )
+                .Queryable().AsNoTracking()
+                .Where( ri =>
+                    registrationInstanceIds.Contains( ri.Id )
+                    && ri.RegistrationWorkflowTypeId.HasValue )
+                .Select( ri => ri.RegistrationWorkflowTypeId.Value )
+                .Distinct()
+                .ToList();
+
+            if ( !workflowTypeIds.Any() )
+            {
+                return new List<int>();
+            }
+
+            // Workflow attributes are stored as Attribute records where:
+            //   EntityTypeId = Workflow entity type
+            //   EntityTypeQualifierColumn = "WorkflowTypeId"
+            //   EntityTypeQualifierValue = the WorkflowType's Id
+            // The group is stored in the Attribute's DefaultValue.
+            int workflowEntityTypeId = EntityTypeCache.Get( typeof( Rock.Model.Workflow ) ).Id;
+            var workflowTypeIdStrings = workflowTypeIds.Select( id => id.ToString() ).ToList();
+
+            var defaultValues = new AttributeService( rockContext )
+                .Queryable().AsNoTracking()
+                .Where( a =>
+                    a.EntityTypeId == workflowEntityTypeId
+                    && a.EntityTypeQualifierColumn == "WorkflowTypeId"
+                    && workflowTypeIdStrings.Contains( a.EntityTypeQualifierValue )
+                    && a.Key == workflowGroupAttributeKey )
+                .Select( a => a.DefaultValue )
+                .ToList();
+
+            // Resolve all group IDs in bulk to avoid N+1 queries.
+            var groupIds = new List<int>();
+
+            var guidValues = defaultValues
+                .Where( v => !string.IsNullOrWhiteSpace( v ) )
+                .Select( v => v.AsGuidOrNull() )
+                .Where( g => g.HasValue )
+                .Select( g => g.Value )
+                .Distinct()
+                .ToList();
+
+            var intValues = defaultValues
+                .Where( v => !string.IsNullOrWhiteSpace( v ) && !v.AsGuidOrNull().HasValue )
+                .Select( v => v.AsIntegerOrNull() )
+                .Where( i => i.HasValue )
+                .Select( i => i.Value )
+                .Distinct()
+                .ToList();
+
+            if ( guidValues.Any() )
+            {
+                var resolvedIds = new GroupService( rockContext )
+                    .Queryable().AsNoTracking()
+                    .Where( g => guidValues.Contains( g.Guid ) )
+                    .Select( g => g.Id )
+                    .ToList();
+
+                groupIds.AddRange( resolvedIds );
+            }
+
+            groupIds.AddRange( intValues );
+            groupIds = groupIds.Distinct().ToList();
+
+            if ( !groupIds.Any() )
+            {
+                return new List<int>();
+            }
+
+            // Find this person's group member records across all resolved groups.
+            return new GroupMemberService( rockContext )
+                .Queryable().AsNoTracking()
+                .Where( gm =>
+                    groupIds.Contains( gm.GroupId )
+                    && gm.PersonId == personId )
+                .Select( gm => gm.Id )
+                .Distinct()
+                .ToList();
         }
     }
 }
