@@ -42,6 +42,7 @@ namespace RockWeb.Plugins.org_secc.Finance
     [WorkflowTypeField( "Statement Generator Workflow", "The workflow to launch to generate statements.", true )]
     [DataViewField( "Default Review DataView", "The default DataView to use for the review process.", false )]
     [IntegerField( "Command Timeout", "Maximum amount of time (in seconds) to wait for the query to run.", false, 300, key: "CommandTimeout" )]
+    [DataViewField("Suppress Statement Dataview", "The dataview of people to not generate a statement for.", false, key: "SuppressStatements")]
 
     public partial class ContributionStatementGenerator : Rock.Web.UI.RockBlock
     {
@@ -285,6 +286,8 @@ namespace RockWeb.Plugins.org_secc.Finance
                 givingGroups = givingGroups.Where( gg => gg.GivingGroupName.Contains( tbGivingGroup.Text ) );
             }
 
+            var suppressedGivingIds = GetSuppressedGivingIds();
+            givingGroups = givingGroups.Where( gg => !suppressedGivingIds.Contains( gg.GivingId ));
 
             givingGroups = givingGroups.OrderByDescending( g => g.LastGift );
             return givingGroups;
@@ -306,6 +309,35 @@ namespace RockWeb.Plugins.org_secc.Finance
                 return gdGivingUnits.SelectedKeys.Count;
             }
             return GetGivingGroups().Count();
+        }
+
+        private List<string> GetSuppressedGivingIds()
+        {
+            var suppressedGivingIds = new List<string>();
+
+
+            var suppressedStatementDataviewGuid = GetAttributeValue("SuppressStatements").AsGuid();
+
+            if(suppressedStatementDataviewGuid == Guid.Empty)
+            {
+                return suppressedGivingIds;
+            }
+
+            using (var rockContext = new RockContext())
+            {
+                var dvService = new DataViewService(rockContext);
+                var dataview = dvService.Get(suppressedStatementDataviewGuid);
+
+                if(dataview != null)
+                {
+                    suppressedGivingIds.AddRange(new PersonService(rockContext).GetQueryUsingDataView(dataview)
+                        .Select(dv => dv.GivingId)
+                        .Distinct()
+                        .ToList());
+                }
+            }
+
+            return suppressedGivingIds;
         }
         #endregion
 
