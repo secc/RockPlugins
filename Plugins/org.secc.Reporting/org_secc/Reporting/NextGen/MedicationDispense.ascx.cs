@@ -217,7 +217,9 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
         private void BindGrid()
         {
-            gGrid.DataSource = GetMedicalItems();
+            var items = GetMedicalItems();
+
+            gGrid.DataSource = items;
             gGrid.DataBind();
 
             if ( !dpDate.SelectedDate.HasValue
@@ -232,20 +234,20 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             if ( GetAttributeValue( "GroupMemberAttributeFilter" ).IsNotNullOrWhiteSpace() )
             {
-                gGrid.Columns[1].Visible = true;
-            }
-            else
-            {
-                gGrid.Columns[1].Visible = false;
-            }
-
-            if ( GetAttributeValue( "SmallGroupParentGroupId" ).AsIntegerOrNull().IsNotNullOrZero() && GetAttributeValue( "SmallGroupGroupTypeId" ).AsIntegerOrNull().IsNotNullOrZero() )
-            {
                 gGrid.Columns[2].Visible = true;
             }
             else
             {
                 gGrid.Columns[2].Visible = false;
+            }
+
+            if ( GetAttributeValue( "SmallGroupParentGroupId" ).AsIntegerOrNull().IsNotNullOrZero() && GetAttributeValue( "SmallGroupGroupTypeId" ).AsIntegerOrNull().IsNotNullOrZero() )
+            {
+                gGrid.Columns[3].Visible = true;
+            }
+            else
+            {
+                gGrid.Columns[3].Visible = false;
             }
         }
 
@@ -884,6 +886,11 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             hfPersonId.Value = personId.ToString();
 
+            var person = new PersonService( rockContext ).Get( personId );
+            mdNotes.Title = person != null
+                ? string.Format( "Distribution History - {0}", person.FullName )
+                : "Distribution History";
+
             mdNotes.Show();
         }
 
@@ -1048,6 +1055,247 @@ namespace RockWeb.Blocks.Reporting.NextGen
             noteService.Add( note );
             rockContext.SaveChanges();
             UpdateCustomNotes( hfCustomNotesPersonId.ValueAsInt() );
+        }
+
+        protected void btnDispenseSelected_Click( object sender, EventArgs e )
+        {
+            var selectedKeys = gGrid.SelectedKeys;
+            if ( selectedKeys == null || !selectedKeys.Any() )
+                return;
+
+            RockContext rockContext = new RockContext();
+            NoteService noteService = new NoteService( rockContext );
+            AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
+            var noteType = NoteTypeCache.Get( GetAttributeValue( "NoteType" ).AsGuid() );
+
+            foreach ( var keyObj in selectedKeys )
+            {
+                var keys = ( ( string ) keyObj ).SplitDelimitedValues();
+                var personId = keys[0].AsInteger();
+                var matrixId = keys[1].AsInteger();
+                var scheduleGuid = keys[2].AsGuid();
+
+                // Skip if already distributed today
+                var firstDay = ( dpDate.SelectedDate ?? RockDateTime.Today ).Date;
+                var nextDay = firstDay.AddDays( 1 );
+                bool alreadyDistributed = noteService.Queryable()
+                    .Any( n => n.NoteTypeId == noteType.Id
+                        && n.EntityId == personId
+                        && n.ForeignId == matrixId
+                        && n.ForeignGuid == scheduleGuid
+                        && n.CreatedDateTime >= firstDay
+                        && n.CreatedDateTime < nextDay );
+
+                if ( alreadyDistributed )
+                    continue;
+
+                var matrix = attributeMatrixItemService.Get( matrixId );
+                if ( matrix == null )
+                    continue;
+
+                matrix.LoadAttributes();
+
+                Note history = new Note()
+                {
+                    NoteTypeId = noteType.Id,
+                    EntityId = personId,
+                    ForeignId = matrixId,
+                    Caption = "Medication Distributed",
+                    Text = string.Format( "<span class=\"field-name\">{0}</span> was distributed at <span class=\"field-name\">{1}</span>",
+                        matrix.GetAttributeValue( "Medication" ), RockDateTime.Now ),
+                    ForeignGuid = scheduleGuid
+                };
+                noteService.Add( history );
+
+                if ( dpDate.SelectedDate.HasValue && dpDate.SelectedDate.Value.Date != RockDateTime.Today )
+                {
+                    history.CreatedDateTime = dpDate.SelectedDate.Value;
+                }
+            }
+
+            rockContext.SaveChanges();
+            BindGrid();
+        }
+
+        protected void ManageMeds_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        {
+            // Ensure clean modal state
+            mdAddMedication.Hide();
+
+            var keys = ( ( string ) e.RowKeyValue ).SplitDelimitedValues();
+            var personId = keys[0].AsInteger();
+
+            RockContext rockContext = new RockContext();
+            PersonService personService = new PersonService( rockContext );
+            AttributeValueService attributeValueService = new AttributeValueService( rockContext );
+            AttributeService attributeService = new AttributeService( rockContext );
+            var personEntityId = EntityTypeCache.GetId<Rock.Model.Person>().Value;
+            var matrixKey = GetAttributeValue( AttributeKey.MedicationMatrixKey );
+
+            var person = personService.Get( personId );
+            mdManageMeds.Title = person != null
+                ? string.Format( "Manage Medications - {0}", person.FullName )
+                : "Manage Medications";
+
+            var matrixAttributeId = attributeService.Queryable()
+                .Where( a => a.EntityTypeId == personEntityId && a.Key == matrixKey )
+                .Select( a => a.Id )
+                .FirstOrDefault();
+
+            var matrixGuid = attributeValueService.Queryable()
+                .Where( av => av.AttributeId == matrixAttributeId && av.EntityId == personId )
+                .Select( av => av.Value )
+                .FirstOrDefault();
+
+            hfManageMedsPersonId.Value = personId.ToString();
+            hfManageMedsMatrixGuid.Value = matrixGuid;
+
+            BindMedicationsGrid( personId );
+            mdManageMeds.Show();
+        }
+
+        private void BindMedicationsGrid( int personId )
+        {
+            RockContext rockContext = new RockContext();
+            AttributeMatrixService attributeMatrixService = new AttributeMatrixService( rockContext );
+            AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
+
+            var matrixGuid = hfManageMedsMatrixGuid.Value.AsGuidOrNull();
+            if ( matrixGuid == null )
+                return;
+
+            var matrix = attributeMatrixService.Get( matrixGuid.Value );
+            if ( matrix == null )
+                return;
+
+            var items = attributeMatrixItemService.Queryable()
+                .Where( ami => ami.AttributeMatrixId == matrix.Id )
+                .ToList();
+
+            var result = items.Select( ami =>
+            {
+                ami.LoadAttributes();
+                var scheduleValues = ami.GetAttributeValue( "Schedule" )
+                    .SplitDelimitedValues()
+                    .Select( g =>
+                    {
+                        var dv = DefinedValueCache.Get( g.AsGuid() );
+                        return dv != null ? dv.Value : g;
+                    } );
+
+                return new
+                {
+                    ami.Id,
+                    Medication = ami.GetAttributeValue( "Medication" ),
+                    Instructions = ami.GetAttributeValue( "Instructions" ),
+                    Schedule = string.Join( ", ", scheduleValues )
+                };
+            } ).ToList();
+
+            gMedications.DataSource = result;
+            gMedications.DataBind();
+        }
+
+        protected void btnDeleteMed_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        {
+            var matrixItemId = e.RowKeyId;
+
+            RockContext rockContext = new RockContext();
+            AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
+            AttributeValueService attributeValueService = new AttributeValueService( rockContext );
+
+            var item = attributeMatrixItemService.Get( matrixItemId );
+            if ( item != null )
+            {
+                // Verify the item belongs to the expected matrix
+                var expectedMatrixGuid = hfManageMedsMatrixGuid.Value.AsGuidOrNull();
+                if ( expectedMatrixGuid == null || item.AttributeMatrix == null || item.AttributeMatrix.Guid != expectedMatrixGuid.Value )
+                    return;
+
+                // Delete associated attribute values scoped to AttributeMatrixItem entity type
+                var matrixItemEntityTypeId = EntityTypeCache.GetId<Rock.Model.AttributeMatrixItem>().Value;
+                var avToDelete = attributeValueService.Queryable()
+                    .Where( av => av.EntityId == item.Id
+                        && av.Attribute.EntityTypeId == matrixItemEntityTypeId )
+                    .ToList();
+                attributeValueService.DeleteRange( avToDelete );
+
+                attributeMatrixItemService.Delete( item );
+                rockContext.SaveChanges();
+            }
+
+            BindMedicationsGrid( hfManageMedsPersonId.ValueAsInt() );
+            BindGrid();
+        }
+
+        protected void btnAddMedication_Click( object sender, EventArgs e )
+        {
+            tbNewMedication.Text = string.Empty;
+            tbNewInstructions.Text = string.Empty;
+
+            var definedType = DefinedTypeCache.Get( GetAttributeValue( "DefinedType" ).AsGuid() );
+            if ( definedType != null )
+            {
+                lbNewSchedule.DataSource = definedType.DefinedValues;
+                lbNewSchedule.DataBind();
+            }
+
+            mdAddMedication.Show();
+        }
+
+        protected void mdAddMedication_SaveClick( object sender, EventArgs e )
+        {
+            if ( string.IsNullOrWhiteSpace( tbNewMedication.Text ) )
+                return;
+
+            var selectedSchedules = lbNewSchedule.Items.Cast<ListItem>()
+                .Where( i => i.Selected )
+                .Select( i => i.Value ).ToList();
+            if ( !selectedSchedules.Any() )
+                return;
+
+            RockContext rockContext = new RockContext();
+            AttributeMatrixService attributeMatrixService = new AttributeMatrixService( rockContext );
+            AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
+
+            var matrixGuid = hfManageMedsMatrixGuid.Value.AsGuidOrNull();
+            if ( matrixGuid == null )
+                return;
+
+            var matrix = attributeMatrixService.Get( matrixGuid.Value );
+            if ( matrix == null )
+                return;
+
+            var newItem = new AttributeMatrixItem()
+            {
+                AttributeMatrixId = matrix.Id
+            };
+            attributeMatrixItemService.Add( newItem );
+            rockContext.SaveChanges();
+
+            newItem.LoadAttributes( rockContext );
+            newItem.SetAttributeValue( "Medication", tbNewMedication.Text.Trim() );
+            newItem.SetAttributeValue( "Instructions", tbNewInstructions.Text.Trim() );
+
+            // Join selected schedule guids as delimited string
+            newItem.SetAttributeValue( "Schedule", string.Join( ",", selectedSchedules ) );
+
+            newItem.SaveAttributeValues( rockContext );
+
+            BindMedicationsGrid( hfManageMedsPersonId.ValueAsInt() );
+            BindGrid();
+            mdAddMedication.Hide();
+        }
+
+        protected void btnCancelAddMed_Click( object sender, EventArgs e )
+        {
+            mdAddMedication.Hide();
+        }
+
+        protected void mdManageMeds_SaveClick( object sender, EventArgs e )
+        {
+            mdManageMeds.Hide();
+            BindGrid();
         }
     }
 }
