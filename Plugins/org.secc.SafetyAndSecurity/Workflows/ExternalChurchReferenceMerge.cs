@@ -32,17 +32,17 @@ namespace org.secc.SafetyAndSecurity
     [Export( typeof( ActionComponent ) )]
     [ExportMetadata( "ComponentName", "External Church Reference Merge" )]
     [BinaryFileField( ExternalChurchReferenceMerge.PDF_FORM_BINARY_FILE_TYPE, "External Church Reference PDF", "The External Church Reference PDF form", true )]
-    [BinaryFileTypeField("Binary File Type","The Guid for the reference document binary file type", true, "A72B7149-7161-4BB2-B6E4-BE2565AFE763", key:"binaryFileType" )]
+    [BinaryFileTypeField( "Binary File Type", "The Guid for the reference document binary file type", true, "A72B7149-7161-4BB2-B6E4-BE2565AFE763", key: "binaryFileType" )]
 
     class ExternalChurchReferenceMerge : ActionComponent
     {
-        
+
         public const string PDF_FORM_BINARY_FILE_TYPE = "D587ECCB-F548-452A-A442-FE383CBED283";
 
         public override bool Execute( RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
         {
             errorMessages = new List<string>();
-            
+
             PersonAliasService personAliasService = new PersonAliasService( rockContext );
             Person person = personAliasService.Get( action.Activity.Workflow.GetAttributeValue( "Person" ).AsGuid() ).Person;
 
@@ -80,17 +80,17 @@ namespace org.secc.SafetyAndSecurity
                 var pdfDocument = new PdfDocument( pdfReader, pdfWriter );
                 var form = PdfAcroForm.GetAcroForm( pdfDocument, true );
 
-                var pdfFormFields = form.GetFormFields();
+                var pdfFormFields = form.GetAllFormFields();
 
 
-                foreach (var field in fields)
-                    if (pdfFormFields.ContainsKey( field.Key ))
+                foreach ( var field in fields )
+                    if ( pdfFormFields.ContainsKey( field.Key ) )
                     {
                         form.GetField( field.Key ).SetValue( field.Key, field.Value );
                     }
 
                 form.FlattenFields();
-                
+
 
                 // close the pdf
                 pdfDocument.Close();

@@ -84,7 +84,7 @@ namespace org.secc.PDF
 
                 form.SetGenerateAppearance( true );
 
-                var fieldKeys = form.GetFormFields().Keys;
+                var fieldKeys = form.GetAllFormFields().Keys;
 
                 //Field keys are the names of form fields in a pdf form
                 foreach ( string fieldKey in fieldKeys )
@@ -94,7 +94,7 @@ namespace org.secc.PDF
                     {
                         if ( pdfWorkflowObject.MergeObjects[fieldKey] is string )
                         {
-                            form.GetField( fieldKey ).SetValue( fieldKey, pdfWorkflowObject.MergeObjects[fieldKey] as string );
+                            form.GetField( fieldKey ).SetValue( pdfWorkflowObject.MergeObjects[fieldKey] as string );
                         }
                     }
                     //otherwise test for lava and use the form value as the lava input
@@ -103,7 +103,7 @@ namespace org.secc.PDF
                         PdfObject fieldValuePdfObj = form.GetField( fieldKey ).GetValue();
                         string fieldValue = fieldValuePdfObj.ToString();
                         if ( !string.IsNullOrWhiteSpace( fieldValue ) && LavaHelper.IsLavaTemplate( fieldValue ) )
-                            form.GetField( fieldKey ).SetValue( fieldKey, fieldValue.ResolveMergeFields( pdfWorkflowObject.MergeObjects ) );
+                            form.GetField( fieldKey ).SetValue( fieldValue.ResolveMergeFields( pdfWorkflowObject.MergeObjects ) );
                     }
                 }
 

@@ -83,24 +83,24 @@ namespace org.secc.SafetyAndSecurity
 
 
 
-            using (MemoryStream ms = new MemoryStream())
+            using ( MemoryStream ms = new MemoryStream() )
             {
                 PdfDocument doc = new PdfDocument( new PdfReader( PDF.ContentStream ), new PdfWriter( ms ) );
                 PdfAcroForm form = PdfAcroForm.GetAcroForm( doc, true );
-                var pdfFields = form.GetFormFields();
+                var pdfFields = form.GetAllFormFields();
 
                 var emsHospital = action.Activity.Workflow.GetAttributeValue( "emsHospital" ).AsBoolean();
                 var signatureFieldKeys = new string[] { "personSignature", "personSigDatetime" };
-                foreach (var field in fields)
+                foreach ( var field in fields )
                 {
                     var fieldValue = field.Value;
 
-                    if (emsHospital && signatureFieldKeys.Contains( field.Key ))
+                    if ( emsHospital && signatureFieldKeys.Contains( field.Key ) )
                     {
                         fieldValue = "";
                     }
 
-                    if (pdfFields.ContainsKey( field.Key ))
+                    if ( pdfFields.ContainsKey( field.Key ) )
                     {
                         pdfFields[field.Key].SetValue( fieldValue );
                     }

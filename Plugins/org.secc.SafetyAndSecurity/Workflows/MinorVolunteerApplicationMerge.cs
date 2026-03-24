@@ -88,18 +88,18 @@ namespace org.secc.SafetyAndSecurity
 
             var pdfBytes = PDF.ContentStream.ReadBytesToEnd();
 
-            using (MemoryStream ms = new MemoryStream())
+            using ( MemoryStream ms = new MemoryStream() )
             {
                 PdfReader pdfReader = new PdfReader( new MemoryStream( pdfBytes ) );
                 PdfWriter pdfWriter = new PdfWriter( ms );
 
                 PdfDocument pdfDocument = new PdfDocument( pdfReader, pdfWriter );
                 var form = PdfAcroForm.GetAcroForm( pdfDocument, true );
-                var pdfFormFields = form.GetFormFields();
+                var pdfFormFields = form.GetAllFormFields();
 
-                foreach (var field in fields)
+                foreach ( var field in fields )
                 {
-                    if (pdfFormFields.ContainsKey( field.Key ))
+                    if ( pdfFormFields.ContainsKey( field.Key ) )
                     {
                         form.GetField( field.Key ).SetValue( field.Key, field.Value );
                     }

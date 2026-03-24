@@ -80,7 +80,7 @@ namespace org.secc.SafetyAndSecurity
                 PdfDocument doc = new PdfDocument( new PdfReader( PDF.ContentStream ), new PdfWriter( ms ) );
                 PdfAcroForm form = PdfAcroForm.GetAcroForm( doc, true );
 
-                var pdfFormFields = form.GetFormFields();
+                var pdfFormFields = form.GetAllFormFields();
 
                 foreach (var field in fields)
                 {

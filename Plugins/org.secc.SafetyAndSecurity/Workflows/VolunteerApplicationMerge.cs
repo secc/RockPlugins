@@ -130,14 +130,14 @@ namespace org.secc.SafetyAndSecurity
             // Get boolean values for radio buttons
             bool isMale = action.Activity.Workflow.GetAttributeValue( "Gender" ) == "Male";
             bool isFemale = action.Activity.Workflow.GetAttributeValue( "Gender" ) == "Female";
-            bool hasPhysicalLimitations = action.Activity.Workflow.GetAttributeValue("PhysicalLimitations").AsBoolean();
-            bool hasCrime = action.Activity.Workflow.GetAttributeValue("Crime").AsBoolean();
-            bool hasThreat = action.Activity.Workflow.GetAttributeValue("Threat").AsBoolean();
-            bool hasCrimeCounsel = action.Activity.Workflow.GetAttributeValue("CrimeCounsel").AsBoolean();
-            bool needsStaffContact = action.Activity.Workflow.GetAttributeValue("Contact").AsBoolean();
-            bool hasReadSOF = action.Activity.Workflow.GetAttributeValue("ReadStatementOfFaith").AsBoolean();
-            bool hasAgreeSOF = action.Activity.Workflow.GetAttributeValue("AgreeStatementOfFaith").AsBoolean();
-            bool isOutOfState = action.Activity.Workflow.GetAttributeValue("OutsideKentuckyIndiana").AsBoolean();
+            bool hasPhysicalLimitations = action.Activity.Workflow.GetAttributeValue( "PhysicalLimitations" ).AsBoolean();
+            bool hasCrime = action.Activity.Workflow.GetAttributeValue( "Crime" ).AsBoolean();
+            bool hasThreat = action.Activity.Workflow.GetAttributeValue( "Threat" ).AsBoolean();
+            bool hasCrimeCounsel = action.Activity.Workflow.GetAttributeValue( "CrimeCounsel" ).AsBoolean();
+            bool needsStaffContact = action.Activity.Workflow.GetAttributeValue( "Contact" ).AsBoolean();
+            bool hasReadSOF = action.Activity.Workflow.GetAttributeValue( "ReadStatementOfFaith" ).AsBoolean();
+            bool hasAgreeSOF = action.Activity.Workflow.GetAttributeValue( "AgreeStatementOfFaith" ).AsBoolean();
+            bool isOutOfState = action.Activity.Workflow.GetAttributeValue( "OutsideKentuckyIndiana" ).AsBoolean();
 
             return new Dictionary<string, string>()
             {
@@ -174,7 +174,7 @@ namespace org.secc.SafetyAndSecurity
 
                 {"radOutOfStatePDFYes", isOutOfState ? "Yes" : "Off"},
                 {"radOutOfStatePDFNo", !isOutOfState ? "Yes" : "Off"},
-                
+
                 {"txtOutOfState_Dates", action.Activity.Workflow.GetAttributeValue("WhenOutsideKentuckyIndiana")},
                 {"txtOutOfState_State", action.Activity.Workflow.GetAttributeValue("StatesOutsideKentuckyIndiana")},
                 {"txtEmployer", action.Activity.Workflow.GetAttributeValue("CurrentEmployer")},
@@ -255,7 +255,7 @@ namespace org.secc.SafetyAndSecurity
                 // Needs Staff Contact - set both Yes and No radio buttons
                 {"radNeedsStaffContact", needsStaffContact ? "Yes" : "Off"},
                 {"radNeedsStaffContactPDFNo", !needsStaffContact ? "Yes" : "Off"},
-                
+
                 {"personDetailPage", GlobalAttributesCache.Value("InternalApplicationRoot") + "/Person/" + person.Id },
 
                 {"txtAppSigned", "{{t:s;r:y;o:\"Applicant\";}}" },
@@ -276,7 +276,7 @@ namespace org.secc.SafetyAndSecurity
                 // Agree Statement of Faith - set both Yes and No radio buttons
                 {"radAgreeSOFYes", hasAgreeSOF ? "Yes" : "Off" },
                 {"radAgreeSOFNo", !hasAgreeSOF ? "Yes" : "Off" },
-                
+
                 {"txtSOFCommentsAmendments", String.IsNullOrEmpty(action.Activity.Workflow.GetAttributeValue("CommentsStatementOfFaith"))?" ":action.Activity.Workflow.GetAttributeValue("CommentsStatementOfFaith") },
             };
         }
@@ -300,7 +300,7 @@ namespace org.secc.SafetyAndSecurity
 
                 if ( form != null )
                 {
-                    var pdfFormFields = form.GetFormFields();
+                    var pdfFormFields = form.GetAllFormFields();
 
                     foreach ( var field in fields )
                     {
