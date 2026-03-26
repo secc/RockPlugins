@@ -242,12 +242,13 @@ namespace RockWeb.Plugins.org_secc.SystemsMonitor
                     {
                         try
                         {
-                            var response = HealthClient.GetAsync( url ).GetAwaiter().GetResult();
-
-                            if ( ( int ) response.StatusCode == 200 )
+                            using ( var response = HealthClient.GetAsync( url ).GetAwaiter().GetResult() )
                             {
-                                anyOtherServerHealthy = true;
-                                break;
+                                if ( ( int ) response.StatusCode == 200 )
+                                {
+                                    anyOtherServerHealthy = true;
+                                    break;
+                                }
                             }
                         }
                         catch
