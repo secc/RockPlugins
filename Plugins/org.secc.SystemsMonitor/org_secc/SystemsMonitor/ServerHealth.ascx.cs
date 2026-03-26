@@ -268,7 +268,8 @@ namespace RockWeb.Plugins.org_secc.SystemsMonitor
             }
             catch ( Exception ex )
             {
-                ShowResult( false, "Exception: " + ex.Message );
+                ExceptionLogService.LogException( ex );
+                ShowResult( false, "An unexpected error occurred while checking server health." );
             }
         }
 
