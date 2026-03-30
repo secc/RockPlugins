@@ -156,7 +156,7 @@ namespace org.secc.GroupManager.Model
             {
                 if ( CustomSchedule.IsNotNullOrWhiteSpace() )
                 {
-                    return CustomSchedule;
+                    return CustomSchedule.SanitizeHtml();
                 }
                 if ( WeeklyDayOfWeek.HasValue )
                 {
@@ -165,6 +165,64 @@ namespace org.secc.GroupManager.Model
                         WeeklyTimeOfDay.HasValue ? new DateTime( WeeklyTimeOfDay.Value.Ticks ).ToString( "h:mm tt" ) : "" );
                 }
                 return "";
+            }
+        }
+
+        /// <summary>
+        /// Converts a Schedule's RDATE or RRULE content into a human-readable date list.
+        /// For RDATE schedules: "Tuesdays at 6:30 PM: Aug 5, Aug 19, Sep 2, ..."
+        /// Falls back to ToFriendlyScheduleText for RRULE or when no dates are found.
+        /// </summary>
+        public static string FormatScheduleDates( Schedule schedule )
+        {
+            if ( schedule == null )
+            {
+                return string.Empty;
+            }
+
+            // If the schedule has a simple weekly pattern, let Rock handle it
+            if ( schedule.WeeklyDayOfWeek.HasValue )
+            {
+                return ( schedule.ToFriendlyScheduleText( true ) ?? string.Empty ).SanitizeHtml();
+            }
+
+            try
+            {
+                var dates = schedule.GetScheduledStartTimes( DateTime.MinValue, DateTime.Now.AddYears( 3 ) )
+                    .Take( 100 ).ToList();
+                if ( dates == null || !dates.Any() )
+                {
+                    return ( schedule.ToFriendlyScheduleText( true ) ?? string.Empty ).SanitizeHtml();
+                }
+
+                if ( dates.Count == 1 )
+                {
+                    return string.Format( "Once on {0} at {1}",
+                        dates[0].ToString( "MMM d, yyyy" ),
+                        dates[0].ToString( "h:mm tt" ) );
+                }
+
+                // Multiple dates — build a nice readable list
+                var time = dates[0].ToString( "h:mm tt" );
+                var allSameDay = dates.Select( d => d.DayOfWeek ).Distinct().Count() == 1;
+                var spansMultipleYears = dates.Select( d => d.Year ).Distinct().Count() > 1;
+                var dateFormat = spansMultipleYears ? "MMM d, yyyy" : "MMM d";
+
+                var dateList = string.Join( ", ", dates.Select( d => d.ToString( dateFormat ) ) );
+
+                if ( allSameDay )
+                {
+                    return string.Format( "{0}s at {1}: {2}",
+                        dates[0].DayOfWeek,
+                        time,
+                        dateList );
+                }
+
+                return string.Format( "At {0}: {1}", time, dateList );
+            }
+            catch
+            {
+                return ( schedule.ToFriendlyScheduleText( true ) ?? string.Empty ).SanitizeHtml();
             }
         }
 
