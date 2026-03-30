@@ -133,7 +133,7 @@
                             {% assign meetingDaySize = publishGroup.MeetingDay | Trim | Size %}
                             {% assign meetingTimeSize = publishGroup.MeetingDay | Trim | Size %}
                             {% if publishGroup.CustomSchedule != '' %}
-                                {% assign scheduleText = publishGroup.CustomSchedule %}
+                                {% assign scheduleText = publishGroup.CustomSchedule | StripHtml %}
                             {% elseif meetingDaySize > 0 and meetingTimeSize > 0 %}
                                 {% assign scheduleText = publishGroup.MeetingDay | Append:'s ' | Append:publishGroup.MeetingTime %}
                             {% endif %}
