@@ -101,7 +101,7 @@ namespace org.secc.PDF
                     else
                     {
                         PdfObject fieldValuePdfObj = form.GetField( fieldKey ).GetValue();
-                        string fieldValue = fieldValuePdfObj.ToString();
+                        string fieldValue = fieldValuePdfObj?.ToString(); // safe null-conditional call
                         if ( !string.IsNullOrWhiteSpace( fieldValue ) && LavaHelper.IsLavaTemplate( fieldValue ) )
                             form.GetField( fieldKey ).SetValue( fieldValue.ResolveMergeFields( pdfWorkflowObject.MergeObjects ) );
                     }
