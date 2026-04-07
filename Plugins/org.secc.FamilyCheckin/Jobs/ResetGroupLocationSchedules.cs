@@ -12,6 +12,7 @@
 // limitations under the License.
 // </copyright>
 //
+using System.Collections.Generic;
 using System.Linq;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Utilities;
@@ -39,40 +40,82 @@ namespace org.secc.FamilyCheckin
             var definedValueService = new DefinedValueService( rockContext );
             var dtDeactivated = definedTypeService.Get( Constants.DEFINED_TYPE_DISABLED_GROUPLOCATIONSCHEDULES.AsGuid() );
             var dvDeactivated = dtDeactivated.DefinedValues.ToList();
+
+            // Early exit if nothing to process
+            if ( !dvDeactivated.Any() )
+            {
+                context.Result = "No deactivated GroupLocationSchedules to reset.";
+                return;
+            }
+
             var scheduleService = new ScheduleService( rockContext );
             var groupLocationService = new GroupLocationService( rockContext );
-            var deactivatedGroupLocationSchedules = dvDeactivated.Select( dv => dv.Value.Split( '|' ) )
+            var deactivatedGroupLocationSchedules = dvDeactivated
+                .Select( dv => dv.Value.Split( '|' ) )
                 .Select( s => new
                 {
                     GroupLocation = groupLocationService.Get( s[0].AsInteger() ),
                     Schedule = scheduleService.Get( s[1].AsInteger() ),
-                } ).ToList();
+                } )
+                .Where( x => x.GroupLocation != null && x.Schedule != null )
+                .ToList();
 
-            //add schedules back
+            // Track affected items for targeted cache invalidation
+            var affectedAccessKeys = new List<string>();
+            var affectedGroupTypeIds = new HashSet<int>();
+
+            // Add schedules back
             foreach ( var groupLocationSchedule in deactivatedGroupLocationSchedules )
             {
                 if ( !groupLocationSchedule.GroupLocation.Schedules.Contains( groupLocationSchedule.Schedule ) )
                 {
                     groupLocationSchedule.GroupLocation.Schedules.Add( groupLocationSchedule.Schedule );
                 }
+                affectedAccessKeys.Add( string.Format( "{0}|{1}", groupLocationSchedule.GroupLocation.Id, groupLocationSchedule.Schedule.Id ) );
+                affectedGroupTypeIds.Add( groupLocationSchedule.GroupLocation.Group.GroupTypeId );
             }
-            //Remove defined values
+
+            // Remove defined values in batch (no individual cache removals)
             foreach ( var value in dvDeactivated )
             {
                 definedValueService.Delete( value );
-                Rock.Web.Cache.DefinedValueCache.Remove( value.Id );
             }
 
-            //clear defined type cache
-            Rock.Web.Cache.DefinedTypeCache.Remove( dtDeactivated.Id );
-
+            // Single database save for all changes
             rockContext.SaveChanges();
 
-            //clear caches
-            CheckinKioskTypeCache.Clear();
-            KioskDeviceHelpers.Clear();
-            OccurrenceCache.Clear();
-            AttendanceCache.Clear();
+            // --- Targeted cache invalidation ---
+
+            // 1. Clear the defined type cache once (covers all child defined values)
+            Rock.Web.Cache.DefinedTypeCache.Remove( dtDeactivated.Id );
+
+            // 2. Update only the affected occurrence cache entries instead of clearing all
+            foreach ( var accessKey in affectedAccessKeys )
+            {
+                var occurrence = OccurrenceCache.Get( accessKey );
+                if ( occurrence != null )
+                {
+                    occurrence.IsActive = true;
+                    OccurrenceCache.AddOrUpdate( occurrence );
+                }
+            }
+
+            // 3. Clear only kiosk types that reference the affected group types
+            var affectedKioskTypeIds = CheckinKioskTypeCache.All()
+                .Where( kt => kt.GroupTypeIds != null && kt.GroupTypeIds.Any( id => affectedGroupTypeIds.Contains( id ) ) )
+                .Select( kt => kt.Id )
+                .ToList();
+
+            foreach ( var id in affectedKioskTypeIds )
+            {
+                CheckinKioskTypeCache.FlushItem( id );
+            }
+
+            // 4. Clear only kiosk devices for the affected group types
+            KioskDeviceHelpers.Clear( affectedGroupTypeIds.ToList() );
+
+            // NOTE: AttendanceCache is intentionally NOT cleared — attendance records
+            // are unaffected by schedule re-activation.
 
             context.Result = string.Format( "Finished at {0}. Reset {1} GroupScheduleLocations.", Rock.RockDateTime.Now, deactivatedGroupLocationSchedules.Count );
         }
