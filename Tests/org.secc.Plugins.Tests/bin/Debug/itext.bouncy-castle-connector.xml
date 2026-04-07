@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>itext.bouncy-castle-connector</name>
+    </assembly>
+    <members>
+        <member name="T:iText.Bouncycastleconnector.BouncyCastleDefaultFactory">
+            <summary>
+            Default bouncy-castle factory which is expected to be used when no other factories can be created.
+            </summary>
+        </member>
+        <member name="T:iText.Bouncycastleconnector.BouncyCastleFactoryCreator">
+            <summary>
+            This class provides the ability to create
+            <see cref="T:iText.Commons.Bouncycastle.IBouncyCastleFactory"/>
+            instance.
+            </summary>
+            <remarks>
+            This class provides the ability to create
+            <see cref="T:iText.Commons.Bouncycastle.IBouncyCastleFactory"/>
+            instance.
+            User chooses which bouncy-castle will be created by specifying dependency.
+            Bouncy-castle dependency must be added in order to use this class.
+            </remarks>
+        </member>
+        <member name="M:iText.Bouncycastleconnector.BouncyCastleFactoryCreator.SetFactory(iText.Commons.Bouncycastle.IBouncyCastleFactory)">
+            <summary>
+            Sets
+            <see cref="T:iText.Commons.Bouncycastle.IBouncyCastleFactory"/>
+            instance, which will be used for bouncy-castle classes creation.
+            </summary>
+            <param name="newFactory">
+            
+            <see cref="T:iText.Commons.Bouncycastle.IBouncyCastleFactory"/>
+            instance to be set.
+            </param>
+        </member>
+        <member name="M:iText.Bouncycastleconnector.BouncyCastleFactoryCreator.GetFactory">
+            <summary>
+            Returns
+            <see cref="T:iText.Commons.Bouncycastle.IBouncyCastleFactory"/>
+            instance for bouncy-castle classes creation.
+            </summary>
+            <returns>
+            
+            <see cref="T:iText.Commons.Bouncycastle.IBouncyCastleFactory"/>
+            implementation.
+            </returns>
+        </member>
+        <member name="T:iText.Bouncycastleconnector.Logs.BouncyCastleLogMessageConstant">
+            <summary>Class that bundles all the error message templates as constants.</summary>
+        </member>
+    </members>
+</doc>

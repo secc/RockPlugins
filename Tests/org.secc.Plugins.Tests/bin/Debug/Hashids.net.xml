@@ -1,0 +1,170 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Hashids.net</name>
+    </assembly>
+    <members>
+        <member name="T:HashidsNet.Hashids">
+            <summary>
+            Generate YouTube-like hashes from one or many numbers. Use hashids when you do not want to expose your database ids to the user.
+            </summary>
+            <summary>
+            Generate YouTube-like hashes from one or many numbers. Use hashids when you do not want to expose your database ids to the user.
+            </summary>
+        </member>
+        <member name="M:HashidsNet.Hashids.#ctor">
+            <summary>
+            Instantiates a new Hashids encoder/decoder with defaults.
+            </summary>
+        </member>
+        <member name="M:HashidsNet.Hashids.#ctor(System.String,System.Int32,System.String,System.String)">
+            <summary>
+            Instantiates a new Hashids encoder/decoder.
+            All parameters are optional and will use defaults unless otherwise specified.
+            </summary>
+            <param name="salt"></param>
+            <param name="minHashLength"></param>
+            <param name="alphabet"></param>
+            <param name="seps"></param>
+        </member>
+        <member name="M:HashidsNet.Hashids.Encode(System.Int32[])">
+            <summary>
+            Encodes the provided numbers into a hash string.
+            </summary>
+            <param name="numbers">List of integers.</param>
+            <returns>Encoded hash string.</returns>
+        </member>
+        <member name="M:HashidsNet.Hashids.Encode(System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>
+            Encodes the provided numbers into a hash string.
+            </summary>
+            <param name="numbers">Enumerable list of integers.</param>
+            <returns>Encoded hash string.</returns>
+        </member>
+        <member name="M:HashidsNet.Hashids.EncodeLong(System.Int64[])">
+            <summary>
+            Encodes the provided numbers into a hash string.
+            </summary>
+            <param name="numbers">List of 64-bit integers.</param>
+            <returns>Encoded hash string.</returns>
+        </member>
+        <member name="M:HashidsNet.Hashids.EncodeLong(System.Collections.Generic.IEnumerable{System.Int64})">
+            <summary>
+            Encodes the provided numbers into a hash string.
+            </summary>
+            <param name="numbers">Enumerable list of 64-bit integers.</param>
+            <returns>Encoded hash string.</returns>
+        </member>
+        <member name="M:HashidsNet.Hashids.Decode(System.String)">
+            <summary>
+            Decodes the provided hash into numbers.
+            </summary>
+            <param name="hash">Hash string to decode.</param>
+            <returns>Array of integers.</returns>
+            <exception cref="T:System.OverflowException">If the decoded number overflows integer.</exception>
+        </member>
+        <member name="M:HashidsNet.Hashids.DecodeLong(System.String)">
+            <summary>
+            Decodes the provided hash into numbers.
+            </summary>
+            <param name="hash">Hash string to decode.</param>
+            <returns>Array of 64-bit integers.</returns>
+        </member>
+        <member name="M:HashidsNet.Hashids.EncodeHex(System.String)">
+            <summary>
+            Encodes the provided hex-string into a hash string.
+            </summary>
+            <param name="hex">Hex string to encode.</param>
+            <returns>Encoded hash string.</returns>
+        </member>
+        <member name="M:HashidsNet.Hashids.DecodeHex(System.String)">
+            <summary>
+            Decodes the provided hash into a hex-string.
+            </summary>
+            <param name="hash">Hash string to decode.</param>
+            <returns>Decoded hex string.</returns>
+        </member>
+        <member name="M:HashidsNet.Hashids.Encrypt(System.Int32[])">
+            <summary>
+            Encodes the provided numbers into a hash.
+            </summary>
+        </member>
+        <member name="M:HashidsNet.Hashids.EncryptHex(System.String)">
+            <summary>
+            Encrypts the provided hex-string to a hash.
+            </summary>
+        </member>
+        <member name="M:HashidsNet.Hashids.Decrypt(System.String)">
+            <summary>
+            Decodes the provided hash into an array of numbers.
+            </summary>
+        </member>
+        <member name="M:HashidsNet.Hashids.DecryptHex(System.String)">
+            <summary>
+            Decodes the provided hash to a hex-string.
+            </summary>
+        </member>
+        <member name="T:HashidsNet.IHashids">
+            <summary>
+            Describes a Hashids provider
+            </summary>
+        </member>
+        <member name="M:HashidsNet.IHashids.Decode(System.String)">
+            <summary>
+            Decodes the provided hashed string.
+            </summary>
+            <param name="hash">the hashed string</param>
+            <exception cref="T:System.OverflowException">if one or many of the numbers in the hash overflowing the integer storage</exception>
+            <returns>the numbers</returns>
+        </member>
+        <member name="M:HashidsNet.IHashids.DecodeLong(System.String)">
+            <summary>
+            Decodes the provided hashed string into longs
+            </summary>
+            <param name="hash">the hashed string</param>
+            <returns>the numbers</returns>
+        </member>
+        <member name="M:HashidsNet.IHashids.DecodeHex(System.String)">
+            <summary>
+            Decodes the provided hashed string into a hex string
+            </summary>
+            <param name="hash">the hashed string</param>
+            <returns>the hex string</returns>
+        </member>
+        <member name="M:HashidsNet.IHashids.Encode(System.Int32[])">
+            <summary>
+            Encodes the provided numbers into a hashed string
+            </summary>
+            <param name="numbers">the numbers</param>
+            <returns>the hashed string</returns>
+        </member>
+        <member name="M:HashidsNet.IHashids.Encode(System.Collections.Generic.IEnumerable{System.Int32})">
+            <summary>
+            Encodes the provided numbers into a hashed string
+            </summary>
+            <param name="numbers">the numbers</param>
+            <returns>the hashed string</returns>
+        </member>
+        <member name="M:HashidsNet.IHashids.EncodeLong(System.Int64[])">
+            <summary>
+            Encodes the provided numbers into a hashed string
+            </summary>
+            <param name="numbers">the numbers</param>
+            <returns>the hashed string</returns>
+        </member>
+        <member name="M:HashidsNet.IHashids.EncodeLong(System.Collections.Generic.IEnumerable{System.Int64})">
+            <summary>
+            Encodes the provided numbers into a hashed string
+            </summary>
+            <param name="numbers">the numbers</param>
+            <returns>the hashed string</returns>
+        </member>
+        <member name="M:HashidsNet.IHashids.EncodeHex(System.String)">
+            <summary>
+            Encodes the provided hex string
+            </summary>
+            <param name="hex">the hex string</param>
+            <returns>the hashed string</returns>
+        </member>
+    </members>
+</doc>

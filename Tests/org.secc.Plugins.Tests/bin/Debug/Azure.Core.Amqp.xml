@@ -1,0 +1,777 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doc>
+    <assembly>
+        <name>Azure.Core.Amqp</name>
+    </assembly>
+    <members>
+        <member name="T:Azure.Core.Amqp.AmqpAddress">
+            <summary>
+            Represents the AMQP address.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-address-string" />.
+            </summary>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpAddress.#ctor(System.String)">
+             <summary>
+             Initializes a new <see cref="T:Azure.Core.Amqp.AmqpAddress" /> using the provided
+             <see cref="T:System.String" />.
+             </summary>
+            
+             <param name="address">The address.</param>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpAddress.ToString">
+             <summary>
+             Converts the value of this <see cref="T:Azure.Core.Amqp.AmqpAddress" /> instance to a <see cref="T:System.String" />.
+             </summary>
+            
+             <returns>A <see cref="T:System.String" /> from the value of this instance.</returns>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpAddress.Equals(System.Object)">
+             <summary>
+             Determines whether the provided object is equal to the current object.
+             </summary>
+            
+             <param name="obj">The object to compare with the current object.</param>
+            
+             <returns>
+             <see langword="true" /> if the specified object is equal to the current object; otherwise, <see langword="false" />.
+             </returns>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpAddress.GetHashCode">
+            <summary>Returns the hash code for this instance.</summary><returns>A 32-bit signed integer that is the hash code for this instance.</returns>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpAddress.Equals(Azure.Core.Amqp.AmqpAddress)">
+             <summary>
+             Determines whether the provided <see cref="T:Azure.Core.Amqp.AmqpAddress" /> is equal to the current <see cref="T:Azure.Core.Amqp.AmqpAddress" />.
+             </summary>
+            
+             <param name="other">The <see cref="T:Azure.Core.Amqp.AmqpAddress" /> to compare with the current <see cref="T:Azure.Core.Amqp.AmqpAddress" />.</param>
+            
+             <returns>
+             <see langword="true" /> if the specified <see cref="T:Azure.Core.Amqp.AmqpAddress" /> is equal to the current
+             <see cref="T:Azure.Core.Amqp.AmqpAddress" />; otherwise, <see langword="false" />.
+             </returns>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpAddress.Equals(System.String)">
+             <summary>
+             Determines whether the provided <see cref="T:System.String" /> is equal to the current instance.
+             </summary>
+            
+             <param name="other">The <see cref="T:System.String" /> to compare with the
+             current <see cref="T:Azure.Core.Amqp.AmqpAddress" />.
+             </param>
+            
+             <returns>
+             <see langword="true" /> if the specified <see cref="T:System.String" /> is equal to the current
+             <see cref="T:Azure.Core.Amqp.AmqpAddress" />; otherwise, <see langword="false" />.
+             </returns>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpAddress.op_Equality(Azure.Core.Amqp.AmqpAddress,Azure.Core.Amqp.AmqpAddress)">
+            <summary>Compares two <see cref="T:Azure.Core.Amqp.AmqpAddress" /> values for equality.</summary>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpAddress.op_Inequality(Azure.Core.Amqp.AmqpAddress,Azure.Core.Amqp.AmqpAddress)">
+            <summary>Compares two <see cref="T:Azure.Core.Amqp.AmqpAddress" /> values for inequality.</summary>
+        </member>
+        <member name="T:Azure.Core.Amqp.AmqpAnnotatedMessage">
+            <summary>
+            Represents an AMQP message.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#section-message-format" />
+            </summary>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpAnnotatedMessage.#ctor(Azure.Core.Amqp.AmqpMessageBody)">
+            <summary>
+            Initializes a new Data body <see cref="T:Azure.Core.Amqp.AmqpAnnotatedMessage" />.
+            </summary>
+            <param name="body">The data sections comprising the message body.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-data" />
+            </param>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpAnnotatedMessage.Header">
+            <summary>
+            Gets the header of the AMQP message.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-header" />
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpAnnotatedMessage.Footer">
+            <summary>
+            Gets the footer of the AMQP message.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-footer" />
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpAnnotatedMessage.DeliveryAnnotations">
+            <summary>
+            Gets the delivery annotations of the AMQP message.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-delivery-annotations" />
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpAnnotatedMessage.MessageAnnotations">
+            <summary>
+            Gets the message annotations of the AMQP message.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-message-annotations" />
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpAnnotatedMessage.Properties">
+            <summary>
+            Gets the properties of the AMQP message.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpAnnotatedMessage.ApplicationProperties">
+            <summary>
+            Gets the application properties of the AMQP message.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-application-properties" />
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpAnnotatedMessage.Body">
+            <summary>
+            Gets or sets the body of the AMQP message.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-data" />
+            </summary>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpAnnotatedMessage.HasSection(Azure.Core.Amqp.AmqpMessageSection)">
+            <summary>
+            Determines whether the specified section is present for the AMQP message.
+            </summary>
+            <param name="section">The section to consider.</param>
+            <returns><c>true</c> if the specified <paramref name="section" /> is populated for the AMQP message; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpAnnotatedMessage.ToBytes">
+            <summary>
+            Serializes the message into its AMQP binary form.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#section-message-format" />
+            </summary>
+            <returns>A <see cref="T:System.BinaryData" /> instance representing the serialized message.</returns>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpAnnotatedMessage.FromBytes(System.BinaryData)">
+            <summary>
+            Constructs a message from the AMQP binary serialized form.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#section-message-format" />
+            </summary>
+            <param name="messageBytes">The bytes of the message.</param>
+            <returns>A <see cref="T:Azure.Core.Amqp.AmqpAnnotatedMessage" /> based on the specified bytes.</returns>
+        </member>
+        <member name="T:Azure.Core.Amqp.AmqpMessageBody">
+            <summary>
+            Represents an AMQP message body.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#section-message-format" />
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageBody.BodyType">
+            <summary>
+            Gets the type of the message body.
+            </summary>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageBody.#ctor(System.Collections.Generic.IEnumerable{System.ReadOnlyMemory{System.Byte}})">
+            <summary>
+            Initializes a new <see cref="T:Azure.Core.Amqp.AmqpMessageBody" /> instance with the
+            passed in data sections.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-data" />
+            </summary>
+            <param name="data">The data sections.</param>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageBody.FromData(System.Collections.Generic.IEnumerable{System.ReadOnlyMemory{System.Byte}})">
+            <summary>
+            Creates a new <see cref="T:Azure.Core.Amqp.AmqpMessageBody" /> instance with the
+            passed in data sections.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-data" />
+            </summary>
+            <param name="data">The data sections.</param>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageBody.FromValue(System.Object)">
+            <summary>
+            Creates a new <see cref="T:Azure.Core.Amqp.AmqpMessageBody" /> instance with the
+            passed in value.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-amqp-value" />
+            </summary>
+            <param name="value">The value section.</param>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageBody.FromSequence(System.Collections.Generic.IEnumerable{System.Collections.Generic.IList{System.Object}})">
+            <summary>
+            Creates a new <see cref="T:Azure.Core.Amqp.AmqpMessageBody" /> instance with the
+            passed in sequence.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-amqp-value" />
+            </summary>
+            <param name="sequence">The sequence sections.</param>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageBody.TryGetData(System.Collections.Generic.IEnumerable{System.ReadOnlyMemory{System.Byte}}@)">
+            <summary>
+            Try to get the data sections for the AMQP message body.
+            </summary>
+            <param name="data">If the <see cref="T:Azure.Core.Amqp.AmqpMessageBody" /> instance is <see cref="F:Azure.Core.Amqp.AmqpMessageBodyType.Data" />, this
+            will be populated with the data sections for the message.</param>
+            <returns>True if the <see cref="T:Azure.Core.Amqp.AmqpMessageBody" /> instance is <see cref="F:Azure.Core.Amqp.AmqpMessageBodyType.Data" />.</returns>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageBody.TryGetValue(System.Object@)">
+            <summary>
+            Try to get the value section for the AMQP message body.
+            </summary>
+            <param name="value">If the <see cref="T:Azure.Core.Amqp.AmqpMessageBody" /> instance is <see cref="F:Azure.Core.Amqp.AmqpMessageBodyType.Value" />, this
+            will be populated with the value section for the message.</param>
+            <returns>True if the <see cref="T:Azure.Core.Amqp.AmqpMessageBody" /> instance is <see cref="F:Azure.Core.Amqp.AmqpMessageBodyType.Value" />.</returns>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageBody.TryGetSequence(System.Collections.Generic.IEnumerable{System.Collections.Generic.IList{System.Object}}@)">
+            <summary>
+            Try to get the sequence section for the AMQP message body.
+            </summary>
+            <param name="sequence">If the <see cref="T:Azure.Core.Amqp.AmqpMessageBody" /> instance is <see cref="F:Azure.Core.Amqp.AmqpMessageBodyType.Sequence" />, this
+            will be populated with the sequence sections for the message.</param>
+            <returns>True if the <see cref="T:Azure.Core.Amqp.AmqpMessageBody" /> instance is <see cref="F:Azure.Core.Amqp.AmqpMessageBodyType.Sequence" />.</returns>
+        </member>
+        <member name="T:Azure.Core.Amqp.AmqpMessageBodyType">
+            <summary>
+            Represents the possible body types for an AMQP message.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-data" />
+            </summary>
+        </member>
+        <member name="F:Azure.Core.Amqp.AmqpMessageBodyType.Data">
+            <summary>
+            The body contains opaque binary data.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-data" />
+            </summary>
+        </member>
+        <member name="F:Azure.Core.Amqp.AmqpMessageBodyType.Value">
+            <summary>
+            The body contains a single AMQP value. This value is not yet supported.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-amqp-value" />
+            </summary>
+        </member>
+        <member name="F:Azure.Core.Amqp.AmqpMessageBodyType.Sequence">
+            <summary>
+            The body contains an arbitrary number of structured data elements. This value is not yet supported.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-amqp-sequence" />
+            </summary>
+        </member>
+        <member name="T:Azure.Core.Amqp.AmqpMessageHeader">
+            <summary>
+            Represents an AMQP message transport header.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-header" />
+            </summary>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageHeader.#ctor">
+            <summary>
+            Initializes a new <see cref="T:Azure.Core.Amqp.AmqpMessageHeader" /> instance.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageHeader.Durable">
+            <summary>
+            Gets or sets the durable value from the AMQP message transport header.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageHeader.Priority">
+            <summary>
+            Gets or sets the priority value from the AMQP message transport header.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageHeader.TimeToLive">
+            <summary>
+            Gets or sets the ttl value from the AMQP message transport header.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageHeader.FirstAcquirer">
+            <summary>
+            Gets or sets the first-acquirer value from the AMQP message transport header.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageHeader.DeliveryCount">
+            <summary>
+            Gets or sets the delivery-count value from the AMQP message transport header.
+            </summary>
+        </member>
+        <member name="T:Azure.Core.Amqp.AmqpMessageId">
+            <summary>
+            Represents the AMQP message ID.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-message-id-ulong" />.
+            </summary>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageId.#ctor(System.String)">
+             <summary>
+             Initializes a new <see cref="T:Azure.Core.Amqp.AmqpMessageId" /> using the provided
+             <see cref="T:System.String" />.
+             </summary>
+            
+             <param name="messageId">The message Id.</param>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageId.ToString">
+             <summary>
+             Converts the value of this <see cref="T:Azure.Core.Amqp.AmqpMessageId" /> instance to a <see cref="T:System.String" />.
+             </summary>
+            
+             <returns>A <see cref="T:System.String" /> from the value of this instance.</returns>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageId.Equals(System.Object)">
+             <summary>
+             Determines whether the provided object is equal to the current object.
+             </summary>
+            
+             <param name="obj">The object to compare with the current object.</param>
+            
+             <returns>
+             <see langword="true" /> if the specified object is equal to the current object; otherwise, <see langword="false" />.
+             </returns>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageId.GetHashCode">
+            <summary>Returns the hash code for this instance.</summary><returns>A 32-bit signed integer that is the hash code for this instance.</returns>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageId.Equals(Azure.Core.Amqp.AmqpMessageId)">
+             <summary>
+             Determines whether the provided <see cref="T:Azure.Core.Amqp.AmqpMessageId" /> is equal to the current <see cref="T:Azure.Core.Amqp.AmqpMessageId" />.
+             </summary>
+            
+             <param name="other">The <see cref="T:Azure.Core.Amqp.AmqpMessageId" /> to compare with the current <see cref="T:Azure.Core.Amqp.AmqpMessageId" />.</param>
+            
+             <returns>
+             <see langword="true" /> if the specified <see cref="T:Azure.Core.Amqp.AmqpMessageId" /> is equal to the current
+             <see cref="T:Azure.Core.Amqp.AmqpMessageId" />; otherwise, <see langword="false" />.
+             </returns>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageId.Equals(System.String)">
+             <summary>
+             Determines whether the provided <see cref="T:System.String" /> is equal to the current instance.
+             </summary>
+            
+             <param name="other">The <see cref="T:System.String" /> to compare with the
+             current <see cref="T:Azure.Core.Amqp.AmqpMessageId" />.
+             </param>
+            
+             <returns>
+             <see langword="true" /> if the specified <see cref="T:System.String" /> is equal to the current
+             <see cref="T:Azure.Core.Amqp.AmqpMessageId" />; otherwise, <see langword="false" />.
+             </returns>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageId.op_Equality(Azure.Core.Amqp.AmqpMessageId,Azure.Core.Amqp.AmqpMessageId)">
+            <summary>Compares two <see cref="T:Azure.Core.Amqp.AmqpMessageId" /> values for equality.</summary>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageId.op_Inequality(Azure.Core.Amqp.AmqpMessageId,Azure.Core.Amqp.AmqpMessageId)">
+            <summary>Compares two <see cref="T:Azure.Core.Amqp.AmqpMessageId" /> values for inequality.</summary>
+        </member>
+        <member name="T:Azure.Core.Amqp.AmqpMessageProperties">
+            <summary>
+            Represents the AMQP message properties.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-properties" />
+            </summary>
+        </member>
+        <member name="M:Azure.Core.Amqp.AmqpMessageProperties.#ctor">
+            <summary>
+            Initializes a new <see cref="T:Azure.Core.Amqp.AmqpMessageProperties" /> instance.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageProperties.MessageId">
+            <summary>
+            The message-id value from the AMQP properties.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageProperties.UserId">
+            <summary>
+            The user-id value from the AMQP properties.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageProperties.To">
+            <summary>
+            The to value from the AMQP properties.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageProperties.Subject">
+            <summary>
+            The subject value from the AMQP properties.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageProperties.ReplyTo">
+            <summary>
+            The reply-to value from the AMQP properties.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageProperties.CorrelationId">
+            <summary>
+            The correlation-id value from the AMQP properties.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageProperties.ContentType">
+            <summary>
+            The content-type value from the AMQP properties.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageProperties.ContentEncoding">
+            <summary>
+            The content-encoding value from the AMQP properties.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageProperties.AbsoluteExpiryTime">
+            <summary>
+            The absolute-expiry-time value from the AMQP properties.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageProperties.CreationTime">
+            <summary>
+            The creation-time value from the AMQP properties.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageProperties.GroupId">
+            <summary>
+            The group-id value from the AMQP properties.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageProperties.GroupSequence">
+            <summary>
+            The group-sequence value from the AMQP properties.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.Amqp.AmqpMessageProperties.ReplyToGroupId">
+            <summary>
+            The reply-to-group-id value from the AMQP properties.
+            </summary>
+        </member>
+        <member name="T:Azure.Core.Amqp.AmqpMessageSection">
+            <summary>
+            Represents the sections of an AMQP message.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#section-message-format" />
+            </summary>
+        </member>
+        <member name="F:Azure.Core.Amqp.AmqpMessageSection.Header">
+            <summary>
+            The header section of the message.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-header" />
+            <seealso cref="T:Azure.Core.Amqp.AmqpMessageHeader" />
+            </summary>
+        </member>
+        <member name="F:Azure.Core.Amqp.AmqpMessageSection.DeliveryAnnotations">
+            <summary>
+            The delivery annotations section of the message.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-delivery-annotations" />
+            </summary>
+        </member>
+        <member name="F:Azure.Core.Amqp.AmqpMessageSection.MessageAnnotations">
+            <summary>
+            The message annotations section of the message.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-message-annotations" />
+            </summary>
+        </member>
+        <member name="F:Azure.Core.Amqp.AmqpMessageSection.Properties">
+            <summary>
+            The properties section of the message.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-properties" />
+            <seealso cref="T:Azure.Core.Amqp.AmqpMessageProperties" />
+            </summary>
+        </member>
+        <member name="F:Azure.Core.Amqp.AmqpMessageSection.ApplicationProperties">
+            <summary>
+            The application properties section of the message.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-application-properties" />
+            </summary>
+        </member>
+        <member name="F:Azure.Core.Amqp.AmqpMessageSection.Body">
+            <summary>
+            The body of the message, representing one specific <see cref="T:Azure.Core.Amqp.AmqpMessageBodyType" /> sections.
+            <seealso cref="T:Azure.Core.Amqp.AmqpMessageBody" />
+            </summary>
+        </member>
+        <member name="F:Azure.Core.Amqp.AmqpMessageSection.Footer">
+            <summary>
+            The footer section of the message.
+            <seealso href="http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-footer" />
+            </summary>
+        </member>
+        <member name="T:Azure.Core.Amqp.Shared.AmqpAnnotatedMessageConverter">
+             <summary>
+               Serves as a translator between AmqpAnnotatedMessage and AmqpMessage
+             </summary>
+            
+        </member>
+        <member name="M:Azure.Core.Amqp.Shared.AmqpAnnotatedMessageConverter.ToAmqpMessage(Azure.Core.Amqp.AmqpAnnotatedMessage)">
+             <summary>
+               Converts an <see cref="T:Azure.Core.Amqp.AmqpAnnotatedMessage" /> into an <see cref="T:Microsoft.Azure.Amqp.AmqpMessage" />.
+             </summary>
+            
+             <param name="sourceMessage">The source message.</param>
+            
+             <returns>The <see cref="T:Microsoft.Azure.Amqp.AmqpMessage" /> constructed from the source message.</returns>
+            
+             <remarks>
+               The caller is assumed to hold ownership over the message once it has been created, including
+               ensuring proper disposal.
+             </remarks>
+            
+        </member>
+        <member name="M:Azure.Core.Amqp.Shared.AmqpAnnotatedMessageConverter.FromAmqpMessage(Microsoft.Azure.Amqp.AmqpMessage)">
+             <summary>
+               Constructs an <see cref="T:Azure.Core.Amqp.AmqpAnnotatedMessage" /> from an <see cref="T:Microsoft.Azure.Amqp.AmqpMessage" />.
+             </summary>
+            
+             <param name="source">The source message.</param>
+            
+             <returns>The <see cref="T:Azure.Core.Amqp.AmqpAnnotatedMessage" /> constructed from the source message.</returns>
+            
+        </member>
+        <member name="M:Azure.Core.Amqp.Shared.AmqpAnnotatedMessageConverter.TryCreateAmqpPropertyValueFromNetProperty(System.Object,System.Object@,System.Boolean)">
+             <summary>
+               Attempts to create an AMQP property value for a given event property.
+             </summary>
+            
+             <param name="propertyValue">The value of the event property to create an AMQP property value for.</param>
+             <param name="amqpPropertyValue">The AMQP property value that was created.</param>
+             <param name="allowBodyTypes"><c>true</c> to allow an AMQP map to be translated to additional types supported only by a message body; otherwise, <c>false</c>.</param>
+            
+             <returns><c>true</c> if an AMQP property value was able to be created; otherwise, <c>false</c>.</returns>
+            
+        </member>
+        <member name="M:Azure.Core.Amqp.Shared.AmqpAnnotatedMessageConverter.TryCreateNetPropertyFromAmqpProperty(System.Object,System.Object@,System.Boolean)">
+             <summary>
+               Attempts to create a message property value for a given AMQP property.
+             </summary>
+            
+             <param name="amqpPropertyValue">The value of the AMQP property to create a message property value for.</param>
+             <param name="convertedPropertyValue">The message property value that was created.</param>
+             <param name="allowBodyTypes"><c>true</c> to allow an AMQP map to be translated to additional types supported only by a message body; otherwise, <c>false</c>.</param>
+            
+             <returns><c>true</c> if a message property value was able to be created; otherwise, <c>false</c>.</returns>
+            
+        </member>
+        <member name="M:Azure.Core.Amqp.Shared.AmqpAnnotatedMessageConverter.ToAmqpPropertyType(System.Type)">
+             <summary>
+               Translates the given <see cref="T:System.Type" /> to the corresponding
+               <see cref="T:Azure.Core.Amqp.Shared.AmqpAnnotatedMessageConverter.AmqpType" />.
+             </summary>
+            
+             <param name="type">The type to convert to an AMQP type.</param>
+            
+             <returns>The AMQP property type that best matches the specified <paramref name="type" />.</returns>
+            
+        </member>
+        <member name="T:Azure.Core.Amqp.Shared.AmqpAnnotatedMessageConverter.AmqpType">
+             <summary>
+               Represents the supported AMQP property types.
+             </summary>
+            
+             <remarks>
+               WARNING:
+                 These values are synchronized between Azure services and the client
+                 library.  You must consult with the Event Hubs/Service Bus service team before making
+                 changes, including adding a new member.
+            
+                 When adding a new member, remember to always do so before the Unknown
+                 member.
+             </remarks>
+            
+        </member>
+        <member name="T:Azure.Core.Amqp.MessageBody">
+            <summary>
+            The body abstractions allow to optimize several use cases to make sure body memory is only converted when needed and as little as possible.
+            </summary>
+        </member>
+        <member name="T:Azure.Core.Argument">
+            <summary>
+            Argument validation.
+            </summary>
+            <remarks>
+              <para>This class should be shared via source using Azure.Core.props and contain only common argument validation.
+                It is declared partial so that you can use the same familiar class name but extend it with project-specific validation.
+                To extend the functionality of this class, just declare your own partial <see cref="T:Azure.Core.Argument" /> class with project-specific methods.
+              </para>
+              <para>
+                Be sure to document exceptions thrown by these methods on your public methods.
+              </para>
+            </remarks>
+        </member>
+        <member name="M:Azure.Core.Argument.AssertNotNull``1(``0,System.String)">
+            <summary>
+            Throws if <paramref name="value" /> is null.
+            </summary>
+            <param name="value">The value to validate.</param>
+            <param name="name">The name of the parameter.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="value" /> is null.</exception>
+        </member>
+        <member name="M:Azure.Core.Argument.AssertNotNull``1(System.Nullable{``0},System.String)">
+            <summary>
+            Throws if <paramref name="value" /> has not been initialized.
+            </summary>
+            <param name="value">The value to validate.</param>
+            <param name="name">The name of the parameter.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="value" /> has not been initialized.</exception>
+        </member>
+        <member name="M:Azure.Core.Argument.AssertNotNullOrEmpty``1(System.Collections.Generic.IEnumerable{``0},System.String)">
+            <summary>
+            Throws if <paramref name="value" /> is null or an empty collection.
+            </summary>
+            <param name="value">The value to validate.</param>
+            <param name="name">The name of the parameter.</param>
+            <exception cref="T:System.ArgumentException"><paramref name="value" /> is an empty collection.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="value" /> is null.</exception>
+        </member>
+        <member name="M:Azure.Core.Argument.AssertNotNullOrEmpty(System.String,System.String)">
+            <summary>
+            Throws if <paramref name="value" /> is null or an empty string.
+            </summary>
+            <param name="value">The value to validate.</param>
+            <param name="name">The name of the parameter.</param>
+            <exception cref="T:System.ArgumentException"><paramref name="value" /> is an empty string.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="value" /> is null.</exception>
+        </member>
+        <member name="M:Azure.Core.Argument.AssertNotNullOrWhiteSpace(System.String,System.String)">
+            <summary>
+            Throws if <paramref name="value" /> is null, an empty string, or consists only of white-space characters.
+            </summary>
+            <param name="value">The value to validate.</param>
+            <param name="name">The name of the parameter.</param>
+            <exception cref="T:System.ArgumentException"><paramref name="value" /> is an empty string or consists only of white-space characters.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="value" /> is null.</exception>
+        </member>
+        <member name="M:Azure.Core.Argument.AssertNotDefault``1(``0@,System.String)">
+            <summary>
+            Throws if <paramref name="value" /> is the default value for type <typeparamref name="T" />.
+            </summary>
+            <typeparam name="T">The type of structure to validate which implements <see cref="T:System.IEquatable`1" />.</typeparam>
+            <param name="value">The value to validate.</param>
+            <param name="name">The name of the parameter.</param>
+            <exception cref="T:System.ArgumentException"><paramref name="value" /> is the default value for type <typeparamref name="T" />.</exception>
+        </member>
+        <member name="M:Azure.Core.Argument.AssertInRange``1(``0,``0,``0,System.String)">
+            <summary>
+            Throws if <paramref name="value" /> is less than the <paramref name="minimum" /> or greater than the <paramref name="maximum" />.
+            </summary>
+            <typeparam name="T">The type of to validate which implements <see cref="T:System.IComparable`1" />.</typeparam>
+            <param name="value">The value to validate.</param>
+            <param name="minimum">The minimum value to compare.</param>
+            <param name="maximum">The maximum value to compare.</param>
+            <param name="name">The name of the parameter.</param>
+        </member>
+        <member name="M:Azure.Core.Argument.AssertEnumDefined(System.Type,System.Object,System.String)">
+            <summary>
+            Throws if <paramref name="value" /> is not defined for <paramref name="enumType" />.
+            </summary>
+            <param name="enumType">The type to validate against.</param>
+            <param name="value">The value to validate.</param>
+            <param name="name">The name of the parameter.</param>
+            <exception cref="T:System.ArgumentException"><paramref name="value" /> is not defined for <paramref name="enumType" />.</exception>
+        </member>
+        <member name="M:Azure.Core.Argument.CheckNotNull``1(``0,System.String)">
+            <summary>
+            Throws if <paramref name="value" /> has not been initialized; otherwise, returns <paramref name="value" />.
+            </summary>
+            <param name="value">The value to validate.</param>
+            <param name="name">The name of the parameter.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="value" /> has not been initialized.</exception>
+        </member>
+        <member name="M:Azure.Core.Argument.CheckNotNullOrEmpty(System.String,System.String)">
+            <summary>
+            Throws if <paramref name="value" /> is null or an empty string; otherwise, returns <paramref name="value" />.
+            </summary>
+            <param name="value">The value to validate.</param>
+            <param name="name">The name of the parameter.</param>
+            <exception cref="T:System.ArgumentException"><paramref name="value" /> is an empty string.</exception>
+            <exception cref="T:System.ArgumentNullException"><paramref name="value" /> is null.</exception>
+        </member>
+        <member name="M:Azure.Core.Argument.AssertNull``1(``0,System.String,System.String)">
+            <summary>
+            Throws if <paramref name="value" /> is not null.
+            </summary>
+            <param name="value">The value to validate.</param>
+            <param name="name">The name of the parameter.</param>
+            <param name="message">The error message.</param>
+            <exception cref="T:System.ArgumentException"><paramref name="value" /> is not null.</exception>
+        </member>
+        <member name="T:Azure.Core.ArrayBufferWriter`1">
+            <summary>
+            Represents a heap-based, array-backed output sink into which <typeparam name="T" /> data can be written.
+            </summary>
+        </member>
+        <member name="M:Azure.Core.ArrayBufferWriter`1.#ctor">
+            <summary>
+            Creates an instance of an <see cref="T:Azure.Core.ArrayBufferWriter`1" />, in which data can be written to,
+            with the default initial capacity.
+            </summary>
+        </member>
+        <member name="M:Azure.Core.ArrayBufferWriter`1.#ctor(System.Int32)">
+            <summary>
+            Creates an instance of an <see cref="T:Azure.Core.ArrayBufferWriter`1" />, in which data can be written to,
+            with an initial capacity specified.
+            </summary>
+            <param name="initialCapacity">The minimum capacity with which to initialize the underlying buffer.</param>
+            <exception cref="T:System.ArgumentException">
+            Thrown when <paramref name="initialCapacity" /> is not positive (i.e. less than or equal to 0).
+            </exception>
+        </member>
+        <member name="P:Azure.Core.ArrayBufferWriter`1.WrittenMemory">
+            <summary>
+            Returns the data written to the underlying buffer so far, as a <see cref="T:System.ReadOnlyMemory`1" />.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.ArrayBufferWriter`1.WrittenSpan">
+            <summary>
+            Returns the data written to the underlying buffer so far, as a <see cref="T:System.ReadOnlySpan`1" />.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.ArrayBufferWriter`1.WrittenCount">
+            <summary>
+            Returns the amount of data written to the underlying buffer so far.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.ArrayBufferWriter`1.Capacity">
+            <summary>
+            Returns the total amount of space within the underlying buffer.
+            </summary>
+        </member>
+        <member name="P:Azure.Core.ArrayBufferWriter`1.FreeCapacity">
+            <summary>
+            Returns the amount of space available that can still be written into without forcing the underlying buffer to grow.
+            </summary>
+        </member>
+        <member name="M:Azure.Core.ArrayBufferWriter`1.Clear">
+            <summary>
+            Clears the data written to the underlying buffer.
+            </summary>
+            <remarks>
+            You must clear the <see cref="T:Azure.Core.ArrayBufferWriter`1" /> before trying to re-use it.
+            </remarks>
+        </member>
+        <member name="M:Azure.Core.ArrayBufferWriter`1.Advance(System.Int32)">
+            <summary>
+            Notifies <see cref="T:System.Buffers.IBufferWriter`1" /> that <paramref name="count" /> amount of data was written to the output <see cref="T:System.Span`1" />/<see cref="T:System.Memory`1" />.
+            </summary>
+            <exception cref="T:System.ArgumentException">
+            Thrown when <paramref name="count" /> is negative.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Thrown when attempting to advance past the end of the underlying buffer.
+            </exception>
+            <remarks>
+            You must request a new buffer after calling Advance to continue writing more data and cannot write to a previously acquired buffer.
+            </remarks>
+        </member>
+        <member name="M:Azure.Core.ArrayBufferWriter`1.GetMemory(System.Int32)">
+            <summary>
+            Returns a <see cref="T:System.Memory`1" /> to write to that is at least the requested length (specified by <paramref name="sizeHint" />).
+            If no <paramref name="sizeHint" /> is provided (or it's equal to <code>0</code>), some non-empty buffer is returned.
+            </summary>
+            <exception cref="T:System.ArgumentException">
+            Thrown when <paramref name="sizeHint" /> is negative.
+            </exception>
+            <remarks>
+            This will never return an empty <see cref="T:System.Memory`1" />.
+            </remarks>
+            <remarks>
+            There is no guarantee that successive calls will return the same buffer or the same-sized buffer.
+            </remarks>
+            <remarks>
+            You must request a new buffer after calling Advance to continue writing more data and cannot write to a previously acquired buffer.
+            </remarks>
+        </member>
+        <member name="M:Azure.Core.ArrayBufferWriter`1.GetSpan(System.Int32)">
+            <summary>
+            Returns a <see cref="T:System.Span`1" /> to write to that is at least the requested length (specified by <paramref name="sizeHint" />).
+            If no <paramref name="sizeHint" /> is provided (or it's equal to <code>0</code>), some non-empty buffer is returned.
+            </summary>
+            <exception cref="T:System.ArgumentException">
+            Thrown when <paramref name="sizeHint" /> is negative.
+            </exception>
+            <remarks>
+            This will never return an empty <see cref="T:System.Span`1" />.
+            </remarks>
+            <remarks>
+            There is no guarantee that successive calls will return the same buffer or the same-sized buffer.
+            </remarks>
+            <remarks>
+            You must request a new buffer after calling Advance to continue writing more data and cannot write to a previously acquired buffer.
+            </remarks>
+        </member>
+        <member name="M:Azure.Core.Amqp.MessageBody.System#Collections#IEnumerable#GetEnumerator">
+            <summary>Returns an enumerator that iterates through a collection.</summary><returns>An <see cref="T:System.Collections.IEnumerator" /> object that can be used to iterate through the collection.</returns>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,576 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.Azure.SignalR.Protocols</name>
+    </assembly>
+    <members>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.ConnectionMessage">
+            <summary>
+            Base class of connection-specific messages between Azure SignalR Service and SDK.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.ConnectionMessage.ConnectionId">
+            <summary>
+            Gets or sets the connection Id.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.OpenConnectionMessage">
+            <summary>
+            A open-connection message.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.OpenConnectionMessage.#ctor(System.String,System.Security.Claims.Claim[])">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.OpenConnectionMessage"/> class.
+            </summary>
+            <param name="connectionId">The connection Id.</param>
+            <param name="claims">An array of <see cref="T:System.Security.Claims.Claim"/> associated with the connection.</param>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.OpenConnectionMessage.#ctor(System.String,System.Security.Claims.Claim[],System.Collections.Generic.IDictionary{System.String,Microsoft.Extensions.Primitives.StringValues},System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.OpenConnectionMessage"/> class.
+            </summary>
+            <param name="connectionId">The connection Id.</param>
+            <param name="claims">An array of <see cref="T:System.Security.Claims.Claim"/> associated with the connection.</param>
+            <param name="headers">A <see cref="T:System.Collections.Generic.IDictionary`2"/> associated with the connection.</param>
+            <param name="queryString">Query string associated with the connection.</param>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.OpenConnectionMessage.Claims">
+            <summary>
+            Gets or sets the associated claims.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.OpenConnectionMessage.Headers">
+            <summary>
+            Gets or sets the associated headers.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.OpenConnectionMessage.QueryString">
+            <summary>
+            Gets or sets the associated query string.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.CloseConnectionMessage">
+            <summary>
+            A close-connection message.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.CloseConnectionMessage.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.CloseConnectionMessage"/> class.
+            </summary>
+            <param name="connectionId">The connection Id.</param>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.CloseConnectionMessage.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.CloseConnectionMessage"/> class.
+            </summary>
+            <param name="connectionId">The connection Id.</param>
+            <param name="errorMessage">Optional error message.</param>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.CloseConnectionMessage.ErrorMessage">
+            <summary>
+            Gets or sets the error message.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.ConnectionDataMessage">
+            <summary>
+            A connection data message.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.ConnectionDataMessage.#ctor(System.String,System.ReadOnlyMemory{System.Byte})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.ConnectionDataMessage"/> class.
+            </summary>
+            <param name="connectionId">The connection Id.</param>
+            <param name="payload">Binary data to be delivered.</param>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.ConnectionDataMessage.#ctor(System.String,System.Buffers.ReadOnlySequence{System.Byte})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.ConnectionDataMessage"/> class.
+            </summary>
+            <param name="connectionId">The connection Id.</param>
+            <param name="payload">Binary data to be delivered.</param>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.ConnectionDataMessage.Payload">
+            <summary>
+            Gets or sets the binary payload.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.JoinGroupMessage">
+            <summary>
+            A join-group message.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.JoinGroupMessage.ConnectionId">
+            <summary>
+            Gets or sets the connection Id.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.JoinGroupMessage.GroupName">
+            <summary>
+            Gets or sets the group name.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.JoinGroupMessage.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.JoinGroupMessage"/> class.
+            </summary>
+            <param name="connectionId">The connection Id.</param>
+            <param name="groupName">The group name, to which the connection will join.</param>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.LeaveGroupMessage">
+            <summary>
+            A leave-group message.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.LeaveGroupMessage.ConnectionId">
+            <summary>
+            Gets or sets the connection Id.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.LeaveGroupMessage.GroupName">
+            <summary>
+            Gets or sets the group name.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.LeaveGroupMessage.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.LeaveGroupMessage"/> class.
+            </summary>
+            <param name="connectionId">The connection Id.</param>
+            <param name="groupName">The group name, from which the connection will leave.</param>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.UserJoinGroupMessage">
+            <summary>
+            A user-join-group message.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.UserJoinGroupMessage.UserId">
+            <summary>
+            Gets or sets the user Id.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.UserJoinGroupMessage.GroupName">
+            <summary>
+            Gets or sets the group name.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.UserJoinGroupMessage.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.UserJoinGroupMessage"/> class.
+            </summary>
+            <param name="userId">The user Id.</param>
+            <param name="groupName">The group name, to which the user will join.</param>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.UserLeaveGroupMessage">
+            <summary>
+            A user-leave-group message.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.UserLeaveGroupMessage.UserId">
+            <summary>
+            Gets or sets the user Id.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.UserLeaveGroupMessage.GroupName">
+            <summary>
+            Gets or sets the group name.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.UserLeaveGroupMessage.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.UserLeaveGroupMessage"/> class.
+            </summary>
+            <param name="userId">The user Id.</param>
+            <param name="groupName">The group name, from which the user will leave.</param>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.JoinGroupWithAckMessage">
+            <summary>
+            A waiting for ack join-group message.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.JoinGroupWithAckMessage.ConnectionId">
+            <summary>
+            Gets or sets the connection Id.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.JoinGroupWithAckMessage.GroupName">
+            <summary>
+            Gets or sets the group name.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.JoinGroupWithAckMessage.AckId">
+            <summary>
+            Gets or sets the ack id.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.JoinGroupWithAckMessage.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.JoinGroupWithAckMessage"/> class.
+            </summary>
+            <param name="connectionId">The connection Id.</param>
+            <param name="groupName">The group name, to which the connection will join.</param>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.JoinGroupWithAckMessage.#ctor(System.String,System.String,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.JoinGroupWithAckMessage"/> class.
+            </summary>
+            <param name="connectionId">The connection Id.</param>
+            <param name="groupName">The group name, to which the connection will join.</param>
+            <param name="ackId">The ack Id</param>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.LeaveGroupWithAckMessage">
+            <summary>
+            A waiting for ack leave-group message.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.LeaveGroupWithAckMessage.ConnectionId">
+            <summary>
+            Gets or sets the connection Id.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.LeaveGroupWithAckMessage.GroupName">
+            <summary>
+            Gets or sets the group name.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.LeaveGroupWithAckMessage.AckId">
+            <summary>
+            Gets or sets the ack id.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.LeaveGroupWithAckMessage.#ctor(System.String,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.LeaveGroupWithAckMessage"/> class.
+            </summary>
+            <param name="connectionId">The connection Id.</param>
+            <param name="groupName">The group name, from which the connection will leave.</param>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.LeaveGroupWithAckMessage.#ctor(System.String,System.String,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.LeaveGroupWithAckMessage"/> class.
+            </summary>
+            <param name="connectionId">The connection Id.</param>
+            <param name="groupName">The group name, from which the connection will leave.</param>
+            <param name="ackId">The ack Id</param>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.IServiceProtocol">
+            <summary>
+            A protocol abstraction for communication between Azure SignalR Service and SDK.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.IServiceProtocol.Version">
+            <summary>
+            Gets the version of the protocol.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.IServiceProtocol.TryParseMessage(System.Buffers.ReadOnlySequence{System.Byte}@,Microsoft.Azure.SignalR.Protocol.ServiceMessage@)">
+            <summary>
+            Creates a new <see cref="T:Microsoft.Azure.SignalR.Protocol.ServiceMessage"/> from the specified serialized representation.
+            </summary>
+            <param name="input">The serialized representation of the message.</param>
+            <param name="message">When this method returns <c>true</c>, contains the parsed message.</param>
+            <returns>A value that is <c>true</c> if the <see cref="T:Microsoft.Azure.SignalR.Protocol.ServiceMessage"/> was successfully parsed; otherwise, <c>false</c>.</returns>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.IServiceProtocol.WriteMessage(Microsoft.Azure.SignalR.Protocol.ServiceMessage,System.Buffers.IBufferWriter{System.Byte})">
+            <summary>
+            Writes the specified <see cref="T:Microsoft.Azure.SignalR.Protocol.ServiceMessage"/> to a writer.
+            </summary>
+            <param name="message">The message to write.</param>
+            <param name="output">The output writer.</param>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.IServiceProtocol.GetMessageBytes(Microsoft.Azure.SignalR.Protocol.ServiceMessage)">
+            <summary>
+            Converts the specified <see cref="T:Microsoft.Azure.SignalR.Protocol.ServiceMessage"/> to its serialized representation.
+            </summary>
+            <param name="message">The message to convert.</param>
+            <returns>The serialized representation of the message.</returns>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.MulticastDataMessage">
+            <summary>
+            Base class for multicast data messages between Azure SignalR Service and SDK.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.MulticastDataMessage.Payloads">
+            <summary>
+            Gets or sets the payload dictionary which contains binary payload of multiple protocols.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.MultiConnectionDataMessage">
+            <summary>
+            A data message which will be sent to multiple connections.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.MultiConnectionDataMessage.#ctor(System.Collections.Generic.IReadOnlyList{System.String},System.Collections.Generic.IDictionary{System.String,System.ReadOnlyMemory{System.Byte}})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.MultiConnectionDataMessage"/> class.
+            </summary>
+            <param name="connectionList">The list of connection Ids.</param>
+            <param name="payloads">The payload dictionary which contains binary payload of multiple protocols.</param>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.MultiConnectionDataMessage.ConnectionList">
+            <summary>
+            Gets or sets the list of connections which will receive this message.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.UserDataMessage">
+            <summary>
+            A data message which will be sent to a user.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.UserDataMessage.UserId">
+            <summary>
+            Gets or sets the user Id.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.UserDataMessage.#ctor(System.String,System.Collections.Generic.IDictionary{System.String,System.ReadOnlyMemory{System.Byte}})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.UserDataMessage"/> class.
+            </summary>
+            <param name="userId">The user Id.</param>
+            <param name="payloads">The payload dictionary which contains binary payload of multiple protocols.</param>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.MultiUserDataMessage">
+            <summary>
+            A data message which will be sent to multiple users.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.MultiUserDataMessage.#ctor(System.Collections.Generic.IReadOnlyList{System.String},System.Collections.Generic.IDictionary{System.String,System.ReadOnlyMemory{System.Byte}})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.MultiUserDataMessage"/> class.
+            </summary>
+            <param name="userList">The list of user Ids.</param>
+            <param name="payloads">The payload dictionary which contains binary payload of multiple protocols.</param>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.MultiUserDataMessage.UserList">
+            <summary>
+            Gets or sets the list of user Ids.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.BroadcastDataMessage">
+            <summary>
+            A data message which will be broadcasted.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.BroadcastDataMessage.ExcludedList">
+            <summary>
+            Gets or sets the list of excluded connection Ids.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.BroadcastDataMessage.#ctor(System.Collections.Generic.IDictionary{System.String,System.ReadOnlyMemory{System.Byte}})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.BroadcastDataMessage"/> class.
+            </summary>
+            <param name="payloads">The payload dictionary which contains binary payload of multiple protocols.</param>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.BroadcastDataMessage.#ctor(System.Collections.Generic.IReadOnlyList{System.String},System.Collections.Generic.IDictionary{System.String,System.ReadOnlyMemory{System.Byte}})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.BroadcastDataMessage"/> class.
+            </summary>
+            <param name="excludedList">The list of excluded connection Ids.</param>
+            <param name="payloads">The payload dictionary which contains binary payload of multiple protocols.</param>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.GroupBroadcastDataMessage">
+            <summary>
+            A data message which will be broadcasted within a group.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.GroupBroadcastDataMessage.GroupName">
+            <summary>
+            Gets or sets the group name.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.GroupBroadcastDataMessage.ExcludedList">
+            <summary>
+            Gets or sets the list of excluded connection Ids.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.GroupBroadcastDataMessage.#ctor(System.String,System.Collections.Generic.IDictionary{System.String,System.ReadOnlyMemory{System.Byte}})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.GroupBroadcastDataMessage"/> class.
+            </summary>
+            <param name="groupName">The group name.</param>
+            <param name="payloads">The payload dictionary which contains binary payload of multiple protocols.</param>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.GroupBroadcastDataMessage.#ctor(System.String,System.Collections.Generic.IReadOnlyList{System.String},System.Collections.Generic.IDictionary{System.String,System.ReadOnlyMemory{System.Byte}})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.GroupBroadcastDataMessage"/> class.
+            </summary>
+            <param name="groupName">The group name.</param>
+            <param name="excludedList">The list of excluded connection Ids.</param>
+            <param name="payloads">The payload dictionary which contains binary payload of multiple protocols.</param>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.MultiGroupBroadcastDataMessage">
+            <summary>
+            A data message which will be broadcasted within multiple groups.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.MultiGroupBroadcastDataMessage.GroupList">
+            <summary>
+            Gets or sets the list of group names.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.MultiGroupBroadcastDataMessage.#ctor(System.Collections.Generic.IReadOnlyList{System.String},System.Collections.Generic.IDictionary{System.String,System.ReadOnlyMemory{System.Byte}})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.MultiGroupBroadcastDataMessage"/> class.
+            </summary>
+            <param name="groupList">The list of group names.</param>
+            <param name="payloads">The payload dictionary which contains binary payload of multiple protocols.</param>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.ServiceMessage">
+            <summary>
+            Base class of messages between Azure SignalR Service and SDK.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.IAckableMessage">
+            <summary>
+            Interface of ack-able message 
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.HandshakeRequestMessage">
+            <summary>
+            A handshake request message.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.HandshakeRequestMessage.Version">
+            <summary>
+            Gets or sets the requested protocol version.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.HandshakeRequestMessage.ConnectionType">
+            <summary>
+            Gets or sets the type of service connection.
+            </summary>
+            <value>
+            <list type="bullet">
+            <item>0, Default, it can carry clients, service runtime should always accept this kind of connection.</item>
+            <item>1, OnDemand, creating when service requested more connections, it can carry clients, but it may be rejected by service runtime.</item>
+            <item>2, Weak, it can not carry clients, but it can send message.</item>
+            </list>
+            </value>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.HandshakeRequestMessage.Target">
+            <summary>
+            Gets or sets the target of service connection, only work for OnDemand connections.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.HandshakeRequestMessage.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.HandshakeRequestMessage"/> class.
+            </summary>
+            <param name="version">version</param>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.HandshakeRequestMessage.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.HandshakeRequestMessage"/> class.
+            </summary>
+            <param name="version">version</param>
+            <param name="connectionType">connection type</param>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.HandshakeResponseMessage">
+            <summary>
+            A handshake response message.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.HandshakeResponseMessage.ErrorMessage">
+            <summary>
+            Gets or sets the optional error message.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.HandshakeResponseMessage.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.HandshakeResponseMessage"/> class.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.HandshakeResponseMessage.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.HandshakeResponseMessage"/> class.
+            </summary>
+            <param name="errorMessage">An optional response error message. A <c>null</c> or empty error message indicates a successful handshake.</param>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.PingMessage">
+            <summary>
+            A ping message.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.SignalR.Protocol.PingMessage.Instance">
+            <summary>
+            A static ping message.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.ServiceErrorMessage">
+            <summary>
+            A service error message
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.ServiceErrorMessage.ErrorMessage">
+            <summary>
+            Gets or sets the error message
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.ServiceErrorMessage.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.ServiceErrorMessage"/> class.
+            </summary>
+            <param name="errorMessage">An error message.</param>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.AckMessage">
+            <summary>
+            A ack message to response ack-able message
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.AckMessage.AckId">
+            <summary>
+            Gets or sets the ack id.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.AckMessage.Status">
+            <summary>
+            Gets or sets the status code
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.AckMessage.Message">
+            <summary>
+            Gets or sets the ack message
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.AckMessage.#ctor(System.Int32,System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.AckMessage"/> class.
+            </summary>
+            <param name="ackId">The ack Id</param>
+            <param name="status">The status code</param>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.AckMessage.#ctor(System.Int32,System.Int32,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Microsoft.Azure.SignalR.Protocol.AckMessage"/> class.
+            </summary>
+            <param name="ackId">The ack Id</param>
+            <param name="status">The status code</param>
+            <param name="message">The ack message</param>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.Protocol.ServiceProtocol">
+            <summary>
+            Implements the Azure SignalR Service Protocol.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.Protocol.ServiceProtocol.Version">
+            <inheritdoc />
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.ServiceProtocol.TryParseMessage(System.Buffers.ReadOnlySequence{System.Byte}@,Microsoft.Azure.SignalR.Protocol.ServiceMessage@)">
+            <inheritdoc />
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.ServiceProtocol.WriteMessage(Microsoft.Azure.SignalR.Protocol.ServiceMessage,System.Buffers.IBufferWriter{System.Byte})">
+            <inheritdoc />
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.Protocol.ServiceProtocol.GetMessageBytes(Microsoft.Azure.SignalR.Protocol.ServiceMessage)">
+            <inheritdoc />
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.MemoryBufferWriter.CompletedBuffer">
+            <summary>
+            Holds a byte[] from the pool and a size value. Basically a Memory but guaranteed to be backed by an ArrayPool byte[], so that we know we can return it.
+            </summary>
+        </member>
+    </members>
+</doc>

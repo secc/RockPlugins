@@ -1,0 +1,228 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.Azure.SignalR.AspNet</name>
+    </assembly>
+    <members>
+        <member name="M:Microsoft.Azure.SignalR.AspNet.DefaultEndpointRouter.GetNegotiateEndpoint(Microsoft.Owin.IOwinContext,System.Collections.Generic.IEnumerable{Microsoft.Azure.SignalR.ServiceEndpoint})">
+            <summary>
+            Randomly select from the available endpoints
+            </summary>
+            <param name="owinContext">The incoming owin http context</param>
+            <param name="endpoints"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.AspNet.DefaultEndpointRouter.GetNegotiateEndpoints(System.Collections.Generic.IEnumerable{Microsoft.Azure.SignalR.ServiceEndpoint})">
+            <summary>
+            Only primary endpoints will be returned by client /negotiate
+            If no primary endpoint is available, promote one secondary endpoint
+            </summary>
+            <returns>The availbale endpoints</returns>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.AspNet.IEndpointRouter.GetNegotiateEndpoint(Microsoft.Owin.IOwinContext,System.Collections.Generic.IEnumerable{Microsoft.Azure.SignalR.ServiceEndpoint})">
+            <summary>
+            Get the service endpoint for the client to connect to
+            </summary>
+            <param name="owinContext">The incoming owin http context</param>
+            <param name="endpoints">All the available endpoints</param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.SignalR.AspNet.ProductInfo.GetProductInfo">
+            <summary>
+            For .NET framework below netframework462, there are assembly binding issues when referencing netstandard assemblies, https://github.com/Azure/azure-signalr/issues/452
+            For now, disable usage of System.Runtime.InteropServices.RuntimeInformation
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.AspNet.ServiceOptions">
+            <summary>
+            Configurable options when using Azure SignalR Service.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.AspNet.ServiceOptions.ConnectionString">
+            <summary>
+            Gets or sets the connection string of Azure SignalR Service instance.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.AspNet.ServiceOptions.ConnectionCount">
+            <summary>
+            Gets or sets the total number of connections from SDK to Azure SignalR Service. Default value is 5.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.AspNet.ServiceOptions.ApplicationName">
+            <summary>
+            Gets applicationName, which will be used as a prefix to apply to each hub name
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.AspNet.ServiceOptions.ClaimsProvider">
+            <summary>
+            Gets or sets the func to generate claims from <see cref="T:Microsoft.Owin.IOwinContext" />.
+            The claims will be included in the auto-generated token for clients.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.AspNet.ServiceOptions.AccessTokenLifetime">
+            <summary>
+            Gets or sets the lifetime of auto-generated access token, which will be used to authenticate with Azure SignalR Service.
+            Default value is one hour.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.AspNet.ServiceOptions.Endpoints">
+            <summary>
+            Customize the multiple endpoints used
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.AspNet.ServiceOptions.ServerStickyMode">
+            <summary>
+            Specifies the mode for server sticky, when client is always routed to the server which it first /negotiate with, we call it "server sticky mode".
+            By default this mode is disabled
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.SignalR.AspNet.ServiceOptions.Proxy">
+            <summary>
+            Gets or sets the proxy used when ServiceEndpoint will attempt to connect to Azure SignalR.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.SignalR.AspNet.TraceManagerLoggerProvider.InternalTraceSourceLogger">
+            <summary>
+            Use an InternalTraceSourceLogger to get rid of LogicalOperationStack inside the TraceSourceScope
+            Slightly different from the TraceSourceLogger in that the message is prefixed with [categoryName]
+            </summary>
+        </member>
+        <member name="T:Microsoft.AspNet.SignalR.Infrastructure.ListHelper`1">
+            <summary>
+            Copied from https://github.com/SignalR/SignalR/blob/dev/src/Microsoft.AspNet.SignalR.Core/Infrastructure/ListHelper.cs
+            </summary>
+        </member>
+        <member name="T:Microsoft.AspNet.SignalR.Infrastructure.MemoryPoolTextWriter">
+            <summary>
+            Copied from https://github.com/SignalR/SignalR/blob/dev/src/Microsoft.AspNet.SignalR.Core/Infrastructure/MemoryPoolTextWriter.cs
+            </summary>
+        </member>
+        <member name="T:Microsoft.AspNet.SignalR.Infrastructure.PrefixHelper">
+            <summary>
+            Copied from https://github.com/SignalR/SignalR/blob/dev/src/Microsoft.AspNet.SignalR.Core/Infrastructure/PrefixHelper.cs
+            </summary>
+        </member>
+        <member name="M:Owin.OwinExtensions.MapAzureSignalR(Owin.IAppBuilder,System.String)">
+            <summary>
+            Maps Azure SignalR hubs to the app builder pipeline at "/signalr".
+            </summary>
+            <param name="builder">The app builder <see cref="T:Owin.IAppBuilder"/>.</param>
+            <param name="applicationName">The name of your app, it is case-insensitive.</param>
+            <returns>The app builder</returns>
+            <remarks>
+            The connection string is read from the ConnectionString section of application config (web.config or app.config), with name "Azure:SignalR:ConnectionString"
+            </remarks>
+        </member>
+        <member name="M:Owin.OwinExtensions.MapAzureSignalR(Owin.IAppBuilder,System.String,System.String)">
+            <summary>
+            Maps Azure SignalR hubs to the app builder pipeline at "/signalr".
+            </summary>
+            <param name="builder">The app builder <see cref="T:Owin.IAppBuilder"/>.</param>
+            <param name="applicationName">The name of your app, it is case-insensitive.</param>
+            <param name="connectionString">The connection string of an Azure SignalR Service instance.</param>
+            <returns>The app builder</returns>
+        </member>
+        <member name="M:Owin.OwinExtensions.MapAzureSignalR(Owin.IAppBuilder,System.String,System.Action{Microsoft.Azure.SignalR.AspNet.ServiceOptions})">
+            <summary>
+            Maps Azure SignalR hubs to the app builder pipeline at "/signalr".
+            </summary>
+            <param name="builder">The app builder <see cref="T:Owin.IAppBuilder"/>.</param>
+            <param name="applicationName">The name of your app, it is case-insensitive.</param>
+            <param name="optionsConfigure">A callback to configure the <see cref="T:Microsoft.Azure.SignalR.AspNet.ServiceOptions"/>.</param>
+            <returns>The app builder</returns>
+        </member>
+        <member name="M:Owin.OwinExtensions.MapAzureSignalR(Owin.IAppBuilder,System.String,Microsoft.AspNet.SignalR.HubConfiguration)">
+            <summary>
+            Maps Azure SignalR hubs to the app builder pipeline at "/signalr".
+            </summary>
+            <param name="builder">The app builder <see cref="T:Owin.IAppBuilder"/>.</param>
+            <param name="applicationName">The name of your app, it is case-insensitive.</param>
+            <param name="configuration">The hub configuration <see cref="T:Microsoft.AspNet.SignalR.HubConfiguration"/>.</param>
+            <returns>The app builder</returns>
+        </member>
+        <member name="M:Owin.OwinExtensions.MapAzureSignalR(Owin.IAppBuilder,System.String,Microsoft.AspNet.SignalR.HubConfiguration,System.Action{Microsoft.Azure.SignalR.AspNet.ServiceOptions})">
+            <summary>
+            Maps Azure SignalR hubs to the app builder pipeline at "/signalr".
+            </summary>
+            <param name="builder">The app builder <see cref="T:Owin.IAppBuilder"/>.</param>
+            <param name="applicationName">The name of your app, it is case-insensitive.</param>
+            <param name="configuration">The hub configuration <see cref="T:Microsoft.AspNet.SignalR.HubConfiguration"/>.</param>
+            <param name="optionsConfigure">A callback to configure the <see cref="T:Microsoft.Azure.SignalR.AspNet.ServiceOptions"/>.</param>
+            <returns>The app builder</returns>
+        </member>
+        <member name="M:Owin.OwinExtensions.MapAzureSignalR(Owin.IAppBuilder,System.String,System.String,Microsoft.AspNet.SignalR.HubConfiguration)">
+            <summary>
+            Maps Azure SignalR hubs to the app builder pipeline at the specified path.
+            </summary>
+            <param name="builder">The app builder <see cref="T:Owin.IAppBuilder"/>.</param>
+            <param name="path">The path to map signalr hubs.</param>
+            <param name="applicationName">The name of your app, it is case-insensitive.</param>
+            <param name="configuration">The hub configuration <see cref="T:Microsoft.AspNet.SignalR.HubConfiguration"/>.</param>
+            <returns>The app builder</returns>
+        </member>
+        <member name="M:Owin.OwinExtensions.MapAzureSignalR(Owin.IAppBuilder,System.String,System.String,Microsoft.AspNet.SignalR.HubConfiguration,System.Action{Microsoft.Azure.SignalR.AspNet.ServiceOptions})">
+            <summary>
+            Maps Azure SignalR hubs to the app builder pipeline at the specified path.
+            </summary>
+            <param name="builder">The app builder <see cref="T:Owin.IAppBuilder"/>.</param>
+            <param name="path">The path to map signalr hubs.</param>
+            <param name="applicationName">The name of your app, it is case-insensitive.</param>
+            <param name="configuration">The hub configuration <see cref="T:Microsoft.AspNet.SignalR.HubConfiguration"/>.</param>
+            <param name="optionsConfigure">A callback to configure the <see cref="T:Microsoft.Azure.SignalR.AspNet.ServiceOptions"/>.</param>
+            <returns>The app builder</returns>
+        </member>
+        <member name="M:Owin.OwinExtensions.RunAzureSignalR(Owin.IAppBuilder,System.String)">
+            <summary>
+            Adds Azure SignalR hubs to the app builder pipeline at "/signalr".
+            </summary>
+            <param name="builder">The app builder <see cref="T:Owin.IAppBuilder"/>.</param>
+            <param name="applicationName">The name of your app, it is case-insensitive.</param>
+            <remarks>
+            The connection string is read from the ConnectionString section of application config (web.config or app.config), with name "Azure:SignalR:ConnectionString"
+            </remarks>
+        </member>
+        <member name="M:Owin.OwinExtensions.RunAzureSignalR(Owin.IAppBuilder,System.String,System.String)">
+            <summary>
+            Adds Azure SignalR hubs to the app builder pipeline at "/signalr".
+            </summary>
+            <param name="builder">The app builder <see cref="T:Owin.IAppBuilder"/>.</param>
+            <param name="applicationName">The name of your app, it is case-insensitive.</param>
+            <param name="connectionString">The connection string of an Azure SignalR Service instance.</param>
+        </member>
+        <member name="M:Owin.OwinExtensions.RunAzureSignalR(Owin.IAppBuilder,System.String,Microsoft.AspNet.SignalR.HubConfiguration)">
+            <summary>
+            Adds Azure SignalR hubs to the app builder pipeline at "/signalr" using the connection string specified in web.config 
+            </summary>
+            <param name="builder">The app builder <see cref="T:Owin.IAppBuilder"/>.</param>
+            <param name="applicationName">The name of your app, it is case-insensitive.</param>
+            <param name="configuration">The hub configuration <see cref="T:Microsoft.AspNet.SignalR.HubConfiguration"/>.</param>
+        </member>
+        <member name="M:Owin.OwinExtensions.RunAzureSignalR(Owin.IAppBuilder,System.String,System.String,Microsoft.AspNet.SignalR.HubConfiguration)">
+            <summary>
+            Adds Azure SignalR hubs to the app builder pipeline at "/signalr".
+            </summary>
+            <param name="builder">The app builder <see cref="T:Owin.IAppBuilder"/>.</param>
+            <param name="applicationName">The name of your app, it is case-insensitive.</param>
+            <param name="connectionString">The connection string of an Azure SignalR Service instance.</param>
+            <param name="configuration">The hub configuration <see cref="T:Microsoft.AspNet.SignalR.HubConfiguration"/>.</param>
+        </member>
+        <member name="M:Owin.OwinExtensions.RunAzureSignalR(Owin.IAppBuilder,System.String,System.Action{Microsoft.Azure.SignalR.AspNet.ServiceOptions})">
+            <summary>
+            Adds Azure SignalR hubs to the app builder pipeline at "/signalr".
+            </summary>
+            <param name="builder">The app builder</param>
+            <param name="applicationName">The name of your app, it is case-insensitive</param>
+            <param name="optionsConfigure">A callback to configure the <see cref="T:Microsoft.Azure.SignalR.AspNet.ServiceOptions"/>.</param>
+        </member>
+        <member name="M:Owin.OwinExtensions.RunAzureSignalR(Owin.IAppBuilder,System.String,Microsoft.AspNet.SignalR.HubConfiguration,System.Action{Microsoft.Azure.SignalR.AspNet.ServiceOptions})">
+            <summary>
+            Adds Azure SignalR hubs to the app builder pipeline at "/signalr".
+            </summary>
+            <param name="builder">The app builder</param>
+            <param name="applicationName">The name of your app, it is case-insensitive</param>
+            <param name="configuration">The hub configuration</param>
+            <param name="optionsConfigure">A callback to configure the <see cref="T:Microsoft.Azure.SignalR.AspNet.ServiceOptions"/>.</param>
+        </member>
+    </members>
+</doc>

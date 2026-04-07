@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using iText.Kernel.Pdf;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -31,75 +30,84 @@ namespace org.secc.PDF
     [Export( typeof( Rock.Workflow.ActionComponent ) )]
     [ExportMetadata( "ComponentName", "Lava PDF" )]
 
-
     //Settings
     [CodeEditorField( "Lava", "The lava to convert to a PDF", Rock.Web.UI.Controls.CodeEditorMode.Lava, height: 300, order: 1 )]
     [CodeEditorField( "Header", "The html/lava to use in the page header.", Rock.Web.UI.Controls.CodeEditorMode.Lava, height: 100, required: false, order: 2 )]
     [CodeEditorField( "Footer", "The html/lava to use in the page footer.", Rock.Web.UI.Controls.CodeEditorMode.Lava, height: 100, required: false, order: 3 )]
     [WorkflowAttribute( "PDF", "Binary File attribute to output PDF to.", fieldTypeClassNames: new string[] { "Rock.Field.Types.FileFieldType" }, order: 4 )]
     [TextField( "Document Name", "The name of the document <span class='tip tip-lava'></span>.", true, "LavaDocument.pdf", order: 5 )]
-    class LavaPDF : ActionComponent
+    public class LavaPDF : ActionComponent
     {
-
         /// <summary>
         /// Executes the action.
         /// </summary>
-        /// <param name="rockContext">The rock context.</param>
-        /// <param name="action">The action.</param>
-        /// <param name="entity">The entity.</param>
-        /// <param name="errorMessages">The error messages.</param>
-        /// <returns></returns>
         public override bool Execute( RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages )
         {
             errorMessages = new List<string>();
 
-
-            string html = GetActionAttributeValue( action, "Lava" ).ResolveMergeFields( GetMergeFields( action ) );
-            string header = GetActionAttributeValue( action, "Header" ).ResolveMergeFields( GetMergeFields( action ) );
-            string footer = GetActionAttributeValue( action, "Footer" ).ResolveMergeFields( GetMergeFields( action ) );
-            string documentName = GetActionAttributeValue( action, "DocumentName" ).ResolveMergeFields( GetMergeFields( action ) );
-
-            BinaryFile pdfBinary = Utility.HtmlToPdf( html, header, footer, rockContext, documentName );
-
-
-            Guid guid = GetAttributeValue( action, "PDF" ).AsGuid();
-            if ( !guid.IsEmpty() )
+            try
             {
-                var destinationAttribute = AttributeCache.Get( guid, rockContext );
-                if ( destinationAttribute != null )
+                string html = GetActionAttributeValue( action, "Lava" ).ResolveMergeFields( GetMergeFields( action ) );
+                string header = GetActionAttributeValue( action, "Header" ).ResolveMergeFields( GetMergeFields( action ) );
+                string footer = GetActionAttributeValue( action, "Footer" ).ResolveMergeFields( GetMergeFields( action ) );
+                string documentName = GetActionAttributeValue( action, "DocumentName" ).ResolveMergeFields( GetMergeFields( action ) );
+
+                BinaryFile pdfBinary = GeneratePdf( html, header, footer, rockContext, documentName );
+
+                Guid guid = GetAttributeValue( action, "PDF" ).AsGuid();
+                if ( !guid.IsEmpty() )
                 {
-
-
-                    // Update the file type if necessary
-                    Guid binaryFileTypeGuid = Guid.Empty;
-                    var binaryFileTypeQualifier = destinationAttribute.QualifierValues["binaryFileType"];
-                    if ( !String.IsNullOrWhiteSpace( binaryFileTypeQualifier.Value ) )
-                    {
-                        if ( binaryFileTypeQualifier.Value != null )
-                        {
-                            binaryFileTypeGuid = binaryFileTypeQualifier.Value.AsGuid();
-
-                            pdfBinary.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( binaryFileTypeGuid ).Id;
-                        }
-                    }
-
-                    BinaryFileService binaryFileService = new BinaryFileService( rockContext );
-                    binaryFileService.Add( pdfBinary );
-                    rockContext.SaveChanges();
-
-                    // Now store the attribute
-                    if ( destinationAttribute.EntityTypeId == new Workflow().TypeId )
-                    {
-                        action.Activity.Workflow.SetAttributeValue( destinationAttribute.Key, pdfBinary.Guid.ToString() );
-                    }
-                    else if ( destinationAttribute.EntityTypeId == new WorkflowActivity().TypeId )
-                    {
-                        action.Activity.SetAttributeValue( destinationAttribute.Key, pdfBinary.Guid.ToString() );
-                    }
+                    SaveAndAssignPdf( pdfBinary, guid, action, rockContext );
                 }
+
+                return true;
             }
-            return true;
+            catch ( Exception ex )
+            {
+                errorMessages.Add( ex.Message );
+                return false;
+            }
         }
 
+        /// <summary>
+        /// Extracted for testability: Wraps the static Utility call
+        /// </summary>
+        protected virtual BinaryFile GeneratePdf( string html, string header, string footer, RockContext rockContext, string documentName )
+        {
+            return Utility.HtmlToPdf( html, header, footer, rockContext, documentName );
+        }
+
+        /// <summary>
+        /// Extracted for testability: Wraps the database context updates and cache calls
+        /// </summary>
+        protected virtual void SaveAndAssignPdf( BinaryFile pdfBinary, Guid destinationAttributeGuid, WorkflowAction action, RockContext rockContext )
+        {
+            var destinationAttribute = AttributeCache.Get( destinationAttributeGuid, rockContext );
+            if ( destinationAttribute != null )
+            {
+                // Update the file type if necessary
+                Guid binaryFileTypeGuid = Guid.Empty;
+                var binaryFileTypeQualifier = destinationAttribute.QualifierValues["binaryFileType"];
+                if ( !String.IsNullOrWhiteSpace( binaryFileTypeQualifier.Value ) )
+                {
+                    binaryFileTypeGuid = binaryFileTypeQualifier.Value.AsGuid();
+                    pdfBinary.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( binaryFileTypeGuid ).Id;
+                }
+
+                BinaryFileService binaryFileService = new BinaryFileService( rockContext );
+                binaryFileService.Add( pdfBinary );
+                rockContext.SaveChanges();
+
+                // Now store the attribute
+                if ( destinationAttribute.EntityTypeId == new Workflow().TypeId )
+                {
+                    action.Activity.Workflow.SetAttributeValue( destinationAttribute.Key, pdfBinary.Guid.ToString() );
+                }
+                else if ( destinationAttribute.EntityTypeId == new WorkflowActivity().TypeId )
+                {
+                    action.Activity.SetAttributeValue( destinationAttribute.Key, pdfBinary.Guid.ToString() );
+                }
+            }
+        }
     }
 }
