@@ -114,7 +114,7 @@ namespace org.secc.FamilyCheckin
             // 4. Clear only kiosk devices for the affected group types
             KioskDeviceHelpers.Clear( affectedGroupTypeIds.ToList() );
 
-            // NOTE: AttendanceCache is intentionally NOT cleared — attendance records
+            // NOTE: AttendanceCache is intentionally NOT cleared - attendance records
             // are unaffected by schedule re-activation.
 
             context.Result = string.Format( "Finished at {0}. Reset {1} GroupScheduleLocations.", Rock.RockDateTime.Now, deactivatedGroupLocationSchedules.Count );
