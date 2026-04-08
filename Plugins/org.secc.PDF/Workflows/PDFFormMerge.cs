@@ -54,11 +54,7 @@ namespace org.secc.PDF
         {
             errorMessages = new List<string>();
 
-            PDFWorkflowObject pdfWorkflowObject = new PDFWorkflowObject();
-
-            //A PDF merge can enter in two ways, kicked off with trigger or called from a block
-            //If it is called from a block we will get our information from a PDFWorkflowObject
-            //Otherwise we will need to get our information from the workflow attributes
+            PDFWorkflowObject pdfWorkflowObject;
             if ( entity is PDFWorkflowObject )
             {
                 pdfWorkflowObject = Utility.GetPDFFormMergeFromEntity( entity, out errorMessages );
@@ -67,61 +63,105 @@ namespace org.secc.PDF
             {
                 pdfWorkflowObject = new PDFWorkflowObject( action, rockContext );
             }
-            BinaryFile renderedPDF = new BinaryFile();
-            //Merge PDF
-            using ( MemoryStream ms = new MemoryStream() )
+
+            if ( pdfWorkflowObject == null )
             {
-                var pdfGuid = GetAttributeValue( action, "PDFTemplate" );
+                errorMessages.Add( "PDF form merge input could not be created." );
+                return false;
+            }
 
-                var pdf = new BinaryFileService( rockContext ).Get( pdfGuid.AsGuid() );
+            if ( pdfWorkflowObject.MergeObjects == null )
+            {
+                pdfWorkflowObject.MergeObjects = new Dictionary<string, object>();
+            }
 
-                var pdfBytes = pdf.ContentStream.ReadBytesToEnd();
-                var pdfReader = new PdfReader( new MemoryStream( pdfBytes ) );
-                var pdfWriter = new PdfWriter( ms );
+            var pdfGuidValue = GetAttributeValue( action, "PDFTemplate" );
+            var pdfGuid = pdfGuidValue.AsGuid();
+            if ( pdfGuid == Guid.Empty )
+            {
+                errorMessages.Add( "PDF Template is not configured on the workflow action." );
+                return false;
+            }
 
-                var pdfDocument = new PdfDocument( pdfReader, pdfWriter );
+            var pdf = new BinaryFileService( rockContext ).Get( pdfGuid );
+            if ( pdf == null )
+            {
+                errorMessages.Add( "PDF Template binary file was not found. Guid: " + pdfGuid );
+                return false;
+            }
+
+            if ( pdf.ContentStream == null )
+            {
+                errorMessages.Add( "PDF Template content stream is empty or unavailable. Guid: " + pdfGuid );
+                return false;
+            }
+
+            var pdfBytes = pdf.ContentStream.ReadBytesToEnd();
+            if ( pdfBytes == null || pdfBytes.Length == 0 )
+            {
+                errorMessages.Add( "PDF Template has no content. Guid: " + pdfGuid );
+                return false;
+            }
+
+            BinaryFile renderedPDF = new BinaryFile();
+
+            using ( MemoryStream ms = new MemoryStream() )
+            using ( var pdfReader = new PdfReader( new MemoryStream( pdfBytes ) ) )
+            using ( var pdfWriter = new PdfWriter( ms ) )
+            using ( var pdfDocument = new PdfDocument( pdfReader, pdfWriter ) )
+            {
                 var form = PdfAcroForm.GetAcroForm( pdfDocument, true );
+                if ( form == null )
+                {
+                    errorMessages.Add( "PDF form could not be loaded for template Guid: " + pdfGuid );
+                    return false;
+                }
 
                 form.SetGenerateAppearance( true );
 
-                var fieldKeys = form.GetFormFields().Keys;
-
-                //Field keys are the names of form fields in a pdf form
-                foreach ( string fieldKey in fieldKeys )
+                var formFields = form.GetFormFields();
+                if ( formFields != null )
                 {
-                    //If this is a key value pairing
-                    if ( pdfWorkflowObject.MergeObjects.ContainsKey( fieldKey ) )
+                    foreach ( string fieldKey in formFields.Keys )
                     {
-                        if ( pdfWorkflowObject.MergeObjects[fieldKey] is string )
+                        var field = form.GetField( fieldKey );
+                        if ( field == null )
                         {
-                            form.GetField( fieldKey ).SetValue( fieldKey, pdfWorkflowObject.MergeObjects[fieldKey] as string );
+                            continue;
                         }
-                    }
-                    //otherwise test for lava and use the form value as the lava input
-                    else
-                    {
-                        PdfObject fieldValuePdfObj = form.GetField( fieldKey ).GetValue();
-                        string fieldValue = fieldValuePdfObj.ToString();
-                        if ( !string.IsNullOrWhiteSpace( fieldValue ) && LavaHelper.IsLavaTemplate( fieldValue ) )
-                            form.GetField( fieldKey ).SetValue( fieldKey, fieldValue.ResolveMergeFields( pdfWorkflowObject.MergeObjects ) );
+
+                        object mergeValue;
+                        if ( pdfWorkflowObject.MergeObjects.TryGetValue( fieldKey, out mergeValue ) )
+                        {
+                            if ( mergeValue is string )
+                            {
+                                field.SetValue( fieldKey, mergeValue as string );
+                            }
+                        }
+                        else
+                        {
+                            PdfObject fieldValuePdfObj = field.GetValue();
+                            string fieldValue = fieldValuePdfObj != null ? fieldValuePdfObj.ToString() : string.Empty;
+
+                            if ( !string.IsNullOrWhiteSpace( fieldValue ) && LavaHelper.IsLavaTemplate( fieldValue ) )
+                            {
+                                field.SetValue( fieldKey, fieldValue.ResolveMergeFields( pdfWorkflowObject.MergeObjects ) );
+                            }
+                        }
                     }
                 }
 
-                //Should we flatten the form
                 if ( GetActionAttributeValue( action, "Flatten" ).AsBoolean() )
                 {
                     form.FlattenFields();
                 }
 
                 pdfDocument.Close();
-                pdfReader.Close();
-                pdfWriter.Close();
-
-                //Generate New Object
 
                 Guid guid = GetAttributeValue( action, "PDFOutput" ).AsGuid();
                 AttributeCache attribute = null;
                 var binaryFileTypeGuid = Rock.SystemGuid.BinaryFiletype.DEFAULT;
+
                 if ( !guid.IsEmpty() )
                 {
                     attribute = AttributeCache.Get( guid, rockContext );
@@ -131,21 +171,25 @@ namespace org.secc.PDF
                     {
                         binaryFileTypeGuid = attribute.QualifierValues["binaryFileType"].Value;
                     }
+                }
 
+                var binaryFileType = new BinaryFileTypeService( rockContext ).Get( binaryFileTypeGuid.AsGuid() );
+                if ( binaryFileType == null )
+                {
+                    errorMessages.Add( "Resolved BinaryFileType was not found for Guid: " + binaryFileTypeGuid );
+                    return false;
                 }
 
                 renderedPDF.MimeType = pdf.MimeType;
                 renderedPDF.FileName = pdf.FileName;
                 renderedPDF.IsTemporary = false;
                 renderedPDF.Guid = Guid.NewGuid();
-                renderedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( binaryFileTypeGuid.AsGuid() ).Id;
+                renderedPDF.BinaryFileTypeId = binaryFileType.Id;
                 renderedPDF.ContentStream = new MemoryStream( ms.ToArray() );
-                pdfReader.Close();
-
 
                 if ( entity is PDFWorkflowObject )
                 {
-                    entity = pdfWorkflowObject;
+                    pdfWorkflowObject.PDF = renderedPDF;
                 }
                 else
                 {
@@ -159,6 +203,7 @@ namespace org.secc.PDF
                     }
                 }
             }
+
             return true;
         }
 
