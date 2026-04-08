@@ -42,8 +42,8 @@ namespace RockWeb.Plugins.org_secc.Finance
     [WorkflowTypeField( "Statement Generator Workflow", "The workflow to launch to generate statements.", true )]
     [DataViewField( "Default Review DataView", "The default DataView to use for the review process.", false )]
     [IntegerField( "Command Timeout", "Maximum amount of time (in seconds) to wait for the query to run.", false, 300, key: "CommandTimeout" )]
+    [IntegerField( "Concurrent Workers", "Number of concurrent workers used to launch workflows.", false, 3, key: "ConcurrentWorkers" )]
     [DataViewField( "Suppress Statement Dataview", "The dataview of people to not generate a statement for.", false, key: "SuppressStatements" )]
-
     public partial class ContributionStatementGenerator : Rock.Web.UI.RockBlock
     {
 
@@ -274,10 +274,11 @@ namespace RockWeb.Plugins.org_secc.Finance
 
             givingGroups = givingGroups.Union( moveCommitmentsNoGivingInPeriod );
 
-            // Filter by Giving ID
-            if ( tbGivingId.Text.IsNotNullOrWhiteSpace() )
+            // Filter by Giving ID (supports comma-separated list)
+            var givingIdFilters = GetGivingIdFilters();
+            if ( givingIdFilters.Any() )
             {
-                givingGroups = givingGroups.Where( gg => gg.GivingId.Contains( tbGivingId.Text ) );
+                givingGroups = givingGroups.Where( gg => givingIdFilters.Contains( gg.GivingId ) );
             }
 
             // Filter by Giving Group Name
@@ -339,6 +340,16 @@ namespace RockWeb.Plugins.org_secc.Finance
 
             return suppressedGivingIds;
         }
+
+        private List<string> GetGivingIdFilters()
+        {
+            return ( tbGivingId.Text ?? string.Empty )
+                .Split( new[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
+                .Select( s => s.Trim() )
+                .Where( s => s.IsNotNullOrWhiteSpace() )
+                .Distinct( StringComparer.OrdinalIgnoreCase )
+                .ToList();
+        }
         #endregion
 
 
@@ -366,7 +377,10 @@ namespace RockWeb.Plugins.org_secc.Finance
 
             List<Task> taskList = new List<Task>();
 
-            for ( int i = 0; i < 10; i++ )
+            var workerCount = GetAttributeValue( "ConcurrentWorkers" ).AsIntegerOrNull() ?? 3;
+            workerCount = Math.Max( 1, Math.Min( workerCount, 20 ) );
+
+            for ( int i = 0; i < workerCount; i++ )
             {
                 taskList.Add( new Task( () =>
                 {
