@@ -1124,33 +1124,28 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             var keys = ( ( string ) e.RowKeyValue ).SplitDelimitedValues();
             var personId = keys[0].AsInteger();
-            var matrixItemId = keys[1].AsIntegerOrNull();
 
             RockContext rockContext = new RockContext();
             PersonService personService = new PersonService( rockContext );
-            AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
+            AttributeValueService attributeValueService = new AttributeValueService( rockContext );
+            AttributeService attributeService = new AttributeService( rockContext );
+            var personEntityId = EntityTypeCache.GetId<Rock.Model.Person>().Value;
+            var matrixKey = GetAttributeValue( AttributeKey.MedicationMatrixKey );
 
             var person = personService.Get( personId );
             mdManageMeds.Title = person != null
-                ? string.Format( "Manage Medications - {0}", person.FullName )
-                : "Manage Medications";
+                ? string.Format( "Manage Medications - {0} (View Only)", person.FullName )
+                : "Manage Medications (View Only)";
 
-            // Get the matrix GUID from the clicked row's matrix item.
-            // This gives us the camp-specific GroupMember matrix (copied per registration
-            // via the "Medication Information Request" workflow), NOT the Person-level master list.
-            string matrixGuid = null;
-            if ( matrixItemId.HasValue )
-            {
-                var matrixItem = attributeMatrixItemService.Queryable()
-                    .Where( ami => ami.Id == matrixItemId.Value )
-                    .Select( ami => new { ami.AttributeMatrix.Guid } )
-                    .FirstOrDefault();
+            var matrixAttributeId = attributeService.Queryable()
+                .Where( a => a.EntityTypeId == personEntityId && a.Key == matrixKey )
+                .Select( a => a.Id )
+                .FirstOrDefault();
 
-                if ( matrixItem != null )
-                {
-                    matrixGuid = matrixItem.Guid.ToString();
-                }
-            }
+            var matrixGuid = attributeValueService.Queryable()
+                .Where( av => av.AttributeId == matrixAttributeId && av.EntityId == personId )
+                .Select( av => av.Value )
+                .FirstOrDefault();
 
             hfManageMedsPersonId.Value = personId.ToString();
             hfManageMedsMatrixGuid.Value = matrixGuid;

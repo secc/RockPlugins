@@ -58,11 +58,11 @@
                                 <asp:BoundField DataField="Medication" HeaderText="Medication" />
                                 <asp:BoundField DataField="Instructions" HeaderText="Instructions" />
                                 <asp:BoundField DataField="Schedule" HeaderText="Schedule" />
-                                <Rock:DeleteField HeaderText="Remove" ID="btnDeleteMed" OnClick="btnDeleteMed_Click" />
                             </Columns>
                         </Rock:Grid>
-                        <asp:LinkButton runat="server" ID="btnAddMedication" CssClass="btn btn-primary margin-t-sm"
-                            OnClick="btnAddMedication_Click"><i class="fa fa-plus"></i> Add Medication</asp:LinkButton>
+                        <div class="margin-t-sm text-muted small">
+                            <i class="fa fa-info-circle"></i> Medications are managed through the registration process. Contact an administrator to make changes.
+                        </div>
                     </div>
                 </div>
             </Content>
