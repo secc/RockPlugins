@@ -100,71 +100,135 @@ namespace RockWeb.Plugins.org_secc.Finance
 
         public void ExportPdfs_Click( object sender, EventArgs e )
         {
-            var files = GetBinaryFiles().Select( d => d.BinaryFile ).ToList();
-            var path = Server.MapPath( "~/App_Data/Cache/ExportPDF.pdf" );
-
-            if(System.IO.File.Exists( path ))
+            if ( string.IsNullOrWhiteSpace( GetAttributeValue( "DocumentType" ) ) )
             {
-                System.IO.File.Delete( path );
+                nbBadFiles.Visible = true;
+                nbBadFiles.Text = "Export is not configured. Please set the Document Type block attribute.";
+                return;
             }
 
-            var outputStream = new FileStream( path, FileMode.Create );
+            var binaryFiles = GetBinaryFiles();
+            if ( binaryFiles == null )
+            {
+                nbBadFiles.Visible = true;
+                nbBadFiles.Text = "Export is not configured. Please set the Document Type block attribute.";
+                return;
+            }
 
+            if ( !binaryFiles.Any() )
+            {
+                nbBadFiles.Visible = true;
+                nbBadFiles.Text = "No statements were found for export.";
+                return;
+            }
+
+            var files = binaryFiles
+                .Select( d => d.BinaryFile )
+                .Where( f => f != null )
+                .ToList();
+
+            var cacheFolder = Server.MapPath( "~/App_Data/Cache" );
+            var exportToken = Guid.NewGuid().ToString( "N" );
+            var mergedPdfPath = Path.Combine( cacheFolder, string.Format( "GivingStatementExport_{0}.pdf", exportToken ) );
 
             var invalidFileIds = new List<int>();
-            using (var pdfWriter = new PdfWriter( outputStream ))
+            var mergedCount = 0;
+
+            try
             {
-                using (var pdfDocument = new PdfDocument( pdfWriter ))
+                using ( var outputStream = new FileStream( mergedPdfPath, FileMode.CreateNew, FileAccess.Write, FileShare.None ) )
+                using ( var pdfWriter = new PdfWriter( outputStream ) )
+                using ( var pdfDocument = new PdfDocument( pdfWriter ) )
                 {
-                    var merger = new PdfMerger( pdfDocument );
-                    foreach (var file in files)
+                    // Disable tag/outlines merging to avoid "Tag structure flushing failed" on some source PDFs.
+                    var merger = new PdfMerger( pdfDocument, false, false );
+
+                    foreach ( var file in files )
                     {
+                        if ( file.MimeType != "application/pdf" )
+                        {
+                            invalidFileIds.Add( file.Id );
+                            continue;
+                        }
+
                         try
                         {
-                            if (file.MimeType == "application/pdf")
+                            using ( var contentStream = file.ContentStream )
+                            using ( var statementReader = new PdfReader( contentStream ) )
+                            using ( var statementDoc = new PdfDocument( statementReader ) )
                             {
-                                var statementReader = new PdfReader( file.ContentStream );
-                                var statementDoc = new PdfDocument( statementReader );
-                                merger.Merge( statementDoc, 1, statementDoc.GetNumberOfPages() );
-
-                                statementDoc.Close();
-                                statementReader.Close();
+                                var pageCount = statementDoc.GetNumberOfPages();
+                                if ( pageCount > 0 )
+                                {
+                                    merger.Merge( statementDoc, 1, pageCount );
+                                    mergedCount++;
+                                }
+                                else
+                                {
+                                    invalidFileIds.Add( file.Id );
+                                }
                             }
-
                         }
                         catch
                         {
                             invalidFileIds.Add( file.Id );
                         }
                     }
-                    merger.Close();
-                    pdfDocument.Close();
+
+                    // Do not call merger.Close() here.
+                    // pdfDocument will be closed once by the using block.
                 }
-                pdfWriter.Close();
+
+                if ( mergedCount == 0 )
+                {
+                    nbBadFiles.Visible = true;
+                    nbBadFiles.Text = "No valid PDF statements were available for export.";
+
+                    if ( invalidFileIds.Any() )
+                    {
+                        nbBadFiles.Text += "<br />Invalid Files:<br />" + invalidFileIds.Distinct().Select( i => i.ToString() ).ToList().AsDelimited( "," );
+                    }
+                    return;
+                }
+
+                if ( invalidFileIds.Any() )
+                {
+                    nbBadFiles.Visible = true;
+                    nbBadFiles.Text = "Invalid Files:<br />" + invalidFileIds.Distinct().Select( i => i.ToString() ).ToList().AsDelimited( "," );
+                }
+
+                SendPdfFileToResponse( mergedPdfPath, "GivingStatementExport.pdf" );
             }
-
-
-            if (invalidFileIds.Any())
+            finally
             {
-                nbBadFiles.Visible = true;
-                nbBadFiles.Text = "Invalid Files:<br />" + invalidFileIds.Select( i => i.ToString() ).ToList().AsDelimited( "," );
+                try
+                {
+                    if ( File.Exists( mergedPdfPath ) )
+                    {
+                        File.Delete( mergedPdfPath );
+                    }
+                }
+                catch
+                {
+                    // Best-effort cleanup only.
+                }
             }
+        }
 
-
-            this.Page.EnableViewState = false;
-            this.Page.Response.Clear();
+        private void SendPdfFileToResponse( string sourceFilePath, string downloadFileName )
+        {
+            Page.EnableViewState = false;
+            Response.Clear();
+            Response.ClearHeaders();
             Response.ContentType = "application/pdf";
-            Response.AddHeader( "content-disposition", "attachment;filename=GivingStatementExport.pdf" );
+            Response.AddHeader( "content-disposition", string.Format( "attachment; filename=\"{0}\"", downloadFileName ) );
+            Response.BufferOutput = false;
+            Response.Charset = string.Empty;
 
-            outputStream = new FileStream( path, FileMode.Open );
-            outputStream.Position = 0;
-            this.Page.Response.Charset = string.Empty;
-            this.Page.Response.BinaryWrite( outputStream.CopyToBytes() );
-            this.Page.Response.Flush();
-            this.Page.Response.End();
+            Response.TransmitFile(sourceFilePath);
 
-            outputStream.Close();
-            System.IO.File.Delete( path );
+            Response.Flush();
+            Context.ApplicationInstance.CompleteRequest();
         }
 
         /// <summary>
