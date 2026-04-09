@@ -183,6 +183,11 @@ namespace RockWeb.Plugins.org_secc.Finance
                 {
                     nbBadFiles.Visible = true;
                     nbBadFiles.Text = "No valid PDF statements were available for export.";
+
+                    if ( invalidFileIds.Any() )
+                    {
+                        nbBadFiles.Text += "<br />Invalid Files:<br />" + invalidFileIds.Distinct().Select( i => i.ToString() ).ToList().AsDelimited( "," );
+                    }
                     return;
                 }
 
