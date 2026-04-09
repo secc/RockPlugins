@@ -45,7 +45,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SqlClient;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -101,8 +100,22 @@ namespace RockWeb.Plugins.org_secc.Finance
 
         public void ExportPdfs_Click( object sender, EventArgs e )
         {
+            if ( string.IsNullOrWhiteSpace( GetAttributeValue( "DocumentType" ) ) )
+            {
+                nbBadFiles.Visible = true;
+                nbBadFiles.Text = "Export is not configured. Please set the Document Type block attribute.";
+                return;
+            }
+
             var binaryFiles = GetBinaryFiles();
-            if (binaryFiles == null || !binaryFiles.Any())
+            if ( binaryFiles == null )
+            {
+                nbBadFiles.Visible = true;
+                nbBadFiles.Text = "Export is not configured. Please set the Document Type block attribute.";
+                return;
+            }
+
+            if ( !binaryFiles.Any() )
             {
                 nbBadFiles.Visible = true;
                 nbBadFiles.Text = "No statements were found for export.";
@@ -117,7 +130,6 @@ namespace RockWeb.Plugins.org_secc.Finance
             var cacheFolder = Server.MapPath( "~/App_Data/Cache" );
             var exportToken = Guid.NewGuid().ToString( "N" );
             var mergedPdfPath = Path.Combine( cacheFolder, string.Format( "GivingStatementExport_{0}.pdf", exportToken ) );
-            var zipPath = Path.Combine( cacheFolder, string.Format( "GivingStatementExport_{0}.zip", exportToken ) );
 
             var invalidFileIds = new List<int>();
             var mergedCount = 0;
@@ -163,7 +175,8 @@ namespace RockWeb.Plugins.org_secc.Finance
                         }
                     }
 
-                    merger.Close();
+                    // Do not call merger.Close() here.
+                    // pdfDocument will be closed once by the using block.
                 }
 
                 if ( mergedCount == 0 )
@@ -173,50 +186,42 @@ namespace RockWeb.Plugins.org_secc.Finance
                     return;
                 }
 
-                using ( var zipStream = new FileStream( zipPath, FileMode.CreateNew, FileAccess.Write, FileShare.None ) )
-                using ( var archive = new ZipArchive( zipStream, ZipArchiveMode.Create, false ) )
-                {
-                    var entry = archive.CreateEntry( "GivingStatementExport.pdf", CompressionLevel.Optimal );
-                    using ( var entryStream = entry.Open() )
-                    using ( var mergedPdfStream = new FileStream( mergedPdfPath, FileMode.Open, FileAccess.Read, FileShare.Read ) )
-                    {
-                        mergedPdfStream.CopyTo( entryStream );
-                    }
-                }
-
                 if ( invalidFileIds.Any() )
                 {
                     nbBadFiles.Visible = true;
                     nbBadFiles.Text = "Invalid Files:<br />" + invalidFileIds.Distinct().Select( i => i.ToString() ).ToList().AsDelimited( "," );
                 }
 
-                SendFileToResponse( zipPath, "application/zip", "GivingStatementExport.zip" );
+                SendPdfFileToResponse( mergedPdfPath, "GivingStatementExport.pdf" );
             }
             finally
             {
-                if ( File.Exists( mergedPdfPath ) )
+                try
                 {
-                    File.Delete( mergedPdfPath );
+                    if ( File.Exists( mergedPdfPath ) )
+                    {
+                        File.Delete( mergedPdfPath );
+                    }
                 }
-
-                if ( File.Exists( zipPath ) )
+                catch
                 {
-                    File.Delete( zipPath );
+                    // Best-effort cleanup only.
                 }
             }
         }
 
-        private void SendFileToResponse( string filePath, string contentType, string downloadFileName )
+        private void SendPdfFileToResponse( string sourceFilePath, string downloadFileName )
         {
             Page.EnableViewState = false;
             Response.Clear();
             Response.ClearHeaders();
-            Response.ContentType = contentType;
+            Response.ContentType = "application/pdf";
             Response.AddHeader( "content-disposition", string.Format( "attachment; filename=\"{0}\"", downloadFileName ) );
             Response.BufferOutput = false;
             Response.Charset = string.Empty;
 
-            Response.TransmitFile( filePath );
+            Response.TransmitFile(sourceFilePath);
+
             Response.Flush();
             Context.ApplicationInstance.CompleteRequest();
         }
