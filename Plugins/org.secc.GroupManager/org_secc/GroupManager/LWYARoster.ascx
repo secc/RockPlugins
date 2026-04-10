@@ -351,7 +351,7 @@ $(window).load(function() {
             <Rock:RockLiteral ID="ltEmailRecipients" runat="server"></Rock:RockLiteral>
             <Rock:Toggle ID="cbEmailSendToParents" runat="server" OnText="Parents" OffText="Members" Label="Send To:"
                 OnCssClass="btn-primary" OffCssClass="btn-primary" Checked="false" OnCheckedChanged="cbEmailSendToParents_CheckedChanged" />
-            <Rock:RockDropDownList ID="ddlFrom" runat="server" Label="From Email:"></Rock:RockDropDownList>
+            <Rock:RockLiteral ID="ltFromEmail" runat="server" Label="From Email:"></Rock:RockLiteral>
             <Rock:RockTextBox ID="tbSubject" runat="server" Label="Subject:"></Rock:RockTextBox>
             <Rock:RockTextBox ID="tbBody" runat="server" TextMode="MultiLine" Rows="5" Label="Message:"></Rock:RockTextBox>
             <Rock:BootstrapButton ID="btnEmailSend" runat="server" OnClick="btnEmailSend_Click" CssClass="btn btn-primary">Send</Rock:BootstrapButton>
