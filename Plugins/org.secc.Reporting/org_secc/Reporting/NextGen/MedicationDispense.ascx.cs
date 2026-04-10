@@ -1134,8 +1134,8 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             var person = personService.Get( personId );
             mdManageMeds.Title = person != null
-                ? string.Format( "Manage Medications - {0}", person.FullName )
-                : "Manage Medications";
+                ? string.Format( "Manage Medications - {0} (View Only)", person.FullName )
+                : "Manage Medications (View Only)";
 
             var matrixAttributeId = attributeService.Queryable()
                 .Where( a => a.EntityTypeId == personEntityId && a.Key == matrixKey )
