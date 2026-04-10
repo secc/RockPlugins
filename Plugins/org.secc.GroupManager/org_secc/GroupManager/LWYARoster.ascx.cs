@@ -48,7 +48,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [BooleanField( "Allow Email", "Allow email to be sent from this block.", false )]
     [BooleanField( "Allow SMS", "Allow test messages to be sent from this block.", false )]
 
-    [TextField( "Safe Sender Email", "If the current users email address is not from a safe sender, the email address to use.", category: "Email Settings" )]
+    [TextField( "From Email Address", "The fixed From email address used for all emails sent from this block.", category: "Email Settings" )]
     [TextField( "Table Number Attribute Key", "Set the Attribute Key of the Table Number group member attribute.", false )]
 
     public partial class LWYARoster : GroupManagerBlock
