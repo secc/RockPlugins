@@ -177,9 +177,6 @@ namespace org.secc.SafetyAndSecurity
                 
                 {"txtOutOfState_Dates", action.Activity.Workflow.GetAttributeValue("WhenOutsideKentuckyIndiana")},
                 {"txtOutOfState_State", action.Activity.Workflow.GetAttributeValue("StatesOutsideKentuckyIndiana")},
-                {"txtEmployer", action.Activity.Workflow.GetAttributeValue("CurrentEmployer")},
-                {"txtPosition", action.Activity.Workflow.GetAttributeValue("PositionHeld")},
-                {"txtWorkPhone", action.Activity.Workflow.GetAttributeValue("WorkPhone")},
                 {"txtHomePhone", action.Activity.Workflow.GetAttributeValue("HomePhone")},
                 {"txtCellPhone", action.Activity.Workflow.GetAttributeValue("CellPhone")},
 
