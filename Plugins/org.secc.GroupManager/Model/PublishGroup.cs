@@ -208,7 +208,16 @@ namespace org.secc.GroupManager.Model
                 var spansMultipleYears = dates.Select( d => d.Year ).Distinct().Count() > 1;
                 var dateFormat = spansMultipleYears ? "MMM d, yyyy" : "MMM d";
 
-                var dateList = string.Join( ", ", dates.Select( d => d.ToString( dateFormat ) ) );
+                string dateList;
+                if ( dates.Count > 4 )
+                {
+                    var firstThree = string.Join( ", ", dates.Take( 3 ).Select( d => d.ToString( dateFormat ) ) );
+                    dateList = string.Format( "{0}, ... {1}", firstThree, dates.Last().ToString( dateFormat ) );
+                }
+                else
+                {
+                    dateList = string.Join( ", ", dates.Select( d => d.ToString( dateFormat ) ) );
+                }
 
                 if ( allSameDay )
                 {

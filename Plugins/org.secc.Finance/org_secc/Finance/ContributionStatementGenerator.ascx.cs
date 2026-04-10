@@ -42,8 +42,8 @@ namespace RockWeb.Plugins.org_secc.Finance
     [WorkflowTypeField( "Statement Generator Workflow", "The workflow to launch to generate statements.", true )]
     [DataViewField( "Default Review DataView", "The default DataView to use for the review process.", false )]
     [IntegerField( "Command Timeout", "Maximum amount of time (in seconds) to wait for the query to run.", false, 300, key: "CommandTimeout" )]
-    [DataViewField("Suppress Statement Dataview", "The dataview of people to not generate a statement for.", false, key: "SuppressStatements")]
-
+    [IntegerField( "Concurrent Workers", "Number of concurrent workers used to launch workflows.", false, 3, key: "ConcurrentWorkers" )]
+    [DataViewField( "Suppress Statement Dataview", "The dataview of people to not generate a statement for.", false, key: "SuppressStatements" )]
     public partial class ContributionStatementGenerator : Rock.Web.UI.RockBlock
     {
 
@@ -245,7 +245,7 @@ namespace RockWeb.Plugins.org_secc.Finance
                     contributionTypeId, lower, upper, null/*"2019-01-01T00:00:00,2019-12-31T00:00:00"*/).AsQueryable();
 
             // Add in Move commitments
-            var moveCommitmentsNoGivingInPeriod = rockContext.Database.SqlQuery<GivingGroup>(@"
+            var moveCommitmentsNoGivingInPeriod = rockContext.Database.SqlQuery<GivingGroup>( @"
                 SELECT tx.LastGift as LastGift, 
                     p.GivingId as GivingId,
                     CASE WHEN ([P].[GivingId] LIKE N'G%') THEN [G].[Name] 
@@ -270,14 +270,15 @@ namespace RockWeb.Plugins.org_secc.Finance
                     and p.IsDeceased = 0
                     and tx.GivingId is null
 
-            ", contributionTypeId, lower, upper).AsQueryable();
+            ", contributionTypeId, lower, upper ).AsQueryable();
 
-            givingGroups = givingGroups.Union(moveCommitmentsNoGivingInPeriod);
+            givingGroups = givingGroups.Union( moveCommitmentsNoGivingInPeriod );
 
-            // Filter by Giving ID
-            if ( tbGivingId.Text.IsNotNullOrWhiteSpace() )
+            // Filter by Giving ID (supports comma-separated list)
+            var givingIdFilters = GetGivingIdFilters();
+            if ( givingIdFilters.Any() )
             {
-                givingGroups = givingGroups.Where( gg => gg.GivingId.Contains( tbGivingId.Text ) );
+                givingGroups = givingGroups.Where( gg => givingIdFilters.Contains( gg.GivingId ) );
             }
 
             // Filter by Giving Group Name
@@ -287,7 +288,7 @@ namespace RockWeb.Plugins.org_secc.Finance
             }
 
             var suppressedGivingIds = GetSuppressedGivingIds();
-            givingGroups = givingGroups.Where( gg => !suppressedGivingIds.Contains( gg.GivingId ));
+            givingGroups = givingGroups.Where( gg => !suppressedGivingIds.Contains( gg.GivingId ) );
 
             givingGroups = givingGroups.OrderByDescending( g => g.LastGift );
             return givingGroups;
@@ -316,28 +317,38 @@ namespace RockWeb.Plugins.org_secc.Finance
             var suppressedGivingIds = new List<string>();
 
 
-            var suppressedStatementDataviewGuid = GetAttributeValue("SuppressStatements").AsGuid();
+            var suppressedStatementDataviewGuid = GetAttributeValue( "SuppressStatements" ).AsGuid();
 
-            if(suppressedStatementDataviewGuid == Guid.Empty)
+            if ( suppressedStatementDataviewGuid == Guid.Empty )
             {
                 return suppressedGivingIds;
             }
 
-            using (var rockContext = new RockContext())
+            using ( var rockContext = new RockContext() )
             {
-                var dvService = new DataViewService(rockContext);
-                var dataview = dvService.Get(suppressedStatementDataviewGuid);
+                var dvService = new DataViewService( rockContext );
+                var dataview = dvService.Get( suppressedStatementDataviewGuid );
 
-                if(dataview != null)
+                if ( dataview != null )
                 {
-                    suppressedGivingIds.AddRange(new PersonService(rockContext).GetQueryUsingDataView(dataview)
-                        .Select(dv => dv.GivingId)
+                    suppressedGivingIds.AddRange( new PersonService( rockContext ).GetQueryUsingDataView( dataview )
+                        .Select( dv => dv.GivingId )
                         .Distinct()
-                        .ToList());
+                        .ToList() );
                 }
             }
 
             return suppressedGivingIds;
+        }
+
+        private List<string> GetGivingIdFilters()
+        {
+            return ( tbGivingId.Text ?? string.Empty )
+                .Split( new[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
+                .Select( s => s.Trim() )
+                .Where( s => s.IsNotNullOrWhiteSpace() )
+                .Distinct( StringComparer.OrdinalIgnoreCase )
+                .ToList();
         }
         #endregion
 
@@ -358,22 +369,21 @@ namespace RockWeb.Plugins.org_secc.Finance
             {
                 givingGroups.Add( givingGroup );
             }
-            var list = GetSelectedGivingUnits().ToList();
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             var reviewDataView = GetAttributeValue( "DefaultReviewDataView" ).AsGuidOrNull();
             var statementGeneratorWorkflow = WorkflowTypeCache.Get( GetAttributeValue( "StatementGeneratorWorkflow" ).AsGuid() );
 
-
             List<Task> taskList = new List<Task>();
 
-            for ( int i = 0; i < 10; i++ )
+            var workerCount = GetAttributeValue( "ConcurrentWorkers" ).AsIntegerOrNull() ?? 3;
+            workerCount = Math.Max( 1, Math.Min( workerCount, 20 ) );
+
+            for ( int i = 0; i < workerCount; i++ )
             {
                 taskList.Add( new Task( () =>
                 {
-
-
                     GivingGroup givingGroup;
                     while ( givingGroups.TryTake( out givingGroup ) )
                     {
@@ -393,42 +403,37 @@ namespace RockWeb.Plugins.org_secc.Finance
                             {
                                 OnProgress( "Activating contribution statement generation request " + j + " of " + total );
                                 var workflow = Rock.Model.Workflow.Activate( statementGeneratorWorkflow, "Contribution Statement for " + givingGroup.GivingGroupName, rockContext );
-                                var workflowService = new WorkflowService( rockContext );
 
                                 foreach ( var keyVal in workflowAttributeValues )
                                 {
                                     workflow.SetAttributeValue( keyVal.Key, keyVal.Value );
                                 }
+
                                 List<string> workflowErrors;
                                 new Rock.Model.WorkflowService( rockContext ).Process( workflow, null, out workflowErrors );
 
-                                /*
-                                workflowService.Add( workflow );
-                                //results.Add( "Contribution Statement for " + givingGroup.GivingGroupName, workflow.AttributeValues.Count + " Attribute Values" );
-                                rockContext.SaveChanges();
-                                workflow.SaveAttributeValues( rockContext );
-                                */
-
-                                //var transaction = new Rock.Transactions.LaunchWorkflowTransaction( statementGeneratorWorkflow, "Contribution Statement for " + givingGroup.GivingGroupName );
-                                //transaction.WorkflowAttributeValues = workflowAttributeValues;
-                                //Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+                                if ( workflowErrors != null && workflowErrors.Any() )
+                                {
+                                    var givingId = givingGroup != null ? givingGroup.GivingId : "[Unknown]";
+                                    var errorText = string.Join( "; ", workflowErrors.Where( e => e.IsNotNullOrWhiteSpace() ) );
+                                    LogException( new Exception( "Workflow processing returned errors for GivingId: " + givingId + ". " + errorText ) );
+                                }
                             }
                         }
                         catch ( Exception ex )
                         {
-                            LogException( new Exception( "Could not generate contribution", new Exception( "GivingId: " + givingGroup != null ? givingGroup.GivingId : "[Unknown]", ex ) ) );
+                            var givingId = givingGroup != null ? givingGroup.GivingId : "[Unknown]";
+                            LogException( new Exception( "Could not generate contribution. GivingId: " + givingId, ex ) );
                         }
+
                         j++;
                     }
                 } ) );
             }
 
-
             Task.WhenAll( taskList ).ContinueWith( ( t ) =>
             {
-
                 stopwatch.Stop();
-
                 totalMilliseconds = stopwatch.ElapsedMilliseconds;
 
                 if ( t.IsFaulted )
@@ -444,11 +449,9 @@ namespace RockWeb.Plugins.org_secc.Finance
                 {
                     OnProgress( string.Format( "{0} {1} Complete: [{2}ms]", total, " contribution statement generation requests were generated.", totalMilliseconds ) );
                 }
-
             } );
 
             Task.Factory.StartNew( () => taskList.ForEach( task => task.Start() ) );
-
         }
 
 
