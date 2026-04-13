@@ -20,6 +20,16 @@ namespace org.secc.FamilyCheckin.Cache
                 return;
             }
 
+            // Skip messages this node published — the local cache was already
+            // updated before the message was sent, so processing it again is
+            // redundant and doubles the work.
+            if ( RockMessageBus.IsFromSelf( message ) )
+            {
+                RockLogger.Log.Debug( RockLogDomains.Bus,
+                    $"Skipping self-sent CheckinCache message for key {message.Key}. Server: {RockMessageBus.NodeName}." );
+                return;
+            }
+
             try
             {
                 var cacheType = Type.GetType( message.CacheTypeName );
@@ -48,11 +58,10 @@ namespace org.secc.FamilyCheckin.Cache
         /// </summary>
         private void ProcessCacheMessage<T>( CheckinCacheMessage message )
         {
-            // Constants for the AllKeys list, matching CheckinCache<T>
             string allKeysListCacheKey = $"{typeof( T ).Name}:All";
-            string allKeysListCacheRegion = "AllItems"; // This is the 'AllRegion' constant from CheckinCache<T>
+            string allKeysListCacheRegion = "AllItems";
 
-            // If we have additional data, this is an update
+            // If we have additional data, this is an update — apply the value directly
             if ( !string.IsNullOrEmpty( message.AdditionalData ) )
             {
                 try
@@ -69,11 +78,17 @@ namespace org.secc.FamilyCheckin.Cache
                             RockCache.AddOrUpdate( message.Key, item );
                         }
 
-                        // Invalidate the AllKeys list as an item was added/updated
-                        RockCache.Remove( allKeysListCacheKey, allKeysListCacheRegion );
+                        // Surgically add the key to the existing AllKeys list
+                        // instead of invalidating it (which triggers a DB call)
+                        var keys = RockCache.Get( allKeysListCacheKey, allKeysListCacheRegion ) as System.Collections.Generic.List<string>;
+                        if ( keys != null && !keys.Contains( message.Key ) )
+                        {
+                            keys.Add( message.Key );
+                            RockCache.AddOrUpdate( allKeysListCacheKey, allKeysListCacheRegion, keys );
+                        }
 
                         RockLogger.Log.Debug( RockLogDomains.Bus,
-                            $"Updated cache for key {message.Key}. Server: {RockMessageBus.NodeName}. AdditionalData: {message.AdditionalData}" );
+                            $"Updated cache for key {message.Key}. Server: {RockMessageBus.NodeName}." );
                     }
                 }
                 catch ( Exception ex )
@@ -89,7 +104,7 @@ namespace org.secc.FamilyCheckin.Cache
                     {
                         RockCache.Remove( message.Key );
                     }
-                    // invalidate AllKeys on error
+                    // Only invalidate AllKeys on deserialization error
                     RockCache.Remove( allKeysListCacheKey, allKeysListCacheRegion );
                 }
             }
@@ -104,19 +119,23 @@ namespace org.secc.FamilyCheckin.Cache
                 {
                     RockCache.Remove( message.Key );
                 }
-                // Invalidate the AllKeys list as an item was removed
-                RockCache.Remove( allKeysListCacheKey, allKeysListCacheRegion );
 
-                RockLogger.Log.Debug( RockLogDomains.Bus, $"Removed cache for key {message.Key}" );
+                // Surgically remove from the AllKeys list instead of invalidating
+                var keys = RockCache.Get( allKeysListCacheKey, allKeysListCacheRegion ) as System.Collections.Generic.List<string>;
+                if ( keys != null && keys.Remove( message.Key ) )
+                {
+                    RockCache.AddOrUpdate( allKeysListCacheKey, allKeysListCacheRegion, keys );
+                }
+
+                RockLogger.Log.Debug( RockLogDomains.Bus, $"Removed cache for key {message.Key}. Server: {RockMessageBus.NodeName}." );
             }
             else
             {
                 // This is a clear all for this cache type
                 string typeName = typeof( T ).Name;
                 RockCache.ClearCachedItemsForType( typeof( T ) );
-                // Clear/invalidate the AllKeys list specifically
                 RockCache.Remove( allKeysListCacheKey, allKeysListCacheRegion );
-                RockLogger.Log.Debug( RockLogDomains.Bus, $"Cleared all cache for type {typeName}" );
+                RockLogger.Log.Debug( RockLogDomains.Bus, $"Cleared all cache for type {typeName}. Server: {RockMessageBus.NodeName}." );
             }
         }
 

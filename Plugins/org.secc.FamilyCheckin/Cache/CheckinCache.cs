@@ -23,8 +23,38 @@ namespace org.secc.FamilyCheckin.Cache
         private static DateTime _lastKeysRefreshUtc = DateTime.MinValue;
         private static readonly TimeSpan KeysRefreshInterval = TimeSpan.FromSeconds( 10 );
 
+        // Warm-up: suppress publishing until this node is fully online.
+        // After IsRockStarted becomes true, we wait an additional grace period
+        // so the initial cache hydration doesn't flood the bus.
+        private static DateTime _warmUpCompleteUtc = DateTime.MinValue;
+        private static readonly TimeSpan WarmUpGracePeriod = TimeSpan.FromSeconds( 30 );
+
         public void PostCached()
         {
+        }
+
+        /// <summary>
+        /// Returns true once Rock is started AND the grace period has elapsed,
+        /// meaning this node is safe to publish cache messages to the bus.
+        /// During warm-up, the node consumes messages but does not publish.
+        /// </summary>
+        private static bool IsReadyToPublish
+        {
+            get
+            {
+                if ( !RockMessageBus.IsRockStarted )
+                {
+                    return false;
+                }
+
+                // Capture the moment IsRockStarted first becomes true
+                if ( _warmUpCompleteUtc == DateTime.MinValue )
+                {
+                    _warmUpCompleteUtc = DateTime.UtcNow.Add( WarmUpGracePeriod );
+                }
+
+                return DateTime.UtcNow >= _warmUpCompleteUtc;
+            }
         }
 
         public static List<string> AllKeys( Func<List<string>> keyFactory )
@@ -57,7 +87,6 @@ namespace org.secc.FamilyCheckin.Cache
                 }
 
                 RockCache.AddOrUpdate( qualifiedKey, item );
-                // PublishCacheUpdateMessage( qualifiedKey, item );
             }
             else
             {
@@ -88,7 +117,7 @@ namespace org.secc.FamilyCheckin.Cache
                     if ( !keys.Any() || !keys.Contains( qualifiedKey ) )
                     {
                         UpdateKeys( keyFactory, ensureKey: qualifiedKey );
-                    }            //RockCacheManager<T>.Instance.Cache.AddOrUpdate( qualifiedKey, item, v => item );
+                    }
                     RockCache.AddOrUpdate( qualifiedKey, item );
                     PublishCacheUpdateMessage( qualifiedKey, item );
                     return;
@@ -125,18 +154,21 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static void Clear( Func<List<string>> keyFactory )
         {
-            UpdateKeys( keyFactory );
-
-            // Create a copy of the keys to avoid collection modification during enumeration
+            // Remove each cached item locally without publishing per-item messages
             foreach ( var key in AllKeys().ToList() )
             {
-                FlushItem( key, keyFactory );
+                RockCache.Remove( key );
             }
+
+            // Clear the AllKeys list
+            RockCache.Remove( AllKey, AllRegion );
+
+            // Publish a single clear-all message instead of N+1
             PublishCacheUpdateMessage( null, default( T ) );
         }
+
         public static void FlushItem( string qualifiedKey, Func<List<string>> keyFactory )
         {
-            //RockCacheManager<T>.Instance.Cache.Remove( qualifiedKey );
             RockCache.Remove( qualifiedKey );
             UpdateKeys( keyFactory, removeKey: qualifiedKey );
             PublishCacheUpdateMessage( qualifiedKey, default( T ) );
@@ -224,6 +256,16 @@ namespace org.secc.FamilyCheckin.Cache
 
         private static void PublishCacheUpdateMessage( string key, T item )
         {
+            // During warm-up, only consume — don't publish.
+            // This prevents a recycling node from flooding the bus and
+            // causing all other nodes to invalidate their caches.
+            if ( !IsReadyToPublish )
+            {
+                RockLogger.Log.Debug( RockLogDomains.Bus,
+                    $"Suppressed cache publish during warm-up for {typeof( T ).Name} key={key ?? "(clear all)"}. Server: {RockMessageBus.NodeName}." );
+                return;
+            }
+
             var message = new CheckinCacheMessage
             {
                 Key = key,
