@@ -139,24 +139,21 @@ namespace org.secc.FamilyCheckin.Cache
         public static void Remove( string qualifiedKey, Func<List<string>> keyFactory )
         {
             RockCache.Remove( qualifiedKey );
-            PublishCacheUpdateMessage( qualifiedKey, default( T ) );
             UpdateKeys( keyFactory, removeKey: qualifiedKey );
+            PublishCacheUpdateMessage( qualifiedKey, default( T ) );
         }
 
         public static void Clear( Func<List<string>> keyFactory )
         {
             // Get the definitive list of keys from the DB to ensure complete
             // local cleanup, even if the cached AllKeys list was evicted or stale.
-            var keysToRemove = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
+            var keysToRemove = new HashSet<string>( keyFactory().Select( k => QualifiedKey( k ) ) );
 
             // Also include any locally cached keys that might not be in DB
             // (e.g. recently added but not yet persisted).
             foreach ( var cachedKey in AllKeys() )
             {
-                if ( !keysToRemove.Contains( cachedKey ) )
-                {
-                    keysToRemove.Add( cachedKey );
-                }
+                keysToRemove.Add( cachedKey );
             }
 
             // Remove each cached item locally without publishing per-item messages
