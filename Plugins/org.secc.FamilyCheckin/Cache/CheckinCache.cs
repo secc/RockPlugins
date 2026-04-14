@@ -24,19 +24,24 @@ namespace org.secc.FamilyCheckin.Cache
         private static readonly TimeSpan KeysRefreshInterval = TimeSpan.FromSeconds( 10 );
 
         // Warm-up: suppress publishing until this node is fully online.
-        // After IsRockStarted becomes true, we wait an additional grace period
-        // so the initial cache hydration doesn't flood the bus.
-        private static DateTime _warmUpCompleteUtc = DateTime.MinValue;
-        private static readonly TimeSpan WarmUpGracePeriod = TimeSpan.FromSeconds( 30 );
+        // Anchored to the time this type was first loaded (i.e. app start),
+        // NOT to the first publish attempt, so the grace period cannot
+        // fire long after the startup burst has already passed.
+        // Override via web.config appSettings: <add key="CheckinCacheWarmUpSeconds" value="30" />
+        private static readonly DateTime _typeLoadedUtc = DateTime.UtcNow;
+        private static readonly TimeSpan WarmUpGracePeriod = TimeSpan.FromSeconds(
+            int.TryParse( System.Configuration.ConfigurationManager.AppSettings["CheckinCacheWarmUpSeconds"], out int configuredSeconds )
+                ? configuredSeconds
+                : 30 );
 
         public void PostCached()
         {
         }
 
         /// <summary>
-        /// Returns true once Rock is started AND the grace period has elapsed,
-        /// meaning this node is safe to publish cache messages to the bus.
-        /// During warm-up, the node consumes messages but does not publish.
+        /// Returns true once Rock is started AND the grace period (measured
+        /// from app start) has elapsed. During warm-up the node consumes
+        /// messages but does not publish.
         /// </summary>
         private static bool IsReadyToPublish
         {
@@ -47,13 +52,10 @@ namespace org.secc.FamilyCheckin.Cache
                     return false;
                 }
 
-                // Capture the moment IsRockStarted first becomes true
-                if ( _warmUpCompleteUtc == DateTime.MinValue )
-                {
-                    _warmUpCompleteUtc = DateTime.UtcNow.Add( WarmUpGracePeriod );
-                }
-
-                return DateTime.UtcNow >= _warmUpCompleteUtc;
+                // Grace period is always relative to when the app loaded this type.
+                // If the app has been running longer than the grace period,
+                // this is true immediately — no delayed suppression.
+                return ( DateTime.UtcNow - _typeLoadedUtc ) >= WarmUpGracePeriod;
             }
         }
 
@@ -104,44 +106,33 @@ namespace org.secc.FamilyCheckin.Cache
                 return;
             }
 
-            int retryCount = 3;
-            int retryDelayMs = 100;
-            Exception lastException = null;
-
-            while ( retryCount > 0 )
+            try
             {
+                var keys = AllKeys();
+                if ( !keys.Any() || !keys.Contains( qualifiedKey ) )
+                {
+                    UpdateKeys( keyFactory, ensureKey: qualifiedKey );
+                }
+                RockCache.AddOrUpdate( qualifiedKey, item );
+                PublishCacheUpdateMessage( qualifiedKey, item );
+            }
+            catch ( Exception ex )
+            {
+                // Log but don't retry synchronously — retrying with Thread.Sleep
+                // blocks the request thread while holding the ASP.NET session lock,
+                // which causes session queue exhaustion under load.
+                Rock.Model.ExceptionLogService.LogException(
+                    new Exception( $"Failed to update cache for key {qualifiedKey}: {ex.Message}", ex ) );
+
+                // Best-effort: at minimum get it into local cache
                 try
                 {
-
-                    var keys = AllKeys();
-                    if ( !keys.Any() || !keys.Contains( qualifiedKey ) )
-                    {
-                        UpdateKeys( keyFactory, ensureKey: qualifiedKey );
-                    }
                     RockCache.AddOrUpdate( qualifiedKey, item );
-                    PublishCacheUpdateMessage( qualifiedKey, item );
-                    return;
                 }
-                catch ( Exception ex )
+                catch
                 {
-                    lastException = ex;
-                    retryCount--;
-
-                    if ( retryCount > 0 )
-                    {
-                        Rock.Model.ExceptionLogService.LogException(
-                            new Exception( $"Retrying cache update for {qualifiedKey}: {ex.Message}", ex ) );
-                        System.Threading.Thread.Sleep( retryDelayMs );
-                        retryDelayMs *= 2; // Exponential backoff
-                    }
+                    // Swallow — the item will be fetched from DB on next access
                 }
-            }
-
-            // If we get here, all retries failed
-            if ( lastException != null )
-            {
-                Rock.Model.ExceptionLogService.LogException(
-                    new Exception( $"Failed to update cache after multiple attempts for key {qualifiedKey}", lastException ) );
             }
         }
 
@@ -154,8 +145,22 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static void Clear( Func<List<string>> keyFactory )
         {
+            // Get the definitive list of keys from the DB to ensure complete
+            // local cleanup, even if the cached AllKeys list was evicted or stale.
+            var keysToRemove = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
+
+            // Also include any locally cached keys that might not be in DB
+            // (e.g. recently added but not yet persisted).
+            foreach ( var cachedKey in AllKeys() )
+            {
+                if ( !keysToRemove.Contains( cachedKey ) )
+                {
+                    keysToRemove.Add( cachedKey );
+                }
+            }
+
             // Remove each cached item locally without publishing per-item messages
-            foreach ( var key in AllKeys().ToList() )
+            foreach ( var key in keysToRemove )
             {
                 RockCache.Remove( key );
             }
@@ -213,26 +218,30 @@ namespace org.secc.FamilyCheckin.Cache
                 {
                     bool modified = false;
 
+                    // Copy-on-write: clone the list so threads currently
+                    // enumerating the original reference are not affected.
+                    var updatedKeys = new List<string>( currentKeys );
+
                     // Ensure the specified key is present
-                    if ( !string.IsNullOrEmpty( ensureKey ) && !currentKeys.Contains( ensureKey ) )
+                    if ( !string.IsNullOrEmpty( ensureKey ) && !updatedKeys.Contains( ensureKey ) )
                     {
-                        currentKeys.Add( ensureKey );
+                        updatedKeys.Add( ensureKey );
                         modified = true;
                     }
 
                     // Remove the specified key
-                    if ( !string.IsNullOrEmpty( removeKey ) && currentKeys.Contains( removeKey ) )
+                    if ( !string.IsNullOrEmpty( removeKey ) && updatedKeys.Contains( removeKey ) )
                     {
-                        currentKeys.Remove( removeKey );
+                        updatedKeys.Remove( removeKey );
                         modified = true;
                     }
 
                     if ( modified )
                     {
-                        RockCache.AddOrUpdate( AllKey, AllRegion, currentKeys );
+                        RockCache.AddOrUpdate( AllKey, AllRegion, updatedKeys );
                     }
 
-                    return currentKeys;
+                    return updatedKeys;
                 }
 
                 var keys = keyFactory().Select( k => QualifiedKey( k ) ).ToList();

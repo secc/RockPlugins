@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Rock.Bus;
 using Rock.Bus.Consumer;
@@ -78,13 +79,13 @@ namespace org.secc.FamilyCheckin.Cache
                             RockCache.AddOrUpdate( message.Key, item );
                         }
 
-                        // Surgically add the key to the existing AllKeys list
-                        // instead of invalidating it (which triggers a DB call)
-                        var keys = RockCache.Get( allKeysListCacheKey, allKeysListCacheRegion ) as System.Collections.Generic.List<string>;
+                        // Copy-on-write: clone the list before modifying so threads
+                        // currently enumerating the old reference are not affected.
+                        var keys = RockCache.Get( allKeysListCacheKey, allKeysListCacheRegion ) as List<string>;
                         if ( keys != null && !keys.Contains( message.Key ) )
                         {
-                            keys.Add( message.Key );
-                            RockCache.AddOrUpdate( allKeysListCacheKey, allKeysListCacheRegion, keys );
+                            var updatedKeys = new List<string>( keys ) { message.Key };
+                            RockCache.AddOrUpdate( allKeysListCacheKey, allKeysListCacheRegion, updatedKeys );
                         }
 
                         RockLogger.Log.Debug( RockLogDomains.Bus,
@@ -120,11 +121,13 @@ namespace org.secc.FamilyCheckin.Cache
                     RockCache.Remove( message.Key );
                 }
 
-                // Surgically remove from the AllKeys list instead of invalidating
-                var keys = RockCache.Get( allKeysListCacheKey, allKeysListCacheRegion ) as System.Collections.Generic.List<string>;
-                if ( keys != null && keys.Remove( message.Key ) )
+                // Copy-on-write: clone before removing so concurrent readers are safe.
+                var keys = RockCache.Get( allKeysListCacheKey, allKeysListCacheRegion ) as List<string>;
+                if ( keys != null && keys.Contains( message.Key ) )
                 {
-                    RockCache.AddOrUpdate( allKeysListCacheKey, allKeysListCacheRegion, keys );
+                    var updatedKeys = new List<string>( keys );
+                    updatedKeys.Remove( message.Key );
+                    RockCache.AddOrUpdate( allKeysListCacheKey, allKeysListCacheRegion, updatedKeys );
                 }
 
                 RockLogger.Log.Debug( RockLogDomains.Bus, $"Removed cache for key {message.Key}. Server: {RockMessageBus.NodeName}." );
