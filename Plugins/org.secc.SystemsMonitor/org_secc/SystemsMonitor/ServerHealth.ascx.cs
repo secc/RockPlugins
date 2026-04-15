@@ -164,14 +164,14 @@ namespace RockWeb.Plugins.org_secc.SystemsMonitor
                     var webFarmService = new WebFarmNodeService( rockContext );
 
                     var currentNode = webFarmService.Queryable()
-                        .Where( n => n.NodeName == currentMachineName && n.IsActive )
+                        .Where( n => n.NodeName == currentMachineName )
                         .OrderByDescending( n => n.LastSeenDateTime )
                         .FirstOrDefault();
 
                     if ( currentNode == null )
                     {
                         currentNode = webFarmService.Queryable()
-                            .Where( n => n.NodeName.StartsWith( currentMachineName ) && n.IsActive )
+                            .Where( n => n.NodeName.StartsWith( currentMachineName ) )
                             .OrderByDescending( n => n.LastSeenDateTime )
                             .FirstOrDefault();
                     }
