@@ -163,6 +163,9 @@ namespace RockWeb.Plugins.org_secc.SystemsMonitor
                 {
                     var webFarmService = new WebFarmNodeService( rockContext );
 
+                    // Intentionally do not filter by IsActive when resolving the current node.
+                    // After cache clears or other transient web-farm events, a healthy node can
+                    // be temporarily marked inactive; using IsActive here would cause false positives.
                     var currentNode = webFarmService.Queryable()
                         .Where( n => n.NodeName == currentMachineName )
                         .OrderByDescending( n => n.LastSeenDateTime )
