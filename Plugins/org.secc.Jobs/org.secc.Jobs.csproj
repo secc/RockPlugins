@@ -67,6 +67,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DisableCommunicationsForInactivePeople.cs" />
     <Compile Include="CompleteWorkflows.cs" />
     <Compile Include="EasterChildrensAttendance.cs" />
     <Compile Include="Event\AddEventCanCheckinRelationships.cs" />
@@ -76,6 +77,7 @@
     <Compile Include="MigratePickleballCredits.cs" />
     <Compile Include="Migrations\001_EventRelationshipRoles.cs" />
     <Compile Include="RemoveDevicesFromPersons.cs" />
+    <Compile Include="RestoreCommunicationsForReactivatedPeople.cs" />
     <Compile Include="RemoveEventCanCheckinRelationships.cs" />
     <Compile Include="SetFirstAttendanceDate.cs" />
     <Compile Include="PushPayDownloadCheckNumbers.cs" />
