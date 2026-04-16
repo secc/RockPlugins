@@ -612,8 +612,8 @@ namespace RockWeb.Plugins.org_secc.Event
                 for ( int rowIdx = 0; rowIdx < CsvRows.Count; rowIdx++ )
                 {
                     var row = CsvRows[rowIdx];
-                    string firstName = rowIdx < row.Count ? GetCellValue( row, firstNameIdx ) : "";
-                    string lastName = rowIdx < row.Count ? GetCellValue( row, lastNameIdx ) : "";
+                   string firstName = GetCellValue( row, firstNameIdx );
+                   string lastName = GetCellValue( row, lastNameIdx );
 
                     var preview = new PreviewRow
                     {
