@@ -117,6 +117,7 @@ namespace org.secc.Jobs
 
             int restoredCount = 0;
             int errorCount = 0;
+            int skippedCount = 0;
 
             foreach ( var personId in reactivatedPeople )
             {
@@ -130,6 +131,7 @@ namespace org.secc.Jobs
                     var personEntity = pService.Get( personId );
                     if ( personEntity == null )
                     {
+                        skippedCount++;
                         continue;
                     }
 
@@ -141,6 +143,7 @@ namespace org.secc.Jobs
 
                     if ( trackingEntry == null )
                     {
+                        skippedCount++;
                         continue;
                     }
 
@@ -148,6 +151,7 @@ namespace org.secc.Jobs
                     var snapshot = JsonConvert.DeserializeObject<PreferenceSnapshot>( trackingEntry.Description );
                     if ( snapshot == null )
                     {
+                        skippedCount++;
                         continue;
                     }
 
@@ -183,7 +187,7 @@ namespace org.secc.Jobs
             // Invalidate the DefinedType cache so other code sees the removed entries
             DefinedTypeCache.Remove( definedType.Id );
 
-            var result = $"Evaluated {reactivatedPeople.Count} reactivated people with tracking entries. Restored communications for {restoredCount}.";
+            var result = $"Evaluated {reactivatedPeople.Count} reactivated people with tracking entries. Restored communications for {restoredCount}. Skipped {skippedCount} (no longer found or snapshot unavailable).";
             if ( errorCount > 0 )
             {
                 result += $" {errorCount} errors occurred.";

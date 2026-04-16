@@ -136,6 +136,7 @@ namespace org.secc.Jobs
 
             int disabledCount = 0;
             int errorCount = 0;
+            int skippedCount = 0;
 
             foreach ( var person in inactivePeople )
             {
@@ -149,6 +150,7 @@ namespace org.secc.Jobs
                     var personEntity = pService.Get( person.Id );
                     if ( personEntity == null )
                     {
+                        skippedCount++;
                         continue;
                     }
 
@@ -200,7 +202,7 @@ namespace org.secc.Jobs
             // Invalidate the DefinedType cache so other code sees the new entries
             DefinedTypeCache.Remove( definedType.Id );
 
-            var result = $"Evaluated {inactivePeople.Count} inactive people (lookback: {( lookbackDays > 0 ? lookbackDays + " days" : "all" )}). Disabled communications for {disabledCount}.";
+            var result = $"Evaluated {inactivePeople.Count} inactive people (lookback: {( lookbackDays > 0 ? lookbackDays + " days" : "all" )}). Disabled communications for {disabledCount}. Skipped {skippedCount} (no longer found).";
             if ( errorCount > 0 )
             {
                 result += $" {errorCount} errors occurred.";
