@@ -110,27 +110,33 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="well text-center">
-                                <h2><asp:Literal ID="lSuccessCount" runat="server" /></h2>
+                                <h2 class="text-success"><asp:Literal ID="lSuccessCount" runat="server" /></h2>
                                 <p>Placements Made</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="well text-center">
-                                <h2><asp:Literal ID="lSkippedCount" runat="server" /></h2>
+                                <h2 class="text-info"><asp:Literal ID="lSkippedCount" runat="server" /></h2>
                                 <p>Already Placed (Skipped)</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="well text-center">
-                                <h2><asp:Literal ID="lErrorCount" runat="server" /></h2>
+                                <h2 class="text-danger"><asp:Literal ID="lErrorCount" runat="server" /></h2>
                                 <p>Errors</p>
                             </div>
                         </div>
                     </div>
 
-                    <asp:Panel ID="pnlErrorDetails" runat="server" Visible="false">
-                        <Rock:NotificationBox ID="nbErrors" runat="server" NotificationBoxType="Warning" />
-                    </asp:Panel>
+                    <h5 class="margin-t-md">Detailed Results</h5>
+                    <p>
+                        <span class="label label-success">Added</span> = placed into group &nbsp;
+                        <span class="label label-info">Skipped</span> = already a member &nbsp;
+                        <span class="label label-danger">Error</span> = could not place &nbsp;
+                        <span class="label label-default">Empty</span> = no value in CSV
+                    </p>
+
+                    <asp:Literal ID="lResultsTable" runat="server" />
 
                     <div class="actions margin-t-md">
                         <asp:LinkButton ID="btnStartOver" runat="server" CssClass="btn btn-default" Text="Start Over" OnClick="btnStartOver_Click" CausesValidation="false" />

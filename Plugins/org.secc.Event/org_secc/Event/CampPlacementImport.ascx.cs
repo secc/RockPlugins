@@ -18,6 +18,7 @@ using System.ComponentModel;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -701,7 +702,7 @@ namespace RockWeb.Plugins.org_secc.Event
         }
 
         /// <summary>
-        /// Processes the actual group member placements.
+        /// Processes the actual group member placements and collects detailed per-cell results.
         /// Uses GroupMemberService.Add() + SaveChanges() to ensure workflow triggers fire.
         /// </summary>
         private void ProcessPlacements( string firstNameCol, string lastNameCol, List<PlacementMapping> mappings )
@@ -709,7 +710,7 @@ namespace RockWeb.Plugins.org_secc.Event
             int successCount = 0;
             int skippedCount = 0;
             int errorCount = 0;
-            var errorMessages = new List<string>();
+            var resultRows = new List<ResultRow>();
 
             int firstNameIdx = CsvHeaders.IndexOf( firstNameCol );
             int lastNameIdx = CsvHeaders.IndexOf( lastNameCol );
@@ -743,21 +744,55 @@ namespace RockWeb.Plugins.org_secc.Event
                     string firstName = GetCellValue( row, firstNameIdx );
                     string lastName = GetCellValue( row, lastNameIdx );
 
+                    var resultRow = new ResultRow
+                    {
+                        CsvRowNumber = rowIdx + 2,
+                        CamperName = string.Format( "{0} {1}", firstName, lastName ).Trim(),
+                        Placements = new List<PlacementResult>()
+                    };
+
                     var person = FindRegistrant( firstName, lastName, registrants );
                     if ( person == null )
                     {
-                        errorCount++;
-                        errorMessages.Add( string.Format( "Row {0}: Could not match '{1} {2}' to a registrant.", rowIdx + 2, firstName, lastName ) );
+                        resultRow.PersonError = string.Format( "Could not match '{0} {1}' to a registrant.", firstName, lastName );
+
+                        // Add empty results for each mapping so the table columns align
+                        foreach ( var mapping in mappings )
+                        {
+                            int colIdx = CsvHeaders.IndexOf( mapping.CsvColumnName );
+                            string cellValue = GetCellValue( row, colIdx );
+                            resultRow.Placements.Add( new PlacementResult
+                            {
+                                ColumnName = mapping.CsvColumnName,
+                                CsvValue = cellValue,
+                                Outcome = PlacementOutcome.Error,
+                                Message = "Person not found"
+                            } );
+                            errorCount++;
+                        }
+
+                        resultRows.Add( resultRow );
                         continue;
                     }
+
+                    resultRow.MatchedPersonName = person.FullName;
 
                     foreach ( var mapping in mappings )
                     {
                         int colIdx = CsvHeaders.IndexOf( mapping.CsvColumnName );
                         string cellValue = GetCellValue( row, colIdx );
 
+                        var placementResult = new PlacementResult
+                        {
+                            ColumnName = mapping.CsvColumnName,
+                            CsvValue = cellValue
+                        };
+
                         if ( string.IsNullOrWhiteSpace( cellValue ) )
                         {
+                            placementResult.Outcome = PlacementOutcome.Empty;
+                            placementResult.Message = "No value in CSV";
+                            resultRow.Placements.Add( placementResult );
                             continue;
                         }
 
@@ -770,8 +805,10 @@ namespace RockWeb.Plugins.org_secc.Event
 
                         if ( targetGroup == null )
                         {
+                            placementResult.Outcome = PlacementOutcome.Error;
+                            placementResult.Message = string.Format( "Group '{0}' not found under parent group ID {1}", cellValue, mapping.ParentGroupId );
                             errorCount++;
-                            errorMessages.Add( string.Format( "Row {0}: Group '{1}' not found under parent group ID {2}.", rowIdx + 2, cellValue, mapping.ParentGroupId ) );
+                            resultRow.Placements.Add( placementResult );
                             continue;
                         }
 
@@ -783,14 +820,19 @@ namespace RockWeb.Plugins.org_secc.Event
                             {
                                 existingMember.IsArchived = false;
                                 existingMember.GroupMemberStatus = status;
+                                placementResult.Outcome = PlacementOutcome.Success;
+                                placementResult.Message = string.Format( "Restored archived membership in '{0}'", targetGroup.Name );
                                 successCount++;
                                 pendingSaves++;
                             }
                             else
                             {
+                                placementResult.Outcome = PlacementOutcome.Skipped;
+                                placementResult.Message = string.Format( "Already a member of '{0}'", targetGroup.Name );
                                 skippedCount++;
                             }
 
+                            resultRow.Placements.Add( placementResult );
                             continue;
                         }
 
@@ -800,8 +842,10 @@ namespace RockWeb.Plugins.org_secc.Event
 
                         if ( !defaultRoleId.HasValue )
                         {
+                            placementResult.Outcome = PlacementOutcome.Error;
+                            placementResult.Message = string.Format( "Group '{0}' has no default group role configured", targetGroup.Name );
                             errorCount++;
-                            errorMessages.Add( string.Format( "Row {0}: Group '{1}' has no default group role configured.", rowIdx + 2, targetGroup.Name ) );
+                            resultRow.Placements.Add( placementResult );
                             continue;
                         }
 
@@ -816,18 +860,21 @@ namespace RockWeb.Plugins.org_secc.Event
                         if ( groupMember.IsValidGroupMember( rockContext ) )
                         {
                             groupMemberService.Add( groupMember );
+                            placementResult.Outcome = PlacementOutcome.Success;
+                            placementResult.Message = string.Format( "Added to '{0}'", targetGroup.Name );
                             successCount++;
                             pendingSaves++;
                         }
                         else
                         {
-                            errorCount++;
-                            errorMessages.Add( string.Format( "Row {0}: Validation failed for '{1}' in group '{2}': {3}",
-                                rowIdx + 2,
-                                person.FullName,
+                            placementResult.Outcome = PlacementOutcome.Error;
+                            placementResult.Message = string.Format( "Validation failed for '{0}': {1}",
                                 targetGroup.Name,
-                                string.Join( "; ", groupMember.ValidationResults.Select( v => v.ErrorMessage ) ) ) );
+                                string.Join( "; ", groupMember.ValidationResults.Select( v => v.ErrorMessage ) ) );
+                            errorCount++;
                         }
+
+                        resultRow.Placements.Add( placementResult );
 
                         // Batch save to balance performance with trigger reliability
                         if ( pendingSaves >= batchSize )
@@ -836,6 +883,8 @@ namespace RockWeb.Plugins.org_secc.Event
                             pendingSaves = 0;
                         }
                     }
+
+                    resultRows.Add( resultRow );
                 }
 
                 // Final save for any remaining records
@@ -845,20 +894,100 @@ namespace RockWeb.Plugins.org_secc.Event
                 }
             }
 
-            // Display results
+            // Display summary counts
             lSuccessCount.Text = successCount.ToString();
             lSkippedCount.Text = skippedCount.ToString();
             lErrorCount.Text = errorCount.ToString();
 
-            if ( errorMessages.Any() )
+            // Render the detailed results table
+            lResultsTable.Text = RenderResultsTable( resultRows, mappings );
+        }
+
+        /// <summary>
+        /// Renders an HTML table showing per-row, per-column placement outcomes with color-coded labels.
+        /// </summary>
+        private string RenderResultsTable( List<ResultRow> resultRows, List<PlacementMapping> mappings )
+        {
+            var sb = new StringBuilder();
+
+            sb.Append( "<div class='table-responsive'>" );
+            sb.Append( "<table class='table table-bordered table-striped table-condensed'>" );
+
+            // Header row
+            sb.Append( "<thead><tr>" );
+            sb.Append( "<th>Row</th>" );
+            sb.Append( "<th>Camper</th>" );
+            sb.Append( "<th>Matched Person</th>" );
+            foreach ( var mapping in mappings )
             {
-                pnlErrorDetails.Visible = true;
-                nbErrors.Text = string.Join( "<br/>", errorMessages );
+                sb.AppendFormat( "<th>{0}</th>", System.Web.HttpUtility.HtmlEncode( mapping.CsvColumnName ) );
             }
-            else
+            sb.Append( "</tr></thead>" );
+
+            // Data rows
+            sb.Append( "<tbody>" );
+            foreach ( var row in resultRows )
             {
-                pnlErrorDetails.Visible = false;
+                sb.Append( "<tr>" );
+                sb.AppendFormat( "<td>{0}</td>", row.CsvRowNumber );
+                sb.AppendFormat( "<td>{0}</td>", System.Web.HttpUtility.HtmlEncode( row.CamperName ) );
+
+                // Matched person column
+                if ( !string.IsNullOrWhiteSpace( row.PersonError ) )
+                {
+                    sb.AppendFormat( "<td><span class='label label-danger'>NOT FOUND</span><br/><small class='text-danger'>{0}</small></td>",
+                        System.Web.HttpUtility.HtmlEncode( row.PersonError ) );
+                }
+                else
+                {
+                    sb.AppendFormat( "<td>{0}</td>", System.Web.HttpUtility.HtmlEncode( row.MatchedPersonName ) );
+                }
+
+                // One cell per mapping column
+                foreach ( var mapping in mappings )
+                {
+                    var placement = row.Placements.FirstOrDefault( p => p.ColumnName == mapping.CsvColumnName );
+                    if ( placement == null )
+                    {
+                        sb.Append( "<td></td>" );
+                        continue;
+                    }
+
+                    string labelClass;
+                    string labelText;
+                    switch ( placement.Outcome )
+                    {
+                        case PlacementOutcome.Success:
+                            labelClass = "label-success";
+                            labelText = "Added";
+                            break;
+                        case PlacementOutcome.Skipped:
+                            labelClass = "label-info";
+                            labelText = "Skipped";
+                            break;
+                        case PlacementOutcome.Error:
+                            labelClass = "label-danger";
+                            labelText = "Error";
+                            break;
+                        default:
+                            labelClass = "label-default";
+                            labelText = "Empty";
+                            break;
+                    }
+
+                    string csvValueEncoded = System.Web.HttpUtility.HtmlEncode( placement.CsvValue );
+                    string messageEncoded = System.Web.HttpUtility.HtmlEncode( placement.Message );
+
+                    sb.AppendFormat( "<td>{0} <span class='label {1}'>{2}</span><br/><small class='text-muted'>{3}</small></td>",
+                        csvValueEncoded, labelClass, labelText, messageEncoded );
+                }
+
+                sb.Append( "</tr>" );
             }
+
+            sb.Append( "</tbody></table></div>" );
+
+            return sb.ToString();
         }
 
         /// <summary>
@@ -978,6 +1107,40 @@ namespace RockWeb.Plugins.org_secc.Event
             public string PlacementSummary { get; set; }
             public string Status { get; set; }
             public bool HasError { get; set; }
+        }
+
+        /// <summary>
+        /// The outcome of a single placement cell.
+        /// </summary>
+        private enum PlacementOutcome
+        {
+            Empty = 0,
+            Success = 1,
+            Skipped = 2,
+            Error = 3
+        }
+
+        /// <summary>
+        /// Tracks the result of processing a single placement (one cell in one row).
+        /// </summary>
+        private class PlacementResult
+        {
+            public string ColumnName { get; set; }
+            public string CsvValue { get; set; }
+            public PlacementOutcome Outcome { get; set; }
+            public string Message { get; set; }
+        }
+
+        /// <summary>
+        /// Tracks all placement results for a single CSV row.
+        /// </summary>
+        private class ResultRow
+        {
+            public int CsvRowNumber { get; set; }
+            public string CamperName { get; set; }
+            public string MatchedPersonName { get; set; }
+            public string PersonError { get; set; }
+            public List<PlacementResult> Placements { get; set; }
         }
 
         #endregion
