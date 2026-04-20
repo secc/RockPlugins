@@ -229,7 +229,11 @@ namespace RockWeb.Plugins.org_secc.Event
         {
             SaveMappingSelections();
             MappingCount++;
-            BindMappingControls();
+
+            var savedColumns = ViewState["SavedMappingColumns"] as List<string> ?? new List<string>();
+            var savedGroups = ViewState["SavedMappingGroups"] as List<int?> ?? new List<int?>();
+
+            BindMappingControls( savedColumns, savedGroups );
         }
 
         protected void btnRemoveMapping_Click( object sender, EventArgs e )
@@ -270,6 +274,8 @@ namespace RockWeb.Plugins.org_secc.Event
 
         protected void btnPreview_Click( object sender, EventArgs e )
         {
+            SaveMappingSelections();
+
             var mappings = GetMappingsFromUI();
             if ( !mappings.Any() )
             {
@@ -310,7 +316,11 @@ namespace RockWeb.Plugins.org_secc.Event
         protected void btnPreviewBack_Click( object sender, EventArgs e )
         {
             SetActivePanel( pnlMapping );
-            BindMappingControls();
+
+            var savedColumns = ViewState["SavedMappingColumns"] as List<string> ?? new List<string>();
+            var savedGroups = ViewState["SavedMappingGroups"] as List<int?> ?? new List<int?>();
+
+            BindMappingControls( savedColumns, savedGroups );
         }
 
         protected void btnProcess_Click( object sender, EventArgs e )
