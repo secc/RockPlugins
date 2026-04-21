@@ -86,7 +86,9 @@
                 <%-- Step 4: Preview & Validate --%>
                 <asp:Panel ID="pnlPreview" runat="server" Visible="false">
                     <h4>Step 4: Preview Placements</h4>
-                    <p>Review the proposed placements below. Rows highlighted in red have errors that will be skipped during processing.</p>
+                    <p>Review the proposed placements below. Rows with errors or duplicate names will be skipped during processing.</p>
+
+                    <Rock:NotificationBox ID="nbDuplicates" runat="server" NotificationBoxType="Warning" Visible="false" />
 
                     <Rock:Grid ID="gPreview" runat="server" AllowSorting="false" DataKeyNames="RowIndex" ShowActionRow="false" DisplayType="Light">
                         <Columns>

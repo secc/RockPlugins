@@ -588,6 +588,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
         /// <summary>
         /// Builds the preview data by matching CSV rows to registrants and resolving placement groups.
+        /// Rows belonging to names that appear more than once in the CSV are flagged as duplicates.
         /// </summary>
         private List<PreviewRow> BuildPreviewData( string firstNameCol, string lastNameCol, List<PlacementMapping> mappings )
         {
@@ -600,12 +601,32 @@ namespace RockWeb.Plugins.org_secc.Event
                 return previewRows;
             }
 
+            // Pre-scan: find every full name that appears more than once in the CSV.
+            // ALL rows for that name will be skipped, not just the duplicates.
+            var nameCount = new Dictionary<string, int>( StringComparer.OrdinalIgnoreCase );
+            foreach ( var row in CsvRows )
+            {
+                string fn = GetCellValue( row, firstNameIdx );
+                string ln = GetCellValue( row, lastNameIdx );
+                string fullName = string.Format( "{0} {1}", fn, ln ).Trim();
+                if ( nameCount.ContainsKey( fullName ) )
+                {
+                    nameCount[fullName]++;
+                }
+                else
+                {
+                    nameCount[fullName] = 1;
+                }
+            }
+
+            var duplicateNames = new HashSet<string>(
+                nameCount.Where( kv => kv.Value > 1 ).Select( kv => kv.Key ),
+                StringComparer.OrdinalIgnoreCase );
+
             using ( var rockContext = new RockContext() )
             {
-                // Load all registrants for this instance
                 var registrants = LoadRegistrants( rockContext );
 
-                // Pre-load all child groups for each parent group in the mappings
                 var childGroupsByParent = new Dictionary<int, List<Group>>();
                 var groupService = new GroupService( rockContext );
 
@@ -623,16 +644,29 @@ namespace RockWeb.Plugins.org_secc.Event
                 for ( int rowIdx = 0; rowIdx < CsvRows.Count; rowIdx++ )
                 {
                     var row = CsvRows[rowIdx];
-                   string firstName = GetCellValue( row, firstNameIdx );
-                   string lastName = GetCellValue( row, lastNameIdx );
+                    string firstName = GetCellValue( row, firstNameIdx );
+                    string lastName = GetCellValue( row, lastNameIdx );
+                    string csvFullName = string.Format( "{0} {1}", firstName, lastName ).Trim();
 
                     var preview = new PreviewRow
                     {
                         RowIndex = rowIdx,
-                        CsvName = string.Format( "{0} {1}", firstName, lastName ).Trim()
+                        CsvName = csvFullName
                     };
 
-                    // Match person
+                    // If the name appears more than once, flag all rows for it and move on.
+                    if ( duplicateNames.Contains( csvFullName ) )
+                    {
+                        preview.MatchedPerson = "DUPLICATE";
+                        preview.Status = "Duplicate - will be skipped";
+                        preview.HasError = true;
+                        preview.PlacementSummary = string.Format(
+                            "'{0}' appears {1} times in the CSV. All rows for this name will be skipped.",
+                            csvFullName, nameCount[csvFullName] );
+                        previewRows.Add( preview );
+                        continue;
+                    }
+
                     var matchedPerson = FindRegistrant( firstName, lastName, registrants );
                     if ( matchedPerson == null )
                     {
@@ -646,7 +680,6 @@ namespace RockWeb.Plugins.org_secc.Event
                         preview.PersonId = matchedPerson.Id;
                     }
 
-                    // Resolve each placement
                     var placementParts = new List<string>();
                     foreach ( var mapping in mappings )
                     {
@@ -691,19 +724,41 @@ namespace RockWeb.Plugins.org_secc.Event
         }
 
         /// <summary>
-        /// Binds the preview grid.
+        /// Binds the preview grid and surfaces warnings for duplicates and other errors.
         /// </summary>
         private void BindPreviewGrid( List<PreviewRow> previewData )
         {
             gPreview.DataSource = previewData;
             gPreview.DataBind();
 
+            // Collect unique duplicate names to call out explicitly.
+            var duplicateNames = previewData
+                .Where( r => r.Status != null && r.Status.StartsWith( "Duplicate" ) )
+                .Select( r => r.CsvName )
+                .Distinct( StringComparer.OrdinalIgnoreCase )
+                .OrderBy( n => n )
+                .ToList();
+
+            if ( duplicateNames.Any() )
+            {
+                nbDuplicates.Text = string.Format(
+                    "<strong>Duplicate names detected.</strong> The following name(s) appear more than once in the CSV. " +
+                    "<strong>All rows for these names will be skipped</strong> when you process placements. " +
+                    "Remove the duplicates from your CSV and re-upload if you want them processed.<br/><br/>{0}",
+                    string.Join( "<br/>", duplicateNames.Select( n => "&bull; " + System.Web.HttpUtility.HtmlEncode( n ) ) ) );
+                nbDuplicates.Visible = true;
+            }
+            else
+            {
+                nbDuplicates.Visible = false;
+            }
+
             int errorCount = previewData.Count( r => r.HasError );
             int readyCount = previewData.Count( r => !r.HasError && r.Status == "Ready" );
 
             if ( errorCount > 0 )
             {
-                ShowWarning( string.Format( "{0} row(s) have errors and will be skipped. {1} row(s) are ready to process.", errorCount, readyCount ) );
+                ShowWarning( string.Format( "{0} row(s) have errors or are duplicates and will be skipped. {1} row(s) are ready to process.", errorCount, readyCount ) );
             }
             else
             {
@@ -713,7 +768,8 @@ namespace RockWeb.Plugins.org_secc.Event
 
         /// <summary>
         /// Processes the actual group member placements and collects detailed per-cell results.
-        /// Uses GroupMemberService.Add() + SaveChanges() to ensure workflow triggers fire.
+        /// All rows for any name that appears more than once in the CSV are skipped entirely.
+        /// Existing memberships are pre-loaded in bulk to avoid per-row database queries.
         /// </summary>
         private void ProcessPlacements( string firstNameCol, string lastNameCol, List<PlacementMapping> mappings )
         {
@@ -728,13 +784,34 @@ namespace RockWeb.Plugins.org_secc.Event
             int batchSize = GetAttributeValue( AttributeKey.BatchSize ).AsIntegerOrNull() ?? 50;
             var status = ( GroupMemberStatus ) GetAttributeValue( AttributeKey.DefaultGroupMemberStatus ).AsInteger();
 
+            // Pre-scan: identify every name that appears more than once so ALL their rows are skipped.
+            var nameCount = new Dictionary<string, int>( StringComparer.OrdinalIgnoreCase );
+            foreach ( var row in CsvRows )
+            {
+                string fn = GetCellValue( row, firstNameIdx );
+                string ln = GetCellValue( row, lastNameIdx );
+                string fullName = string.Format( "{0} {1}", fn, ln ).Trim();
+                if ( nameCount.ContainsKey( fullName ) )
+                {
+                    nameCount[fullName]++;
+                }
+                else
+                {
+                    nameCount[fullName] = 1;
+                }
+            }
+
+            var duplicateNames = new HashSet<string>(
+                nameCount.Where( kv => kv.Value > 1 ).Select( kv => kv.Key ),
+                StringComparer.OrdinalIgnoreCase );
+
             using ( var rockContext = new RockContext() )
             {
                 var registrants = LoadRegistrants( rockContext );
                 var groupService = new GroupService( rockContext );
                 var groupMemberService = new GroupMemberService( rockContext );
 
-                // Pre-load child groups
+                // Pre-load all child groups for every mapping.
                 var childGroupsByParent = new Dictionary<int, List<Group>>();
                 foreach ( var mapping in mappings )
                 {
@@ -746,6 +823,41 @@ namespace RockWeb.Plugins.org_secc.Event
                     }
                 }
 
+                // Collect the full set of target group IDs and registrant person IDs so we can
+                // load all potentially relevant GroupMember records in a single query.
+                var allTargetGroupIds = childGroupsByParent.Values
+                    .SelectMany( groups => groups )
+                    .Select( g => g.Id )
+                    .Distinct()
+                    .ToList();
+
+                var allPersonIds = registrants
+                    .Where( r => r.PersonAlias != null )
+                    .Select( r => r.PersonAlias.PersonId )
+                    .Distinct()
+                    .ToList();
+
+                // Single bulk membership query instead of one query per person per group.
+                // Keyed by "personId_groupId" for O(1) lookups inside the loop.
+                var existingMembershipLookup = new Dictionary<string, GroupMember>();
+                if ( allTargetGroupIds.Any() && allPersonIds.Any() )
+                {
+                    var existingMembers = groupMemberService.Queryable()
+                        .Where( gm => allTargetGroupIds.Contains( gm.GroupId )
+                                   && allPersonIds.Contains( gm.PersonId ) )
+                        .ToList();
+
+                    foreach ( var gm in existingMembers )
+                    {
+                        string key = string.Format( "{0}_{1}", gm.PersonId, gm.GroupId );
+                        // Keep the first record found if duplicates exist (matches prior FirstOrDefault behaviour).
+                        if ( !existingMembershipLookup.ContainsKey( key ) )
+                        {
+                            existingMembershipLookup[key] = gm;
+                        }
+                    }
+                }
+
                 int pendingSaves = 0;
 
                 for ( int rowIdx = 0; rowIdx < CsvRows.Count; rowIdx++ )
@@ -753,28 +865,51 @@ namespace RockWeb.Plugins.org_secc.Event
                     var row = CsvRows[rowIdx];
                     string firstName = GetCellValue( row, firstNameIdx );
                     string lastName = GetCellValue( row, lastNameIdx );
+                    string csvFullName = string.Format( "{0} {1}", firstName, lastName ).Trim();
 
                     var resultRow = new ResultRow
                     {
                         CsvRowNumber = rowIdx + 2,
-                        CamperName = string.Format( "{0} {1}", firstName, lastName ).Trim(),
+                        CamperName = csvFullName,
                         Placements = new List<PlacementResult>()
                     };
+
+                    // Skip every row for a name that appeared more than once.
+                    if ( duplicateNames.Contains( csvFullName ) )
+                    {
+                        resultRow.PersonError = string.Format(
+                            "'{0}' appears {1} times in the CSV. All rows for this name are skipped.",
+                            csvFullName, nameCount[csvFullName] );
+
+                        foreach ( var mapping in mappings )
+                        {
+                            int colIdx = CsvHeaders.IndexOf( mapping.CsvColumnName );
+                            resultRow.Placements.Add( new PlacementResult
+                            {
+                                ColumnName = mapping.CsvColumnName,
+                                CsvValue = GetCellValue( row, colIdx ),
+                                Outcome = PlacementOutcome.Error,
+                                Message = "Skipped — duplicate name in CSV"
+                            } );
+                            errorCount++;
+                        }
+
+                        resultRows.Add( resultRow );
+                        continue;
+                    }
 
                     var person = FindRegistrant( firstName, lastName, registrants );
                     if ( person == null )
                     {
                         resultRow.PersonError = string.Format( "Could not match '{0} {1}' to a registrant.", firstName, lastName );
 
-                        // Add empty results for each mapping so the table columns align
                         foreach ( var mapping in mappings )
                         {
                             int colIdx = CsvHeaders.IndexOf( mapping.CsvColumnName );
-                            string cellValue = GetCellValue( row, colIdx );
                             resultRow.Placements.Add( new PlacementResult
                             {
                                 ColumnName = mapping.CsvColumnName,
-                                CsvValue = cellValue,
+                                CsvValue = GetCellValue( row, colIdx ),
                                 Outcome = PlacementOutcome.Error,
                                 Message = "Person not found"
                             } );
@@ -822,8 +957,11 @@ namespace RockWeb.Plugins.org_secc.Event
                             continue;
                         }
 
-                        // Check for existing membership
-                        var existingMember = groupMemberService.GetByGroupIdAndPersonId( targetGroup.Id, person.Id ).FirstOrDefault();
+                        // In-memory lookup — no database query.
+                        string membershipKey = string.Format( "{0}_{1}", person.Id, targetGroup.Id );
+                        GroupMember existingMember = null;
+                        existingMembershipLookup.TryGetValue( membershipKey, out existingMember );
+
                         if ( existingMember != null )
                         {
                             if ( existingMember.IsArchived )
@@ -846,7 +984,6 @@ namespace RockWeb.Plugins.org_secc.Event
                             continue;
                         }
 
-                        // Determine the default role for the group
                         var groupTypeCache = GroupTypeCache.Get( targetGroup.GroupTypeId );
                         int? defaultRoleId = groupTypeCache?.DefaultGroupRoleId;
 
@@ -870,6 +1007,11 @@ namespace RockWeb.Plugins.org_secc.Event
                         if ( groupMember.IsValidGroupMember( rockContext ) )
                         {
                             groupMemberService.Add( groupMember );
+
+                            // Add to the in-memory lookup so subsequent rows in this same
+                            // import don't try to add the same person to the same group again.
+                            existingMembershipLookup[membershipKey] = groupMember;
+
                             placementResult.Outcome = PlacementOutcome.Success;
                             placementResult.Message = string.Format( "Added to '{0}'", targetGroup.Name );
                             successCount++;
@@ -886,7 +1028,6 @@ namespace RockWeb.Plugins.org_secc.Event
 
                         resultRow.Placements.Add( placementResult );
 
-                        // Batch save to balance performance with trigger reliability
                         if ( pendingSaves >= batchSize )
                         {
                             rockContext.SaveChanges();
@@ -897,19 +1038,16 @@ namespace RockWeb.Plugins.org_secc.Event
                     resultRows.Add( resultRow );
                 }
 
-                // Final save for any remaining records
                 if ( pendingSaves > 0 )
                 {
                     rockContext.SaveChanges();
                 }
             }
 
-            // Display summary counts
             lSuccessCount.Text = successCount.ToString();
             lSkippedCount.Text = skippedCount.ToString();
             lErrorCount.Text = errorCount.ToString();
 
-            // Render the detailed results table
             lResultsTable.Text = RenderResultsTable( resultRows, mappings );
         }
 
