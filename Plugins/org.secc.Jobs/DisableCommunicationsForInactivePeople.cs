@@ -142,7 +142,8 @@ namespace org.secc.Jobs
             {
                 try
                 {
-                    var personContext = new RockContext();
+                    using ( var personContext = new RockContext() )
+                    {
                     var pService = new PersonService( personContext );
                     var phService = new PhoneNumberService( personContext );
                     var dvService = new DefinedValueService( personContext );
@@ -191,6 +192,7 @@ namespace org.secc.Jobs
 
                     personContext.SaveChanges();
                     disabledCount++;
+                    }
                 }
                 catch ( Exception ex )
                 {
