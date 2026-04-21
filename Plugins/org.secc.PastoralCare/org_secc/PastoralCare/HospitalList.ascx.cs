@@ -104,7 +104,7 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
             if ( !Page.IsPostBack )
             {
-                var campusId = GetBlockUserPreference( "Campus" ).AsIntegerOrNull();
+                var campusId = GetBlockPersonPreferences().GetValue( "Campus" ).AsIntegerOrNull();
                 if ( campusId.HasValue )
                 {
                     pCampus.SelectedCampusId = campusId;
@@ -492,15 +492,17 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
 
         protected void fReport_ApplyFilterClick( object sender, EventArgs e )
         {
+            var preferences = GetBlockPersonPreferences();
             var campusId = pCampus.SelectedCampusId;
             if ( campusId.HasValue )
             {
-                SetBlockUserPreference( "Campus", campusId.ToString() );
+                preferences.SetValue( "Campus", campusId.ToString() );
             }
             else
             {
-                DeleteBlockUserPreference( "Campus" );
+                preferences.SetValue( "Campus", string.Empty );
             }
+            preferences.Save();
 
             BindGrid();
         }
