@@ -944,7 +944,11 @@ namespace RockWeb.Plugins.org_secc.Event
                     .ToList();
 
                 // Single bulk membership query instead of one query per person per group.
-                // Keyed by "personId_groupId" for O(1) lookups inside the loop.
+                // Keyed by "personId_groupId_roleId" for O(1) lookups inside the loop.
+                // Including the role in the key is required because a person can have multiple
+                // memberships in the same group under different roles; keying by person+group
+                // alone would silently hide a real duplicate (same person+group+role) from the
+                // in-memory check and let the GroupMember save-hook throw later.
                 var existingMembershipLookup = new Dictionary<string, GroupMember>();
                 if ( allTargetGroupIds.Any() && allPersonIds.Any() )
                 {
@@ -955,8 +959,8 @@ namespace RockWeb.Plugins.org_secc.Event
 
                     foreach ( var gm in existingMembers )
                     {
-                        string key = string.Format( "{0}_{1}", gm.PersonId, gm.GroupId );
-                        // Keep the first record found if duplicates exist (matches prior FirstOrDefault behaviour).
+                        string key = string.Format( "{0}_{1}_{2}", gm.PersonId, gm.GroupId, gm.GroupRoleId );
+                        // Keep the first record found if duplicates exist.
                         if ( !existingMembershipLookup.ContainsKey( key ) )
                         {
                             existingMembershipLookup[key] = gm;
@@ -1063,8 +1067,22 @@ namespace RockWeb.Plugins.org_secc.Event
                             continue;
                         }
 
-                        // In-memory lookup — no database query.
-                        string membershipKey = string.Format( "{0}_{1}", person.Id, targetGroup.Id );
+                        var groupTypeCache = GroupTypeCache.Get( targetGroup.GroupTypeId );
+                        int? defaultRoleId = groupTypeCache?.DefaultGroupRoleId;
+
+                        if ( !defaultRoleId.HasValue )
+                        {
+                            placementResult.Outcome = PlacementOutcome.Error;
+                            placementResult.Message = string.Format( "Group '{0}' has no default group role configured", targetGroup.Name );
+                            errorCount++;
+                            resultRow.Placements.Add( placementResult );
+                            continue;
+                        }
+
+                        // In-memory lookup — no database query. Keyed by person + group + role
+                        // so a person can legitimately be in the same group under multiple roles
+                        // without one hiding the other.
+                        string membershipKey = string.Format( "{0}_{1}_{2}", person.Id, targetGroup.Id, defaultRoleId.Value );
                         GroupMember existingMember = null;
                         existingMembershipLookup.TryGetValue( membershipKey, out existingMember );
 
@@ -1090,14 +1108,21 @@ namespace RockWeb.Plugins.org_secc.Event
                             continue;
                         }
 
-                        var groupTypeCache = GroupTypeCache.Get( targetGroup.GroupTypeId );
-                        int? defaultRoleId = groupTypeCache?.DefaultGroupRoleId;
+                        // Defense-in-depth DB check. The bulk pre-scan can miss rows (e.g. records
+                        // created by a prior aborted import run, or persons whose id wasn't in
+                        // allPersonIds). Without this check, the GroupMember save-hook would throw
+                        // a GroupMemberValidationException on SaveChanges and fail the whole batch.
+                        bool existsInDb = groupMemberService.Queryable().AsNoTracking()
+                            .Any( gm => gm.PersonId == person.Id
+                                     && gm.GroupId == targetGroup.Id
+                                     && gm.GroupRoleId == defaultRoleId.Value
+                                     && !gm.IsArchived );
 
-                        if ( !defaultRoleId.HasValue )
+                        if ( existsInDb )
                         {
-                            placementResult.Outcome = PlacementOutcome.Error;
-                            placementResult.Message = string.Format( "Group '{0}' has no default group role configured", targetGroup.Name );
-                            errorCount++;
+                            placementResult.Outcome = PlacementOutcome.Skipped;
+                            placementResult.Message = string.Format( "Already a member of '{0}'", targetGroup.Name );
+                            skippedCount++;
                             resultRow.Placements.Add( placementResult );
                             continue;
                         }
@@ -1136,7 +1161,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
                         if ( pendingSaves >= batchSize )
                         {
-                            rockContext.SaveChanges();
+                            SafeSaveChanges( rockContext, groupMemberService, ref successCount, ref errorCount, resultRows );
                             pendingSaves = 0;
                         }
                     }
@@ -1146,7 +1171,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
                 if ( pendingSaves > 0 )
                 {
-                    rockContext.SaveChanges();
+                    SafeSaveChanges( rockContext, groupMemberService, ref successCount, ref errorCount, resultRows );
                 }
             }
 
@@ -1155,6 +1180,83 @@ namespace RockWeb.Plugins.org_secc.Event
             lErrorCount.Text = errorCount.ToString();
 
             lResultsTable.Text = RenderResultsTable( resultRows, mappings );
+        }
+
+        /// <summary>
+        /// Tries to save all pending changes as a single batch. If the batch fails (for example,
+        /// because the GroupMember save-hook detected a duplicate that our in-memory + DB checks
+        /// didn't catch), falls back to saving each pending GroupMember individually so one bad
+        /// row doesn't cause the entire batch of good rows to be lost.
+        /// Adjusts successCount / errorCount and appends an error ResultRow for any row that
+        /// fails during the per-row fallback.
+        /// </summary>
+        private void SafeSaveChanges( RockContext rockContext, GroupMemberService groupMemberService,
+            ref int successCount, ref int errorCount, List<ResultRow> resultRows )
+        {
+            try
+            {
+                rockContext.SaveChanges();
+                return;
+            }
+            catch ( Exception ex )
+            {
+                Rock.Model.ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
+            }
+
+            // Batch save failed. Snapshot the pending GroupMember entries and detach them all
+            // so we can re-add and save them one at a time. Any other pending changes in the
+            // context (e.g. unarchive edits on existing members) will also be retried per-entry.
+            var pendingEntries = rockContext.ChangeTracker.Entries<GroupMember>()
+                .Where( e => e.State == EntityState.Added || e.State == EntityState.Modified )
+                .ToList();
+
+            var retryList = new List<Tuple<GroupMember, EntityState>>();
+            foreach ( var entry in pendingEntries )
+            {
+                retryList.Add( Tuple.Create( entry.Entity, entry.State ) );
+                entry.State = EntityState.Detached;
+            }
+
+            foreach ( var pair in retryList )
+            {
+                var gm = pair.Item1;
+                var originalState = pair.Item2;
+
+                try
+                {
+                    if ( originalState == EntityState.Added )
+                    {
+                        groupMemberService.Add( gm );
+                    }
+                    else
+                    {
+                        // Re-attach as Modified so EF tracks the pending edits.
+                        rockContext.Entry( gm ).State = EntityState.Modified;
+                    }
+
+                    rockContext.SaveChanges();
+                }
+                catch ( Exception ex )
+                {
+                    // Back out this entity and record a row-level error so the rest can continue.
+                    rockContext.Entry( gm ).State = EntityState.Detached;
+
+                    successCount--;
+                    errorCount++;
+
+                    resultRows.Add( new ResultRow
+                    {
+                        CsvRowNumber = 0,
+                        CamperName = gm.Person?.FullName ?? string.Format( "PersonId {0}", gm.PersonId ),
+                        MatchedPersonName = gm.Person?.FullName,
+                        PersonError = string.Format( "Save failed for GroupId {0}, RoleId {1}: {2}",
+                            gm.GroupId, gm.GroupRoleId, ex.Message ),
+                        Placements = new List<PlacementResult>()
+                    } );
+
+                    Rock.Model.ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
+                }
+            }
         }
 
         /// <summary>
