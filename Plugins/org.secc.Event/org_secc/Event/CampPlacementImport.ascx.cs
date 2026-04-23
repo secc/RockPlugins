@@ -19,7 +19,6 @@ using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Web.UI;
 using System.Web.UI.WebControls;
 
 using Rock;
@@ -109,6 +108,15 @@ namespace RockWeb.Plugins.org_secc.Event
         {
             get { return ViewState["UploadedBinaryFileId"] as int?; }
             set { ViewState["UploadedBinaryFileId"] = value; }
+        }
+
+        /// <summary>
+        /// Stores the base parent group ID to filter child groups in mappings.
+        /// </summary>
+        private int? BaseParentGroupId
+        {
+            get { return ViewState["BaseParentGroupId"] as int?; }
+            set { ViewState["BaseParentGroupId"] = value; }
         }
 
         #endregion
@@ -208,6 +216,17 @@ namespace RockWeb.Plugins.org_secc.Event
 
         #region Step 3 – Column Mapping
 
+        protected void gpBasePlacementGroup_SelectItem( object sender, EventArgs e )
+        {
+            BaseParentGroupId = gpBasePlacementGroup.SelectedValueAsInt();
+
+            // Rebind mappings to refresh the parent group controls
+            var savedColumns = ViewState["SavedMappingColumns"] as List<string> ?? new List<string>();
+            var savedGroups = ViewState["SavedMappingGroups"] as List<int?> ?? new List<int?>();
+
+            BindMappingControls( savedColumns, savedGroups );
+        }
+
         protected void rptMappings_ItemDataBound( object sender, RepeaterItemEventArgs e )
         {
             if ( e.Item.ItemType == ListItemType.Item || e.Item.ItemType == ListItemType.AlternatingItem )
@@ -221,6 +240,42 @@ namespace RockWeb.Plugins.org_secc.Event
                     {
                         ddlCsvColumn.Items.Add( new ListItem( header, header ) );
                     }
+                }
+
+                var gpParentGroup = e.Item.FindControl( "gpParentGroup" ) as GroupPicker;
+                var ddlParentGroupChild = e.Item.FindControl( "ddlParentGroupChild" ) as RockDropDownList;
+
+                if ( BaseParentGroupId.HasValue )
+                {
+                    // Base group is set — show filtered dropdown of children
+                    gpParentGroup.Visible = false;
+                    ddlParentGroupChild.Visible = true;
+
+                    ddlParentGroupChild.Items.Clear();
+                    ddlParentGroupChild.Items.Add( new ListItem( "", "" ) );
+
+                    using ( var rockContext = new RockContext() )
+                    {
+                        var childGroups = new GroupService( rockContext )
+                            .Queryable()
+                            .Where( g => g.ParentGroupId == BaseParentGroupId.Value
+                                      && g.IsActive
+                                      && !g.IsArchived )
+                            .OrderBy( g => g.Name )
+                            .Select( g => new { g.Id, g.Name } )
+                            .ToList();
+
+                        foreach ( var group in childGroups )
+                        {
+                            ddlParentGroupChild.Items.Add( new ListItem( group.Name, group.Id.ToString() ) );
+                        }
+                    }
+                }
+                else
+                {
+                    // No base group — show full GroupPicker
+                    gpParentGroup.Visible = true;
+                    ddlParentGroupChild.Visible = false;
                 }
             }
         }
@@ -345,7 +400,9 @@ namespace RockWeb.Plugins.org_secc.Event
             MappingCount = 1;
             SelectedRegistrationInstanceId = null;
             UploadedBinaryFileId = null;
+            BaseParentGroupId = null;
             fuCsvFile.BinaryFileId = null;
+            gpBasePlacementGroup.SetValue( ( Group ) null );
 
             SetActivePanel( pnlSelectInstance );
         }
@@ -460,6 +517,16 @@ namespace RockWeb.Plugins.org_secc.Event
         /// </summary>
         private void BindMappingControls( List<string> savedColumns = null, List<int?> savedGroups = null )
         {
+            // Restore base parent group selection
+            if ( BaseParentGroupId.HasValue )
+            {
+                using ( var rockContext = new RockContext() )
+                {
+                    var baseGroup = new GroupService( rockContext ).Get( BaseParentGroupId.Value );
+                    gpBasePlacementGroup.SetValue( baseGroup );
+                }
+            }
+
             // Populate identity column dropdowns
             var selectedFirst = ddlFirstNameCol.SelectedValue;
             var selectedLast = ddlLastNameCol.SelectedValue;
@@ -523,10 +590,20 @@ namespace RockWeb.Plugins.org_secc.Event
             foreach ( RepeaterItem item in rptMappings.Items )
             {
                 var ddl = item.FindControl( "ddlCsvColumn" ) as RockDropDownList;
-                var gp = item.FindControl( "gpParentGroup" ) as GroupPicker;
-
                 columns.Add( ddl != null ? ddl.SelectedValue : "" );
-                groups.Add( gp != null ? gp.GroupId : null );
+
+                if ( BaseParentGroupId.HasValue )
+                {
+                    // Using dropdown
+                    var ddlGroup = item.FindControl( "ddlParentGroupChild" ) as RockDropDownList;
+                    groups.Add( ddlGroup != null ? ddlGroup.SelectedValueAsInt() : null );
+                }
+                else
+                {
+                    // Using group picker
+                    var gp = item.FindControl( "gpParentGroup" ) as GroupPicker;
+                    groups.Add( gp != null ? gp.GroupId : null );
+                }
             }
 
             ViewState["SavedMappingColumns"] = columns;
@@ -541,19 +618,34 @@ namespace RockWeb.Plugins.org_secc.Event
             for ( int i = 0; i < rptMappings.Items.Count && i < columns.Count; i++ )
             {
                 var ddl = rptMappings.Items[i].FindControl( "ddlCsvColumn" ) as RockDropDownList;
-                var gp = rptMappings.Items[i].FindControl( "gpParentGroup" ) as GroupPicker;
-
                 if ( ddl != null )
                 {
                     ddl.SetValue( columns[i] );
                 }
 
-                if ( gp != null && i < groups.Count && groups[i].HasValue )
+                if ( i < groups.Count && groups[i].HasValue )
                 {
-                    using ( var rockContext = new RockContext() )
+                    if ( BaseParentGroupId.HasValue )
                     {
-                        var group = new GroupService( rockContext ).Get( groups[i].Value );
-                        gp.SetValue( group );
+                        // Restore dropdown selection
+                        var ddlGroup = rptMappings.Items[i].FindControl( "ddlParentGroupChild" ) as RockDropDownList;
+                        if ( ddlGroup != null )
+                        {
+                            ddlGroup.SetValue( groups[i].Value );
+                        }
+                    }
+                    else
+                    {
+                        // Restore group picker selection
+                        var gp = rptMappings.Items[i].FindControl( "gpParentGroup" ) as GroupPicker;
+                        if ( gp != null )
+                        {
+                            using ( var rockContext = new RockContext() )
+                            {
+                                var group = new GroupService( rockContext ).Get( groups[i].Value );
+                                gp.SetValue( group );
+                            }
+                        }
                     }
                 }
             }
@@ -569,16 +661,30 @@ namespace RockWeb.Plugins.org_secc.Event
             foreach ( RepeaterItem item in rptMappings.Items )
             {
                 var ddl = item.FindControl( "ddlCsvColumn" ) as RockDropDownList;
-                var gp = item.FindControl( "gpParentGroup" ) as GroupPicker;
 
-                if ( ddl != null && gp != null &&
-                    !string.IsNullOrWhiteSpace( ddl.SelectedValue ) &&
-                    gp.GroupId.HasValue )
+                int? parentGroupId = null;
+
+                if ( BaseParentGroupId.HasValue )
+                {
+                    // Using dropdown for parent group selection
+                    var ddlGroup = item.FindControl( "ddlParentGroupChild" ) as RockDropDownList;
+                    parentGroupId = ddlGroup != null ? ddlGroup.SelectedValueAsInt() : null;
+                }
+                else
+                {
+                    // Using group picker for parent group selection
+                    var gp = item.FindControl( "gpParentGroup" ) as GroupPicker;
+                    parentGroupId = gp != null ? gp.GroupId : null;
+                }
+
+                if ( ddl != null &&
+                     !string.IsNullOrWhiteSpace( ddl.SelectedValue ) &&
+                     parentGroupId.HasValue )
                 {
                     mappings.Add( new PlacementMapping
                     {
                         CsvColumnName = ddl.SelectedValue,
-                        ParentGroupId = gp.GroupId.Value
+                        ParentGroupId = parentGroupId.Value
                     } );
                 }
             }

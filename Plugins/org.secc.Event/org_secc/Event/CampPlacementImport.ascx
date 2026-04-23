@@ -55,6 +55,16 @@
                     <div class="well">
                         <h5>Placement Mappings</h5>
                         <p>For each placement type, select the CSV column that contains the group name and the parent group whose children are the valid placement targets.</p>
+                        
+                        <div class="row margin-b-md">
+                            <div class="col-md-12">
+                                <Rock:GroupPicker ID="gpBasePlacementGroup" runat="server" 
+                                    Label="Base Parent Group (Optional)" 
+                                    Help="Select a common parent group (e.g., 'Camp Manager'). When set, each mapping below will show only direct children of this group instead of the full group tree."
+                                    OnSelectItem="gpBasePlacementGroup_SelectItem" />
+                            </div>
+                        </div>
+                        
                         <asp:Repeater ID="rptMappings" runat="server" OnItemDataBound="rptMappings_ItemDataBound">
                             <ItemTemplate>
                                 <div class="row margin-b-sm placement-mapping-row">
@@ -63,6 +73,7 @@
                                     </div>
                                     <div class="col-md-5">
                                         <Rock:GroupPicker ID="gpParentGroup" runat="server" Label="Parent Group" Required="false" />
+                                        <Rock:RockDropDownList ID="ddlParentGroupChild" runat="server" Label="Parent Group" Required="false" Visible="false" />
                                     </div>
                                     <div class="col-md-2">
                                         <asp:LinkButton ID="btnRemoveMapping" runat="server" CssClass="btn btn-danger btn-sm margin-t-lg" OnClick="btnRemoveMapping_Click" CausesValidation="false">
