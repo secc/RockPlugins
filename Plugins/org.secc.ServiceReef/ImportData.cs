@@ -22,7 +22,9 @@ using Quartz;
 using RestSharp;
 using Rock;
 using Rock.Attribute;
+using Rock.Communication;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web.Cache;
@@ -43,16 +45,13 @@ namespace org.secc.ServiceReef
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "The connection status to use for newly created people.", true )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.FINANCIAL_ACCOUNT_TYPE, "ServiceReef Account Type", "Account type for creating sub-accounts for each Service Reef Trip.", true, false, "51DC439B-2931-47CE-8FA8-C6DA1451B633" )]
     [DisallowConcurrentExecution]
-    public class ImportData : IJob
+    public class ImportData : RockJob
     {
 
 
 
         /// <summary>Process all transactions (payments) from Service Reef.</summary>
-        /// <param name="message">The message that is returned depending on the result.</param>
-        /// <param name="state">The state of the process.</param>
-        /// <returns><see cref="WorkerResultStatus"/></returns>
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
             RockContext dbContext = new RockContext();
             FinancialBatchService financialBatchService = new FinancialBatchService( dbContext );
@@ -66,9 +65,6 @@ namespace org.secc.ServiceReef
             DefinedTypeService definedTypeService = new DefinedTypeService( dbContext );
             TransactionService transactionService = new TransactionService( new PayPalReporting.Data.PayPalReportingContext() );
 
-            // Get the datamap for loading attributes
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
-
             String warnings = string.Empty;
 
             FinancialBatch batch = null;
@@ -77,24 +73,24 @@ namespace org.secc.ServiceReef
             var processed = 0;
             try
             {
-                DateRange dateRange = Rock.Web.UI.Controls.SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( dataMap.GetString( "DateRange" ) ?? "-1||" );
+                DateRange dateRange = Rock.Web.UI.Controls.SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( GetAttributeValue( "DateRange" ) ?? "-1||" );
 
-                String SRApiKey = Encryption.DecryptString( dataMap.GetString( "ServiceReefAPIKey" ) );
-                String SRApiSecret = Encryption.DecryptString( dataMap.GetString( "ServiceReefAPISecret" ) );
-                String SRApiUrl = dataMap.GetString( "ServiceReefAPIURL" );
-                DefinedValueCache transactionSource = DefinedValueCache.Get( dataMap.GetString( "TransactionSource" ).AsGuid(), dbContext );
-                DefinedValueCache connectionStatus = DefinedValueCache.Get( dataMap.GetString( "ConnectionStatus" ).AsGuid(), dbContext );
+                String SRApiKey = Encryption.DecryptString( GetAttributeValue( "ServiceReefAPIKey" ) );
+                String SRApiSecret = Encryption.DecryptString( GetAttributeValue( "ServiceReefAPISecret" ) );
+                String SRApiUrl = GetAttributeValue( "ServiceReefAPIURL" );
+                DefinedValueCache transactionSource = DefinedValueCache.Get( GetAttributeValue( "TransactionSource" ).AsGuid(), dbContext );
+                DefinedValueCache connectionStatus = DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid(), dbContext );
                 DefinedValueCache contribution = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_CONTRIBUTION );
 
                 // Setup some lookups
                 DefinedTypeCache creditCards = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.FINANCIAL_CREDIT_CARD_TYPE.AsGuid(), dbContext );
                 DefinedTypeCache tenderType = DefinedTypeCache.Get( Rock.SystemGuid.DefinedType.FINANCIAL_CURRENCY_TYPE.AsGuid(), dbContext );
-                FinancialAccount specialFund = accountService.Get( dataMap.GetString( "Account" ).AsGuid() );
-                FinancialGateway gateway = financialGatewayService.Get( dataMap.GetString( "FinancialGateway" ).AsGuid() );
+                FinancialAccount specialFund = accountService.Get( GetAttributeValue( "Account" ).AsGuid() );
+                FinancialGateway gateway = financialGatewayService.Get( GetAttributeValue( "FinancialGateway" ).AsGuid() );
                 List<FinancialAccount> trips = financialAccountService.Queryable().Where( fa => fa.ParentAccountId == specialFund.Id ).OrderBy( fa => fa.Order ).ToList();
 
                 // Get the trips
-                DefinedValueCache serviceReefAccountType = DefinedValueCache.Get( dataMap.Get( "ServiceReefAccountType" ).ToString().AsGuid() );
+                DefinedValueCache serviceReefAccountType = DefinedValueCache.Get( GetAttributeValue( "ServiceReefAccountType" ).AsGuid() );
 
                 // Setup the ServiceReef API Client
                 var client = new RestClient( SRApiUrl );
@@ -291,7 +287,7 @@ namespace org.secc.ServiceReef
                                             person = new Person();
                                             person.FirstName = result.FirstName.Trim();
                                             person.LastName = result.LastName.Trim();
-                                            if ( result.Email.IsValidEmail() )
+                                            if ( EmailAddressFieldValidator.IsValid( result.Email ) )
                                             {
                                                 person.Email = result.Email.Trim();
                                             }
@@ -411,7 +407,8 @@ namespace org.secc.ServiceReef
             {
                 throw new Exception( warnings );
             }
-            context.Result = "Successfully imported " + processed + " transactions.";
+
+            Result = "Successfully imported " + processed + " transactions.";
         }
     }
 }

@@ -21,7 +21,9 @@ using Quartz;
 using RestSharp;
 using Rock;
 using Rock.Attribute;
+using Rock.Communication;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web.Cache;
@@ -31,7 +33,7 @@ namespace org.secc.ServiceReef
     [EncryptedTextField( "Service Reef API Key", "Key for authenticating to the ServiceReef API", true, "", "ServiceReef API" )]
     [EncryptedTextField( "Service Reef API Secret", "Secret for authenticating to the ServiceReef API", true, "", "ServiceReef API" )]
     [TextField( "Service Reef API URL", "Service Reef API URL.", true, "", "ServiceReef API" )]
-    [GroupField( "Parent Group", "Select the parent level group to use.  The structure of the missions trips will be created under this group with the Year of the trip as a child and the trips themselves as the grandchild.", true, "", "Group Structure" )]
+    [GroupField( "Parent Group", "Select the parent level group to use.  The structure of the missions trips will be created under this group with the Year of the trip as a child and the trips themselves as the grandchild.", true, "", "Group Structure" )]
     [GroupTypeField( "Year Group Type", "Select the group type to use for the yearly group level (children).", true, "", "Group Structure" )]
     [GroupTypeField( "Trip Group Type", "Select the group type to use for the trip level (grandchildren).", true, "", "Group Structure" )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Default Connection Status", "The connection status to use for newly created people.", true, category: "Job Settings" )]
@@ -40,13 +42,10 @@ namespace org.secc.ServiceReef
     [SlidingDateRangeField( "Date Range", "The range of dates to import.", false, "Previous|2|Day||", category: "Job Settings" )]
     [DisallowConcurrentExecution]
 
-    public class ImportTrips : IJob
+    public class ImportTrips : RockJob
     {
         /// <summary>Process all trips (events) from Service Reef.</summary>
-        /// <param name="message">The message that is returned depending on the result.</param>
-        /// <param name="state">The state of the process.</param>
-        /// <returns><see cref="WorkerResultStatus"/></returns>
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
             RockContext dbContext = new RockContext();
             PersonService personService = new PersonService( dbContext );
@@ -60,29 +59,26 @@ namespace org.secc.ServiceReef
             DefinedTypeService definedTypeService = new DefinedTypeService( dbContext );
             LocationService locationService = new LocationService( dbContext );
 
-            // Get the datamap for loading attributes
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
-
             String warnings = string.Empty;
             var total = 1;
             var processed = 0;
 
             try
             {
-                DateRange dateRange = Rock.Web.UI.Controls.SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( dataMap.GetString( "DateRange" ) ?? "-1||" );
+                DateRange dateRange = Rock.Web.UI.Controls.SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( GetAttributeValue( "DateRange" ) ?? "-1||" );
 
-                String SRApiKey = Encryption.DecryptString( dataMap.GetString( "ServiceReefAPIKey" ) );
-                String SRApiSecret = Encryption.DecryptString( dataMap.GetString( "ServiceReefAPISecret" ) );
-                String SRApiUrl = dataMap.GetString( "ServiceReefAPIURL" );
-                DefinedValueCache connectionStatus = DefinedValueCache.Get( dataMap.GetString( "DefaultConnectionStatus" ).AsGuid(), dbContext );
+                String SRApiKey = Encryption.DecryptString( GetAttributeValue( "ServiceReefAPIKey" ) );
+                String SRApiSecret = Encryption.DecryptString( GetAttributeValue( "ServiceReefAPISecret" ) );
+                String SRApiUrl = GetAttributeValue( "ServiceReefAPIURL" );
+                DefinedValueCache connectionStatus = DefinedValueCache.Get( GetAttributeValue( "DefaultConnectionStatus" ).AsGuid(), dbContext );
                 if ( SRApiUrl.Last() != '/' )
                     SRApiUrl += "/";
 
-                Group group = groupService.Get( dataMap.GetString( "ParentGroup" ).AsGuid() );
-                GroupTypeCache parentGroupType = GroupTypeCache.Get( dataMap.Get( "YearGroupType" ).ToString().AsGuid(), dbContext );
-                GroupTypeCache groupType = GroupTypeCache.Get( dataMap.Get( "TripGroupType" ).ToString().AsGuid(), dbContext );
-                Rock.Model.Attribute attribute = attributeService.Get( dataMap.GetString( "ServiceReefUserId" ).AsGuid() );
-                Rock.Model.Attribute attribute2 = attributeService.Get( dataMap.GetString( "ServiceReefProfileURL" ).AsGuid() );
+                Group group = groupService.Get( GetAttributeValue( "ParentGroup" ).AsGuid() );
+                GroupTypeCache parentGroupType = GroupTypeCache.Get( GetAttributeValue( "YearGroupType" ).AsGuid(), dbContext );
+                GroupTypeCache groupType = GroupTypeCache.Get( GetAttributeValue( "TripGroupType" ).AsGuid(), dbContext );
+                Rock.Model.Attribute attribute = attributeService.Get( GetAttributeValue( "ServiceReefUserId" ).AsGuid() );
+                Rock.Model.Attribute attribute2 = attributeService.Get( GetAttributeValue( "ServiceReefProfileURL" ).AsGuid() );
                 var entitytype = EntityTypeCache.Get( typeof( Group ) ).Id;
 
                 // Setup the ServiceReef API Client
@@ -266,7 +262,7 @@ namespace org.secc.ServiceReef
                                                 List<Person> matches = null;
                                                 Location homelocation = new Location();
 
-                                                if ( !email.IsValidEmail() )
+                                                if ( !EmailAddressFieldValidator.IsValid( email ) )
                                                 {
                                                     email = null;
                                                     matches = personService.Queryable()
@@ -333,7 +329,7 @@ namespace org.secc.ServiceReef
                                                     person = new Person();
                                                     person.FirstName = result2.FirstName.Trim();
                                                     person.LastName = result2.LastName.Trim();
-                                                    if ( email.IsValidEmail() )
+                                                    if ( email != null && EmailAddressFieldValidator.IsValid( email ) )
                                                     {
                                                         person.Email = email;
                                                     }
@@ -482,7 +478,7 @@ namespace org.secc.ServiceReef
             {
                 throw new Exception( warnings );
             }
-            context.Result = "Successfully imported " + processed + " trips.";
+            this.Result = "Successfully imported " + processed + " trips.";
         }
     }
 }
