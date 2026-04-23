@@ -393,7 +393,7 @@ namespace org.secc.Rest.Controllers
             var groupMember = _groupMemberService.GetByGroupId( groupId ).Where( gm => gm.PersonId == person.Id && gm.IsArchived == false ).FirstOrDefault();
 
             // create a new group member
-            if ( groupMember.IsNull() )
+            if ( groupMember == null )
             {
                 groupMember = new GroupMember
                 {
@@ -565,17 +565,17 @@ namespace org.secc.Rest.Controllers
             var groupMemberService = new GroupMemberService( _rockContext );
             var groupMembers = new List<GroupMember>();
 
-            if ( currentPerson.IsNotNull() )
+            if ( currentPerson != null )
             {
                 var currentGroupMember = groupMemberService.GetByPersonId( currentPerson.Id ).AsQueryable().AsNoTracking()
                     .Where( groupmember => groupmember.GroupId == group.Id ).FirstOrDefault();
 
-                if ( currentGroupMember.IsNotNull() )
+                if ( currentGroupMember != null )
                 {
                     currentGroupMember.LoadAttributes();
                     var currentGroupMemberTableNumber = currentGroupMember.GetAttributeValue( "TableNumber" );
 
-                    if ( currentGroupMemberTableNumber.IsNotNull() )
+                    if ( currentGroupMemberTableNumber != null )
                     {
                         var tableNumberAttributeIds = new AttributeService( _rockContext )
                         .Queryable()

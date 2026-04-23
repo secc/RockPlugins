@@ -273,7 +273,7 @@ namespace org.secc.Rest.Controllers
             // boolean that represents if the first or second occurrence in occurrences happens today
             var occurrenceToday = occurrences.Take( 2 ).FirstOrDefault( o => o.OccurrenceDate.Date == occurrenceDate.Date );
 
-            if ( !occurrences.Any() || !occurrenceToday.IsNotNull() )
+            if ( !occurrences.Any() || occurrenceToday == null )
             {
                 return BadRequest( "No occurrence scheduled for today." );
             }
@@ -350,7 +350,7 @@ namespace org.secc.Rest.Controllers
             // boolean that represents if the first or second occurrence in occurrences happens today
             var occurrenceToday = occurrences.Take( 2 ).FirstOrDefault( o => o.OccurrenceDate.Date == occurrenceDate.Date );
 
-            if ( !occurrences.Any() || !occurrenceToday.IsNotNull() )
+            if ( !occurrences.Any() || occurrenceToday == null )
             {
                 return BadRequest( "No occurrence scheduled for today." );
             }
