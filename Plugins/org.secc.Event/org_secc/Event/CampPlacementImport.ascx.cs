@@ -3,7 +3,7 @@
 //
 // Licensed under the  Southeast Christian Church License (the "License");
 // you may not use this file except in compliance with the License.
-// A copy of the License shoud be included with this file.
+// A copy of the License should be included with this file.
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,8 +19,6 @@ using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Web.UI;
 using System.Web.UI.WebControls;
 using Quartz;
 using Quartz.Impl;
@@ -29,7 +27,6 @@ using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -260,7 +257,7 @@ namespace RockWeb.Plugins.org_secc.Event
                     // Base group is set — show filtered dropdown of children
                     gpParentGroup.Visible = false;
                     ddlParentGroupChild.Visible = true;
-                    
+
                     ddlParentGroupChild.Items.Clear();
                     ddlParentGroupChild.Items.Add( new ListItem( "", "" ) );
 
@@ -268,8 +265,8 @@ namespace RockWeb.Plugins.org_secc.Event
                     {
                         var childGroups = new GroupService( rockContext )
                             .Queryable()
-                            .Where( g => g.ParentGroupId == BaseParentGroupId.Value 
-                                      && g.IsActive 
+                            .Where( g => g.ParentGroupId == BaseParentGroupId.Value
+                                      && g.IsActive
                                       && !g.IsArchived )
                             .OrderBy( g => g.Name )
                             .Select( g => new { g.Id, g.Name } )
@@ -296,7 +293,7 @@ namespace RockWeb.Plugins.org_secc.Event
             MappingCount++;
 
             var savedColumns = ViewState["SavedMappingColumns"] as List<string> ?? new List<string>();
-            var savedGroups = ViewState["SavedMappingGroups" ] as List<int?> ?? new List<int?>();
+            var savedGroups = ViewState["SavedMappingGroups"] as List<int?> ?? new List<int?>();
 
             BindMappingControls( savedColumns, savedGroups );
         }
@@ -313,7 +310,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 SaveMappingSelections();
 
                 var savedColumns = ViewState["SavedMappingColumns"] as List<string> ?? new List<string>();
-                var savedGroups = ViewState["SavedMappingGroups" ] as List<int?> ?? new List<int?>();
+                var savedGroups = ViewState["SavedMappingGroups"] as List<int?> ?? new List<int?>();
 
                 if ( removeIndex < savedColumns.Count )
                 {
@@ -392,7 +389,7 @@ namespace RockWeb.Plugins.org_secc.Event
         {
             var mappings = GetMappingsFromUI();
             var firstNameCol = ddlFirstNameCol.SelectedValue;
-            var lastNameCol  = ddlLastNameCol.SelectedValue;
+            var lastNameCol = ddlLastNameCol.SelectedValue;
 
             if ( !mappings.Any() || string.IsNullOrWhiteSpace( firstNameCol ) || string.IsNullOrWhiteSpace( lastNameCol ) )
             {
@@ -423,9 +420,9 @@ namespace RockWeb.Plugins.org_secc.Event
             MappingCount = 1;
             SelectedRegistrationInstanceId = null;
             UploadedBinaryFileId = null;
-            BaseParentGroupId = null;  
+            BaseParentGroupId = null;
             fuCsvFile.BinaryFileId = null;
-            gpBasePlacementGroup.SetValue( (Group)null );
+            gpBasePlacementGroup.SetValue( ( Group ) null );
 
             SetActivePanel( pnlSelectInstance );
         }
@@ -684,7 +681,7 @@ namespace RockWeb.Plugins.org_secc.Event
             foreach ( RepeaterItem item in rptMappings.Items )
             {
                 var ddl = item.FindControl( "ddlCsvColumn" ) as RockDropDownList;
-                
+
                 int? parentGroupId = null;
 
                 if ( BaseParentGroupId.HasValue )
@@ -700,8 +697,8 @@ namespace RockWeb.Plugins.org_secc.Event
                     parentGroupId = gp != null ? gp.GroupId : null;
                 }
 
-                if ( ddl != null && 
-                     !string.IsNullOrWhiteSpace( ddl.SelectedValue ) && 
+                if ( ddl != null &&
+                     !string.IsNullOrWhiteSpace( ddl.SelectedValue ) &&
                      parentGroupId.HasValue )
                 {
                     mappings.Add( new PlacementMapping
@@ -838,25 +835,18 @@ namespace RockWeb.Plugins.org_secc.Event
                     }
 
                     var placementParts = new List<string>();
-                    foreach ( var mapping in mappings )
+                    foreach ( var meta in mappingMeta )
                     {
-                        int colIdx = CsvHeaders.IndexOf( mapping.CsvColumnName );
-                        string cellValue = GetCellValue( row, colIdx );
+                        var mapping = meta.Mapping;
+                        string cellValue = GetCellValue( row, meta.ColumnIndex );
 
                         if ( string.IsNullOrWhiteSpace( cellValue ) )
                         {
                             continue;
                         }
 
-                        var childGroups = childGroupsByParent.ContainsKey( mapping.ParentGroupId )
-                            ? childGroupsByParent[mapping.ParentGroupId]
-                            : new List<Group>();
-
                         Group targetGroup;
-                        // colIdx is meta.ColumnIndex
-                        // targetGroup lookup is meta.GroupByName.TryGetValue(cellValue, out targetGroup)
-                        var meta = mappingMeta.FirstOrDefault( m => m.Mapping == mapping );
-                        if ( meta != null && meta.GroupByName.TryGetValue( cellValue, out targetGroup ) )
+                        if ( meta.GroupByName.TryGetValue( cellValue, out targetGroup ) )
                         {
                             placementParts.Add( string.Format( "{0}: {1} ✓", mapping.CsvColumnName, cellValue ) );
                         }
@@ -922,317 +912,6 @@ namespace RockWeb.Plugins.org_secc.Event
             {
                 ShowInfo( string.Format( "{0} row(s) ready to process.", readyCount ) );
             }
-        }
-
-        /// <summary>
-        /// Processes the actual group member placements and collects detailed per-cell results.
-        /// All rows for any name that appears more than once in the CSV are skipped entirely.
-        /// Existing memberships are pre-loaded in bulk to avoid per-row database queries.
-        /// </summary>
-        private void ProcessPlacements( string firstNameCol, string lastNameCol, List<PlacementMapping> mappings )
-        {
-            int successCount = 0;
-            int skippedCount = 0;
-            int errorCount = 0;
-            var resultRows = new List<ResultRow>();
-
-            int firstNameIdx = CsvHeaders.IndexOf( firstNameCol );
-            int lastNameIdx = CsvHeaders.IndexOf( lastNameCol );
-
-            int batchSize = GetAttributeValue( AttributeKey.BatchSize ).AsIntegerOrNull() ?? 50;
-            var status = ( GroupMemberStatus ) GetAttributeValue( AttributeKey.DefaultGroupMemberStatus ).AsInteger();
-
-            // Pre-scan: identify every name that appears more than once so ALL their rows are skipped.
-            var nameCount = new Dictionary<string, int>( StringComparer.OrdinalIgnoreCase );
-            foreach ( var row in CsvRows )
-            {
-                string fn = GetCellValue( row, firstNameIdx );
-                string ln = GetCellValue( row, lastNameIdx );
-                string fullName = string.Format( "{0} {1}", fn, ln ).Trim();
-                if ( nameCount.ContainsKey( fullName ) )
-                {
-                    nameCount[fullName]++;
-                }
-                else
-                {
-                    nameCount[fullName] = 1;
-                }
-            }
-
-            var duplicateNames = new HashSet<string>(
-                nameCount.Where( kv => kv.Value > 1 ).Select( kv => kv.Key ),
-                StringComparer.OrdinalIgnoreCase );
-
-            using ( var rockContext = new RockContext() )
-            {
-                var registrants = LoadRegistrants( rockContext );
-                var registrantLookup = BuildRegistrantLookup( registrants );
-                var groupService = new GroupService( rockContext );
-                var groupMemberService = new GroupMemberService( rockContext );
-
-                // Pre-load all child groups for every mapping.
-                var childGroupsByParent = new Dictionary<int, List<Group>>();
-                foreach ( var mapping in mappings )
-                {
-                    if ( !childGroupsByParent.ContainsKey( mapping.ParentGroupId ) )
-                    {
-                        childGroupsByParent[mapping.ParentGroupId] = groupService.Queryable()
-                            .AsNoTracking()
-                            .Where( g => g.ParentGroupId == mapping.ParentGroupId && g.IsActive && !g.IsArchived )
-                            .ToList();
-                    }
-                }
-
-                // Build once before the row loop, after childGroupsByParent is populated
-                var mappingMeta = new List<MappingMeta>();
-                foreach ( var mapping in mappings )
-                {
-                    var colIdx = CsvHeaders.IndexOf( mapping.CsvColumnName );
-                    var childList = childGroupsByParent.ContainsKey( mapping.ParentGroupId )
-                        ? childGroupsByParent[mapping.ParentGroupId]
-                        : new List<Group>();
-
-                    // Dictionary<groupNameLower, Group> for O(1) lookups
-                    var groupByName = new Dictionary<string, Group>( StringComparer.OrdinalIgnoreCase );
-                    foreach ( var g in childList )
-                    {
-                        if ( !groupByName.ContainsKey( g.Name ) )
-                        {
-                            groupByName[g.Name] = g;
-                        }
-                    }
-
-                    mappingMeta.Add( new MappingMeta
-                    {
-                        Mapping = mapping,
-                        ColumnIndex = colIdx,
-                        GroupByName = groupByName
-                    } );
-                }
-
-                int pendingSaves = 0;
-
-                rockContext.Configuration.AutoDetectChangesEnabled = false;
-
-                for ( int rowIdx = 0; rowIdx < CsvRows.Count; rowIdx++ )
-                {
-                    var row = CsvRows[rowIdx];
-                    string firstName = GetCellValue( row, firstNameIdx );
-                    string lastName = GetCellValue( row, lastNameIdx );
-                    string csvFullName = string.Format( "{0} {1}", firstName, lastName ).Trim();
-
-                    var resultRow = new ResultRow
-                    {
-                        CsvRowNumber = rowIdx + 2,
-                        CamperName = csvFullName,
-                        Placements = new List<PlacementResult>()
-                    };
-
-                    // Skip every row for a name that appeared more than once.
-                    if ( duplicateNames.Contains( csvFullName ) )
-                    {
-                        resultRow.PersonError = string.Format(
-                            "'{0}' appears {1} times in the CSV. All rows for this name are skipped.",
-                            csvFullName, nameCount[csvFullName] );
-
-                        foreach ( var mapping in mappings )
-                        {
-                            int colIdx = CsvHeaders.IndexOf( mapping.CsvColumnName );
-                            resultRow.Placements.Add( new PlacementResult
-                            {
-                                ColumnName = mapping.CsvColumnName,
-                                CsvColumnName = GetCellValue( row, colIdx ),
-                                Outcome = PlacementOutcome.Error,
-                                Message = "Skipped — duplicate name in CSV"
-                            } );
-                            errorCount++;
-                        }
-
-                        resultRows.Add( resultRow );
-                        continue;
-                    }
-
-                    var person = FindRegistrant( firstName, lastName, registrantLookup );
-                    if ( person == null )
-                    {
-                        resultRow.PersonError = string.Format( "Could not match '{0} {1}' to a registrant.", firstName, lastName );
-
-                        foreach ( var mapping in mappings )
-                        {
-                            int colIdx = CsvHeaders.IndexOf( mapping.CsvColumnName );
-                            resultRow.Placements.Add( new PlacementResult
-                            {
-                                ColumnName = mapping.CsvColumnName,
-                                CsvColumnName = GetCellValue( row, colIdx ),
-                                Outcome = PlacementOutcome.Error,
-                                Message = "Person not found"
-                            } );
-                            errorCount++;
-                        }
-
-                        resultRows.Add( resultRow );
-                        continue;
-                    }
-
-                    resultRow.MatchedPersonName = person.FullName;
-
-                    foreach ( var mapping in mappings )
-                    {
-                        int colIdx = CsvHeaders.IndexOf( mapping.CsvColumnName );
-                        string cellValue = GetCellValue( row, colIdx );
-
-                        var placementResult = new PlacementResult
-                        {
-                            ColumnName = mapping.CsvColumnName,
-                            CsvColumnName = cellValue
-                        };
-
-                        if ( string.IsNullOrWhiteSpace( cellValue ) )
-                        {
-                            placementResult.Outcome = PlacementOutcome.Empty;
-                            placementResult.Message = "No value in CSV";
-                            resultRow.Placements.Add( placementResult );
-                            continue;
-                        }
-
-                        var childGroups = childGroupsByParent.ContainsKey( mapping.ParentGroupId )
-                            ? childGroupsByParent[mapping.ParentGroupId]
-                            : new List<Group>();
-
-                        Group targetGroup;
-                        // colIdx is meta.ColumnIndex
-                        // targetGroup lookup is meta.GroupByName.TryGetValue(cellValue, out targetGroup)
-                        var meta = mappingMeta.FirstOrDefault( m => m.Mapping == mapping );
-                        if ( meta != null && meta.GroupByName.TryGetValue( cellValue, out targetGroup ) )
-                        {
-                            placementResult.Outcome = PlacementOutcome.Success;
-                            placementResult.Message = string.Format( "Added to '{0}'", targetGroup.Name );
-                            successCount++;
-                            pendingSaves++;
-                        }
-                        else
-                        {
-                            placementResult.Outcome = PlacementOutcome.Error;
-                            placementResult.Message = string.Format( "Group '{0}' not found under parent group ID {1}", cellValue, mapping.ParentGroupId );
-                            errorCount++;
-                        }
-
-                        resultRow.Placements.Add( placementResult );
-
-                        if ( pendingSaves >= batchSize )
-                        {
-                            rockContext.ChangeTracker.DetectChanges();
-                            rockContext.SaveChanges();
-                            foreach ( var entry in rockContext.ChangeTracker.Entries().ToList() )
-                            {
-                                entry.State = EntityState.Detached;
-                            }
-                            pendingSaves = 0;
-                        }
-                    }
-
-                    resultRows.Add( resultRow );
-                }
-
-                if ( pendingSaves > 0 )
-                {
-                    rockContext.ChangeTracker.DetectChanges();
-                    rockContext.SaveChanges();
-                }
-            }
-
-            lSuccessCount.Text = successCount.ToString();
-            lSkippedCount.Text = skippedCount.ToString();
-            lErrorCount.Text = errorCount.ToString();
-
-            lResultsTable.Text = RenderResultsTable( resultRows, mappings );
-        }
-
-        /// <summary>
-        /// Renders an HTML table showing per-row, per-column placement outcomes with color-coded labels.
-        /// </summary>
-        private string RenderResultsTable( List<ResultRow> resultRows, List<PlacementMapping> mappings )
-        {
-            var sb = new StringBuilder();
-
-            sb.Append( "<div class='table-responsive'>" );
-            sb.Append( "<table class='table table-bordered table-striped table-condensed'>" );
-
-            // Header row
-            sb.Append( "<thead><tr>" );
-            sb.Append( "<th>Row</th>" );
-            sb.Append( "<th>Camper</th>" );
-            sb.Append( "<th>Matched Person</th>" );
-            foreach ( var mapping in mappings )
-            {
-                sb.AppendFormat( "<th>{0}</th>", System.Web.HttpUtility.HtmlEncode( mapping.CsvColumnName ) );
-            }
-            sb.Append( "</tr></thead>" );
-
-            // Data rows
-            sb.Append( "<tbody>" );
-            foreach ( var row in resultRows )
-            {
-                sb.Append( "<tr>" );
-                sb.AppendFormat( "<td>{0}</td>", row.CsvRowNumber );
-                sb.AppendFormat( "<td>{0}</td>", System.Web.HttpUtility.HtmlEncode( row.CamperName ) );
-
-                // Matched person column
-                if ( !string.IsNullOrWhiteSpace( row.PersonError ) )
-                {
-                    sb.AppendFormat( "<td><span class='label label-danger'>NOT FOUND</span><br/><small class='text-danger'>{0}</small></td>",
-                        System.Web.HttpUtility.HtmlEncode( row.PersonError ) );
-                }
-                else
-                {
-                    sb.AppendFormat( "<td>{0}</td>", System.Web.HttpUtility.HtmlEncode( row.MatchedPersonName ) );
-                }
-
-                // One cell per mapping column
-                foreach ( var mapping in mappings )
-                {
-                    var placement = row.Placements.FirstOrDefault( p => p.ColumnName == mapping.CsvColumnName );
-                    if ( placement == null )
-                    {
-                        sb.Append( "<td></td>" );
-                        continue;
-                    }
-
-                    string labelClass;
-                    string labelText;
-                    switch ( placement.Outcome )
-                    {
-                        case PlacementOutcome.Success:
-                            labelClass = "label-success";
-                            labelText = "Added";
-                            break;
-                        case PlacementOutcome.Skipped:
-                            labelClass = "label-info";
-                            labelText = "Skipped";
-                            break;
-                        case PlacementOutcome.Error:
-                            labelClass = "label-danger";
-                            labelText = "Error";
-                            break;
-                        default:
-                            labelClass = "label-default";
-                            labelText = "Empty";
-                            break;
-                    }
-
-                    string csvValueEncoded = System.Web.HttpUtility.HtmlEncode( placement.CsvColumnName );
-                    string messageEncoded = System.Web.HttpUtility.HtmlEncode( placement.Message );
-
-                    sb.AppendFormat( "<td>{0} <span class='label {1}'>{2}</span><br/><small class='text-muted'>{3}</small></td>",
-                        csvValueEncoded, labelClass, labelText, messageEncoded );
-                }
-
-                sb.Append( "</tr>" );
-            }
-
-            sb.Append( "</tbody></table></div>" );
-
-            return sb.ToString();
         }
 
         /// <summary>
@@ -1346,11 +1025,11 @@ namespace RockWeb.Plugins.org_secc.Event
         private void SetActivePanel( Panel activePanel )
         {
             pnlSelectInstance.Visible = activePanel == pnlSelectInstance;
-            pnlUpload.Visible         = activePanel == pnlUpload;
-            pnlMapping.Visible        = activePanel == pnlMapping;
-            pnlPreview.Visible        = activePanel == pnlPreview;
-            pnlProcessing.Visible     = activePanel == pnlProcessing;
-            pnlResults.Visible        = activePanel == pnlResults;
+            pnlUpload.Visible = activePanel == pnlUpload;
+            pnlMapping.Visible = activePanel == pnlMapping;
+            pnlPreview.Visible = activePanel == pnlPreview;
+            pnlProcessing.Visible = activePanel == pnlProcessing;
+            pnlResults.Visible = activePanel == pnlResults;
 
             // Only run the timer when on the processing panel
             tmrRunStatus.Enabled = activePanel == pnlProcessing && CurrentRunId.HasValue;
@@ -1486,7 +1165,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
                 lSuccessCount.Text = run.SuccessCount.ToString();
                 lSkippedCount.Text = run.SkippedCount.ToString();
-                lErrorCount.Text   = run.ErrorCount.ToString();
+                lErrorCount.Text = run.ErrorCount.ToString();
                 lResultsTable.Text = run.ResultHtml ?? string.Empty;
 
                 SetActivePanel( pnlResults );
@@ -1503,15 +1182,25 @@ namespace RockWeb.Plugins.org_secc.Event
 
         private int CreateQueuedRun( string firstNameCol, string lastNameCol, List<PlacementMapping> mappings )
         {
+            if ( !SelectedRegistrationInstanceId.HasValue )
+            {
+                throw new InvalidOperationException( "A registration instance must be selected before queueing the import." );
+            }
+
+            if ( !UploadedBinaryFileId.HasValue )
+            {
+                throw new InvalidOperationException( "An uploaded file is required before queueing the import." );
+            }
+
             var request = new CampPlacementImportRequest
             {
-                RegistrationInstanceId        = SelectedRegistrationInstanceId ?? 0,
-                BinaryFileId                  = UploadedBinaryFileId ?? 0,
-                FirstNameCol                  = firstNameCol,
-                LastNameCol                   = lastNameCol,
-                BatchSize                     = GetAttributeValue( AttributeKey.BatchSize ).AsIntegerOrNull() ?? 50,
+                RegistrationInstanceId = SelectedRegistrationInstanceId.Value,
+                BinaryFileId = UploadedBinaryFileId.Value,
+                FirstNameCol = firstNameCol,
+                LastNameCol = lastNameCol,
+                BatchSize = GetAttributeValue( AttributeKey.BatchSize ).AsIntegerOrNull() ?? 50,
                 DefaultGroupMemberStatusValue = GetAttributeValue( AttributeKey.DefaultGroupMemberStatus ).AsInteger(),
-                Mappings                      = mappings.Select( m => new CampPlacementMappingData
+                Mappings = mappings.Select( m => new CampPlacementMappingData
                 {
                     CsvColumnName = m.CsvColumnName,
                     ParentGroupId = m.ParentGroupId
@@ -1528,10 +1217,10 @@ INSERT INTO [_org_secc_CampPlacementImportRun]
 VALUES
     (NEWID(),GETDATE(),@aliasId,@status,@message,0,@json);
 SELECT CAST(SCOPE_IDENTITY() AS INT);",
-                    new SqlParameter( "@aliasId",  ( object ) CurrentPersonAliasId ?? DBNull.Value ),
-                    new SqlParameter( "@status",   ( object ) ( int ) ImportRunStatus.Queued ),
-                    new SqlParameter( "@message",  "Queued" ),
-                    new SqlParameter( "@json",     requestJson ) )
+                    new SqlParameter( "@aliasId", ( object ) CurrentPersonAliasId ?? DBNull.Value ),
+                    new SqlParameter( "@status", ( object ) ( int ) ImportRunStatus.Queued ),
+                    new SqlParameter( "@message", "Queued" ),
+                    new SqlParameter( "@json", requestJson ) )
                     .First();
             }
         }
@@ -1579,7 +1268,7 @@ WHERE  [Id] = @runId",
             }
         }
 
-        
+
     }
 
     // Local copies of the DTO models — these are JSON-serialized,
