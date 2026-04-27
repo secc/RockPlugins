@@ -156,9 +156,28 @@
                     </div>
                 </asp:Panel>
 
+                <%-- Step 5: Processing --%>
+                <asp:Panel ID="pnlProcessing" runat="server" Visible="false">
+                    <h4>Processing…</h4>
+                    <p>Your import is running in the background. This page updates automatically every 2 seconds.</p>
+
+                    <Rock:NotificationBox ID="nbProcessing" runat="server" NotificationBoxType="Info" Visible="true" Text="Starting…" />
+
+                    <div class="progress">
+                        <asp:Literal ID="lProgressBar" runat="server" />
+                    </div>
+                </asp:Panel>
+
+                <%-- Inside the UpdatePanel, add a timer and an async trigger for it: --%>
+                <asp:Timer ID="tmrRunStatus" runat="server" Interval="2000" Enabled="false" OnTick="tmrRunStatus_Tick" />
+
             </div>
 
         </asp:Panel>
 
     </ContentTemplate>
+    <Triggers>
+        <asp:AsyncPostBackTrigger ControlID="tmrRunStatus" EventName="Tick" />
+        <asp:PostBackTrigger ControlID="btnProcess" />
+    </Triggers>
 </asp:UpdatePanel>

@@ -70,11 +70,15 @@
     <Compile Include="CompleteWorkflows.cs" />
     <Compile Include="EasterChildrensAttendance.cs" />
     <Compile Include="Event\AddEventCanCheckinRelationships.cs" />
+    <Compile Include="Event\CampPlacementImportBackgroundJob.cs" />
+    <Compile Include="Event\CampPlacementImportRunner.cs" />
     <Compile Include="Event\CopyCommunityGivesBackSchools.cs" />
     <Compile Include="FrontPorchDeviceRemoval.cs" />
     <Compile Include="GroupLeaderMedicationNotifications.cs" />
     <Compile Include="MigratePickleballCredits.cs" />
+    <Compile Include="Migrations\002_CampPlacementImportRun.cs" />
     <Compile Include="Migrations\001_EventRelationshipRoles.cs" />
+    <Compile Include="Event\CampPlacementImportModels.cs" />
     <Compile Include="RemoveDevicesFromPersons.cs" />
     <Compile Include="RemoveEventCanCheckinRelationships.cs" />
     <Compile Include="SetFirstAttendanceDate.cs" />

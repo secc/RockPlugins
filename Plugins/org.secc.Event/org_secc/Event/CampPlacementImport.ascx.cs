@@ -16,10 +16,14 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Web.UI;
 using System.Web.UI.WebControls;
+using Quartz;
+using Quartz.Impl;
 
 using Rock;
 using Rock.Attribute;
@@ -117,6 +121,12 @@ namespace RockWeb.Plugins.org_secc.Event
         {
             get { return ViewState["BaseParentGroupId"] as int?; }
             set { ViewState["BaseParentGroupId"] = value; }
+        }
+
+        private int? CurrentRunId
+        {
+            get { return ViewState["CurrentRunId"] as int?; }
+            set { ViewState["CurrentRunId"] = value; }
         }
 
         #endregion
@@ -250,7 +260,7 @@ namespace RockWeb.Plugins.org_secc.Event
                     // Base group is set — show filtered dropdown of children
                     gpParentGroup.Visible = false;
                     ddlParentGroupChild.Visible = true;
-
+                    
                     ddlParentGroupChild.Items.Clear();
                     ddlParentGroupChild.Items.Add( new ListItem( "", "" ) );
 
@@ -258,8 +268,8 @@ namespace RockWeb.Plugins.org_secc.Event
                     {
                         var childGroups = new GroupService( rockContext )
                             .Queryable()
-                            .Where( g => g.ParentGroupId == BaseParentGroupId.Value
-                                      && g.IsActive
+                            .Where( g => g.ParentGroupId == BaseParentGroupId.Value 
+                                      && g.IsActive 
                                       && !g.IsArchived )
                             .OrderBy( g => g.Name )
                             .Select( g => new { g.Id, g.Name } )
@@ -286,7 +296,7 @@ namespace RockWeb.Plugins.org_secc.Event
             MappingCount++;
 
             var savedColumns = ViewState["SavedMappingColumns"] as List<string> ?? new List<string>();
-            var savedGroups = ViewState["SavedMappingGroups"] as List<int?> ?? new List<int?>();
+            var savedGroups = ViewState["SavedMappingGroups" ] as List<int?> ?? new List<int?>();
 
             BindMappingControls( savedColumns, savedGroups );
         }
@@ -303,7 +313,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 SaveMappingSelections();
 
                 var savedColumns = ViewState["SavedMappingColumns"] as List<string> ?? new List<string>();
-                var savedGroups = ViewState["SavedMappingGroups"] as List<int?> ?? new List<int?>();
+                var savedGroups = ViewState["SavedMappingGroups" ] as List<int?> ?? new List<int?>();
 
                 if ( removeIndex < savedColumns.Count )
                 {
@@ -382,11 +392,24 @@ namespace RockWeb.Plugins.org_secc.Event
         {
             var mappings = GetMappingsFromUI();
             var firstNameCol = ddlFirstNameCol.SelectedValue;
-            var lastNameCol = ddlLastNameCol.SelectedValue;
+            var lastNameCol  = ddlLastNameCol.SelectedValue;
 
-            ProcessPlacements( firstNameCol, lastNameCol, mappings );
+            if ( !mappings.Any() || string.IsNullOrWhiteSpace( firstNameCol ) || string.IsNullOrWhiteSpace( lastNameCol ) )
+            {
+                ShowWarning( "Please complete mapping and name column selection before processing." );
+                return;
+            }
 
-            SetActivePanel( pnlResults );
+            var runId = CreateQueuedRun( firstNameCol, lastNameCol, mappings );
+            QueueRun( runId );
+
+            CurrentRunId = runId;
+
+            nbProcessing.Text = "Import queued and starting. This page updates automatically every 2 seconds.";
+            lProgressBar.Text = "<div class='progress-bar progress-bar-striped active' role='progressbar' style='width:1%'>Queued</div>";
+            tmrRunStatus.Enabled = true;
+
+            SetActivePanel( pnlProcessing );
         }
 
         #endregion
@@ -400,9 +423,9 @@ namespace RockWeb.Plugins.org_secc.Event
             MappingCount = 1;
             SelectedRegistrationInstanceId = null;
             UploadedBinaryFileId = null;
-            BaseParentGroupId = null;
+            BaseParentGroupId = null;  
             fuCsvFile.BinaryFileId = null;
-            gpBasePlacementGroup.SetValue( ( Group ) null );
+            gpBasePlacementGroup.SetValue( (Group)null );
 
             SetActivePanel( pnlSelectInstance );
         }
@@ -661,7 +684,7 @@ namespace RockWeb.Plugins.org_secc.Event
             foreach ( RepeaterItem item in rptMappings.Items )
             {
                 var ddl = item.FindControl( "ddlCsvColumn" ) as RockDropDownList;
-
+                
                 int? parentGroupId = null;
 
                 if ( BaseParentGroupId.HasValue )
@@ -677,8 +700,8 @@ namespace RockWeb.Plugins.org_secc.Event
                     parentGroupId = gp != null ? gp.GroupId : null;
                 }
 
-                if ( ddl != null &&
-                     !string.IsNullOrWhiteSpace( ddl.SelectedValue ) &&
+                if ( ddl != null && 
+                     !string.IsNullOrWhiteSpace( ddl.SelectedValue ) && 
                      parentGroupId.HasValue )
                 {
                     mappings.Add( new PlacementMapping
@@ -732,6 +755,7 @@ namespace RockWeb.Plugins.org_secc.Event
             using ( var rockContext = new RockContext() )
             {
                 var registrants = LoadRegistrants( rockContext );
+                var registrantLookup = BuildRegistrantLookup( registrants );
 
                 var childGroupsByParent = new Dictionary<int, List<Group>>();
                 var groupService = new GroupService( rockContext );
@@ -745,6 +769,33 @@ namespace RockWeb.Plugins.org_secc.Event
                             .Where( g => g.ParentGroupId == mapping.ParentGroupId && g.IsActive && !g.IsArchived )
                             .ToList();
                     }
+                }
+
+                // Build once before the row loop, after childGroupsByParent is populated
+                var mappingMeta = new List<MappingMeta>();
+                foreach ( var mapping in mappings )
+                {
+                    var colIdx = CsvHeaders.IndexOf( mapping.CsvColumnName );
+                    var childList = childGroupsByParent.ContainsKey( mapping.ParentGroupId )
+                        ? childGroupsByParent[mapping.ParentGroupId]
+                        : new List<Group>();
+
+                    // Dictionary<groupNameLower, Group> for O(1) lookups
+                    var groupByName = new Dictionary<string, Group>( StringComparer.OrdinalIgnoreCase );
+                    foreach ( var g in childList )
+                    {
+                        if ( !groupByName.ContainsKey( g.Name ) )
+                        {
+                            groupByName[g.Name] = g;
+                        }
+                    }
+
+                    mappingMeta.Add( new MappingMeta
+                    {
+                        Mapping = mapping,
+                        ColumnIndex = colIdx,
+                        GroupByName = groupByName
+                    } );
                 }
 
                 for ( int rowIdx = 0; rowIdx < CsvRows.Count; rowIdx++ )
@@ -773,7 +824,7 @@ namespace RockWeb.Plugins.org_secc.Event
                         continue;
                     }
 
-                    var matchedPerson = FindRegistrant( firstName, lastName, registrants );
+                    var matchedPerson = FindRegistrant( firstName, lastName, registrantLookup );
                     if ( matchedPerson == null )
                     {
                         preview.MatchedPerson = "NOT FOUND";
@@ -801,10 +852,11 @@ namespace RockWeb.Plugins.org_secc.Event
                             ? childGroupsByParent[mapping.ParentGroupId]
                             : new List<Group>();
 
-                        var targetGroup = childGroups.FirstOrDefault( g =>
-                            g.Name.Equals( cellValue, StringComparison.OrdinalIgnoreCase ) );
-
-                        if ( targetGroup != null )
+                        Group targetGroup;
+                        // colIdx is meta.ColumnIndex
+                        // targetGroup lookup is meta.GroupByName.TryGetValue(cellValue, out targetGroup)
+                        var meta = mappingMeta.FirstOrDefault( m => m.Mapping == mapping );
+                        if ( meta != null && meta.GroupByName.TryGetValue( cellValue, out targetGroup ) )
                         {
                             placementParts.Add( string.Format( "{0}: {1} ✓", mapping.CsvColumnName, cellValue ) );
                         }
@@ -914,6 +966,7 @@ namespace RockWeb.Plugins.org_secc.Event
             using ( var rockContext = new RockContext() )
             {
                 var registrants = LoadRegistrants( rockContext );
+                var registrantLookup = BuildRegistrantLookup( registrants );
                 var groupService = new GroupService( rockContext );
                 var groupMemberService = new GroupMemberService( rockContext );
 
@@ -924,51 +977,42 @@ namespace RockWeb.Plugins.org_secc.Event
                     if ( !childGroupsByParent.ContainsKey( mapping.ParentGroupId ) )
                     {
                         childGroupsByParent[mapping.ParentGroupId] = groupService.Queryable()
+                            .AsNoTracking()
                             .Where( g => g.ParentGroupId == mapping.ParentGroupId && g.IsActive && !g.IsArchived )
                             .ToList();
                     }
                 }
 
-                // Collect the full set of target group IDs and registrant person IDs so we can
-                // load all potentially relevant GroupMember records in a single query.
-                var allTargetGroupIds = childGroupsByParent.Values
-                    .SelectMany( groups => groups )
-                    .Select( g => g.Id )
-                    .Distinct()
-                    .ToList();
-
-                var allPersonIds = registrants
-                    .Where( r => r.PersonAlias != null )
-                    .Select( r => r.PersonAlias.PersonId )
-                    .Distinct()
-                    .ToList();
-
-                // Single bulk membership query instead of one query per person per group.
-                // Keyed by "personId_groupId_roleId" for O(1) lookups inside the loop.
-                // Including the role in the key is required because a person can have multiple
-                // memberships in the same group under different roles; keying by person+group
-                // alone would silently hide a real duplicate (same person+group+role) from the
-                // in-memory check and let the GroupMember save-hook throw later.
-                var existingMembershipLookup = new Dictionary<string, GroupMember>();
-                if ( allTargetGroupIds.Any() && allPersonIds.Any() )
+                // Build once before the row loop, after childGroupsByParent is populated
+                var mappingMeta = new List<MappingMeta>();
+                foreach ( var mapping in mappings )
                 {
-                    var existingMembers = groupMemberService.Queryable()
-                        .Where( gm => allTargetGroupIds.Contains( gm.GroupId )
-                                   && allPersonIds.Contains( gm.PersonId ) )
-                        .ToList();
+                    var colIdx = CsvHeaders.IndexOf( mapping.CsvColumnName );
+                    var childList = childGroupsByParent.ContainsKey( mapping.ParentGroupId )
+                        ? childGroupsByParent[mapping.ParentGroupId]
+                        : new List<Group>();
 
-                    foreach ( var gm in existingMembers )
+                    // Dictionary<groupNameLower, Group> for O(1) lookups
+                    var groupByName = new Dictionary<string, Group>( StringComparer.OrdinalIgnoreCase );
+                    foreach ( var g in childList )
                     {
-                        string key = string.Format( "{0}_{1}_{2}", gm.PersonId, gm.GroupId, gm.GroupRoleId );
-                        // Keep the first record found if duplicates exist.
-                        if ( !existingMembershipLookup.ContainsKey( key ) )
+                        if ( !groupByName.ContainsKey( g.Name ) )
                         {
-                            existingMembershipLookup[key] = gm;
+                            groupByName[g.Name] = g;
                         }
                     }
+
+                    mappingMeta.Add( new MappingMeta
+                    {
+                        Mapping = mapping,
+                        ColumnIndex = colIdx,
+                        GroupByName = groupByName
+                    } );
                 }
 
                 int pendingSaves = 0;
+
+                rockContext.Configuration.AutoDetectChangesEnabled = false;
 
                 for ( int rowIdx = 0; rowIdx < CsvRows.Count; rowIdx++ )
                 {
@@ -997,7 +1041,7 @@ namespace RockWeb.Plugins.org_secc.Event
                             resultRow.Placements.Add( new PlacementResult
                             {
                                 ColumnName = mapping.CsvColumnName,
-                                CsvValue = GetCellValue( row, colIdx ),
+                                CsvColumnName = GetCellValue( row, colIdx ),
                                 Outcome = PlacementOutcome.Error,
                                 Message = "Skipped — duplicate name in CSV"
                             } );
@@ -1008,7 +1052,7 @@ namespace RockWeb.Plugins.org_secc.Event
                         continue;
                     }
 
-                    var person = FindRegistrant( firstName, lastName, registrants );
+                    var person = FindRegistrant( firstName, lastName, registrantLookup );
                     if ( person == null )
                     {
                         resultRow.PersonError = string.Format( "Could not match '{0} {1}' to a registrant.", firstName, lastName );
@@ -1019,7 +1063,7 @@ namespace RockWeb.Plugins.org_secc.Event
                             resultRow.Placements.Add( new PlacementResult
                             {
                                 ColumnName = mapping.CsvColumnName,
-                                CsvValue = GetCellValue( row, colIdx ),
+                                CsvColumnName = GetCellValue( row, colIdx ),
                                 Outcome = PlacementOutcome.Error,
                                 Message = "Person not found"
                             } );
@@ -1040,7 +1084,7 @@ namespace RockWeb.Plugins.org_secc.Event
                         var placementResult = new PlacementResult
                         {
                             ColumnName = mapping.CsvColumnName,
-                            CsvValue = cellValue
+                            CsvColumnName = cellValue
                         };
 
                         if ( string.IsNullOrWhiteSpace( cellValue ) )
@@ -1055,94 +1099,12 @@ namespace RockWeb.Plugins.org_secc.Event
                             ? childGroupsByParent[mapping.ParentGroupId]
                             : new List<Group>();
 
-                        var targetGroup = childGroups.FirstOrDefault( g =>
-                            g.Name.Equals( cellValue, StringComparison.OrdinalIgnoreCase ) );
-
-                        if ( targetGroup == null )
+                        Group targetGroup;
+                        // colIdx is meta.ColumnIndex
+                        // targetGroup lookup is meta.GroupByName.TryGetValue(cellValue, out targetGroup)
+                        var meta = mappingMeta.FirstOrDefault( m => m.Mapping == mapping );
+                        if ( meta != null && meta.GroupByName.TryGetValue( cellValue, out targetGroup ) )
                         {
-                            placementResult.Outcome = PlacementOutcome.Error;
-                            placementResult.Message = string.Format( "Group '{0}' not found under parent group ID {1}", cellValue, mapping.ParentGroupId );
-                            errorCount++;
-                            resultRow.Placements.Add( placementResult );
-                            continue;
-                        }
-
-                        var groupTypeCache = GroupTypeCache.Get( targetGroup.GroupTypeId );
-                        int? defaultRoleId = groupTypeCache?.DefaultGroupRoleId;
-
-                        if ( !defaultRoleId.HasValue )
-                        {
-                            placementResult.Outcome = PlacementOutcome.Error;
-                            placementResult.Message = string.Format( "Group '{0}' has no default group role configured", targetGroup.Name );
-                            errorCount++;
-                            resultRow.Placements.Add( placementResult );
-                            continue;
-                        }
-
-                        // In-memory lookup — no database query. Keyed by person + group + role
-                        // so a person can legitimately be in the same group under multiple roles
-                        // without one hiding the other.
-                        string membershipKey = string.Format( "{0}_{1}_{2}", person.Id, targetGroup.Id, defaultRoleId.Value );
-                        GroupMember existingMember = null;
-                        existingMembershipLookup.TryGetValue( membershipKey, out existingMember );
-
-                        if ( existingMember != null )
-                        {
-                            if ( existingMember.IsArchived )
-                            {
-                                existingMember.IsArchived = false;
-                                existingMember.GroupMemberStatus = status;
-                                placementResult.Outcome = PlacementOutcome.Success;
-                                placementResult.Message = string.Format( "Restored archived membership in '{0}'", targetGroup.Name );
-                                successCount++;
-                                pendingSaves++;
-                            }
-                            else
-                            {
-                                placementResult.Outcome = PlacementOutcome.Skipped;
-                                placementResult.Message = string.Format( "Already a member of '{0}'", targetGroup.Name );
-                                skippedCount++;
-                            }
-
-                            resultRow.Placements.Add( placementResult );
-                            continue;
-                        }
-
-                        // Defense-in-depth DB check. The bulk pre-scan can miss rows (e.g. records
-                        // created by a prior aborted import run, or persons whose id wasn't in
-                        // allPersonIds). Without this check, the GroupMember save-hook would throw
-                        // a GroupMemberValidationException on SaveChanges and fail the whole batch.
-                        bool existsInDb = groupMemberService.Queryable().AsNoTracking()
-                            .Any( gm => gm.PersonId == person.Id
-                                     && gm.GroupId == targetGroup.Id
-                                     && gm.GroupRoleId == defaultRoleId.Value
-                                     && !gm.IsArchived );
-
-                        if ( existsInDb )
-                        {
-                            placementResult.Outcome = PlacementOutcome.Skipped;
-                            placementResult.Message = string.Format( "Already a member of '{0}'", targetGroup.Name );
-                            skippedCount++;
-                            resultRow.Placements.Add( placementResult );
-                            continue;
-                        }
-
-                        var groupMember = new GroupMember
-                        {
-                            PersonId = person.Id,
-                            GroupId = targetGroup.Id,
-                            GroupRoleId = defaultRoleId.Value,
-                            GroupMemberStatus = status
-                        };
-
-                        if ( groupMember.IsValidGroupMember( rockContext ) )
-                        {
-                            groupMemberService.Add( groupMember );
-
-                            // Add to the in-memory lookup so subsequent rows in this same
-                            // import don't try to add the same person to the same group again.
-                            existingMembershipLookup[membershipKey] = groupMember;
-
                             placementResult.Outcome = PlacementOutcome.Success;
                             placementResult.Message = string.Format( "Added to '{0}'", targetGroup.Name );
                             successCount++;
@@ -1151,9 +1113,7 @@ namespace RockWeb.Plugins.org_secc.Event
                         else
                         {
                             placementResult.Outcome = PlacementOutcome.Error;
-                            placementResult.Message = string.Format( "Validation failed for '{0}': {1}",
-                                targetGroup.Name,
-                                string.Join( "; ", groupMember.ValidationResults.Select( v => v.ErrorMessage ) ) );
+                            placementResult.Message = string.Format( "Group '{0}' not found under parent group ID {1}", cellValue, mapping.ParentGroupId );
                             errorCount++;
                         }
 
@@ -1161,7 +1121,12 @@ namespace RockWeb.Plugins.org_secc.Event
 
                         if ( pendingSaves >= batchSize )
                         {
-                            SafeSaveChanges( rockContext, groupMemberService, ref successCount, ref errorCount, resultRows );
+                            rockContext.ChangeTracker.DetectChanges();
+                            rockContext.SaveChanges();
+                            foreach ( var entry in rockContext.ChangeTracker.Entries().ToList() )
+                            {
+                                entry.State = EntityState.Detached;
+                            }
                             pendingSaves = 0;
                         }
                     }
@@ -1171,7 +1136,8 @@ namespace RockWeb.Plugins.org_secc.Event
 
                 if ( pendingSaves > 0 )
                 {
-                    SafeSaveChanges( rockContext, groupMemberService, ref successCount, ref errorCount, resultRows );
+                    rockContext.ChangeTracker.DetectChanges();
+                    rockContext.SaveChanges();
                 }
             }
 
@@ -1180,83 +1146,6 @@ namespace RockWeb.Plugins.org_secc.Event
             lErrorCount.Text = errorCount.ToString();
 
             lResultsTable.Text = RenderResultsTable( resultRows, mappings );
-        }
-
-        /// <summary>
-        /// Tries to save all pending changes as a single batch. If the batch fails (for example,
-        /// because the GroupMember save-hook detected a duplicate that our in-memory + DB checks
-        /// didn't catch), falls back to saving each pending GroupMember individually so one bad
-        /// row doesn't cause the entire batch of good rows to be lost.
-        /// Adjusts successCount / errorCount and appends an error ResultRow for any row that
-        /// fails during the per-row fallback.
-        /// </summary>
-        private void SafeSaveChanges( RockContext rockContext, GroupMemberService groupMemberService,
-            ref int successCount, ref int errorCount, List<ResultRow> resultRows )
-        {
-            try
-            {
-                rockContext.SaveChanges();
-                return;
-            }
-            catch ( Exception ex )
-            {
-                Rock.Model.ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
-            }
-
-            // Batch save failed. Snapshot the pending GroupMember entries and detach them all
-            // so we can re-add and save them one at a time. Any other pending changes in the
-            // context (e.g. unarchive edits on existing members) will also be retried per-entry.
-            var pendingEntries = rockContext.ChangeTracker.Entries<GroupMember>()
-                .Where( e => e.State == EntityState.Added || e.State == EntityState.Modified )
-                .ToList();
-
-            var retryList = new List<Tuple<GroupMember, EntityState>>();
-            foreach ( var entry in pendingEntries )
-            {
-                retryList.Add( Tuple.Create( entry.Entity, entry.State ) );
-                entry.State = EntityState.Detached;
-            }
-
-            foreach ( var pair in retryList )
-            {
-                var gm = pair.Item1;
-                var originalState = pair.Item2;
-
-                try
-                {
-                    if ( originalState == EntityState.Added )
-                    {
-                        groupMemberService.Add( gm );
-                    }
-                    else
-                    {
-                        // Re-attach as Modified so EF tracks the pending edits.
-                        rockContext.Entry( gm ).State = EntityState.Modified;
-                    }
-
-                    rockContext.SaveChanges();
-                }
-                catch ( Exception ex )
-                {
-                    // Back out this entity and record a row-level error so the rest can continue.
-                    rockContext.Entry( gm ).State = EntityState.Detached;
-
-                    successCount--;
-                    errorCount++;
-
-                    resultRows.Add( new ResultRow
-                    {
-                        CsvRowNumber = 0,
-                        CamperName = gm.Person?.FullName ?? string.Format( "PersonId {0}", gm.PersonId ),
-                        MatchedPersonName = gm.Person?.FullName,
-                        PersonError = string.Format( "Save failed for GroupId {0}, RoleId {1}: {2}",
-                            gm.GroupId, gm.GroupRoleId, ex.Message ),
-                        Placements = new List<PlacementResult>()
-                    } );
-
-                    Rock.Model.ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
-                }
-            }
         }
 
         /// <summary>
@@ -1331,7 +1220,7 @@ namespace RockWeb.Plugins.org_secc.Event
                             break;
                     }
 
-                    string csvValueEncoded = System.Web.HttpUtility.HtmlEncode( placement.CsvValue );
+                    string csvValueEncoded = System.Web.HttpUtility.HtmlEncode( placement.CsvColumnName );
                     string messageEncoded = System.Web.HttpUtility.HtmlEncode( placement.Message );
 
                     sb.AppendFormat( "<td>{0} <span class='label {1}'>{2}</span><br/><small class='text-muted'>{3}</small></td>",
@@ -1365,30 +1254,74 @@ namespace RockWeb.Plugins.org_secc.Event
         }
 
         /// <summary>
-        /// Finds a matching registrant person by first/last name (or nickname).
+        /// Builds a lookup dictionary from registrant persons, keyed by "first|last" (case-insensitive).
+        /// Both FirstName and NickName are indexed. Persons with ambiguous name matches are stored as
+        /// multiple entries so they can be excluded at lookup time.
+        /// </summary>
+        private Dictionary<string, List<Person>> BuildRegistrantLookup( List<RegistrationRegistrant> registrants )
+        {
+            var lookup = new Dictionary<string, List<Person>>( StringComparer.OrdinalIgnoreCase );
+
+            foreach ( var r in registrants )
+            {
+                var p = r.PersonAlias != null ? r.PersonAlias.Person : null;
+                if ( p == null || string.IsNullOrWhiteSpace( p.LastName ) )
+                {
+                    continue;
+                }
+
+                AddToLookup( lookup, p.FirstName, p.LastName, p );
+
+                if ( !string.IsNullOrWhiteSpace( p.NickName ) &&
+                     !p.NickName.Equals( p.FirstName, StringComparison.OrdinalIgnoreCase ) )
+                {
+                    AddToLookup( lookup, p.NickName, p.LastName, p );
+                }
+            }
+
+            return lookup;
+        }
+
+        /// <summary>
+        /// Adds a person to the registrant lookup under the given first/last name key.
+        /// </summary>
+        private void AddToLookup( Dictionary<string, List<Person>> lookup, string firstName, string lastName, Person person )
+        {
+            if ( string.IsNullOrWhiteSpace( firstName ) )
+            {
+                return;
+            }
+
+            var key = firstName + "|" + lastName;
+            List<Person> list;
+            if ( !lookup.TryGetValue( key, out list ) )
+            {
+                list = new List<Person>();
+                lookup[key] = list;
+            }
+
+            if ( !list.Any( x => x.Id == person.Id ) )
+            {
+                list.Add( person );
+            }
+        }
+
+        /// <summary>
+        /// Finds a matching registrant person using a pre-built lookup dictionary.
         /// Returns null if zero or multiple matches are found.
         /// </summary>
-        private Person FindRegistrant( string firstName, string lastName, List<RegistrationRegistrant> registrants )
+        private Person FindRegistrant( string firstName, string lastName, Dictionary<string, List<Person>> registrantLookup )
         {
             if ( string.IsNullOrWhiteSpace( firstName ) || string.IsNullOrWhiteSpace( lastName ) )
             {
                 return null;
             }
 
-            var people = registrants
-                .Where( r => r.PersonAlias != null && r.PersonAlias.Person != null )
-                .Select( r => r.PersonAlias.Person )
-                .Where( p =>
-                    ( p.FirstName.Equals( firstName, StringComparison.OrdinalIgnoreCase ) ||
-                      p.NickName.Equals( firstName, StringComparison.OrdinalIgnoreCase ) ) &&
-                    p.LastName.Equals( lastName, StringComparison.OrdinalIgnoreCase ) )
-                .GroupBy( p => p.Id )
-                .Select( g => g.First() )
-                .ToList();
-
-            if ( people.Count == 1 )
+            var key = firstName + "|" + lastName;
+            List<Person> matches;
+            if ( registrantLookup.TryGetValue( key, out matches ) && matches.Count == 1 )
             {
-                return people.First();
+                return matches[0];
             }
 
             return null;
@@ -1413,10 +1346,14 @@ namespace RockWeb.Plugins.org_secc.Event
         private void SetActivePanel( Panel activePanel )
         {
             pnlSelectInstance.Visible = activePanel == pnlSelectInstance;
-            pnlUpload.Visible = activePanel == pnlUpload;
-            pnlMapping.Visible = activePanel == pnlMapping;
-            pnlPreview.Visible = activePanel == pnlPreview;
-            pnlResults.Visible = activePanel == pnlResults;
+            pnlUpload.Visible         = activePanel == pnlUpload;
+            pnlMapping.Visible        = activePanel == pnlMapping;
+            pnlPreview.Visible        = activePanel == pnlPreview;
+            pnlProcessing.Visible     = activePanel == pnlProcessing;
+            pnlResults.Visible        = activePanel == pnlResults;
+
+            // Only run the timer when on the processing panel
+            tmrRunStatus.Enabled = activePanel == pnlProcessing && CurrentRunId.HasValue;
         }
 
         private void ShowWarning( string message )
@@ -1482,7 +1419,7 @@ namespace RockWeb.Plugins.org_secc.Event
         private class PlacementResult
         {
             public string ColumnName { get; set; }
-            public string CsvValue { get; set; }
+            public string CsvColumnName { get; set; }
             public PlacementOutcome Outcome { get; set; }
             public string Message { get; set; }
         }
@@ -1499,6 +1436,192 @@ namespace RockWeb.Plugins.org_secc.Event
             public List<PlacementResult> Placements { get; set; }
         }
 
+        /// <summary>
+        /// Stores metadata about a mapping, including the column index and a dictionary
+        /// of child groups keyed by name for fast lookup.
+        /// </summary>
+        private class MappingMeta
+        {
+            public PlacementMapping Mapping { get; set; }
+            public int ColumnIndex { get; set; }
+            public Dictionary<string, Group> GroupByName { get; set; }
+        }
+
+        private enum ImportRunStatus
+        {
+            Queued = 0,
+            Running = 1,
+            Completed = 2,
+            Failed = 3
+        }
+
         #endregion
+
+        protected void tmrRunStatus_Tick( object sender, EventArgs e )
+        {
+            if ( !CurrentRunId.HasValue )
+            {
+                tmrRunStatus.Enabled = false;
+                return;
+            }
+
+            var run = GetRun( CurrentRunId.Value );
+            if ( run == null )
+            {
+                tmrRunStatus.Enabled = false;
+                ShowWarning( "Import run could not be found." );
+                return;
+            }
+
+            nbProcessing.Text = run.StatusMessage ?? "Processing…";
+
+            int pct = Math.Max( 1, Math.Min( 100, run.PercentComplete ) );
+            lProgressBar.Text = string.Format(
+                "<div class='progress-bar progress-bar-striped active' role='progressbar' style='width:{0}%'>{0}%</div>",
+                pct );
+
+            if ( run.Status == ( int ) ImportRunStatus.Completed )
+            {
+                tmrRunStatus.Enabled = false;
+
+                lSuccessCount.Text = run.SuccessCount.ToString();
+                lSkippedCount.Text = run.SkippedCount.ToString();
+                lErrorCount.Text   = run.ErrorCount.ToString();
+                lResultsTable.Text = run.ResultHtml ?? string.Empty;
+
+                SetActivePanel( pnlResults );
+            }
+            else if ( run.Status == ( int ) ImportRunStatus.Failed )
+            {
+                tmrRunStatus.Enabled = false;
+                ShowWarning( "Import failed: " + ( run.StatusMessage ?? "unknown error" ) );
+                SetActivePanel( pnlPreview );
+            }
+        }
+
+        // ─── CreateQueuedRun — writes the run record ─────────────────────────────────
+
+        private int CreateQueuedRun( string firstNameCol, string lastNameCol, List<PlacementMapping> mappings )
+        {
+            var request = new CampPlacementImportRequest
+            {
+                RegistrationInstanceId        = SelectedRegistrationInstanceId ?? 0,
+                BinaryFileId                  = UploadedBinaryFileId ?? 0,
+                FirstNameCol                  = firstNameCol,
+                LastNameCol                   = lastNameCol,
+                BatchSize                     = GetAttributeValue( AttributeKey.BatchSize ).AsIntegerOrNull() ?? 50,
+                DefaultGroupMemberStatusValue = GetAttributeValue( AttributeKey.DefaultGroupMemberStatus ).AsInteger(),
+                Mappings                      = mappings.Select( m => new CampPlacementMappingData
+                {
+                    CsvColumnName = m.CsvColumnName,
+                    ParentGroupId = m.ParentGroupId
+                } ).ToList()
+            };
+
+            string requestJson = request.ToJson();
+
+            using ( var rockContext = new RockContext() )
+            {
+                return rockContext.Database.SqlQuery<int>( @"
+INSERT INTO [_org_secc_CampPlacementImportRun]
+    ([Guid],[CreatedDateTime],[CreatedByPersonAliasId],[Status],[StatusMessage],[TotalRows],[RequestJson])
+VALUES
+    (NEWID(),GETDATE(),@aliasId,@status,@message,0,@json);
+SELECT CAST(SCOPE_IDENTITY() AS INT);",
+                    new SqlParameter( "@aliasId",  ( object ) CurrentPersonAliasId ?? DBNull.Value ),
+                    new SqlParameter( "@status",   ( object ) ( int ) ImportRunStatus.Queued ),
+                    new SqlParameter( "@message",  "Queued" ),
+                    new SqlParameter( "@json",     requestJson ) )
+                    .First();
+            }
+        }
+
+        // ─── QueueRun — fires the background job via Quartz ──────────────────────────
+
+        private void QueueRun( int runId )
+        {
+            // Resolve the job type by name — avoids a compile-time assembly reference
+            // to the org.secc.Jobs project from RockWeb.
+            var jobType = Type.GetType(
+                "org.secc.Jobs.Event.CampPlacementImportBackgroundJob, org.secc.Jobs" );
+
+            if ( jobType == null )
+            {
+                throw new Exception( "Could not find CampPlacementImportBackgroundJob. Ensure org.secc.Jobs.dll is in the bin folder." );
+            }
+
+            var scheduler = new StdSchedulerFactory().GetScheduler();
+            var job = JobBuilder.Create( jobType )
+                .WithIdentity( "CampPlacementImport-" + runId )
+                .UsingJobData( "RunId", runId )
+                .Build();
+
+            var trigger = TriggerBuilder.Create()
+                .StartNow()
+                .Build();
+
+            scheduler.ScheduleJob( job, trigger );
+            scheduler.Start();
+        }
+
+        // ─── GetRun — polls one run record row ───────────────────────────────────────
+
+        private CampPlacementImportRunRecord GetRun( int runId )
+        {
+            using ( var rockContext = new RockContext() )
+            {
+                return rockContext.Database.SqlQuery<CampPlacementImportRunRecord>( @"
+SELECT [Id],[Status],[StatusMessage],[PercentComplete],
+       [ProcessedRows],[TotalRows],[SuccessCount],[SkippedCount],[ErrorCount],[ResultHtml]
+FROM   [_org_secc_CampPlacementImportRun]
+WHERE  [Id] = @runId",
+                    new SqlParameter( "@runId", runId ) ).FirstOrDefault();
+            }
+        }
+
+        
+    }
+
+    // Local copies of the DTO models — these are JSON-serialized,
+    // so they just need matching property names with org.secc.Jobs.Event versions.
+
+    public enum ImportRunStatus
+    {
+        Queued = 0,
+        Running = 1,
+        Completed = 2,
+        Failed = 3
+    }
+
+    public class CampPlacementImportRequest
+    {
+        public int RegistrationInstanceId { get; set; }
+        public int BinaryFileId { get; set; }
+        public string FirstNameCol { get; set; }
+        public string LastNameCol { get; set; }
+        public int BatchSize { get; set; } = 50;
+        public int? DefaultGroupMemberStatusValue { get; set; }
+        public List<CampPlacementMappingData> Mappings { get; set; } = new List<CampPlacementMappingData>();
+    }
+
+    public class CampPlacementMappingData
+    {
+        public string CsvColumnName { get; set; }
+        public int ParentGroupId { get; set; }
+    }
+
+    public class CampPlacementImportRunRecord
+    {
+        public int Id { get; set; }
+        public int Status { get; set; }           // stored as int in DB; compared via (int)ImportRunStatus
+        public string StatusMessage { get; set; }
+        public int PercentComplete { get; set; }
+        public int ProcessedRows { get; set; }
+        public int TotalRows { get; set; }
+        public int SuccessCount { get; set; }
+        public int SkippedCount { get; set; }
+        public int ErrorCount { get; set; }
+        public string ResultHtml { get; set; }
+        public string ErrorMessage { get; set; }
     }
 }
