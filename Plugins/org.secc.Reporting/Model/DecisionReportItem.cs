@@ -175,7 +175,7 @@ namespace org.secc.Reporting.Model
             {
                 if (IsMinor)
                 {
-                    return ParentPhone;
+                    return ParentPhone.IsNotNullOrWhiteSpace() ? ParentPhone : MobilePhone;
                 }
 
                 return MobilePhone;
