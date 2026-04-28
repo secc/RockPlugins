@@ -131,6 +131,35 @@ namespace org.secc.Jobs.Event
                 return;
             }
 
+            if ( request.Mappings == null || !request.Mappings.Any() )
+            {
+                MarkFailed( runId, "No placement mappings were provided." );
+                return;
+            }
+
+            var duplicateMappingColumns = request.Mappings
+                .Where( m => !string.IsNullOrWhiteSpace( m.CsvColumnName ) )
+                .GroupBy( m => m.CsvColumnName, StringComparer.OrdinalIgnoreCase )
+                .Where( g => g.Count() > 1 )
+                .Select( g => g.Key )
+                .OrderBy( n => n )
+                .ToList();
+
+            if ( duplicateMappingColumns.Any() )
+            {
+                MarkFailed( runId, "Duplicate mapping columns are not allowed: " + string.Join( ", ", duplicateMappingColumns ) );
+                return;
+            }
+
+            var headerIndexByName = new Dictionary<string, int>( StringComparer.OrdinalIgnoreCase );
+            for ( int i = 0; i < headers.Count; i++ )
+            {
+                if ( !headerIndexByName.ContainsKey( headers[i] ) )
+                {
+                    headerIndexByName[headers[i]] = i;
+                }
+            }
+
             var status = ( GroupMemberStatus ) request.DefaultGroupMemberStatusValue;
             int batchSize = request.BatchSize > 0 ? request.BatchSize : 50;
 
@@ -208,22 +237,20 @@ namespace org.secc.Jobs.Event
 
                 var registrantLookup = BuildRegistrantLookup( registrants );
 
-                // Build header index lookup once.
-                var headerIndexByName = new Dictionary<string, int>( StringComparer.OrdinalIgnoreCase );
-                for ( int i = 0; i < headers.Count; i++ )
-                {
-                    if ( !headerIndexByName.ContainsKey( headers[i] ) )
-                    {
-                        headerIndexByName[headers[i]] = i;
-                    }
-                }
-
                 // Build mapping metadata once.
                 var mappingMeta = new List<MappingMeta>();
                 foreach ( var mapping in request.Mappings )
                 {
                     int colIdx;
-                    headerIndexByName.TryGetValue( mapping.CsvColumnName, out colIdx );
+                    if ( !headerIndexByName.TryGetValue( mapping.CsvColumnName, out colIdx ) )
+                    {
+                        MarkFailed(
+                            runId,
+                            string.Format(
+                                "Configured CSV mapping column '{0}' was not found in the import file headers.",
+                                mapping.CsvColumnName ) );
+                        return;
+                    }
 
                     var childGroups = childGroupsByParent.ContainsKey( mapping.ParentGroupId )
                         ? childGroupsByParent[mapping.ParentGroupId]

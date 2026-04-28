@@ -63,25 +63,35 @@ namespace RockWeb.Plugins.org_secc.Event
 
         #endregion
 
-        #region ViewState Properties
+        #region State Properties
 
         /// <summary>
         /// The CSV headers parsed from the uploaded file.
         /// </summary>
+        private string CsvHeadersSessionKey
+        {
+            get { return string.Format( "CampPlacementImport:CsvHeaders:{0}", BlockId ); }
+        }
+
         private List<string> CsvHeaders
         {
-            get { return ViewState["CsvHeaders"] as List<string> ?? new List<string>(); }
-            set { ViewState["CsvHeaders"] = value; }
+            get { return Session[CsvHeadersSessionKey] as List<string> ?? new List<string>(); }
+            set { Session[CsvHeadersSessionKey] = value; }
         }
 
         /// <summary>
         /// The CSV data rows parsed from the uploaded file.
         /// Each row is a list of cell values in the same order as the headers.
         /// </summary>
+        private string CsvRowsSessionKey
+        {
+            get { return string.Format( "CampPlacementImport:CsvRows:{0}", BlockId ); }
+        }
+
         private List<List<string>> CsvRows
         {
-            get { return ViewState["CsvRows"] as List<List<string>> ?? new List<List<string>>(); }
-            set { ViewState["CsvRows"] = value; }
+            get { return Session[CsvRowsSessionKey] as List<List<string>> ?? new List<List<string>>(); }
+            set { Session[CsvRowsSessionKey] = value; }
         }
 
         /// <summary>
@@ -345,6 +355,13 @@ namespace RockWeb.Plugins.org_secc.Event
                 return;
             }
 
+            string mappingValidationMessage;
+            if ( !TryValidateMappings( mappings, out mappingValidationMessage ) )
+            {
+                ShowWarning( mappingValidationMessage );
+                return;
+            }
+
             var firstNameCol = ddlFirstNameCol.SelectedValue;
             var lastNameCol = ddlLastNameCol.SelectedValue;
             if ( string.IsNullOrWhiteSpace( firstNameCol ) || string.IsNullOrWhiteSpace( lastNameCol ) )
@@ -397,6 +414,13 @@ namespace RockWeb.Plugins.org_secc.Event
                 return;
             }
 
+            string mappingValidationMessage;
+            if ( !TryValidateMappings( mappings, out mappingValidationMessage ) )
+            {
+                ShowWarning( mappingValidationMessage );
+                return;
+            }
+
             var runId = CreateQueuedRun( firstNameCol, lastNameCol, mappings );
             QueueRun( runId );
 
@@ -415,8 +439,8 @@ namespace RockWeb.Plugins.org_secc.Event
 
         protected void btnStartOver_Click( object sender, EventArgs e )
         {
-            CsvHeaders = new List<string>();
-            CsvRows = new List<List<string>>();
+            CleanupUploadedBinaryFile();
+            ClearCsvSessionData();
             MappingCount = 1;
             SelectedRegistrationInstanceId = null;
             UploadedBinaryFileId = null;
@@ -467,65 +491,59 @@ namespace RockWeb.Plugins.org_secc.Event
         private List<List<string>> ReadCsvRows( StringReader reader )
         {
             var rows = new List<List<string>>();
-            string line;
-            while ( ( line = reader.ReadLine() ) != null )
+            var csvContent = reader.ReadToEnd();
+
+            if ( string.IsNullOrEmpty( csvContent ) )
             {
-                var fields = new List<string>();
-                int i = 0;
-                while ( i < line.Length )
+                return rows;
+            }
+
+            var fields = new List<string>();
+            var field = new System.Text.StringBuilder();
+            bool isInQuotes = false;
+
+            for ( int i = 0; i < csvContent.Length; i++ )
+            {
+                char currentChar = csvContent[i];
+
+                if ( currentChar == '"' )
                 {
-                    if ( line[i] == '"' )
+                    if ( isInQuotes && i + 1 < csvContent.Length && csvContent[i + 1] == '"' )
                     {
-                        // Quoted field
+                        field.Append( '"' );
                         i++;
-                        var field = new System.Text.StringBuilder();
-                        while ( i < line.Length )
-                        {
-                            if ( line[i] == '"' )
-                            {
-                                if ( i + 1 < line.Length && line[i + 1] == '"' )
-                                {
-                                    field.Append( '"' );
-                                    i += 2;
-                                }
-                                else
-                                {
-                                    i++;
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                field.Append( line[i] );
-                                i++;
-                            }
-                        }
-
-                        fields.Add( field.ToString().Trim() );
-
-                        // skip comma after closing quote
-                        if ( i < line.Length && line[i] == ',' )
-                        {
-                            i++;
-                        }
                     }
                     else
                     {
-                        // Unquoted field
-                        int nextComma = line.IndexOf( ',', i );
-                        if ( nextComma == -1 )
-                        {
-                            fields.Add( line.Substring( i ).Trim() );
-                            i = line.Length;
-                        }
-                        else
-                        {
-                            fields.Add( line.Substring( i, nextComma - i ).Trim() );
-                            i = nextComma + 1;
-                        }
+                        isInQuotes = !isInQuotes;
                     }
                 }
+                else if ( currentChar == ',' && !isInQuotes )
+                {
+                    fields.Add( field.ToString().Trim() );
+                    field.Clear();
+                }
+                else if ( ( currentChar == '\r' || currentChar == '\n' ) && !isInQuotes )
+                {
+                    fields.Add( field.ToString().Trim() );
+                    field.Clear();
+                    rows.Add( fields );
+                    fields = new List<string>();
 
+                    if ( currentChar == '\r' && i + 1 < csvContent.Length && csvContent[i + 1] == '\n' )
+                    {
+                        i++;
+                    }
+                }
+                else
+                {
+                    field.Append( currentChar );
+                }
+            }
+
+            if ( field.Length > 0 || fields.Count > 0 )
+            {
+                fields.Add( field.ToString().Trim() );
                 rows.Add( fields );
             }
 
@@ -635,6 +653,28 @@ namespace RockWeb.Plugins.org_secc.Event
         /// </summary>
         private void RestoreMappingSelections( List<string> columns, List<int?> groups )
         {
+            Dictionary<int, Group> groupsById = null;
+            if ( !BaseParentGroupId.HasValue )
+            {
+                var neededGroupIds = groups
+                    .Where( g => g.HasValue )
+                    .Select( g => g.Value )
+                    .Distinct()
+                    .ToList();
+
+                groupsById = new Dictionary<int, Group>();
+                if ( neededGroupIds.Any() )
+                {
+                    using ( var rockContext = new RockContext() )
+                    {
+                        groupsById = new GroupService( rockContext )
+                            .Queryable()
+                            .Where( g => neededGroupIds.Contains( g.Id ) )
+                            .ToDictionary( g => g.Id );
+                    }
+                }
+            }
+
             for ( int i = 0; i < rptMappings.Items.Count && i < columns.Count; i++ )
             {
                 var ddl = rptMappings.Items[i].FindControl( "ddlCsvColumn" ) as RockDropDownList;
@@ -660,13 +700,98 @@ namespace RockWeb.Plugins.org_secc.Event
                         var gp = rptMappings.Items[i].FindControl( "gpParentGroup" ) as GroupPicker;
                         if ( gp != null )
                         {
-                            using ( var rockContext = new RockContext() )
+                            Group group;
+                            if ( groupsById != null && groupsById.TryGetValue( groups[i].Value, out group ) )
                             {
-                                var group = new GroupService( rockContext ).Get( groups[i].Value );
                                 gp.SetValue( group );
                             }
                         }
                     }
+                }
+            }
+        }
+
+        private bool TryValidateMappings( List<PlacementMapping> mappings, out string message )
+        {
+            message = string.Empty;
+            if ( mappings == null || !mappings.Any() )
+            {
+                message = "Please configure at least one placement mapping.";
+                return false;
+            }
+
+            var duplicateColumns = mappings
+                .Where( m => !string.IsNullOrWhiteSpace( m.CsvColumnName ) )
+                .GroupBy( m => m.CsvColumnName, StringComparer.OrdinalIgnoreCase )
+                .Where( g => g.Count() > 1 )
+                .Select( g => g.Key )
+                .OrderBy( n => n )
+                .ToList();
+
+            if ( duplicateColumns.Any() )
+            {
+                message = "Each mapping row must use a unique CSV column. Duplicate column(s): " + string.Join( ", ", duplicateColumns );
+                return false;
+            }
+
+            return true;
+        }
+
+        private class ChildGroupListItem
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+        }
+
+        private List<ChildGroupListItem> GetCachedChildGroupsForBaseParent()
+        {
+            if ( !BaseParentGroupId.HasValue )
+            {
+                return new List<ChildGroupListItem>();
+            }
+
+            var cacheKey = string.Format( "CampPlacementImport.ChildGroups.{0}", BaseParentGroupId.Value );
+            var cached = Context.Items[cacheKey] as List<ChildGroupListItem>;
+            if ( cached != null )
+            {
+                return cached;
+            }
+
+            using ( var rockContext = new RockContext() )
+            {
+                cached = new GroupService( rockContext )
+                    .Queryable()
+                    .Where( g => g.ParentGroupId == BaseParentGroupId.Value && g.IsActive && !g.IsArchived )
+                    .OrderBy( g => g.Name )
+                    .Select( g => new ChildGroupListItem { Id = g.Id, Name = g.Name } )
+                    .ToList();
+            }
+
+            Context.Items[cacheKey] = cached;
+            return cached;
+        }
+
+        private void ClearCsvSessionData()
+        {
+            Session.Remove( CsvHeadersSessionKey );
+            Session.Remove( CsvRowsSessionKey );
+        }
+
+        private void CleanupUploadedBinaryFile()
+        {
+            if ( !UploadedBinaryFileId.HasValue )
+            {
+                return;
+            }
+
+            using ( var rockContext = new RockContext() )
+            {
+                var binaryFileService = new BinaryFileService( rockContext );
+                var binaryFile = binaryFileService.Get( UploadedBinaryFileId.Value );
+                if ( binaryFile != null )
+                {
+                    binaryFileService.Delete( binaryFile );
+                    rockContext.SaveChanges();
                 }
             }
         }
@@ -1163,6 +1288,10 @@ namespace RockWeb.Plugins.org_secc.Event
             {
                 tmrRunStatus.Enabled = false;
 
+                CleanupUploadedBinaryFile();
+                UploadedBinaryFileId = null;
+                ClearCsvSessionData();
+
                 lSuccessCount.Text = run.SuccessCount.ToString();
                 lSkippedCount.Text = run.SkippedCount.ToString();
                 lErrorCount.Text = run.ErrorCount.ToString();
@@ -1173,6 +1302,9 @@ namespace RockWeb.Plugins.org_secc.Event
             else if ( run.Status == ( int ) ImportRunStatus.Failed )
             {
                 tmrRunStatus.Enabled = false;
+                CleanupUploadedBinaryFile();
+                UploadedBinaryFileId = null;
+                ClearCsvSessionData();
                 ShowWarning( "Import failed: " + ( run.StatusMessage ?? "unknown error" ) );
                 SetActivePanel( pnlPreview );
             }
