@@ -23,6 +23,7 @@ using Rock;
 using Rock.Data;
 using Rock.Model;
 using Rock.Rest;
+using Rock.Tasks;
 using Rock.Web.Cache;
 
 namespace org.secc.Rest.Controllers
@@ -265,10 +266,11 @@ namespace org.secc.Rest.Controllers
                 }
 
                 _context.SaveChanges();
-                var transaction = new Rock.Transactions.SendCommunicationTransaction();
-                transaction.CommunicationId = communication.Id;
-                transaction.PersonAlias = currentPerson.PrimaryAlias;
-                Rock.Transactions.RockQueue.TransactionQueue.Enqueue( transaction );
+                var transaction = new Rock.Tasks.ProcessSendCommunication.Message
+                {
+                    CommunicationId = communication.Id
+                };
+                transaction.Send();
             }
             return;
         }
