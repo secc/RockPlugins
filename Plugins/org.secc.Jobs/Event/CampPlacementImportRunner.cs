@@ -57,6 +57,13 @@ namespace org.secc.Jobs.Event
             public List<PlacementResult> Placements { get; set; }
         }
 
+        private class MappingMeta
+        {
+            public CampPlacementMappingData Mapping { get; set; }
+            public int ColumnIndex { get; set; }
+            public Dictionary<string, Group> GroupByName { get; set; }
+        }
+
         // ─── Entry point ─────────────────────────────────────────────────
 
         /// <summary>
@@ -199,6 +206,46 @@ namespace org.secc.Jobs.Event
                     }
                 }
 
+                var registrantLookup = BuildRegistrantLookup( registrants );
+
+                // Build header index lookup once.
+                var headerIndexByName = new Dictionary<string, int>( StringComparer.OrdinalIgnoreCase );
+                for ( int i = 0; i < headers.Count; i++ )
+                {
+                    if ( !headerIndexByName.ContainsKey( headers[i] ) )
+                    {
+                        headerIndexByName[headers[i]] = i;
+                    }
+                }
+
+                // Build mapping metadata once.
+                var mappingMeta = new List<MappingMeta>();
+                foreach ( var mapping in request.Mappings )
+                {
+                    int colIdx;
+                    headerIndexByName.TryGetValue( mapping.CsvColumnName, out colIdx );
+
+                    var childGroups = childGroupsByParent.ContainsKey( mapping.ParentGroupId )
+                        ? childGroupsByParent[mapping.ParentGroupId]
+                        : new List<Group>();
+
+                    var groupByName = new Dictionary<string, Group>( StringComparer.OrdinalIgnoreCase );
+                    foreach ( var g in childGroups )
+                    {
+                        if ( !groupByName.ContainsKey( g.Name ) )
+                        {
+                            groupByName[g.Name] = g;
+                        }
+                    }
+
+                    mappingMeta.Add( new MappingMeta
+                    {
+                        Mapping = mapping,
+                        ColumnIndex = colIdx,
+                        GroupByName = groupByName
+                    } );
+                }
+
                 int pendingSaves = 0;
                 int processedRows = 0;
 
@@ -223,12 +270,12 @@ namespace org.secc.Jobs.Event
                             "'{0}' appears {1} times in the CSV. All rows for this name are skipped.",
                             csvFullName, nameCount[csvFullName] );
 
-                        foreach ( var mapping in request.Mappings )
+                        foreach ( var meta in mappingMeta )
                         {
                             resultRow.Placements.Add( new PlacementResult
                             {
-                                ColumnName = mapping.CsvColumnName,
-                                CsvValue = GetCell( row, headers.IndexOf( mapping.CsvColumnName ) ),
+                                ColumnName = meta.Mapping.CsvColumnName,
+                                CsvValue = GetCell( row, meta.ColumnIndex ),
                                 Outcome = PlacementOutcome.Error,
                                 Message = "Skipped — duplicate name in CSV"
                             } );
@@ -241,19 +288,19 @@ namespace org.secc.Jobs.Event
                     }
 
                     // ── Match person ──────────────────────────────────────
-                    var person = FindRegistrant( firstName, lastName, registrants );
+                    var person = FindRegistrant( firstName, lastName, registrantLookup );
 
                     if ( person == null )
                     {
                         resultRow.PersonError = string.Format(
                             "Could not match '{0}' to a registrant.", csvFullName );
 
-                        foreach ( var mapping in request.Mappings )
+                        foreach ( var meta in mappingMeta )
                         {
                             resultRow.Placements.Add( new PlacementResult
                             {
-                                ColumnName = mapping.CsvColumnName,
-                                CsvValue = GetCell( row, headers.IndexOf( mapping.CsvColumnName ) ),
+                                ColumnName = meta.Mapping.CsvColumnName,
+                                CsvValue = GetCell( row, meta.ColumnIndex ),
                                 Outcome = PlacementOutcome.Error,
                                 Message = "Person not found"
                             } );
@@ -268,10 +315,10 @@ namespace org.secc.Jobs.Event
                     resultRow.MatchedPersonName = person.FullName;
 
                     // ── Process each mapping column for this row ──────────
-                    foreach ( var mapping in request.Mappings )
+                    foreach ( var meta in mappingMeta )
                     {
-                        int colIdx = headers.IndexOf( mapping.CsvColumnName );
-                        string cellValue = GetCell( row, colIdx );
+                        var mapping = meta.Mapping;
+                        string cellValue = GetCell( row, meta.ColumnIndex );
 
                         var placementResult = new PlacementResult
                         {
@@ -287,14 +334,8 @@ namespace org.secc.Jobs.Event
                             continue;
                         }
 
-                        var childGroups = childGroupsByParent.ContainsKey( mapping.ParentGroupId )
-                            ? childGroupsByParent[mapping.ParentGroupId]
-                            : new List<Group>();
-
-                        var targetGroup = childGroups.FirstOrDefault( g =>
-                            g.Name.Equals( cellValue, StringComparison.OrdinalIgnoreCase ) );
-
-                        if ( targetGroup == null )
+                        Group targetGroup;
+                        if ( !meta.GroupByName.TryGetValue( cellValue, out targetGroup ) )
                         {
                             placementResult.Outcome = PlacementOutcome.Error;
                             placementResult.Message = string.Format(
@@ -365,7 +406,8 @@ namespace org.secc.Jobs.Event
                         else
                         {
                             placementResult.Outcome = PlacementOutcome.Error;
-                            placementResult.Message = string.Format( "Validation failed for '{0}': {1}",
+                            placementResult.Message = string.Format(
+                                "Validation failed for '{0}': {1}",
                                 targetGroup.Name,
                                 string.Join( "; ", groupMember.ValidationResults.Select( v => v.ErrorMessage ) ) );
                             errorCount++;
@@ -544,58 +586,62 @@ WHERE [Id] = @runId",
         private static List<List<string>> ReadCsvRows( StringReader reader )
         {
             var rows = new List<List<string>>();
-            string line;
-            while ( ( line = reader.ReadLine() ) != null )
+            var csvContent = reader.ReadToEnd();
+
+            if ( string.IsNullOrEmpty( csvContent ) )
             {
-                var fields = new List<string>();
-                int i = 0;
-                while ( i < line.Length )
+                return rows;
+            }
+
+            var fields = new List<string>();
+            var field = new StringBuilder();
+            bool isInQuotes = false;
+
+            for ( int i = 0; i < csvContent.Length; i++ )
+            {
+                char currentChar = csvContent[i];
+
+                if ( currentChar == '"' )
                 {
-                    if ( line[i] == '"' )
+                    if ( isInQuotes && i + 1 < csvContent.Length && csvContent[i + 1] == '"' )
                     {
+                        field.Append( '"' );
                         i++;
-                        var field = new StringBuilder();
-                        while ( i < line.Length )
-                        {
-                            if ( line[i] == '"' )
-                            {
-                                if ( i + 1 < line.Length && line[i + 1] == '"' )
-                                {
-                                    field.Append( '"' );
-                                    i += 2;
-                                }
-                                else
-                                {
-                                    i++;
-                                    break;
-                                }
-                            }
-                            else
-                            {
-                                field.Append( line[i++] );
-                            }
-                        }
-                        fields.Add( field.ToString().Trim() );
-                        if ( i < line.Length && line[i] == ',' )
-                            i++;
                     }
                     else
                     {
-                        int nextComma = line.IndexOf( ',', i );
-                        if ( nextComma == -1 )
-                        {
-                            fields.Add( line.Substring( i ).Trim() );
-                            i = line.Length;
-                        }
-                        else
-                        {
-                            fields.Add( line.Substring( i, nextComma - i ).Trim() );
-                            i = nextComma + 1;
-                        }
+                        isInQuotes = !isInQuotes;
                     }
                 }
+                else if ( currentChar == ',' && !isInQuotes )
+                {
+                    fields.Add( field.ToString().Trim() );
+                    field.Clear();
+                }
+                else if ( ( currentChar == '\r' || currentChar == '\n' ) && !isInQuotes )
+                {
+                    fields.Add( field.ToString().Trim() );
+                    field.Clear();
+                    rows.Add( fields );
+                    fields = new List<string>();
+
+                    if ( currentChar == '\r' && i + 1 < csvContent.Length && csvContent[i + 1] == '\n' )
+                    {
+                        i++;
+                    }
+                }
+                else
+                {
+                    field.Append( currentChar );
+                }
+            }
+
+            if ( field.Length > 0 || fields.Count > 0 )
+            {
+                fields.Add( field.ToString().Trim() );
                 rows.Add( fields );
             }
+
             return rows;
         }
 
@@ -611,23 +657,78 @@ WHERE [Id] = @runId",
                 .ToList();
         }
 
-        private static Person FindRegistrant( string firstName, string lastName, List<RegistrationRegistrant> registrants )
+        private static Dictionary<string, List<Person>> BuildRegistrantLookup( List<RegistrationRegistrant> registrants )
+        {
+            var lookup = new Dictionary<string, List<Person>>( StringComparer.OrdinalIgnoreCase );
+
+            foreach ( var registrant in registrants )
+            {
+                var person = registrant.PersonAlias != null ? registrant.PersonAlias.Person : null;
+                if ( person == null || string.IsNullOrWhiteSpace( person.LastName ) )
+                {
+                    continue;
+                }
+
+                AddRegistrantLookupKey( lookup, person.FirstName, person.LastName, person );
+
+                if ( !string.IsNullOrWhiteSpace( person.NickName )
+                    && !person.NickName.Equals( person.FirstName, StringComparison.OrdinalIgnoreCase ) )
+                {
+                    AddRegistrantLookupKey( lookup, person.NickName, person.LastName, person );
+                }
+            }
+
+            return lookup;
+        }
+
+        private static void AddRegistrantLookupKey(
+            Dictionary<string, List<Person>> lookup,
+            string firstName,
+            string lastName,
+            Person person )
+        {
+            if ( person == null || string.IsNullOrWhiteSpace( firstName ) || string.IsNullOrWhiteSpace( lastName ) )
+            {
+                return;
+            }
+
+            var key = BuildNameLookupKey( firstName, lastName );
+            List<Person> matches;
+            if ( !lookup.TryGetValue( key, out matches ) )
+            {
+                matches = new List<Person>();
+                lookup[key] = matches;
+            }
+
+            if ( !matches.Any( p => p.Id == person.Id ) )
+            {
+                matches.Add( person );
+            }
+        }
+
+        private static string BuildNameLookupKey( string firstName, string lastName )
+        {
+            return string.Format( "{0}|{1}", firstName.Trim(), lastName.Trim() );
+        }
+
+        private static Person FindRegistrant(
+            string firstName,
+            string lastName,
+            Dictionary<string, List<Person>> registrantLookup )
         {
             if ( string.IsNullOrWhiteSpace( firstName ) || string.IsNullOrWhiteSpace( lastName ) )
+            {
                 return null;
+            }
 
-            var people = registrants
-                .Where( r => r.PersonAlias != null && r.PersonAlias.Person != null )
-                .Select( r => r.PersonAlias.Person )
-                .Where( p =>
-                    ( p.FirstName.Equals( firstName, StringComparison.OrdinalIgnoreCase ) ||
-                      p.NickName.Equals( firstName, StringComparison.OrdinalIgnoreCase ) ) &&
-                    p.LastName.Equals( lastName, StringComparison.OrdinalIgnoreCase ) )
-                .GroupBy( p => p.Id )
-                .Select( g => g.First() )
-                .ToList();
+            List<Person> matches;
+            if ( registrantLookup.TryGetValue( BuildNameLookupKey( firstName, lastName ), out matches )
+                && matches.Count == 1 )
+            {
+                return matches[0];
+            }
 
-            return people.Count == 1 ? people[0] : null;
+            return null;
         }
 
         // ─── General helpers ──────────────────────────────────────────────
