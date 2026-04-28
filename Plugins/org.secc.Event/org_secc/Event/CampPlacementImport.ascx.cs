@@ -271,21 +271,9 @@ namespace RockWeb.Plugins.org_secc.Event
                     ddlParentGroupChild.Items.Clear();
                     ddlParentGroupChild.Items.Add( new ListItem( "", "" ) );
 
-                    using ( var rockContext = new RockContext() )
+                    foreach ( var group in GetCachedChildGroupsForBaseParent() )
                     {
-                        var childGroups = new GroupService( rockContext )
-                            .Queryable()
-                            .Where( g => g.ParentGroupId == BaseParentGroupId.Value
-                                      && g.IsActive
-                                      && !g.IsArchived )
-                            .OrderBy( g => g.Name )
-                            .Select( g => new { g.Id, g.Name } )
-                            .ToList();
-
-                        foreach ( var group in childGroups )
-                        {
-                            ddlParentGroupChild.Items.Add( new ListItem( group.Name, group.Id.ToString() ) );
-                        }
+                        ddlParentGroupChild.Items.Add( new ListItem( group.Name, group.Id.ToString() ) );
                     }
                 }
                 else
@@ -1207,40 +1195,6 @@ namespace RockWeb.Plugins.org_secc.Event
         }
 
         /// <summary>
-        /// The outcome of a single placement cell.
-        /// </summary>
-        private enum PlacementOutcome
-        {
-            Empty = 0,
-            Success = 1,
-            Skipped = 2,
-            Error = 3
-        }
-
-        /// <summary>
-        /// Tracks the result of processing a single placement (one cell in one row).
-        /// </summary>
-        private class PlacementResult
-        {
-            public string ColumnName { get; set; }
-            public string CsvColumnName { get; set; }
-            public PlacementOutcome Outcome { get; set; }
-            public string Message { get; set; }
-        }
-
-        /// <summary>
-        /// Tracks all placement results for a single CSV row.
-        /// </summary>
-        private class ResultRow
-        {
-            public int CsvRowNumber { get; set; }
-            public string CamperName { get; set; }
-            public string MatchedPersonName { get; set; }
-            public string PersonError { get; set; }
-            public List<PlacementResult> Placements { get; set; }
-        }
-
-        /// <summary>
         /// Stores metadata about a mapping, including the column index and a dictionary
         /// of child groups keyed by name for fast lookup.
         /// </summary>
@@ -1405,14 +1359,6 @@ WHERE  [Id] = @runId",
 
     // Local copies of the DTO models — these are JSON-serialized,
     // so they just need matching property names with org.secc.Jobs.Event versions.
-
-    public enum ImportRunStatus
-    {
-        Queued = 0,
-        Running = 1,
-        Completed = 2,
-        Failed = 3
-    }
 
     public class CampPlacementImportRequest
     {

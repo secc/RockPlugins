@@ -26,7 +26,17 @@ namespace org.secc.Jobs.Event
     {
         public void Execute( IJobExecutionContext context )
         {
-            var runId = context.JobDetail.JobDataMap.GetInt( "RunId" );
+            int runId = 0;
+            if ( context.JobDetail.JobDataMap.ContainsKey( "RunId" ) )
+            {
+                var runIdValue = context.JobDetail.JobDataMap["RunId"];
+                runId = runIdValue != null ? runIdValue.ToString().AsInteger() : 0;
+            }
+
+            if ( runId <= 0 )
+            {
+                throw new JobExecutionException( "Camp placement import job requires a valid RunId in the JobDataMap." );
+            }
 
             try
             {
