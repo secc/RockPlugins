@@ -43,6 +43,12 @@ BEGIN
         [CompletedDateTime] DATETIME NULL
     );
 
+    ALTER TABLE [dbo].[_org_secc_CampPlacementImportRun]  WITH CHECK ADD  CONSTRAINT [FK__org_secc_CampPlacementImportRun_CreatedByPersonAliasId] FOREIGN KEY([CreatedByPersonAliasId])
+    REFERENCES [dbo].[PersonAlias] ([Id]);
+
+    CREATE INDEX [IX__org_secc_CampPlacementImportRun_CreatedByPersonAliasId]
+        ON [dbo].[_org_secc_CampPlacementImportRun]([CreatedByPersonAliasId]);
+
     CREATE UNIQUE INDEX [IX__org_secc_CampPlacementImportRun_Guid]
         ON [dbo].[_org_secc_CampPlacementImportRun]([Guid]);
 END" );

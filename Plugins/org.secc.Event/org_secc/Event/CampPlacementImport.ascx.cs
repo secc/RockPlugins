@@ -1231,7 +1231,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 return;
             }
 
-            nbProcessing.Text = run.StatusMessage ?? "Processing…";
+            nbProcessing.Text = System.Web.HttpUtility.HtmlEncode( run.StatusMessage ?? "Processing…" );
 
             int pct = Math.Max( 1, Math.Min( 100, run.PercentComplete ) );
             lProgressBar.Text = string.Format(
@@ -1259,7 +1259,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 CleanupUploadedBinaryFile();
                 UploadedBinaryFileId = null;
                 ClearCsvSessionData();
-                ShowWarning( "Import failed: " + ( run.StatusMessage ?? "unknown error" ) );
+                ShowWarning( "Import failed: " + System.Web.HttpUtility.HtmlEncode( run.StatusMessage ?? "unknown error" ) );
                 SetActivePanel( pnlPreview );
             }
         }
