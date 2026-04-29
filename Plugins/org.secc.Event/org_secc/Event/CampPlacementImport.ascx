@@ -156,7 +156,7 @@
                     </div>
                 </asp:Panel>
 
-                <%-- Step 5: Processing --%>
+                <%-- Step 6: Processing --%>
                 <asp:Panel ID="pnlProcessing" runat="server" Visible="false">
                     <h4>Processing…</h4>
                     <p>Your import is running in the background. This page updates automatically every 2 seconds.</p>

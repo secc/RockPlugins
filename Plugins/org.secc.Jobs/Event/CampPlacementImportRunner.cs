@@ -151,6 +151,18 @@ namespace org.secc.Jobs.Event
                 return;
             }
 
+            var invalidMappingRows = request.Mappings
+                .Select( ( m, i ) => new { Mapping = m, RowNumber = i + 1 } )
+                .Where( x => x.Mapping == null || string.IsNullOrWhiteSpace( x.Mapping.CsvColumnName ) )
+                .Select( x => x.RowNumber )
+                .ToList();
+
+            if ( invalidMappingRows.Any() )
+            {
+                MarkFailed( runId, "Each mapping must include a CSV column name. Invalid mapping row(s): " + string.Join( ", ", invalidMappingRows ) );
+                return;
+            }
+
             var headerIndexByName = new Dictionary<string, int>( StringComparer.OrdinalIgnoreCase );
             for ( int i = 0; i < headers.Count; i++ )
             {
@@ -227,12 +239,14 @@ namespace org.secc.Jobs.Event
                                    && allPersonIds.Contains( gm.PersonId ) )
                         .ToList();
 
-                    foreach ( var gm in existingMembers )
-                    {
-                        string key = MembershipKey( gm.PersonId, gm.GroupId );
-                        if ( !existingMembershipLookup.ContainsKey( key ) )
-                            existingMembershipLookup[key] = gm;
-                    }
+                    existingMembershipLookup = existingMembers
+                        .GroupBy( gm => MembershipKey( gm.PersonId, gm.GroupId ) )
+                        .ToDictionary(
+                            g => g.Key,
+                            g => g
+                                .OrderBy( gm => gm.IsArchived )
+                                .ThenBy( gm => gm.Id )
+                                .First() );
                 }
 
                 var registrantLookup = BuildRegistrantLookup( registrants );
@@ -382,6 +396,8 @@ namespace org.secc.Jobs.Event
                             if ( existingMember.IsArchived )
                             {
                                 existingMember.IsArchived = false;
+                                existingMember.ArchivedDateTime = null;
+                                existingMember.ArchivedByPersonAliasId = null;
                                 existingMember.GroupMemberStatus = status;
                                 placementResult.Outcome = PlacementOutcome.Success;
                                 placementResult.Message = string.Format( "Restored archived membership in '{0}'", targetGroup.Name );
