@@ -43,14 +43,16 @@ BEGIN
         [CompletedDateTime] DATETIME NULL
     );
 
-    ALTER TABLE [dbo].[_org_secc_CampPlacementImportRun]  WITH CHECK ADD  CONSTRAINT [FK__org_secc_CampPlacementImportRun_CreatedByPersonAliasId] FOREIGN KEY([CreatedByPersonAliasId])
-    REFERENCES [dbo].[PersonAlias] ([Id]);
-
-    CREATE INDEX [IX__org_secc_CampPlacementImportRun_CreatedByPersonAliasId]
-        ON [dbo].[_org_secc_CampPlacementImportRun]([CreatedByPersonAliasId]);
-
     CREATE UNIQUE INDEX [IX__org_secc_CampPlacementImportRun_Guid]
         ON [dbo].[_org_secc_CampPlacementImportRun]([Guid]);
+
+    -- FIX: Included Foreign Key and Index back to PersonAlias for referential integrity
+    ALTER TABLE [dbo].[_org_secc_CampPlacementImportRun]  
+        ADD CONSTRAINT [FK__org_secc_CampPlacementImportRun_CreatedByPersonAliasId] 
+        FOREIGN KEY([CreatedByPersonAliasId]) REFERENCES [dbo].[PersonAlias] ([Id]);
+
+    CREATE INDEX [IX__org_secc_CampPlacementImportRun_CreatedByPersonAliasId] 
+        ON [dbo].[_org_secc_CampPlacementImportRun]([CreatedByPersonAliasId]);
 END" );
         }
 
@@ -59,6 +61,7 @@ END" );
             Sql( @"
 IF OBJECT_ID('[dbo].[_org_secc_CampPlacementImportRun]', 'U') IS NOT NULL
 BEGIN
+    -- Implicitly drops constraints and indices associated with the table
     DROP TABLE [dbo].[_org_secc_CampPlacementImportRun];
 END" );
         }

@@ -80,21 +80,6 @@ namespace RockWeb.Plugins.org_secc.Event
         }
 
         /// <summary>
-        /// The CSV data rows parsed from the uploaded file.
-        /// Each row is a list of cell values in the same order as the headers.
-        /// </summary>
-        private string CsvRowsSessionKey
-        {
-            get { return string.Format( "CampPlacementImport:CsvRows:{0}", BlockId ); }
-        }
-
-        private List<List<string>> CsvRows
-        {
-            get { return Session[CsvRowsSessionKey] as List<List<string>> ?? new List<List<string>>(); }
-            set { Session[CsvRowsSessionKey] = value; }
-        }
-
-        /// <summary>
         /// The number of placement mapping rows to display in the repeater.
         /// </summary>
         private int MappingCount
@@ -186,6 +171,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
             UploadedBinaryFileId = e.BinaryFileId.Value;
 
+            int dataRowsCount = 0;
             using ( var rockContext = new RockContext() )
             {
                 var binaryFile = new BinaryFileService( rockContext ).Get( e.BinaryFileId.Value );
@@ -203,6 +189,16 @@ namespace RockWeb.Plugins.org_secc.Event
                 }
 
                 ParseCsv( csvContent );
+
+                // Locally observe dimensions.
+                using ( var reader = new StringReader( csvContent ) )
+                {
+                    var allRows = ReadCsvRows( reader );
+                    if( allRows.Count > 1 ) 
+                    {
+                        dataRowsCount = allRows.Skip(1).Count(r => r.Any(c => !string.IsNullOrWhiteSpace(c)));
+                    }
+                }
             }
 
             if ( !CsvHeaders.Any() )
@@ -211,13 +207,13 @@ namespace RockWeb.Plugins.org_secc.Event
                 return;
             }
 
-            if ( !CsvRows.Any() )
+            if ( dataRowsCount == 0 )
             {
                 ShowWarning( "The CSV file has headers but no data rows." );
                 return;
             }
 
-            ShowInfo( string.Format( "Loaded {0} rows with {1} columns.", CsvRows.Count, CsvHeaders.Count ) );
+            ShowInfo( string.Format( "Loaded {0} rows with {1} columns.", dataRowsCount, CsvHeaders.Count ) );
 
             MappingCount = 1;
             SetActivePanel( pnlMapping );
@@ -470,7 +466,6 @@ namespace RockWeb.Plugins.org_secc.Event
             }
 
             CsvHeaders = headers;
-            CsvRows = rows;
         }
 
         /// <summary>
@@ -762,7 +757,6 @@ namespace RockWeb.Plugins.org_secc.Event
         private void ClearCsvSessionData()
         {
             Session.Remove( CsvHeadersSessionKey );
-            Session.Remove( CsvRowsSessionKey );
         }
 
         private void CleanupUploadedBinaryFile()
@@ -835,15 +829,42 @@ namespace RockWeb.Plugins.org_secc.Event
             int firstNameIdx = CsvHeaders.IndexOf( firstNameCol );
             int lastNameIdx = CsvHeaders.IndexOf( lastNameCol );
 
-            if ( firstNameIdx < 0 || lastNameIdx < 0 )
+            if ( firstNameIdx < 0 || lastNameIdx < 0 || !UploadedBinaryFileId.HasValue )
             {
                 return previewRows;
+            }
+
+            var csvRows = new List<List<string>>();
+            using ( var rockContext = new RockContext() )
+            {
+                var binaryFile = new BinaryFileService( rockContext ).Get( UploadedBinaryFileId.Value );
+                if ( binaryFile != null )
+                {
+                    var content = binaryFile.ContentsToString();
+                    if ( !string.IsNullOrWhiteSpace( content ) )
+                    {
+                        using ( var reader = new StringReader( content ) )
+                        {
+                            var allRows = ReadCsvRows( reader );
+                            if ( allRows.Count > 0 )
+                            {
+                                for ( int i = 1; i < allRows.Count; i++ )
+                                {
+                                    if ( allRows[i].Any( cell => !string.IsNullOrWhiteSpace( cell ) ) )
+                                    {
+                                        csvRows.Add( allRows[i] );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             // Pre-scan: find every full name that appears more than once in the CSV.
             // ALL rows for that name will be skipped, not just the duplicates.
             var nameCount = new Dictionary<string, int>( StringComparer.OrdinalIgnoreCase );
-            foreach ( var row in CsvRows )
+            foreach ( var row in csvRows )
             {
                 string fn = GetCellValue( row, firstNameIdx );
                 string ln = GetCellValue( row, lastNameIdx );
@@ -908,9 +929,9 @@ namespace RockWeb.Plugins.org_secc.Event
                     } );
                 }
 
-                for ( int rowIdx = 0; rowIdx < CsvRows.Count; rowIdx++ )
+                for ( int rowIdx = 0; rowIdx < csvRows.Count; rowIdx++ )
                 {
-                    var row = CsvRows[rowIdx];
+                    var row = csvRows[rowIdx];
                     string firstName = GetCellValue( row, firstNameIdx );
                     string lastName = GetCellValue( row, lastNameIdx );
                     string csvFullName = string.Format( "{0} {1}", firstName, lastName ).Trim();
@@ -1231,6 +1252,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 return;
             }
 
+            // FIX: HTML-encode the run status message before assigning it to the NotificationBox
             nbProcessing.Text = System.Web.HttpUtility.HtmlEncode( run.StatusMessage ?? "Processing…" );
 
             int pct = Math.Max( 1, Math.Min( 100, run.PercentComplete ) );
@@ -1249,6 +1271,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 lSuccessCount.Text = run.SuccessCount.ToString();
                 lSkippedCount.Text = run.SkippedCount.ToString();
                 lErrorCount.Text = run.ErrorCount.ToString();
+                // ResultHtml is safely rendered during processing by CampPlacementImportRunner natively
                 lResultsTable.Text = run.ResultHtml ?? string.Empty;
 
                 SetActivePanel( pnlResults );
@@ -1259,6 +1282,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 CleanupUploadedBinaryFile();
                 UploadedBinaryFileId = null;
                 ClearCsvSessionData();
+                // FIX: HTML-encode the run status message inside the warning text
                 ShowWarning( "Import failed: " + System.Web.HttpUtility.HtmlEncode( run.StatusMessage ?? "unknown error" ) );
                 SetActivePanel( pnlPreview );
             }
@@ -1315,8 +1339,6 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);",
 
         private void QueueRun( int runId )
         {
-            // Resolve the job type by name — avoids a compile-time assembly reference
-            // to the org.secc.Jobs project from RockWeb.
             var jobType = Type.GetType(
                 "org.secc.Jobs.Event.CampPlacementImportBackgroundJob, org.secc.Jobs" );
 
@@ -1326,16 +1348,26 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);",
             }
 
             var scheduler = new StdSchedulerFactory().GetScheduler();
-            var job = JobBuilder.Create( jobType )
-                .WithIdentity( "CampPlacementImport-" + runId )
-                .UsingJobData( "RunId", runId )
-                .Build();
+
+            // FIX: Establish uniqueness strictly on Jobs while using individual contextual triggers targeting that Job.
+            var jobKey = new JobKey( "CampPlacementImportJob" );
+            if ( !scheduler.CheckExists( jobKey ) )
+            {
+                var job = JobBuilder.Create( jobType )
+                    .WithIdentity( jobKey )
+                    .StoreDurably()
+                    .Build();
+                scheduler.AddJob( job, true );
+            }
 
             var trigger = TriggerBuilder.Create()
+                .WithIdentity( "CampPlacementImportTrigger-" + runId )
+                .ForJob( jobKey )
+                .UsingJobData( "RunId", runId )
                 .StartNow()
                 .Build();
 
-            scheduler.ScheduleJob( job, trigger );
+            scheduler.ScheduleJob( trigger );
             scheduler.Start();
         }
 

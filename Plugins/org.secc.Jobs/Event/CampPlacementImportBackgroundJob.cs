@@ -27,9 +27,9 @@ namespace org.secc.Jobs.Event
         public void Execute( IJobExecutionContext context )
         {
             int runId = 0;
-            if ( context.JobDetail.JobDataMap.ContainsKey( "RunId" ) )
+            if ( context.MergedJobDataMap.ContainsKey( "RunId" ) )
             {
-                var runIdValue = context.JobDetail.JobDataMap["RunId"];
+                var runIdValue = context.MergedJobDataMap["RunId"];
                 runId = runIdValue != null ? runIdValue.ToString().AsInteger() : 0;
             }
 
@@ -44,6 +44,9 @@ namespace org.secc.Jobs.Event
             }
             catch ( Exception ex )
             {
+                // FIX: Log exception into rock to allow diagnostics.
+                ExceptionLogService.LogException( ex, null );
+
                 using ( var rockContext = new RockContext() )
                 {
                     rockContext.Database.ExecuteSqlCommand( @"
@@ -53,7 +56,8 @@ SET [Status] = @status,
     [CompletedDateTime] = GETDATE()
 WHERE [Id] = @runId",
                         new System.Data.SqlClient.SqlParameter( "@status", 3 ),
-                        new System.Data.SqlClient.SqlParameter( "@statusMessage", ex.Message ),
+                        // FIX: Supply the stack trace to status
+                        new System.Data.SqlClient.SqlParameter( "@statusMessage", ex.ToString() ),
                         new System.Data.SqlClient.SqlParameter( "@runId", runId ) );
                 }
 

@@ -73,425 +73,455 @@ namespace org.secc.Jobs.Event
         /// </summary>
         public static void Run( int runId )
         {
-            // Mark the run as Running immediately so the UI can reflect that.
-            UpdateRunStatus( runId, ImportRunStatus.Running, "Starting import…", 0, 0, 0 );
-
-            // ── Load request ─────────────────────────────────────────────
-            CampPlacementImportRequest request = LoadRequest( runId );
-
-            if ( request == null )
-            {
-                MarkFailed( runId, "Could not load import request data from run record." );
-                return;
-            }
-
-            if ( !request.RegistrationInstanceId.HasValue )
-            {
-                MarkFailed( runId, "No registration instance ID in request." );
-                return;
-            }
-
-            if ( !request.BinaryFileId.HasValue )
-            {
-                MarkFailed( runId, "No uploaded file ID in request." );
-                return;
-            }
-
-            // ── Parse CSV from the stored binary file ─────────────────────
-            List<string> headers;
-            List<List<string>> rows;
+            CampPlacementImportRequest request = null;
 
             try
             {
-                ParseCsvFromBinaryFile( request.BinaryFileId.Value, out headers, out rows );
-            }
-            catch ( Exception ex )
-            {
-                MarkFailed( runId, "Failed to read CSV file: " + ex.Message );
-                return;
-            }
+                // Mark the run as Running immediately so the UI can reflect that.
+                UpdateRunStatus( runId, ImportRunStatus.Running, "Starting import…", 0, 0, 0 );
 
-            if ( !headers.Any() || !rows.Any() )
-            {
-                MarkFailed( runId, "CSV file had no data rows." );
-                return;
-            }
+                // ── Load request ─────────────────────────────────────────────
+                request = LoadRequest( runId );
 
-            int totalRows = rows.Count;
-            UpdateRunStatus( runId, ImportRunStatus.Running,
-                string.Format( "Loaded {0} rows. Matching registrants…", totalRows ), 0, 0, totalRows );
-
-            // ── Resolve column indexes ─────────────────────────────────────
-            int firstNameIdx = headers.IndexOf( request.FirstNameCol );
-            int lastNameIdx = headers.IndexOf( request.LastNameCol );
-
-            if ( firstNameIdx < 0 || lastNameIdx < 0 )
-            {
-                MarkFailed( runId, "First Name or Last Name column not found in CSV headers." );
-                return;
-            }
-
-            if ( request.Mappings == null || !request.Mappings.Any() )
-            {
-                MarkFailed( runId, "No placement mappings were provided." );
-                return;
-            }
-
-            var duplicateMappingColumns = request.Mappings
-                .Where( m => !string.IsNullOrWhiteSpace( m.CsvColumnName ) )
-                .GroupBy( m => m.CsvColumnName, StringComparer.OrdinalIgnoreCase )
-                .Where( g => g.Count() > 1 )
-                .Select( g => g.Key )
-                .OrderBy( n => n )
-                .ToList();
-
-            if ( duplicateMappingColumns.Any() )
-            {
-                MarkFailed( runId, "Duplicate mapping columns are not allowed: " + string.Join( ", ", duplicateMappingColumns ) );
-                return;
-            }
-
-            var invalidMappingRows = request.Mappings
-                .Select( ( m, i ) => new { Mapping = m, RowNumber = i + 1 } )
-                .Where( x => x.Mapping == null || string.IsNullOrWhiteSpace( x.Mapping.CsvColumnName ) )
-                .Select( x => x.RowNumber )
-                .ToList();
-
-            if ( invalidMappingRows.Any() )
-            {
-                MarkFailed( runId, "Each mapping must include a CSV column name. Invalid mapping row(s): " + string.Join( ", ", invalidMappingRows ) );
-                return;
-            }
-
-            var headerIndexByName = new Dictionary<string, int>( StringComparer.OrdinalIgnoreCase );
-            for ( int i = 0; i < headers.Count; i++ )
-            {
-                if ( !headerIndexByName.ContainsKey( headers[i] ) )
+                if ( request == null )
                 {
-                    headerIndexByName[headers[i]] = i;
+                    MarkFailed( runId, "Could not load import request data from run record." );
+                    return;
                 }
-            }
 
-            var status = ( GroupMemberStatus ) request.DefaultGroupMemberStatusValue;
-            int batchSize = request.BatchSize > 0 ? request.BatchSize : 50;
-
-            // ── Pre-scan for duplicate names ───────────────────────────────
-            var nameCount = new Dictionary<string, int>( StringComparer.OrdinalIgnoreCase );
-            foreach ( var row in rows )
-            {
-                string key = BuildFullName( GetCell( row, firstNameIdx ), GetCell( row, lastNameIdx ) );
-                if ( nameCount.ContainsKey( key ) )
-                    nameCount[key]++;
-                else
-                    nameCount[key] = 1;
-            }
-
-            var duplicateNames = new HashSet<string>(
-                nameCount.Where( kv => kv.Value > 1 ).Select( kv => kv.Key ),
-                StringComparer.OrdinalIgnoreCase );
-
-            // ── Main processing ────────────────────────────────────────────
-            int successCount = 0;
-            int skippedCount = 0;
-            int errorCount = 0;
-            var resultRows = new List<ResultRow>();
-
-            using ( var rockContext = new RockContext() )
-            {
-                // Load every registrant for the instance once.
-                var registrants = LoadRegistrants( rockContext, request.RegistrationInstanceId.Value );
-
-                var groupService = new GroupService( rockContext );
-                var groupMemberService = new GroupMemberService( rockContext );
-
-                // Pre-load child groups for every mapping.
-                var childGroupsByParent = new Dictionary<int, List<Group>>();
-                foreach ( var mapping in request.Mappings )
+                if ( !request.RegistrationInstanceId.HasValue )
                 {
-                    if ( !childGroupsByParent.ContainsKey( mapping.ParentGroupId ) )
+                    MarkFailed( runId, "No registration instance ID in request." );
+                    return;
+                }
+
+                if ( !request.BinaryFileId.HasValue )
+                {
+                    MarkFailed( runId, "No uploaded file ID in request." );
+                    return;
+                }
+
+                // ── Parse CSV from the stored binary file ─────────────────────
+                List<string> headers;
+                List<List<string>> rows;
+
+                try
+                {
+                    ParseCsvFromBinaryFile( request.BinaryFileId.Value, out headers, out rows );
+                }
+                catch ( Exception ex )
+                {
+                    MarkFailed( runId, "Failed to read CSV file: " + ex.Message );
+                    return;
+                }
+
+                if ( !headers.Any() || !rows.Any() )
+                {
+                    MarkFailed( runId, "CSV file had no data rows." );
+                    return;
+                }
+
+                int totalRows = rows.Count;
+                UpdateRunStatus( runId, ImportRunStatus.Running,
+                    string.Format( "Loaded {0} rows. Matching registrants…", totalRows ), 0, 0, totalRows );
+
+                // ── Resolve column indexes ─────────────────────────────────────
+                int firstNameIdx = headers.IndexOf( request.FirstNameCol );
+                int lastNameIdx = headers.IndexOf( request.LastNameCol );
+
+                if ( firstNameIdx < 0 || lastNameIdx < 0 )
+                {
+                    MarkFailed( runId, "First Name or Last Name column not found in CSV headers." );
+                    return;
+                }
+
+                if ( request.Mappings == null || !request.Mappings.Any() )
+                {
+                    MarkFailed( runId, "No placement mappings were provided." );
+                    return;
+                }
+
+                var duplicateMappingColumns = request.Mappings
+                    .Where( m => !string.IsNullOrWhiteSpace( m.CsvColumnName ) )
+                    .GroupBy( m => m.CsvColumnName, StringComparer.OrdinalIgnoreCase )
+                    .Where( g => g.Count() > 1 )
+                    .Select( g => g.Key )
+                    .OrderBy( n => n )
+                    .ToList();
+
+                if ( duplicateMappingColumns.Any() )
+                {
+                    MarkFailed( runId, "Duplicate mapping columns are not allowed: " + string.Join( ", ", duplicateMappingColumns ) );
+                    return;
+                }
+
+                var invalidMappingRows = request.Mappings
+                    .Select( ( m, i ) => new { Mapping = m, RowNumber = i + 1 } )
+                    .Where( x => x.Mapping == null || string.IsNullOrWhiteSpace( x.Mapping.CsvColumnName ) )
+                    .Select( x => x.RowNumber )
+                    .ToList();
+
+                if ( invalidMappingRows.Any() )
+                {
+                    MarkFailed( runId, "Each mapping must include a CSV column name. Invalid mapping row(s): " + string.Join( ", ", invalidMappingRows ) );
+                    return;
+                }
+
+                var headerIndexByName = new Dictionary<string, int>( StringComparer.OrdinalIgnoreCase );
+                for ( int i = 0; i < headers.Count; i++ )
+                {
+                    if ( !headerIndexByName.ContainsKey( headers[i] ) )
                     {
-                        childGroupsByParent[mapping.ParentGroupId] = groupService.Queryable()
-                            .Where( g => g.ParentGroupId == mapping.ParentGroupId
-                                      && g.IsActive
-                                      && !g.IsArchived )
-                            .ToList();
+                        headerIndexByName[headers[i]] = i;
                     }
                 }
 
-                // Bulk-load all existing memberships we might touch in one query.
-                var allTargetGroupIds = childGroupsByParent.Values
-                    .SelectMany( g => g )
-                    .Select( g => g.Id )
-                    .Distinct()
-                    .ToList();
+                var status = ( GroupMemberStatus ) request.DefaultGroupMemberStatusValue;
+                int batchSize = request.BatchSize > 0 ? request.BatchSize : 50;
 
-                var allPersonIds = registrants
-                    .Where( r => r.PersonAlias != null )
-                    .Select( r => r.PersonAlias.PersonId )
-                    .Distinct()
-                    .ToList();
-
-                var existingMembershipLookup = new Dictionary<string, GroupMember>();
-                if ( allTargetGroupIds.Any() && allPersonIds.Any() )
+                // ── Pre-scan for duplicate names ───────────────────────────────
+                var nameCount = new Dictionary<string, int>( StringComparer.OrdinalIgnoreCase );
+                foreach ( var row in rows )
                 {
-                    var existingMembers = groupMemberService.Queryable()
-                        .Where( gm => allTargetGroupIds.Contains( gm.GroupId )
-                                   && allPersonIds.Contains( gm.PersonId ) )
+                    string key = BuildFullName( GetCell( row, firstNameIdx ), GetCell( row, lastNameIdx ) );
+                    if ( nameCount.ContainsKey( key ) )
+                        nameCount[key]++;
+                    else
+                        nameCount[key] = 1;
+                }
+
+                var duplicateNames = new HashSet<string>(
+                    nameCount.Where( kv => kv.Value > 1 ).Select( kv => kv.Key ),
+                    StringComparer.OrdinalIgnoreCase );
+
+                // ── Main processing ────────────────────────────────────────────
+                int successCount = 0;
+                int skippedCount = 0;
+                int errorCount = 0;
+                var resultRows = new List<ResultRow>();
+                
+                DateTime lastProgressUpdate = DateTime.UtcNow;
+
+                using ( var rockContext = new RockContext() )
+                {
+                    // Load every registrant for the instance once.
+                    var registrants = LoadRegistrants( rockContext, request.RegistrationInstanceId.Value );
+
+                    var groupService = new GroupService( rockContext );
+                    var groupMemberService = new GroupMemberService( rockContext );
+
+                    // Pre-load child groups for every mapping.
+                    var childGroupsByParent = new Dictionary<int, List<Group>>();
+                    foreach ( var mapping in request.Mappings )
+                    {
+                        if ( !childGroupsByParent.ContainsKey( mapping.ParentGroupId ) )
+                        {
+                            childGroupsByParent[mapping.ParentGroupId] = groupService.Queryable()
+                                .Where( g => g.ParentGroupId == mapping.ParentGroupId
+                                          && g.IsActive
+                                          && !g.IsArchived )
+                                .ToList();
+                        }
+                    }
+
+                    // Bulk-load all existing memberships we might touch in one query.
+                    var allTargetGroupIds = childGroupsByParent.Values
+                        .SelectMany( g => g )
+                        .Select( g => g.Id )
+                        .Distinct()
                         .ToList();
 
-                    existingMembershipLookup = existingMembers
-                        .GroupBy( gm => MembershipKey( gm.PersonId, gm.GroupId ) )
-                        .ToDictionary(
-                            g => g.Key,
-                            g => g
-                                .OrderBy( gm => gm.IsArchived )
-                                .ThenBy( gm => gm.Id )
-                                .First() );
-                }
+                    var allPersonIds = registrants
+                        .Where( r => r.PersonAlias != null )
+                        .Select( r => r.PersonAlias.PersonId )
+                        .Distinct()
+                        .ToList();
 
-                var registrantLookup = BuildRegistrantLookup( registrants );
-
-                // Build mapping metadata once.
-                var mappingMeta = new List<MappingMeta>();
-                foreach ( var mapping in request.Mappings )
-                {
-                    int colIdx;
-                    if ( !headerIndexByName.TryGetValue( mapping.CsvColumnName, out colIdx ) )
+                    var existingMembershipLookup = new Dictionary<string, GroupMember>();
+                    if ( allTargetGroupIds.Any() && allPersonIds.Any() )
                     {
-                        MarkFailed(
-                            runId,
-                            string.Format(
-                                "Configured CSV mapping column '{0}' was not found in the import file headers.",
-                                mapping.CsvColumnName ) );
-                        return;
+                        var existingMembers = groupMemberService.Queryable()
+                            .Where( gm => allTargetGroupIds.Contains( gm.GroupId )
+                                       && allPersonIds.Contains( gm.PersonId ) )
+                            .ToList();
+
+                        existingMembershipLookup = existingMembers
+                            .GroupBy( gm => MembershipKey( gm.PersonId, gm.GroupId ) )
+                            .ToDictionary(
+                                g => g.Key,
+                                g => g
+                                    .OrderBy( gm => gm.IsArchived )
+                                    .ThenBy( gm => gm.Id )
+                                    .First() );
                     }
 
-                    var childGroups = childGroupsByParent.ContainsKey( mapping.ParentGroupId )
-                        ? childGroupsByParent[mapping.ParentGroupId]
-                        : new List<Group>();
+                    var registrantLookup = BuildRegistrantLookup( registrants );
 
-                    var groupByName = new Dictionary<string, Group>( StringComparer.OrdinalIgnoreCase );
-                    foreach ( var g in childGroups )
+                    // Build mapping metadata once.
+                    var mappingMeta = new List<MappingMeta>();
+                    foreach ( var mapping in request.Mappings )
                     {
-                        if ( !groupByName.ContainsKey( g.Name ) )
+                        int colIdx;
+                        if ( !headerIndexByName.TryGetValue( mapping.CsvColumnName, out colIdx ) )
                         {
-                            groupByName[g.Name] = g;
+                            MarkFailed(
+                                runId,
+                                string.Format(
+                                    "Configured CSV mapping column '{0}' was not found in the import file headers.",
+                                    mapping.CsvColumnName ) );
+                            return;
                         }
-                    }
 
-                    mappingMeta.Add( new MappingMeta
-                    {
-                        Mapping = mapping,
-                        ColumnIndex = colIdx,
-                        GroupByName = groupByName
-                    } );
-                }
+                        var childGroups = childGroupsByParent.ContainsKey( mapping.ParentGroupId )
+                            ? childGroupsByParent[mapping.ParentGroupId]
+                            : new List<Group>();
 
-                int pendingSaves = 0;
-                int processedRows = 0;
-
-                for ( int rowIdx = 0; rowIdx < rows.Count; rowIdx++ )
-                {
-                    var row = rows[rowIdx];
-                    string firstName = GetCell( row, firstNameIdx );
-                    string lastName = GetCell( row, lastNameIdx );
-                    string csvFullName = BuildFullName( firstName, lastName );
-
-                    var resultRow = new ResultRow
-                    {
-                        CsvRowNumber = rowIdx + 2, // +2: 1-based + header row
-                        CamperName = csvFullName,
-                        Placements = new List<PlacementResult>()
-                    };
-
-                    // ── Duplicate name — skip all rows for this name ──────
-                    if ( duplicateNames.Contains( csvFullName ) )
-                    {
-                        resultRow.PersonError = string.Format(
-                            "'{0}' appears {1} times in the CSV. All rows for this name are skipped.",
-                            csvFullName, nameCount[csvFullName] );
-
-                        foreach ( var meta in mappingMeta )
+                        var groupByName = new Dictionary<string, Group>( StringComparer.OrdinalIgnoreCase );
+                        foreach ( var g in childGroups )
                         {
-                            resultRow.Placements.Add( new PlacementResult
+                            if ( !groupByName.ContainsKey( g.Name ) )
                             {
-                                ColumnName = meta.Mapping.CsvColumnName,
-                                CsvValue = GetCell( row, meta.ColumnIndex ),
-                                Outcome = PlacementOutcome.Error,
-                                Message = "Skipped — duplicate name in CSV"
-                            } );
-                            errorCount++;
+                                groupByName[g.Name] = g;
+                            }
                         }
 
-                        resultRows.Add( resultRow );
-                        processedRows++;
-                        continue;
+                        mappingMeta.Add( new MappingMeta
+                        {
+                            Mapping = mapping,
+                            ColumnIndex = colIdx,
+                            GroupByName = groupByName
+                        } );
                     }
 
-                    // ── Match person ──────────────────────────────────────
-                    var person = FindRegistrant( firstName, lastName, registrantLookup );
+                    int pendingSaves = 0;
+                    int processedRows = 0;
 
-                    if ( person == null )
+                    for ( int rowIdx = 0; rowIdx < rows.Count; rowIdx++ )
                     {
-                        resultRow.PersonError = string.Format(
-                            "Could not match '{0}' to a registrant.", csvFullName );
+                        var row = rows[rowIdx];
+                        string firstName = GetCell( row, firstNameIdx );
+                        string lastName = GetCell( row, lastNameIdx );
+                        string csvFullName = BuildFullName( firstName, lastName );
 
-                        foreach ( var meta in mappingMeta )
+                        var resultRow = new ResultRow
                         {
-                            resultRow.Placements.Add( new PlacementResult
-                            {
-                                ColumnName = meta.Mapping.CsvColumnName,
-                                CsvValue = GetCell( row, meta.ColumnIndex ),
-                                Outcome = PlacementOutcome.Error,
-                                Message = "Person not found"
-                            } );
-                            errorCount++;
-                        }
-
-                        resultRows.Add( resultRow );
-                        processedRows++;
-                        continue;
-                    }
-
-                    resultRow.MatchedPersonName = person.FullName;
-
-                    // ── Process each mapping column for this row ──────────
-                    foreach ( var meta in mappingMeta )
-                    {
-                        var mapping = meta.Mapping;
-                        string cellValue = GetCell( row, meta.ColumnIndex );
-
-                        var placementResult = new PlacementResult
-                        {
-                            ColumnName = mapping.CsvColumnName,
-                            CsvValue = cellValue
+                            CsvRowNumber = rowIdx + 2, // +2: 1-based + header row
+                            CamperName = csvFullName,
+                            Placements = new List<PlacementResult>()
                         };
 
-                        if ( string.IsNullOrWhiteSpace( cellValue ) )
+                        // ── Duplicate name — skip all rows for this name ──────
+                        if ( duplicateNames.Contains( csvFullName ) )
                         {
-                            placementResult.Outcome = PlacementOutcome.Empty;
-                            placementResult.Message = "No value in CSV";
-                            resultRow.Placements.Add( placementResult );
-                            continue;
-                        }
+                            resultRow.PersonError = string.Format(
+                                "'{0}' appears {1} times in the CSV. All rows for this name are skipped.",
+                                csvFullName, nameCount[csvFullName] );
 
-                        Group targetGroup;
-                        if ( !meta.GroupByName.TryGetValue( cellValue, out targetGroup ) )
-                        {
-                            placementResult.Outcome = PlacementOutcome.Error;
-                            placementResult.Message = string.Format(
-                                "Group '{0}' not found under parent group ID {1}",
-                                cellValue, mapping.ParentGroupId );
-                            errorCount++;
-                            resultRow.Placements.Add( placementResult );
-                            continue;
-                        }
-
-                        string membershipKey = MembershipKey( person.Id, targetGroup.Id );
-                        GroupMember existingMember;
-                        existingMembershipLookup.TryGetValue( membershipKey, out existingMember );
-
-                        if ( existingMember != null )
-                        {
-                            if ( existingMember.IsArchived )
+                            foreach ( var meta in mappingMeta )
                             {
-                                existingMember.IsArchived = false;
-                                existingMember.ArchivedDateTime = null;
-                                existingMember.ArchivedByPersonAliasId = null;
-                                existingMember.GroupMemberStatus = status;
+                                resultRow.Placements.Add( new PlacementResult
+                                {
+                                    ColumnName = meta.Mapping.CsvColumnName,
+                                    CsvValue = GetCell( row, meta.ColumnIndex ),
+                                    Outcome = PlacementOutcome.Error,
+                                    Message = "Skipped — duplicate name in CSV"
+                                } );
+                                errorCount++;
+                            }
+
+                            resultRows.Add( resultRow );
+                            processedRows++;
+                            continue;
+                        }
+
+                        // ── Match person ──────────────────────────────────────
+                        var person = FindRegistrant( firstName, lastName, registrantLookup );
+
+                        if ( person == null )
+                        {
+                            resultRow.PersonError = string.Format(
+                                "Could not match '{0}' to a registrant.", csvFullName );
+
+                            foreach ( var meta in mappingMeta )
+                            {
+                                resultRow.Placements.Add( new PlacementResult
+                                {
+                                    ColumnName = meta.Mapping.CsvColumnName,
+                                    CsvValue = GetCell( row, meta.ColumnIndex ),
+                                    Outcome = PlacementOutcome.Error,
+                                    Message = "Person not found"
+                                } );
+                                errorCount++;
+                            }
+
+                            resultRows.Add( resultRow );
+                            processedRows++;
+                            continue;
+                        }
+
+                        resultRow.MatchedPersonName = person.FullName;
+
+                        // ── Process each mapping column for this row ──────────
+                        foreach ( var meta in mappingMeta )
+                        {
+                            var mapping = meta.Mapping;
+                            string cellValue = GetCell( row, meta.ColumnIndex );
+
+                            var placementResult = new PlacementResult
+                            {
+                                ColumnName = mapping.CsvColumnName,
+                                CsvValue = cellValue
+                            };
+
+                            if ( string.IsNullOrWhiteSpace( cellValue ) )
+                            {
+                                placementResult.Outcome = PlacementOutcome.Empty;
+                                placementResult.Message = "No value in CSV";
+                                resultRow.Placements.Add( placementResult );
+                                continue;
+                            }
+
+                            Group targetGroup;
+                            if ( !meta.GroupByName.TryGetValue( cellValue, out targetGroup ) )
+                            {
+                                placementResult.Outcome = PlacementOutcome.Error;
+                                placementResult.Message = string.Format(
+                                    "Group '{0}' not found under parent group ID {1}",
+                                    cellValue, mapping.ParentGroupId );
+                                errorCount++;
+                                resultRow.Placements.Add( placementResult );
+                                continue;
+                            }
+
+                            string membershipKey = MembershipKey( person.Id, targetGroup.Id );
+                            GroupMember existingMember;
+                            existingMembershipLookup.TryGetValue( membershipKey, out existingMember );
+
+                            if ( existingMember != null )
+                            {
+                                if ( existingMember.IsArchived )
+                                {
+                                    existingMember.IsArchived = false;
+                                    existingMember.ArchivedDateTime = null;
+                                    existingMember.ArchivedByPersonAliasId = null;
+                                    existingMember.GroupMemberStatus = status;
+                                    placementResult.Outcome = PlacementOutcome.Success;
+                                    placementResult.Message = string.Format( "Restored archived membership in '{0}'", targetGroup.Name );
+                                    successCount++;
+                                    pendingSaves++;
+                                }
+                                else
+                                {
+                                    placementResult.Outcome = PlacementOutcome.Skipped;
+                                    placementResult.Message = string.Format( "Already a member of '{0}'", targetGroup.Name );
+                                    skippedCount++;
+                                }
+
+                                resultRow.Placements.Add( placementResult );
+                                continue;
+                            }
+
+                            var groupTypeCache = GroupTypeCache.Get( targetGroup.GroupTypeId );
+                            int? defaultRoleId = groupTypeCache != null ? groupTypeCache.DefaultGroupRoleId : ( int? ) null;
+
+                            if ( !defaultRoleId.HasValue )
+                            {
+                                placementResult.Outcome = PlacementOutcome.Error;
+                                placementResult.Message = string.Format(
+                                    "Group '{0}' has no default group role configured", targetGroup.Name );
+                                errorCount++;
+                                resultRow.Placements.Add( placementResult );
+                                continue;
+                            }
+
+                            var groupMember = new GroupMember
+                            {
+                                PersonId = person.Id,
+                                GroupId = targetGroup.Id,
+                                GroupRoleId = defaultRoleId.Value,
+                                GroupMemberStatus = status
+                            };
+
+                            if ( groupMember.IsValidGroupMember( rockContext ) )
+                            {
+                                groupMemberService.Add( groupMember );
+                                existingMembershipLookup[membershipKey] = groupMember;
+
                                 placementResult.Outcome = PlacementOutcome.Success;
-                                placementResult.Message = string.Format( "Restored archived membership in '{0}'", targetGroup.Name );
+                                placementResult.Message = string.Format( "Added to '{0}'", targetGroup.Name );
                                 successCount++;
                                 pendingSaves++;
                             }
                             else
                             {
-                                placementResult.Outcome = PlacementOutcome.Skipped;
-                                placementResult.Message = string.Format( "Already a member of '{0}'", targetGroup.Name );
-                                skippedCount++;
+                                placementResult.Outcome = PlacementOutcome.Error;
+                                placementResult.Message = string.Format(
+                                    "Validation failed for '{0}': {1}",
+                                    targetGroup.Name,
+                                    string.Join( "; ", groupMember.ValidationResults.Select( v => v.ErrorMessage ) ) );
+                                errorCount++;
                             }
 
                             resultRow.Placements.Add( placementResult );
-                            continue;
                         }
 
-                        var groupTypeCache = GroupTypeCache.Get( targetGroup.GroupTypeId );
-                        int? defaultRoleId = groupTypeCache != null ? groupTypeCache.DefaultGroupRoleId : ( int? ) null;
+                        resultRows.Add( resultRow );
+                        processedRows++;
 
-                        if ( !defaultRoleId.HasValue )
+                        // ── Flush batch to database ──────────────────────────
+                        if ( pendingSaves >= batchSize )
                         {
-                            placementResult.Outcome = PlacementOutcome.Error;
-                            placementResult.Message = string.Format(
-                                "Group '{0}' has no default group role configured", targetGroup.Name );
-                            errorCount++;
-                            resultRow.Placements.Add( placementResult );
-                            continue;
+                            rockContext.SaveChanges();
+                            pendingSaves = 0;
                         }
 
-                        var groupMember = new GroupMember
+                        // ── FIX: Throttle progress reports to DB ─────────────────────
+                        if ( processedRows == totalRows || (DateTime.UtcNow - lastProgressUpdate).TotalSeconds >= 2 )
                         {
-                            PersonId = person.Id,
-                            GroupId = targetGroup.Id,
-                            GroupRoleId = defaultRoleId.Value,
-                            GroupMemberStatus = status
-                        };
+                            int pct = totalRows > 0
+                                ? ( int ) Math.Round( ( processedRows / ( double ) totalRows ) * 100 )
+                                : 100;
 
-                        if ( groupMember.IsValidGroupMember( rockContext ) )
-                        {
-                            groupMemberService.Add( groupMember );
-                            existingMembershipLookup[membershipKey] = groupMember;
-
-                            placementResult.Outcome = PlacementOutcome.Success;
-                            placementResult.Message = string.Format( "Added to '{0}'", targetGroup.Name );
-                            successCount++;
-                            pendingSaves++;
+                            UpdateRunStatus( runId, ImportRunStatus.Running,
+                                string.Format( "Processing row {0} of {1}…", processedRows, totalRows ),
+                                pct, processedRows, totalRows );
+                            
+                            lastProgressUpdate = DateTime.UtcNow;
                         }
-                        else
-                        {
-                            placementResult.Outcome = PlacementOutcome.Error;
-                            placementResult.Message = string.Format(
-                                "Validation failed for '{0}': {1}",
-                                targetGroup.Name,
-                                string.Join( "; ", groupMember.ValidationResults.Select( v => v.ErrorMessage ) ) );
-                            errorCount++;
-                        }
-
-                        resultRow.Placements.Add( placementResult );
                     }
 
-                    resultRows.Add( resultRow );
-                    processedRows++;
-
-                    // ── Flush batch to database ──────────────────────────
-                    if ( pendingSaves >= batchSize )
+                    // Final save for anything left in the batch.
+                    if ( pendingSaves > 0 )
                     {
                         rockContext.SaveChanges();
-                        pendingSaves = 0;
-                    }
-
-                    // ── Write progress every 10 rows ─────────────────────
-                    if ( processedRows % 10 == 0 || processedRows == totalRows )
-                    {
-                        int pct = totalRows > 0
-                            ? ( int ) Math.Round( ( processedRows / ( double ) totalRows ) * 100 )
-                            : 100;
-
-                        UpdateRunStatus( runId, ImportRunStatus.Running,
-                            string.Format( "Processing row {0} of {1}…", processedRows, totalRows ),
-                            pct, processedRows, totalRows );
                     }
                 }
 
-                // Final save for anything left in the batch.
-                if ( pendingSaves > 0 )
+                // ── Build result HTML and mark complete ────────────────────────
+                string resultHtml = RenderResultsTable( resultRows, request.Mappings );
+                MarkCompleted( runId, successCount, skippedCount, errorCount, totalRows, resultHtml );
+            }
+            finally
+            {
+                // FIX: Cleanup Orphaned BinaryFile Records Robustly from the Root Job execution.
+                if ( request != null && request.BinaryFileId.HasValue )
                 {
-                    rockContext.SaveChanges();
+                    try
+                    {
+                        using ( var ctx = new RockContext() )
+                        {
+                            var fileService = new BinaryFileService( ctx );
+                            var file = fileService.Get( request.BinaryFileId.Value );
+                            if ( file != null )
+                            {
+                                fileService.Delete( file );
+                                ctx.SaveChanges();
+                            }
+                        }
+                    }
+                    catch { /* Best effort process */ }
                 }
             }
-
-            // ── Build result HTML and mark complete ────────────────────────
-            string resultHtml = RenderResultsTable( resultRows, request.Mappings );
-            MarkCompleted( runId, successCount, skippedCount, errorCount, totalRows, resultHtml );
         }
 
         // ─── Database helpers ─────────────────────────────────────────────
