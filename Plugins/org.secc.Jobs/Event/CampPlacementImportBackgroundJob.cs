@@ -13,7 +13,6 @@
 // </copyright>
 
 using System;
-using System.Linq;
 using Quartz;
 using Rock;
 using Rock.Data;
@@ -57,7 +56,7 @@ SET [Status] = @status,
 WHERE [Id] = @runId",
                         new System.Data.SqlClient.SqlParameter( "@status", 3 ),
                         // Render standard Exception message to the user leaving traces off of the UI
-                        new System.Data.SqlClient.SqlParameter( "@statusMessage", string.Format("Import Failed: {0}", ex.Message) ),
+                        new System.Data.SqlClient.SqlParameter( "@statusMessage", string.Format( "Import Failed: {0}", ex.Message ) ),
                         new System.Data.SqlClient.SqlParameter( "@runId", runId ) );
                 }
 

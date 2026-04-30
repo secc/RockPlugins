@@ -843,9 +843,9 @@ WHERE [Id] = @runId",
                 sb.Append( "</tr>" );
             }
 
-            if ( totalRows > 200 ) 
+            if ( totalRows > 2000 ) 
             {
-                sb.AppendFormat( "<tr><td colspan='100%' class='text-center text-muted'><i>Showing first 200 results... Please consult overall counts for final summaries.</i></td></tr>" );
+                sb.AppendFormat( "<tr><td colspan='100%' class='text-center text-muted'><i>Showing first 2000 results... Please consult overall counts for final summaries.</i></td></tr>" );
             }
 
             sb.Append( "</tbody></table></div>" );

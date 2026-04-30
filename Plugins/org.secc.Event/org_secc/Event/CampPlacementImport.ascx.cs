@@ -438,12 +438,11 @@ namespace RockWeb.Plugins.org_secc.Event
         #region Private Methods
 
         /// <summary>
-        /// Parses raw CSV text into headers and data rows.
+        /// Parses raw CSV text to extract headers.
         /// Handles quoted fields that may contain commas or newlines.
         /// </summary>
         private void ParseCsv( string csvContent )
         {
-            var rows = new List<List<string>>();
             var headers = new List<string>();
 
             using ( var reader = new StringReader( csvContent ) )
@@ -452,14 +451,6 @@ namespace RockWeb.Plugins.org_secc.Event
                 if ( allRows.Any() )
                 {
                     headers = allRows[0];
-                    for ( int i = 1; i < allRows.Count; i++ )
-                    {
-                        // Skip completely empty rows
-                        if ( allRows[i].Any( cell => !string.IsNullOrWhiteSpace( cell ) ) )
-                        {
-                            rows.Add( allRows[i] );
-                        }
-                    }
                 }
             }
 
@@ -940,7 +931,7 @@ namespace RockWeb.Plugins.org_secc.Event
                         CsvName = csvFullName
                     };
 
-                    // If the name appears more than once, flag all rows for it and move on.
+                    // If the name appears more than one, flag all rows for it and move on.
                     if ( duplicateNames.Contains( csvFullName ) )
                     {
                         preview.MatchedPerson = "DUPLICATE";
@@ -1345,21 +1336,25 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);",
             }
 
             // Execute the import process asynchronously on a background thread.
-            // Using HostingEnvironment ensures IIS won't recycle the app pool while this is running.
+            // Using HostingEnvironment delays IIS from recycling the app pool immediately, allowing up to 90s for completion.
             System.Web.Hosting.HostingEnvironment.QueueBackgroundWorkItem( cancellationToken =>
             {
                 try
                 {
                     // Call the logic loop natively
                     var runnerType = Type.GetType( "org.secc.Jobs.Event.CampPlacementImportRunner, org.secc.Jobs" );
-                    if ( runnerType != null )
+                    if ( runnerType == null )
                     {
-                        var runMethod = runnerType.GetMethod( "Run", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static );
-                        if ( runMethod != null )
-                        {
-                            runMethod.Invoke( null, new object[] { runId } );
-                        }
+                        throw new Exception( "Could not find CampPlacementImportRunner." );
                     }
+
+                    var runMethod = runnerType.GetMethod( "Run", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static );
+                    if ( runMethod == null )
+                    {
+                        throw new Exception( "Could not find Run method on CampPlacementImportRunner." );
+                    }
+
+                    runMethod.Invoke( null, new object[] { runId } );
                 }
                 catch ( Exception ex )
                 {
