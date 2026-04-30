@@ -26,19 +26,9 @@ using Rock.Web.Cache;
 
 namespace org.secc.Jobs.Event
 {
-    /// <summary>
-    /// Processes a camp placement import run record.
-    /// Loaded by <see cref="CampPlacementImportBackgroundJob"/>.
-    /// All state comes from the run record row so this class has no
-    /// dependency on the web request or ViewState.
-    /// </summary>
     public static class CampPlacementImportRunner
     {
-        // ─── Outcome enum ────────────────────────────────────────────────
-
         private enum PlacementOutcome { Empty = 0, Success = 1, Skipped = 2, Error = 3 }
-
-        // ─── Internal result types ────────────────────────────────────────
 
         private class PlacementResult
         {
@@ -64,23 +54,14 @@ namespace org.secc.Jobs.Event
             public Dictionary<string, Group> GroupByName { get; set; }
         }
 
-        // ─── Entry point ─────────────────────────────────────────────────
-
-        /// <summary>
-        /// Loads the run record identified by <paramref name="runId"/>,
-        /// processes the import, writes progress updates back to the database
-        /// every batch, and sets the final status when done.
-        /// </summary>
         public static void Run( int runId )
         {
             CampPlacementImportRequest request = null;
 
             try
             {
-                // Mark the run as Running immediately so the UI can reflect that.
                 UpdateRunStatus( runId, ImportRunStatus.Running, "Starting import…", 0, 0, 0 );
 
-                // ── Load request ─────────────────────────────────────────────
                 request = LoadRequest( runId );
 
                 if ( request == null )
@@ -101,7 +82,6 @@ namespace org.secc.Jobs.Event
                     return;
                 }
 
-                // ── Parse CSV from the stored binary file ─────────────────────
                 List<string> headers;
                 List<List<string>> rows;
 
@@ -125,7 +105,6 @@ namespace org.secc.Jobs.Event
                 UpdateRunStatus( runId, ImportRunStatus.Running,
                     string.Format( "Loaded {0} rows. Matching registrants…", totalRows ), 0, 0, totalRows );
 
-                // ── Resolve column indexes ─────────────────────────────────────
                 int firstNameIdx = headers.IndexOf( request.FirstNameCol );
                 int lastNameIdx = headers.IndexOf( request.LastNameCol );
 
@@ -179,7 +158,6 @@ namespace org.secc.Jobs.Event
                 var status = ( GroupMemberStatus ) request.DefaultGroupMemberStatusValue;
                 int batchSize = request.BatchSize > 0 ? request.BatchSize : 50;
 
-                // ── Pre-scan for duplicate names ───────────────────────────────
                 var nameCount = new Dictionary<string, int>( StringComparer.OrdinalIgnoreCase );
                 foreach ( var row in rows )
                 {
@@ -194,7 +172,6 @@ namespace org.secc.Jobs.Event
                     nameCount.Where( kv => kv.Value > 1 ).Select( kv => kv.Key ),
                     StringComparer.OrdinalIgnoreCase );
 
-                // ── Main processing ────────────────────────────────────────────
                 int successCount = 0;
                 int skippedCount = 0;
                 int errorCount = 0;
@@ -204,13 +181,11 @@ namespace org.secc.Jobs.Event
 
                 using ( var rockContext = new RockContext() )
                 {
-                    // Load every registrant for the instance once.
                     var registrants = LoadRegistrants( rockContext, request.RegistrationInstanceId.Value );
 
                     var groupService = new GroupService( rockContext );
                     var groupMemberService = new GroupMemberService( rockContext );
 
-                    // Pre-load child groups for every mapping.
                     var childGroupsByParent = new Dictionary<int, List<Group>>();
                     foreach ( var mapping in request.Mappings )
                     {
@@ -224,7 +199,6 @@ namespace org.secc.Jobs.Event
                         }
                     }
 
-                    // Bulk-load all existing memberships we might touch in one query.
                     var allTargetGroupIds = childGroupsByParent.Values
                         .SelectMany( g => g )
                         .Select( g => g.Id )
@@ -257,7 +231,6 @@ namespace org.secc.Jobs.Event
 
                     var registrantLookup = BuildRegistrantLookup( registrants );
 
-                    // Build mapping metadata once.
                     var mappingMeta = new List<MappingMeta>();
                     foreach ( var mapping in request.Mappings )
                     {
@@ -305,12 +278,11 @@ namespace org.secc.Jobs.Event
 
                         var resultRow = new ResultRow
                         {
-                            CsvRowNumber = rowIdx + 2, // +2: 1-based + header row
+                            CsvRowNumber = rowIdx + 2, 
                             CamperName = csvFullName,
                             Placements = new List<PlacementResult>()
                         };
 
-                        // ── Duplicate name — skip all rows for this name ──────
                         if ( duplicateNames.Contains( csvFullName ) )
                         {
                             resultRow.PersonError = string.Format(
@@ -329,12 +301,11 @@ namespace org.secc.Jobs.Event
                                 errorCount++;
                             }
 
-                            resultRows.Add( resultRow );
+                            if ( resultRows.Count < 200 ) resultRows.Add( resultRow );
                             processedRows++;
                             continue;
                         }
 
-                        // ── Match person ──────────────────────────────────────
                         var person = FindRegistrant( firstName, lastName, registrantLookup );
 
                         if ( person == null )
@@ -354,14 +325,13 @@ namespace org.secc.Jobs.Event
                                 errorCount++;
                             }
 
-                            resultRows.Add( resultRow );
+                            if ( resultRows.Count < 200 ) resultRows.Add( resultRow );
                             processedRows++;
                             continue;
                         }
 
                         resultRow.MatchedPersonName = person.FullName;
 
-                        // ── Process each mapping column for this row ──────────
                         foreach ( var meta in mappingMeta )
                         {
                             var mapping = meta.Mapping;
@@ -465,17 +435,15 @@ namespace org.secc.Jobs.Event
                             resultRow.Placements.Add( placementResult );
                         }
 
-                        resultRows.Add( resultRow );
+                        if ( resultRows.Count < 200 ) resultRows.Add( resultRow );
                         processedRows++;
 
-                        // ── Flush batch to database ──────────────────────────
                         if ( pendingSaves >= batchSize )
                         {
                             rockContext.SaveChanges();
                             pendingSaves = 0;
                         }
 
-                        // ── FIX: Throttle progress reports to DB ─────────────────────
                         if ( processedRows == totalRows || (DateTime.UtcNow - lastProgressUpdate).TotalSeconds >= 2 )
                         {
                             int pct = totalRows > 0
@@ -490,20 +458,17 @@ namespace org.secc.Jobs.Event
                         }
                     }
 
-                    // Final save for anything left in the batch.
                     if ( pendingSaves > 0 )
                     {
                         rockContext.SaveChanges();
                     }
                 }
 
-                // ── Build result HTML and mark complete ────────────────────────
-                string resultHtml = RenderResultsTable( resultRows, request.Mappings );
+                string resultHtml = RenderResultsTable( resultRows, request.Mappings, totalRows );
                 MarkCompleted( runId, successCount, skippedCount, errorCount, totalRows, resultHtml );
             }
             finally
             {
-                // FIX: Cleanup Orphaned BinaryFile Records Robustly from the Root Job execution.
                 if ( request != null && request.BinaryFileId.HasValue )
                 {
                     try
@@ -519,12 +484,13 @@ namespace org.secc.Jobs.Event
                             }
                         }
                     }
-                    catch { /* Best effort process */ }
+                    catch ( Exception ex )
+                    {
+                        ExceptionLogService.LogException( ex, null );
+                    }
                 }
             }
         }
-
-        // ─── Database helpers ─────────────────────────────────────────────
 
         private static CampPlacementImportRequest LoadRequest( int runId )
         {
@@ -618,8 +584,6 @@ WHERE [Id] = @runId",
             }
         }
 
-        // ─── CSV helpers ──────────────────────────────────────────────────
-
         private static void ParseCsvFromBinaryFile(
             int binaryFileId,
             out List<string> headers,
@@ -648,7 +612,6 @@ WHERE [Id] = @runId",
 
                     for ( int i = 1; i < allRows.Count; i++ )
                     {
-                        // Skip blank rows
                         if ( allRows[i].Any( cell => !string.IsNullOrWhiteSpace( cell ) ) )
                             dataRows.Add( allRows[i] );
                     }
@@ -717,8 +680,6 @@ WHERE [Id] = @runId",
 
             return rows;
         }
-
-        // ─── Rock data helpers ────────────────────────────────────────────
 
         private static List<RegistrationRegistrant> LoadRegistrants( RockContext rockContext, int registrationInstanceId )
         {
@@ -804,8 +765,6 @@ WHERE [Id] = @runId",
             return null;
         }
 
-        // ─── General helpers ──────────────────────────────────────────────
-
         private static string GetCell( List<string> row, int index )
         {
             return ( index >= 0 && index < row.Count ) ? row[index].Trim() : string.Empty;
@@ -821,24 +780,21 @@ WHERE [Id] = @runId",
             return string.Format( "{0}_{1}", personId, groupId );
         }
 
-        // ─── HTML rendering ───────────────────────────────────────────────
-
         private static string RenderResultsTable(
             List<ResultRow> resultRows,
-            List<CampPlacementMappingData> mappings )
+            List<CampPlacementMappingData> mappings,
+            int totalRows )
         {
             var sb = new StringBuilder();
             sb.Append( "<div class='table-responsive'>" );
             sb.Append( "<table class='table table-bordered table-striped table-condensed'>" );
 
-            // Header
             sb.Append( "<thead><tr>" );
             sb.Append( "<th>Row</th><th>Camper</th><th>Matched Person</th>" );
             foreach ( var m in mappings )
                 sb.AppendFormat( "<th>{0}</th>", System.Web.HttpUtility.HtmlEncode( m.CsvColumnName ) );
             sb.Append( "</tr></thead><tbody>" );
 
-            // Data
             foreach ( var row in resultRows )
             {
                 sb.Append( "<tr>" );
@@ -885,6 +841,11 @@ WHERE [Id] = @runId",
                 }
 
                 sb.Append( "</tr>" );
+            }
+
+            if ( totalRows > 200 ) 
+            {
+                sb.AppendFormat( "<tr><td colspan='100%' class='text-center text-muted'><i>Showing first 200 results... Please consult overall counts for final summaries.</i></td></tr>" );
             }
 
             sb.Append( "</tbody></table></div>" );

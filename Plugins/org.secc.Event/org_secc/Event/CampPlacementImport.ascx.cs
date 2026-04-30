@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
-//
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -20,8 +20,6 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Web.UI.WebControls;
-using Quartz;
-using Quartz.Impl;
 
 using Rock;
 using Rock.Attribute;
@@ -194,9 +192,9 @@ namespace RockWeb.Plugins.org_secc.Event
                 using ( var reader = new StringReader( csvContent ) )
                 {
                     var allRows = ReadCsvRows( reader );
-                    if( allRows.Count > 1 ) 
+                    if ( allRows.Count > 1 )
                     {
-                        dataRowsCount = allRows.Skip(1).Count(r => r.Any(c => !string.IsNullOrWhiteSpace(c)));
+                        dataRowsCount = allRows.Skip( 1 ).Count( r => r.Any( c => !string.IsNullOrWhiteSpace( c ) ) );
                     }
                 }
             }
@@ -1302,7 +1300,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 throw new InvalidOperationException( "An uploaded file is required before queueing the import." );
             }
 
-            var request = new CampPlacementImportRequest
+            var request = new
             {
                 RegistrationInstanceId = SelectedRegistrationInstanceId.Value,
                 BinaryFileId = UploadedBinaryFileId.Value,
@@ -1310,7 +1308,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 LastNameCol = lastNameCol,
                 BatchSize = GetAttributeValue( AttributeKey.BatchSize ).AsIntegerOrNull() ?? 50,
                 DefaultGroupMemberStatusValue = GetAttributeValue( AttributeKey.DefaultGroupMemberStatus ).AsInteger(),
-                Mappings = mappings.Select( m => new CampPlacementMappingData
+                Mappings = mappings.Select( m => new
                 {
                     CsvColumnName = m.CsvColumnName,
                     ParentGroupId = m.ParentGroupId
@@ -1335,40 +1333,53 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);",
             }
         }
 
-        // ─── QueueRun — fires the background job via Quartz ──────────────────────────
+        // ─── QueueRun — fires the background job via QueueBackgroundWorkItem ─────────
 
         private void QueueRun( int runId )
         {
-            var jobType = Type.GetType(
-                "org.secc.Jobs.Event.CampPlacementImportBackgroundJob, org.secc.Jobs" );
+            var jobType = Type.GetType( "org.secc.Jobs.Event.CampPlacementImportBackgroundJob, org.secc.Jobs" );
 
             if ( jobType == null )
             {
                 throw new Exception( "Could not find CampPlacementImportBackgroundJob. Ensure org.secc.Jobs.dll is in the bin folder." );
             }
 
-            var scheduler = new StdSchedulerFactory().GetScheduler();
-
-            // FIX: Establish uniqueness strictly on Jobs while using individual contextual triggers targeting that Job.
-            var jobKey = new JobKey( "CampPlacementImportJob" );
-            if ( !scheduler.CheckExists( jobKey ) )
+            // Execute the import process asynchronously on a background thread.
+            // Using HostingEnvironment ensures IIS won't recycle the app pool while this is running.
+            System.Web.Hosting.HostingEnvironment.QueueBackgroundWorkItem( cancellationToken =>
             {
-                var job = JobBuilder.Create( jobType )
-                    .WithIdentity( jobKey )
-                    .StoreDurably()
-                    .Build();
-                scheduler.AddJob( job, true );
-            }
+                try
+                {
+                    // Call the logic loop natively
+                    var runnerType = Type.GetType( "org.secc.Jobs.Event.CampPlacementImportRunner, org.secc.Jobs" );
+                    if ( runnerType != null )
+                    {
+                        var runMethod = runnerType.GetMethod( "Run", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static );
+                        if ( runMethod != null )
+                        {
+                            runMethod.Invoke( null, new object[] { runId } );
+                        }
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    Rock.Model.ExceptionLogService.LogException( ex, null );
 
-            var trigger = TriggerBuilder.Create()
-                .WithIdentity( "CampPlacementImportTrigger-" + runId )
-                .ForJob( jobKey )
-                .UsingJobData( "RunId", runId )
-                .StartNow()
-                .Build();
-
-            scheduler.ScheduleJob( trigger );
-            scheduler.Start();
+                    // Safely fail the UI Status Loop
+                    using ( var rockContext = new RockContext() )
+                    {
+                        rockContext.Database.ExecuteSqlCommand( @"
+UPDATE [_org_secc_CampPlacementImportRun]
+SET [Status] = @status,
+    [StatusMessage] = @statusMessage,
+    [CompletedDateTime] = GETDATE()
+WHERE [Id] = @runId",
+                            new System.Data.SqlClient.SqlParameter( "@status", 3 ),
+                            new System.Data.SqlClient.SqlParameter( "@statusMessage", string.Format( "Import Failed: {0}", ex.InnerException?.Message ?? ex.Message ) ),
+                            new System.Data.SqlClient.SqlParameter( "@runId", runId ) );
+                    }
+                }
+            } );
         }
 
         // ─── GetRun — polls one run record row ───────────────────────────────────────
@@ -1385,34 +1396,12 @@ WHERE  [Id] = @runId",
                     new SqlParameter( "@runId", runId ) ).FirstOrDefault();
             }
         }
-
-
-    }
-
-    // Local copies of the DTO models — these are JSON-serialized,
-    // so they just need matching property names with org.secc.Jobs.Event versions.
-
-    public class CampPlacementImportRequest
-    {
-        public int RegistrationInstanceId { get; set; }
-        public int BinaryFileId { get; set; }
-        public string FirstNameCol { get; set; }
-        public string LastNameCol { get; set; }
-        public int BatchSize { get; set; } = 50;
-        public int? DefaultGroupMemberStatusValue { get; set; }
-        public List<CampPlacementMappingData> Mappings { get; set; } = new List<CampPlacementMappingData>();
-    }
-
-    public class CampPlacementMappingData
-    {
-        public string CsvColumnName { get; set; }
-        public int ParentGroupId { get; set; }
     }
 
     public class CampPlacementImportRunRecord
     {
         public int Id { get; set; }
-        public int Status { get; set; }           // stored as int in DB; compared via (int)ImportRunStatus
+        public int Status { get; set; }
         public string StatusMessage { get; set; }
         public int PercentComplete { get; set; }
         public int ProcessedRows { get; set; }

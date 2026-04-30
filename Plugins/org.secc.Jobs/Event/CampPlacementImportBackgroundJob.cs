@@ -44,7 +44,7 @@ namespace org.secc.Jobs.Event
             }
             catch ( Exception ex )
             {
-                // FIX: Log exception into rock to allow diagnostics.
+                // Log exception into rock to allow diagnostics.
                 ExceptionLogService.LogException( ex, null );
 
                 using ( var rockContext = new RockContext() )
@@ -56,8 +56,8 @@ SET [Status] = @status,
     [CompletedDateTime] = GETDATE()
 WHERE [Id] = @runId",
                         new System.Data.SqlClient.SqlParameter( "@status", 3 ),
-                        // FIX: Supply the stack trace to status
-                        new System.Data.SqlClient.SqlParameter( "@statusMessage", ex.ToString() ),
+                        // Render standard Exception message to the user leaving traces off of the UI
+                        new System.Data.SqlClient.SqlParameter( "@statusMessage", string.Format("Import Failed: {0}", ex.Message) ),
                         new System.Data.SqlClient.SqlParameter( "@runId", runId ) );
                 }
 
