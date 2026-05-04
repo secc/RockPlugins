@@ -26,6 +26,14 @@ using Rock.Web.Cache;
 
 namespace org.secc.Jobs.Event
 {
+    public enum ImportRunStatus
+    {
+        Queued = 0,
+        Running = 1,
+        Completed = 2,
+        Failed = 3
+    }
+
     public static class CampPlacementImportRunner
     {
         private enum PlacementOutcome { Empty = 0, Success = 1, Skipped = 2, Error = 3 }
@@ -44,6 +52,7 @@ namespace org.secc.Jobs.Event
             public string CamperName { get; set; }
             public string MatchedPersonName { get; set; }
             public string PersonError { get; set; }
+            public bool IsDuplicate { get; set; }
             public List<PlacementResult> Placements { get; set; }
         }
 
@@ -285,6 +294,7 @@ namespace org.secc.Jobs.Event
 
                         if ( duplicateNames.Contains( csvFullName ) )
                         {
+                            resultRow.IsDuplicate = true;
                             resultRow.PersonError = string.Format(
                                 "'{0}' appears {1} times in the CSV. All rows for this name are skipped.",
                                 csvFullName, nameCount[csvFullName] );
@@ -802,10 +812,22 @@ WHERE [Id] = @runId",
                 sb.AppendFormat( "<td>{0}</td>", System.Web.HttpUtility.HtmlEncode( row.CamperName ) );
 
                 if ( !string.IsNullOrWhiteSpace( row.PersonError ) )
-                    sb.AppendFormat( "<td><span class='label label-danger'>NOT FOUND</span><br/><small class='text-danger'>{0}</small></td>",
-                        System.Web.HttpUtility.HtmlEncode( row.PersonError ) );
+                {
+                    if ( row.IsDuplicate )
+                    {
+                        sb.AppendFormat( "<td><span class='label label-warning'>DUPLICATE</span><br/><small class='text-warning'>{0}</small></td>",
+                            System.Web.HttpUtility.HtmlEncode( row.PersonError ) );
+                    }
+                    else
+                    {
+                        sb.AppendFormat( "<td><span class='label label-danger'>NOT FOUND</span><br/><small class='text-danger'>{0}</small></td>",
+                            System.Web.HttpUtility.HtmlEncode( row.PersonError ) );
+                    }
+                }
                 else
+                {
                     sb.AppendFormat( "<td>{0}</td>", System.Web.HttpUtility.HtmlEncode( row.MatchedPersonName ) );
+                }
 
                 foreach ( var m in mappings )
                 {
@@ -843,9 +865,9 @@ WHERE [Id] = @runId",
                 sb.Append( "</tr>" );
             }
 
-            if ( totalRows > 2000 ) 
+            if ( totalRows > 200 ) 
             {
-                sb.AppendFormat( "<tr><td colspan='100%' class='text-center text-muted'><i>Showing first 2000 results... Please consult overall counts for final summaries.</i></td></tr>" );
+                sb.AppendFormat( "<tr><td colspan='100%' class='text-center text-muted'><i>Showing first 200 results... Please consult overall counts for final summaries.</i></td></tr>" );
             }
 
             sb.Append( "</tbody></table></div>" );

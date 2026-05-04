@@ -17,16 +17,6 @@ using System.Collections.Generic;
 
 namespace org.secc.Jobs.Event
 {
-    /// <summary>
-    /// Status values for an import run record.
-    /// </summary>
-    public enum ImportRunStatus
-    {
-        Queued = 0,
-        Running = 1,
-        Completed = 2,
-        Failed = 3
-    }
 
     /// <summary>
     /// All the information the background runner needs to process an import.

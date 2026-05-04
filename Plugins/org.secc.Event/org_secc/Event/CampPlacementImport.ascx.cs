@@ -379,7 +379,7 @@ namespace RockWeb.Plugins.org_secc.Event
             SetActivePanel( pnlMapping );
 
             var savedColumns = ViewState["SavedMappingColumns"] as List<string> ?? new List<string>();
-            var savedGroups = ViewState["SavedMappingGroups"] as List<int?> ?? new List<int?>();
+            var savedGroups = ViewState["SavedMappingGroups" ] as List<int?> ?? new List<int?>();
 
             BindMappingControls( savedColumns, savedGroups );
         }
@@ -1215,12 +1215,18 @@ namespace RockWeb.Plugins.org_secc.Event
             public Dictionary<string, Group> GroupByName { get; set; }
         }
 
-        private enum ImportRunStatus
+        private class CampPlacementImportRunRecord
         {
-            Queued = 0,
-            Running = 1,
-            Completed = 2,
-            Failed = 3
+            public int Id { get; set; }
+            public int Status { get; set; }
+            public string StatusMessage { get; set; }
+            public int PercentComplete { get; set; }
+            public int ProcessedRows { get; set; }
+            public int TotalRows { get; set; }
+            public int SuccessCount { get; set; }
+            public int SkippedCount { get; set; }
+            public int ErrorCount { get; set; }
+            public string ResultHtml { get; set; }
         }
 
         #endregion
@@ -1249,7 +1255,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 "<div class='progress-bar progress-bar-striped active' role='progressbar' style='width:{0}%'>{0}%</div>",
                 pct );
 
-            if ( run.Status == ( int ) ImportRunStatus.Completed )
+            if ( run.Status == ( int ) org.secc.Jobs.Event.ImportRunStatus.Completed )
             {
                 tmrRunStatus.Enabled = false;
 
@@ -1265,7 +1271,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
                 SetActivePanel( pnlResults );
             }
-            else if ( run.Status == ( int ) ImportRunStatus.Failed )
+            else if ( run.Status == ( int ) org.secc.Jobs.Event.ImportRunStatus.Failed )
             {
                 tmrRunStatus.Enabled = false;
                 CleanupUploadedBinaryFile();
@@ -1317,7 +1323,7 @@ VALUES
     (NEWID(),GETDATE(),@aliasId,@status,@message,0,@json);
 SELECT CAST(SCOPE_IDENTITY() AS INT);",
                     new SqlParameter( "@aliasId", ( object ) CurrentPersonAliasId ?? DBNull.Value ),
-                    new SqlParameter( "@status", ( object ) ( int ) ImportRunStatus.Queued ),
+                    new SqlParameter( "@status", ( object ) ( int ) org.secc.Jobs.Event.ImportRunStatus.Queued ),
                     new SqlParameter( "@message", "Queued" ),
                     new SqlParameter( "@json", requestJson ) )
                     .First();
@@ -1328,13 +1334,6 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);",
 
         private void QueueRun( int runId )
         {
-            var jobType = Type.GetType( "org.secc.Jobs.Event.CampPlacementImportBackgroundJob, org.secc.Jobs" );
-
-            if ( jobType == null )
-            {
-                throw new Exception( "Could not find CampPlacementImportBackgroundJob. Ensure org.secc.Jobs.dll is in the bin folder." );
-            }
-
             // Execute the import process asynchronously on a background thread.
             // Using HostingEnvironment delays IIS from recycling the app pool immediately, allowing up to 90s for completion.
             System.Web.Hosting.HostingEnvironment.QueueBackgroundWorkItem( cancellationToken =>
@@ -1369,7 +1368,7 @@ SET [Status] = @status,
     [StatusMessage] = @statusMessage,
     [CompletedDateTime] = GETDATE()
 WHERE [Id] = @runId",
-                            new System.Data.SqlClient.SqlParameter( "@status", 3 ),
+                            new System.Data.SqlClient.SqlParameter( "@status", ( int ) org.secc.Jobs.Event.ImportRunStatus.Failed ),
                             new System.Data.SqlClient.SqlParameter( "@statusMessage", string.Format( "Import Failed: {0}", ex.InnerException?.Message ?? ex.Message ) ),
                             new System.Data.SqlClient.SqlParameter( "@runId", runId ) );
                     }
@@ -1405,6 +1404,5 @@ WHERE  [Id] = @runId",
         public int SkippedCount { get; set; }
         public int ErrorCount { get; set; }
         public string ResultHtml { get; set; }
-        public string ErrorMessage { get; set; }
     }
 }

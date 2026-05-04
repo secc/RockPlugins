@@ -54,9 +54,9 @@ SET [Status] = @status,
     [StatusMessage] = @statusMessage,
     [CompletedDateTime] = GETDATE()
 WHERE [Id] = @runId",
-                        new System.Data.SqlClient.SqlParameter( "@status", 3 ),
+                        new System.Data.SqlClient.SqlParameter( "@status", ( int ) ImportRunStatus.Failed ),
                         // Render standard Exception message to the user leaving traces off of the UI
-                        new System.Data.SqlClient.SqlParameter( "@statusMessage", string.Format( "Import Failed: {0}", ex.Message ) ),
+                        new System.Data.SqlClient.SqlParameter( "@statusMessage", string.Format("Import Failed: {0}", ex.Message) ),
                         new System.Data.SqlClient.SqlParameter( "@runId", runId ) );
                 }
 
