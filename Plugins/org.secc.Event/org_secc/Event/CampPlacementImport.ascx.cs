@@ -379,7 +379,7 @@ namespace RockWeb.Plugins.org_secc.Event
             SetActivePanel( pnlMapping );
 
             var savedColumns = ViewState["SavedMappingColumns"] as List<string> ?? new List<string>();
-            var savedGroups = ViewState["SavedMappingGroups" ] as List<int?> ?? new List<int?>();
+            var savedGroups = ViewState["SavedMappingGroups"] as List<int?> ?? new List<int?>();
 
             BindMappingControls( savedColumns, savedGroups );
         }
@@ -1336,24 +1336,13 @@ SELECT CAST(SCOPE_IDENTITY() AS INT);",
         {
             // Execute the import process asynchronously on a background thread.
             // Using HostingEnvironment delays IIS from recycling the app pool immediately, allowing up to 90s for completion.
+            // We use this over Quartz to ensure immediate execution for the UI progress bar.
             System.Web.Hosting.HostingEnvironment.QueueBackgroundWorkItem( cancellationToken =>
             {
                 try
                 {
-                    // Call the logic loop natively
-                    var runnerType = Type.GetType( "org.secc.Jobs.Event.CampPlacementImportRunner, org.secc.Jobs" );
-                    if ( runnerType == null )
-                    {
-                        throw new Exception( "Could not find CampPlacementImportRunner." );
-                    }
-
-                    var runMethod = runnerType.GetMethod( "Run", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static );
-                    if ( runMethod == null )
-                    {
-                        throw new Exception( "Could not find Run method on CampPlacementImportRunner." );
-                    }
-
-                    runMethod.Invoke( null, new object[] { runId } );
+                    // Call the logic directly since we have a compile-time reference
+                    org.secc.Jobs.Event.CampPlacementImportRunner.Run( runId );
                 }
                 catch ( Exception ex )
                 {
@@ -1390,19 +1379,5 @@ WHERE  [Id] = @runId",
                     new SqlParameter( "@runId", runId ) ).FirstOrDefault();
             }
         }
-    }
-
-    public class CampPlacementImportRunRecord
-    {
-        public int Id { get; set; }
-        public int Status { get; set; }
-        public string StatusMessage { get; set; }
-        public int PercentComplete { get; set; }
-        public int ProcessedRows { get; set; }
-        public int TotalRows { get; set; }
-        public int SuccessCount { get; set; }
-        public int SkippedCount { get; set; }
-        public int ErrorCount { get; set; }
-        public string ResultHtml { get; set; }
     }
 }
