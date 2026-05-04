@@ -65,7 +65,7 @@
                                         <Rock:RockBoundField HeaderText="Id" DataField="WorkflowId" Visible="false" />
                                         <Rock:RockTemplateField HeaderText="" ItemStyle-Width="40px" ItemStyle-CssClass="grid-select-field" ExcelExportBehavior="NeverInclude">
                                             <ItemTemplate>
-                                                <a href='<%# "/Person/" + Eval("PersonId") %>' title="View Profile" class="text-muted">
+                                                <a href='<%# "/Person/" + Eval("PersonId") %>' title="View Profile" class="text-muted" onclick="event.stopPropagation(); return true;">
                                                     <i class="fa fa-user"></i>
                                                 </a>
                                             </ItemTemplate>
