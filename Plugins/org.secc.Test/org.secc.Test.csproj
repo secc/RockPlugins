@@ -2,7 +2,7 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <Import Project="$(SolutionDir)packages\xunit.core.2.9.2\build\xunit.core.props" Condition="Exists('$(SolutionDir)packages\xunit.core.2.9.2\build\xunit.core.props')" />
-  <Import Project="$(SolutionDir)packages\xunit.runner.visualstudio.2.8.2\build\net20\xunit.runner.visualstudio.props" Condition="Exists('$(SolutionDir)packages\xunit.runner.visualstudio.2.8.2\build\net20\xunit.runner.visualstudio.props')" />
+  <Import Project="$(SolutionDir)packages\xunit.runner.visualstudio.2.8.2\build\net462\xunit.runner.visualstudio.props" Condition="Exists('$(SolutionDir)packages\xunit.runner.visualstudio.2.8.2\build\net462\xunit.runner.visualstudio.props')" />
   <Import Project="$(SolutionDir)packages\Microsoft.NET.Test.Sdk.17.11.1\build\net462\Microsoft.NET.Test.Sdk.props" Condition="Exists('$(SolutionDir)packages\Microsoft.NET.Test.Sdk.17.11.1\build\net462\Microsoft.NET.Test.Sdk.props')" />
   <Import Project="$(SolutionDir)packages\xunit.analyzers.1.17.0\build\xunit.analyzers.props" Condition="Exists('$(SolutionDir)packages\xunit.analyzers.1.17.0\build\xunit.analyzers.props')" />
   <PropertyGroup>
@@ -128,7 +128,7 @@
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)packages\xunit.core.2.9.2\build\xunit.core.props')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)packages\xunit.core.2.9.2\build\xunit.core.props'))" />
     <Error Condition="!Exists('$(SolutionDir)packages\xunit.core.2.9.2\build\xunit.core.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)packages\xunit.core.2.9.2\build\xunit.core.targets'))" />
-    <Error Condition="!Exists('$(SolutionDir)packages\xunit.runner.visualstudio.2.8.2\build\net20\xunit.runner.visualstudio.props')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)packages\xunit.runner.visualstudio.2.8.2\build\net20\xunit.runner.visualstudio.props'))" />
+    <Error Condition="!Exists('$(SolutionDir)packages\xunit.runner.visualstudio.2.8.2\build\net462\xunit.runner.visualstudio.props')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)packages\xunit.runner.visualstudio.2.8.2\build\net462\xunit.runner.visualstudio.props'))" />
     <Error Condition="!Exists('$(SolutionDir)packages\Microsoft.NET.Test.Sdk.17.11.1\build\net462\Microsoft.NET.Test.Sdk.props')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)packages\Microsoft.NET.Test.Sdk.17.11.1\build\net462\Microsoft.NET.Test.Sdk.props'))" />
     <Error Condition="!Exists('$(SolutionDir)packages\Microsoft.NET.Test.Sdk.17.11.1\build\net462\Microsoft.NET.Test.Sdk.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)packages\Microsoft.NET.Test.Sdk.17.11.1\build\net462\Microsoft.NET.Test.Sdk.targets'))" />
   </Target>
