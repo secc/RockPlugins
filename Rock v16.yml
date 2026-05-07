@@ -1,0 +1,190 @@
+# Agent Queue 'Azure Pipelines' was used with unrecognized Agent Specification, vmImage property must be specified to determine image - https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/hosted?view=azure-devops&tabs=yaml#software
+variables:
+- name: BuildParameters.solution
+  value: '**\Rock.sln'
+- name: BuildParameters.ArtifactName
+  value: Artifacts
+resources:
+  pipelines:
+  - pipeline: RockPlugins-v16
+    source: RockPlugins-v16
+    trigger:
+      branches:
+        include:
+        - refs/heads/hotfix-1.16.12
+  repositories:
+  - repository: self
+    type: git
+    ref: refs/heads/hotfix-1.16.12
+jobs:
+- job: Job_1
+  displayName: Build Rock
+  pool:
+    name: Azure Pipelines
+  steps:
+  - checkout: self
+    clean: true
+    fetchDepth: 1
+    fetchTags: false
+  - task: PowerShell@2
+    displayName: Cherry-Pick Core Changes
+    inputs:
+      targetType: inline
+      filePath: "function Invoke-Utility { <# .SYNOPSIS Invokes an external utility, ensuring successful execution.  .DESCRIPTION Invokes an external utility (program) and, if the utility indicates failure by  way of a nonzero exit code, throws a script-terminating error.  * Pass the command the way you would execute the command directly. * Do NOT use & as the first argument if the executable name is not a literal.  .EXAMPLE Invoke-Utility git push  Executes `git push` and throws a script-terminating error if the exit code is nonzero. #>   $exe, $argsForExe = $Args   # Workaround: Prevents 2> redirections applied to calls to this function   #             from accidentally triggering a terminating error.   #             See bug report at https://github.com/PowerShell/PowerShell/issues/4002   $ErrorActionPreference = 'Continue'   try { & $exe $argsForExe } catch { Throw } # catch is triggered ONLY if $exe can't be found, never for errors reported by $exe itself   if ($LASTEXITCODE) { Throw \"$exe indicated failure (exit code $LASTEXITCODE; full command: $Args).\" } }  Set-Alias iu Invoke-Utility  cd Rock git config --global user.email \"applications@secc.org\" git config --global user.name \"Southeast Applications\"  iu git fetch origin hotfix-1.10.2 #  Added the ability to test check-in at any datetime. #iu git cherry-pick 07d3300759d29bc9035aa488690a8d1832d93b1a  iu git fetch origin enhancement-csf-htmlsnippets #  ROCK-5623 Added HTML Snippets for 13. Updated to include nullable BlockId in Modal iu git cherry-pick d2f77122be9c8fd47cbbbfbc1e7b9a97f81abb39  iu git fetch origin sl-grouptypepurposefilter #  ROCK-5624 Re-Adding In Group Group Type Purpose Filter  iu git cherry-pick 039cccb0d8789a9f72f54b5d6230dbaaa3eb546c iu git cherry-pick 41efa0a42ad8c6c23cad98f44bc33fb2bf6a1deb  # https://github.com/SparkDevNetwork/Rock/pull/4823 #iu git fetch origin bugfix-cf-MultiplePhoneSameType #iu git cherry-pick 7b2497bf90b0730af277d62d641f65349a33acf0  # Attribute Value Matrix Linq update iu git fetch origin bugfix_1.13.7-csf-matrixattributefix iu git cherry-pick 3f9424d847b168bf159c2aa1b29ebf83ca36cfe3  # Connection Request Safety and Security Update # Commented out 7/18/2025 - ROCK-7848 #iu git fetch origin  feature-csf-ConnectionStateUpdates-1.13.7 #iu git cherry-pick c654e00278ed174ef90e3e31ef0b89f11e29ad70  # Giving Analytics Update iu git fetch origin feature-cf-v13-financeGivingAnalyticsAddFamily iu git cherry-pick 180a494fb2eea0f0cb8e0a4717f1b8acb466be86"
+      script: "function Invoke-Utility {\n<#\n.SYNOPSIS\nInvokes an external utility, ensuring successful execution.\n\n.DESCRIPTION\nInvokes an external utility (program) and, if the utility indicates failure by \nway of a nonzero exit code, throws a script-terminating error.\n\n* Pass the command the way you would execute the command directly.\n* Do NOT use & as the first argument if the executable name is not a literal.\n\n.EXAMPLE\nInvoke-Utility git push\n\nExecutes `git push` and throws a script-terminating error if the exit code\nis nonzero.\n#>\n  $exe, $argsForExe = $Args\n  # Workaround: Prevents 2> redirections applied to calls to this function\n  #             from accidentally triggering a terminating error.\n  #             See bug report at https://github.com/PowerShell/PowerShell/issues/4002\n  $ErrorActionPreference = 'Continue'\n  try { & $exe $argsForExe } catch { Throw } # catch is triggered ONLY if $exe can't be found, never for errors reported by $exe itself\n  if ($LASTEXITCODE) { Throw \"$exe indicated failure (exit code $LASTEXITCODE; full command: $Args).\" }\n}\n\nSet-Alias iu Invoke-Utility\n\ncd Rock\ngit config --global user.email \"applications@secc.org\"\ngit config --global user.name \"Southeast Applications\"\n\niu git fetch origin hotfix-1.10.2\n#  Added the ability to test check-in at any datetime.\niu git cherry-pick 07d3300759d29bc9035aa488690a8d1832d93b1a\n\niu git fetch origin enhancement-csf-htmlsnippets\n#  ROCK-5623 Added HTML Snippets for 13. Updated to include nullable BlockId in Modal\n#iu git cherry-pick d2f77122be9c8fd47cbbbfbc1e7b9a97f81abb39\n\niu git fetch origin sl-grouptypepurposefilter\n#  ROCK-5624 Re-Adding In Group Group Type Purpose Filter \niu git cherry-pick 039cccb0d8789a9f72f54b5d6230dbaaa3eb546c\niu git cherry-pick 41efa0a42ad8c6c23cad98f44bc33fb2bf6a1deb\n\n# https://github.com/SparkDevNetwork/Rock/pull/4823\n#iu git fetch origin bugfix-cf-MultiplePhoneSameType\n#iu git cherry-pick 7b2497bf90b0730af277d62d641f65349a33acf0\n\n# Attribute Value Matrix Linq update\n#iu git fetch origin bugfix_1.13.7-csf-matrixattributefix\n#iu git cherry-pick 3f9424d847b168bf159c2aa1b29ebf83ca36cfe3\n\n# Connection Request Safety and Security Update\n# Commented out 7/18/2025 - ROCK-7848\n#iu git fetch origin  feature-csf-ConnectionStateUpdates-1.13.7\n#iu git cherry-pick c654e00278ed174ef90e3e31ef0b89f11e29ad70\n\n# Giving Analytics Update\niu git fetch origin feature-cf-v13-financeGivingAnalyticsAddFamily\niu git cherry-pick 180a494fb2eea0f0cb8e0a4717f1b8acb466be86"
+  - task: NuGetToolInstaller@1
+    displayName: Use NuGet 6.14.0
+    inputs:
+      versionSpec: 6.14.0
+  - task: NuGetCommand@2
+    displayName: NuGet restore
+    inputs:
+      solution: $(BuildParameters.solution)
+      selectOrConfig: config
+      nugetConfigPath: NuGet.config
+  - task: NuGetCommand@2
+    displayName: NuGet custom
+    inputs:
+      command: custom
+      arguments: install Microsoft.AspNet.WebPages -OutputDirectory packages
+  - task: CopyFiles@2
+    displayName: 'Copy System.Web.WebPages*.dll to: RockWeb/bin'
+    inputs:
+      SourceFolder: packages/
+      Contents: '**/System.Web.WebPages*.dll'
+      TargetFolder: RockWeb/bin
+  - task: CopyFiles@2
+    displayName: Copy Facade Files
+    inputs:
+      SourceFolder: C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\Facades
+      TargetFolder: C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2
+  - task: NodeTool@0
+    displayName: Use Node 17.x
+    inputs:
+      versionSpec: 17.x
+  - task: PowerShell@2
+    displayName: Add Package Dependencies to RockWeb/Bin
+    inputs:
+      filePath: PrebuildRockWeb.ps1
+      arguments: Rock.sln
+  - task: PowerShell@2
+    displayName: PowerShell Script
+    inputs:
+      targetType: inline
+      script: >-
+        echo "Copying DLLs . . ."
+
+        copy packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll RockWeb\Bin\
+
+        copy packages\EntityFramework.6.4.4\lib\net45\EntityFramework.SqlServer.dll RockWeb\Bin\
+
+        copy packages\AspNet.Security.OpenIdConnect.Primitives.2.0.0\lib\netstandard2.0\AspNet.Security.OpenIdConnect.Primitives.dll RockWeb\Bin\
+
+        copy packages\AspNet.Security.OpenIdConnect.Primitives.2.0.0\lib\netstandard2.0\AspNet.Security.OpenIdConnect.Primitives.dll RockWeb\Bin\
+
+        copy packages\Owin.Security.OpenIdConnect.Server.2.0.0\lib\net47\Owin.Security.OpenIdConnect.Server.dll  RockWeb\Bin\
+
+        copy packages\RestSharp.105.2.3\lib\net46\RestSharp.dll  RockWeb\Bin\
+
+        copy packages\HtmlAgilityPack.1.4.9.5\lib\Net45\HtmlAgilityPack.dll RockWeb\Bin\
+
+        copy libs\Quartz\Quartz.dll RockWeb\Bin\
+
+        copy packages\ImageResizer.4.0.5\lib\Net45\ImageResizer.dll RockWeb\Bin\
+
+        copy packages\Twilio.5.1.0\lib\Net451\Twilio.dll RockWeb\Bin\
+
+        copy packages\UAParser.3.1.44\lib\Net45\UAParser.dll RockWeb\Bin\
+
+        copy packages\CsvHelper.2.16.3.0\lib\Net45\CsvHelper.dll RockWeb\Bin\
+
+        copy packages\System.Linq.Dynamic.Core.1.2.9\lib\Net45\System.Linq.Dynamic.Core.dll RockWeb\Bin\
+
+        copy packages\NuGet.Core.2.11.1\lib\net40-Client\NuGet.Core.dll RockWeb\Bin\
+
+        copy packages\Owin.Security.OpenIdConnect.Extensions.2.0.0\lib\net461\Owin.Security.OpenIdConnect.Extensions.dll RockWeb\Bin\
+
+        copy packages\System.Text.Encodings.Web.6.0.0\lib\net461\System.Text.Encodings.Web.dll RockWeb\Bin\
+
+        copy packages\Microsoft.IdentityModel.Clients.ActiveDirectory.2.21.301221612\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.dll RockWeb\Bin\
+
+        copy packages\CS-Script.bin.3.13.2.0\lib\net45\CSScriptLibrary.dll RockWeb\Bin\
+
+        copy packages\Fluid.Core.2.3.1\lib\netstandard2.0\Fluid.dll RockWeb\Bin\
+
+        copy libs\Slingshot\Slingshot.Core.dll RockWeb\Bin\
+
+        copy libs\Humanizer.2.1.0\Humanizer.dll RockWeb\Bin\
+
+        copy libs\EPPlus\EPPlus.dll RockWeb\Bin\
+
+        copy libs\Rock.Common.Tv\Rock.Common.Tv.dll RockWeb\Bin\
+
+
+        echo "Installing TypeScript . . ."
+
+        npm install --save-dev typescript
+
+
+        echo "Building Rock . . ."
+
+        & 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.com' Rock.sln /Build
+  - task: PowerShell@2
+    displayName: Clean up temp files
+    inputs:
+      targetType: inline
+      script: "Remove-Item -Path \"$env:TEMP\\*\" -Recurse -Force -ErrorAction SilentlyContinue\nRemove-Item -Path \"$env:LOCALAPPDATA\\Temp\\*\" -Recurse -Force -ErrorAction SilentlyContinue\n\n# Define the folders to keep\n$foldersToKeep = @(\"RockWeb\", \"packages\", \"libs\")\n\n# 1. Get all items\n# 2. Filter checks if the name is NOT in the $foldersToKeep list\n# 3. Delete the rest\nGet-ChildItem -Path \"$(Build.SourcesDirectory)\" -Force | \n    Where-Object { $_.Name -notin $foldersToKeep } | \n    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue\n\nWrite-Host \"Cleanup complete. Preserved 'RockWeb' and 'packages' and 'libs'.\""
+  - task: CmdLine@2
+    displayName: Clone RockPlugins
+    inputs:
+      script: >
+        echo Cloning RockPlugins
+
+        git clone -b hotfix-1.16.12 --depth 1 https://github.com/secc/RockPlugins.git
+  - task: PowerShell@2
+    displayName: Build Plugins
+    inputs:
+      targetType: inline
+      script: "# Restore nuget packages for all plugins (this is a necessary for building plugins in alphabetical order)\nForEach($plugin in (Get-ChildItem -Path RockPlugins/Plugins -Directory)) {\n  & \"nuget.exe\" restore ($plugin.FullName + \"\\packages.config\") -SolutionDirectory $(Build.SourcesDirectory)\n}\n\nForEach($plugin in (Get-ChildItem -Path RockPlugins/Plugins -Directory)) {\n  $project = ($plugin.FullName + \"\\\" + $plugin + \".csproj\")\n\n  $ValidProjectPath = Test-Path $project\n \n  if ($ValidProjectPath -eq $True) {\n    & 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\MSBuild\\Current\\Bin\\msbuild.exe' -m $project /p:SolutionDir=\"$(Build.SourcesDirectory)\\\\\"\n    if (!$?) { \n      throw \"$plugin Build Failed!\" }\n    & 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\MSBuild\\Current\\Bin\\msbuild.exe' -m $project -target:Clean\n  } else {\n    $ValidPluginPath = Test-Path ($plugin.FullName + \"\\org_secc\")\n    if ($ValidPluginPath -eq $True) {\n      $path = $plugin.FullName + \"\\org_secc\"\n      xcopy /Y /R /E /I $path RockWeb\\Plugins\\org_secc\n    }\n    $ValidThemePath = Test-Path ($plugin.FullName + \"\\Themes\")    \n    if ($ValidThemePath -eq $True) {\n      $path = $plugin.FullName + \"\\Themes\"\n      xcopy /Y /R /E /I $path RockWeb\\Themes\n    }\n  }\n\n  $plugin = ($plugin.FullName + \"\\BuildPlugin.ps1\")\nWrite-Host $plugin\n  $ValidPlugin = Test-Path $plugin \n  if ($ValidPlugin -eq $True) {\nWrite-Host \"Building!\"\n    &\"$plugin\";\n  }\n}"
+  - task: VSTest@3
+    displayName: Run org.secc.Test
+    inputs:
+      testAssemblyVer2: |
+        **\org.secc.Test\bin\**\org.secc.Test.dll
+        !**\obj\**
+      searchFolder: $(Build.SourcesDirectory)\RockPlugins
+      failOnMinTestsNotRun: true
+  - task: CopyFiles@2
+    displayName: Copy Plugin Files to Artifact Staging
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)
+      Contents: '**/*.plugin'
+      TargetFolder: $(build.artifactstagingdirectory)
+  - task: DeleteFiles@1
+    displayName: Delete RockPlugins
+    inputs:
+      Contents: >-
+        RockPlugins
+
+        packages
+  - task: PowerShell@2
+    displayName: Create build.info file
+    inputs:
+      targetType: inline
+      script: "\"Build # $(Build.BuildNumber)\" > '$(Build.SourcesDirectory)\\RockWeb\\build.info'"
+  - task: ArchiveFiles@2
+    displayName: Archive RockWeb
+    inputs:
+      rootFolderOrFile: $(Build.SourcesDirectory)/RockWeb
+      includeRootFolder: false
+      archiveFile: $(Build.ArtifactStagingDirectory)/RockWeb.zip
+  - task: PublishSymbols@2
+    displayName: Publish symbols path
+    inputs:
+      PublishSymbols: false
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Artifact
+    inputs:
+      PathtoPublish: $(build.artifactstagingdirectory)
+      ArtifactName: $(BuildParameters.ArtifactName)
+...
