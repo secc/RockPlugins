@@ -1285,7 +1285,7 @@ namespace org.secc.Connection
                 else
                 {
                     // Base case for recursion
-                    inner.Add( "Filled", subRequests != null ? subRequests.Where( sr => sr.ConnectionState != ConnectionState.Inactive ).Count() : 0 );
+                    inner.Add( "Filled", subRequests != null ? subRequests.Where( sr => sr.ConnectionState != Rock.Model.ConnectionState.Inactive ).Count() : 0 );
                 }
                 partitionList.Add( inner );
             }
