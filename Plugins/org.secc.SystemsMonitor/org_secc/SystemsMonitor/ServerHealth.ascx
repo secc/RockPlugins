@@ -16,43 +16,6 @@
 
             <div class="panel-body">
                 <Rock:NotificationBox ID="nbMessage" runat="server" />
-
-                <asp:Panel ID="pnlDetails" runat="server">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <dl>
-                                <dt>Machine Name</dt>
-                                <dd><asp:Literal ID="lMachineName" runat="server" /></dd>
-                            </dl>
-                        </div>
-                        <div class="col-md-4">
-                            <dl>
-                                <dt>Web Farm</dt>
-                                <dd><asp:Literal ID="lWebFarmEnabled" runat="server" /></dd>
-                            </dl>
-                        </div>
-                        <div class="col-md-4">
-                            <dl>
-                                <dt>Last Seen</dt>
-                                <dd><asp:Literal ID="lLastSeen" runat="server" /></dd>
-                            </dl>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <dl>
-                                <dt>Message Bus</dt>
-                                <dd><asp:Literal ID="lMessageBus" runat="server" /></dd>
-                            </dl>
-                        </div>
-                        <div class="col-md-6">
-                            <dl>
-                                <dt>Cache Queue Rate/Min</dt>
-                                <dd><asp:Literal ID="lCacheQueueRate" runat="server" /></dd>
-                            </dl>
-                        </div>
-                    </div>
-                </asp:Panel>
             </div>
 
         </asp:Panel>
