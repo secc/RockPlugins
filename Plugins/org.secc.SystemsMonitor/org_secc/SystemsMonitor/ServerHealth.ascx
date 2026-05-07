@@ -53,9 +53,6 @@
                         </div>
                     </div>
                 </asp:Panel>
-
-                <Rock:BootstrapButton ID="btnRefresh" runat="server" CssClass="btn btn-default btn-sm"
-                    Text="<i class='fa fa-refresh'></i> Refresh" OnClick="btnRefresh_Click" />
             </div>
 
         </asp:Panel>
