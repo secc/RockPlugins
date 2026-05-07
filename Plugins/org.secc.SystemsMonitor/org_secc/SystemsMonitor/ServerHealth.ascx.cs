@@ -75,7 +75,7 @@ namespace RockWeb.Plugins.org_secc.SystemsMonitor
         private void RunHealthCheck()
         {
             nbMessage.Visible = false;
-            pnlDetails.Visible = false;
+            pnlDetails.Visible = true;
 
             lMachineName.Text = Environment.MachineName;
 
