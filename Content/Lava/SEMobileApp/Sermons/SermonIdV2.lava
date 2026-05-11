@@ -13,6 +13,13 @@ Sermon Page V2
 		{%- assign series = contentchannelitemItems | First -%}
 	{%- endcontentchannelitem -%}
 {%- endcontentchannelitemassociation -%}
+{%- assign youtubeId = sermon | Attribute:'YouTubeId' -%}
+{%- assign startTime = sermon | Attribute:'YoutubeSermonStartTime' -%}
+{%- if youtubeId != empty -%}
+	{%- capture shareUrl -%}https://youtu.be/{{ youtubeId }}{%- if startTime != empty -%}?t={{ startTime }}{%- endif -%}{%- endcapture -%}
+{%- else -%}
+	{%- capture shareUrl -%}{{ 'Global' | Attribute:'PublicApplicationRoot' }}sermons/{{ series.PrimarySlug }}/{{ sermon.PrimarySlug }}{%- endcapture -%}
+{%- endif -%}
 {
     "blocks": [{
         "type": "mediaBanner",
@@ -67,7 +74,7 @@ Sermon Page V2
                 "icon": "share",
                 "action": {
                     "handler": "share",
-                    "shareUrl": "{{ 'Global' | Attribute:'PublicApplicationRoot' }}sermons/{{series.PrimarySlug}}/{{sermon.PrimarySlug}}",
+                    "shareUrl": "{{ shareUrl }}",
                     "shareBody": "Check this out! {{series.Title | Replace:'"','\"'}} | {{sermon.Title | Replace:'"','\"'}}"
                 }
             }]
