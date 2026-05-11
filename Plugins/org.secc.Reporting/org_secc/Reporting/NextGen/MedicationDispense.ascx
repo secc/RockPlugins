@@ -51,13 +51,19 @@
             <Content>
                 <asp:HiddenField runat="server" ID="hfManageMedsPersonId" />
                 <asp:HiddenField runat="server" ID="hfManageMedsMatrixGuid" />
+                <asp:HiddenField runat="server" ID="hfManageMedsSource" />
                 <div class="row">
                     <div class="col-md-12">
-                        <Rock:Grid runat="server" ID="gMedications" ShowActionRow="false" DataKeyNames="Id" AllowPaging="false">
+                        <asp:Literal runat="server" ID="ltManageMedsSourceBadge" />
+                        <Rock:Grid runat="server" ID="gMedications" ShowActionRow="false" DataKeyNames="Id" AllowPaging="false"
+                            OnRowDataBound="gMedications_RowDataBound">
                             <Columns>
                                 <asp:BoundField DataField="Medication" HeaderText="Medication" />
                                 <asp:BoundField DataField="Instructions" HeaderText="Instructions" />
                                 <asp:BoundField DataField="Schedule" HeaderText="Schedule" />
+                                <Rock:BoolField DataField="Active" HeaderText="Active" />
+                                <Rock:LinkButtonField ID="btnToggleActive" HeaderText="Toggle" CssClass="btn btn-default btn-sm" Text="<i class='fa fa-toggle-on'></i>" OnClick="ToggleActive_Click" />
+                                <Rock:EditField HeaderText="Edit" ID="btnEditMed" OnClick="btnEditMed_Click" />
                                 <Rock:DeleteField HeaderText="Remove" ID="btnDeleteMed" OnClick="btnDeleteMed_Click" />
                             </Columns>
                         </Rock:Grid>
@@ -77,6 +83,22 @@
                         <Rock:RockTextBox runat="server" ID="tbNewMedication" Label="Medication" Required="true" />
                         <Rock:RockTextBox runat="server" ID="tbNewInstructions" Label="Instructions" />
                         <Rock:RockListBox runat="server" ID="lbNewSchedule" Label="Schedule"
+                            DataValueField="Guid" DataTextField="Value" />
+                    </div>
+                </div>
+            </Content>
+        </Rock:ModalDialog>
+
+        <%-- Edit Medication Sub-Modal --%>
+        <Rock:ModalDialog runat="server" ID="mdEditMedication" Title="Edit Medication" SaveButtonText="Save" OnSaveClick="mdEditMedication_SaveClick"
+            CancelLinkVisible="true" CssClass="modal-add-med">
+            <Content>
+                <asp:HiddenField runat="server" ID="hfEditMatrixItemId" />
+                <div class="row">
+                    <div class="col-md-12">
+                        <Rock:RockTextBox runat="server" ID="tbEditMedication" Label="Medication" Required="true" />
+                        <Rock:RockTextBox runat="server" ID="tbEditInstructions" Label="Instructions" />
+                        <Rock:RockListBox runat="server" ID="lbEditSchedule" Label="Schedule"
                             DataValueField="Guid" DataTextField="Value" />
                     </div>
                 </div>

@@ -311,6 +311,15 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 return null;
             }
 
+            // GroupMember-entity matrix attributes (snapshot) — same key as Person, different entity type.
+            // Most camp registrations create a per-event copy via the "Medication Information Request" workflow
+            // and store its Guid here. When present, prefer it over the Person master.
+            List<int> groupMemberMatrixAttributeIds = attributeService.Queryable()
+                .Where( a =>
+                    a.EntityTypeId == groupMemberEntityid
+                    && a.Key == key )
+                .Select( a => a.Id ).ToList();
+
             List<int> filterAttributeIds = null;
             var filterAttributeKey = GetAttributeValue( "GroupMemberAttributeFilter" );
             if ( !string.IsNullOrWhiteSpace( filterAttributeKey ) )
@@ -326,13 +335,35 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             var attributeMatrixItemEntityId = EntityTypeCache.GetId<AttributeMatrixItem>();
 
-            var qry = groupMembers
+            var groupMemberMatrixValues = attributeValueService.Queryable()
+                .Where( av => groupMemberMatrixAttributeIds.Contains( av.AttributeId ) && av.Value != null && av.Value != "" );
+
+            var personMatrixValues = attributeValueService.Queryable()
+                .Where( av => attributeIds.Contains( av.AttributeId ) && av.Value != null && av.Value != "" );
+
+            // Snapshot path: members with a GroupMember-level matrix value join via that.
+            // Person path: members WITHOUT a snapshot fall back to the Person master (NOT EXISTS antijoin).
+            // Two simple INNER-JOIN queries UNION'd via Concat — avoids a CASE/COALESCE expression in the
+            // matrix-Guid join key, which the SQL optimizer couldn't handle and timed out on.
+            var qrySnapshot = groupMembers
                .Join(
-                   attributeValueService.Queryable().Where( av => attributeIds.Contains( av.AttributeId ) ),
+                   groupMemberMatrixValues,
+                   m => m.Id,
+                   gmav => gmav.EntityId.Value,
+                   ( m, gmav ) => new { Person = m.Person, Member = m, AttributeValue = gmav.Value }
+               );
+
+            var qryPerson = groupMembers
+               .Where( m => !groupMemberMatrixValues.Any( gmav => gmav.EntityId == m.Id ) )
+               .Join(
+                   personMatrixValues,
                    m => m.PersonId,
-                   av => av.EntityId.Value,
-                   ( m, av ) => new { m.Person, Member = m, AttributeValue = av.Value }
-               )
+                   pav => pav.EntityId.Value,
+                   ( m, pav ) => new { Person = m.Person, Member = m, AttributeValue = pav.Value }
+               );
+
+            var qry = qrySnapshot
+               .Concat( qryPerson )
                .Join(
                    attributeMatrixService.Queryable(),
                    m => m.AttributeValue,
@@ -511,6 +542,12 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 var medicines = member.GroupBy( m => m.MatrixItemId );
                 foreach ( var medicine in medicines )
                 {
+                    var activeAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "MedicationActive" );
+                    if ( activeAtt != null && activeAtt.AttributeValue != null && activeAtt.AttributeValue.Value.AsBoolean( true ) == false )
+                    {
+                        continue;
+                    }
+
                     var scheduleAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "Schedule" );
                     if ( scheduleAtt == null || scheduleAtt.AttributeValue.Value == null )
                     {
@@ -1117,41 +1154,81 @@ namespace RockWeb.Blocks.Reporting.NextGen
             BindGrid();
         }
 
+        private const string SourcePerson = "Person";
+        private const string SourceSnapshot = "Snapshot";
+
         protected void ManageMeds_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
             // Ensure clean modal state
             mdAddMedication.Hide();
+            mdEditMedication.Hide();
 
             var keys = ( ( string ) e.RowKeyValue ).SplitDelimitedValues();
             var personId = keys[0].AsInteger();
+            var matrixItemId = keys.Length > 1 ? keys[1].AsIntegerOrNull() : null;
 
             RockContext rockContext = new RockContext();
             PersonService personService = new PersonService( rockContext );
-            AttributeValueService attributeValueService = new AttributeValueService( rockContext );
-            AttributeService attributeService = new AttributeService( rockContext );
-            var personEntityId = EntityTypeCache.GetId<Rock.Model.Person>().Value;
-            var matrixKey = GetAttributeValue( AttributeKey.MedicationMatrixKey );
+            AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
 
             var person = personService.Get( personId );
             mdManageMeds.Title = person != null
                 ? string.Format( "Manage Medications - {0}", person.FullName )
                 : "Manage Medications";
 
-            var matrixAttributeId = attributeService.Queryable()
-                .Where( a => a.EntityTypeId == personEntityId && a.Key == matrixKey )
-                .Select( a => a.Id )
-                .FirstOrDefault();
-
-            var matrixGuid = attributeValueService.Queryable()
-                .Where( av => av.AttributeId == matrixAttributeId && av.EntityId == personId )
-                .Select( av => av.Value )
-                .FirstOrDefault();
+            // Resolve matrix Guid from the clicked row's matrix item so the modal edits the same data the grid is showing
+            // (snapshot when one exists, otherwise the Person master).
+            string matrixGuid = null;
+            if ( matrixItemId.HasValue )
+            {
+                matrixGuid = attributeMatrixItemService.Queryable()
+                    .Where( ami => ami.Id == matrixItemId.Value )
+                    .Select( ami => ami.AttributeMatrix.Guid.ToString() )
+                    .FirstOrDefault();
+            }
 
             hfManageMedsPersonId.Value = personId.ToString();
             hfManageMedsMatrixGuid.Value = matrixGuid;
 
+            var matrixGuidParsed = matrixGuid.AsGuidOrNull();
+            var source = matrixGuidParsed.HasValue && IsSnapshotMatrix( rockContext, matrixGuidParsed.Value )
+                ? SourceSnapshot
+                : SourcePerson;
+            hfManageMedsSource.Value = source;
+
+            ConfigureManageMedsModalForSource( source );
             BindMedicationsGrid( personId );
             mdManageMeds.Show();
+        }
+
+        /// <summary>
+        /// A matrix is treated as a per-event snapshot when at least one GroupMember-entity attribute references it.
+        /// Snapshots are created by the "Medication Information Request" registration workflow that runs for most camps.
+        /// </summary>
+        private bool IsSnapshotMatrix( RockContext rockContext, Guid matrixGuid )
+        {
+            var groupMemberEntityId = EntityTypeCache.GetId<Rock.Model.GroupMember>().Value;
+            var matrixGuidStr = matrixGuid.ToString();
+            return new AttributeValueService( rockContext ).Queryable()
+                .Any( av => av.Value == matrixGuidStr
+                    && av.Attribute.EntityTypeId == groupMemberEntityId );
+        }
+
+        private void ConfigureManageMedsModalForSource( string source )
+        {
+            bool isSnapshot = source == SourceSnapshot;
+
+            // Column indices in mdManageMeds grid: 0=Medication, 1=Instructions, 2=Schedule, 3=Active, 4=Toggle, 5=Edit, 6=Delete
+            gMedications.Columns[3].Visible = !isSnapshot; // Active badge — Person only
+            gMedications.Columns[4].Visible = !isSnapshot; // Toggle button — Person only
+            gMedications.Columns[5].Visible = isSnapshot;  // Edit — Snapshot only
+            gMedications.Columns[6].Visible = isSnapshot;  // Delete — Snapshot only
+
+            btnAddMedication.Visible = isSnapshot;
+
+            ltManageMedsSourceBadge.Text = isSnapshot
+                ? "<div class='alert alert-info margin-b-sm'><i class='fa fa-copy'></i> <strong>Per-event copy</strong> — edits stay in this event and do not change the camper's master record.</div>"
+                : "<div class='alert alert-warning margin-b-sm'><i class='fa fa-user'></i> <strong>Master record</strong> — toggle Active to skip a medication for this event without changing the master list.</div>";
         }
 
         private void BindMedicationsGrid( int personId )
@@ -1188,7 +1265,8 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     ami.Id,
                     Medication = ami.GetAttributeValue( "Medication" ),
                     Instructions = ami.GetAttributeValue( "Instructions" ),
-                    Schedule = string.Join( ", ", scheduleValues )
+                    Schedule = string.Join( ", ", scheduleValues ),
+                    Active = ami.GetAttributeValue( "MedicationActive" ).AsBoolean( true )
                 };
             } ).ToList();
 
@@ -1196,8 +1274,72 @@ namespace RockWeb.Blocks.Reporting.NextGen
             gMedications.DataBind();
         }
 
+        protected void gMedications_RowDataBound( object sender, GridViewRowEventArgs e )
+        {
+            if ( e.Row.RowType != DataControlRowType.DataRow )
+                return;
+
+            // Make the Toggle button reflect the row's current Active state with toggle-on/toggle-off icons.
+            var rowView = e.Row.DataItem;
+            if ( rowView == null )
+                return;
+
+            var activeProp = rowView.GetType().GetProperty( "Active" );
+            if ( activeProp == null )
+                return;
+
+            bool isActive = ( bool ) activeProp.GetValue( rowView );
+
+            // Find the toggle LinkButton (column index 4 — see ConfigureManageMedsModalForSource).
+            if ( e.Row.Cells.Count > 4 )
+            {
+                var cell = e.Row.Cells[4];
+                foreach ( var ctrl in cell.Controls )
+                {
+                    var lb = ctrl as LinkButton;
+                    if ( lb != null )
+                    {
+                        lb.Text = isActive
+                            ? "<i class='fa fa-toggle-on'></i>"
+                            : "<i class='fa fa-toggle-off text-muted'></i>";
+                        lb.ToolTip = isActive ? "Inactivate" : "Reactivate";
+                    }
+                }
+            }
+        }
+
+        protected void ToggleActive_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        {
+            // Defense-in-depth: only valid for Person-source matrices.
+            if ( hfManageMedsSource.Value != SourcePerson )
+                return;
+
+            var matrixItemId = e.RowKeyId;
+            RockContext rockContext = new RockContext();
+            var item = new AttributeMatrixItemService( rockContext ).Get( matrixItemId );
+            if ( item == null )
+                return;
+
+            // Verify the item belongs to the matrix the modal opened against.
+            var expectedMatrixGuid = hfManageMedsMatrixGuid.Value.AsGuidOrNull();
+            if ( expectedMatrixGuid == null || item.AttributeMatrix == null || item.AttributeMatrix.Guid != expectedMatrixGuid.Value )
+                return;
+
+            item.LoadAttributes( rockContext );
+            bool currentlyActive = item.GetAttributeValue( "MedicationActive" ).AsBoolean( true );
+            item.SetAttributeValue( "MedicationActive", ( !currentlyActive ).ToString() );
+            item.SaveAttributeValues( rockContext );
+
+            BindMedicationsGrid( hfManageMedsPersonId.ValueAsInt() );
+            BindGrid();
+        }
+
         protected void btnDeleteMed_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
+            // Defense-in-depth: only delete from snapshot matrices. Person-master rows go through ToggleActive instead.
+            if ( hfManageMedsSource.Value != SourceSnapshot )
+                return;
+
             var matrixItemId = e.RowKeyId;
 
             RockContext rockContext = new RockContext();
@@ -1210,6 +1352,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 // Verify the item belongs to the expected matrix
                 var expectedMatrixGuid = hfManageMedsMatrixGuid.Value.AsGuidOrNull();
                 if ( expectedMatrixGuid == null || item.AttributeMatrix == null || item.AttributeMatrix.Guid != expectedMatrixGuid.Value )
+                    return;
+
+                // Final safety: confirm the matrix is genuinely a snapshot before destructive deletion.
+                if ( !IsSnapshotMatrix( rockContext, expectedMatrixGuid.Value ) )
                     return;
 
                 // Delete associated attribute values scoped to AttributeMatrixItem entity type
@@ -1228,8 +1374,86 @@ namespace RockWeb.Blocks.Reporting.NextGen
             BindGrid();
         }
 
+        protected void btnEditMed_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        {
+            if ( hfManageMedsSource.Value != SourceSnapshot )
+                return;
+
+            var matrixItemId = e.RowKeyId;
+            RockContext rockContext = new RockContext();
+            var item = new AttributeMatrixItemService( rockContext ).Get( matrixItemId );
+            if ( item == null )
+                return;
+
+            var expectedMatrixGuid = hfManageMedsMatrixGuid.Value.AsGuidOrNull();
+            if ( expectedMatrixGuid == null || item.AttributeMatrix == null || item.AttributeMatrix.Guid != expectedMatrixGuid.Value )
+                return;
+
+            item.LoadAttributes( rockContext );
+
+            hfEditMatrixItemId.Value = item.Id.ToString();
+            tbEditMedication.Text = item.GetAttributeValue( "Medication" );
+            tbEditInstructions.Text = item.GetAttributeValue( "Instructions" );
+
+            var definedType = DefinedTypeCache.Get( GetAttributeValue( "DefinedType" ).AsGuid() );
+            if ( definedType != null )
+            {
+                lbEditSchedule.DataSource = definedType.DefinedValues;
+                lbEditSchedule.DataBind();
+
+                var existingScheduleGuids = item.GetAttributeValue( "Schedule" ).SplitDelimitedValues();
+                foreach ( ListItem li in lbEditSchedule.Items )
+                {
+                    li.Selected = existingScheduleGuids.Contains( li.Value );
+                }
+            }
+
+            mdEditMedication.Show();
+        }
+
+        protected void mdEditMedication_SaveClick( object sender, EventArgs e )
+        {
+            if ( hfManageMedsSource.Value != SourceSnapshot )
+                return;
+
+            if ( string.IsNullOrWhiteSpace( tbEditMedication.Text ) )
+                return;
+
+            var selectedSchedules = lbEditSchedule.Items.Cast<ListItem>()
+                .Where( i => i.Selected )
+                .Select( i => i.Value ).ToList();
+            if ( !selectedSchedules.Any() )
+                return;
+
+            var matrixItemId = hfEditMatrixItemId.Value.AsIntegerOrNull();
+            if ( matrixItemId == null )
+                return;
+
+            RockContext rockContext = new RockContext();
+            var item = new AttributeMatrixItemService( rockContext ).Get( matrixItemId.Value );
+            if ( item == null )
+                return;
+
+            var expectedMatrixGuid = hfManageMedsMatrixGuid.Value.AsGuidOrNull();
+            if ( expectedMatrixGuid == null || item.AttributeMatrix == null || item.AttributeMatrix.Guid != expectedMatrixGuid.Value )
+                return;
+
+            item.LoadAttributes( rockContext );
+            item.SetAttributeValue( "Medication", tbEditMedication.Text.Trim() );
+            item.SetAttributeValue( "Instructions", tbEditInstructions.Text.Trim() );
+            item.SetAttributeValue( "Schedule", string.Join( ",", selectedSchedules ) );
+            item.SaveAttributeValues( rockContext );
+
+            BindMedicationsGrid( hfManageMedsPersonId.ValueAsInt() );
+            BindGrid();
+            mdEditMedication.Hide();
+        }
+
         protected void btnAddMedication_Click( object sender, EventArgs e )
         {
+            if ( hfManageMedsSource.Value != SourceSnapshot )
+                return;
+
             tbNewMedication.Text = string.Empty;
             tbNewInstructions.Text = string.Empty;
 
@@ -1245,6 +1469,9 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
         protected void mdAddMedication_SaveClick( object sender, EventArgs e )
         {
+            if ( hfManageMedsSource.Value != SourceSnapshot )
+                return;
+
             if ( string.IsNullOrWhiteSpace( tbNewMedication.Text ) )
                 return;
 
@@ -1260,6 +1487,10 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             var matrixGuid = hfManageMedsMatrixGuid.Value.AsGuidOrNull();
             if ( matrixGuid == null )
+                return;
+
+            // Final safety: confirm the matrix is a snapshot before adding.
+            if ( !IsSnapshotMatrix( rockContext, matrixGuid.Value ) )
                 return;
 
             var matrix = attributeMatrixService.Get( matrixGuid.Value );
