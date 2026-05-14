@@ -120,6 +120,7 @@ namespace org.secc.Jobs
             var personEntityType = EntityTypeCache.Get( typeof( Person ) );
             var earliestCheckinDate = RockDateTime.Now.AddDays( -JobAttributes.MedicationCheckinDays ).Date;
             var medicationScheduleAttribute = GetMatrixItemAttribute( "Schedule" );
+            var medicationActiveAttribute = GetMatrixItemAttribute( "MedicationActive" );
 
             foreach ( var groupId in groupIds )
             {
@@ -143,16 +144,35 @@ namespace org.secc.Jobs
                 var medicationScheduleValues = attributeValueService.Queryable()
                     .Where( v => v.AttributeId == medicationScheduleAttribute.Id );
 
+                // Inactive medications should not count toward the leader's reminder count.
+                // Treat absent values as active (matches AsBoolean(true) default in app code).
+                var medicationActiveValues = medicationActiveAttribute != null
+                    ? attributeValueService.Queryable().Where( v => v.AttributeId == medicationActiveAttribute.Id )
+                    : null;
+
                 var selectedScheduleGuidString = JobAttributes.MedicationScheduleValue.Guid.ToString();
 
-                var groupMemberWithMeds = groupMembers
+                var withMatrixItems = groupMembers
                     .Where( m => !m.GroupRole.IsLeader )
                     .Join( medicationCheckinDateValues, m => m.PersonId, ci => ci.EntityId,
                        ( m, ci ) => new { GroupMember = m, CheckinValue = ci } )
                     .Join( medicationMatrixAttributeValues, gm => gm.GroupMember.PersonId, av => av.EntityId,
                         ( m, ma ) => new { GroupMember = m.GroupMember, CheckinValue = m.CheckinValue, MatrixValue = ma } )
                     .Join( new AttributeMatrixItemService( rockContext ).Queryable(), m => m.MatrixValue.Value, ami => ami.AttributeMatrix.Guid.ToString(),
-                        ( m, ami ) => new { GroupMember = m.GroupMember, CheckinValue = m.CheckinValue, MatrixItem = ami } )
+                        ( m, ami ) => new { GroupMember = m.GroupMember, CheckinValue = m.CheckinValue, MatrixItem = ami } );
+
+                if ( medicationActiveValues != null )
+                {
+                    withMatrixItems = withMatrixItems
+                        .GroupJoin( medicationActiveValues, m => m.MatrixItem.Id, av => av.EntityId,
+                            ( m, avs ) => new { m.GroupMember, m.CheckinValue, m.MatrixItem, ActiveValues = avs } )
+                        .SelectMany( x => x.ActiveValues.DefaultIfEmpty(),
+                            ( x, av ) => new { x.GroupMember, x.CheckinValue, x.MatrixItem, ActiveValue = av } )
+                        .Where( x => x.ActiveValue == null || x.ActiveValue.Value != "False" )
+                        .Select( x => new { x.GroupMember, x.CheckinValue, x.MatrixItem } );
+                }
+
+                var groupMemberWithMeds = withMatrixItems
                     .Join( medicationScheduleValues, m => m.MatrixItem.Id, s => s.EntityId,
                         ( m, s ) => new { m.GroupMember, m.CheckinValue, ScheduleValue = s.Value } )
                     .Where( m => m.ScheduleValue.Contains(selectedScheduleGuidString) )

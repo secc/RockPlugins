@@ -131,7 +131,17 @@ namespace org.secc.FamilyCheckin
                                 mergeObjects.Add( "People", people );
                                 mergeObjects.Add( "GroupType", groupType );
 
-                                if ( attributeMatrix == null || attributeMatrix.AttributeMatrixItems.Count == 0 )
+                                // Filter inactive medications so the kiosk doesn't print labels for meds the leader has marked inactive.
+                                var matrixItems = attributeMatrix?.AttributeMatrixItems
+                                    .Where( ami =>
+                                    {
+                                        ami.LoadAttributes();
+                                        return ami.GetAttributeValue( "MedicationActive" ).AsBoolean( true );
+                                    } )
+                                    .ToList()
+                                    ?? new List<AttributeMatrixItem>();
+
+                                if ( attributeMatrix == null || matrixItems.Count == 0 )
                                 {
                                     // Add a No Medication Information label for anyone without data
                                     var checkInLabel = new CheckInLabel( labelCache, mergeObjects );
@@ -149,7 +159,7 @@ namespace org.secc.FamilyCheckin
                                 }
                                 else
                                 {
-                                    var items = attributeMatrix.AttributeMatrixItems.ToList();
+                                    var items = matrixItems;
                                     var index = 0;
 
                                     while ( index < items.Count )
