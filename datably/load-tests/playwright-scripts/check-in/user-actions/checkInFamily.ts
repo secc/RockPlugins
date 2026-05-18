@@ -1,6 +1,16 @@
 ﻿import {expect, Locator, Page} from "@playwright/test";
 
 const white = 'rgb(255, 255, 255)';
+const STUCK_TIMEOUT_MS = 10_000;
+
+function deadline(label: string, ms = STUCK_TIMEOUT_MS) {
+    const expiresAt = Date.now() + ms;
+    return () => {
+        if (Date.now() > expiresAt) {
+            throw new Error(`Stuck in loop: ${label} (>${ms}ms)`);
+        }
+    };
+}
 
 export default async function checkInFamily(page: Page, phoneNumber: string, schedule: string) {
     await expect(page).toHaveURL(/\/page\/438/);
@@ -13,6 +23,7 @@ export default async function checkInFamily(page: Page, phoneNumber: string, sch
     await searchButton.click();
 
     const familySelector = page.getByText('Select your family to');
+    const checkPage438 = deadline('waiting to leave /page/438 after search');
     while (page.url().includes('/page/438')) {
         // Exit check-in for this family if there are other families with the same phone number.
         // We don't have the data for the family names, so we can't differentiate between them.
@@ -20,11 +31,13 @@ export default async function checkInFamily(page: Page, phoneNumber: string, sch
             console.error(`\tMultiple families with phone number ${phoneNumber} found.`);
             return;
         }
-        
+
         if (await page.getByText('Sorry, we could not find your').isVisible()) {
             console.error(`\tFamily with number ${phoneNumber} not found.`);
             return;
         }
+
+        checkPage438();
     }
 
     await expect(page).toHaveURL(/\/page\/439/);
@@ -47,6 +60,7 @@ export default async function checkInFamily(page: Page, phoneNumber: string, sch
     const scheduleTexts = await selectSchedule(page, schedule);
 
     let checkInButtonVisible = await page.getByText('Select Room To Checkin').first().isVisible();
+    const checkRoomSelect = deadline('waiting for "Select Room To Checkin"');
     while (!checkInButtonVisible) {
         if (await page.getByText('504').isVisible()) {
             console.error('\tHit gateway timeout.');
@@ -59,6 +73,7 @@ export default async function checkInFamily(page: Page, phoneNumber: string, sch
             return;
         }
 
+        checkRoomSelect();
         checkInButtonVisible = await page.getByText('Select Room To Checkin').first().isVisible();
     }
 
@@ -94,13 +109,17 @@ async function selectSchedule(page: Page, schedule: string): Promise<string[]> {
         // If the background is white, the schedule is not selected.
         if (text === schedule && background === white) {
             await scheduleLink.click();
+            const checkSelect = deadline(`waiting for schedule "${text}" to select`);
             while (background === white) {
+                checkSelect();
                 background = await getBackgroundColor(scheduleLink);
             }
         }
         else if (text !== schedule && background !== white) {
             await scheduleLink.click();
+            const checkDeselect = deadline(`waiting for schedule "${text}" to deselect`);
             while (background !== white) {
+                checkDeselect();
                 background = await getBackgroundColor(scheduleLink);
             }
         }
@@ -140,6 +159,7 @@ async function checkInPerson(page: Page, personLink: Locator) {
     let background = await getBackgroundColor(personLink);
 
     // If the color is white, the person is not ready for submitting check-in.
+    const checkPerson = deadline(`waiting for person "${text}" to be ready`);
     while (background === white) {
         const roomSelectionModal = page.locator('#ctl00_main_ctl02_ctl01_ctl00_mdChoose_modal_dialog_panel');
         if (await roomSelectionModal.isVisible()) {
@@ -147,6 +167,7 @@ async function checkInPerson(page: Page, personLink: Locator) {
             await expect(roomSelectionModal).toBeVisible({ visible: false });
         }
 
+        checkPerson();
         background = await getBackgroundColor(personLink);
     }
 }
