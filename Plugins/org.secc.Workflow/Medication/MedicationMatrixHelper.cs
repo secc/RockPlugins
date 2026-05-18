@@ -22,32 +22,20 @@ using Rock.Web.Cache;
 namespace org.secc.Workflow.Medication
 {
     /// <summary>
-    /// Shared helpers for the master → snapshot medication active-state sync feature
-    /// that backs ROCK-8501. The ActionComponent <see cref="PropagateMedicationActiveState"/>
-    /// is the only caller today; the helper is split out so the matrix-classification
-    /// and propagation logic stay readable.
+    /// Helpers for ROCK-8501 master → snapshot medication active-state sync.
+    /// Called by <see cref="PropagateMedicationActiveState"/>.
     /// </summary>
     public static class MedicationMatrixHelper
     {
-        /// <summary>Attribute key used for the per-row active flag on the medication matrix template.</summary>
+        // Matrix row attribute keys (on the medication matrix template).
         public const string MedicationActiveKey = "MedicationActive";
-
-        /// <summary>Attribute key for the medication name on each matrix row.</summary>
         public const string MedicationKey = "Medication";
-
-        /// <summary>Attribute key for the instructions text on each matrix row.</summary>
         public const string InstructionsKey = "Instructions";
-
-        /// <summary>
-        /// Attribute key for the comma-delimited Schedule defined-value-guid list on each matrix row.
-        /// </summary>
         public const string ScheduleKey = "Schedule";
 
         /// <summary>
-        /// A matrix is a Person "master" when at least one Person-entity attribute value
-        /// references its Guid. Snapshot matrices are referenced by GroupMember-entity
-        /// attribute values instead. This is the inverse of <c>IsSnapshotMatrix</c> used
-        /// in the camp dispense block.
+        /// True when a Person-entity attribute value references this matrix's Guid.
+        /// Per-event snapshots are referenced by GroupMember-entity attributes instead.
         /// </summary>
         public static bool IsMasterMatrix( AttributeMatrix matrix, RockContext rockContext )
         {
@@ -69,16 +57,10 @@ namespace org.secc.Workflow.Medication
         }
 
         /// <summary>
-        /// Given a freshly-modified Person master matrix item, write its new
-        /// MedicationActive value to every snapshot matrix item belonging to
-        /// the same Person that matches by composite key (Medication +
-        /// Instructions + Schedule).
-        ///
-        /// Snapshots are GroupMember-entity matrix copies created at camp
-        /// registration time. Because the trigger only fires for master saves
-        /// (see <see cref="IsMasterMatrix"/>), the snapshot AV writes this
-        /// method performs do NOT re-trigger the workflow — natural loop
-        /// prevention without a recursion guard flag.
+        /// Writes the master item's new MedicationActive value to every snapshot
+        /// matrix item the same Person has that matches by Medication + Instructions + Schedule.
+        /// Snapshot writes don't re-trigger the workflow because <see cref="IsMasterMatrix"/>
+        /// returns false for them — automatic loop prevention.
         /// </summary>
         public static void PropagateActiveStateToSnapshots(
             AttributeMatrixItem masterItem,
@@ -106,7 +88,7 @@ namespace org.secc.Workflow.Medication
 
             var attributeValueService = new AttributeValueService( rockContext );
 
-            // The PersonId is the EntityId on the Person AV that holds this matrix's Guid.
+            // Find the Person who owns this matrix.
             var personId = attributeValueService.Queryable()
                 .Where( av => av.Value == masterMatrixGuidStr
                     && av.Attribute.EntityTypeId == personEntityId.Value )
@@ -118,7 +100,7 @@ namespace org.secc.Workflow.Medication
                 return;
             }
 
-            // Active GroupMember ids for this person — the entities that may carry per-event snapshot matrices.
+            // Active group memberships → potential snapshot owners.
             var groupMemberIds = new GroupMemberService( rockContext ).Queryable()
                 .Where( gm => gm.PersonId == personId.Value
                     && gm.GroupMemberStatus == GroupMemberStatus.Active )
@@ -130,7 +112,7 @@ namespace org.secc.Workflow.Medication
                 return;
             }
 
-            // The snapshot matrices these GroupMembers reference (via any GroupMember-entity attribute).
+            // Snapshot matrix Guids referenced by those group members.
             var snapshotMatrixGuidStrings = attributeValueService.Queryable()
                 .Where( av => av.Attribute.EntityTypeId == groupMemberEntityId.Value
                     && av.EntityId.HasValue
@@ -167,6 +149,9 @@ namespace org.secc.Workflow.Medication
                 .Where( ami => snapshotMatrixIds.Contains( ami.AttributeMatrixId ) )
                 .ToList();
 
+            // Match by exact-string composite key. Schedule comparison is order-sensitive
+            // ("A,B" != "B,A"); snapshots are copied from the master so this is fine in
+            // practice but would miss matches if either side is hand-edited and re-ordered.
             var itemsToUpdate = new List<AttributeMatrixItem>();
             foreach ( var item in snapshotItems )
             {

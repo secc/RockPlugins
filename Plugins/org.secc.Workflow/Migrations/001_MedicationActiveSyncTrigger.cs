@@ -17,22 +17,17 @@ using Rock.Plugin;
 namespace org.secc.Workflow.Migrations
 {
     /// <summary>
-    /// ROCK-8501 follow-up: provisions a WorkflowTrigger that fires the
+    /// ROCK-8501: provisions the WorkflowTrigger that fires
     /// <see cref="org.secc.Workflow.Medication.PropagateMedicationActiveState"/>
-    /// action whenever an <c>AttributeValue</c> row for the <c>MedicationActive</c>
-    /// attribute is saved. The trigger uses an EntityTypeQualifier on
-    /// <c>AttributeId</c>, so every other AttributeValue save in the system is
-    /// a single column comparison and skip — no broad fan-out.
+    /// on AttributeValue PostSave for the MedicationActive attribute.
     ///
-    /// Kill switch (no deploy required):
+    /// Kill switch:
     ///   <c>UPDATE WorkflowTrigger SET IsActive = 0 WHERE [Guid] = 'CC5A8B9C-1A2B-4C3D-9E5F-6A7B8C9D0E1F'</c>
     /// </summary>
     [MigrationNumber( 1, "1.16.0" )]
     public class MedicationActiveSyncTrigger : Migration
     {
-        // Guids for the rows this migration provisions. Held as private
-        // constants so the Down() method and the kill-switch comment above
-        // reference a single source of truth.
+        // Stable Guids for the rows this migration provisions.
         private const string CategoryGuid             = "8E4F2A1B-6C7D-4E5F-A1B2-C3D4E5F6A7B8";
         private const string ComponentEntityTypeGuid  = "7B5C8D9E-1A2B-4C3D-9E5F-6A7B8C9D0E1F";
         private const string WorkflowTypeGuid         = "9C5D8E9F-1A2B-4C3D-9E5F-6A7B8C9D0E1F";
@@ -40,25 +35,19 @@ namespace org.secc.Workflow.Migrations
         private const string ActionTypeGuid           = "BC5F8A9B-1A2B-4C3D-9E5F-6A7B8C9D0E1F";
         private const string TriggerGuid              = "CC5A8B9C-1A2B-4C3D-9E5F-6A7B8C9D0E1F";
 
-        // Rock SystemGuid.Category.WORKFLOW_TYPE — categories for workflow types are scoped
-        // by this EntityType Guid (matches RockMigrationHelper.UpdateCategory's first arg
-        // as seen in org.secc.PastoralCare/Migrations/002_Pastoral_WorkflowData.cs).
+        // Rock SystemGuid.Category.WORKFLOW_TYPE — scope for the workflow-type category.
         private const string WorkflowTypeEntityTypeGuid = "C9F3C4A5-1526-474D-803F-D6C7A45CBBAE";
 
         public override void Up()
         {
-            // 1. Ensure the EntityType row for the new ActionComponent has our known Guid.
-            //    Rock's MEF discovery auto-inserts this row on app start with a random Guid;
-            //    UpdateEntityType updates by Name so our migration is order-independent.
+            // Pin our ActionComponent's EntityType row to a known Guid so the action wiring below can reference it.
+            // Rock's MEF discovery would otherwise pick a random Guid on first app start.
             RockMigrationHelper.UpdateEntityType(
                 "org.secc.Workflow.Medication.PropagateMedicationActiveState",
                 ComponentEntityTypeGuid,
-                false,  // isEntity (this is a component, not a persisted entity)
-                true ); // isSecured
+                false,
+                true );
 
-            // 2. Category under which the new workflow type is filed in Rock admin.
-            //    Hidden away under a "SECC > System" parent would be cleaner; using a
-            //    flat "Medication Sync" category for now since no SECC system category Guid is established.
             RockMigrationHelper.UpdateCategory(
                 WorkflowTypeEntityTypeGuid,
                 "Medication Sync",
@@ -66,63 +55,46 @@ namespace org.secc.Workflow.Migrations
                 "System workflows that propagate medication state changes between Person master and per-event snapshot matrices.",
                 CategoryGuid );
 
-            // 3. The workflow type itself. IsPersisted=false so each firing is in-memory
-            //    only — no rows written to Workflow/WorkflowLog tables.
-            //    Args: (isSystem, isActive, name, description, categoryGuid, workTerm,
-            //           iconCssClass, processingIntervalSeconds, isPersisted, loggingLevel, guid)
+            // IsPersisted=false keeps each firing in-memory — no rows written to Workflow / WorkflowLog.
             RockMigrationHelper.UpdateWorkflowType(
-                true,                          // isSystem (hides from non-system filter)
+                true,                          // isSystem
                 true,                          // isActive
                 "Medication Active State Sync",
                 "Propagates MedicationActive changes from Person master medication matrices to camp snapshot matrices.",
                 CategoryGuid,
                 "Sync",
                 "fa fa-medkit",
-                0,                             // no rate limiting
-                false,                         // isPersisted — transient
+                0,
+                false,                         // isPersisted
                 0,                             // loggingLevel = None
                 WorkflowTypeGuid );
 
-            // 4. Single activity that runs the propagation action.
-            //    Args: (workflowTypeGuid, isActive, name, description, isActivatedWithWorkflow, order, guid)
             RockMigrationHelper.UpdateWorkflowActivityType(
                 WorkflowTypeGuid,
                 true,
                 "Propagate",
                 "Runs the propagation action.",
-                true,                          // activates with workflow
+                true,
                 0,
                 ActivityTypeGuid );
 
-            // 5. The action wiring — points the activity at our C# component.
-            //    Args: (activityTypeGuid, name, order, entityTypeGuid, isActionCompletedOnSuccess,
-            //           isActivityCompletedOnSuccess, criteriaAttributeGuid, criteriaComparisonType,
-            //           criteriaValue, guid)
             RockMigrationHelper.UpdateWorkflowActionType(
                 ActivityTypeGuid,
                 "Propagate Medication Active State",
                 0,
                 ComponentEntityTypeGuid,
-                true,                          // action complete on success
-                true,                          // activity complete on success (single-action activity)
+                true,
+                true,
                 "",
                 "",
                 1,
                 "",
                 ActionTypeGuid );
 
-            // 6. The WorkflowTrigger row. Fires only when an AttributeValue with
-            //    AttributeId = <MedicationActive attribute id> is saved.
-            //
-            //    The MedicationActive AttributeId is looked up at runtime because
-            //    its numeric id differs between environments. Same pattern as
-            //    org.secc.Reporting/Migrations/006_MedicationReportFilterInactive.cs.
-            //
-            //    WorkflowTriggerType values (from Rock/Model/Workflow/WorkflowTrigger/WorkflowTriggerType.cs):
-            //      PreSave=0, PostSave=1, PreDelete=2, PostDelete=3, ImmediatePostSave=4, PostAdd=5
-            //    We use PostSave (1): the trigger queues onto WrappedTransactionCompletedTask so
-            //    propagation runs after the master AV commits, in a separate context. A propagation
-            //    failure cannot roll back the user's edit.
+            // WorkflowTrigger row. EntityTypeQualifier on AttributeId scopes it to one attribute only —
+            // every other AttributeValue save is a cheap column-compare and skip.
+            // MedicationActive AttributeId is looked up at runtime (varies per environment).
+            // WorkflowTriggerType: 1 = PostSave (fires after the master AV commits, in a separate context).
             Sql( $@"
                 DECLARE @MedicationActiveAttributeId INT = (
                     SELECT TOP 1 a.Id
@@ -182,9 +154,7 @@ namespace org.secc.Workflow.Migrations
             RockMigrationHelper.DeleteWorkflowType( WorkflowTypeGuid );
             RockMigrationHelper.DeleteCategory( CategoryGuid );
 
-            // Component EntityType row is intentionally left in place — Rock's MEF
-            // discovery would just re-create it on next app start, and other rows
-            // might still reference it.
+            // Leave the component EntityType row in place — Rock MEF would recreate it anyway.
         }
     }
 }

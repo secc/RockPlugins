@@ -24,18 +24,11 @@ using Rock.Workflow;
 namespace org.secc.Workflow.Medication
 {
     /// <summary>
-    /// ROCK-8501 follow-up: when a Person master medication matrix item's
-    /// <c>MedicationActive</c> flag changes, propagate the new value to every
-    /// snapshot matrix item the same person has that matches the master item
-    /// by composite key (Medication + Instructions + Schedule).
+    /// ROCK-8501: fires on AttributeValue PostSave for MedicationActive and propagates
+    /// the new value from the Person master matrix to all matching snapshot matrices.
+    /// Wired up by <c>Migrations/001_MedicationActiveSyncTrigger.cs</c>.
     ///
-    /// Wired up by <c>org.secc.Workflow/Migrations/001_MedicationActiveSyncTrigger.cs</c>
-    /// which creates a WorkflowTrigger on <see cref="AttributeValue"/> PostSave
-    /// scoped to the MedicationActive attribute id. The workflow that fires this
-    /// action is not persisted and has no user-facing forms — it exists purely
-    /// as plumbing for this hook.
-    ///
-    /// Kill switch: <c>UPDATE WorkflowTrigger SET IsActive = 0 WHERE [Guid] = 'CC5A8B9C-1A2B-4C3D-9E5F-6A7B8C9D0E1F'</c>.
+    /// Kill switch: <c>UPDATE WorkflowTrigger SET IsActive = 0 WHERE [Guid] = 'CC5A8B9C-1A2B-4C3D-9E5F-6A7B8C9D0E1F'</c>
     /// </summary>
     [ActionCategory( "SECC > Medication" )]
     [Description( "Propagates MedicationActive changes from a Person master medication matrix to all matching snapshot matrix items." )]
@@ -53,17 +46,13 @@ namespace org.secc.Workflow.Medication
                 return true;
             }
 
-            // The trigger's qualifier (AttributeId = MedicationActive) already
-            // narrows firings, but double-check defensively so a misconfigured
-            // trigger can't cause runaway propagation.
+            // Defense in depth: trigger qualifier should already narrow firings.
             var attribute = AttributeCache.Get( av.AttributeId );
             if ( attribute == null || attribute.Key != MedicationMatrixHelper.MedicationActiveKey )
             {
                 return true;
             }
 
-            // MedicationActive lives on the AttributeMatrixItem entity type; if
-            // we see anything else, the trigger is misconfigured and we bail.
             var matrixItemEntityTypeId = EntityTypeCache.GetId<Rock.Model.AttributeMatrixItem>();
             if ( !matrixItemEntityTypeId.HasValue || attribute.EntityTypeId != matrixItemEntityTypeId.Value )
             {
@@ -76,9 +65,7 @@ namespace org.secc.Workflow.Medication
                 return true;
             }
 
-            // Only propagate from masters. When the helper's own propagation
-            // writes save snapshot AVs, this check returns false and we exit —
-            // automatic loop prevention without a recursion guard.
+            // Skip snapshots — propagating those would loop.
             if ( !MedicationMatrixHelper.IsMasterMatrix( ami.AttributeMatrix, rockContext ) )
             {
                 return true;
