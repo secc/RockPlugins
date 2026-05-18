@@ -112,6 +112,9 @@
     <Compile Include="Media\BinaryFileRemove.cs" />
     <Compile Include="Media\ImageMontage.cs" />
     <Compile Include="Media\FFmpeg.cs" />
+    <Compile Include="Medication\MedicationMatrixHelper.cs" />
+    <Compile Include="Medication\PropagateMedicationActiveState.cs" />
+    <Compile Include="Migrations\001_MedicationActiveSyncTrigger.cs" />
     <Compile Include="Person\GetPersonFromFields.cs" />
     <Compile Include="Person\PersonAddHistory.cs" />
     <Compile Include="Registrations\AutoApplyDiscountCode.cs" />
