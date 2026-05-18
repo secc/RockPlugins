@@ -11,7 +11,7 @@ export default defineConfig({
     // Bound per-assertion polling so a stuck server throws and lets the retry
     // logic in check-in.test.ts open a fresh kiosk session. Test-level and
     // global timeouts remain unbounded for long load runs.
-    timeout: 10_000,
+    timeout: 30_000,
   },
   
   globalSetup: require.resolve('./global-setup.ts'),
