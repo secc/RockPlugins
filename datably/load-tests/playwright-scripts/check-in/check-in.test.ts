@@ -38,7 +38,7 @@ async function createKioskSession(browser: Browser, config: string): Promise<{ c
 getUniqueConfigurationNames().forEach((config) => {
     test(config, async ({ browser }) => {
 
-        let session = await createKioskSession(browser, config);
+        let session: { context: BrowserContext, page: Page } | null = null;
 
         let i = 1;
         const families = data.filter(d => d.ConfigurationName === config);
@@ -47,24 +47,26 @@ getUniqueConfigurationNames().forEach((config) => {
 
             for (let attempt = 1; attempt <= MAX_ATTEMPTS_PER_FAMILY; attempt++) {
                 try {
+                    if (!session) {
+                        session = await createKioskSession(browser, config);
+                    }
                     await checkInFamily(session.page, family.Number, 'Training First');
                     break;
                 } catch (err) {
                     const msg = err instanceof Error ? err.message : String(err);
                     console.error(`\tFamily ${family.Number} attempt ${attempt} stuck/failed: ${msg.split('\n')[0]}`);
 
-                    await session.context.close().catch(() => {});
+                    await session?.context.close().catch(() => {});
+                    session = null;
 
                     if (attempt === MAX_ATTEMPTS_PER_FAMILY) {
-                        console.error(`\tFamily ${family.Number} giving up after ${MAX_ATTEMPTS_PER_FAMILY} attempts; opening fresh session for next family.`);
+                        console.error(`\tFamily ${family.Number} giving up after ${MAX_ATTEMPTS_PER_FAMILY} attempts; moving on.`);
                     }
-
-                    session = await createKioskSession(browser, config);
                 }
             }
         }
 
-        await session.context.close().catch(() => {});
+        await session?.context.close().catch(() => {});
     });
 });
 
