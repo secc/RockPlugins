@@ -55,6 +55,7 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -67,8 +68,10 @@
     <Compile Include="Attributes\DynamicPhoneNumber.cs" />
     <Compile Include="Controls\CascadingDropDownList.cs" />
     <Compile Include="Controls\DynamicPhoneNumberPicker.cs" />
+    <Compile Include="Controls\MultiFileUpload.cs" />
     <Compile Include="FieldTypes\CascadingDropDownFieldType.cs" />
     <Compile Include="FieldTypes\DynamicPhoneNumberFieldType.cs" />
+    <Compile Include="FieldTypes\MultiFileFieldType.cs" />
     <Compile Include="Helpers\KeyValueList.cs" />
     <Compile Include="Helpers\KeyValueMatrix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -79,6 +82,10 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)\DotLiquid\DotLiquid.csproj">
+      <Project>{00edcb8d-ef33-459c-ad62-02876bd24dff}</Project>
+      <Name>DotLiquid</Name>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)\Rock\Rock.csproj">
       <Project>{185A31D7-3037-4DAE-8797-0459849A84BD}</Project>
       <Name>Rock</Name>
@@ -86,6 +93,10 @@
     <ProjectReference Include="$(SolutionDir)\Rock.Common\Rock.Common.csproj">
       <Project>{13568622-324e-4493-b605-c9896e725d30}</Project>
       <Name>Rock.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)\Rock.Lava.Shared\Rock.Lava.Shared.csproj">
+      <Project>{8820cd93-70ee-496d-b17b-0c4c68dd4957}</Project>
+      <Name>Rock.Lava.Shared</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
