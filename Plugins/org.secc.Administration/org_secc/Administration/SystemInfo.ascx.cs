@@ -92,8 +92,14 @@ namespace RockWeb.Plugins.org_secc.Administration
             lExecLocation.Text = Assembly.GetExecutingAssembly().Location;
             lLastMigrations.Text = GetLastMigrationData();
 
-            var transactionQueueStats = RockQueue.TransactionQueue.ToList().GroupBy( a => a.GetType().Name ).ToList().Select( a => new { Name = a.Key, Count = a.Count() } );
-            lTransactionQueue.Text = transactionQueueStats.Select( a => string.Format( "{0}: {1}", a.Name, a.Count ) ).ToList().AsDelimited( "<br/>" );
+            var transactionQueueStats = RockQueue.GetStandardQueuedTransactions()
+                .GroupBy( a => a.GetType().Name )
+                .Select( a => new { Name = a.Key, Count = a.Count() } );
+
+            lTransactionQueue.Text = transactionQueueStats
+                .Select( a => string.Format( "{0}: {1}", a.Name, a.Count ) )
+                .ToList()
+                .AsDelimited( "<br/>" );
 
             lCacheOverview.Text = GetCacheInfo();
             lRoutes.Text = GetRoutesInfo();
@@ -234,7 +240,7 @@ namespace RockWeb.Plugins.org_secc.Administration
         {
             StringBuilder sb = new StringBuilder();
 
-            var result = DbService.ExecuteScaler( "SELECT TOP 1 [MigrationId] FROM [__MigrationHistory] ORDER BY [MigrationId] DESC ", CommandType.Text, null );
+            var result = DbService.ExecuteScalar( "SELECT TOP 1 [MigrationId] FROM [__MigrationHistory] ORDER BY [MigrationId] DESC ", CommandType.Text, null );
             if ( result != null )
             {
                 sb.AppendFormat( "Last Core Migration: {0}{1}", ( string ) result, Environment.NewLine );
