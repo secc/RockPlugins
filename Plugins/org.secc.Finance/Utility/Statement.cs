@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using DotLiquid;
-using org.secc.Finance.Services;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -91,16 +90,34 @@ namespace org.secc.Finance.Utility
                                     .OrderBy( p => p.FamilyRoleOrder ).ThenBy( p => p.Gender )
                                     .ToList();
 
-            var salutationMembers = givingGroup
-                .Select( g => new StatementService.GivingGroupMember
-                {
-                    FirstName = g.FirstName,
-                    LastName = g.LastName,
-                    IsBusiness = g.IsBusiness
-                } )
-                .ToList();
+            string salutation = string.Empty;
 
-            mergeFields.Add( "Salutation", StatementService.BuildSalutation( salutationMembers ) );
+            if ( givingGroup.FirstOrDefault() != null && givingGroup.FirstOrDefault().IsBusiness )
+            {
+                //If it's a business use the last name
+                salutation = givingGroup.FirstOrDefault().LastName;
+            }
+            else
+            {
+                if ( givingGroup.GroupBy( g => g.LastName ).Count() == 1 )
+                {
+                    salutation = string.Join( ", ", givingGroup.Select( g => g.FirstName ) ) + " " + givingGroup.FirstOrDefault().LastName;
+                    if ( salutation.Contains( "," ) )
+                    {
+                        salutation = salutation.ReplaceLastOccurrence( ",", " &" );
+                    }
+                }
+                else
+                {
+                    salutation = string.Join( ", ", givingGroup.Select( g => g.FirstName + " " + g.LastName ) );
+                    if ( salutation.Contains( "," ) )
+                    {
+                        salutation = salutation.ReplaceLastOccurrence( ",", " &" );
+                    }
+                }
+            }
+
+            mergeFields.Add( "Salutation", salutation );
 
             var mailingAddress = targetPerson.GetMailingLocation();
 
