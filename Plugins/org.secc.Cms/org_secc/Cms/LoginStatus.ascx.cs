@@ -210,7 +210,7 @@ namespace RockWeb.Plugins.org_secc.CMS
 
         private int GetNotificationCount()
         {
-            var lastChecked = GetGlobalPersonPreferences().GetValue( "LastViewedDashboard" ).AsDateTime();
+            var lastChecked = GetBlockPersonPreferences().GetValue( "LastViewedDashboard" ).AsDateTime();
             if ( !lastChecked.HasValue )
             {
                 lastChecked = RockDateTime.Now.AddMonths( -3 );
