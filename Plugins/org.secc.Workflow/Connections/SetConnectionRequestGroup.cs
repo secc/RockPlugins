@@ -16,13 +16,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Linq;
 
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Security;
-using Rock.Web.Cache;
 
 // Namespace must remain Rock.Workflow.Action so EntityType.Name in the database
 // matches and existing workflow references (170+) resolve without modification.
@@ -41,7 +38,7 @@ namespace Rock.Workflow.Action
         new string[] { "Rock.Field.Types.ConnectionRequestFieldType" } )]
     [WorkflowAttribute( "Group And Role Attribute", "The attribute that contains the group and role to set.", false, "", "", 1, null,
         new string[] { "Rock.Field.Types.GroupAndRoleFieldType" } )]
-    [CustomDropdownListField( "Group Status", "The group status to put the person into.", "0^Inactive,1^Active,3^Pending", false, true, "1", "", 2 )]
+    [CustomDropdownListField( "Group Status", "The group status to put the person into.", "0^Inactive,1^Active,2^Pending", false, true, "1", "", 2 )]
     public class SetConnectionRequestGroup : ActionComponent
     {
         /// <summary>
@@ -74,7 +71,7 @@ namespace Rock.Workflow.Action
                 if ( groupGuid != null )
                 {
                     GroupService groupService = new GroupService( rockContext );
-                    var group = groupService.Get( groupGuid ?? Guid.NewGuid() );
+                    var group = groupService.Get( groupGuid.Value );
                     if ( group != null )
                     {
                         request.AssignedGroupId = group.Id;
@@ -88,12 +85,20 @@ namespace Rock.Workflow.Action
                 if ( groupTypeRoleGuid != null )
                 {
                     GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( rockContext );
-                    var groupTypeRole = groupTypeRoleService.Get( groupTypeRoleGuid ?? Guid.NewGuid() );
+                    var groupTypeRole = groupTypeRoleService.Get( groupTypeRoleGuid.Value );
                     if ( groupTypeRole != null )
                     {
                         request.AssignedGroupMemberRoleId = groupTypeRole.Id;
                     }
                 }
+            }
+
+            // Apply the configured group member status. The dropdown values map
+            // directly to the GroupMemberStatus enum (Inactive=0, Active=1, Pending=2).
+            var groupStatusValue = GetAttributeValue( action, "GroupStatus" ).AsIntegerOrNull();
+            if ( groupStatusValue.HasValue && Enum.IsDefined( typeof( GroupMemberStatus ), groupStatusValue.Value ) )
+            {
+                request.AssignedGroupMemberStatus = ( GroupMemberStatus ) groupStatusValue.Value;
             }
 
             rockContext.SaveChanges();

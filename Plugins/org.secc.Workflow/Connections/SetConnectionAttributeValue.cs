@@ -3,7 +3,7 @@
 //
 // Licensed under the  Southeast Christian Church License (the "License");
 // you may not use this file except in compliance with the License.
-// A copy of the License shoud be included with this file.
+// A copy of the License should be included with this file.
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,13 +16,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.Linq;
 using Newtonsoft.Json;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
-using Rock.Security;
-using Rock.Web.Cache;
 
 // Namespace must remain Rock.Workflow.Action so EntityType.Name in the database
 // matches and existing workflow references (170+) resolve without modification.
@@ -66,10 +63,11 @@ namespace Rock.Workflow.Action
 
             var attributes = GetAttributeValue( action, "AttributeValues" ).AsDictionary();
             var lavaAttributes = new Dictionary<string, string>();
+            var mergeFields = GetMergeFields( action );
 
             foreach ( var attribute in attributes )
             {
-                lavaAttributes[attribute.Key] = attribute.Value.ResolveMergeFields( GetMergeFields( action ) );
+                lavaAttributes[attribute.Key] = attribute.Value.ResolveMergeFields( mergeFields );
             }
 
             var jsonAttributes = JsonConvert.SerializeObject( lavaAttributes );
