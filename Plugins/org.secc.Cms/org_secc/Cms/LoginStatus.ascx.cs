@@ -101,7 +101,7 @@ namespace RockWeb.Plugins.org_secc.CMS
                 //Reset our clock when we look at our dashboard.
                 if ( PageCache.Guid == GetAttributeValue( "MyDashboardPage" ).AsGuid() )
                 {
-                    var preferences = GetGlobalPersonPreferences();
+                    var preferences = GetBlockPersonPreferences();
                     preferences.SetValue( "LastViewedDashboard", Rock.RockDateTime.Now.ToString() );
                     preferences.Save();
                 }
