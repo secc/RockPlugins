@@ -54,7 +54,7 @@ namespace RockWeb.Plugins.org_secc.Cms
     [BooleanField( "Save Communication History", "Should a record of this communication be saved to the recipient's profile", false, "", 14 )]
     [LavaCommandsField( "Enabled Lava Commands", "The Lava commands that should be enabled for this HTML block.", false, order: 15 )]
     [BooleanField( "Enable SMS", "Enable messages being sent by SMS when it is the user's preferred communication method.", false, order: 16 )]
-    [DefinedValueField( "611bde1f-7405-4d16-8626-ccfedb0e62be", "SMS From Number", "The SMS Phone Number that the message should come from", false, false, "86604119-a222-4b35-9cd3-1a78db1b7b17", "", order: 17 )]
+    [SystemPhoneNumberField( "SMS From Number", "The SMS Phone Number that the message should come from", false, false, "86604119-a222-4b35-9cd3-1a78db1b7b17", "", order: 17 )]
     [CodeEditorField( "SMS Message Body", "The SMS message body.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, "", "", 18 )]
 
     public partial class ContactGroupLeaders : Rock.Web.UI.RockBlock
@@ -372,7 +372,7 @@ namespace RockWeb.Plugins.org_secc.Cms
             communication.Subject = GetAttributeValue( "Subject" );
             communication.Message = GetAttributeValue( "MessageBody" );
 
-            communication.SMSFromDefinedValueId = DefinedValueCache.GetId( GetAttributeValue( "SMSFromNumber" ).AsGuid() );
+            communication.SmsFromSystemPhoneNumberId = SystemPhoneNumberCache.Get( GetAttributeValue( "SMSFromNumber" ).AsGuid() )?.Id;
             communication.SMSMessage = GetAttributeValue( "SMSMessageBody" );
             communication.FutureSendDateTime = null;
 
