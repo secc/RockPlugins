@@ -215,6 +215,40 @@ namespace RockWeb.Blocks.Reporting.NextGen
             BindGrid();
         }
 
+        /// <summary>
+        /// Applies the inactive-but-dispensed-today treatment to grid rows: row CSS class
+        /// + an "Inactive" badge appended to the Medication cell. The base
+        /// <c>.row-distributed</c> class is applied by the page's JavaScript (since these
+        /// rows always have <see cref="MedicalItem.Distributed"/> = true), which grays
+        /// the row and disables its Dispense action.
+        /// </summary>
+        protected void gGrid_RowDataBound( object sender, GridViewRowEventArgs e )
+        {
+            if ( e.Row.RowType != DataControlRowType.DataRow )
+            {
+                return;
+            }
+
+            var item = e.Row.DataItem as MedicalItem;
+            if ( item == null || !item.IsInactive )
+            {
+                return;
+            }
+
+            // Row-level styling cue stacked with .row-distributed.
+            e.Row.CssClass = ( e.Row.CssClass + " row-inactive-distributed" ).Trim();
+
+            // The Medication cell is column index 4 in the current layout (after SelectField,
+            // Person, SmallGroup, SmallGroupLeader). Append a small badge so staff can tell
+            // at a glance the row is visible only because it was distributed earlier today.
+            const int medicationColumnIndex = 4;
+            if ( e.Row.Cells.Count > medicationColumnIndex )
+            {
+                e.Row.Cells[medicationColumnIndex].Text +=
+                    " <span class=\"inactive-badge\" title=\"This medication was marked inactive after being distributed today. Visible for audit; cannot be re-dispensed.\">Inactive</span>";
+            }
+        }
+
         private void BindGrid()
         {
             var items = GetMedicalItems();
@@ -311,15 +345,6 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 return null;
             }
 
-            // GroupMember-entity matrix attributes (snapshot) — same key as Person, different entity type.
-            // Most camp registrations create a per-event copy via the "Medication Information Request" workflow
-            // and store its Guid here. When present, prefer it over the Person master.
-            List<int> groupMemberMatrixAttributeIds = attributeService.Queryable()
-                .Where( a =>
-                    a.EntityTypeId == groupMemberEntityid
-                    && a.Key == key )
-                .Select( a => a.Id ).ToList();
-
             List<int> filterAttributeIds = null;
             var filterAttributeKey = GetAttributeValue( "GroupMemberAttributeFilter" );
             if ( !string.IsNullOrWhiteSpace( filterAttributeKey ) )
@@ -335,35 +360,21 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             var attributeMatrixItemEntityId = EntityTypeCache.GetId<AttributeMatrixItem>();
 
-            var groupMemberMatrixValues = attributeValueService.Queryable()
-                .Where( av => groupMemberMatrixAttributeIds.Contains( av.AttributeId ) && av.Value != null && av.Value != "" );
-
+            // The dispense grid reads exclusively from each camper's Person.Medications
+            // master matrix. GroupMember-level snapshot reads were rolled back because
+            // nothing populates those snapshots in prod and they were causing campers to
+            // render blank in the grid. The MedicationActive filter (applied per-row
+            // further down) preserves the deactivation safety property at the Person level.
             var personMatrixValues = attributeValueService.Queryable()
                 .Where( av => attributeIds.Contains( av.AttributeId ) && av.Value != null && av.Value != "" );
 
-            // Snapshot path: members with a GroupMember-level matrix value join via that.
-            // Person path: members WITHOUT a snapshot fall back to the Person master (NOT EXISTS antijoin).
-            // Two simple INNER-JOIN queries UNION'd via Concat — avoids a CASE/COALESCE expression in the
-            // matrix-Guid join key, which the SQL optimizer couldn't handle and timed out on.
-            var qrySnapshot = groupMembers
-               .Join(
-                   groupMemberMatrixValues,
-                   m => m.Id,
-                   gmav => gmav.EntityId.Value,
-                   ( m, gmav ) => new { Person = m.Person, Member = m, AttributeValue = gmav.Value }
-               );
-
-            var qryPerson = groupMembers
-               .Where( m => !groupMemberMatrixValues.Any( gmav => gmav.EntityId == m.Id ) )
+            var qry = groupMembers
                .Join(
                    personMatrixValues,
                    m => m.PersonId,
                    pav => pav.EntityId.Value,
                    ( m, pav ) => new { Person = m.Person, Member = m, AttributeValue = pav.Value }
-               );
-
-            var qry = qrySnapshot
-               .Concat( qryPerson )
+               )
                .Join(
                    attributeMatrixService.Queryable(),
                    m => m.AttributeValue,
@@ -530,6 +541,17 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 .Where( h => h.ForeignId != null )
                 .ToList();
 
+            // Index today's distribution notes by (PersonId | MatrixItemId | ScheduleGuid)
+            // for O(1) lookup in the inactive-but-distributed check below. Schedule is part
+            // of the key because each medication can fan out to multiple grid rows (one per
+            // schedule slot), and an inactive medication's row should only stay visible for
+            // the specific schedule that was actually distributed today.
+            var distributedKeys = new HashSet<string>(
+                noteItems
+                    .Where( n => n.EntityId.HasValue && n.ForeignId.HasValue && n.ForeignGuid.HasValue )
+                    .Select( n => n.EntityId.Value + "|" + n.ForeignId.Value + "|" + n.ForeignGuid.Value )
+            );
+
             foreach ( var member in members )
             {
                 if ( !string.IsNullOrWhiteSpace( tbName.Text )
@@ -543,10 +565,9 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 foreach ( var medicine in medicines )
                 {
                     var activeAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "MedicationActive" );
-                    if ( activeAtt != null && activeAtt.AttributeValue != null && activeAtt.AttributeValue.Value.AsBoolean( true ) == false )
-                    {
-                        continue;
-                    }
+                    var isInactive = activeAtt != null
+                        && activeAtt.AttributeValue != null
+                        && activeAtt.AttributeValue.Value.AsBoolean( true ) == false;
 
                     var scheduleAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "Schedule" );
                     if ( scheduleAtt == null || scheduleAtt.AttributeValue.Value == null )
@@ -562,6 +583,22 @@ namespace RockWeb.Blocks.Reporting.NextGen
                             continue;
                         }
 
+                        if ( isInactive )
+                        {
+                            // Med is marked inactive on the master. Keep this schedule's row
+                            // visible only if THIS specific schedule was already distributed
+                            // earlier today (preserves the same-day audit trail). Other
+                            // schedule slots for the same med stay hidden — Breakfast given
+                            // and then deactivated shouldn't leak Lunch and Dinner into the grid.
+                            var hasDistributionsToday = distributedKeys.Contains(
+                                member.Key.Id + "|" + medicine.Key + "|" + schedule.AsGuid() );
+
+                            if ( !hasDistributionsToday )
+                            {
+                                continue;
+                            }
+                        }
+
                         var medicalItem = new MedicalItem()
                         {
                             Person = member.Key.FullNameReversed,
@@ -571,6 +608,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                             GroupMember = member.Key.Members.FirstOrDefault(),
                             PersonId = member.Key.Id,
                             FilterAttribute = member.FirstOrDefault().FilterValue,
+                            IsInactive = isInactive,
                         };
 
                         if ( !string.IsNullOrWhiteSpace( schedule ) )
@@ -827,6 +865,13 @@ namespace RockWeb.Blocks.Reporting.NextGen
             public bool Distributed { get; set; }
             public string History { get; set; }
             public string FilterAttribute { get; set; }
+            /// <summary>
+            /// True when the medication has been marked inactive on the master matrix but
+            /// the row is still being rendered because it was distributed earlier in the same
+            /// day. Used by the markup to gray the row out and disable the Dispense button so
+            /// the audit trail stays visible without allowing accidental re-dispense.
+            /// </summary>
+            public bool IsInactive { get; set; }
         }
 
         protected void Distribute_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
@@ -1154,9 +1199,6 @@ namespace RockWeb.Blocks.Reporting.NextGen
             BindGrid();
         }
 
-        private const string SourcePerson = "Person";
-        private const string SourceSnapshot = "Snapshot";
-
         protected void ManageMeds_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
             // Ensure clean modal state
@@ -1176,59 +1218,35 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 ? string.Format( "Manage Medications - {0}", person.FullName )
                 : "Manage Medications";
 
-            // Resolve matrix Guid from the clicked row's matrix item so the modal edits the same data the grid is showing
-            // (snapshot when one exists, otherwise the Person master).
+            // Always edit the Person master matrix. Per-event GroupMember snapshot reads
+            // were rolled back because nothing populates snapshots in prod and they were
+            // causing campers to render blank in the dispense grid.
             string matrixGuid = null;
-            if ( matrixItemId.HasValue )
+            if ( person != null )
             {
-                matrixGuid = attributeMatrixItemService.Queryable()
-                    .Where( ami => ami.Id == matrixItemId.Value )
-                    .Select( ami => ami.AttributeMatrix.Guid.ToString() )
-                    .FirstOrDefault();
+                person.LoadAttributes();
+                matrixGuid = person.GetAttributeValue( GetAttributeValue( AttributeKey.MedicationMatrixKey ) );
             }
 
             hfManageMedsPersonId.Value = personId.ToString();
             hfManageMedsMatrixGuid.Value = matrixGuid;
 
-            var matrixGuidParsed = matrixGuid.AsGuidOrNull();
-            var source = matrixGuidParsed.HasValue && IsSnapshotMatrix( rockContext, matrixGuidParsed.Value )
-                ? SourceSnapshot
-                : SourcePerson;
-            hfManageMedsSource.Value = source;
-
-            ConfigureManageMedsModalForSource( source );
+            ConfigureManageMedsModal();
             BindMedicationsGrid( personId );
             mdManageMeds.Show();
         }
 
-        /// <summary>
-        /// A matrix is treated as a per-event snapshot when at least one GroupMember-entity attribute references it.
-        /// Snapshots are created by the "Medication Information Request" registration workflow that runs for most camps.
-        /// </summary>
-        private bool IsSnapshotMatrix( RockContext rockContext, Guid matrixGuid )
+        private void ConfigureManageMedsModal()
         {
-            var groupMemberEntityId = EntityTypeCache.GetId<Rock.Model.GroupMember>().Value;
-            var matrixGuidStr = matrixGuid.ToString();
-            return new AttributeValueService( rockContext ).Queryable()
-                .Any( av => av.Value == matrixGuidStr
-                    && av.Attribute.EntityTypeId == groupMemberEntityId );
-        }
+            // Everything reads from / writes to each camper's Person.Medications master.
+            // Edit + Add update the master. Delete is intentionally not present — staff
+            // toggle Active/Inactive to skip a med without losing it from the master.
+            // Column indices in mdManageMeds grid: 0=Medication, 1=Instructions, 2=Schedule, 3=Active, 4=Toggle, 5=Edit
+            gMedications.Columns[3].Visible = true;   // Active badge
+            gMedications.Columns[4].Visible = true;   // Active toggle
+            gMedications.Columns[5].Visible = true;   // Edit — writes to Person master
 
-        private void ConfigureManageMedsModalForSource( string source )
-        {
-            bool isSnapshot = source == SourceSnapshot;
-
-            // Column indices in mdManageMeds grid: 0=Medication, 1=Instructions, 2=Schedule, 3=Active, 4=Toggle, 5=Edit, 6=Delete
-            gMedications.Columns[3].Visible = !isSnapshot; // Active badge — Person only
-            gMedications.Columns[4].Visible = !isSnapshot; // Toggle button — Person only
-            gMedications.Columns[5].Visible = isSnapshot;  // Edit — Snapshot only
-            gMedications.Columns[6].Visible = isSnapshot;  // Delete — Snapshot only
-
-            btnAddMedication.Visible = isSnapshot;
-
-            ltManageMedsSourceBadge.Text = isSnapshot
-                ? "<div class='alert alert-info margin-b-sm'><i class='fa fa-copy'></i> <strong>Per-event copy</strong> — edits stay in this event and do not change the camper's master record.</div>"
-                : "<div class='alert alert-warning margin-b-sm'><i class='fa fa-user'></i> <strong>Master record</strong> — toggle Active to skip a medication for this event without changing the master list.</div>";
+            btnAddMedication.Visible = true;          // Add — writes to Person master
         }
 
         private void BindMedicationsGrid( int personId )
@@ -1290,7 +1308,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             bool isActive = ( bool ) activeProp.GetValue( rowView );
 
-            // Find the toggle LinkButton (column index 4 — see ConfigureManageMedsModalForSource).
+            // Find the toggle LinkButton (column index 4 — see ConfigureManageMedsModal).
             if ( e.Row.Cells.Count > 4 )
             {
                 var cell = e.Row.Cells[4];
@@ -1310,10 +1328,6 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
         protected void ToggleActive_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
-            // Defense-in-depth: only valid for Person-source matrices.
-            if ( hfManageMedsSource.Value != SourcePerson )
-                return;
-
             var matrixItemId = e.RowKeyId;
             RockContext rockContext = new RockContext();
             var item = new AttributeMatrixItemService( rockContext ).Get( matrixItemId );
@@ -1334,51 +1348,11 @@ namespace RockWeb.Blocks.Reporting.NextGen
             BindGrid();
         }
 
-        protected void btnDeleteMed_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
-        {
-            // Defense-in-depth: only delete from snapshot matrices. Person-master rows go through ToggleActive instead.
-            if ( hfManageMedsSource.Value != SourceSnapshot )
-                return;
-
-            var matrixItemId = e.RowKeyId;
-
-            RockContext rockContext = new RockContext();
-            AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
-            AttributeValueService attributeValueService = new AttributeValueService( rockContext );
-
-            var item = attributeMatrixItemService.Get( matrixItemId );
-            if ( item != null )
-            {
-                // Verify the item belongs to the expected matrix
-                var expectedMatrixGuid = hfManageMedsMatrixGuid.Value.AsGuidOrNull();
-                if ( expectedMatrixGuid == null || item.AttributeMatrix == null || item.AttributeMatrix.Guid != expectedMatrixGuid.Value )
-                    return;
-
-                // Final safety: confirm the matrix is genuinely a snapshot before destructive deletion.
-                if ( !IsSnapshotMatrix( rockContext, expectedMatrixGuid.Value ) )
-                    return;
-
-                // Delete associated attribute values scoped to AttributeMatrixItem entity type
-                var matrixItemEntityTypeId = EntityTypeCache.GetId<Rock.Model.AttributeMatrixItem>().Value;
-                var avToDelete = attributeValueService.Queryable()
-                    .Where( av => av.EntityId == item.Id
-                        && av.Attribute.EntityTypeId == matrixItemEntityTypeId )
-                    .ToList();
-                attributeValueService.DeleteRange( avToDelete );
-
-                attributeMatrixItemService.Delete( item );
-                rockContext.SaveChanges();
-            }
-
-            BindMedicationsGrid( hfManageMedsPersonId.ValueAsInt() );
-            BindGrid();
-        }
-
         protected void btnEditMed_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
         {
-            if ( hfManageMedsSource.Value != SourceSnapshot )
-                return;
-
+            // Edits apply to the camper's Person.Medications master matrix. The matrix-Guid
+            // verification below still ensures the item being edited belongs to the matrix
+            // the modal was opened against.
             var matrixItemId = e.RowKeyId;
             RockContext rockContext = new RockContext();
             var item = new AttributeMatrixItemService( rockContext ).Get( matrixItemId );
@@ -1413,9 +1387,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
         protected void mdEditMedication_SaveClick( object sender, EventArgs e )
         {
-            if ( hfManageMedsSource.Value != SourceSnapshot )
-                return;
-
+            // Saves apply to the camper's Person.Medications master matrix.
             if ( string.IsNullOrWhiteSpace( tbEditMedication.Text ) )
                 return;
 
@@ -1451,9 +1423,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
         protected void btnAddMedication_Click( object sender, EventArgs e )
         {
-            if ( hfManageMedsSource.Value != SourceSnapshot )
-                return;
-
+            // New medications are added to the camper's Person.Medications master matrix.
             tbNewMedication.Text = string.Empty;
             tbNewInstructions.Text = string.Empty;
 
@@ -1469,9 +1439,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
         protected void mdAddMedication_SaveClick( object sender, EventArgs e )
         {
-            if ( hfManageMedsSource.Value != SourceSnapshot )
-                return;
-
+            // New medications are added to the camper's Person.Medications master matrix.
             if ( string.IsNullOrWhiteSpace( tbNewMedication.Text ) )
                 return;
 
@@ -1487,10 +1455,6 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             var matrixGuid = hfManageMedsMatrixGuid.Value.AsGuidOrNull();
             if ( matrixGuid == null )
-                return;
-
-            // Final safety: confirm the matrix is a snapshot before adding.
-            if ( !IsSnapshotMatrix( rockContext, matrixGuid.Value ) )
                 return;
 
             var matrix = attributeMatrixService.Get( matrixGuid.Value );
