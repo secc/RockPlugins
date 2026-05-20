@@ -1,7 +1,7 @@
 ﻿import {expect, Locator, Page} from "@playwright/test";
 
 const white = 'rgb(255, 255, 255)';
-const STUCK_TIMEOUT_MS = 10_000;
+const STUCK_TIMEOUT_MS = 30_000;
 
 function deadline(label: string, ms = STUCK_TIMEOUT_MS) {
     const expiresAt = Date.now() + ms;

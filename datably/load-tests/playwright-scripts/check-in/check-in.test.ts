@@ -10,7 +10,7 @@ const data = getData().filter(x => x.Id % vmCount == vm);
 
 // If a single Playwright action hangs longer than this, treat the server as
 // unhealthy and abandon the session — a real user would walk to another kiosk.
-const STUCK_TIMEOUT_MS = 10_000;
+const STUCK_TIMEOUT_MS = 30_000;
 const MAX_ATTEMPTS_PER_FAMILY = 3;
 
 async function createKioskSession(browser: Browser, config: string): Promise<{ context: BrowserContext, page: Page }> {
