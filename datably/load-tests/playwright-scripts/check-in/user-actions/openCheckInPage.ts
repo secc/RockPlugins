@@ -1,4 +1,4 @@
-﻿import {expect, Page} from "@playwright/test";
+﻿import {Page} from "@playwright/test";
 
 export default async function openCheckInPage(page: Page, kioskType: string) {
     await page.goto(`${process.env.BASE_URL}/familycheckin`);
@@ -18,10 +18,21 @@ async function login(page: Page) {
 async function assertKioskTypeAndCreate(page: Page, kioskType: string) {
     await page.getByLabel('Kiosk Name').fill('Load Test Kiosk for ' + kioskType);
 
-    const kioskTypes = await page.getByLabel('Kiosk Type').innerText();
-    expect(kioskTypes).toContain(kioskType);
+    const select = page.getByLabel('Kiosk Type');
 
-    await page.getByLabel('Kiosk Type').selectOption({ label: kioskType });
+    const optionLabels = await select.locator('option').allTextContents();
+    const trimmedLabels = optionLabels.map(l => l.trim());
+
+    if (!trimmedLabels.includes(kioskType)) {
+        const close = trimmedLabels.filter(l => l.includes(kioskType) || kioskType.includes(l));
+        throw new Error(
+            `Kiosk Type "${kioskType}" not found in dropdown. ` +
+            `Close matches: ${JSON.stringify(close)}. ` +
+            `All options (${trimmedLabels.length}): ${JSON.stringify(trimmedLabels)}`
+        );
+    }
+
+    await select.selectOption({ label: kioskType });
 
     await page.getByRole('link', { name: 'Start' }).click();
 }
