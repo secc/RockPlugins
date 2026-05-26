@@ -51,10 +51,8 @@
             <Content>
                 <asp:HiddenField runat="server" ID="hfManageMedsPersonId" />
                 <asp:HiddenField runat="server" ID="hfManageMedsMatrixGuid" />
-                <asp:HiddenField runat="server" ID="hfManageMedsSource" />
                 <div class="row">
                     <div class="col-md-12">
-                        <asp:Literal runat="server" ID="ltManageMedsSourceBadge" />
                         <Rock:Grid runat="server" ID="gMedications" ShowActionRow="false" DataKeyNames="Id" AllowPaging="false"
                             OnRowDataBound="gMedications_RowDataBound">
                             <Columns>
@@ -64,7 +62,6 @@
                                 <Rock:BoolField DataField="Active" HeaderText="Active" />
                                 <Rock:LinkButtonField ID="btnToggleActive" HeaderText="Toggle" CssClass="btn btn-default btn-sm" Text="<i class='fa fa-toggle-on'></i>" OnClick="ToggleActive_Click" />
                                 <Rock:EditField HeaderText="Edit" ID="btnEditMed" OnClick="btnEditMed_Click" />
-                                <Rock:DeleteField HeaderText="Remove" ID="btnDeleteMed" OnClick="btnDeleteMed_Click" />
                             </Columns>
                         </Rock:Grid>
                         <asp:LinkButton runat="server" ID="btnAddMedication" CssClass="btn btn-primary margin-t-sm"
@@ -146,7 +143,7 @@
                     </button>
                     <asp:LinkButton runat="server" ID="btnDispenseSelected" OnClick="btnDispenseSelected_Click" Style="display:none" />
                 </div>
-                <Rock:Grid runat="server" ID="gGrid" TooltipField="History" DataKeyNames="Key" AllowSorting="true" OnRowSelected="gGrid_RowSelected">
+                <Rock:Grid runat="server" ID="gGrid" TooltipField="History" DataKeyNames="Key" AllowSorting="true" OnRowSelected="gGrid_RowSelected" OnRowDataBound="gGrid_RowDataBound">
                     <Columns>
                         <Rock:SelectField />
                         <asp:BoundField DataField="Person" HeaderText="Person" SortExpression="Person" />
@@ -240,6 +237,31 @@
     }
     .row-distributed td:first-child {
         pointer-events: none !important;
+    }
+
+    /* Inactive-but-dispensed-today rows: preserve same-day audit trail visibility while
+       making it visually obvious the med has since been deactivated. Combined with
+       .row-distributed (which is also applied since these rows have Distributed=true)
+       this grays the row and disables actions. */
+    .row-inactive-distributed {
+        background-color: #fafafa !important;
+        color: #888 !important;
+    }
+    .row-inactive-distributed td {
+        font-style: italic;
+    }
+    .inactive-badge {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 2px 8px;
+        font-size: 11px;
+        font-weight: 600;
+        font-style: normal;
+        background: #e0e0e0;
+        color: #666;
+        border-radius: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
     }
 
     /* Custom distribution history tooltip */
