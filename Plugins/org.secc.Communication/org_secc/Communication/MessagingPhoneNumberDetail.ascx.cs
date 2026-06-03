@@ -307,8 +307,8 @@ namespace RockWeb.Plugins.org_secc.Communication
                 var personAliasEntityType = EntityTypeCache.Get( typeof( PersonAlias ) );
                 var personAlias = new PersonAliasService( new RockContext() ).Get( ppSetOwner.PersonAliasId.Value );
                 hfOwner.Value = $"{personAliasEntityType.Id}|{personAlias.Guid}";
-                lblOwner.Text = $"{personAlias.Person.FullName}";
-                lOwnerNameEdit.Text = $"{personAlias.Person.FullName}";
+                lblOwner.Text = $"{personAlias.Person.FullName.EncodeHtml()}";
+                lOwnerNameEdit.Text = $"{personAlias.Person.FullName.EncodeHtml()}";
             }
         }
 
@@ -359,7 +359,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                 if ( entityTypeId == EntityTypeCache.Get( typeof( PersonAlias ) ).Id )
                 {
                     var ownerPerson = new PersonAliasService( rockContext ).Get( entityGuid );
-                    lblOwner.Text = ownerPerson == null ? string.Empty : ownerPerson.Person.FullName;
+                    lblOwner.Text = ownerPerson == null ? string.Empty : ownerPerson.Person.FullName.EncodeHtml();
                 }
                 else if ( entityTypeId == EntityTypeCache.Get( typeof( Group ) ).Id )
                 {
@@ -537,7 +537,7 @@ $('.js-date-rollover').tooltip();
                 else if ( currentPhoneNumber.OwnedBy != null && currentPhoneNumber.OwnedBy.OwnerPerson != null )
                 {
                     var person = new PersonAliasService( new RockContext() ).Get( currentPhoneNumber.OwnedBy.OwnerPerson.AliasGuid ).Person;
-                    lOwnerNameEdit.Text = person != null ? person.FullName : "(none)";
+                    lOwnerNameEdit.Text = person != null ? person.FullName.EncodeHtml() : "(none)";
                     hfOwner.Value = $"{EntityTypeCache.Get( typeof( PersonAlias ) ).Id}|{currentPhoneNumber.OwnedBy.OwnerPerson.AliasGuid.ToString()}";
                 }
                 else
@@ -573,7 +573,7 @@ $('.js-date-rollover').tooltip();
                 {
                     var person = new PersonAliasService( new RockContext() ).Get( CurrentPhoneNumber.OwnedBy.OwnerPerson.AliasGuid )
                         .Person;
-                    lViewOwner.Text = person != null ? person.FullName : String.Empty;
+                    lViewOwner.Text = person != null ? person.FullName.EncodeHtml() : String.Empty;
                 }
 
             }
