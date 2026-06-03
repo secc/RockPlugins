@@ -92,7 +92,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         private void DisplaySimple( Person person )
         {
             pnlSimple.Visible = true;
-            ltPersonName.Text = person.FullName;
+            ltPersonName.Text = person.FullName.EncodeHtml();
         }
 
         private void BindDropDown()
