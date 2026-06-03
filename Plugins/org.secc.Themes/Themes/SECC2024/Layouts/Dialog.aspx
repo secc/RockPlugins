@@ -60,12 +60,12 @@
     {
         base.OnInit( e );
 
-        lTitle.Text = Request.QueryString["t"] ?? "Title";
+        lTitle.Text = Server.HtmlEncode( Request.QueryString["t"] ?? "Title" );
 
-        btnSave.Text = Request.QueryString["pb"] ?? "Save";
+        btnSave.Text = Server.HtmlEncode( Request.QueryString["pb"] ?? "Save" );
         btnSave.Visible = btnSave.Text.Trim() != string.Empty;
 
-        btnCancel.Text = Request.QueryString["sb"] ?? "Cancel";
+        btnCancel.Text = Server.HtmlEncode( Request.QueryString["sb"] ?? "Cancel" );
         btnCancel.Visible = btnCancel.Text.Trim() != string.Empty;
         if ( !btnSave.Visible )
         {
