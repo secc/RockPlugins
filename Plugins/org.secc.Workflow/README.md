@@ -1,6 +1,10 @@
 # org.secc.Workflow
 
-> A library of custom Rock workflow actions (plus two bulk-workflow admin blocks) covering people, communications, registrations, media, and workflow control.
+> A library of custom Rock workflow **actions** (plus two bulk-workflow admin blocks) covering people, communications, registrations, media, and workflow control.
+
+> **Doc tier: deep.** This is a high-traffic, widely-referenced plugin, so it's documented at the
+> deeper technical tier (action contracts, config attributes, data flow, extending). Most SECC
+> plugins use the lighter standard tier.
 
 ## Overview
 
@@ -8,7 +12,9 @@ This is Southeast's catch-all workflow-extension plugin. It supplies ~29 custom 
 **actions** that drop into Rock's workflow engine, organized by area (person matching, SMS,
 connections, registrations/discount codes, attribute-matrix manipulation, media processing,
 and workflow control). It also ships two admin blocks for selecting and updating workflows in
-bulk.
+bulk. Actions are discovered by Rock via MEF (`[Export(typeof(ActionComponent))]`) and configured
+entirely through Rock block/workflow attributes — no code change is needed to wire one into a
+workflow.
 
 ## Project Info
 
@@ -17,30 +23,115 @@ bulk.
 - **Target framework:** .NET Framework 4.7.2
 - **Deploys to:** `RockWeb/bin/` (assembly + `FFmpeg.NET.dll`, `Magick*`) and
   `RockWeb/Plugins/org_secc/` (block markup)
+- **Cross-plugin dependency:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md)
 
-## Project Layout
+## How These Actions Work
 
-Actions are grouped into one folder per area; each folder maps roughly to an action category in
-the Rock workflow editor.
+Each action is a subclass of Rock's `ActionComponent` exported via MEF. Rock discovers the
+exported components at startup, renders their declared attributes in the workflow-configuration
+UI, and calls `Execute` when a workflow activity reaches the action.
 
+```mermaid
+flowchart TD
+    A[Workflow activity reached] --> B{Rock resolves<br/>ActionComponent by type}
+    B --> C["action.Execute(rockContext, action, entity, out errorMessages)"]
+    C --> D[Read config via<br/>GetAttributeValue / GetActionAttributeValue]
+    D --> E[Resolve Lava merge fields<br/>GetMergeFields + ResolveMergeFields]
+    E --> F[Do the work<br/>e.g. set attribute, send SMS, run FFmpeg]
+    F --> G{return bool}
+    G -->|true| H[Activity continues]
+    G -->|false + errorMessages| I[Logged on the workflow action]
 ```
-/Person/              person matching & history actions
-/Communication/       SMS
-/Connections/         connection-request actions
-/Registrations/       discount codes & registrant field mapping
-/WorkflowAttributes/  attribute & attribute-matrix manipulation
-/WorkflowControl/     activate / reactivate / process / cache actions
-/Schedule/            schedule helpers
-/SignatureDocument/   signed-document storage
-/Media/               FFmpeg / ImageMagick actions
-/Twilio/              Twilio lookup
-/CMS/                 cache-tag actions
-/org_secc/Workflow/   admin blocks (.ascx)
-```
 
-## Components
+**Conventions every action follows:**
+- `[ActionCategory("SECC > …")]` — the group it appears under in the workflow editor.
+- `[ExportMetadata("ComponentName", "…")]` — the display name.
+- `[Description("…")]` — the help text.
+- Inputs are declared with `[WorkflowTextOrAttribute(...)]` (literal **or** attribute reference,
+  Lava-enabled), `[WorkflowAttribute(...)]` (attribute reference only), `[TextField]`,
+  `[BooleanField]`, etc., and read at runtime via `GetAttributeValue(action, key, checkWorkflowAttributeValue: true)`.
 
-### Blocks
+## Action Reference
+
+| Action (ComponentName) | Category | Purpose |
+|------------------------|----------|---------|
+| Person Attribute From Fields | People | Resolve/insert a person via SECC matching; optionally create. |
+| PersonAddHistory | People | Add a history record to the selected person. |
+| SMS Send | Communication | Send SMS/MMS to a person or phone number. |
+| SetConnectionRequestGroup | Connections | Set the group of a connection request. |
+| SetConnectionAttributeValue | Connections | Set attributes of a connection request. |
+| AutoApplyDiscountCode | Registrations | Apply a discount to an unpersisted RegistrationState. |
+| GenerateDiscountCode | Registrations | Generate a new discount code on a registration template. |
+| UpdateDiscountCodeWithAttribute | Registrations | Update an existing discount code. |
+| SetAttributeFromRegistrantField | Registrations | Set an attribute from a registrant field by key + index. |
+| UpdateRegistrationGroupWithPlacementGroup | Registrations | Sync a registration group with its placement group. |
+| SetAttributeValue (SECC) | Workflow Attributes | Set an attribute to the selected value. |
+| CopyAttributesFromWorkflow | Workflow Attributes | Copy attribute values between workflows. |
+| AttributeMatrix Add / Update / Delete / Copy Row | Workflow Attributes | Manipulate attribute-matrix rows. |
+| BinaryFileFromBase64String | Workflow Attributes | Save a Base64 string as a Binary File. |
+| Activate Workflow with Lava | Workflow Control | Activate a new workflow with provided attribute values. |
+| ProcessWorkflow | Workflow Control | Process another workflow with provided attribute values. |
+| ReActivateActivity | Workflow Control | Reactivate an activity and its actions. |
+| DeleteVisitActivity | Workflow Control | Delete a visit activity and its actions. |
+| ClearAuthCache | Workflow Control | Clear the authorization cache. |
+| ScheduleNextStartDate | Schedule | Get the next start date for a schedule. |
+| StoreSignedDocument | Signature Document | Create a new signature document. |
+| ClearCacheTags | CMS | Clear cached items with the selected tag(s). |
+| Lookup | Twilio | Make a Twilio Lookup API call. |
+| FFmpeg | Media | Run FFmpeg commands. |
+| ImageMontage | Media | Create JPG montages of image tiles. |
+| BinaryFileRemove | Media | Remove a Binary File. |
+
+## Detailed Actions
+
+Configuration reference for the most-used / most-complex actions. Keys in **bold** are the
+attribute keys used in code.
+
+### Person Attribute From Fields  *(People)*
+Resolves a person from loose field data using [org.secc.PersonMatch](../org.secc.PersonMatch/README.md);
+creates one when no single match is found (unless `Match Only`).
+
+| Setting | Type | Notes |
+|---------|------|-------|
+| First Name / Last Name / Date of Birth | text-or-attribute (Lava) | Identity fields used for matching. |
+| Email Address / Phone Number | text-or-attribute (Lava) | Optional; used for match + new-person creation. |
+| Unlisted / Messaging Enabled | text-or-attribute | Only `True`/`False` honored; other values ignored. |
+| Address | attribute | Address for a newly created person. |
+| Default Campus | attribute | Campus used when creating a new person. |
+| Family Group/Member | attribute | Family group/member for a newly created person. |
+| **Person Attribute** | attribute (output) | Set to the matched/created person. |
+| **Match Only** | bool (default false) | If true, never creates; only sets on a single match. |
+| **Create Nameless Person** | bool | With Match Only=false and insufficient data, create a nameless person. |
+| **Continue On Error** | bool (default false) | Let the workflow continue on incomplete data. |
+
+### Activate Workflow with Lava  *(Workflow Control)*
+| Setting | Type | Notes |
+|---------|------|-------|
+| **Workflow Name** | text (required) | Name of the new workflow. |
+| Workflow Type from Attribute | attribute | Either this or a configured Workflow Type must be set. |
+| **Workflow Attribute** | attribute (output) | Holds the newly activated workflow. |
+
+Attribute values for the new workflow are supplied via Lava — letting one workflow spin up
+another with computed values.
+
+### SMS Send  *(Communication)*
+| Setting | Type | Notes |
+|---------|------|-------|
+| **From** | text-or-attribute | Person or number; defaults to the org number `733733`. |
+| **To** (Recipient) | text-or-attribute | Person or phone number. |
+| **Message** | text-or-attribute (Lava) | Body. |
+| Attachment | attribute | MMS attachment (carrier/device dependent). |
+| **SaveCommunicationHistory** | bool (default false) | Persist a communication record (to the person if one is provided). |
+
+### FFmpeg  *(Media)*
+| Setting | Type | Notes |
+|---------|------|-------|
+| **File** | text-or-attribute | Source file; available as `{{file}}` in the command. |
+| **Command** | text (Lava) | FFmpeg parameters; `{{file}}` and `{{outputPath}}` merge fields available. |
+| **FFmpegExecutable** | text | Path to `ffmpeg.exe` (default points into an ImageMagick install dir). |
+| **OutputPath** | attribute | Output dir; if empty a temp dir is created and written back to the attribute. |
+
+## Blocks
 
 Category in Rock: **SECC > Workflow**.
 
@@ -49,63 +140,65 @@ Category in Rock: **SECC > Workflow**.
 | Workflow Bulk Select | Tool for bulk-selecting workflows. |
 | Workflow Bulk Update | Tool for updating workflows in bulk. |
 
-### Workflow Actions
-
-| Action | Area | Purpose |
-|--------|------|---------|
-| GetPersonFromFields | Person | Set an attribute to a person via SECC custom matching; optionally create a new person. |
-| PersonAddHistory | Person | Add a history record to the selected person. |
-| SendSms | Communication | Send an SMS to a person or a phone number in the `To` field. |
-| SetConnectionRequestGroup | Connections | Set the group of a connection request. |
-| SetConnectionAttributeValue | Connections | Set attributes of a connection request. |
-| AutoApplyDiscountCode | Registrations | Apply a discount code to an unpersisted RegistrationState. |
-| GenerateDiscountCode | Registrations | Generate a new discount code on a registration template. |
-| UpdateDiscountCodeWithAttribute | Registrations | Update an existing discount code on a registration template. |
-| SetAttributeFromRegistrantField | Registrations | Set an attribute from a registrant field by key + registrant index. |
-| UpdateRegistrationGroupWithPlacementGroup | Registrations | Sync a registration group with its placement group. |
-| SetAttributeValue | WorkflowAttributes | Set an attribute's value to the selected value. |
-| CopyAttributesFromWorkflow | WorkflowAttributes | Copy attribute values from one workflow to another. |
-| AttributeMatrixAddRow / UpdateRow / DeleteRow / Copy | WorkflowAttributes | Add / update / delete / clone attribute-matrix rows. |
-| BinaryFileFromBase64String | WorkflowAttributes | Save a Base64 string as a Binary File. |
-| ActivateWorkflowWithLava | WorkflowControl | Activate a new workflow with provided attribute values. |
-| ProcessWorkflow | WorkflowControl | Process another workflow with provided attribute values. |
-| ReActivateActivity | WorkflowControl | Reactivate an activity instance and its actions. |
-| DeleteVisitActivity | WorkflowControl | Delete a visit activity instance and its actions. |
-| ClearAuthCache | WorkflowControl | Clear the authorization cache. |
-| ScheduleNextStartDate | Schedule | Get the next start date for a schedule. |
-| StoreSignedDocument | SignatureDocument | Create a new signature document. |
-| ClearCacheTags | CMS | Clear all cached items with the selected tag(s). |
-| Lookup | Twilio | Make a Twilio Lookup API call. |
-| FFmpeg | Media | Run FFmpeg commands. |
-| ImageMontage | Media | Create JPG montages of image tiles. |
-| BinaryFileRemove | Media | Remove a Binary File. |
-
 ## Dependencies & Integrations
 
 - **Rock:** workflow engine (`ActionComponent`), `RockContext`, connections, registrations, CMS cache.
-- **Cross-plugin:** references [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (used by `GetPersonFromFields`).
+- **Cross-plugin:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (used by *Person Attribute From Fields*).
 - **Third-party:** Twilio (lookup), FFmpeg.NET (video/audio), Magick.NET / ImageMagick (image montages).
+
+## Edge Cases & Constraints
+
+- **`FFmpeg.Command` is Lava-resolved and passed to the FFmpeg engine** including the `{{file}}`
+  merge field. If `File` can come from untrusted input, that's an argument/command-injection
+  vector — see Observations.
+- **`FFmpeg` runs sync-over-async** (`Task.Run(...).Wait()`) with no timeout; it blocks the
+  workflow thread on an external process.
+- **Person matching can create records.** *Person Attribute From Fields* will insert a person
+  unless `Match Only` is set — review that flag in any workflow that takes public input.
 
 ## Observations
 
 *Noticed while documenting — not a full audit; the `Media/FFmpeg` action stood out.*
 
 - **Security (review):** `FFmpeg` resolves the admin-configured `Command` (Lava, including the
-  `{{file}}` and `{{outputPath}}` merge fields) and passes it straight to the FFmpeg engine. If the
-  `File` workflow attribute can be populated from untrusted input (e.g. a registrant upload/field),
-  that string is interpolated into the command — an argument/command-injection vector. Treat this
-  action as admin-trusted-only and validate/sanitize the `file` value. `OutputPath` is also used to
-  `Directory.CreateDirectory` with no path-traversal guard, so it can write outside the intended root.
-- **Improvement:** `Task.Run( … ).Wait()` is sync-over-async — it blocks the workflow thread on an
-  external process and risks deadlock; there's also no timeout on the FFmpeg run. The default
-  `FFmpegExecutable` is a hardcoded path into an ImageMagick install folder
-  (`C:\Program Files\ImageMagick-…\ffmpeg.exe`), which is brittle and likely wrong on most servers.
+  `{{file}}` / `{{outputPath}}` merge fields) and passes it straight to the FFmpeg engine. If the
+  `File` attribute can be populated from untrusted input (e.g. a registrant upload/field), that
+  string is interpolated into the command — an argument/command-injection vector. Treat this
+  action as admin-trusted-only and validate/sanitize `file`. `OutputPath` is used to
+  `Directory.CreateDirectory` with no path-traversal guard.
+- **Improvement:** `Task.Run( … ).Wait()` is sync-over-async (blocks the workflow thread; deadlock
+  risk) with no timeout on the FFmpeg run. The default `FFmpegExecutable` is a hardcoded path into
+  an ImageMagick install folder (`C:\Program Files\ImageMagick-…\ffmpeg.exe`), brittle on most servers.
+
+## Extending
+
+To add an action, drop a class in the relevant area folder following this shape:
+
+```csharp
+[ActionCategory( "SECC > Workflow Control" )]
+[Description( "What it does." )]
+[Export( typeof( ActionComponent ) )]
+[ExportMetadata( "ComponentName", "My Action" )]
+[WorkflowTextOrAttribute( "Some Input", "Some Input", "Help text.", true, "", "", 0, "SomeInput" )]
+public class MyAction : ActionComponent
+{
+    public override bool Execute( RockContext rockContext, WorkflowAction action,
+        object entity, out List<string> errorMessages )
+    {
+        errorMessages = new List<string>();
+        var input = GetAttributeValue( action, "SomeInput", true );
+        // … do work …
+        return true;
+    }
+}
+```
+
+No registration step is required — MEF discovers `[Export(typeof(ActionComponent))]` at startup,
+and the attributes render the configuration UI automatically.
 
 ## Making Changes
 
-- To add an action, create a class in the appropriate area folder that subclasses Rock's
-  `ActionComponent` and carries the standard `[Description]` / `[ActionCategory]` /
-  `[Export]` attributes; follow an existing sibling as a template.
-- Media actions require the `FFmpeg.NET` and `Magick*` assemblies to be present in `RockWeb/bin`
-  (handled by the PostBuildEvent).
-- `GetPersonFromFields` depends on [org.secc.PersonMatch](../org.secc.PersonMatch/README.md); person-matching changes may belong there.
+- Add new actions in the matching area folder (`Person/`, `Communication/`, …); follow an existing
+  sibling as a template.
+- Media actions require `FFmpeg.NET` and `Magick*` in `RockWeb/bin` (handled by the PostBuildEvent).
+- Person-matching behavior lives in [org.secc.PersonMatch](../org.secc.PersonMatch/README.md), not here.
