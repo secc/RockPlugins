@@ -327,6 +327,21 @@ namespace RockWeb.Plugins.org_secc.Cms
                 var group = new GroupService( rockContext ).Get( ddlGroup.SelectedValueAsId().Value );
                 if ( group != null )
                 {
+                    // Ownership gate (IDOR write): ddlGroup and hfPersonId are both client-controlled
+                    // postback values. Validate them against the current person server-side before any
+                    // write: the posted group must be one of the current person's families (ddlGroup is
+                    // populated from CurrentPerson.GetFamilies()), and an existing person being edited
+                    // must be the current person or a member of that family. Reject tampered values.
+                    var allowedFamilyIds = CurrentPerson.GetFamilies().Select( f => f.Id ).ToList();
+                    var postedPersonId = hfPersonId.Value.AsInteger();
+                    if ( !allowedFamilyIds.Contains( group.Id )
+                        || ( postedPersonId != 0
+                            && postedPersonId != CurrentPerson.Id
+                            && !group.Members.Any( m => m.PersonId == postedPersonId ) ) )
+                    {
+                        return;
+                    }
+
                     rockContext.WrapTransaction( () =>
                     {
                         var personService = new PersonService( rockContext );

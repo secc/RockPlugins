@@ -262,40 +262,78 @@ namespace RockWeb.Plugins.org_secc.Cms
             }
         }
 
+        /// <summary>
+        /// Re-resolves and re-authorizes the editors security group for a mutating postback.
+        /// The security group must NEVER be trusted from the hfSecurityGroupId hidden field: an
+        /// attacker can tamper it to an arbitrary security role (e.g. RSR - Rock Administration) and
+        /// escalate privileges. Instead re-derive the group from the content channel item and re-run
+        /// the same EDIT authorization check LoadLinkList performs, so the gate runs on every state
+        /// change rather than only on the initial (non-postback) load. Returns null (and shows a
+        /// notification) when the current person is not authorized to edit this list.
+        /// </summary>
+        private int? GetAuthorizedEditorsGroupId()
+        {
+            var contentChannelItemId = hfContentChannelItemId.Value.AsInteger();
+            using (var rockContext = new RockContext())
+            {
+                var contentItem = new ContentChannelItemService( rockContext ).Get( contentChannelItemId );
+                if (contentItem == null
+                    || !contentItem.IsAuthorized( Rock.Security.Authorization.EDIT, CurrentPerson ))
+                {
+                    ShowNotification( NotificationBoxType.Danger,
+                        "<strong><i class=\"fas fa-exclamation-triangle\"></i> Not Authorized</strong><br /> You do not have edit rights to this Link List." );
+                    return null;
+                }
+
+                return GetListEditorsGroup( contentItem ).Id;
+            }
+        }
+
         private void GroupMemberAdd( int personId )
         {
-            var groupId = hfSecurityGroupId.Value.AsInteger();
+            var groupId = GetAuthorizedEditorsGroupId();
+            if (groupId == null)
+            {
+                return;
+            }
 
             using (var rockContext = new RockContext())
             {
                 var defaultRoleId = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_SECURITY_ROLE )
                     .DefaultGroupRoleId;
                 var groupService = new GroupService( rockContext );
-                var group = groupService.Get( groupId );
+                var group = groupService.Get( groupId.Value );
                 var groupMemberService = new GroupMemberService( rockContext );
                 groupMemberService.AddOrRestoreGroupMember( group, personId, defaultRoleId.Value );
                 rockContext.SaveChanges();
             }
 
-            LoadEditorList( groupId );
+            LoadEditorList( groupId.Value );
 
         }
 
         private void GroupMemberRemove( int groupMemberId )
         {
-            var groupId = hfSecurityGroupId.Value.AsInteger();
+            var groupId = GetAuthorizedEditorsGroupId();
+            if (groupId == null)
+            {
+                return;
+            }
+
             using (var rockContext = new RockContext())
             {
                 var groupMemberService = new GroupMemberService( rockContext );
                 var groupMember = groupMemberService.Get( groupMemberId );
 
-                if (groupMember.GroupId == groupId)
+                // Guard against a missing/stale groupMemberId, and only allow removal from the
+                // authorized editors group (never a member of some other group via a tampered id).
+                if (groupMember != null && groupMember.GroupId == groupId.Value)
                 {
                     groupMemberService.Delete( groupMember );
                     rockContext.SaveChanges();
                 }
 
-                LoadEditorList( groupId );
+                LoadEditorList( groupId.Value );
 
             }
         }
