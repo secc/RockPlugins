@@ -1198,18 +1198,25 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( v != null )
             {
                 hfVendorID.Value = v.VendorID.ToString();
-                lblVendorName.Text = v.VendorName;
+                lblVendorName.Text = System.Web.HttpUtility.HtmlEncode( v.VendorName );
                 if ( v.Address != null )
                 {
                     divVendorAddress.Visible = true;
-                    lblVendorAddress.Text = v.Address.StreetAddress;
-                    lblVendorCSZ.Text = string.Format( "{0}, {1} {2}", v.Address.City, v.Address.State, v.Address.PostalCode );
+                    lblVendorAddress.Text = System.Web.HttpUtility.HtmlEncode( v.Address.StreetAddress );
+                    lblVendorCSZ.Text = string.Format( "{0}, {1} {2}",
+                        System.Web.HttpUtility.HtmlEncode( v.Address.City ),
+                        System.Web.HttpUtility.HtmlEncode( v.Address.State ),
+                        System.Web.HttpUtility.HtmlEncode( v.Address.PostalCode ) );
 
                 }
                 if ( !String.IsNullOrEmpty( v.WebAddress ) )
                 {
                     divVendorWebAddress.Visible = true;
-                    lblVendorWebAddress.Text = string.Format( "<a href=\"{0}\" target=\"_blank\">{0}</a>", v.WebAddress );
+                    var url = v.WebAddress;
+                    var safeText = System.Web.HttpUtility.HtmlEncode( url );
+                    var safeHref = ( url.StartsWith( "http://" ) || url.StartsWith( "https://" ) )
+                        ? System.Web.HttpUtility.HtmlAttributeEncode( url ) : "#";
+                    lblVendorWebAddress.Text = string.Format( "<a href=\"{0}\" target=\"_blank\" rel=\"noopener noreferrer\">{1}</a>", safeHref, safeText );
                 }
                 else
                 {
