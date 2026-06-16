@@ -100,13 +100,17 @@ namespace org.secc.Workflow.Registrations
     [ExportMetadata( "ComponentName", "Update Registration Group With Placement Group" )]
 
     [WorkflowAttribute( "Person",
-        "The person whose registration group member record should be updated.",
-        true, "", "", 0, "Person",
+        "The person whose registration group member record should be updated. " +
+        "Optional when triggered by a generic entity Workflow Trigger on Rock.Model.GroupMember: " +
+        "if left blank, the person is taken from the triggering placement group member.",
+        false, "", "", 0, "Person",
         new string[] { "Rock.Field.Types.PersonFieldType" } )]
 
     [WorkflowAttribute( "Placement Group",
-        "The placement group the person was added to or removed from.",
-        true, "", "", 1, "PlacementGroup",
+        "The placement group the person was added to or removed from. " +
+        "Optional when triggered by a generic entity Workflow Trigger on Rock.Model.GroupMember: " +
+        "if left blank, the group is taken from the triggering placement group member.",
+        false, "", "", 1, "PlacementGroup",
         new string[] { "Rock.Field.Types.GroupFieldType" } )]
 
     [WorkflowTextOrAttribute( "Attribute Key", "Attribute Key Attribute",
@@ -167,16 +171,18 @@ namespace org.secc.Workflow.Registrations
         {
             errorMessages = new List<string>();
 
-            // 1. Get the person from the workflow attribute.
-            var person = GetPersonFromAttribute( rockContext, action, errorMessages );
+            // 1. Get the person from the workflow attribute, falling back to the
+            //    triggering group member entity.
+            var person = GetPerson( rockContext, action, entity, errorMessages );
             if ( person == null )
             {
                 errorMessages.ForEach( m => action.AddLogEntry( m, true ) );
                 return false;
             }
 
-            // 2. Get the placement group from the workflow attribute.
-            Group placementGroup = GetPlacementGroupFromAttribute( rockContext, action, errorMessages );
+            // 2. Get the placement group from the workflow attribute, falling back to
+            //    the triggering group member entity.
+            Group placementGroup = GetPlacementGroup( rockContext, action, entity, errorMessages );
             if ( placementGroup == null )
             {
                 errorMessages.ForEach( m => action.AddLogEntry( m, true ) );
@@ -428,64 +434,85 @@ namespace org.secc.Workflow.Registrations
         }
 
         /// <summary>
-        /// Gets the person from the workflow attribute.
+        /// Gets the person to update. Prefers the configured Person workflow attribute
+        /// (set by legacy Group Member Workflow Triggers); falls back to the triggering
+        /// GroupMember entity. Generic entity Workflow Triggers (ImmediatePostSave /
+        /// PreDelete on Rock.Model.GroupMember) pass the placement GroupMember as the
+        /// action entity but do not populate the Person attribute.
         /// </summary>
-        private Rock.Model.Person GetPersonFromAttribute( RockContext rockContext, WorkflowAction action, List<string> errorMessages )
+        private Rock.Model.Person GetPerson( RockContext rockContext, WorkflowAction action, Object entity, List<string> errorMessages )
         {
+            // Prefer the workflow attribute if it is configured and holds a valid value.
             Guid personAttributeGuid = GetAttributeValue( action, "Person" ).AsGuid();
-            if ( personAttributeGuid.IsEmpty() )
+            if ( !personAttributeGuid.IsEmpty() )
             {
-                errorMessages.Add( "The Person attribute is not configured." );
-                return null;
+                var personAliasGuid = action.GetWorkflowAttributeValue( personAttributeGuid ).AsGuidOrNull();
+                if ( personAliasGuid.HasValue )
+                {
+                    var person = new PersonAliasService( rockContext )
+                        .Queryable().AsNoTracking()
+                        .Where( pa => pa.Guid == personAliasGuid.Value )
+                        .Select( pa => pa.Person )
+                        .FirstOrDefault();
+
+                    if ( person != null )
+                    {
+                        return person;
+                    }
+                }
             }
 
-            var personAliasGuid = action.GetWorkflowAttributeValue( personAttributeGuid ).AsGuidOrNull();
-            if ( !personAliasGuid.HasValue )
+            // Fall back to the triggering GroupMember entity.
+            var groupMember = entity as GroupMember;
+            if ( groupMember != null )
             {
-                errorMessages.Add( "The Person attribute does not contain a valid value." );
-                return null;
+                var person = new PersonService( rockContext ).Get( groupMember.PersonId );
+                if ( person != null )
+                {
+                    return person;
+                }
             }
 
-            var person = new PersonAliasService( rockContext )
-                .Queryable().AsNoTracking()
-                .Where( pa => pa.Guid == personAliasGuid.Value )
-                .Select( pa => pa.Person )
-                .FirstOrDefault();
-
-            if ( person == null )
-            {
-                errorMessages.Add( "The person could not be found." );
-            }
-
-            return person;
+            errorMessages.Add( "Unable to determine the person from the Person attribute or the triggering group member." );
+            return null;
         }
 
         /// <summary>
-        /// Gets the placement group from the workflow attribute.
+        /// Gets the placement group. Prefers the configured Placement Group workflow
+        /// attribute (set by legacy Group Member Workflow Triggers); falls back to the
+        /// group of the triggering GroupMember entity (used by generic entity Workflow
+        /// Triggers, which do not populate the Placement Group attribute).
         /// </summary>
-        private Group GetPlacementGroupFromAttribute( RockContext rockContext, WorkflowAction action, List<string> errorMessages )
+        private Group GetPlacementGroup( RockContext rockContext, WorkflowAction action, Object entity, List<string> errorMessages )
         {
+            // Prefer the workflow attribute if it is configured and holds a valid value.
             Guid groupAttributeGuid = GetAttributeValue( action, "PlacementGroup" ).AsGuid();
-            if ( groupAttributeGuid.IsEmpty() )
+            if ( !groupAttributeGuid.IsEmpty() )
             {
-                errorMessages.Add( "The Placement Group attribute is not configured." );
-                return null;
+                var groupGuid = action.GetWorkflowAttributeValue( groupAttributeGuid ).AsGuidOrNull();
+                if ( groupGuid.HasValue )
+                {
+                    var group = new GroupService( rockContext ).Get( groupGuid.Value );
+                    if ( group != null )
+                    {
+                        return group;
+                    }
+                }
             }
 
-            var groupGuid = action.GetWorkflowAttributeValue( groupAttributeGuid ).AsGuidOrNull();
-            if ( !groupGuid.HasValue )
+            // Fall back to the group of the triggering GroupMember entity.
+            var groupMember = entity as GroupMember;
+            if ( groupMember != null )
             {
-                errorMessages.Add( "The Placement Group attribute does not contain a valid value." );
-                return null;
+                var group = new GroupService( rockContext ).Get( groupMember.GroupId );
+                if ( group != null )
+                {
+                    return group;
+                }
             }
 
-            var group = new GroupService( rockContext ).Get( groupGuid.Value );
-            if ( group == null )
-            {
-                errorMessages.Add( "The placement group could not be found." );
-            }
-
-            return group;
+            errorMessages.Add( "Unable to determine the placement group from the Placement Group attribute or the triggering group member." );
+            return null;
         }
 
         /// <summary>
