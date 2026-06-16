@@ -1093,7 +1093,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( CurrentPurchaseOrder != null )
             {
                 if ( !String.IsNullOrEmpty( CurrentPurchaseOrder.ShipToName ) )
-                    lblShipToName.Text = CurrentPurchaseOrder.ShipToName;
+                    lblShipToName.Text = System.Web.HttpUtility.HtmlEncode(CurrentPurchaseOrder.ShipToName);
                 if ( !String.IsNullOrEmpty( CurrentPurchaseOrder.ShipToAttn ) )
                 {
                     divShipToAttention.Visible = true;
@@ -1926,8 +1926,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private void UpdateShipToAddress()
         {
             hfCampusID.Value = ddlShipToCampus.SelectedValue;
-            lblShipToName.Text = txtShipToName.Text;
-            lblShipToAttn.Text = txtShipToAttention.Text;
+            lblShipToName.Text = System.Web.HttpUtility.HtmlEncode(txtShipToName.Text);
+            lblShipToAttn.Text = System.Web.HttpUtility.HtmlEncode(txtShipToAttention.Text);
             divShipToAttention.Visible = !String.IsNullOrEmpty( txtShipToAttention.Text );
             divShipToAddress.Visible = !String.IsNullOrEmpty( txtShipToAddress.Text );
             lblShipToAddress.Text = txtShipToAddress.Text;
@@ -2331,8 +2331,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             Requisition r = new Requisition( requisitionID );
             hfRequisitionID.Value = r.RequisitionID.ToString();
-            lblRequisitionItemsTitle.Text = r.Title;
-            lblRequisitionItemsRequester.Text = r.Requester.FullName;
+            lblRequisitionItemsTitle.Text = System.Web.HttpUtility.HtmlEncode(r.Title);
+            lblRequisitionItemsRequester.Text = System.Web.HttpUtility.HtmlEncode(r.Requester.FullName);
             BindRequisitionItemList( r );
         }
 
@@ -3340,9 +3340,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 hfIDItemID.Value = POI.PurchaseOrderItemID.ToString();
                 if ( !String.IsNullOrEmpty( POI.RequisitionItem.ItemNumber ) )
-                    lblIDItemNumber.Text = POI.RequisitionItem.ItemNumber;
+                    lblIDItemNumber.Text = System.Web.HttpUtility.HtmlEncode(POI.RequisitionItem.ItemNumber);
                 if ( !String.IsNullOrEmpty( POI.RequisitionItem.Description ) )
-                    lblIDDescription.Text = POI.RequisitionItem.Description;
+                    lblIDDescription.Text = System.Web.HttpUtility.HtmlEncode(POI.RequisitionItem.Description);
                 if ( POI.RequisitionItem.DateNeeded > DateTime.MinValue )
                     lblIDDateNeeded.Text = POI.RequisitionItem.DateNeeded.ToShortDateString();
                 txtIDQtyAssigned.Text = POI.Quantity.ToString();
