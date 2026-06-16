@@ -460,13 +460,20 @@ namespace org.secc.Workflow.Registrations
                         return person;
                     }
                 }
+
+                // The Person attribute was configured but did not resolve to a valid
+                // person. Log it so a genuine misconfiguration is still debuggable
+                // before falling back to the triggering entity.
+                action.AddLogEntry( "The configured Person attribute did not resolve to a valid person; falling back to the triggering group member.", true );
             }
 
             // Fall back to the triggering GroupMember entity.
             var groupMember = entity as GroupMember;
             if ( groupMember != null )
             {
-                var person = new PersonService( rockContext ).Get( groupMember.PersonId );
+                var person = new PersonService( rockContext )
+                    .Queryable().AsNoTracking()
+                    .FirstOrDefault( p => p.Id == groupMember.PersonId );
                 if ( person != null )
                 {
                     return person;
@@ -498,6 +505,11 @@ namespace org.secc.Workflow.Registrations
                         return group;
                     }
                 }
+
+                // The Placement Group attribute was configured but did not resolve to a
+                // valid group. Log it so a genuine misconfiguration is still debuggable
+                // before falling back to the triggering entity.
+                action.AddLogEntry( "The configured Placement Group attribute did not resolve to a valid group; falling back to the triggering group member.", true );
             }
 
             // Fall back to the group of the triggering GroupMember entity.
