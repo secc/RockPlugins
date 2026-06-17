@@ -694,7 +694,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     return;
                 }
 
-                ltMove.Text = string.Format( "{0} @ {1}", attendanceRecord.PersonAlias.Person.FullName, attendanceRecord.Occurrence.Schedule.Name );
+                ltMove.Text = string.Format( "{0} @ {1}", attendanceRecord.PersonAlias.Person.FullName.EncodeHtml(), attendanceRecord.Occurrence.Schedule.Name );
                 ltMoveInfo.Text = string.Format(
                     "{0} is currently in {1} > {2} at {3} for the schedule {4}",
                     attendanceRecord.PersonAlias.Person.NickName,
