@@ -70,22 +70,14 @@ namespace RockWeb.Plugins.org_secc.Communication
                 var param = PageParameter( "p" );
                 if ( param.IsNotNullOrWhiteSpace() )
                 {
-                    // Resolve the acting person from a Rock impersonation token (high-entropy,
-                    // expiring, usage-limited), matching the secure pattern used by ContactGroupLeaders.
-                    // Previously this matched on a guessable GUID *suffix* (Guid.EndsWith with only a
-                    // length>=12 guard), which let an anonymous caller resolve an arbitrary person and
-                    // then overwrite their Email/EmailPreference and mobile number (account takeover via
-                    // password reset). A raw or partial Person GUID is NOT an access-control token.
-                    // Safe to change with no companion work: this ?p= path has no live generator — the
-                    // newsletter "manage subscriptions" link is a bare /s (no token), verified in both the
-                    // codebase and the Rock DB — so tightening it here breaks no existing link.
+                    // Resolve via a Rock impersonation token, not a guessable GUID suffix (the old
+                    // Guid.EndsWith match let an anonymous caller resolve any person and overwrite their
+                    // email/phone -> account takeover). Mirrors ContactGroupLeaders. Safe with no companion
+                    // change: the ?p= link has no live generator (the newsletter link is a bare /s).
                     RockContext rockContext = new RockContext();
                     PersonService personService = new PersonService( rockContext );
-                    // incrementUsage:false — OnInit re-runs on every postback and Person is not persisted
-                    // across them, so for the anonymous ?p= flow this resolves on each Subscribe/UpdateEmail
-                    // click. Counting usage here would burn a usage-limited token after a few clicks and lock
-                    // the visitor out mid-session. The token's entropy + expiry remain the protection; usage
-                    // limiting is incompatible with a page the person interacts with repeatedly.
+                    // incrementUsage:false: OnInit runs on every postback, so counting usage would burn a
+                    // usage-limited token mid-session; the token's entropy + expiry remain the protection.
                     Person = personService.GetByImpersonationToken( param, false, null );
                 }
             }

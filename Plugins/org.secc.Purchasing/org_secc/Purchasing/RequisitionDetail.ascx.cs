@@ -943,8 +943,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         protected void ucAttachments_RefreshParent( object sender, EventArgs e )
         {
-            // Defense-in-depth: these child-control refresh handlers re-query the model outside the
-            // LoadRequisition gate, so re-check view authorization (see UserCanViewRequisition).
+            // IDOR re-check: refresh handlers re-query the model outside the LoadRequisition gate.
             if ( !UserCanViewRequisition() )
             {
                 return;
@@ -1387,36 +1386,31 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         }
 
         /// <summary>
-        /// Object-level view authorization (IDOR). RequisitionID is read from the querystring with no
-        /// ownership check (see the RequisitionID property), so without this gate any authenticated
-        /// user can view any requisition by changing the id. Mirrors the sibling
-        /// CapitalRequestDetail.UserCanView(). Edit gating (CanUserEditSummary / SetSummaryVisibility)
-        /// only disables inputs; it does NOT prevent the data from being loaded and displayed.
+        /// Object-level view authorization (IDOR): RequisitionID comes from the querystring unchecked, so
+        /// without this any authenticated user could view any requisition. Mirrors
+        /// CapitalRequestDetail.UserCanView(). (Edit gating only disables inputs, not data display.)
         /// </summary>
         private bool UserCanViewRequisition()
         {
-            // A new requisition (no persisted id yet) is always viewable.
+            // New requisition (no id yet) is always viewable.
             if ( RequisitionID <= 0 || CurrentRequisition == null || CurrentRequisition.RequisitionID != RequisitionID )
             {
                 return true;
             }
 
-            // Fail closed for a person-less session. This is a staff block (CurrentPerson is normally
-            // set), but the involvement helpers below dereference CurrentPerson / its PrimaryAliasId,
-            // so guard explicitly now that this runs for every authenticated viewer of every id.
+            // Fail closed for a person-less session (the helpers below dereference CurrentPerson).
             if ( CurrentPerson == null || CurrentPerson.PrimaryAliasId == null )
             {
                 return false;
             }
 
-            // The requester themselves.
+            // Requester themselves.
             if ( CurrentPerson.PrimaryAliasId == CurrentRequisition.RequesterID )
             {
                 return true;
             }
 
-            // Creator, requester's/creator's ministry, an approver, or block edit/admin rights
-            // (the same relationships the block already uses to decide edit-ability).
+            // Creator, requester's/creator's ministry, approver, or block edit/admin.
             if ( UserIsCreator || RequesterIsInMyMinitry || CreatorIsInMyMinistry || UserIsApprover || UserCanEdit )
             {
                 return true;
@@ -1427,9 +1421,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void LoadRequisition()
         {
-            // Object-level view authorization (IDOR): refuse to render a requisition the current user
-            // does not own / is not involved with. Return BEFORE any Load* call so no requisition data
-            // (summary, items, notes, attachments, approvals, charges) is ever populated.
+            // IDOR gate: bail before any Load* so an unauthorized requisition's data is never populated.
             if ( !UserCanViewRequisition() )
             {
                 SetSummaryError( "You are not authorized to view this requisition. Click \"Return to List\" to continue." );
@@ -1456,10 +1448,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void LoadSummary()
         {
-            // Object-level view authorization (IDOR): LoadSummary is also reached directly from postback
-            // handlers, not just the gated LoadRequisition, so re-check here. UserCanViewRequisition()
-            // returns true for new requisitions and for anyone with view/edit involvement (edit rights
-            // are a subset of view rights), so legitimate flows are unaffected.
+            // IDOR re-check: LoadSummary is also reached directly from postback handlers, not only the
+            // gated LoadRequisition. (Returns true for new requisitions / any view-or-edit involvement.)
             if ( !UserCanViewRequisition() )
             {
                 return;
@@ -1513,8 +1503,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void LoadItems()
         {
-            // Object-level view authorization (IDOR): LoadItems is reached directly from postback
-            // handlers too, so re-check (see LoadSummary). Safe for new requisitions / authorized users.
+            // IDOR re-check: LoadItems is also reached directly from postback handlers (see LoadSummary).
             if ( !UserCanViewRequisition() )
             {
                 return;

@@ -1546,9 +1546,8 @@ try{{
                         {
                             maWarning.Show( "Unable to add PIN to person. This person is in a security role and cannot have a PIN added from this tool.", ModalAlertType.Warning );
                             mdPIN.Hide();
-                            // Must return: without it, execution falls through and a PIN UserLogin is
-                            // created for the security-role member anyway, defeating this guard and
-                            // letting an operator mint a PIN credential for a privileged account.
+                            // Without this return, execution falls through and mints the PIN anyway,
+                            // defeating the security-role guard (privilege escalation).
                             return;
                         }
 
