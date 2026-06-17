@@ -76,6 +76,9 @@ namespace RockWeb.Plugins.org_secc.Communication
                     // length>=12 guard), which let an anonymous caller resolve an arbitrary person and
                     // then overwrite their Email/EmailPreference and mobile number (account takeover via
                     // password reset). A raw or partial Person GUID is NOT an access-control token.
+                    // Safe to change with no companion work: this ?p= path has no live generator — the
+                    // newsletter "manage subscriptions" link is a bare /s (no token), verified in both the
+                    // codebase and the Rock DB — so tightening it here breaks no existing link.
                     RockContext rockContext = new RockContext();
                     PersonService personService = new PersonService( rockContext );
                     // incrementUsage:false — OnInit re-runs on every postback and Person is not persisted
