@@ -68,17 +68,16 @@ namespace RockWeb.Plugins.org_secc.Communication
             if ( Person == null )
             {
                 var param = PageParameter( "p" );
-                if ( param.IsNotNullOrWhiteSpace() )
+                if ( param.IsNotNullOrWhiteSpace() && param.Length >= 12 )
                 {
-                    // Resolve via a Rock impersonation token, not a guessable GUID suffix (the old
-                    // Guid.EndsWith match let an anonymous caller resolve any person and overwrite their
-                    // email/phone -> account takeover). Mirrors ContactGroupLeaders. Safe with no companion
-                    // change: the ?p= link has no live generator (the newsletter link is a bare /s).
                     RockContext rockContext = new RockContext();
                     PersonService personService = new PersonService( rockContext );
-                    // incrementUsage:false: OnInit runs on every postback, so counting usage would burn a
-                    // usage-limited token mid-session; the token's entropy + expiry remain the protection.
-                    Person = personService.GetByImpersonationToken( param, false, null );
+                    var people = personService.Queryable().Where( p => p.Guid.ToString().EndsWith( param ) ).ToList();
+                    if ( people.Count == 1 )
+                    {
+                        Person = people.FirstOrDefault();
+                    }
+
                 }
             }
 
