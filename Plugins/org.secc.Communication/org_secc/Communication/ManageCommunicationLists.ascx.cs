@@ -68,16 +68,18 @@ namespace RockWeb.Plugins.org_secc.Communication
             if ( Person == null )
             {
                 var param = PageParameter( "p" );
-                if ( param.IsNotNullOrWhiteSpace() && param.Length >= 12 )
+                if ( param.IsNotNullOrWhiteSpace() )
                 {
+                    // Resolve via a Rock impersonation token, not a guessable GUID suffix (the old
+                    // Guid.EndsWith match used the GUID tail as a bearer credential -> leak/replay
+                    // account takeover). Mirrors ContactGroupLeaders.
+                    // Coordinated: WT 250 (and /connect/ WT 361) SMS link must emit a PersonTokenCreate
+                    // token too -- deploy together.
                     RockContext rockContext = new RockContext();
                     PersonService personService = new PersonService( rockContext );
-                    var people = personService.Queryable().Where( p => p.Guid.ToString().EndsWith( param ) ).ToList();
-                    if ( people.Count == 1 )
-                    {
-                        Person = people.FirstOrDefault();
-                    }
-
+                    // incrementUsage:false: OnInit runs every postback; counting usage would burn a
+                    // usage-limited token mid-session.
+                    Person = personService.GetByImpersonationToken( param, false, null );
                 }
             }
 
