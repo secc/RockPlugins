@@ -97,9 +97,9 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
     </span>
 </div>",
                 link,
-                changeRequest.Name,
+                System.Web.HttpUtility.HtmlEncode( changeRequest.Name ),
                 changeRequest.RequestorAlias.PersonId,
-                changeRequest.RequestorAlias.Person.FullName,
+                System.Web.HttpUtility.HtmlEncode( changeRequest.RequestorAlias.Person.FullName ),
                 changeRequest.IsComplete ? "primary" : "success",
                 changeRequest.IsComplete ? "Complete" : "Active" );
 
@@ -126,10 +126,10 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             if ( changeRequest.RequestorComment.IsNotNullOrWhiteSpace() )
             {
                 ltRequestComments.Visible = true;
-                ltRequestComments.Text = changeRequest.RequestorComment;
+                ltRequestComments.Text = System.Web.HttpUtility.HtmlEncode( changeRequest.RequestorComment );
             }
 
-            ltApproverComment.Text = changeRequest.ApproverComment;
+            ltApproverComment.Text = System.Web.HttpUtility.HtmlEncode( changeRequest.ApproverComment );
             tbApproverComment.Text = changeRequest.ApproverComment;
 
             if ( !IsUserAuthorized( Rock.Security.Authorization.EDIT ) )
@@ -193,6 +193,10 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         private void FormatValues( int entityTypeId, IEntity targetEntity, ChangeRecord changeRecord, RockContext rockContext )
         {
             var errors = new List<string>();
+            // Tracks whether NewValue/OldValue were set to trusted, Rock-generated HTML
+            // (attribute ValueFormatted or the photo thumbnail). Plain-text values are
+            // HTML-encoded before returning; trusted-HTML values are left as-is.
+            bool valueIsTrustedHtml = false;
             //Get the target Entity
             if ( changeRecord.RelatedEntityId.HasValue
                     && changeRecord.RelatedEntityId.Value != 0
@@ -316,6 +320,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
                         ( ( IHasAttributes ) targetEntity ).SetAttributeValue( changeRecord.Property, changeRecord.NewValue );
                         changeRecord.NewValue = ( ( IHasAttributes ) targetEntity ).AttributeValues[changeRecord.Property].ValueFormatted;
+
+                        valueIsTrustedHtml = true;
                     }
                 }
             }
@@ -334,6 +340,8 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     changeRecord.OldValue = string.Format( "<a href='/GetImage.ashx?id={0}' target='_blank'><img src='/GetImage.ashx?id={0}' height=50></a>",
                         changeRecord.OldValue );
                 }
+
+                valueIsTrustedHtml = true;
             }
             else
             {
@@ -341,16 +349,24 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
                 if ( changeRecord.RelatedEntityType != null )
                 {
-                    changeRecord.Property = changeRecord.RelatedEntityType.Name.Split( '.' ).Last() + ": " + changeRecord.Property.SplitCase();
+                    changeRecord.Property = System.Web.HttpUtility.HtmlEncode( changeRecord.RelatedEntityType.Name.Split( '.' ).Last() + ": " + changeRecord.Property.SplitCase() );
                 }
                 else
                 {
-                    changeRecord.Property = changeRecord.Property.SplitCase();
+                    changeRecord.Property = System.Web.HttpUtility.HtmlEncode( changeRecord.Property.SplitCase() );
                 }
                 if ( changeRecord.Comment.IsNotNullOrWhiteSpace() )
                 {
-                    changeRecord.Property += "<br>(" + changeRecord.Comment + ")";
+                    changeRecord.Property += "<br>(" + System.Web.HttpUtility.HtmlEncode( changeRecord.Comment ) + ")";
                 }
+            }
+
+            // Encode the value columns when they hold plain text. The two trusted-HTML
+            // branches above (attribute ValueFormatted, photo thumbnail) are left intact.
+            if ( !valueIsTrustedHtml )
+            {
+                changeRecord.NewValue = System.Web.HttpUtility.HtmlEncode( changeRecord.NewValue );
+                changeRecord.OldValue = System.Web.HttpUtility.HtmlEncode( changeRecord.OldValue );
             }
         }
 

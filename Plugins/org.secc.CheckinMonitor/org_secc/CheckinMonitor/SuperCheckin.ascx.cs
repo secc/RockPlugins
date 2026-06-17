@@ -301,7 +301,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 var checkinPerson = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People.Where( p => p.Person.Id == selectedPersonId ).First();
                 pnlPersonInformation.Visible = true;
                 pnlAddPerson.Visible = false;
-                ltName.Text = checkinPerson.Person.FullName;
+                ltName.Text = checkinPerson.Person.FullName.EncodeHtml();
                 BuildPersonCheckinDetails();
             }
         }
@@ -719,7 +719,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 pnlEditNameLiteral.Visible = true;
                 pnlEditNameTextBox.Visible = false;
-                ltEditName.Text = person.FullName;
+                ltEditName.Text = person.FullName.EncodeHtml();
             }
 
             if ( setValue )

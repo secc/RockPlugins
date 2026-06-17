@@ -261,7 +261,7 @@ namespace RockWeb.Plugins.org_secc.Cms
             }
 
             // Person Info
-            lGroupMemberName.Text = person.FullName;
+            lGroupMemberName.Text = person.FullName.EncodeHtml();
             lGroupMemberEmail.Text = person.Email;
             if ( person.BirthDate.HasValue )
             {
@@ -793,7 +793,7 @@ namespace RockWeb.Plugins.org_secc.Cms
                 }
 
                 // Person Info
-                lName.Text = CurrentPerson.FullName;
+                lName.Text = CurrentPerson.FullName.EncodeHtml();
                 if ( CurrentPerson.BirthDate.HasValue )
                 {
                     lAge.Text = string.Format( "{0}<small>({1})</small><br/>", CurrentPerson.FormatAge(), CurrentPerson.BirthYear != DateTime.MinValue.Year ? CurrentPerson.BirthDate.Value.ToShortDateString() : CurrentPerson.BirthDate.Value.ToMonthDayString() );

@@ -1403,8 +1403,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if ( RequisitionID > 0 )
             {
-                lblTitle.Text = CurrentRequisition.Title;
-                lblStatus.Text = CurrentRequisition.Status.Value;
+                lblTitle.Text = System.Web.HttpUtility.HtmlEncode( CurrentRequisition.Title );
+                lblStatus.Text = System.Web.HttpUtility.HtmlEncode( CurrentRequisition.Status.Value );
                 if ( CurrentRequisition.Status.Order < Requisition.GetStatuses( true ).Where( s => s.Value == "Submitted to Purchasing" ).Select( s => s.Order ).FirstOrDefault() )
                 {
                     lblTitle.Text += " <small>(Created: " + CurrentRequisition.DateCreated + ")</small>";
