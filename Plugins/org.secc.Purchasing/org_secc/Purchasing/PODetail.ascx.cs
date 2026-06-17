@@ -1097,7 +1097,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 if ( !String.IsNullOrEmpty( CurrentPurchaseOrder.ShipToAttn ) )
                 {
                     divShipToAttention.Visible = true;
-                    lblShipToAttn.Text = CurrentPurchaseOrder.ShipToAttn;
+                    lblShipToAttn.Text = System.Web.HttpUtility.HtmlEncode(CurrentPurchaseOrder.ShipToAttn);
                 }
                 if ( CurrentPurchaseOrder.ShipToAddress != null && CurrentPurchaseOrder.ShipToAddress.IsValid() )
                 {
@@ -1355,8 +1355,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 CurrentPurchaseOrder.DefaultPaymentMethodID = 0;
             }
 
-            CurrentPurchaseOrder.ShipToName = lblShipToName.Text;
-            CurrentPurchaseOrder.ShipToAttn = lblShipToAttn.Text;
+            CurrentPurchaseOrder.ShipToName = System.Web.HttpUtility.HtmlDecode(lblShipToName.Text);
+            CurrentPurchaseOrder.ShipToAttn = System.Web.HttpUtility.HtmlDecode(lblShipToAttn.Text);
 
             CurrentPurchaseOrder.Terms = lblVendorTerms.Text;
 
@@ -1908,8 +1908,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( ddlShipToCampus.Items.FindByValue( CampusID.ToString() ) != null )
                 ddlShipToCampus.SelectedValue = CampusID.ToString();
 
-            txtShipToName.Text = lblShipToName.Text;
-            txtShipToAttention.Text = lblShipToAttn.Text;
+            txtShipToName.Text = System.Web.HttpUtility.HtmlDecode(lblShipToName.Text);
+            txtShipToAttention.Text = System.Web.HttpUtility.HtmlDecode(lblShipToAttn.Text);
             txtShipToAddress.Text = lblShipToAddress.Text;
             txtShipToCity.Text = lblShipToCity.Text;
             txtShipToState.Text = lblShipToState.Text;
