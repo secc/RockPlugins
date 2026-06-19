@@ -284,6 +284,7 @@ a.eventCardLink {
 
 // ROCK-8654: cap event promo image height (no .event-details in live DOM).
 .event-photo-container .event-photo {
+    max-height: 45vh;
     max-height: 45dvh;
     overflow: hidden;
 }
