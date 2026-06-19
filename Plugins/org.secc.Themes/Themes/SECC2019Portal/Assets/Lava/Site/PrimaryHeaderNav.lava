@@ -1,3 +1,16 @@
+<style>
+  .cd-header-buttons .cd-search-trigger {
+    width: auto; height: auto; overflow: visible;
+    color: inherit !important;
+    padding: 9px;
+    line-height: 1;
+  }
+  .cd-header-buttons .cd-search-trigger::before,
+  .cd-header-buttons .cd-search-trigger::after { content: none; }
+  .cd-header-buttons .cd-search-trigger i {
+    font-size: 16px;
+  }
+</style>
 <!--========== HEADER ==========-->
 <header class="cd-main-header transparent-menu-enabled transparent-header">
   <a class="cd-logo" href="/">
@@ -14,7 +27,7 @@
         <a href="/?logout=true" class="cd-nav-logout" title="Log Out" rel="nofollow"><i class="fas fa-sign-out"></i><span class="sr-only">Log Out</span></a>
     </li>
     {% endcomment %}
-	<li><a class="cd-search-trigger" href="#cd-search" title="Search">Search<span></span></a></li>
+    <li><a class="cd-search-trigger" href="#cd-search" title="Search" aria-label="Search" style="color:#000 !important;width:auto;height:auto;overflow:visible;padding:9px;line-height:1;margin-top:4px;"><i class="fas fa-search"></i></a></li>
   {% endif %}
 
   {% unless personGuid != null %}
