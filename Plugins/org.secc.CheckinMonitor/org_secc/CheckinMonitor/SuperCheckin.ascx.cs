@@ -1546,6 +1546,9 @@ try{{
                         {
                             maWarning.Show( "Unable to add PIN to person. This person is in a security role and cannot have a PIN added from this tool.", ModalAlertType.Warning );
                             mdPIN.Hide();
+                            // Without this return, execution falls through and mints the PIN anyway,
+                            // defeating the security-role guard (privilege escalation).
+                            return;
                         }
 
                         var userLoginService = new UserLoginService( _rockContext );

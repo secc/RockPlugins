@@ -35,11 +35,12 @@ namespace org.secc.Communication
         public List<TwilioPhoneNumber> GetTwilioNumbers( bool clearCache = false )
         {
 
-            var url = $"{settings.MessagingUrl}twiliophonenumbers?code={settings.MessagingKey}{(clearCache ? "&nocache=1" : String.Empty)}";
+            var url = $"{settings.MessagingUrl}twiliophonenumbers{(clearCache ? "?nocache=1" : String.Empty)}";
             var restClient = new RestClient( url );
             var request = new RestRequest( Method.GET );
             request.RequestFormat = DataFormat.Json;
             request.AddHeader( "Accept", "application/json" );
+            request.AddHeader( "x-functions-key", settings.MessagingKey );
 
             var response = restClient.Execute( request );
 
@@ -57,11 +58,12 @@ namespace org.secc.Communication
 
         public MessagingPhoneNumber AddPhoneNumber( MessagingPhoneNumber number )
         {
-            var url = $"{settings.MessagingUrl}phonenumbers?code={settings.MessagingKey}";
+            var url = $"{settings.MessagingUrl}phonenumbers";
             var restClient = new RestClient( url );
             var request = new RestRequest( Method.POST );
             request.RequestFormat = DataFormat.Json;
             request.AddHeader( "Accept", "application/json" );
+            request.AddHeader( "x-functions-key", settings.MessagingKey );
             request.AddParameter( "application/json", JsonConvert.SerializeObject( number ), ParameterType.RequestBody );
             var response = restClient.Execute( request );
 
@@ -76,20 +78,22 @@ namespace org.secc.Communication
 
         public void DeletePhoneNumber( string id )
         {
-            var url = $"{settings.MessagingUrl}phonenumbers/{id}?code={settings.MessagingKey}";
+            var url = $"{settings.MessagingUrl}phonenumbers/{id}";
             var restClient = new RestClient( url );
             var request = new RestRequest( Method.DELETE );
+            request.AddHeader( "x-functions-key", settings.MessagingKey );
             restClient.Execute( request );
 
         }
 
         public MessagingPhoneNumber GetPhoneNumber( string id )
         {
-            var url = $"{settings.MessagingUrl}phonenumbers/{id}?code={settings.MessagingKey}";
+            var url = $"{settings.MessagingUrl}phonenumbers/{id}";
             var restClient = new RestClient( url );
             var request = new RestRequest( Method.GET );
             request.RequestFormat = DataFormat.Json;
-            request.AddHeader( "Accept", "applicaiton/json" );
+            request.AddHeader( "Accept", "application/json" );
+            request.AddHeader( "x-functions-key", settings.MessagingKey );
             var response = restClient.Execute( request );
 
             if (response.StatusCode == HttpStatusCode.OK)
@@ -102,11 +106,12 @@ namespace org.secc.Communication
 
         public List<MessagingPhoneNumber> GetPhoneNumbers()
         {
-            var url = $"{settings.MessagingUrl}phonenumbers?code={settings.MessagingKey}";
+            var url = $"{settings.MessagingUrl}phonenumbers";
             var restClient = new RestClient( url );
             var request = new RestRequest( Method.GET );
             request.RequestFormat = DataFormat.Json;
             request.AddHeader( "Accept", "application/json" );
+            request.AddHeader( "x-functions-key", settings.MessagingKey );
             var response = restClient.Execute( request );
 
             if (response.StatusCode == HttpStatusCode.OK)
@@ -120,11 +125,12 @@ namespace org.secc.Communication
 
         public MessagingPhoneNumber UpdatePhoneNumber( MessagingPhoneNumber number )
         {
-            var url = $"{settings.MessagingUrl}phonenumbers?code={settings.MessagingKey}";
+            var url = $"{settings.MessagingUrl}phonenumbers";
             var restClient = new RestClient( url );
             var request = new RestRequest( Method.PUT );
             request.RequestFormat = DataFormat.Json;
             request.AddHeader( "Accept", "application/json" );
+            request.AddHeader( "x-functions-key", settings.MessagingKey );
             request.AddParameter( "application/json", JsonConvert.SerializeObject( number ), ParameterType.RequestBody );
             var response = restClient.Execute( request );
 
@@ -143,11 +149,12 @@ namespace org.secc.Communication
 
         public void AddKeyword( string phoneId, Keyword k )
         {
-            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords?code={settings.MessagingKey}";
+            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords";
             var restClient = new RestClient( url );
             var request = new RestRequest( Method.POST );
             request.RequestFormat = DataFormat.Json;
             request.AddHeader( "Accept", "application/json" );
+            request.AddHeader( "x-functions-key", settings.MessagingKey );
             request.AddParameter( "application/json", JsonConvert.SerializeObject( k ), ParameterType.RequestBody );
 
             var response = restClient.Execute( request );
@@ -160,10 +167,11 @@ namespace org.secc.Communication
 
         public void DeleteKeyword( string phoneId, string keywordId )
         {
-            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords/{keywordId}?code={settings.MessagingKey}";
+            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords/{keywordId}";
             var restClient = new RestClient( url );
             var request = new RestRequest( Method.DELETE );
             request.RequestFormat = DataFormat.Json;
+            request.AddHeader( "x-functions-key", settings.MessagingKey );
             var response = restClient.Execute( request );
 
             if (response.StatusCode != HttpStatusCode.Gone)
@@ -175,11 +183,12 @@ namespace org.secc.Communication
 
         public Keyword GetKeyword( string phoneId, string keywordId )
         {
-            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords/{keywordId}?code={settings.MessagingKey}";
+            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords/{keywordId}";
             var restClient = new RestClient( url );
             var request = new RestRequest( Method.GET );
             request.RequestFormat = DataFormat.Json;
             request.AddHeader( "Accept", "application/json" );
+            request.AddHeader( "x-functions-key", settings.MessagingKey );
             var response = restClient.Execute( request );
 
             if (response.StatusCode == HttpStatusCode.NotFound)
@@ -193,11 +202,12 @@ namespace org.secc.Communication
 
         public void ReorderKeyword( KeywordReorderItem item, string phoneId )
         {
-            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords/reorder?code={settings.MessagingKey}";
+            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords/reorder";
             var restClient = new RestClient( url );
             var request = new RestRequest( Method.PATCH );
             request.RequestFormat = DataFormat.Json;
             request.AddHeader( "Accept", "application/json" );
+            request.AddHeader( "x-functions-key", settings.MessagingKey );
             request.AddParameter( "application/json", JsonConvert.SerializeObject( item ), ParameterType.RequestBody );
             var response = restClient.Execute( request );
 
@@ -210,11 +220,12 @@ namespace org.secc.Communication
 
         public void UpdateKeyword( string phoneId, Keyword k )
         {
-            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords?code={settings.MessagingKey}";
+            var url = $"{settings.MessagingUrl}phonenumbers/{phoneId}/keywords";
             var restClient = new RestClient( url );
             var request = new RestRequest( Method.PUT );
             request.RequestFormat = DataFormat.Json;
             request.AddHeader( "Accept", "application/json" );
+            request.AddHeader( "x-functions-key", settings.MessagingKey );
             request.AddParameter( "application/json", JsonConvert.SerializeObject( k ), ParameterType.RequestBody );
             var response = restClient.Execute( request );
 
