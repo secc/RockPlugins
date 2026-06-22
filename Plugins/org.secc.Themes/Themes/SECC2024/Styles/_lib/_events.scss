@@ -282,10 +282,7 @@ a.eventCardLink {
 }
 
 
-// ROCK-8654: cap event promo image height. Scoped to the event-detail block via
-// its "CSS Class" field (event-photo-cap on Block 7325) so it only affects the
-// event detail page, not the shared .event-photo-container markup elsewhere.
-// NOTE: requires the event-photo-cap CSS Class set on the block per environment.
+// ROCK-8654: cap event promo image height (scoped via block CSS class event-photo-cap).
 .event-photo-cap .event-photo-container .event-photo {
     max-height: 45vh;
     overflow: hidden;
