@@ -286,6 +286,9 @@ a.eventCardLink {
 .event-photo-cap .event-photo-container .event-photo {
     max-height: 45vh;
     overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .event-details {
