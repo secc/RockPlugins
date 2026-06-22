@@ -175,7 +175,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     {
                         RockLiteral ltNote = new RockLiteral();
                         ltNote.Label = "Note";
-                        ltNote.Text = groupMember.Note;
+                        ltNote.Text = groupMember.Note.EncodeHtml().ConvertCrLfToHtmlBr();
                         phGroups.Controls.Add( ltNote );
                     }
                 }
