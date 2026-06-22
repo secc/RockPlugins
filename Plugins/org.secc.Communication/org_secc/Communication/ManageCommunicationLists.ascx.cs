@@ -72,13 +72,14 @@ namespace RockWeb.Plugins.org_secc.Communication
                 {
                     // Resolve via a Rock impersonation token, not a guessable GUID suffix (the old
                     // Guid.EndsWith match used the GUID tail as a bearer credential -> leak/replay
-                    // account takeover). Mirrors ContactGroupLeaders.
+                    // account takeover). Same API ContactGroupLeaders uses.
                     // Coordinated: WT 250 (and /connect/ WT 361) SMS link must emit a PersonTokenCreate
                     // token too -- deploy together.
                     RockContext rockContext = new RockContext();
                     PersonService personService = new PersonService( rockContext );
-                    // incrementUsage:false: OnInit runs every postback; counting usage would burn a
-                    // usage-limited token mid-session.
+                    // incrementUsage:false (ContactGroupLeaders passes true, but resolves once): this runs
+                    // in OnInit on every postback, so true would burn a use-limited token mid-session.
+                    // Tokens are minted expiry-only -- replay is bounded by a short expiry, not a use count.
                     Person = personService.GetByImpersonationToken( param, false, null );
                 }
             }
