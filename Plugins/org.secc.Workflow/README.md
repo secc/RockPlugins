@@ -21,7 +21,7 @@ workflow.
 - **Project file:** `org.secc.Workflow.csproj`
 - **Root namespace:** `org.secc.Workflow`
 - **Target framework:** .NET Framework 4.7.2
-- **Deploys to:** `RockWeb/bin/` (assembly + `FFmpeg.NET.dll`, `Magick*`) and
+- **Deploys to:** `RockWeb/bin/` (assembly + `Magick*`) and
   `RockWeb/Plugins/org_secc/` (block markup)
 - **Cross-plugin dependency:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md)
 
@@ -37,7 +37,7 @@ flowchart TD
     B --> C["action.Execute(rockContext, action, entity, out errorMessages)"]
     C --> D[Read config via<br/>GetAttributeValue / GetActionAttributeValue]
     D --> E[Resolve Lava merge fields<br/>GetMergeFields + ResolveMergeFields]
-    E --> F[Do the work<br/>e.g. set attribute, send SMS, run FFmpeg]
+    E --> F[Do the work<br/>e.g. set attribute, send SMS, create image montage]
     F --> G{return bool}
     G -->|true| H[Activity continues]
     G -->|false + errorMessages| I[Logged on the workflow action]
@@ -78,7 +78,6 @@ flowchart TD
 | StoreSignedDocument | Signature Document | Create a new signature document. |
 | ClearCacheTags | CMS | Clear cached items with the selected tag(s). |
 | Lookup | Twilio | Make a Twilio Lookup API call. |
-| FFmpeg | Media | Run FFmpeg commands. |
 | ImageMontage | Media | Create JPG montages of image tiles. |
 | BinaryFileRemove | Media | Remove a Binary File. |
 
@@ -123,14 +122,6 @@ another with computed values.
 | Attachment | attribute | MMS attachment (carrier/device dependent). |
 | **SaveCommunicationHistory** | bool (default false) | Persist a communication record (to the person if one is provided). |
 
-### FFmpeg  *(Media)*
-| Setting | Type | Notes |
-|---------|------|-------|
-| **File** | text-or-attribute | Source file; available as `{{file}}` in the command. |
-| **Command** | text (Lava) | FFmpeg parameters; `{{file}}` and `{{outputPath}}` merge fields available. |
-| **FFmpegExecutable** | text | Path to `ffmpeg.exe` (default points into an ImageMagick install dir). |
-| **OutputPath** | attribute | Output dir; if empty a temp dir is created and written back to the attribute. |
-
 ## Blocks
 
 Category in Rock: **SECC > Workflow**.
@@ -144,31 +135,12 @@ Category in Rock: **SECC > Workflow**.
 
 - **Rock:** workflow engine (`ActionComponent`), `RockContext`, connections, registrations, CMS cache.
 - **Cross-plugin:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (used by *Person Attribute From Fields*).
-- **Third-party:** Twilio (lookup), FFmpeg.NET (video/audio), Magick.NET / ImageMagick (image montages).
+- **Third-party:** Twilio (lookup), Magick.NET / ImageMagick (image montages).
 
 ## Edge Cases & Constraints
 
-- **`FFmpeg.Command` is Lava-resolved and passed to the FFmpeg engine** including the `{{file}}`
-  merge field. If `File` can come from untrusted input, that's an argument/command-injection
-  vector — see Observations.
-- **`FFmpeg` runs sync-over-async** (`Task.Run(...).Wait()`) with no timeout; it blocks the
-  workflow thread on an external process.
 - **Person matching can create records.** *Person Attribute From Fields* will insert a person
   unless `Match Only` is set — review that flag in any workflow that takes public input.
-
-## Observations
-
-*Noticed while documenting — not a full audit; the `Media/FFmpeg` action stood out.*
-
-- **Security (review):** `FFmpeg` resolves the admin-configured `Command` (Lava, including the
-  `{{file}}` / `{{outputPath}}` merge fields) and passes it straight to the FFmpeg engine. If the
-  `File` attribute can be populated from untrusted input (e.g. a registrant upload/field), that
-  string is interpolated into the command — an argument/command-injection vector. Treat this
-  action as admin-trusted-only and validate/sanitize `file`. `OutputPath` is used to
-  `Directory.CreateDirectory` with no path-traversal guard.
-- **Improvement:** `Task.Run( … ).Wait()` is sync-over-async (blocks the workflow thread; deadlock
-  risk) with no timeout on the FFmpeg run. The default `FFmpegExecutable` is a hardcoded path into
-  an ImageMagick install folder (`C:\Program Files\ImageMagick-…\ffmpeg.exe`), brittle on most servers.
 
 ## Extending
 
@@ -200,5 +172,5 @@ and the attributes render the configuration UI automatically.
 
 - Add new actions in the matching area folder (`Person/`, `Communication/`, …); follow an existing
   sibling as a template.
-- Media actions require `FFmpeg.NET` and `Magick*` in `RockWeb/bin` (handled by the PostBuildEvent).
+- Media actions require `Magick*` in `RockWeb/bin` (handled by the PostBuildEvent).
 - Person-matching behavior lives in [org.secc.PersonMatch](../org.secc.PersonMatch/README.md), not here.
