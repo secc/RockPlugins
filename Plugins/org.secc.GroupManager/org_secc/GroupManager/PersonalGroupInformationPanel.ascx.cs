@@ -169,14 +169,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         {
                             phGroups.Controls.Add( new RockLiteral { Label = attribute.Name, Text = formattedValue } );
                         }
+                    }
 
-                        if ( !string.IsNullOrWhiteSpace( groupMember.Note ) )
-                        {
-                            RockLiteral ltNote = new RockLiteral();
-                            ltNote.Label = "Note";
-                            ltNote.Text = groupMember.Note;
-                            phGroups.Controls.Add( ltNote );
-                        }
+                    if ( !string.IsNullOrWhiteSpace( groupMember.Note ) )
+                    {
+                        RockLiteral ltNote = new RockLiteral();
+                        ltNote.Label = "Note";
+                        ltNote.Text = groupMember.Note.EncodeHtml().ConvertCrLfToHtmlBr();
+                        phGroups.Controls.Add( ltNote );
                     }
                 }
             }
