@@ -39,7 +39,7 @@ namespace Rock.Security.ExternalAuthentication
     [DefinedValueField( Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM, "From", "The number to originate message from (configured under Admin Tools > Communications > SMS From Values).", true, false, "", "", 3 )]
     [TextField( "Message", "Message that will be sent along with the login code.", true, "Use {{ password }} to log in to {{ 'Global' | Attribute:'OrganizationName' }}.", order: 4 )]
     [IntegerField( "Minimum Age", "Minimum age which someone is allowed to log in.", true, 13 )]
-    [IntegerField( "Max Code Requests", "Maximum number of login codes that can be requested for a single person/number within the rolling time window before further requests are refused.", true, 5, order: 6 )]
+    [IntegerField( "Max Code Requests", "Maximum number of login codes that can be requested for a single person/number within the rolling time window before further requests are refused.", true, 3, order: 6 )]
     [IntegerField( "Code Request Window Minutes", "Length of the rolling window (in minutes) over which 'Max Code Requests' is counted.", true, 15, order: 7 )]
     public class SMSAuthentication : AuthenticationComponent
     {
@@ -242,10 +242,11 @@ namespace Rock.Security.ExternalAuthentication
             }
 
             // Rolling-window cap on code requests, BEFORE any regeneration / counter reset.
-            int maxRequests = GetAttributeValue( "MaxCodeRequests" ).AsIntegerOrNull() ?? 5;
+            // Max requests applies per-server; actual attack opportunity is ~3x the configured maxRequests
+            int maxRequests = GetAttributeValue( "MaxCodeRequests" ).AsIntegerOrNull() ?? 3; 
             int windowMins = GetAttributeValue( "CodeRequestWindowMinutes" ).AsIntegerOrNull() ?? 15;
             
-            maxRequests = maxRequests > 0 ? maxRequests : 5;
+            maxRequests = maxRequests > 0 ? maxRequests : 3;
             windowMins = windowMins > 0 ? windowMins : 15;
 
             string personKey = "SMS_" + person.Id.ToString();   // matches the UserLogin username
