@@ -18,11 +18,15 @@ async function createKioskSession(browser: Browser, config: string): Promise<{ c
 
     // If we do not add this cookie, /familycheckin returns a 404.
     // I'm guessing this is because SECC has a web farm, but not all servers have check-in.
+    // Pin the cookie to whatever host BASE_URL points at, otherwise the browser
+    // never sends it (it was previously hardcoded to rockbeta.secc.org and would
+    // not be sent to sedev.secc.org, causing the 404 to come back).
+    const baseHost = new URL(process.env.BASE_URL!).hostname;
     await context.addCookies([
         {
             name: 'last_site',
             value: '7',
-            domain: 'rockbeta.secc.org',
+            domain: baseHost,
             path: '/'
         },
     ]);
