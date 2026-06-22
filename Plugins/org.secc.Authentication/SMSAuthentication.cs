@@ -242,11 +242,11 @@ namespace Rock.Security.ExternalAuthentication
             }
 
             // Rolling-window cap on code requests, BEFORE any regeneration / counter reset.
-int maxRequests = GetAttributeValue( "MaxCodeRequests" ).AsIntegerOrNull() ?? 5;
-int windowMins = GetAttributeValue( "CodeRequestWindowMinutes" ).AsIntegerOrNull() ?? 15;
-
-maxRequests = maxRequests > 0 ? maxRequests : 5;
-windowMins = windowMins > 0 ? windowMins : 15;
+            int maxRequests = GetAttributeValue( "MaxCodeRequests" ).AsIntegerOrNull() ?? 5;
+            int windowMins = GetAttributeValue( "CodeRequestWindowMinutes" ).AsIntegerOrNull() ?? 15;
+            
+            maxRequests = maxRequests > 0 ? maxRequests : 5;
+            windowMins = windowMins > 0 ? windowMins : 15;
 
             string personKey = "SMS_" + person.Id.ToString();   // matches the UserLogin username
             // Check both person and raw number so reformatting the number can't sidestep the cap.
