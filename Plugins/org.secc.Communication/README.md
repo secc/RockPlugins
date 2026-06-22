@@ -97,10 +97,11 @@ Twilio SDK enums aren't needed to read the data.
 
 *Noticed while documenting — not a full audit.*
 
-- **Security (low):** `MessagingClient` passes the decrypted Messaging API function key as a `code`
-  query-string parameter on every request (`?code={MessagingKey}`). Query-string secrets can land
-  in proxy/server logs; worth confirming the API can't accept the key via header instead, and that
-  the configured URL is HTTPS.
+- **Security (resolved, ROCK-8675):** `MessagingClient` now sends the decrypted Messaging API
+  function key via the `x-functions-key` request header instead of a `?code={MessagingKey}`
+  query-string parameter, so the secret no longer travels in request URLs (proxy/server logs,
+  Function access logs, App Insights). Still worth confirming the configured `MessagingUrl` is
+  HTTPS.
 - **Improvement:** The job class is misspelled `SycnTwilioHistory` (typo for "Sync") — renaming the
   class would break the existing scheduled-job registration in the database, so review before
   changing.
