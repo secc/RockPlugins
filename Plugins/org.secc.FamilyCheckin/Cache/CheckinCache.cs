@@ -30,9 +30,10 @@ namespace org.secc.FamilyCheckin.Cache
         // Override via web.config appSettings: <add key="CheckinCacheWarmUpSeconds" value="30" />
         private static readonly DateTime _typeLoadedUtc = DateTime.UtcNow;
         private static readonly TimeSpan WarmUpGracePeriod = TimeSpan.FromSeconds(
-            int.TryParse( System.Configuration.ConfigurationManager.AppSettings["CheckinCacheWarmUpSeconds"], out int configuredSeconds )
-                ? configuredSeconds
-                : 30 );
+            Math.Max( 0,
+                int.TryParse( System.Configuration.ConfigurationManager.AppSettings["CheckinCacheWarmUpSeconds"], out int configuredSeconds )
+                    ? configuredSeconds
+                    : 30 ) );
 
         public void PostCached()
         {
@@ -138,32 +139,56 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static void Remove( string qualifiedKey, Func<List<string>> keyFactory )
         {
-            RockCache.Remove( qualifiedKey );
-            UpdateKeys( keyFactory, removeKey: qualifiedKey );
-            PublishCacheUpdateMessage( qualifiedKey, default( T ) );
+            try
+            {
+                RockCache.Remove( qualifiedKey );
+                UpdateKeys( keyFactory, removeKey: qualifiedKey );
+                PublishCacheUpdateMessage( qualifiedKey, default( T ) );
+            }
+            catch ( Exception ex )
+            {
+                Rock.Model.ExceptionLogService.LogException(
+                    new Exception( $"Failed to remove cache for key {qualifiedKey}: {ex.Message}", ex ) );
+
+                // Best-effort: at minimum evict from local cache
+                try
+                {
+                    RockCache.Remove( qualifiedKey );
+                }
+                catch
+                {
+                    // Swallow — the item will be re-evaluated from DB on next access
+                }
+            }
         }
 
         public static void Clear( Func<List<string>> keyFactory )
         {
-            // Get the definitive list of keys from the DB to ensure complete
-            // local cleanup, even if the cached AllKeys list was evicted or stale.
-            var keysToRemove = new HashSet<string>( keyFactory().Select( k => QualifiedKey( k ) ) );
-
-            // Also include any locally cached keys that might not be in DB
-            // (e.g. recently added but not yet persisted).
-            foreach ( var cachedKey in AllKeys() )
+            // Hold KeysUpdateLock for the whole clear so a concurrent UpdateKeys
+            // cannot rebuild the list from the DB and undo the local clear.
+            lock ( KeysUpdateLock )
             {
-                keysToRemove.Add( cachedKey );
-            }
+                // Get the definitive list of keys from the DB to ensure complete
+                // local cleanup, even if the cached AllKeys list was evicted or stale.
+                var keysToRemove = new HashSet<string>( keyFactory().Select( k => QualifiedKey( k ) ) );
 
-            // Remove each cached item locally without publishing per-item messages
-            foreach ( var key in keysToRemove )
-            {
-                RockCache.Remove( key );
-            }
+                // Also include any locally cached keys that might not be in DB
+                // (e.g. recently added but not yet persisted).
+                foreach ( var cachedKey in AllKeys() )
+                {
+                    keysToRemove.Add( cachedKey );
+                }
 
-            // Clear the AllKeys list
-            RockCache.Remove( AllKey, AllRegion );
+                // Remove each cached item locally without publishing per-item messages
+                foreach ( var key in keysToRemove )
+                {
+                    RockCache.Remove( key );
+                }
+
+                // Clear the AllKeys list and force the next read to rebuild from DB.
+                RockCache.Remove( AllKey, AllRegion );
+                _lastKeysRefreshUtc = DateTime.MinValue;
+            }
 
             // Publish a single clear-all message instead of N+1
             PublishCacheUpdateMessage( null, default( T ) );
@@ -171,9 +196,27 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static void FlushItem( string qualifiedKey, Func<List<string>> keyFactory )
         {
-            RockCache.Remove( qualifiedKey );
-            UpdateKeys( keyFactory, removeKey: qualifiedKey );
-            PublishCacheUpdateMessage( qualifiedKey, default( T ) );
+            try
+            {
+                RockCache.Remove( qualifiedKey );
+                UpdateKeys( keyFactory, removeKey: qualifiedKey );
+                PublishCacheUpdateMessage( qualifiedKey, default( T ) );
+            }
+            catch ( Exception ex )
+            {
+                Rock.Model.ExceptionLogService.LogException(
+                    new Exception( $"Failed to flush cache for key {qualifiedKey}: {ex.Message}", ex ) );
+
+                // Best-effort: at minimum evict from local cache
+                try
+                {
+                    RockCache.Remove( qualifiedKey );
+                }
+                catch
+                {
+                    // Swallow — the item will be re-evaluated from DB on next access
+                }
+            }
         }
 
         internal protected static string QualifiedKey( int id )
@@ -203,6 +246,75 @@ namespace org.secc.FamilyCheckin.Cache
             return keys ?? new List<string>();
         }
 
+        /// <summary>
+        /// Adds a key to the AllKeys list in response to a remote (bus) update.
+        /// Takes <see cref="KeysUpdateLock"/> so it cannot race the local
+        /// <see cref="UpdateKeys"/> read-modify-write and clobber concurrent edits.
+        /// If the local list is missing, the list is invalidated so the next read
+        /// rebuilds it from the DB (matching the pre-optimization behavior) rather
+        /// than registering a single key against a non-existent list.
+        /// </summary>
+        internal static void RegisterRemoteKey( string qualifiedKey )
+        {
+            if ( string.IsNullOrEmpty( qualifiedKey ) )
+            {
+                return;
+            }
+
+            lock ( KeysUpdateLock )
+            {
+                var keys = RockCache.Get( AllKey, AllRegion ) as List<string>;
+                if ( keys == null )
+                {
+                    // No local list — invalidate so the next AllKeys(keyFactory) rebuilds from DB.
+                    RockCache.Remove( AllKey, AllRegion );
+                    return;
+                }
+
+                if ( !keys.Contains( qualifiedKey ) )
+                {
+                    // Copy-on-write so any reader still enumerating the old reference is unaffected.
+                    var updatedKeys = new List<string>( keys ) { qualifiedKey };
+                    RockCache.AddOrUpdate( AllKey, AllRegion, updatedKeys );
+                }
+            }
+        }
+
+        /// <summary>
+        /// Removes a key from the AllKeys list in response to a remote (bus) update.
+        /// Takes <see cref="KeysUpdateLock"/> to avoid racing local edits.
+        /// </summary>
+        internal static void UnregisterRemoteKey( string qualifiedKey )
+        {
+            if ( string.IsNullOrEmpty( qualifiedKey ) )
+            {
+                return;
+            }
+
+            lock ( KeysUpdateLock )
+            {
+                var keys = RockCache.Get( AllKey, AllRegion ) as List<string>;
+                if ( keys != null && keys.Contains( qualifiedKey ) )
+                {
+                    var updatedKeys = new List<string>( keys );
+                    updatedKeys.Remove( qualifiedKey );
+                    RockCache.AddOrUpdate( AllKey, AllRegion, updatedKeys );
+                }
+            }
+        }
+
+        /// <summary>
+        /// Invalidates the AllKeys list in response to a remote (bus) clear-all,
+        /// under <see cref="KeysUpdateLock"/>. The next read rebuilds it from the DB.
+        /// </summary>
+        internal static void InvalidateRemoteKeys()
+        {
+            lock ( KeysUpdateLock )
+            {
+                RockCache.Remove( AllKey, AllRegion );
+            }
+        }
+
         private static List<string> UpdateKeys( Func<List<string>> keyFactory, string ensureKey = null, string removeKey = null )
         {
             lock ( KeysUpdateLock )
@@ -215,8 +327,10 @@ namespace org.secc.FamilyCheckin.Cache
                 {
                     bool modified = false;
 
-                    // Copy-on-write: clone the list so threads currently
-                    // enumerating the original reference are not affected.
+                    // Copy-on-write: clone the list so any reader still enumerating
+                    // the original reference is not affected. NOTE: this protects
+                    // readers only — concurrent writers are serialized by KeysUpdateLock,
+                    // which all key mutators (local and remote) must hold.
                     var updatedKeys = new List<string>( currentKeys );
 
                     // Ensure the specified key is present
