@@ -1,7 +1,9 @@
 ﻿import {expect, Locator, Page} from "@playwright/test";
 
 const white = 'rgb(255, 255, 255)';
-const STUCK_TIMEOUT_MS = 30_000;
+// Keep in sync with check-in.test.ts. 60s rides out family-search latency
+// spikes (~25-28s) seen under concurrent load.
+const STUCK_TIMEOUT_MS = 60_000;
 
 function deadline(label: string, ms = STUCK_TIMEOUT_MS) {
     const expiresAt = Date.now() + ms;
@@ -15,8 +17,21 @@ function deadline(label: string, ms = STUCK_TIMEOUT_MS) {
 export default async function checkInFamily(page: Page, phoneNumber: string, schedule: string) {
     await expect(page).toHaveURL(/\/page\/438/);
 
+    // The search keypad only renders when check-in is active for this kiosk's
+    // area/time. When it isn't, Rock covers the page with a "Check-in Is Not
+    // Active" sign and the Search button never becomes visible. Wait for
+    // whichever appears first, then fail fast with a clear message instead of
+    // hanging the full timeout on a hidden Search button.
     const searchButton = page.getByRole('link', { name: 'Search' });
-    await expect(searchButton).toBeVisible();
+    const inactiveSign = page.getByText('Check-in Is Not Active');
+    await expect(searchButton.or(inactiveSign).first()).toBeVisible();
+    if (await inactiveSign.isVisible()) {
+        throw new Error(
+            'Check-in is not active for this kiosk — no active schedule covering ' +
+            'this area at the current time. Activate a schedule whose window includes ' +
+            'now and is associated with this kiosk type\'s check-in groups/locations.'
+        );
+    }
 
     await page.getByRole('link', { name: 'Clear' }).click();
     await page.keyboard.type(phoneNumber);

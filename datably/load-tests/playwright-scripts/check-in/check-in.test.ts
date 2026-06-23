@@ -10,7 +10,10 @@ const data = getData().filter(x => x.Id % vmCount == vm);
 
 // If a single Playwright action hangs longer than this, treat the server as
 // unhealthy and abandon the session — a real user would walk to another kiosk.
-const STUCK_TIMEOUT_MS = 30_000;
+// Set to 60s: under concurrent load the family-search API can spike to ~25-28s
+// (normally ~170ms), and 30s was abandoning slow-but-successful searches, whose
+// retries then piled on more load. 60s rides out those spikes.
+const STUCK_TIMEOUT_MS = 60_000;
 const MAX_ATTEMPTS_PER_FAMILY = 3;
 
 async function createKioskSession(browser: Browser, config: string): Promise<{ context: BrowserContext, page: Page }> {
