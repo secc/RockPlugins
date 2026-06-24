@@ -49,7 +49,12 @@ namespace org.secc.FamilyCheckin.Cache
             }
             catch ( Exception ex )
             {
-                RockLogger.Log.Error( RockLogDomains.Bus, $"Error processing cache message. {ex.Message} Server: {RockMessageBus.NodeName}." );
+                // method.Invoke wraps any exception from ProcessCacheMessage in a
+                // TargetInvocationException whose own Message is the useless generic
+                // "Exception has been thrown by the target of an invocation." Unwrap it
+                // so the real failure (and its stack) is what gets logged.
+                var actual = ( ex as System.Reflection.TargetInvocationException )?.InnerException ?? ex;
+                RockLogger.Log.Error( RockLogDomains.Bus, actual, $"Error processing cache message. {actual.Message} Server: {RockMessageBus.NodeName}." );
             }
         }
 
@@ -119,10 +124,13 @@ namespace org.secc.FamilyCheckin.Cache
             }
             else
             {
-                // This is a clear all for this cache type
+                // This is a clear all for this cache type.
+                // ClearLocal removes the per-key items (stored in RockCacheManager<object>)
+                // AND invalidates the AllKeys list. RockCache.ClearCachedItemsForType only
+                // clears RockCacheManager<T>, which does not hold these items, so it would
+                // leave every cached item stale on this node.
                 string typeName = typeof( T ).Name;
-                RockCache.ClearCachedItemsForType( typeof( T ) );
-                CheckinCache<T>.InvalidateRemoteKeys();
+                CheckinCache<T>.ClearLocal();
                 RockLogger.Log.Debug( RockLogDomains.Bus, $"Cleared all cache for type {typeName}. Server: {RockMessageBus.NodeName}." );
             }
         }

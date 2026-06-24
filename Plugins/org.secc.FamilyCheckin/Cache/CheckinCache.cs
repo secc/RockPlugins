@@ -173,34 +173,45 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static void Clear( Func<List<string>> keyFactory )
         {
-            // Hold KeysUpdateLock for the whole clear so a concurrent UpdateKeys
-            // cannot rebuild the list from the DB and undo the local clear.
-            lock ( KeysUpdateLock )
+            try
             {
-                // Get the definitive list of keys from the DB to ensure complete
-                // local cleanup, even if the cached AllKeys list was evicted or stale.
-                var keysToRemove = new HashSet<string>( keyFactory().Select( k => QualifiedKey( k ) ) );
-
-                // Also include any locally cached keys that might not be in DB
-                // (e.g. recently added but not yet persisted).
-                foreach ( var cachedKey in AllKeys() )
+                // Hold KeysUpdateLock for the whole clear so a concurrent UpdateKeys
+                // cannot rebuild the list from the DB and undo the local clear.
+                lock ( KeysUpdateLock )
                 {
-                    keysToRemove.Add( cachedKey );
+                    // Get the definitive list of keys from the DB to ensure complete
+                    // local cleanup, even if the cached AllKeys list was evicted or stale.
+                    var keysToRemove = new HashSet<string>( keyFactory().Select( k => QualifiedKey( k ) ) );
+
+                    // Also include any locally cached keys that might not be in DB
+                    // (e.g. recently added but not yet persisted).
+                    foreach ( var cachedKey in AllKeys() )
+                    {
+                        keysToRemove.Add( cachedKey );
+                    }
+
+                    // Remove each cached item locally without publishing per-item messages
+                    foreach ( var key in keysToRemove )
+                    {
+                        RockCache.Remove( key );
+                    }
+
+                    // Clear the AllKeys list and force the next read to rebuild from DB.
+                    RockCache.Remove( AllKey, AllRegion );
+                    _lastKeysRefreshUtc = DateTime.MinValue;
                 }
 
-                // Remove each cached item locally without publishing per-item messages
-                foreach ( var key in keysToRemove )
-                {
-                    RockCache.Remove( key );
-                }
-
-                // Clear the AllKeys list and force the next read to rebuild from DB.
-                RockCache.Remove( AllKey, AllRegion );
-                _lastKeysRefreshUtc = DateTime.MinValue;
+                // Publish a single clear-all message instead of N+1
+                PublishCacheUpdateMessage( null, default( T ) );
             }
-
-            // Publish a single clear-all message instead of N+1
-            PublishCacheUpdateMessage( null, default( T ) );
+            catch ( Exception ex )
+            {
+                // Match the other mutators: log and degrade rather than throwing into
+                // the caller (e.g. a check-in request). A failed keyFactory()/RockCache
+                // call leaves the clear partially applied, which the next refresh heals.
+                Rock.Model.ExceptionLogService.LogException(
+                    new Exception( $"Failed to clear cache for {typeof( T ).Name}: {ex.Message}", ex ) );
+            }
         }
 
         public static void FlushItem( string qualifiedKey, Func<List<string>> keyFactory )
@@ -321,6 +332,32 @@ namespace org.secc.FamilyCheckin.Cache
             lock ( KeysUpdateLock )
             {
                 RockCache.Remove( AllKey, AllRegion );
+            }
+        }
+
+        /// <summary>
+        /// Evicts this node's locally cached items for this type in response to a
+        /// remote (bus) clear-all, then invalidates the AllKeys list.
+        /// Items are stored via RockCache.AddOrUpdate(key, item) — i.e. in
+        /// RockCacheManager&lt;object&gt; — so RockCache.ClearCachedItemsForType(T)
+        /// (which only clears RockCacheManager&lt;T&gt;) does NOT remove them; we must
+        /// remove each key explicitly, mirroring the publisher's local Clear().
+        /// </summary>
+        internal static void ClearLocal()
+        {
+            lock ( KeysUpdateLock )
+            {
+                var keys = RockCache.Get( AllKey, AllRegion ) as List<string>;
+                if ( keys != null )
+                {
+                    foreach ( var key in keys )
+                    {
+                        RockCache.Remove( key );
+                    }
+                }
+
+                RockCache.Remove( AllKey, AllRegion );
+                _lastKeysRefreshUtc = DateTime.MinValue;
             }
         }
 
