@@ -23,12 +23,17 @@ namespace org.secc.FamilyCheckin.Cache
         private static DateTime _lastKeysRefreshUtc = DateTime.MinValue;
         private static readonly TimeSpan KeysRefreshInterval = TimeSpan.FromSeconds( 10 );
 
-        // Warm-up: suppress publishing until this node is fully online.
-        // Anchored to the time this type was first loaded (i.e. app start),
-        // NOT to the first publish attempt, so the grace period cannot
-        // fire long after the startup burst has already passed.
+        // Warm-up: for the first N seconds after THIS NODE's bus comes online,
+        // suppress publishing so a cold, recycled node repopulating its cache
+        // does not flood the bus and force every other node to churn.
+        //
+        // The window is anchored to when the bus is first observed ready
+        // (see CheckinCacheWarmUp), NOT to type load. Type load happens early
+        // in app start, well before Rock/the bus finish initializing — with a
+        // type-load anchor the grace period expired during the (often >30s)
+        // cold start, before the node could publish anything, so it never
+        // actually suppressed the startup burst.
         // Override via web.config appSettings: <add key="CheckinCacheWarmUpSeconds" value="30" />
-        private static readonly DateTime _typeLoadedUtc = DateTime.UtcNow;
         private static readonly TimeSpan WarmUpGracePeriod = TimeSpan.FromSeconds(
             Math.Max( 0,
                 int.TryParse( System.Configuration.ConfigurationManager.AppSettings["CheckinCacheWarmUpSeconds"], out int configuredSeconds )
@@ -40,9 +45,9 @@ namespace org.secc.FamilyCheckin.Cache
         }
 
         /// <summary>
-        /// Returns true once Rock is started AND the grace period (measured
-        /// from app start) has elapsed. During warm-up the node consumes
-        /// messages but does not publish.
+        /// Returns true once Rock is started AND the grace period (measured from
+        /// when the bus was first observed ready) has elapsed. During warm-up the
+        /// node still consumes messages but does not publish.
         /// </summary>
         private static bool IsReadyToPublish
         {
@@ -53,10 +58,14 @@ namespace org.secc.FamilyCheckin.Cache
                     return false;
                 }
 
-                // Grace period is always relative to when the app loaded this type.
-                // If the app has been running longer than the grace period,
-                // this is true immediately — no delayed suppression.
-                return ( DateTime.UtcNow - _typeLoadedUtc ) >= WarmUpGracePeriod;
+                // Anchor the grace window to the first moment the bus is ready
+                // (process-wide, set once). Measuring from here — not type load —
+                // means the window covers the node's first N seconds of being
+                // online, which is exactly when a cold node repopulating its
+                // cache would otherwise flood the bus.
+                var now = DateTime.UtcNow;
+                var busReadyUtc = CheckinCacheWarmUp.MarkBusReady( now );
+                return ( now - busReadyUtc ) >= WarmUpGracePeriod;
             }
         }
 
@@ -406,6 +415,33 @@ namespace org.secc.FamilyCheckin.Cache
         public virtual string ToJson()
         {
             return JsonConvert.SerializeObject( this );
+        }
+    }
+
+    /// <summary>
+    /// Process-wide warm-up state shared across all <see cref="CheckinCache{T}"/>
+    /// closed generic types. The bus-ready instant is recorded once for the whole
+    /// app domain so the warm-up window is anchored to node startup — not re-armed
+    /// hours later the first time some rarely-used cache type happens to publish.
+    /// </summary>
+    internal static class CheckinCacheWarmUp
+    {
+        // 0 = bus not yet observed ready. Stored as UTC ticks for a lock-free
+        // compare-and-set.
+        private static long _busReadyTicks = 0;
+
+        /// <summary>
+        /// Records <paramref name="nowUtc"/> as the bus-ready instant the first
+        /// time it is called, and returns the recorded instant on every call.
+        /// Because check-in caches are exercised immediately under check-in load,
+        /// the first call lands right as the node comes online.
+        /// </summary>
+        internal static DateTime MarkBusReady( DateTime nowUtc )
+        {
+            var existing = System.Threading.Interlocked.CompareExchange( ref _busReadyTicks, nowUtc.Ticks, 0 );
+            return existing == 0
+                ? nowUtc
+                : new DateTime( existing, DateTimeKind.Utc );
         }
     }
 }
