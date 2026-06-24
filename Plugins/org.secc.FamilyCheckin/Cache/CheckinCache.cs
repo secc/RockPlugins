@@ -23,6 +23,20 @@ namespace org.secc.FamilyCheckin.Cache
         private static DateTime _lastKeysRefreshUtc = DateTime.MinValue;
         private static readonly TimeSpan KeysRefreshInterval = TimeSpan.FromSeconds( 10 );
 
+        // The subclass supplies its keyFactory as a delegate on every public call.
+        // Remember the most recent one so internal/remote paths that have no keyFactory
+        // of their own (ClearLocal, called from the bus consumer) can still rebuild the
+        // key set from the DB when the cached AllKeys list is missing.
+        private static Func<List<string>> _lastKeyFactory;
+
+        private static void RememberKeyFactory( Func<List<string>> keyFactory )
+        {
+            if ( keyFactory != null )
+            {
+                _lastKeyFactory = keyFactory;
+            }
+        }
+
         // Warm-up: for the first N seconds after THIS NODE's bus comes online,
         // suppress publishing so a cold, recycled node repopulating its cache
         // does not flood the bus and force every other node to churn.
@@ -71,6 +85,7 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static List<string> AllKeys( Func<List<string>> keyFactory )
         {
+            RememberKeyFactory( keyFactory );
             var keys = AllKeys();
             if ( !keys.Any() )
             {
@@ -81,6 +96,7 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static T Get( string qualifiedKey, Func<T> itemFactory, Func<List<string>> keyFactory )
         {
+            RememberKeyFactory( keyFactory );
 
             var item = ( T ) RockCache.Get( qualifiedKey );
 
@@ -116,6 +132,8 @@ namespace org.secc.FamilyCheckin.Cache
                 return;
             }
 
+            RememberKeyFactory( keyFactory );
+
             try
             {
                 var keys = AllKeys();
@@ -148,6 +166,7 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static void Remove( string qualifiedKey, Func<List<string>> keyFactory )
         {
+            RememberKeyFactory( keyFactory );
             try
             {
                 RockCache.Remove( qualifiedKey );
@@ -173,6 +192,7 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static void Clear( Func<List<string>> keyFactory )
         {
+            RememberKeyFactory( keyFactory );
             try
             {
                 // Hold KeysUpdateLock for the whole clear so a concurrent UpdateKeys
@@ -216,6 +236,7 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static void FlushItem( string qualifiedKey, Func<List<string>> keyFactory )
         {
+            RememberKeyFactory( keyFactory );
             try
             {
                 RockCache.Remove( qualifiedKey );
@@ -270,9 +291,10 @@ namespace org.secc.FamilyCheckin.Cache
         /// Adds a key to the AllKeys list in response to a remote (bus) update.
         /// Takes <see cref="KeysUpdateLock"/> so it cannot race the local
         /// <see cref="UpdateKeys"/> read-modify-write and clobber concurrent edits.
-        /// If the local list is missing, the list is invalidated so the next read
-        /// rebuilds it from the DB (matching the pre-optimization behavior) rather
-        /// than registering a single key against a non-existent list.
+        /// If the local list is missing, it is rebuilt from the DB (via the last known
+        /// keyFactory) with this key included, so the list does not stay null — leaving
+        /// it null would also blind <see cref="ClearLocal"/>. If no keyFactory is known
+        /// yet, fall back to invalidation so the next read rebuilds it.
         /// </summary>
         internal static void RegisterRemoteKey( string qualifiedKey )
         {
@@ -286,7 +308,29 @@ namespace org.secc.FamilyCheckin.Cache
                 var keys = RockCache.Get( AllKey, AllRegion ) as List<string>;
                 if ( keys == null )
                 {
-                    // No local list — invalidate so the next AllKeys(keyFactory) rebuilds from DB.
+                    var keyFactory = _lastKeyFactory;
+                    if ( keyFactory != null )
+                    {
+                        try
+                        {
+                            var rebuilt = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
+                            if ( !rebuilt.Contains( qualifiedKey ) )
+                            {
+                                rebuilt.Add( qualifiedKey );
+                            }
+                            RockCache.AddOrUpdate( AllKey, AllRegion, rebuilt );
+                            _lastKeysRefreshUtc = DateTime.UtcNow;
+                            return;
+                        }
+                        catch ( Exception ex )
+                        {
+                            Rock.Model.ExceptionLogService.LogException(
+                                new Exception( $"RegisterRemoteKey rebuild failed for {typeof( T ).Name}: {ex.Message}", ex ) );
+                        }
+                    }
+
+                    // No keyFactory known (or rebuild failed) — invalidate so the next
+                    // AllKeys(keyFactory) rebuilds from DB.
                     RockCache.Remove( AllKey, AllRegion );
                     return;
                 }
@@ -348,6 +392,29 @@ namespace org.secc.FamilyCheckin.Cache
             lock ( KeysUpdateLock )
             {
                 var keys = RockCache.Get( AllKey, AllRegion ) as List<string>;
+                if ( keys == null )
+                {
+                    // The AllKeys list is missing (evicted, or not yet built on a cold node
+                    // that has only been fed remote updates). Without it we have no way to
+                    // find the per-key item entries, so a clear-all would silently leave them
+                    // stale. Fall back to the DB key set via the last keyFactory a local
+                    // caller supplied. Best-effort: this evicts DB-current keys; a cached item
+                    // whose DB row was already deleted cannot be located without the list.
+                    var keyFactory = _lastKeyFactory;
+                    if ( keyFactory != null )
+                    {
+                        try
+                        {
+                            keys = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
+                        }
+                        catch ( Exception ex )
+                        {
+                            Rock.Model.ExceptionLogService.LogException(
+                                new Exception( $"ClearLocal key rebuild failed for {typeof( T ).Name}: {ex.Message}", ex ) );
+                        }
+                    }
+                }
+
                 if ( keys != null )
                 {
                     foreach ( var key in keys )
