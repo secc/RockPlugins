@@ -120,6 +120,15 @@ When contributing code:
 - Ensure builds succeed before submitting
 - Include any necessary migration code for database changes
 
+### Reviewing Pull Requests (Copilot Agent)
+
+When reviewing a pull request, verify that the affected plugin's README is kept in sync with the code changes:
+
+- Each plugin has a README file that explains what the plugin does and how it works.
+- If the PR changes **what the plugin does or how it works** (behavior, features, configuration, usage, dependencies), confirm the PR also updates that plugin's README to reflect the change. If the README was not updated, flag it and request the update.
+- When the README is updated, ensure it records the date it was last changed (e.g., a "Last updated: YYYY-MM-DD" line).
+- If the changes have **no effect** on what the plugin does or how it works (e.g., internal refactors, formatting, comments, test-only changes), it is fine to leave the README unchanged.
+
 ### Testing
 
 - Test changes within a working Rock RMS installation
