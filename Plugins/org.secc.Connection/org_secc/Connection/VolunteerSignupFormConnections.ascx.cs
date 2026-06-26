@@ -67,6 +67,7 @@ namespace org.secc.Connection
     [BooleanField( "Display Add Another", "Whether to display the \"Connect and Add Another\" button", false, "", 11 )]
     [TextField( "Comment label text", "The wording that should be used for the comment box title", true, "Comments", "", 12 )]
     [BooleanField( "Comments Required", "Whether the comment are required", true, "", 13 )]
+    [CodeEditorField( "Waiver Text", "Optional waiver/legal text (supports Lava) shown directly above the Connect button. Leave blank to display nothing.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, "", "", 14 )]
 
     public partial class VolunteerSignupFormConnections : RockBlock
     {
@@ -515,6 +516,17 @@ namespace org.secc.Connection
                 {
                     tbComments.Label = GetAttributeValue( "Commentlabeltext" ).ResolveMergeFields( mergeFields );
                     tbComments.Required = GetAttributeValue( "CommentsRequired" ).AsBoolean();
+                }
+
+                var waiverText = GetAttributeValue( "WaiverText" );
+                if ( !string.IsNullOrWhiteSpace( waiverText ) )
+                {
+                    lWaiverText.Text = waiverText.ResolveMergeFields( mergeFields );
+                    lWaiverText.Visible = true;
+                }
+                else
+                {
+                    lWaiverText.Visible = false;
                 }
 
                 // If any of these aren't showing then set the width to be a bit wider on the columns
