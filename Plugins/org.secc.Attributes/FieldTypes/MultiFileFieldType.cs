@@ -365,15 +365,65 @@ namespace org.secc.Attributes.FieldTypes
 
                 var files = new BinaryFileService( rockContext ).Queryable()
                     .Where( bf => fileGuids.Contains( bf.Guid ) )
-                    .Select( bf => new { bf.Guid, bf.FileName } )
+                    .Select( bf => new { bf.Guid, bf.FileName, bf.MimeType } )
+                    .ToList()
+                    // The GUID-IN query doesn't guarantee order; restore the matrix/display order.
+                    .OrderBy( f => fileGuids.IndexOf( f.Guid ) )
                     .ToList();
 
-                var links = files
-                    .Select( f => string.Format( "<a href=\"/GetFile.ashx?guid={0}\">{1}</a>", f.Guid, HttpUtility.HtmlEncode( f.FileName ?? string.Empty ) ) )
-                    .ToList();
+                var blocks = files.Select( f => BuildFileHtml( f.Guid, f.FileName, f.MimeType ) );
 
-                return string.Join( "<br />", links );
+                return string.Join( string.Empty, blocks );
             }
+        }
+
+        private static readonly System.Text.RegularExpressions.Regex _videoExt =
+            new System.Text.RegularExpressions.Regex( @"\.(mp4|webm|ogg|ogv|mov|m4v)$",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled );
+
+        private static readonly System.Text.RegularExpressions.Regex _imageExt =
+            new System.Text.RegularExpressions.Regex( @"\.(png|jpe?g|gif|webp|svg|bmp)$",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled );
+
+        private static bool IsVideo( string fileName, string mimeType ) =>
+            ( !string.IsNullOrWhiteSpace( mimeType ) && mimeType.StartsWith( "video/", StringComparison.OrdinalIgnoreCase ) )
+            || ( !string.IsNullOrWhiteSpace( fileName ) && _videoExt.IsMatch( fileName ) );
+
+        private static bool IsImage( string fileName, string mimeType ) =>
+            ( !string.IsNullOrWhiteSpace( mimeType ) && mimeType.StartsWith( "image/", StringComparison.OrdinalIgnoreCase ) )
+            || ( !string.IsNullOrWhiteSpace( fileName ) && _imageExt.IsMatch( fileName ) );
+
+        /// <summary>
+        /// Builds the display markup for one stored file: an inline &lt;video&gt; or &lt;img&gt;
+        /// for media types (with the download link beneath), or a plain link otherwise.
+        /// </summary>
+        private static string BuildFileHtml( Guid guid, string fileName, string mimeType )
+        {
+            var url = "/GetFile.ashx?guid=" + guid;
+            var encodedName = HttpUtility.HtmlEncode( fileName ?? string.Empty );
+            var link = string.Format( "<a href=\"{0}\">{1}</a>", url, encodedName );
+
+            if ( IsVideo( fileName, mimeType ) )
+            {
+                return string.Format(
+                    "<div class=\"multifile-item multifile-video\">" +
+                    "<video controls preload=\"metadata\" src=\"{0}\" " +
+                    "style=\"display:block;width:100%;max-width:560px;margin:.5rem 0;background:#000;border-radius:4px;\"></video>" +
+                    "{1}</div>",
+                    url, link );
+            }
+
+            if ( IsImage( fileName, mimeType ) )
+            {
+                return string.Format(
+                    "<div class=\"multifile-item multifile-image\">" +
+                    "<img src=\"{0}\" alt=\"{1}\" " +
+                    "style=\"display:block;max-width:240px;max-height:240px;margin:.5rem 0;border:1px solid #ddd;border-radius:4px;\" />" +
+                    "{2}</div>",
+                    url, encodedName, link );
+            }
+
+            return string.Format( "<div class=\"multifile-item\">{0}</div>", link );
         }
 
         #endregion
