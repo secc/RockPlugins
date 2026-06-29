@@ -363,15 +363,21 @@ namespace org.secc.Attributes.FieldTypes
                     return fileGuids.Count == 1 ? "1 file" : ( fileGuids.Count + " files" );
                 }
 
-                var files = new BinaryFileService( rockContext ).Queryable()
+                // The GUID-IN query doesn't guarantee order; key by Guid so we can emit in matrix order.
+                var filesByGuid = new BinaryFileService( rockContext ).Queryable()
                     .Where( bf => fileGuids.Contains( bf.Guid ) )
                     .Select( bf => new { bf.Guid, bf.FileName, bf.MimeType } )
                     .ToList()
-                    // The GUID-IN query doesn't guarantee order; restore the matrix/display order.
-                    .OrderBy( f => fileGuids.IndexOf( f.Guid ) )
-                    .ToList();
+                    .ToDictionary( bf => bf.Guid );
 
-                var blocks = files.Select( f => BuildFileHtml( f.Guid, f.FileName, f.MimeType ) );
+                // fileGuids is already in matrix/display order; iterate it to preserve that order (O(n)).
+                var blocks = fileGuids
+                    .Where( filesByGuid.ContainsKey )
+                    .Select( g =>
+                    {
+                        var f = filesByGuid[g];
+                        return BuildFileHtml( f.Guid, f.FileName, f.MimeType );
+                    } );
 
                 return string.Join( string.Empty, blocks );
             }
@@ -407,17 +413,18 @@ namespace org.secc.Attributes.FieldTypes
             {
                 return string.Format(
                     "<div class=\"multifile-item multifile-video\">" +
-                    "<video controls preload=\"metadata\" src=\"{0}\" " +
-                    "style=\"display:block;width:100%;max-width:560px;margin:.5rem 0;background:#000;border-radius:4px;\"></video>" +
-                    "{1}</div>",
-                    url, link );
+                    "<video controls playsinline preload=\"metadata\" src=\"{0}\" aria-label=\"{1}\" " +
+                    "style=\"display:block;width:100%;max-width:560px;margin:.5rem 0;background:#000;border-radius:4px;\">" +
+                    "Your browser does not support the video tag.</video>" +
+                    "{2}</div>",
+                    url, encodedName, link );
             }
 
             if ( IsImage( fileName, mimeType ) )
             {
                 return string.Format(
                     "<div class=\"multifile-item multifile-image\">" +
-                    "<img src=\"{0}\" alt=\"{1}\" " +
+                    "<img src=\"{0}\" alt=\"{1}\" loading=\"lazy\" decoding=\"async\" " +
                     "style=\"display:block;max-width:240px;max-height:240px;margin:.5rem 0;border:1px solid #ddd;border-radius:4px;\" />" +
                     "{2}</div>",
                     url, encodedName, link );

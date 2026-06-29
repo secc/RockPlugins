@@ -55,7 +55,10 @@ defined-value Id back to its label (e.g. `Mobile: 555-1234`).
 is the Guid of an `AttributeMatrix` whose items each hold one file in a `File` column. On first use it
 auto-provisions a single shared `AttributeMatrixTemplate` (well-known Guid `D95683B6-…-F48A79340175`,
 cached in a static field). `GetEditValue` reconciles rows against the picker's current file Ids
-(adds new, deletes removed). Config attributes:
+(adds new, deletes removed). When a saved value is **displayed**, `FormatValue` renders each file
+inline: video files embed as a native `<video>` player and images as an `<img>` thumbnail, each
+with its `GetFile.ashx` download link directly beneath; non-media files render as a plain link.
+Condensed/grid contexts still show an `"N files"` count rather than embedded media. Config attributes:
 
 | Setting | Type | Notes |
 |---------|------|-------|
@@ -126,5 +129,9 @@ cached in a static field). `GetEditValue` reconciles rows against the picker's c
 - The multi-file template provisioning and row reconciliation live in `MultiFileFieldType`
   (`EnsureSharedTemplate`, `GetEditValue`); the client-side upload/remove behavior is the inline JS in
   `Controls/MultiFileUpload.cs` (`RegisterClientScript`).
+
+---
+
+**Last updated:** 2026-06-29
 </content>
 </invoke>
