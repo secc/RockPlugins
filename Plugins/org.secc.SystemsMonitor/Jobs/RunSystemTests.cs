@@ -22,6 +22,7 @@ using Rock;
 using Rock.Attribute;
 using Rock.Communication;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Web.Cache;
 
@@ -29,17 +30,14 @@ namespace org.secc.Jobs
 {
     [SystemCommunicationField( "Notification Communication", "Communication to send if a test meets an alarm condition", Order = 0 )]
     [GroupField( "Notification Group", "People communicate to if an alarm condition is met.", Order = 1 )]
-    [DefinedValueField( Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM, "From Number", "Number that sends the SMS alerts.", IsRequired = true, Order = 2 )]
+    [SystemPhoneNumberField( "From Number", "Number that sends the SMS alerts.", required: true, Order = 2 )]
 
 
     [DisallowConcurrentExecution]
-    public class RunSystemTests : IJob
+    public class RunSystemTests : RockJob
     {
-        private JobDataMap dataMap;
-
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            dataMap = context.JobDetail.JobDataMap;
             var rockContext = new RockContext();
 
             SystemTestService systemTestService = new SystemTestService( rockContext );
@@ -72,18 +70,18 @@ namespace org.secc.Jobs
             if ( alarms.Any() )
             {
                 SendNotifications( alarms );
-                context.Result = string.Format( $"Ran {count} test{( count != 1 ? "s" : "" )}. Alarms: {string.Join( ", ", alarms.Select( a => a.Name ) )}" );
+                Result = $"Ran {count} test{( count != 1 ? "s" : "" )}. Alarms: {string.Join( ", ", alarms.Select( a => a.Name ) )}";
             }
             else
             {
-                context.Result = string.Format( $"Ran {count} test{( count != 1 ? "s" : "" )}." );
+                Result = $"Ran {count} test{( count != 1 ? "s" : "" )}.";
             }
 
         }
 
         private void SendNotifications( List<TestResult> alarms )
         {
-            var notificationGroup = dataMap.GetString( "NotificationGroup" ).AsGuid();
+            var notificationGroup = GetAttributeValue( "NotificationGroup" ).AsGuid();
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
             var people = groupService.Queryable()
@@ -111,7 +109,7 @@ namespace org.secc.Jobs
 
         private void SendNotificationEmail( List<TestResult> alarms, List<Person> people )
         {
-            var systemCommunication = dataMap.GetString( "NotificationCommunication" ).AsGuid();
+            var systemCommunication = GetAttributeValue( "NotificationCommunication" ).AsGuid();
             var emailMessage = new RockEmailMessage( systemCommunication );
             var recipients = new List<RockMessageRecipient>();
 
@@ -130,11 +128,10 @@ namespace org.secc.Jobs
 
         private void SendNotificationSms( List<TestResult> alarms, List<Person> people )
         {
-            var fromNumber = dataMap.GetString( "FromNumber" ).AsGuid();
+            var fromNumber = GetAttributeValue( "FromNumber" ).AsGuid();
             var smsMessage = new RockSMSMessage();
-            smsMessage.FromNumber = DefinedValueCache.Get( fromNumber );
+            smsMessage.FromSystemPhoneNumber = SystemPhoneNumberCache.Get( fromNumber );
 
-            var recipients = new List<RockMessageRecipient>();
 
             smsMessage.Message = "System Monitor Alert:\n";
             foreach ( var alarm in alarms )
