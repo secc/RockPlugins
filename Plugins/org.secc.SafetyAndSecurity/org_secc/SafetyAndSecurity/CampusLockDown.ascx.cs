@@ -73,7 +73,7 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
         description: "The Defined Value to use for audience selection.",
         required: true )]
 
-    [DefinedValueField( Rock.SystemGuid.DefinedType.COMMUNICATION_SMS_FROM, "From", "The number to originate message from (configured under Admin Tools > Communications > SMS Phone Numbers).", true, false, "", "", 0 )]
+    [SystemPhoneNumberField( "From", "The number to originate message from (configured under Admin Tools > Communications > SMS Phone Numbers).", required: true, order: 0 )]
 
 
     #endregion Block Settings
