@@ -55,10 +55,14 @@ defined-value Id back to its label (e.g. `Mobile: 555-1234`).
 is the Guid of an `AttributeMatrix` whose items each hold one file in a `File` column. On first use it
 auto-provisions a single shared `AttributeMatrixTemplate` (well-known Guid `D95683B6-…-F48A79340175`,
 cached in a static field). `GetEditValue` reconciles rows against the picker's current file Ids
-(adds new, deletes removed). When a saved value is **displayed**, `FormatValue` renders each file
-inline: video files embed as a native `<video>` player and images as an `<img>` thumbnail, each
-with its `GetFile.ashx` download link directly beneath; non-media files render as a plain link.
-Condensed/grid contexts still show an `"N files"` count rather than embedded media. Config attributes:
+(adds new, deletes removed). Display is split across two overrides so rich markup only reaches HTML
+surfaces: `FormatValue` is **link-only** (a list of `GetFile.ashx` download links, or an `"N files"`
+count when condensed) — this feeds CSV/grid exports and Lava merge fields, which must not receive
+embedded media. `FormatValueAsHtml` does the inline embedding for on-page HTML display: video files
+embed as a native `<video>` player and images as an `<img>` thumbnail, each with its download link
+directly beneath; non-media files render as a plain link. SVG is **never** embedded (it can carry
+inline script) and falls back to a link. Condensed/grid contexts still show an `"N files"` count
+rather than embedded media. Config attributes:
 
 | Setting | Type | Notes |
 |---------|------|-------|

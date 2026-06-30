@@ -326,12 +326,61 @@ namespace org.secc.Attributes.FieldTypes
 
         #region Formatting
 
+        /// <summary>
+        /// Link-only formatting. This output also feeds non-HTML consumers — CSV/grid exports
+        /// and Lava merge fields (including emails) — so it must never emit &lt;video&gt;/&lt;img&gt;
+        /// markup. Rich media embedding lives in <see cref="FormatValueAsHtml"/>.
+        /// </summary>
         public override string FormatValue( Control parentControl, string value, Dictionary<string, ConfigurationValue> configurationValues, bool condensed )
+        {
+            var files = GetOrderedFiles( value );
+            if ( files == null || !files.Any() )
+            {
+                return string.Empty;
+            }
+
+            if ( condensed )
+            {
+                return files.Count == 1 ? "1 file" : ( files.Count + " files" );
+            }
+
+            return string.Join( string.Empty, files.Select( f => BuildFileLinkHtml( f.Guid, f.FileName ) ) );
+        }
+
+        /// <summary>
+        /// Full HTML display embeds media: video files render as a native &lt;video&gt; player and
+        /// images as an &lt;img&gt; thumbnail, each with its download link beneath; other types render
+        /// as a plain link. Condensed (grids/summaries) and empty cases defer to <see cref="FormatValue"/>
+        /// so non-HTML consumers keep the link-only / count output. (Matches Rock's MediaElementFieldType
+        /// convention of putting rich rendering in FormatValueAsHtml.)
+        /// </summary>
+        public override string FormatValueAsHtml( Control parentControl, string value, Dictionary<string, ConfigurationValue> configurationValues, bool condensed = false )
+        {
+            if ( condensed )
+            {
+                return FormatValue( parentControl, value, configurationValues, true );
+            }
+
+            var files = GetOrderedFiles( value );
+            if ( files == null || !files.Any() )
+            {
+                return string.Empty;
+            }
+
+            return string.Join( string.Empty, files.Select( f => BuildFileHtml( f.Guid, f.FileName, f.MimeType ) ) );
+        }
+
+        /// <summary>
+        /// Resolves a stored AttributeMatrix Guid to its files in display order, each with the
+        /// FileName and MimeType needed for media detection. Shared by <see cref="FormatValue"/>
+        /// (links) and <see cref="FormatValueAsHtml"/> (media) so the two can't drift.
+        /// </summary>
+        private static List<MultiFileInfo> GetOrderedFiles( string value )
         {
             var matrixGuid = value.AsGuidOrNull();
             if ( !matrixGuid.HasValue )
             {
-                return string.Empty;
+                return new List<MultiFileInfo>();
             }
 
             using ( var rockContext = new RockContext() )
@@ -339,7 +388,7 @@ namespace org.secc.Attributes.FieldTypes
                 var matrix = new AttributeMatrixService( rockContext ).Get( matrixGuid.Value );
                 if ( matrix == null || matrix.AttributeMatrixItems == null || !matrix.AttributeMatrixItems.Any() )
                 {
-                    return string.Empty;
+                    return new List<MultiFileInfo>();
                 }
 
                 var fileGuids = new List<Guid>();
@@ -355,12 +404,7 @@ namespace org.secc.Attributes.FieldTypes
 
                 if ( !fileGuids.Any() )
                 {
-                    return string.Empty;
-                }
-
-                if ( condensed )
-                {
-                    return fileGuids.Count == 1 ? "1 file" : ( fileGuids.Count + " files" );
+                    return new List<MultiFileInfo>();
                 }
 
                 // The GUID-IN query doesn't guarantee order; key by Guid so we can emit in matrix order.
@@ -371,16 +415,22 @@ namespace org.secc.Attributes.FieldTypes
                     .ToDictionary( bf => bf.Guid );
 
                 // fileGuids is already in matrix/display order; iterate it to preserve that order (O(n)).
-                var blocks = fileGuids
+                return fileGuids
                     .Where( filesByGuid.ContainsKey )
                     .Select( g =>
                     {
                         var f = filesByGuid[g];
-                        return BuildFileHtml( f.Guid, f.FileName, f.MimeType );
-                    } );
-
-                return string.Join( string.Empty, blocks );
+                        return new MultiFileInfo { Guid = f.Guid, FileName = f.FileName, MimeType = f.MimeType };
+                    } )
+                    .ToList();
             }
+        }
+
+        private class MultiFileInfo
+        {
+            public Guid Guid { get; set; }
+            public string FileName { get; set; }
+            public string MimeType { get; set; }
         }
 
         private static readonly System.Text.RegularExpressions.Regex _videoExt =
@@ -388,16 +438,42 @@ namespace org.secc.Attributes.FieldTypes
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled );
 
         private static readonly System.Text.RegularExpressions.Regex _imageExt =
-            new System.Text.RegularExpressions.Regex( @"\.(png|jpe?g|gif|webp|svg|bmp)$",
+            new System.Text.RegularExpressions.Regex( @"\.(png|jpe?g|gif|webp|bmp)$",
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled );
 
         private static bool IsVideo( string fileName, string mimeType ) =>
             ( !string.IsNullOrWhiteSpace( mimeType ) && mimeType.StartsWith( "video/", StringComparison.OrdinalIgnoreCase ) )
             || ( !string.IsNullOrWhiteSpace( fileName ) && _videoExt.IsMatch( fileName ) );
 
-        private static bool IsImage( string fileName, string mimeType ) =>
-            ( !string.IsNullOrWhiteSpace( mimeType ) && mimeType.StartsWith( "image/", StringComparison.OrdinalIgnoreCase ) )
-            || ( !string.IsNullOrWhiteSpace( fileName ) && _imageExt.IsMatch( fileName ) );
+        private static bool IsImage( string fileName, string mimeType )
+        {
+            // SVG can carry inline script; never embed it. The image/ MIME prefix below would
+            // otherwise match image/svg+xml, so guard the MIME type and the extension explicitly.
+            // It falls through to a plain download link instead.
+            if ( !string.IsNullOrWhiteSpace( mimeType ) && mimeType.IndexOf( "svg", StringComparison.OrdinalIgnoreCase ) >= 0 )
+            {
+                return false;
+            }
+            if ( !string.IsNullOrWhiteSpace( fileName ) && fileName.EndsWith( ".svg", StringComparison.OrdinalIgnoreCase ) )
+            {
+                return false;
+            }
+
+            return ( !string.IsNullOrWhiteSpace( mimeType ) && mimeType.StartsWith( "image/", StringComparison.OrdinalIgnoreCase ) )
+                || ( !string.IsNullOrWhiteSpace( fileName ) && _imageExt.IsMatch( fileName ) );
+        }
+
+        /// <summary>
+        /// Builds the link-only markup for one stored file (a download &lt;a&gt; wrapped in the
+        /// shared item container). Used by <see cref="FormatValue"/> and as the non-media
+        /// fallback inside <see cref="BuildFileHtml"/>.
+        /// </summary>
+        private static string BuildFileLinkHtml( Guid guid, string fileName )
+        {
+            var url = "/GetFile.ashx?guid=" + guid;
+            var encodedName = HttpUtility.HtmlEncode( fileName ?? string.Empty );
+            return string.Format( "<div class=\"multifile-item\"><a href=\"{0}\">{1}</a></div>", url, encodedName );
+        }
 
         /// <summary>
         /// Builds the display markup for one stored file: an inline &lt;video&gt; or &lt;img&gt;
@@ -430,7 +506,7 @@ namespace org.secc.Attributes.FieldTypes
                     url, encodedName, link );
             }
 
-            return string.Format( "<div class=\"multifile-item\">{0}</div>", link );
+            return BuildFileLinkHtml( guid, fileName );
         }
 
         #endregion
