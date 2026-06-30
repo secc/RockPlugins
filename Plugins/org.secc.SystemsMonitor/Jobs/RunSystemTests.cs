@@ -70,7 +70,7 @@ namespace org.secc.Jobs
             if ( alarms.Any() )
             {
                 SendNotifications( alarms );
-                Result = string.Format( $"Ran {count} test{( count != 1 ? "s" : "" )}. Alarms: {string.Join( ", ", alarms.Select( a => a.Name ) )}" );
+                Result = $"Ran {count} test{( count != 1 ? "s" : "" )}. Alarms: {string.Join( ", ", alarms.Select( a => a.Name ) )}";
             }
             else
             {
