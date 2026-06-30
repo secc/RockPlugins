@@ -132,7 +132,6 @@ namespace org.secc.Jobs
             var smsMessage = new RockSMSMessage();
             smsMessage.FromSystemPhoneNumber = SystemPhoneNumberCache.Get( fromNumber );
 
-            var recipients = new List<RockMessageRecipient>();
 
             smsMessage.Message = "System Monitor Alert:\n";
             foreach ( var alarm in alarms )
