@@ -69,7 +69,7 @@ All require a logged-in user (`GetCurrentUser`, else `401`) and apply per-group 
 | `api/GroupApp/GroupMembers/{groupId}/Add` | POST | EDIT **and** MANAGE_MEMBERS | Match-or-create a person and add as a member; copies leader's `TableNumber`. |
 | `api/GroupApp/GroupMembers/{groupId}/Remove/{groupMemberId}` | DELETE | EDIT **and** MANAGE_MEMBERS | Hard-delete a group member. |
 | `api/GroupApp/Attendance/{groupId}/{occurrenceDate}` | GET | VIEW or leader | Attendance for an occurrence. |
-| `api/GroupApp/Attendance/` | POST | leader | Mark a member present for an occurrence. |
+| `api/GroupApp/Attendance/` | POST | leader | Mark a member (of this group) present. Reconciles with the member's existing attendance for the group+date: with `locationId`, matches within that room (+`scheduleId`); without it, matches by group+person+date, preferring a kiosk-origin row, so a kiosk check-in is flipped rather than duplicated. Creates a row if none exists. |
 | `api/GroupApp/Attendances/{attendanceId}` | DELETE | leader | Delete an attendance record. |
 | `api/GroupApp/Attendance/SelfReport` | GET / POST | member (POST: adult only) | Read/set the current user's own attendance, gated to a window around the occurrence start. |
 | `api/GroupApp/Attendance/DidNotMeet` | POST | leader | Mark an occurrence as "Did Not Meet" and clear its attendance. |
