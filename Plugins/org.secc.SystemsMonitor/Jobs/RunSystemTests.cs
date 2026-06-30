@@ -74,7 +74,7 @@ namespace org.secc.Jobs
             }
             else
             {
-                Result = string.Format( $"Ran {count} test{( count != 1 ? "s" : "" )}." );
+                Result = $"Ran {count} test{( count != 1 ? "s" : "" )}.";
             }
 
         }
