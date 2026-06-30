@@ -327,9 +327,15 @@ namespace org.secc.Attributes.FieldTypes
         #region Formatting
 
         /// <summary>
-        /// Link-only formatting. This output also feeds non-HTML consumers — CSV/grid exports
-        /// and Lava merge fields (including emails) — so it must never emit &lt;video&gt;/&lt;img&gt;
-        /// markup. Rich media embedding lives in <see cref="FormatValueAsHtml"/>.
+        /// Embeds media for display: video files render as a native &lt;video&gt; player and images as
+        /// an &lt;img&gt; thumbnail, each with its download link beneath; other types render as a plain
+        /// link. Condensed (grids/summaries) returns an "N files" count.
+        ///
+        /// Rock does not route all attribute display through <see cref="FormatValueAsHtml"/>: the
+        /// Workflow Entry form and Lava attribute rendering ({{ Entity | Attribute:'Key' }}) resolve
+        /// the displayed value through FormatValue. We therefore embed here, mirroring Rock core
+        /// (ImageFieldType embeds via FormatValue; MediaElement/MediaWatch override both). Exports and
+        /// plain-text merge stay markup-free via <see cref="GetTextValue"/> / <see cref="GetCondensedTextValue"/>.
         /// </summary>
         public override string FormatValue( Control parentControl, string value, Dictionary<string, ConfigurationValue> configurationValues, bool condensed )
         {
@@ -339,41 +345,72 @@ namespace org.secc.Attributes.FieldTypes
                 return string.Empty;
             }
 
-            if ( condensed )
-            {
-                return files.Count == 1 ? "1 file" : ( files.Count + " files" );
-            }
-
-            return string.Join( string.Empty, files.Select( f => BuildFileLinkHtml( f.Guid, f.FileName ) ) );
+            return condensed ? FormatCount( files ) : RenderMediaHtml( files );
         }
 
         /// <summary>
-        /// Full HTML display embeds media: video files render as a native &lt;video&gt; player and
-        /// images as an &lt;img&gt; thumbnail, each with its download link beneath; other types render
-        /// as a plain link. Condensed (grids/summaries) and empty cases defer to <see cref="FormatValue"/>
-        /// so non-HTML consumers keep the link-only / count output. (Matches Rock's MediaElementFieldType
-        /// convention of putting rich rendering in FormatValueAsHtml.)
+        /// Identical embed to <see cref="FormatValue"/>. Both render media on purpose — Rock resolves
+        /// attribute display via FormatValue on some surfaces (workflow entry forms, Lava) and via
+        /// FormatValueAsHtml on others (detail blocks, ChangeManager managed-values). Overriding this
+        /// explicitly (rather than relying on the base delegating to FormatValue) guarantees the embed
+        /// regardless of any base-class encoding/condensing behavior, matching core's MediaElementFieldType.
         /// </summary>
         public override string FormatValueAsHtml( Control parentControl, string value, Dictionary<string, ConfigurationValue> configurationValues, bool condensed = false )
         {
-            if ( condensed )
-            {
-                return FormatValue( parentControl, value, configurationValues, true );
-            }
+            return FormatValue( parentControl, value, configurationValues, condensed );
+        }
 
+        /// <summary>
+        /// Plain-text channel for exports and non-HTML merge: a comma-separated filename list with no
+        /// &lt;video&gt;/&lt;img&gt; markup. This is the value-agnostic text path Rock v13 uses for
+        /// CSV/grid exports and plain-text Lava merge, so it must never emit media markup.
+        ///
+        /// (v13 has no <c>FormatValueAsText</c> override point — <c>GetTextValue</c>/
+        /// <c>GetCondensedTextValue</c> are its successors; see the Rock-rendering note in the commit.)
+        /// </summary>
+        public override string GetTextValue( string value, Dictionary<string, string> configurationValues )
+        {
             var files = GetOrderedFiles( value );
             if ( files == null || !files.Any() )
             {
                 return string.Empty;
             }
 
-            return string.Join( string.Empty, files.Select( f => BuildFileHtml( f.Guid, f.FileName, f.MimeType ) ) );
+            return string.Join( ", ", files.Select( f => f.FileName ) );
         }
 
         /// <summary>
+        /// Condensed plain text (grids/summaries): the "N files" count, never media markup.
+        /// </summary>
+        public override string GetCondensedTextValue( string value, Dictionary<string, string> configurationValues )
+        {
+            var files = GetOrderedFiles( value );
+            if ( files == null || !files.Any() )
+            {
+                return string.Empty;
+            }
+
+            return FormatCount( files );
+        }
+
+        /// <summary>
+        /// Renders the full media embed for a resolved file list (one &lt;video&gt;/&lt;img&gt;/link
+        /// per file). Shared by <see cref="FormatValue"/> and <see cref="FormatValueAsHtml"/>.
+        /// </summary>
+        private static string RenderMediaHtml( List<MultiFileInfo> files ) =>
+            string.Join( string.Empty, files.Select( f => BuildFileHtml( f.Guid, f.FileName, f.MimeType ) ) );
+
+        /// <summary>
+        /// The condensed/grid representation: "1 file" / "N files".
+        /// </summary>
+        private static string FormatCount( List<MultiFileInfo> files ) =>
+            files.Count == 1 ? "1 file" : ( files.Count + " files" );
+
+        /// <summary>
         /// Resolves a stored AttributeMatrix Guid to its files in display order, each with the
-        /// FileName and MimeType needed for media detection. Shared by <see cref="FormatValue"/>
-        /// (links) and <see cref="FormatValueAsHtml"/> (media) so the two can't drift.
+        /// FileName and MimeType needed for media detection. Shared by all format methods
+        /// (<see cref="FormatValue"/>, <see cref="FormatValueAsHtml"/>, <see cref="GetTextValue"/>,
+        /// <see cref="GetCondensedTextValue"/>) so they can't drift.
         /// </summary>
         private static List<MultiFileInfo> GetOrderedFiles( string value )
         {
