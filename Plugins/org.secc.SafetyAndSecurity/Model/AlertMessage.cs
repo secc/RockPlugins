@@ -60,7 +60,7 @@ namespace org.secc.SafetyAndSecurity.Model
         public void SendCommunication( Guid fromSystemPhoneNumber )
         {
             // Get the From value
-            var fromValue = SystemPhoneNumberCache.Get( fromSystemPhoneNumber );
+            var fromValue = GetSystemPhoneNumber( fromSystemPhoneNumber );
 
 
             // Get the recipients
@@ -88,6 +88,23 @@ namespace org.secc.SafetyAndSecurity.Model
 
             }
 
+        }
+
+        private SystemPhoneNumberCache GetSystemPhoneNumber( Guid fromValue )
+        {
+            var systemPhoneNumber = SystemPhoneNumberCache.Get( fromValue );
+            if ( systemPhoneNumber != null )
+            {
+                return systemPhoneNumber;
+            }
+
+            var definedValue = DefinedValueCache.Get( fromValue );
+            if ( definedValue != null )
+            {
+                return SystemPhoneNumberCache.Get( definedValue.Guid );
+            }
+
+            return null;
         }
 
         public partial class AlertMessageConfiguration : EntityTypeConfiguration<AlertMessage>
