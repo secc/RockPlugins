@@ -57,10 +57,10 @@ namespace org.secc.SafetyAndSecurity.Model
 
             return recipients;
         }
-        public void SendCommunication( Guid fromDefinedValue )
+        public void SendCommunication( Guid fromSystemPhoneNumber )
         {
             // Get the From value
-            var fromValue = DefinedValueCache.Get( fromDefinedValue );
+            var fromValue = SystemPhoneNumberCache.Get( fromSystemPhoneNumber );
 
 
             // Get the recipients
@@ -73,7 +73,7 @@ namespace org.secc.SafetyAndSecurity.Model
             if ( recipients.Any() && ( !string.IsNullOrWhiteSpace( message ) ) )
             {
                 var smsMessage = new RockSMSMessage();
-                smsMessage.FromNumber = fromValue;
+                smsMessage.FromSystemPhoneNumber = fromValue;
                 smsMessage.Message = $"{( this.AlertNotification.Title != null ? this.AlertNotification.Title + ": " : "" )}{message}";
                 smsMessage.CreateCommunicationRecord = true;
                 smsMessage.CommunicationName = this.AlertNotification?.Title ?? "Alert Notification Message";

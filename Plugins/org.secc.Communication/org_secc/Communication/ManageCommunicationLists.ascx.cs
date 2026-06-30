@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.Entity;
@@ -25,7 +25,7 @@ namespace RockWeb.Plugins.org_secc.Communication
     [Description( "Block for users to manage their communication list subscriptions" )]
     [TextField( "Communication Group Type Attribute Key", "Group attribute which tells the user how they will be communicated with.", key: "AttributeKey", defaultValue: "Type" )]
     [TextField( "Communication Group Keyword Attribute Key", "Group attribute which tell the user how tehy will be communicated with.", key: "KeywordKey", defaultValue: "Keyword" )]
-    [DefinedValueField( "Confirmation SMS From", AllowMultiple = false, DefinedTypeGuid = "611bde1f-7405-4d16-8626-ccfedb0e62be", Description = "SMS Phone number for confirmation message", AllowAddingNewValues = false, Key = "FromSMSNumber" )]
+    [SystemPhoneNumberField( "Confirmation SMS From", "SMS Phone number for confirmation message", required: true, key: "FromSMSNumber" )]
 
     public partial class ManageCommunicationLists : RockBlock
     {
@@ -801,11 +801,11 @@ namespace RockWeb.Plugins.org_secc.Communication
                 return;
             }
 
-            var phoneDefinedValue = DefinedValueCache.Get( fromNumberGuid.Value );
+            var systemPhoneNumber = SystemPhoneNumberCache.Get( fromNumberGuid.Value );
             var smsMessage = new RockSMSMessage
             {
                 CreateCommunicationRecord = false,
-                FromNumber = phoneDefinedValue,
+                FromSystemPhoneNumber = systemPhoneNumber,
                 Message = smsBody,
 
             };
