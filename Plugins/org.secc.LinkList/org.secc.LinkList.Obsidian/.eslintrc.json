@@ -1,0 +1,24 @@
+{
+    "root": true,
+    "parser": "vue-eslint-parser",
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "@sparkdevnetwork/eslint-config-rock-recommended"
+    ],
+    "env": {
+        "browser": true,
+        "amd": true
+    },
+    "ignorePatterns": [
+        "/rollup.config.cjs"
+    ],
+    "parserOptions": {
+        "parser": "@typescript-eslint/parser",
+        "ecmaVersion": 6,
+        "sourceType": "module"
+    }
+}

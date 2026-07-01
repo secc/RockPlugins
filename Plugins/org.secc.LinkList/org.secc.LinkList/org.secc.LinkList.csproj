@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RockWebPath>..\..\Rock\RockWeb</RockWebPath>
+    <AdditionalAssembliesToCopy></AdditionalAssembliesToCopy>
+    <CopyToRockWeb>true</CopyToRockWeb>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SparkDevNetwork.Rock.Build.Tasks" Version="1.0.10" />
+    <PackageReference Include="SparkDevNetwork.Rock.Analyzers" Version="1.0.10" />
+    <PackageReference Include="RockRMS.Rock" Version="1.16.9-rc.1" />
+    <PackageReference Include="RockRMS.Rock.Blocks" Version="1.16.9-rc.1" />
+    <PackageReference Include="RockRMS.Rock.Rest" Version="1.16.9-rc.1" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <!-- Provided by Rock at runtime. Resolved via $(RockWebPath) so the same csproj
+         builds in the local dev environment and in the Azure DevOps pipeline
+         (where BuildPlugin.ps1 passes /p:RockWebPath). Private=false so we use
+         Rock's copy and never ship/overwrite it. -->
+    <Reference Include="DotLiquid">
+      <HintPath>$(RockWebPath)\Bin\DotLiquid.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="HtmlAgilityPack">
+      <HintPath>$(RockWebPath)\Bin\HtmlAgilityPack.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

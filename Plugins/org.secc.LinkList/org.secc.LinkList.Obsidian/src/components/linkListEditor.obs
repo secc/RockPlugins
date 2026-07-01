@@ -1,0 +1,466 @@
+<template>
+    <div class="link-list-editor">
+        <NotificationBox v-if="errorMessage" alertType="danger">{{ errorMessage }}</NotificationBox>
+
+        <div v-if="!detail" class="text-center p-3">
+            <i class="fa fa-spinner fa-spin"></i> Loading...
+        </div>
+
+        <div v-else>
+            <div class="d-flex align-items-center mb-2">
+                <button type="button" class="btn btn-link p-0" @click="$emit('back')">
+                    <i class="fa fa-chevron-left"></i> Back to lists
+                </button>
+                <EditorActions class="ms-auto" :isSaving="isSaving" :canDelete="canDelete" @save="save" @cancel="$emit('back')" @delete="onDelete" />
+            </div>
+
+            <Panel title="Details" :hasCollapse="true" v-model="detailsExpanded">
+                <div class="row">
+                    <div class="col-md-6">
+                        <TextBox v-model="bag.title" label="Title" :rules="'required'" />
+                    </div>
+                    <div class="col-md-6">
+                        <TextBox v-model="bag.slug" label="Slug" help="Lowercase letters, digits, and dashes only." />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <DropDownList
+                            :modelValue="designValue"
+                            @update:modelValue="onDesignChange"
+                            :items="designItems"
+                            :showBlankItem="true"
+                            blankValue=""
+                            label="Design preset"
+                            help="Pick a preset to apply its colors. Edit any color below to customize (the selector shows 'Custom')." />
+                    </div>
+                    <div class="col-md-6">
+                        <CheckBox
+                            :modelValue="!!bag.isPublic"
+                            @update:modelValue="bag.isPublic = $event"
+                            label="Public"
+                            help="When off, the list is hidden from the viewer and the public web component (editors can still preview it in-Rock)." />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label">Intro content</label>
+                    <CodeEditor
+                        v-model="introContentValue"
+                        mode="html"
+                        theme="rock"
+                        :editorHeight="180" />
+                    <span class="help-block">HTML rendered above the link rows.</span>
+                </div>
+            </Panel>
+
+            <Panel title="Links" :hasCollapse="true" v-model="linksExpanded">
+                <div v-if="!bag.items || bag.items.length === 0" class="text-muted mb-2">
+                    No rows yet. Add a link, section header, or separator below.
+                </div>
+                <div class="text-muted small mb-2">Links that follow a section are nested under it — drag a link below a section to make it a child. Edit text, URL &amp; subtitle inline; use the gear for how a link opens.</div>
+                <div v-drag-reorder="dragOptions" class="link-rows">
+                    <LinkItemRow
+                        v-for="(row, index) in bag.items"
+                        :key="row.guid || `idx-${index}`"
+                        :modelValue="row"
+                        :isChild="nestMeta[index]?.isChild"
+                        :canNest="nestMeta[index]?.canNest"
+                        @update:modelValue="updateRow(index, $event)"
+                        @moveUp="moveRow(index, -1)"
+                        @moveDown="moveRow(index, 1)"
+                        @remove="removeRow(index)" />
+                </div>
+
+                <div class="mt-2">
+                    <RockButton btnType="default" btnSize="sm" @click="addRow('link')">
+                        <i class="fa fa-plus"></i> Add link
+                    </RockButton>
+                    <RockButton btnType="default" btnSize="sm" @click="addRow('section')">
+                        <i class="fa fa-heading"></i> Add section
+                    </RockButton>
+                    <RockButton btnType="default" btnSize="sm" @click="addRow('separator')">
+                        <i class="fa fa-minus"></i> Add separator
+                    </RockButton>
+                </div>
+            </Panel>
+
+            <Panel title="Footer content" :hasCollapse="true">
+                <CodeEditor
+                    v-model="footerContentValue"
+                    mode="html"
+                    theme="rock"
+                    :editorHeight="180" />
+                <span class="help-block">HTML rendered below the link rows.</span>
+            </Panel>
+
+            <Panel title="Theme colors" :hasCollapse="true" v-model="colorsExpanded">
+                <p class="text-muted small">
+                    Colors come from the selected design preset. Change any color to customize this
+                    list (the preset selector switches to <strong>Custom</strong>); pick a preset again to reset.
+                </p>
+                <div class="row">
+                    <div class="col-md-3">
+                        <ColorPicker :modelValue="effectiveColor('backgroundColor')" @update:modelValue="setColor('backgroundColor', $event)" label="Background" />
+                    </div>
+                    <div class="col-md-3">
+                        <ColorPicker :modelValue="effectiveColor('contentTextColor')" @update:modelValue="setColor('contentTextColor', $event)" label="Text" />
+                    </div>
+                    <div class="col-md-3">
+                        <ColorPicker :modelValue="effectiveColor('titleColor')" @update:modelValue="setColor('titleColor', $event)" label="Title" help="Defaults to the text color when unset." />
+                    </div>
+                    <div class="col-md-3">
+                        <ColorPicker :modelValue="effectiveColor('buttonColor')" @update:modelValue="setColor('buttonColor', $event)" label="Button" />
+                    </div>
+                    <div class="col-md-3">
+                        <ColorPicker :modelValue="effectiveColor('buttonTextColor')" @update:modelValue="setColor('buttonTextColor', $event)" label="Button text" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <ColorPicker :modelValue="effectiveColor('featuredButtonColor')" @update:modelValue="setColor('featuredButtonColor', $event)" label="Featured button" />
+                    </div>
+                    <div class="col-md-3">
+                        <ColorPicker :modelValue="effectiveColor('featuredButtonTextColor')" @update:modelValue="setColor('featuredButtonTextColor', $event)" label="Featured button text" />
+                    </div>
+                </div>
+            </Panel>
+
+            <Panel title="Header &amp; Media" :hasCollapse="true" v-model="headerExpanded">
+                <div class="row">
+                    <div class="col-md-6">
+                        <TextBox v-model="bag.customTitle" label="Custom title" help="Shown instead of the title when set." />
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <CheckBox
+                            :modelValue="!!bag.hideTitle"
+                            @update:modelValue="bag.hideTitle = $event"
+                            label="Hide title" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ImageUploader v-model="headerImageValue" label="Header image" help="Shown at the top of the list." />
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <CheckBox
+                            :modelValue="!!bag.roundHeaderImage"
+                            @update:modelValue="bag.roundHeaderImage = $event"
+                            label="Round header image" />
+                    </div>
+                </div>
+                <ImageUploader v-model="backgroundImageValue" label="Background image" help="Full-bleed background; suppresses the background color when set." />
+                <ImageUploader v-model="headerBackgroundImageValue" label="Header background image" help="Full-width banner behind the header area only; the header image/logo sits on top." />
+                <div class="row">
+                    <div class="col-md-6">
+                        <TextBox v-model="bag.headerVideo" label="Header video — YouTube" help="Full URL or video id." />
+                    </div>
+                    <div class="col-md-6">
+                        <TextBox v-model="bag.headerVideoVimeoId" label="Header video — Vimeo" help="Full URL or numeric id." />
+                    </div>
+                </div>
+            </Panel>
+
+            <Panel v-if="bag.id && (bag.members || []).length >= 0" title="Manage Access" :hasCollapse="true" v-model="accessExpanded">
+                <p v-if="bag.securityGroupName" class="text-muted small">
+                    Members of <strong>{{ bag.securityGroupName }}</strong> can edit this list.
+                </p>
+
+                <div class="member-list">
+                    <div v-for="m in bag.members || []" :key="m.groupMemberId" class="member-row">
+                        <img v-if="m.photoUrl" :src="m.photoUrl" class="member-photo" alt="" />
+                        <div class="member-info">
+                            <div>{{ m.fullName }}<span v-if="m.isCurrentUser" class="text-muted"> (you)</span></div>
+                            <div class="text-muted small">{{ m.email }}</div>
+                        </div>
+                        <button
+                            type="button"
+                            class="btn btn-link text-danger btn-sm ms-auto"
+                            @click="removeMember(m.groupMemberId)">
+                            Remove
+                        </button>
+                    </div>
+                    <div v-if="!(bag.members || []).length" class="text-muted">No members yet.</div>
+                </div>
+
+                <div class="add-member mt-3">
+                    <PersonPicker v-model="memberToAdd" label="Add member" />
+                    <RockButton
+                        btnType="primary"
+                        btnSize="sm"
+                        :isLoading="isAddingMember"
+                        :disabled="!memberToAdd"
+                        @click="addMember">
+                        Add
+                    </RockButton>
+                </div>
+
+                <div v-if="(bag.alsoHasEditAccess || []).length" class="other-access mt-3">
+                    <div class="text-muted small mb-1">Also has edit access:</div>
+                    <ul class="list-unstyled small">
+                        <li v-for="(rule, i) in bag.alsoHasEditAccess" :key="i">
+                            <i v-if="rule.kind === 'Group'" class="fa fa-users"></i>
+                            <i v-else-if="rule.kind === 'Person'" class="fa fa-user"></i>
+                            <i v-else class="fa fa-globe"></i>
+                            {{ rule.groupName || rule.personName || rule.specialRoleLabel }}
+                        </li>
+                    </ul>
+                </div>
+            </Panel>
+
+            <div class="d-flex mt-3">
+                <EditorActions class="ms-auto" :isSaving="isSaving" :canDelete="canDelete" @save="save" @cancel="$emit('back')" @delete="onDelete" />
+            </div>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { computed, ref, watch } from "vue";
+import { useInvokeBlockAction } from "@Obsidian/Utility/block";
+import RockButton from "@Obsidian/Controls/rockButton.obs";
+import Panel from "@Obsidian/Controls/panel.obs";
+import TextBox from "@Obsidian/Controls/textBox.obs";
+import CodeEditor from "@Obsidian/Controls/codeEditor.obs";
+import DropDownList from "@Obsidian/Controls/dropDownList.obs";
+import CheckBox from "@Obsidian/Controls/checkBox.obs";
+import ColorPicker from "@Obsidian/Controls/colorPicker.obs";
+import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+import PersonPicker from "@Obsidian/Controls/personPicker.obs";
+import ImageUploader from "@Obsidian/Controls/imageUploader.obs";
+import { DragReorder as vDragReorder, useDragReorder } from "@Obsidian/Directives/dragDrop";
+import LinkItemRow from "./linkItemRow.obs";
+import EditorActions from "./editorActions.obs";
+import { CUSTOM_DESIGN, effectiveColor as effectiveColorOf, designSelectionValue, applyDesignChange, type ColorField } from "../linkListTheme";
+import { clearOtherFeatured, sectionNestingMeta } from "../linkListItems";
+import type { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
+import type { LinkListBag, LinkListDetailInitializationBox, LinkItemBag, GroupMemberBag } from "../types";
+
+const props = defineProps<{
+    detail: LinkListDetailInitializationBox;
+}>();
+const emit = defineEmits<{
+    (e: "back"): void;
+    (e: "saved", bag: LinkListBag): void;
+    (e: "deleted"): void;
+}>();
+
+const invokeBlockAction = useInvokeBlockAction();
+
+const bag = ref<LinkListBag>(cloneBag(props.detail.linkList));
+const errorMessage = ref("");
+const isSaving = ref(false);
+const isAddingMember = ref(false);
+const memberToAdd = ref<{ value: string; text: string } | null>(null);
+
+// Details and Links start expanded; the rest (Footer, Theme, Header & Media,
+// Manage Access) start collapsed.
+const detailsExpanded = ref(true);
+const linksExpanded = ref(true);
+const colorsExpanded = ref(false);
+const headerExpanded = ref(false);
+const accessExpanded = ref(false);
+
+watch(() => props.detail, d => {
+    bag.value = cloneBag(d.linkList);
+});
+
+const designItems = computed(() => [
+    ...(props.detail.designs || []).map(d => ({ value: d.value, text: d.text })),
+    { value: CUSTOM_DESIGN, text: "Custom" }
+]);
+
+const designValue = computed(() => designSelectionValue(bag.value, props.detail.designs));
+
+// Delete is available only for an existing list the user can administer (matches
+// the original top-toolbar gating); shared by both action bars (fix 8).
+const canDelete = computed(() => !!(props.detail.canDelete && bag.value.id));
+
+// Effective color shown in a field = per-list override, else the preset value.
+function effectiveColor(field: ColorField): string {
+    return effectiveColorOf(bag.value, props.detail.designs, field);
+}
+
+const introContentValue = computed({
+    get: () => bag.value.introContent || "",
+    set: (value: string) => { bag.value.introContent = value; }
+});
+
+const footerContentValue = computed({
+    get: () => bag.value.footerContent || "",
+    set: (value: string) => { bag.value.footerContent = value; }
+});
+
+// Header/background images are Rock "Image" field-type attributes that store a
+// BinaryFile GUID. The ImageUploader control's modelValue is a ListItemBag whose
+// .value holds that GUID, so map between the bag string and the ListItemBag.
+const headerImageValue = computed({
+    get: (): ListItemBag | null => bag.value.headerImage ? { value: bag.value.headerImage } : null,
+    set: (v: ListItemBag | undefined | null) => { bag.value.headerImage = v?.value ?? ""; }
+});
+
+const backgroundImageValue = computed({
+    get: (): ListItemBag | null => bag.value.backgroundImage ? { value: bag.value.backgroundImage } : null,
+    set: (v: ListItemBag | undefined | null) => { bag.value.backgroundImage = v?.value ?? ""; }
+});
+
+const headerBackgroundImageValue = computed({
+    get: (): ListItemBag | null => bag.value.headerBackgroundImage ? { value: bag.value.headerBackgroundImage } : null,
+    set: (v: ListItemBag | undefined | null) => { bag.value.headerBackgroundImage = v?.value ?? ""; }
+});
+
+function cloneBag(input: LinkListBag | null | undefined): LinkListBag {
+    if (!input) {
+        return { title: "", slug: "", isPublic: true, items: [] };
+    }
+    const cloned = JSON.parse(JSON.stringify(input)) as LinkListBag;
+    if (!cloned.items) {
+        cloned.items = [];
+    }
+    return cloned;
+}
+
+function onDesignChange(value: string | string[] | undefined): void {
+    const v = Array.isArray(value) ? value[0] : (value || "");
+    applyDesignChange(bag.value, props.detail.designs, v);
+}
+
+function setColor(field: ColorField, value: string | undefined): void {
+    bag.value[field] = value || "";
+}
+
+// Fix 5: explicit nesting. Per-row {isChild, canNest} mirrors the renderer's
+// groupIntoSections — isChild indents the row; canNest enables the nest toggle
+// (a section group is open here). Membership is the per-link nested flag
+// (IndentLevel reused as 0/1); drag controls order.
+const nestMeta = computed(() => sectionNestingMeta(bag.value.items ?? []));
+
+function addRow(itemType: string): void {
+    const items = bag.value.items || (bag.value.items = []);
+    items.push({
+        guid: crypto.randomUUID(),
+        itemType,
+        text: "",
+        url: "",
+        target: "_self",
+        isSectionCollapsed: false
+    });
+}
+
+function updateRow(index: number, value: LinkItemBag): void {
+    if (!bag.value.items) return;
+    bag.value.items.splice(index, 1, value);
+    // Featured is radio-like: turning one on clears it on every other row.
+    if (value.isFeatured && (value.itemType ?? "link") === "link") {
+        bag.value.items = clearOtherFeatured(bag.value.items, index);
+    }
+}
+
+function removeRow(index: number): void {
+    bag.value.items?.splice(index, 1);
+}
+
+// Reordering: PersistMatrixItems saves rows in bag.items array order, so
+// reordering the array is the whole job. Drag-and-drop via Rock's framework
+// directive (touch-capable); move up/down buttons are the keyboard/a11y path.
+// useDragReorder takes ownership of the ref and writes the new order back on
+// drop, so this MUST be a writable ref/computed — a read-only computed silently
+// fails the reorder (drag never takes). The setter writes through to bag.items.
+const itemRows = computed({
+    get: (): LinkItemBag[] => bag.value.items ?? [],
+    set: (rows: LinkItemBag[]) => { bag.value.items = rows; }
+});
+// useDragReorder already gates dragging on the ".reorder-handle" class (its
+// startDrag hardcodes that selector), so the row's handle MUST use that class.
+// No need to set handleSelector here.
+//
+// Fix 7 (supersedes Fix 6): drag is REORDER ONLY — it never changes a link's
+// nested flag, and there's no section hover-highlight (the pointer-vs-placeholder
+// mismatch made it unreliable). Nesting is done explicitly via the per-row
+// indent/outdent toggle. Grouping still follows Fix 5 from the flag + order.
+const dragOptions = useDragReorder(itemRows);
+
+function moveRow(index: number, delta: number): void {
+    const items = bag.value.items;
+    if (!items) {
+        return;
+    }
+    const target = index + delta;
+    if (target < 0 || target >= items.length) {
+        return;
+    }
+    const [moved] = items.splice(index, 1);
+    items.splice(target, 0, moved);
+}
+
+async function save(): Promise<void> {
+    errorMessage.value = "";
+    isSaving.value = true;
+    const result = await invokeBlockAction<LinkListBag>("SaveList", { bag: bag.value });
+    isSaving.value = false;
+
+    if (result.isSuccess && result.data) {
+        bag.value = cloneBag(result.data);
+        emit("saved", result.data);
+    }
+    else {
+        errorMessage.value = result.errorMessage || "Save failed.";
+    }
+}
+
+async function onDelete(): Promise<void> {
+    if (!bag.value.guid) return;
+    if (!confirm("Permanently delete this link list?")) return;
+    const result = await invokeBlockAction("DeleteList", { itemGuid: bag.value.guid });
+    if (result.isSuccess) {
+        emit("deleted");
+    }
+    else {
+        errorMessage.value = result.errorMessage || "Delete failed.";
+    }
+}
+
+async function addMember(): Promise<void> {
+    if (!memberToAdd.value || !bag.value.guid) return;
+    isAddingMember.value = true;
+    const result = await invokeBlockAction<GroupMemberBag>("AddMember", {
+        itemGuid: bag.value.guid,
+        personGuid: memberToAdd.value.value
+    });
+    isAddingMember.value = false;
+
+    if (result.isSuccess && result.data) {
+        const members = bag.value.members || (bag.value.members = []);
+        if (!members.find(m => m.groupMemberId === result.data!.groupMemberId)) {
+            members.push(result.data);
+        }
+        memberToAdd.value = null;
+    }
+    else {
+        errorMessage.value = result.errorMessage || "Could not add member.";
+    }
+}
+
+async function removeMember(groupMemberId: number): Promise<void> {
+    if (!bag.value.guid) return;
+    const result = await invokeBlockAction("RemoveMember", {
+        itemGuid: bag.value.guid,
+        groupMemberId
+    });
+    if (result.isSuccess) {
+        bag.value.members = (bag.value.members || []).filter(m => m.groupMemberId !== groupMemberId);
+    }
+    else {
+        errorMessage.value = result.errorMessage || "Could not remove member.";
+    }
+}
+</script>
+
+<style scoped>
+.member-list { display: flex; flex-direction: column; gap: 8px; }
+.member-row { display: flex; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px solid #eee; }
+.member-photo { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+.member-info { flex-grow: 1; }
+.add-member { display: flex; align-items: end; gap: 8px; }
+.add-member > :first-child { flex-grow: 1; }
+.ms-auto { margin-left: auto; }
+</style>

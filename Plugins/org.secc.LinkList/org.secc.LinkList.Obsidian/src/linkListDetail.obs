@@ -1,0 +1,82 @@
+<template>
+    <div>
+        <NotificationBox v-if="errorMessage" alertType="danger">{{ errorMessage }}</NotificationBox>
+
+        <LinkListEditor
+            v-if="detail"
+            :detail="detail"
+            @back="goBack"
+            @saved="onSaved"
+            @deleted="goBack" />
+
+        <div v-else-if="!errorMessage" class="text-center p-3 text-muted">
+            <i class="fa fa-spinner fa-spin"></i> Loading...
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import { useConfigurationValues, useInvokeBlockAction } from "@Obsidian/Utility/block";
+import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+import LinkListEditor from "./components/linkListEditor.obs";
+import type { LinkListBag, LinkListDetailConfigBox, LinkListDetailInitializationBox, DesignOptionBag } from "./types";
+
+const NavigationUrlKey = {
+    ListPage: "ListPage"
+} as const;
+
+const config = useConfigurationValues<LinkListDetailConfigBox>();
+const invokeBlockAction = useInvokeBlockAction();
+
+const detail = ref<LinkListDetailInitializationBox | null>(null);
+const errorMessage = ref("");
+
+async function load(): Promise<void> {
+    // Add mode: empty form, pull design presets for the picker.
+    if (config.isAddMode || !config.itemKey) {
+        const designsResult = await invokeBlockAction<DesignOptionBag[]>("GetDesigns", {});
+        detail.value = {
+            canEdit: true,
+            canDelete: false,
+            designs: designsResult.isSuccess && designsResult.data ? designsResult.data : [],
+            // New lists start on the block's configured default preset.
+            linkList: { title: "", slug: "", isPublic: true, items: [], designId: config.defaultDesignGuid || null }
+        };
+        return;
+    }
+
+    const result = await invokeBlockAction<LinkListDetailInitializationBox>("GetListDetail", {
+        itemGuid: config.itemKey
+    });
+    if (result.isSuccess && result.data) {
+        detail.value = result.data;
+    }
+    else {
+        errorMessage.value = result.errorMessage || "Could not load the link list.";
+    }
+}
+
+function goBack(): void {
+    const url = config.navigationUrls?.[NavigationUrlKey.ListPage];
+    if (url) {
+        window.location.href = url;
+    }
+}
+
+async function onSaved(saved: LinkListBag): Promise<void> {
+    // After creating a brand-new list, reload as a full detail so the members
+    // panel and design presets populate (and the URL key would update on a
+    // subsequent navigation).
+    if (saved.guid && !detail.value?.linkList?.guid) {
+        const result = await invokeBlockAction<LinkListDetailInitializationBox>("GetListDetail", {
+            itemGuid: saved.guid
+        });
+        if (result.isSuccess && result.data) {
+            detail.value = result.data;
+        }
+    }
+}
+
+onMounted(() => void load());
+</script>

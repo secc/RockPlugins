@@ -1,0 +1,13 @@
+{
+    "organization": {
+        "name": "Southeast Christian Church",
+        "code": "org.secc"
+    },
+    "name": "Link List",
+    "version": "1.0.0",
+    "include": {
+        "org.secc.LinkList/bin/Release/net472/org.secc.LinkList.dll": "Bin/",
+        "org.secc.LinkList.Obsidian/dist/**": "Plugins/org_secc/LinkList"
+    },
+    "exclude": []
+}

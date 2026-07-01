@@ -1,0 +1,168 @@
+<template>
+    <div class="link-item-row" :class="[rowClass, { 'is-child': isChild }]">
+        <!-- Link row: text + URL, subtitle inline; gear reveals "Opens in" (target). -->
+        <div v-if="itemType === 'link'" class="li-row">
+            <span class="reorder-handle" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa fa-grip-vertical"></i></span>
+            <span class="li-icon" aria-hidden="true"><i class="fa fa-link"></i></span>
+            <div class="li-fields">
+                <div class="li-fields-line">
+                    <div class="li-field li-text">
+                        <TextBox :modelValue="modelValue.text" @update:modelValue="update('text', $event)" label="" placeholder="Text" />
+                    </div>
+                    <div class="li-field li-url">
+                        <TextBox :modelValue="modelValue.url" @update:modelValue="update('url', $event)" label="" placeholder="https://..." />
+                    </div>
+                    <div class="li-field li-sub">
+                        <TextBox :modelValue="modelValue.subtitle || ''" @update:modelValue="update('subtitle', $event)" label="" placeholder="Subtitle (optional)" />
+                    </div>
+                </div>
+            </div>
+            <div class="li-actions">
+                <button type="button" class="btn btn-default btn-xs li-feature" :class="{ 'is-featured': modelValue.isFeatured }" :aria-pressed="!!modelValue.isFeatured" @click="toggleFeatured" title="Featured button (one per list)" aria-label="Featured button"><i class="fa fa-star"></i></button>
+                <button v-if="canNest || isNested" type="button" class="btn btn-default btn-xs" :class="{ 'is-nested': isNested }" @click="toggleNest" :title="isNested ? 'Move out of the section' : 'Nest under the section above'" :aria-label="isNested ? 'Un-nest link' : 'Nest link'"><i :class="isNested ? 'fa fa-outdent' : 'fa fa-indent'"></i></button>
+                <button type="button" class="btn btn-default btn-xs" @click="$emit('moveUp')" title="Move up" aria-label="Move up"><i class="fa fa-chevron-up"></i></button>
+                <button type="button" class="btn btn-default btn-xs" @click="$emit('moveDown')" title="Move down" aria-label="Move down"><i class="fa fa-chevron-down"></i></button>
+                <button type="button" class="btn btn-default btn-xs" :class="{ 'options-open': showOptions }" :aria-expanded="showOptions" @click="showOptions = !showOptions" title="Link options" aria-label="Link options"><i class="fa fa-gear"></i></button>
+                <button type="button" class="btn btn-link text-danger btn-xs" @click="$emit('remove')" title="Remove row" aria-label="Remove row"><i class="fa fa-times"></i></button>
+            </div>
+
+            <div v-if="showOptions" class="li-popover">
+                <div class="li-pop-title">Link options</div>
+                <DropDownList :modelValue="modelValue.target || '_self'" @update:modelValue="onTargetChange" :items="targetOptions" :showBlankItem="false" label="Opens in" />
+            </div>
+        </div>
+
+        <!-- Section row: heading + description inline; no gear. -->
+        <div v-else-if="itemType === 'section'" class="li-row li-section">
+            <span class="reorder-handle" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa fa-grip-vertical"></i></span>
+            <span class="li-tag"><i class="fa fa-heading"></i> Section</span>
+            <div class="li-fields">
+                <div class="li-fields-line">
+                    <div class="li-field li-text">
+                        <TextBox :modelValue="modelValue.text" @update:modelValue="update('text', $event)" label="" placeholder="Section heading" />
+                    </div>
+                    <div class="li-field li-desc">
+                        <TextBox :modelValue="modelValue.description || ''" @update:modelValue="update('description', $event)" label="" placeholder="Description (optional)" />
+                    </div>
+                    <CheckBox class="li-collapsed" :modelValue="!!modelValue.isSectionCollapsed" @update:modelValue="update('isSectionCollapsed', $event)" label="Collapsed by default" />
+                </div>
+            </div>
+            <div class="li-actions">
+                <button type="button" class="btn btn-default btn-xs" @click="$emit('moveUp')" title="Move up" aria-label="Move up"><i class="fa fa-chevron-up"></i></button>
+                <button type="button" class="btn btn-default btn-xs" @click="$emit('moveDown')" title="Move down" aria-label="Move down"><i class="fa fa-chevron-down"></i></button>
+                <button type="button" class="btn btn-link text-danger btn-xs" @click="$emit('remove')" title="Remove row" aria-label="Remove row"><i class="fa fa-times"></i></button>
+            </div>
+        </div>
+
+        <!-- Separator row: no fields, no gear. -->
+        <div v-else class="li-row li-separator">
+            <span class="reorder-handle" title="Drag to reorder" aria-label="Drag to reorder"><i class="fa fa-grip-vertical"></i></span>
+            <span class="li-tag text-muted"><i class="fa fa-minus"></i> Separator</span>
+            <div class="li-spacer"></div>
+            <div class="li-actions">
+                <button type="button" class="btn btn-default btn-xs" @click="$emit('moveUp')" title="Move up" aria-label="Move up"><i class="fa fa-chevron-up"></i></button>
+                <button type="button" class="btn btn-default btn-xs" @click="$emit('moveDown')" title="Move down" aria-label="Move down"><i class="fa fa-chevron-down"></i></button>
+                <button type="button" class="btn btn-link text-danger btn-xs" @click="$emit('remove')" title="Remove row" aria-label="Remove row"><i class="fa fa-times"></i></button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { computed, ref } from "vue";
+import TextBox from "@Obsidian/Controls/textBox.obs";
+import DropDownList from "@Obsidian/Controls/dropDownList.obs";
+import CheckBox from "@Obsidian/Controls/checkBox.obs";
+import type { LinkItemBag } from "../types";
+
+const props = defineProps<{
+    modelValue: LinkItemBag;
+    /** True when this row is effectively nested under an open section (indented). */
+    isChild?: boolean;
+    /** True when a section group is open at this row, so a link can be nested into it. */
+    canNest?: boolean;
+}>();
+const emit = defineEmits<{
+    (e: "update:modelValue", value: LinkItemBag): void;
+    (e: "remove"): void;
+    (e: "moveUp"): void;
+    (e: "moveDown"): void;
+}>();
+
+// Gear on link rows only — holds the "Opens in" (target) option. Subtitle and
+// section description are edited inline; move up/down are inline (a11y path).
+const showOptions = ref(false);
+
+const targetOptions = [
+    { value: "_self", text: "Same window" },
+    { value: "_blank", text: "New window" },
+    { value: "_parent", text: "Parent frame" },
+    { value: "_top", text: "Top frame" }
+];
+
+// Row type is fixed at creation (chosen via the Add link/section/separator buttons).
+const itemType = computed(() => props.modelValue.itemType || "link");
+const rowClass = computed(() => `is-${itemType.value}`);
+
+// WS7 fix 5: the "nested" flag reuses IndentLevel (>=1 = nested under a section).
+const isNested = computed(() => (props.modelValue.indentLevel ?? 0) >= 1);
+function toggleNest(): void {
+    update("indentLevel", isNested.value ? 0 : 1);
+}
+
+function update<K extends keyof LinkItemBag>(key: K, value: LinkItemBag[K]): void {
+    emit("update:modelValue", { ...props.modelValue, [key]: value });
+}
+
+function onTargetChange(value: string | string[] | undefined): void {
+    const t = Array.isArray(value) ? value[0] : (value || "_self");
+    update("target", t);
+}
+
+// Featured is a per-link toggle; the editor enforces "at most one" (radio-like).
+function toggleFeatured(): void {
+    update("isFeatured", !props.modelValue.isFeatured);
+}
+</script>
+
+<style scoped>
+.link-item-row { border: 1px solid #f0f1f3; border-radius: 4px; margin-bottom: 6px; background: #fff; }
+.link-item-row.is-section { background: #fcf7f2; border-color: #f3cdb0; }
+.link-item-row.is-separator { background: #fafafa; }
+/* Fix 4: a link/separator nested under a section reads as its child. */
+.link-item-row.is-child { margin-left: 28px; border-left: 3px solid #e7eef5; }
+
+.li-row { position: relative; display: flex; align-items: flex-start; gap: 10px; padding: 7px 10px; }
+
+/* Class name MUST be "reorder-handle": Rock's useDragReorder hardcodes that
+   selector in its startDrag gate, so a drag only begins from this element. */
+.reorder-handle { flex: 0 0 auto; cursor: grab; color: #b3bbc4; padding: 6px 4px; touch-action: none; user-select: none; }
+.reorder-handle:active { cursor: grabbing; }
+
+.li-icon { flex: 0 0 auto; width: 30px; height: 30px; margin-top: 2px; border-radius: 4px; background: #f0f4f8; color: #5b6770; display: inline-flex; align-items: center; justify-content: center; }
+.li-tag { flex: 0 0 auto; margin-top: 8px; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #c47a3a; display: inline-flex; align-items: center; gap: 5px; }
+.li-separator .li-tag { color: #9a9da1; }
+
+.li-fields { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+/* Fields share one line and wrap on narrow widths (fix 9 / fix 10). */
+.li-fields-line { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.li-field { min-width: 0; }
+.li-text { flex: 1 1 160px; }
+.li-url { flex: 1.5 1 200px; }
+.li-sub { flex: 1 1 160px; }
+.li-desc { flex: 1.5 1 200px; }
+.li-collapsed { flex: 0 0 auto; white-space: nowrap; }
+.li-spacer { flex: 1 1 auto; }
+.li-actions { flex: 0 0 auto; display: flex; gap: 4px; align-items: center; margin-top: 2px; }
+.li-actions .options-open { background: #e7eef5; }
+.li-actions .is-nested { background: #e7eef5; color: #4a6b8a; }
+.li-feature { color: #b3bbc4; }
+.li-feature.is-featured { background: #fde9c8; color: #d98324; border-color: #f0c98a; }
+
+/* Compact the Rock controls inside a row (drop the form-group margin). */
+.li-row :deep(.form-group) { margin-bottom: 0; }
+
+.li-popover { position: absolute; top: calc(100% - 2px); right: 36px; z-index: 30; width: 240px; background: #fff; border: 1px solid #d5d7d9; border-radius: 6px; box-shadow: 0 12px 32px rgba(0,0,0,.18); padding: 14px; }
+.li-pop-title { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #a0a4a8; margin-bottom: 10px; }
+.li-popover :deep(.form-group) { margin-bottom: 0; }
+</style>
