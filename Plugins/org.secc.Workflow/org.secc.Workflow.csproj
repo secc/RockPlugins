@@ -44,12 +44,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(SolutionDir)\RockWeb\Bin\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="Magick.NET-Q16-AnyCPU, Version=7.21.1.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)packages\Magick.NET-Q16-AnyCPU.7.21.1\lib\net40\Magick.NET-Q16-AnyCPU.dll</HintPath>
-    </Reference>
-    <Reference Include="Magick.NET.Core, Version=4.1.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)packages\Magick.NET.Core.4.1.0\lib\net40\Magick.NET.Core.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.IdentityModel.Logging, Version=5.2.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>$(SolutionDir)packages\Microsoft.IdentityModel.Logging.5.2.1\lib\net451\Microsoft.IdentityModel.Logging.dll</HintPath>
     </Reference>
@@ -109,7 +103,6 @@
     <Compile Include="Connections\SetConnectionAttributeValue.cs" />
     <Compile Include="Connections\SetConnectionRequestGroup.cs" />
     <Compile Include="Media\BinaryFileRemove.cs" />
-    <Compile Include="Media\ImageMontage.cs" />
     <Compile Include="Person\GetPersonFromFields.cs" />
     <Compile Include="Person\PersonAddHistory.cs" />
     <Compile Include="Registrations\AutoApplyDiscountCode.cs" />
@@ -141,7 +134,6 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
-      xcopy /Y /R "$(ProjectDir)bin\Debug\Magick*" "$(SolutionDir)RockWeb\bin"
       xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Workflow.dll" "$(SolutionDir)RockWeb\bin"
       xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
     </PostBuildEvent>

@@ -21,7 +21,7 @@ workflow.
 - **Project file:** `org.secc.Workflow.csproj`
 - **Root namespace:** `org.secc.Workflow`
 - **Target framework:** .NET Framework 4.7.2
-- **Deploys to:** `RockWeb/bin/` (assembly + `Magick*`) and
+- **Deploys to:** `RockWeb/bin/` (assembly) and
   `RockWeb/Plugins/org_secc/` (block markup)
 - **Cross-plugin dependency:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md)
 
@@ -78,7 +78,6 @@ flowchart TD
 | StoreSignedDocument | Signature Document | Create a new signature document. |
 | ClearCacheTags | CMS | Clear cached items with the selected tag(s). |
 | Lookup | Twilio | Make a Twilio Lookup API call. |
-| ImageMontage | Media | Create JPG montages of image tiles. |
 | BinaryFileRemove | Media | Remove a Binary File. |
 
 ## Detailed Actions
@@ -135,7 +134,7 @@ Category in Rock: **SECC > Workflow**.
 
 - **Rock:** workflow engine (`ActionComponent`), `RockContext`, connections, registrations, CMS cache.
 - **Cross-plugin:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (used by *Person Attribute From Fields*).
-- **Third-party:** Twilio (lookup), Magick.NET / ImageMagick (image montages).
+- **Third-party:** Twilio (lookup).
 
 ## Edge Cases & Constraints
 
@@ -172,5 +171,4 @@ and the attributes render the configuration UI automatically.
 
 - Add new actions in the matching area folder (`Person/`, `Communication/`, …); follow an existing
   sibling as a template.
-- Media actions require `Magick*` in `RockWeb/bin` (handled by the PostBuildEvent).
 - Person-matching behavior lives in [org.secc.PersonMatch](../org.secc.PersonMatch/README.md), not here.
