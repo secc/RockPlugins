@@ -25,6 +25,7 @@ using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -429,6 +430,7 @@ namespace RockWeb.Plugins.org_secc.Event
             BaseParentGroupId = null;
             fuCsvFile.BinaryFileId = null;
             gpBasePlacementGroup.SetValue( ( Group ) null );
+            tglLeaderImport.Checked = false;
 
             SetActivePanel( pnlSelectInstance );
         }
@@ -872,6 +874,8 @@ namespace RockWeb.Plugins.org_secc.Event
                 nameCount.Where( kv => kv.Value > 1 ).Select( kv => kv.Key ),
                 StringComparer.OrdinalIgnoreCase );
 
+            bool isLeaderImport = tglLeaderImport.Checked;
+
             using ( var rockContext = new RockContext() )
             {
                 var registrants = LoadRegistrants( rockContext );
@@ -971,7 +975,25 @@ namespace RockWeb.Plugins.org_secc.Event
                         Group targetGroup;
                         if ( meta.GroupByName.TryGetValue( cellValue, out targetGroup ) )
                         {
-                            placementParts.Add( string.Format( "{0}: {1} ✓", mapping.CsvColumnName, cellValue ) );
+                            if ( isLeaderImport )
+                            {
+                                var groupTypeCache = GroupTypeCache.Get( targetGroup.GroupTypeId );
+                                bool hasLeaderRole = groupTypeCache != null && groupTypeCache.Roles.Any( r => r.IsLeader );
+                                if ( hasLeaderRole )
+                                {
+                                    placementParts.Add( string.Format( "{0}: {1} ✓ (leader)", mapping.CsvColumnName, cellValue ) );
+                                }
+                                else
+                                {
+                                    placementParts.Add( string.Format( "{0}: {1} ✗ (group type has no leader role)", mapping.CsvColumnName, cellValue ) );
+                                    preview.HasError = true;
+                                    preview.Status = "Error";
+                                }
+                            }
+                            else
+                            {
+                                placementParts.Add( string.Format( "{0}: {1} ✓", mapping.CsvColumnName, cellValue ) );
+                            }
                         }
                         else
                         {
@@ -1303,6 +1325,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 BinaryFileId = UploadedBinaryFileId.Value,
                 FirstNameCol = firstNameCol,
                 LastNameCol = lastNameCol,
+                IsLeaderImport = tglLeaderImport.Checked,
                 BatchSize = GetAttributeValue( AttributeKey.BatchSize ).AsIntegerOrNull() ?? 50,
                 DefaultGroupMemberStatusValue = GetAttributeValue( AttributeKey.DefaultGroupMemberStatus ).AsInteger(),
                 Mappings = mappings.Select( m => new

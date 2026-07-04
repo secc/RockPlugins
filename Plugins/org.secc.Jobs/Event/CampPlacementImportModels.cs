@@ -30,6 +30,14 @@ namespace org.secc.Jobs.Event
         public int? BinaryFileId { get; set; }
         public string FirstNameCol { get; set; }
         public string LastNameCol { get; set; }
+
+        /// <summary>
+        /// When true, people in this import are placed using the group type role
+        /// marked IsLeader instead of the default role. Existing members with a
+        /// non-leader role are updated to the leader role.
+        /// </summary>
+        public bool IsLeaderImport { get; set; }
+
         public int BatchSize { get; set; }
         public int DefaultGroupMemberStatusValue { get; set; }
         public List<CampPlacementMappingData> Mappings { get; set; }

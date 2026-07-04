@@ -373,20 +373,79 @@ namespace org.secc.Jobs.Event
                                 continue;
                             }
 
+                            // Resolve the role to place this person into. Leader imports use the
+                            // group type role marked IsLeader; camper imports use the default role.
+                            var groupTypeCache = GroupTypeCache.Get( targetGroup.GroupTypeId );
+                            int? targetRoleId;
+
+                            if ( request.IsLeaderImport )
+                            {
+                                targetRoleId = groupTypeCache != null
+                                    ? groupTypeCache.Roles
+                                        .Where( r => r.IsLeader )
+                                        .OrderBy( r => r.Order )
+                                        .Select( r => ( int? ) r.Id )
+                                        .FirstOrDefault()
+                                    : null;
+
+                                if ( !targetRoleId.HasValue )
+                                {
+                                    placementResult.Outcome = PlacementOutcome.Error;
+                                    placementResult.Message = string.Format(
+                                        "Group '{0}' has no group role marked 'Is Leader'", targetGroup.Name );
+                                    errorCount++;
+                                    resultRow.Placements.Add( placementResult );
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                targetRoleId = groupTypeCache != null ? groupTypeCache.DefaultGroupRoleId : ( int? ) null;
+
+                                if ( !targetRoleId.HasValue )
+                                {
+                                    placementResult.Outcome = PlacementOutcome.Error;
+                                    placementResult.Message = string.Format(
+                                        "Group '{0}' has no default group role configured", targetGroup.Name );
+                                    errorCount++;
+                                    resultRow.Placements.Add( placementResult );
+                                    continue;
+                                }
+                            }
+
                             string membershipKey = MembershipKey( person.Id, targetGroup.Id );
                             GroupMember existingMember;
                             existingMembershipLookup.TryGetValue( membershipKey, out existingMember );
 
                             if ( existingMember != null )
                             {
+                                bool existingRoleIsLeader = groupTypeCache != null
+                                    && groupTypeCache.Roles.Any( r => r.Id == existingMember.GroupRoleId && r.IsLeader );
+
                                 if ( existingMember.IsArchived )
                                 {
                                     existingMember.IsArchived = false;
                                     existingMember.ArchivedDateTime = null;
                                     existingMember.ArchivedByPersonAliasId = null;
                                     existingMember.GroupMemberStatus = status;
+
+                                    // On a leader import, make sure the restored membership carries the leader role.
+                                    if ( request.IsLeaderImport && !existingRoleIsLeader )
+                                    {
+                                        existingMember.GroupRoleId = targetRoleId.Value;
+                                    }
+
                                     placementResult.Outcome = PlacementOutcome.Success;
                                     placementResult.Message = string.Format( "Restored archived membership in '{0}'", targetGroup.Name );
+                                    successCount++;
+                                    pendingSaves++;
+                                }
+                                else if ( request.IsLeaderImport && !existingRoleIsLeader )
+                                {
+                                    // Existing member holds a non-leader role — update them to the leader role.
+                                    existingMember.GroupRoleId = targetRoleId.Value;
+                                    placementResult.Outcome = PlacementOutcome.Success;
+                                    placementResult.Message = string.Format( "Updated role to leader in '{0}'", targetGroup.Name );
                                     successCount++;
                                     pendingSaves++;
                                 }
@@ -401,24 +460,11 @@ namespace org.secc.Jobs.Event
                                 continue;
                             }
 
-                            var groupTypeCache = GroupTypeCache.Get( targetGroup.GroupTypeId );
-                            int? defaultRoleId = groupTypeCache != null ? groupTypeCache.DefaultGroupRoleId : ( int? ) null;
-
-                            if ( !defaultRoleId.HasValue )
-                            {
-                                placementResult.Outcome = PlacementOutcome.Error;
-                                placementResult.Message = string.Format(
-                                    "Group '{0}' has no default group role configured", targetGroup.Name );
-                                errorCount++;
-                                resultRow.Placements.Add( placementResult );
-                                continue;
-                            }
-
                             var groupMember = new GroupMember
                             {
                                 PersonId = person.Id,
                                 GroupId = targetGroup.Id,
-                                GroupRoleId = defaultRoleId.Value,
+                                GroupRoleId = targetRoleId.Value,
                                 GroupMemberStatus = status
                             };
 
@@ -474,7 +520,7 @@ namespace org.secc.Jobs.Event
                     }
                 }
 
-                string resultHtml = RenderResultsTable( resultRows, request.Mappings, totalRows );
+                string resultHtml = RenderResultsTable( resultRows, request.Mappings, totalRows, request.IsLeaderImport );
                 MarkCompleted( runId, successCount, skippedCount, errorCount, totalRows, resultHtml );
             }
             finally
@@ -793,14 +839,15 @@ WHERE [Id] = @runId",
         private static string RenderResultsTable(
             List<ResultRow> resultRows,
             List<CampPlacementMappingData> mappings,
-            int totalRows )
+            int totalRows,
+            bool isLeaderImport )
         {
             var sb = new StringBuilder();
             sb.Append( "<div class='table-responsive'>" );
             sb.Append( "<table class='table table-bordered table-striped table-condensed'>" );
 
             sb.Append( "<thead><tr>" );
-            sb.Append( "<th>Row</th><th>Camper</th><th>Matched Person</th>" );
+            sb.AppendFormat( "<th>Row</th><th>{0}</th><th>Matched Person</th>", isLeaderImport ? "Leader" : "Camper" );
             foreach ( var m in mappings )
                 sb.AppendFormat( "<th>{0}</th>", System.Web.HttpUtility.HtmlEncode( m.CsvColumnName ) );
             sb.Append( "</tr></thead><tbody>" );

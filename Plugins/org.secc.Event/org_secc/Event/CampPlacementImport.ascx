@@ -40,6 +40,17 @@
                     <h4>Step 3: Map Columns</h4>
 
                     <div class="well">
+                        <h5>Import Type</h5>
+                        <Rock:Toggle ID="tglLeaderImport" runat="server"
+                            Label="Who is being imported?"
+                            OffText="Campers"
+                            OnText="Leaders"
+                            Checked="false"
+                            ActiveButtonCssClass="btn-primary"
+                            Help="Campers are added to placement groups using the group type's default role. Leaders are added using the role marked as 'Is Leader'. If a leader is already in a group with a non-leader role, their role will be updated to the leader role." />
+                    </div>
+
+                    <div class="well">
                         <h5>Camper Identification</h5>
                         <p>Select the CSV columns that identify each camper. These will be matched against registrants in the selected registration instance.</p>
                         <div class="row">
