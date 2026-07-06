@@ -506,9 +506,7 @@ namespace org.secc.Connection
                 mergeFields.Add( "Opportunity", new ConnectionOpportunityService( rockContext ).Get( PageParameter( "OpportunityId" ).AsInteger() ) );
                 mergeFields.Add( "CurrentPerson", CurrentPerson );
                 lTitle.Text = opportunity.Name;
-                // ROCK-8710: the primary submit label is intentionally hardcoded to "I Agree & Connect" so the waiver acknowledgment reads correctly on every instance of this block.
-                // NOTE: this overrides the "Connect Button Text" (ConnectButtonText) block setting for the primary button, making that setting a no-op here. See PR discussion / ROCK-8710 for whether to also retire that setting.
-                btnConnect.Text = "I Agree & Connect";
+                btnConnect.Text = GetAttributeValue( "ConnectButtonText" );
 
                 divPhone.Visible = pnPhone.Visible = divPhoneType.Visible = ddlPhoneType.Visible = GetAttributeValue( "DisplayPhone" ).AsBoolean();
                 divBirthdate.Visible = bpBirthdate.Visible = GetAttributeValue( "DisplayBirthdate" ).AsBoolean();

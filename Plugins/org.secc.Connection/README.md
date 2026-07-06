@@ -62,7 +62,7 @@ Category in Rock: **SECC > Connection**.
 | Setting | Type | Notes |
 |---------|------|-------|
 | Display Phone / Birthdate / Comments | bool | Toggle form fields. |
-| **Connect Button Text** | text (default "Connect") | Submit button label. Note: as of ROCK-8710 the primary submit button label is hardcoded to "I Agree & Connect" in code, so this setting is currently not applied to the primary button. |
+| **Connect Button Text** | text (default "Connect") | Submit button label. |
 | **Lava Template** | code (Lava) | Response message; default `OpportunityResponseMessage.lava`. |
 | Enable Campus Context | bool (default true) | Use page campus context as a filter. |
 | **Connection Status** | defined value | Status for newly created individuals (default Web Prospect). |
