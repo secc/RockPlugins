@@ -72,6 +72,11 @@ namespace org.secc.SmsCapture.Transport
         {
             errorMessages = new List<string>();
 
+            // Component attribute values are an in-memory snapshot loaded when the component
+            // singleton was constructed; reload so cap/logging changes made in the admin UI
+            // take effect without an app restart (including on other web farm nodes).
+            this.LoadAttributes();
+
             var smsMessage = rockMessage as RockSMSMessage;
             if ( smsMessage == null )
             {
@@ -198,6 +203,11 @@ namespace org.secc.SmsCapture.Transport
         /// <param name="mediumAttributes">The medium attributes.</param>
         public override void Send( Rock.Model.Communication communication, int mediumEntityTypeId, Dictionary<string, string> mediumAttributes )
         {
+            // Component attribute values are an in-memory snapshot loaded when the component
+            // singleton was constructed; reload so cap/logging changes made in the admin UI
+            // take effect without an app restart (including on other web farm nodes).
+            this.LoadAttributes();
+
             string fromPhone;
             var unprocessedRecipientCount = 0;
             var mergeFields = new Dictionary<string, object>();
@@ -388,6 +398,13 @@ namespace org.secc.SmsCapture.Transport
                     {
                         capturedSmsService.DeleteRange( excess );
                         rockContext.SaveChanges();
+
+                        if ( GetAttributeValue( AttributeKey.EnableLogging ).AsBooleanOrNull() ?? true )
+                        {
+                            RockLogger.Log.Information( RockLogDomains.Communications,
+                                "SMS Capture: trimmed {trimmedCount} captured messages over cap of {maxMessages}",
+                                excess.Count, maxMessages );
+                        }
                     }
                 }
             }
