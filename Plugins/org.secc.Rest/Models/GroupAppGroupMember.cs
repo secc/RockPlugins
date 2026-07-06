@@ -14,6 +14,7 @@ namespace org.secc.Rest.Models
         public string PhotoURL { get; set; }
         public bool IsLeader { get; set; }
         public bool IsCurrentUser { get; set; }
+        public bool IsMinor { get; set; }
         public List<GroupAppParent> Parents { get; set; } = new List<GroupAppParent>();
     }
 

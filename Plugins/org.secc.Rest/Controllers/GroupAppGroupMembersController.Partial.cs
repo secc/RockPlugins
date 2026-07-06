@@ -117,6 +117,7 @@ namespace org.secc.Rest.Controllers
                 {
                     var person = _personService.Get( groupMember.PersonId );
                     var familyGroup = person.GetFamily();
+                    var isMinor = person.Age.HasValue && person.AgeClassification != AgeClassification.Adult;
 
                     var groupAppGroupMember = new GroupAppGroupMember
                     {
@@ -131,12 +132,13 @@ namespace org.secc.Rest.Controllers
                         Phone = isCurrentUserLeader ? person.GetPhoneNumber( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() )?.ToString() : null,
                         PhotoURL = person.PhotoUrl,
                         IsLeader = groupMember.GroupRole.IsLeader,
-                        IsCurrentUser = groupMember.PersonId == currentUser.Person.Id
+                        IsCurrentUser = groupMember.PersonId == currentUser.Person.Id,
+                        IsMinor = isMinor
                     };
 
                     // Check if the person is a minor (under 18) and get parent information
                     // Only include parent information if the current user is a group leader
-                    if ( isCurrentUserLeader && person.Age.HasValue && person.AgeClassification != AgeClassification.Adult )
+                    if ( isCurrentUserLeader && isMinor )
                     {
                         var parents = groupMemberServiceHelper.GetParents( person );
                         foreach ( var parent in parents )
@@ -194,12 +196,39 @@ namespace org.secc.Rest.Controllers
                 return BadRequest( "Invalid request. Please provide a valid 'Subject' and 'Body' in the message." );
             }
 
+            var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
+            string ccEmails = null;
+
             if ( message.GroupMemberId != 0 )
             {
                 var groupMember = _groupMemberService.Get( message.GroupMemberId );
                 if ( groupMember == null )
                 {
                     return NotFound();
+                }
+
+                // Policy: individual communications may not be sent to a minor unless
+                // another adult is included. CC the minor's parents/guardians, or reject
+                // the send if no parent with an email address is on record.
+                if ( !message.SendToParents )
+                {
+                    var person = groupMember.Person;
+                    var isMinor = person.Age.HasValue && person.AgeClassification != AgeClassification.Adult;
+                    if ( isMinor )
+                    {
+                        var parentEmails = groupMemberServiceHelper.GetParents( person )
+                            .Where( p => p.Email.IsNotNullOrWhiteSpace() )
+                            .Select( p => p.Email )
+                            .Distinct( StringComparer.OrdinalIgnoreCase )
+                            .ToList();
+
+                        if ( !parentEmails.Any() )
+                        {
+                            return BadRequest( "Individual communications cannot be sent to a minor without a parent or guardian email on record. Please update the family record." );
+                        }
+
+                        ccEmails = string.Join( ",", parentEmails );
+                    }
                 }
             }
 
@@ -215,10 +244,9 @@ namespace org.secc.Rest.Controllers
                 }
             }
 
-            var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
             var recipients = groupMemberServiceHelper.GetRecipients( groupId, message.GroupMemberId, message.SendToParents );
 
-            CreateCommunication( message.Subject, message.Body, recipients, currentUser.Person, group );
+            CreateCommunication( message.Subject, message.Body, recipients, currentUser.Person, group, ccEmails );
 
             return Ok( recipients.AsQueryable().Select( r => r.FullName ) );
         }
@@ -231,12 +259,13 @@ namespace org.secc.Rest.Controllers
             public bool SendToParents { get; set; } = false;
         }
 
-        public void CreateCommunication( string subject, string body, List<Person> recipients, Person currentPerson, Group group )
+        public void CreateCommunication( string subject, string body, List<Person> recipients, Person currentPerson, Group group, string ccEmails = null )
         {
             var communication = UpdateCommunication( _context );
             if ( communication != null )
             {
                 communication.CommunicationType = CommunicationType.Email;
+                communication.CCEmails = ccEmails;
                 communication.IsBulkCommunication = false;
                 communication.FutureSendDateTime = null;
                 communication.CreatedByPersonAliasId = currentPerson.PrimaryAliasId;
