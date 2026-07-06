@@ -61,6 +61,7 @@
     <Compile Include="Model\CapturedSms.cs" />
     <Compile Include="Model\CapturedSmsService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Transport\SmsCapture.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)\DotLiquid\DotLiquid.csproj">
