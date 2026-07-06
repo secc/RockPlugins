@@ -70,3 +70,7 @@ Component attributes:
 
 An inbound simulator (POSTing a synthetic Twilio webhook payload to Rock's SMS pipeline to
 test keyword responses and two-way conversations) was deliberately left out of scope.
+
+---
+
+**Last updated:** 2026-07-06
