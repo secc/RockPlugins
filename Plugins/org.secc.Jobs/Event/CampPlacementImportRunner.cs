@@ -224,7 +224,9 @@ namespace org.secc.Jobs.Event
                     var existingMembershipsByKey = new Dictionary<string, List<GroupMember>>();
                     if ( allTargetGroupIds.Any() && allPersonIds.Any() )
                     {
-                        var existingMembers = groupMemberService.Queryable()
+                        // Include archived rows (second arg) so an archived membership is restored
+                        // instead of a duplicate active row being created alongside it.
+                        var existingMembers = groupMemberService.Queryable( false, true )
                             .Where( gm => allTargetGroupIds.Contains( gm.GroupId )
                                        && allPersonIds.Contains( gm.PersonId ) )
                             .ToList();
@@ -453,6 +455,11 @@ placementResult.Message = string.Format(
 
                                 if ( existingMember.IsArchived )
                                 {
+                                    var previousRoleId = existingMember.GroupRoleId;
+                                    var previousStatus = existingMember.GroupMemberStatus;
+                                    var previousArchivedDateTime = existingMember.ArchivedDateTime;
+                                    var previousArchivedByPersonAliasId = existingMember.ArchivedByPersonAliasId;
+
                                     existingMember.IsArchived = false;
                                     existingMember.ArchivedDateTime = null;
                                     existingMember.ArchivedByPersonAliasId = null;
@@ -464,10 +471,30 @@ placementResult.Message = string.Format(
                                         existingMember.GroupRoleId = targetRoleId.Value;
                                     }
 
-                                    placementResult.Outcome = PlacementOutcome.Success;
-                                    placementResult.Message = string.Format( "Restored archived membership in '{0}'", targetGroup.Name );
-                                    successCount++;
-                                    pendingSaves++;
+                                    // Validate the restore so a conflicting membership surfaces as a
+                                    // row error instead of failing the whole batch save.
+                                    if ( existingMember.IsValidGroupMember( rockContext ) )
+                                    {
+                                        placementResult.Outcome = PlacementOutcome.Success;
+                                        placementResult.Message = string.Format( "Restored archived membership in '{0}'", targetGroup.Name );
+                                        successCount++;
+                                        pendingSaves++;
+                                    }
+                                    else
+                                    {
+                                        existingMember.IsArchived = true;
+                                        existingMember.ArchivedDateTime = previousArchivedDateTime;
+                                        existingMember.ArchivedByPersonAliasId = previousArchivedByPersonAliasId;
+                                        existingMember.GroupMemberStatus = previousStatus;
+                                        existingMember.GroupRoleId = previousRoleId;
+
+                                        placementResult.Outcome = PlacementOutcome.Error;
+                                        placementResult.Message = string.Format(
+                                            "Could not restore archived membership in '{0}': {1}",
+                                            targetGroup.Name,
+                                            string.Join( "; ", existingMember.ValidationResults.Select( v => v.ErrorMessage ) ) );
+                                        errorCount++;
+                                    }
                                 }
                                 else if ( request.IsLeaderImport && !existingRoleIsLeader )
                                 {
