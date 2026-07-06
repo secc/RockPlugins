@@ -395,23 +395,22 @@ namespace org.secc.SmsCapture.Transport
             {
                 using ( var rockContext = new RockContext() )
                 {
-                    var capturedSmsService = new CapturedSmsService( rockContext );
-                    var excess = capturedSmsService.Queryable()
-                        .OrderByDescending( c => c.Id )
-                        .Skip( maxMessages )
-                        .ToList();
+                    // Delete beyond-cap rows entirely in SQL so their (potentially large) bodies
+                    // are never materialized into EF.
+                    var sql = @"
+;WITH cte AS (
+    SELECT [Id], ROW_NUMBER() OVER ( ORDER BY [Id] DESC ) AS [rn]
+    FROM [dbo].[_org_secc_SmsCapture_CapturedSms]
+)
+DELETE FROM cte WHERE [rn] > @p0";
 
-                    if ( excess.Any() )
+                    var trimmedCount = rockContext.Database.ExecuteSqlCommand( sql, maxMessages );
+
+                    if ( trimmedCount > 0 && ( GetAttributeValue( AttributeKey.EnableLogging ).AsBooleanOrNull() ?? true ) )
                     {
-                        capturedSmsService.DeleteRange( excess );
-                        rockContext.SaveChanges();
-
-                        if ( GetAttributeValue( AttributeKey.EnableLogging ).AsBooleanOrNull() ?? true )
-                        {
-                            RockLogger.Log.Information( RockLogDomains.Communications,
-                                "SMS Capture: trimmed {trimmedCount} captured messages over cap of {maxMessages}",
-                                excess.Count, maxMessages );
-                        }
+                        RockLogger.Log.Information( RockLogDomains.Communications,
+                            "SMS Capture: trimmed {trimmedCount} captured messages over cap of {maxMessages}",
+                            trimmedCount, maxMessages );
                     }
                 }
             }
