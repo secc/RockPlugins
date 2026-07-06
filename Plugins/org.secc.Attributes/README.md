@@ -140,5 +140,3 @@ a link. Condensed/grid contexts show an `"N files"` count rather than embedded m
 ---
 
 **Last updated:** 2026-06-29
-</content>
-</invoke>
