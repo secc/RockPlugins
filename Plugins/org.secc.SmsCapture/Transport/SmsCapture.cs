@@ -289,6 +289,13 @@ namespace org.secc.SmsCapture.Transport
                 try
                 {
                     recipient = new CommunicationRecipientService( rockContext ).Get( recipient.Id );
+                    if ( recipient == null )
+                    {
+                        // Recipient no longer exists (e.g., deleted by another worker); nothing to
+                        // capture, and a null here would otherwise throw again from the catch below.
+                        return;
+                    }
+
                     var smsNumber = recipient.PersonAlias.Person.PhoneNumbers.GetFirstSmsNumber();
                     if ( !string.IsNullOrWhiteSpace( smsNumber ) )
                     {
