@@ -185,7 +185,7 @@ namespace org.secc.Jobs.Event
                 int skippedCount = 0;
                 int errorCount = 0;
                 var resultRows = new List<ResultRow>();
-                
+
                 DateTime lastProgressUpdate = DateTime.UtcNow;
 
                 using ( var rockContext = new RockContext() )
@@ -221,18 +221,26 @@ namespace org.secc.Jobs.Event
                         .ToList();
 
                     var existingMembershipLookup = new Dictionary<string, GroupMember>();
+                    var existingMembershipsByKey = new Dictionary<string, List<GroupMember>>();
                     if ( allTargetGroupIds.Any() && allPersonIds.Any() )
                     {
-                        var existingMembers = groupMemberService.Queryable()
+                        // Include archived rows (second arg) so an archived membership is restored
+                        // instead of a duplicate active row being created alongside it.
+                        var existingMembers = groupMemberService.Queryable( false, true )
                             .Where( gm => allTargetGroupIds.Contains( gm.GroupId )
                                        && allPersonIds.Contains( gm.PersonId ) )
                             .ToList();
 
-                        existingMembershipLookup = existingMembers
+                        // A person can hold multiple memberships in the same group (one per
+                        // role), so keep every row per person+group for role-aware selection.
+                        existingMembershipsByKey = existingMembers
                             .GroupBy( gm => MembershipKey( gm.PersonId, gm.GroupId ) )
+                            .ToDictionary( g => g.Key, g => g.ToList() );
+
+                        existingMembershipLookup = existingMembershipsByKey
                             .ToDictionary(
-                                g => g.Key,
-                                g => g
+                                kv => kv.Key,
+                                kv => kv.Value
                                     .OrderBy( gm => gm.IsArchived )
                                     .ThenBy( gm => gm.Id )
                                     .First() );
@@ -287,7 +295,7 @@ namespace org.secc.Jobs.Event
 
                         var resultRow = new ResultRow
                         {
-                            CsvRowNumber = rowIdx + 2, 
+                            CsvRowNumber = rowIdx + 2,
                             CamperName = csvFullName,
                             Placements = new List<PlacementResult>()
                         };
@@ -311,7 +319,8 @@ namespace org.secc.Jobs.Event
                                 errorCount++;
                             }
 
-                            if ( resultRows.Count < 200 ) resultRows.Add( resultRow );
+                            if ( resultRows.Count < 200 )
+                                resultRows.Add( resultRow );
                             processedRows++;
                             continue;
                         }
@@ -335,7 +344,8 @@ namespace org.secc.Jobs.Event
                                 errorCount++;
                             }
 
-                            if ( resultRows.Count < 200 ) resultRows.Add( resultRow );
+                            if ( resultRows.Count < 200 )
+                                resultRows.Add( resultRow );
                             processedRows++;
                             continue;
                         }
@@ -373,22 +383,144 @@ namespace org.secc.Jobs.Event
                                 continue;
                             }
 
+                            // Resolve the role to place this person into. Leader imports use the
+                            // group type role marked IsLeader; camper imports use the default role.
+                            var groupTypeCache = GroupTypeCache.Get( targetGroup.GroupTypeId );
+                            int? targetRoleId;
+
+                            if ( request.IsLeaderImport )
+                            {
+                                targetRoleId = groupTypeCache != null
+                                    ? groupTypeCache.Roles
+                                        .Where( r => r.IsLeader )
+                                        .OrderBy( r => r.Order )
+                                        .Select( r => ( int? ) r.Id )
+                                        .FirstOrDefault()
+                                    : null;
+
+                                if ( !targetRoleId.HasValue )
+                                {
+                                    placementResult.Outcome = PlacementOutcome.Error;
+placementResult.Message = string.Format(
+    "Group type for group '{0}' has no role marked 'Is Leader'.", targetGroup.Name );
+                                    errorCount++;
+                                    resultRow.Placements.Add( placementResult );
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                targetRoleId = groupTypeCache != null ? groupTypeCache.DefaultGroupRoleId : ( int? ) null;
+
+                                if ( !targetRoleId.HasValue )
+                                {
+                                    placementResult.Outcome = PlacementOutcome.Error;
+                                    placementResult.Message = string.Format(
+                                        "Group '{0}' has no default group role configured", targetGroup.Name );
+                                    errorCount++;
+                                    resultRow.Placements.Add( placementResult );
+                                    continue;
+                                }
+                            }
+
                             string membershipKey = MembershipKey( person.Id, targetGroup.Id );
                             GroupMember existingMember;
                             existingMembershipLookup.TryGetValue( membershipKey, out existingMember );
 
+                            // On a leader import, prefer an existing leader-role membership when the
+                            // person holds multiple rows in this group. Promoting a non-leader row
+                            // while a leader row already exists would create a duplicate membership.
+                            if ( request.IsLeaderImport && existingMember != null )
+                            {
+                                List<GroupMember> allMembershipRows;
+                                if ( existingMembershipsByKey.TryGetValue( membershipKey, out allMembershipRows ) )
+                                {
+                                    var leaderRow = allMembershipRows
+                                        .Where( gm => groupTypeCache.Roles.Any( r => r.Id == gm.GroupRoleId && r.IsLeader ) )
+                                        .OrderBy( gm => gm.IsArchived )
+                                        .ThenBy( gm => gm.Id )
+                                        .FirstOrDefault();
+
+                                    if ( leaderRow != null )
+                                    {
+                                        existingMember = leaderRow;
+                                    }
+                                }
+                            }
+
                             if ( existingMember != null )
                             {
+                                bool existingRoleIsLeader = groupTypeCache != null
+                                    && groupTypeCache.Roles.Any( r => r.Id == existingMember.GroupRoleId && r.IsLeader );
+
                                 if ( existingMember.IsArchived )
                                 {
+                                    var previousRoleId = existingMember.GroupRoleId;
+                                    var previousStatus = existingMember.GroupMemberStatus;
+                                    var previousArchivedDateTime = existingMember.ArchivedDateTime;
+                                    var previousArchivedByPersonAliasId = existingMember.ArchivedByPersonAliasId;
+
                                     existingMember.IsArchived = false;
                                     existingMember.ArchivedDateTime = null;
                                     existingMember.ArchivedByPersonAliasId = null;
                                     existingMember.GroupMemberStatus = status;
-                                    placementResult.Outcome = PlacementOutcome.Success;
-                                    placementResult.Message = string.Format( "Restored archived membership in '{0}'", targetGroup.Name );
-                                    successCount++;
-                                    pendingSaves++;
+
+                                    // On a leader import, make sure the restored membership carries the leader role.
+                                    if ( request.IsLeaderImport && !existingRoleIsLeader )
+                                    {
+                                        existingMember.GroupRoleId = targetRoleId.Value;
+                                    }
+
+                                    // Validate the restore so a conflicting membership surfaces as a
+                                    // row error instead of failing the whole batch save.
+                                    if ( existingMember.IsValidGroupMember( rockContext ) )
+                                    {
+                                        placementResult.Outcome = PlacementOutcome.Success;
+                                        placementResult.Message = string.Format( "Restored archived membership in '{0}'", targetGroup.Name );
+                                        successCount++;
+                                        pendingSaves++;
+                                    }
+                                    else
+                                    {
+                                        existingMember.IsArchived = true;
+                                        existingMember.ArchivedDateTime = previousArchivedDateTime;
+                                        existingMember.ArchivedByPersonAliasId = previousArchivedByPersonAliasId;
+                                        existingMember.GroupMemberStatus = previousStatus;
+                                        existingMember.GroupRoleId = previousRoleId;
+
+                                        placementResult.Outcome = PlacementOutcome.Error;
+                                        placementResult.Message = string.Format(
+                                            "Could not restore archived membership in '{0}': {1}",
+                                            targetGroup.Name,
+                                            string.Join( "; ", existingMember.ValidationResults.Select( v => v.ErrorMessage ) ) );
+                                        errorCount++;
+                                    }
+                                }
+                                else if ( request.IsLeaderImport && !existingRoleIsLeader )
+                                {
+                                    // Existing member holds a non-leader role — update them to the leader
+                                    // role. Validate the change so a conflicting membership surfaces as a
+                                    // row error instead of failing the whole batch save.
+                                    var previousRoleId = existingMember.GroupRoleId;
+                                    existingMember.GroupRoleId = targetRoleId.Value;
+
+                                    if ( existingMember.IsValidGroupMember( rockContext ) )
+                                    {
+                                        placementResult.Outcome = PlacementOutcome.Success;
+                                        placementResult.Message = string.Format( "Updated role to leader in '{0}'", targetGroup.Name );
+                                        successCount++;
+                                        pendingSaves++;
+                                    }
+                                    else
+                                    {
+                                        existingMember.GroupRoleId = previousRoleId;
+                                        placementResult.Outcome = PlacementOutcome.Error;
+                                        placementResult.Message = string.Format(
+                                            "Could not update role to leader in '{0}': {1}",
+                                            targetGroup.Name,
+                                            string.Join( "; ", existingMember.ValidationResults.Select( v => v.ErrorMessage ) ) );
+                                        errorCount++;
+                                    }
                                 }
                                 else
                                 {
@@ -401,24 +533,11 @@ namespace org.secc.Jobs.Event
                                 continue;
                             }
 
-                            var groupTypeCache = GroupTypeCache.Get( targetGroup.GroupTypeId );
-                            int? defaultRoleId = groupTypeCache != null ? groupTypeCache.DefaultGroupRoleId : ( int? ) null;
-
-                            if ( !defaultRoleId.HasValue )
-                            {
-                                placementResult.Outcome = PlacementOutcome.Error;
-                                placementResult.Message = string.Format(
-                                    "Group '{0}' has no default group role configured", targetGroup.Name );
-                                errorCount++;
-                                resultRow.Placements.Add( placementResult );
-                                continue;
-                            }
-
                             var groupMember = new GroupMember
                             {
                                 PersonId = person.Id,
                                 GroupId = targetGroup.Id,
-                                GroupRoleId = defaultRoleId.Value,
+                                GroupRoleId = targetRoleId.Value,
                                 GroupMemberStatus = status
                             };
 
@@ -426,6 +545,14 @@ namespace org.secc.Jobs.Event
                             {
                                 groupMemberService.Add( groupMember );
                                 existingMembershipLookup[membershipKey] = groupMember;
+
+                                List<GroupMember> keyRows;
+                                if ( !existingMembershipsByKey.TryGetValue( membershipKey, out keyRows ) )
+                                {
+                                    keyRows = new List<GroupMember>();
+                                    existingMembershipsByKey[membershipKey] = keyRows;
+                                }
+                                keyRows.Add( groupMember );
 
                                 placementResult.Outcome = PlacementOutcome.Success;
                                 placementResult.Message = string.Format( "Added to '{0}'", targetGroup.Name );
@@ -445,7 +572,8 @@ namespace org.secc.Jobs.Event
                             resultRow.Placements.Add( placementResult );
                         }
 
-                        if ( resultRows.Count < 200 ) resultRows.Add( resultRow );
+                        if ( resultRows.Count < 200 )
+                            resultRows.Add( resultRow );
                         processedRows++;
 
                         if ( pendingSaves >= batchSize )
@@ -454,7 +582,7 @@ namespace org.secc.Jobs.Event
                             pendingSaves = 0;
                         }
 
-                        if ( processedRows == totalRows || (DateTime.UtcNow - lastProgressUpdate).TotalSeconds >= 2 )
+                        if ( processedRows == totalRows || ( DateTime.UtcNow - lastProgressUpdate ).TotalSeconds >= 2 )
                         {
                             int pct = totalRows > 0
                                 ? ( int ) Math.Round( ( processedRows / ( double ) totalRows ) * 100 )
@@ -463,7 +591,7 @@ namespace org.secc.Jobs.Event
                             UpdateRunStatus( runId, ImportRunStatus.Running,
                                 string.Format( "Processing row {0} of {1}…", processedRows, totalRows ),
                                 pct, processedRows, totalRows );
-                            
+
                             lastProgressUpdate = DateTime.UtcNow;
                         }
                     }
@@ -474,7 +602,7 @@ namespace org.secc.Jobs.Event
                     }
                 }
 
-                string resultHtml = RenderResultsTable( resultRows, request.Mappings, totalRows );
+                string resultHtml = RenderResultsTable( resultRows, request.Mappings, totalRows, request.IsLeaderImport );
                 MarkCompleted( runId, successCount, skippedCount, errorCount, totalRows, resultHtml );
             }
             finally
@@ -793,14 +921,15 @@ WHERE [Id] = @runId",
         private static string RenderResultsTable(
             List<ResultRow> resultRows,
             List<CampPlacementMappingData> mappings,
-            int totalRows )
+            int totalRows,
+            bool isLeaderImport )
         {
             var sb = new StringBuilder();
             sb.Append( "<div class='table-responsive'>" );
             sb.Append( "<table class='table table-bordered table-striped table-condensed'>" );
 
             sb.Append( "<thead><tr>" );
-            sb.Append( "<th>Row</th><th>Camper</th><th>Matched Person</th>" );
+            sb.AppendFormat( "<th>Row</th><th>{0}</th><th>Matched Person</th>", isLeaderImport ? "Leader" : "Camper" );
             foreach ( var m in mappings )
                 sb.AppendFormat( "<th>{0}</th>", System.Web.HttpUtility.HtmlEncode( m.CsvColumnName ) );
             sb.Append( "</tr></thead><tbody>" );
@@ -865,7 +994,7 @@ WHERE [Id] = @runId",
                 sb.Append( "</tr>" );
             }
 
-            if ( totalRows > 200 ) 
+            if ( totalRows > 200 )
             {
                 sb.AppendFormat( "<tr><td colspan='100%' class='text-center text-muted'><i>Showing first 200 results... Please consult overall counts for final summaries.</i></td></tr>" );
             }

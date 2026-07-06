@@ -2,14 +2,17 @@
 
 > Southeast's custom event/registration blocks — calendar Lava, a heavily-customized registration entry/detail pair, QR event passes, SignNow signing, camp-placement import, and the Community Gives Back program.
 
+Last updated: 2026-07-06
+
 ## Overview
 
 This plugin is a collection of Rock **UI blocks** (`.ascx` user controls) covering Southeast's
 public events and registration flows. It includes Lava-driven calendar/event displays, SECC's own
 forks of Rock's stock `RegistrationEntry` / `RegistrationDetail` blocks, QR-based "Event Pass"
-generation and request, a SignNow digital-signature embed, a CSV camp-placement importer, and the
-self-contained "Community Gives Back" school-sponsorship sub-area. Blocks are configured through
-Rock block settings and used by ministry/communications staff and public registrants.
+generation and request, a SignNow digital-signature embed, a CSV camp-placement importer for
+campers or leaders, and the self-contained "Community Gives Back" school-sponsorship sub-area.
+Blocks are configured through Rock block settings and used by ministry/communications staff and
+public registrants.
 
 ## Project Info
 
@@ -45,13 +48,22 @@ Category in Rock: **SECC > Event** (Community Gives Back blocks: **SECC > Commun
 | Generate Event Pass (`RequestEventPass`) | Public form that launches a workflow to request an Event Pass. | Block Title, Event Pass Workflow Type, Pass Person Attribute, Contact Fields Editable |
 | Family Registration List Lava (`FamilyRegistrationLava`) | Lava sidebar listing a family's children's registrations. | Lava Template, Max Results, Date Range, Limit To Owed |
 | SignNow (`SignNow`) | Embedded sub-control (a plain `System.Web.UI.UserControl`, **not** a registerable Rock block — no `[DisplayName]`/`[Category]`) that hosts the SignNow digital-signature flow inside registration; parses the returned `document_id` (falls back to the referer on iOS). | (none — driven by the registration's digital-signature component) |
-| Camp Placement Import (`CampPlacementImport`) | Imports a CSV to place camp registrants into placement groups; queues a background import run. | Default Group Member Status, Batch Size |
+| Camp Placement Import (`CampPlacementImport`) | Imports a CSV to place camp registrants into placement groups; queues a background import run. Supports both camper imports and leader imports. | Default Group Member Status, Batch Size |
 | Community Gives Back Registration (`CommunityGivesBackRegistration`) | Public registration for the Community Gives Back program (launches a workflow on submit, with an acknowledgement step). | Community Gives Back Schools (defined type), Acknowledgement Text, Confirmation Text, Registration Complete Text, Registration Workflow Type, Auto Populate Registration Data, Campaign |
 | Community Gives Back Registrations List (`CommunityGivesBackRegistrations`) | Lists CGB registrations by school. | Community Gives Back Schools (defined type), Registration Workflow Type, School List Page |
 | Community Gives Back School List (`SchoolList`) | Lists CGB schools / sponsorship registrations. | Community Gives Back Schools (defined type), Registration Workflow Type, School Registration Page |
 
 `RegistrationEntry` (6,091 lines) and `RegistrationDetail` (2,799 lines) are large SECC-maintained
 copies of the corresponding stock Rock blocks; treat them as forks kept in sync with upstream.
+
+### Camp Placement Import behavior
+
+- **Campers:** the import adds or restores memberships using the target group type's default role.
+- **Leaders:** the import adds or restores memberships using the first target group type role marked
+  `IsLeader`. If the person is already in the group with a non-leader role, that membership is
+  promoted to the leader role instead of creating a duplicate membership.
+- **Prerequisite for leader imports:** every target placement group type must have a role marked
+  `IsLeader`, or those rows will be reported as errors during processing.
 
 ## Dependencies & Integrations
 
