@@ -506,7 +506,9 @@ namespace org.secc.Connection
                 mergeFields.Add( "Opportunity", new ConnectionOpportunityService( rockContext ).Get( PageParameter( "OpportunityId" ).AsInteger() ) );
                 mergeFields.Add( "CurrentPerson", CurrentPerson );
                 lTitle.Text = opportunity.Name;
-                btnConnect.Text = GetAttributeValue( "ConnectButtonText" );
+                // ROCK-8710: the primary submit label is intentionally hardcoded to "I Agree & Connect" so the waiver acknowledgment reads correctly on every instance of this block.
+                // NOTE: this overrides the "Connect Button Text" (ConnectButtonText) block setting for the primary button, making that setting a no-op here. See PR discussion / ROCK-8710 for whether to also retire that setting.
+                btnConnect.Text = "I Agree & Connect";
 
                 divPhone.Visible = pnPhone.Visible = divPhoneType.Visible = ddlPhoneType.Visible = GetAttributeValue( "DisplayPhone" ).AsBoolean();
                 divBirthdate.Visible = bpBirthdate.Visible = GetAttributeValue( "DisplayBirthdate" ).AsBoolean();
@@ -757,7 +759,8 @@ namespace org.secc.Connection
                         viewStateAttributes.Add( viewStateAttribute );
 
                         Helper.AddDisplayControls( groupMember, phAttributes, groupMember.Attributes.Where( a => !urlKeys.Contains( a.Key ) ).Select( a => a.Key ).ToList(), true, false );
-                        Helper.AddEditControls( "", formKeys, groupMember, phAttributes, tbLastName.ValidationGroup, false, new List<String>() );
+                        // ROCK-8710: render the editable Form-key controls below the Waiver Text (phFormAttributes lives outside the repeater, after lWaiverText) instead of inline with the per-role display controls in phAttributes.
+                        Helper.AddEditControls( "", formKeys, groupMember, phFormAttributes, tbLastName.ValidationGroup, false, new List<String>() );
 
                     }
                     RepeaterIndex++;
@@ -779,7 +782,6 @@ namespace org.secc.Connection
                 }
 
                 var hdnGroupId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupId" ) ) );
-                var phAttributes = ( ( PlaceHolder ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "phAttributes" ) ) );
                 hdnGroupId.Value = RoleRequests[RepeaterIndex].GroupId.ToString();
 
                 var group = new GroupService( rockContext ).Get( hdnGroupId.Value.AsInteger() );
@@ -791,7 +793,8 @@ namespace org.secc.Connection
                     groupMember.GroupId = group.Id;
                     groupMember.LoadAttributes();
 
-                    Helper.GetEditValues( phAttributes, groupMember );
+                    // ROCK-8710: Form-key edit controls now render into phFormAttributes (below the Waiver Text, outside the repeater), so read submitted values back from there. Must stay in sync with the AddEditControls target above, or submitted Form-key values silently stop saving.
+                    Helper.GetEditValues( phFormAttributes, groupMember );
 
                     var readonlyAttributes = ( List<Dictionary<string, string>> ) ViewState["SelectedAttributes"];
                     if ( readonlyAttributes != null && readonlyAttributes.Count > RepeaterIndex && readonlyAttributes[RepeaterIndex].Keys.Count > 0 )
