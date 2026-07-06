@@ -14,10 +14,13 @@ const GUID_PATTERN = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{
 // Safe-render helpers (shared by both renderers).
 //
 // NOTE: freeform intro/footer HTML is sanitized SERVER-SIDE in
-// LinkListService.BuildBag (Rock's HtmlSanitizer), so every consumer - viewer,
-// editor, and the public REST endpoint - receives clean HTML. The renderers
-// therefore render those blobs as-is. The helpers below guard the STRUCTURED
-// link-row fields (url / target / text / color) the renderers build markup from.
+// LinkListService.BuildBag by the plugin's LinkListHtmlSanitizer (an
+// entity-preserving, HtmlAgilityPack-based sanitizer - NOT Rock's built-in
+// HtmlSanitizer, which re-encodes entities on every round-trip), so every
+// consumer - viewer, editor, and the public REST endpoint - receives clean
+// HTML. The renderers therefore render those blobs as-is. The helpers below
+// guard the STRUCTURED link-row fields (url / target / text / color) the
+// renderers build markup from.
 // ---------------------------------------------------------------------------
 
 /** HTML-escapes a plain-text value for safe interpolation into markup. */
@@ -43,7 +46,12 @@ export function safeUrl(value: string | null | undefined): string {
         return "#";
     }
     const trimmed = String(value).trim();
-    if (/^\s*(javascript|data|vbscript|file):/i.test(trimmed)) {
+    // Test the scheme against a normalized copy with ALL whitespace/control
+    // chars removed (mirrors the C# LinkListHtmlSanitizer): browsers strip
+    // tab/newline anywhere in a URL before parsing, so "java\tscript:alert(1)"
+    // would execute as javascript: if we only tested the raw string.
+    const normalized = trimmed.replace(/[\s\u0000-\u001F]/g, "");
+    if (!normalized || /^(javascript|data|vbscript|file):/i.test(normalized)) {
         return "#";
     }
     return trimmed;

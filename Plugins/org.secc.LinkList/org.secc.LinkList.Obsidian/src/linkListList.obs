@@ -15,7 +15,9 @@
                     <BooleanColumn name="isPublic" title="Public" field="isPublic" visiblePriority="sm" />
                     <TextColumn name="design" title="Design" field="design" visiblePriority="lg" />
                     <DateColumn name="modifiedDateTime" title="Modified" field="modifiedDateTime" visiblePriority="lg" />
-                    <DeleteColumn v-if="config.isDeleteEnabled" @click="onDeleteClick" />
+                    <!-- Per-row disable mirrors the Delete action's check
+                         (ADMINISTRATE on the item), surfaced as canDelete. -->
+                    <DeleteColumn v-if="config.isDeleteEnabled" @click="onDeleteClick" :rowDisabled="isDeleteRowDisabled" />
                 </Grid>
             </div>
 
@@ -180,6 +182,10 @@ function onAddItem(): void {
     if (url) {
         window.location.href = url.replace("((Key))", "0");
     }
+}
+
+function isDeleteRowDisabled(row: Record<string, unknown>): boolean {
+    return row["canDelete"] !== true;
 }
 
 async function onDeleteClick(key: string): Promise<void> {

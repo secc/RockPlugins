@@ -1,3 +1,17 @@
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
 using System;
 using System.Linq;
 using System.Net;
@@ -27,16 +41,13 @@ namespace org.secc.LinkList.Rest.Controllers
                 return Respond( HttpStatusCode.BadRequest, new { Message = "idOrSlug is required." } );
             }
 
-            // Slug charset / length validation. Numeric ids and GUIDs are also
+            // Slug charset / length validation, on the canonical lowercase form
+            // so mixed-case URLs still resolve. Numeric ids and GUIDs are also
             // accepted because ResolveItem() tries those forms first.
-            var trimmed = idOrSlug.Trim();
-            if ( trimmed.Length > 200 )
-            {
-                return Respond( HttpStatusCode.NotFound, null );
-            }
+            var trimmed = LinkListService.NormalizeSlug( idOrSlug );
             if ( !trimmed.AsIntegerOrNull().HasValue
                 && !trimmed.AsGuidOrNull().HasValue
-                && !System.Text.RegularExpressions.Regex.IsMatch( trimmed, "^[a-zA-Z0-9-]+$" ) )
+                && !LinkListService.IsValidSlug( trimmed ) )
             {
                 return Respond( HttpStatusCode.NotFound, null );
             }

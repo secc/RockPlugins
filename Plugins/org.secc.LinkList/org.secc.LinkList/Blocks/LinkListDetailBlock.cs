@@ -1,3 +1,17 @@
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -137,6 +151,10 @@ namespace org.secc.LinkList.Blocks
             {
                 return ActionBadRequest( "Link list payload is required." );
             }
+            // Canonicalize the slug (trim + lowercase) before validation so a
+            // mixed-case slug typed in the editor is accepted and stored in the
+            // same form every other entry point resolves.
+            bag.Slug = LinkListService.NormalizeSlug( bag.Slug );
             var validation = ValidateBag( bag );
             if ( validation != null )
             {
@@ -246,7 +264,7 @@ namespace org.secc.LinkList.Blocks
                         var slugService = new ContentChannelItemSlugService( rockContext );
                         try
                         {
-                            slugService.SaveSlug( item.Id, channel.Id, bag.Slug.Trim(), existingSlug?.Id );
+                            slugService.SaveSlug( item.Id, channel.Id, bag.Slug, existingSlug?.Id );
                         }
                         catch ( Exception ex )
                         {
@@ -261,12 +279,11 @@ namespace org.secc.LinkList.Blocks
                 }
                 catch ( Exception ex )
                 {
-                    // Surface the innermost cause (EF wraps the real SqlException in a
-                    // generic "error executing the command definition" message), and log
-                    // it so it lands in Rock's exception log for diagnosis.
-                    var baseEx = ex.GetBaseException();
+                    // Full exception (including the innermost SqlException EF wraps)
+                    // goes to Rock's exception log; the client gets a generic message
+                    // so database/schema details never leak to the browser.
                     ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
-                    return ActionBadRequest( "Save failed: " + baseEx.Message );
+                    return ActionBadRequest( "Save failed. The error has been logged; contact an administrator if it persists." );
                 }
 
                 // Auto-create the list-specific security group on first save (mirrors the
@@ -286,9 +303,8 @@ namespace org.secc.LinkList.Blocks
                         // Log it and tell the user to re-save to (idempotently) create it.
                         ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
                         return ActionBadRequest(
-                            "The list was saved, but setting up edit access failed: "
-                            + ex.GetBaseException().Message
-                            + " Re-open the list and save again to finish access setup." );
+                            "The list was saved, but setting up edit access failed. "
+                            + "The error has been logged. Re-open the list and save again to finish access setup." );
                     }
                 }
                 else
@@ -437,13 +453,9 @@ namespace org.secc.LinkList.Blocks
             {
                 return "Title is required and must be 1-250 characters.";
             }
-            if ( !bag.Slug.IsNullOrWhiteSpace() )
+            if ( !bag.Slug.IsNullOrWhiteSpace() && !LinkListService.IsValidSlug( bag.Slug ) )
             {
-                var slug = bag.Slug.Trim();
-                if ( slug.Length > 200 || !System.Text.RegularExpressions.Regex.IsMatch( slug, "^[a-z0-9-]+$" ) )
-                {
-                    return "Slug must be 1-200 chars of lowercase letters, digits, or dashes.";
-                }
+                return "Slug must be 1-200 chars of letters, digits, or dashes.";
             }
             return null;
         }

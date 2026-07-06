@@ -4,6 +4,7 @@
     "scripts": {
         "build": "npm run typecheck && obsidian-build && npm run build:webcomponent",
         "build:webcomponent": "rollup -c rollup.webcomponent.config.cjs",
+        "deploy": "npm run build && xcopy /Y /R /E /I dist ..\\..\\..\\..\\Rock\\RockWeb\\Plugins\\org_secc\\LinkList",
         "typecheck": "vue-tsc --noEmit -p src",
         "watch": "obsidian-build --watch",
         "clean": "rimraf dist",

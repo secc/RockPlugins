@@ -21,7 +21,10 @@ import { groupIntoSections, hoistFeatured, isFeaturedLink, type SectionBlock } f
 // page. Styling is driven only by what's shipped here (no host CSS dependency);
 // per-list / preset effective* colors override the design defaults via CSS vars.
 
-const IDENTIFIER_PATTERN = /^[a-zA-Z0-9-]+$/;
+// Canonical identifier form is lowercase (matches the server's slug
+// normalization); resolveIdentifier() lowercases before this test, which
+// also covers numeric ids and GUIDs (hex + dashes).
+const IDENTIFIER_PATTERN = /^[a-z0-9-]+$/;
 const OBSERVED_ATTRIBUTES = [ "item-id", "slug-from-path", "slug-path-index", "base-url", "manual" ];
 
 // Adobe Fonts kit (IvyJournal) — loaded only when the org enables it (licensed
@@ -145,9 +148,11 @@ class SeccLinkListElement extends HTMLElement {
     }
 
     private resolveIdentifier(): string | null {
+        // Lowercase = the canonical form the server stores/resolves; a
+        // mixed-case slug in a shared URL still loads.
         const explicit = this.getAttribute( "item-id" );
         if ( explicit ) {
-            return explicit.trim();
+            return explicit.trim().toLowerCase();
         }
         const fromPath = ( this.getAttribute( "slug-from-path" ) || "" ).toLowerCase() === "true";
         if ( !fromPath ) {
@@ -159,9 +164,9 @@ class SeccLinkListElement extends HTMLElement {
         }
         const configuredIndex = Number.parseInt( this.getAttribute( "slug-path-index" ) || "0", 10 );
         if ( configuredIndex > 0 && configuredIndex <= parts.length ) {
-            return parts[configuredIndex - 1];
+            return parts[configuredIndex - 1].toLowerCase();
         }
-        return parts[parts.length - 1];
+        return parts[parts.length - 1].toLowerCase();
     }
 
     // -----------------------------------------------------------------------

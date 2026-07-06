@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <RockWebPath>..\..\Rock\RockWeb</RockWebPath>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('$(SolutionDir)RockWeb\Bin')">$(SolutionDir)RockWeb</RockWebPath>
     <AdditionalAssembliesToCopy></AdditionalAssembliesToCopy>
     <CopyToRockWeb>true</CopyToRockWeb>
   </PropertyGroup>
@@ -22,9 +22,7 @@
   <ItemGroup>
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
-    <!-- Provided by Rock at runtime. Resolved via $(RockWebPath) so the same csproj
-         builds in the local dev environment and in the Azure DevOps pipeline
-         (where BuildPlugin.ps1 passes /p:RockWebPath). Private=false so we use
+    <!-- Provided by Rock at runtime. Private=false so we compile against
          Rock's copy and never ship/overwrite it. -->
     <Reference Include="DotLiquid">
       <HintPath>$(RockWebPath)\Bin\DotLiquid.dll</HintPath>

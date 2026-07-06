@@ -86,6 +86,24 @@ describe("safeUrl", () => {
     });
     it("blocks dangerous schemes", () => {
         expect(safeUrl("javascript:alert(1)")).toBe("#");
+        expect(safeUrl("data:text/html,<script>alert(1)</script>")).toBe("#");
+        expect(safeUrl("vbscript:msgbox(1)")).toBe("#");
+        expect(safeUrl("file:///etc/passwd")).toBe("#");
         expect(safeUrl("")).toBe("#");
+    });
+    it("blocks schemes split by whitespace/control chars (browser strips them before parsing)", () => {
+        expect(safeUrl("java\tscript:alert(1)")).toBe("#");
+        expect(safeUrl("java\nscript:alert(1)")).toBe("#");
+        expect(safeUrl("java\rscript:alert(1)")).toBe("#");
+        expect(safeUrl("\u0000javascript:alert(1)")).toBe("#");
+        expect(safeUrl("j\u0001a\u0002vascript:alert(1)")).toBe("#");
+        expect(safeUrl("JAVA\tSCRIPT:alert(1)")).toBe("#");
+    });
+    it("treats an all-whitespace/control url as invalid", () => {
+        expect(safeUrl("\t\n \u0001")).toBe("#");
+    });
+    it("keeps legitimate urls containing hyphens and relative paths", () => {
+        expect(safeUrl("https://se.church/my-page")).toBe("https://se.church/my-page");
+        expect(safeUrl("/give/now")).toBe("/give/now");
     });
 });

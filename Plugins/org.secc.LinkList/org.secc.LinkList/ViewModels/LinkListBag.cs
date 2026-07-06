@@ -1,3 +1,17 @@
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
 using System;
 using System.Collections.Generic;
 
@@ -26,6 +40,13 @@ namespace org.secc.LinkList.ViewModels
         /// (for the management grid's "Modified" column).
         /// </summary>
         public System.DateTime? ModifiedDateTime { get; set; }
+
+        /// <summary>
+        /// True when the current person may delete this list (ADMINISTRATE on
+        /// the item - the same check the Delete block action enforces).
+        /// Populated only for the management grid; false elsewhere.
+        /// </summary>
+        public bool CanDelete { get; set; }
 
         /// <summary>
         /// GUID of the selected design preset (Defined Value under the

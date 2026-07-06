@@ -1,3 +1,17 @@
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -59,9 +73,14 @@ namespace org.secc.LinkList.Blocks
         /// <inheritdoc/>
         public override object GetObsidianBlockInitialization()
         {
-            // WS12: surface whether the current person can edit the org-wide global
-            // header/footer (Administrate on the LinkList ContentChannel).
+            // Mirror the auth checks the block actions enforce so the UI only
+            // offers what will actually succeed: Add requires EDIT on the
+            // LinkList channel (SaveList's create path), global settings need
+            // ADMINISTRATE on the channel. Delete is per-item (ADMINISTRATE on
+            // the item), surfaced per row via the grid's canDelete field; this
+            // flag only controls whether the delete column renders at all.
             var canManageGlobal = false;
+            var canAdd = false;
             if ( RequestContext.CurrentPerson != null )
             {
                 using ( var rockContext = new RockContext() )
@@ -69,13 +88,15 @@ namespace org.secc.LinkList.Blocks
                     var channel = new LinkListService( rockContext ).GetChannel();
                     canManageGlobal = channel != null
                         && channel.IsAuthorized( Authorization.ADMINISTRATE, RequestContext.CurrentPerson );
+                    canAdd = channel != null
+                        && channel.IsAuthorized( Authorization.EDIT, RequestContext.CurrentPerson );
                 }
             }
 
             return new LinkListListInitializationBox
             {
                 NavigationUrls = GetBoxNavigationUrls(),
-                IsAddEnabled = RequestContext.CurrentPerson != null,
+                IsAddEnabled = canAdd,
                 IsDeleteEnabled = RequestContext.CurrentPerson != null,
                 IsBlockVisible = RequestContext.CurrentPerson != null,
                 CanManageGlobalSettings = canManageGlobal
@@ -118,7 +139,8 @@ namespace org.secc.LinkList.Blocks
                         ["slug"] = b.Slug,
                         ["isPublic"] = b.IsPublic,
                         ["design"] = b.DesignName,
-                        ["modifiedDateTime"] = b.ModifiedDateTime
+                        ["modifiedDateTime"] = b.ModifiedDateTime,
+                        ["canDelete"] = b.CanDelete
                     } )
                     .ToList();
 

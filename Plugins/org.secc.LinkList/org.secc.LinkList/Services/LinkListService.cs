@@ -1,3 +1,17 @@
+// <copyright>
+// Copyright Southeast Christian Church
+//
+// Licensed under the  Southeast Christian Church License (the "License");
+// you may not use this file except in compliance with the License.
+// A copy of the License shoud be included with this file.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// </copyright>
+//
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -79,6 +93,38 @@ namespace org.secc.LinkList.Services
         }
 
         // ---------------------------------------------------------------------
+        // Slug normalization / validation (single source of truth)
+        // ---------------------------------------------------------------------
+
+        // Slugs are lowercase-only: Rock's SaveSlug/MakeSlugValid lowercases on
+        // write, so stored slugs never contain uppercase. Every entry point
+        // (editor validation, viewer, public REST) normalizes through
+        // NormalizeSlug and validates with IsValidSlug so mixed-case input in a
+        // URL still resolves while the canonical form stays consistent.
+        private static readonly System.Text.RegularExpressions.Regex SlugPattern =
+            new System.Text.RegularExpressions.Regex( @"^[a-z0-9-]+$", System.Text.RegularExpressions.RegexOptions.Compiled );
+
+        public const int MaxSlugLength = 200;
+
+        /// <summary>Canonical slug form: trimmed and lowercased (null stays null).</summary>
+        public static string NormalizeSlug( string slug )
+        {
+            return slug?.Trim().ToLowerInvariant();
+        }
+
+        /// <summary>
+        /// True when the value is a valid canonical slug: 1-200 chars of
+        /// lowercase letters, digits, or dashes. Callers should pass the
+        /// <see cref="NormalizeSlug"/> form.
+        /// </summary>
+        public static bool IsValidSlug( string slug )
+        {
+            return !string.IsNullOrWhiteSpace( slug )
+                && slug.Length <= MaxSlugLength
+                && SlugPattern.IsMatch( slug );
+        }
+
+        // ---------------------------------------------------------------------
         // Channel / template lookups
         // ---------------------------------------------------------------------
 
@@ -155,10 +201,12 @@ namespace org.secc.LinkList.Services
                 }
             }
 
-            // Slug lookup. Caller is responsible for slug-charset validation;
-            // we still hard-cap length here as a defense-in-depth measure.
-            var slug = idOrSlugOrGuid.Trim();
-            if ( slug.Length > 200 )
+            // Slug lookup, normalized to the canonical lowercase form (stored
+            // slugs are always lowercase). Caller is responsible for
+            // slug-charset validation; we still hard-cap length here as a
+            // defense-in-depth measure.
+            var slug = NormalizeSlug( idOrSlugOrGuid );
+            if ( slug.Length > MaxSlugLength )
             {
                 return null;
             }
@@ -224,16 +272,16 @@ namespace org.secc.LinkList.Services
 
             // Non-admins see only lists they can EDIT (the management permission).
             // Item attributes (IsPublic / Design) are read after the auth filter
-            // so only rows that will be returned get hydrated.
-            var result = new List<LinkListBag>();
-            foreach ( var item in items )
-            {
-                if ( !isAdmin && ( currentPerson == null || !item.IsAuthorized( Authorization.EDIT, currentPerson ) ) )
-                {
-                    continue;
-                }
-                item.LoadAttributes( _rockContext );
+            // so only rows that will be returned get hydrated - and in one
+            // bulk pass, not one round-trip per row.
+            var visibleItems = items
+                .Where( item => isAdmin || ( currentPerson != null && item.IsAuthorized( Authorization.EDIT, currentPerson ) ) )
+                .ToList();
+            visibleItems.LoadAttributes( _rockContext );
 
+            var result = new List<LinkListBag>();
+            foreach ( var item in visibleItems )
+            {
                 result.Add( new LinkListBag
                 {
                     Id = item.Id,
@@ -242,7 +290,12 @@ namespace org.secc.LinkList.Services
                     Slug = PrimarySlug( item ),
                     IsPublic = ReadIsPublic( item ),
                     DesignName = ResolveDesignName( item ),
-                    ModifiedDateTime = item.ModifiedDateTime
+                    ModifiedDateTime = item.ModifiedDateTime,
+
+                    // Mirror the exact check the List block's Delete action
+                    // enforces so the grid's delete button reflects reality.
+                    CanDelete = currentPerson != null
+                        && item.IsAuthorized( Authorization.ADMINISTRATE, currentPerson )
                 } );
             }
             return result;
@@ -518,12 +571,17 @@ namespace org.secc.LinkList.Services
             // import). Match legacy behavior: order by Order, then by the
             // matrix item's natural id as a stable tiebreaker, and emit a
             // normalized monotonic Order so the front end renders in sequence.
-            foreach ( var row in matrix.AttributeMatrixItems
+            var orderedRows = matrix.AttributeMatrixItems
                 .OrderBy( r => r.Order )
-                .ThenBy( r => r.Id ) )
-            {
-                row.LoadAttributes( _rockContext );
+                .ThenBy( r => r.Id )
+                .ToList();
 
+            // Bulk-load attributes for the whole row set in one pass instead of
+            // one round-trip per row (a 100-link list was 100 queries).
+            orderedRows.LoadAttributes( _rockContext );
+
+            foreach ( var row in orderedRows )
+            {
                 bags.Add( new LinkItemBag
                 {
                     Guid = row.Guid.ToString(),
@@ -686,6 +744,12 @@ namespace org.secc.LinkList.Services
                 // its own connection; each commits individually now that this method
                 // holds no wrapping transaction (see note above).
                 //
+                // Attributes are bulk-loaded for the whole row set in one pass
+                // (not one round-trip per row). Ids exist (SaveChanges above)
+                // and the qualifier lookup (AttributeMatrixTemplateId) resolves
+                // in-memory via the tracked AttributeMatrix navigation.
+                rows.LoadAttributes( _rockContext );
+
                 // WS10 invariant: at most ONE link row may be featured. The UI is
                 // radio-like, but enforce it server-side too (defense in depth) -
                 // the first featured link wins, the rest are cleared.
@@ -694,7 +758,6 @@ namespace org.secc.LinkList.Services
                 {
                     var row = rows[i];
                     var bagRow = incoming[i];
-                    row.LoadAttributes( _rockContext );
                     var normalizedType = NormalizeItemType( bagRow.ItemType );
                     SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.ItemType, normalizedType );
                     SetMatrixAttr( row, LinkListGuids.MatrixAttributeKey.Url, bagRow.Url ?? string.Empty );
@@ -1314,19 +1377,12 @@ namespace org.secc.LinkList.Services
             }
 
             // Grant EDIT to this group on the item. Inserts a new Auth row at
-            // Order 0 and shifts subsequent rules down by one.
+            // Order 0 and shifts subsequent rules down by one. No manual cache
+            // flush needed: AllowSecurityRole ends with RefreshAction for this
+            // entity/action, and the GroupMember insert above already flushed
+            // the role cache (GroupMember.UpdateCache runs inside SaveChanges
+            // for security-role groups).
             Authorization.AllowSecurityRole( item, Authorization.EDIT, group, _rockContext );
-
-            // Flush both the per-action cache for this entity AND the global
-            // cache so that subsequent IsAuthorized() calls reflect the new
-            // rule across all worker processes.
-            var entityTypeId = EntityTypeCache.Get( typeof( ContentChannelItem ) )?.Id;
-            if ( entityTypeId.HasValue )
-            {
-                Authorization.RefreshAction( entityTypeId.Value, item.Id, Authorization.EDIT, _rockContext );
-                Authorization.RefreshAction( entityTypeId.Value, item.Id, Authorization.VIEW, _rockContext );
-            }
-            Authorization.Clear();
 
             return group;
         }
@@ -1437,9 +1493,9 @@ namespace org.secc.LinkList.Services
                 _rockContext.SaveChanges();
             }
 
-            // Flush authorization cache so the new member's EDIT access takes effect immediately.
-            Authorization.Clear();
-
+            // No manual cache flush: saving a security-role GroupMember triggers
+            // GroupMember.UpdateCache (RoleCache.FlushItem + Authorization.Clear)
+            // inside SaveChanges, so the new member's EDIT access is already live.
             return new GroupMemberBag
             {
                 GroupMemberId = existing.Id,
@@ -1488,10 +1544,11 @@ namespace org.secc.LinkList.Services
                 return false;
             }
 
+            // Deleting a security-role GroupMember flushes the role/auth caches
+            // via GroupMember.UpdateCache inside SaveChanges - no manual flush.
             memberService.Delete( member );
             _rockContext.SaveChanges();
 
-            Authorization.Clear();
             return true;
         }
     }
