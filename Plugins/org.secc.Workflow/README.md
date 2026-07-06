@@ -37,7 +37,7 @@ flowchart TD
     B --> C["action.Execute(rockContext, action, entity, out errorMessages)"]
     C --> D[Read config via<br/>GetAttributeValue / GetActionAttributeValue]
     D --> E[Resolve Lava merge fields<br/>GetMergeFields + ResolveMergeFields]
-    E --> F[Do the work<br/>e.g. set attribute, send SMS, create image montage]
+    E --> F[Do the work<br/>e.g. set attribute, send SMS, remove a binary file]
     F --> G{return bool}
     G -->|true| H[Activity continues]
     G -->|false + errorMessages| I[Logged on the workflow action]
