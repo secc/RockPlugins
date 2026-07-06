@@ -133,7 +133,8 @@ namespace org.secc.Rest.Controllers
                         PhotoURL = person.PhotoUrl,
                         IsLeader = groupMember.GroupRole.IsLeader,
                         IsCurrentUser = groupMember.PersonId == currentUser.Person.Id,
-                        IsMinor = isMinor
+                        // Age-derived info is leader-gated like the other PII fields.
+                        IsMinor = isCurrentUserLeader && isMinor
                     };
 
                     // Check if the person is a minor (under 18) and get parent information
@@ -202,7 +203,10 @@ namespace org.secc.Rest.Controllers
             if ( message.GroupMemberId != 0 )
             {
                 var groupMember = _groupMemberService.Get( message.GroupMemberId );
-                if ( groupMember == null )
+
+                // The target must belong to the group the caller is authorized on;
+                // otherwise a caller could target members (and parents) of other groups.
+                if ( groupMember == null || groupMember.GroupId != groupId )
                 {
                     return NotFound();
                 }
