@@ -51,8 +51,8 @@
                     </div>
 
                     <div class="well">
-                        <h5>Camper Identification</h5>
-                        <p>Select the CSV columns that identify each camper. These will be matched against registrants in the selected registration instance.</p>
+                        <h5>Registrant Identification</h5>
+                        <p>Select the CSV columns that identify each person in the CSV. These will be matched against registrants in the selected registration instance.</p>
                         <div class="row">
                             <div class="col-md-6">
                                 <Rock:RockDropDownList ID="ddlFirstNameCol" runat="server" Label="First Name Column" Required="true" />
@@ -114,7 +114,7 @@
 
                     <Rock:Grid ID="gPreview" runat="server" AllowSorting="false" DataKeyNames="RowIndex" ShowActionRow="false" DisplayType="Light">
                         <Columns>
-                            <Rock:RockBoundField DataField="CsvName" HeaderText="Camper (CSV)" />
+                            <Rock:RockBoundField DataField="CsvName" HeaderText="Person (CSV)" />
                             <Rock:RockBoundField DataField="MatchedPerson" HeaderText="Matched Person" />
                             <Rock:RockBoundField DataField="PlacementSummary" HeaderText="Placements" />
                             <Rock:RockBoundField DataField="Status" HeaderText="Status" />
