@@ -185,7 +185,7 @@ namespace org.secc.Jobs.Event
                 int skippedCount = 0;
                 int errorCount = 0;
                 var resultRows = new List<ResultRow>();
-                
+
                 DateTime lastProgressUpdate = DateTime.UtcNow;
 
                 using ( var rockContext = new RockContext() )
@@ -221,6 +221,7 @@ namespace org.secc.Jobs.Event
                         .ToList();
 
                     var existingMembershipLookup = new Dictionary<string, GroupMember>();
+                    var existingMembershipsByKey = new Dictionary<string, List<GroupMember>>();
                     if ( allTargetGroupIds.Any() && allPersonIds.Any() )
                     {
                         var existingMembers = groupMemberService.Queryable()
@@ -228,11 +229,16 @@ namespace org.secc.Jobs.Event
                                        && allPersonIds.Contains( gm.PersonId ) )
                             .ToList();
 
-                        existingMembershipLookup = existingMembers
+                        // A person can hold multiple memberships in the same group (one per
+                        // role), so keep every row per person+group for role-aware selection.
+                        existingMembershipsByKey = existingMembers
                             .GroupBy( gm => MembershipKey( gm.PersonId, gm.GroupId ) )
+                            .ToDictionary( g => g.Key, g => g.ToList() );
+
+                        existingMembershipLookup = existingMembershipsByKey
                             .ToDictionary(
-                                g => g.Key,
-                                g => g
+                                kv => kv.Key,
+                                kv => kv.Value
                                     .OrderBy( gm => gm.IsArchived )
                                     .ThenBy( gm => gm.Id )
                                     .First() );
@@ -287,7 +293,7 @@ namespace org.secc.Jobs.Event
 
                         var resultRow = new ResultRow
                         {
-                            CsvRowNumber = rowIdx + 2, 
+                            CsvRowNumber = rowIdx + 2,
                             CamperName = csvFullName,
                             Placements = new List<PlacementResult>()
                         };
@@ -311,7 +317,8 @@ namespace org.secc.Jobs.Event
                                 errorCount++;
                             }
 
-                            if ( resultRows.Count < 200 ) resultRows.Add( resultRow );
+                            if ( resultRows.Count < 200 )
+                                resultRows.Add( resultRow );
                             processedRows++;
                             continue;
                         }
@@ -335,7 +342,8 @@ namespace org.secc.Jobs.Event
                                 errorCount++;
                             }
 
-                            if ( resultRows.Count < 200 ) resultRows.Add( resultRow );
+                            if ( resultRows.Count < 200 )
+                                resultRows.Add( resultRow );
                             processedRows++;
                             continue;
                         }
@@ -417,6 +425,27 @@ namespace org.secc.Jobs.Event
                             GroupMember existingMember;
                             existingMembershipLookup.TryGetValue( membershipKey, out existingMember );
 
+                            // On a leader import, prefer an existing leader-role membership when the
+                            // person holds multiple rows in this group. Promoting a non-leader row
+                            // while a leader row already exists would create a duplicate membership.
+                            if ( request.IsLeaderImport && existingMember != null )
+                            {
+                                List<GroupMember> allMembershipRows;
+                                if ( existingMembershipsByKey.TryGetValue( membershipKey, out allMembershipRows ) )
+                                {
+                                    var leaderRow = allMembershipRows
+                                        .Where( gm => groupTypeCache.Roles.Any( r => r.Id == gm.GroupRoleId && r.IsLeader ) )
+                                        .OrderBy( gm => gm.IsArchived )
+                                        .ThenBy( gm => gm.Id )
+                                        .FirstOrDefault();
+
+                                    if ( leaderRow != null )
+                                    {
+                                        existingMember = leaderRow;
+                                    }
+                                }
+                            }
+
                             if ( existingMember != null )
                             {
                                 bool existingRoleIsLeader = groupTypeCache != null
@@ -442,12 +471,29 @@ namespace org.secc.Jobs.Event
                                 }
                                 else if ( request.IsLeaderImport && !existingRoleIsLeader )
                                 {
-                                    // Existing member holds a non-leader role — update them to the leader role.
+                                    // Existing member holds a non-leader role — update them to the leader
+                                    // role. Validate the change so a conflicting membership surfaces as a
+                                    // row error instead of failing the whole batch save.
+                                    var previousRoleId = existingMember.GroupRoleId;
                                     existingMember.GroupRoleId = targetRoleId.Value;
-                                    placementResult.Outcome = PlacementOutcome.Success;
-                                    placementResult.Message = string.Format( "Updated role to leader in '{0}'", targetGroup.Name );
-                                    successCount++;
-                                    pendingSaves++;
+
+                                    if ( existingMember.IsValidGroupMember( rockContext ) )
+                                    {
+                                        placementResult.Outcome = PlacementOutcome.Success;
+                                        placementResult.Message = string.Format( "Updated role to leader in '{0}'", targetGroup.Name );
+                                        successCount++;
+                                        pendingSaves++;
+                                    }
+                                    else
+                                    {
+                                        existingMember.GroupRoleId = previousRoleId;
+                                        placementResult.Outcome = PlacementOutcome.Error;
+                                        placementResult.Message = string.Format(
+                                            "Could not update role to leader in '{0}': {1}",
+                                            targetGroup.Name,
+                                            string.Join( "; ", existingMember.ValidationResults.Select( v => v.ErrorMessage ) ) );
+                                        errorCount++;
+                                    }
                                 }
                                 else
                                 {
@@ -473,6 +519,14 @@ namespace org.secc.Jobs.Event
                                 groupMemberService.Add( groupMember );
                                 existingMembershipLookup[membershipKey] = groupMember;
 
+                                List<GroupMember> keyRows;
+                                if ( !existingMembershipsByKey.TryGetValue( membershipKey, out keyRows ) )
+                                {
+                                    keyRows = new List<GroupMember>();
+                                    existingMembershipsByKey[membershipKey] = keyRows;
+                                }
+                                keyRows.Add( groupMember );
+
                                 placementResult.Outcome = PlacementOutcome.Success;
                                 placementResult.Message = string.Format( "Added to '{0}'", targetGroup.Name );
                                 successCount++;
@@ -491,7 +545,8 @@ namespace org.secc.Jobs.Event
                             resultRow.Placements.Add( placementResult );
                         }
 
-                        if ( resultRows.Count < 200 ) resultRows.Add( resultRow );
+                        if ( resultRows.Count < 200 )
+                            resultRows.Add( resultRow );
                         processedRows++;
 
                         if ( pendingSaves >= batchSize )
@@ -500,7 +555,7 @@ namespace org.secc.Jobs.Event
                             pendingSaves = 0;
                         }
 
-                        if ( processedRows == totalRows || (DateTime.UtcNow - lastProgressUpdate).TotalSeconds >= 2 )
+                        if ( processedRows == totalRows || ( DateTime.UtcNow - lastProgressUpdate ).TotalSeconds >= 2 )
                         {
                             int pct = totalRows > 0
                                 ? ( int ) Math.Round( ( processedRows / ( double ) totalRows ) * 100 )
@@ -509,7 +564,7 @@ namespace org.secc.Jobs.Event
                             UpdateRunStatus( runId, ImportRunStatus.Running,
                                 string.Format( "Processing row {0} of {1}…", processedRows, totalRows ),
                                 pct, processedRows, totalRows );
-                            
+
                             lastProgressUpdate = DateTime.UtcNow;
                         }
                     }
@@ -912,7 +967,7 @@ WHERE [Id] = @runId",
                 sb.Append( "</tr>" );
             }
 
-            if ( totalRows > 200 ) 
+            if ( totalRows > 200 )
             {
                 sb.AppendFormat( "<tr><td colspan='100%' class='text-center text-muted'><i>Showing first 200 results... Please consult overall counts for final summaries.</i></td></tr>" );
             }
