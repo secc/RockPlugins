@@ -57,10 +57,10 @@ namespace org.secc.SafetyAndSecurity.Model
 
             return recipients;
         }
-        public void SendCommunication( Guid fromDefinedValue )
+        public void SendCommunication( Guid fromNumberGuid )
         {
             // Get the From value
-            var fromValue = SystemPhoneNumberCache.Get( fromDefinedValue );
+            var fromValue = SystemPhoneNumberCache.Get( fromNumberGuid );
 
 
             // Get the recipients
