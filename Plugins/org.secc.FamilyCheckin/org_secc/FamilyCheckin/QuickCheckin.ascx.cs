@@ -117,7 +117,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             if ( !Page.IsPostBack )
             {
-                var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, null, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
+                var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, null, new Rock.Lava.CommonMergeFieldsOptions() );
 
                 ltCompletion.Text = GetAttributeValue( AttributeKeys.CompletionHTML ).ResolveMergeFields( mergeFields );
                 ltNoneFound.Text = GetAttributeValue( AttributeKeys.NoneFound ).ResolveMergeFields( mergeFields );

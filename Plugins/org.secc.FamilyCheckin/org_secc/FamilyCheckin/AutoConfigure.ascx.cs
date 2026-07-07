@@ -389,7 +389,9 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             kiosk.CategoryId = CategoryCache.GetId( Constants.KIOSK_CATEGORY_STAFFUSER.AsGuid() );
             rockContext.SaveChanges();
 
-            SetBlockUserPreference( "KioskTypeId", kioskType.Id.ToString() );
+            var preferences = GetBlockPersonPreferences();
+            preferences.SetValue( "KioskTypeId", kioskType.Id.ToString() );
+            preferences.Save();
 
             ActivateKiosk( kiosk, false );
         }
@@ -415,7 +417,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             ddlKioskType.DataSource = kioskTypes;
             ddlKioskType.DataBind();
 
-            var preSelectedKioskTypeId = GetBlockUserPreference( "KioskTypeId" ).AsInteger();
+            var preSelectedKioskTypeId = GetBlockPersonPreferences().GetValue( "KioskTypeId" ).AsInteger();
             if ( kioskTypes.Where( k => k.Id == preSelectedKioskTypeId ).Any() )
             {
                 ddlManualKioskType.SelectedValue = preSelectedKioskTypeId.ToString();

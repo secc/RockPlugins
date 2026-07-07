@@ -37,7 +37,7 @@ namespace RockWeb.Plugins.org_secc.RoomScanner
         {
             if ( !Page.IsPostBack )
             {
-                dpDate.Text = GetUserPreference( "RoomScannerExport" + BlockCache.Id.ToString() );
+                dpDate.Text = GetGlobalPersonPreferences().GetValue( "RoomScannerExport" + BlockCache.Id.ToString() );
             }
         }
 
@@ -146,7 +146,9 @@ drawChart();", combined, peopleString );
         protected void dpDate_TextChanged( object sender, EventArgs e )
         {
             var date = dpDate.Text;
-            SetUserPreference( "RoomScannerExport" + BlockCache.Id.ToString(), date );
+            var preferences = GetGlobalPersonPreferences();
+            preferences.SetValue( "RoomScannerExport" + BlockCache.Id.ToString(), date );
+            preferences.Save();
         }
     }
 }

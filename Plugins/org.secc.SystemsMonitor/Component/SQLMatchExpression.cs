@@ -51,7 +51,7 @@ namespace org.secc.SystemsMonitor.Component
             try
             {
                 var query = test.GetAttributeValue( "SQLQuery" );
-                object sqlResult = DbService.ExecuteScaler( query, System.Data.CommandType.Text );
+                object sqlResult = DbService.ExecuteScalar( query, System.Data.CommandType.Text );
                 if ( sqlResult != null )
                 {
                     string resultValue = sqlResult.ToString();

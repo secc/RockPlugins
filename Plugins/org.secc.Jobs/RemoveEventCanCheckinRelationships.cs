@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Web.Cache;
 using System.Data.Entity;
@@ -17,16 +17,14 @@ using System.Data.Entity;
 namespace org.secc.Jobs
 {
     [DisplayName("Remove Can/Allow Event Checkin Relationships")]
-    public class RemoveEventCanCheckinRelationships : IJob
+    public class RemoveEventCanCheckinRelationships : RockJob
     {
 
         const string EventCanCheckinRelationshipGuid = "1758C197-8C6F-4727-A52B-37FA19603C35";
         const string EventAllowCheckinByRelationshipGuid = "0CAF69B9-9C8D-4222-BAF8-31C54BA0C123";
 
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
-
             var groupType = GroupTypeCache.Get( Rock.SystemGuid.GroupType.GROUPTYPE_KNOWN_RELATIONSHIPS );
             var canCheckinRole = groupType.Roles.Where( r => r.Guid == EventCanCheckinRelationshipGuid.AsGuid() )
                 .SingleOrDefault();

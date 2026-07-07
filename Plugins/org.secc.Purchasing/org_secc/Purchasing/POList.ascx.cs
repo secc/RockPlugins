@@ -170,7 +170,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             SortProperty sortProperty = dgPurchaseOrders.SortProperty;
 
-            if ( GetUserPreferences( PersonSettingKeyPrefix ).Count() > 0 )
+            var preferences = GetGlobalPersonPreferences();
+
+            if ( preferences.GetKeys().Where( k => k.StartsWith( PersonSettingKeyPrefix ) ).Count() > 0 )
             {
                 var POListItems = PurchaseOrder.GetPurchaseOrderList( BuildFilter() );
 
@@ -179,8 +181,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 if ( sortProperty == null )
                 {
                     sortProperty = new SortProperty();
-                    sortProperty.Direction = GetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingKeyPrefix ) ) == "ASC" ? SortDirection.Ascending : SortDirection.Descending;
-                    sortProperty.Property = GetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingKeyPrefix ) );
+                    sortProperty.Direction = preferences.GetValue( string.Format( "{0}_Sort_Direction", PersonSettingKeyPrefix ) ) == "ASC" ? SortDirection.Ascending : SortDirection.Descending;
+                    sortProperty.Property = preferences.GetValue( string.Format( "{0}_Sort_Column", PersonSettingKeyPrefix ) );
                     if ( string.IsNullOrEmpty( sortProperty.Property ) )
                     {
                         sortProperty.Property = "PurchaseOrderID";
@@ -198,8 +200,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                         {
                             POListItems = POListItems.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
                         }
-                        SetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingKeyPrefix ), sortProperty.DirectionString );
-                        SetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingKeyPrefix ), sortProperty.Property );
+                        preferences.SetValue( string.Format( "{0}_Sort_Direction", PersonSettingKeyPrefix ), sortProperty.DirectionString );
+                        preferences.SetValue( string.Format( "{0}_Sort_Column", PersonSettingKeyPrefix ), sortProperty.Property );
+                        preferences.Save();
                     }
                     catch ( NullReferenceException )
                     {
@@ -382,11 +385,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void LoadUserFilterSettings()
         {
+            var preferences = GetGlobalPersonPreferences();
+
             foreach ( ListItem item in cbListStatus.Items )
             {
                 bool IsSelected = false;
                 string KeyName = string.Format( "{0}_Status_{1}", PersonSettingKeyPrefix, item.Value );
-                bool.TryParse( GetUserPreference( KeyName ), out IsSelected );
+                bool.TryParse( preferences.GetValue( KeyName ), out IsSelected );
                 item.Selected = IsSelected;
             }
 
@@ -394,45 +399,45 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 bool IsSelected = false;
                 string KeyName = string.Format( "{0}_Type_{1}", PersonSettingKeyPrefix, item.Value );
-                bool.TryParse( GetUserPreference( KeyName ), out IsSelected );
+                bool.TryParse( preferences.GetValue( KeyName ), out IsSelected );
                 item.Selected = IsSelected;
             }
 
             DateTime OrderedOnStart;
-            DateTime.TryParse( GetUserPreference( string.Format( "{0}_OrderedOnStart", PersonSettingKeyPrefix ) ), out OrderedOnStart );
+            DateTime.TryParse( preferences.GetValue( string.Format( "{0}_OrderedOnStart", PersonSettingKeyPrefix ) ), out OrderedOnStart );
             if ( OrderedOnStart > DateTime.MinValue )
                 txtOrderDate.LowerValue = OrderedOnStart;
 
             DateTime OrderedOnEnd;
-            DateTime.TryParse( GetUserPreference( string.Format( "{0}_OrderedOnEnd", PersonSettingKeyPrefix ) ), out OrderedOnEnd );
+            DateTime.TryParse( preferences.GetValue( string.Format( "{0}_OrderedOnEnd", PersonSettingKeyPrefix ) ), out OrderedOnEnd );
             if ( OrderedOnEnd > DateTime.MinValue )
                 txtOrderDate.UpperValue = OrderedOnEnd;
 
             int OrderedByPersonID = 0;
-            int.TryParse( GetUserPreference( string.Format( "{0}_OrderedBy", PersonSettingKeyPrefix ) ), out OrderedByPersonID );
+            int.TryParse( preferences.GetValue( string.Format( "{0}_OrderedBy", PersonSettingKeyPrefix ) ), out OrderedByPersonID );
 
             int PONumber = 0;
-            int.TryParse( GetUserPreference( string.Format( "{0}_PONumber", PersonSettingKeyPrefix ) ), out PONumber );
+            int.TryParse( preferences.GetValue( string.Format( "{0}_PONumber", PersonSettingKeyPrefix ) ), out PONumber );
             if ( PONumber > 0 )
                 txtPONumber.Text = PONumber.ToString();
 
             int VendorID = 0;
-            int.TryParse( GetUserPreference( string.Format( "{0}_VendorID", PersonSettingKeyPrefix ) ), out VendorID );
+            int.TryParse( preferences.GetValue( string.Format( "{0}_VendorID", PersonSettingKeyPrefix ) ), out VendorID );
             if ( VendorID > 0 && ddlVendor.Items.FindByValue( VendorID.ToString() ) != null )
                 ddlVendor.SelectedValue = VendorID.ToString();
 
             DateTime PaymentStart;
-            DateTime.TryParse( GetUserPreference( string.Format( "{0}_PaymentStart", PersonSettingKeyPrefix ) ), out PaymentStart );
+            DateTime.TryParse( preferences.GetValue( string.Format( "{0}_PaymentStart", PersonSettingKeyPrefix ) ), out PaymentStart );
             if ( PaymentStart > DateTime.MinValue )
                 drpPaymentDate.LowerValue = PaymentStart;
 
             DateTime PaymentEnd;
-            DateTime.TryParse( GetUserPreference( string.Format( "{0}_PaymentEnd", PersonSettingKeyPrefix ) ), out PaymentEnd );
+            DateTime.TryParse( preferences.GetValue( string.Format( "{0}_PaymentEnd", PersonSettingKeyPrefix ) ), out PaymentEnd );
             if ( PaymentEnd > DateTime.MinValue )
                 drpPaymentDate.UpperValue = PaymentEnd;
 
             int PaymentMethodID = 0;
-            int.TryParse( GetUserPreference( string.Format( "{0}_PaymentMethodID", PersonSettingKeyPrefix ) ), out PaymentMethodID );
+            int.TryParse( preferences.GetValue( string.Format( "{0}_PaymentMethodID", PersonSettingKeyPrefix ) ), out PaymentMethodID );
             if ( PaymentMethodID > 0 && ddlPaymentMethod.Items.FindByValue( PaymentMethodID.ToString() ) != null )
                 ddlPaymentMethod.SelectedValue = PaymentMethodID.ToString();
 
@@ -448,10 +453,10 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
             bool ShowInactive = false;
-            bool.TryParse( GetUserPreference( string.Format( "{0}_ShowInactive", PersonSettingKeyPrefix ) ), out ShowInactive );
+            bool.TryParse( preferences.GetValue( string.Format( "{0}_ShowInactive", PersonSettingKeyPrefix ) ), out ShowInactive );
             chkShowInactive.Checked = ShowInactive;
 
-            tbGLAccount.Text = GetUserPreference( string.Format( "{0}_GLAccount", PersonSettingKeyPrefix ) );
+            tbGLAccount.Text = preferences.GetValue( string.Format( "{0}_GLAccount", PersonSettingKeyPrefix ) );
 
         }
 
@@ -469,62 +474,65 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SaveUserFilterSettings()
         {
+            var preferences = GetGlobalPersonPreferences();
+
             foreach ( ListItem item in cbListStatus.Items )
             {
-                SetUserPreference( string.Format( "{0}_Status_{1}", PersonSettingKeyPrefix, item.Value ), item.Selected.ToString() );
+                preferences.SetValue( string.Format( "{0}_Status_{1}", PersonSettingKeyPrefix, item.Value ), item.Selected.ToString() );
             }
 
             foreach ( ListItem item in cbListType.Items )
             {
-                SetUserPreference( string.Format( "{0}_Type_{1}", PersonSettingKeyPrefix, item.Value ), item.Selected.ToString() );
+                preferences.SetValue( string.Format( "{0}_Type_{1}", PersonSettingKeyPrefix, item.Value ), item.Selected.ToString() );
             }
 
             if ( txtOrderDate.LowerValue.HasValue )
-                SetUserPreference( string.Format( "{0}_OrderedOnStart", PersonSettingKeyPrefix ), txtOrderDate.LowerValue.Value.ToShortDateString() );
+                preferences.SetValue( string.Format( "{0}_OrderedOnStart", PersonSettingKeyPrefix ), txtOrderDate.LowerValue.Value.ToShortDateString() );
             else
-                SetUserPreference( string.Format( "{0}_OrderedOnStart", PersonSettingKeyPrefix ), String.Empty );
+                preferences.SetValue( string.Format( "{0}_OrderedOnStart", PersonSettingKeyPrefix ), String.Empty );
 
             if ( txtOrderDate.UpperValue.HasValue )
-                SetUserPreference( string.Format( "{0}_OrderedOnEnd", PersonSettingKeyPrefix ), txtOrderDate.UpperValue.Value.ToShortDateString() );
+                preferences.SetValue( string.Format( "{0}_OrderedOnEnd", PersonSettingKeyPrefix ), txtOrderDate.UpperValue.Value.ToShortDateString() );
             else
-                SetUserPreference( string.Format( "{0}_OrderedOnEnd", PersonSettingKeyPrefix ), String.Empty );
+                preferences.SetValue( string.Format( "{0}_OrderedOnEnd", PersonSettingKeyPrefix ), String.Empty );
 
             if ( ucStaffPicker.StaffPersonAliasId.HasValue )
-                SetUserPreference( string.Format( "{0}_OrderedBy", PersonSettingKeyPrefix ), ucStaffPicker.StaffPersonAliasId.Value.ToString() );
+                preferences.SetValue( string.Format( "{0}_OrderedBy", PersonSettingKeyPrefix ), ucStaffPicker.StaffPersonAliasId.Value.ToString() );
             else
-                SetUserPreference( string.Format( "{0}_OrderedBy", PersonSettingKeyPrefix ), String.Empty );
+                preferences.SetValue( string.Format( "{0}_OrderedBy", PersonSettingKeyPrefix ), String.Empty );
 
             int PONumber = 0;
             int.TryParse( txtPONumber.Text, out PONumber );
             if ( PONumber > 0 )
-                SetUserPreference( string.Format( "{0}_PONumber", PersonSettingKeyPrefix ), PONumber.ToString() );
+                preferences.SetValue( string.Format( "{0}_PONumber", PersonSettingKeyPrefix ), PONumber.ToString() );
             else
-                SetUserPreference( string.Format( "{0}_PONumber", PersonSettingKeyPrefix ), String.Empty );
+                preferences.SetValue( string.Format( "{0}_PONumber", PersonSettingKeyPrefix ), String.Empty );
 
             int VendorID = 0;
             int.TryParse( ddlVendor.SelectedValue, out VendorID );
-            SetUserPreference( string.Format( "{0}_VendorID", PersonSettingKeyPrefix ), VendorID.ToString() );
+            preferences.SetValue( string.Format( "{0}_VendorID", PersonSettingKeyPrefix ), VendorID.ToString() );
 
 
             if ( drpPaymentDate.LowerValue.HasValue )
-                SetUserPreference( string.Format( "{0}_PaymentStart", PersonSettingKeyPrefix ), drpPaymentDate.LowerValue.Value.ToShortDateString() );
+                preferences.SetValue( string.Format( "{0}_PaymentStart", PersonSettingKeyPrefix ), drpPaymentDate.LowerValue.Value.ToShortDateString() );
             else
-                SetUserPreference( string.Format( "{0}_PaymentStart", PersonSettingKeyPrefix ), String.Empty );
+                preferences.SetValue( string.Format( "{0}_PaymentStart", PersonSettingKeyPrefix ), String.Empty );
 
             if ( drpPaymentDate.UpperValue.HasValue )
-                SetUserPreference( string.Format( "{0}_PaymentEnd", PersonSettingKeyPrefix ), drpPaymentDate.UpperValue.Value.ToShortDateString() );
+                preferences.SetValue( string.Format( "{0}_PaymentEnd", PersonSettingKeyPrefix ), drpPaymentDate.UpperValue.Value.ToShortDateString() );
             else
-                SetUserPreference( string.Format( "{0}_PaymentEnd", PersonSettingKeyPrefix ), String.Empty );
+                preferences.SetValue( string.Format( "{0}_PaymentEnd", PersonSettingKeyPrefix ), String.Empty );
 
             int PaymentMethodID = 0;
             int.TryParse( ddlPaymentMethod.SelectedValue, out PaymentMethodID );
-            SetUserPreference( string.Format( "{0}_PaymentMethodID", PersonSettingKeyPrefix ), PaymentMethodID.ToString() );
+            preferences.SetValue( string.Format( "{0}_PaymentMethodID", PersonSettingKeyPrefix ), PaymentMethodID.ToString() );
 
 
-            SetUserPreference( string.Format( "{0}_ShowInactive", PersonSettingKeyPrefix ), chkShowInactive.Checked.ToString() );
+            preferences.SetValue( string.Format( "{0}_ShowInactive", PersonSettingKeyPrefix ), chkShowInactive.Checked.ToString() );
 
-            SetUserPreference( string.Format( "{0}_GLAccount", PersonSettingKeyPrefix ), tbGLAccount.Text );
+            preferences.SetValue( string.Format( "{0}_GLAccount", PersonSettingKeyPrefix ), tbGLAccount.Text );
 
+            preferences.Save();
 
         }
 

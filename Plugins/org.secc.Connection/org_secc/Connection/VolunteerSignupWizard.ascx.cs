@@ -570,7 +570,7 @@ namespace org.secc.Connection
 
         private RockListBox AddColumnFilter( PartitionSettings partition, List<ListItem> listItems, string label )
         {
-            var filterSelections = GetBlockUserPreference( partition.Guid + "_filter" ).Split( ',' );
+            var filterSelections = GetBlockPersonPreferences().GetValue( partition.Guid + "_filter" ).Split( ',' );
             listItems.ForEach( li => li.Selected = filterSelections.Contains( li.Value ) );
             var filterListBox = new RockListBox();
             filterListBox.Items.AddRange( listItems.ToArray() );
@@ -1334,14 +1334,16 @@ namespace org.secc.Connection
 
         protected void gFilter_ApplyFilterClick( object sender, EventArgs e )
         {
+            var preferences = GetBlockPersonPreferences();
             foreach ( var control in gFilter.Controls )
             {
                 if ( control is RockListBox )
                 {
                     var rockListBox = ( RockListBox ) control;
-                    SetBlockUserPreference( rockListBox.ID, rockListBox.SelectedValues.JoinStrings( "," ) );
+                    preferences.SetValue( rockListBox.ID, rockListBox.SelectedValues.JoinStrings( "," ) );
                 }
             }
+            preferences.Save();
         }
 
         private void HideRows()
@@ -1381,7 +1383,7 @@ namespace org.secc.Connection
 
         protected void gFilter_ClearFilterClick( object sender, EventArgs e )
         {
-
+            var preferences = GetBlockPersonPreferences();
             foreach ( var control in gFilter.Controls )
             {
                 if ( control is RockListBox )
@@ -1391,9 +1393,10 @@ namespace org.secc.Connection
                     {
                         item.Selected = false;
                     }
-                    DeleteBlockUserPreference( rockListBox.ID );
+                    preferences.SetValue( rockListBox.ID, string.Empty );
                 }
             }
+            preferences.Save();
         }
     }
 }

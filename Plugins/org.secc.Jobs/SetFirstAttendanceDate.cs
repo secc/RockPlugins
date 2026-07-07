@@ -15,28 +15,26 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Web.Cache;
 
 namespace org.secc.Jobs
 {
-    [DisallowConcurrentExecution]
     [IntegerField( "Command Timeout", "Maximum amount of time (in seconds) to wait for the SQL Query to complete. Leave blank to use the default for this job (3600). Note, it could take several minutes, so you might want to set it at 3600 (60 minutes) or higher", false, 60 * 60, "General", 1, "CommandTimeout" )]
     [IntegerField( "Take", "Number of people to run qry against at a time", false, 1000, "General", 1, "Take" )]
     public class SetFirstAttendanceDate
-        : IJob
+        : RockJob
     {
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
 
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
             var rockContext = new RockContext();
 
-            var commandTimeout = dataMap.GetString( "CommandTimeout" ).AsIntegerOrNull() ?? 3600;
+            var commandTimeout = GetAttributeValue( "CommandTimeout" ).AsIntegerOrNull() ?? 3600;
             rockContext.Database.CommandTimeout = commandTimeout;
 
             AttributeValueService attributeValueService = new AttributeValueService( rockContext );
@@ -66,7 +64,7 @@ namespace org.secc.Jobs
             var eraStartQry = attributeValueService.Queryable()
                 .Where( av => av.AttributeId == eraStartDateAttribute.Id );
 
-            var take = dataMap.GetString( "Take" ).AsIntegerOrNull() ?? 1000;
+            var take = GetAttributeValue( "Take" ).AsIntegerOrNull() ?? 1000;
 
             //Linq!
             var people = personService.Queryable()              //Get all the people
@@ -270,7 +268,7 @@ namespace org.secc.Jobs
 
                 if ( counter % 100 == 0 )
                 {
-                    var jobId = context.GetJobId();
+                    var jobId = ServiceJobId;
                     var jobService = new ServiceJobService( rockContext );
                     var job = jobService.Get( jobId );
                     if ( job != null )

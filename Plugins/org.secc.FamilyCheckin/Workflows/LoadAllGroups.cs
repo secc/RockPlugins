@@ -84,7 +84,7 @@ namespace org.secc.FamilyCheckin
                                 foreach ( var kioskGroup in kioskGroupType.KioskGroups )
                                 {
                                     bool validGroup = true;
-                                    if ( groupType.GroupType.AttendanceRule == AttendanceRule.AlreadyBelongs )
+                                    if ( groupType.GroupType.AttendanceRule == AttendanceRule.AlreadyEnrolledInGroup )
                                     {
                                         validGroup = new GroupMemberService( rockContext ).Queryable()
                                             .Any( m =>

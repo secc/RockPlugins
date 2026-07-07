@@ -82,7 +82,10 @@ namespace RockWeb.Plugins.org_secc.OAuth
             base.OnLoad( e );
 
             var returnurl = PageParameter( PageParameterKeys.ReturnUrl );
-            returnurl = StringExtensions.ScrubEncodedStringForXSSObjects( returnurl );
+            if ( returnurl.RedirectUrlContainsXss() )
+            {
+                returnurl = "%2f";
+            }
             returnurl = Server.UrlDecode( returnurl );
 
             //If already logged in send them back

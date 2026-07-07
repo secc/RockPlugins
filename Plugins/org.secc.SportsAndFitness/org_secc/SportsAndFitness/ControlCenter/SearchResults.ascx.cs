@@ -303,7 +303,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 .ThenBy(p => p.PersonResult.NickName)
                 .ToList();
 
-            var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, CurrentPerson, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
+            var mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, CurrentPerson, new Rock.Lava.CommonMergeFieldsOptions() );
             mergeFields.Add( "SearchResults", results );
             mergeFields.Add( "LinkedPageUrl", LinkedPageRoute( AttributeKey.PersonDetail ) );
 

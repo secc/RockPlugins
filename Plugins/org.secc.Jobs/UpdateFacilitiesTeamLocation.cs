@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Web.Cache;
 using System.Data.SqlClient;
@@ -41,23 +41,21 @@ namespace org.secc.Jobs
         IsRequired = true,
         Key = "MinistryAreaKey" )]
 
-    [DisallowConcurrentExecution]
-    public class UpdateFacilitiesTeamLocation : IJob
+    public class UpdateFacilitiesTeamLocation : RockJob
     {
         DefinedValueCache CentralSupportDV = null;
         DefinedValueCache FacilitiesDV = null;
         string LocationKey = null;
         string MinistryKey = null;
 
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            JobDataMap datamap = context.JobDetail.JobDataMap;
             var rockContext = new RockContext();
 
-            CentralSupportDV = DefinedValueCache.Get( datamap.GetString( "Location" ).AsGuid(), rockContext );
-            FacilitiesDV = DefinedValueCache.Get( datamap.GetString( "MinistryArea" ).AsGuid(), rockContext );
-            LocationKey = datamap.GetString( "LocationAttributeKey" ).Trim();
-            MinistryKey = datamap.GetString( "MinistryAreaKey" ).Trim();
+            CentralSupportDV = DefinedValueCache.Get( GetAttributeValue( "Location" ).AsGuid(), rockContext );
+            FacilitiesDV = DefinedValueCache.Get( GetAttributeValue( "MinistryArea" ).AsGuid(), rockContext );
+            LocationKey = GetAttributeValue( "LocationAttributeKey" ).Trim();
+            MinistryKey = GetAttributeValue( "MinistryAreaKey" ).Trim();
 
             var facilityStaffToMove = GetStaffMembersToUpdate( rockContext );
 

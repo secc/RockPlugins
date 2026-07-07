@@ -88,7 +88,7 @@ namespace RockWeb.Blocks.CheckIn
 
             _rockContext = new RockContext();
 
-            cbShowInactive.Checked = GetUserPreference( BlockCache.Guid.ToString() + "_showInactive" ).AsBoolean();
+            cbShowInactive.Checked = GetGlobalPersonPreferences().GetValue( BlockCache.Guid.ToString() + "_showInactive" ).AsBoolean();
 
             // Determine if the block should be for a specific group
             _isGroupSpecific = GetAttributeValue( "GroupSpecific" ).AsBoolean();
@@ -679,21 +679,23 @@ function(item) {
         {
             string keyPrefix = string.Format( "attendance-reporting-{0}-", this.BlockId );
 
-            this.SetUserPreference( keyPrefix + "TemplateGroupTypeId", ddlAttendanceType.SelectedGroupTypeId.ToString(), false );
+            var preferences = GetGlobalPersonPreferences();
 
-            this.SetUserPreference( keyPrefix + "SlidingDateRange", drpSlidingDateRange.DelimitedValues, false );
-            this.SetUserPreference( keyPrefix + "GroupBy", hfGroupBy.Value, false );
-            this.SetUserPreference( keyPrefix + "GraphBy", hfGraphBy.Value, false );
-            this.SetUserPreference( keyPrefix + "CampusIds", clbCampuses.SelectedValues.AsDelimited( "," ), false );
-            this.SetUserPreference( keyPrefix + "ScheduleIds", spSchedules.SelectedValues.ToList().AsDelimited( "," ), false );
-            this.SetUserPreference( keyPrefix + "DataView", dvpDataView.SelectedValue, false );
+            preferences.SetValue( keyPrefix + "TemplateGroupTypeId", ddlAttendanceType.SelectedGroupTypeId.ToString() );
+
+            preferences.SetValue( keyPrefix + "SlidingDateRange", drpSlidingDateRange.DelimitedValues );
+            preferences.SetValue( keyPrefix + "GroupBy", hfGroupBy.Value );
+            preferences.SetValue( keyPrefix + "GraphBy", hfGraphBy.Value );
+            preferences.SetValue( keyPrefix + "CampusIds", clbCampuses.SelectedValues.AsDelimited( "," ) );
+            preferences.SetValue( keyPrefix + "ScheduleIds", spSchedules.SelectedValues.ToList().AsDelimited( "," ) );
+            preferences.SetValue( keyPrefix + "DataView", dvpDataView.SelectedValue );
 
             var selectedGroupIds = GetSelectedGroupIds( false );
-            this.SetUserPreference( keyPrefix + "GroupIds", selectedGroupIds.AsDelimited( "," ), false );
+            preferences.SetValue( keyPrefix + "GroupIds", selectedGroupIds.AsDelimited( "," ) );
 
-            this.SetUserPreference( keyPrefix + "ShowBy", hfShowBy.Value, false );
+            preferences.SetValue( keyPrefix + "ShowBy", hfShowBy.Value );
 
-            this.SetUserPreference( keyPrefix + "ViewBy", hfViewBy.Value, false );
+            preferences.SetValue( keyPrefix + "ViewBy", hfViewBy.Value );
 
             AttendeesFilterBy attendeesFilterBy;
             if ( radByVisit.Checked )
@@ -709,18 +711,18 @@ function(item) {
                 attendeesFilterBy = AttendeesFilterBy.All;
             }
 
-            this.SetUserPreference( keyPrefix + "AttendeesFilterByType", attendeesFilterBy.ConvertToInt().ToString(), false );
-            this.SetUserPreference( keyPrefix + "AttendeesFilterByVisit", ddlNthVisit.SelectedValue, false );
-            this.SetUserPreference( keyPrefix + "AttendeesFilterByPattern", string.Format( "{0}|{1}|{2}|{3}", tbPatternXTimes.Text, cbPatternAndMissed.Checked, tbPatternMissedXTimes.Text, drpPatternDateRange.DelimitedValues ), false );
+            preferences.SetValue( keyPrefix + "AttendeesFilterByType", attendeesFilterBy.ConvertToInt().ToString() );
+            preferences.SetValue( keyPrefix + "AttendeesFilterByVisit", ddlNthVisit.SelectedValue );
+            preferences.SetValue( keyPrefix + "AttendeesFilterByPattern", string.Format( "{0}|{1}|{2}|{3}", tbPatternXTimes.Text, cbPatternAndMissed.Checked, tbPatternMissedXTimes.Text, drpPatternDateRange.DelimitedValues ) );
 
-            this.SaveUserPreferences( keyPrefix );
+            preferences.Save();
 
             // Create URL for selected settings
             var pageReference = CurrentPageReference;
-            foreach ( var setting in GetUserPreferences( keyPrefix ) )
+            foreach ( var settingKey in preferences.GetKeys().Where( k => k.StartsWith( keyPrefix ) ) )
             {
-                string key = setting.Key.Substring( keyPrefix.Length );
-                pageReference.Parameters.AddOrReplace( key, setting.Value );
+                string key = settingKey.Substring( keyPrefix.Length );
+                pageReference.Parameters.AddOrReplace( key, preferences.GetValue( settingKey ) );
             }
 
             Uri uri = new Uri( Request.Url.ToString() );
@@ -790,7 +792,7 @@ function(item) {
             if ( !_isGroupSpecific )
             {
                 ddlAttendanceType.SelectedGroupTypeId = GetSetting( keyPrefix, "TemplateGroupTypeId" ).AsIntegerOrNull();
-                cbIncludeGroupsWithoutSchedule.Checked = this.GetBlockUserPreference( "IncludeGroupsWithoutSchedule" ).AsBooleanOrNull() ?? true;
+                cbIncludeGroupsWithoutSchedule.Checked = GetBlockPersonPreferences().GetValue( "IncludeGroupsWithoutSchedule" ).AsBooleanOrNull() ?? true;
                 BuildGroupTypesUI( false );
             }
 
@@ -827,10 +829,10 @@ function(item) {
                 {
                     string campusKey = keyPrefix + "CampusIds";
 
-                    var sessionPreferences = RockPage.SessionUserPreferences();
-                    if ( sessionPreferences.ContainsKey( campusKey ) )
+                    var globalPreferences = GetGlobalPersonPreferences();
+                    if ( globalPreferences.ContainsKey( campusKey ) )
                     {
-                        campusIdList = sessionPreferences[campusKey].Split( ',' ).ToList();
+                        campusIdList = globalPreferences.GetValue( campusKey ).Split( ',' ).ToList();
                         clbCampuses.SetValues( campusIdList );
                     }
                     else
@@ -953,7 +955,7 @@ function(item) {
                 return setting;
             }
 
-            return this.GetUserPreference( prefix + key );
+            return GetGlobalPersonPreferences().GetValue( prefix + key );
         }
 
         /// <summary>
@@ -1473,7 +1475,7 @@ function(item) {
 
                     {
                         int personId = ( int ) row["PersonId"];
-                        allAttendeeVisits.AddOrIgnore( personId, new AttendeeVisits() );
+                        allAttendeeVisits.TryAdd( personId, new AttendeeVisits() );
                         var result = allAttendeeVisits[personId];
                         result.PersonId = personId;
 
@@ -1575,7 +1577,7 @@ function(item) {
                         foreach ( DataRow row in dtAttendeeDatesMissed.Rows )
                         {
                             int personId = ( int ) row["PersonId"];
-                            missedResults.AddOrIgnore( personId, new AttendeeResult() );
+                            missedResults.TryAdd( personId, new AttendeeResult() );
                             var missedResult = missedResults[personId];
                             missedResult.PersonId = personId;
 
@@ -2126,7 +2128,7 @@ function(item) {
                         } )
                         .Where( l => l.Location != null ) )
                     {
-                        _personLocations.AddOrIgnore( item.PersonId, item.Location );
+                        _personLocations.TryAdd( item.PersonId, item.Location );
                     }
                 }
             }
@@ -2605,7 +2607,7 @@ function(item) {
             {
                 _addedGroupTypeIds.Add( groupType.Id );
 
-                bool showInactive = GetUserPreference( BlockCache.Guid.ToString() + "_showInactive" ).AsBoolean();
+                bool showInactive = GetGlobalPersonPreferences().GetValue( BlockCache.Guid.ToString() + "_showInactive" ).AsBoolean();
 
                 if ( ( groupType.Groups.Any() && showInactive ) || groupType.Groups.Where( g => g.IsActive ).Any() )
                 {
@@ -3010,7 +3012,9 @@ function(item) {
 
         protected void cbShowInactive_CheckedChanged( object sender, EventArgs e )
         {
-            SetUserPreference( BlockCache.Guid.ToString() + "_showInactive", cbShowInactive.Checked.ToString() );
+            var preferences = GetGlobalPersonPreferences();
+            preferences.SetValue( BlockCache.Guid.ToString() + "_showInactive", cbShowInactive.Checked.ToString() );
+            preferences.Save();
             BuildGroupTypesUI( true );
         }
 
@@ -3022,7 +3026,9 @@ function(item) {
         protected void cbIncludeGroupsWithoutSchedule_CheckedChanged( object sender, EventArgs e )
         {
             // NOTE: OnLoad already rebuilt the GroupTypes UI with the changed value of cbIncludeGroupsWithoutSchedule , so we just need to set it as a preference
-            this.SetBlockUserPreference( "IncludeGroupsWithoutSchedule", cbIncludeGroupsWithoutSchedule.Checked.ToTrueFalse() );
+            var preferences = GetBlockPersonPreferences();
+            preferences.SetValue( "IncludeGroupsWithoutSchedule", cbIncludeGroupsWithoutSchedule.Checked.ToTrueFalse() );
+            preferences.Save();
         }
 
         protected void gpGroups_SelectItem( object sender, EventArgs e )

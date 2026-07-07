@@ -216,13 +216,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             ConfigureRequisitionGrid();
             List<RequisitionListItem> Requisitions = GetRequisitions();
 
+            var preferences = GetGlobalPersonPreferences();
+
             SortProperty sortProperty = dgRequisitions.SortProperty;
             // Check User Preferences to see if we have a pre-existing sort property
             if ( sortProperty == null )
             {
                 sortProperty = new SortProperty();
-                sortProperty.Direction = GetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingsKeyPrefix ) ) == "ASC" ? SortDirection.Ascending : SortDirection.Descending;
-                sortProperty.Property = GetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingsKeyPrefix ) );
+                sortProperty.Direction = preferences.GetValue( string.Format( "{0}_Sort_Direction", PersonSettingsKeyPrefix ) ) == "ASC" ? SortDirection.Ascending : SortDirection.Descending;
+                sortProperty.Property = preferences.GetValue( string.Format( "{0}_Sort_Column", PersonSettingsKeyPrefix ) );
                 if ( string.IsNullOrEmpty( sortProperty.Property ) )
                 {
                     sortProperty.Property = "DateSubmitted";
@@ -252,8 +254,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                         Requisitions = Requisitions.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
                     }
                 }
-                SetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingsKeyPrefix ), sortProperty.DirectionString );
-                SetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingsKeyPrefix ), sortProperty.Property );
+                preferences.SetValue( string.Format( "{0}_Sort_Direction", PersonSettingsKeyPrefix ), sortProperty.DirectionString );
+                preferences.SetValue( string.Format( "{0}_Sort_Column", PersonSettingsKeyPrefix ), sortProperty.Property );
+                preferences.Save();
             }
             else
             {
@@ -494,7 +497,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             List<RequisitionListItem> Requisitions = new List<RequisitionListItem>();
 
 
-            if ( GetUserPreferences( "" ).Where( s => s.Key.Contains( PersonSettingsKeyPrefix ) ).Count() > 0 )
+            if ( GetGlobalPersonPreferences().GetKeys().Where( k => k.Contains( PersonSettingsKeyPrefix ) ).Count() > 0 )
             {
                 Requisitions.AddRange( Requisition.GetRequisitionList( BuildFilter() ) );
             }
@@ -532,11 +535,13 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void LoadUserFilterSettings()
         {
+            var preferences = GetGlobalPersonPreferences();
+
             foreach ( ListItem item in cbListStatus.Items )
             {
                 bool IsSelected = false;
                 string KeyName = string.Format( "{0}_Status_{1}", PersonSettingsKeyPrefix, item.Value );
-                bool.TryParse( GetUserPreference( KeyName ), out IsSelected );
+                bool.TryParse( preferences.GetValue( KeyName ), out IsSelected );
                 item.Selected = IsSelected;
             }
 
@@ -544,7 +549,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 bool IsSelected = false;
                 string KeyName = string.Format( "{0}_RequisitionsBy_{1}", PersonSettingsKeyPrefix, item.Value );
-                bool.TryParse( GetUserPreference( KeyName ), out IsSelected );
+                bool.TryParse( preferences.GetValue( KeyName ), out IsSelected );
 
                 item.Selected = IsSelected;
             }
@@ -553,12 +558,12 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 bool IsSelected = false;
                 string KeyName = string.Format( "{0}_RequisitionType_{1}", PersonSettingsKeyPrefix, item.Value );
-                bool.TryParse( GetUserPreference( KeyName ), out IsSelected );
+                bool.TryParse( preferences.GetValue( KeyName ), out IsSelected );
                 item.Selected = IsSelected;
             }
 
             int poNumber;
-            if ( int.TryParse( GetUserPreference( string.Format( "{0}_PONumber", PersonSettingsKeyPrefix ) ), out poNumber ) && poNumber > 0 )
+            if ( int.TryParse( preferences.GetValue( string.Format( "{0}_PONumber", PersonSettingsKeyPrefix ) ), out poNumber ) && poNumber > 0 )
             {
                 txtPONumber.Text = poNumber.ToString();
             }
@@ -568,19 +573,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
 
             DateTime SubmittedOnStart;
-            DateTime.TryParse( GetUserPreference( string.Format( "{0}_SubmittedOnStart", PersonSettingsKeyPrefix ) ), out SubmittedOnStart );
+            DateTime.TryParse( preferences.GetValue( string.Format( "{0}_SubmittedOnStart", PersonSettingsKeyPrefix ) ), out SubmittedOnStart );
             if ( SubmittedOnStart > DateTime.MinValue )
                 txtFilterSubmitted.LowerValue = SubmittedOnStart;
 
             DateTime SubmittedOnEnd;
-            DateTime.TryParse( GetUserPreference( string.Format( "{0}_SubmittedOnEnd", PersonSettingsKeyPrefix ) ), out SubmittedOnEnd );
+            DateTime.TryParse( preferences.GetValue( string.Format( "{0}_SubmittedOnEnd", PersonSettingsKeyPrefix ) ), out SubmittedOnEnd );
             if ( SubmittedOnEnd > DateTime.MinValue )
                 txtFilterSubmitted.UpperValue = SubmittedOnEnd;
 
             if ( hfFilterSubmittedBy.Visible )
             {
                 int RequesterID = 0;
-                int.TryParse( GetUserPreference( string.Format( "{0}_RequesterID", PersonSettingsKeyPrefix ) ), out RequesterID );
+                int.TryParse( preferences.GetValue( string.Format( "{0}_RequesterID", PersonSettingsKeyPrefix ) ), out RequesterID );
                 if ( RequesterID > 0 )
                 {
                     hfFilterSubmittedBy.StaffPersonAliasId = RequesterID;
@@ -599,7 +604,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( ddlMinistry.Visible )
             {
                 int MinistryID = 0;
-                int.TryParse( GetUserPreference( string.Format( "{0}_MinistryLUID", PersonSettingsKeyPrefix ) ), out MinistryID );
+                int.TryParse( preferences.GetValue( string.Format( "{0}_MinistryLUID", PersonSettingsKeyPrefix ) ), out MinistryID );
 
                 if ( MinistryID > 0 )
                 {
@@ -613,7 +618,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( ddlLocation.Visible )
             {
                 int LocationID = 0;
-                int.TryParse( GetUserPreference( string.Format( "{0}_LocationLUID", PersonSettingsKeyPrefix ) ), out LocationID );
+                int.TryParse( preferences.GetValue( string.Format( "{0}_LocationLUID", PersonSettingsKeyPrefix ) ), out LocationID );
 
                 if ( LocationID > 0 )
                 {
@@ -628,7 +633,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( chkShowInactive.Visible )
             {
                 bool ShowInactive = false;
-                bool.TryParse( GetUserPreference( string.Format( "{0}_ShowInactive", PersonSettingsKeyPrefix ) ), out ShowInactive );
+                bool.TryParse( preferences.GetValue( string.Format( "{0}_ShowInactive", PersonSettingsKeyPrefix ) ), out ShowInactive );
                 chkShowInactive.Checked = ShowInactive;
             }
         }
@@ -647,19 +652,21 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SaveUserFilterSettings()
         {
+            var preferences = GetGlobalPersonPreferences();
+
             foreach ( ListItem item in cbListStatus.Items )
             {
-                SetUserPreference( string.Format( "{0}_Status_{1}", PersonSettingsKeyPrefix, item.Value ), item.Selected.ToString() );
+                preferences.SetValue( string.Format( "{0}_Status_{1}", PersonSettingsKeyPrefix, item.Value ), item.Selected.ToString() );
             }
 
             foreach ( ListItem item in cbShow.Items )
             {
-                SetUserPreference( string.Format( "{0}_RequisitionsBy_{1}", PersonSettingsKeyPrefix, item.Value ), item.Selected.ToString() );
+                preferences.SetValue( string.Format( "{0}_RequisitionsBy_{1}", PersonSettingsKeyPrefix, item.Value ), item.Selected.ToString() );
             }
 
             foreach ( ListItem item in cbListType.Items )
             {
-                SetUserPreference( string.Format( "{0}_RequisitionType_{1}", PersonSettingsKeyPrefix, item.Value ), item.Selected.ToString() );
+                preferences.SetValue( string.Format( "{0}_RequisitionType_{1}", PersonSettingsKeyPrefix, item.Value ), item.Selected.ToString() );
             }
 
             DateTime SubmittedOnStart = DateTime.MinValue;
@@ -668,9 +675,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 SubmittedOnStart = txtFilterSubmitted.LowerValue.Value;
             }
             if ( SubmittedOnStart > DateTime.MinValue )
-                SetUserPreference( string.Format( "{0}_SubmittedOnStart", PersonSettingsKeyPrefix ), SubmittedOnStart.ToShortDateString() );
+                preferences.SetValue( string.Format( "{0}_SubmittedOnStart", PersonSettingsKeyPrefix ), SubmittedOnStart.ToShortDateString() );
             else
-                SetUserPreference( string.Format( "{0}_SubmittedOnStart", PersonSettingsKeyPrefix ), String.Empty );
+                preferences.SetValue( string.Format( "{0}_SubmittedOnStart", PersonSettingsKeyPrefix ), String.Empty );
 
             DateTime SubmittedOnEnd = DateTime.MinValue;
             if ( txtFilterSubmitted.UpperValue.HasValue )
@@ -678,30 +685,30 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 SubmittedOnEnd = txtFilterSubmitted.UpperValue.Value;
             }
             if ( SubmittedOnEnd > DateTime.MinValue )
-                SetUserPreference( string.Format( "{0}_SubmittedOnEnd", PersonSettingsKeyPrefix ), SubmittedOnEnd.ToShortDateString() );
+                preferences.SetValue( string.Format( "{0}_SubmittedOnEnd", PersonSettingsKeyPrefix ), SubmittedOnEnd.ToShortDateString() );
             else
-                SetUserPreference( string.Format( "{0}_SubmittedOnEnd", PersonSettingsKeyPrefix ), String.Empty );
+                preferences.SetValue( string.Format( "{0}_SubmittedOnEnd", PersonSettingsKeyPrefix ), String.Empty );
 
             int poNumber = 0;
 
             if ( int.TryParse( txtPONumber.Text, out poNumber ) && poNumber > 0 )
             {
-                SetUserPreference( string.Format( "{0}_PONumber", PersonSettingsKeyPrefix ), poNumber.ToString() );
+                preferences.SetValue( string.Format( "{0}_PONumber", PersonSettingsKeyPrefix ), poNumber.ToString() );
             }
             else
             {
-                SetUserPreference( string.Format( "{0}_PONumber", PersonSettingsKeyPrefix ), String.Empty );
+                preferences.SetValue( string.Format( "{0}_PONumber", PersonSettingsKeyPrefix ), String.Empty );
             }
 
             if ( hfFilterSubmittedBy.Visible && hfFilterSubmittedBy.StaffPersonAliasId.HasValue )
-                SetUserPreference( string.Format( "{0}_RequesterID", PersonSettingsKeyPrefix ), hfFilterSubmittedBy.StaffPersonAliasId.Value.ToString() );
+                preferences.SetValue( string.Format( "{0}_RequesterID", PersonSettingsKeyPrefix ), hfFilterSubmittedBy.StaffPersonAliasId.Value.ToString() );
             else
-                SetUserPreference( string.Format( "{0}_RequesterID", PersonSettingsKeyPrefix ), String.Empty );
+                preferences.SetValue( string.Format( "{0}_RequesterID", PersonSettingsKeyPrefix ), String.Empty );
 
             if ( chkShowInactive.Visible )
-                SetUserPreference( string.Format( "{0}_ShowInactive", PersonSettingsKeyPrefix ), chkShowInactive.Checked.ToString() );
+                preferences.SetValue( string.Format( "{0}_ShowInactive", PersonSettingsKeyPrefix ), chkShowInactive.Checked.ToString() );
             else
-                SetUserPreference( string.Format( "{0}_ShowInactive", PersonSettingsKeyPrefix ), "False" );
+                preferences.SetValue( string.Format( "{0}_ShowInactive", PersonSettingsKeyPrefix ), "False" );
 
             int LocationID = 0;
             if ( ddlLocation.Visible )
@@ -711,11 +718,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if ( LocationID > 0 )
             {
-                SetUserPreference( string.Format( "{0}_LocationLUID", PersonSettingsKeyPrefix ), LocationID.ToString() );
+                preferences.SetValue( string.Format( "{0}_LocationLUID", PersonSettingsKeyPrefix ), LocationID.ToString() );
             }
             else
             {
-                SetUserPreference( string.Format( "{0}_LocationLUID", PersonSettingsKeyPrefix ), String.Empty );
+                preferences.SetValue( string.Format( "{0}_LocationLUID", PersonSettingsKeyPrefix ), String.Empty );
             }
 
             int MinistryID = 0;
@@ -726,12 +733,14 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if ( MinistryID > 0 )
             {
-                SetUserPreference( string.Format( "{0}_MinistryLUID", PersonSettingsKeyPrefix ), MinistryID.ToString() );
+                preferences.SetValue( string.Format( "{0}_MinistryLUID", PersonSettingsKeyPrefix ), MinistryID.ToString() );
             }
             else
             {
-                SetUserPreference( string.Format( "{0}_MinistryLUID", PersonSettingsKeyPrefix ), String.Empty );
+                preferences.SetValue( string.Format( "{0}_MinistryLUID", PersonSettingsKeyPrefix ), String.Empty );
             }
+
+            preferences.Save();
 
         }
 

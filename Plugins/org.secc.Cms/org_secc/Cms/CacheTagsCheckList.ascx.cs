@@ -150,12 +150,14 @@ namespace RockWeb.Plugins.org_secc.Cms
 
         protected void Save()
         {
-            SetUserPreference( "checkbox-selected-values-preference", GetSelectedValues() );
+            var preferences = GetGlobalPersonPreferences();
+            preferences.SetValue( "checkbox-selected-values-preference", GetSelectedValues() );
+            preferences.Save();
         }
 
         protected void LoadPreferences()
         {
-            string usersselectedvalues = GetUserPreference( "checkbox-selected-values-preference" );
+            string usersselectedvalues = GetGlobalPersonPreferences().GetValue( "checkbox-selected-values-preference" );
             IEnumerable<string> setvalues = usersselectedvalues.Split( ',' ).ToList();
             cbl.SetValues( setvalues );
         }

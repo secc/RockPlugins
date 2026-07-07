@@ -18,17 +18,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Web.Cache;
 
 namespace org.secc.Jobs
 {
     [SlidingDateRangeField( "Date Range", "The date range of transactions to include", true, "Previous|12|Month||" )]
-    public class FrontPorchDeviceRemoval : IJob
+    public class FrontPorchDeviceRemoval : RockJob
     {
         int devicesProcessed = 0;
         int deviceErrors = 0;
@@ -37,16 +37,15 @@ namespace org.secc.Jobs
         List<string> _exceptionMsgs;
 
 
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
             var rockContext = new RockContext();
             _processingErrors = new List<string>();
             _exceptionMsgs = new List<string>();
 
 
             // Load all of the attributes
-            DateRange dateRange = Rock.Web.UI.Controls.SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( dataMap.GetString( "DateRange" ) ?? "-12||" );
+            DateRange dateRange = Rock.Web.UI.Controls.SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( GetAttributeValue( "DateRange" ) ?? "-12||" );
 
             var personalDevices = new PersonalDeviceService( rockContext ).Queryable()
                 .Where( pd => pd.ModifiedDateTime <= dateRange.Start );
@@ -138,7 +137,7 @@ namespace org.secc.Jobs
                 throw new Exception( "One or more exceptions occurred processing devices..." + Environment.NewLine + _exceptionMsgs.AsDelimited( Environment.NewLine ) );
             }
 
-            context.Result = resultMsg.ToString();
+            Result = resultMsg.ToString();
 
 
 

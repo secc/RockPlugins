@@ -101,7 +101,9 @@ namespace RockWeb.Plugins.org_secc.CMS
                 //Reset our clock when we look at our dashboard.
                 if ( PageCache.Guid == GetAttributeValue( "MyDashboardPage" ).AsGuid() )
                 {
-                    SetUserPreference( "LastViewedDashboard", Rock.RockDateTime.Now.ToString() );
+                    var preferences = GetGlobalPersonPreferences();
+                    preferences.SetValue( "LastViewedDashboard", Rock.RockDateTime.Now.ToString() );
+                    preferences.Save();
                 }
 
                 phHello.Visible = true;
@@ -208,7 +210,7 @@ namespace RockWeb.Plugins.org_secc.CMS
 
         private int GetNotificationCount()
         {
-            var lastChecked = GetUserPreference( "LastViewedDashboard" ).AsDateTime();
+            var lastChecked = GetGlobalPersonPreferences().GetValue( "LastViewedDashboard" ).AsDateTime();
             if ( !lastChecked.HasValue )
             {
                 lastChecked = RockDateTime.Now.AddMonths( -3 );

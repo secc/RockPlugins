@@ -3,10 +3,10 @@ using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
 
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Web.Cache;
 
@@ -21,17 +21,14 @@ namespace org.secc.Jobs.Event
         Description = "When the relationship should expire.",
         IsRequired = true )]
     [DisplayName( "Create Event Check In Relationships" )]
-    [DisallowConcurrentExecution]
-    public class AddEventCanCheckinRelationships : IJob
+    public class AddEventCanCheckinRelationships : RockJob
     {
         const string EventCanCheckinRelationshipGuid = "1758C197-8C6F-4727-A52B-37FA19603C35";
         const string EventAllowCheckinByRelationshipGuid = "0CAF69B9-9C8D-4222-BAF8-31C54BA0C123";
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
-
-            var registrationTemplateGuid = dataMap.GetString( "RegistrationTemplate" ).AsGuid();
-            var expirationDateTime = dataMap.GetString( "ExpirationDateTime" ).AsDateTime();
+            var registrationTemplateGuid = GetAttributeValue( "RegistrationTemplate" ).AsGuid();
+            var expirationDateTime = GetAttributeValue( "ExpirationDateTime" ).AsDateTime();
 
             using (var rockContext = new RockContext())
             {

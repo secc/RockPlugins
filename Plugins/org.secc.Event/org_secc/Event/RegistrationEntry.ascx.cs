@@ -2635,7 +2635,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 var family = registrar.GetFamily( rockContext );
                 if ( family != null )
                 {
-                    multipleFamilyGroupIds.AddOrIgnore( RegistrationState.FamilyGuid, family.Id );
+                    multipleFamilyGroupIds.TryAdd( RegistrationState.FamilyGuid, family.Id );
                     if ( !singleFamilyId.HasValue )
                     {
                         singleFamilyId = family.Id;
@@ -3265,7 +3265,7 @@ namespace RockWeb.Plugins.org_secc.Event
                 if ( family != null )
                 {
                     familyId = family.Id;
-                    multipleFamilyGroupIds.AddOrIgnore( familyGuid, family.Id );
+                    multipleFamilyGroupIds.TryAdd( familyGuid, family.Id );
                     if ( !singleFamilyId.HasValue )
                     {
                         singleFamilyId = family.Id;
@@ -3299,7 +3299,7 @@ namespace RockWeb.Plugins.org_secc.Event
                         familyId = familyGroup.Id;
 
                         // Store the family id for next person
-                        multipleFamilyGroupIds.AddOrIgnore( familyGuid, familyGroup.Id );
+                        multipleFamilyGroupIds.TryAdd( familyGuid, familyGroup.Id );
                         if ( !singleFamilyId.HasValue )
                         {
                             singleFamilyId = familyGroup.Id;
@@ -3623,14 +3623,9 @@ namespace RockWeb.Plugins.org_secc.Event
                     transaction.FinancialPaymentDetail = new FinancialPaymentDetail();
                 }
 
-                DefinedValueCache currencyType = null;
-                DefinedValueCache creditCardType = null;
-
                 if ( paymentInfo != null )
                 {
                     transaction.FinancialPaymentDetail.SetFromPaymentInfo( paymentInfo, gateway, rockContext );
-                    currencyType = paymentInfo.CurrencyTypeValue;
-                    creditCardType = paymentInfo.CreditCardTypeValue;
                 }
 
                 Guid sourceGuid = Guid.Empty;
@@ -3670,12 +3665,7 @@ namespace RockWeb.Plugins.org_secc.Event
                     }
 
                     // Get the batch
-                    var batch = batchService.Get(
-                        batchPrefix,
-                        currencyType,
-                        creditCardType,
-                        transaction.TransactionDateTime.Value,
-                        RegistrationTemplate.FinancialGateway.GetBatchTimeOffset() );
+                    var batch = batchService.GetForNewTransaction( transaction, batchPrefix );
 
                     if ( batch.Id == 0 )
                     {

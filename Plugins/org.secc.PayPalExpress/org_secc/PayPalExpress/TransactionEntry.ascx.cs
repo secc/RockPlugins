@@ -42,6 +42,7 @@ using Rock.Attribute;
 using Rock.Data;
 using Rock.Financial;
 using Rock.Model;
+using Rock.Tasks;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 
@@ -734,12 +735,7 @@ namespace org.secc.PayPalExpress
             var batchService = new FinancialBatchService( rockContext );
 
             // Get the batch
-            var batch = batchService.Get(
-                GetAttributeValue( "BatchNamePrefix" ),
-                paymentInfo.CurrencyTypeValue,
-                paymentInfo.CreditCardTypeValue,
-                transaction.TransactionDateTime.Value,
-                financialGateway.GetBatchTimeOffset() );
+            var batch = batchService.GetForNewTransaction( transaction, GetAttributeValue( "BatchNamePrefix" ) );
 
             var batchChanges = new History.HistoryChangeList();
 
@@ -792,10 +788,12 @@ namespace org.secc.PayPalExpress
             Guid? recieptEmail = GetAttributeValue( "ReceiptEmail" ).AsGuidOrNull();
             if ( recieptEmail.HasValue )
             {
-                // Queue a transaction to send reciepts
-                var newTransactionIds = new List<int> { transactionId };
-                var sendPaymentRecieptsTxn = new Rock.Transactions.SendPaymentReceipts( recieptEmail.Value, newTransactionIds );
-                Rock.Transactions.RockQueue.TransactionQueue.Enqueue( sendPaymentRecieptsTxn );
+                // Queue a bus message to send reciepts
+                new Rock.Tasks.ProcessSendPaymentReceiptEmails.Message
+                {
+                    SystemEmailGuid = recieptEmail.Value,
+                    TransactionId = transactionId
+                }.Send();
             }
         }
 

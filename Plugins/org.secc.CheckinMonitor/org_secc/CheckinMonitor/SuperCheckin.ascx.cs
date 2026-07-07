@@ -185,7 +185,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             if ( approvedPeople.PersistedScheduleIntervalMinutes.HasValue && approvedPeople.PersistedLastRefreshDateTime.HasValue )
             {
                 //Get record from persisted.
-                return _rockContext.DataViewPersistedValues
+                return _rockContext.Set<DataViewPersistedValue>()
                     .Where( a => a.DataViewId == approvedPeople.Id )
                     .Select( a => a.EntityId )
                     .ToList();

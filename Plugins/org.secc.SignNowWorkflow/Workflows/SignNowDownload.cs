@@ -27,6 +27,11 @@ using Rock.SignNow;
 using Rock.Web.Cache;
 using Rock.Workflow;
 
+// The Rock.SignNow provider and bundled SignNowSDK are obsolete in Rock 16 with no
+// direct replacement API. Suppressed pending retirement of the legacy SignNow
+// e-signature workflow.
+#pragma warning disable 612, 618
+
 namespace org.secc.SignNowWorkflow
 {
     [ActionCategory( "SECC > Sign Now" )]
@@ -138,3 +143,4 @@ namespace org.secc.SignNowWorkflow
         }
     }
 }
+#pragma warning restore 612, 618

@@ -1,7 +1,7 @@
-﻿using Quartz;
-using Rock;
+﻿using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Web.Cache;
 using System;
@@ -14,7 +14,6 @@ using System.Linq;
 
 namespace org.secc.Jobs
 {
-    [DisallowConcurrentExecution]
     [DisplayName( "Easter SEKids Attendance Analytics Pull" )]
     [DateField( "Easter Sunday Date",
         Description = "The Sunday that Easter falls on.",
@@ -41,28 +40,26 @@ namespace org.secc.Jobs
         Key = "CommandTimeout",
         DefaultIntegerValue = 30,
         Order = 3 )]
-    public class EasterChildrensAttendance : IJob
+    public class EasterChildrensAttendance : RockJob
     {
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            var jobMap = context.JobDetail.JobDataMap;
-
-            var commandTimeout = jobMap.GetString( "CommandTimeout" ).AsInteger();
+            var commandTimeout = GetAttributeValue( "CommandTimeout" ).AsInteger();
 
             if (commandTimeout < 30)
             {
                 commandTimeout = 30;
             }
 
-            var endDate = jobMap.GetString( "EasterDate" ).AsDateTime();
+            var endDate = GetAttributeValue( "EasterDate" ).AsDateTime();
             var startDate = endDate.Value.AddDays( -6 );
 
-            var checkinScheduleCategoryGuids = jobMap.GetString( "CheckinSchedules" ).SplitDelimitedValues()
+            var checkinScheduleCategoryGuids = GetAttributeValue( "CheckinSchedules" ).SplitDelimitedValues()
                 .Select( s => s.AsGuidOrNull() )
                 .Where( s => s.HasValue )
                 .ToList();
 
-            var worshipScheduleCategoryGuids = jobMap.GetString( "WorshipSchedules" ).SplitDelimitedValues()
+            var worshipScheduleCategoryGuids = GetAttributeValue( "WorshipSchedules" ).SplitDelimitedValues()
                 .Select( s => s.AsGuidOrNull() )
                 .Where( s => s.HasValue )
                 .ToList();

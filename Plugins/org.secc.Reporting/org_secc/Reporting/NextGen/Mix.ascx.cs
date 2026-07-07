@@ -227,12 +227,13 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     (obj, pn) => new { GroupMember = obj.GroupMember, Location = obj.Location, SignatureDocuments = obj.SignatureDocuments, PhoneNumbers = pn });
 
 
-                if (!String.IsNullOrWhiteSpace(GetUserPreference(string.Format("{0}PersonName", keyPrefix)))) {
-                    string personName = GetUserPreference(string.Format("{0}PersonName", keyPrefix)).ToLower();
+                var preferences = GetGlobalPersonPreferences();
+                if (!String.IsNullOrWhiteSpace(preferences.GetValue(string.Format("{0}PersonName", keyPrefix)))) {
+                    string personName = preferences.GetValue(string.Format("{0}PersonName", keyPrefix)).ToLower();
                     qry = qry.ToList().Where(q => q.GroupMember.Person.FullName.ToLower().Contains(personName)).AsQueryable();
                 }
-                decimal? lowerVal = GetUserPreference(string.Format("{0}BalanceOwedLower", keyPrefix)).AsDecimalOrNull();
-                decimal? upperVal = GetUserPreference(string.Format("{0}BalanceOwedUpper", keyPrefix)).AsDecimalOrNull();
+                decimal? lowerVal = preferences.GetValue(string.Format("{0}BalanceOwedLower", keyPrefix)).AsDecimalOrNull();
+                decimal? upperVal = preferences.GetValue(string.Format("{0}BalanceOwedUpper", keyPrefix)).AsDecimalOrNull();
 
                 if (lowerVal != null && upperVal != null)
                 {
@@ -330,9 +331,9 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 gReport.CommunicateMergeFields = mergeFields;
 
                 /*
-                if (!String.IsNullOrWhiteSpace(GetUserPreference(string.Format("{0}POA", keyPrefix))))
+                if (!String.IsNullOrWhiteSpace(preferences.GetValue(string.Format("{0}POA", keyPrefix))))
                 {
-                    string poa = GetUserPreference(string.Format("{0}POA", keyPrefix));
+                    string poa = preferences.GetValue(string.Format("{0}POA", keyPrefix));
                     if (poa == "[Blank]") 
                     {
                         poa = "";
@@ -515,12 +516,13 @@ namespace RockWeb.Blocks.Reporting.NextGen
         /// </summary>
         private void LoadGridFilters()
         {
-            txtPersonName.Text = GetUserPreference(string.Format("{0}PersonName", keyPrefix));
-            nreBalanceOwed.LowerValue = GetUserPreference(string.Format("{0}BalanceOwedLower", keyPrefix)).AsDecimalOrNull();
-            nreBalanceOwed.UpperValue = GetUserPreference(string.Format("{0}BalanceOwedUpper", keyPrefix)).AsDecimalOrNull();
+            var preferences = GetGlobalPersonPreferences();
+            txtPersonName.Text = preferences.GetValue(string.Format("{0}PersonName", keyPrefix));
+            nreBalanceOwed.LowerValue = preferences.GetValue(string.Format("{0}BalanceOwedLower", keyPrefix)).AsDecimalOrNull();
+            nreBalanceOwed.UpperValue = preferences.GetValue(string.Format("{0}BalanceOwedUpper", keyPrefix)).AsDecimalOrNull();
             ddlPOA.DataSource = new List<string> { "", "[Blank]", "Yes", "N/A" };
             ddlPOA.DataBind();
-            ddlPOA.SelectedValue = GetUserPreference(string.Format("{0}POA", keyPrefix));
+            ddlPOA.SelectedValue = preferences.GetValue(string.Format("{0}POA", keyPrefix));
         }
 
         private void ShowMessage(string message, string header = "Information", string cssClass = "panel panel-warning")
@@ -770,34 +772,38 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
         protected void gfReport_ApplyFilterClick(object sender, EventArgs e)
         {
+            var preferences = GetGlobalPersonPreferences();
             if (!string.IsNullOrWhiteSpace(txtPersonName.Text))
-                SetUserPreference(string.Format("{0}PersonName", keyPrefix), txtPersonName.Text);
+                preferences.SetValue(string.Format("{0}PersonName", keyPrefix), txtPersonName.Text);
             else
-                DeleteUserPreference(string.Format("{0}PersonName", keyPrefix));
+                preferences.SetValue(string.Format("{0}PersonName", keyPrefix), string.Empty);
 
             if (nreBalanceOwed.LowerValue.HasValue)
-                SetUserPreference(string.Format("{0}BalanceOwedLower", keyPrefix), nreBalanceOwed.LowerValue.Value.ToString());
+                preferences.SetValue(string.Format("{0}BalanceOwedLower", keyPrefix), nreBalanceOwed.LowerValue.Value.ToString());
             else
-                DeleteUserPreference(string.Format("{0}BalanceOwedLower", keyPrefix));
+                preferences.SetValue(string.Format("{0}BalanceOwedLower", keyPrefix), string.Empty);
 
             if (nreBalanceOwed.UpperValue.HasValue)
-                SetUserPreference(string.Format("{0}BalanceOwedUpper", keyPrefix), nreBalanceOwed.UpperValue.Value.ToString());
+                preferences.SetValue(string.Format("{0}BalanceOwedUpper", keyPrefix), nreBalanceOwed.UpperValue.Value.ToString());
             else
-                DeleteUserPreference(string.Format("{0}BalanceOwedUpper", keyPrefix));
+                preferences.SetValue(string.Format("{0}BalanceOwedUpper", keyPrefix), string.Empty);
 
             if (!string.IsNullOrWhiteSpace(ddlPOA.SelectedValue))
-                SetUserPreference(string.Format("{0}POA", keyPrefix), ddlPOA.SelectedValue);
+                preferences.SetValue(string.Format("{0}POA", keyPrefix), ddlPOA.SelectedValue);
             else
-                DeleteUserPreference(string.Format("{0}POA", keyPrefix));
+                preferences.SetValue(string.Format("{0}POA", keyPrefix), string.Empty);
+            preferences.Save();
             BindGrid();
         }
 
         protected void gfReport_ClearFilterClick(object sender, EventArgs e)
         {
-            DeleteUserPreference(string.Format("{0}PersonName", keyPrefix));
-            DeleteUserPreference(string.Format("{0}BalanceOwedLower", keyPrefix));
-            DeleteUserPreference(string.Format("{0}BalanceOwedUpper", keyPrefix));
-            DeleteUserPreference(string.Format("{0}POA", keyPrefix));
+            var preferences = GetGlobalPersonPreferences();
+            preferences.SetValue(string.Format("{0}PersonName", keyPrefix), string.Empty);
+            preferences.SetValue(string.Format("{0}BalanceOwedLower", keyPrefix), string.Empty);
+            preferences.SetValue(string.Format("{0}BalanceOwedUpper", keyPrefix), string.Empty);
+            preferences.SetValue(string.Format("{0}POA", keyPrefix), string.Empty);
+            preferences.Save();
             LoadGridFilters();
             BindGrid();
         }

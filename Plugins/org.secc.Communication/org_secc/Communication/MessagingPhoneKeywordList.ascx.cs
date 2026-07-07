@@ -205,14 +205,14 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         private void gfKeywords_ApplyFilterClick( object sender, EventArgs e )
         {
-            gfKeywords.SaveUserPreference( "Keyword", tbKeywordSearch.Text.Trim() );
-            gfKeywords.SaveUserPreference( "Status", cblStatus.SelectedValues.AsDelimited( "," ) );
+            gfKeywords.SetFilterPreference( "Keyword", tbKeywordSearch.Text.Trim() );
+            gfKeywords.SetFilterPreference( "Status", cblStatus.SelectedValues.AsDelimited( "," ) );
             LoadPhoneNumberKeywords();
         }
 
         private void gfKeywords_ClearFilterClick( object sender, EventArgs e )
         {
-            gfKeywords.DeleteUserPreferences();
+            gfKeywords.DeleteFilterPreferences();
             tbKeywordSearch.Text = string.Empty;
 
             foreach ( ListItem li in cblStatus.Items )
@@ -345,9 +345,9 @@ namespace RockWeb.Plugins.org_secc.Communication
             if ( !showFilter )
                 return;
 
-            tbKeywordSearch.Text = gfKeywords.GetUserPreference( "Keyword" );
+            tbKeywordSearch.Text = gfKeywords.GetFilterPreference( "Keyword" );
 
-            var selectedStatus = gfKeywords.GetUserPreference( "Status" );
+            var selectedStatus = gfKeywords.GetFilterPreference( "Status" );
             if ( selectedStatus.IsNotNullOrWhiteSpace() )
             {
                 foreach ( var status in selectedStatus.SplitDelimitedValues() )

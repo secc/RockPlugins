@@ -86,16 +86,19 @@ namespace org.secc.GroupManager
 
         private void LoadSession( RockContext rockContext )
         {
+            var preferences = GetGlobalPersonPreferences();
+
             int groupId = PageParameter( "GroupId" ).AsInteger();
-            if ( groupId == 0 && GetUserPreference( "CurrentGroupManagerGroup" ) != null )
+            if ( groupId == 0 && preferences.GetValue( "CurrentGroupManagerGroup" ) != null )
             {
-                groupId = GetUserPreference( "CurrentGroupManagerGroup" ).AsInteger();
+                groupId = preferences.GetValue( "CurrentGroupManagerGroup" ).AsInteger();
             }
 
             CurrentGroup = new GroupService( rockContext ).Get( groupId );
             if ( CurrentGroup != null )
             {
-                SetUserPreference( "CurrentGroupManagerGroup", groupId.ToString() );
+                preferences.SetValue( "CurrentGroupManagerGroup", groupId.ToString() );
+                preferences.Save();
                 CurrentGroupMember = CurrentGroup.Members
                     .Where( gm => gm.PersonId == CurrentUser.PersonId )
                     .FirstOrDefault();

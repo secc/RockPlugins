@@ -179,7 +179,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             //Next try personal preference
             if ( kioskType == null )
             {
-                var campusId = PersonService.GetUserPreference( currentPerson, UserPreferenceKeys.PreferredCampusId ).AsIntegerOrNull();
+                var campusId = PersonPreferenceCache.GetPersonPreferenceCollection( currentPerson ).GetValue( UserPreferenceKeys.PreferredCampusId ).AsIntegerOrNull();
                 kioskType = CheckinKioskTypeCache.All().Where( k => k.IsMobile && k.CampusId == campusId ).FirstOrDefault();
             }
 
@@ -359,7 +359,9 @@ $('.btn-select').countdown({until: new Date($('.active-when').text()),
             var kiosk = ConfigureKiosk();
             var kioskType = CheckinKioskTypeCache.Get( kiosk.KioskTypeId ?? 0 );
 
-            PersonService.SaveUserPreference( currentPerson, UserPreferenceKeys.PreferredCampusId, kioskType.CampusId.ToString() );
+            var preferences = PersonPreferenceCache.GetPersonPreferenceCollection( currentPerson );
+            preferences.SetValue( UserPreferenceKeys.PreferredCampusId, kioskType.CampusId.ToString() );
+            preferences.Save();
 
             DateTime? activeAt = null;
             if ( CheckinIsActive( kioskType, out activeAt ) )

@@ -1122,7 +1122,7 @@ namespace RockWeb.Plugins.org_secc.Event
                             }
 
                             var sendErrorMessages = new List<string>();
-                            if ( new SignatureDocumentTemplateService( rockContext ).SendDocument(
+                            if ( new SignatureDocumentTemplateService( rockContext ).SendLegacyProviderDocument(
                                 signatureDocumentTemplateService.Get( Registration.RegistrationInstance.RegistrationTemplate.RequiredSignatureDocumentTemplateId.Value ),
                                 appliesTo,
                                 assignedTo,
@@ -1437,14 +1437,14 @@ namespace RockWeb.Plugins.org_secc.Event
             {
                 foreach ( var discount in RegistrationTemplateState.Discounts.OrderBy( d => d.Code ) )
                 {
-                    discountCodes.AddOrIgnore( discount.Code, discount.Code + ( string.IsNullOrWhiteSpace( discount.DiscountString ) ? "" :
+                    discountCodes.TryAdd( discount.Code, discount.Code + ( string.IsNullOrWhiteSpace( discount.DiscountString ) ? "" :
                         string.Format( " ({0})", discount.DiscountString ) ) );
                 }
             }
 
             if ( !string.IsNullOrWhiteSpace( registration.DiscountCode ) )
             {
-                discountCodes.AddOrIgnore( registration.DiscountCode, registration.DiscountCode );
+                discountCodes.TryAdd( registration.DiscountCode, registration.DiscountCode );
             }
 
             ddlGroup.Items.Clear();
@@ -2026,12 +2026,19 @@ namespace RockWeb.Plugins.org_secc.Event
                     DefinedValueCache.Get( transaction.FinancialPaymentDetail.CreditCardTypeValueId.Value ) : null;
 
                 // Get the batch
+                // The GetForNewTransaction replacement derives the batch time offset from the
+                // transaction's gateway, but manual payments saved here have no gateway on the
+                // transaction while this code intentionally batches them using the registration
+                // template's gateway offset. Converting would change which batch manual payments
+                // land in, so the legacy overload is kept deliberately.
+#pragma warning disable 618
                 var batch = batchService.Get(
                     batchPrefix,
                     dvCurrencyType,
                     dvCredCardType,
                     transaction.TransactionDateTime.Value,
                     RegistrationTemplateState.FinancialGateway.GetBatchTimeOffset() );
+#pragma warning restore 618
 
                 var batchChanges = new History.HistoryChangeList();
 

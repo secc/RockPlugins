@@ -176,9 +176,10 @@ $(document).ready(function() {
             {
                 RockContext rockContext = new RockContext();
                 int groupId = PageParameter( "GroupId" ).AsInteger();
-                if ( groupId == 0 && GetUserPreference( "CurrentGroupManagerGroup" ) != null )
+                var preferences = GetGlobalPersonPreferences();
+                if ( groupId == 0 && preferences.GetValue( "CurrentGroupManagerGroup" ) != null )
                 {
-                    groupId = GetUserPreference( "CurrentGroupManagerGroup" ).AsInteger();
+                    groupId = preferences.GetValue( "CurrentGroupManagerGroup" ).AsInteger();
                 }
 
                 _group = new GroupService( rockContext ).Get( groupId );

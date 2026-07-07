@@ -176,7 +176,7 @@ namespace RockWeb.Blocks.Reporting.Children
             }
             List<int> scheduleTotals = new List<int>();
 
-            var schedulePreference = GetUserPreference( BlockCache.Guid.ToString() + "Schedule" )
+            var schedulePreference = GetGlobalPersonPreferences().GetValue( BlockCache.Guid.ToString() + "Schedule" )
                     .Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
                     .ToList();
 

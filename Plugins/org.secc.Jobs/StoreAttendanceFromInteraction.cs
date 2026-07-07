@@ -18,10 +18,10 @@ using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using org.secc.FamilyCheckin.Utilities;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Web.Cache;
 
@@ -32,12 +32,10 @@ namespace org.secc.Jobs
     [TextField( "Operation", "The interaction operation to use for populating attendance.", false, "Present" )]
     [GroupTypeField( "Group Type", "The group type to use for logging attendance against (The campus, and Location Schedules on on active groups of this type will be used).", true )]
     [SlidingDateRangeField( "Date Range", "The date range in which the interactions were made.", true, "Last|365|Day||" )]
-    [DisallowConcurrentExecution]
-    public class StoreAttendanceFromInteraction : IJob
+    public class StoreAttendanceFromInteraction : RockJob
     {
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
             var rockContext = new RockContext();
 
             InteractionChannelService channelService = new InteractionChannelService( rockContext );
@@ -51,13 +49,13 @@ namespace org.secc.Jobs
             PersonAliasService personAliasService = new PersonAliasService( rockContext );
 
             // Load the channel
-            InteractionChannelCache channel = InteractionChannelCache.Get( dataMap.GetString( "InteractionChannel" ).AsGuid() );
+            InteractionChannelCache channel = InteractionChannelCache.Get( GetAttributeValue( "InteractionChannel" ).AsGuid() );
 
             // Setup 
             int campusLocationTypeId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.LOCATION_TYPE_CAMPUS ).Id;
-            var groupType = GroupTypeCache.Get( dataMap.GetString( "GroupType" ).AsGuid() );
+            var groupType = GroupTypeCache.Get( GetAttributeValue( "GroupType" ).AsGuid() );
             var groupLocations = groupService.GetByGroupTypeId( groupType.Id ).Where( g => g.IsActive == true ).SelectMany( g => g.GroupLocations ).ToList();
-            string operation = !string.IsNullOrWhiteSpace( dataMap.GetString( "Operation" ) ) ? dataMap.GetString( "Operation" ) : null;
+            string operation = !string.IsNullOrWhiteSpace( GetAttributeValue( "Operation" ) ) ? GetAttributeValue( "Operation" ) : null;
 
             //Create a nested campus list
             Dictionary<int, int> nestedCampuses;
@@ -75,13 +73,13 @@ namespace org.secc.Jobs
             }
 
             // Fetch the job so we can get the last run date/time
-            int jobId = Convert.ToInt16( context.JobDetail.Description );
+            int jobId = ServiceJobId;
             var jobService = new ServiceJobService( rockContext );
             var job = jobService.Get( jobId );
 
             DateTime lastRun = job?.LastSuccessfulRunDateTime ?? DateTime.MinValue;
-            var componentCampusMapping = dataMap.GetString( "ComponentCampusMapping" ).AsDictionaryOrNull();
-            DateRange dateRange = Rock.Web.UI.Controls.SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( dataMap.GetString( "DateRange" ) ?? "-1||" );
+            var componentCampusMapping = GetAttributeValue( "ComponentCampusMapping" ).AsDictionaryOrNull();
+            DateRange dateRange = Rock.Web.UI.Controls.SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( GetAttributeValue( "DateRange" ) ?? "-1||" );
 
             // Flip the component campus mapping around and translate to ids
             Dictionary<int, List<int>> campusComponentIds = new Dictionary<int, List<int>>();
@@ -162,7 +160,7 @@ namespace org.secc.Jobs
                             if ( newAttendance > 0 )
                             {
                                 rockContext.SaveChanges();
-                                context.Result += string.Format( "{0} people attended {1} on {2}.\n", newAttendance, gl.Group.Campus.Name, occurrence.Period.StartTime.Value.ToString( "MM/dd/yyyy h:mm tt" ) );
+                                Result += string.Format( "{0} people attended {1} on {2}.\n", newAttendance, gl.Group.Campus.Name, occurrence.Period.StartTime.Value.ToString( "MM/dd/yyyy h:mm tt" ) );
                             }
                         }
                     }

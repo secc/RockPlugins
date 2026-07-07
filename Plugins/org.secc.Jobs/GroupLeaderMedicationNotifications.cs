@@ -4,11 +4,11 @@ using System.Data.Entity;
 using System.Linq;
 
 using Newtonsoft.Json;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Communication;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Web.Cache;
 
@@ -41,8 +41,7 @@ namespace org.secc.Jobs
         Key = "CommunicationTemplate" )]
     [TextField( "Medication Notification History", "Medication Notification History", false, "", Key = "MedicationNotificationHistory" )]
 
-    [DisallowConcurrentExecution]
-    public class GroupLeaderMedicationNotifications : IJob
+    public class GroupLeaderMedicationNotifications : RockJob
     {
         private Guid MedicationMatrixTemplateGuid = "d2ed9b3d-309a-4a70-bda4-2c090acd1384".AsGuid();
         private Guid MedicationScheduleDefinedTypeGuid = "81b51822-50d7-4be6-a462-04077405bb7e".AsGuid();
@@ -78,17 +77,16 @@ namespace org.secc.Jobs
         }
 
 
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
             var rockContext = new RockContext();
-            var dataMap = context.JobDetail.JobDataMap;
-            var jobId = context.GetJobId();
-            LoadAttributes( dataMap, rockContext );
+            var jobId = ServiceJobId;
+            LoadAttributes( rockContext );
             JobAttributes.MedicationScheduleValue = GetMedicationSchedule();
 
             if(JobAttributes.MedicationScheduleValue == null)
             {
-                context.Result = "There are currently no notifications scheduled to be sent.";
+                Result = "There are currently no notifications scheduled to be sent.";
                 return;
             }
 
@@ -107,7 +105,7 @@ namespace org.secc.Jobs
             }
             UpdateHistory( jobId, groupInformation.Count );
 
-            context.Result = $"{groupInformation.Count} {JobAttributes.MedicationScheduleValue.Value} {"notification".PluralizeIf( groupInformation.Count != 1 )} sent to group leaders.";
+            Result = $"{groupInformation.Count} {JobAttributes.MedicationScheduleValue.Value} {"notification".PluralizeIf( groupInformation.Count != 1 )} sent to group leaders.";
         }
 
         private List<GroupLeaderNotificationSummary> GetGroupLeaderInformation( RockContext rockContext )
@@ -259,16 +257,16 @@ namespace org.secc.Jobs
 
         }
 
-        private void LoadAttributes( JobDataMap dataMap, RockContext rockContext )
+        private void LoadAttributes( RockContext rockContext )
         {
             JobAttributes.CommunicationTemplate = new SystemCommunicationService( rockContext )
-                .Get( dataMap.GetString( "CommunicationTemplate" ).AsGuid() );
-            JobAttributes.MedicationCheckinDays = dataMap.GetInt( "MedicationCheckinDays" );
-            JobAttributes.MedicationScheduleValue = DefinedValueCache.Get( dataMap.GetString( "MedicationSchedule" ).AsGuid() );
+                .Get( GetAttributeValue( "CommunicationTemplate" ).AsGuid() );
+            JobAttributes.MedicationCheckinDays = GetAttributeValue( "MedicationCheckinDays" ).AsInteger();
+            JobAttributes.MedicationScheduleValue = DefinedValueCache.Get( GetAttributeValue( "MedicationSchedule" ).AsGuid() );
             JobAttributes.ParentGroup = new GroupService( rockContext )
-                .Get( dataMap.GetString( "ParentGroup" ).AsGuid() );
-            JobAttributes.CommunicationList = new GroupService( rockContext ).Get( dataMap.GetInt( "CommunicationListId" ) );
-            JobAttributes.NotificationHistory = JsonConvert.DeserializeObject<List<MedicationNotificationHistory>>( dataMap.GetString( "MedicationNotificationHistory" ) );
+                .Get( GetAttributeValue( "ParentGroup" ).AsGuid() );
+            JobAttributes.CommunicationList = new GroupService( rockContext ).Get( GetAttributeValue( "CommunicationListId" ).AsInteger() );
+            JobAttributes.NotificationHistory = JsonConvert.DeserializeObject<List<MedicationNotificationHistory>>( GetAttributeValue( "MedicationNotificationHistory" ) );
 
         }
 
@@ -294,7 +292,7 @@ namespace org.secc.Jobs
 
         private void SendSMS( GroupLeaderNotificationSummary leader )
         {
-            if ( !JobAttributes.CommunicationTemplate.SMSFromDefinedValueId.HasValue )
+            if ( !JobAttributes.CommunicationTemplate.SmsFromSystemPhoneNumberId.HasValue )
             {
                 throw new Exception( "SMS From Number not configured in System Communication." );
             }
@@ -321,7 +319,7 @@ namespace org.secc.Jobs
 
             if ( smsNumber != null )
             {
-                smsMessage.FromNumber = DefinedValueCache.Get( JobAttributes.CommunicationTemplate.SMSFromDefinedValueId.Value );
+                smsMessage.FromSystemPhoneNumber = SystemPhoneNumberCache.Get( JobAttributes.CommunicationTemplate.SmsFromSystemPhoneNumberId.Value );
                 smsMessage.AddRecipient( new RockSMSMessageRecipient( person, smsNumber.FullNumber, mergeFields ) );
                 smsMessage.Send();
             }

@@ -107,10 +107,11 @@ namespace RockWeb.Plugins.org_secc.Finance
 
             if ( !Page.IsPostBack )
             {
-                tbGivingId.Text = GetBlockUserPreference( "GivingIdFilter" );
-                tbGivingGroup.Text = GetBlockUserPreference( "GivingGroupFilter" );
-                drpDates.LowerValue = GetBlockUserPreference( "LastGiftDateRangeFilterLower" ).AsDateTime();
-                drpDates.UpperValue = GetBlockUserPreference( "LastGiftDateRangeFilterUpper" ).AsDateTime();
+                var preferences = GetBlockPersonPreferences();
+                tbGivingId.Text = preferences.GetValue( "GivingIdFilter" );
+                tbGivingGroup.Text = preferences.GetValue( "GivingGroupFilter" );
+                drpDates.LowerValue = preferences.GetValue( "LastGiftDateRangeFilterLower" ).AsDateTime();
+                drpDates.UpperValue = preferences.GetValue( "LastGiftDateRangeFilterUpper" ).AsDateTime();
                 if ( GetAttributeValue( "DefaultReviewDataView" ).IsNotNullOrWhiteSpace() )
                 {
                     DataViewService dataViewService = new DataViewService( new RockContext() );
@@ -138,19 +139,23 @@ namespace RockWeb.Plugins.org_secc.Finance
 
         protected void gfFilter_ApplyFilterClick( object sender, EventArgs e )
         {
-            SetBlockUserPreference( "GivingIdFilter", tbGivingId.Text );
-            SetBlockUserPreference( "GivingGroupFilter", tbGivingGroup.Text );
-            SetBlockUserPreference( "LastGiftDateRangeFilterLower", drpDates.LowerValue.HasValue ? drpDates.LowerValue.Value.ToString() : "" );
-            SetBlockUserPreference( "LastGiftDateRangeFilterUpper", drpDates.UpperValue.HasValue ? drpDates.UpperValue.Value.ToString() : "" );
+            var preferences = GetBlockPersonPreferences();
+            preferences.SetValue( "GivingIdFilter", tbGivingId.Text );
+            preferences.SetValue( "GivingGroupFilter", tbGivingGroup.Text );
+            preferences.SetValue( "LastGiftDateRangeFilterLower", drpDates.LowerValue.HasValue ? drpDates.LowerValue.Value.ToString() : "" );
+            preferences.SetValue( "LastGiftDateRangeFilterUpper", drpDates.UpperValue.HasValue ? drpDates.UpperValue.Value.ToString() : "" );
+            preferences.Save();
             DisplayResults();
         }
 
         protected void gfFilter_ClearFilterClick( object sender, EventArgs e )
         {
-            DeleteBlockUserPreference( "GivingIdFilter" );
-            DeleteBlockUserPreference( "GivingGroupFilter" );
-            DeleteBlockUserPreference( "LastGiftDateRangeFilterLower" );
-            DeleteBlockUserPreference( "LastGiftDateRangeFilterUpper" );
+            var preferences = GetBlockPersonPreferences();
+            preferences.SetValue( "GivingIdFilter", string.Empty );
+            preferences.SetValue( "GivingGroupFilter", string.Empty );
+            preferences.SetValue( "LastGiftDateRangeFilterLower", string.Empty );
+            preferences.SetValue( "LastGiftDateRangeFilterUpper", string.Empty );
+            preferences.Save();
             tbGivingId.Text = null;
             tbGivingGroup.Text = null;
             drpDates.LowerValue = drpDates.UpperValue = null;
@@ -166,8 +171,9 @@ namespace RockWeb.Plugins.org_secc.Finance
         {
             lAlert.Text = "Total " + GetSelectedGivingUnitsCount() + " Giving Units Included";
 
-            drpStatementDate.LowerValue = GetBlockUserPreference( "LastGiftDateRangeFilterLower" ).AsDateTime();
-            drpStatementDate.UpperValue = GetBlockUserPreference( "LastGiftDateRangeFilterUpper" ).AsDateTime();
+            var preferences = GetBlockPersonPreferences();
+            drpStatementDate.LowerValue = preferences.GetValue( "LastGiftDateRangeFilterLower" ).AsDateTime();
+            drpStatementDate.UpperValue = preferences.GetValue( "LastGiftDateRangeFilterUpper" ).AsDateTime();
 
             pnlGivingUnitList.Visible = false;
             pnlSettings.Visible = true;
