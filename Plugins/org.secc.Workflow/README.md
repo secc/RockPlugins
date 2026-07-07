@@ -8,10 +8,10 @@
 
 ## Overview
 
-This is Southeast's catch-all workflow-extension plugin. It supplies ~29 custom workflow
+This is Southeast's catch-all workflow-extension plugin. It supplies ~27 custom workflow
 **actions** that drop into Rock's workflow engine, organized by area (person matching, SMS,
-connections, registrations/discount codes, attribute-matrix manipulation, media processing,
-and workflow control). It also ships two admin blocks for selecting and updating workflows in
+connections, registrations/discount codes, attribute-matrix manipulation, and workflow
+control). It also ships two admin blocks for selecting and updating workflows in
 bulk. Actions are discovered by Rock via MEF (`[Export(typeof(ActionComponent))]`) and configured
 entirely through Rock block/workflow attributes — no code change is needed to wire one into a
 workflow.
@@ -172,3 +172,5 @@ and the attributes render the configuration UI automatically.
 - Add new actions in the matching area folder (`Person/`, `Communication/`, …); follow an existing
   sibling as a template.
 - Person-matching behavior lives in [org.secc.PersonMatch](../org.secc.PersonMatch/README.md), not here.
+
+**Last updated:** 2026-07-07
