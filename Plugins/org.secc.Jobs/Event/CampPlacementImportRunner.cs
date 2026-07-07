@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the Southeast Christian Church License (the "License");
@@ -401,8 +401,8 @@ namespace org.secc.Jobs.Event
                                 if ( !targetRoleId.HasValue )
                                 {
                                     placementResult.Outcome = PlacementOutcome.Error;
-placementResult.Message = string.Format(
-    "Group type for group '{0}' has no role marked 'Is Leader'.", targetGroup.Name );
+                                    placementResult.Message = string.Format(
+                                        "Group type for group '{0}' has no role marked 'Is Leader'.", targetGroup.Name );
                                     errorCount++;
                                     resultRow.Placements.Add( placementResult );
                                     continue;

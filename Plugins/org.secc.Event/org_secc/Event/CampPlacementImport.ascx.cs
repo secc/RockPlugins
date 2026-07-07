@@ -153,6 +153,7 @@ namespace RockWeb.Plugins.org_secc.Event
 
             SelectedRegistrationInstanceId = ripInstance.RegistrationInstanceId;
 
+            btnUploadNext.Enabled = UploadedBinaryFileId.HasValue && CsvHeaders.Any();
             SetActivePanel( pnlUpload );
         }
 
@@ -169,6 +170,7 @@ namespace RockWeb.Plugins.org_secc.Event
             }
 
             UploadedBinaryFileId = e.BinaryFileId.Value;
+            btnUploadNext.Enabled = false;
 
             int dataRowsCount = 0;
             using ( var rockContext = new RockContext() )
@@ -214,9 +216,33 @@ namespace RockWeb.Plugins.org_secc.Event
 
             ShowInfo( string.Format( "Loaded {0} rows with {1} columns.", dataRowsCount, CsvHeaders.Count ) );
 
+            btnUploadNext.Enabled = true;
             MappingCount = 1;
             SetActivePanel( pnlMapping );
             BindMappingControls();
+        }
+
+        protected void fuCsvFile_FileRemoved( object sender, FileUploaderEventArgs e )
+        {
+            CleanupUploadedBinaryFile();
+            UploadedBinaryFileId = null;
+            ClearCsvSessionData();
+            btnUploadNext.Enabled = false;
+        }
+
+        protected void btnUploadNext_Click( object sender, EventArgs e )
+        {
+            if ( !UploadedBinaryFileId.HasValue || !CsvHeaders.Any() )
+            {
+                ShowWarning( "Please upload a CSV file first." );
+                return;
+            }
+
+            var savedColumns = ViewState["SavedMappingColumns"] as List<string> ?? new List<string>();
+            var savedGroups = ViewState["SavedMappingGroups"] as List<int?> ?? new List<int?>();
+
+            SetActivePanel( pnlMapping );
+            BindMappingControls( savedColumns, savedGroups );
         }
 
         protected void btnUploadBack_Click( object sender, EventArgs e )
@@ -324,6 +350,8 @@ namespace RockWeb.Plugins.org_secc.Event
 
         protected void btnMappingBack_Click( object sender, EventArgs e )
         {
+            SaveMappingSelections();
+            btnUploadNext.Enabled = UploadedBinaryFileId.HasValue && CsvHeaders.Any();
             SetActivePanel( pnlUpload );
         }
 
@@ -429,6 +457,7 @@ namespace RockWeb.Plugins.org_secc.Event
             UploadedBinaryFileId = null;
             BaseParentGroupId = null;
             fuCsvFile.BinaryFileId = null;
+            btnUploadNext.Enabled = false;
             gpBasePlacementGroup.SetValue( ( Group ) null );
             tglLeaderImport.Checked = false;
 
@@ -627,19 +656,21 @@ namespace RockWeb.Plugins.org_secc.Event
         /// </summary>
         private void RestoreMappingSelections( List<string> columns, List<int?> groups )
         {
-            Dictionary<int, Group> groupsById = null;
-            if ( !BaseParentGroupId.HasValue )
+            // GroupPicker.SetValue lazy-loads ParentGroup to build the expanded tree path,
+            // so the RockContext must stay alive until all SetValue calls are done.
+            using ( var rockContext = new RockContext() )
             {
-                var neededGroupIds = groups
-                    .Where( g => g.HasValue )
-                    .Select( g => g.Value )
-                    .Distinct()
-                    .ToList();
-
-                groupsById = new Dictionary<int, Group>();
-                if ( neededGroupIds.Any() )
+                Dictionary<int, Group> groupsById = null;
+                if ( !BaseParentGroupId.HasValue )
                 {
-                    using ( var rockContext = new RockContext() )
+                    var neededGroupIds = groups
+                        .Where( g => g.HasValue )
+                        .Select( g => g.Value )
+                        .Distinct()
+                        .ToList();
+
+                    groupsById = new Dictionary<int, Group>();
+                    if ( neededGroupIds.Any() )
                     {
                         groupsById = new GroupService( rockContext )
                             .Queryable()
@@ -647,37 +678,37 @@ namespace RockWeb.Plugins.org_secc.Event
                             .ToDictionary( g => g.Id );
                     }
                 }
-            }
 
-            for ( int i = 0; i < rptMappings.Items.Count && i < columns.Count; i++ )
-            {
-                var ddl = rptMappings.Items[i].FindControl( "ddlCsvColumn" ) as RockDropDownList;
-                if ( ddl != null )
+                for ( int i = 0; i < rptMappings.Items.Count && i < columns.Count; i++ )
                 {
-                    ddl.SetValue( columns[i] );
-                }
-
-                if ( i < groups.Count && groups[i].HasValue )
-                {
-                    if ( BaseParentGroupId.HasValue )
+                    var ddl = rptMappings.Items[i].FindControl( "ddlCsvColumn" ) as RockDropDownList;
+                    if ( ddl != null )
                     {
-                        // Restore dropdown selection
-                        var ddlGroup = rptMappings.Items[i].FindControl( "ddlParentGroupChild" ) as RockDropDownList;
-                        if ( ddlGroup != null )
-                        {
-                            ddlGroup.SetValue( groups[i].Value );
-                        }
+                        ddl.SetValue( columns[i] );
                     }
-                    else
+
+                    if ( i < groups.Count && groups[i].HasValue )
                     {
-                        // Restore group picker selection
-                        var gp = rptMappings.Items[i].FindControl( "gpParentGroup" ) as GroupPicker;
-                        if ( gp != null )
+                        if ( BaseParentGroupId.HasValue )
                         {
-                            Group group;
-                            if ( groupsById != null && groupsById.TryGetValue( groups[i].Value, out group ) )
+                            // Restore dropdown selection
+                            var ddlGroup = rptMappings.Items[i].FindControl( "ddlParentGroupChild" ) as RockDropDownList;
+                            if ( ddlGroup != null )
                             {
-                                gp.SetValue( group );
+                                ddlGroup.SetValue( groups[i].Value );
+                            }
+                        }
+                        else
+                        {
+                            // Restore group picker selection
+                            var gp = rptMappings.Items[i].FindControl( "gpParentGroup" ) as GroupPicker;
+                            if ( gp != null )
+                            {
+                                Group group;
+                                if ( groupsById != null && groupsById.TryGetValue( groups[i].Value, out group ) )
+                                {
+                                    gp.SetValue( group );
+                                }
                             }
                         }
                     }
