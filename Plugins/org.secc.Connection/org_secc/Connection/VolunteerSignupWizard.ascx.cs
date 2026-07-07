@@ -481,11 +481,6 @@ namespace org.secc.Connection
                         case "DefinedType":
 
                             var definedType = Rock.Web.Cache.DefinedTypeCache.Get( partition.PartitionValue.AsGuid() );
-                            if ( definedType == null )
-                            {
-                                // Partition doesn't resolve to a defined type (e.g. never configured) — treat as zero values.
-                                break;
-                            }
                             var definedValues = definedType.DefinedValues.Where( dv => dv.IsActive ).ToList();
 
                             var filterControl = AddColumnFilter( partition, definedValues.Select( dv => new ListItem( dv.Value, dv.Guid.ToString() ) ).ToList(), definedType.Name );
