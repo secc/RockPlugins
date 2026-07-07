@@ -235,7 +235,10 @@ namespace RockWeb.Plugins.org_secc.SmsCapture
 
                 if ( dateRange.End.HasValue )
                 {
-                    qry = qry.Where( c => c.CreatedDateTime < dateRange.End.Value );
+                    // DateRangePicker is date-only and parses the end date to midnight;
+                    // add a day so the selected end date is inclusive.
+                    var endExclusive = dateRange.End.Value.AddDays( 1 );
+                    qry = qry.Where( c => c.CreatedDateTime < endExclusive );
                 }
 
                 var toNumber = gfFilter.GetUserPreference( FilterKey.ToNumber );
