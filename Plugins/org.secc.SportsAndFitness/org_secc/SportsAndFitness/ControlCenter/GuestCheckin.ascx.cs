@@ -375,15 +375,27 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     .Select(a => a.EntityId);
 
 
-                var hostsQry = attendanceService.Queryable()
-                    .GroupJoin(hostsGuests, a => a.PersonAlias.PersonId, h => h.PersonId,
-                        (a, h) => new {Attendance = a, GuestCount = h.Select(h1 => h1.GuestCount).DefaultIfEmpty()})
-                    .Where( a => occurrenceIds.Contains( a.Attendance.OccurrenceId ) )
-                    .Where( a => a.Attendance.DidAttend == true )
-                    .Where( a => a.Attendance.EndDateTime == null )
-                    .Where(a => a.Attendance.PersonAlias.Person.ConnectionStatusValueId == memberConnectionStatus.Id ||
-                        employees.Contains(a.Attendance.PersonAlias.PersonId))
-                    .Where( a => a.Attendance.Note == null || !a.Attendance.Note.StartsWith( "Guest" ) )
+                // ROCK-8706: Narrow the Attendance set with the active-occurrence filter (and the
+                // other Attendance predicates) BEFORE joining guest counts, so SQL Server applies
+                // "OccurrenceId IN (...)" against the base Attendance table first instead of scanning
+                // the full 9.4M-row table. Previously these Where clauses were applied AFTER the
+                // GroupJoin (against the projected anonymous type), which let EF6 defer the occurrence
+                // filter and run the member/employee predicate over the whole table (the 10-15s hang).
+                // The GroupJoin/DefaultIfEmpty guest-count join is preserved unchanged so the guest
+                // count is still computed once as a hash LEFT JOIN (do NOT switch it to a correlated
+                // subquery: hostsGuests resolves ValueAsPersonId via a scalar UDF, so a per-row
+                // subquery re-runs that UDF for every attendance row and is far slower).
+                var attendanceQry = attendanceService.Queryable()
+                    .Where( a => occurrenceIds.Contains( a.OccurrenceId ) )
+                    .Where( a => a.DidAttend == true )
+                    .Where( a => a.EndDateTime == null )
+                    .Where( a => a.PersonAlias.Person.ConnectionStatusValueId == memberConnectionStatus.Id ||
+                        employees.Contains( a.PersonAlias.PersonId ) )
+                    .Where( a => a.Note == null || !a.Note.StartsWith( "Guest" ) );
+
+                var hostsQry = attendanceQry
+                    .GroupJoin( hostsGuests, a => a.PersonAlias.PersonId, h => h.PersonId,
+                        ( a, h ) => new { Attendance = a, GuestCount = h.Select( h1 => h1.GuestCount ).DefaultIfEmpty() } )
                     .Select( a => new SportsAndFitnessHost
                     {
                         AttendanceId = a.Attendance.Id,
