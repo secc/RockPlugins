@@ -110,7 +110,7 @@ Each defined value's `Value` is parsed as an integer GroupTypeId. Other in-code 
 
 Org policy: communications may not be sent to minors unless another adult is included. For `POST .../Communicate` with a non-zero `GroupMemberId` and `SendToParents = false`:
 
-- **Minor** = `Person.Age.HasValue && AgeClassification != Adult` (a person with no birthdate is treated as an adult, matching the roster's parent-info logic).
+- **Minor** = `Person.AgeClassification == AgeClassification.Child`. Rock's classification folds in birthdate, family role, and `IsLockedAsChild`, so minors with no birthdate on record are still caught. `== Child` (not `!= Adult`) because businesses are skipped by Rock's classifier and stay `Unknown` — they must not be treated as minors. The same predicate drives the roster's `IsMinor` flag and parent-info display.
 - If the target is a minor, all parent/guardian emails (family adults via `GetParents`, deduplicated) are set on `Communication.CCEmails`, so parents receive a copy of the individual email.
 - If the target is a minor and **no** parent has an email on record, the request fails with `400` and a descriptive message.
 - Parents-only sends (`SendToParents = true`) and whole-group sends (`GroupMemberId = 0`) are unchanged — group sends include adult leaders as recipients, which satisfies the policy.

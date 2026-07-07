@@ -117,7 +117,10 @@ namespace org.secc.Rest.Controllers
                 {
                     var person = _personService.Get( groupMember.PersonId );
                     var familyGroup = person.GetFamily();
-                    var isMinor = person.Age.HasValue && person.AgeClassification != AgeClassification.Adult;
+                    // AgeClassification folds in birthdate, family role, and IsLockedAsChild,
+                    // so it also catches minors with no birthdate on record. Businesses are
+                    // skipped by Rock's classifier (stay Unknown), hence == Child, not != Adult.
+                    var isMinor = person.AgeClassification == AgeClassification.Child;
 
                     var groupAppGroupMember = new GroupAppGroupMember
                     {
@@ -217,7 +220,9 @@ namespace org.secc.Rest.Controllers
                 if ( !message.SendToParents )
                 {
                     var person = groupMember.Person;
-                    var isMinor = person.Age.HasValue && person.AgeClassification != AgeClassification.Adult;
+                    // == Child (not != Adult): catches no-DOB minors classified by family
+                    // role, while businesses (classified Unknown) are not treated as minors.
+                    var isMinor = person.AgeClassification == AgeClassification.Child;
                     if ( isMinor )
                     {
                         var parentEmails = groupMemberServiceHelper.GetParents( person )
