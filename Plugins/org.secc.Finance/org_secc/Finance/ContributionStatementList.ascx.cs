@@ -193,9 +193,9 @@ namespace RockWeb.Plugins.org_secc.Finance
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         protected void fBinaryFile_ApplyFilterClick( object sender, EventArgs e )
         {
-            fBinaryFile.SaveUserPreference( "File Name", tbName.Text );
-            fBinaryFile.SaveUserPreference( "Person", ppPerson.SelectedValue.ToString() );
-            fBinaryFile.SaveUserPreference( "Statement Delivery Preference", cbDeliveryPreference.SelectedValues.JoinStrings( "" ) );
+            fBinaryFile.SetFilterPreference( "File Name", tbName.Text );
+            fBinaryFile.SetFilterPreference( "Person", ppPerson.SelectedValue.ToString() );
+            fBinaryFile.SetFilterPreference( "Statement Delivery Preference", cbDeliveryPreference.SelectedValues.JoinStrings( "" ) );
 
             BindGrid();
         }
@@ -289,10 +289,10 @@ namespace RockWeb.Plugins.org_secc.Finance
             if (!Page.IsPostBack)
             {
                 // Set the default filter value for file name
-                tbName.Text = fBinaryFile.GetUserPreference( "File Name" );
+                tbName.Text = fBinaryFile.GetFilterPreference( "File Name" );
 
                 // Set the filter value for Person
-                var personId = fBinaryFile.GetUserPreference( "Person" ).AsIntegerOrNull();
+                var personId = fBinaryFile.GetFilterPreference( "Person" ).AsIntegerOrNull();
                 if (personId.HasValue)
                 {
                     var person = new PersonService( new RockContext() ).Get( personId.Value );
@@ -310,7 +310,7 @@ namespace RockWeb.Plugins.org_secc.Finance
                 cbDeliveryPreference.DataSource = statementDeliveryPreference;
                 cbDeliveryPreference.DataBind();
 
-                cbDeliveryPreference.SetValues( fBinaryFile.GetUserPreference( "Statement Delivery Preference" ).SplitDelimitedValues( false ) );
+                cbDeliveryPreference.SetValues( fBinaryFile.GetFilterPreference( "Statement Delivery Preference" ).SplitDelimitedValues( false ) );
             }
         }
 
@@ -338,7 +338,7 @@ namespace RockWeb.Plugins.org_secc.Finance
             var documentQuery = documentService.Queryable( "BinaryFile" ).Where( d => d.DocumentTypeId == documentTypeId );
 
             // Add any query filters here
-            string name = fBinaryFile.GetUserPreference( "File Name" );
+            string name = fBinaryFile.GetFilterPreference( "File Name" );
             if (!string.IsNullOrWhiteSpace( name ))
             {
                 documentQuery = documentQuery.Where( d => d.BinaryFile.FileName.Contains( name ) );

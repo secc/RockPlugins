@@ -98,8 +98,8 @@ namespace RockWeb.Plugins.org_secc.EMS
         void gfSettings_ApplyFilterClick( object sender, EventArgs e )
         {
             dpDate.SelectedDate = dpDate.SelectedDate ?? DateTime.Today;
-            gfSettings.SaveUserPreference( "Events For", dpDate.SelectedDate.ToString() );
-            gfSettings.SaveUserPreference( "Show All", cbShowAll.Checked.ToTrueFalse() );
+            gfSettings.SetFilterPreference( "Events For", dpDate.SelectedDate.ToString() );
+            gfSettings.SetFilterPreference( "Show All", cbShowAll.Checked.ToTrueFalse() );
             BindGrid();
         }
 
@@ -148,14 +148,14 @@ namespace RockWeb.Plugins.org_secc.EMS
         /// </summary>
         private void BindFilter()
         {
-            string showAllValue = gfSettings.GetUserPreference( "Show All" );
+            string showAllValue = gfSettings.GetFilterPreference( "Show All" );
             if ( !string.IsNullOrWhiteSpace( showAllValue ) )
             {
                 cbShowAll.Checked = showAllValue.AsBoolean();
             }
 
             dpDate.SelectedDate = dpDate.SelectedDate ?? DateTime.Today;
-            gfSettings.SaveUserPreference( "Events For", dpDate.SelectedDate.ToString() );
+            gfSettings.SetFilterPreference( "Events For", dpDate.SelectedDate.ToString() );
         }
 
         /// <summary>

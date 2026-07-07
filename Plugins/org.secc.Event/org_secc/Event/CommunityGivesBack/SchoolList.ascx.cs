@@ -217,7 +217,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
 
         private void rFilter_ApplyFilterClick(object sender, EventArgs e)
         {
-            rFilter.SaveUserPreference("Campaign", "Campaign", string.Join(";", cblCampaign.SelectedValues));
+            rFilter.SetFilterPreference("Campaign", "Campaign", string.Join(";", cblCampaign.SelectedValues));
 
             Schools = null;
             BuildSchoolList();
@@ -226,7 +226,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
 
         protected void rFilter_ClearFilterClick(object sender, EventArgs e)
         {
-            rFilter.DeleteUserPreferences();
+            rFilter.DeleteFilterPreferences();
             SetFilter();
         }
 
@@ -534,7 +534,7 @@ namespace RockWeb.Plugins.org_secc.CommunityGivesBack
                 cblCampaign.Items.Add(new ListItem(c, c));
             }
 
-            var campaignValue = rFilter.GetUserPreference("Campaign");
+            var campaignValue = rFilter.GetFilterPreference("Campaign");
             if(!string.IsNullOrWhiteSpace(campaignValue))
             {
                 cblCampaign.SetValues(campaignValue.Split(';').ToList());
