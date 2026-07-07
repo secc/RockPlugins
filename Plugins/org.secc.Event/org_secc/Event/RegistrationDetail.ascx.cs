@@ -2026,12 +2026,19 @@ namespace RockWeb.Plugins.org_secc.Event
                     DefinedValueCache.Get( transaction.FinancialPaymentDetail.CreditCardTypeValueId.Value ) : null;
 
                 // Get the batch
+                // The GetForNewTransaction replacement derives the batch time offset from the
+                // transaction's gateway, but manual payments saved here have no gateway on the
+                // transaction while this code intentionally batches them using the registration
+                // template's gateway offset. Converting would change which batch manual payments
+                // land in, so the legacy overload is kept deliberately.
+#pragma warning disable 618
                 var batch = batchService.Get(
                     batchPrefix,
                     dvCurrencyType,
                     dvCredCardType,
                     transaction.TransactionDateTime.Value,
                     RegistrationTemplateState.FinancialGateway.GetBatchTimeOffset() );
+#pragma warning restore 618
 
                 var batchChanges = new History.HistoryChangeList();
 

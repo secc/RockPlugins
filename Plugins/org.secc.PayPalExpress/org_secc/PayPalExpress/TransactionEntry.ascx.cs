@@ -735,12 +735,7 @@ namespace org.secc.PayPalExpress
             var batchService = new FinancialBatchService( rockContext );
 
             // Get the batch
-            var batch = batchService.Get(
-                GetAttributeValue( "BatchNamePrefix" ),
-                paymentInfo.CurrencyTypeValue,
-                paymentInfo.CreditCardTypeValue,
-                transaction.TransactionDateTime.Value,
-                financialGateway.GetBatchTimeOffset() );
+            var batch = batchService.GetForNewTransaction( transaction, GetAttributeValue( "BatchNamePrefix" ) );
 
             var batchChanges = new History.HistoryChangeList();
 

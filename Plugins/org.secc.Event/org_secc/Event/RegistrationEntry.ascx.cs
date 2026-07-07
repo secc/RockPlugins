@@ -3623,14 +3623,9 @@ namespace RockWeb.Plugins.org_secc.Event
                     transaction.FinancialPaymentDetail = new FinancialPaymentDetail();
                 }
 
-                DefinedValueCache currencyType = null;
-                DefinedValueCache creditCardType = null;
-
                 if ( paymentInfo != null )
                 {
                     transaction.FinancialPaymentDetail.SetFromPaymentInfo( paymentInfo, gateway, rockContext );
-                    currencyType = paymentInfo.CurrencyTypeValue;
-                    creditCardType = paymentInfo.CreditCardTypeValue;
                 }
 
                 Guid sourceGuid = Guid.Empty;
@@ -3670,12 +3665,7 @@ namespace RockWeb.Plugins.org_secc.Event
                     }
 
                     // Get the batch
-                    var batch = batchService.Get(
-                        batchPrefix,
-                        currencyType,
-                        creditCardType,
-                        transaction.TransactionDateTime.Value,
-                        RegistrationTemplate.FinancialGateway.GetBatchTimeOffset() );
+                    var batch = batchService.GetForNewTransaction( transaction, batchPrefix );
 
                     if ( batch.Id == 0 )
                     {
