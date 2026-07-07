@@ -1,4 +1,4 @@
-﻿// <copyright>
+// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the Southeast Christian Church License (the "License");
