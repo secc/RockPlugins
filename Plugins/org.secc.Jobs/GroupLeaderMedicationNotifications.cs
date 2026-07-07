@@ -292,7 +292,7 @@ namespace org.secc.Jobs
 
         private void SendSMS( GroupLeaderNotificationSummary leader )
         {
-            if ( !JobAttributes.CommunicationTemplate.SMSFromDefinedValueId.HasValue )
+            if ( !JobAttributes.CommunicationTemplate.SmsFromSystemPhoneNumberId.HasValue )
             {
                 throw new Exception( "SMS From Number not configured in System Communication." );
             }
@@ -319,7 +319,7 @@ namespace org.secc.Jobs
 
             if ( smsNumber != null )
             {
-                smsMessage.FromNumber = DefinedValueCache.Get( JobAttributes.CommunicationTemplate.SMSFromDefinedValueId.Value );
+                smsMessage.FromSystemPhoneNumber = SystemPhoneNumberCache.Get( JobAttributes.CommunicationTemplate.SmsFromSystemPhoneNumberId.Value );
                 smsMessage.AddRecipient( new RockSMSMessageRecipient( person, smsNumber.FullNumber, mergeFields ) );
                 smsMessage.Send();
             }

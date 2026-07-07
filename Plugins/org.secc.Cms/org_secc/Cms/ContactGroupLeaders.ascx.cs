@@ -372,7 +372,7 @@ namespace RockWeb.Plugins.org_secc.Cms
             communication.Subject = GetAttributeValue( "Subject" );
             communication.Message = GetAttributeValue( "MessageBody" );
 
-            communication.SMSFromDefinedValueId = DefinedValueCache.GetId( GetAttributeValue( "SMSFromNumber" ).AsGuid() );
+            communication.SmsFromSystemPhoneNumberId = SystemPhoneNumberCache.Get( GetAttributeValue( "SMSFromNumber" ).AsGuid() )?.Id;
             communication.SMSMessage = GetAttributeValue( "SMSMessageBody" );
             communication.FutureSendDateTime = null;
 

@@ -87,7 +87,7 @@ namespace org.secc.LeagueApps.Utilities
 
             if ( email != String.Empty )
             {
-                if ( !email.IsValidEmail() )
+                if ( !Rock.Communication.EmailAddressFieldValidator.IsValid( email ) )
                     email = String.Empty;
             }
 
@@ -170,7 +170,7 @@ namespace org.secc.LeagueApps.Utilities
             // Validate and clear invalid email for matched persons
             if ( person != null && !string.IsNullOrWhiteSpace( person.Email ) )
             {
-                if ( !person.Email.IsValidEmail() )
+                if ( !Rock.Communication.EmailAddressFieldValidator.IsValid( person.Email ) )
                 {
                     person.Email = string.Empty;
                 }

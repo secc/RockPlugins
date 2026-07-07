@@ -220,7 +220,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     AddRecepients( communication, cbSMSSendToParents.Checked );
 
                     communication.SMSMessage = tbMessage.Text;
-                    communication.SMSFromDefinedValueId = DefinedValueCache.Get( CurrentGroup.GetAttributeValue( "TextMessageFrom" ).AsGuid() ).Id;
+                    communication.SmsFromSystemPhoneNumberId = SystemPhoneNumberCache.Get( CurrentGroup.GetAttributeValue( "TextMessageFrom" ).AsGuid() )?.Id;
 
                     communication.Status = CommunicationStatus.Approved;
                     communication.ReviewedDateTime = RockDateTime.Now;
@@ -704,7 +704,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     {
                         //Add person to recepients
                         //Check is for valid email, active email, not set to do not email
-                        if ( !string.IsNullOrWhiteSpace( member.Email ) && member.Email.IsValidEmail() &&
+                        if ( !string.IsNullOrWhiteSpace( member.Email ) && Rock.Communication.EmailAddressFieldValidator.IsValid( member.Email ) &&
                             member.Person.IsEmailActive && member.Person.EmailPreference != EmailPreference.DoNotEmail )
                         {
                             recepients.Append( "<span title='Person has a valid email address'>" + member.Name + "</span> " );
@@ -725,7 +725,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     {
                         if ( !addedIds.Contains( parent.Id ) )
                         {
-                            if ( !string.IsNullOrWhiteSpace( parent.Email ) && parent.Email.IsValidEmail() &&
+                            if ( !string.IsNullOrWhiteSpace( parent.Email ) && Rock.Communication.EmailAddressFieldValidator.IsValid( parent.Email ) &&
                             parent.IsEmailActive && parent.EmailPreference != EmailPreference.DoNotEmail )
                             {
                                 recepients.Append( "<span title='Person has a valid email address'>" + parent.FullName + "</span> " );

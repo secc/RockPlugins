@@ -801,11 +801,11 @@ namespace RockWeb.Plugins.org_secc.Communication
                 return;
             }
 
-            var phoneDefinedValue = DefinedValueCache.Get( fromNumberGuid.Value );
+            var phoneSystemNumber = SystemPhoneNumberCache.Get( fromNumberGuid.Value );
             var smsMessage = new RockSMSMessage
             {
                 CreateCommunicationRecord = false,
-                FromNumber = phoneDefinedValue,
+                FromSystemPhoneNumber = phoneSystemNumber,
                 Message = smsBody,
 
             };
