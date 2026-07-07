@@ -134,8 +134,6 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
-      rem xcopy never deletes, so removed native deps (Magick.NET here, FFmpeg.NET from ROCK-8672) linger in bin on any environment that built the old code; sweep both.
-      del /Q "$(SolutionDir)RockWeb\bin\Magick*" "$(SolutionDir)RockWeb\bin\FFmpeg.NET.dll" 2&gt;nul
       xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Workflow.dll" "$(SolutionDir)RockWeb\bin"
       xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
     </PostBuildEvent>
