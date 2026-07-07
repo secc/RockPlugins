@@ -207,6 +207,12 @@
                 </div>
             </Panel>
 
+            <Panel v-if="bag.id && bag.guid" title="Analytics" :hasCollapse="true" v-model="analyticsExpanded">
+                <!-- ROCK-7164: lazy - the GetAnalytics action only fires once
+                     the editor first expands the panel (latched below). -->
+                <LinkListAnalytics v-if="analyticsWasExpanded" :listGuid="bag.guid" />
+            </Panel>
+
             <div class="d-flex mt-3">
                 <EditorActions class="ms-auto" :isSaving="isSaving" :canDelete="canDelete" @save="save" @cancel="$emit('back')" @delete="onDelete" />
             </div>
@@ -230,6 +236,7 @@ import ImageUploader from "@Obsidian/Controls/imageUploader.obs";
 import { DragReorder as vDragReorder, useDragReorder } from "@Obsidian/Directives/dragDrop";
 import LinkItemRow from "./linkItemRow.obs";
 import EditorActions from "./editorActions.obs";
+import LinkListAnalytics from "./linkListAnalytics.obs";
 import { CUSTOM_DESIGN, effectiveColor as effectiveColorOf, designSelectionValue, applyDesignChange, type ColorField } from "../linkListTheme";
 import { clearOtherFeatured, sectionNestingMeta } from "../linkListItems";
 import type { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
@@ -259,6 +266,16 @@ const linksExpanded = ref(true);
 const colorsExpanded = ref(false);
 const headerExpanded = ref(false);
 const accessExpanded = ref(false);
+const analyticsExpanded = ref(false);
+
+// Latches true on first expand so the analytics component (and its block
+// action) mounts once and stays mounted across collapse/expand.
+const analyticsWasExpanded = ref(false);
+watch(analyticsExpanded, expanded => {
+    if (expanded) {
+        analyticsWasExpanded.value = true;
+    }
+});
 
 watch(() => props.detail, d => {
     bag.value = cloneBag(d.linkList);

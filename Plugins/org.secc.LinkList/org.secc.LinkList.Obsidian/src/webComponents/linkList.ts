@@ -41,6 +41,7 @@ class SeccLinkListElement extends HTMLElement {
     private loadToken = 0;
     private baseUrl = "";
     private injectedData: LinkListBag | null = null;
+    private listGuid: string | null = null;
 
     public static get observedAttributes(): string[] {
         return OBSERVED_ATTRIBUTES;
@@ -49,6 +50,34 @@ class SeccLinkListElement extends HTMLElement {
     constructor() {
         super();
         this.root = this.attachShadow( { mode: "open" } );
+
+        // ROCK-7164: click analytics. ONE delegated listener on the shadow
+        // root, attached here in the constructor - the root persists across
+        // innerHTML swaps, so attaching per render would double-fire.
+        this.root.addEventListener( "click", ( e: Event ) => {
+            const origin = ( e.composedPath?.()[ 0 ] ?? e.target ) as Element | null;
+            const anchor = origin?.closest?.( "a[part=link][data-link-id]" );
+            const matrixItemGuid = anchor?.getAttribute( "data-link-id" );
+            if ( matrixItemGuid && this.listGuid ) {
+                this.sendClickBeacon( matrixItemGuid );
+            }
+        } );
+    }
+
+    /** Fire-and-forget click beacon. A plain STRING body posts as text/plain
+     *  (CORS simple request - no preflight; delivery needs no ACAO since the
+     *  response is never read). Analytics must never break navigation. */
+    private sendClickBeacon( matrixItemGuid: string ): void {
+        try {
+            // In manual (in-Rock) mode baseUrl stays "" and the page IS the
+            // Rock origin, so window.location.origin is correct there.
+            const base = ( this.baseUrl || window.location.origin ).replace( /\/$/, "" );
+            const url = `${base}/api/secc/linklist/${encodeURIComponent( this.listGuid ?? "" )}/click`;
+            navigator.sendBeacon?.( url, JSON.stringify( { matrixItemGuid } ) );
+        }
+        catch {
+            // Swallow - never interfere with the link's navigation.
+        }
     }
 
     /** In-Rock path: the Viewer block hands the (auth-resolved) bag directly. */
@@ -174,6 +203,10 @@ class SeccLinkListElement extends HTMLElement {
     // -----------------------------------------------------------------------
 
     private renderList( list: LinkListBag ): void {
+        // ROCK-7164: the click beacon keys on the list's ContentChannelItem
+        // guid (slug-rename safe), available in both fetch and manual bags.
+        this.listGuid = list.guid ?? null;
+
         const sorted = ( list.items || [] ).slice().sort( ( a, b ) => ( a.order || 0 ) - ( b.order || 0 ) );
         // Featured is hoisted to the front, then the flat list becomes ordered
         // blocks: top-level items (incl. the featured pill) interleaved with
@@ -293,7 +326,8 @@ ${this.styles()}
         const url = safeUrl( item.url );
         const target = safeTarget( item.target );
         const rel = target === "_blank" ? ` rel="noopener noreferrer"` : "";
-        return `<a class="link-btn${featuredClass}" part="link" href="${safeText( url )}" target="${target}"${rel}>`
+        const linkId = safeText( item.guid || item.matrixItemGuid || "" );
+        return `<a class="link-btn${featuredClass}" part="link" href="${safeText( url )}" target="${target}"${rel}${linkId ? ` data-link-id="${linkId}"` : ""}>`
             + `<div class="btn-body"><div class="btn-label">${label}</div>${sub}</div>`
             + `<span class="btn-arrow" aria-hidden="true">&rsaquo;</span></a>`;
     }
@@ -324,7 +358,8 @@ ${this.styles()}
         const url = safeUrl( item.url );
         const target = safeTarget( item.target );
         const rel = target === "_blank" ? ` rel="noopener noreferrer"` : "";
-        return `<a class="accord-link" part="link" href="${safeText( url )}" target="${target}"${rel}>`
+        const linkId = safeText( item.guid || item.matrixItemGuid || "" );
+        return `<a class="accord-link" part="link" href="${safeText( url )}" target="${target}"${rel}${linkId ? ` data-link-id="${linkId}"` : ""}>`
             + `<span class="accord-link-body"><span class="accord-link-label">${label}</span>${sub}</span>`
             + `<span class="accord-link-arrow" aria-hidden="true">&rsaquo;</span></a>`;
     }

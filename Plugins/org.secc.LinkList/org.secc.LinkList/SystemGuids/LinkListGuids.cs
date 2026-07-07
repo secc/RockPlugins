@@ -100,6 +100,12 @@ namespace org.secc.LinkList.SystemGuids
         public const string DesignLightAiry = "C3F3D7E9-5A7F-6CBD-A04F-9DBF3E5A7B9C";
         public const string DesignHighContrast = "D4A4E8FA-6B8A-7DCE-B15A-AECA4F6B8CAD";
 
+        // ---- ROCK-7164: analytics via Rock Interactions. Migration 011. ----
+        /// <summary>DefinedValue "Link List" under the core Interaction Channel Medium defined type.</summary>
+        public const string InteractionMediumLinkList = "8BC189C5-D1DD-41FF-BDFD-6BB50A52E61C";
+        /// <summary>The single "Link Lists" InteractionChannel (components = one per list; interactions = View/Click).</summary>
+        public const string InteractionChannelLinkLists = "707B8F5C-4C72-4E07-8594-56DC330BAEB7";
+
         // ---- Default Rock SecurityRole group type ----
         public const string GroupTypeSecurityRole = "AECE949F-704C-483E-A4FB-93D5E4720C4C";
 

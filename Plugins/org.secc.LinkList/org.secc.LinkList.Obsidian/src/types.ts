@@ -141,3 +141,28 @@ export interface LinkListDetailConfigBox {
     defaultDesignGuid?: string | null;
     navigationUrls?: Record<string, string> | null;
 }
+
+/** ROCK-7164: one day's count in an analytics time series. */
+export interface AnalyticsPointBag {
+    date: string; // ISO date
+    count: number;
+}
+
+/** ROCK-7164: click count for a single link row. */
+export interface LinkClickCountBag {
+    matrixItemGuid?: string | null; // null when the row was deleted
+    text?: string | null;           // current link text, else last recorded summary
+    url?: string | null;            // current URL, else last recorded data
+    clicks: number;
+    isDeleted: boolean;
+}
+
+/** ROCK-7164: analytics for one list (Detail block GetAnalytics action). */
+export interface LinkListAnalyticsBag {
+    days: number;
+    totalViews: number;
+    totalClicks: number;
+    viewsByDay: AnalyticsPointBag[];
+    clicksByDay: AnalyticsPointBag[];
+    links: LinkClickCountBag[];
+}

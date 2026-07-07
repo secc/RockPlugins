@@ -452,7 +452,13 @@ namespace org.secc.LinkList.Services
             return bag;
         }
 
-        private bool ReadIsPublic( ContentChannelItem item )
+        /// <summary>
+        /// The item's IsPublic gate (default true for legacy items missing the
+        /// attribute). Public: the click endpoint uses it as a lightweight
+        /// check without building the full bag. Caller must have loaded (or
+        /// accept lazy-loading of) the item's attributes.
+        /// </summary>
+        public bool ReadIsPublic( ContentChannelItem item )
         {
             if ( item.Attributes == null || !item.Attributes.ContainsKey( LinkListGuids.ItemAttributeKey.IsPublic ) )
             {
@@ -599,6 +605,86 @@ namespace org.secc.LinkList.Services
                 } );
             }
             return bags;
+        }
+
+        /// <summary>
+        /// ROCK-7164: the matrix row with the given guid IFF it belongs to
+        /// THIS item's matrix - the click endpoint's anti-spoof check (a
+        /// beacon can't record clicks against another list's rows or
+        /// arbitrary matrix rows). Null when the item has no matrix or the
+        /// row isn't in it. One join query; attributes are NOT loaded (the
+        /// caller loads them only after validation passes).
+        /// </summary>
+        public AttributeMatrixItem FindMatrixRow( ContentChannelItem item, Guid rowGuid )
+        {
+            if ( item == null )
+            {
+                return null;
+            }
+
+            item.LoadAttributes( _rockContext );
+            var pointerKey = ResolveMatrixPointerKey( item, GetMatrixTemplate() );
+            if ( pointerKey == null )
+            {
+                return null;
+            }
+
+            var matrixGuid = item.GetAttributeValue( pointerKey ).AsGuidOrNull();
+            if ( !matrixGuid.HasValue )
+            {
+                return null;
+            }
+
+            return new AttributeMatrixItemService( _rockContext )
+                .Queryable()
+                .FirstOrDefault( r => r.Guid == rowGuid && r.AttributeMatrix.Guid == matrixGuid.Value );
+        }
+
+        /// <summary>
+        /// ROCK-7164: the item's current link rows (matrix rows mapped to
+        /// bags) without building the full list bag - used by the analytics
+        /// action to label per-link click counts with live text/URLs.
+        /// </summary>
+        public List<LinkItemBag> GetLinkRows( ContentChannelItem item )
+        {
+            if ( item == null )
+            {
+                return new List<LinkItemBag>();
+            }
+            item.LoadAttributes( _rockContext );
+            return LoadMatrixItems( item );
+        }
+
+        /// <summary>
+        /// ROCK-7164: map of AttributeMatrixItem Id -> Guid for the item's
+        /// matrix rows. Click interactions store the row Id (EntityId); the
+        /// bags key on the row Guid - this joins the two.
+        /// </summary>
+        public Dictionary<int, Guid> GetMatrixRowIdMap( ContentChannelItem item )
+        {
+            var result = new Dictionary<int, Guid>();
+            if ( item == null )
+            {
+                return result;
+            }
+
+            item.LoadAttributes( _rockContext );
+            var pointerKey = ResolveMatrixPointerKey( item, GetMatrixTemplate() );
+            if ( pointerKey == null )
+            {
+                return result;
+            }
+            var matrixGuid = item.GetAttributeValue( pointerKey ).AsGuidOrNull();
+            if ( !matrixGuid.HasValue )
+            {
+                return result;
+            }
+
+            return new AttributeMatrixItemService( _rockContext )
+                .Queryable()
+                .Where( r => r.AttributeMatrix.Guid == matrixGuid.Value )
+                .Select( r => new { r.Id, r.Guid } )
+                .ToDictionary( r => r.Id, r => r.Guid );
         }
 
         /// <summary>Returns <paramref name="primary"/> if non-blank, else <paramref name="fallback"/>.</summary>

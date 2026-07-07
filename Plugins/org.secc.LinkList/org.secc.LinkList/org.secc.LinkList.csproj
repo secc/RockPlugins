@@ -34,4 +34,20 @@
     </Reference>
   </ItemGroup>
 
+  <!-- SparkDevNetwork.Rock.Build.Tasks' CopyAssemblyToRockWeb silently no-ops
+       unless it finds a rock-dev-tool environment.json above plugin.json
+       ("Plugin environment not detected"). This repo doesn't use that layout,
+       so copy the plugin assembly (+ pdb) into RockWeb\Bin ourselves - Rock
+       only registers block types from assemblies in Bin. Runs wherever
+       RockWebPath resolves (VS via SolutionDir, CLI/pipeline via
+       /p:RockWebPath). -->
+  <Target Name="CopyPluginToRockWebBin" AfterTargets="Build" Condition="'$(RockWebPath)' != ''">
+    <ItemGroup>
+      <PluginOutput Include="$(TargetPath)" />
+      <PluginOutput Include="$(TargetDir)$(TargetName).pdb" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PluginOutput)" DestinationFolder="$(RockWebPath)\Bin" SkipUnchangedFiles="true" />
+    <Message Importance="high" Text="LinkList: copied $(TargetFileName) to $(RockWebPath)\Bin" />
+  </Target>
+
 </Project>

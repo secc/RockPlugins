@@ -15,10 +15,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
 
 using org.secc.LinkList.Services;
 using org.secc.LinkList.SystemGuids;
+using org.secc.LinkList.Utility;
 using org.secc.LinkList.ViewModels;
 
 using Rock;
@@ -374,6 +376,135 @@ namespace org.secc.LinkList.Blocks
             {
                 var service = new LinkListService( rockContext );
                 return ActionOk( service.GetDesignsForPicker() );
+            }
+        }
+
+        /// <summary>
+        /// ROCK-7164: analytics for one list over a clamped range (30/90/365
+        /// days) - totals, gap-filled views/clicks per day, and per-link click
+        /// counts labeled from the CURRENT matrix rows (falling back to the
+        /// interaction's recorded summary/data when the row was deleted).
+        /// Read-only: never creates the interaction component; no recorded
+        /// activity returns an empty bag (UI shows "No activity yet").
+        /// </summary>
+        [BlockAction]
+        public BlockActionResult GetAnalytics( string itemGuid, int days )
+        {
+            if ( RequestContext.CurrentPerson == null )
+            {
+                return ActionForbidden( "Authentication is required." );
+            }
+            var listGuid = itemGuid.AsGuidOrNull();
+            if ( !listGuid.HasValue )
+            {
+                return ActionBadRequest( "A valid list guid is required." );
+            }
+
+            using ( var rockContext = new RockContext() )
+            {
+                var service = new LinkListService( rockContext );
+                var item = service.ResolveItem( listGuid.Value.ToString() );
+                if ( item == null )
+                {
+                    return ActionNotFound();
+                }
+                if ( !item.IsAuthorized( Authorization.EDIT, RequestContext.CurrentPerson ) )
+                {
+                    return ActionForbidden();
+                }
+
+                var clampedDays = AnalyticsSeries.ClampDays( days );
+                var endDate = RockDateTime.Now.Date;
+                var startDate = endDate.AddDays( -( clampedDays - 1 ) );
+                var bag = new LinkListAnalyticsBag { Days = clampedDays };
+
+                var channelId = LinkListInteractionService.GetChannelId();
+                var componentId = !channelId.HasValue
+                    ? null
+                    : new InteractionComponentService( rockContext )
+                        .Queryable()
+                        .Where( c => c.InteractionChannelId == channelId.Value && c.EntityId == item.Id )
+                        .Select( c => ( int? ) c.Id )
+                        .FirstOrDefault();
+
+                if ( !componentId.HasValue )
+                {
+                    // Nothing recorded yet (or migration missing): empty series
+                    // so the chart still renders a flat zero line.
+                    bag.ViewsByDay = AnalyticsSeries.FillDailySeries( null, startDate, endDate );
+                    bag.ClicksByDay = AnalyticsSeries.FillDailySeries( null, startDate, endDate );
+                    return ActionOk( bag );
+                }
+
+                var interactions = new InteractionService( rockContext )
+                    .Queryable()
+                    .AsNoTracking()
+                    .Where( i => i.InteractionComponentId == componentId.Value
+                        && i.InteractionDateTime >= startDate );
+
+                // One grouped query per day-series (SQL-side day truncation).
+                var viewCounts = interactions
+                    .Where( i => i.Operation == "View" )
+                    .GroupBy( i => DbFunctions.TruncateTime( i.InteractionDateTime ) )
+                    .Select( g => new { Day = g.Key, Count = g.Count() } )
+                    .ToList()
+                    .Where( g => g.Day.HasValue )
+                    .ToDictionary( g => g.Day.Value, g => g.Count );
+
+                var clickCounts = interactions
+                    .Where( i => i.Operation == "Click" )
+                    .GroupBy( i => DbFunctions.TruncateTime( i.InteractionDateTime ) )
+                    .Select( g => new { Day = g.Key, Count = g.Count() } )
+                    .ToList()
+                    .Where( g => g.Day.HasValue )
+                    .ToDictionary( g => g.Day.Value, g => g.Count );
+
+                bag.ViewsByDay = AnalyticsSeries.FillDailySeries( viewCounts, startDate, endDate );
+                bag.ClicksByDay = AnalyticsSeries.FillDailySeries( clickCounts, startDate, endDate );
+                bag.TotalViews = viewCounts.Values.Sum();
+                bag.TotalClicks = clickCounts.Values.Sum();
+
+                // Per-link clicks grouped by the matrix row id, with the most
+                // recent recorded summary/data as the label fallback for rows
+                // that have since been deleted.
+                var perLink = interactions
+                    .Where( i => i.Operation == "Click" && i.EntityId.HasValue )
+                    .GroupBy( i => i.EntityId.Value )
+                    .Select( g => new
+                    {
+                        MatrixItemId = g.Key,
+                        Clicks = g.Count(),
+                        LastSummary = g.OrderByDescending( i => i.InteractionDateTime ).Select( i => i.InteractionSummary ).FirstOrDefault(),
+                        LastData = g.OrderByDescending( i => i.InteractionDateTime ).Select( i => i.InteractionData ).FirstOrDefault()
+                    } )
+                    .ToList();
+
+                if ( perLink.Count > 0 )
+                {
+                    var idToGuid = service.GetMatrixRowIdMap( item );
+                    var currentRows = service.GetLinkRows( item )
+                        .Where( r => !r.Guid.IsNullOrWhiteSpace() )
+                        .ToDictionary( r => r.Guid.AsGuid(), r => r );
+
+                    bag.Links = perLink
+                        .Select( p =>
+                        {
+                            var rowGuid = idToGuid.TryGetValue( p.MatrixItemId, out var g ) ? ( Guid? ) g : null;
+                            var current = rowGuid.HasValue && currentRows.TryGetValue( rowGuid.Value, out var row ) ? row : null;
+                            return new LinkClickCountBag
+                            {
+                                MatrixItemGuid = rowGuid?.ToString(),
+                                Text = current?.Text ?? p.LastSummary,
+                                Url = current?.Url ?? p.LastData,
+                                Clicks = p.Clicks,
+                                IsDeleted = current == null
+                            };
+                        } )
+                        .OrderByDescending( l => l.Clicks )
+                        .ToList();
+                }
+
+                return ActionOk( bag );
             }
         }
 

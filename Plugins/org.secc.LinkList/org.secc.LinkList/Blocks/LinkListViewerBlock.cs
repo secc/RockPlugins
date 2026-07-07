@@ -121,6 +121,21 @@ namespace org.secc.LinkList.Blocks
                     return ActionOk( EmptyDetail() );
                 }
 
+                // ROCK-7164: in-Rock page view. Skipped for an editor's
+                // preview of a NON-public list; editors viewing public lists
+                // still count (accepted small inflation). This is the one
+                // place the person is captured - the REST path is anonymous.
+                if ( !( canEdit && !bag.IsPublic ) )
+                {
+                    LinkListInteractionService.RecordView(
+                        item.Id,
+                        item.Title,
+                        pageUrl: RequestContext.RequestUri?.ToString(),
+                        userAgent: RequestContext.ClientInformation?.UserAgent,
+                        ipAddress: RequestContext.ClientInformation?.IpAddress,
+                        personAliasId: currentPerson?.PrimaryAliasId );
+                }
+
                 return ActionOk( new LinkListDetailInitializationBox
                 {
                     CanEdit = false,
