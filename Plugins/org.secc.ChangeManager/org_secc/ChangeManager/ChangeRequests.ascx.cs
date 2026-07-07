@@ -61,8 +61,9 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 pEntityType.IncludeGlobalOption = false;
                 pEntityType.EntityTypes = entityTypes;
 
-                cbShowComplete.Checked = GetBlockUserPreference( "ShowComplete" ).AsBoolean();
-                pEntityType.SelectedValue = GetBlockUserPreference( "EntityType" );
+                var preferences = GetBlockPersonPreferences();
+                cbShowComplete.Checked = preferences.GetValue( "ShowComplete" ).AsBoolean();
+                pEntityType.SelectedValue = preferences.GetValue( "EntityType" );
 
                 BindGrid();
             }
@@ -133,8 +134,10 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
         protected void fRequests_ApplyFilterClick( object sender, EventArgs e )
         {
-            SetBlockUserPreference( "ShowComplete", cbShowComplete.Checked.ToString() );
-            SetBlockUserPreference( "EntityType", pEntityType.SelectedValue );
+            var preferences = GetBlockPersonPreferences();
+            preferences.SetValue( "ShowComplete", cbShowComplete.Checked.ToString() );
+            preferences.SetValue( "EntityType", pEntityType.SelectedValue );
+            preferences.Save();
             BindGrid();
         }
 

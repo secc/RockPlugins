@@ -130,7 +130,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void LoadGroup( Group group )
         {
-            SetUserPreference( "CurrentGroupManagerGroup", group.Id.ToString() );
+            var preferences = GetGlobalPersonPreferences();
+            preferences.SetValue( "CurrentGroupManagerGroup", group.Id.ToString() );
+            preferences.Save();
             var theme = GetAttributeValue( "Theme" );
             if ( !string.IsNullOrWhiteSpace( theme ) )
             {

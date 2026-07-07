@@ -804,7 +804,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 cblConnectionStatus.DataSource = connectionStatuses.DefinedValues.OrderBy( dv => dv.Value );
                 cblConnectionStatus.DataBind();
                 //Load user preferences
-                var connectionPreference = GetUserPreference( BlockId.ToString() + "ConnectionStatus" );
+                var connectionPreference = GetGlobalPersonPreferences().GetValue( BlockId.ToString() + "ConnectionStatus" );
                 if ( !string.IsNullOrWhiteSpace( connectionPreference ) )
                 {
 
@@ -1159,7 +1159,9 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
 
                     }
-                    SetUserPreference( BlockId.ToString() + "ConnectionStatus", string.Join( "|", connectionStatuses ) );
+                    var preferences = GetGlobalPersonPreferences();
+                    preferences.SetValue( BlockId.ToString() + "ConnectionStatus", string.Join( "|", connectionStatuses ) );
+                    preferences.Save();
 
                 }
 

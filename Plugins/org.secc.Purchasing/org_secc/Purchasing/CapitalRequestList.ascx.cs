@@ -213,13 +213,15 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             Dictionary<string, string> filterValues = BuildFilters();
             List<CapitalRequestListItem> requests = CapitalRequest.GetCapitalRequestList( filterValues );
 
+            var preferences = GetGlobalPersonPreferences();
+
             SortProperty sortProperty = gRequestList.SortProperty;
             // Check User Preferences to see if we have a pre-existing sort property
             if ( sortProperty == null )
             {
                 sortProperty = new SortProperty();
-                sortProperty.Direction = GetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingKey ) ) == "ASC" ? SortDirection.Ascending : SortDirection.Descending;
-                sortProperty.Property = GetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingKey ) );
+                sortProperty.Direction = preferences.GetValue( string.Format( "{0}_Sort_Direction", PersonSettingKey ) ) == "ASC" ? SortDirection.Ascending : SortDirection.Descending;
+                sortProperty.Property = preferences.GetValue( string.Format( "{0}_Sort_Column", PersonSettingKey ) );
                 if ( string.IsNullOrEmpty( sortProperty.Property ) )
                 {
                     sortProperty.Property = "CapitalRequestId";
@@ -235,8 +237,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     requests = requests.OrderByDescending( r => r.GetType().GetProperty( sortProperty.Property ).GetValue( r ) ).ToList();
                 }
-                SetUserPreference( string.Format( "{0}_Sort_Direction", PersonSettingKey ), sortProperty.DirectionString );
-                SetUserPreference( string.Format( "{0}_Sort_Column", PersonSettingKey ), sortProperty.Property );
+                preferences.SetValue( string.Format( "{0}_Sort_Direction", PersonSettingKey ), sortProperty.DirectionString );
+                preferences.SetValue( string.Format( "{0}_Sort_Column", PersonSettingKey ), sortProperty.Property );
+                preferences.Save();
             }
             else
             {
@@ -403,34 +406,36 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void LoadUserPreferences()
         {
+            var preferences = GetGlobalPersonPreferences();
+
             foreach ( ListItem item in cblStatus.Items )
             {
                 bool isSelected = false;
                 string keyName = string.Format( "{0}_Status_{1}", PersonSettingKey, item.Value );
-                bool.TryParse( GetUserPreference( keyName ), out isSelected );
+                bool.TryParse( preferences.GetValue( keyName ), out isSelected );
                 item.Selected = isSelected;
             }
 
             int requestingMinistry = 0;
-            int.TryParse( GetUserPreference( string.Format( "{0}_RequestingMinistry", PersonSettingKey ) ), out requestingMinistry );
+            int.TryParse( preferences.GetValue( string.Format( "{0}_RequestingMinistry", PersonSettingKey ) ), out requestingMinistry );
             ddlMinistry.SelectedValue = requestingMinistry.ToString();
 
             if ( LocationLookupTypeIdSetting != null )
             {
                 int locationLUID = 0;
-                int.TryParse( GetUserPreference( string.Format( "{0}_Location", PersonSettingKey ) ), out locationLUID );
+                int.TryParse( preferences.GetValue( string.Format( "{0}_Location", PersonSettingKey ) ), out locationLUID );
                 ddlSCCLocation.SelectedValue = locationLUID.ToString();
             }
 
             int requesterId = 0;
-            int.TryParse( GetUserPreference( string.Format( "{0}_Requester", PersonSettingKey ) ), out requesterId );
+            int.TryParse( preferences.GetValue( string.Format( "{0}_Requester", PersonSettingKey ) ), out requesterId );
             /*Person requester = new Person( requesterId, true );
             SetRequesterFilter( requester.PersonID );*/
 
-            txtGLAccount.Text = GetUserPreference( string.Format( "{0}_GLAccount", PersonSettingKey ) );
+            txtGLAccount.Text = preferences.GetValue( string.Format( "{0}_GLAccount", PersonSettingKey ) );
 
             DateTime fyStartDate;
-            DateTime.TryParse( GetUserPreference( string.Format( "{0}_FiscalYear", PersonSettingKey ) ), out fyStartDate );
+            DateTime.TryParse( preferences.GetValue( string.Format( "{0}_FiscalYear", PersonSettingKey ) ), out fyStartDate );
 
             ddlFiscalYear.SelectedValue = fyStartDate.ToString();
 
@@ -438,7 +443,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 bool isSelected = false;
                 string keyName = string.Format( "{0}_Show_{1}", PersonSettingKey, item.Value );
-                bool.TryParse( GetUserPreference( keyName ), out isSelected );
+                bool.TryParse( preferences.GetValue( keyName ), out isSelected );
                 item.Selected = isSelected;
 
             }
@@ -447,20 +452,22 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void SaveUserPreferences()
         {
+            var preferences = GetGlobalPersonPreferences();
+
             foreach ( ListItem item in cblStatus.Items )
             {
-                SetUserPreference( string.Format( "{0}_Status_{1}", PersonSettingKey, item.Value ), item.Selected.ToString() );
+                preferences.SetValue( string.Format( "{0}_Status_{1}", PersonSettingKey, item.Value ), item.Selected.ToString() );
             }
 
-            SetUserPreference( string.Format( "{0}_RequestingMinistry", PersonSettingKey ), ddlMinistry.SelectedValue );
+            preferences.SetValue( string.Format( "{0}_RequestingMinistry", PersonSettingKey ), ddlMinistry.SelectedValue );
 
-            SetUserPreference( string.Format( "{0}_Requester", PersonSettingKey ), requester.PersonAliasId.ToString() );
+            preferences.SetValue( string.Format( "{0}_Requester", PersonSettingKey ), requester.PersonAliasId.ToString() );
 
-            SetUserPreference( string.Format( "{0}_GLAccount", PersonSettingKey ), txtGLAccount.Text );
+            preferences.SetValue( string.Format( "{0}_GLAccount", PersonSettingKey ), txtGLAccount.Text );
 
             if ( LocationLookupTypeIdSetting != null )
             {
-                SetUserPreference( string.Format( "{0}_Location", PersonSettingKey ), ddlSCCLocation.SelectedValue );
+                preferences.SetValue( string.Format( "{0}_Location", PersonSettingKey ), ddlSCCLocation.SelectedValue );
             }
 
             DateTime selectedFYStartDate;
@@ -469,18 +476,19 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
             if ( selectedFYStartDate > DateTime.MinValue )
             {
-                SetUserPreference( string.Format( "{0}_FiscalYear", PersonSettingKey ), selectedFYStartDate.ToString() );
+                preferences.SetValue( string.Format( "{0}_FiscalYear", PersonSettingKey ), selectedFYStartDate.ToString() );
             }
             else
             {
-                SetUserPreference( string.Format( "{0}_FiscalYear", PersonSettingKey ), String.Empty );
+                preferences.SetValue( string.Format( "{0}_FiscalYear", PersonSettingKey ), String.Empty );
             }
 
             foreach ( ListItem item in cblShow.Items )
             {
-                SetUserPreference( string.Format( "{0}_Show_{1}", PersonSettingKey, item.Value ), item.Selected.ToString() );
+                preferences.SetValue( string.Format( "{0}_Show_{1}", PersonSettingKey, item.Value ), item.Selected.ToString() );
             }
 
+            preferences.Save();
 
         }
 

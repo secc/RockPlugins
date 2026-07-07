@@ -60,8 +60,9 @@ namespace RockWeb.Plugins.GroupManager
         {
             cblStatus.BindToEnum<PublishGroupStatus>();
             PersonService personService = new PersonService( new RockContext() );
-            pContactPerson.SetValue( personService.Get( GetBlockUserPreference( "ContactPersonId" ).AsInteger() ) );
-            cblStatus.SetValues( GetBlockUserPreference( "PublishGroupStatus" ).SplitDelimitedValues() );
+            var preferences = GetBlockPersonPreferences();
+            pContactPerson.SetValue( personService.Get( preferences.GetValue( "ContactPersonId" ).AsInteger() ) );
+            cblStatus.SetValues( preferences.GetValue( "PublishGroupStatus" ).SplitDelimitedValues() );
         }
 
         private void BindGrid()
@@ -98,8 +99,10 @@ namespace RockWeb.Plugins.GroupManager
 
         protected void fGroups_ApplyFilterClick( object sender, EventArgs e )
         {
-            SetBlockUserPreference( "ContactPersonId", pContactPerson.SelectedValue.ToString() );
-            SetBlockUserPreference( "PublishGroupStatus", string.Join( ",", cblStatus.SelectedValues ) );
+            var preferences = GetBlockPersonPreferences();
+            preferences.SetValue( "ContactPersonId", pContactPerson.SelectedValue.ToString() );
+            preferences.SetValue( "PublishGroupStatus", string.Join( ",", cblStatus.SelectedValues ) );
+            preferences.Save();
             BindGrid();
         }
         protected void btnLink_Click( object sender, EventArgs e )
