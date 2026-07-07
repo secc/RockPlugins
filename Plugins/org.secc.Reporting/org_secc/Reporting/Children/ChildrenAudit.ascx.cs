@@ -57,15 +57,16 @@ namespace RockWeb.Blocks.Reporting.Children
             base.OnLoad( e );
             if ( !Page.IsPostBack )
             {
-                dpDate.SelectedDate = GetBlockUserPreference( "Date" ).AsDateTime();
+                var preferences = GetBlockPersonPreferences();
+                dpDate.SelectedDate = preferences.GetValue( "Date" ).AsDateTime();
 
                 RockContext rockContext = new RockContext();
                 LocationService locationService = new LocationService( rockContext );
-                var locationId = GetBlockUserPreference( "Location" ).AsInteger();
+                var locationId = preferences.GetValue( "Location" ).AsInteger();
                 lpLocation.Location = locationService.Get( locationId );
 
                 ScheduleService scheduleService = new ScheduleService( rockContext );
-                var schedule = scheduleService.Get( GetBlockUserPreference( "Schedule" ).AsInteger() );
+                var schedule = scheduleService.Get( preferences.GetValue( "Schedule" ).AsInteger() );
                 if ( schedule != null )
                 {
                     spSchedule.SetValue( schedule );
@@ -229,9 +230,11 @@ namespace RockWeb.Blocks.Reporting.Children
 
         protected void btnGo_Click( object sender, EventArgs e )
         {
-            SetBlockUserPreference( "Date", dpDate.SelectedDate.ToString() );
-            SetBlockUserPreference( "Location", lpLocation.Location.Id.ToString() );
-            SetBlockUserPreference( "Schedule", spSchedule.SelectedValue );
+            var preferences = GetBlockPersonPreferences();
+            preferences.SetValue( "Date", dpDate.SelectedDate.ToString() );
+            preferences.SetValue( "Location", lpLocation.Location.Id.ToString() );
+            preferences.SetValue( "Schedule", spSchedule.SelectedValue );
+            preferences.Save();
             BindGrid();
         }
 

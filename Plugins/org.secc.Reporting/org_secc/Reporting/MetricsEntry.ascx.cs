@@ -105,7 +105,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
             if ( !Page.IsPostBack )
             {
-                _selectedCampusId = GetBlockUserPreference( "CampusId" ).AsIntegerOrNull();
+                _selectedCampusId = GetBlockPersonPreferences().GetValue( "CampusId" ).AsIntegerOrNull();
 
                 if ( CheckSelection() )
                 {
@@ -625,7 +625,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
             // If we changed the campus, make sure we reload the services
             if ( campusId != _selectedCampusId )
             {
-                _selectedCampusId = GetBlockUserPreference( "CampusId" ).AsIntegerOrNull();
+                _selectedCampusId = GetBlockPersonPreferences().GetValue( "CampusId" ).AsIntegerOrNull();
                 SaveViewState();
                 //bddlService.Items.Clear();
                 // Load service times
@@ -641,7 +641,9 @@ namespace RockWeb.Plugins.org_secc.Reporting
             if ( campusId.HasValue && weekend.HasValue )
             {
 
-                SetBlockUserPreference( "CampusId", campusId.HasValue ? campusId.Value.ToString() : "" );
+                var preferences = GetBlockPersonPreferences();
+                preferences.SetValue( "CampusId", campusId.HasValue ? campusId.Value.ToString() : "" );
+                preferences.Save();
 
                 var metricCategories = MetricCategoriesFieldAttribute.GetValueAsGuidPairs( GetAttributeValue( "MetricCategories" ) );
                 var metricGuids = metricCategories.Select( a => a.MetricGuid ).ToList();

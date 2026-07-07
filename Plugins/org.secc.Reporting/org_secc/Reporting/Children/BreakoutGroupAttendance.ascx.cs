@@ -266,7 +266,8 @@ namespace RockWeb.Blocks.Reporting.Children
                 nbMissingSchedules.Visible = true;
             }
 
-            var groupPreference = GetUserPreference( BlockCache.Guid.ToString() + "Group" )
+            var preferences = GetGlobalPersonPreferences();
+            var groupPreference = preferences.GetValue( BlockCache.Guid.ToString() + "Group" )
                 .Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
                 .ToList();
 
@@ -300,7 +301,7 @@ namespace RockWeb.Blocks.Reporting.Children
                 };
                 cblSchedules.Items.Add( listItem );
             }
-            var schedulePreference = GetUserPreference( BlockCache.Guid.ToString() + "Schedule" )
+            var schedulePreference = preferences.GetValue( BlockCache.Guid.ToString() + "Schedule" )
                 .Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
                 .ToList();
 
@@ -324,8 +325,8 @@ namespace RockWeb.Blocks.Reporting.Children
             }
 
             //DateRange
-            var lower = GetUserPreference( BlockCache.Guid.ToString() + "Lower" );
-            var upper = GetUserPreference( BlockCache.Guid.ToString() + "Upper" );
+            var lower = preferences.GetValue( BlockCache.Guid.ToString() + "Lower" );
+            var upper = preferences.GetValue( BlockCache.Guid.ToString() + "Upper" );
 
             if ( !string.IsNullOrWhiteSpace( lower ) && !string.IsNullOrWhiteSpace( upper ) )
             {
@@ -346,7 +347,7 @@ namespace RockWeb.Blocks.Reporting.Children
                 e.Row.Cells[4].Text = bgm.person.GradeFormatted;
                 e.Row.Cells[3].Text = ( bgm.person.BirthDate ?? new DateTime() ).ToString( "MM/dd/yyyy " );
 
-                var schedulePreference = GetUserPreference( BlockCache.Guid.ToString() + "Schedule" )
+                var schedulePreference = GetGlobalPersonPreferences().GetValue( BlockCache.Guid.ToString() + "Schedule" )
                 .Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
                 .ToList();
 
@@ -390,6 +391,7 @@ namespace RockWeb.Blocks.Reporting.Children
 
         protected void fBreakoutGroups_ApplyFilterClick( object sender, EventArgs e )
         {
+            var preferences = GetGlobalPersonPreferences();
             var groupPreferences = new List<string>();
 
             foreach ( ListItem item in cblGroups.Items )
@@ -399,7 +401,7 @@ namespace RockWeb.Blocks.Reporting.Children
                     groupPreferences.Add( item.Value );
                 }
             }
-            SetUserPreference( BlockCache.Guid.ToString() + "Group", string.Join( ",", groupPreferences ) );
+            preferences.SetValue( BlockCache.Guid.ToString() + "Group", string.Join( ",", groupPreferences ) );
 
             var schedulePreferences = new List<string>();
 
@@ -410,25 +412,26 @@ namespace RockWeb.Blocks.Reporting.Children
                     schedulePreferences.Add( item.Value );
                 }
             }
-            SetUserPreference( BlockCache.Guid.ToString() + "Schedule", string.Join( ",", schedulePreferences ) );
+            preferences.SetValue( BlockCache.Guid.ToString() + "Schedule", string.Join( ",", schedulePreferences ) );
 
             if ( drRange.LowerValue != null )
             {
-                SetUserPreference( BlockCache.Guid.ToString() + "Lower", drRange.LowerValue.ToString() );
+                preferences.SetValue( BlockCache.Guid.ToString() + "Lower", drRange.LowerValue.ToString() );
             }
             else
             {
-                SetUserPreference( BlockCache.Guid.ToString() + "Lower", "" );
+                preferences.SetValue( BlockCache.Guid.ToString() + "Lower", "" );
             }
 
             if ( drRange.UpperValue != null )
             {
-                SetUserPreference( BlockCache.Guid.ToString() + "Upper", drRange.UpperValue.ToString() );
+                preferences.SetValue( BlockCache.Guid.ToString() + "Upper", drRange.UpperValue.ToString() );
             }
             else
             {
-                SetUserPreference( BlockCache.Guid.ToString() + "Upper", "" );
+                preferences.SetValue( BlockCache.Guid.ToString() + "Upper", "" );
             }
+            preferences.Save();
             BindGrid();
         }
 
@@ -491,7 +494,7 @@ namespace RockWeb.Blocks.Reporting.Children
             int lastBreakoutGroupTotal = 0;
             List<int> scheduleTotals = new List<int>();
 
-            var schedulePreference = GetUserPreference( BlockCache.Guid.ToString() + "Schedule" )
+            var schedulePreference = GetGlobalPersonPreferences().GetValue( BlockCache.Guid.ToString() + "Schedule" )
                     .Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
                     .ToList();
 

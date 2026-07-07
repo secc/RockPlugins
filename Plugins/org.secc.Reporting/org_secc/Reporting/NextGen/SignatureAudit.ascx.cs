@@ -201,7 +201,8 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
         private void BindSttingControlls()
         {
-            dpEndDate.Text = GetBlockUserPreference( "dpEndDate" );
+            var preferences = GetBlockPersonPreferences();
+            dpEndDate.Text = preferences.GetValue( "dpEndDate" );
 
             RockContext rockContext = new RockContext();
             SignatureDocumentTemplateService signatureDocumentTemplateService = new SignatureDocumentTemplateService( rockContext );
@@ -212,28 +213,30 @@ namespace RockWeb.Blocks.Reporting.NextGen
             cblMinorDocuments.DataBind();
             cblAdultDocuments.DataBind();
 
-            var minorValues = GetBlockUserPreference( "cblMinorDocuments" );
+            var minorValues = preferences.GetValue( "cblMinorDocuments" );
             if ( minorValues.IsNotNullOrWhiteSpace() )
             {
                 cblMinorDocuments.SetValues( minorValues.Split( ',' ) );
             }
 
-            var adultValues = GetBlockUserPreference( "cblAdultDocuments" );
+            var adultValues = preferences.GetValue( "cblAdultDocuments" );
             if ( adultValues.IsNotNullOrWhiteSpace() )
             {
                 cblAdultDocuments.SetValues( adultValues.Split( ',' ) );
             }
 
-            gpGroup.SetValue( GetBlockUserPreference( "gpGroup" ).AsInteger() );
+            gpGroup.SetValue( preferences.GetValue( "gpGroup" ).AsInteger() );
 
         }
 
         protected void mdSettings_SaveClick( object sender, EventArgs e )
         {
-            SetBlockUserPreference( "dpEndDate", dpEndDate.Text );
-            SetBlockUserPreference( "cblMinorDocuments", string.Join( ",", cblMinorDocuments.SelectedValues ) );
-            SetBlockUserPreference( "cblAdultDocuments", string.Join( ",", cblAdultDocuments.SelectedValues ) );
-            SetBlockUserPreference( "gpGroup", gpGroup.SelectedValue );
+            var preferences = GetBlockPersonPreferences();
+            preferences.SetValue( "dpEndDate", dpEndDate.Text );
+            preferences.SetValue( "cblMinorDocuments", string.Join( ",", cblMinorDocuments.SelectedValues ) );
+            preferences.SetValue( "cblAdultDocuments", string.Join( ",", cblAdultDocuments.SelectedValues ) );
+            preferences.SetValue( "gpGroup", gpGroup.SelectedValue );
+            preferences.Save();
             mdSettings.Hide();
             BindGrid();
         }

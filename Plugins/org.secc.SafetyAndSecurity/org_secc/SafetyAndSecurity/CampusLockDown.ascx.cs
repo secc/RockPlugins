@@ -121,7 +121,7 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
                     //var dvipReviewDataView.SetValue( dataViewService.Get( GetAttributeValue( "DefaultReviewDataView" ).AsGuid() ) );
                 }
 
-                var campus = CampusCache.Get( GetBlockUserPreference( "Campus" ).AsInteger() );
+                var campus = CampusCache.Get( GetBlockPersonPreferences().GetValue( "Campus" ).AsInteger() );
                 if ( campus != null )
                 {
                     bddlCampus.Title = campus.Name;
@@ -255,7 +255,9 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
 
         protected void bddlCampus_SelectionChanged( object sender, EventArgs e )
         {
-            SetBlockUserPreference( "Campus", bddlCampus.SelectedValue );
+            var preferences = GetBlockPersonPreferences();
+            preferences.SetValue( "Campus", bddlCampus.SelectedValue );
+            preferences.Save();
             var campus = CampusCache.Get( bddlCampus.SelectedValueAsInt() ?? 0 );
             bddlCampus.Title = campus != null ? campus.Name : "All Campuses";
             lCampusTitle.Text = bddlCampus.Title;
@@ -289,7 +291,9 @@ namespace RockWeb.Plugins.org_secc.SafetyAndSecurity
 
             if ( campusId != null )
             {
-                SetBlockUserPreference( "Campus", campusId );
+                var preferences = GetBlockPersonPreferences();
+                preferences.SetValue( "Campus", campusId );
+                preferences.Save();
                 var campus = CampusCache.Get( cId );
                 bddlCampus.Title = campus != null ? campus.Name : "All Campuses";
                 lCampusTitle.Text = bddlCampus.Title;

@@ -75,7 +75,7 @@ namespace RockWeb.Blocks.Reporting.Children
                 };
                 cblGroups.Items.Add( listItem );
             }
-            var groupPreference = GetUserPreference( BlockCache.Guid.ToString() + "Group" )
+            var groupPreference = GetGlobalPersonPreferences().GetValue( BlockCache.Guid.ToString() + "Group" )
                 .Split( new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries )
                 .ToList();
 
@@ -110,7 +110,9 @@ namespace RockWeb.Blocks.Reporting.Children
                     groupPreferences.Add( item.Value );
                 }
             }
-            SetUserPreference( BlockCache.Guid.ToString() + "Group", string.Join( ",", groupPreferences ) );
+            var preferences = GetGlobalPersonPreferences();
+            preferences.SetValue( BlockCache.Guid.ToString() + "Group", string.Join( ",", groupPreferences ) );
+            preferences.Save();
         }
 
 

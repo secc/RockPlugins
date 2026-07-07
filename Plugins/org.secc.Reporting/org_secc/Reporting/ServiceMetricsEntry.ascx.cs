@@ -107,8 +107,9 @@ namespace RockWeb.Plugins.org_secc.Reporting
 
             if ( !Page.IsPostBack )
             {
-                _selectedCampusId = GetBlockUserPreference( "CampusId" ).AsIntegerOrNull();
-                _selectedServiceId = GetBlockUserPreference( "ScheduleId" ).AsIntegerOrNull();
+                var preferences = GetBlockPersonPreferences();
+                _selectedCampusId = preferences.GetValue( "CampusId" ).AsIntegerOrNull();
+                _selectedServiceId = preferences.GetValue( "ScheduleId" ).AsIntegerOrNull();
 
                 if ( CheckSelection() )
                 {
@@ -696,8 +697,10 @@ namespace RockWeb.Plugins.org_secc.Reporting
             if ( campusId.HasValue && scheduleId.HasValue && weekend.HasValue )
             {
 
-                SetBlockUserPreference( "CampusId", campusId.HasValue ? campusId.Value.ToString() : "" );
-                SetBlockUserPreference( "ScheduleId", scheduleId.HasValue ? scheduleId.Value.ToString() : "" );
+                var preferences = GetBlockPersonPreferences();
+                preferences.SetValue( "CampusId", campusId.HasValue ? campusId.Value.ToString() : "" );
+                preferences.SetValue( "ScheduleId", scheduleId.HasValue ? scheduleId.Value.ToString() : "" );
+                preferences.Save();
 
                 var metricCategories = MetricCategoriesFieldAttribute.GetValueAsGuidPairs( GetAttributeValue( "MetricCategories" ) );
                 CategoryService categoryService = new CategoryService( new RockContext() );

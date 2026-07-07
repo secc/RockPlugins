@@ -164,7 +164,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                     AttributeMatrixItem tempAttributeMatrixItem = new AttributeMatrixItem();
                     tempAttributeMatrixItem.AttributeMatrix = attributeMatrix;
                     tempAttributeMatrixItem.LoadAttributes();
-                    Dictionary<string, object> mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, null, new Rock.Lava.CommonMergeFieldsOptions { GetLegacyGlobalMergeFields = false } );
+                    Dictionary<string, object> mergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( this.RockPage, null, new Rock.Lava.CommonMergeFieldsOptions() );
                     mergeFields.Add( "AttributeMatrix", attributeMatrix );
                     mergeFields.Add( "ItemAttributes", tempAttributeMatrixItem.Attributes.Select( a => a.Value ).OrderBy( a => a.Order ).ThenBy( a => a.Name ) );
                     mergeFields.Add( "AttributeMatrixItems", attributeMatrix.AttributeMatrixItems.OrderBy( a => a.Order ) );
