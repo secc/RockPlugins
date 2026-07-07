@@ -8,10 +8,10 @@
 
 ## Overview
 
-This is Southeast's catch-all workflow-extension plugin. It supplies ~29 custom workflow
+This is Southeast's catch-all workflow-extension plugin. It supplies ~27 custom workflow
 **actions** that drop into Rock's workflow engine, organized by area (person matching, SMS,
-connections, registrations/discount codes, attribute-matrix manipulation, media processing,
-and workflow control). It also ships two admin blocks for selecting and updating workflows in
+connections, registrations/discount codes, attribute-matrix manipulation, and workflow
+control). It also ships two admin blocks for selecting and updating workflows in
 bulk. Actions are discovered by Rock via MEF (`[Export(typeof(ActionComponent))]`) and configured
 entirely through Rock block/workflow attributes — no code change is needed to wire one into a
 workflow.
@@ -21,7 +21,7 @@ workflow.
 - **Project file:** `org.secc.Workflow.csproj`
 - **Root namespace:** `org.secc.Workflow`
 - **Target framework:** .NET Framework 4.7.2
-- **Deploys to:** `RockWeb/bin/` (assembly + `Magick*`) and
+- **Deploys to:** `RockWeb/bin/` (assembly) and
   `RockWeb/Plugins/org_secc/` (block markup)
 - **Cross-plugin dependency:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md)
 
@@ -37,7 +37,7 @@ flowchart TD
     B --> C["action.Execute(rockContext, action, entity, out errorMessages)"]
     C --> D[Read config via<br/>GetAttributeValue / GetActionAttributeValue]
     D --> E[Resolve Lava merge fields<br/>GetMergeFields + ResolveMergeFields]
-    E --> F[Do the work<br/>e.g. set attribute, send SMS, create image montage]
+    E --> F[Do the work<br/>e.g. set attribute, send SMS, remove a binary file]
     F --> G{return bool}
     G -->|true| H[Activity continues]
     G -->|false + errorMessages| I[Logged on the workflow action]
@@ -78,7 +78,6 @@ flowchart TD
 | StoreSignedDocument | Signature Document | Create a new signature document. |
 | ClearCacheTags | CMS | Clear cached items with the selected tag(s). |
 | Lookup | Twilio | Make a Twilio Lookup API call. |
-| ImageMontage | Media | Create JPG montages of image tiles. |
 | BinaryFileRemove | Media | Remove a Binary File. |
 
 ## Detailed Actions
@@ -135,7 +134,7 @@ Category in Rock: **SECC > Workflow**.
 
 - **Rock:** workflow engine (`ActionComponent`), `RockContext`, connections, registrations, CMS cache.
 - **Cross-plugin:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (used by *Person Attribute From Fields*).
-- **Third-party:** Twilio (lookup), Magick.NET / ImageMagick (image montages).
+- **Third-party:** Twilio (lookup).
 
 ## Edge Cases & Constraints
 
@@ -172,5 +171,6 @@ and the attributes render the configuration UI automatically.
 
 - Add new actions in the matching area folder (`Person/`, `Communication/`, …); follow an existing
   sibling as a template.
-- Media actions require `Magick*` in `RockWeb/bin` (handled by the PostBuildEvent).
 - Person-matching behavior lives in [org.secc.PersonMatch](../org.secc.PersonMatch/README.md), not here.
+
+**Last updated:** 2026-07-07
