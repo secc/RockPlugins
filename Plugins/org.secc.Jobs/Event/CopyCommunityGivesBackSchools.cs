@@ -1,7 +1,7 @@
-﻿using Quartz;
-using Rock;
+﻿using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Web.Cache;
 using System;
@@ -27,8 +27,7 @@ namespace org.secc.Jobs.Event
         Key = AttributeKeys.CopyInactiveSchoolsKey)]
 
     [DisplayName("Community Gives Back - Copy Schools")]
-    [DisallowConcurrentExecution]
-    public class CopyCommunityGivesBackSchools : IJob
+    public class CopyCommunityGivesBackSchools : RockJob
     {
         internal class AttributeKeys
         {
@@ -50,13 +49,11 @@ namespace org.secc.Jobs.Event
         bool copyInactiveSchools = false;
         int? systemAdminPersonAliasId = 0;
 
-        public void Execute(IJobExecutionContext context)
+        public override void Execute()
         {
-            var dataMap = context.JobDetail.JobDataMap;
-
-            sourceCampaignName = dataMap.GetString(AttributeKeys.SourceCampaignKey);
-            destinationCampaignName = dataMap.GetString(AttributeKeys.DestinationCampaignKey);
-            copyInactiveSchools = dataMap.GetString(AttributeKeys.CopyInactiveSchoolsKey).AsBoolean();
+            sourceCampaignName = GetAttributeValue(AttributeKeys.SourceCampaignKey);
+            destinationCampaignName = GetAttributeValue(AttributeKeys.DestinationCampaignKey);
+            copyInactiveSchools = GetAttributeValue(AttributeKeys.CopyInactiveSchoolsKey).AsBoolean();
             systemAdminPersonAliasId = new PersonService(new RockContext()).Get(1).PrimaryAliasId;
 
             if (sourceCampaignName.IsNullOrWhiteSpace())

@@ -17,10 +17,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Net;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Web.Cache;
 
@@ -28,18 +28,16 @@ namespace org.secc.Jobs
 {
     [DataViewField( "DataView", "DataView of people to remove the devices from.", true, "", "Rock.Model.Person" )]
 
-    [DisallowConcurrentExecution]
-    public class RemoveDevicesFromPersons : IJob
+    public class RemoveDevicesFromPersons : RockJob
     {
         private readonly string authentication = string.Format( "authorization-token:{0}", GlobalAttributesCache.Value( "FrontporchAPIToken" ) );
         private readonly string host = GlobalAttributesCache.Value( "FrontporchHost" );
 
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
             var rockContext = new RockContext();
 
-            var dv = dataMap.GetString( "DataView" ).AsGuid();
+            var dv = GetAttributeValue( "DataView" ).AsGuid();
             DataViewService dataService = new DataViewService( rockContext );
             var items = dataService
                 .Get( dv );
@@ -63,7 +61,7 @@ namespace org.secc.Jobs
                 rockContext.SaveChanges();
             }
 
-            context.Result = string.Format( "Removed {0} devices. {1} exceptions recorded", devices.Count(), errors.Count() );
+            Result = string.Format( "Removed {0} devices. {1} exceptions recorded", devices.Count(), errors.Count() );
         }
 
         private void RemoveDeviceFromFrontPorch( PersonalDevice device, List<string> errors )

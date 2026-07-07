@@ -19,9 +19,9 @@ using org.secc.DevLib.Components;
 using org.secc.LeagueApps.Components;
 using org.secc.LeagueApps.Contracts;
 using org.secc.LeagueApps.Utilities;
-using Quartz;
 using Rock;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Web.Cache;
 
@@ -30,15 +30,10 @@ namespace org.secc.LeagueApps
 
 
 
-    [DisallowConcurrentExecution]
-
-    public class ImportData : IJob
+    public class ImportData : RockJob
     {
         /// <summary>Process all leagues (programs) from LeagueApps.</summary>
-        /// <param name="message">The message that is returned depending on the result.</param>
-        /// <param name="state">The state of the process.</param>
-        /// <returns><see cref="WorkerResultStatus"/></returns>
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
             RockContext dbContext = new RockContext();
             GroupService groupService = new GroupService( dbContext );
@@ -48,9 +43,6 @@ namespace org.secc.LeagueApps
             DefinedValueService definedValueService = new DefinedValueService( dbContext );
             DefinedTypeService definedTypeService = new DefinedTypeService( dbContext );
             BinaryFileService binaryFileService = new BinaryFileService( dbContext );
-
-            // Get the datamap for loading attributes
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
 
             var warnings = string.Empty;
             var processed = 0;
@@ -202,7 +194,7 @@ namespace org.secc.LeagueApps
 
                     var applicants = apiClient.GetPrivate<List<Registrations>>( "/v2/sites/{siteid}/export/registrations-2?last-updated=0&last-id=0&program-id=" + program.programId );
 
-                    context.UpdateLastStatusMessage( "Processing league " + ( processed + 1 ) + " of " + programs.Count + ": " + program.startTime.Year + " > " + program.mode + " > " + program.name + " (" + applicants.Count + " members)." );
+                    UpdateLastStatusMessage( "Processing league " + ( processed + 1 ) + " of " + programs.Count + ": " + program.startTime.Year + " > " + program.mode + " > " + program.name + " (" + applicants.Count + " members)." );
 
                     foreach ( Contracts.Registrations applicant in applicants )
                     {
@@ -301,7 +293,7 @@ namespace org.secc.LeagueApps
             {
                 throw new Exception( warnings );
             }
-            context.Result = "Successfully imported " + processed + " leagues.";
+            Result = "Successfully imported " + processed + " leagues.";
         }
     }
 }

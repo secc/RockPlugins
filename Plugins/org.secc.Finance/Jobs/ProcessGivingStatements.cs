@@ -16,10 +16,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Web.Cache;
 
@@ -31,8 +31,7 @@ namespace org.secc.Finance.Jobs
     /// </summary>
     [WorkflowTypeField( "Statement Generator Workflow", "", false, true, "", "Workflow" )]
     [TextField( "Workflow Activity Name", "The name of the PDF generation activity within the Statement Generator Workflow", true )]
-    [DisallowConcurrentExecution]
-    public class ProcessGivingStatements : IJob
+    public class ProcessGivingStatements : RockJob
     {
         /// <summary> 
         /// Empty constructor for job initialization
@@ -45,31 +44,17 @@ namespace org.secc.Finance.Jobs
         {
         }
 
-        /// <summary>
-        /// Called by the <see cref="IScheduler" /> when a <see cref="ITrigger" />
-        /// fires that is associated with the <see cref="IJob" />.
-        /// </summary>
-        /// <param name="context">The execution context.</param>
-        /// <remarks>
-        /// The implementation may wish to set a  result object on the
-        /// JobExecutionContext before this method exits.  The result itself
-        /// is meaningless to Quartz, but may be informative to
-        /// <see cref="IJobListener" />s or
-        /// <see cref="ITriggerListener" />s that are watching the job's
-        /// execution.
-        /// </remarks>
-        public virtual void Execute( IJobExecutionContext context )
+        /// <inheritdoc cref="RockJob.Execute()" />
+        public override void Execute()
         {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
-
             int workflowsProcessed = 0;
             int workflowErrors = 0;
             int workflowExceptions = 0;
             var processingErrors = new List<string>();
             var exceptionMsgs = new List<string>();
 
-            var statementGeneratorWorkflowGuid = dataMap.GetString( "StatementGeneratorWorkflow" ).AsGuidOrNull();
-            var workflowActivityName = dataMap.GetString( "WorkflowActivityName" );
+            var statementGeneratorWorkflowGuid = GetAttributeValue( "StatementGeneratorWorkflow" ).AsGuidOrNull();
+            var workflowActivityName = GetAttributeValue( "WorkflowActivityName" );
 
             if ( statementGeneratorWorkflowGuid != null && !string.IsNullOrWhiteSpace( workflowActivityName ) )
             {
@@ -150,7 +135,7 @@ namespace org.secc.Finance.Jobs
                 throw new Exception( "One or more exceptions occurred processing workflows..." + Environment.NewLine + exceptionMsgs.AsDelimited( Environment.NewLine ) );
             }
 
-            context.Result = resultMsg.ToString();
+            Result = resultMsg.ToString();
         }
     }
 }

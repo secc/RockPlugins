@@ -2,7 +2,6 @@
 using System.Data.Entity;
 using System.Linq;
 using System.Text;
-using Quartz;
 
 using Rock;
 using Rock.Attribute;
@@ -51,8 +50,7 @@ namespace org.secc.Jobs
         Key = AttributeKeys.MigrationNoteType )]
 
 
-    [DisallowConcurrentExecution]
-    public class MigratePickleballCredits : IJob
+    public class MigratePickleballCredits : RockJob
     {
         internal class AttributeKeys
         {
@@ -65,27 +63,26 @@ namespace org.secc.Jobs
 
 
         }
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            var dataMap = context.JobDetail.JobDataMap;
-            var pickleballGroupGuid = dataMap.GetString( AttributeKeys.PickleballGroup ).AsGuidOrNull();
-            var pickleballSessionsKey = dataMap.GetString( AttributeKeys.PickleballSessionsKey );
-            var pickleballMigratedOnKey = dataMap.GetString( AttributeKeys.PickleballMigratedOnKey );
+            var pickleballGroupGuid = GetAttributeValue( AttributeKeys.PickleballGroup ).AsGuidOrNull();
+            var pickleballSessionsKey = GetAttributeValue( AttributeKeys.PickleballSessionsKey );
+            var pickleballMigratedOnKey = GetAttributeValue( AttributeKeys.PickleballMigratedOnKey );
 
-            var groupFitnessGroupGuid = dataMap.GetString( AttributeKeys.GroupFitnessGroup ).AsGuidOrNull();
-            var groupFitnessSessionKey = dataMap.GetString( AttributeKeys.GroupFitnessSessionsKey );
+            var groupFitnessGroupGuid = GetAttributeValue( AttributeKeys.GroupFitnessGroup ).AsGuidOrNull();
+            var groupFitnessSessionKey = GetAttributeValue( AttributeKeys.GroupFitnessSessionsKey );
 
-            var noteTypeGuid = dataMap.GetString( AttributeKeys.MigrationNoteType ).AsGuid();
+            var noteTypeGuid = GetAttributeValue( AttributeKeys.MigrationNoteType ).AsGuid();
 
 
             if (!pickleballGroupGuid.HasValue)
             {
-                context.UpdateLastStatusMessage( "WARNING: Pickleball Group not selected" );
+                UpdateLastStatusMessage( "WARNING: Pickleball Group not selected" );
                 return;
             }
             if (!groupFitnessGroupGuid.HasValue)
             {
-                context.UpdateLastStatusMessage( "WARNING: Group Fitness Group not selected" );
+                UpdateLastStatusMessage( "WARNING: Group Fitness Group not selected" );
                 return;
             }
 
@@ -100,13 +97,13 @@ namespace org.secc.Jobs
 
             if (pickleBallGroup == null)
             {
-                context.UpdateLastStatusMessage( "WARNING: Pickleball Group not found." );
+                UpdateLastStatusMessage( "WARNING: Pickleball Group not found." );
                 return;
             }
 
             if (groupFitnessGroup == null)
             {
-                context.UpdateLastStatusMessage( "WARNING: Group Fitness Group not found." );
+                UpdateLastStatusMessage( "WARNING: Group Fitness Group not found." );
                 return;
             }
 
@@ -116,7 +113,7 @@ namespace org.secc.Jobs
                 .Select( g => g.Id )
                 .ToList();
 
-            context.UpdateLastStatusMessage( $"{pickleballGroupMemberIds.Count()} Pickleball participants found." );
+            UpdateLastStatusMessage( $"{pickleballGroupMemberIds.Count()} Pickleball participants found." );
 
             var participantsProcessed = 0;
 
@@ -204,14 +201,14 @@ namespace org.secc.Jobs
 
                     if ((participantsProcessed % 50) == 0)
                     {
-                        context.UpdateLastStatusMessage( $"{participantsProcessed} of {pickleballGroupMemberIds.Count} processed." );
+                        UpdateLastStatusMessage( $"{participantsProcessed} of {pickleballGroupMemberIds.Count} processed." );
                     }
 
 
                 }
             }
 
-            context.UpdateLastStatusMessage( $"Migration Complete. {participantsProcessed} processed." );
+            UpdateLastStatusMessage( $"Migration Complete. {participantsProcessed} processed." );
 
         }
 

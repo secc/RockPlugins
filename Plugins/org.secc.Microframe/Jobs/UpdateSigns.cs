@@ -13,21 +13,19 @@
 // </copyright>
 //
 using org.secc.Microframe.Utilities;
-using Quartz;
+using Rock.Jobs;
 
 namespace org.secc.Microframe
 {
-    [DisallowConcurrentExecution]
-    public class UpdateSigns : IJob
+    public class UpdateSigns : RockJob
     {
         /// <summary>
-        /// Executes the specified context.
+        /// Executes the job.
         /// </summary>
-        /// <param name="context">The context.</param>
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
             SignUtilities.UpdateAllSigns();
-            context.Result = "Completed initializing asynchronous update of signs. (This does not mean all signs have finished updating)";
+            Result = "Completed initializing asynchronous update of signs. (This does not mean all signs have finished updating)";
         }
     }
 }

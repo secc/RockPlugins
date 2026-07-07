@@ -14,22 +14,18 @@
 //
 using System.Linq;
 using org.secc.FamilyCheckin.Cache;
-using Quartz;
 using Rock;
+using Rock.Jobs;
 
 namespace org.secc.FamilyCheckin
 {
-    [DisallowConcurrentExecution]
-    public class RemoveExpiredMobileReservations : IJob
+    public class RemoveExpiredMobileReservations : RockJob
     {
         /// <summary>
-        /// Executes the specified context.
+        /// Executes the job.
         /// </summary>
-        /// <param name="context">The context.</param>
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
-
             var records = MobileCheckinRecordCache.All()
                 .Where( r => !r.ExpirationDateTime.HasValue || r.ExpirationDateTime < Rock.RockDateTime.Now
                 || ( r.CreatedDateTime.HasValue && r.CreatedDateTime < Rock.RockDateTime.Today ) )
@@ -40,7 +36,7 @@ namespace org.secc.FamilyCheckin
                 MobileCheckinRecordCache.CancelReservation( record, true );
             }
 
-            context.Result = $"Removed {records.Count} expired records.";
+            Result = $"Removed {records.Count} expired records.";
         }
     }
 }

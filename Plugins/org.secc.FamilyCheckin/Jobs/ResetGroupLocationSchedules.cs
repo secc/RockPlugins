@@ -15,24 +15,20 @@
 using System.Linq;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Utilities;
-using Quartz;
 using Rock;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 
 namespace org.secc.FamilyCheckin
 {
-    [DisallowConcurrentExecution]
-    public class ResetGroupLocationSchedules : IJob
+    public class ResetGroupLocationSchedules : RockJob
     {
         /// <summary>
-        /// Executes the specified context.
+        /// Executes the job.
         /// </summary>
-        /// <param name="context">The context.</param>
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
-
             var rockContext = new RockContext();
 
             var definedTypeService = new DefinedTypeService( rockContext );
@@ -74,7 +70,7 @@ namespace org.secc.FamilyCheckin
             OccurrenceCache.Clear();
             AttendanceCache.Clear();
 
-            context.Result = string.Format( "Finished at {0}. Reset {1} GroupScheduleLocations.", Rock.RockDateTime.Now, deactivatedGroupLocationSchedules.Count );
+            Result = string.Format( "Finished at {0}. Reset {1} GroupScheduleLocations.", Rock.RockDateTime.Now, deactivatedGroupLocationSchedules.Count );
         }
     }
 }

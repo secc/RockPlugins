@@ -22,10 +22,10 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Web.Cache;
 
@@ -35,19 +35,17 @@ namespace org.secc.Jobs
     [DefinedValueField( Rock.SystemGuid.DefinedType.FINANCIAL_CURRENCY_TYPE, "Currency Type", "The currency type source for PushPay check transactions.", true )]
     [AttributeField( Rock.SystemGuid.EntityType.FINANCIAL_TRANSACTION, "Check Number Attribute", "The check number finacial transaction attribute." )]
     [SlidingDateRangeField( "Date Range", "The date range of transactions to include", true, "Previous|24|Hour||" )]
-    [DisallowConcurrentExecution]
-    public class PushPayDownloadCheckNumbers : IJob
+    public class PushPayDownloadCheckNumbers : RockJob
     {
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
             var rockContext = new RockContext();
 
             // Load all of the attributes
-            var transactionSource = DefinedValueCache.Get( dataMap.GetString( "TransactionSource" ).AsGuid() );
-            var currencyType = DefinedValueCache.Get( dataMap.GetString( "CurrencyType" ).AsGuid() );
-            var checkNumberAttribute = AttributeCache.Get( dataMap.GetString( "CheckNumberAttribute" ).AsGuid() );
-            DateRange dateRange = Rock.Web.UI.Controls.SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( dataMap.GetString( "DateRange" ) ?? "-1||" );
+            var transactionSource = DefinedValueCache.Get( GetAttributeValue( "TransactionSource" ).AsGuid() );
+            var currencyType = DefinedValueCache.Get( GetAttributeValue( "CurrencyType" ).AsGuid() );
+            var checkNumberAttribute = AttributeCache.Get( GetAttributeValue( "CheckNumberAttribute" ).AsGuid() );
+            DateRange dateRange = Rock.Web.UI.Controls.SlidingDateRangePicker.CalculateDateRangeFromDelimitedValues( GetAttributeValue( "DateRange" ) ?? "-1||" );
 
             FinancialTransactionService financialTransactionService = new FinancialTransactionService( rockContext );
             AttributeValueService attributeValueService = new AttributeValueService( rockContext );
@@ -130,7 +128,7 @@ namespace org.secc.Jobs
             }
 
 
-            context.Result = string.Format( "Updated {0} Financial Transaction Check Numbers with {1} Error(s).", updates, errors );
+            Result = string.Format( "Updated {0} Financial Transaction Check Numbers with {1} Error(s).", updates, errors );
         }
 
 

@@ -16,10 +16,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 
 namespace org.secc.Jobs
@@ -28,17 +28,15 @@ namespace org.secc.Jobs
     [WorkflowTypeField( "Nursing Home Resident Workflow", "", false, true, "", "Workflows" )]
     [WorkflowTypeField( "Homebound Person Workflow", "", false, true, "", "Workflows" )]
 
-    [DisallowConcurrentExecution]
-    public class CloseDeseasedPastoralWorkflows : IJob
+    public class CloseDeseasedPastoralWorkflows : RockJob
     {
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
             var rockContext = new RockContext();
 
-            var hospitalWorkflow = dataMap.GetString( "HospitalAdmissionWorkflow" ).AsGuidOrNull();
-            var nursingHomeAdmissionWorkflow = dataMap.GetString( "NursingHomeResidentWorkflow" ).AsGuidOrNull();
-            var homeBoundPersonWorkflow = dataMap.GetString( "HomeboundPersonWorkflow" ).AsGuidOrNull();
+            var hospitalWorkflow = GetAttributeValue( "HospitalAdmissionWorkflow" ).AsGuidOrNull();
+            var nursingHomeAdmissionWorkflow = GetAttributeValue( "NursingHomeResidentWorkflow" ).AsGuidOrNull();
+            var homeBoundPersonWorkflow = GetAttributeValue( "HomeboundPersonWorkflow" ).AsGuidOrNull();
 
             var workflowService = new WorkflowService( rockContext );
             var attributeService = new AttributeService( rockContext );
@@ -95,7 +93,7 @@ namespace org.secc.Jobs
 
             rockContext.SaveChanges();
 
-            context.Result = string.Format( "Closed {0} workflows.", workflowsToClose.Count() );
+            Result = string.Format( "Closed {0} workflows.", workflowsToClose.Count() );
         }
 
         private Person GetPerson( PersonAliasService personAliasService, IEnumerable<AttributeValue> AttributeValues )

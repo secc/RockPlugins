@@ -6,28 +6,26 @@ using org.secc.DevLib.Components;
 using org.secc.LeagueApps.Components;
 using org.secc.LeagueApps.Contracts;
 using org.secc.LeagueApps.Utilities;
-using Quartz;
 using Rock;
 using Rock.Attribute;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Web.Cache;
 
 namespace org.secc.LeagueApps.Jobs
 {
-    [DisallowConcurrentExecution]
-
     [BooleanField( "Create New People", "Should we create a new person if they are not in Rock?", key: "CreateNew" )]
-    public class ImportMembers : IJob
+    public class ImportMembers : RockJob
     {
 
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
             var apiClient = new APIClient();
 
             var settings = SettingsComponent.GetComponent<LeagueAppsSettings>();
             var connectionStatus = DefinedValueCache.Get( settings.GetAttributeValue( Constants.DefaultConnectionStatus ).AsGuid() );
 
-            var createNew = context.JobDetail.JobDataMap.GetString( "CreateNew" ).AsBoolean();
+            var createNew = GetAttributeValue( "CreateNew" ).AsBoolean();
 
             int lastId = 0;
             long latestUpdated = 0;
@@ -101,7 +99,7 @@ namespace org.secc.LeagueApps.Jobs
                 resultMsg.Append( string.Join( "; ", errors ) );
             }
 
-            context.Result = resultMsg.ToString();
+            Result = resultMsg.ToString();
         }
     }
 }
