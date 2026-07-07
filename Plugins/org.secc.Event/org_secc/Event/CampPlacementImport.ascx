@@ -29,9 +29,10 @@
                 <asp:Panel ID="pnlUpload" runat="server" Visible="false">
                     <h4>Step 2: Upload CSV File</h4>
                     <p>Upload a CSV file containing camper names and their placement assignments. The first row should contain column headers.</p>
-                    <Rock:FileUploader ID="fuCsvFile" runat="server" IsBinaryFile="true" Label="CSV File" Required="true" OnFileUploaded="fuCsvFile_FileUploaded" />
+                    <Rock:FileUploader ID="fuCsvFile" runat="server" IsBinaryFile="true" Label="CSV File" Required="true" OnFileUploaded="fuCsvFile_FileUploaded" OnFileRemoved="fuCsvFile_FileRemoved" />
                     <div class="actions margin-t-md">
                         <asp:LinkButton ID="btnUploadBack" runat="server" CssClass="btn btn-default" Text="Back" OnClick="btnUploadBack_Click" CausesValidation="false" />
+                        <asp:LinkButton ID="btnUploadNext" runat="server" CssClass="btn btn-primary" Text="Next" OnClick="btnUploadNext_Click" CausesValidation="false" Enabled="false" />
                     </div>
                 </asp:Panel>
 
