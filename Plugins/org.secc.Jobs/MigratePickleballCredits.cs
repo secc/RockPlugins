@@ -224,7 +224,6 @@ namespace org.secc.Jobs
                     EntityId = groupMemberId,
                     Caption = title,
                     Text = body,
-                    ApprovalStatus = NoteApprovalStatus.Approved,
                     NoteUrl = $"/GroupMember/{groupMemberId}",
 
                 };

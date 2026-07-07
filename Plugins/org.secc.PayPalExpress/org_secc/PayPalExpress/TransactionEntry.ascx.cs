@@ -42,6 +42,7 @@ using Rock.Attribute;
 using Rock.Data;
 using Rock.Financial;
 using Rock.Model;
+using Rock.Tasks;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
 
@@ -792,10 +793,12 @@ namespace org.secc.PayPalExpress
             Guid? recieptEmail = GetAttributeValue( "ReceiptEmail" ).AsGuidOrNull();
             if ( recieptEmail.HasValue )
             {
-                // Queue a transaction to send reciepts
-                var newTransactionIds = new List<int> { transactionId };
-                var sendPaymentRecieptsTxn = new Rock.Transactions.SendPaymentReceipts( recieptEmail.Value, newTransactionIds );
-                Rock.Transactions.RockQueue.TransactionQueue.Enqueue( sendPaymentRecieptsTxn );
+                // Queue a bus message to send reciepts
+                new Rock.Tasks.ProcessSendPaymentReceiptEmails.Message
+                {
+                    SystemEmailGuid = recieptEmail.Value,
+                    TransactionId = transactionId
+                }.Send();
             }
         }
 

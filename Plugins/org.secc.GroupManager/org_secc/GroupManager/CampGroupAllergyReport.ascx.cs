@@ -130,7 +130,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         public class CampGroupMemberAllergies : ILiquidizable
         {
-            [LavaIgnore]
+            [LavaHidden]
             public object this[object key]
             {
                 get
@@ -237,7 +237,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
             }
 
-            [LavaIgnore]
+            [LavaHidden]
             public List<string> AvailableKeys
             {
                 get

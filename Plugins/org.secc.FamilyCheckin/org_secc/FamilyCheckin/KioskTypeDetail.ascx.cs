@@ -43,7 +43,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
         IsRequired = false,
         Order = 0,
         Key = AttributeKeys.ShowMedicalConsentSkips )]
-    public partial class KioskTypeDetail : RockBlock, IDetailBlock
+    public partial class KioskTypeDetail : RockBlock
     {
 
         public class AttributeKeys

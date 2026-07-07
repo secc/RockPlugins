@@ -108,7 +108,7 @@ namespace Rock.Workflow.Action.CheckIn
                                             var primaryAlias = personAliasService.GetPrimaryAlias( person.Person.Id );
                                             if ( primaryAlias != null )
                                             {
-                                                attendance = rockContext.Attendances.Create();
+                                                attendance = rockContext.Set<Attendance>().Create();
                                                 attendance.Occurrence.LocationId = location.Location.Id;
                                                 attendance.CampusId = location.CampusId;
                                                 attendance.Occurrence.ScheduleId = schedule.Schedule.Id;

@@ -1122,7 +1122,7 @@ namespace RockWeb.Plugins.org_secc.Event
                             }
 
                             var sendErrorMessages = new List<string>();
-                            if ( new SignatureDocumentTemplateService( rockContext ).SendDocument(
+                            if ( new SignatureDocumentTemplateService( rockContext ).SendLegacyProviderDocument(
                                 signatureDocumentTemplateService.Get( Registration.RegistrationInstance.RegistrationTemplate.RequiredSignatureDocumentTemplateId.Value ),
                                 appliesTo,
                                 assignedTo,
@@ -1437,14 +1437,14 @@ namespace RockWeb.Plugins.org_secc.Event
             {
                 foreach ( var discount in RegistrationTemplateState.Discounts.OrderBy( d => d.Code ) )
                 {
-                    discountCodes.AddOrIgnore( discount.Code, discount.Code + ( string.IsNullOrWhiteSpace( discount.DiscountString ) ? "" :
+                    discountCodes.TryAdd( discount.Code, discount.Code + ( string.IsNullOrWhiteSpace( discount.DiscountString ) ? "" :
                         string.Format( " ({0})", discount.DiscountString ) ) );
                 }
             }
 
             if ( !string.IsNullOrWhiteSpace( registration.DiscountCode ) )
             {
-                discountCodes.AddOrIgnore( registration.DiscountCode, registration.DiscountCode );
+                discountCodes.TryAdd( registration.DiscountCode, registration.DiscountCode );
             }
 
             ddlGroup.Items.Clear();
