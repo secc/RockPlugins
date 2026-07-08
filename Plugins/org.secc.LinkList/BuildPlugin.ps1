@@ -26,12 +26,30 @@ if ($null -eq $rockWeb) {
 }
 Write-Host "LinkList: using RockWeb at $rockWeb"
 
+# Locate MSBuild. vswhere ships with every VS >= 15.2 (including Build Tools)
+# at a fixed path, so this works regardless of edition/version on the agent.
+# Fall back to msbuild on PATH (e.g. a Developer PowerShell or explicit setup).
+$msbuild = $null
+$vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+if (Test-Path $vswhere) {
+    $msbuild = & $vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe | Select-Object -First 1
+}
+if (-not $msbuild) {
+    $msbuildCmd = Get-Command msbuild.exe -ErrorAction SilentlyContinue
+    if ($msbuildCmd) { $msbuild = $msbuildCmd.Source }
+}
+if (-not $msbuild) {
+    Pop-Location
+    throw "LinkList: could not locate MSBuild (vswhere found nothing and msbuild is not on PATH)!"
+}
+Write-Host "LinkList: using MSBuild at $msbuild"
+
 # --- 1. C# project ---
 # -restore handles NuGet (PackageReference; there is no packages.config).
 # RockWebPath feeds the DotLiquid/HtmlAgilityPack HintPaths and the
 # CopyToRockWeb step (SparkDevNetwork.Rock.Build.Tasks copies the compiled
 # DLL into RockWeb\Bin).
-& 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\msbuild.exe' -m -restore "org.secc.LinkList\org.secc.LinkList.csproj" /p:Configuration=Release /p:RockWebPath="$rockWeb"
+& $msbuild -m -restore "org.secc.LinkList\org.secc.LinkList.csproj" /p:Configuration=Release /p:RockWebPath="$rockWeb"
 if ($LASTEXITCODE -ne 0) {
     Pop-Location
     throw "org.secc.LinkList C# build failed!"

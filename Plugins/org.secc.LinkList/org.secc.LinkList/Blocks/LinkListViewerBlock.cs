@@ -3,7 +3,7 @@
 //
 // Licensed under the  Southeast Christian Church License (the "License");
 // you may not use this file except in compliance with the License.
-// A copy of the License shoud be included with this file.
+// A copy of the License should be included with this file.
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,6 +12,7 @@
 // limitations under the License.
 // </copyright>
 //
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 
@@ -34,8 +35,9 @@ namespace org.secc.LinkList.Blocks
     [IconCssClass( "fa fa-external-link" )]
     [SupportedSiteTypes( SiteType.Web )]
     [Rock.SystemGuid.BlockTypeGuid( LinkListGuids.BlockTypeLinkListViewer )]
-    [TextField( "Slug Source",
-        Description = "Set to 'Url' for route parameter `slug`, or 'Manual' to force a fixed slug.",
+    [CustomDropdownListField( "Slug Source",
+        Description = "'Url' reads the route parameter `slug`; 'Manual' forces a fixed slug.",
+        ListSource = "Url,Manual",
         IsRequired = true,
         DefaultValue = "Url",
         Order = 0,
@@ -83,7 +85,7 @@ namespace org.secc.LinkList.Blocks
         public BlockActionResult GetListBySlug()
         {
             var slugSource = GetAttributeValue( AttributeKey.SlugSource );
-            var slug = slugSource.Equals( "Manual" )
+            var slug = "Manual".Equals( slugSource, StringComparison.OrdinalIgnoreCase )
                 ? GetAttributeValue( AttributeKey.ManualSlug )
                 : PageParameter( "slug" );
 

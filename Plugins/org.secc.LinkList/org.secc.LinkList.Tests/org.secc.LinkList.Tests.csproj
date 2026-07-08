@@ -8,6 +8,14 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <!-- Resolve RockWeb the same way the main plugin project does: honor an
+       explicit /p:RockWebPath, then probe the rock-dev-tool layout (Rock next
+       to the plugin folder) and the Rock solution layout (SolutionDir). -->
+  <PropertyGroup>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('..\..\Rock\RockWeb\Bin')">..\..\Rock\RockWeb</RockWebPath>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('$(SolutionDir)RockWeb\Bin')">$(SolutionDir)RockWeb</RockWebPath>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
     <PackageReference Include="xunit" Version="2.7.0" />
@@ -19,7 +27,7 @@
     <!-- HtmlAgilityPack is provided by Rock; copy it locally so the sanitizer
          runs under the test host. -->
     <Reference Include="HtmlAgilityPack">
-      <HintPath>..\..\Rock\RockWeb\Bin\HtmlAgilityPack.dll</HintPath>
+      <HintPath>$(RockWebPath)\Bin\HtmlAgilityPack.dll</HintPath>
       <Private>true</Private>
     </Reference>
   </ItemGroup>
