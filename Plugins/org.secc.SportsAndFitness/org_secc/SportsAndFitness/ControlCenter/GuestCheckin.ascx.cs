@@ -385,7 +385,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 // count is still computed once as a hash LEFT JOIN (do NOT switch it to a correlated
                 // subquery: hostsGuests resolves ValueAsPersonId via a scalar UDF, so a per-row
                 // subquery re-runs that UDF for every attendance row and is far slower).
-                var attendanceQry = attendanceService.Queryable()
+                var attendanceQry = attendanceService.Queryable().AsNoTracking()
                     .Where( a => occurrenceIds.Contains( a.OccurrenceId ) )
                     .Where( a => a.DidAttend == true )
                     .Where( a => a.EndDateTime == null )
