@@ -1,0 +1,42 @@
+{
+    "name": "org.secc.linklist.obsidian",
+    "private": true,
+    "scripts": {
+        "build": "npm run typecheck && obsidian-build && npm run build:webcomponent",
+        "build:webcomponent": "rollup -c rollup.webcomponent.config.cjs",
+        "deploy": "npm run build && xcopy /Y /R /E /I dist ..\\..\\..\\..\\Rock\\RockWeb\\Plugins\\org_secc\\LinkList",
+        "typecheck": "vue-tsc --noEmit -p src",
+        "watch": "obsidian-build --watch",
+        "clean": "rimraf dist",
+        "viewmodels": "rock-dev-tool generate viewmodels ../org.secc.LinkList/bin/Debug/net472/org.secc.LinkList.dll -o src",
+        "test": "jest"
+    },
+    "dependencies": {
+        "@rockrms/obsidian-framework": "^1.16.9-rc.1"
+    },
+    "devDependencies": {
+        "@rollup/plugin-typescript": "^11.1.5",
+        "@sparkdevnetwork/eslint-config-rock-recommended": "^1.0.10",
+        "@sparkdevnetwork/obsidian-build-tools": "^1.0.10",
+        "@types/jest": "^29.5.4",
+        "@types/node": "^20.5.7",
+        "@typescript-eslint/eslint-plugin": "^6.5.0",
+        "@typescript-eslint/parser": "^6.5.0",
+        "@vue/test-utils": "2.3.2",
+        "@vue/vue3-jest": "^29.2.5",
+        "chart.js": "^4.5.1",
+        "eslint": "^8.48.0",
+        "eslint-plugin-vue": "^9.17.0",
+        "jest": "^29.6.4",
+        "jest-editor-support": "^31.1.1",
+        "jest-environment-jsdom": "^29.6.4",
+        "rimraf": "^5.0.1",
+        "rollup": "^3.29.5",
+        "ts-jest": "^29.1.1",
+        "tslib": "^2.6.2",
+        "typescript": "~5.4.5",
+        "vue": "3.2.35",
+        "vue-eslint-parser": "^9.3.1",
+        "vue-tsc": "^1.8.27"
+    }
+}

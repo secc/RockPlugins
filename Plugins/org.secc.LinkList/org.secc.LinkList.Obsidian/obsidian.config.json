@@ -1,0 +1,5 @@
+{
+    "source": "src",
+    "destination": "$(Environment)/Rock/RockWeb/Plugins/org_secc/LinkList",
+    "copy": true
+}

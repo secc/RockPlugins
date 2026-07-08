@@ -1,0 +1,28 @@
+<template>
+    <div class="ll-editor-actions">
+        <RockButton btnType="default" @click="$emit('cancel')">Cancel</RockButton>
+        <RockButton btnType="primary" :isLoading="isSaving" @click="$emit('save')">Save</RockButton>
+        <RockButton v-if="canDelete" btnType="danger" @click="$emit('delete')">Delete</RockButton>
+    </div>
+</template>
+
+<script setup lang="ts">
+import RockButton from "@Obsidian/Controls/rockButton.obs";
+
+// Shared Save/Cancel/Delete bar used at both the top and bottom of the editor so
+// the two toolbars can't drift (WS7 edit fix 8). Native RockButton types inherit
+// the host theme (no hardcoded colors).
+defineProps<{
+    isSaving?: boolean;
+    canDelete?: boolean;
+}>();
+defineEmits<{
+    (e: "save"): void;
+    (e: "cancel"): void;
+    (e: "delete"): void;
+}>();
+</script>
+
+<style scoped>
+.ll-editor-actions { display: inline-flex; gap: 6px; align-items: center; }
+</style>

@@ -1,0 +1,61 @@
+<template>
+    <div>
+        <NotificationBox v-if="error" alertType="danger" class="mb-3">
+            {{ error }}
+        </NotificationBox>
+        <!-- The web component is the single renderer everywhere; in-Rock we hand it
+             the auth-resolved bag (manual mode) so it never round-trips the public
+             REST endpoint, while the Webflow embed self-fetches by slug. -->
+        <div ref="host"></div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+import { useConfigurationValues, useInvokeBlockAction } from "@Obsidian/Utility/block";
+import "./webComponents/linkList"; // registers <secc-link-list>
+import type { LinkListBag, LinkListDetailInitializationBox } from "./types";
+
+interface ViewerConfig {
+    notFoundUrl?: string | null;
+}
+
+interface LinkListElement extends HTMLElement {
+    listData: LinkListBag | null;
+}
+
+const config = useConfigurationValues<ViewerConfig>();
+const invokeBlockAction = useInvokeBlockAction();
+const host = ref<HTMLElement | null>(null);
+const error = ref("");
+
+function notFound(): void {
+    // Legacy behavior: unknown slugs redirect to the configured page (default
+    // /page/255). When unset, leave the (loading) component in place.
+    if (config.notFoundUrl) {
+        window.location.href = config.notFoundUrl;
+    }
+}
+
+async function load(): Promise<void> {
+    const result = await invokeBlockAction<LinkListDetailInitializationBox>("GetListBySlug", {});
+    if (!result.isSuccess) {
+        error.value = result.errorMessage || "Unable to load link list.";
+        return;
+    }
+
+    const bag = result.data?.linkList ?? null;
+    if (!bag) {
+        notFound();
+        return;
+    }
+
+    const el = document.createElement("secc-link-list") as LinkListElement;
+    el.setAttribute("manual", "true");
+    host.value?.appendChild(el);
+    el.listData = bag;
+}
+
+onMounted(() => void load());
+</script>

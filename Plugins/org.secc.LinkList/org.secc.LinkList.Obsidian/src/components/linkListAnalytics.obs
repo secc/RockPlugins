@@ -1,0 +1,219 @@
+<template>
+    <NotificationBox v-if="error" alertType="danger">{{ error }}</NotificationBox>
+
+    <div v-else>
+        <div class="d-flex align-items-center mb-3">
+            <div class="btn-group" role="group" aria-label="Analytics range">
+                <button v-for="d in RANGES"
+                        :key="d"
+                        type="button"
+                        class="btn btn-xs"
+                        :class="days === d ? 'btn-primary' : 'btn-default'"
+                        :disabled="isLoading"
+                        @click="setRange(d)">
+                    {{ d }} days
+                </button>
+            </div>
+            <span v-if="isLoading" class="text-muted small ms-2">Loading…</span>
+        </div>
+
+        <div v-if="analytics" class="analytics-tiles mb-3">
+            <div class="analytics-tile">
+                <div class="analytics-tile-value">{{ analytics.totalViews }}</div>
+                <div class="analytics-tile-label">Views</div>
+            </div>
+            <div class="analytics-tile">
+                <div class="analytics-tile-value">{{ analytics.totalClicks }}</div>
+                <div class="analytics-tile-label">Link Clicks</div>
+            </div>
+            <div class="analytics-tile">
+                <div class="analytics-tile-value">{{ clickThroughRate }}</div>
+                <div class="analytics-tile-label">Clicks / View</div>
+            </div>
+        </div>
+
+        <NotificationBox v-if="analytics && !analytics.totalViews && !analytics.totalClicks" alertType="info">
+            No activity recorded in this range yet. New views and clicks can take a minute or two to appear.
+        </NotificationBox>
+
+        <div class="analytics-chart mb-3" style="height: 220px;">
+            <canvas ref="canvasElement"></canvas>
+        </div>
+
+        <div v-if="analytics && analytics.links.length" class="table-responsive">
+            <table class="grid-table table table-condensed table-striped">
+                <thead>
+                    <tr>
+                        <th>Link</th>
+                        <th>URL</th>
+                        <th class="text-right">Clicks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="link in analytics.links" :key="link.matrixItemGuid ?? link.url ?? link.text ?? ''">
+                        <td>
+                            {{ link.text || "(untitled)" }}
+                            <span v-if="link.isDeleted" class="label label-default">deleted link</span>
+                        </td>
+                        <td class="text-muted small analytics-url">{{ link.url }}</td>
+                        <td class="text-right">{{ link.clicks }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</template>
+
+<style scoped>
+.analytics-tiles {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.analytics-tile {
+    flex: 1 1 120px;
+    padding: 12px 16px;
+    border: 1px solid var(--theme-light, #dfe0e1);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.analytics-tile-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.analytics-tile-label {
+    font-size: 0.75rem;
+    color: #737475;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.analytics-url {
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+</style>
+
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from "vue";
+import { useInvokeBlockAction } from "@Obsidian/Utility/block";
+import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+import { Chart } from "@Obsidian/Libs/chart";
+import type { LinkListAnalyticsBag } from "../types";
+
+const props = defineProps<{
+    listGuid: string;
+}>();
+
+const RANGES = [30, 90, 365];
+
+const invokeBlockAction = useInvokeBlockAction();
+
+const analytics = ref<LinkListAnalyticsBag | null>(null);
+const days = ref(30);
+const isLoading = ref(false);
+const error = ref("");
+const canvasElement = shallowRef<HTMLCanvasElement | null>(null);
+let chart: Chart<"line", number[]> | null = null;
+
+const clickThroughRate = computed(() => {
+    const views = analytics.value?.totalViews ?? 0;
+    const clicks = analytics.value?.totalClicks ?? 0;
+    return views > 0 ? `${Math.round((clicks / views) * 100)}%` : "—";
+});
+
+function dayLabel(isoDate: string): string {
+    const date = new Date(isoDate);
+    return isNaN(date.getTime())
+        ? isoDate
+        : date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function updateChart(): void {
+    if (!canvasElement.value || !analytics.value) {
+        return;
+    }
+
+    const labels = analytics.value.viewsByDay.map(p => dayLabel(p.date));
+    const datasets = [
+        {
+            label: "Views",
+            data: analytics.value.viewsByDay.map(p => p.count),
+            borderColor: "#709ac7",
+            backgroundColor: "rgba(112, 154, 199, 0.4)",
+            tension: 0.2
+        },
+        {
+            label: "Clicks",
+            data: analytics.value.clicksByDay.map(p => p.count),
+            borderColor: "#80bb7c",
+            backgroundColor: "rgba(128, 187, 124, 0.4)",
+            tension: 0.2
+        }
+    ];
+
+    if (chart) {
+        chart.data = { labels, datasets };
+        chart.update();
+        return;
+    }
+
+    chart = new Chart(canvasElement.value, {
+        type: "line",
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: "bottom" }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { precision: 0 } }
+            }
+        }
+    });
+}
+
+async function load(): Promise<void> {
+    isLoading.value = true;
+    error.value = "";
+    try {
+        const result = await invokeBlockAction<LinkListAnalyticsBag>("GetAnalytics", {
+            itemGuid: props.listGuid,
+            days: days.value
+        });
+        if (result.isSuccess && result.data) {
+            analytics.value = result.data;
+            updateChart();
+        }
+        else {
+            error.value = result.errorMessage ?? "Unable to load analytics.";
+        }
+    }
+    catch {
+        error.value = "Unable to load analytics.";
+    }
+    finally {
+        isLoading.value = false;
+    }
+}
+
+function setRange(d: number): void {
+    if (days.value !== d) {
+        days.value = d;
+        void load();
+    }
+}
+
+onMounted(() => void load());
+
+onBeforeUnmount(() => {
+    chart?.destroy();
+    chart = null;
+});
+</script>

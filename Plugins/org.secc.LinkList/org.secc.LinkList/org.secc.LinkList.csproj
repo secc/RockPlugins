@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('$(SolutionDir)RockWeb\Bin')">$(SolutionDir)RockWeb</RockWebPath>
+    <AdditionalAssembliesToCopy></AdditionalAssembliesToCopy>
+    <CopyToRockWeb>true</CopyToRockWeb>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SparkDevNetwork.Rock.Build.Tasks" Version="1.0.10" />
+    <PackageReference Include="SparkDevNetwork.Rock.Analyzers" Version="1.0.10" />
+    <PackageReference Include="RockRMS.Rock" Version="1.16.9-rc.1" />
+    <PackageReference Include="RockRMS.Rock.Blocks" Version="1.16.9-rc.1" />
+    <PackageReference Include="RockRMS.Rock.Rest" Version="1.16.9-rc.1" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <!-- Provided by Rock at runtime. Private=false so we compile against
+         Rock's copy and never ship/overwrite it. -->
+    <Reference Include="DotLiquid">
+      <HintPath>$(RockWebPath)\Bin\DotLiquid.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="HtmlAgilityPack">
+      <HintPath>$(RockWebPath)\Bin\HtmlAgilityPack.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- SparkDevNetwork.Rock.Build.Tasks' CopyAssemblyToRockWeb silently no-ops
+       unless it finds a rock-dev-tool environment.json above plugin.json
+       ("Plugin environment not detected"). This repo doesn't use that layout,
+       so copy the plugin assembly (+ pdb) into RockWeb\Bin ourselves - Rock
+       only registers block types from assemblies in Bin. Runs wherever
+       RockWebPath resolves (VS via SolutionDir, CLI/pipeline via
+       /p:RockWebPath). -->
+  <Target Name="CopyPluginToRockWebBin" AfterTargets="Build" Condition="'$(RockWebPath)' != ''">
+    <ItemGroup>
+      <PluginOutput Include="$(TargetPath)" />
+      <PluginOutput Include="$(TargetDir)$(TargetName).pdb" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PluginOutput)" DestinationFolder="$(RockWebPath)\Bin" SkipUnchangedFiles="true" />
+    <Message Importance="high" Text="LinkList: copied $(TargetFileName) to $(RockWebPath)\Bin" />
+  </Target>
+
+</Project>

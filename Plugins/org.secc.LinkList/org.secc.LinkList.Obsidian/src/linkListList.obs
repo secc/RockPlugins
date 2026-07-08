@@ -1,0 +1,362 @@
+<template>
+    <TabbedContent :tabs="tabs">
+        <template #tabpane="{ item }">
+
+            <!-- ── Lists ── -->
+            <div v-if="item === 'Lists'">
+                <Grid :data="gridDataSource"
+                      keyField="guid"
+                      itemTerm="Link List"
+                      liveUpdates
+                      :onAddItem="config.isAddEnabled ? onAddItem : undefined"
+                      @selectItem="onSelectItem">
+                    <TextColumn name="title" title="Title" field="title" :filter="textValueFilter" visiblePriority="xs" />
+                    <TextColumn name="slug" title="Slug" field="slug" :filter="textValueFilter" visiblePriority="md" />
+                    <BooleanColumn name="isPublic" title="Public" field="isPublic" visiblePriority="sm" />
+                    <TextColumn name="design" title="Design" field="design" visiblePriority="lg" />
+                    <DateColumn name="modifiedDateTime" title="Modified" field="modifiedDateTime" visiblePriority="lg" />
+                    <!-- Per-row disable mirrors the Delete action's check
+                         (ADMINISTRATE on the item), surfaced as canDelete. -->
+                    <DeleteColumn v-if="config.isDeleteEnabled" @click="onDeleteClick" :rowDisabled="isDeleteRowDisabled" />
+                </Grid>
+            </div>
+
+            <!-- ── Design Presets ── -->
+            <div v-else-if="item === 'Design Presets'">
+                <NotificationBox v-if="presetError" alertType="danger">{{ presetError }}</NotificationBox>
+                <p class="text-muted">
+                    Reusable color themes a Link List can adopt from its <strong>Design preset</strong> field.
+                    Editing a preset updates every list using it.
+                </p>
+                <RockButton btnType="default" btnSize="sm" class="mb-3" @click="newPreset">
+                    <i class="fa fa-plus"></i> Add preset
+                </RockButton>
+                <div class="row">
+                    <div v-for="p in presets" :key="p.value" class="col-sm-6 col-md-4 col-lg-3 mb-3">
+                        <div class="panel panel-default ll-preset-card">
+                            <div class="ll-preset-preview" :style="{ background: p.backgroundColor || '#ffffff', color: p.contentTextColor || '#1a1a1a' }">
+                                <div class="ll-preset-name" :style="{ color: p.titleColor || p.contentTextColor || '#1a1a1a' }">{{ p.name }}</div>
+                                <div class="ll-preset-btn" :style="{ background: p.buttonColor, color: p.buttonTextColor }">Link</div>
+                                <div class="ll-preset-btn" :style="{ background: p.featuredButtonColor, color: p.featuredButtonTextColor }">Featured</div>
+                            </div>
+                            <div class="panel-body ll-preset-foot">
+                                <div>
+                                    <div class="ll-preset-title">{{ p.name }}</div>
+                                    <div class="text-muted small">{{ usageText(p) }}</div>
+                                </div>
+                                <div class="ll-preset-actions">
+                                    <RockButton btnType="link" btnSize="xs" @click="editPreset(p)">Edit</RockButton>
+                                    <RockButton btnType="link" btnSize="xs" @click="deletePreset(p)"><span class="text-danger">Delete</span></RockButton>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <Modal v-model="presetModalOpen" :title="editing.value ? 'Edit preset' : 'New preset'" saveText="Save preset" :onSave="savePreset">
+                    <TextBox v-model="editing.name" label="Name" rules="required" />
+                    <div class="row">
+                        <div class="col-md-6"><ColorPicker label="Background" :modelValue="editing.backgroundColor" @update:modelValue="editing.backgroundColor = $event" /></div>
+                        <div class="col-md-6"><ColorPicker label="Text" :modelValue="editing.contentTextColor" @update:modelValue="editing.contentTextColor = $event" /></div>
+                        <div class="col-md-6"><ColorPicker label="Title" :modelValue="editing.titleColor" @update:modelValue="editing.titleColor = $event" /></div>
+                        <div class="col-md-6"><ColorPicker label="Button" :modelValue="editing.buttonColor" @update:modelValue="editing.buttonColor = $event" /></div>
+                        <div class="col-md-6"><ColorPicker label="Button text" :modelValue="editing.buttonTextColor" @update:modelValue="editing.buttonTextColor = $event" /></div>
+                        <div class="col-md-6"><ColorPicker label="Featured button" :modelValue="editing.featuredButtonColor" @update:modelValue="editing.featuredButtonColor = $event" /></div>
+                        <div class="col-md-6"><ColorPicker label="Featured button text" :modelValue="editing.featuredButtonTextColor" @update:modelValue="editing.featuredButtonTextColor = $event" /></div>
+                    </div>
+                    <label class="control-label">Live preview</label>
+                    <div class="ll-preset-preview" :style="{ background: editing.backgroundColor || '#ffffff', color: editing.contentTextColor || '#1a1a1a' }">
+                        <div class="ll-preset-name" :style="{ color: editing.titleColor || editing.contentTextColor || '#1a1a1a' }">{{ editing.name || 'Preview' }}</div>
+                        <div class="ll-preset-btn" :style="{ background: editing.buttonColor, color: editing.buttonTextColor }">Link</div>
+                        <div class="ll-preset-btn" :style="{ background: editing.featuredButtonColor, color: editing.featuredButtonTextColor }">Featured</div>
+                    </div>
+                </Modal>
+            </div>
+
+            <!-- ── Global Settings ── -->
+            <div v-else-if="item === 'Global Settings'">
+                <NotificationBox v-if="globalError" alertType="danger">{{ globalError }}</NotificationBox>
+                <NotificationBox v-if="globalSaved" alertType="success">Global settings saved.</NotificationBox>
+                <p class="text-muted">
+                    Shown on <strong>every</strong> Link List (in Rock and on external embeds). Toggle each
+                    section on to publish it; turning it off hides it without losing the content.
+                </p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <CheckBox :modelValue="!!global.headerActive" @update:modelValue="global.headerActive = $event" label="Global header active" />
+                        <div class="form-group">
+                            <label class="control-label">Global header HTML</label>
+                            <CodeEditor v-model="globalHeaderValue" mode="html" theme="rock" :editorHeight="160" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <CheckBox :modelValue="!!global.footerActive" @update:modelValue="global.footerActive = $event" label="Global footer active" />
+                        <div class="form-group">
+                            <label class="control-label">Global footer HTML</label>
+                            <CodeEditor v-model="globalFooterValue" mode="html" theme="rock" :editorHeight="160" />
+                        </div>
+                    </div>
+                </div>
+                <CheckBox :modelValue="!!global.useIvyJournalFont"
+                          @update:modelValue="global.useIvyJournalFont = $event"
+                          label="Use IvyJournal serif font"
+                          help="Loads the licensed IvyJournal serif for headings. Leave off unless the display/embed domains are licensed — the fallback is Cormorant Garamond / Georgia." />
+                <RockButton btnType="primary" btnSize="sm" :isLoading="isSavingGlobal" @click="saveGlobal">Save global settings</RockButton>
+            </div>
+
+            <!-- ── Allowed Origins ── -->
+            <div v-else-if="item === 'Allowed Origins'">
+                <NotificationBox v-if="originsError" alertType="danger">{{ originsError }}</NotificationBox>
+                <NotificationBox v-if="originsSaved" alertType="success">Allowed origins saved.</NotificationBox>
+                <p class="text-muted">
+                    External sites (e.g. Webflow) allowed to embed the public Link List web component via CORS.
+                    Format: <code>scheme://host[:port]</code> — no trailing path.
+                </p>
+                <div class="form-group">
+                    <label class="control-label">Custom origins</label>
+                    <ValueList v-model="originsCustom" valuePrompt="https://example.org" />
+                </div>
+                <RockButton btnType="primary" btnSize="sm" :isLoading="isSavingOrigins" @click="saveOrigins">Save origins</RockButton>
+
+                <div class="form-group mt-3">
+                    <label class="control-label">Built-in (always allowed)</label>
+                    <ul class="list-unstyled text-muted">
+                        <li v-for="o in originsBuiltIn" :key="o"><code>{{ o }}</code></li>
+                    </ul>
+                </div>
+            </div>
+
+        </template>
+    </TabbedContent>
+</template>
+
+<script setup lang="ts">
+import { computed, reactive, ref } from "vue";
+import { useConfigurationValues, useInvokeBlockAction } from "@Obsidian/Utility/block";
+import { alert, confirm } from "@Obsidian/Utility/dialogs";
+import Grid, { BooleanColumn, DateColumn, DeleteColumn, TextColumn, textValueFilter } from "@Obsidian/Controls/grid";
+import TabbedContent from "@Obsidian/Controls/tabbedContent.obs";
+import CheckBox from "@Obsidian/Controls/checkBox.obs";
+import CodeEditor from "@Obsidian/Controls/codeEditor.obs";
+import RockButton from "@Obsidian/Controls/rockButton.obs";
+import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+import Modal from "@Obsidian/Controls/modal.obs";
+import ColorPicker from "@Obsidian/Controls/colorPicker.obs";
+import TextBox from "@Obsidian/Controls/textBox.obs";
+import ValueList from "@Obsidian/Controls/valueList.obs";
+import { GridDataBag } from "@Obsidian/ViewModels/Core/Grid/gridDataBag";
+import type { AllowedOriginsBag, DesignPresetBag, GlobalSettingsBag, LinkListListInitializationBox } from "./types";
+
+const NavigationUrlKey = { DetailPage: "DetailPage" } as const;
+
+const config = useConfigurationValues<LinkListListInitializationBox>();
+const invokeBlockAction = useInvokeBlockAction();
+
+const canManageGlobal = computed(() => !!config.canManageGlobalSettings);
+const tabs = computed(() => canManageGlobal.value
+    ? ["Lists", "Design Presets", "Global Settings", "Allowed Origins"]
+    : ["Lists"]);
+
+// ---- Lists grid ----
+const gridDataSource = ref<Promise<GridDataBag>>();
+let gridData: GridDataBag | undefined;
+
+async function loadGridData(): Promise<GridDataBag> {
+    const result = await invokeBlockAction<GridDataBag>("GetGridData");
+    if (result.isSuccess && result.data) {
+        gridData = reactive(result.data);
+        return gridData;
+    }
+    throw new Error(result.errorMessage ?? "Unable to load the link lists.");
+}
+
+function onSelectItem(key: string): void {
+    const url = config.navigationUrls?.[NavigationUrlKey.DetailPage];
+    if (url) {
+        window.location.href = url.replace("((Key))", key);
+    }
+}
+
+function onAddItem(): void {
+    const url = config.navigationUrls?.[NavigationUrlKey.DetailPage];
+    if (url) {
+        window.location.href = url.replace("((Key))", "0");
+    }
+}
+
+function isDeleteRowDisabled(row: Record<string, unknown>): boolean {
+    return row["canDelete"] !== true;
+}
+
+async function onDeleteClick(key: string): Promise<void> {
+    const result = await invokeBlockAction("Delete", { key });
+    if (result.isSuccess) {
+        if (gridData?.rows) {
+            const index = gridData.rows.findIndex(r => r["guid"] === key);
+            if (index !== -1) {
+                gridData.rows.splice(index, 1);
+            }
+        }
+    }
+    else {
+        await alert(result.errorMessage ?? "Unable to delete the link list.");
+    }
+}
+
+gridDataSource.value = loadGridData();
+
+// ---- WS12: Global header/footer ----
+const global = ref<GlobalSettingsBag>({ headerContent: "", headerActive: false, footerContent: "", footerActive: false, useIvyJournalFont: false });
+const isSavingGlobal = ref(false);
+const globalError = ref("");
+const globalSaved = ref(false);
+
+const globalHeaderValue = computed({
+    get: () => global.value.headerContent ?? "",
+    set: (v: string) => { global.value.headerContent = v; }
+});
+const globalFooterValue = computed({
+    get: () => global.value.footerContent ?? "",
+    set: (v: string) => { global.value.footerContent = v; }
+});
+
+async function loadGlobal(): Promise<void> {
+    const result = await invokeBlockAction<GlobalSettingsBag>("GetGlobalSettings");
+    if (result.isSuccess && result.data) {
+        global.value = {
+            headerContent: result.data.headerContent ?? "",
+            headerActive: !!result.data.headerActive,
+            footerContent: result.data.footerContent ?? "",
+            footerActive: !!result.data.footerActive,
+            useIvyJournalFont: !!result.data.useIvyJournalFont
+        };
+    }
+    else {
+        globalError.value = result.errorMessage ?? "Unable to load global settings.";
+    }
+}
+
+async function saveGlobal(): Promise<void> {
+    isSavingGlobal.value = true;
+    globalError.value = "";
+    globalSaved.value = false;
+    const result = await invokeBlockAction("SaveGlobalSettings", { bag: global.value });
+    isSavingGlobal.value = false;
+    if (result.isSuccess) {
+        globalSaved.value = true;
+    }
+    else {
+        globalError.value = result.errorMessage ?? "Could not save global settings.";
+    }
+}
+
+// ---- WS13: Design presets ----
+function blankPreset(): DesignPresetBag {
+    return { value: "", name: "", backgroundColor: "", contentTextColor: "", titleColor: "", buttonColor: "", buttonTextColor: "", featuredButtonColor: "", featuredButtonTextColor: "", usageCount: 0 };
+}
+const presets = ref<DesignPresetBag[]>([]);
+const presetError = ref("");
+const presetModalOpen = ref(false);
+const editing = ref<DesignPresetBag>(blankPreset());
+
+function usageText(p: DesignPresetBag): string {
+    const n = p.usageCount ?? 0;
+    return n === 0 ? "Not in use" : `${n} ${n === 1 ? "list" : "lists"}`;
+}
+
+async function loadPresets(): Promise<void> {
+    const result = await invokeBlockAction<DesignPresetBag[]>("GetDesignPresets");
+    if (result.isSuccess && result.data) {
+        presets.value = result.data;
+    }
+    else {
+        presetError.value = result.errorMessage ?? "Unable to load presets.";
+    }
+}
+
+function newPreset(): void {
+    editing.value = blankPreset();
+    presetModalOpen.value = true;
+}
+
+function editPreset(p: DesignPresetBag): void {
+    editing.value = { ...p };
+    presetModalOpen.value = true;
+}
+
+async function savePreset(): Promise<void> {
+    presetError.value = "";
+    const result = await invokeBlockAction<DesignPresetBag>("SaveDesignPreset", { bag: editing.value });
+    if (result.isSuccess) {
+        presetModalOpen.value = false;
+        await loadPresets();
+    }
+    else {
+        presetError.value = result.errorMessage ?? "Could not save preset.";
+    }
+}
+
+async function deletePreset(p: DesignPresetBag): Promise<void> {
+    if (!(await confirm(`Delete the "${p.name}" preset?`))) {
+        return;
+    }
+    const result = await invokeBlockAction("DeleteDesignPreset", { value: p.value });
+    if (result.isSuccess) {
+        await loadPresets();
+    }
+    else {
+        await alert(result.errorMessage ?? "Could not delete preset.");
+    }
+}
+
+// ---- WS13: Allowed origins ----
+const originsBuiltIn = ref<string[]>([]);
+const originsCustom = ref<string[]>([]);
+const originsError = ref("");
+const originsSaved = ref(false);
+const isSavingOrigins = ref(false);
+
+async function loadOrigins(): Promise<void> {
+    const result = await invokeBlockAction<AllowedOriginsBag>("GetAllowedOrigins");
+    if (result.isSuccess && result.data) {
+        originsBuiltIn.value = result.data.builtIn ?? [];
+        originsCustom.value = result.data.custom ?? [];
+    }
+    else {
+        originsError.value = result.errorMessage ?? "Unable to load allowed origins.";
+    }
+}
+
+async function saveOrigins(): Promise<void> {
+    isSavingOrigins.value = true;
+    originsError.value = "";
+    originsSaved.value = false;
+    const result = await invokeBlockAction("SaveAllowedOrigins", { origins: originsCustom.value });
+    isSavingOrigins.value = false;
+    if (result.isSuccess) {
+        originsSaved.value = true;
+    }
+    else {
+        originsError.value = result.errorMessage ?? "Could not save origins.";
+    }
+}
+
+if (canManageGlobal.value) {
+    void loadGlobal();
+    void loadPresets();
+    void loadOrigins();
+}
+</script>
+
+<style scoped>
+/* Chrome uses Rock/Bootstrap classes so the host theme drives colors; the only
+   inline colors are each preset's OWN data colors (swatches + live preview). */
+.ll-preset-card { overflow: hidden; }
+.ll-preset-preview { padding: 14px 12px; display: flex; flex-direction: column; gap: 6px; }
+.ll-preset-name { font-size: 12px; font-weight: 700; text-align: center; }
+.ll-preset-btn { text-align: center; padding: 6px; border-radius: 4px; font-size: 11px; }
+.ll-preset-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ll-preset-title { font-weight: 700; }
+.ll-preset-actions { display: flex; gap: 2px; flex: 0 0 auto; }
+.mt-3 { margin-top: 16px; }
+</style>
