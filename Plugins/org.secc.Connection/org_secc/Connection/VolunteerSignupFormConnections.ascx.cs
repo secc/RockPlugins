@@ -711,6 +711,9 @@ namespace org.secc.Connection
 
         private void AddGroupMemberAttributes( RockContext rockContext = null )
         {
+            // ROCK-8710: phFormAttributes is a page-level placeholder (outside the repeater), so it is not rebuilt by the repeater's DataBind the way the old per-role phAttributes was. Clear it before (re)adding controls, or the "Connect and Add Another" flow — which re-invokes ShowDetail + AddGroupMemberAttributes on the same postback — stacks duplicate Form-key controls (duplicate IDs → ViewState/control-tree errors).
+            phFormAttributes.Controls.Clear();
+
             // Group
             if ( RoleRequests.Count > 0 && rptGroupRoleAttributes.Items.Count > 0 )
             {
@@ -757,7 +760,12 @@ namespace org.secc.Connection
                         viewStateAttributes.Add( viewStateAttribute );
 
                         Helper.AddDisplayControls( groupMember, phAttributes, groupMember.Attributes.Where( a => !urlKeys.Contains( a.Key ) ).Select( a => a.Key ).ToList(), true, false );
-                        Helper.AddEditControls( "", formKeys, groupMember, phAttributes, tbLastName.ValidationGroup, false, new List<String>() );
+                        // ROCK-8710: render the editable Form-key controls below the Waiver Text (phFormAttributes lives outside the repeater, after lWaiverText) instead of inline with the per-role display controls in phAttributes.
+                        // ROCK-8710: phFormAttributes is a single shared placeholder, so only render the Form-key edit controls for the first role. Multi-role Form-key support would require a per-role placeholder inside the repeater item (with the waiver moved in) — tracked as a follow-up. For single-role opportunities (the current food-pack use) this is a no-op guard.
+                        if ( RepeaterIndex == 0 )
+                        {
+                            Helper.AddEditControls( "", formKeys, groupMember, phFormAttributes, tbLastName.ValidationGroup, false, new List<String>() );
+                        }
 
                     }
                     RepeaterIndex++;
@@ -779,7 +787,6 @@ namespace org.secc.Connection
                 }
 
                 var hdnGroupId = ( ( HiddenField ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "hdnGroupId" ) ) );
-                var phAttributes = ( ( PlaceHolder ) ( rptGroupRoleAttributes.Items[RepeaterIndex].FindControl( "phAttributes" ) ) );
                 hdnGroupId.Value = RoleRequests[RepeaterIndex].GroupId.ToString();
 
                 var group = new GroupService( rockContext ).Get( hdnGroupId.Value.AsInteger() );
@@ -791,7 +798,9 @@ namespace org.secc.Connection
                     groupMember.GroupId = group.Id;
                     groupMember.LoadAttributes();
 
-                    Helper.GetEditValues( phAttributes, groupMember );
+                    // ROCK-8710: Form-key edit controls now render into phFormAttributes (below the Waiver Text, outside the repeater), so read submitted values back from there. Must stay in sync with the AddEditControls target above, or submitted Form-key values silently stop saving.
+                    // ROCK-8710: single-role only — this loops per RepeaterIndex but reads the one shared phFormAttributes, so role 2+ would read role 1's values. Multi-role Form-key support is a follow-up (see AddGroupMemberAttributes).
+                    Helper.GetEditValues( phFormAttributes, groupMember );
 
                     var readonlyAttributes = ( List<Dictionary<string, string>> ) ViewState["SelectedAttributes"];
                     if ( readonlyAttributes != null && readonlyAttributes.Count > RepeaterIndex && readonlyAttributes[RepeaterIndex].Keys.Count > 0 )
