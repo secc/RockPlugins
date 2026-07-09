@@ -356,6 +356,15 @@ namespace org.secc.Connection
                                 changes );
                         }
 
+                        // ROCK-8790: Persist any pending Person changes (notably the birthday
+                        // entered on the form for a matched EXISTING person) BEFORE evaluating
+                        // Group Requirements below. PersonMeetsGroupRequirements reads the person
+                        // from the database, so the entered birthday must be committed first —
+                        // otherwise an age requirement would evaluate the stale on-file DOB.
+                        // (A brand-new person was already committed above via SaveNewPerson; this
+                        // is a no-op when nothing is dirty.)
+                        rockContext.SaveChanges();
+
                         // Now that we have a person, we can create the connection requests
                         int RepeaterIndex = 0;
                         foreach ( ConnectionRoleRequest roleRequest in RoleRequests )
@@ -395,42 +404,61 @@ namespace org.secc.Connection
                             }
 
                             // ROCK-8790: Enforce the assigned role's Group Requirements at signup.
-                            // The person prospect has already been created/matched and committed above
-                            // (PersonService.SaveNewPerson), so requirement DataViews/SQL evaluate against
-                            // the person's on-file data. If any requirement for this group + role is not
-                            // met, hard-block the submit BEFORE rockContext.SaveChanges() so that no
-                            // ConnectionRequest (and nothing downstream) is created for an ineligible volunteer.
+                            // The person prospect has already been created/matched and committed above,
+                            // so requirement DataViews/SQL evaluate against the person's persisted data
+                            // (including any birthday just entered on the form — see the SaveChanges above).
+                            // If any BLOCKING requirement for this group + role is not met, hard-block the
+                            // submit BEFORE rockContext.SaveChanges() so that no ConnectionRequest (and
+                            // nothing downstream) is created for an ineligible volunteer.
                             if ( connectionRequest.AssignedGroupId.HasValue )
                             {
                                 var assignedGroup = new GroupService( rockContext ).Get( connectionRequest.AssignedGroupId.Value );
                                 if ( assignedGroup != null )
                                 {
-                                    var unmetRequirements = assignedGroup
-                                        .PersonMeetsGroupRequirements( rockContext, person.Id, connectionRequest.AssignedGroupMemberRoleId )
-                                        .Where( r => r.MeetsGroupRequirement == MeetsGroupRequirement.NotMet )
-                                        .ToList();
-
-                                    if ( unmetRequirements.Any() )
+                                    List<string> blockingMessages;
+                                    try
                                     {
-                                        var messages = unmetRequirements
+                                        blockingMessages = assignedGroup
+                                            .PersonMeetsGroupRequirements( rockContext, person.Id, connectionRequest.AssignedGroupMemberRoleId )
+                                            // Mirror Rock's own add-time enforcement: only auto-evaluable
+                                            // (DataView/SQL) requirements flagged "must meet to add member"
+                                            // can block. A Manual requirement returns NotMet for anyone with
+                                            // no GroupMember row (i.e. every new signup), so it must NOT block.
+                                            .Where( r =>
+                                                r.GroupRequirement != null &&
+                                                r.GroupRequirement.MustMeetRequirementToAddMember &&
+                                                r.GroupRequirement.GroupRequirementType != null &&
+                                                r.GroupRequirement.GroupRequirementType.RequirementCheckType != RequirementCheckType.Manual &&
+                                                // Fail closed: block on NotMet AND on Error (a SQL requirement
+                                                // that threw). Do not block on Meets/MeetsWithWarning/NotApplicable.
+                                                ( r.MeetsGroupRequirement == MeetsGroupRequirement.NotMet ||
+                                                  r.MeetsGroupRequirement == MeetsGroupRequirement.Error ) )
                                             .Select( r =>
                                             {
-                                                var requirementType = r.GroupRequirement != null ? r.GroupRequirement.GroupRequirementType : null;
-                                                if ( requirementType != null )
-                                                {
-                                                    return !string.IsNullOrWhiteSpace( requirementType.NegativeLabel )
-                                                        ? requirementType.NegativeLabel
-                                                        : requirementType.Name;
-                                                }
-
-                                                return "You do not meet the requirements for this role.";
+                                                var requirementType = r.GroupRequirement.GroupRequirementType;
+                                                return !string.IsNullOrWhiteSpace( requirementType.NegativeLabel )
+                                                    ? requirementType.NegativeLabel
+                                                    : requirementType.Name;
                                             } )
                                             .Distinct()
                                             .ToList();
+                                    }
+                                    catch ( Exception ex )
+                                    {
+                                        // Fail closed: if requirement evaluation itself throws (e.g. a deleted
+                                        // or renamed DataView, a bad SQL filter), do NOT let the signup through.
+                                        ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
+                                        blockingMessages = new List<string>
+                                        {
+                                            "We couldn't verify your eligibility for this role. Please try again or contact us."
+                                        };
+                                    }
 
+                                    if ( blockingMessages.Any() )
+                                    {
                                         lResponseMessage.Text = string.Format(
-                                            "<div class='alert alert-warning'>{0}</div>",
-                                            string.Join( "<br />", messages ) );
+                                            "<div class='alert alert-danger'>{0}</div>",
+                                            string.Join( "<br />", blockingMessages ) );
                                         lResponseMessage.Visible = true;
 
                                         // Keep the signup form visible and return before SaveChanges().
