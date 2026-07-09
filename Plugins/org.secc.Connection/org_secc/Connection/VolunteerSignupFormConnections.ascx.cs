@@ -338,8 +338,11 @@ namespace org.secc.Connection
                             SavePhone( pnPhone, person, _homePhone.Guid, changes );
                         }
 
-                        // Save the DOB
-                        if ( bpBirthdate.Visible && bpBirthdate.SelectedDate.HasValue && bpBirthdate.SelectedDate != person.BirthDate )
+                        // Save the DOB. ROCK-8790: on-file birthday is preferred and is NEVER
+                        // overwritten from the signup form. Only fill BirthDate from the form when
+                        // the person has none on file (brand-new person, or a matched person whose
+                        // BirthDate is null), so the age check has a fallback value to evaluate.
+                        if ( bpBirthdate.Visible && bpBirthdate.SelectedDate.HasValue && !person.BirthDate.HasValue )
                         {
                             person.BirthDay = bpBirthdate.SelectedDate.Value.Day;
                             person.BirthMonth = bpBirthdate.SelectedDate.Value.Month;
@@ -356,13 +359,13 @@ namespace org.secc.Connection
                                 changes );
                         }
 
-                        // ROCK-8790: Persist any pending Person changes (notably the birthday
-                        // entered on the form for a matched EXISTING person) BEFORE evaluating
-                        // Group Requirements below. PersonMeetsGroupRequirements reads the person
-                        // from the database, so the entered birthday must be committed first —
-                        // otherwise an age requirement would evaluate the stale on-file DOB.
-                        // (A brand-new person was already committed above via SaveNewPerson; this
-                        // is a no-op when nothing is dirty.)
+                        // ROCK-8790: Persist any pending Person changes BEFORE evaluating Group
+                        // Requirements below. PersonMeetsGroupRequirements reads the person from the
+                        // database, so a birthday just filled in from the form (only when none was on
+                        // file — see above) must be committed first for the age check to read it.
+                        // When the person already had an on-file birthday, none is changed here, so
+                        // their existing birthday is preserved and evaluated. (A brand-new person was
+                        // already committed above via SaveNewPerson; this is a no-op when clean.)
                         rockContext.SaveChanges();
 
                         // Now that we have a person, we can create the connection requests
