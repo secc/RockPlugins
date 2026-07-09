@@ -406,9 +406,19 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
                 var memberConnectionStatus = DefinedValueCache.Get(Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_MEMBER.AsGuid());
                 var attendanceService = new AttendanceService( rockContext );
-                var employees = new AttributeValueService(rockContext).Queryable().AsNoTracking()
-                    .Where(a => a.Attribute.Id == 740 && a.Value == "Southeast Christian Church")
-                    .Select(a => a.EntityId);
+
+                // ROCK-8706: Materialize the SECC-employee person ids ONCE (~few hundred rows) instead of
+                // leaving "employees.Contains(PersonId)" as an IQueryable inside the attendance WHERE. As a
+                // subquery, EF6 turned it into a correlated EXISTS re-evaluated PER attendance row: because
+                // AttributeValue.Value is nvarchar(max) it can't be an index key, so each evaluation seeked
+                // attribute 740 and residual-filtered the string over ~11k rows -> ~2M row reads, the single
+                // largest operator in the Query Store plan. Fetched once into a list, the OR below becomes a
+                // constant IN-list evaluated a single time. Attribute 740 is the (Arena-synced) employer attr.
+                var employeeIds = new AttributeValueService(rockContext).Queryable().AsNoTracking()
+                    .Where(a => a.AttributeId == 740 && a.Value == "Southeast Christian Church")
+                    .Where(a => a.EntityId.HasValue)
+                    .Select(a => a.EntityId.Value)
+                    .ToList();
 
 
                 // ROCK-8706: Narrow the Attendance set with the active-occurrence filter (and the
@@ -424,7 +434,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     .Where( a => a.DidAttend == true )
                     .Where( a => a.EndDateTime == null )
                     .Where( a => a.PersonAlias.Person.ConnectionStatusValueId == memberConnectionStatus.Id ||
-                        employees.Contains( a.PersonAlias.PersonId ) )
+                        employeeIds.Contains( a.PersonAlias.PersonId ) )
                     .Where( a => a.Note == null || !a.Note.StartsWith( "Guest" ) );
 
                 var hostsQry = attendanceQry
