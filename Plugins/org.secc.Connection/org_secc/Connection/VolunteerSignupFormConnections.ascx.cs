@@ -394,6 +394,54 @@ namespace org.secc.Connection
 
                             }
 
+                            // ROCK-8790: Enforce the assigned role's Group Requirements at signup.
+                            // The person prospect has already been created/matched and committed above
+                            // (PersonService.SaveNewPerson), so requirement DataViews/SQL evaluate against
+                            // the person's on-file data. If any requirement for this group + role is not
+                            // met, hard-block the submit BEFORE rockContext.SaveChanges() so that no
+                            // ConnectionRequest (and nothing downstream) is created for an ineligible volunteer.
+                            if ( connectionRequest.AssignedGroupId.HasValue )
+                            {
+                                var assignedGroup = new GroupService( rockContext ).Get( connectionRequest.AssignedGroupId.Value );
+                                if ( assignedGroup != null )
+                                {
+                                    var unmetRequirements = assignedGroup
+                                        .PersonMeetsGroupRequirements( rockContext, person.Id, connectionRequest.AssignedGroupMemberRoleId )
+                                        .Where( r => r.MeetsGroupRequirement == MeetsGroupRequirement.NotMet )
+                                        .ToList();
+
+                                    if ( unmetRequirements.Any() )
+                                    {
+                                        var messages = unmetRequirements
+                                            .Select( r =>
+                                            {
+                                                var requirementType = r.GroupRequirement != null ? r.GroupRequirement.GroupRequirementType : null;
+                                                if ( requirementType != null )
+                                                {
+                                                    return !string.IsNullOrWhiteSpace( requirementType.NegativeLabel )
+                                                        ? requirementType.NegativeLabel
+                                                        : requirementType.Name;
+                                                }
+
+                                                return "You do not meet the requirements for this role.";
+                                            } )
+                                            .Distinct()
+                                            .ToList();
+
+                                        lResponseMessage.Text = string.Format(
+                                            "<div class='alert alert-warning'>{0}</div>",
+                                            string.Join( "<br />", messages ) );
+                                        lResponseMessage.Visible = true;
+
+                                        // Keep the signup form visible and return before SaveChanges().
+                                        // Any ConnectionRequest added in a prior loop iteration is discarded
+                                        // because SaveChanges() is never reached for this submit.
+                                        pnlSignup.Visible = true;
+                                        return;
+                                    }
+                                }
+                            }
+
                             var connectionAttributes = GetGroupMemberAttributes( rockContext, RepeaterIndex );
 
                             if ( connectionAttributes != null && connectionAttributes.Keys.Any() )
