@@ -64,8 +64,8 @@ All require a logged-in user (`GetCurrentUser`, else `401`) and apply per-group 
 |-------|--------|---------------|---------|
 | `api/GroupApp/GroupList/` | GET | current user | Groups the user is an active member of, within configured GroupApp group types. |
 | `api/GroupApp/GetGroup/{groupId}` | GET | member or VIEW | Group summary; optional `getContent` / `getAllowEmailParents`. |
-| `api/GroupApp/GetGroupMembers/{groupId}` | GET | member or VIEW | Members; leaders also see address/email/phone/parent contact. Table-based groups filter by `TableNumber`. |
-| `api/GroupApp/GroupMembers/{groupId}/Communicate` | POST | EDIT **and** MANAGE_MEMBERS | Send an email to all/one member (optionally parents). |
+| `api/GroupApp/GetGroupMembers/{groupId}` | GET | member or VIEW | Members; leaders also see address/email/phone/parent contact and an `IsMinor` flag (leader-gated). Table-based groups filter by `TableNumber`. |
+| `api/GroupApp/GroupMembers/{groupId}/Communicate` | POST | EDIT **and** MANAGE_MEMBERS | Send an email to all/one member (optionally parents). Individual sends to a minor auto-CC the minor's parents/guardians, or return `400` if no parent email is on record (see minor-communication policy below). The target `GroupMemberId` must belong to `{groupId}` (else `404`). |
 | `api/GroupApp/GroupMembers/{groupId}/Add` | POST | EDIT **and** MANAGE_MEMBERS | Match-or-create a person and add as a member; copies leader's `TableNumber`. |
 | `api/GroupApp/GroupMembers/{groupId}/Remove/{groupMemberId}` | DELETE | EDIT **and** MANAGE_MEMBERS | Hard-delete a group member. |
 | `api/GroupApp/Attendance/{groupId}/{occurrenceDate}` | GET | VIEW or leader | Attendance for an occurrence. |
@@ -105,6 +105,16 @@ GroupApp behavior is driven by **defined types** resolved by Guid (not block set
 | **`3780965b-3da0-4609-9577-cf8d39ec601a`** | "Student" group types. |
 
 Each defined value's `Value` is parsed as an integer GroupTypeId. Other in-code constants: `GroupTracker` is set for GroupTypeId 107/109 on CampusId 1; home/meeting location types resolved via Rock system Guids.
+
+### Minor-communication policy *(GroupAppGroupMembersController.Communicate)*
+
+Org policy: communications may not be sent to minors unless another adult is included. For `POST .../Communicate` with a non-zero `GroupMemberId` and `SendToParents = false`:
+
+- **Minor** = `Person.AgeClassification == AgeClassification.Child`. Rock's classification folds in birthdate, family role, and `IsLockedAsChild`, so minors with no birthdate on record are still caught. `== Child` (not `!= Adult`) because businesses are skipped by Rock's classifier and stay `Unknown` — they must not be treated as minors. The same predicate drives the roster's `IsMinor` flag and parent-info display.
+- If the target is a minor, all parent/guardian emails (family adults via `GetParents`, deduplicated) are set on `Communication.CCEmails`, so parents receive a copy of the individual email.
+- If the target is a minor and **no** parent has an email on record, the request fails with `400` and a descriptive message.
+- Parents-only sends (`SendToParents = true`) and whole-group sends (`GroupMemberId = 0`) are unchanged — group sends include adult leaders as recipients, which satisfies the policy.
+- CC is safe here because an individual send has exactly one recipient; Rock CCs per recipient, so CC must **not** be used for multi-recipient sends.
 
 ### Account create *(AccountController)*
 
@@ -182,3 +192,7 @@ Only `SecurityController` needs the `IHasCustomHttpRoutes.AddRoutes` + `SessionR
 - GroupApp group-type behavior is configured through the three **defined types** above, not block settings — add/remove GroupTypeIds there rather than editing code.
 - Account/login flows depend on [org.secc.OAuth](../org.secc.OAuth/README.md) (active client check) and Rock's `SMSAuthentication`; person matching/creation defers to [org.secc.PersonMatch](../org.secc.PersonMatch/README.md).
 - Watch the hardcoded ids in `SermonController` and `GetGroups` when promoting between environments.
+
+---
+
+**Last updated:** 2026-07-06
