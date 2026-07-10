@@ -68,6 +68,7 @@ namespace org.secc.Connection
     [TextField( "Comment label text", "The wording that should be used for the comment box title", true, "Comments", "", 12 )]
     [BooleanField( "Comments Required", "Whether the comment are required", true, "", 13 )]
     [CodeEditorField( "Waiver Text", "Optional waiver/legal text (supports Lava) shown directly above the Connect button. Leave blank to display nothing.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, "", "", 14 )]
+    [TextField( "Signup-Blocking Requirement Types", "Comma-separated Group Requirement Type names that should hard-block a signup at the form when not met (e.g. 'Over 18 Years Old, Over 14 Years Old'). Leave blank to block none - requirements still evaluate/pass through onto the connection request as before.", false, key: "SignupBlockingRequirementTypes", order: 15 )]
 
     public partial class VolunteerSignupFormConnections : RockBlock
     {
@@ -406,14 +407,25 @@ namespace org.secc.Connection
 
                             }
 
-                            // ROCK-8790: Enforce the assigned role's Group Requirements at signup.
-                            // The person prospect has already been created/matched and committed above,
-                            // so requirement DataViews/SQL evaluate against the person's persisted data
-                            // (including any birthday just entered on the form — see the SaveChanges above).
-                            // If any BLOCKING requirement for this group + role is not met, hard-block the
-                            // submit BEFORE rockContext.SaveChanges() so that no ConnectionRequest (and
-                            // nothing downstream) is created for an ineligible volunteer.
-                            if ( connectionRequest.AssignedGroupId.HasValue )
+                            // ROCK-8790: Enforce the assigned role's Group Requirements at signup — but
+                            // OPT-IN per requirement type, per block instance. This block is shared across
+                            // ~30+ signup instances; only Group Requirement Types explicitly named in the
+                            // "Signup-Blocking Requirement Types" setting hard-block a signup at the form.
+                            // Blank => block nothing, so every other instance is unaffected by default and
+                            // its requirements still evaluate/pass through onto the connection request.
+                            var blockingRequirementTypeNames = ( GetAttributeValue( "SignupBlockingRequirementTypes" ) ?? string.Empty )
+                                .Split( ',' )
+                                .Select( n => n.Trim() )
+                                .Where( n => !string.IsNullOrWhiteSpace( n ) )
+                                .ToList();
+
+                            // The person prospect has already been created/matched and committed above, so
+                            // requirement DataViews/SQL evaluate against the person's persisted data (including
+                            // any birthday just filled in from the form — see the SaveChanges above). If any
+                            // listed requirement for this group + role is not met, hard-block the submit BEFORE
+                            // rockContext.SaveChanges() so that no ConnectionRequest (and nothing downstream)
+                            // is created for an ineligible volunteer.
+                            if ( blockingRequirementTypeNames.Any() && connectionRequest.AssignedGroupId.HasValue )
                             {
                                 var assignedGroup = new GroupService( rockContext ).Get( connectionRequest.AssignedGroupId.Value );
                                 if ( assignedGroup != null )
@@ -423,14 +435,16 @@ namespace org.secc.Connection
                                     {
                                         blockingMessages = assignedGroup
                                             .PersonMeetsGroupRequirements( rockContext, person.Id, connectionRequest.AssignedGroupMemberRoleId )
-                                            // Mirror Rock's own add-time enforcement: only auto-evaluable
-                                            // (DataView/SQL) requirements flagged "must meet to add member"
-                                            // can block. A Manual requirement returns NotMet for anyone with
-                                            // no GroupMember row (i.e. every new signup), so it must NOT block.
                                             .Where( r =>
                                                 r.GroupRequirement != null &&
-                                                r.GroupRequirement.MustMeetRequirementToAddMember &&
                                                 r.GroupRequirement.GroupRequirementType != null &&
+                                                // The explicit name allowlist (case-insensitive) is the intent
+                                                // control, so a listed type gates regardless of its
+                                                // MustMeetRequirementToAddMember flag (that filter is intentionally
+                                                // dropped). The non-Manual guard stays so a mistakenly-listed Manual
+                                                // type can't blanket-block every new signup (Manual returns NotMet
+                                                // for anyone with no GroupMember row).
+                                                blockingRequirementTypeNames.Contains( r.GroupRequirement.GroupRequirementType.Name, StringComparer.OrdinalIgnoreCase ) &&
                                                 r.GroupRequirement.GroupRequirementType.RequirementCheckType != RequirementCheckType.Manual &&
                                                 // Fail closed: block on NotMet AND on Error (a SQL requirement
                                                 // that threw). Do not block on Meets/MeetsWithWarning/NotApplicable.
