@@ -277,17 +277,32 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private bool MCRValidForKiosk( CheckinKioskTypeCache kioskType, MobileCheckinRecordCache mcr )
         {
-            var groupTypeIds = new List<int>();
-            foreach ( var a in mcr.AttendanceIds )
+            if ( kioskType == null || mcr == null || mcr.AttendanceIds == null || !mcr.AttendanceIds.Any() )
             {
-                var attendance = AttendanceCache.Get( a );
-                var occurrence = OccurrenceCache.Get( attendance.OccurrenceAccessKey );
-
-                groupTypeIds.Add( occurrence.GroupTypeId );
+                return false;
             }
 
-            return kioskType.GroupTypeIds.Where( kg => groupTypeIds.Contains( kg ) ).Any();
+            //Determine which group types this reservation covers directly from the
+            //persisted attendance data. We intentionally do NOT use OccurrenceCache
+            //here: a reserved room can be closed (its GroupLocationSchedule detached)
+            //between the reservation and the family's arrival at the kiosk, which
+            //leaves the occurrence unresolvable in cache even though the reservation
+            //attendances are still perfectly valid. The completion path
+            //(btnCompleteMCRActual_Click) works straight off these attendance records
+            //and never touches the cache, so validation shouldn't either. Reading from
+            //the database keeps the reservation completable rather than hiding it (or,
+            //before the null guard, crashing the whole kiosk page).
+            using ( var rockContext = new RockContext() )
+            {
+                var reservationGroupTypeIds = new AttendanceService( rockContext )
+                    .Queryable().AsNoTracking()
+                    .Where( a => mcr.AttendanceIds.Contains( a.Id ) && a.Occurrence.GroupId.HasValue )
+                    .Select( a => a.Occurrence.Group.GroupTypeId )
+                    .Distinct()
+                    .ToList();
 
+                return kioskType.GroupTypeIds.Any( kg => reservationGroupTypeIds.Contains( kg ) );
+            }
         }
 
         private void ShowActiveMobileCheckin()
