@@ -365,11 +365,16 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                 var occurrenceIds = new List<int>();
                 if (activeTriples.Count > 0)
                 {
+                    // EF6 reliably translates List<T>.Contains (-> SQL IN) but NOT HashSet<T>.Contains
+                    // (throws NotSupportedException at query time), so hand the IN-lists to the query as lists.
+                    var groupIdList = activeGroupIds.ToList();
+                    var locationIdList = activeLocationIds.ToList();
+                    var scheduleIdList = activeScheduleIds.ToList();
                     occurrenceIds = occurrenceService.Queryable().AsNoTracking()
                         .Where( o => o.OccurrenceDate == occurrenceDate )
-                        .Where( o => o.GroupId.HasValue && activeGroupIds.Contains( o.GroupId.Value ) )
-                        .Where( o => o.LocationId.HasValue && activeLocationIds.Contains( o.LocationId.Value ) )
-                        .Where( o => o.ScheduleId.HasValue && activeScheduleIds.Contains( o.ScheduleId.Value ) )
+                        .Where( o => o.GroupId.HasValue && groupIdList.Contains( o.GroupId.Value ) )
+                        .Where( o => o.LocationId.HasValue && locationIdList.Contains( o.LocationId.Value ) )
+                        .Where( o => o.ScheduleId.HasValue && scheduleIdList.Contains( o.ScheduleId.Value ) )
                         .Select( o => new { o.Id, o.GroupId, o.LocationId, o.ScheduleId } )
                         .ToList()
                         .Where( o => activeTriples.Contains( o.GroupId.Value + "|" + o.LocationId.Value + "|" + o.ScheduleId.Value ) )
