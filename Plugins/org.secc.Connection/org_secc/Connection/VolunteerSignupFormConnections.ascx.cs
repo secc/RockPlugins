@@ -207,12 +207,42 @@ namespace org.secc.Connection
         #region Events
 
         /// <summary>
+        /// ROCK-8790: On a blocked signup, revert a birthday that was filled from the form THIS
+        /// request (new person, or a matched person who had none on file) back to null, so a
+        /// corrected resubmit re-reads the form value. An existing on-file birthday is never
+        /// touched (the caller only invokes this when it filled the value this request).
+        /// Uses a SEPARATE RockContext so it commits only the birthday revert — never the
+        /// ConnectionRequests added earlier in the submit loop on the main context (which is
+        /// abandoned without SaveChanges to keep a blocked submit all-or-nothing).
+        /// </summary>
+        /// <param name="personId">The person identifier whose form-filled birthday to clear.</param>
+        private void RevertFormBirthDate( int personId )
+        {
+            using ( var revertContext = new RockContext() )
+            {
+                var revertPerson = new PersonService( revertContext ).Get( personId );
+                if ( revertPerson != null )
+                {
+                    revertPerson.SetBirthDate( null );
+                    revertContext.SaveChanges();
+                }
+            }
+        }
+
+        /// <summary>
         /// Handles the Click event of the btnEdit control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         protected void btnConnect_Click( object sender, EventArgs e )
         {
+            // ROCK-8790: Clear any prior eligibility-block message up front. It persists via
+            // ViewState and pnlSignup stays visible on "Connect and Add Another", so a stale
+            // message would otherwise linger. Done here (not in the gate) because the gate is
+            // skipped entirely when the setting is blank.
+            lRequirementBlockMessage.Text = string.Empty;
+            lRequirementBlockMessage.Visible = false;
+
             using ( var rockContext = new RockContext() )
             {
                 var opportunityService = new ConnectionOpportunityService( rockContext );
@@ -235,6 +265,11 @@ namespace org.secc.Connection
                 if ( opportunity != null && defaultStatusId > 0 )
                 {
                     Person person = null;
+
+                    // ROCK-8790: Tracks whether we set BirthDate from the form THIS request (new person,
+                    // or matched person who had none on file). Only such a value is reverted on a blocked
+                    // submit — an existing on-file birthday is never touched.
+                    bool birthDateFilledFromForm = false;
 
                     string firstName = tbFirstName.Text.Trim();
                     string lastName = tbLastName.Text.Trim();
@@ -308,6 +343,7 @@ namespace org.secc.Connection
                         person.LastName = lastName;
                         person.IsEmailActive = true;
                         person.SetBirthDate( birthdate );
+                        birthDateFilledFromForm = birthdate.HasValue;
                         person.Email = email;
                         person.EmailPreference = EmailPreference.EmailAllowed;
                         person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
@@ -348,6 +384,7 @@ namespace org.secc.Connection
                             person.BirthDay = bpBirthdate.SelectedDate.Value.Day;
                             person.BirthMonth = bpBirthdate.SelectedDate.Value.Month;
                             person.BirthYear = bpBirthdate.SelectedDate.Value.Year;
+                            birthDateFilledFromForm = true;
                         }
 
                         if ( changes.Any() )
@@ -483,9 +520,17 @@ namespace org.secc.Connection
                                         // Generic message (no role/reason format).
                                         ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
                                         lRequirementBlockMessage.Text = string.Format(
-                                            "<div class='alert alert-danger'>We couldn't verify {0}'s eligibility for this role. Please try again or contact us.</div>",
+                                            "<div class='alert alert-danger'>We couldn't verify {0}'s eligibility for this role. No signup was submitted. Please try again or contact us.</div>",
                                             registrantName );
                                         lRequirementBlockMessage.Visible = true;
+
+                                        // ROCK-8790: revert a birthday we filled from the form this request so a
+                                        // corrected resubmit re-reads the form value (on-file birthday untouched).
+                                        if ( birthDateFilledFromForm )
+                                        {
+                                            RevertFormBirthDate( person.Id );
+                                        }
+
                                         pnlSignup.Visible = true;
                                         return;
                                     }
@@ -495,17 +540,24 @@ namespace org.secc.Connection
                                         string messageBody;
                                         if ( blockingMessages.Count == 1 )
                                         {
-                                            messageBody = string.Format( "{0} isn't eligible for {1} — {2}.", registrantName, roleClause, blockingMessages[0] );
+                                            messageBody = string.Format( "{0} isn't eligible for {1} — {2}. No signup was submitted.", registrantName, roleClause, blockingMessages[0] );
                                         }
                                         else
                                         {
-                                            messageBody = string.Format( "{0} isn't eligible for {1}:<br />{2}", registrantName, roleClause, string.Join( "<br />", blockingMessages ) );
+                                            messageBody = string.Format( "{0} isn't eligible for {1}:<br />{2}<br />No signup was submitted.", registrantName, roleClause, string.Join( "<br />", blockingMessages ) );
                                         }
 
                                         lRequirementBlockMessage.Text = string.Format(
                                             "<div class='alert alert-danger'>{0}</div>",
                                             messageBody );
                                         lRequirementBlockMessage.Visible = true;
+
+                                        // ROCK-8790: revert a birthday we filled from the form this request so a
+                                        // corrected resubmit re-reads the form value (on-file birthday untouched).
+                                        if ( birthDateFilledFromForm )
+                                        {
+                                            RevertFormBirthDate( person.Id );
+                                        }
 
                                         // Keep the signup form visible and return before SaveChanges().
                                         // Any ConnectionRequest added in a prior loop iteration is discarded
