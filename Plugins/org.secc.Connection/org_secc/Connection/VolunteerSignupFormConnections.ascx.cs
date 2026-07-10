@@ -430,6 +430,17 @@ namespace org.secc.Connection
                                 var assignedGroup = new GroupService( rockContext ).Get( connectionRequest.AssignedGroupId.Value );
                                 if ( assignedGroup != null )
                                 {
+                                    // Personalize the block message: "[Name] isn't eligible for the [Role] role — [reason]."
+                                    // The message renders in lRequirementBlockMessage (just above the submit buttons),
+                                    // NOT lResponseMessage (top), which is reserved for the normal connect response.
+                                    var registrantName = !string.IsNullOrWhiteSpace( person.NickName ) ? person.NickName : person.FirstName;
+                                    var assignedRoleName = connectionRequest.AssignedGroupMemberRoleId.HasValue
+                                        ? new GroupTypeRoleService( rockContext ).Get( connectionRequest.AssignedGroupMemberRoleId.Value )?.Name
+                                        : null;
+                                    var roleClause = !string.IsNullOrWhiteSpace( assignedRoleName )
+                                        ? string.Format( "the {0} role", assignedRoleName )
+                                        : "this role";
+
                                     List<string> blockingMessages;
                                     try
                                     {
@@ -464,19 +475,32 @@ namespace org.secc.Connection
                                     {
                                         // Fail closed: if requirement evaluation itself throws (e.g. a deleted
                                         // or renamed DataView, a bad SQL filter), do NOT let the signup through.
+                                        // Generic message (no role/reason format).
                                         ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
-                                        blockingMessages = new List<string>
-                                        {
-                                            "We couldn't verify your eligibility for this role. Please try again or contact us."
-                                        };
+                                        lRequirementBlockMessage.Text = string.Format(
+                                            "<div class='alert alert-danger'>We couldn't verify {0}'s eligibility for this role. Please try again or contact us.</div>",
+                                            registrantName );
+                                        lRequirementBlockMessage.Visible = true;
+                                        pnlSignup.Visible = true;
+                                        return;
                                     }
 
                                     if ( blockingMessages.Any() )
                                     {
-                                        lResponseMessage.Text = string.Format(
+                                        string messageBody;
+                                        if ( blockingMessages.Count == 1 )
+                                        {
+                                            messageBody = string.Format( "{0} isn't eligible for {1} — {2}.", registrantName, roleClause, blockingMessages[0] );
+                                        }
+                                        else
+                                        {
+                                            messageBody = string.Format( "{0} isn't eligible for {1}:<br />{2}", registrantName, roleClause, string.Join( "<br />", blockingMessages ) );
+                                        }
+
+                                        lRequirementBlockMessage.Text = string.Format(
                                             "<div class='alert alert-danger'>{0}</div>",
-                                            string.Join( "<br />", blockingMessages ) );
-                                        lResponseMessage.Visible = true;
+                                            messageBody );
+                                        lRequirementBlockMessage.Visible = true;
 
                                         // Keep the signup form visible and return before SaveChanges().
                                         // Any ConnectionRequest added in a prior loop iteration is discarded
