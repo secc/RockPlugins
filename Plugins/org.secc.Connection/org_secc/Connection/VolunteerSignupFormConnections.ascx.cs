@@ -433,9 +433,14 @@ namespace org.secc.Connection
                                     // Personalize the block message: "[Name] isn't eligible for the [Role] role — [reason]."
                                     // The message renders in lRequirementBlockMessage (just above the submit buttons),
                                     // NOT lResponseMessage (top), which is reserved for the normal connect response.
-                                    var registrantName = !string.IsNullOrWhiteSpace( person.NickName ) ? person.NickName : person.FirstName;
+                                    // HTML-encode every data-derived value interpolated into the alert-danger
+                                    // markup below (name / role / requirement labels) so values containing
+                                    // &, ', or < don't break the markup. .EncodeHtml() is Rock's string
+                                    // extension (via using Rock;) and is null-safe. Literal markup in the
+                                    // format strings (the div wrapper, <br />) stays un-encoded.
+                                    var registrantName = ( !string.IsNullOrWhiteSpace( person.NickName ) ? person.NickName : person.FirstName ).EncodeHtml();
                                     var assignedRoleName = connectionRequest.AssignedGroupMemberRoleId.HasValue
-                                        ? new GroupTypeRoleService( rockContext ).Get( connectionRequest.AssignedGroupMemberRoleId.Value )?.Name
+                                        ? new GroupTypeRoleService( rockContext ).Get( connectionRequest.AssignedGroupMemberRoleId.Value )?.Name.EncodeHtml()
                                         : null;
                                     var roleClause = !string.IsNullOrWhiteSpace( assignedRoleName )
                                         ? string.Format( "the {0} role", assignedRoleName )
@@ -464,9 +469,9 @@ namespace org.secc.Connection
                                             .Select( r =>
                                             {
                                                 var requirementType = r.GroupRequirement.GroupRequirementType;
-                                                return !string.IsNullOrWhiteSpace( requirementType.NegativeLabel )
+                                                return ( !string.IsNullOrWhiteSpace( requirementType.NegativeLabel )
                                                     ? requirementType.NegativeLabel
-                                                    : requirementType.Name;
+                                                    : requirementType.Name ).EncodeHtml();
                                             } )
                                             .Distinct()
                                             .ToList();
