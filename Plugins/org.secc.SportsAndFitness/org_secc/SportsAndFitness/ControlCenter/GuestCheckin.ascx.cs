@@ -490,9 +490,12 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     .ToList();
 
                 // Stitch in each host's guest count from the standalone aggregation (see hostGuestCounts above).
+                // NOTE: declare guestCount separately (not "out int guestCount") -- RockWeb runtime-compiles
+                // this .ascx.cs as C# 6, which does not support inline out-variable declarations (CS8059).
+                int guestCount;
                 foreach ( var host in hosts )
                 {
-                    host.GuestCount = hostGuestCounts.TryGetValue( host.PersonId, out int guestCount ) ? guestCount : 0;
+                    host.GuestCount = hostGuestCounts.TryGetValue( host.PersonId, out guestCount ) ? guestCount : 0;
                 }
 
                 gHosts.DataSource = hosts;
