@@ -104,6 +104,14 @@ Category in Rock: **SECC > Check-in** (medical-consent block: **SECC > Family Ch
 | Kiosk List / Kiosk Detail | Admin CRUD for `Kiosk` records. |
 | Kiosk Type List / Kiosk Type Detail | Admin CRUD for `CheckinKioskType` records. |
 
+**Mobile-reservation validation in QuickCheckin:** when a family with an active
+`MobileCheckinRecord` arrives at a kiosk, the block validates the reservation against the
+**persisted** Attendance → Occurrence → Group records, not `OccurrenceCache`. A reserved room can
+be closed (its group-location-schedule detached) between reservation and arrival, which makes the
+occurrence unresolvable in cache even though the reservation is still valid and completable — the
+completion path works straight off the attendance records. By design, closing a room does **not**
+cancel existing mobile reservations for it; the children's team moves those attendees manually.
+
 ### Jobs
 
 Quartz `IJob`s (both `[DisallowConcurrentExecution]`); scheduled in Rock, not self-registered.
@@ -181,3 +189,7 @@ attributes (don't hand-edit ones that have already run):
   `/Themes/`.
 - Related: scannable codes come from [org.secc.QRManager](../org.secc.QRManager/README.md);
   shared helpers from [org.secc.DevLib](../org.secc.DevLib/README.md).
+
+---
+
+Last updated: 2026-07-10

@@ -283,26 +283,22 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
                 return false;
             }
 
-            //Determine which group types this reservation covers directly from the
-            //persisted attendance data. We intentionally do NOT use OccurrenceCache
-            //here: a reserved room can be closed (its GroupLocationSchedule detached)
-            //between the reservation and the family's arrival at the kiosk, which
-            //leaves the occurrence unresolvable in cache even though the reservation
-            //attendances are still perfectly valid. The completion path
-            //(btnCompleteMCRActual_Click) works straight off these attendance records
-            //and never touches the cache, so validation shouldn't either. Reading from
-            //the database keeps the reservation completable rather than hiding it (or,
-            //before the null guard, crashing the whole kiosk page).
+            //Validate against persisted attendance data rather than OccurrenceCache:
+            //a reserved room can be closed before the family arrives, leaving the
+            //occurrence unresolvable in cache even though the reservation is still
+            //valid. Matches the completion path (btnCompleteMCRActual_Click).
+            if ( !kioskType.GroupTypeIds.Any() )
+            {
+                return false;
+            }
+
             using ( var rockContext = new RockContext() )
             {
-                var reservationGroupTypeIds = new AttendanceService( rockContext )
+                return new AttendanceService( rockContext )
                     .Queryable().AsNoTracking()
-                    .Where( a => mcr.AttendanceIds.Contains( a.Id ) && a.Occurrence.GroupId.HasValue )
-                    .Select( a => a.Occurrence.Group.GroupTypeId )
-                    .Distinct()
-                    .ToList();
-
-                return kioskType.GroupTypeIds.Any( kg => reservationGroupTypeIds.Contains( kg ) );
+                    .Any( a => mcr.AttendanceIds.Contains( a.Id )
+                        && a.Occurrence.GroupId.HasValue
+                        && kioskType.GroupTypeIds.Contains( a.Occurrence.Group.GroupTypeId ) );
             }
         }
 
