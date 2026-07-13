@@ -30,6 +30,14 @@ namespace RockWeb.Plugins.org_secc.Event
         Category = "Configuration",
         Key = AttributeKey.IncludeWaitList )]
 
+    [BooleanField( "Include Family Registrations",
+        Description = "Indicates if the pass should also include registrants from other registrations in the same registration instance that were made by members of the registrar's family. Useful for events where each registrant requires a separate registration (e.g. camps). Default is No.",
+        IsRequired = false,
+        DefaultBooleanValue = false,
+        Order = 1,
+        Category = "Configuration",
+        Key = AttributeKey.IncludeFamilyRegistrations )]
+
     [TextField( "Pass Not Found Header",
         Description = "The header/title of the message box that is displayed if the pass is not found.",
         IsRequired = false,
@@ -50,6 +58,7 @@ namespace RockWeb.Plugins.org_secc.Event
         public static class AttributeKey
         {
             public const string IncludeWaitList = "IncludeWaitList";
+            public const string IncludeFamilyRegistrations = "IncludeFamilyRegistrations";
             public const string PassNotFoundHeader = "PassNotFoundHeader";
             public const string PassNotFoundMessage = "PassNotFoundMessage";
 
@@ -121,6 +130,34 @@ namespace RockWeb.Plugins.org_secc.Event
                 registrantQry = registrantQry.Where( r => r.Registration.Guid.Equals( registrationGuid.Value ) );
             }
 
+            var includeFamilyRegistrations = GetAttributeValue( AttributeKey.IncludeFamilyRegistrations ).AsBoolean();
+            if (includeFamilyRegistrations)
+            {
+                // Anchor on the registration/registrant from the page parameters, then expand to all
+                // registrations in the same registration instance made by members of the registrar's family.
+                var anchor = registrantQry
+                    .Select( r => new
+                    {
+                        r.Registration.RegistrationInstanceId,
+                        RegistrarPersonId = r.Registration.PersonAlias.PersonId
+                    } )
+                    .FirstOrDefault();
+
+                if (anchor != null)
+                {
+                    var familyPersonIds = personService.GetFamilyMembers( anchor.RegistrarPersonId, true )
+                        .Select( m => m.PersonId )
+                        .ToList();
+
+                    registrantQry = new RegistrationRegistrantService( rockContext ).Queryable()
+                        .AsNoTracking()
+                        .Include( r => r.Registration.RegistrationInstance )
+                        .Include( r => r.PersonAlias.Person )
+                        .Where( r => r.Registration.RegistrationInstanceId == anchor.RegistrationInstanceId
+                            && familyPersonIds.Contains( r.Registration.PersonAlias.PersonId ) );
+                }
+            }
+
             if (!GetAttributeValue( AttributeKey.IncludeWaitList ).AsBoolean())
             {
                 registrantQry = registrantQry.Where( r => !r.OnWaitList );
@@ -131,6 +168,16 @@ namespace RockWeb.Plugins.org_secc.Event
                 .ThenBy( r => r.PersonAlias.Person.LastName )
                 .ThenBy( r => r.PersonAlias.Person.NickName )
                 .ToList();
+
+            if (includeFamilyRegistrations)
+            {
+                // A person could appear on multiple registrations (e.g. registered by both parents).
+                // Only generate one pass per person.
+                registrants = registrants
+                    .GroupBy( r => r.PersonAlias.PersonId )
+                    .Select( g => g.First() )
+                    .ToList();
+            }
 
             if(!registrants.Any())
             {
