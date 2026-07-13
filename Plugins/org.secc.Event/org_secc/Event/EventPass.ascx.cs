@@ -233,6 +233,8 @@ namespace RockWeb.Plugins.org_secc.Event
             rPassIndicator.DataSource = passes.OrderBy( p => p.ItemOrder );
             rPassIndicator.DataBind();
 
+            phCarouselControls.Visible = passes.Count > 1;
+
             rockContext = null;
             pnlPass.Visible = true;
 
