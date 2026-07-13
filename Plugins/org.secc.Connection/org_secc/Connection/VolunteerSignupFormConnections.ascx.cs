@@ -68,6 +68,7 @@ namespace org.secc.Connection
     [TextField( "Comment label text", "The wording that should be used for the comment box title", true, "Comments", "", 12 )]
     [BooleanField( "Comments Required", "Whether the comment are required", true, "", 13 )]
     [CodeEditorField( "Waiver Text", "Optional waiver/legal text (supports Lava) shown directly above the Connect button. Leave blank to display nothing.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 200, false, "", "", 14 )]
+    [TextField( "Signup-Blocking Requirement Types", "Comma-separated Group Requirement Type names that should hard-block a signup at the form when not met (e.g. 'Over 18 Years Old, Over 14 Years Old'). Leave blank to block none - requirements still evaluate/pass through onto the connection request as before.", false, key: "SignupBlockingRequirementTypes", order: 15 )]
 
     public partial class VolunteerSignupFormConnections : RockBlock
     {
@@ -206,12 +207,42 @@ namespace org.secc.Connection
         #region Events
 
         /// <summary>
+        /// ROCK-8790: On a blocked signup, revert a birthday that was filled from the form THIS
+        /// request (new person, or a matched person who had none on file) back to null, so a
+        /// corrected resubmit re-reads the form value. An existing on-file birthday is never
+        /// touched (the caller only invokes this when it filled the value this request).
+        /// Uses a SEPARATE RockContext so it commits only the birthday revert — never the
+        /// ConnectionRequests added earlier in the submit loop on the main context (which is
+        /// abandoned without SaveChanges to keep a blocked submit all-or-nothing).
+        /// </summary>
+        /// <param name="personId">The person identifier whose form-filled birthday to clear.</param>
+        private void RevertFormBirthDate( int personId )
+        {
+            using ( var revertContext = new RockContext() )
+            {
+                var revertPerson = new PersonService( revertContext ).Get( personId );
+                if ( revertPerson != null )
+                {
+                    revertPerson.SetBirthDate( null );
+                    revertContext.SaveChanges();
+                }
+            }
+        }
+
+        /// <summary>
         /// Handles the Click event of the btnEdit control.
         /// </summary>
         /// <param name="sender">The source of the event.</param>
         /// <param name="e">The <see cref="EventArgs" /> instance containing the event data.</param>
         protected void btnConnect_Click( object sender, EventArgs e )
         {
+            // ROCK-8790: Clear any prior eligibility-block message up front. It persists via
+            // ViewState and pnlSignup stays visible on "Connect and Add Another", so a stale
+            // message would otherwise linger. Done here (not in the gate) because the gate is
+            // skipped entirely when the setting is blank.
+            lRequirementBlockMessage.Text = string.Empty;
+            lRequirementBlockMessage.Visible = false;
+
             using ( var rockContext = new RockContext() )
             {
                 var opportunityService = new ConnectionOpportunityService( rockContext );
@@ -234,6 +265,11 @@ namespace org.secc.Connection
                 if ( opportunity != null && defaultStatusId > 0 )
                 {
                     Person person = null;
+
+                    // ROCK-8790: Tracks whether we set BirthDate from the form THIS request (new person,
+                    // or matched person who had none on file). Only such a value is reverted on a blocked
+                    // submit — an existing on-file birthday is never touched.
+                    bool birthDateFilledFromForm = false;
 
                     string firstName = tbFirstName.Text.Trim();
                     string lastName = tbLastName.Text.Trim();
@@ -307,6 +343,7 @@ namespace org.secc.Connection
                         person.LastName = lastName;
                         person.IsEmailActive = true;
                         person.SetBirthDate( birthdate );
+                        birthDateFilledFromForm = birthdate.HasValue;
                         person.Email = email;
                         person.EmailPreference = EmailPreference.EmailAllowed;
                         person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
@@ -338,12 +375,16 @@ namespace org.secc.Connection
                             SavePhone( pnPhone, person, _homePhone.Guid, changes );
                         }
 
-                        // Save the DOB
-                        if ( bpBirthdate.Visible && bpBirthdate.SelectedDate.HasValue && bpBirthdate.SelectedDate != person.BirthDate )
+                        // Save the DOB. ROCK-8790: on-file birthday is preferred and is NEVER
+                        // overwritten from the signup form. Only fill BirthDate from the form when
+                        // the person has none on file (brand-new person, or a matched person whose
+                        // BirthDate is null), so the age check has a fallback value to evaluate.
+                        if ( bpBirthdate.Visible && bpBirthdate.SelectedDate.HasValue && !person.BirthDate.HasValue )
                         {
                             person.BirthDay = bpBirthdate.SelectedDate.Value.Day;
                             person.BirthMonth = bpBirthdate.SelectedDate.Value.Month;
                             person.BirthYear = bpBirthdate.SelectedDate.Value.Year;
+                            birthDateFilledFromForm = true;
                         }
 
                         if ( changes.Any() )
@@ -355,6 +396,15 @@ namespace org.secc.Connection
                                 person.Id,
                                 changes );
                         }
+
+                        // ROCK-8790: Persist any pending Person changes BEFORE evaluating Group
+                        // Requirements below. PersonMeetsGroupRequirements reads the person from the
+                        // database, so a birthday just filled in from the form (only when none was on
+                        // file — see above) must be committed first for the age check to read it.
+                        // When the person already had an on-file birthday, none is changed here, so
+                        // their existing birthday is preserved and evaluated. (A brand-new person was
+                        // already committed above via SaveNewPerson; this is a no-op when clean.)
+                        rockContext.SaveChanges();
 
                         // Now that we have a person, we can create the connection requests
                         int RepeaterIndex = 0;
@@ -392,6 +442,130 @@ namespace org.secc.Connection
                                 var groupConfig = opportunity.ConnectionOpportunityGroupConfigs.Where( gc => gc.GroupMemberRoleId == hdnGroupRoleTypeId.Value.AsInteger() ).FirstOrDefault();
                                 connectionRequest.AssignedGroupMemberStatus = groupConfig.GroupMemberStatus;
 
+                            }
+
+                            // ROCK-8790: Enforce the assigned role's Group Requirements at signup — but
+                            // OPT-IN per requirement type, per block instance. This block is shared across
+                            // ~30+ signup instances; only Group Requirement Types explicitly named in the
+                            // "Signup-Blocking Requirement Types" setting hard-block a signup at the form.
+                            // Blank => block nothing, so every other instance is unaffected by default and
+                            // its requirements still evaluate/pass through onto the connection request.
+                            var blockingRequirementTypeNames = ( GetAttributeValue( "SignupBlockingRequirementTypes" ) ?? string.Empty )
+                                .Split( ',' )
+                                .Select( n => n.Trim() )
+                                .Where( n => !string.IsNullOrWhiteSpace( n ) )
+                                .ToList();
+
+                            // The person prospect has already been created/matched and committed above, so
+                            // requirement DataViews/SQL evaluate against the person's persisted data (including
+                            // any birthday just filled in from the form — see the SaveChanges above). If any
+                            // listed requirement for this group + role is not met, hard-block the submit BEFORE
+                            // rockContext.SaveChanges() so that no ConnectionRequest (and nothing downstream)
+                            // is created for an ineligible volunteer.
+                            if ( blockingRequirementTypeNames.Any() && connectionRequest.AssignedGroupId.HasValue )
+                            {
+                                var assignedGroup = new GroupService( rockContext ).Get( connectionRequest.AssignedGroupId.Value );
+                                if ( assignedGroup != null )
+                                {
+                                    // Personalize the block message: "[Name] isn't eligible for the [Role] role — [reason]."
+                                    // The message renders in lRequirementBlockMessage (just above the submit buttons),
+                                    // NOT lResponseMessage (top), which is reserved for the normal connect response.
+                                    // HTML-encode every data-derived value interpolated into the alert-danger
+                                    // markup below (name / role / requirement labels) so values containing
+                                    // &, ', or < don't break the markup. .EncodeHtml() is Rock's string
+                                    // extension (via using Rock;) and is null-safe. Literal markup in the
+                                    // format strings (the div wrapper, <br />) stays un-encoded.
+                                    var registrantName = ( !string.IsNullOrWhiteSpace( person.NickName ) ? person.NickName : person.FirstName ).EncodeHtml();
+                                    var assignedRoleName = connectionRequest.AssignedGroupMemberRoleId.HasValue
+                                        ? new GroupTypeRoleService( rockContext ).Get( connectionRequest.AssignedGroupMemberRoleId.Value )?.Name.EncodeHtml()
+                                        : null;
+                                    var roleClause = !string.IsNullOrWhiteSpace( assignedRoleName )
+                                        ? string.Format( "the {0} role", assignedRoleName )
+                                        : "this role";
+
+                                    List<string> blockingMessages;
+                                    try
+                                    {
+                                        blockingMessages = assignedGroup
+                                            .PersonMeetsGroupRequirements( rockContext, person.Id, connectionRequest.AssignedGroupMemberRoleId )
+                                            .Where( r =>
+                                                r.GroupRequirement != null &&
+                                                r.GroupRequirement.GroupRequirementType != null &&
+                                                // The explicit name allowlist (case-insensitive) is the intent
+                                                // control, so a listed type gates regardless of its
+                                                // MustMeetRequirementToAddMember flag (that filter is intentionally
+                                                // dropped). The non-Manual guard stays so a mistakenly-listed Manual
+                                                // type can't blanket-block every new signup (Manual returns NotMet
+                                                // for anyone with no GroupMember row).
+                                                blockingRequirementTypeNames.Contains( r.GroupRequirement.GroupRequirementType.Name, StringComparer.OrdinalIgnoreCase ) &&
+                                                r.GroupRequirement.GroupRequirementType.RequirementCheckType != RequirementCheckType.Manual &&
+                                                // Fail closed: block on NotMet AND on Error (a SQL requirement
+                                                // that threw). Do not block on Meets/MeetsWithWarning/NotApplicable.
+                                                ( r.MeetsGroupRequirement == MeetsGroupRequirement.NotMet ||
+                                                  r.MeetsGroupRequirement == MeetsGroupRequirement.Error ) )
+                                            .Select( r =>
+                                            {
+                                                var requirementType = r.GroupRequirement.GroupRequirementType;
+                                                return ( !string.IsNullOrWhiteSpace( requirementType.NegativeLabel )
+                                                    ? requirementType.NegativeLabel
+                                                    : requirementType.Name ).EncodeHtml();
+                                            } )
+                                            .Distinct()
+                                            .ToList();
+                                    }
+                                    catch ( Exception ex )
+                                    {
+                                        // Fail closed: if requirement evaluation itself throws (e.g. a deleted
+                                        // or renamed DataView, a bad SQL filter), do NOT let the signup through.
+                                        // Generic message (no role/reason format).
+                                        ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
+                                        lRequirementBlockMessage.Text = string.Format(
+                                            "<div class='alert alert-danger'>We couldn't verify {0}'s eligibility for this role. No signup was submitted. Please try again or contact us.</div>",
+                                            registrantName );
+                                        lRequirementBlockMessage.Visible = true;
+
+                                        // ROCK-8790: revert a birthday we filled from the form this request so a
+                                        // corrected resubmit re-reads the form value (on-file birthday untouched).
+                                        if ( birthDateFilledFromForm )
+                                        {
+                                            RevertFormBirthDate( person.Id );
+                                        }
+
+                                        pnlSignup.Visible = true;
+                                        return;
+                                    }
+
+                                    if ( blockingMessages.Any() )
+                                    {
+                                        string messageBody;
+                                        if ( blockingMessages.Count == 1 )
+                                        {
+                                            messageBody = string.Format( "{0} isn't eligible for {1} — {2}. No signup was submitted.", registrantName, roleClause, blockingMessages[0] );
+                                        }
+                                        else
+                                        {
+                                            messageBody = string.Format( "{0} isn't eligible for {1}:<br />{2}<br />No signup was submitted.", registrantName, roleClause, string.Join( "<br />", blockingMessages ) );
+                                        }
+
+                                        lRequirementBlockMessage.Text = string.Format(
+                                            "<div class='alert alert-danger'>{0}</div>",
+                                            messageBody );
+                                        lRequirementBlockMessage.Visible = true;
+
+                                        // ROCK-8790: revert a birthday we filled from the form this request so a
+                                        // corrected resubmit re-reads the form value (on-file birthday untouched).
+                                        if ( birthDateFilledFromForm )
+                                        {
+                                            RevertFormBirthDate( person.Id );
+                                        }
+
+                                        // Keep the signup form visible and return before SaveChanges().
+                                        // Any ConnectionRequest added in a prior loop iteration is discarded
+                                        // because SaveChanges() is never reached for this submit.
+                                        pnlSignup.Visible = true;
+                                        return;
+                                    }
+                                }
                             }
 
                             var connectionAttributes = GetGroupMemberAttributes( rockContext, RepeaterIndex );

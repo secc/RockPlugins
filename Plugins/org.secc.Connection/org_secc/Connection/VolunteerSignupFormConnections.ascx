@@ -68,6 +68,8 @@
 
                 <asp:PlaceHolder ID="phFormAttributes" runat="server" />
 
+                <asp:Literal ID="lRequirementBlockMessage" runat="server" Visible="false" />
+
                 <div class="actions">
                     <asp:LinkButton ID="btnConnectandAddAnother" Visible="false" runat="server" AccessKey="n" Text="Connect and Add Another" CssClass="btn btn-default" OnClick="btnConnect_Click" />
                     <asp:LinkButton ID="btnConnect" runat="server" AccessKey="m" Text="Connect" CssClass="btn btn-primary" OnClick="btnConnect_Click" />
