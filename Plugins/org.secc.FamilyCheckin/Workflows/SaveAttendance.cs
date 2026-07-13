@@ -182,7 +182,11 @@ namespace org.secc.FamilyCheckin
                                                 }
                                             };
 
-                                            attendanceService.Add( attendance );
+                                            // NOTE: Do not call attendanceService.Add( attendance ) here. AddOrUpdate already
+                                            // adds new records to the context. When AddOrUpdate returns an EXISTING attendance
+                                            // (same person + occurrence), calling Add would flip the tracked entity's state to
+                                            // Added, causing EF to INSERT a duplicate row and silently drop the update that
+                                            // closed the old attendance — the double check-in bug (ROCK-8700).
                                             attendances.Add( attendance );
                                         }
                                     }
