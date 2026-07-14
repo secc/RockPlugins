@@ -190,6 +190,4 @@ attributes (don't hand-edit ones that have already run):
 - Related: scannable codes come from [org.secc.QRManager](../org.secc.QRManager/README.md);
   shared helpers from [org.secc.DevLib](../org.secc.DevLib/README.md).
 
----
-
-**Last updated:** 2026-07-13
+**Last updated:** 2026-07-14
