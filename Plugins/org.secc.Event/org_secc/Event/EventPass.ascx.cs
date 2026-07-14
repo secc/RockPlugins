@@ -237,7 +237,8 @@ namespace RockWeb.Plugins.org_secc.Event
             var itemOrder = 0;
             foreach (var registrant in registrants)
             {
-                alternateIdLookup.TryGetValue( registrant.PersonAlias.PersonId, out string alternateId );
+                string alternateId;
+                alternateIdLookup.TryGetValue( registrant.PersonAlias.PersonId, out alternateId );
 
                 var eventPassData = new EventPassData
                 {
