@@ -44,7 +44,7 @@ Category in Rock: **SECC > Event** (Community Gives Back blocks: **SECC > Commun
 | Event Redirect (`EventRedirect`) | Interprets event slugs and forwards to the right page. | Base Route (default `upcomingevents`) |
 | Registration Entry (`RegistrationEntry`) | SECC fork of Rock's stock registration-entry block (register for an instance). | Connection Status, Record Status, plus the stock registration-entry settings |
 | Registration Detail (`RegistrationDetail`) | SECC fork of Rock's registration-detail block (view/manage a registration). | (stock registration-detail settings) |
-| Event Pass (`EventPass`) | Displays a QR "Event Pass" for registrants of an event. | Include Registrants on Waitlist, Pass Not Found Header/Message |
+| Event Pass (`EventPass`) | Displays a QR "Event Pass" for registrants of an event. | Include Registrants on Waitlist, Include Registrar's Registrations, Pass Not Found Header/Message |
 | Generate Event Pass (`RequestEventPass`) | Public form that launches a workflow to request an Event Pass. | Block Title, Event Pass Workflow Type, Pass Person Attribute, Contact Fields Editable |
 | Family Registration List Lava (`FamilyRegistrationLava`) | Lava sidebar listing a family's children's registrations. | Lava Template, Max Results, Date Range, Limit To Owed |
 | SignNow (`SignNow`) | Embedded sub-control (a plain `System.Web.UI.UserControl`, **not** a registerable Rock block — no `[DisplayName]`/`[Category]`) that hosts the SignNow digital-signature flow inside registration; parses the returned `document_id` (falls back to the referer on iOS). | (none — driven by the registration's digital-signature component) |
