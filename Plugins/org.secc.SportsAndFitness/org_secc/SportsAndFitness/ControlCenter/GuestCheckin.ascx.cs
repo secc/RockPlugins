@@ -334,20 +334,52 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                         } )
                     .ToList();
 
-                var occurrenceIds = new List<int>();
+                // ROCK-8706: Resolve today's active occurrences in ONE query instead of an
+                // AttendanceOccurrenceService.Get() round trip per active (group, location, schedule)
+                // triple (the old N+1 loop). The Get(DateTime,int?,int?,int?) overload is read-only
+                // (Queryable().FirstOrDefault(), no create) so batching is safe, and
+                // IX_GroupId_LocationID_ScheduleID_Date is UNIQUE on (GroupId, LocationId, ScheduleId,
+                // OccurrenceDate) so at most one row matches each triple -- "all matching" is identical
+                // to the old per-triple FirstOrDefault(). We over-fetch by three IN-lists (cheap; the
+                // active set is only currently-check-in-active schedules) then intersect against the
+                // exact triple set in memory to drop cartesian cross-matches.
+                var occurrenceDate = currentTime.Date;
+                var activeTriples = new HashSet<string>();
+                var activeGroupIds = new HashSet<int>();
+                var activeLocationIds = new HashSet<int>();
+                var activeScheduleIds = new HashSet<int>();
                 foreach (var item in groups)
                 {
                     foreach (var schedule in item.Schedules)
                     {
                         if (schedule.IsCheckInActive)
                         {
-                            var occurrence = occurrenceService.Get( currentTime, item.GroupId, item.LocationId, schedule.Id );
-                            if (occurrence != null)
-                            {
-                                occurrenceIds.Add( occurrence.Id );
-                            }
+                            activeTriples.Add( item.GroupId + "|" + item.LocationId + "|" + schedule.Id );
+                            activeGroupIds.Add( item.GroupId );
+                            activeLocationIds.Add( item.LocationId );
+                            activeScheduleIds.Add( schedule.Id );
                         }
                     }
+                }
+
+                var occurrenceIds = new List<int>();
+                if (activeTriples.Count > 0)
+                {
+                    // EF6 reliably translates List<T>.Contains (-> SQL IN) but NOT HashSet<T>.Contains
+                    // (throws NotSupportedException at query time), so hand the IN-lists to the query as lists.
+                    var groupIdList = activeGroupIds.ToList();
+                    var locationIdList = activeLocationIds.ToList();
+                    var scheduleIdList = activeScheduleIds.ToList();
+                    occurrenceIds = occurrenceService.Queryable().AsNoTracking()
+                        .Where( o => o.OccurrenceDate == occurrenceDate )
+                        .Where( o => o.GroupId.HasValue && groupIdList.Contains( o.GroupId.Value ) )
+                        .Where( o => o.LocationId.HasValue && locationIdList.Contains( o.LocationId.Value ) )
+                        .Where( o => o.ScheduleId.HasValue && scheduleIdList.Contains( o.ScheduleId.Value ) )
+                        .Select( o => new { o.Id, o.GroupId, o.LocationId, o.ScheduleId } )
+                        .ToList()
+                        .Where( o => activeTriples.Contains( o.GroupId.Value + "|" + o.LocationId.Value + "|" + o.ScheduleId.Value ) )
+                        .Select( o => o.Id )
+                        .ToList();
                 }
 
                 var workflowEntityType = EntityTypeCache.GetId(typeof(Workflow));
@@ -359,52 +391,67 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     .Where(av => av.AttributeId == hostAttribute.Id)
                     .Where(av => av.ValueAsPersonId.HasValue);
 
+                // ROCK-8706: Run the guest-count aggregation as its OWN query -> in-memory
+                // dictionary (the ~87ms query measured on DEV). Keeping it standalone means the
+                // ValueAsPersonId scalar UDF only runs inside this small, date+attribute-narrowed
+                // set. When this was folded into the attendance query via GroupJoin, EF6 rewrote it
+                // as a per-attendance-row correlated subquery that re-ran the UDF for every row and
+                // tail-spiked to 28.7s in Query Store. Do NOT fold this back into the attendance query.
                 var today = currentTime.Date;
-                var hostsGuests = new WorkflowService(rockContext).Queryable().AsNoTracking()
+                var hostGuestCounts = new WorkflowService(rockContext).Queryable().AsNoTracking()
                     .Where(w => w.WorkflowTypeId == workflowType.Id)
                     .Where(w => w.ActivatedDateTime.HasValue && w.ActivatedDateTime.Value > today )
-                    .Join(attributeValueQry, w => w.Id, av => av.EntityId, (w, av) => new { WorkflowId = w.Id, PersonId = av.ValueAsPersonId })
-                    .GroupBy(h => h.PersonId)
-                    .Select(h => new { PersonId = h.Key, GuestCount = h.Count() });
+                    .Join(attributeValueQry, w => w.Id, av => av.EntityId, (w, av) => av.ValueAsPersonId)
+                    .GroupBy(personId => personId)
+                    .Select(g => new { PersonId = g.Key, GuestCount = g.Count() })
+                    .ToList()
+                    .Where(x => x.PersonId.HasValue)
+                    .ToDictionary(x => x.PersonId.Value, x => x.GuestCount);
 
 
                 var memberConnectionStatus = DefinedValueCache.Get(Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_MEMBER.AsGuid());
                 var attendanceService = new AttendanceService( rockContext );
-                var employees = new AttributeValueService(rockContext).Queryable().AsNoTracking()
-                    .Where(a => a.Attribute.Id == 740 && a.Value == "Southeast Christian Church")
-                    .Select(a => a.EntityId);
+
+                // ROCK-8706: Materialize the SECC-employee person ids ONCE (~few hundred rows) instead of
+                // leaving "employees.Contains(PersonId)" as an IQueryable inside the attendance WHERE. As a
+                // subquery, EF6 turned it into a correlated EXISTS re-evaluated PER attendance row: because
+                // AttributeValue.Value is nvarchar(max) it can't be an index key, so each evaluation seeked
+                // attribute 740 and residual-filtered the string over ~11k rows -> ~2M row reads, the single
+                // largest operator in the Query Store plan. Fetched once into a list, the OR below becomes a
+                // constant IN-list evaluated a single time. Attribute 740 is the (Arena-synced) employer attr.
+                var employeeIds = new AttributeValueService(rockContext).Queryable().AsNoTracking()
+                    .Where(a => a.AttributeId == 740 && a.Value == "Southeast Christian Church")
+                    .Where(a => a.EntityId.HasValue)
+                    .Select(a => a.EntityId.Value)
+                    .ToList();
 
 
                 // ROCK-8706: Narrow the Attendance set with the active-occurrence filter (and the
-                // other Attendance predicates) BEFORE joining guest counts, so SQL Server applies
-                // "OccurrenceId IN (...)" against the base Attendance table first instead of scanning
-                // the full 9.4M-row table. Previously these Where clauses were applied AFTER the
-                // GroupJoin (against the projected anonymous type), which let EF6 defer the occurrence
-                // filter and run the member/employee predicate over the whole table (the 10-15s hang).
-                // The GroupJoin/DefaultIfEmpty guest-count join is preserved unchanged so the guest
-                // count is still computed once as a hash LEFT JOIN (do NOT switch it to a correlated
-                // subquery: hostsGuests resolves ValueAsPersonId via a scalar UDF, so a per-row
-                // subquery re-runs that UDF for every attendance row and is far slower).
+                // other Attendance predicates) so SQL Server applies "OccurrenceId IN (...)" against
+                // the base Attendance table first instead of scanning the full 9.4M-row table.
+                // Guest counts are NOT joined here — they come from the hostGuestCounts dictionary
+                // built above and are stitched in after this query materializes. Do NOT reintroduce
+                // a GroupJoin against the workflow/attribute-value guest counts: EF6 rewrites it as a
+                // per-attendance-row correlated subquery over the ValueAsPersonId scalar UDF, which
+                // tail-spiked to 28.7s in Query Store.
                 var attendanceQry = attendanceService.Queryable().AsNoTracking()
                     .Where( a => occurrenceIds.Contains( a.OccurrenceId ) )
                     .Where( a => a.DidAttend == true )
                     .Where( a => a.EndDateTime == null )
                     .Where( a => a.PersonAlias.Person.ConnectionStatusValueId == memberConnectionStatus.Id ||
-                        employees.Contains( a.PersonAlias.PersonId ) )
+                        employeeIds.Contains( a.PersonAlias.PersonId ) )
                     .Where( a => a.Note == null || !a.Note.StartsWith( "Guest" ) );
 
                 var hostsQry = attendanceQry
-                    .GroupJoin( hostsGuests, a => a.PersonAlias.PersonId, h => h.PersonId,
-                        ( a, h ) => new { Attendance = a, GuestCount = h.Select( h1 => h1.GuestCount ).DefaultIfEmpty() } )
                     .Select( a => new SportsAndFitnessHost
                     {
-                        AttendanceId = a.Attendance.Id,
-                        PersonId = a.Attendance.PersonAlias.PersonId,
-                        Host = a.Attendance.PersonAlias.Person,
-                        LocationId = a.Attendance.Occurrence.LocationId.Value,
-                        Location = a.Attendance.Occurrence.Location.Name,
-                        CheckinTime = a.Attendance.StartDateTime,
-                        GuestCount = a.GuestCount.FirstOrDefault()
+                        AttendanceId = a.Id,
+                        PersonId = a.PersonAlias.PersonId,
+                        Host = a.PersonAlias.Person,
+                        LocationId = a.Occurrence.LocationId.Value,
+                        Location = a.Occurrence.Location.Name,
+                        CheckinTime = a.StartDateTime,
+                        GuestCount = 0
                     } );
 
                 var selectedLocationId = 0;
@@ -442,10 +489,21 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     item.Selected = true;
                 }
 
-                gHosts.DataSource = hostsQry
+                var hosts = hostsQry
                     .OrderBy( h => h.Host.LastName )
                     .ThenBy( h => h.Host.NickName )
                     .ToList();
+
+                // Stitch in each host's guest count from the standalone aggregation (see hostGuestCounts above).
+                // NOTE: declare guestCount separately (not "out int guestCount") -- RockWeb runtime-compiles
+                // this .ascx.cs as C# 6, which does not support inline out-variable declarations (CS8059).
+                int guestCount;
+                foreach ( var host in hosts )
+                {
+                    host.GuestCount = hostGuestCounts.TryGetValue( host.PersonId, out guestCount ) ? guestCount : 0;
+                }
+
+                gHosts.DataSource = hosts;
                 gHosts.DataBind();
 
                 pnlMain.Visible = false;
