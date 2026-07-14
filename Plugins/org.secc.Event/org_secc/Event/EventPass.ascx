@@ -72,7 +72,7 @@
                                     <div class="col-xs-8">
                                         <i class="fas fa-ticket"></i> <%# Eval("EventName") %> <br />
                                         <%# string.Format(Eval("EventDate") == null ? "" : "<i class='far fa-calendar-alt'></i> {0:D}<br />", Eval("EventDate") ) %>
-                                        <%# string.Format(Eval("EventLocation") == null ? "" : "<i class=fas fa-map-marker-alt</i> {0}", Eval("EventLocation")) %>
+                                        <%# string.Format(Eval("EventLocation") == null ? "" : "<i class='fas fa-map-marker-alt'></i> {0}", Eval("EventLocation")) %>
                                     </div>
                                 </div>
                                 <div class="row bottom-row">

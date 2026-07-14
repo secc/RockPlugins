@@ -118,102 +118,81 @@ namespace RockWeb.Plugins.org_secc.Event
 
             var passes = new List<EventPassData>();
 
-            // Expansion is keyed to the authenticated viewer, never to the link: anonymous visitors
-            // see only what the page-parameter guids name. For a logged-in viewer, anchor on the
-            // registrants the guids unlock (after the waitlist filter, so a waitlist-only link stays
-            // "not found") and add registrations in the same instance made by the viewer's family.
-            var anchorRegistrantIds = new List<int>();
-            var registrarPersonIds = new List<int>();
-            var anchorRegistrationInstanceId = 0;
-            var expand = false;
-            if (includeRegistrarRegistrations && CurrentPersonId.HasValue)
-            {
-                // Expansion may only trigger from rows the guid-only path would show, so this query
-                // must apply the same eligibility filters (waitlist, person alias) as the main query.
-                var anchorQry = ApplyPageParameterFilters( registrantService.Queryable().AsNoTracking() );
-
-                if (!includeWaitList)
-                {
-                    anchorQry = anchorQry.Where( r => !r.OnWaitList );
-                }
-
-                var anchors = anchorQry
-                    .Where( r => r.PersonAliasId.HasValue )
-                    .Select( r => new
-                    {
-                        r.Id,
-                        r.Registration.RegistrationInstanceId
-                    } )
-                    .ToList();
-
-                if (anchors.Any())
-                {
-                    expand = true;
-                    anchorRegistrantIds = anchors.Select( a => a.Id ).ToList();
-
-                    // The page parameters pin a single registrant or registration, so every anchor
-                    // shares one registration instance.
-                    anchorRegistrationInstanceId = anchors.First().RegistrationInstanceId;
-
-                    registrarPersonIds = personService.GetFamilyMembers( CurrentPersonId.Value, true )
-                        .Select( m => m.PersonId )
-                        .ToList();
-
-                    // GetFamilyMembers is built from family GroupMember rows, so a viewer with no
-                    // family group record gets an empty list — include the viewer themselves so
-                    // "registrar = me" always works.
-                    if (!registrarPersonIds.Contains( CurrentPersonId.Value ))
-                    {
-                        registrarPersonIds.Add( CurrentPersonId.Value );
-                    }
-                }
-            }
-
             // Registrants with no person alias are excluded everywhere: a pass is person-keyed
             // (QR = person search key) and the markup binds RegistrantPerson.*, so an alias-less
             // row can never render.
-            var registrantQry = registrantService.Queryable()
+            var eligibleQry = registrantService.Queryable()
                 .AsNoTracking()
-                .Include( r => r.Registration.RegistrationInstance )
-                .Include( r => r.PersonAlias.Person )
                 .Where( r => r.PersonAliasId.HasValue );
-
-            if (expand)
-            {
-                // Keep every registrant the page parameters already unlocked (by id, so both sides
-                // of the OR stay index-seekable), and add registrants in the same registration
-                // instance whose registration was made by the viewer or the viewer's family
-                // (a null registrar never matches the IN list).
-                registrantQry = registrantQry.Where( r =>
-                    anchorRegistrantIds.Contains( r.Id )
-                    || ( r.Registration.RegistrationInstanceId == anchorRegistrationInstanceId
-                        && registrarPersonIds.Contains( r.Registration.PersonAlias.PersonId ) ) );
-            }
-            else
-            {
-                registrantQry = ApplyPageParameterFilters( registrantQry );
-            }
 
             if (!includeWaitList)
             {
-                // Must stay even though the anchor query filters the waitlist too — this is what
-                // hides waitlisted rows pulled in by the expansion branch.
-                registrantQry = registrantQry.Where( r => !r.OnWaitList );
+                eligibleQry = eligibleQry.Where( r => !r.OnWaitList );
             }
 
-            var registrants = registrantQry
-                .OrderByDescending( r => r.Guid == registrantGuidValue )
+            // The registrant rows the link's guids unlock. Kept as an unmaterialized queryable so
+            // the expansion below can reference it as EXISTS subqueries in the same SQL statement.
+            var anchorQry = ApplyPageParameterFilters( eligibleQry );
+
+            IQueryable<RegistrationRegistrant> registrantQry;
+
+            // Expansion is keyed to the authenticated viewer, never to the link: anonymous visitors
+            // see only what the page-parameter guids name.
+            var expanded = includeRegistrarRegistrations && CurrentPersonId.HasValue;
+            if (expanded)
+            {
+                var currentPersonId = CurrentPersonId.Value;
+
+                // Composed subquery (same rockContext) — translates to nested SQL instead of a
+                // separate round trip and a literal IN list. GetFamilyMembers is built from family
+                // GroupMember rows, so a viewer with no family group record yields an empty set —
+                // the explicit currentPersonId comparison keeps "registrar = me" working.
+                var registrarPersonIdQry = personService.GetFamilyMembers( currentPersonId, true )
+                    .Select( m => m.PersonId );
+
+                // Keep every registrant the link unlocks, and add registrants in the same
+                // registration instance whose registration was made by the viewer or the viewer's
+                // family (a null registrar matches neither side). The instance EXISTS also gates
+                // expansion on the link unlocking at least one eligible row: a link to nothing (or
+                // to waitlist-only rows when the waitlist is hidden) stays "Pass Not Found".
+                registrantQry = eligibleQry.Where( r =>
+                    anchorQry.Any( a => a.Id == r.Id )
+                    || ( anchorQry.Any( a => a.Registration.RegistrationInstanceId == r.Registration.RegistrationInstanceId )
+                        && r.Registration.PersonAliasId.HasValue
+                        && ( registrarPersonIdQry.Contains( r.Registration.PersonAlias.PersonId )
+                            || r.Registration.PersonAlias.PersonId == currentPersonId ) ) );
+            }
+            else
+            {
+                registrantQry = anchorQry;
+            }
+
+            var orderedQry = registrantQry
+                .Include( r => r.Registration.RegistrationInstance )
+                .Include( r => r.PersonAlias.Person )
+                .OrderByDescending( r => r.Guid == registrantGuidValue );
+
+            if (expanded)
+            {
+                // Rows the link unlocks outrank expansion rows, so the DistinctBy below keeps the
+                // registrant row from the linked registration when the same person also appears on
+                // another family registration. (The deep-link key above only covers Registrant links;
+                // this covers Registration links.)
+                orderedQry = orderedQry.ThenByDescending( r => anchorQry.Any( a => a.Id == r.Id ) );
+            }
+
+            var registrants = orderedQry
                 .ThenByDescending( r => r.Registration.PersonAliasId.HasValue
                     && r.PersonAlias.PersonId == r.Registration.PersonAlias.PersonId )
                 .ThenBy( r => r.PersonAlias.Person.LastName )
                 .ThenBy( r => r.PersonAlias.Person.NickName )
                 .ToList();
 
-            if (expand)
+            if (expanded)
             {
                 // A person could appear on multiple registrations (e.g. registered by both parents).
                 // Only generate one pass per person. DistinctBy keeps the FIRST row under the sort
-                // above, so the sort must keep the deep-linked registrant in front of duplicates.
+                // above, which keeps the linked registration's row in front of duplicates.
                 registrants = registrants
                     .DistinctBy( r => r.PersonAlias.PersonId )
                     .ToList();
