@@ -45,6 +45,15 @@ Statement content is assembled by `Utility/Statement.AddMergeFields`, which pull
 for the person's `GivingId` (whole giving family), groups them into account/fund summaries, and adds
 pledge progress. With no Accounts selected it defaults to tax-deductible accounts.
 
+`AddMergeFields` also adds a **`MoveSummary`** object (populated from the `_org_secc_Commitment_GetTotalsByPersonId` stored proc) that exposes the giving family's MOVE
+commitment to the statement Lava. Available merge fields: `MoveSummary.AmountPledged`,
+`MoveSummary.AmountGiven`, `MoveSummary.SecondYearAmountGiven`, `MoveSummary.PledgeDuration`
+(commitment term in years — 1 or 2), `MoveSummary.PersonId`, and `MoveSummary.StatusDate`. The
+statement template keys off `PledgeDuration` to choose 1-year vs. 2-year commitment language and,
+for 1-year commitments, to report second-year giving (`SecondYearAmountGiven`) rather than full
+giving-to-date. `SecondYearAmountGiven` and `PledgeDuration` are mapped from stored-proc result
+columns of the same name, so the deployed proc must return those columns for the values to populate.
+
 ### Jobs
 
 | Job | Purpose | Key config attributes |
@@ -123,3 +132,5 @@ Ships Rock plugin migrations (SQL only — `Down()` is intentionally empty):
   change.
 - File access/serving rules live in `Handlers/GetStatement.ashx.cs`; deletion in
   `Rest/Controllers/FinancialStatementsController.cs`.
+
+**Last updated:** 2026-07-15
