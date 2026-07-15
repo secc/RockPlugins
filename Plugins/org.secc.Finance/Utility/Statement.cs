@@ -388,6 +388,8 @@ namespace org.secc.Finance.Utility
         public int PersonId { get; set; }
         public decimal AmountPledged { get; set; }
         public decimal AmountGiven { get; set; }
+        public decimal SecondYearAmountGiven { get; set; }
+        public int PledgeDuration { get; set; }
         public DateTime StatusDate { get; set; }
     }
 }
