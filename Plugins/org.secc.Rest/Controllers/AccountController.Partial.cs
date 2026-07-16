@@ -89,36 +89,28 @@ namespace org.secc.Rest.Controllers
                 // Try to match the person
                 var matchPerson = personService.GetByMatch( account.FirstName, account.LastName, account.Birthdate, account.EmailAddress, account.MobileNumber, null, null );
 
-                bool confirmed = false;
+                // Never auto-confirm a login bound to an existing person from an OAuth
+                // client-credentials request. Any login created below is unconfirmed and
+                // must complete the emailed/OOB confirmation step. A matched existing
+                // person with no username is left untouched (no login, no email).
+                bool matched = false;
                 Person person = new Person();
                 if ( matchPerson != null && matchPerson.Count() == 1 )
                 {
                     var mobilePhone = matchPerson.First().PhoneNumbers.Where( pn => pn.NumberTypeValueId == DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id ).FirstOrDefault();
                     // The emails MUST match for security
-                    if ( matchPerson.First().Email == account.EmailAddress && ( mobilePhone == null || mobilePhone.Number.Right( 10 ) == account.MobileNumber.Right( 10 ) ) )
+                    if ( string.Equals( matchPerson.First().Email, account.EmailAddress, StringComparison.OrdinalIgnoreCase ) && ( mobilePhone == null || mobilePhone.Number.Right( 10 ) == account.MobileNumber.Right( 10 ) ) )
                     {
+                        // Adopt the existing person as-is. Never write requester-supplied fields
+                        // (phone, gender, etc.) onto an existing record — those writes happen only
+                        // when populating a genuinely new person below.
                         person = matchPerson.First();
-
-                        // If they don't have a current mobile phone, go ahead and set it
-                        if ( mobilePhone == null )
-                        {
-                            string cleanNumber = PhoneNumber.CleanNumber( account.MobileNumber );
-                            var phoneNumber = new PhoneNumber { NumberTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ).Id };
-                            person.PhoneNumbers.Add( phoneNumber );
-                            phoneNumber.CountryCode = cleanNumber.Length > 10 ? cleanNumber.Left( 10 - cleanNumber.Length ) : PhoneNumber.DefaultCountryCode();
-                            phoneNumber.Number = cleanNumber.Right( 10 );
-                            phoneNumber.IsMessagingEnabled = true;
-                        }
-
-                        // Make sure the gender matches
-                        person.Gender = account.Gender;
-
-                        confirmed = true;
+                        matched = true;
                     }
                 }
 
                 // If we don't have a match, create a new web prospect
-                if ( !confirmed )
+                if ( !matched )
                 {
                     DefinedValueCache dvcConnectionStatus = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_CONNECTION_STATUS_PROSPECT.AsGuid() );
                     DefinedValueCache dvcRecordStatus = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_PENDING.AsGuid() );
@@ -169,7 +161,7 @@ namespace org.secc.Rest.Controllers
 
                 if ( !string.IsNullOrWhiteSpace( account.Username ) && UserLoginService.IsPasswordValid( account.Password ) )
                 {
-                    // Create the user login (only require confirmation if we didn't match the person)
+                    // Create the user login. Always unconfirmed: every account must confirm below.
                     userLogin = UserLoginService.Create(
                         rockContext,
                         person,
@@ -177,9 +169,9 @@ namespace org.secc.Rest.Controllers
                         EntityTypeCache.Get( Rock.SystemGuid.EntityType.AUTHENTICATION_DATABASE.AsGuid() ).Id,
                         account.Username,
                         account.Password,
-                        confirmed );
+                        false );
                 }
-                else if ( !string.IsNullOrWhiteSpace( account.EmailAddress ) && !confirmed )
+                else if ( !string.IsNullOrWhiteSpace( account.EmailAddress ) && !matched )
                 {
                     userLogin = userLoginService.Queryable()
                         .Where( u => u.UserName == ( "SMS_" + person.Id.ToString() ) )
@@ -219,6 +211,7 @@ namespace org.secc.Rest.Controllers
                     message.SetRecipients( recipients );
                     message.AppRoot = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash();
                     message.CreateCommunicationRecord = false;
+                    // KNOWN LIMITATION (ROCK-8761): the login is already committed above, so if this send throws the login is orphaned and a retry hits the up-front "username already exists" check, blocking signup. Ordering fix tracked separately; not addressed here.
                     message.Send();
                 }
 
@@ -226,7 +219,7 @@ namespace org.secc.Rest.Controllers
 
                 return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new StandardResponse()
                 {
-                    Message = string.Format( "Account has been created.{0}", confirmed ? "" : " An email has been sent to confirm the email address." ),
+                    Message = string.Format( "Account has been created.{0}", userLogin != null ? " An email has been sent to confirm the email address." : "" ),
                     Result = StandardResponse.ResultCode.Success
                 }
                 );
