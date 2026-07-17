@@ -19,6 +19,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Web;
 using System.Web.Http;
 using System.Web.Routing;
@@ -51,10 +52,17 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
 
         /// <summary>
         /// Sliding-window rate limit for phone searches, per ASP.NET session (ROCK-8765).
+        /// A physical kiosk is one browser session shared by the whole line of families,
+        /// so the cap is set well above a human line's peak (~a search every few seconds,
+        /// with typo retries) while still far below an automated enumeration loop. This is
+        /// defense-in-depth over the accepted physical-kiosk residual risk documented in the
+        /// README; per-session keying means the limit can be reset by minting a new session,
+        /// which is acceptable for that already-gated threat.
         /// </summary>
-        private const int MaxSearchesPerWindow = 20;
+        private const int MaxSearchesPerWindow = 60;
         private static readonly TimeSpan SearchWindow = TimeSpan.FromSeconds( 60 );
-        private static readonly ConcurrentDictionary<string, ConcurrentQueue<DateTime>> _searchHistory = new ConcurrentDictionary<string, ConcurrentQueue<DateTime>>();
+        private static readonly ConcurrentDictionary<string, Queue<DateTime>> _searchHistory = new ConcurrentDictionary<string, Queue<DateTime>>();
+        private static long _lastCleanupTicks = 0;
 
         /// <summary>
         /// Add custom route (session-enabled so we can read check-in state).
@@ -98,13 +106,27 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                     return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
                 }
 
-                // ROCK-8765: Enforce the block's phone-length rules server side. The kiosk
-                // JS already enforces these, so legitimate traffic is unaffected; short
-                // suffix searches are what make enumeration cheap.
-                var digits = new string( ( param ?? string.Empty ).Where( char.IsDigit ).ToArray() );
+                // ROCK-8765: Enforce the block's phone-length rules server side. Short
+                // suffix searches are what make enumeration cheap. Over-length input is
+                // normalized rather than rejected so legitimate entries the kiosk allows
+                // (e.g. an 11-digit number with a leading country "1", which the on-screen
+                // keypad can produce past the textbox MaxLength) still search instead of
+                // erroring the kiosk out.
+                var digits = PhoneNumber.CleanNumber( param ) ?? string.Empty;
                 var minLength = block.GetAttributeValue( "MinimumPhoneNumberLength" ).AsIntegerOrNull() ?? 4;
                 var maxLength = block.GetAttributeValue( "MaximumPhoneNumberLength" ).AsIntegerOrNull() ?? 10;
-                if ( digits.Length < minLength || digits.Length > maxLength )
+
+                // Drop a leading country "1" then trim to the max so a valid long-form
+                // number collapses to the same search value the kiosk would send short.
+                if ( digits.Length == maxLength + 1 && digits[0] == '1' )
+                {
+                    digits = digits.Substring( 1 );
+                }
+                if ( digits.Length > maxLength )
+                {
+                    digits = digits.Substring( digits.Length - maxLength );
+                }
+                if ( digits.Length < minLength )
                 {
                     return ControllerContext.Request.CreateResponse( HttpStatusCode.BadRequest, "Invalid search value." );
                 }
@@ -118,7 +140,6 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                 var localDeviceConfigCookie = Encryption.DecryptString( HttpContext.Current.Request.Cookies[CheckInCookieKey.LocalDeviceConfig].Value );
                 var localDevice = localDeviceConfigCookie.FromJsonOrNull<LocalDeviceConfiguration>();
 
-                var currentKioskId = localDevice.CurrentKioskId.Value;
                 var currentCheckInState = new CheckInState( localDevice );
                 currentCheckInState.CheckIn.UserEnteredSearch = true;
                 currentCheckInState.CheckIn.ConfirmSingleFamily = true;
@@ -144,7 +165,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                         if ( errors.Any() )
                         {
                             var innerException = new Exception( string.Join( " -- ", errors ) );
-                            ExceptionLogService.LogException( new Exception( "Process Mobile Checkin failed initial workflow. See inner exception for details.", innerException ) );
+                            ExceptionLogService.LogException( new Exception( "Family phone search failed initial workflow. See inner exception for details.", innerException ) );
                         }
 
                         // Keep workflow active for continued processing
@@ -171,11 +192,11 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                         if ( errors.Any() )
                         {
                             var innerException = new Exception( string.Join( " -- ", errors ) );
-                            ExceptionLogService.LogException( new Exception( "Process Mobile Checkin failed initial workflow. See inner exception for details.", innerException ) );
+                            ExceptionLogService.LogException( new Exception( "Family phone search failed initial workflow. See inner exception for details.", innerException ) );
                         }
                         else
                         {
-                            ExceptionLogService.LogException( new Exception( "Process Mobile Checkin failed initial workflow. See inner exception for details." ) );
+                            ExceptionLogService.LogException( new Exception( "Family phone search failed initial workflow. See inner exception for details." ) );
                         }
                     }
                 }
@@ -231,14 +252,16 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
             {
                 var session = HttpContext.Current.Session;
 
+                // ROCK-8765: Missing/expired session or a non-UserLogin search is an
+                // expected unauthorized case, not an error — return Forbidden directly
+                // instead of throwing (which would log noise as a fake exception).
                 var currentCheckInState = session["CheckInState"] as CheckInState;
-                if ( currentCheckInState.CheckIn.SearchType.Guid != Constants.CHECKIN_SEARCH_TYPE_USERLOGIN.AsGuid() )
+                if ( currentCheckInState == null
+                    || currentCheckInState.CheckIn.SearchType == null
+                    || currentCheckInState.CheckIn.SearchType.Guid != Constants.CHECKIN_SEARCH_TYPE_USERLOGIN.AsGuid() )
                 {
-                    throw new Exception(); //We'll catch this later and return a forbidden
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
                 }
-
-                var localDeviceConfigCookie = HttpContext.Current.Request.Cookies[CheckInCookieKey.LocalDeviceConfig].Value;
-                var localDevice = localDeviceConfigCookie.FromJsonOrNull<LocalDeviceConfiguration>();
 
                 var rockContext = new Rock.Data.RockContext();
 
@@ -250,17 +273,31 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
 
                 if ( target == null || target.Family == null )
                 {
-                    throw new Exception(); //We'll catch this later and return a forbidden
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
+                }
+
+                var blockGuidObject = session["BlockGuid"];
+                var block = blockGuidObject != null ? BlockCache.Get( ( Guid ) blockGuidObject ) : null;
+                if ( block == null )
+                {
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
                 }
 
                 // ROCK-8765: The authenticated caller must be the person whose session
-                // this is. MobileCheckinStart's admin/debug impersonation (?UserName=) is
-                // still allowed for Rock administrators.
+                // this is. MobileCheckinStart's ?UserName= impersonation is preserved by
+                // matching that block's own gate (MobileCheckinStart.ascx.cs): block
+                // ADMINISTRATE authorization, or the block's DebugMode attribute.
                 var currentPerson = GetPerson();
-                if ( currentPerson == null
-                    || ( target.PersonId != currentPerson.Id && !IsRockAdministrator( currentPerson.Id, rockContext ) ) )
+                if ( currentPerson == null )
                 {
-                    throw new Exception(); //We'll catch this later and return a forbidden
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
+                }
+
+                var isImpersonationAllowed = block.IsAuthorized( Rock.Security.Authorization.ADMINISTRATE, currentPerson )
+                    || block.GetAttributeValue( "DebugMode" ).AsBoolean();
+                if ( target.PersonId != currentPerson.Id && !isImpersonationAllowed )
+                {
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
                 }
 
                 var family = target.Family;
@@ -273,8 +310,6 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                 currentCheckInState.CheckIn.Families.Add( checkinFamily );
                 SaveState( session, currentCheckInState );
 
-                Guid blockGuid = ( Guid ) session["BlockGuid"];
-                var block = BlockCache.Get( blockGuid );
                 Guid? workflowGuid = block.GetAttributeValue( "WorkflowType" ).AsGuidOrNull();
                 string workflowActivity = block.GetAttributeValue( "WorkflowActivity" );
 
@@ -329,54 +364,78 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
         }
 
         /// <summary>
-        /// Sliding-window rate limiter keyed by session id (ROCK-8765).
+        /// Sliding-window rate limiter keyed by session id (ROCK-8765). Trim, count-check
+        /// and enqueue happen under a lock on the per-session queue so concurrent requests
+        /// for one session can't slip past the cap.
         /// </summary>
         private static bool IsRateLimited( string sessionId )
         {
             var now = RockDateTime.Now;
-            var queue = _searchHistory.GetOrAdd( sessionId, _ => new ConcurrentQueue<DateTime>() );
+            var queue = _searchHistory.GetOrAdd( sessionId, _ => new Queue<DateTime>() );
 
-            // Drop entries outside the window.
-            DateTime timestamp;
-            while ( queue.TryPeek( out timestamp ) && now - timestamp > SearchWindow )
+            lock ( queue )
             {
-                queue.TryDequeue( out timestamp );
-            }
-
-            if ( queue.Count >= MaxSearchesPerWindow )
-            {
-                return true;
-            }
-
-            queue.Enqueue( now );
-
-            // Opportunistic cleanup so abandoned sessions don't accumulate forever.
-            if ( _searchHistory.Count > 1000 )
-            {
-                foreach ( var key in _searchHistory.Keys )
+                // Drop entries outside the window.
+                while ( queue.Count > 0 && now - queue.Peek() > SearchWindow )
                 {
-                    ConcurrentQueue<DateTime> stale;
-                    if ( _searchHistory.TryGetValue( key, out stale )
-                        && ( !stale.TryPeek( out timestamp ) || now - timestamp > SearchWindow ) )
-                    {
-                        _searchHistory.TryRemove( key, out stale );
-                    }
+                    queue.Dequeue();
                 }
+
+                if ( queue.Count >= MaxSearchesPerWindow )
+                {
+                    return true;
+                }
+
+                queue.Enqueue( now );
             }
 
+            CleanupStaleSessions( now );
             return false;
         }
 
         /// <summary>
-        /// Whether the person is an active member of the Rock Administration security role (ROCK-8765).
+        /// Evict sessions with no in-window activity so abandoned sessions don't accumulate.
+        /// Time-gated so the O(n) sweep runs at most once per window regardless of load, and
+        /// only removes queues that are empty after trimming — never an active session's
+        /// in-window entries (ROCK-8765).
         /// </summary>
-        private static bool IsRockAdministrator( int personId, Rock.Data.RockContext rockContext )
+        private static void CleanupStaleSessions( DateTime now )
         {
-            var adminGroupGuid = Rock.SystemGuid.Group.GROUP_ADMINISTRATORS.AsGuid();
-            return new GroupMemberService( rockContext ).Queryable().AsNoTracking()
-                .Any( gm => gm.Group.Guid == adminGroupGuid
-                    && gm.PersonId == personId
-                    && gm.GroupMemberStatus == GroupMemberStatus.Active );
+            var lastCleanup = new DateTime( Interlocked.Read( ref _lastCleanupTicks ), DateTimeKind.Unspecified );
+            if ( now - lastCleanup < SearchWindow )
+            {
+                return;
+            }
+
+            // Claim the sweep; if another thread beat us to it, skip.
+            if ( Interlocked.CompareExchange( ref _lastCleanupTicks, now.Ticks, lastCleanup.Ticks ) != lastCleanup.Ticks )
+            {
+                return;
+            }
+
+            foreach ( var key in _searchHistory.Keys )
+            {
+                Queue<DateTime> queue;
+                if ( !_searchHistory.TryGetValue( key, out queue ) )
+                {
+                    continue;
+                }
+
+                bool empty;
+                lock ( queue )
+                {
+                    while ( queue.Count > 0 && now - queue.Peek() > SearchWindow )
+                    {
+                        queue.Dequeue();
+                    }
+                    empty = queue.Count == 0;
+                }
+
+                if ( empty )
+                {
+                    _searchHistory.TryRemove( key, out queue );
+                }
+            }
         }
 
         private void SaveState( HttpSessionState Session, CheckInState currentCheckInState )
