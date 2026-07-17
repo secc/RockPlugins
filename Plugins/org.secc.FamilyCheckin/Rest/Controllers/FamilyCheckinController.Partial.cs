@@ -13,13 +13,11 @@
 // </copyright>
 //
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Web;
 using System.Web.Http;
 using System.Web.Routing;
@@ -48,7 +46,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
         /// check-in sessions carry the MobileCheckinStart block guid and must not be
         /// able to run phone-number enumeration. Guid matches migration 024_FamilyCheckinPages.
         /// </summary>
-        private static readonly Guid QuickSearchBlockTypeGuid = "315A175F-C682-4810-9F33-1BDB93904A4E".AsGuid();
+        private static readonly Guid QuickSearchBlockTypeGuid = Constants.BLOCK_TYPE_QUICKSEARCH.AsGuid();
 
         /// <summary>
         /// Sliding-window rate limit for phone searches, per ASP.NET session (ROCK-8765).
@@ -61,8 +59,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
         /// </summary>
         private const int MaxSearchesPerWindow = 60;
         private static readonly TimeSpan SearchWindow = TimeSpan.FromSeconds( 60 );
-        private static readonly ConcurrentDictionary<string, Queue<DateTime>> _searchHistory = new ConcurrentDictionary<string, Queue<DateTime>>();
-        private static long _lastCleanupTicks = 0;
+        private const string SearchHistorySessionKey = "FamilySearchHistory";
 
         /// <summary>
         /// Add custom route (session-enabled so we can read check-in state).
@@ -107,24 +104,26 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                 }
 
                 // ROCK-8765: Enforce the block's phone-length rules server side. Short
-                // suffix searches are what make enumeration cheap. Over-length input is
-                // normalized rather than rejected so legitimate entries the kiosk allows
-                // (e.g. an 11-digit number with a leading country "1", which the on-screen
-                // keypad can produce past the textbox MaxLength) still search instead of
-                // erroring the kiosk out.
+                // suffix searches are what make enumeration cheap.
                 var digits = PhoneNumber.CleanNumber( param ) ?? string.Empty;
                 var minLength = block.GetAttributeValue( "MinimumPhoneNumberLength" ).AsIntegerOrNull() ?? 4;
                 var maxLength = block.GetAttributeValue( "MaximumPhoneNumberLength" ).AsIntegerOrNull() ?? 10;
 
-                // Drop a leading country "1" then trim to the max so a valid long-form
-                // number collapses to the same search value the kiosk would send short.
+                // Drop a leading country "1" (e.g. an 11-digit number, which the on-screen
+                // keypad can produce past the textbox MaxLength) so a valid long-form
+                // number still searches.
                 if ( digits.Length == maxLength + 1 && digits[0] == '1' )
                 {
                     digits = digits.Substring( 1 );
                 }
+
+                // Anything still over-length can't match a stored number. Mirror the
+                // kiosk's no-results UX rather than trimming to a substring — a trimmed
+                // value is a *different* phone number and can surface a family the user
+                // never typed.
                 if ( digits.Length > maxLength )
                 {
-                    digits = digits.Substring( digits.Length - maxLength );
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new List<object>() );
                 }
                 if ( digits.Length < minLength )
                 {
@@ -132,7 +131,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                 }
 
                 // ROCK-8765: Rate limit per session to deny enumeration the volume it needs.
-                if ( IsRateLimited( session.SessionID ) )
+                if ( IsRateLimited( session ) )
                 {
                     return ControllerContext.Request.CreateResponse( ( HttpStatusCode ) 429, "Too many searches. Please wait a moment and try again." );
                 }
@@ -147,65 +146,24 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                 currentCheckInState.CheckIn.SearchValue = digits;
 
                 var rockContext = new Rock.Data.RockContext();
-                string workflowActivity = block.GetAttributeValue( "WorkflowActivity" );
-                Guid? workflowGuid = block.GetAttributeValue( "WorkflowType" ).AsGuidOrNull();
 
-                List<string> errors;
-                var workflowService = new WorkflowService( rockContext );
-                var workflowType = WorkflowTypeCache.Get( workflowGuid.Value );
-
-                var CurrentWorkflow = Rock.Model.Workflow.Activate( workflowType, currentCheckInState.Kiosk.Device.Name, rockContext );
-
-                var activityType = workflowType.ActivityTypes.Where( a => a.Name == workflowActivity ).FirstOrDefault();
-                if ( activityType != null )
+                return RunCheckinWorkflow( block, currentCheckInState, rockContext, session, "Family phone search", () =>
                 {
-                    WorkflowActivity.Activate( activityType, CurrentWorkflow, rockContext );
-                    if ( workflowService.Process( CurrentWorkflow, currentCheckInState, out errors ) )
-                    {
-                        if ( errors.Any() )
+                    // ROCK-8765: Return only the fields the kiosk UI consumes rather
+                    // than fully serialized CheckInFamily graphs. Full family/person
+                    // data stays server side in session state; ChooseFamily postbacks
+                    // look families up by Group.Id from that state.
+                    var families = currentCheckInState.CheckIn.Families
+                        .OrderBy( f => f.Caption )
+                        .Select( f => new
                         {
-                            var innerException = new Exception( string.Join( " -- ", errors ) );
-                            ExceptionLogService.LogException( new Exception( "Family phone search failed initial workflow. See inner exception for details.", innerException ) );
-                        }
-
-                        // Keep workflow active for continued processing
-                        CurrentWorkflow.CompletedDateTime = null;
-                        SaveState( session, currentCheckInState );
-
-                        // ROCK-8765: Return only the fields the kiosk UI consumes rather
-                        // than fully serialized CheckInFamily graphs. Full family/person
-                        // data stays server side in session state; ChooseFamily postbacks
-                        // look families up by Group.Id from that state.
-                        var families = currentCheckInState.CheckIn.Families
-                            .OrderBy( f => f.Caption )
-                            .Select( f => new
-                            {
-                                Caption = f.Caption,
-                                SubCaption = f.SubCaption,
-                                Group = new { Id = f.Group.Id }
-                            } )
-                            .ToList();
-                        return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, families );
-                    }
-                    else
-                    {
-                        if ( errors.Any() )
-                        {
-                            var innerException = new Exception( string.Join( " -- ", errors ) );
-                            ExceptionLogService.LogException( new Exception( "Family phone search failed initial workflow. See inner exception for details.", innerException ) );
-                        }
-                        else
-                        {
-                            ExceptionLogService.LogException( new Exception( "Family phone search failed initial workflow. See inner exception for details." ) );
-                        }
-                    }
-                }
-                else
-                {
-                    return ControllerContext.Request.CreateResponse( HttpStatusCode.InternalServerError, string.Format( "Workflow type does not have a '{0}' activity type", workflowActivity ) );
-                }
-                return ControllerContext.Request.CreateResponse( HttpStatusCode.InternalServerError, String.Join( "\n", errors ) );
-
+                            Caption = f.Caption,
+                            SubCaption = f.SubCaption,
+                            Group = new { Id = f.Group.Id }
+                        } )
+                        .ToList();
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, families );
+                } );
             }
             catch ( Exception ex )
             {
@@ -263,6 +221,26 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                     return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
                 }
 
+                var blockGuidObject = session["BlockGuid"];
+                var block = blockGuidObject != null ? BlockCache.Get( ( Guid ) blockGuidObject ) : null;
+                if ( block == null )
+                {
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
+                }
+
+                // ROCK-8765: The caller must be the person whose session this is, judged by
+                // the same gate as MobileCheckinStart's ?UserName= impersonation (shared
+                // helper): block ADMINISTRATE, or the block's DebugMode attribute — the
+                // latter allows anonymous callers, matching the page, so the documented
+                // debug flow keeps working end to end. All in-memory checks run before the
+                // UserLogin lookup so rejected calls never pay the DB round-trip.
+                var currentPerson = GetPerson();
+                var isImpersonationAllowed = MobileCheckinAuthorization.IsImpersonationAllowed( block, currentPerson );
+                if ( currentPerson == null && !isImpersonationAllowed )
+                {
+                    return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
+                }
+
                 var rockContext = new Rock.Data.RockContext();
 
                 UserLoginService userLoginService = new UserLoginService( rockContext );
@@ -276,26 +254,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                     return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
                 }
 
-                var blockGuidObject = session["BlockGuid"];
-                var block = blockGuidObject != null ? BlockCache.Get( ( Guid ) blockGuidObject ) : null;
-                if ( block == null )
-                {
-                    return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
-                }
-
-                // ROCK-8765: The authenticated caller must be the person whose session
-                // this is. MobileCheckinStart's ?UserName= impersonation is preserved by
-                // matching that block's own gate (MobileCheckinStart.ascx.cs): block
-                // ADMINISTRATE authorization, or the block's DebugMode attribute.
-                var currentPerson = GetPerson();
-                if ( currentPerson == null )
-                {
-                    return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
-                }
-
-                var isImpersonationAllowed = block.IsAuthorized( Rock.Security.Authorization.ADMINISTRATE, currentPerson )
-                    || block.GetAttributeValue( "DebugMode" ).AsBoolean();
-                if ( target.PersonId != currentPerson.Id && !isImpersonationAllowed )
+                if ( !isImpersonationAllowed && target.PersonId != currentPerson.Id )
                 {
                     return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
                 }
@@ -310,51 +269,8 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                 currentCheckInState.CheckIn.Families.Add( checkinFamily );
                 SaveState( session, currentCheckInState );
 
-                Guid? workflowGuid = block.GetAttributeValue( "WorkflowType" ).AsGuidOrNull();
-                string workflowActivity = block.GetAttributeValue( "WorkflowActivity" );
-
-                List<string> errors;
-                var workflowService = new WorkflowService( rockContext );
-                var workflowType = WorkflowTypeCache.Get( workflowGuid.Value );
-
-                var CurrentWorkflow = Rock.Model.Workflow.Activate( workflowType, currentCheckInState.Kiosk.Device.Name, rockContext );
-
-                var activityType = workflowType.ActivityTypes.Where( a => a.Name == workflowActivity ).FirstOrDefault();
-                if ( activityType != null )
-                {
-                    WorkflowActivity.Activate( activityType, CurrentWorkflow, rockContext );
-                    if ( workflowService.Process( CurrentWorkflow, currentCheckInState, out errors ) )
-                    {
-                        if ( errors.Any() )
-                        {
-                            var innerException = new Exception( string.Join( " -- ", errors ) );
-                            ExceptionLogService.LogException( new Exception( "Process Mobile Checkin failed initial workflow. See inner exception for details.", innerException ) );
-                        }
-
-                        // Keep workflow active for continued processing
-                        CurrentWorkflow.CompletedDateTime = null;
-                        SaveState( session, currentCheckInState );
-                        return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, param );
-                    }
-                    else
-                    {
-                        if ( errors.Any() )
-                        {
-                            var innerException = new Exception( string.Join( " -- ", errors ) );
-                            ExceptionLogService.LogException( new Exception( "Process Mobile Checkin failed initial workflow. See inner exception for details.", innerException ) );
-                        }
-                        else
-                        {
-                            ExceptionLogService.LogException( new Exception( "Process Mobile Checkin failed initial workflow. See inner exception for details." ) );
-                        }
-                    }
-                }
-                else
-                {
-                    return ControllerContext.Request.CreateResponse( HttpStatusCode.InternalServerError, string.Format( "Workflow type does not have a '{0}' activity type", workflowActivity ) );
-                }
-                return ControllerContext.Request.CreateResponse( HttpStatusCode.InternalServerError, String.Join( "\n", errors ) );
-
+                return RunCheckinWorkflow( block, currentCheckInState, rockContext, session, "Process Mobile Checkin",
+                    () => ControllerContext.Request.CreateResponse( HttpStatusCode.OK, param ) );
             }
             catch ( Exception ex )
             {
@@ -364,78 +280,77 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
         }
 
         /// <summary>
-        /// Sliding-window rate limiter keyed by session id (ROCK-8765). Trim, count-check
-        /// and enqueue happen under a lock on the per-session queue so concurrent requests
-        /// for one session can't slip past the cap.
+        /// Sliding-window rate limiter with history stored in session state (ROCK-8765).
+        /// The route's SessionRouteHandler runs with full session state, so ASP.NET already
+        /// serializes concurrent requests within one session — no locking needed — and
+        /// session expiry evicts the history for free. Timestamps are UTC so a DST
+        /// fall-back can't leave future-stamped entries pinning the window shut.
         /// </summary>
-        private static bool IsRateLimited( string sessionId )
+        private static bool IsRateLimited( HttpSessionState session )
         {
-            var now = RockDateTime.Now;
-            var queue = _searchHistory.GetOrAdd( sessionId, _ => new Queue<DateTime>() );
+            var now = DateTime.UtcNow;
+            var history = session[SearchHistorySessionKey] as Queue<DateTime> ?? new Queue<DateTime>();
 
-            lock ( queue )
+            // Drop entries outside the window.
+            while ( history.Count > 0 && now - history.Peek() > SearchWindow )
             {
-                // Drop entries outside the window.
-                while ( queue.Count > 0 && now - queue.Peek() > SearchWindow )
-                {
-                    queue.Dequeue();
-                }
-
-                if ( queue.Count >= MaxSearchesPerWindow )
-                {
-                    return true;
-                }
-
-                queue.Enqueue( now );
+                history.Dequeue();
             }
 
-            CleanupStaleSessions( now );
+            if ( history.Count >= MaxSearchesPerWindow )
+            {
+                return true;
+            }
+
+            history.Enqueue( now );
+            session[SearchHistorySessionKey] = history;
             return false;
         }
 
         /// <summary>
-        /// Evict sessions with no in-window activity so abandoned sessions don't accumulate.
-        /// Time-gated so the O(n) sweep runs at most once per window regardless of load, and
-        /// only removes queues that are empty after trimming — never an active session's
-        /// in-window entries (ROCK-8765).
+        /// Shared activate-workflow / process / log / save-state block for the Family and
+        /// ProcessMobileCheckin handlers, so the two paths can't drift. On success the
+        /// workflow is kept active (CompletedDateTime = null), state is saved to session,
+        /// and <paramref name="onSuccess"/> builds the response.
         /// </summary>
-        private static void CleanupStaleSessions( DateTime now )
+        private HttpResponseMessage RunCheckinWorkflow( BlockCache block, CheckInState currentCheckInState, Rock.Data.RockContext rockContext, HttpSessionState session, string logContext, Func<HttpResponseMessage> onSuccess )
         {
-            var lastCleanup = new DateTime( Interlocked.Read( ref _lastCleanupTicks ), DateTimeKind.Unspecified );
-            if ( now - lastCleanup < SearchWindow )
+            string workflowActivity = block.GetAttributeValue( "WorkflowActivity" );
+            Guid? workflowGuid = block.GetAttributeValue( "WorkflowType" ).AsGuidOrNull();
+
+            List<string> errors;
+            var workflowService = new WorkflowService( rockContext );
+            var workflowType = WorkflowTypeCache.Get( workflowGuid.Value );
+
+            var currentWorkflow = Rock.Model.Workflow.Activate( workflowType, currentCheckInState.Kiosk.Device.Name, rockContext );
+
+            var activityType = workflowType.ActivityTypes.Where( a => a.Name == workflowActivity ).FirstOrDefault();
+            if ( activityType == null )
             {
-                return;
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.InternalServerError, string.Format( "Workflow type does not have a '{0}' activity type", workflowActivity ) );
             }
 
-            // Claim the sweep; if another thread beat us to it, skip.
-            if ( Interlocked.CompareExchange( ref _lastCleanupTicks, now.Ticks, lastCleanup.Ticks ) != lastCleanup.Ticks )
+            WorkflowActivity.Activate( activityType, currentWorkflow, rockContext );
+            var processed = workflowService.Process( currentWorkflow, currentCheckInState, out errors );
+
+            if ( errors.Any() || !processed )
             {
-                return;
+                var message = logContext + " failed initial workflow. See inner exception for details.";
+                var exception = errors.Any()
+                    ? new Exception( message, new Exception( string.Join( " -- ", errors ) ) )
+                    : new Exception( message );
+                ExceptionLogService.LogException( exception );
             }
 
-            foreach ( var key in _searchHistory.Keys )
+            if ( !processed )
             {
-                Queue<DateTime> queue;
-                if ( !_searchHistory.TryGetValue( key, out queue ) )
-                {
-                    continue;
-                }
-
-                bool empty;
-                lock ( queue )
-                {
-                    while ( queue.Count > 0 && now - queue.Peek() > SearchWindow )
-                    {
-                        queue.Dequeue();
-                    }
-                    empty = queue.Count == 0;
-                }
-
-                if ( empty )
-                {
-                    _searchHistory.TryRemove( key, out queue );
-                }
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.InternalServerError, String.Join( "\n", errors ) );
             }
+
+            // Keep workflow active for continued processing
+            currentWorkflow.CompletedDateTime = null;
+            SaveState( session, currentCheckInState );
+            return onSuccess();
         }
 
         private void SaveState( HttpSessionState Session, CheckInState currentCheckInState )

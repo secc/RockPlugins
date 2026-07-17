@@ -155,6 +155,13 @@
                     showFamilies(data);
                 },
                 error: function (data) {
+                    if (data.status === 429) {
+                        // Rate limited (ROCK-8765): show the wait message in place; a
+                        // refresh postback would wipe the typed number and immediately
+                        // re-hit the limited endpoint.
+                        showSign("Too many searches. <br> Please wait a moment and try again.", false, "1vw")
+                        return;
+                    }
                     if (!refresh) {
                         window.location = "javascript:__doPostBack('<%= btnRefresh.UniqueID %>', 'Click')";
                     }

@@ -58,8 +58,8 @@ session-enabled handler so check-in state persists in `HttpContext.Session`.
 
 | Route | Method | Auth | Purpose |
 |-------|--------|------|---------|
-| `api/org.secc/familycheckin/Family/{param}` | GET | Kiosk-session gated | Run the configured check-in workflow for a phone-number search and return matching families. Requires `Session["BlockGuid"]` to resolve to the **QuickSearch** kiosk block type; enforces the block's min/max phone length server-side; rate-limited per session; returns a projected result (`Caption`, `SubCaption`, `Group.Id`) rather than the full check-in graph. See ROCK-8765. |
-| `api/org.secc/familycheckin/ProcessMobileCheckin/{param}` | GET | `[Authenticate, Secured]` | Process a mobile (UserLogin-search) check-in; adds the user's primary family to check-in state. Verifies the authenticated caller owns the session's `UserLogin` (Rock administrators exempt to preserve `?UserName=` debug impersonation). |
+| `api/org.secc/familycheckin/Family/{param}` | GET | Kiosk-session gated | Run the configured check-in workflow for a phone-number search and return matching families. Requires `Session["BlockGuid"]` to resolve to the **QuickSearch** kiosk block type; enforces the block's min/max phone length server-side (a leading country "1" is dropped; anything else over-length returns no results rather than being trimmed to a different number); rate-limited per session (history in session state); returns a projected result (`Caption`, `SubCaption`, `Group.Id`) rather than the full check-in graph. See ROCK-8765. |
+| `api/org.secc/familycheckin/ProcessMobileCheckin/{param}` | GET | `[Authenticate, Secured]` | Process a mobile (UserLogin-search) check-in; adds the user's primary family to check-in state. Verifies the caller owns the session's `UserLogin`, using the same gate as MobileCheckinStart's `?UserName=` impersonation (`MobileCheckinAuthorization.IsImpersonationAllowed`): exempt if the caller has block **ADMINISTRATE**, or — for *any* caller, including anonymous — while the block's **DebugMode** attribute is on. DebugMode is a debug/load-test switch; leave it **off** outside testing or the ownership check is effectively disabled. Note: Rock's `[Secured]` filter rejects PIN-authenticated logins (401) before the action runs. |
 | `api/org.secc/familycheckin/KioskStatus/{param}` | GET | Anonymous (by design) | Report whether a kiosk type is currently open / has available locations. Returns only an `{active: bool}` boolean; kiosks are unauthenticated browsers, so this stays open. |
 
 ### Workflow Actions
@@ -183,9 +183,10 @@ attributes (don't hand-edit ones that have already run):
 - **Security (low):** `Family` decrypts the `LocalDeviceConfig` cookie and trusts `CurrentKioskId`
   from it to pick the kiosk; worth confirming the cookie's integrity protection is sufficient for the
   device-config trust placed in it.
-- **Improvement:** The REST `Family` and `ProcessMobileCheckin` handlers are near-duplicates of the
-  same activate-workflow / process / save-state block — a shared private helper would cut the
-  copy-paste and keep the two paths from drifting.
+- **Improvement (done):** The REST `Family` and `ProcessMobileCheckin` handlers now share the
+  activate-workflow / process / save-state block via the private `RunCheckinWorkflow` helper, and
+  the `?UserName=` impersonation gate is shared with the MobileCheckinStart block via
+  `Utilities/MobileCheckinAuthorization.cs`.
 
 ## Making Changes
 
