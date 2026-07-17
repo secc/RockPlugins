@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web;
 using Rock.Attribute;
@@ -284,7 +285,7 @@ namespace Rock.Security.ExternalAuthentication
             userLogin.FailedPasswordAttemptWindowStartDateTime = Rock.RockDateTime.Now;
             userLogin.FailedPasswordAttemptCount = 0;
             userLogin.IsConfirmed = true;
-            var password = new Random().Next( 100000, 999999 ).ToString();
+            var password = GenerateSecureOtp().ToString();
             userLogin.Password = EncodeBcrypt( password );
             rockContext.SaveChanges();
 
@@ -331,6 +332,24 @@ namespace Rock.Security.ExternalAuthentication
 
 
             return true;
+        }
+
+        /// <summary>
+        /// Generates a cryptographically-secure 6-digit one-time code (100000-999999 inclusive)
+        /// using the unbiased float-scaling pattern used by Rock core (KeyHelper / Security.Password).
+        /// Replaces System.Random, which is non-cryptographic and clock-seeded (ROCK-8764).
+        /// </summary>
+        private static int GenerateSecureOtp()
+        {
+            const int minInclusive = 100000;
+            const int exclusiveUpperBound = 1000000; // 999999 inclusive
+            var bytes = new byte[4];
+            using ( var rng = RandomNumberGenerator.Create() )
+            {
+                rng.GetBytes( bytes );
+            }
+            var random = BitConverter.ToUInt32( bytes, 0 );
+            return (int)( minInclusive + ( exclusiveUpperBound - minInclusive ) * ( random / ( uint.MaxValue + 1.0 ) ) );
         }
 
         /// <summary>
