@@ -219,7 +219,9 @@ namespace org.secc.Rest.Controllers
 
                 return ControllerContext.Request.CreateResponse( HttpStatusCode.OK, new StandardResponse()
                 {
-                    Message = string.Format( "Account has been created.{0}", userLogin != null ? " An email has been sent to confirm the email address." : "" ),
+                    Message = ( matched && userLogin == null )
+                        ? "An account already exists for this email address. Please sign in or reset your password."
+                        : string.Format( "Account has been created.{0}", userLogin != null ? " An email has been sent to confirm the email address." : "" ),
                     Result = StandardResponse.ResultCode.Success
                 }
                 );
