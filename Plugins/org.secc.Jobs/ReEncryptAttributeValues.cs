@@ -36,10 +36,10 @@ using System.Data.Entity;
 using System.Linq;
 using System.Text;
 using System.Web.Configuration;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 using Rock.Security;
 using Rock.Web.Cache;
@@ -103,48 +103,38 @@ namespace org.secc.Jobs
         "SQL command timeout in seconds for each database operation. The default 30s is too low for a bulk pass over a large AttributeValue table. 0 = no timeout.",
         false, 300, "General", 8, "CommandTimeout" )]
 
-    [DisallowConcurrentExecution]
-    public class ReEncryptAttributeValues : IJob
+    public class ReEncryptAttributeValues : RockJob
     {
-        /// <summary>
-        /// Empty constructor required by the Quartz scheduler.
-        /// </summary>
-        public ReEncryptAttributeValues()
-        {
-        }
-
         /// <summary>
         /// Executes the re-encryption pass.
         /// </summary>
-        public virtual void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            var dataMap = context.JobDetail.JobDataMap;
-
-            bool dryRun = dataMap.GetString( "DryRun" ).AsBoolean( true );
-            int batchSize = dataMap.GetString( "BatchSize" ).AsIntegerOrNull() ?? 500;
+            bool dryRun = GetAttributeValue( "DryRun" ).AsBoolean( true );
+            int batchSize = GetAttributeValue( "BatchSize" ).AsIntegerOrNull() ?? 500;
             if ( batchSize < 1 )
             { batchSize = 500; }
-            int startAtId = dataMap.GetString( "StartAtId" ).AsIntegerOrNull() ?? 0;
-            int maxValues = dataMap.GetString( "MaxValues" ).AsIntegerOrNull() ?? 0;
-            bool requireOldKey = dataMap.GetString( "RequireOldKey" ).AsBoolean( true );
-            int commandTimeout = dataMap.GetString( "CommandTimeout" ).AsIntegerOrNull() ?? 300;
+            int startAtId = GetAttributeValue( "StartAtId" ).AsIntegerOrNull() ?? 0;
+            int maxValues = GetAttributeValue( "MaxValues" ).AsIntegerOrNull() ?? 0;
+            bool requireOldKey = GetAttributeValue( "RequireOldKey" ).AsBoolean( true );
+            int commandTimeout = GetAttributeValue( "CommandTimeout" ).AsIntegerOrNull() ?? 300;
             if ( commandTimeout < 0 )
             { commandTimeout = 300; }
 
-            var fieldTypeClasses = dataMap.GetString( "FieldTypeClasses" )
+            var fieldTypeClasses = GetAttributeValue( "FieldTypeClasses" )
                 .SplitDelimitedValues()
                 .Select( s => s.Trim() )
                 .Where( s => s.IsNotNullOrWhiteSpace() )
                 .ToList();
 
-            var additionalAttributeKeys = dataMap.GetString( "AdditionalAttributeKeys" )
+            var additionalAttributeKeys = GetAttributeValue( "AdditionalAttributeKeys" )
                 .SplitDelimitedValues()
                 .Select( s => s.Trim() )
                 .Where( s => s.IsNotNullOrWhiteSpace() )
                 .Distinct()
                 .ToList();
 
-            var globalAttributeKeys = dataMap.GetString( "GlobalAttributeKeys" )
+            var globalAttributeKeys = GetAttributeValue( "GlobalAttributeKeys" )
                 .SplitDelimitedValues()
                 .Select( s => s.Trim() )
                 .Where( s => s.IsNotNullOrWhiteSpace() )
@@ -205,7 +195,7 @@ namespace org.secc.Jobs
 
             if ( !attributeIds.Any() && !globalAttributeKeys.Any() )
             {
-                context.Result = "No matching attributes found (field types or include-list) and no global keys configured. Nothing to do.";
+                Result = "No matching attributes found (field types or include-list) and no global keys configured. Nothing to do.";
                 return;
             }
 
@@ -360,7 +350,7 @@ namespace org.secc.Jobs
                 // candidateIds is ascending, so the slice's last Id is the high-water mark.
                 lastId = idBatch[idBatch.Count - 1];
 
-                context.UpdateLastStatusMessage(
+                this.UpdateLastStatusMessage(
                     $"{( dryRun ? "[DRY RUN] " : "" )}Scanned {scanned:N0} / {candidateCount:N0}; " +
                     $"{( dryRun ? "would re-encrypt" : "re-encrypted" )} {reEncrypted:N0}; " +
                     $"failedDecrypt {failedDecrypt:N0}; lastId {lastId}." );
@@ -405,7 +395,7 @@ namespace org.secc.Jobs
 
             sb.Append( globalReport.ToString() );
 
-            context.Result = sb.ToString();
+            Result = sb.ToString();
         }
 
         /// <summary>

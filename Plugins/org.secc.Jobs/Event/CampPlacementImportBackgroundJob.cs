@@ -13,28 +13,27 @@
 // </copyright>
 
 using System;
-using Quartz;
 using Rock;
+using Rock.Attribute;
 using Rock.Data;
+using Rock.Jobs;
 using Rock.Model;
 
 namespace org.secc.Jobs.Event
 {
-    [DisallowConcurrentExecution]
-    public class CampPlacementImportBackgroundJob : IJob
+    [IntegerField(
+        "Run Id",
+        "Id of the _org_secc_CampPlacementImportRun row to process.",
+        true, 0, "General", 0, "RunId" )]
+    public class CampPlacementImportBackgroundJob : RockJob
     {
-        public void Execute( IJobExecutionContext context )
+        public override void Execute()
         {
-            int runId = 0;
-            if ( context.MergedJobDataMap.ContainsKey( "RunId" ) )
-            {
-                var runIdValue = context.MergedJobDataMap["RunId"];
-                runId = runIdValue != null ? runIdValue.ToString().AsInteger() : 0;
-            }
+            int runId = GetAttributeValue( "RunId" ).AsInteger();
 
             if ( runId <= 0 )
             {
-                throw new JobExecutionException( "Camp placement import job requires a valid RunId in the JobDataMap." );
+                throw new Exception( "Camp placement import job requires a valid RunId job attribute." );
             }
 
             try

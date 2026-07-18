@@ -20,7 +20,6 @@ using System.Data.Entity.SqlServer;
 using System.Linq;
 
 using Newtonsoft.Json;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -47,8 +46,7 @@ namespace org.secc.Jobs
         DefaultBooleanValue = true,
         Key = "DryRun",
         Order = 1 )]
-    [DisallowConcurrentExecution]
-    public class RestoreCommunicationsForReactivatedPeople : IJob
+    public class RestoreCommunicationsForReactivatedPeople : RockJob
     {
         private class PreferenceSnapshot
         {
@@ -62,18 +60,10 @@ namespace org.secc.Jobs
             public bool IsMessagingEnabled { get; set; }
         }
 
-        /// <summary>
-        /// Empty constructor required by the Quartz scheduler.
-        /// </summary>
-        public RestoreCommunicationsForReactivatedPeople()
+        public override void Execute()
         {
-        }
-
-        public virtual void Execute( IJobExecutionContext context )
-        {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
-            var definedTypeGuid = dataMap.GetString( "InactiveCommunicationOverridesDefinedType" ).AsGuid();
-            bool dryRun = dataMap.GetString( "DryRun" ).AsBoolean();
+            var definedTypeGuid = GetAttributeValue( "InactiveCommunicationOverridesDefinedType" ).AsGuid();
+            bool dryRun = GetAttributeValue( "DryRun" ).AsBoolean();
 
             var rockContext = new RockContext();
             var personService = new PersonService( rockContext );
@@ -111,7 +101,7 @@ namespace org.secc.Jobs
             // Dry run: report what would happen without making changes
             if ( dryRun )
             {
-                context.Result = $"[DRY RUN] Found {reactivatedPeople.Count} reactivated people with tracking entries. No changes were made.";
+                Result =$"[DRY RUN] Found {reactivatedPeople.Count} reactivated people with tracking entries. No changes were made.";
                 return;
             }
 
@@ -196,7 +186,7 @@ namespace org.secc.Jobs
                 throw new RockJobWarningException( result );
             }
 
-            context.Result = result;
+            Result =result;
         }
     }
 }

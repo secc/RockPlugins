@@ -20,7 +20,6 @@ using System.Data.Entity.SqlServer;
 using System.Linq;
 
 using Newtonsoft.Json;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -53,8 +52,7 @@ namespace org.secc.Jobs
         DefaultBooleanValue = true,
         Key = "DryRun",
         Order = 2 )]
-    [DisallowConcurrentExecution]
-    public class DisableCommunicationsForInactivePeople : IJob
+    public class DisableCommunicationsForInactivePeople : RockJob
     {
         private class PreferenceSnapshot
         {
@@ -68,19 +66,11 @@ namespace org.secc.Jobs
             public bool IsMessagingEnabled { get; set; }
         }
 
-        /// <summary>
-        /// Empty constructor required by the Quartz scheduler.
-        /// </summary>
-        public DisableCommunicationsForInactivePeople()
+        public override void Execute()
         {
-        }
-
-        public virtual void Execute( IJobExecutionContext context )
-        {
-            JobDataMap dataMap = context.JobDetail.JobDataMap;
-            var definedTypeGuid = dataMap.GetString( "InactiveCommunicationOverridesDefinedType" ).AsGuid();
-            int lookbackDays = dataMap.GetString( "LookbackDays" ).AsIntegerOrNull() ?? 15;
-            bool dryRun = dataMap.GetString( "DryRun" ).AsBoolean();
+            var definedTypeGuid = GetAttributeValue( "InactiveCommunicationOverridesDefinedType" ).AsGuid();
+            int lookbackDays = GetAttributeValue( "LookbackDays" ).AsIntegerOrNull() ?? 15;
+            bool dryRun = GetAttributeValue( "DryRun" ).AsBoolean();
 
             var rockContext = new RockContext();
             var personService = new PersonService( rockContext );
@@ -130,7 +120,7 @@ namespace org.secc.Jobs
             // Dry run: report what would happen without making changes
             if ( dryRun )
             {
-                context.Result = $"[DRY RUN] Found {inactivePeople.Count} inactive people to process (lookback: {( lookbackDays > 0 ? lookbackDays + " days" : "all" )}). No changes were made.";
+                Result =$"[DRY RUN] Found {inactivePeople.Count} inactive people to process (lookback: {( lookbackDays > 0 ? lookbackDays + " days" : "all" )}). No changes were made.";
                 return;
             }
 
@@ -211,7 +201,7 @@ namespace org.secc.Jobs
                 throw new RockJobWarningException( result );
             }
 
-            context.Result = result;
+            Result =result;
         }
     }
 }

@@ -85,7 +85,7 @@ namespace org.secc.SmsCapture.Transport
             }
 
             // Validate From Number
-            if ( smsMessage.FromNumber == null )
+            if ( smsMessage.FromSystemPhoneNumber == null )
             {
                 errorMessages.Add( "A From Number was not provided." );
                 return false;
@@ -106,7 +106,7 @@ namespace org.secc.SmsCapture.Transport
                 {
                     foreach ( var mergeField in mergeFields )
                     {
-                        recipient.MergeFields.AddOrIgnore( mergeField.Key, mergeField.Value );
+                        recipient.MergeFields.TryAdd( mergeField.Key, mergeField.Value );
                     }
 
                     using ( var rockContext = new RockContext() )
@@ -131,7 +131,7 @@ namespace org.secc.SmsCapture.Transport
                                 FromPerson = smsMessage.CurrentPerson,
                                 ToPersonAliasId = recipientPerson?.PrimaryAliasId,
                                 Message = message,
-                                FromPhone = smsMessage.FromNumber,
+                                FromSystemPhoneNumber = smsMessage.FromSystemPhoneNumber,
                                 CommunicationName = smsMessage.CommunicationName,
                                 ResponseCode = string.Empty,
                                 SystemCommunicationId = smsMessage.SystemCommunicationId
@@ -165,7 +165,7 @@ namespace org.secc.SmsCapture.Transport
                         {
                             var capture = new CapturedSms
                             {
-                                FromNumber = smsMessage.FromNumber.Value,
+                                FromNumber = smsMessage.FromSystemPhoneNumber.Number,
                                 ToNumber = recipient.To,
                                 RecipientPersonAliasId = recipientPerson?.PrimaryAliasId,
                                 Body = message,
@@ -240,7 +240,7 @@ namespace org.secc.SmsCapture.Transport
                     return;
                 }
 
-                fromPhone = communication.SMSFromDefinedValue?.Value;
+                fromPhone = communication.SmsFromSystemPhoneNumber?.Number;
                 if ( string.IsNullOrWhiteSpace( fromPhone ) )
                 {
                     // just in case we got this far without a From Number, throw an exception
