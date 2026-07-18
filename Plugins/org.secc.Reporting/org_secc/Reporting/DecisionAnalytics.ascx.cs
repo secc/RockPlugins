@@ -275,7 +275,7 @@ namespace RockWeb.Plugins.org_secc.Reporting
             {
                 lParentName.Text = decision.ParentGuardianName;
                 lParentPhone.Text = decision.ParentPhone;
-                lParentEmail.Text = decision.Email;
+                lParentEmail.Text = decision.ParentEmail;
                 pnlParentInfo.Visible = true;
             }
             else

@@ -1093,11 +1093,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( CurrentPurchaseOrder != null )
             {
                 if ( !String.IsNullOrEmpty( CurrentPurchaseOrder.ShipToName ) )
-                    lblShipToName.Text = CurrentPurchaseOrder.ShipToName;
+                    lblShipToName.Text = System.Web.HttpUtility.HtmlEncode(CurrentPurchaseOrder.ShipToName);
                 if ( !String.IsNullOrEmpty( CurrentPurchaseOrder.ShipToAttn ) )
                 {
                     divShipToAttention.Visible = true;
-                    lblShipToAttn.Text = CurrentPurchaseOrder.ShipToAttn;
+                    lblShipToAttn.Text = System.Web.HttpUtility.HtmlEncode(CurrentPurchaseOrder.ShipToAttn);
                 }
                 if ( CurrentPurchaseOrder.ShipToAddress != null && CurrentPurchaseOrder.ShipToAddress.IsValid() )
                 {
@@ -1198,18 +1198,25 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( v != null )
             {
                 hfVendorID.Value = v.VendorID.ToString();
-                lblVendorName.Text = v.VendorName;
+                lblVendorName.Text = System.Web.HttpUtility.HtmlEncode( v.VendorName );
                 if ( v.Address != null )
                 {
                     divVendorAddress.Visible = true;
-                    lblVendorAddress.Text = v.Address.StreetAddress;
-                    lblVendorCSZ.Text = string.Format( "{0}, {1} {2}", v.Address.City, v.Address.State, v.Address.PostalCode );
+                    lblVendorAddress.Text = System.Web.HttpUtility.HtmlEncode( v.Address.StreetAddress );
+                    lblVendorCSZ.Text = string.Format( "{0}, {1} {2}",
+                        System.Web.HttpUtility.HtmlEncode( v.Address.City ),
+                        System.Web.HttpUtility.HtmlEncode( v.Address.State ),
+                        System.Web.HttpUtility.HtmlEncode( v.Address.PostalCode ) );
 
                 }
                 if ( !String.IsNullOrEmpty( v.WebAddress ) )
                 {
                     divVendorWebAddress.Visible = true;
-                    lblVendorWebAddress.Text = string.Format( "<a href=\"{0}\" target=\"_blank\">{0}</a>", v.WebAddress );
+                    var url = v.WebAddress;
+                    var safeText = System.Web.HttpUtility.HtmlEncode( url );
+                    var safeHref = ( url.StartsWith( "http://" ) || url.StartsWith( "https://" ) )
+                        ? System.Web.HttpUtility.HtmlAttributeEncode( url ) : "#";
+                    lblVendorWebAddress.Text = string.Format( "<a href=\"{0}\" target=\"_blank\" rel=\"noopener noreferrer\">{1}</a>", safeHref, safeText );
                 }
                 else
                 {
@@ -1348,8 +1355,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 CurrentPurchaseOrder.DefaultPaymentMethodID = 0;
             }
 
-            CurrentPurchaseOrder.ShipToName = lblShipToName.Text;
-            CurrentPurchaseOrder.ShipToAttn = lblShipToAttn.Text;
+            CurrentPurchaseOrder.ShipToName = System.Web.HttpUtility.HtmlDecode(lblShipToName.Text);
+            CurrentPurchaseOrder.ShipToAttn = System.Web.HttpUtility.HtmlDecode(lblShipToAttn.Text);
 
             CurrentPurchaseOrder.Terms = lblVendorTerms.Text;
 
@@ -1901,8 +1908,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             if ( ddlShipToCampus.Items.FindByValue( CampusID.ToString() ) != null )
                 ddlShipToCampus.SelectedValue = CampusID.ToString();
 
-            txtShipToName.Text = lblShipToName.Text;
-            txtShipToAttention.Text = lblShipToAttn.Text;
+            txtShipToName.Text = System.Web.HttpUtility.HtmlDecode(lblShipToName.Text);
+            txtShipToAttention.Text = System.Web.HttpUtility.HtmlDecode(lblShipToAttn.Text);
             txtShipToAddress.Text = lblShipToAddress.Text;
             txtShipToCity.Text = lblShipToCity.Text;
             txtShipToState.Text = lblShipToState.Text;
@@ -1919,8 +1926,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         private void UpdateShipToAddress()
         {
             hfCampusID.Value = ddlShipToCampus.SelectedValue;
-            lblShipToName.Text = txtShipToName.Text;
-            lblShipToAttn.Text = txtShipToAttention.Text;
+            lblShipToName.Text = System.Web.HttpUtility.HtmlEncode(txtShipToName.Text);
+            lblShipToAttn.Text = System.Web.HttpUtility.HtmlEncode(txtShipToAttention.Text);
             divShipToAttention.Visible = !String.IsNullOrEmpty( txtShipToAttention.Text );
             divShipToAddress.Visible = !String.IsNullOrEmpty( txtShipToAddress.Text );
             lblShipToAddress.Text = txtShipToAddress.Text;
@@ -2324,8 +2331,8 @@ namespace RockWeb.Plugins.org_secc.Purchasing
         {
             Requisition r = new Requisition( requisitionID );
             hfRequisitionID.Value = r.RequisitionID.ToString();
-            lblRequisitionItemsTitle.Text = r.Title;
-            lblRequisitionItemsRequester.Text = r.Requester.FullName;
+            lblRequisitionItemsTitle.Text = System.Web.HttpUtility.HtmlEncode(r.Title);
+            lblRequisitionItemsRequester.Text = System.Web.HttpUtility.HtmlEncode(r.Requester.FullName);
             BindRequisitionItemList( r );
         }
 
@@ -3333,9 +3340,9 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             {
                 hfIDItemID.Value = POI.PurchaseOrderItemID.ToString();
                 if ( !String.IsNullOrEmpty( POI.RequisitionItem.ItemNumber ) )
-                    lblIDItemNumber.Text = POI.RequisitionItem.ItemNumber;
+                    lblIDItemNumber.Text = System.Web.HttpUtility.HtmlEncode(POI.RequisitionItem.ItemNumber);
                 if ( !String.IsNullOrEmpty( POI.RequisitionItem.Description ) )
-                    lblIDDescription.Text = POI.RequisitionItem.Description;
+                    lblIDDescription.Text = System.Web.HttpUtility.HtmlEncode(POI.RequisitionItem.Description);
                 if ( POI.RequisitionItem.DateNeeded > DateTime.MinValue )
                     lblIDDateNeeded.Text = POI.RequisitionItem.DateNeeded.ToShortDateString();
                 txtIDQtyAssigned.Text = POI.Quantity.ToString();

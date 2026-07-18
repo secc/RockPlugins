@@ -63,6 +63,13 @@
                                     ExportFilename="GivingAnalytics" OnRowSelected="gResults_RowSelected" OnRowDataBound="gResults_RowDataBound" DataKeyNames="RecordType, Id">
                                     <Columns>
                                         <Rock:RockBoundField HeaderText="Id" DataField="WorkflowId" Visible="false" />
+                                        <Rock:RockTemplateField HeaderText="" ItemStyle-Width="40px" ItemStyle-CssClass="grid-select-field" ExcelExportBehavior="NeverInclude">
+                                            <ItemTemplate>
+                                                <a href='<%# "/Person/" + Eval("PersonId") %>' title="View Profile" class="text-muted" onclick="event.stopPropagation(); return true;">
+                                                    <i class="fa fa-user"></i>
+                                                </a>
+                                            </ItemTemplate>
+                                        </Rock:RockTemplateField>
                                         <Rock:RockBoundField HeaderText="Name" DataField="FullName" SortExpression="FullNameReversed" />
                                         <Rock:RockBoundField HeaderText="Gender" DataField="Gender" SortExpression="Gender" />
                                         <Rock:RockBoundField HeaderText="BirthDate" DataField="Birthdate" DataFormatString="{0:d}" />

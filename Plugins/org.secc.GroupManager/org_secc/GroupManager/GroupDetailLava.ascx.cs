@@ -38,6 +38,24 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 NavigateToHomePage();
                 return;
             }
+
+            // Object-level authorization (IDOR): the base block loads CurrentGroup straight from the
+            // GroupId request parameter with no authorization. The sibling blocks (GroupRoster,
+            // GroupManagerAttendance, etc.) each enforce their own check; this display block did not,
+            // so an authenticated user could swap GroupId to render an arbitrary group (incl. member
+            // PII) via the Lava template. Follow the same per-block pattern here. The condition is
+            // intentionally permissive (VIEW, EDIT, or MANAGE_MEMBERS, or active membership) so that,
+            // e.g., a coach with EDIT-but-not-VIEW on a group they oversee is not bounced; it only
+            // fails closed for users with no relationship to the group at all.
+            if ( CurrentGroupMember == null
+                && !CurrentGroup.IsAuthorized( Rock.Security.Authorization.VIEW, CurrentPerson )
+                && !CurrentGroup.IsAuthorized( Rock.Security.Authorization.EDIT, CurrentPerson )
+                && !CurrentGroup.IsAuthorized( Rock.Security.Authorization.MANAGE_MEMBERS, CurrentPerson ) )
+            {
+                NavigateToHomePage();
+                return;
+            }
+
             Dictionary<string, object> MergeFields = Rock.Lava.LavaHelper.GetCommonMergeFields( RockPage, CurrentPerson );
             MergeFields.Add( "Group", CurrentGroup );
 

@@ -119,6 +119,11 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 var attribute = person.GetAttributeValue( GetAttributeValue( "MedicationMatrixKey" ) );
                 var attributeMatrix = attributeMatrixService.Get( attribute.AsGuid() );
 
+                if ( attributeMatrix != null )
+                {
+                    FilterInactiveMatrixItems( attributeMatrix );
+                }
+
                 LavaData data = new LavaData
                 {
                     Person = person,
@@ -158,6 +163,8 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 var attributeMatrix = attributeMatrixService.Get( attribute.AsGuid() );
                 if ( attributeMatrix != null )
                 {
+                    FilterInactiveMatrixItems( attributeMatrix );
+
                     var lava = attributeMatrix.AttributeMatrixTemplate.FormattedLava;
                     var template = attributeMatrix.AttributeMatrixTemplate;
                     template.LoadAttributes();
@@ -176,6 +183,23 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             gGrid.DataSource = gridData;
             gGrid.DataBind();
+        }
+
+        /// <summary>
+        /// Replaces the matrix's in-memory AttributeMatrixItems collection with only the active items
+        /// so Lava templates iterating Medications.AttributeMatrixItems skip inactive medications.
+        /// Treats items with no stored MedicationActive value as active (default-true semantics).
+        /// </summary>
+        private void FilterInactiveMatrixItems( AttributeMatrix attributeMatrix )
+        {
+            var activeItems = attributeMatrix.AttributeMatrixItems
+                .Where( ami =>
+                {
+                    ami.LoadAttributes();
+                    return ami.GetAttributeValue( "MedicationActive" ).AsBoolean( true );
+                } )
+                .ToList();
+            attributeMatrix.AttributeMatrixItems = new System.Collections.ObjectModel.Collection<AttributeMatrixItem>( activeItems );
         }
 
         private void AddCaretakees( List<Person> familyMembers, RockContext rockContext )

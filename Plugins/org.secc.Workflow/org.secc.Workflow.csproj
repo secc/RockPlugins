@@ -110,6 +110,8 @@
   <ItemGroup>
     <Compile Include="CMS\ClearCacheTags.cs" />
     <Compile Include="Communication\SendSms.cs" />
+    <Compile Include="Connections\SetConnectionAttributeValue.cs" />
+    <Compile Include="Connections\SetConnectionRequestGroup.cs" />
     <Compile Include="Media\BinaryFileRemove.cs" />
     <Compile Include="Person\GetPersonFromFields.cs" />
     <Compile Include="Person\PersonAddHistory.cs" />
@@ -117,6 +119,7 @@
     <Compile Include="Registrations\SECCGenerateDiscountCode.cs" />
     <Compile Include="Registrations\SetAttributeFromRegistrantField.cs" />
     <Compile Include="Registrations\UpdateDiscountCodeWithAttribute.cs" />
+    <Compile Include="Registrations\UpdateRegistrationGroupWithPlacementGroup.cs" />
     <Compile Include="Schedule\ScheduleNextStartDate.cs" />
     <Compile Include="Twilio\Lookup.cs" />
     <Compile Include="WorkflowAttributes\AttributeMatrixUpdateRow.cs" />

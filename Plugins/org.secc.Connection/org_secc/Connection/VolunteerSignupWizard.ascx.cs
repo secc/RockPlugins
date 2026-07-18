@@ -481,9 +481,9 @@ namespace org.secc.Connection
                         case "DefinedType":
 
                             var definedType = Rock.Web.Cache.DefinedTypeCache.Get( partition.PartitionValue.AsGuid() );
-                            var definedValues = definedType.DefinedValues;
+                            var definedValues = definedType.DefinedValues.Where( dv => dv.IsActive ).ToList();
 
-                            var filterControl = AddColumnFilter( partition, definedType.DefinedValues.Select( dv => new ListItem( dv.Value, dv.Guid.ToString() ) ).ToList(), definedType.Name );
+                            var filterControl = AddColumnFilter( partition, definedValues.Select( dv => new ListItem( dv.Value, dv.Guid.ToString() ) ).ToList(), definedType.Name );
 
                             // Apply the filtering (if applicable)
                             /*if ( filterControl.SelectedValues.Count() > 0 )
@@ -1034,7 +1034,12 @@ namespace org.secc.Connection
         private void SetUpDefinedTypeDynamicControls( PlaceHolder placeHolder, Guid selectedDefinedType, PartitionSettings partition )
         {
             var definedType = DefinedTypeCache.Get( selectedDefinedType );
-            var definedValues = definedType.DefinedValues.OrderBy( r => r.Order ).Select( r => new { Value = r.Value, Guid = r.Guid } ).ToList();
+            if ( definedType == null )
+            {
+                // No defined type selected yet (the "Select One" option is Guid.Empty) — nothing to render.
+                return;
+            }
+            var definedValues = definedType.DefinedValues.Where( r => r.IsActive ).OrderBy( r => r.Order ).Select( r => new { Value = r.Value, Guid = r.Guid } ).ToList();
 
             foreach ( var definedValue in definedValues )
             {
@@ -1175,12 +1180,21 @@ namespace org.secc.Connection
             {
                 if ( !string.IsNullOrWhiteSpace( partition.PartitionSubValues ) )
                 {
-                    values = partition.PartitionSubValues.SplitDelimitedValues().ToArray();
+                    // Resolve each saved sub-value guid and keep only values that still exist and are active
+                    // (a retired or deleted value left in stored config is silently dropped).
+                    values = partition.PartitionSubValues.SplitDelimitedValues()
+                        .Select( guid => DefinedValueCache.Get( guid.AsGuid() ) )
+                        .Where( dv => dv != null && dv.IsActive )
+                        .Select( dv => dv.Guid.ToString() )
+                        .ToArray();
                 }
                 else
                 {
-                    // Use every Defined Value
-                    values = DefinedTypeCache.Get( partition.PartitionValue.AsGuid() ).DefinedValues.Select( dv => dv.Guid.ToString() ).ToArray();
+                    // Use every active Defined Value; an unresolved defined type (misconfigured partition) yields zero values.
+                    var treeDefinedType = DefinedTypeCache.Get( partition.PartitionValue.AsGuid() );
+                    values = treeDefinedType != null
+                        ? treeDefinedType.DefinedValues.Where( dv => dv.IsActive ).Select( dv => dv.Guid.ToString() ).ToArray()
+                        : new string[0];
                 }
             }
 

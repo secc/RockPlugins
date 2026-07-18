@@ -203,6 +203,13 @@ namespace org.secc.RoomScanner.Utilities
             {
                 newAttendance.ForeignId = null;
             }
+            // NOTE (ROCK-8700): This Add looks redundant (AddOrUpdate already adds new records), but it is
+            // intentional here. When AddOrUpdate returns an EXISTING attendance row (e.g. subroom scan where
+            // the target occurrence matches the source attendance's occurrence), Add flips the tracked entity
+            // to Added so EF INSERTs a fresh row — that new row is the "clone", while the source attendance
+            // (tracked by the caller's context) is closed below/by the caller. Removing this Add would cause
+            // the same row to be reopened and then closed, checking the person out instead of moving them.
+            // This is safe here because the source row is always closed afterward, so only one row stays active.
             attendanceService.Add( newAttendance );
             var stayedFifteenMinutes = ( Rock.RockDateTime.Now - attendance.StartDateTime ) > new TimeSpan( 0, 15, 0 );
             attendance.DidAttend = stayedFifteenMinutes;

@@ -212,9 +212,6 @@ namespace org.secc.SafetyAndSecurity
         }
         private void validateRelationships( WorkflowAction action, int ref_count, int max_ref, StringBuilder sbErrorMessages )
         {
-            bool minor = action.Activity.Workflow.GetAttributeValue( "IsMinor" ).AsBoolean();
-            bool employee = action.Activity.GetAttributeValue( "SCCEmployee" ).AsBoolean();
-
             if ( action.Activity.GetAttributeValue( "Relative" ).AsBoolean() )
             {
                 sbErrorMessages.AppendLine( "<li>Your reference must not be a relative.</li>" );
@@ -222,15 +219,6 @@ namespace org.secc.SafetyAndSecurity
             if ( String.IsNullOrEmpty( action.Activity.GetAttributeValue( "Relationship" ) ) )
             {
                 sbErrorMessages.AppendLine( "<li>A relationship is required.</li>" );
-            }
-            if ( employee )
-            {
-                //if this is the not the last reference OR
-                //if this is the last reference and it is a minor
-                if ( ( ref_count < max_ref - 1 ) || ( ref_count == max_ref - 1 && !minor ) )
-                {
-                    sbErrorMessages.AppendLine( "<li>Your reference must not be a staff member of Southeast Christian Church.</li>" );
-                }
             }
         }
         private string formatName( string fname, string lname )

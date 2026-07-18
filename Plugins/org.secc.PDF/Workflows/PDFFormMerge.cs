@@ -58,10 +58,22 @@ namespace org.secc.PDF
                 var pdfWorkflowObject = ResolvePdfWorkflowObject( entity, action, rockContext, out errorMessages );
                 if ( pdfWorkflowObject == null )
                 {
+                    errorMessages.Add( "PDF form merge input could not be created." );
                     return false;
                 }
 
+                if ( pdfWorkflowObject.MergeObjects == null )
+                {
+                    pdfWorkflowObject.MergeObjects = new Dictionary<string, object>();
+                }
+
                 var pdfTemplateGuid = GetAttributeValue( action, "PDFTemplate" ).AsGuid();
+                if ( pdfTemplateGuid == Guid.Empty )
+                {
+                    errorMessages.Add( "PDF Template is not configured on the workflow action." );
+                    return false;
+                }
+
                 var flatten = GetActionAttributeValue( action, "Flatten" ).AsBoolean();
                 var outputAttributeGuid = GetAttributeValue( action, "PDFOutput" ).AsGuid();
 
@@ -69,7 +81,7 @@ namespace org.secc.PDF
 
                 if ( entity is PDFWorkflowObject )
                 {
-                    entity = pdfWorkflowObject;
+                    pdfWorkflowObject.PDF = renderedPDF;
                 }
                 else
                 {
@@ -107,7 +119,22 @@ namespace org.secc.PDF
         protected virtual BinaryFile MergePdfTemplate( Guid templateGuid, PDFWorkflowObject pdfWorkflowObject, bool flatten, RockContext rockContext )
         {
             var pdf = new BinaryFileService( rockContext ).Get( templateGuid );
+            if ( pdf == null )
+            {
+                throw new InvalidOperationException( "PDF Template binary file was not found. Guid: " + templateGuid );
+            }
+
+            if ( pdf.ContentStream == null )
+            {
+                throw new InvalidOperationException( "PDF Template content stream is empty or unavailable. Guid: " + templateGuid );
+            }
+
             var pdfBytes = pdf.ContentStream.ReadBytesToEnd();
+            if ( pdfBytes == null || pdfBytes.Length == 0 )
+            {
+                throw new InvalidOperationException( "PDF Template has no content. Guid: " + templateGuid );
+            }
+
             var mergedBytes = ApplyMergeFields( pdfBytes, pdfWorkflowObject, flatten );
 
             return new BinaryFile
@@ -132,25 +159,36 @@ namespace org.secc.PDF
                 var pdfWriter = new PdfWriter( ms );
                 var pdfDocument = new PdfDocument( pdfReader, pdfWriter );
                 var form = PdfAcroForm.GetAcroForm( pdfDocument, true );
+                if ( form == null )
+                {
+                    throw new InvalidOperationException( "PDF form could not be loaded from the template." );
+                }
 
                 form.SetGenerateAppearance( true );
 
                 foreach ( string fieldKey in form.GetAllFormFields().Keys )
                 {
-                    if ( pdfWorkflowObject.MergeObjects.ContainsKey( fieldKey ) )
+                    var field = form.GetField( fieldKey );
+                    if ( field == null )
                     {
-                        if ( pdfWorkflowObject.MergeObjects[fieldKey] is string )
+                        continue;
+                    }
+
+                    object mergeValue;
+                    if ( pdfWorkflowObject.MergeObjects.TryGetValue( fieldKey, out mergeValue ) )
+                    {
+                        if ( mergeValue is string )
                         {
-                            form.GetField( fieldKey ).SetValue( pdfWorkflowObject.MergeObjects[fieldKey] as string );
+                            field.SetValue( mergeValue as string );
                         }
                     }
                     else
                     {
-                        iText.Kernel.Pdf.PdfObject fieldValuePdfObj = form.GetField( fieldKey ).GetValue();
+                        iText.Kernel.Pdf.PdfObject fieldValuePdfObj = field.GetValue();
                         string fieldValue = fieldValuePdfObj?.ToString();
                         if ( !string.IsNullOrWhiteSpace( fieldValue ) && LavaHelper.IsLavaTemplate( fieldValue ) )
                         {
-                            form.GetField( fieldKey ).SetValue( fieldValue.ResolveMergeFields( pdfWorkflowObject.MergeObjects ) );
+                            field.SetValue( fieldValue.ResolveMergeFields( pdfWorkflowObject.MergeObjects ) );
                         }
                     }
                 }
@@ -185,7 +223,13 @@ namespace org.secc.PDF
                 }
             }
 
-            renderedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( binaryFileTypeGuid.AsGuid() ).Id;
+            var binaryFileType = new BinaryFileTypeService( rockContext ).Get( binaryFileTypeGuid.AsGuid() );
+            if ( binaryFileType == null )
+            {
+                throw new InvalidOperationException( "Resolved BinaryFileType was not found for Guid: " + binaryFileTypeGuid );
+            }
+
+            renderedPDF.BinaryFileTypeId = binaryFileType.Id;
 
             var binaryFileService = new BinaryFileService( rockContext );
             binaryFileService.Add( renderedPDF );

@@ -39,6 +39,8 @@ namespace Rock.Security.ExternalAuthentication
     [SystemPhoneNumberField( "From", "The number to originate message from (configured under Admin Tools > Communications > SMS From Values).", true, false, "", "", 3 )]
     [TextField( "Message", "Message that will be sent along with the login code.", true, "Use {{ password }} to log in to {{ 'Global' | Attribute:'OrganizationName' }}.", order: 4 )]
     [IntegerField( "Minimum Age", "Minimum age which someone is allowed to log in.", true, 13 )]
+    [IntegerField( "Max Code Requests", "Maximum number of login codes that can be requested for a single person/number within the rolling time window before further requests are refused.", true, 3, order: 6 )]
+    [IntegerField( "Code Request Window Minutes", "Length of the rolling window (in minutes) over which 'Max Code Requests' is counted.", true, 15, order: 7 )]
     public class SMSAuthentication : AuthenticationComponent
     {
         #region Override Methods
@@ -239,6 +241,25 @@ namespace Rock.Security.ExternalAuthentication
                 return false;
             }
 
+            // Rolling-window cap on code requests, BEFORE any regeneration / counter reset.
+            // Max requests applies per-server; actual attack opportunity is ~3x the configured maxRequests
+            int maxRequests = GetAttributeValue( "MaxCodeRequests" ).AsIntegerOrNull() ?? 3; 
+            int windowMins = GetAttributeValue( "CodeRequestWindowMinutes" ).AsIntegerOrNull() ?? 15;
+            
+            maxRequests = maxRequests > 0 ? maxRequests : 3;
+            windowMins = windowMins > 0 ? windowMins : 15;
+
+            string personKey = "SMS_" + person.Id.ToString();   // matches the UserLogin username
+            // Check both person and raw number so reformatting the number can't sidestep the cap.
+            if ( !SMSRecords.IsRequestAllowed( personKey, maxRequests, windowMins )
+              || !SMSRecords.IsRequestAllowed( phoneNumber, maxRequests, windowMins ) )
+            {
+                ExceptionLogService.LogException( new Exception( string.Format(
+                    "SMS OTP request budget exceeded. PersonId: {0} PhoneNumber: {1} IP: {2}",
+                    person.Id, phoneNumber, GetIpAddress() ) ) );
+                return false;   // do NOT regenerate, do NOT reset FailedPasswordAttemptCount
+            }
+
             UserLoginService userLoginService = new UserLoginService( rockContext );
             var userLogin = userLoginService.Queryable()
                 .Where( u => u.UserName == ( "SMS_" + person.Id.ToString() ) )
@@ -266,6 +287,10 @@ namespace Rock.Security.ExternalAuthentication
             var password = new Random().Next( 100000, 999999 ).ToString();
             userLogin.Password = EncodeBcrypt( password );
             rockContext.SaveChanges();
+
+            // Record this issuance against the rolling-window budget.
+            SMSRecords.RecordIssuance( personKey );
+            SMSRecords.RecordIssuance( phoneNumber );
 
             var recipients = new List<RockSMSMessageRecipient>();
             recipients.Add( RockSMSMessageRecipient.CreateAnonymous( phoneNumber, null ) );
@@ -535,6 +560,45 @@ namespace Rock.Security.ExternalAuthentication
                 delay = Math.Pow( delay, Records.Where( r => r.Value == ip || r.Value == phoneNumber ).Count() );
 
                 return delay;
+            }
+        }
+
+        /// <summary>
+        /// Lock for the OTP request-budget store.
+        /// </summary>
+        private static readonly object _budgetLock = new object();
+
+        /// <summary>
+        /// Timestamped record of codes issued, keyed by person ("SMS_{personId}") and phone number.
+        /// Used to enforce a rolling-window cap on how many codes can be requested.
+        /// </summary>
+        private static List<SMSRecord> IssuanceRecords = new List<SMSRecord>();
+
+        /// <summary>
+        /// Returns true if another code may be issued for this key within the rolling window.
+        /// Prunes expired records on each call.
+        /// </summary>
+        /// <param name="key">"SMS_{personId}" or the raw phone number.</param>
+        /// <param name="maxRequests">Max issuances allowed within the window.</param>
+        /// <param name="windowMinutes">Rolling window length in minutes.</param>
+        public static bool IsRequestAllowed( string key, int maxRequests, int windowMinutes )
+        {
+            lock ( _budgetLock )
+            {
+                var windowStart = Rock.RockDateTime.Now.AddMinutes( -windowMinutes );
+                IssuanceRecords.RemoveAll( r => r.DateTime < windowStart );
+                return IssuanceRecords.Count( r => r.Value == key ) < maxRequests;
+            }
+        }
+
+        /// <summary>
+        /// Records that a code was issued for this key (called only after a code is generated).
+        /// </summary>
+        public static void RecordIssuance( string key )
+        {
+            lock ( _budgetLock )
+            {
+                IssuanceRecords.Add( new SMSRecord( key ) );
             }
         }
     }
