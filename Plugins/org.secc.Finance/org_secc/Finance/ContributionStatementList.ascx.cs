@@ -141,7 +141,8 @@ namespace RockWeb.Plugins.org_secc.Finance
                 using ( var pdfDocument = new PdfDocument( pdfWriter ) )
                 {
                     // Disable tag/outlines merging to avoid "Tag structure flushing failed" on some source PDFs.
-                    var merger = new PdfMerger( pdfDocument, false, false );
+                    var merger = new PdfMerger( pdfDocument,
+                        new PdfMergerProperties().SetMergeTags( false ).SetMergeOutlines( false ) );
 
                     foreach ( var file in files )
                     {
