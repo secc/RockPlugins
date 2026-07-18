@@ -40,7 +40,7 @@ namespace org.secc.FamilyCheckin
             // Early exit if nothing to process
             if ( !dvDeactivated.Any() )
             {
-                context.Result = "No deactivated GroupLocationSchedules to reset.";
+                this.Result = "No deactivated GroupLocationSchedules to reset.";
                 return;
             }
 
