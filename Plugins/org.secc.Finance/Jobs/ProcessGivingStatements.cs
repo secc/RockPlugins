@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -31,6 +32,7 @@ namespace org.secc.Finance.Jobs
     /// </summary>
     [WorkflowTypeField( "Statement Generator Workflow", "", false, true, "", "Workflow" )]
     [TextField( "Workflow Activity Name", "The name of the PDF generation activity within the Statement Generator Workflow", true )]
+    [DisallowConcurrentExecution]
     public class ProcessGivingStatements : RockJob
     {
         /// <summary> 
