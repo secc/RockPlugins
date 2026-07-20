@@ -79,6 +79,11 @@ namespace org.secc.PDF
 
                 BinaryFile renderedPDF = MergePdfTemplate( pdfTemplateGuid, pdfWorkflowObject, flatten, rockContext );
 
+                // Resolve the binary file type before branching so the block-triggered (entity) path
+                // also produces a typed BinaryFile. Prior to the testability refactor this assignment
+                // was unconditional; leaving it only on the save path persists untyped files.
+                renderedPDF.BinaryFileTypeId = ResolveBinaryFileTypeId( outputAttributeGuid, rockContext );
+
                 if ( entity is PDFWorkflowObject )
                 {
                     pdfWorkflowObject.PDF = renderedPDF;
@@ -204,17 +209,16 @@ namespace org.secc.PDF
         }
 
         /// <summary>
-        /// Extracted for testability: assigns the correct binary file type, persists the merged PDF,
-        /// and sets the workflow attribute value.
+        /// Extracted for testability: resolves the binary file type for the merged PDF from the
+        /// output attribute's binaryFileType qualifier, defaulting to the DEFAULT binary file type.
         /// </summary>
-        protected virtual void SaveAndAssignPdf( BinaryFile renderedPDF, Guid outputAttributeGuid, WorkflowAction action, RockContext rockContext )
+        protected virtual int ResolveBinaryFileTypeId( Guid outputAttributeGuid, RockContext rockContext )
         {
-            AttributeCache attribute = null;
             var binaryFileTypeGuid = Rock.SystemGuid.BinaryFiletype.DEFAULT;
 
             if ( !outputAttributeGuid.IsEmpty() )
             {
-                attribute = AttributeCache.Get( outputAttributeGuid, rockContext );
+                var attribute = AttributeCache.Get( outputAttributeGuid, rockContext );
                 if ( attribute != null
                     && attribute.QualifierValues.ContainsKey( "binaryFileType" )
                     && ( attribute.QualifierValues["binaryFileType"]?.Value ).IsNotNullOrWhiteSpace() )
@@ -229,13 +233,25 @@ namespace org.secc.PDF
                 throw new InvalidOperationException( "Resolved BinaryFileType was not found for Guid: " + binaryFileTypeGuid );
             }
 
-            renderedPDF.BinaryFileTypeId = binaryFileType.Id;
+            return binaryFileType.Id;
+        }
+
+        /// <summary>
+        /// Extracted for testability: persists the merged PDF and sets the workflow attribute value.
+        /// Assigns the binary file type first if the caller has not already done so.
+        /// </summary>
+        protected virtual void SaveAndAssignPdf( BinaryFile renderedPDF, Guid outputAttributeGuid, WorkflowAction action, RockContext rockContext )
+        {
+            if ( renderedPDF.BinaryFileTypeId == null )
+            {
+                renderedPDF.BinaryFileTypeId = ResolveBinaryFileTypeId( outputAttributeGuid, rockContext );
+            }
 
             var binaryFileService = new BinaryFileService( rockContext );
             binaryFileService.Add( renderedPDF );
             rockContext.SaveChanges();
 
-            if ( attribute != null )
+            if ( !outputAttributeGuid.IsEmpty() && AttributeCache.Get( outputAttributeGuid, rockContext ) != null )
             {
                 SetWorkflowAttributeValue( action, outputAttributeGuid, renderedPDF.Guid.ToString() );
             }
