@@ -336,7 +336,7 @@ namespace Rock.Security.ExternalAuthentication
 
         /// <summary>
         /// Generates a cryptographically-secure 6-digit one-time code (100000-999999 inclusive)
-        /// using the unbiased float-scaling pattern used by Rock core (KeyHelper / Security.Password).
+        /// using the negligible-bias float-scaling pattern used by Rock core (KeyHelper / Security.Password).
         /// Replaces System.Random, which is non-cryptographic and clock-seeded (ROCK-8764).
         /// </summary>
         private static int GenerateSecureOtp()
