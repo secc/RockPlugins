@@ -107,7 +107,12 @@ namespace org.secc.RecurringCommunications.Jobs
                 FromEmail = recurringCommunication.FromEmail,
                 Subject = recurringCommunication.Subject,
                 Message = recurringCommunication.EmailBody,
-                SmsFromSystemPhoneNumberId = recurringCommunication.PhoneNumberValueId,
+                // PhoneNumberValueId is a legacy COMMUNICATION_SMS_FROM DefinedValue Id; resolve to the
+                // matching SystemPhoneNumber via Guid (preserved by Rock's v15 migration). Ids differ between
+                // the two tables, so assigning the DefinedValue Id directly would violate the FK or hit the wrong number.
+                SmsFromSystemPhoneNumberId = recurringCommunication.PhoneNumberValueId.HasValue
+                    ? SystemPhoneNumberCache.Get( DefinedValueCache.Get( recurringCommunication.PhoneNumberValueId.Value )?.Guid ?? Guid.Empty )?.Id
+                    : null,
                 SMSMessage = recurringCommunication.SMSBody,
                 PushTitle = recurringCommunication.PushTitle,
                 PushSound = recurringCommunication.PushSound,
