@@ -18,7 +18,6 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using org.secc.RecurringCommunications.Model;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -29,7 +28,6 @@ using Rock.Web.Cache;
 
 namespace org.secc.RecurringCommunications.Jobs
 {
-    [DisallowConcurrentExecution]
     [IntegerField( "SQL Command Timeout",
         Description = "The maximum amount of time that the RockContext can run a query prior to timing out. Default is 30 seconds.",
         IsRequired = false,

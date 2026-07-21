@@ -19,7 +19,6 @@ using System.Linq;
 using org.secc.PayPalReporting.Data;
 using org.secc.PayPalReporting.Engine;
 using org.secc.PayPalReporting.Model;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Security;
@@ -35,7 +34,6 @@ namespace org.secc.PayPalReporting
     [EncryptedTextField( "PayPal API Signature", "Signature for authenticating to the PayPal API", false, "", "PayPal API" )]
     [SlidingDateRangeField( "Date Range", "The range of dates to import.", true, "Previous|24|Hour||" )]
 
-    [DisallowConcurrentExecution]
     public class ImportData : Rock.Jobs.RockJob
     {
         PayPalReportingContext dbContext;

@@ -18,7 +18,6 @@ using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using DotLiquid;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Communication;
@@ -37,7 +36,6 @@ namespace org.secc.Jobs
     [GroupField( "Notification Group", "The group of people to notify about the metric entry progress", true )]
     [SystemCommunicationField( "Email", "The email to send to the connectors", true )]
 
-    [DisallowConcurrentExecution]
     public class MetricsDigest : Rock.Jobs.RockJob
     {
         public override void Execute()

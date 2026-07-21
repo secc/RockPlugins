@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -53,7 +52,6 @@ namespace org.secc.Communication.Jobs
         Key = AttributeKeys.CommunicationMethodKey,
         Order = 5 )]
 
-    [DisallowConcurrentExecution]
     public class SendScheduleReminder : Rock.Jobs.RockJob
     {
         public static class AttributeKeys

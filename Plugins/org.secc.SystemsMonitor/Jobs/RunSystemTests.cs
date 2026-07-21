@@ -17,7 +17,6 @@ using System.Data;
 using System.Linq;
 using org.secc.SystemsMonitor.Helpers;
 using org.secc.SystemsMonitor.Model;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Communication;
@@ -33,7 +32,6 @@ namespace org.secc.Jobs
     [SystemPhoneNumberField( "From Number", "Number that sends the SMS alerts.", required: true, Order = 2 )]
 
 
-    [DisallowConcurrentExecution]
     public class RunSystemTests : RockJob
     {
         public override void Execute()

@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Communication;
@@ -29,7 +28,6 @@ namespace org.secc.Jobs
     [SystemCommunicationField( "Email", "The email to send to the connectors", true )]
     [BooleanField( "Save Communication History", "Should a record of this communication be saved to the recipient's profile", false, "" )]
 
-    [DisallowConcurrentExecution]
     public class ConnectionsDigest : Rock.Jobs.RockJob
     {
         public override void Execute()

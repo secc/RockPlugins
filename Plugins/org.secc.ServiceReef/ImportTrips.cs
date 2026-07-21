@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using org.secc.PersonMatch;
-using Quartz;
 using RestSharp;
 using Rock;
 using Rock.Attribute;
@@ -40,7 +39,6 @@ namespace org.secc.ServiceReef
     [AttributeField( Rock.SystemGuid.EntityType.PERSON, "ServiceReef UserId", "Select the person attribute to be populated with the ServiceReef UserId", required: true, allowMultiple: false, category: "Person Attributes" )]
     [AttributeField( Rock.SystemGuid.EntityType.PERSON, "ServiceReef Profile URL", "Select the person attribute to be populated with the ServiceReef Profile URL", required: true, allowMultiple: false, category: "Person Attributes" )]
     [SlidingDateRangeField( "Date Range", "The range of dates to import.", false, "Previous|2|Day||", category: "Job Settings" )]
-    [DisallowConcurrentExecution]
 
     public class ImportTrips : RockJob
     {
