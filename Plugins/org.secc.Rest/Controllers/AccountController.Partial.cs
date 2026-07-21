@@ -211,8 +211,27 @@ namespace org.secc.Rest.Controllers
                     message.SetRecipients( recipients );
                     message.AppRoot = GlobalAttributesCache.Get().GetValue( "PublicApplicationRoot" ).EnsureTrailingForwardslash();
                     message.CreateCommunicationRecord = false;
-                    // KNOWN LIMITATION (ROCK-8761): the login is already committed above, so if this send throws the login is orphaned and a retry hits the up-front "username already exists" check, blocking signup. Ordering fix tracked separately; not addressed here.
-                    message.Send();
+
+                    // RockMessage.Send() logs and returns false on failure (it does NOT throw), so
+                    // execution would otherwise fall through to SaveChanges and commit the login even
+                    // though no confirmation email went out. For the database-login (username) path the
+                    // login is created by UserLoginService.Create above; if the email fails, leaving it
+                    // behind orphans the account AND traps the username against the up-front uniqueness
+                    // check, blocking any retry. Remove the just-created login and return a retryable
+                    // error. (The SMS_<personId> login needs no cleanup: the up-front uniqueness check
+                    // only tests account.Username, and the SMS path has no user-supplied username, so an
+                    // orphaned SMS login can never trip that check and never blocks retry.)
+                    if ( !message.Send() && !string.IsNullOrWhiteSpace( account.Username ) )
+                    {
+                        userLoginService.Delete( userLogin );
+                        rockContext.SaveChanges();
+
+                        return ControllerContext.Request.CreateResponse( HttpStatusCode.ServiceUnavailable, new StandardResponse()
+                        {
+                            Message = "We were unable to send your confirmation email. Please try again.",
+                            Result = StandardResponse.ResultCode.Error
+                        } );
+                    }
                 }
 
                 rockContext.SaveChanges();
