@@ -27,6 +27,8 @@ namespace org.secc.Mapping.Rest.Controllers
 {
     public partial class DistanceController : ApiControllerBase
     {
+        // Bounds how many destinations a single anonymous request can send to Azure Maps, capping billed matrix size / cost.
+        private const int MaxMatrixDestinations = 1000;
 
         [Authenticate]
         [HttpGet]
@@ -85,6 +87,7 @@ namespace org.secc.Mapping.Rest.Controllers
                     LocationId = locations.Where( l => l.Guid == av.Value.AsGuid() ).Select( l => l.Id ).FirstOrDefault()
                 } )
                 .Where( d => d.LocationId.HasValue && d.EntityId.HasValue )
+                .Take( MaxMatrixDestinations )
                 .ToList();
             var output = await AzureDistanceMatrix.OrderDestinations( address, destinations );
             return output.ToDictionary( d => d.EntityId.ToString(), d => d.TravelDistance.ToString() );
@@ -95,7 +98,7 @@ namespace org.secc.Mapping.Rest.Controllers
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
 
-            var groups = groupService.Queryable().Where( g => g.IsActive && !g.IsArchived && g.IsPublic && g.GroupTypeId == groupTypeId );
+            var groups = groupService.Queryable().Where( g => g.IsActive && !g.IsArchived && g.IsPublic && g.GroupTypeId == groupTypeId ).Take( MaxMatrixDestinations );
             var output = await GroupUtilities.GetGroupsDestinations( address, groups.AsQueryable<Group>(), rockContext );
             return output.ToDictionary( d => d.EntityId.ToString(), d => d.TravelDistance.ToString() );
         }
@@ -105,7 +108,7 @@ namespace org.secc.Mapping.Rest.Controllers
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
 
-            var groups = groupService.Queryable().Where( g => g.IsActive && !g.IsArchived && g.IsPublic && g.ParentGroupId == parentGroupId );
+            var groups = groupService.Queryable().Where( g => g.IsActive && !g.IsArchived && g.IsPublic && g.ParentGroupId == parentGroupId ).Take( MaxMatrixDestinations );
             var output = await GroupUtilities.GetGroupsDestinations( address, groups, rockContext );
             return output.ToDictionary( d => d.EntityId.ToString(), d => d.TravelDistance.ToString() );
         }
