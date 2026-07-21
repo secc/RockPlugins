@@ -282,6 +282,15 @@ a.eventCardLink {
 }
 
 
+// ROCK-8654: cap event promo image height (scoped via block CSS class event-photo-cap).
+.event-photo-cap .event-photo-container .event-photo {
+    max-height: 45vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .event-details {
     padding: 25px;
     border-radius: 5px;

@@ -84,14 +84,10 @@ namespace org.secc.SafetyAndSecurity
                         // Verify phone numbers
                         validatePhones( action, "Reference4HomePhone", "Reference4CellPhone", sbErrorMessages );
 
-                        // Verify Relative/Staff
+                        // Verify Relative
                         if ( action.Activity.Workflow.GetAttributeValue( "Reference4Relative" ).AsBoolean() )
                         {
                             sbErrorMessages.AppendLine( "<li>Your reference must not be a relative.</li>" );
-                        }
-                        if ( action.Activity.Workflow.GetAttributeValue( "Reference4Staff" ).AsBoolean() )
-                        {
-                            sbErrorMessages.AppendLine( "<li>Your reference must not be a staff member of Southeast Christian Church.</li>" );
                         }
                     }
                     break;
@@ -103,14 +99,10 @@ namespace org.secc.SafetyAndSecurity
                     // Verify phone numbers
                     validatePhones( action, "Reference3HomePhone", "Reference3CellPhone", sbErrorMessages );
 
-                    // Verify Relative/Staff
+                    // Verify Relative
                     if ( action.Activity.Workflow.GetAttributeValue( "Reference3Relative" ).AsBoolean() )
                     {
                         sbErrorMessages.AppendLine( "<li>Your reference must not be a relative.</li>" );
-                    }
-                    if ( action.Activity.Workflow.GetAttributeValue( "Reference3Staff" ).AsBoolean() )
-                    {
-                        sbErrorMessages.AppendLine( "<li>Your reference must not be a staff member of Southeast Christian Church.</li>" );
                     }
                     break;
                 case "Second Reference":
@@ -121,14 +113,10 @@ namespace org.secc.SafetyAndSecurity
                     // Verify phone numbers
                     validatePhones( action, "Reference2HomePhone", "Reference2CellPhone", sbErrorMessages );
 
-                    // Verify Relative/Staff
+                    // Verify Relative
                     if ( action.Activity.Workflow.GetAttributeValue( "Reference2Relative" ).AsBoolean() )
                     {
                         sbErrorMessages.AppendLine( "<li>Your reference must not be a relative.</li>" );
-                    }
-                    if ( action.Activity.Workflow.GetAttributeValue( "Reference2Staff" ).AsBoolean() )
-                    {
-                        sbErrorMessages.AppendLine( "<li>Your reference must not be a staff member of Southeast Christian Church.</li>" );
                     }
                     break;
                 case "First Reference":
@@ -139,14 +127,10 @@ namespace org.secc.SafetyAndSecurity
                     // Verify phone numbers
                     validatePhones( action, "Reference1HomePhone", "Reference1CellPhone", sbErrorMessages );
 
-                    // Verify Relative/Staff
+                    // Verify Relative
                     if ( action.Activity.Workflow.GetAttributeValue( "Reference1Relative" ).AsBoolean() )
                     {
                         sbErrorMessages.AppendLine( "<li>Your reference must not be a relative.</li>" );
-                    }
-                    if ( action.Activity.Workflow.GetAttributeValue( "Reference1Staff" ).AsBoolean() )
-                    {
-                        sbErrorMessages.AppendLine( "<li>Your reference must not be a staff member of Southeast Christian Church.</li>" );
                     }
                     break;
                 case "Personal Information":
@@ -177,11 +161,6 @@ namespace org.secc.SafetyAndSecurity
 
                         // Verify phone numbers
                         validatePhones( action, "HomePhone", "CellPhone", sbErrorMessages );
-                        string workPhone = action.Activity.Workflow.GetAttributeValue( "WorkPhone" );
-                        if ( !string.IsNullOrEmpty( workPhone ) && !Regex.Match( workPhone, @"^[01]?[- .]?(\([2-9]\d{2}\)|[2-9]\d{2})[- .]?\d{3}[- .]?\d{4}$" ).Success )
-                        {
-                            sbErrorMessages.AppendLine( "<li>Work Phone must be in a valid format (XXX) XXX-XXXX.</li>" );
-                        }
                     }
 
                     // Make sure we have data for required fields which depend on other fields

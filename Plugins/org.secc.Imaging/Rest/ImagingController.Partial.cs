@@ -34,6 +34,7 @@ namespace org.secc.Imaging.Rest
     public partial class ImagingController : ApiControllerBase
     {
 
+        [Authenticate, Secured]
         [HttpGet]
         [System.Web.Http.Route( "api/imaging/test" )]
         public string test( [FromBody] Dictionary<string, string> data )
@@ -41,6 +42,7 @@ namespace org.secc.Imaging.Rest
             return "test";
         }
 
+        [Authenticate, Secured]
         [HttpPost]
         [System.Web.Http.Route( "api/imaging/generateimage" )]
         public HttpResponseMessage GenerateImage( [FromBody] Dictionary<string, string> data )

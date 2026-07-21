@@ -108,11 +108,11 @@ namespace RockWeb.Plugins.GroupManager
             {
                 publishGroup.LoadAttributes();
                 Rock.Attribute.Helper.AddEditControls( publishGroup, phAttributeEdits, false );
-            }
 
-            if ( publishGroup.Group.GroupTypeId == 60 ) // Determines if publish group is a home group
-            {
-                isHomeGroup = true;
+                if ( publishGroup.Group != null && publishGroup.Group.GroupTypeId == 60 )
+                {
+                    isHomeGroup = true;
+                }
             }
         }
 
@@ -185,10 +185,39 @@ namespace RockWeb.Plugins.GroupManager
             iGroupImage.Required = publishGroup.PublishGroupStatus == PublishGroupStatus.Approved;
             drPublishDates.UpperValue = publishGroup.EndDateTime;
             drPublishDates.LowerValue = publishGroup.StartDateTime;
-            ddlDayOfWeek.SelectedValue = publishGroup.WeeklyDayOfWeek != null ? ((int) publishGroup.WeeklyDayOfWeek).ToString() : "";
-            tTimeOfDay.SelectedTime = publishGroup.WeeklyTimeOfDay;
-            dpStartDate.SelectedDate = publishGroup.StartDate;
-            tbCustomSchedule.Text = publishGroup.CustomSchedule;
+            // Schedule fields pull from the Group's current schedule and are read-only,
+            // except Day of Week stays editable when the Group has a custom schedule
+            // so users can set it for filtering on the group list page.
+            if ( publishGroup.Group?.Schedule != null )
+            {
+                var schedule = publishGroup.Group.Schedule;
+                if ( schedule.WeeklyDayOfWeek.HasValue )
+                {
+                    ddlDayOfWeek.SelectedValue = ( ( int ) schedule.WeeklyDayOfWeek.Value ).ToString();
+                    tTimeOfDay.SelectedTime = schedule.WeeklyTimeOfDay;
+                    tbCustomSchedule.Text = "";
+                    ddlDayOfWeek.Enabled = false;
+                }
+                else
+                {
+                    // Custom schedule — Day of Week stays editable for filtering
+                    ddlDayOfWeek.SelectedValue = publishGroup.WeeklyDayOfWeek != null ? ( ( int ) publishGroup.WeeklyDayOfWeek ).ToString() : "";
+                    tTimeOfDay.SelectedTime = null;
+                    tbCustomSchedule.Text = PublishGroup.FormatScheduleDates( schedule );
+                }
+                dpStartDate.SelectedDate = schedule.EffectiveStartDate;
+            }
+            else
+            {
+                ddlDayOfWeek.SelectedValue = "";
+                tTimeOfDay.SelectedTime = null;
+                dpStartDate.SelectedDate = null;
+                tbCustomSchedule.Text = "";
+            }
+            tTimeOfDay.Enabled = false;
+            dpStartDate.Enabled = false;
+            tbCustomSchedule.Enabled = false;
+
             cbIsHidden.Checked = publishGroup.IsHidden;
             tbLocationName.Text = publishGroup.MeetingLocation;
             ddlRegistration.SelectedValue = publishGroup.RegistrationRequirement.ConvertToInt().ToString();
@@ -237,7 +266,7 @@ namespace RockWeb.Plugins.GroupManager
                 tTimeOfDay.SelectedTime = publishGroup.Group.Schedule.WeeklyTimeOfDay;
                 tTimeOfDay.Enabled = false;
                 dpStartDate.SelectedDate = publishGroup.Group.Schedule.EffectiveStartDate.HasValue ? publishGroup.Group.Schedule.EffectiveStartDate : publishGroup.StartDate;
-                tbCustomSchedule.Text = publishGroup.Group.Schedule.iCalendarContent;
+                tbCustomSchedule.Text = PublishGroup.FormatScheduleDates( publishGroup.Group.Schedule );
                 tbCustomSchedule.ReadOnly = true;
                 tbLocationName.Text = publishGroup.Group.GroupLocations.FirstOrDefault()?.Location.PostalCode;
                 tbLocationName.ReadOnly = true;
@@ -369,11 +398,27 @@ namespace RockWeb.Plugins.GroupManager
                     {
                         publishGroup.WeeklyDayOfWeek = group.Schedule.WeeklyDayOfWeek;
                         publishGroup.WeeklyTimeOfDay = group.Schedule.WeeklyTimeOfDay;
+                        publishGroup.StartDate = group.Schedule.EffectiveStartDate;
+
+                        // Only populate CustomSchedule when the schedule can't be expressed
+                        // as a simple day + time (i.e. it's a complex/custom schedule)
+                        if ( !group.Schedule.WeeklyDayOfWeek.HasValue )
+                        {
+                            publishGroup.CustomSchedule = PublishGroup.FormatScheduleDates( group.Schedule );
+                        }
                     }
 
                     if (group.GroupLocations.Any())
                     {
-                        publishGroup.MeetingLocation = group.GroupLocations.FirstOrDefault().Location.Name;
+                        var location = group.GroupLocations.FirstOrDefault().Location;
+                        if (location.Name.IsNotNullOrWhiteSpace())
+                        {
+                            publishGroup.MeetingLocation = location.Name;
+                        }
+                        else
+                        {
+                            publishGroup.MeetingLocation = location.ToString();
+                        }
                     }
 
                     return publishGroup;
@@ -446,7 +491,7 @@ namespace RockWeb.Plugins.GroupManager
             publishGroup.StartDateTime = drPublishDates.LowerValue.Value;
             publishGroup.WeeklyDayOfWeek = ddlDayOfWeek.SelectedValueAsEnumOrNull<DayOfWeek>();
             publishGroup.WeeklyTimeOfDay = tTimeOfDay.SelectedTime;
-            publishGroup.CustomSchedule = tbCustomSchedule.Text;
+            publishGroup.CustomSchedule = ( tbCustomSchedule.Text ?? string.Empty ).SanitizeHtml();
             publishGroup.StartDate = dpStartDate.SelectedDate;
             publishGroup.MeetingLocation = tbLocationName.Text;
             publishGroup.IsHidden = cbIsHidden.Checked;

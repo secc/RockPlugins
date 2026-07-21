@@ -18,7 +18,6 @@ using System.Data;
 using System.Linq;
 using org.secc.PayPalReporting.Model;
 using org.secc.PersonMatch;
-using Quartz;
 using RestSharp;
 using Rock;
 using Rock.Attribute;
@@ -44,7 +43,6 @@ namespace org.secc.ServiceReef
     [DefinedValueField( Rock.SystemGuid.DefinedType.FINANCIAL_SOURCE_TYPE, "Transaction Source", "Transaction source for all Service Reef payments.", true, false, "9a3e36fa-634e-45e4-9244-d3d21646dba4" )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.PERSON_CONNECTION_STATUS, "Connection Status", "The connection status to use for newly created people.", true )]
     [DefinedValueField( Rock.SystemGuid.DefinedType.FINANCIAL_ACCOUNT_TYPE, "ServiceReef Account Type", "Account type for creating sub-accounts for each Service Reef Trip.", true, false, "51DC439B-2931-47CE-8FA8-C6DA1451B633" )]
-    [DisallowConcurrentExecution]
     public class ImportData : RockJob
     {
 

@@ -38,7 +38,7 @@
                         <div class="row">
                             <div class="col-lg-4">
                                 <Rock:RockDropDownList runat="server" ID="ddlDayOfWeek" Label="Day Of Week"
-                                    Help="Selecting a meeting day of week will allow users to filter even if a custom schedule is used." />
+                                    Help="When the Group has a weekly schedule, this is pulled automatically. When the Group has a custom schedule, you can set this manually to allow users to filter by day on the group list page." />
                             </div>
                             <div class="col-lg-4">
                                 <Rock:TimePicker runat="server" ID="tTimeOfDay" Label="Time of Day"  />
@@ -47,8 +47,8 @@
                                 <Rock:DatePicker runat="server" ID="dpStartDate" Label="Starts On"/>
                             </div>
                             <div class="col-lg-12">
-                                <Rock:RockTextBox runat="server" ID="tbCustomSchedule" Label="Custom Schedule (Optional)"
-                                    Help="If your group has a schedule that cannot be described by the Meeding Day of Week and Meeting Time of day, you can add custom schedule text here." />
+                                <Rock:RockTextBox runat="server" ID="tbCustomSchedule" Label="Custom Schedule"
+                                    Help="This is pulled from the Group's schedule and cannot be edited here. To change, update the schedule on the Group page." />
                             </div>
                         </div>
                         <div class="row">

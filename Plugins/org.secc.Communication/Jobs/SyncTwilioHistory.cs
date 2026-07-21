@@ -13,7 +13,6 @@
 // </copyright>
 //
 using org.secc.Communication.Twilio;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -22,7 +21,6 @@ namespace org.secc.Communication.Jobs
 {
     [IntegerField( "Days Back", "The number of days back (including today) to sync.", defaultValue: 2 )]
 
-    [DisallowConcurrentExecution]
     public class SycnTwilioHistory : Rock.Jobs.RockJob
     {
         public override void Execute()

@@ -16,7 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Web;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -29,7 +28,6 @@ namespace org.secc.Jobs
     [IntegerField( "Command Timeout", "Maximum amount of time (in seconds) to wait for the SQL Query or DataView to complete.", false, 60 * 60, "Source", 2, "CommandTimeout" )]
     [WorkflowTypeField( "Workflow", "The workflow to launch for each row.", false, true, category: "Target" )]
 
-    [DisallowConcurrentExecution]
     public class WorkflowLauncher : Rock.Jobs.RockJob
     {
         public override void Execute()

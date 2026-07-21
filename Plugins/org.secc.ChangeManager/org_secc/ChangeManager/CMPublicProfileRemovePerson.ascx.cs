@@ -114,7 +114,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             }
 
             imgProfile.ImageUrl = person.PhotoUrl;
-            lName.Text = person.FullName;
+            lName.Text = person.FullName.EncodeHtml();
 
             if ( person.BirthDate != null )
             {
@@ -168,7 +168,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             {
                 pnlPhoneNumber.Visible = false;
             }
-            lFirstName.Text = person.NickName;
+            lFirstName.Text = person.NickName.EncodeHtml();
 
         }
 

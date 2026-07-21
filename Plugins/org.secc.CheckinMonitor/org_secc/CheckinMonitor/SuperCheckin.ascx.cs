@@ -302,7 +302,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 var checkinPerson = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People.Where( p => p.Person.Id == selectedPersonId ).First();
                 pnlPersonInformation.Visible = true;
                 pnlAddPerson.Visible = false;
-                ltName.Text = checkinPerson.Person.FullName;
+                ltName.Text = checkinPerson.Person.FullName.EncodeHtml();
                 BuildPersonCheckinDetails();
             }
         }
@@ -720,7 +720,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             {
                 pnlEditNameLiteral.Visible = true;
                 pnlEditNameTextBox.Visible = false;
-                ltEditName.Text = person.FullName;
+                ltEditName.Text = person.FullName.EncodeHtml();
             }
 
             if ( setValue )
@@ -1547,6 +1547,9 @@ try{{
                         {
                             maWarning.Show( "Unable to add PIN to person. This person is in a security role and cannot have a PIN added from this tool.", ModalAlertType.Warning );
                             mdPIN.Hide();
+                            // Without this return, execution falls through and mints the PIN anyway,
+                            // defeating the security-role guard (privilege escalation).
+                            return;
                         }
 
                         var userLoginService = new UserLoginService( _rockContext );

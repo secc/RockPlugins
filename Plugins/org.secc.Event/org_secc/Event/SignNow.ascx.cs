@@ -146,7 +146,7 @@ namespace RockWeb.Plugins.org_secc.Event
         /// <param name="registrationInstanceState">The registration instance</param>
         /// <param name="digitalSignatureComponent">The digital signature component</param>
         /// <returns></returns>
-        public bool Load( int currentRegistrantIndex, RegistrationInfo registrationState, RegistrationInstance registrationInstanceState )
+        public new bool Load( int currentRegistrantIndex, RegistrationInfo registrationState, RegistrationInstance registrationInstanceState )
         {
             CurrentRegistrantIndex = currentRegistrantIndex;
             RegistrationState = registrationState;

@@ -141,42 +141,86 @@ namespace org.secc.Rest.Controllers
             if ( !isGroupLeader )
                 return StatusCode( HttpStatusCode.Forbidden );
 
-            locationId = locationId.HasValue ? locationId.Value : group.GroupLocations?.FirstOrDefault()?.Location?.Id;
-
-            var groupMember = new GroupMemberService( _context ).Get( groupMemberId );
+            // Look up the member by id AND group, so a leader can't confirm attendance for a
+            // GroupMember outside the group they lead.
+            var groupMember = new GroupMemberService( _context ).Queryable()
+                .FirstOrDefault( gm => gm.Id == groupMemberId && gm.GroupId == groupId );
+            if ( groupMember == null )
+                return NotFound();
 
             var attendanceService = new AttendanceService( _context );
-            var personAliasService = new PersonAliasService( _context );
 
-            var attendanceData = attendanceService
+            // Base match: this person's attendance for the group on this date.
+            var matchQuery = attendanceService
                 .Queryable( "PersonAlias" )
-                .Where( a => a.Occurrence.GroupId == groupId && a.Occurrence.LocationId == locationId && a.Occurrence.OccurrenceDate == occurrenceDate );
+                .Where( a => a.Occurrence.GroupId == groupId
+                          && a.Occurrence.OccurrenceDate == occurrenceDate
+                          && a.PersonAlias.PersonId == groupMember.PersonId );
 
-            if ( scheduleId.HasValue )
+            Attendance attendanceItem = null;
+            if ( locationId.HasValue )
             {
-                attendanceData = attendanceData.Where( a => a.Occurrence.ScheduleId == scheduleId );
+                // Caller knows the room (e.g. groups whose app sends a locationId) — treat it as authoritative
+                // and match within it, honoring schedule too if given. Don't fall back across locations; a
+                // supplied location is the caller's intent (preserves the original per-location behavior).
+                var locatedQuery = matchQuery.Where( a => a.Occurrence.LocationId == locationId );
+                if ( scheduleId.HasValue )
+                {
+                    locatedQuery = locatedQuery.Where( a => a.Occurrence.ScheduleId == scheduleId );
+                }
+                attendanceItem = locatedQuery
+                    .OrderByDescending( a => a.AttendanceCodeId )
+                    .ThenBy( a => a.Id )
+                    .FirstOrDefault();
             }
-
-            var attendanceItem = attendanceData.Where( a => a.PersonAlias.PersonId == groupMember.Person.Id )
-                                .FirstOrDefault();
+            else
+            {
+                // No location supplied (the kiosk/student confirm): reconcile by group + person + date, since
+                // the kiosk's room/schedule come from check-in config the app can't know. Schedule is a soft
+                // preference (the app tends to send the group's own schedule, not the kiosk's). Kiosk row
+                // (non-null AttendanceCode) sorts first in each pass.
+                if ( scheduleId.HasValue )
+                {
+                    attendanceItem = matchQuery
+                        .Where( a => a.Occurrence.ScheduleId == scheduleId )
+                        .OrderByDescending( a => a.AttendanceCodeId )
+                        .ThenBy( a => a.Id )
+                        .FirstOrDefault();
+                }
+                if ( attendanceItem == null )
+                {
+                    attendanceItem = matchQuery
+                        .OrderByDescending( a => a.AttendanceCodeId )
+                        .ThenBy( a => a.Id )
+                        .FirstOrDefault();
+                }
+            }
             if ( attendanceItem == null )
             {
-                var attendancePerson = new PersonService( _context ).Get( groupMember.Person.Id );
+                // No existing attendance for this person/group/date — create one marked present.
+                // Keep the original location fallback for creation so new rows land where they did before
+                // (the group's location when it has one); the match above stays location-agnostic.
+                var createLocationId = locationId ?? group.GroupLocations?.FirstOrDefault()?.Location?.Id;
+                var attendancePerson = new PersonService( _context ).Get( groupMember.PersonId );
                 if ( attendancePerson != null && attendancePerson.PrimaryAliasId.HasValue )
                 {
-                    attendanceItem = attendanceService.AddOrUpdate( attendancePerson.PrimaryAliasId.Value, occurrenceDate, groupId, locationId, scheduleId, group.CampusId );
+                    attendanceItem = attendanceService.AddOrUpdate( attendancePerson.PrimaryAliasId.Value, occurrenceDate, groupId, createLocationId, scheduleId, group.CampusId );
                 }
             }
 
-            if ( attendanceItem != null )
+            if ( attendanceItem == null )
             {
-                attendanceItem.DidAttend = true;
-                attendanceItem.Note = "Checked in via Group App";
-                attendanceItem.ModifiedByPersonAliasId = currentUser.Person.PrimaryAlias.Id;
-                if ( attendanceItem.CreatedByPersonAliasId == null )
-                {
-                    attendanceItem.CreatedByPersonAliasId = currentUser.Person.PrimaryAlias.Id;
-                }
+                // Couldn't find or create a row (e.g. the person has no primary alias) — don't report success.
+                return NotFound();
+            }
+
+            attendanceItem.DidAttend = true;
+            attendanceItem.Note = "Checked in via Group App";
+            // Use the scalar PrimaryAliasId (not the PrimaryAlias nav, which can be null and NPE).
+            attendanceItem.ModifiedByPersonAliasId = currentUser.Person.PrimaryAliasId;
+            if ( attendanceItem.CreatedByPersonAliasId == null )
+            {
+                attendanceItem.CreatedByPersonAliasId = currentUser.Person.PrimaryAliasId;
             }
 
             _context.SaveChanges();
@@ -477,10 +521,11 @@ namespace org.secc.Rest.Controllers
             {
                 attendanceItem.DidAttend = false;
                 attendanceItem.Note = "Group did not meet";
-                attendanceItem.ModifiedByPersonAliasId = currentUser.Person.PrimaryAlias.Id;
+                // Scalar PrimaryAliasId, not the PrimaryAlias nav (which can be null and NPE).
+                attendanceItem.ModifiedByPersonAliasId = currentUser.Person.PrimaryAliasId;
                 if ( attendanceItem.CreatedByPersonAliasId == null )
                 {
-                    attendanceItem.CreatedByPersonAliasId = currentUser.Person.PrimaryAlias.Id;
+                    attendanceItem.CreatedByPersonAliasId = currentUser.Person.PrimaryAliasId;
                 }
             }
 

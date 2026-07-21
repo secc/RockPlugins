@@ -18,7 +18,6 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using org.secc.RecurringCommunications.Model;
-using Quartz;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -29,7 +28,6 @@ using Rock.Web.Cache;
 
 namespace org.secc.RecurringCommunications.Jobs
 {
-    [DisallowConcurrentExecution]
     [IntegerField( "SQL Command Timeout",
         Description = "The maximum amount of time that the RockContext can run a query prior to timing out. Default is 30 seconds.",
         IsRequired = false,
@@ -107,7 +105,12 @@ namespace org.secc.RecurringCommunications.Jobs
                 FromEmail = recurringCommunication.FromEmail,
                 Subject = recurringCommunication.Subject,
                 Message = recurringCommunication.EmailBody,
-                SmsFromSystemPhoneNumberId = recurringCommunication.PhoneNumberValueId,
+                // PhoneNumberValueId is a legacy COMMUNICATION_SMS_FROM DefinedValue Id; resolve to the
+                // matching SystemPhoneNumber via Guid (preserved by Rock's v15 migration). Ids differ between
+                // the two tables, so assigning the DefinedValue Id directly would violate the FK or hit the wrong number.
+                SmsFromSystemPhoneNumberId = recurringCommunication.PhoneNumberValueId.HasValue
+                    ? SystemPhoneNumberCache.Get( DefinedValueCache.Get( recurringCommunication.PhoneNumberValueId.Value )?.Guid ?? Guid.Empty )?.Id
+                    : null,
                 SMSMessage = recurringCommunication.SMSBody,
                 PushTitle = recurringCommunication.PushTitle,
                 PushSound = recurringCommunication.PushSound,

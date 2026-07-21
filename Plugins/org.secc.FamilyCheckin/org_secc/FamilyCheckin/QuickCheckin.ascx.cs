@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Entity;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
@@ -278,17 +279,28 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
         private bool MCRValidForKiosk( CheckinKioskTypeCache kioskType, MobileCheckinRecordCache mcr )
         {
-            var groupTypeIds = new List<int>();
-            foreach ( var a in mcr.AttendanceIds )
+            if ( kioskType == null || mcr == null || mcr.AttendanceIds == null || !mcr.AttendanceIds.Any() )
             {
-                var attendance = AttendanceCache.Get( a );
-                var occurrence = OccurrenceCache.Get( attendance.OccurrenceAccessKey );
-
-                groupTypeIds.Add( occurrence.GroupTypeId );
+                return false;
             }
 
-            return kioskType.GroupTypeIds.Where( kg => groupTypeIds.Contains( kg ) ).Any();
+            //Validate against persisted attendance data rather than OccurrenceCache:
+            //a reserved room can be closed before the family arrives, leaving the
+            //occurrence unresolvable in cache even though the reservation is still
+            //valid. Matches the completion path (btnCompleteMCRActual_Click).
+            if ( !kioskType.GroupTypeIds.Any() )
+            {
+                return false;
+            }
 
+            using ( var rockContext = new RockContext() )
+            {
+                return new AttendanceService( rockContext )
+                    .Queryable().AsNoTracking()
+                    .Any( a => mcr.AttendanceIds.Contains( a.Id )
+                        && a.Occurrence.GroupId.HasValue
+                        && kioskType.GroupTypeIds.Contains( a.Occurrence.Group.GroupTypeId ) );
+            }
         }
 
         private void ShowActiveMobileCheckin()

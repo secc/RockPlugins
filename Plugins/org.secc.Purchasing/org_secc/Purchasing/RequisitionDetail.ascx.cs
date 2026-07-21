@@ -29,7 +29,6 @@ using Rock.Attribute;
 using Rock.Communication;
 using Rock.Data;
 using Rock.Model;
-using Rock.MyWell;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
@@ -464,7 +463,7 @@ namespace RockWeb.Plugins.org_secc.Purchasing
                 {
                     isCreator = ( bool ) ViewState[BlockId + "_UserIsCreator"];
                 }
-                else if ( CurrentRequisition != null && CurrentRequisition.CreatedBy.PrimaryAliasId == CurrentPerson.PrimaryAliasId )
+                else if ( CurrentRequisition != null && CurrentRequisition.CreatedBy != null && CurrentRequisition.CreatedBy.PrimaryAliasId == CurrentPerson.PrimaryAliasId )
                 {
                     isCreator = true;
                     ViewState[BlockId + "_UserIsCreator"] = isCreator;
@@ -943,12 +942,21 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         protected void ucAttachments_RefreshParent( object sender, EventArgs e )
         {
+            // IDOR re-check: refresh handlers re-query the model outside the LoadRequisition gate.
+            if ( !UserCanViewRequisition() )
+            {
+                return;
+            }
             CurrentRequisition.RefreshAttachments();
             LoadIcons();
         }
 
         protected void ucNotes_RefreshParent( object sender, EventArgs e )
         {
+            if ( !UserCanViewRequisition() )
+            {
+                return;
+            }
             CurrentRequisition.RefreshNotes();
             LoadIcons();
         }
@@ -1376,8 +1384,49 @@ namespace RockWeb.Plugins.org_secc.Purchasing
             }
         }
 
+        /// <summary>
+        /// Object-level view authorization (IDOR): RequisitionID comes from the querystring unchecked, so
+        /// without this any authenticated user could view any requisition. Mirrors
+        /// CapitalRequestDetail.UserCanView(). (Edit gating only disables inputs, not data display.)
+        /// </summary>
+        private bool UserCanViewRequisition()
+        {
+            // New requisition (no id yet) is always viewable.
+            if ( RequisitionID <= 0 || CurrentRequisition == null || CurrentRequisition.RequisitionID != RequisitionID )
+            {
+                return true;
+            }
+
+            // Fail closed for a person-less session (the helpers below dereference CurrentPerson).
+            if ( CurrentPerson == null || CurrentPerson.PrimaryAliasId == null )
+            {
+                return false;
+            }
+
+            // Requester themselves.
+            if ( CurrentPerson.PrimaryAliasId == CurrentRequisition.RequesterID )
+            {
+                return true;
+            }
+
+            // Creator, requester's/creator's ministry, approver, or block edit/admin.
+            if ( UserIsCreator || RequesterIsInMyMinitry || CreatorIsInMyMinistry || UserIsApprover || UserCanEdit )
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         private void LoadRequisition()
         {
+            // IDOR gate: bail before any Load* so an unauthorized requisition's data is never populated.
+            if ( !UserCanViewRequisition() )
+            {
+                SetSummaryError( "You are not authorized to view this requisition. Click \"Return to List\" to continue." );
+                return;
+            }
+
             LoadIcons();
             LoadSummary();
             LoadItems();
@@ -1398,13 +1447,20 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void LoadSummary()
         {
+            // IDOR re-check: LoadSummary is also reached directly from postback handlers, not only the
+            // gated LoadRequisition. (Returns true for new requisitions / any view-or-edit involvement.)
+            if ( !UserCanViewRequisition() )
+            {
+                return;
+            }
+
             ClearSummary();
             SetSummaryVisibility();
 
             if ( RequisitionID > 0 )
             {
-                lblTitle.Text = CurrentRequisition.Title;
-                lblStatus.Text = CurrentRequisition.Status.Value;
+                lblTitle.Text = System.Web.HttpUtility.HtmlEncode( CurrentRequisition.Title );
+                lblStatus.Text = System.Web.HttpUtility.HtmlEncode( CurrentRequisition.Status.Value );
                 if ( CurrentRequisition.Status.Order < Requisition.GetStatuses( true ).Where( s => s.Value == "Submitted to Purchasing" ).Select( s => s.Order ).FirstOrDefault() )
                 {
                     lblTitle.Text += " <small>(Created: " + CurrentRequisition.DateCreated + ")</small>";
@@ -1446,6 +1502,11 @@ namespace RockWeb.Plugins.org_secc.Purchasing
 
         private void LoadItems()
         {
+            // IDOR re-check: LoadItems is also reached directly from postback handlers (see LoadSummary).
+            if ( !UserCanViewRequisition() )
+            {
+                return;
+            }
 
             ConfigureItemGrid();
 

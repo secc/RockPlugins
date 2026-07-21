@@ -215,9 +215,45 @@ namespace RockWeb.Blocks.Reporting.NextGen
             BindGrid();
         }
 
+        /// <summary>
+        /// Applies the inactive-but-dispensed-today treatment to grid rows: row CSS class
+        /// + an "Inactive" badge appended to the Medication cell. The base
+        /// <c>.row-distributed</c> class is applied by the page's JavaScript (since these
+        /// rows always have <see cref="MedicalItem.Distributed"/> = true), which grays
+        /// the row and disables its Dispense action.
+        /// </summary>
+        protected void gGrid_RowDataBound( object sender, GridViewRowEventArgs e )
+        {
+            if ( e.Row.RowType != DataControlRowType.DataRow )
+            {
+                return;
+            }
+
+            var item = e.Row.DataItem as MedicalItem;
+            if ( item == null || !item.IsInactive )
+            {
+                return;
+            }
+
+            // Row-level styling cue stacked with .row-distributed.
+            e.Row.CssClass = ( e.Row.CssClass + " row-inactive-distributed" ).Trim();
+
+            // The Medication cell is column index 4 in the current layout (after SelectField,
+            // Person, SmallGroup, SmallGroupLeader). Append a small badge so staff can tell
+            // at a glance the row is visible only because it was distributed earlier today.
+            const int medicationColumnIndex = 4;
+            if ( e.Row.Cells.Count > medicationColumnIndex )
+            {
+                e.Row.Cells[medicationColumnIndex].Text +=
+                    " <span class=\"inactive-badge\" title=\"This medication was marked inactive after being distributed today. Visible for audit; cannot be re-dispensed.\">Inactive</span>";
+            }
+        }
+
         private void BindGrid()
         {
-            gGrid.DataSource = GetMedicalItems();
+            var items = GetMedicalItems();
+
+            gGrid.DataSource = items;
             gGrid.DataBind();
 
             if ( !dpDate.SelectedDate.HasValue
@@ -232,20 +268,20 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             if ( GetAttributeValue( "GroupMemberAttributeFilter" ).IsNotNullOrWhiteSpace() )
             {
-                gGrid.Columns[1].Visible = true;
-            }
-            else
-            {
-                gGrid.Columns[1].Visible = false;
-            }
-
-            if ( GetAttributeValue( "SmallGroupParentGroupId" ).AsIntegerOrNull().IsNotNullOrZero() && GetAttributeValue( "SmallGroupGroupTypeId" ).AsIntegerOrNull().IsNotNullOrZero() )
-            {
                 gGrid.Columns[2].Visible = true;
             }
             else
             {
                 gGrid.Columns[2].Visible = false;
+            }
+
+            if ( GetAttributeValue( "SmallGroupParentGroupId" ).AsIntegerOrNull().IsNotNullOrZero() && GetAttributeValue( "SmallGroupGroupTypeId" ).AsIntegerOrNull().IsNotNullOrZero() )
+            {
+                gGrid.Columns[3].Visible = true;
+            }
+            else
+            {
+                gGrid.Columns[3].Visible = false;
             }
         }
 
@@ -324,12 +360,20 @@ namespace RockWeb.Blocks.Reporting.NextGen
 
             var attributeMatrixItemEntityId = EntityTypeCache.GetId<AttributeMatrixItem>();
 
+            // The dispense grid reads exclusively from each camper's Person.Medications
+            // master matrix. GroupMember-level snapshot reads were rolled back because
+            // nothing populates those snapshots in prod and they were causing campers to
+            // render blank in the grid. The MedicationActive filter (applied per-row
+            // further down) preserves the deactivation safety property at the Person level.
+            var personMatrixValues = attributeValueService.Queryable()
+                .Where( av => attributeIds.Contains( av.AttributeId ) && av.Value != null && av.Value != "" );
+
             var qry = groupMembers
                .Join(
-                   attributeValueService.Queryable().Where( av => attributeIds.Contains( av.AttributeId ) ),
+                   personMatrixValues,
                    m => m.PersonId,
-                   av => av.EntityId.Value,
-                   ( m, av ) => new { m.Person, Member = m, AttributeValue = av.Value }
+                   pav => pav.EntityId.Value,
+                   ( m, pav ) => new { Person = m.Person, Member = m, AttributeValue = pav.Value }
                )
                .Join(
                    attributeMatrixService.Queryable(),
@@ -497,6 +541,17 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 .Where( h => h.ForeignId != null )
                 .ToList();
 
+            // Index today's distribution notes by (PersonId | MatrixItemId | ScheduleGuid)
+            // for O(1) lookup in the inactive-but-distributed check below. Schedule is part
+            // of the key because each medication can fan out to multiple grid rows (one per
+            // schedule slot), and an inactive medication's row should only stay visible for
+            // the specific schedule that was actually distributed today.
+            var distributedKeys = new HashSet<string>(
+                noteItems
+                    .Where( n => n.EntityId.HasValue && n.ForeignId.HasValue && n.ForeignGuid.HasValue )
+                    .Select( n => n.EntityId.Value + "|" + n.ForeignId.Value + "|" + n.ForeignGuid.Value )
+            );
+
             foreach ( var member in members )
             {
                 if ( !string.IsNullOrWhiteSpace( tbName.Text )
@@ -509,6 +564,11 @@ namespace RockWeb.Blocks.Reporting.NextGen
                 var medicines = member.GroupBy( m => m.MatrixItemId );
                 foreach ( var medicine in medicines )
                 {
+                    var activeAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "MedicationActive" );
+                    var isInactive = activeAtt != null
+                        && activeAtt.AttributeValue != null
+                        && activeAtt.AttributeValue.Value.AsBoolean( true ) == false;
+
                     var scheduleAtt = medicine.FirstOrDefault( m => m.Attribute.Key == "Schedule" );
                     if ( scheduleAtt == null || scheduleAtt.AttributeValue.Value == null )
                     {
@@ -523,6 +583,22 @@ namespace RockWeb.Blocks.Reporting.NextGen
                             continue;
                         }
 
+                        if ( isInactive )
+                        {
+                            // Med is marked inactive on the master. Keep this schedule's row
+                            // visible only if THIS specific schedule was already distributed
+                            // earlier today (preserves the same-day audit trail). Other
+                            // schedule slots for the same med stay hidden — Breakfast given
+                            // and then deactivated shouldn't leak Lunch and Dinner into the grid.
+                            var hasDistributionsToday = distributedKeys.Contains(
+                                member.Key.Id + "|" + medicine.Key + "|" + schedule.AsGuid() );
+
+                            if ( !hasDistributionsToday )
+                            {
+                                continue;
+                            }
+                        }
+
                         var medicalItem = new MedicalItem()
                         {
                             Person = member.Key.FullNameReversed,
@@ -532,6 +608,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
                             GroupMember = member.Key.Members.FirstOrDefault(),
                             PersonId = member.Key.Id,
                             FilterAttribute = member.FirstOrDefault().FilterValue,
+                            IsInactive = isInactive,
                         };
 
                         if ( !string.IsNullOrWhiteSpace( schedule ) )
@@ -788,6 +865,13 @@ namespace RockWeb.Blocks.Reporting.NextGen
             public bool Distributed { get; set; }
             public string History { get; set; }
             public string FilterAttribute { get; set; }
+            /// <summary>
+            /// True when the medication has been marked inactive on the master matrix but
+            /// the row is still being rendered because it was distributed earlier in the same
+            /// day. Used by the markup to gray the row out and disable the Dispense button so
+            /// the audit trail stays visible without allowing accidental re-dispense.
+            /// </summary>
+            public bool IsInactive { get; set; }
         }
 
         protected void Distribute_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
@@ -883,6 +967,11 @@ namespace RockWeb.Blocks.Reporting.NextGen
             gNotes.DataBind();
 
             hfPersonId.Value = personId.ToString();
+
+            var person = new PersonService( rockContext ).Get( personId );
+            mdNotes.Title = person != null
+                ? string.Format( "Distribution History - {0}", person.FullName )
+                : "Distribution History";
 
             mdNotes.Show();
         }
@@ -1048,6 +1137,360 @@ namespace RockWeb.Blocks.Reporting.NextGen
             noteService.Add( note );
             rockContext.SaveChanges();
             UpdateCustomNotes( hfCustomNotesPersonId.ValueAsInt() );
+        }
+
+        protected void btnDispenseSelected_Click( object sender, EventArgs e )
+        {
+            var selectedKeys = gGrid.SelectedKeys;
+            if ( selectedKeys == null || !selectedKeys.Any() )
+                return;
+
+            RockContext rockContext = new RockContext();
+            NoteService noteService = new NoteService( rockContext );
+            AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
+            var noteType = NoteTypeCache.Get( GetAttributeValue( "NoteType" ).AsGuid() );
+
+            foreach ( var keyObj in selectedKeys )
+            {
+                var keys = ( ( string ) keyObj ).SplitDelimitedValues();
+                var personId = keys[0].AsInteger();
+                var matrixId = keys[1].AsInteger();
+                var scheduleGuid = keys[2].AsGuid();
+
+                // Skip if already distributed today
+                var firstDay = ( dpDate.SelectedDate ?? RockDateTime.Today ).Date;
+                var nextDay = firstDay.AddDays( 1 );
+                bool alreadyDistributed = noteService.Queryable()
+                    .Any( n => n.NoteTypeId == noteType.Id
+                        && n.EntityId == personId
+                        && n.ForeignId == matrixId
+                        && n.ForeignGuid == scheduleGuid
+                        && n.CreatedDateTime >= firstDay
+                        && n.CreatedDateTime < nextDay );
+
+                if ( alreadyDistributed )
+                    continue;
+
+                var matrix = attributeMatrixItemService.Get( matrixId );
+                if ( matrix == null )
+                    continue;
+
+                matrix.LoadAttributes();
+
+                Note history = new Note()
+                {
+                    NoteTypeId = noteType.Id,
+                    EntityId = personId,
+                    ForeignId = matrixId,
+                    Caption = "Medication Distributed",
+                    Text = string.Format( "<span class=\"field-name\">{0}</span> was distributed at <span class=\"field-name\">{1}</span>",
+                        matrix.GetAttributeValue( "Medication" ), RockDateTime.Now ),
+                    ForeignGuid = scheduleGuid
+                };
+                noteService.Add( history );
+
+                if ( dpDate.SelectedDate.HasValue && dpDate.SelectedDate.Value.Date != RockDateTime.Today )
+                {
+                    history.CreatedDateTime = dpDate.SelectedDate.Value;
+                }
+            }
+
+            rockContext.SaveChanges();
+            BindGrid();
+        }
+
+        protected void ManageMeds_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        {
+            // Ensure clean modal state
+            mdAddMedication.Hide();
+            mdEditMedication.Hide();
+
+            var keys = ( ( string ) e.RowKeyValue ).SplitDelimitedValues();
+            var personId = keys[0].AsInteger();
+            var matrixItemId = keys.Length > 1 ? keys[1].AsIntegerOrNull() : null;
+
+            RockContext rockContext = new RockContext();
+            PersonService personService = new PersonService( rockContext );
+            AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
+
+            var person = personService.Get( personId );
+            mdManageMeds.Title = person != null
+                ? string.Format( "Manage Medications - {0}", person.FullName )
+                : "Manage Medications";
+
+            // Always edit the Person master matrix. Per-event GroupMember snapshot reads
+            // were rolled back because nothing populates snapshots in prod and they were
+            // causing campers to render blank in the dispense grid.
+            string matrixGuid = null;
+            if ( person != null )
+            {
+                person.LoadAttributes();
+                matrixGuid = person.GetAttributeValue( GetAttributeValue( AttributeKey.MedicationMatrixKey ) );
+            }
+
+            hfManageMedsPersonId.Value = personId.ToString();
+            hfManageMedsMatrixGuid.Value = matrixGuid;
+
+            ConfigureManageMedsModal();
+            BindMedicationsGrid( personId );
+            mdManageMeds.Show();
+        }
+
+        private void ConfigureManageMedsModal()
+        {
+            // Everything reads from / writes to each camper's Person.Medications master.
+            // Edit + Add update the master. Delete is intentionally not present — staff
+            // toggle Active/Inactive to skip a med without losing it from the master.
+            // Column indices in mdManageMeds grid: 0=Medication, 1=Instructions, 2=Schedule, 3=Active, 4=Toggle, 5=Edit
+            gMedications.Columns[3].Visible = true;   // Active badge
+            gMedications.Columns[4].Visible = true;   // Active toggle
+            gMedications.Columns[5].Visible = true;   // Edit — writes to Person master
+
+            btnAddMedication.Visible = true;          // Add — writes to Person master
+        }
+
+        private void BindMedicationsGrid( int personId )
+        {
+            RockContext rockContext = new RockContext();
+            AttributeMatrixService attributeMatrixService = new AttributeMatrixService( rockContext );
+            AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
+
+            var matrixGuid = hfManageMedsMatrixGuid.Value.AsGuidOrNull();
+            if ( matrixGuid == null )
+                return;
+
+            var matrix = attributeMatrixService.Get( matrixGuid.Value );
+            if ( matrix == null )
+                return;
+
+            var items = attributeMatrixItemService.Queryable()
+                .Where( ami => ami.AttributeMatrixId == matrix.Id )
+                .ToList();
+
+            var result = items.Select( ami =>
+            {
+                ami.LoadAttributes();
+                var scheduleValues = ami.GetAttributeValue( "Schedule" )
+                    .SplitDelimitedValues()
+                    .Select( g =>
+                    {
+                        var dv = DefinedValueCache.Get( g.AsGuid() );
+                        return dv != null ? dv.Value : g;
+                    } );
+
+                return new
+                {
+                    ami.Id,
+                    Medication = ami.GetAttributeValue( "Medication" ),
+                    Instructions = ami.GetAttributeValue( "Instructions" ),
+                    Schedule = string.Join( ", ", scheduleValues ),
+                    Active = ami.GetAttributeValue( "MedicationActive" ).AsBoolean( true )
+                };
+            } ).ToList();
+
+            gMedications.DataSource = result;
+            gMedications.DataBind();
+        }
+
+        protected void gMedications_RowDataBound( object sender, GridViewRowEventArgs e )
+        {
+            if ( e.Row.RowType != DataControlRowType.DataRow )
+                return;
+
+            // Make the Toggle button reflect the row's current Active state with toggle-on/toggle-off icons.
+            var rowView = e.Row.DataItem;
+            if ( rowView == null )
+                return;
+
+            var activeProp = rowView.GetType().GetProperty( "Active" );
+            if ( activeProp == null )
+                return;
+
+            bool isActive = ( bool ) activeProp.GetValue( rowView );
+
+            // Find the toggle LinkButton (column index 4 — see ConfigureManageMedsModal).
+            if ( e.Row.Cells.Count > 4 )
+            {
+                var cell = e.Row.Cells[4];
+                foreach ( var ctrl in cell.Controls )
+                {
+                    var lb = ctrl as LinkButton;
+                    if ( lb != null )
+                    {
+                        lb.Text = isActive
+                            ? "<i class='fa fa-toggle-on'></i>"
+                            : "<i class='fa fa-toggle-off text-muted'></i>";
+                        lb.ToolTip = isActive ? "Inactivate" : "Reactivate";
+                    }
+                }
+            }
+        }
+
+        protected void ToggleActive_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        {
+            var matrixItemId = e.RowKeyId;
+            RockContext rockContext = new RockContext();
+            var item = new AttributeMatrixItemService( rockContext ).Get( matrixItemId );
+            if ( item == null )
+                return;
+
+            // Verify the item belongs to the matrix the modal opened against.
+            var expectedMatrixGuid = hfManageMedsMatrixGuid.Value.AsGuidOrNull();
+            if ( expectedMatrixGuid == null || item.AttributeMatrix == null || item.AttributeMatrix.Guid != expectedMatrixGuid.Value )
+                return;
+
+            item.LoadAttributes( rockContext );
+            bool currentlyActive = item.GetAttributeValue( "MedicationActive" ).AsBoolean( true );
+            item.SetAttributeValue( "MedicationActive", ( !currentlyActive ).ToString() );
+            item.SaveAttributeValues( rockContext );
+
+            BindMedicationsGrid( hfManageMedsPersonId.ValueAsInt() );
+            BindGrid();
+        }
+
+        protected void btnEditMed_Click( object sender, Rock.Web.UI.Controls.RowEventArgs e )
+        {
+            // Edits apply to the camper's Person.Medications master matrix. The matrix-Guid
+            // verification below still ensures the item being edited belongs to the matrix
+            // the modal was opened against.
+            var matrixItemId = e.RowKeyId;
+            RockContext rockContext = new RockContext();
+            var item = new AttributeMatrixItemService( rockContext ).Get( matrixItemId );
+            if ( item == null )
+                return;
+
+            var expectedMatrixGuid = hfManageMedsMatrixGuid.Value.AsGuidOrNull();
+            if ( expectedMatrixGuid == null || item.AttributeMatrix == null || item.AttributeMatrix.Guid != expectedMatrixGuid.Value )
+                return;
+
+            item.LoadAttributes( rockContext );
+
+            hfEditMatrixItemId.Value = item.Id.ToString();
+            tbEditMedication.Text = item.GetAttributeValue( "Medication" );
+            tbEditInstructions.Text = item.GetAttributeValue( "Instructions" );
+
+            var definedType = DefinedTypeCache.Get( GetAttributeValue( "DefinedType" ).AsGuid() );
+            if ( definedType != null )
+            {
+                lbEditSchedule.DataSource = definedType.DefinedValues;
+                lbEditSchedule.DataBind();
+
+                var existingScheduleGuids = item.GetAttributeValue( "Schedule" ).SplitDelimitedValues();
+                foreach ( ListItem li in lbEditSchedule.Items )
+                {
+                    li.Selected = existingScheduleGuids.Contains( li.Value );
+                }
+            }
+
+            mdEditMedication.Show();
+        }
+
+        protected void mdEditMedication_SaveClick( object sender, EventArgs e )
+        {
+            // Saves apply to the camper's Person.Medications master matrix.
+            if ( string.IsNullOrWhiteSpace( tbEditMedication.Text ) )
+                return;
+
+            var selectedSchedules = lbEditSchedule.Items.Cast<ListItem>()
+                .Where( i => i.Selected )
+                .Select( i => i.Value ).ToList();
+            if ( !selectedSchedules.Any() )
+                return;
+
+            var matrixItemId = hfEditMatrixItemId.Value.AsIntegerOrNull();
+            if ( matrixItemId == null )
+                return;
+
+            RockContext rockContext = new RockContext();
+            var item = new AttributeMatrixItemService( rockContext ).Get( matrixItemId.Value );
+            if ( item == null )
+                return;
+
+            var expectedMatrixGuid = hfManageMedsMatrixGuid.Value.AsGuidOrNull();
+            if ( expectedMatrixGuid == null || item.AttributeMatrix == null || item.AttributeMatrix.Guid != expectedMatrixGuid.Value )
+                return;
+
+            item.LoadAttributes( rockContext );
+            item.SetAttributeValue( "Medication", tbEditMedication.Text.Trim() );
+            item.SetAttributeValue( "Instructions", tbEditInstructions.Text.Trim() );
+            item.SetAttributeValue( "Schedule", string.Join( ",", selectedSchedules ) );
+            item.SaveAttributeValues( rockContext );
+
+            BindMedicationsGrid( hfManageMedsPersonId.ValueAsInt() );
+            BindGrid();
+            mdEditMedication.Hide();
+        }
+
+        protected void btnAddMedication_Click( object sender, EventArgs e )
+        {
+            // New medications are added to the camper's Person.Medications master matrix.
+            tbNewMedication.Text = string.Empty;
+            tbNewInstructions.Text = string.Empty;
+
+            var definedType = DefinedTypeCache.Get( GetAttributeValue( "DefinedType" ).AsGuid() );
+            if ( definedType != null )
+            {
+                lbNewSchedule.DataSource = definedType.DefinedValues;
+                lbNewSchedule.DataBind();
+            }
+
+            mdAddMedication.Show();
+        }
+
+        protected void mdAddMedication_SaveClick( object sender, EventArgs e )
+        {
+            // New medications are added to the camper's Person.Medications master matrix.
+            if ( string.IsNullOrWhiteSpace( tbNewMedication.Text ) )
+                return;
+
+            var selectedSchedules = lbNewSchedule.Items.Cast<ListItem>()
+                .Where( i => i.Selected )
+                .Select( i => i.Value ).ToList();
+            if ( !selectedSchedules.Any() )
+                return;
+
+            RockContext rockContext = new RockContext();
+            AttributeMatrixService attributeMatrixService = new AttributeMatrixService( rockContext );
+            AttributeMatrixItemService attributeMatrixItemService = new AttributeMatrixItemService( rockContext );
+
+            var matrixGuid = hfManageMedsMatrixGuid.Value.AsGuidOrNull();
+            if ( matrixGuid == null )
+                return;
+
+            var matrix = attributeMatrixService.Get( matrixGuid.Value );
+            if ( matrix == null )
+                return;
+
+            var newItem = new AttributeMatrixItem()
+            {
+                AttributeMatrixId = matrix.Id
+            };
+            attributeMatrixItemService.Add( newItem );
+            rockContext.SaveChanges();
+
+            newItem.LoadAttributes( rockContext );
+            newItem.SetAttributeValue( "Medication", tbNewMedication.Text.Trim() );
+            newItem.SetAttributeValue( "Instructions", tbNewInstructions.Text.Trim() );
+
+            // Join selected schedule guids as delimited string
+            newItem.SetAttributeValue( "Schedule", string.Join( ",", selectedSchedules ) );
+
+            newItem.SaveAttributeValues( rockContext );
+
+            BindMedicationsGrid( hfManageMedsPersonId.ValueAsInt() );
+            BindGrid();
+            mdAddMedication.Hide();
+        }
+
+        protected void btnCancelAddMed_Click( object sender, EventArgs e )
+        {
+            mdAddMedication.Hide();
+        }
+
+        protected void mdManageMeds_SaveClick( object sender, EventArgs e )
+        {
+            mdManageMeds.Hide();
+            BindGrid();
         }
     }
 }
