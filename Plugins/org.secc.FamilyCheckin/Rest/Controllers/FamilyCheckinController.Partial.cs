@@ -230,16 +230,19 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
 
                 // ROCK-8765: The caller must be the person whose session this is, judged by
                 // the same gate as MobileCheckinStart's ?UserName= impersonation (shared
-                // helper): block ADMINISTRATE, or the block's DebugMode attribute — the
-                // latter allows anonymous callers, matching the page, so the documented
-                // debug flow keeps working end to end. All in-memory checks run before the
-                // UserLogin lookup so rejected calls never pay the DB round-trip.
+                // helper): an authenticated caller with block ADMINISTRATE, or any
+                // authenticated caller while the block's DebugMode attribute is on.
+                // Anonymous callers are always rejected — debug/load-test runs must
+                // authenticate (e.g. a .ROCK auth cookie in the JMeter plan). All
+                // in-memory checks run before the UserLogin lookup so rejected calls
+                // never pay the DB round-trip.
                 var currentPerson = GetPerson();
-                var isImpersonationAllowed = MobileCheckinAuthorization.IsImpersonationAllowed( block, currentPerson );
-                if ( currentPerson == null && !isImpersonationAllowed )
+                if ( currentPerson == null )
                 {
                     return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
                 }
+
+                var isImpersonationAllowed = MobileCheckinAuthorization.IsImpersonationAllowed( block, currentPerson );
 
                 var rockContext = new Rock.Data.RockContext();
 
@@ -320,7 +323,15 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
 
             List<string> errors;
             var workflowService = new WorkflowService( rockContext );
-            var workflowType = WorkflowTypeCache.Get( workflowGuid.Value );
+            var workflowType = workflowGuid.HasValue ? WorkflowTypeCache.Get( workflowGuid.Value ) : null;
+            if ( workflowType == null )
+            {
+                // A missing/invalid WorkflowType is a block misconfiguration, not an
+                // authorization failure — surface it as a 500 (matching the
+                // activityType == null branch below) instead of letting the outer
+                // catch mask it as a 403.
+                return ControllerContext.Request.CreateResponse( HttpStatusCode.InternalServerError, "Block is missing a valid WorkflowType configuration." );
+            }
 
             var currentWorkflow = Rock.Model.Workflow.Activate( workflowType, currentCheckInState.Kiosk.Device.Name, rockContext );
 

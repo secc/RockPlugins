@@ -32,19 +32,22 @@ namespace org.secc.FamilyCheckin.Utilities
 
         /// <summary>
         /// Whether the caller may act on a ?UserName= impersonated session for the given
-        /// MobileCheckinStart block: allowed for anyone — including an anonymous caller —
-        /// while the block's DebugMode attribute is on (a debug/load-test switch that must
-        /// stay off in normal operation), or for a person with ADMINISTRATE on the block.
+        /// MobileCheckinStart block. An authenticated caller is always required; beyond
+        /// that, impersonation is allowed while the block's DebugMode attribute is on (a
+        /// debug/load-test switch that must stay off in normal operation), or for a person
+        /// with ADMINISTRATE on the block. Anonymous callers are never allowed, so a
+        /// forgotten DebugMode flag can't be driven without a login (load tests must
+        /// authenticate, e.g. via a .ROCK auth cookie).
         /// </summary>
         public static bool IsImpersonationAllowed( BlockCache block, Person person )
         {
-            if ( block == null )
+            if ( block == null || person == null )
             {
                 return false;
             }
 
             return block.GetAttributeValue( DEBUG_MODE_ATTRIBUTE_KEY ).AsBoolean()
-                || ( person != null && block.IsAuthorized( Rock.Security.Authorization.ADMINISTRATE, person ) );
+                || block.IsAuthorized( Rock.Security.Authorization.ADMINISTRATE, person );
         }
     }
 }

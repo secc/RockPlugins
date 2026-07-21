@@ -59,7 +59,7 @@ session-enabled handler so check-in state persists in `HttpContext.Session`.
 | Route | Method | Auth | Purpose |
 |-------|--------|------|---------|
 | `api/org.secc/familycheckin/Family/{param}` | GET | Kiosk-session gated | Run the configured check-in workflow for a phone-number search and return matching families. Requires `Session["BlockGuid"]` to resolve to the **QuickSearch** kiosk block type; enforces the block's min/max phone length server-side (a leading country "1" is dropped; anything else over-length returns no results rather than being trimmed to a different number); rate-limited per session (history in session state); returns a projected result (`Caption`, `SubCaption`, `Group.Id`) rather than the full check-in graph. See ROCK-8765. |
-| `api/org.secc/familycheckin/ProcessMobileCheckin/{param}` | GET | `[Authenticate, Secured]` | Process a mobile (UserLogin-search) check-in; adds the user's primary family to check-in state. Verifies the caller owns the session's `UserLogin`, using the same gate as MobileCheckinStart's `?UserName=` impersonation (`MobileCheckinAuthorization.IsImpersonationAllowed`): exempt if the caller has block **ADMINISTRATE**, or — for *any* caller, including anonymous — while the block's **DebugMode** attribute is on. DebugMode is a debug/load-test switch; leave it **off** outside testing or the ownership check is effectively disabled. Note: Rock's `[Secured]` filter rejects PIN-authenticated logins (401) before the action runs. |
+| `api/org.secc/familycheckin/ProcessMobileCheckin/{param}` | GET | `[Authenticate, Secured]` | Process a mobile (UserLogin-search) check-in; adds the user's primary family to check-in state. Requires an authenticated caller (anonymous is always 403). Verifies the caller owns the session's `UserLogin`, using the same gate as MobileCheckinStart's `?UserName=` impersonation (`MobileCheckinAuthorization.IsImpersonationAllowed`): exempt if the caller has block **ADMINISTRATE**, or — for any *logged-in* caller — while the block's **DebugMode** attribute is on. DebugMode is a debug/load-test switch; leave it **off** outside testing or the ownership check is reduced to login-only. Load tests must supply a valid `.ROCK` auth cookie (see `Tools/LoadTests/Mobile Kiosk Tests.jmx`, `SessionCookieValue`). Note: Rock's `[Secured]` filter rejects PIN-authenticated logins (401) before the action runs. |
 | `api/org.secc/familycheckin/KioskStatus/{param}` | GET | Anonymous (by design) | Report whether a kiosk type is currently open / has available locations. Returns only an `{active: bool}` boolean; kiosks are unauthenticated browsers, so this stays open. |
 
 ### Workflow Actions
@@ -201,4 +201,4 @@ attributes (don't hand-edit ones that have already run):
 - Related: scannable codes come from [org.secc.QRManager](../org.secc.QRManager/README.md);
   shared helpers from [org.secc.DevLib](../org.secc.DevLib/README.md).
 
-**Last updated:** 2026-07-17
+**Last updated:** 2026-07-21
