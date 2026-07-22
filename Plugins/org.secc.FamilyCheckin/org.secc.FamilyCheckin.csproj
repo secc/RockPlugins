@@ -148,6 +148,7 @@
     <Compile Include="Utilities\CheckinLabelGen.cs" />
     <Compile Include="Utilities\Constants.cs" />
     <Compile Include="Utilities\KioskDeviceHelpers.cs" />
+    <Compile Include="Utilities\MobileCheckinAuthorization.cs" />
     <Compile Include="Utilities\LabelPrinter.cs" />
     <Compile Include="Workflows\CreateMedicationLabels.cs" />
     <Compile Include="Workflows\CreateEventLabels.cs" />

@@ -56,12 +56,11 @@ pre-registration, mobile start). Used by check-in staff and parents at kiosks an
 Registered via `FamilyCheckinController` (`IHasCustomHttpRoutes`); routed through a
 session-enabled handler so check-in state persists in `HttpContext.Session`.
 
-| Route | Method | Purpose |
-|-------|--------|---------|
-| `api/org.secc/familycheckin/Family/{param}` | GET | Run the configured check-in workflow for a phone-number search and return matching families. |
-| `api/org.secc/familycheckin/ProcessMobileCheckin/{param}` | GET | Process a mobile (UserLogin-search) check-in; adds the user's primary family to check-in state. |
-| `api/org.secc/familycheckin/KioskStatus/{param}` | GET | Report whether a kiosk type is currently open / has available locations. |
-| `api/org.secc/familycheckin/Post` | POST | Echo endpoint (returns the posted phone). |
+| Route | Method | Auth | Purpose |
+|-------|--------|------|---------|
+| `api/org.secc/familycheckin/Family/{param}` | GET | Kiosk-session gated | Run the configured check-in workflow for a phone-number search and return matching families. Requires `Session["BlockGuid"]` to resolve to the **QuickSearch** kiosk block type; enforces the block's min/max phone length server-side (a leading country "1" is dropped; anything else over-length returns no results rather than being trimmed to a different number); rate-limited per session (history in session state); returns a projected result (`Caption`, `SubCaption`, `Group.Id`) rather than the full check-in graph. See ROCK-8765. |
+| `api/org.secc/familycheckin/ProcessMobileCheckin/{param}` | GET | `[Authenticate, Secured]` | Process a mobile (UserLogin-search) check-in; adds the user's primary family to check-in state. Requires an authenticated caller (anonymous is always 403). Verifies the caller owns the session's `UserLogin`, using the same gate as MobileCheckinStart's `?UserName=` impersonation (`MobileCheckinAuthorization.IsImpersonationAllowed`): exempt if the caller has block **ADMINISTRATE**, or — for any *logged-in* caller — while the block's **DebugMode** attribute is on. DebugMode is a debug/load-test switch; leave it **off** outside testing or the ownership check is reduced to login-only. Load tests must supply a valid `.ROCK` auth cookie (see `Tools/LoadTests/Mobile Kiosk Tests.jmx`, `SessionCookieValue`). Note: Rock's `[Secured]` filter rejects PIN-authenticated logins (401) before the action runs. |
+| `api/org.secc/familycheckin/KioskStatus/{param}` | GET | Anonymous (by design) | Report whether a kiosk type is currently open / has available locations. Returns only an `{active: bool}` boolean; kiosks are unauthenticated browsers, so this stays open. |
 
 ### Workflow Actions
 
@@ -169,13 +168,25 @@ attributes (don't hand-edit ones that have already run):
   string consumed by `GetByAccessKey`). Worth confirming the access key is generated from a
   cryptographically strong, non-guessable source, since possessing it identifies a family's
   reservation.
-- **Security (low):** `FamilyCheckinController.Family` decrypts the `LocalDeviceConfig` cookie and
-  trusts `CurrentKioskId` / `BlockGuid` from it and from session to pick the workflow; the broad
-  `catch` returns a generic `Forbidden`. Worth confirming the cookie's integrity protection is
-  sufficient for the device-config trust placed in it.
-- **Improvement:** The REST `Family` and `ProcessMobileCheckin` handlers are near-duplicates of the
-  same activate-workflow / process / save-state block — a shared private helper would cut the
-  copy-paste and keep the two paths from drifting.
+- **Security (ROCK-8765, addressed on `sl-bugfix-8765`):** `FamilyCheckinController.Family` returned
+  full `CheckInFamily` graphs (family captions + members' first names, incl. minors) to any caller
+  whose session had a `BlockGuid`. Investigation found the mobile-checkin vector does **not** actually
+  leak — its workflow activity (`Person Search → Find Family Members`) assumes a selected family and
+  errors under a phone search — so the real exposure is the kiosk QuickSearch path, which requires a
+  staff-provisioned kiosk session. Because a console `fetch` on the kiosk page is indistinguishable
+  from the page's own AJAX, the kiosk path can't be blocked in code without breaking check-in; that
+  residual risk is accepted and gated by kiosk provisioning + rate limiting. Fix adds a `BlockGuid`
+  provenance check (rejects non-QuickSearch sessions, incl. mobile), server-side length enforcement,
+  per-session rate limiting, and a projected response. Note `CheckInFamily.SubCaption` is member
+  first names by design (`Rock/Workflow/Action/CheckIn/FindFamilies.cs`), so it is still returned on
+  the legitimate kiosk path.
+- **Security (low):** `Family` decrypts the `LocalDeviceConfig` cookie and trusts `CurrentKioskId`
+  from it to pick the kiosk; worth confirming the cookie's integrity protection is sufficient for the
+  device-config trust placed in it.
+- **Improvement (done):** The REST `Family` and `ProcessMobileCheckin` handlers now share the
+  activate-workflow / process / save-state block via the private `RunCheckinWorkflow` helper, and
+  the `?UserName=` impersonation gate is shared with the MobileCheckinStart block via
+  `Utilities/MobileCheckinAuthorization.cs`.
 
 ## Making Changes
 
@@ -190,4 +201,4 @@ attributes (don't hand-edit ones that have already run):
 - Related: scannable codes come from [org.secc.QRManager](../org.secc.QRManager/README.md);
   shared helpers from [org.secc.DevLib](../org.secc.DevLib/README.md).
 
-**Last updated:** 2026-07-14
+**Last updated:** 2026-07-21
