@@ -27,7 +27,7 @@ the tags are the primary mechanism.
 
 | Tag | Jira | Description | Files touched | First applied | Non-code deploy steps |
 |---|---|---|---|---|---|
-| `secc/ROCK-8640-connect-gate` | ROCK-8640 | S&S Connect button visibility gate on Connection Request Board + Detail blocks. Rock Admin bypass; reads all 3 `SecurityToConnect` attribute key variants. | `RockWeb/Blocks/Connection/ConnectionRequestBoard.ascx.cs`, `RockWeb/Blocks/Connection/ConnectionRequestDetail.ascx.cs` | 1.13.7 (ported to 1.16.12) | Set **Safety & Security Role** block setting on every instance of both blocks, per environment (pick from role picker — GUIDs differ per env). Verify `ConnectableStatuses` values per secc/Rock PR #4 review. |
+| `secc/ROCK-8640-connect-gate` | ROCK-8640 | S&S Connect button visibility gate on Connection Request Board + Detail blocks. Shared gate logic in `SeccConnectGateHelper`; Rock Admin bypass; reads all 3 `SecurityToConnect` attribute key variants. | `RockWeb/App_Code/SeccConnectGateHelper.cs` (new), `RockWeb/Blocks/Connection/ConnectionRequestBoard.ascx.cs`, `RockWeb/Blocks/Connection/ConnectionRequestDetail.ascx.cs` | 1.13.7 (ported to 1.16.12, squash `17acbdf`) | Set **Safety & Security Role** block setting on every instance of both blocks, per environment (pick from role picker — GUIDs differ per env). Verify `ConnectableStatuses` values per secc/Rock PR #4 review. |
 
 ## Upgrade workflow (new Rock version)
 
