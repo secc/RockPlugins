@@ -192,6 +192,15 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void BindGrid()
         {
+            // Grid rebind fires as a postback event even when OnLoad bailed out on a null
+            // person (e.g. an unauthorized id swap that no longer resolves), so guard the
+            // _person / _group dereferences below (ROCK-8780).
+            if ( _person == null || _group == null )
+            {
+                pnlMembers.Visible = false;
+                return;
+            }
+
             var members = _group.Members
                     .Where( gm => gm.PersonId != _person.Id
                     && gm.GroupMemberStatus == GroupMemberStatus.Active )
@@ -393,14 +402,27 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             var personId = PageParameter( "PersonId" ).AsInteger();
             var urlEncodedKey = PageParameter( "UrlEncodedKey" );
 
-            if ( personId != 0 )
+            // Only authorized (block EDIT) staff may load an arbitrary person by a raw
+            // PersonId / PersonAliasId parameter. Members reach the public instances via an
+            // rckipid impersonation link or their own login (which set CurrentPerson but never
+            // pass these ids), so gating on block EDIT authorization prevents an anonymous or
+            // ordinary logged-in member from loading an arbitrary person by swapping the id in
+            // the URL (ROCK-8780 IDOR). Unauthorized callers fall through to the CurrentPerson
+            // (self only) fallback below.
+            bool canLoadArbitraryPerson = this.IsUserAuthorized( Rock.Security.Authorization.EDIT );
+
+            if ( canLoadArbitraryPerson && personId != 0 )
             {
                 _person = new PersonService( _rockContext ).Get( personId );
             }
 
-            if ( personAliasId != 0 && _person == null )
+            if ( canLoadArbitraryPerson && personAliasId != 0 && _person == null )
             {
-                _person = new PersonAliasService( _rockContext ).Get( personAliasId ).Person;
+                var personAlias = new PersonAliasService( _rockContext ).Get( personAliasId );
+                if ( personAlias != null )
+                {
+                    _person = personAlias.Person;
+                }
             }
 
             if ( !string.IsNullOrWhiteSpace( urlEncodedKey ) && _person == null )
@@ -426,6 +448,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         protected void btnSave_Click( object sender, EventArgs e )
         {
+            // With the tighter authorization gate the person may no longer resolve on this
+            // postback; bail before dereferencing _person for any mutation (ROCK-8780).
+            if ( _person == null )
+            {
+                ShowMessage( GetAttributeValue( "LoginText" ), "Information" );
+                return;
+            }
+
             if ( lopAddress.Location == null
                 || string.IsNullOrWhiteSpace( lopAddress.Location.Street1 )
                 || string.IsNullOrWhiteSpace( lopAddress.Location.PostalCode ) )
