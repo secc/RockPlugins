@@ -26,7 +26,6 @@ email/SMS notifications to a configured group when a test trips its alarm condit
 /Component/     The three built-in test types — ServerIsUp, SQLMatchExpression, LavaMatchExpression
 /Model/         SystemTest + SystemTestHistory entities, services, AlarmCondition/AlarmNotification enums
 /Data/          SystemsMonitorContext (EF DbContext bound to RockContext) + SystemsMonitorService<T> base service
-/Controllers/   SystemTestController — REST endpoint to run a single test on demand
 /Jobs/          RunSystemTests — Quartz job that runs due tests and sends alarm notifications
 /Helpers/       TestResult (name + alarm-notification holder used by the job)
 /Migrations/    Rock plugin migrations (create the two tables, add AlarmNotification column)
@@ -57,12 +56,6 @@ built-ins narrow this to `Never`/`Fail` (none currently emit a non-zero `Score`)
 | `RunSystemTests` | Runs each test whose `RunIntervalMinutes` has elapsed since its last history row; sends notifications for any test meeting its alarm condition. `[DisallowConcurrentExecution]`. | **Notification Communication** (SystemCommunication), **Notification Group**, **From Number** (SMS defined value) |
 
 > Note: the class lives in namespace `org.secc.Jobs`, not `org.secc.SystemsMonitor`.
-
-### REST Endpoints
-
-| Route | Method | Purpose |
-|-------|--------|---------|
-| `api/systemtest/runtest/{id}` | GET (`[Authenticate]`) | Runs test `{id}` immediately; returns `200 "Passed"` or `500` on failure. |
 
 ### Blocks
 
@@ -126,7 +119,7 @@ Ships Rock plugin migrations under `/Migrations/`:
   30 s. The unit math looks off; review whether the multiplier should be `1000`.
 - **Improvement:** `SystemTest.Run()` opens a second `RockContext` (separate from the caller's) just
   to save the history row, and `MeetsAlarmCondition` is re-checked by the job rather than by `Run`,
-  so a manual run via the REST endpoint or block records history but never alarms.
+  so a manual run via the block records history but never alarms.
 
 ## Making Changes
 

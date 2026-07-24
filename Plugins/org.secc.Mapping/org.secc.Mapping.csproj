@@ -72,6 +72,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rest\Controllers\DistanceController.Partial.cs" />
     <Compile Include="Utilities\CampusUtilities.cs" />
+    <Compile Include="Utilities\ComputeBrake.cs" />
     <Compile Include="Utilities\Constants.cs" />
     <Compile Include="Utilities\GroupUtilities.cs" />
     <Compile Include="Workflow\ClosestCampusAction.cs" />
