@@ -221,17 +221,21 @@ namespace org.secc.Rest.Controllers
                     // error. (The SMS_<personId> login needs no cleanup: the up-front uniqueness check
                     // only tests account.Username, and the SMS path has no user-supplied username, so an
                     // orphaned SMS login can never trip that check and never blocks retry.)
-                    if ( !message.Send() && !string.IsNullOrWhiteSpace( account.Username ) )
-                    {
-                        userLoginService.Delete( userLogin );
-                        rockContext.SaveChanges();
+var emailSent = message.Send();
+if ( !emailSent )
+{
+    if ( !string.IsNullOrWhiteSpace( account.Username ) )
+    {
+        userLoginService.Delete( userLogin );
+        rockContext.SaveChanges();
+    }
 
-                        return ControllerContext.Request.CreateResponse( HttpStatusCode.ServiceUnavailable, new StandardResponse()
-                        {
-                            Message = "We were unable to send your confirmation email. Please try again.",
-                            Result = StandardResponse.ResultCode.Error
-                        } );
-                    }
+    return ControllerContext.Request.CreateResponse( HttpStatusCode.ServiceUnavailable, new StandardResponse()
+    {
+        Message = "We were unable to send your confirmation email. Please try again.",
+        Result = StandardResponse.ResultCode.Error
+    } );
+}
                 }
 
                 rockContext.SaveChanges();
