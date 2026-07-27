@@ -213,29 +213,33 @@ namespace org.secc.Rest.Controllers
                     message.CreateCommunicationRecord = false;
 
                     // RockMessage.Send() logs and returns false on failure (it does NOT throw), so
-                    // execution would otherwise fall through to SaveChanges and commit the login even
-                    // though no confirmation email went out. For the database-login (username) path the
-                    // login is created by UserLoginService.Create above; if the email fails, leaving it
-                    // behind orphans the account AND traps the username against the up-front uniqueness
-                    // check, blocking any retry. Remove the just-created login and return a retryable
-                    // error. (The SMS_<personId> login needs no cleanup: the up-front uniqueness check
-                    // only tests account.Username, and the SMS path has no user-supplied username, so an
-                    // orphaned SMS login can never trip that check and never blocks retry.)
-var emailSent = message.Send();
-if ( !emailSent )
-{
-    if ( !string.IsNullOrWhiteSpace( account.Username ) )
-    {
-        userLoginService.Delete( userLogin );
-        rockContext.SaveChanges();
-    }
+                    // execution would otherwise fall through to SaveChanges and return a 200 claiming a
+                    // confirmation email was sent. Fail closed on both paths with a retryable 503.
+                    //
+                    // Username path: UserLoginService.Create above already committed the login (it calls
+                    // SaveChanges internally), so it has to be deleted explicitly — leaving it behind
+                    // orphans the account AND traps the username against the up-front uniqueness check,
+                    // blocking any retry. The Person and its "User Login" history entry survive the
+                    // delete; a retry matches that person and binds the new login to it.
+                    //
+                    // SMS path: the SMS_<personId> login has only been Add()ed to this context, so
+                    // returning before SaveChanges leaves nothing persisted and nothing to clean up.
+                    // Rock's SMSAuthentication.SendSMSAuthentication re-creates that login on demand at
+                    // the next SMS login attempt.
+                    if ( !message.Send() )
+                    {
+                        if ( !string.IsNullOrWhiteSpace( account.Username ) )
+                        {
+                            userLoginService.Delete( userLogin );
+                            rockContext.SaveChanges();
+                        }
 
-    return ControllerContext.Request.CreateResponse( HttpStatusCode.ServiceUnavailable, new StandardResponse()
-    {
-        Message = "We were unable to send your confirmation email. Please try again.",
-        Result = StandardResponse.ResultCode.Error
-    } );
-}
+                        return ControllerContext.Request.CreateResponse( HttpStatusCode.ServiceUnavailable, new StandardResponse()
+                        {
+                            Message = "We were unable to send your confirmation email. Please try again.",
+                            Result = StandardResponse.ResultCode.Error
+                        } );
+                    }
                 }
 
                 rockContext.SaveChanges();
