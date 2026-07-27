@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using Rock;
@@ -20,9 +22,13 @@ namespace org.secc.GroupManager.Rest.Controllers
         [System.Web.Http.Route( "api/groupmanager/homegroups/{groupTypeId}/{zipcode}" )]
         public async Task<Dictionary<string, string>> HomeGroupsByDistance( int groupTypeId, string zipcode )
         {
-            if ( zipcode.Length != 5 || zipcode.AsInteger() == 0 )
+            // Answer bad input with a 400 rather than an unhandled ArgumentException, which surfaced
+            // to anonymous callers as a 500. IsNullOrWhiteSpace also covers the NullReferenceException
+            // a null zipcode used to throw on .Length. HttpResponseException is used instead of an
+            // IHttpActionResult return so the method's response shape stays unchanged for callers.
+            if ( string.IsNullOrWhiteSpace( zipcode ) || zipcode.Length != 5 || zipcode.AsInteger() == 0 )
             {
-                throw new ArgumentException( "Postal code must be 5 integers" );
+                throw new HttpResponseException( Request.CreateErrorResponse( HttpStatusCode.BadRequest, "Postal code must be 5 integers" ) );
             }
 
             RockContext rockContext = new RockContext();

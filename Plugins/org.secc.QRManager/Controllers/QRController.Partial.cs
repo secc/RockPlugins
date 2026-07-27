@@ -21,9 +21,17 @@ namespace org.secc.QRManager.Rest.Controllers
         [System.Web.Http.Route( "api/qr/{code}" )]
         public HttpResponseMessage GetEntityGuid( string code )
         {
-            // Only accept codes matching the known caller formats (MCR + 12 hex AccessKey, PFP-prefixed hyphenated alternate id).
-            // This blocks arbitrary content from being rendered into a QR image by this anonymous endpoint (URLs need : / . none allowed).
-            if ( string.IsNullOrEmpty( code ) || !Regex.IsMatch( code, "^[A-Za-z0-9-]{1,64}$" ) )
+            // Only accept codes matching the known caller formats (MCR + 12 hex AccessKey, PFP-prefixed
+            // hyphenated alternate id). This blocks arbitrary content from being rendered into a QR image
+            // by this anonymous endpoint (URLs need : / . -- none allowed).
+            //
+            // The 32-char ceiling is deliberate: every real code is at most 18 characters -- both sources
+            // measured at 15 (84,301 MobileCheckinRecord.AccessKey rows and 542,675 alternate-id
+            // PersonSearchKey rows all min 6 / max 15), plus the 3-char "PFP" prefix the Lava filter adds.
+            // Length drives QR version, and GetGraphic( 20 ) renders 20 pixels per module, so the ceiling
+            // bounds the bitmap this anonymous endpoint will allocate per request. 32 leaves ~2x headroom
+            // over the longest real code while halving the worst case a caller can ask for.
+            if ( string.IsNullOrEmpty( code ) || !Regex.IsMatch( code, "^[A-Za-z0-9-]{1,32}$" ) )
             {
                 return Request.CreateErrorResponse( HttpStatusCode.BadRequest, "Invalid code" );
             }
