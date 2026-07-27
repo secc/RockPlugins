@@ -28,13 +28,11 @@ namespace org.secc.QRManager.Rest.Controllers
                 return Request.CreateErrorResponse( HttpStatusCode.BadRequest, "Invalid code" );
             }
 
+            // GenerateQR always returns a Bitmap or throws -- QRCoder's GetGraphic never yields null --
+            // so there is no null branch here. Invalid input is already rejected above with a 400.
             byte[] buffer;
             using ( Bitmap qr = GenerateQR( code ) )
             {
-                if ( qr == null )
-                {
-                    throw new Exception( "Code Invalid" );
-                }
                 using ( MemoryStream stream = new MemoryStream() )
                 {
                     qr.Save( stream, ImageFormat.Png );

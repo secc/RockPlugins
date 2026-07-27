@@ -14,8 +14,6 @@ namespace org.secc.GroupManager.Rest.Controllers
 {
     public partial class GroupManagerController : ApiControllerBase
     {
-        // Bounds how many groups a single anonymous request can send to Azure Maps, capping billed matrix size / cost.
-        private const int MaxMatrixDestinations = 1000;
 
         [Authenticate]
         [HttpGet]
@@ -29,7 +27,9 @@ namespace org.secc.GroupManager.Rest.Controllers
 
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
-            var groups = groupService.GetByGroupTypeId( groupTypeId ).Where( g => g.IsActive && g.IsPublic && !g.IsArchived ).Take( MaxMatrixDestinations );
+            // No .Take here -- GetGroupsDestinations caps the post-join destination list, which is
+            // the collection Azure actually bills. See Mapping GroupUtilities.MaxMatrixDestinations.
+            var groups = groupService.GetByGroupTypeId( groupTypeId ).Where( g => g.IsActive && g.IsPublic && !g.IsArchived );
 
             var meetingTypeIds = new List<int> {
                 DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_MEETING_LOCATION.AsGuid() ).Id,
