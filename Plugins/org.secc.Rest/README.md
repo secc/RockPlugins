@@ -53,7 +53,7 @@ flowchart TD
 | `api/account/forgotpassword` | POST | `[Authorize]` + active OAuth client | Send a forgot-username/password email for resettable logins matching an address. |
 | `api/account/profile` | GET | `[Authorize]` | Current user's `Profile`. |
 | `api/account/smslogin` | POST | `[Authorize]` + active OAuth client | Start SMS auth: match a single living person of min age by phone, send code via Rock's `SMSAuthentication`. |
-| `api/org.secc/People/CurrentUser` | GET | session route; current user **or** a Forms-auth ticket in `{param}` | Returns a small person report (name, campus, gender). Registered via `IHasCustomHttpRoutes`. |
+| `api/org.secc/People/CurrentUser` | GET | session route; current **session user only** | Returns a small person report (name, campus, gender) for the current session user. Registered via `IHasCustomHttpRoutes`. |
 | `api/org.secc/People/Post` | POST | session route | Echoes the posted `phone` string. |
 
 ### GroupApp (Groups mobile app)
