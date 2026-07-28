@@ -85,6 +85,10 @@ namespace org.secc.Mapping.Rest.Controllers
                     LocationId = locations.Where( l => l.Guid == av.Value.AsGuid() ).Select( l => l.Id ).FirstOrDefault()
                 } )
                 .Where( d => d.LocationId.HasValue && d.EntityId.HasValue )
+                // Already a destination list, so the cap applies directly here. Ordered first so the
+                // capped subset is stable across requests rather than shuffling.
+                .OrderBy( d => d.EntityId )
+                .Take( GroupUtilities.MaxMatrixDestinations )
                 .ToList();
             var output = await AzureDistanceMatrix.OrderDestinations( address, destinations );
             return output.ToDictionary( d => d.EntityId.ToString(), d => d.TravelDistance.ToString() );
@@ -95,6 +99,8 @@ namespace org.secc.Mapping.Rest.Controllers
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
 
+            // No .Take here -- GetGroupsDestinations caps the post-join destination list, which is
+            // the collection Azure actually bills. See GroupUtilities.MaxMatrixDestinations.
             var groups = groupService.Queryable().Where( g => g.IsActive && !g.IsArchived && g.IsPublic && g.GroupTypeId == groupTypeId );
             var output = await GroupUtilities.GetGroupsDestinations( address, groups.AsQueryable<Group>(), rockContext );
             return output.ToDictionary( d => d.EntityId.ToString(), d => d.TravelDistance.ToString() );
@@ -105,6 +111,7 @@ namespace org.secc.Mapping.Rest.Controllers
             RockContext rockContext = new RockContext();
             GroupService groupService = new GroupService( rockContext );
 
+            // No .Take here -- see GetGroupTypeDistances above; the cap lives post-join in GroupUtilities.
             var groups = groupService.Queryable().Where( g => g.IsActive && !g.IsArchived && g.IsPublic && g.ParentGroupId == parentGroupId );
             var output = await GroupUtilities.GetGroupsDestinations( address, groups, rockContext );
             return output.ToDictionary( d => d.EntityId.ToString(), d => d.TravelDistance.ToString() );
