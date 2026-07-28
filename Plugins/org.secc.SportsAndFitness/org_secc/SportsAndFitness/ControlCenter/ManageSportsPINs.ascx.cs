@@ -7,6 +7,7 @@ using System.Web.UI.WebControls;
 using Rock;
 using Rock.Data;
 using Rock.Model;
+using Rock.Security;
 using Rock.Web.Cache;
 using Rock.Web.UI;
 
@@ -103,15 +104,20 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         private void AddPIN()
         {
-            var personId = hfPersonId.Value.AsInteger();
+            // Derive the target person from the server-side page parameter and
+            // verify the current user is authorized to edit them. The client-posted
+            // hidden field must never be trusted for this (ROCK-8766).
+            var person = GetAuthorizedPerson();
 
-            if(personId <= 0)
+            if(person == null)
             {
                 return;
             }
 
+            var personId = person.Id;
+
             var pin = tbPIN.Text.Trim();
-            if(pin.IsNullOrWhiteSpace() || pin.Length <= minPinLength)
+            if(pin.IsNullOrWhiteSpace() || pin.Length < minPinLength)
             {
                 ShowAlert( "PIN Not Valid", $"PIN must be at least {minPinLength} long." );
                 return;
@@ -167,8 +173,17 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
 
         private void RemovePIN(int loginId)
         {
+            // Same access-control requirement as AddPIN: resolve the person from the
+            // server-side page parameter and confirm the current user can edit them,
+            // rather than trusting the client-posted hidden field (ROCK-8766).
+            var person = GetAuthorizedPerson();
 
-            var personId = hfPersonId.Value.AsInteger();
+            if(person == null)
+            {
+                return;
+            }
+
+            var personId = person.Id;
 
             using (var rockContext = new RockContext())
             {
@@ -178,9 +193,48 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
                     .Where( l => l.PersonId == personId )
                     .SingleOrDefault();
 
+                if(login == null)
+                {
+                    return;
+                }
+
                 userLoginService.Delete( login );
                 rockContext.SaveChanges();
-                    
+
+            }
+        }
+
+        /// <summary>
+        /// Resolves the target person from the server-side "Person" page parameter and
+        /// verifies the current user is authorized to edit that person before any PIN
+        /// login is created or removed. Returns null (showing an alert when appropriate)
+        /// if no person is specified or the current user is not authorized.
+        /// </summary>
+        private Person GetAuthorizedPerson()
+        {
+            var personId = PageParameter( "Person" ).AsIntegerOrNull();
+
+            if(!personId.HasValue)
+            {
+                return null;
+            }
+
+            using (var rockContext = new RockContext())
+            {
+                var person = new PersonService( rockContext ).Get( personId.Value );
+
+                if(person == null)
+                {
+                    return null;
+                }
+
+                if(!person.IsAuthorized( Authorization.EDIT, CurrentPerson ))
+                {
+                    ShowAlert( "Not Authorized", "You are not authorized to manage PINs for this person." );
+                    return null;
+                }
+
+                return person;
             }
         }
 
