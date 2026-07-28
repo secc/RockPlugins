@@ -17,6 +17,7 @@ using System.Web;
 using org.secc.OAuth;
 using org.secc.OAuth.Data;
 using org.secc.OAuth.Model;
+using org.secc.OAuth.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.Model;
@@ -84,6 +85,16 @@ namespace RockWeb.Plugins.org_secc.OAuth
             var returnurl = PageParameter( PageParameterKeys.ReturnUrl );
             returnurl = StringExtensions.ScrubEncodedStringForXSSObjects( returnurl );
             returnurl = Server.UrlDecode( returnurl );
+
+            // ROCK-8763: the returnurl parameter is attacker-controllable. Only honor it
+            // when it points back into this application; otherwise fall back to root so it
+            // cannot be used for an open redirect. This single check protects the redirect
+            // below, the value written to AuthRedirectCookie, and (transitively) the
+            // post-login redirect performed in Login().
+            if ( returnurl.IsNotNullOrWhiteSpace() && !RedirectUrlHelper.IsLocalUrl( returnurl, Request.Url ) )
+            {
+                returnurl = "/";
+            }
 
             //If already logged in send them back
             if ( CurrentUser != null )
@@ -159,7 +170,9 @@ namespace RockWeb.Plugins.org_secc.OAuth
                 callback = authCookie.Value;
             }
 
-            if ( callback.IsNullOrWhiteSpace() )
+            // ROCK-8763: defense-in-depth - never redirect to a non-local URL even if the
+            // AuthRedirectCookie value was tampered with.
+            if ( callback.IsNullOrWhiteSpace() || !RedirectUrlHelper.IsLocalUrl( callback, Request.Url ) )
             {
                 callback = "/";
             }

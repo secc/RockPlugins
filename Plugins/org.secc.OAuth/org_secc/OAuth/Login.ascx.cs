@@ -19,6 +19,7 @@ using System.Web;
 using System.Web.UI;
 using Microsoft.AspNet.Identity;
 using Microsoft.Owin.Security;
+using org.secc.OAuth.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.Communication;
@@ -78,7 +79,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
             {
                 CreateOAuthIdentity( CurrentUser );
 
-                if ( !string.IsNullOrEmpty( PageParameter( "ReturnUrl" ) ) && IsLocalUrl( PageParameter( "ReturnUrl" ) ) )
+                if ( !string.IsNullOrEmpty( PageParameter( "ReturnUrl" ) ) && RedirectUrlHelper.IsLocalUrl( PageParameter( "ReturnUrl" ), Request.Url ) )
                 {
                     Response.Redirect( PageParameter( "ReturnUrl" ) );
                 }
@@ -136,7 +137,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
 
                                 CreateOAuthIdentity( userLogin );
 
-                                if ( !string.IsNullOrEmpty( PageParameter( "ReturnUrl" ) ) && IsLocalUrl( PageParameter( "ReturnUrl" ) ) )
+                                if ( !string.IsNullOrEmpty( PageParameter( "ReturnUrl" ) ) && RedirectUrlHelper.IsLocalUrl( PageParameter( "ReturnUrl" ), Request.Url ) )
                                 {
                                     Response.Redirect( PageParameter( "ReturnUrl" ) );
                                 }
@@ -306,27 +307,6 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
                 new ClaimsIdentity( claims.ToArray(), DefaultAuthenticationTypes.ApplicationCookie ) );
 
 
-        }
-        private bool IsLocalUrl( string url )
-        {
-            if ( string.IsNullOrEmpty( url ) )
-            {
-                return false;
-            }
-
-            Uri absoluteUri;
-            if ( Uri.TryCreate( url, UriKind.Absolute, out absoluteUri ) )
-            {
-                return String.Equals( this.Request.Url.Host, absoluteUri.Host,
-                            StringComparison.OrdinalIgnoreCase );
-            }
-            else
-            {
-                bool isLocal = !url.StartsWith( "http:", StringComparison.OrdinalIgnoreCase )
-                    && !url.StartsWith( "https:", StringComparison.OrdinalIgnoreCase )
-                    && Uri.IsWellFormedUriString( url, UriKind.Relative );
-                return isLocal;
-            }
         }
         #endregion
     }

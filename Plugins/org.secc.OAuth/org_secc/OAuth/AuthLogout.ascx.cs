@@ -15,6 +15,7 @@ using System;
 using System.ComponentModel;
 using System.Web;
 using Microsoft.AspNet.Identity;
+using org.secc.OAuth.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.Model;
@@ -63,6 +64,14 @@ namespace RockWeb.Plugins.org_secc.oAuth
 
             string returnUrl = PageParameter( PageParameterKeys.ReturnUrl );
             returnUrl = Server.UrlDecode( returnUrl );
+
+            // ROCK-8763: the returnurl query parameter is attacker-controllable. Ignore it
+            // when it is not a local URL so it cannot be used for an open redirect. The
+            // admin-configured ReturnUrl block setting (below) is trusted and may be external.
+            if ( returnUrl.IsNotNullOrWhiteSpace() && !RedirectUrlHelper.IsLocalUrl( returnUrl, Request.Url ) )
+            {
+                returnUrl = null;
+            }
 
             if ( returnUrl.IsNullOrWhiteSpace() )
             {
