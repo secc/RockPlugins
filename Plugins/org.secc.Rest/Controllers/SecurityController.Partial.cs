@@ -41,8 +41,7 @@ namespace org.secc.Rest.Controllers
                 routeTemplate: "api/org.secc/People/{action}",
                 defaults: new
                 {
-                    controller = "security",
-                    param = RouteParameter.Optional
+                    controller = "security"
                 } ).RouteHandler = new SessionRouteHandler();
         }
 
