@@ -18,7 +18,7 @@ This plugin adds Web API controllers to Rock that aren't part of core. They fall
 
 ## How Routing & Auth Work
 
-Most controllers extend Rock's `ApiControllerBase` (or `ApiController`) and declare their routes with `[Route(...)]` attributes, so Rock's standard Web API route discovery registers them. `SecurityController` is the exception: it implements `IHasCustomHttpRoutes` and registers its own `api/org.secc/People/{action}` routes against a `SessionRouteHandler` so those calls run with ASP.NET session state.
+Most controllers extend Rock's `ApiControllerBase` (or `ApiController`) and declare their routes with `[Route(...)]` attributes, so Rock's standard Web API route discovery registers them. `SecurityController` is the exception: it implements `IHasCustomHttpRoutes` and registers its own `api/org.secc/People/{action}` route against a `SessionRouteHandler` so those calls run with ASP.NET session state.
 
 ```mermaid
 flowchart TD
@@ -53,7 +53,7 @@ flowchart TD
 | `api/account/forgotpassword` | POST | `[Authorize]` + active OAuth client | Send a forgot-username/password email for resettable logins matching an address. |
 | `api/account/profile` | GET | `[Authorize]` | Current user's `Profile`. |
 | `api/account/smslogin` | POST | `[Authorize]` + active OAuth client | Start SMS auth: match a single living person of min age by phone, send code via Rock's `SMSAuthentication`. |
-| `api/org.secc/People/CurrentUser` | GET | session route; current user **or** a Forms-auth ticket in `{param}` | Returns a small person report (name, campus, gender). Registered via `IHasCustomHttpRoutes`. |
+| `api/org.secc/People/CurrentUser` | GET | session route; current **session user only** | Returns a small person report (name, campus, gender) for the current session user. Registered via `IHasCustomHttpRoutes`. |
 | `api/org.secc/People/Post` | POST | session route | Echoes the posted `phone` string. |
 
 ### GroupApp (Groups mobile app)
@@ -151,7 +151,6 @@ Returns a nested `DataSet` (transactions + per-account details), filtered to the
 
 - **Security (review):** Authorization is inconsistent across controllers and several checks are easy to read as inverted/loose — worth a careful pass. In `ChannelItemController.ChannelItems` the guard is `if ( !contentChannel.IsAuthorized( VIEW, GetPerson() ) ) throw Unauthorized`, but `GetGroup` in `GroupAppGroupListController` uses `if ( isGroupMember || !group.IsAuthorized( VIEW, ... ) )` to *grant* access — i.e. it returns the group when the user is **not** authorized to view it. That condition reads backwards and should be confirmed against intent.
 - **Security (low/medium):** GroupApp endpoints have no `[Authenticate]`/`[Secured]` filter and depend solely on `GetCurrentUser()` + manual checks; `GetGroupMembers` exposes member email/phone/address and minors' parent contact info to group leaders. Confirm leader determination is correct and that these routes can't be reached by an unauthenticated session. `api/sermonfeed` has no declared authorization.
-- **Security (low):** `SecurityController.CurrentUser(param)` decrypts a Forms-auth ticket from the URL and returns the matching user's report — confirm this `{param}` path is intended to be callable without a Rock login and can't be used to probe accounts.
 - **Improvement:** Several handlers `new RockContext()` per request and some construct multiple contexts in one call (e.g. `RemoveGroupMember` opens a second context; `GetGroupMembers` calls `_personService.Get` and `GetFamily` per member — an N+1). `AccountController` calls `MD5` for a 6-digit confirmation code, which is fine for non-secret short codes but shouldn't be mistaken for a security primitive.
 - **Improvement:** `AssemblyInfo.cs` still carries the Visual Studio template metadata (`AssemblyCompany("Microsoft")`, `Copyright © Microsoft 2016`) — cosmetic, but worth fixing to SECC.
 - **Improvement:** The `.csproj` lists `Rock.Rest` and `DotLiquid` `ProjectReference`s twice each (duplicate entries) — harmless but worth cleaning.
