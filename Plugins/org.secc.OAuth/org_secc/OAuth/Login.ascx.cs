@@ -79,7 +79,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
             {
                 CreateOAuthIdentity( CurrentUser );
 
-                if ( !string.IsNullOrEmpty( PageParameter( "ReturnUrl" ) ) && RedirectUrlHelper.IsLocalUrl( PageParameter( "ReturnUrl" ), Request.Url ) )
+                if ( !string.IsNullOrEmpty( PageParameter( "ReturnUrl" ) ) && RedirectUrlHelper.IsSafeRedirectUrl( PageParameter( "ReturnUrl" ), Request.Url ) )
                 {
                     Response.Redirect( PageParameter( "ReturnUrl" ) );
                 }
@@ -137,7 +137,7 @@ Sorry, your account has been locked.  Please contact our office at {{ 'Global' |
 
                                 CreateOAuthIdentity( userLogin );
 
-                                if ( !string.IsNullOrEmpty( PageParameter( "ReturnUrl" ) ) && RedirectUrlHelper.IsLocalUrl( PageParameter( "ReturnUrl" ), Request.Url ) )
+                                if ( !string.IsNullOrEmpty( PageParameter( "ReturnUrl" ) ) && RedirectUrlHelper.IsSafeRedirectUrl( PageParameter( "ReturnUrl" ), Request.Url ) )
                                 {
                                     Response.Redirect( PageParameter( "ReturnUrl" ) );
                                 }

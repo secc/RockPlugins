@@ -91,7 +91,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
             // cannot be used for an open redirect. This single check protects the redirect
             // below, the value written to AuthRedirectCookie, and (transitively) the
             // post-login redirect performed in Login().
-            if ( returnurl.IsNotNullOrWhiteSpace() && !RedirectUrlHelper.IsLocalUrl( returnurl, Request.Url ) )
+            if ( returnurl.IsNotNullOrWhiteSpace() && !RedirectUrlHelper.IsSafeRedirectUrl( returnurl, Request.Url ) )
             {
                 returnurl = "/";
             }
@@ -172,7 +172,7 @@ namespace RockWeb.Plugins.org_secc.OAuth
 
             // ROCK-8763: defense-in-depth - never redirect to a non-local URL even if the
             // AuthRedirectCookie value was tampered with.
-            if ( callback.IsNullOrWhiteSpace() || !RedirectUrlHelper.IsLocalUrl( callback, Request.Url ) )
+            if ( callback.IsNullOrWhiteSpace() || !RedirectUrlHelper.IsSafeRedirectUrl( callback, Request.Url ) )
             {
                 callback = "/";
             }
