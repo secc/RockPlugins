@@ -176,8 +176,11 @@ namespace org.secc.FamilyCheckin.Cache
                 var now = DateTime.UtcNow;
                 var currentKeys = AllKeys();
 
-                // If within throttle window and we have existing keys
-                if ( currentKeys.Any() && ( now - _lastKeysRefreshUtc ) < KeysRefreshInterval )
+                // If within the throttle window, serve the cached key list as-is.
+                // An empty list is a valid answer (e.g. overnight, before the day's first
+                // check-in) and must still be throttled -- otherwise every caller re-runs
+                // the key query, which is a full scan of Attendance returning no rows.
+                if ( ( now - _lastKeysRefreshUtc ) < KeysRefreshInterval )
                 {
                     bool modified = false;
 
