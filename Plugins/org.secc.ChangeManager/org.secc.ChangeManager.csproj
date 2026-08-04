@@ -67,6 +67,7 @@
     <Compile Include="Migrations\002_FamilyGroupOfPerson.cs" />
     <Compile Include="Migrations\001_Init.cs" />
     <Compile Include="Migrations\003_InternalCampusTypeValue.cs" />
+    <Compile Include="Migrations\004_EncodeStoredRequestorComments.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model\BasicEntity.cs" />
     <Compile Include="Model\ChangeRequestService.cs" />
