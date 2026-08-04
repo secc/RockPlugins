@@ -110,8 +110,14 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                  }
             ).ToList();
 
+            // The Entity Name column renders with HtmlEncode="false" so the warning icon
+            // below is markup, which means the name itself has to be encoded here.
+            // ChangeRequest.Name comes from the target entity's ToString(); for family
+            // Groups that is the group name, which is built from user-entered last names.
             foreach ( var request in requests )
             {
+                request.Name = request.Name.EncodeHtml();
+
                 if ( request.Applied == false && request.WasReviewed == false )
                 {
                     request.Name = "<i class='fa fa-exclamation-triangle'></i> " + request.Name;
