@@ -7,7 +7,13 @@
         </Rock:GridFilter>
         <Rock:Grid runat="server" ID="gRequests" DataKeyNames="Id" OnRowSelected="gRequests_RowSelected">
             <Columns>
-                <Rock:RockBoundField HeaderText="Entity Name" DataField="Name" HtmlEncode="false" />
+                <%-- The icon gets its own template column (not included in the Excel export)
+                     so the Entity Name column can keep the grid's default HTML encoding and
+                     export the raw name. --%>
+                <Rock:RockTemplateField HeaderText="" ItemStyle-Wrap="false">
+                    <ItemTemplate><%# Eval( "Icon" ) %></ItemTemplate>
+                </Rock:RockTemplateField>
+                <Rock:RockBoundField HeaderText="Entity Name" DataField="Name" />
                 <Rock:RockBoundField HeaderText="Entity Type" DataField="EntityType" />
                 <Rock:RockBoundField HeaderText="Requestor" DataField="Requestor" />
                 <Rock:DateTimeField HeaderText="Requested" DataField="Requested" />

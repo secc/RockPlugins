@@ -337,7 +337,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
                         if ( hfPhoneType.Value.AsInteger() == DefinedValueCache.GetId( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE.AsGuid() ) )
                         {
-                            var validationInfo = ValidateMobilePhoneNumber( PhoneNumber.CleanNumber( pnbPhone.Number ), true );
+                            var validationInfo = ValidateMobilePhoneNumber( PhoneNumber.CleanNumber( pnbPhone.Number ) );
                             if ( validationInfo.IsNotNullOrWhiteSpace() )
                             {
                                 changeRequest.RequestorComment += "<h4>Dynamically Generated Warnings:</h4>" + validationInfo;
@@ -611,8 +611,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             {
 
                 var number = PhoneNumber.CleanNumber( tbPhone.Text );
-                // ModalAlert.Show escapes the message itself, so names go in unencoded here.
-                string validationInformation = ValidateMobilePhoneNumber( number, false );
+                string validationInformation = ValidateMobilePhoneNumber( number );
 
                 if ( validationInformation.IsNotNullOrWhiteSpace() )
                 {
@@ -623,16 +622,12 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
         /// <summary>
         /// Builds the duplicate-mobile-number warning as HTML, or an empty string when no
-        /// other record has the number.
+        /// other record has the number. Both consumers render it as HTML (RequestorComment
+        /// is trusted HTML, and ModalAlert.Show sanitizes but does not encode), so the
+        /// person names interpolated into the markup are always encoded.
         /// </summary>
         /// <param name="number">The cleaned mobile number.</param>
-        /// <param name="encodePersonNames">
-        /// Whether to encode the person names interpolated into the markup. Pass true when
-        /// the notice is persisted to RequestorComment, which is rendered as trusted HTML.
-        /// Pass false for ModalAlert.Show, which escapes the whole message itself and would
-        /// otherwise double-escape names containing characters like &amp;.
-        /// </param>
-        private string ValidateMobilePhoneNumber( string number, bool encodePersonNames )
+        private string ValidateMobilePhoneNumber( string number )
         {
             var person = GetPerson();
             RockContext rockContext = new RockContext();
@@ -647,16 +642,14 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             if ( otherOwners.Any() )
             {
                 // This notice is intentional HTML. Person names are free text, so they are
-                // encoded when the caller is going to persist the notice as trusted HTML.
-                Func<string, string> nameText = n => encodePersonNames ? n.EncodeHtml() : n;
-
+                // always encoded before being interpolated into the markup.
                 var notice = string.Format(
                     "The phone number {0} is on the following records." +
                     "<ul>{1}</ul>" +
                     "Mobile phone numbers should exist on one record only. Please ensure that {0} belongs to {2} and remove this number from all other users.",
                     PhoneNumber.FormattedNumber( PhoneNumber.DefaultCountryCode(), number ),
-                    string.Join( "", otherOwners.Select( p => "<li><a href='/Person/" + p.Id.ToString() + "' target='_blank'>" + nameText( p.FullName ) + "</a></li>" ) ),
-                    nameText( person.FullName )
+                    string.Join( "", otherOwners.Select( p => "<li><a href='/Person/" + p.Id.ToString() + "' target='_blank'>" + p.FullName.EncodeHtml() + "</a></li>" ) ),
+                    person.FullName.EncodeHtml()
                     );
                 return notice;
             }

@@ -131,8 +131,9 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 // system-generated markup (the dynamically generated phone warnings, the
                 // "Comment:" separator) with user text that they encode at that point.
                 // Do not encode here or that markup renders literally (ROCK-8879).
-                // Comments stored before ROCK-8879 were never encoded, so any raw markup
-                // in historical rows still renders as markup.
+                // Comments stored before ROCK-8879 were encoded by plugin migration 004
+                // (which also restores the known system-generated fragments), so stored
+                // values are uniformly safe to render without encoding.
                 ltRequestComments.Text = changeRequest.RequestorComment;
             }
 

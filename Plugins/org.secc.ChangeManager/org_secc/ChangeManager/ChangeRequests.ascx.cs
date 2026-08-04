@@ -110,17 +110,15 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                  }
             ).ToList();
 
-            // The Entity Name column renders with HtmlEncode="false" so the warning icon
-            // below is markup, which means the name itself has to be encoded here.
-            // ChangeRequest.Name comes from the target entity's ToString(); for family
-            // Groups that is the group name, which is built from user-entered last names.
+            // The warning icon renders in its own template column so the Entity Name
+            // column keeps the grid's default HTML encoding (ChangeRequest.Name comes from
+            // the target entity's ToString(), which can contain user-entered text) and the
+            // Excel export gets the un-mangled name.
             foreach ( var request in requests )
             {
-                request.Name = request.Name.EncodeHtml();
-
                 if ( request.Applied == false && request.WasReviewed == false )
                 {
-                    request.Name = "<i class='fa fa-exclamation-triangle'></i> " + request.Name;
+                    request.Icon = "<i class='fa fa-exclamation-triangle'></i>";
                 }
             }
 
@@ -148,6 +146,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         {
             public int Id { get; set; }
             public string Name { get; set; }
+            public string Icon { get; set; }
             private string entityType = "";
             public string EntityType
             {
