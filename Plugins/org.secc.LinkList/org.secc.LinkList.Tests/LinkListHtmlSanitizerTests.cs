@@ -1050,5 +1050,396 @@ namespace org.secc.LinkList.Tests
                 "<p style=\"background-color: \\75 rl(//evil/x)\">y</p>" );
             Assert.Contains( "background-color: \\75 rl(//evil/x)", result );
         }
+
+        // ----------------------------------------------------------------------
+        // ROCK-8880 fix round 5 — reverse tabnabbing (`target` kept, `rel` stripped).
+        //
+        // `target` is allowlisted on <a> but `rel` is on NO allowlist, so before this
+        // fix the sanitizer kept `target="_blank"` while actively STRIPPING an
+        // author's `rel="noopener noreferrer"` — removing the mitigation and leaving
+        // no way for an editor to add it back, since this sanitizer is the single
+        // chokepoint. `rel` is now force-injected whenever `target` survives.
+        // ----------------------------------------------------------------------
+
+        [Fact]
+        public void Target_Blank_Link_Gets_Noopener_Noreferrer()
+        {
+            var result = LinkListHtmlSanitizer.Sanitize(
+                "<a href=\"https://example.org\" target=\"_blank\">go</a>" );
+
+            Assert.Contains( "rel=\"noopener noreferrer\"", result );
+            Assert.Contains( "target=\"_blank\"", result );
+            Assert.Contains( "https://example.org", result );
+        }
+
+        [Theory]
+        [InlineData( "_blank" )]
+        [InlineData( "_new" )]
+        [InlineData( "someWindowName" )]
+        public void Any_Surviving_Target_Value_Gets_The_Guard( string target )
+        {
+            var result = LinkListHtmlSanitizer.Sanitize(
+                "<a href=\"https://example.org\" target=\"" + target + "\">go</a>" );
+
+            Assert.Contains( "rel=\"noopener noreferrer\"", result );
+        }
+
+        [Fact]
+        public void Author_Rel_Is_Replaced_Not_Appended()
+        {
+            // The author value is stripped (rel is on no allowlist) and ours is
+            // injected — there must be exactly one rel, carrying our value.
+            var result = LinkListHtmlSanitizer.Sanitize(
+                "<a href=\"https://example.org\" target=\"_blank\" rel=\"nofollow\">go</a>" );
+
+            Assert.DoesNotContain( "nofollow", result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.Contains( "rel=\"noopener noreferrer\"", result );
+            Assert.Equal( 1, CountOccurrences( result, "rel=" ) );
+        }
+
+        [Fact]
+        public void Author_Rel_Is_Stripped_When_There_Is_No_Target()
+        {
+            // No target means no tabnabbing exposure, so no guard is injected — and
+            // the author's rel is still stripped, as a non-allowlisted attribute.
+            var result = LinkListHtmlSanitizer.Sanitize(
+                "<a href=\"https://example.org\" rel=\"nofollow\">go</a>" );
+
+            Assert.DoesNotContain( "rel=", result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.Contains( "https://example.org", result );
+        }
+
+        [Fact]
+        public void Link_Without_Target_Gets_No_Rel()
+        {
+            var result = LinkListHtmlSanitizer.Sanitize( "<a href=\"https://example.org\">go</a>" );
+
+            Assert.DoesNotContain( "rel=", result, System.StringComparison.OrdinalIgnoreCase );
+        }
+
+        [Fact]
+        public void Target_On_A_Dropped_Href_Still_Gets_The_Guard()
+        {
+            // The javascript: href is removed but the element (and its target)
+            // survive, so the guard must still be applied.
+            var result = LinkListHtmlSanitizer.Sanitize(
+                "<a href=\"javascript:alert(1)\" target=\"_blank\">go</a>" );
+
+            Assert.DoesNotContain( "javascript:", result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.Contains( "rel=\"noopener noreferrer\"", result );
+        }
+
+        [Fact]
+        public void Target_Attribute_On_Non_Anchor_Does_Not_Inject_Rel()
+        {
+            // target is not allowlisted on <p>, so it is stripped and nothing is
+            // injected — the guard must key off a target that actually SURVIVED.
+            var result = LinkListHtmlSanitizer.Sanitize( "<p target=\"_blank\">x</p>" );
+
+            Assert.DoesNotContain( "target=", result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.DoesNotContain( "rel=", result, System.StringComparison.OrdinalIgnoreCase );
+        }
+
+        [Fact]
+        public void Injected_Rel_Is_Idempotent()
+        {
+            // Second pass strips the rel we injected (non-allowlisted) and re-injects
+            // it in the same trailing position — the bytes must not drift.
+            const string input = "<a href=\"https://example.org\" target=\"_blank\">go</a>";
+            var once = LinkListHtmlSanitizer.Sanitize( input );
+            var twice = LinkListHtmlSanitizer.Sanitize( once );
+
+            Assert.Equal( once, twice );
+        }
+
+        // ----------------------------------------------------------------------
+        // ROCK-8880 fix round 5 — bare '<' in text destroyed the rest of the block.
+        //
+        // HAP parses `<p>Ages < 12 welcome</p>` as <p> + text "Ages " + an element
+        // with an EMPTY NAME whose swallowed words become ATTRIBUTES (`12=""`,
+        // `welcome=""`). The empty name is on neither allowlist, so Clean() unwraps
+        // it; Unwrap moves only ChildNodes, of which it has none, so the node and the
+        // words held in its attributes were DISCARDED. Bare '<' is now escaped before
+        // parsing, matching the HTML5 tokenizer's tag-open rule.
+        // ----------------------------------------------------------------------
+
+        [Fact]
+        public void Bare_LessThan_Does_Not_Eat_The_Rest_Of_The_Text()
+        {
+            var result = LinkListHtmlSanitizer.Sanitize( "<p>Ages < 12 welcome</p>" );
+
+            Assert.Contains( "12", result );
+            Assert.Contains( "welcome", result );
+            Assert.Contains( "Ages", result );
+            // The words must be TEXT, not an attribute soup like `12=""`.
+            Assert.DoesNotContain( "12=", result );
+            Assert.DoesNotContain( "welcome=", result );
+        }
+
+        [Fact]
+        public void Bare_LessThan_And_GreaterThan_Both_Survive_As_Text()
+        {
+            var result = LinkListHtmlSanitizer.Sanitize( "<p>3 < 4 and 5 > 2</p>" );
+
+            Assert.Contains( "4", result );
+            Assert.Contains( "2", result );
+            Assert.Contains( "and", result );
+        }
+
+        [Theory]
+        [InlineData( "<p>Cost < $5 per person</p>", "$5 per person" )]
+        [InlineData( "<p>a<3 forever</p>", "3 forever" )]
+        [InlineData( "<p>x < y</p>", "y" )]
+        public void Bare_LessThan_Real_Copy_Keeps_Its_Remainder( string input, string mustSurvive )
+        {
+            var result = LinkListHtmlSanitizer.Sanitize( input );
+
+            Assert.Contains( mustSurvive, result );
+        }
+
+        [Fact]
+        public void Trailing_LessThan_Does_Not_Throw_Or_Truncate()
+        {
+            var result = LinkListHtmlSanitizer.Sanitize( "<p>ends with <" );
+
+            Assert.Contains( "ends with", result );
+        }
+
+        [Fact]
+        public void Bare_LessThan_Is_Idempotent()
+        {
+            const string input = "<p>Ages < 12 welcome</p>";
+            var once = LinkListHtmlSanitizer.Sanitize( input );
+            var twice = LinkListHtmlSanitizer.Sanitize( once );
+
+            Assert.Equal( once, twice );
+        }
+
+        // The pre-parse escape must not defang tag detection: '<' followed by a
+        // letter, '/', '!' or '?' still opens markup, so comments, end tags and
+        // dangerous elements are all handled exactly as before.
+
+        [Fact]
+        public void LessThan_Escape_Does_Not_Break_Comment_Stripping()
+        {
+            var result = LinkListHtmlSanitizer.Sanitize( "<p>a<!-- secret comment -->b</p>" );
+
+            Assert.DoesNotContain( "secret", result );
+            Assert.DoesNotContain( "<!--", result );
+        }
+
+        [Fact]
+        public void LessThan_Escape_Does_Not_Break_End_Tag_Parsing()
+        {
+            var result = LinkListHtmlSanitizer.Sanitize( "<p>one</p><p>two</p>" );
+
+            Assert.Contains( "one", result );
+            Assert.Contains( "two", result );
+            Assert.Equal( 2, CountOccurrences( result.ToLowerInvariant(), "<p" ) );
+        }
+
+        [Fact]
+        public void LessThan_Escape_Does_Not_Break_Dangerous_Tag_Removal()
+        {
+            var result = LinkListHtmlSanitizer.Sanitize( "<p>a</p><script>alert(1)</script>" );
+
+            Assert.DoesNotContain( "<script", result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.DoesNotContain( "alert(1)", result );
+        }
+
+        [Fact]
+        public void LessThan_Escape_Does_Not_Reopen_The_Mxss_Breakout()
+        {
+            // A bare '<' alongside the smuggled-quote payload must not produce a live
+            // handler; the escape runs before parsing, so the mXSS gate still applies.
+            var result = LinkListHtmlSanitizer.Sanitize(
+                "<p>3 < 4</p><img src=x alt=a\"onerror=\"alert(1)>" );
+
+            Assert.DoesNotContain( "onerror=\"alert(1)\"", result );
+            Assert.Contains( "4", result );
+        }
+
+        // ----------------------------------------------------------------------
+        // ROCK-8880 fix round 5 — allowlist gaps that silently dropped prod markup.
+        //
+        // Under an allowlist, anything omitted disappears: a missing ATTRIBUTE is
+        // stripped, and a missing TAG is unwrapped, which takes the `class` that
+        // scoped its CSS with it.
+        // ----------------------------------------------------------------------
+
+        [Fact]
+        public void Legacy_Bgcolor_Survives_On_Table_And_Cell()
+        {
+            // The email builder paints backgrounds with the bgcolor ATTRIBUTE
+            // (email clients strip <style>), so dropping it renders blocks white.
+            var result = LinkListHtmlSanitizer.Sanitize(
+                "<table bgcolor=\"#ffffff\"><tr><td bgcolor=\"#eeeeee\">x</td></tr></table>" );
+
+            Assert.Contains( "bgcolor=\"#ffffff\"", result );
+            Assert.Contains( "bgcolor=\"#eeeeee\"", result );
+        }
+
+        [Fact]
+        public void Legacy_Nowrap_Survives_On_Cell()
+        {
+            var result = LinkListHtmlSanitizer.Sanitize( "<table><tr><td nowrap>x</td></tr></table>" );
+
+            Assert.Contains( "nowrap", result, System.StringComparison.OrdinalIgnoreCase );
+        }
+
+        [Theory]
+        [InlineData( "section" )]
+        [InlineData( "article" )]
+        [InlineData( "header" )]
+        [InlineData( "footer" )]
+        [InlineData( "nav" )]
+        [InlineData( "figure" )]
+        [InlineData( "pre" )]
+        [InlineData( "code" )]
+        [InlineData( "small" )]
+        [InlineData( "label" )]
+        [InlineData( "dl" )]
+        public void Class_Bearing_Wrapper_Survives_With_Its_Class( string tag )
+        {
+            // Unwrapping the wrapper drops the class that scopes its CSS — which
+            // would defeat the whole reason `class` is allowlisted.
+            var result = LinkListHtmlSanitizer.Sanitize(
+                "<" + tag + " class=\"esd-block\"><p>copy</p></" + tag + ">" );
+
+            Assert.Contains( "<" + tag, result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.Contains( "class=\"esd-block\"", result );
+            Assert.Contains( "copy", result );
+        }
+
+        [Fact]
+        public void Definition_List_Structure_Survives()
+        {
+            var result = LinkListHtmlSanitizer.Sanitize( "<dl><dt>Term</dt><dd>Def</dd></dl>" );
+
+            Assert.Contains( "<dt", result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.Contains( "<dd", result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.Contains( "Term", result );
+            Assert.Contains( "Def", result );
+        }
+
+        [Fact]
+        public void Table_Caption_Stays_Inside_The_Table()
+        {
+            // Unwrapping <caption> leaves a bare text node in <table>, which a
+            // browser's "in table" insertion mode foster-parents OUT of the table —
+            // the caption would render above it as loose body text.
+            var result = LinkListHtmlSanitizer.Sanitize(
+                "<table><caption>Cap</caption><tr><td>B</td></tr></table>" );
+
+            Assert.Contains( "<caption", result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.Contains( "Cap", result );
+        }
+
+        [Fact]
+        public void Table_Head_And_Foot_Groupings_Survive()
+        {
+            var result = LinkListHtmlSanitizer.Sanitize(
+                "<table><thead><tr><th>H</th></tr></thead><tbody><tr><td>B</td></tr></tbody>"
+                + "<tfoot><tr><td>F</td></tr></tfoot></table>" );
+
+            Assert.Contains( "<thead", result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.Contains( "<tfoot", result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.Contains( "<tbody", result, System.StringComparison.OrdinalIgnoreCase );
+        }
+
+        [Fact]
+        public void Colgroup_Survives_With_Its_Span_Attribute()
+        {
+            var result = LinkListHtmlSanitizer.Sanitize(
+                "<table><colgroup span=\"2\"><col span=\"1\"></colgroup><tr><td>x</td></tr></table>" );
+
+            Assert.Contains( "<colgroup", result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.Contains( "span=\"2\"", result );
+        }
+
+        [Fact]
+        public void Span_Attribute_Does_Not_Leak_Onto_Other_Tags()
+        {
+            // `span` is per-tag (col/colgroup), not global.
+            var result = LinkListHtmlSanitizer.Sanitize( "<p span=\"2\">x</p>" );
+
+            Assert.DoesNotContain( "span=", result, System.StringComparison.OrdinalIgnoreCase );
+        }
+
+        [Fact]
+        public void Newly_Allowed_Tags_Still_Have_Attributes_Filtered()
+        {
+            // Allowlisting a TAG must not allowlist anything on it.
+            var result = LinkListHtmlSanitizer.Sanitize(
+                "<section onclick=\"alert(1)\" data-x=\"1\" class=\"keep\">y</section>" );
+
+            Assert.DoesNotContain( "onclick", result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.DoesNotContain( "data-x", result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.Contains( "class=\"keep\"", result );
+        }
+
+        [Fact]
+        public void Still_Unlisted_Benign_Tag_Is_Still_Unwrapped()
+        {
+            var result = LinkListHtmlSanitizer.Sanitize( "<p>a <marquee>scroll</marquee> b</p>" );
+
+            Assert.DoesNotContain( "<marquee", result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.Contains( "scroll", result );
+        }
+
+        [Fact]
+        public void Round5_Additions_Are_Idempotent()
+        {
+            const string input =
+                "<section class=\"esd-block\"><table bgcolor=\"#ffffff\"><caption>Cap</caption>"
+                + "<thead><tr><th nowrap>H</th></tr></thead><tbody><tr><td bgcolor=\"#eee\">"
+                + "<a href=\"https://example.org\" target=\"_blank\">go</a></td></tr></tbody>"
+                + "</table><p>Ages < 12 welcome</p></section>";
+            var once = LinkListHtmlSanitizer.Sanitize( input );
+            var twice = LinkListHtmlSanitizer.Sanitize( once );
+
+            Assert.Equal( once, twice );
+        }
+
+        // ----------------------------------------------------------------------
+        // ROCK-8880 fix round 5 — pins the "non-element, non-text nodes never reach
+        // the output" claim in Clean().
+        //
+        // HtmlNodeType in HAP 1.4.9.5 has exactly four members (Document, Element,
+        // Comment, Text), so there is no declaration or processing-instruction node
+        // type for Clean() to drop explicitly. Doctypes and `<! ... >` parse as
+        // COMMENT nodes; `<? ... ?>` parses as an ELEMENT named `?` that falls to the
+        // benign-unknown unwrap path. These tests assert none of them are emitted, so
+        // the comment stays honest if a future HAP upgrade changes the parse.
+        // ----------------------------------------------------------------------
+
+        [Theory]
+        [InlineData( "<!DOCTYPE html><p>x</p>", "x" )]
+        [InlineData( "<! foo >x", "x" )]
+        [InlineData( "<? php echo 1 ?>x", "x" )]
+        [InlineData( "<?xml version=\"1.0\"?><p>y</p>", "y" )]
+        public void Declarations_And_Processing_Instructions_Are_Never_Emitted( string input, string mustSurvive )
+        {
+            var result = LinkListHtmlSanitizer.Sanitize( input );
+
+            Assert.Contains( mustSurvive, result );
+            Assert.DoesNotContain( "<!", result );
+            Assert.DoesNotContain( "<?", result );
+            Assert.DoesNotContain( "doctype", result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.DoesNotContain( "php", result, System.StringComparison.OrdinalIgnoreCase );
+            Assert.Equal( result, LinkListHtmlSanitizer.Sanitize( result ) );
+        }
+
+        private static int CountOccurrences( string haystack, string needle )
+        {
+            var count = 0;
+            var index = haystack.IndexOf( needle, System.StringComparison.OrdinalIgnoreCase );
+            while ( index >= 0 )
+            {
+                count++;
+                index = haystack.IndexOf( needle, index + needle.Length, System.StringComparison.OrdinalIgnoreCase );
+            }
+            return count;
+        }
     }
 }

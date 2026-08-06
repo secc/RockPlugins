@@ -57,6 +57,20 @@ namespace org.secc.LinkList.Utility
     /// carried a broken half-commented block; dropping them is safe and avoids
     /// re-serializing malformed comment syntax.
     ///
+    /// One attribute is ADDED rather than filtered: an <c>&lt;a&gt;</c> that keeps
+    /// its <c>target</c> gets <c>rel="noopener noreferrer"</c> forced onto it (see
+    /// <see cref="InjectTabnabbingGuard"/>), because <c>rel</c> is on no allowlist
+    /// and an author therefore cannot supply the mitigation themselves.
+    ///
+    /// BYTE-FAITHFULNESS, ONE EXCEPTION: the value is otherwise emitted with its
+    /// original bytes (entities untouched, see below), but a bare <c>&lt;</c> that
+    /// cannot open a tag is rewritten to <c>&amp;lt;</c> BEFORE parsing (see
+    /// <see cref="BareLessThan"/>). Those bytes were invalid HTML and
+    /// <c>&amp;lt;</c> is what a browser renders them as, so this is a correction,
+    /// not a mutation - and it is still idempotent, since the rewritten form has no
+    /// bare <c>&lt;</c> left to rewrite. Without it, HAP's mis-recovery silently
+    /// deleted every word after the <c>&lt;</c>.
+    ///
     /// Emits via HtmlAgilityPack's OuterHtml so HTML entities (e.g.
     /// <c>&amp;copy;</c>) are preserved verbatim - the operation is idempotent
     /// (<c>Sanitize(Sanitize(x)) == Sanitize(x)</c>), so sanitizing on read AND
@@ -100,13 +114,28 @@ namespace org.secc.LinkList.Utility
         // Tags that are allowed to survive. Everything real prod intro/footer
         // content uses: layout, inline formatting, headings, tables, lists,
         // legacy <font>, images and links.
+        //
+        // A tag missing from this set is UNWRAPPED, which silently drops the
+        // `class` it carried - so every class-bearing wrapper the email builder
+        // emits has to be listed here or the CSS scoped to it stops applying (the
+        // `class` allowance below is pointless without the element that holds it).
+        // The table sub-elements matter for a second reason: unwrapping <caption>
+        // leaves a bare text node inside <table>, which a browser's "in table"
+        // insertion mode FOSTER-PARENTS out of the table entirely, so the caption
+        // renders above the table as loose body text.
+        //
+        // Listing a tag here allows only the TAG. Its attributes are still filtered
+        // independently by FilterAttributes.
         private static readonly HashSet<string> AllowedTags = new HashSet<string>( StringComparer.OrdinalIgnoreCase )
         {
             "div", "span", "p", "a", "img", "br",
-            "b", "i", "u", "strong", "em",
+            "b", "i", "u", "strong", "em", "small", "s", "strike",
             "h1", "h2", "h3", "h4", "h5", "h6",
-            "table", "tbody", "tr", "td", "th",
-            "ul", "ol", "li",
+            "table", "thead", "tbody", "tfoot", "tr", "td", "th",
+            "caption", "colgroup", "col",
+            "ul", "ol", "li", "dl", "dt", "dd",
+            "section", "article", "header", "footer", "nav",
+            "figure", "figcaption", "pre", "code", "label",
             "font", "hr", "blockquote", "sub", "sup"
         };
 
@@ -125,18 +154,31 @@ namespace org.secc.LinkList.Utility
         // on* handler and every data-* attribute - prod email-builder markup is
         // class-based (esd-block-*, es-text-*), so `class` covers it. `style` is
         // handled specially (value-filtered) before this set is consulted.
+        // The presentational table attributes (align/valign/border/cellpadding/
+        // cellspacing/bgcolor/nowrap) are here as a set: email-builder output paints
+        // cell and table backgrounds with the legacy `bgcolor` ATTRIBUTE rather than
+        // CSS, because email clients strip <style>. Omitting one of them renders
+        // those blocks white/transparent.
         private static readonly HashSet<string> GlobalAttributes = new HashSet<string>( StringComparer.OrdinalIgnoreCase )
         {
             "class", "id", "title", "alt", "align", "width", "height",
-            "colspan", "rowspan", "valign", "border", "cellpadding", "cellspacing"
+            "colspan", "rowspan", "valign", "border", "cellpadding", "cellspacing",
+            "bgcolor", "nowrap"
         };
 
-        // Attributes allowed only on specific tags.
+        // Attributes allowed only on specific tags. Note `rel` is deliberately
+        // absent from <a>: it is not carried over from the author at all, it is
+        // FORCE-INJECTED by FilterAttributes whenever `target` survives (see
+        // InjectTabnabbingGuard).
         private static readonly Dictionary<string, HashSet<string>> PerTagAttributes = new Dictionary<string, HashSet<string>>( StringComparer.OrdinalIgnoreCase )
         {
             ["a"] = new HashSet<string>( StringComparer.OrdinalIgnoreCase ) { "href", "target" },
             ["img"] = new HashSet<string>( StringComparer.OrdinalIgnoreCase ) { "src" },
-            ["font"] = new HashSet<string>( StringComparer.OrdinalIgnoreCase ) { "color", "face", "size" }
+            ["font"] = new HashSet<string>( StringComparer.OrdinalIgnoreCase ) { "color", "face", "size" },
+            // The `span` ATTRIBUTE on <col>/<colgroup> (column count) - unrelated to
+            // the <span> tag. Kept per-tag so it cannot leak onto other elements.
+            ["col"] = new HashSet<string>( StringComparer.OrdinalIgnoreCase ) { "span" },
+            ["colgroup"] = new HashSet<string>( StringComparer.OrdinalIgnoreCase ) { "span" }
         };
 
         // Attributes whose value is a URL and must pass the scheme check. Kept in
@@ -159,6 +201,24 @@ namespace org.secc.LinkList.Utility
         };
 
         private static readonly Regex ControlAndWhitespace = new Regex( @"[\s\x00-\x1F]", RegexOptions.Compiled );
+
+        // A '<' that cannot open a tag, i.e. literal text. Per the HTML5 tokenizer's
+        // tag-open state, '<' only starts markup when followed by an ASCII letter
+        // (start tag), '/' (end tag), '!' (comment/doctype) or '?' (bogus comment);
+        // anything else - a space, a digit, end-of-input - is emitted as a literal
+        // '<' character by a browser.
+        //
+        // HAP 1.4.9.5 does NOT follow that rule. It parses `<p>Ages < 12 welcome</p>`
+        // as <p> containing the text "Ages " plus an ELEMENT WITH AN EMPTY NAME whose
+        // swallowed words become ATTRIBUTES (`12=""`, `welcome=""`). That empty name
+        // is on neither allowlist, so Clean() unwraps it - and Unwrap moves only
+        // ChildNodes, of which it has none, so the node and the words held in its
+        // attributes are DISCARDED. Real list copy ("Ages < 12", "Cost < $5") lost
+        // everything after the '<' on the next render.
+        //
+        // Escaping these up front, before HAP sees them, restores browser parity and
+        // is the one place the sanitizer is not byte-faithful (see class remarks).
+        private static readonly Regex BareLessThan = new Regex( @"<(?![a-zA-Z/!?])", RegexOptions.Compiled );
 
         // CultureInvariant is REQUIRED: IgnoreCase folds case using the current
         // thread culture, and Rock sets per-request culture from globalization
@@ -317,8 +377,12 @@ namespace org.secc.LinkList.Utility
                 return html;
             }
 
+            // Escape any '<' that a browser would treat as literal text BEFORE
+            // parsing - HAP mis-recovers those into an empty-named element whose
+            // text ends up in attributes, and the unwrap path then drops it. See
+            // the BareLessThan remarks.
             var doc = new HtmlAgilityPack.HtmlDocument();
-            doc.LoadHtml( html );
+            doc.LoadHtml( BareLessThan.Replace( html, "&lt;" ) );
             Clean( doc.DocumentNode );
             return doc.DocumentNode.OuterHtml;
         }
@@ -336,9 +400,23 @@ namespace org.secc.LinkList.Utility
 
                 if ( child.NodeType != HtmlAgilityPack.HtmlNodeType.Element )
                 {
-                    // Text nodes pass through verbatim (entities preserved). Any
-                    // other node type (declarations, processing instructions) is
-                    // not content we emit.
+                    // Text, and ONLY Text. HtmlNodeType in HAP 1.4.9.5 has exactly
+                    // four members - Document, Element, Comment, Text - so by the
+                    // time we reach here Comment is already removed above, Element
+                    // is handled below, and Document never appears as a child.
+                    //
+                    // There is NO declaration or processing-instruction node type in
+                    // this HAP version, so there is nothing extra to drop here.
+                    // Verified against the shipped 1.4.9.5 assembly: `<!DOCTYPE html>`
+                    // and `<! foo >` are parsed as COMMENT nodes (already stripped by
+                    // the branch above), and `<? php ?>` / `<?xml ... ?>` are parsed
+                    // as an ELEMENT literally named `?`, which is on neither allowlist
+                    // and so falls to the benign-unknown unwrap path below - it has no
+                    // children, so it disappears. Sanitize() emits none of them.
+                    //
+                    // So this is the text-node path, and text passes through verbatim
+                    // to keep entities byte-faithful. Adding an explicit Remove() for
+                    // "other" node types would be dead code.
                     continue;
                 }
 
@@ -406,6 +484,15 @@ namespace org.secc.LinkList.Utility
                     continue;
                 }
 
+                // KNOWN, DELIBERATELY UNFIXED: HAP 1.4.9.5 mis-tokenizes
+                // slash-separated attributes - `<img/src="x"/alt="y">` yields
+                // attributes literally named `rc` and `lt` (it eats the `/s` and
+                // `/a`), where a browser would read `src` and `alt`. Neither name
+                // is allowlisted, so both are dropped here. That is fail-CLOSED and
+                // no worse than the old blacklist, which kept the same bogus `rc`/
+                // `lt` names and so produced an equally src-less broken image.
+                // Normalizing the separators would mean rewriting raw attribute soup
+                // ahead of the parser - new mXSS surface for no visual gain.
                 if ( !IsAttributeAllowed( tag, name ) )
                 {
                     attr.Remove();
@@ -424,6 +511,42 @@ namespace org.secc.LinkList.Utility
                 // double-quote delimiter and entity-encode the break-out chars.
                 SetSafeAttribute( attr, EncodeAttributeValue( attr.Value ) );
             }
+
+            if ( tag == "a" && node.Attributes["target"] != null )
+            {
+                InjectTabnabbingGuard( node );
+            }
+        }
+
+        // rel value forced onto any <a> that keeps a target. noreferrer is included
+        // as well as noopener because the pre-Chrome-88 / pre-Firefox-79 / IE and
+        // embedded-webview engines that lack implicit noopener are largely the same
+        // ones that only honor noreferrer.
+        private const string TabnabbingRel = "noopener noreferrer";
+
+        /// <summary>
+        /// Closes reverse tabnabbing on a link that kept its <c>target</c>.
+        ///
+        /// A page opened via <c>target="_blank"</c> receives a live
+        /// <c>window.opener</c> on any engine without implicit noopener (all IE /
+        /// Edge Legacy, Chrome &lt; 88, Firefox &lt; 79, Safari &lt; 12.1, and many
+        /// in-app webviews) and can navigate the ORIGINAL tab - e.g. to a phishing
+        /// clone of the site the reader thinks they are still on.
+        ///
+        /// <c>rel</c> is on no allowlist, so the loop above has already STRIPPED any
+        /// author-supplied value; this always writes our constant rather than merging
+        /// with theirs. That is deliberate: because this sanitizer is the single
+        /// chokepoint for list content, an author cannot add the mitigation by hand
+        /// (it would just be stripped), so it cannot be left to them to remember. The
+        /// cost is that a deliberate <c>rel="nofollow"</c> is also overridden.
+        ///
+        /// Idempotent: on a second pass the injected <c>rel</c> is stripped as
+        /// non-allowlisted and re-appended here in the same trailing position, so the
+        /// bytes are identical.
+        /// </summary>
+        private static void InjectTabnabbingGuard( HtmlAgilityPack.HtmlNode node )
+        {
+            SetSafeAttribute( node.SetAttributeValue( "rel", string.Empty ), TabnabbingRel );
         }
 
         // Force a stable double-quote delimiter for a retained attribute so its
