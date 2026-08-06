@@ -68,15 +68,21 @@ namespace org.secc.LinkList.Rest.Controllers
 
                 // ROCK-7164: external page view. Referer = the embedding page
                 // (far more useful than the API URL). Anonymous by design.
+                // ROCK-8881: per-IP rate limit on the View write only - the bag
+                // is always returned; an over-budget IP just skips analytics.
                 if ( bag.Id.HasValue )
                 {
-                    LinkListInteractionService.RecordView(
-                        bag.Id.Value,
-                        bag.Title,
-                        pageUrl: Request.Headers.Referrer?.ToString() ?? Request.RequestUri?.ToString(),
-                        userAgent: Request.Headers.UserAgent?.ToString(),
-                        ipAddress: GetClientIp(),
-                        personAliasId: null );
+                    var ipAddress = GetClientIp();
+                    if ( LinkListRateLimitPolicy.ShouldRecordView( ipAddress ) )
+                    {
+                        LinkListInteractionService.RecordView(
+                            bag.Id.Value,
+                            bag.Title,
+                            pageUrl: Request.Headers.Referrer?.ToString() ?? Request.RequestUri?.ToString(),
+                            userAgent: Request.Headers.UserAgent?.ToString(),
+                            ipAddress: ipAddress,
+                            personAliasId: null );
+                    }
                 }
 
                 return Respond( HttpStatusCode.OK, bag );
@@ -91,21 +97,37 @@ namespace org.secc.LinkList.Rest.Controllers
         /// never read). Web API won't model-bind text/plain, so the raw body
         /// is read and parsed by <see cref="ClickPayload"/>.
         ///
-        /// ALWAYS returns 200 with an empty body regardless of validation
-        /// outcome: beacons can't retry usefully, and a uniform response
-        /// leaks nothing (no list enumeration signal). Invalid/spoofed
-        /// payloads are silently dropped. Anti-spoof: the matrix row guid
-        /// must belong to THIS list's matrix, and the recorded URL/text are
-        /// read server-side - the client payload carries only the row guid.
-        /// No rate limiter in v1; writes are queued/bulk-inserted so a
-        /// malicious flood costs little (add a per-IP token bucket here if
-        /// that changes).
+        /// POST-PARSE validation ALWAYS returns 200 with an empty body: beacons
+        /// can't retry usefully, and a uniform response leaks nothing (no list
+        /// enumeration signal). Invalid/spoofed payloads are silently dropped.
+        /// Anti-spoof: the matrix row guid must belong to THIS list's matrix,
+        /// and the recorded URL/text are read server-side - the client payload
+        /// carries only the row guid.
+        ///
+        /// ROCK-8881: two abuse guards run BEFORE the body is buffered/parsed
+        /// and are the only paths that return a non-200 status:
+        ///   (1) a pre-read Content-Length gate rejects an absent length (411)
+        ///       or one over <see cref="ClickPayload.MaxBodyLength"/> (413), so
+        ///       an oversized/unbounded body is never read into memory; and
+        ///   (2) a per-IP rate limit on the Click write itself - an over-budget
+        ///       IP still gets 200, the Click is just not recorded
+        ///       (accept-but-drop; a shared-NAT visitor is never blocked).
         /// </summary>
         [HttpPost]
         [System.Web.Http.Route( "{idOrSlug}/click" )]
         public async Task<IHttpActionResult> PostClick( string idOrSlug )
         {
             var ok = Respond( HttpStatusCode.OK, null );
+
+            // Pre-read body-size gate (ROCK-8881): decide from the declared
+            // Content-Length BEFORE ReadAsStringAsync() buffers the payload.
+            switch ( ClickRequestValidator.CheckContentLength( Request.Content?.Headers?.ContentLength ) )
+            {
+                case ClickRequestValidator.BodyLengthDecision.LengthRequired:
+                    return Respond( HttpStatusCode.LengthRequired, new { Message = "Content-Length required." } );
+                case ClickRequestValidator.BodyLengthDecision.TooLarge:
+                    return Respond( HttpStatusCode.RequestEntityTooLarge, new { Message = "Payload too large." } );
+            }
 
             var trimmed = LinkListService.NormalizeSlug( idOrSlug );
             if ( !trimmed.AsIntegerOrNull().HasValue
@@ -149,20 +171,35 @@ namespace org.secc.LinkList.Rest.Controllers
                 var url = row.GetAttributeValue( SystemGuids.LinkListGuids.MatrixAttributeKey.Url );
                 var text = row.GetAttributeValue( SystemGuids.LinkListGuids.MatrixAttributeKey.LinkText );
 
-                LinkListInteractionService.RecordClick(
-                    item.Id,
-                    item.Title,
-                    row.Id,
-                    url,
-                    text,
-                    userAgent: Request.Headers.UserAgent?.ToString(),
-                    ipAddress: GetClientIp(),
-                    personAliasId: null );
+                // ROCK-8881: per-IP rate limit on the Click write only - the
+                // beacon still answers 200; an over-budget IP just isn't recorded.
+                var ipAddress = GetClientIp();
+                if ( LinkListRateLimitPolicy.ShouldRecordClick( ipAddress ) )
+                {
+                    LinkListInteractionService.RecordClick(
+                        item.Id,
+                        item.Title,
+                        row.Id,
+                        url,
+                        text,
+                        userAgent: Request.Headers.UserAgent?.ToString(),
+                        ipAddress: ipAddress,
+                        personAliasId: null );
+                }
             }
 
             return ok;
         }
 
+        // ROCK-8881: X-Forwarded-For-aware client IP. Web API exposes the
+        // ambient request via the MS_HttpContext property; hand its
+        // HttpRequestBase to Rock's shared helper, which honors the proxy
+        // forwarding headers instead of reading UserHostAddress blindly.
+        // NOTE: the helper trusts the first XFF token without trusted-proxy
+        // validation, so this value is client-spoofable. The rate limiter that
+        // consumes it (LinkListRateLimitPolicy) is best-effort by design and
+        // bounds its own keyspace precisely because this input is untrusted;
+        // see that class for the accepted residual-risk discussion.
         private string GetClientIp()
         {
             try
@@ -170,7 +207,10 @@ namespace org.secc.LinkList.Rest.Controllers
                 var context = Request.Properties.TryGetValue( "MS_HttpContext", out var ctx )
                     ? ctx as System.Web.HttpContextWrapper
                     : null;
-                return context?.Request?.UserHostAddress;
+                var request = context?.Request;
+                return request == null
+                    ? null
+                    : Rock.Utility.WebRequestHelper.GetClientIpAddress( request );
             }
             catch
             {
