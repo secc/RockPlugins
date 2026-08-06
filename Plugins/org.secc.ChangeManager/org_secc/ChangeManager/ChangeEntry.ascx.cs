@@ -240,7 +240,9 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 EntityTypeId = personAliasEntityType.Id,
                 EntityId = person.PrimaryAliasId ?? 0,
                 RequestorAliasId = CurrentPersonAliasId ?? 0,
-                RequestorComment = tbComments.Text
+                // RequestorComment is stored as trusted HTML (see ChangeRequestDetail),
+                // so user-supplied text must be encoded before it goes in.
+                RequestorComment = tbComments.Text.Trim().EncodeHtml().ConvertCrLfToHtmlBr()
             };
 
             changeRequest.EvaluatePropertyChange( person, "PhotoId", iuPhoto.BinaryFileId );
@@ -511,7 +513,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
             if ( familyChangeRequest.ChangeRecords.Any() )
             {
-                familyChangeRequest.RequestorComment = tbComments.Text;
+                familyChangeRequest.RequestorComment = tbComments.Text.Trim().EncodeHtml().ConvertCrLfToHtmlBr();
                 ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
                 changeRequestService.Add( familyChangeRequest );
                 rockContext.SaveChanges();
@@ -618,6 +620,13 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             }
         }
 
+        /// <summary>
+        /// Builds the duplicate-mobile-number warning as HTML, or an empty string when no
+        /// other record has the number. Both consumers render it as HTML (RequestorComment
+        /// is trusted HTML, and ModalAlert.Show sanitizes but does not encode), so the
+        /// person names interpolated into the markup are always encoded.
+        /// </summary>
+        /// <param name="number">The cleaned mobile number.</param>
         private string ValidateMobilePhoneNumber( string number )
         {
             var person = GetPerson();
@@ -632,13 +641,15 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
             if ( otherOwners.Any() )
             {
+                // This notice is intentional HTML. Person names are free text, so they are
+                // always encoded before being interpolated into the markup.
                 var notice = string.Format(
                     "The phone number {0} is on the following records." +
                     "<ul>{1}</ul>" +
                     "Mobile phone numbers should exist on one record only. Please ensure that {0} belongs to {2} and remove this number from all other users.",
                     PhoneNumber.FormattedNumber( PhoneNumber.DefaultCountryCode(), number ),
-                    string.Join( "", otherOwners.Select( p => "<li><a href='/Person/" + p.Id.ToString() + "' target='_blank'>" + p.FullName + "</a></li>" ) ),
-                    person.FullName
+                    string.Join( "", otherOwners.Select( p => "<li><a href='/Person/" + p.Id.ToString() + "' target='_blank'>" + p.FullName.EncodeHtml() + "</a></li>" ) ),
+                    person.FullName.EncodeHtml()
                     );
                 return notice;
             }
@@ -655,7 +666,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 EntityTypeId = personAliasEntityType.Id,
                 EntityId = person.PrimaryAliasId ?? 0,
                 RequestorAliasId = CurrentPersonAliasId ?? 0,
-                RequestorComment = tbSimpleRequest.Text
+                RequestorComment = tbSimpleRequest.Text.Trim().EncodeHtml().ConvertCrLfToHtmlBr()
             };
 
             ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );

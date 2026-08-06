@@ -126,10 +126,20 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
             if ( changeRequest.RequestorComment.IsNotNullOrWhiteSpace() )
             {
                 ltRequestComments.Visible = true;
-                ltRequestComments.Text = System.Web.HttpUtility.HtmlEncode( changeRequest.RequestorComment );
+
+                // RequestorComment is trusted HTML: the blocks that write it compose
+                // system-generated markup (the dynamically generated phone warnings, the
+                // "Comment:" separator) with user text that they encode at that point.
+                // Do not encode here or that markup renders literally (ROCK-8879).
+                // Comments stored before ROCK-8879 were encoded by plugin migration 004
+                // (which also restores the known system-generated fragments), so stored
+                // values are uniformly safe to render without encoding.
+                ltRequestComments.Text = changeRequest.RequestorComment;
             }
 
-            ltApproverComment.Text = System.Web.HttpUtility.HtmlEncode( changeRequest.ApproverComment );
+            // ApproverComment is plain text straight from tbApproverComment, so it is
+            // encoded here rather than at the write site.
+            ltApproverComment.Text = changeRequest.ApproverComment.EncodeHtml().ConvertCrLfToHtmlBr();
             tbApproverComment.Text = changeRequest.ApproverComment;
 
             if ( !IsUserAuthorized( Rock.Security.Authorization.EDIT ) )

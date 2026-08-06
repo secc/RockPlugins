@@ -216,7 +216,9 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                     EntityTypeId = EntityTypeCache.Get( typeof( Group ) ).Id,
                     EntityId = sharedFamily.Id,
                     RequestorAliasId = CurrentPersonAliasId.Value,
-                    RequestorComment = tbAdditionalInfo.Text.Trim(),
+                    // RequestorComment is stored as trusted HTML (see ChangeRequestDetail),
+                    // so user-supplied text must be encoded before it goes in.
+                    RequestorComment = tbAdditionalInfo.Text.Trim().EncodeHtml().ConvertCrLfToHtmlBr(),
                     ChangeRecords = new List<ChangeRecord>()
                 };
 

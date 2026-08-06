@@ -516,7 +516,9 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                 if ( changeRequest.ChangeRecords.Any()
                 || ( !familyChangeRequest.ChangeRecords.Any() && tbComments.Text.IsNotNullOrWhiteSpace() ) )
                 {
-                    changeRequest.RequestorComment = tbComments.Text;
+                    // RequestorComment is stored as trusted HTML (see ChangeRequestDetail),
+                    // so user-supplied text must be encoded before it goes in.
+                    changeRequest.RequestorComment = tbComments.Text.Trim().EncodeHtml().ConvertCrLfToHtmlBr();
                     ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
                     changeRequestService.Add( changeRequest );
                     rockContext.SaveChanges();
@@ -526,7 +528,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
                 if ( familyChangeRequest.ChangeRecords.Any() )
                 {
-                    familyChangeRequest.RequestorComment = tbComments.Text;
+                    familyChangeRequest.RequestorComment = tbComments.Text.Trim().EncodeHtml().ConvertCrLfToHtmlBr();
                     ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
                     changeRequestService.Add( familyChangeRequest );
                     rockContext.SaveChanges();
@@ -636,7 +638,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
 
                 if ( tbComments.Text.IsNotNullOrWhiteSpace() )
                 {
-                    changeRequest.RequestorComment += "<br><br>Comment: " + tbComments.Text;
+                    changeRequest.RequestorComment += "<br><br>Comment: " + tbComments.Text.Trim().EncodeHtml().ConvertCrLfToHtmlBr();
                 }
 
                 ChangeRequestService changeRequestService = new ChangeRequestService( rockContext );
