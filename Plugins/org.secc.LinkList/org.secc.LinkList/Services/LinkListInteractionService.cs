@@ -15,6 +15,7 @@
 using System;
 
 using org.secc.LinkList.SystemGuids;
+using org.secc.LinkList.Utility;
 
 using Rock;
 using Rock.Model;
@@ -34,8 +35,16 @@ namespace org.secc.LinkList.Services
     /// rows whose UserAgent classifies as "Crawler" while LogCrawlers is false
     /// (the default) - callers just pass the UA through.
     ///
+    /// ROCK-8881: the per-IP rate limit is charged HERE rather than at the call
+    /// sites. Both anonymous REST endpoints and the in-Rock viewer block reach
+    /// these methods, and gating at the call sites left the block's path
+    /// unthrottled; charging at the single choke point covers every current and
+    /// future caller. <c>PostClick</c> additionally peeks the budget before its
+    /// database work - that peek is non-consuming, so it does not double-charge.
+    ///
     /// Every public method is fail-safe: analytics must never take down a
-    /// public page view, so failures log and return.
+    /// public page view, so failures log and return, and the rate limiter fails
+    /// open.
     /// </summary>
     public static class LinkListInteractionService
     {
@@ -76,6 +85,11 @@ namespace org.secc.LinkList.Services
         /// <param name="pageUrl">The viewed page - prefer the embedding page (Referer) over the API URL.</param>
         public static void RecordView( int itemId, string itemTitle, string pageUrl, string userAgent, string ipAddress, int? personAliasId )
         {
+            if ( !LinkListRateLimitPolicy.TryConsumeView( ipAddress ) )
+            {
+                return;
+            }
+
             Record( "View", itemId, itemTitle, interactionEntityId: null, data: pageUrl, summary: itemTitle, userAgent, ipAddress, personAliasId );
         }
 
@@ -85,6 +99,11 @@ namespace org.secc.LinkList.Services
         /// <param name="linkText">The link's text, read server-side.</param>
         public static void RecordClick( int itemId, string itemTitle, int matrixItemId, string linkUrl, string linkText, string userAgent, string ipAddress, int? personAliasId )
         {
+            if ( !LinkListRateLimitPolicy.TryConsumeClick( ipAddress ) )
+            {
+                return;
+            }
+
             Record( "Click", itemId, itemTitle, matrixItemId, data: linkUrl, summary: linkText, userAgent, ipAddress, personAliasId );
         }
 
