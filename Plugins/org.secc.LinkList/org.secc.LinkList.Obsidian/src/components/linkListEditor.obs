@@ -20,7 +20,37 @@
                         <TextBox v-model="bag.title" label="Title" :rules="'required'" />
                     </div>
                     <div class="col-md-6">
-                        <TextBox v-model="bag.slug" label="Slug" help="Lowercase letters, digits, and dashes only." />
+                        <label class="control-label">Slugs</label>
+                        <div class="ll-slugs">
+                            <div v-for="(s, i) in bag.slugs || []" :key="s.id || `new-${i}`" class="ll-slug-row">
+                                <button
+                                    type="button"
+                                    class="btn btn-link btn-xs ll-slug-primary"
+                                    :class="{ 'is-primary': s.isPrimary }"
+                                    :title="s.isPrimary ? 'Primary slug (used in shared links)' : 'Make primary'"
+                                    @click="setPrimary(i)">
+                                    <i :class="s.isPrimary ? 'fa fa-star' : 'fa fa-star-o'"></i>
+                                </button>
+                                <code class="ll-slug-text">{{ s.slug }}</code>
+                                <span v-if="s.isPrimary" class="label label-info ll-slug-badge">Primary</span>
+                                <button
+                                    type="button"
+                                    class="btn btn-link text-danger btn-xs ms-auto"
+                                    :disabled="(bag.slugs || []).length <= 1"
+                                    :title="(bag.slugs || []).length <= 1 ? 'A list must have at least one slug' : 'Remove slug'"
+                                    @click="removeSlug(i)">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                            <div v-if="!(bag.slugs || []).length" class="text-muted small">No slugs yet. Add one below.</div>
+                        </div>
+                        <div class="ll-slug-add">
+                            <TextBox v-model="newSlug" placeholder="new-slug" @keydown.enter.prevent="addSlug" />
+                            <RockButton btnType="default" btnSize="sm" :disabled="!newSlug.trim()" @click="addSlug">
+                                <i class="fa fa-plus"></i> Add
+                            </RockButton>
+                        </div>
+                        <span class="help-block">Lowercase letters, digits, and dashes only. The primary slug is used in shared links; keeping extra slugs preserves old URLs.</span>
                     </div>
                 </div>
                 <div class="row">
@@ -240,7 +270,7 @@ import LinkListAnalytics from "./linkListAnalytics.obs";
 import { CUSTOM_DESIGN, effectiveColor as effectiveColorOf, designSelectionValue, applyDesignChange, type ColorField } from "../linkListTheme";
 import { clearOtherFeatured, sectionNestingMeta } from "../linkListItems";
 import type { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
-import type { LinkListBag, LinkListDetailInitializationBox, LinkItemBag, GroupMemberBag } from "../types";
+import type { LinkListBag, LinkListDetailInitializationBox, LinkItemBag, GroupMemberBag, LinkListSlugBag } from "../types";
 
 const props = defineProps<{
     detail: LinkListDetailInitializationBox;
@@ -255,6 +285,7 @@ const invokeBlockAction = useInvokeBlockAction();
 
 const bag = ref<LinkListBag>(cloneBag(props.detail.linkList));
 const errorMessage = ref("");
+const newSlug = ref("");
 const isSaving = ref(false);
 const isAddingMember = ref(false);
 const memberToAdd = ref<{ value: string; text: string } | null>(null);
@@ -327,13 +358,91 @@ const headerBackgroundImageValue = computed({
 
 function cloneBag(input: LinkListBag | null | undefined): LinkListBag {
     if (!input) {
-        return { title: "", slug: "", isPublic: true, items: [] };
+        return { title: "", slug: "", slugs: [], isPublic: true, items: [] };
     }
     const cloned = JSON.parse(JSON.stringify(input)) as LinkListBag;
     if (!cloned.items) {
         cloned.items = [];
     }
+    normalizeSlugs(cloned);
     return cloned;
+}
+
+// Ensures the bag has a usable slugs collection with exactly one primary:
+// seeds from the scalar slug when the collection is empty (defensive — the
+// server sends slugs now), and defaults the primary to the first slug for
+// legacy lists whose rows carry no IsPrimary flag.
+function normalizeSlugs(target: LinkListBag): void {
+    if (!target.slugs) {
+        target.slugs = [];
+    }
+    if (target.slugs.length === 0 && target.slug) {
+        target.slugs.push({ id: 0, slug: target.slug, isPrimary: true });
+    }
+    if (target.slugs.length && !target.slugs.some(s => s.isPrimary)) {
+        target.slugs[0].isPrimary = true;
+    }
+}
+
+// Mirror the server's slug rule (LinkListService.IsValidSlug) for immediate
+// feedback; the server stays the source of truth.
+const SLUG_PATTERN = /^[a-z0-9-]+$/;
+const SLUG_MAX_LENGTH = 200;
+
+function addSlug(): void {
+    const text = (newSlug.value || "").trim().toLowerCase();
+    if (!text) {
+        return;
+    }
+    if (text.length > SLUG_MAX_LENGTH || !SLUG_PATTERN.test(text)) {
+        errorMessage.value = `Slug "${text}" must be 1-${SLUG_MAX_LENGTH} lowercase letters, digits, or dashes.`;
+        return;
+    }
+    const slugs: LinkListSlugBag[] = bag.value.slugs || (bag.value.slugs = []);
+    if (slugs.some(s => s.slug === text)) {
+        errorMessage.value = `Slug "${text}" is already in the list.`;
+        return;
+    }
+    slugs.push({ id: 0, slug: text, isPrimary: slugs.length === 0 });
+    ensureOnePrimary();
+    newSlug.value = "";
+    errorMessage.value = "";
+}
+
+function removeSlug(index: number): void {
+    const slugs = bag.value.slugs;
+    if (!slugs) {
+        return;
+    }
+    // A list must keep at least one slug or it becomes unreachable (the viewer
+    // and web component resolve only by slug). The server enforces this too.
+    if (slugs.length <= 1) {
+        errorMessage.value = "A link list must have at least one slug.";
+        return;
+    }
+    const wasPrimary = slugs[index]?.isPrimary;
+    slugs.splice(index, 1);
+    if (wasPrimary) {
+        ensureOnePrimary();
+    }
+}
+
+function setPrimary(index: number): void {
+    const slugs = bag.value.slugs;
+    if (!slugs) {
+        return;
+    }
+    slugs.forEach((s, i) => { s.isPrimary = i === index; });
+}
+
+function ensureOnePrimary(): void {
+    const slugs = bag.value.slugs;
+    if (!slugs || !slugs.length) {
+        return;
+    }
+    if (!slugs.some(s => s.isPrimary)) {
+        slugs[0].isPrimary = true;
+    }
 }
 
 function onDesignChange(value: string | string[] | undefined): void {
@@ -411,6 +520,16 @@ function moveRow(index: number, delta: number): void {
 
 async function save(): Promise<void> {
     errorMessage.value = "";
+    // A list must have at least one slug (server enforces this too); block the
+    // save with a friendly message rather than round-tripping to a 400.
+    if (!(bag.value.slugs || []).length) {
+        errorMessage.value = "Add at least one slug before saving.";
+        return;
+    }
+    // Keep the scalar (primary) slug aligned with the chosen primary before
+    // sending; the server recomputes it from the primary row on the way back.
+    const primary = (bag.value.slugs || []).find(s => s.isPrimary);
+    bag.value.slug = primary?.slug ?? "";
     isSaving.value = true;
     const result = await invokeBlockAction<LinkListBag>("SaveList", { bag: bag.value });
     isSaving.value = false;
@@ -480,4 +599,13 @@ async function removeMember(groupMemberId: number): Promise<void> {
 .add-member { display: flex; align-items: end; gap: 8px; }
 .add-member > :first-child { flex-grow: 1; }
 .ms-auto { margin-left: auto; }
+
+.ll-slugs { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+.ll-slug-row { display: flex; align-items: center; gap: 8px; padding: 2px 0; }
+.ll-slug-primary { padding: 0; color: #999; }
+.ll-slug-primary.is-primary { color: #f0ad4e; }
+.ll-slug-text { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }
+.ll-slug-badge { font-weight: normal; }
+.ll-slug-add { display: flex; align-items: start; gap: 8px; }
+.ll-slug-add > :first-child { flex-grow: 1; }
 </style>

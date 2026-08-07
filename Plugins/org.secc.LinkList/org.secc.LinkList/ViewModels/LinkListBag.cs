@@ -23,7 +23,31 @@ namespace org.secc.LinkList.ViewModels
 
         public int? Id { get; set; }
 
+        /// <summary>
+        /// The PRIMARY slug (computed, read-only for consumers). Kept for
+        /// back-compat: the web component's <c>secc-link-list-loaded</c> event
+        /// payload and the fallback title still read this scalar. The editor
+        /// edits <see cref="Slugs"/>; the save path recomputes this from the
+        /// primary row.
+        /// </summary>
         public string Slug { get; set; }
+
+        /// <summary>
+        /// All slugs for the list (primary + additional). The editor adds,
+        /// removes, and designates the primary here; the save path reconciles
+        /// this set against the item's ContentChannelItemSlug rows. Every entry
+        /// resolves to the list, so keeping an old slug preserves old URLs.
+        /// <para>
+        /// NOTE: intentionally NOT initialized. On the save (deserialization)
+        /// path, null means "the client omitted this collection" - a legacy
+        /// scalar-only client (e.g. a browser holding the pre-multi-slug editor
+        /// bundle) - which the block treats as an upsert-only update that never
+        /// deletes other slugs. A non-null value (even empty) means a slug-aware
+        /// client sent its full set, so the block does a delete-capable reconcile.
+        /// The read path (BuildBag / QueryListSummaries) always assigns it.
+        /// </para>
+        /// </summary>
+        public List<LinkListSlugBag> Slugs { get; set; }
 
         public string Title { get; set; }
 

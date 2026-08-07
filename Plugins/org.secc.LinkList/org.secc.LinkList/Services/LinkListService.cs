@@ -162,10 +162,68 @@ namespace org.secc.LinkList.Services
             {
                 return null;
             }
+            // Primary wins; among unflagged rows fall back to the lowest Id (today's
+            // behavior), so existing single-flag-less lists resolve exactly as before
+            // - no data migration needed.
             return item.ContentChannelItemSlugs?
-                .OrderBy( s => s.Id )
+                .OrderByDescending( s => s.IsPrimary )
+                .ThenBy( s => s.Id )
                 .Select( s => s.Slug )
                 .FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Every slug for the item (primary first, then lowest-Id), mapped to bags
+        /// for the editor. Same ordering as <see cref="PrimarySlug"/> so the first
+        /// entry is always the primary.
+        /// </summary>
+        private static List<LinkListSlugBag> BuildSlugBags( ContentChannelItem item )
+        {
+            if ( item?.ContentChannelItemSlugs == null )
+            {
+                return new List<LinkListSlugBag>();
+            }
+            return item.ContentChannelItemSlugs
+                .OrderByDescending( s => s.IsPrimary )
+                .ThenBy( s => s.Id )
+                .Select( s => new LinkListSlugBag
+                {
+                    Id = s.Id,
+                    Slug = s.Slug,
+                    IsPrimary = s.IsPrimary
+                } )
+                .ToList();
+        }
+
+        /// <summary>
+        /// Returns the first of <paramref name="normalizedSlugs"/> that already
+        /// belongs to a DIFFERENT item in the LinkList channel (case-insensitive),
+        /// or null when they're all free. Used for a clear pre-save conflict error:
+        /// Rock's SaveSlug/GetUniqueSlug never throws on collision - it silently
+        /// suffixes -1/-2 - so uniqueness must be checked explicitly.
+        /// </summary>
+        public string FindConflictingSlug( IEnumerable<string> normalizedSlugs, int excludeItemId )
+        {
+            var slugs = ( normalizedSlugs ?? Enumerable.Empty<string>() )
+                .Where( s => !s.IsNullOrWhiteSpace() )
+                .Distinct( StringComparer.OrdinalIgnoreCase )
+                .ToList();
+            if ( slugs.Count == 0 )
+            {
+                return null;
+            }
+
+            var channelGuid = LinkListGuids.LinkListChannel.AsGuid();
+            var taken = new ContentChannelItemSlugService( _rockContext )
+                .Queryable()
+                .Where( s => s.ContentChannelItem.ContentChannel.Guid == channelGuid
+                    && s.ContentChannelItemId != excludeItemId
+                    && slugs.Contains( s.Slug ) )
+                .Select( s => s.Slug )
+                .ToList();
+
+            var takenSet = new HashSet<string>( taken, StringComparer.OrdinalIgnoreCase );
+            return slugs.FirstOrDefault( s => takenSet.Contains( s ) );
         }
 
         /// <summary>
@@ -288,6 +346,7 @@ namespace org.secc.LinkList.Services
                     Guid = item.Guid.ToString(),
                     Title = item.Title ?? "Untitled",
                     Slug = PrimarySlug( item ),
+                    Slugs = BuildSlugBags( item ),
                     IsPublic = ReadIsPublic( item ),
                     DesignName = ResolveDesignName( item ),
                     ModifiedDateTime = item.ModifiedDateTime,
@@ -356,6 +415,7 @@ namespace org.secc.LinkList.Services
                 Guid = item.Guid.ToString(),
                 Title = item.Title ?? "Untitled",
                 Slug = PrimarySlug( item ),
+                Slugs = BuildSlugBags( item ),
                 IsPublic = isPublic,
                 ContentTextColor = item.GetAttributeValue( LinkListGuids.TypeAttributeKey.ContentTextColor ),
                 BackgroundColor = item.GetAttributeValue( LinkListGuids.TypeAttributeKey.BackgroundColor ),

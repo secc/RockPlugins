@@ -153,10 +153,9 @@ namespace org.secc.LinkList.Blocks
             {
                 return ActionBadRequest( "Link list payload is required." );
             }
-            // Canonicalize the slug (trim + lowercase) before validation so a
-            // mixed-case slug typed in the editor is accepted and stored in the
-            // same form every other entry point resolves.
-            bag.Slug = LinkListService.NormalizeSlug( bag.Slug );
+            // Slugs are canonicalized (trim + lowercase) inside ValidateBag /
+            // EffectiveSubmittedSlugs so mixed-case input typed in the editor is
+            // accepted and stored in the same form every other entry point resolves.
             var validation = ValidateBag( bag );
             if ( validation != null )
             {
@@ -203,6 +202,18 @@ namespace org.secc.LinkList.Blocks
                         StartDateTime = RockDateTime.Now
                     };
                     itemService.Add( item );
+                }
+
+                // Reject any slug already used by ANOTHER list in the channel with a
+                // clear, named error - Rock's SaveSlug would silently suffix instead.
+                // item.Id is 0 for a new (unsaved) item, which excludes nothing here.
+                var slugSubmission = BuildSlugSubmission( bag );
+                var conflictingSlug = service.FindConflictingSlug(
+                    slugSubmission.Slugs.Select( s => s.Slug ), item.Id );
+                if ( conflictingSlug != null )
+                {
+                    return ActionBadRequest(
+                        $"The slug '{conflictingSlug}' is already used by another list. Choose a different slug." );
                 }
 
                 item.Title = bag.Title.Trim();
@@ -257,21 +268,71 @@ namespace org.secc.LinkList.Blocks
                     PersistBinaryFile( rockContext, bag.HeaderBackgroundImage );
                     rockContext.SaveChanges();
 
-                    // Slug upsert (uniqueness within the channel is enforced by Rock).
-                    if ( !bag.Slug.IsNullOrWhiteSpace() )
+                    // Multi-slug reconciliation. Only touch slugs when the client
+                    // sent slug data - a legacy client that sent neither a Slugs
+                    // array nor a scalar slug leaves the list's slugs untouched.
+                    if ( slugSubmission.FullReconcile || slugSubmission.Slugs.Count > 0 )
                     {
-                        var existingSlug = item.ContentChannelItemSlugs?
-                            .OrderBy( s => s.Id )
-                            .FirstOrDefault();
+                        // Load the item's slug rows EXPLICITLY (a query, not the lazy
+                        // nav) so the diff sees the committed set. No WrapTransaction
+                        // here (same deadlock reason as above): SaveSlug opens/commits
+                        // on its own as it goes.
                         var slugService = new ContentChannelItemSlugService( rockContext );
-                        try
+                        var existingSlugs = slugService.Queryable()
+                            .Where( s => s.ContentChannelItemId == item.Id )
+                            .Select( s => new { s.Id, s.Slug } )
+                            .ToList()
+                            .Select( s => new ExistingSlug { Id = s.Id, Slug = s.Slug } )
+                            .ToList();
+
+                        var slugPlan = SlugReconciler.Reconcile( existingSlugs, slugSubmission.Slugs );
+                        if ( !slugPlan.IsValid )
                         {
-                            slugService.SaveSlug( item.Id, channel.Id, bag.Slug, existingSlug?.Id );
+                            // ValidateBag already ran; fail loudly rather than silently
+                            // persist a bad set (surfaced by the outer catch).
+                            throw new InvalidOperationException( slugPlan.Error );
                         }
-                        catch ( Exception ex )
+
+                        // Add new slugs (SaveSlug normalizes + persists each row).
+                        foreach ( var slug in slugPlan.SlugsToAdd )
                         {
-                            // Rethrow to roll back the transaction; surfaced below.
-                            throw new InvalidOperationException( "Slug error: " + ex.Message, ex );
+                            slugService.SaveSlug( item.Id, channel.Id, slug, null );
+                        }
+
+                        // Delete removed slugs ONLY for a slug-aware (full reconcile)
+                        // client. A legacy scalar-only client upserts without deleting,
+                        // so it can never silently orphan a list's other slugs.
+                        if ( slugSubmission.FullReconcile && slugPlan.SlugIdsToDelete.Count > 0 )
+                        {
+                            var idsToDelete = slugPlan.SlugIdsToDelete;
+                            var rowsToDelete = slugService.Queryable()
+                                .Where( s => idsToDelete.Contains( s.Id ) )
+                                .ToList();
+                            foreach ( var row in rowsToDelete )
+                            {
+                                slugService.Delete( row );
+                            }
+                            rockContext.SaveChanges();
+                        }
+
+                        // Set the primary flag on the chosen row and clear it on the rest.
+                        var currentSlugRows = slugService.Queryable()
+                            .Where( s => s.ContentChannelItemId == item.Id )
+                            .ToList();
+                        var primaryChanged = false;
+                        foreach ( var row in currentSlugRows )
+                        {
+                            var shouldBePrimary = slugPlan.PrimarySlug != null
+                                && string.Equals( row.Slug, slugPlan.PrimarySlug, StringComparison.OrdinalIgnoreCase );
+                            if ( row.IsPrimary != shouldBePrimary )
+                            {
+                                row.IsPrimary = shouldBePrimary;
+                                primaryChanged = true;
+                            }
+                        }
+                        if ( primaryChanged )
+                        {
+                            rockContext.SaveChanges();
                         }
                     }
 
@@ -584,11 +645,53 @@ namespace org.secc.LinkList.Blocks
             {
                 return "Title is required and must be 1-250 characters.";
             }
-            if ( !bag.Slug.IsNullOrWhiteSpace() && !LinkListService.IsValidSlug( bag.Slug ) )
+
+            var submission = BuildSlugSubmission( bag );
+
+            // Validate EVERY submitted slug (charset) and reject duplicates within
+            // the submitted set. Channel-wide uniqueness is checked separately (it
+            // needs a DB query). Slug charset/normalization rules live in
+            // LinkListService - the single source of truth.
+            var slugError = SlugReconciler.ValidateSubmitted( submission.Slugs );
+            if ( slugError != null )
             {
-                return "Slug must be 1-200 chars of letters, digits, or dashes.";
+                return slugError;
+            }
+
+            // A slug-aware client must keep at least one slug: a zero-slug list is
+            // unreachable by the viewer and public web component (both resolve a
+            // list only by its slug). A legacy scalar-only client (FullReconcile
+            // false) is not held to this - it can't manage slugs, and its update
+            // never deletes, so it can't create a zero-slug list.
+            if ( submission.FullReconcile && submission.Slugs.Count == 0 )
+            {
+                return "A link list must have at least one slug.";
             }
             return null;
+        }
+
+        /// <summary>
+        /// The slug set this save should apply. When the client sent a Slugs
+        /// collection (slug-aware editor) it drives a delete-capable reconcile;
+        /// when the collection is omitted (null - a legacy scalar-only client) it
+        /// becomes an upsert-only submission seeded from the scalar
+        /// <see cref="LinkListBag.Slug"/> that never deletes other slugs. All
+        /// normalization/blank-dropping happens in
+        /// <see cref="SlugReconciler.BuildSubmission"/>.
+        /// </summary>
+        private static SlugSubmission BuildSlugSubmission( LinkListBag bag )
+        {
+            // Map the bag's slugs to the helper's POCO, preserving null (omitted)
+            // vs non-null (provided) so BuildSubmission can tell them apart.
+            var provided = bag.Slugs?
+                .Select( s => new SubmittedSlug
+                {
+                    Id = s.Id,
+                    Slug = s.Slug,
+                    IsPrimary = s.IsPrimary
+                } )
+                .ToList();
+            return SlugReconciler.BuildSubmission( provided, bag.Slug );
         }
 
         private static void SetIfPresent( ContentChannelItem item, string key, string value )

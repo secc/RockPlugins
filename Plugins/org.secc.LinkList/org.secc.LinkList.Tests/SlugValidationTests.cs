@@ -12,7 +12,10 @@
 // limitations under the License.
 // </copyright>
 //
+using System.Collections.Generic;
+
 using org.secc.LinkList.Services;
+using org.secc.LinkList.Utility;
 
 using Xunit;
 
@@ -59,6 +62,52 @@ namespace org.secc.LinkList.Tests
         {
             Assert.True( LinkListService.IsValidSlug( new string( 'a', LinkListService.MaxSlugLength ) ) );
             Assert.False( LinkListService.IsValidSlug( new string( 'a', LinkListService.MaxSlugLength + 1 ) ) );
+        }
+
+        // ---- Multi-slug set validation (every slug in the set is validated) ----
+
+        [Fact]
+        public void ValidateSubmitted_Accepts_A_Set_Of_Valid_Slugs()
+        {
+            var submitted = new List<SubmittedSlug>
+            {
+                new SubmittedSlug { Slug = "my-list", IsPrimary = true },
+                new SubmittedSlug { Slug = "list-2024" },
+                new SubmittedSlug { Slug = "0" }
+            };
+            Assert.Null( SlugReconciler.ValidateSubmitted( submitted ) );
+        }
+
+        [Fact]
+        public void ValidateSubmitted_Rejects_When_Any_Slug_In_Set_Is_Invalid()
+        {
+            var submitted = new List<SubmittedSlug>
+            {
+                new SubmittedSlug { Slug = "good-slug", IsPrimary = true },
+                new SubmittedSlug { Slug = "bad slug" } // whitespace -> invalid
+            };
+            var error = SlugReconciler.ValidateSubmitted( submitted );
+            Assert.NotNull( error );
+            Assert.Contains( "bad slug", error );
+        }
+
+        [Fact]
+        public void ValidateSubmitted_Rejects_Duplicate_Slug_In_Set()
+        {
+            var submitted = new List<SubmittedSlug>
+            {
+                new SubmittedSlug { Slug = "dupe", IsPrimary = true },
+                new SubmittedSlug { Slug = "dupe" }
+            };
+            var error = SlugReconciler.ValidateSubmitted( submitted );
+            Assert.NotNull( error );
+            Assert.Contains( "dupe", error );
+        }
+
+        [Fact]
+        public void ValidateSubmitted_Empty_Set_Is_Valid()
+        {
+            Assert.Null( SlugReconciler.ValidateSubmitted( new List<SubmittedSlug>() ) );
         }
     }
 }

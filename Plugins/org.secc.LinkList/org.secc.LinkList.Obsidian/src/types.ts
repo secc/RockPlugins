@@ -15,6 +15,12 @@ export interface LinkItemBag {
     order?: number;
 }
 
+export interface LinkListSlugBag {
+    id: number; // ContentChannelItemSlug.Id, or 0 for a slug just added in the editor
+    slug: string;
+    isPrimary: boolean;
+}
+
 export interface GroupMemberBag {
     groupMemberId: number;
     personGuid: string;
@@ -48,7 +54,8 @@ export interface DesignOptionBag {
 export interface LinkListBag {
     guid?: string;
     id?: number | null;
-    slug?: string;
+    slug?: string; // PRIMARY slug (computed server-side; kept for back-compat consumers)
+    slugs?: LinkListSlugBag[]; // all slugs (primary + additional); the editor edits this
     title?: string;
     isPublic?: boolean;
     designId?: string | null;
