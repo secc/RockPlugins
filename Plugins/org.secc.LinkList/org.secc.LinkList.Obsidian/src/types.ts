@@ -55,7 +55,8 @@ export interface LinkListBag {
     guid?: string;
     id?: number | null;
     slug?: string; // PRIMARY slug (computed server-side; kept for back-compat consumers)
-    slugs?: LinkListSlugBag[]; // all slugs (primary + additional); the editor edits this
+    slugs?: LinkListSlugBag[]; // all slugs (primary + additional); editor payloads only
+    saveWarning?: string | null; // set when a save partially succeeded (see LinkListBag.SaveWarning)
     title?: string;
     isPublic?: boolean;
     designId?: string | null;

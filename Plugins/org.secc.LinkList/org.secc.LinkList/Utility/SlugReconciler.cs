@@ -28,11 +28,14 @@ namespace org.secc.LinkList.Utility
         public string Slug { get; set; }
     }
 
-    /// <summary>A slug submitted by the editor: id (0 = new), text, and whether it's the chosen primary.</summary>
+    /// <summary>
+    /// A slug submitted by the editor: canonical text plus whether it's the chosen
+    /// primary. Deliberately carries no row id - reconciliation matches on slug text
+    /// (the natural key), so an id here would be decoration that later readers could
+    /// mistake for the thing being matched on.
+    /// </summary>
     public class SubmittedSlug
     {
-        public int Id { get; set; }
-
         public string Slug { get; set; }
 
         public bool IsPrimary { get; set; }
@@ -91,7 +94,12 @@ namespace org.secc.LinkList.Utility
         /// upsert-only submission (<see cref="SlugSubmission.FullReconcile"/> false)
         /// seeded from <paramref name="scalarSlug"/> so it can never delete other
         /// slugs. A non-null collection (even empty) yields a full reconcile. Every
-        /// slug is normalized (trim + lowercase) and blanks are dropped.
+        /// slug is canonicalized to the text Rock will store (see
+        /// <see cref="LinkListService.CanonicalizeSlug"/>), slugs left empty by that
+        /// are dropped, and slugs that canonicalize to the same text are merged -
+        /// keeping the first position and any primary flag.
+        /// An empty result set means "leave this list's slugs alone"; for a list with
+        /// no slug rows Rock's own save hook then mints one from the title.
         /// </summary>
         public static SlugSubmission BuildSubmission( IEnumerable<SubmittedSlug> providedSlugs, string scalarSlug )
         {
@@ -104,29 +112,39 @@ namespace org.secc.LinkList.Utility
                         .Where( s => s != null )
                         .Select( s => new SubmittedSlug
                         {
-                            Id = s.Id,
-                            Slug = LinkListService.NormalizeSlug( s.Slug ),
+                            Slug = LinkListService.CanonicalizeSlug( s.Slug ),
                             IsPrimary = s.IsPrimary
                         } )
                         .Where( s => !string.IsNullOrWhiteSpace( s.Slug ) )
+                        // Two entries the user typed differently ("Give_Now", "give now")
+                        // can canonicalize to the same text; merge them rather than
+                        // erroring on a duplicate the user never typed.
+                        .GroupBy( s => s.Slug, StringComparer.OrdinalIgnoreCase )
+                        .Select( g => new SubmittedSlug
+                        {
+                            Slug = g.Key,
+                            IsPrimary = g.Any( s => s.IsPrimary )
+                        } )
                         .ToList()
                 };
             }
 
             var submission = new SlugSubmission { FullReconcile = false };
-            var scalar = LinkListService.NormalizeSlug( scalarSlug );
+            var scalar = LinkListService.CanonicalizeSlug( scalarSlug );
             if ( !string.IsNullOrWhiteSpace( scalar ) )
             {
-                submission.Slugs.Add( new SubmittedSlug { Id = 0, Slug = scalar, IsPrimary = true } );
+                submission.Slugs.Add( new SubmittedSlug { Slug = scalar, IsPrimary = true } );
             }
             return submission;
         }
 
         /// <summary>
-        /// Validates the submitted set: every slug must be a valid canonical slug
+        /// Validates the submitted set: every slug must be a valid stored slug
         /// (via <see cref="LinkListService.IsValidSlug"/>) and the set must contain
         /// no duplicate slug texts. Returns null when valid, else an error naming
-        /// the offending slug. Callers pass NORMALIZED slug text.
+        /// the offending slug. Callers pass CANONICALIZED slug text, which
+        /// <see cref="BuildSubmission"/> also de-duplicates - so both failures here
+        /// are invariant backstops rather than expected user-facing errors.
         /// </summary>
         public static string ValidateSubmitted( IEnumerable<SubmittedSlug> submitted )
         {
@@ -142,7 +160,7 @@ namespace org.secc.LinkList.Utility
                 }
                 if ( !LinkListService.IsValidSlug( slug ) )
                 {
-                    return $"Slug '{slug}' must be 1-200 chars of lowercase letters, digits, or dashes.";
+                    return $"Slug '{slug}' must be 1-{LinkListService.MaxSlugLength} chars of lowercase letters, digits, or dashes.";
                 }
                 if ( !seen.Add( slug ) )
                 {
@@ -152,13 +170,51 @@ namespace org.secc.LinkList.Utility
             return null;
         }
 
+        /// <summary>The most slugs one list may carry. See <see cref="ValidateSubmissionSize"/>.</summary>
+        public const int MaxSlugsPerList = 50;
+
+        /// <summary>
+        /// Rejects an absurd number of slugs. Well above any real list (they exist to
+        /// preserve old URLs), and the point is the conflict check: it parameterizes one
+        /// value per slug, so an unbounded set would hit SQL Server's ~2100 parameter
+        /// limit and surface as an opaque failure instead of a clear message.
+        /// </summary>
+        public static string ValidateSubmissionSize( SlugSubmission submission )
+        {
+            var count = submission?.Slugs?.Count ?? 0;
+            return count > MaxSlugsPerList
+                ? $"A link list can have at most {MaxSlugsPerList} slugs; this one has {count}."
+                : null;
+        }
+
+        /// <summary>
+        /// A slug-aware client may submit an EMPTY set: Rock's ContentChannelItem save
+        /// hook then derives a slug from the title, exactly as Rock's own content channel
+        /// item block does, and the save leaves the resulting row alone. That only works
+        /// if the title yields a usable slug - when it doesn't, the list would be left
+        /// unreachable by the viewer, the public web component and REST (all of which
+        /// resolve a list only by slug), so it must be rejected before anything is
+        /// written. A legacy scalar-only client (<see cref="SlugSubmission.FullReconcile"/>
+        /// false) is not held to this: it can't manage slugs and never deletes.
+        /// </summary>
+        public static string ValidateSubmissionAgainstTitle( SlugSubmission submission, string title )
+        {
+            if ( submission == null || !submission.FullReconcile || submission.Slugs.Count > 0 )
+            {
+                return null;
+            }
+            return string.IsNullOrWhiteSpace( LinkListService.CanonicalizeSlug( title ) )
+                ? "A link list needs a slug, and this title has no letters or digits to build one from. Add a slug."
+                : null;
+        }
+
         /// <summary>
         /// Diffs <paramref name="submitted"/> against <paramref name="existing"/>.
         /// Validates first (see <see cref="ValidateSubmitted"/>); on failure returns
         /// a result with <see cref="SlugReconciliationResult.IsValid"/> = false.
-        /// The chosen primary is the submitted entry flagged primary; if none (or
-        /// several) are flagged, the first submitted slug wins so a list with any
-        /// slugs always has exactly one primary.
+        /// The chosen primary is the FIRST submitted entry flagged primary, or the
+        /// first submitted slug when none is flagged - so a list with any slugs
+        /// always has exactly one primary.
         /// </summary>
         public static SlugReconciliationResult Reconcile( IEnumerable<ExistingSlug> existing, IEnumerable<SubmittedSlug> submitted )
         {

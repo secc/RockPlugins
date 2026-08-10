@@ -97,25 +97,71 @@ namespace org.secc.LinkList.Services
         // ---------------------------------------------------------------------
 
         // Slugs are lowercase-only: Rock's SaveSlug/MakeSlugValid lowercases on
-        // write, so stored slugs never contain uppercase. Every entry point
-        // (editor validation, viewer, public REST) normalizes through
-        // NormalizeSlug and validates with IsValidSlug so mixed-case input in a
-        // URL still resolves while the canonical form stays consistent.
+        // write, so stored slugs never contain uppercase. Read paths (viewer,
+        // public REST, ResolveItem) run inbound URL text through NormalizeSlug
+        // and IsValidSlug so mixed-case input still resolves. WRITE paths run
+        // CanonicalizeSlug, which produces exactly the text Rock will store.
         private static readonly System.Text.RegularExpressions.Regex SlugPattern =
             new System.Text.RegularExpressions.Regex( @"^[a-z0-9-]+$", System.Text.RegularExpressions.RegexOptions.Compiled );
 
+        private static readonly System.Text.RegularExpressions.Regex SlugStripPattern =
+            new System.Text.RegularExpressions.Regex( @"[^a-zA-Z0-9 -]", System.Text.RegularExpressions.RegexOptions.Compiled );
+
+        private static readonly System.Text.RegularExpressions.Regex SlugCollapseDashPattern =
+            new System.Text.RegularExpressions.Regex( @"-+", System.Text.RegularExpressions.RegexOptions.Compiled );
+
         public const int MaxSlugLength = 200;
 
-        /// <summary>Canonical slug form: trimmed and lowercased (null stays null).</summary>
+        /// <summary>Read-path slug form: trimmed and lowercased (null stays null).</summary>
         public static string NormalizeSlug( string slug )
         {
             return slug?.Trim().ToLowerInvariant();
         }
 
         /// <summary>
-        /// True when the value is a valid canonical slug: 1-200 chars of
-        /// lowercase letters, digits, or dashes. Callers should pass the
-        /// <see cref="NormalizeSlug"/> form.
+        /// Write-path canonicalization, mirroring Rock's ContentChannelItemSlugService
+        /// .MakeSlugValid (internal, so a plugin can't call it) with one deliberate
+        /// difference: the dash collapse runs AFTER the charset strip so the result is
+        /// a FIXED POINT of MakeSlugValid. SaveSlug re-runs MakeSlugValid on whatever
+        /// it is given, and only a fixed point guarantees the text validated here is
+        /// the text stored - which every slug conflict check, reconcile diff and
+        /// primary-flag match depends on. (Rock's own order turns "rock &amp; roll" into
+        /// "rock--roll", which a second pass then changes to "rock-roll".) For input
+        /// without that quirk the two orders produce identical output.
+        /// Returns "" (never null) when nothing usable survives; callers drop blanks.
+        /// Leading dashes are kept, matching Rock.
+        /// </summary>
+        public static string CanonicalizeSlug( string slug )
+        {
+            if ( slug == null )
+            {
+                return string.Empty;
+            }
+
+            slug = slug
+                .Trim()
+                .ToLowerInvariant()
+                .Replace( "&nbsp;", "-" )
+                .Replace( "&#160;", "-" )
+                .Replace( "&ndash;", "-" )
+                .Replace( "&#8211;", "-" )
+                .Replace( "&mdash;", "-" )
+                .Replace( "&#8212;", "-" )
+                .Replace( "_", "-" )
+                .Replace( " ", "-" );
+
+            slug = SlugStripPattern.Replace( slug, string.Empty );
+            slug = SlugCollapseDashPattern.Replace( slug, "-" );
+
+            return slug.Left( MaxSlugLength ).TrimEnd( '-' );
+        }
+
+        /// <summary>
+        /// True when the value could be a stored slug: 1-200 chars of lowercase
+        /// letters, digits, or dashes. Write paths pass <see cref="CanonicalizeSlug"/>
+        /// output; read paths pass <see cref="NormalizeSlug"/> output. Deliberately
+        /// looser than CanonicalizeSlug: Rock's own UI can store slugs containing "--"
+        /// or a leading dash, and those rows must still resolve.
         /// </summary>
         public static bool IsValidSlug( string slug )
         {
@@ -156,36 +202,31 @@ namespace org.secc.LinkList.Services
                 .Where( i => i.ContentChannel != null && i.ContentChannel.Guid == channelGuid );
         }
 
+        /// <summary>
+        /// The item's slug rows, primary first, then lowest Id. Falling back to the
+        /// lowest Id among unflagged rows preserves today's behavior, so lists that
+        /// predate the primary flag resolve exactly as before - no data migration.
+        /// Single definition of the order: everything slug-facing reads entry 0 as the
+        /// primary, so the ordering must not be restated anywhere else.
+        /// </summary>
+        private static IEnumerable<ContentChannelItemSlug> OrderedSlugs( ContentChannelItem item )
+        {
+            return ( item?.ContentChannelItemSlugs ?? Enumerable.Empty<ContentChannelItemSlug>() )
+                .OrderByDescending( s => s.IsPrimary )
+                .ThenBy( s => s.Id );
+        }
+
         private static string PrimarySlug( ContentChannelItem item )
         {
-            if ( item == null )
-            {
-                return null;
-            }
-            // Primary wins; among unflagged rows fall back to the lowest Id (today's
-            // behavior), so existing single-flag-less lists resolve exactly as before
-            // - no data migration needed.
-            return item.ContentChannelItemSlugs?
-                .OrderByDescending( s => s.IsPrimary )
-                .ThenBy( s => s.Id )
-                .Select( s => s.Slug )
-                .FirstOrDefault();
+            return OrderedSlugs( item ).Select( s => s.Slug ).FirstOrDefault();
         }
 
         /// <summary>
-        /// Every slug for the item (primary first, then lowest-Id), mapped to bags
-        /// for the editor. Same ordering as <see cref="PrimarySlug"/> so the first
-        /// entry is always the primary.
+        /// Every slug for the item, mapped to bags for the editor, primary first.
         /// </summary>
         private static List<LinkListSlugBag> BuildSlugBags( ContentChannelItem item )
         {
-            if ( item?.ContentChannelItemSlugs == null )
-            {
-                return new List<LinkListSlugBag>();
-            }
-            return item.ContentChannelItemSlugs
-                .OrderByDescending( s => s.IsPrimary )
-                .ThenBy( s => s.Id )
+            return OrderedSlugs( item )
                 .Select( s => new LinkListSlugBag
                 {
                     Id = s.Id,
@@ -239,39 +280,36 @@ namespace org.secc.LinkList.Services
 
             var query = ChannelItemQuery();
 
-            var asInt = idOrSlugOrGuid.AsIntegerOrNull();
-            if ( asInt.HasValue )
-            {
-                var byId = query.FirstOrDefault( i => i.Id == asInt.Value );
-                if ( byId != null )
-                {
-                    return byId;
-                }
-            }
-
+            // A guid is unambiguous, so it resolves first and costs nothing else.
             var asGuid = idOrSlugOrGuid.AsGuidOrNull();
             if ( asGuid.HasValue )
             {
-                var byGuid = query.FirstOrDefault( i => i.Guid == asGuid.Value );
-                if ( byGuid != null )
+                return query.FirstOrDefault( i => i.Guid == asGuid.Value );
+            }
+
+            // SLUG BEFORE ID. A slug may be all digits ("2024" is a legal slug) and it
+            // is the public contract - the URL people share - whereas resolving by Id is
+            // a convenience for internal callers. Trying the Id first let an item whose
+            // Id happened to equal a numeric slug silently hijack that slug's URL.
+            // Normalized to the canonical lowercase form (stored slugs are always
+            // lowercase); the caller owns charset validation, and the length cap here is
+            // defense in depth.
+            var slug = NormalizeSlug( idOrSlugOrGuid );
+            if ( slug.Length <= MaxSlugLength )
+            {
+                var bySlug = query
+                    .Where( i => i.ContentChannelItemSlugs.Any( s => s.Slug == slug ) )
+                    .FirstOrDefault();
+                if ( bySlug != null )
                 {
-                    return byGuid;
+                    return bySlug;
                 }
             }
 
-            // Slug lookup, normalized to the canonical lowercase form (stored
-            // slugs are always lowercase). Caller is responsible for
-            // slug-charset validation; we still hard-cap length here as a
-            // defense-in-depth measure.
-            var slug = NormalizeSlug( idOrSlugOrGuid );
-            if ( slug.Length > MaxSlugLength )
-            {
-                return null;
-            }
-
-            return query
-                .Where( i => i.ContentChannelItemSlugs.Any( s => s.Slug == slug ) )
-                .FirstOrDefault();
+            var asInt = idOrSlugOrGuid.AsIntegerOrNull();
+            return asInt.HasValue
+                ? query.FirstOrDefault( i => i.Id == asInt.Value )
+                : null;
         }
 
         // ---------------------------------------------------------------------
@@ -345,8 +383,9 @@ namespace org.secc.LinkList.Services
                     Id = item.Id,
                     Guid = item.Guid.ToString(),
                     Title = item.Title ?? "Untitled",
+                    // Scalar (primary) slug only - the grid shows one slug column, so
+                    // building a bag per slug row for every list would be wasted work.
                     Slug = PrimarySlug( item ),
-                    Slugs = BuildSlugBags( item ),
                     IsPublic = ReadIsPublic( item ),
                     DesignName = ResolveDesignName( item ),
                     ModifiedDateTime = item.ModifiedDateTime,
@@ -382,12 +421,16 @@ namespace org.secc.LinkList.Services
             return BuildBag( item, currentPerson, requirePublic );
         }
 
-        public LinkListBag BuildBag( ContentChannelItem item, Person currentPerson, bool requirePublic )
-        {
-            return BuildBag( item, currentPerson, requirePublic, includeMembers: false );
-        }
-
-        public LinkListBag BuildBag( ContentChannelItem item, Person currentPerson, bool requirePublic, bool includeMembers )
+        /// <summary>
+        /// Hydrates a bag for the given item. <paramref name="includeMembers"/> and
+        /// <paramref name="includeSlugs"/> add editor-only data and default to false,
+        /// because this same bag is serialized to ANONYMOUS callers by the public REST
+        /// controller: the full slug list would expose retired/alternate URLs and raw
+        /// row ids that no public consumer reads (the web component and viewer use only
+        /// the scalar <see cref="LinkListBag.Slug"/>).
+        /// </summary>
+        public LinkListBag BuildBag( ContentChannelItem item, Person currentPerson, bool requirePublic,
+            bool includeMembers = false, bool includeSlugs = false )
         {
             if ( item == null )
             {
@@ -415,7 +458,7 @@ namespace org.secc.LinkList.Services
                 Guid = item.Guid.ToString(),
                 Title = item.Title ?? "Untitled",
                 Slug = PrimarySlug( item ),
-                Slugs = BuildSlugBags( item ),
+                Slugs = includeSlugs ? BuildSlugBags( item ) : null,
                 IsPublic = isPublic,
                 ContentTextColor = item.GetAttributeValue( LinkListGuids.TypeAttributeKey.ContentTextColor ),
                 BackgroundColor = item.GetAttributeValue( LinkListGuids.TypeAttributeKey.BackgroundColor ),

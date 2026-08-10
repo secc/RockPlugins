@@ -60,10 +60,21 @@ namespace org.secc.LinkList.ViewModels
         public string DesignName { get; set; }
 
         /// <summary>
-        /// Last modified timestamp of the underlying ContentChannelItem
-        /// (for the management grid's "Modified" column).
+        /// Last modified timestamp of the underlying ContentChannelItem. Drives the
+        /// management grid's "Modified" column AND the save's optimistic-concurrency
+        /// check: a save whose value no longer matches the stored one is rejected, so
+        /// a stale editor can't revert - or delete the slugs of - someone else's edit.
         /// </summary>
         public System.DateTime? ModifiedDateTime { get; set; }
+
+        /// <summary>
+        /// Set when a save PARTIALLY succeeded: the list itself is stored but a
+        /// follow-on step (link rows, edit-access group) failed. The response still
+        /// carries the saved bag so the editor keeps the list's identity and can retry
+        /// as an update - without this, a retry would look like a brand new list and be
+        /// rejected for conflicting with the slugs it just created. Null on a clean save.
+        /// </summary>
+        public string SaveWarning { get; set; }
 
         /// <summary>
         /// True when the current person may delete this list (ADMINISTRATE on

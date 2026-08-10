@@ -1,6 +1,7 @@
 <template>
     <div class="link-list-editor">
         <NotificationBox v-if="errorMessage" alertType="danger">{{ errorMessage }}</NotificationBox>
+        <NotificationBox v-if="warningMessage" alertType="warning">{{ warningMessage }}</NotificationBox>
 
         <div v-if="!detail" class="text-center p-3">
             <i class="fa fa-spinner fa-spin"></i> Loading...
@@ -17,40 +18,62 @@
             <Panel title="Details" :hasCollapse="true" v-model="detailsExpanded">
                 <div class="row">
                     <div class="col-md-6">
-                        <TextBox v-model="bag.title" label="Title" :rules="'required'" />
+                        <TextBox v-model="bag.title" label="Title" :rules="'required'" @blur="deriveSlugFromTitle" />
                     </div>
                     <div class="col-md-6">
-                        <label class="control-label">Slugs</label>
-                        <div class="ll-slugs">
-                            <div v-for="(s, i) in bag.slugs || []" :key="s.id || `new-${i}`" class="ll-slug-row">
+                        <label id="ll-slugs-label" class="control-label">Slugs</label>
+                        <div ref="slugListEl" class="ll-slugs" role="group" aria-labelledby="ll-slugs-label">
+                            <!-- Keyed by slug text, not by index: slug text is unique
+                                 within a list and never edited in place, whereas an
+                                 index key would survive a removal and hand the focused
+                                 Remove button to the NEXT row. -->
+                            <div v-for="(s, i) in bag.slugs || []" :key="s.slug" class="ll-slug-row">
                                 <button
                                     type="button"
                                     class="btn btn-link btn-xs ll-slug-primary"
                                     :class="{ 'is-primary': s.isPrimary }"
                                     :title="s.isPrimary ? 'Primary slug (used in shared links)' : 'Make primary'"
+                                    :aria-label="s.isPrimary ? `${s.slug} is the primary slug` : `Make ${s.slug} the primary slug`"
+                                    :aria-pressed="s.isPrimary"
                                     @click="setPrimary(i)">
                                     <i :class="s.isPrimary ? 'fa fa-star' : 'fa fa-star-o'"></i>
                                 </button>
                                 <code class="ll-slug-text">{{ s.slug }}</code>
-                                <span v-if="s.isPrimary" class="label label-info ll-slug-badge">Primary</span>
+                                <!-- Decorative: the star button already announces which
+                                     slug is primary, via aria-label and aria-pressed. -->
+                                <span v-if="s.isPrimary" class="label label-info ll-slug-badge" aria-hidden="true">Primary</span>
+                                <span v-if="s.slug === autoDerivedSlug" class="text-muted small ll-slug-origin">from title</span>
+                                <!-- aria-disabled rather than disabled, so the control keeps
+                                     its place in the tab order and can still explain itself;
+                                     removeSlug refuses the last slug either way. The
+                                     `disabled` CLASS is avoided too - Bootstrap gives it
+                                     pointer-events: none, which would also swallow the click
+                                     that produces the explanation. -->
                                 <button
                                     type="button"
-                                    class="btn btn-link text-danger btn-xs ms-auto"
-                                    :disabled="(bag.slugs || []).length <= 1"
+                                    class="btn btn-link btn-xs ms-auto ll-slug-remove"
+                                    :class="(bag.slugs || []).length <= 1 ? 'text-muted' : 'text-danger'"
+                                    :aria-disabled="(bag.slugs || []).length <= 1"
                                     :title="(bag.slugs || []).length <= 1 ? 'A list must have at least one slug' : 'Remove slug'"
+                                    :aria-label="`Remove slug ${s.slug}`"
+                                    aria-describedby="ll-slug-message"
                                     @click="removeSlug(i)">
                                     <i class="fa fa-times"></i>
                                 </button>
                             </div>
-                            <div v-if="!(bag.slugs || []).length" class="text-muted small">No slugs yet. Add one below.</div>
+                            <div v-if="!(bag.slugs || []).length" class="text-muted small">No slugs yet. One is created from the title when you save.</div>
                         </div>
                         <div class="ll-slug-add">
-                            <TextBox v-model="newSlug" placeholder="new-slug" @keydown.enter.prevent="addSlug" />
-                            <RockButton btnType="default" btnSize="sm" :disabled="!newSlug.trim()" @click="addSlug">
+                            <TextBox v-model="newSlug" placeholder="new-slug" aria-label="Add a slug" :maxLength="SLUG_MAX_LENGTH" @keydown.enter.prevent="addSlug" />
+                            <RockButton btnType="default" btnSize="sm" :disabled="!canonicalizeSlug(newSlug)" @click="addSlug">
                                 <i class="fa fa-plus"></i> Add
                             </RockButton>
                         </div>
-                        <span class="help-block">Lowercase letters, digits, and dashes only. The primary slug is used in shared links; keeping extra slugs preserves old URLs.</span>
+                        <!-- Slug-specific messages live here, next to the controls that
+                             produce them, so adding a slug can't clear an unresolved
+                             save failure from the banner at the top of the block. -->
+                        <span id="ll-slug-message" class="help-block text-danger ll-slug-message" role="alert">{{ slugMessage }}</span>
+                        <span class="help-block">{{ slugHelpText }}</span>
                     </div>
                 </div>
                 <div class="row">
@@ -251,7 +274,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useInvokeBlockAction } from "@Obsidian/Utility/block";
 import RockButton from "@Obsidian/Controls/rockButton.obs";
 import Panel from "@Obsidian/Controls/panel.obs";
@@ -269,6 +292,7 @@ import EditorActions from "./editorActions.obs";
 import LinkListAnalytics from "./linkListAnalytics.obs";
 import { CUSTOM_DESIGN, effectiveColor as effectiveColorOf, designSelectionValue, applyDesignChange, type ColorField } from "../linkListTheme";
 import { clearOtherFeatured, sectionNestingMeta } from "../linkListItems";
+import { canonicalizeSlug, SLUG_MAX_LENGTH } from "../slugCanonicalizer";
 import type { ListItemBag } from "@Obsidian/ViewModels/Utility/listItemBag";
 import type { LinkListBag, LinkListDetailInitializationBox, LinkItemBag, GroupMemberBag, LinkListSlugBag } from "../types";
 
@@ -284,8 +308,18 @@ const emit = defineEmits<{
 const invokeBlockAction = useInvokeBlockAction();
 
 const bag = ref<LinkListBag>(cloneBag(props.detail.linkList));
+// Block-level failures (save, delete, member actions) only. Slug-add/remove
+// messages go to slugMessage so the two can't overwrite each other.
 const errorMessage = ref("");
+// A save that partially succeeded: the list is stored but something after it
+// failed, so this is a warning to act on rather than an outright failure.
+const warningMessage = ref("");
+const slugMessage = ref("");
 const newSlug = ref("");
+// The slug derived from the title on this screen, if any - so the row can be
+// labelled "from title" and can yield primary to the first slug the user adds.
+const autoDerivedSlug = ref("");
+const slugListEl = ref<HTMLElement | null>(null);
 const isSaving = ref(false);
 const isAddingMember = ref(false);
 const memberToAdd = ref<{ value: string; text: string } | null>(null);
@@ -310,6 +344,14 @@ watch(analyticsExpanded, expanded => {
 
 watch(() => props.detail, d => {
     bag.value = cloneBag(d.linkList);
+    // Reset the per-screen scratch state too. The parent swaps `detail` in place
+    // after a create (same component instance, no :key), and stale text left in
+    // the add box would otherwise be committed to the newly loaded list.
+    newSlug.value = "";
+    errorMessage.value = "";
+    warningMessage.value = "";
+    slugMessage.value = "";
+    autoDerivedSlug.value = "";
 });
 
 const designItems = computed(() => [
@@ -384,29 +426,59 @@ function normalizeSlugs(target: LinkListBag): void {
     }
 }
 
-// Mirror the server's slug rule (LinkListService.IsValidSlug) for immediate
-// feedback; the server stays the source of truth.
-const SLUG_PATTERN = /^[a-z0-9-]+$/;
-const SLUG_MAX_LENGTH = 200;
+const slugHelpText = `A slug is built from the title automatically: lowercase, `
+    + `spaces and underscores become dashes, anything else is dropped (max `
+    + `${SLUG_MAX_LENGTH} characters). The primary slug is used in shared links; `
+    + `keeping extra slugs preserves old URLs.`;
 
+// Adds whatever is in the add box, converted to the slug Rock will actually
+// store. Always leaves the box empty. Never blocks anything: the Add button is
+// disabled unless the text yields a slug, and a slug already in the list is a
+// no-op worth only a note.
 function addSlug(): void {
-    const text = (newSlug.value || "").trim().toLowerCase();
-    if (!text) {
+    const typed = (newSlug.value || "").trim();
+    if (!typed) {
         return;
     }
-    if (text.length > SLUG_MAX_LENGTH || !SLUG_PATTERN.test(text)) {
-        errorMessage.value = `Slug "${text}" must be 1-${SLUG_MAX_LENGTH} lowercase letters, digits, or dashes.`;
+    newSlug.value = "";
+    const text = canonicalizeSlug(typed);
+    if (!text) {
+        slugMessage.value = `Ignored "${typed}" - no letters or digits to build a slug from.`;
         return;
     }
     const slugs: LinkListSlugBag[] = bag.value.slugs || (bag.value.slugs = []);
     if (slugs.some(s => s.slug === text)) {
-        errorMessage.value = `Slug "${text}" is already in the list.`;
+        slugMessage.value = `Slug "${text}" is already in the list.`;
         return;
     }
-    slugs.push({ id: 0, slug: text, isPrimary: slugs.length === 0 });
+    // A slug the user typed outranks one derived from the title: if that derived
+    // slug is all the list has, hand primary to this one.
+    const onlyAutoDerived = slugs.length > 0 && slugs.every(s => s.slug === autoDerivedSlug.value);
+    const isPrimary = slugs.length === 0 || onlyAutoDerived;
+    if (isPrimary) {
+        slugs.forEach(s => { s.isPrimary = false; });
+    }
+    slugs.push({ id: 0, slug: text, isPrimary });
     ensureOnePrimary();
-    newSlug.value = "";
-    errorMessage.value = "";
+    slugMessage.value = "";
+}
+
+// Derives the first slug from the title, the way Rock's own content channel item
+// block does: on leaving the title field, and ONLY while the list has no slug
+// yet - so editing the title of an existing list never changes its URLs. The
+// result is an ordinary slug row the user can re-star, replace or remove.
+function deriveSlugFromTitle(): string {
+    if ((bag.value.slugs || []).length) {
+        return "";
+    }
+    const derived = canonicalizeSlug(bag.value.title);
+    if (!derived) {
+        return "";
+    }
+    const slugs: LinkListSlugBag[] = bag.value.slugs || (bag.value.slugs = []);
+    slugs.push({ id: 0, slug: derived, isPrimary: true });
+    autoDerivedSlug.value = derived;
+    return derived;
 }
 
 function removeSlug(index: number): void {
@@ -417,14 +489,26 @@ function removeSlug(index: number): void {
     // A list must keep at least one slug or it becomes unreachable (the viewer
     // and web component resolve only by slug). The server enforces this too.
     if (slugs.length <= 1) {
-        errorMessage.value = "A link list must have at least one slug.";
+        slugMessage.value = "A link list must have at least one slug.";
         return;
     }
-    const wasPrimary = slugs[index]?.isPrimary;
+    const removed = slugs[index];
+    const wasPrimary = removed?.isPrimary;
     slugs.splice(index, 1);
+    if (removed?.slug === autoDerivedSlug.value) {
+        autoDerivedSlug.value = "";
+    }
     if (wasPrimary) {
         ensureOnePrimary();
     }
+    slugMessage.value = "";
+    // Removing a row destroys the button that had focus, which would otherwise
+    // drop to the document body; put it on the row that took this one's place.
+    const nextIndex = Math.min(index, slugs.length - 1);
+    nextTick(() => {
+        const buttons = slugListEl.value?.querySelectorAll<HTMLButtonElement>(".ll-slug-remove");
+        buttons?.[nextIndex]?.focus();
+    });
 }
 
 function setPrimary(index: number): void {
@@ -520,10 +604,15 @@ function moveRow(index: number, delta: number): void {
 
 async function save(): Promise<void> {
     errorMessage.value = "";
-    // A list must have at least one slug (server enforces this too); block the
-    // save with a friendly message rather than round-tripping to a 400.
-    if (!(bag.value.slugs || []).length) {
-        errorMessage.value = "Add at least one slug before saving.";
+    // Commit a slug still sitting unadded in the add box, so typing one and
+    // hitting Save can't silently drop it. addSlug always empties the box and
+    // never refuses, so this can't turn into a save that won't go through.
+    addSlug();
+    // A list must have at least one slug or it becomes unreachable. Derive one
+    // from the title (as Rock does) rather than making the user type it; only
+    // complain when the title has nothing to build a slug from.
+    if (!(bag.value.slugs || []).length && !deriveSlugFromTitle()) {
+        slugMessage.value = "Add a slug: this title has no letters or digits to build one from.";
         return;
     }
     // Keep the scalar (primary) slug aligned with the chosen primary before
@@ -535,8 +624,21 @@ async function save(): Promise<void> {
     isSaving.value = false;
 
     if (result.isSuccess && result.data) {
+        // A partial save still returns the bag, so the list keeps its identity and the
+        // next save is an update rather than a doomed re-create. Adopt it either way
+        // and surface the warning instead of claiming a clean save.
+        const warning = result.data.saveWarning;
         bag.value = cloneBag(result.data);
-        emit("saved", result.data);
+        bag.value.saveWarning = null;
+        if (warning) {
+            // Stay on the editor so the user can fix and re-save; emitting "saved"
+            // would navigate away from a list that isn't fully written yet.
+            warningMessage.value = warning;
+        }
+        else {
+            warningMessage.value = "";
+            emit("saved", result.data);
+        }
     }
     else {
         errorMessage.value = result.errorMessage || "Save failed.";
@@ -606,6 +708,9 @@ async function removeMember(groupMemberId: number): Promise<void> {
 .ll-slug-primary.is-primary { color: #f0ad4e; }
 .ll-slug-text { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }
 .ll-slug-badge { font-weight: normal; }
+/* Stays in the DOM even when empty so it can act as a live region; no margin so
+   an empty message doesn't leave a gap above the help text. */
+.ll-slug-message { margin: 0; }
 .ll-slug-add { display: flex; align-items: start; gap: 8px; }
 .ll-slug-add > :first-child { flex-grow: 1; }
 </style>

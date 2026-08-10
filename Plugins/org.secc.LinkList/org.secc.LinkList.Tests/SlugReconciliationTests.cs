@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -28,16 +28,16 @@ namespace org.secc.LinkList.Tests
             return new ExistingSlug { Id = id, Slug = slug };
         }
 
-        private static SubmittedSlug Submitted( int id, string slug, bool isPrimary = false )
+        private static SubmittedSlug Submitted( string slug, bool isPrimary = false )
         {
-            return new SubmittedSlug { Id = id, Slug = slug, IsPrimary = isPrimary };
+            return new SubmittedSlug { Slug = slug, IsPrimary = isPrimary };
         }
 
         [Fact]
         public void Reconcile_Adds_A_New_Slug_And_Keeps_Existing()
         {
             var existing = new[] { Existing( 1, "keep" ) };
-            var submitted = new[] { Submitted( 1, "keep", isPrimary: true ), Submitted( 0, "added" ) };
+            var submitted = new[] { Submitted( "keep", isPrimary: true ), Submitted( "added" ) };
 
             var result = SlugReconciler.Reconcile( existing, submitted );
 
@@ -51,7 +51,7 @@ namespace org.secc.LinkList.Tests
         public void Reconcile_Deletes_A_Removed_Slug()
         {
             var existing = new[] { Existing( 1, "keep" ), Existing( 2, "gone" ) };
-            var submitted = new[] { Submitted( 1, "keep", isPrimary: true ) };
+            var submitted = new[] { Submitted( "keep", isPrimary: true ) };
 
             var result = SlugReconciler.Reconcile( existing, submitted );
 
@@ -66,7 +66,7 @@ namespace org.secc.LinkList.Tests
         {
             // "a" is primary today; the editor moves primary to "b".
             var existing = new[] { Existing( 1, "a" ), Existing( 2, "b" ) };
-            var submitted = new[] { Submitted( 1, "a" ), Submitted( 2, "b", isPrimary: true ) };
+            var submitted = new[] { Submitted( "a" ), Submitted( "b", isPrimary: true ) };
 
             var result = SlugReconciler.Reconcile( existing, submitted );
 
@@ -80,7 +80,7 @@ namespace org.secc.LinkList.Tests
         public void Reconcile_NoOp_Set_Produces_No_Changes()
         {
             var existing = new[] { Existing( 1, "a" ), Existing( 2, "b" ) };
-            var submitted = new[] { Submitted( 1, "a", isPrimary: true ), Submitted( 2, "b" ) };
+            var submitted = new[] { Submitted( "a", isPrimary: true ), Submitted( "b" ) };
 
             var result = SlugReconciler.Reconcile( existing, submitted );
 
@@ -98,8 +98,8 @@ namespace org.secc.LinkList.Tests
             var existing = new[] { Existing( 1, "old-name" ) };
             var submitted = new[]
             {
-                Submitted( 1, "old-name" ),
-                Submitted( 0, "new-name", isPrimary: true )
+                Submitted( "old-name" ),
+                Submitted( "new-name", isPrimary: true )
             };
 
             var result = SlugReconciler.Reconcile( existing, submitted );
@@ -114,7 +114,7 @@ namespace org.secc.LinkList.Tests
         public void Reconcile_Rejects_Duplicate_Within_Submitted_Set()
         {
             var existing = new ExistingSlug[0];
-            var submitted = new[] { Submitted( 0, "dupe", isPrimary: true ), Submitted( 0, "dupe" ) };
+            var submitted = new[] { Submitted( "dupe", isPrimary: true ), Submitted( "dupe" ) };
 
             var result = SlugReconciler.Reconcile( existing, submitted );
 
@@ -126,7 +126,7 @@ namespace org.secc.LinkList.Tests
         public void Reconcile_Rejects_Invalid_Slug_In_Set()
         {
             var existing = new ExistingSlug[0];
-            var submitted = new[] { Submitted( 0, "not valid", isPrimary: true ) };
+            var submitted = new[] { Submitted( "not valid", isPrimary: true ) };
 
             var result = SlugReconciler.Reconcile( existing, submitted );
 
@@ -137,9 +137,11 @@ namespace org.secc.LinkList.Tests
         [Fact]
         public void Reconcile_Empty_Submitted_Deletes_All_Existing_And_Has_No_Primary()
         {
-            // Pure-helper capability. The block never actually calls Reconcile with
-            // an empty set: ValidateBag rejects an explicitly-empty slug-aware set,
-            // and the legacy (upsert-only) path skips reconciliation when empty.
+            // Pure-helper capability, deliberately NOT acted on: the block CAN reach
+            // Reconcile with an empty set (a slug-aware client that submitted none,
+            // leaving the slug to Rock's title-derived one), and it suppresses the
+            // delete pass in exactly that case - see the mayDelete guard in
+            // LinkListDetailBlock. A list must never be left with no slug.
             var existing = new[] { Existing( 1, "a" ), Existing( 2, "b" ) };
             var submitted = new SubmittedSlug[0];
 
@@ -157,7 +159,7 @@ namespace org.secc.LinkList.Tests
             // Legacy lists have no IsPrimary flag set anywhere; the first submitted
             // slug becomes primary so a list with slugs always has exactly one.
             var existing = new[] { Existing( 1, "a" ), Existing( 2, "b" ) };
-            var submitted = new[] { Submitted( 1, "a" ), Submitted( 2, "b" ) };
+            var submitted = new[] { Submitted( "a" ), Submitted( "b" ) };
 
             var result = SlugReconciler.Reconcile( existing, submitted );
 
@@ -173,7 +175,7 @@ namespace org.secc.LinkList.Tests
             // treat them as the same row: no add, no delete. (An Ordinal comparison
             // would wrongly add + delete here.)
             var existing = new[] { Existing( 5, "Already-Here" ) };
-            var submitted = new[] { Submitted( 5, "already-here", isPrimary: true ) };
+            var submitted = new[] { Submitted( "already-here", isPrimary: true ) };
 
             var result = SlugReconciler.Reconcile( existing, submitted );
 
@@ -210,9 +212,10 @@ namespace org.secc.LinkList.Tests
         [Fact]
         public void BuildSubmission_Provided_Empty_List_Is_FullReconcile_Empty()
         {
-            // A slug-aware client that cleared every slug: full reconcile with an
-            // empty set. ValidateBag rejects this ("at least one slug"), but the
-            // submission itself must report FullReconcile so that rejection fires.
+            // A slug-aware client that submitted no slugs: full reconcile with an
+            // empty set, which the block reads as "leave the slug to Rock" - its save
+            // hook derives one from the title. FullReconcile must still be true so
+            // the block can tell this apart from a legacy scalar-only client.
             var submission = SlugReconciler.BuildSubmission( new SubmittedSlug[0], "ignored-scalar" );
 
             Assert.True( submission.FullReconcile );
@@ -224,9 +227,9 @@ namespace org.secc.LinkList.Tests
         {
             var provided = new[]
             {
-                new SubmittedSlug { Id = 1, Slug = "  Keep-Me  ", IsPrimary = true },
-                new SubmittedSlug { Id = 0, Slug = "ADDED" },
-                new SubmittedSlug { Id = 0, Slug = "   " } // blank -> dropped
+                new SubmittedSlug { Slug = "  Keep-Me  ", IsPrimary = true },
+                new SubmittedSlug { Slug = "ADDED" },
+                new SubmittedSlug { Slug = "   " } // blank -> dropped
             };
 
             var submission = SlugReconciler.BuildSubmission( provided, null );
@@ -234,6 +237,182 @@ namespace org.secc.LinkList.Tests
             Assert.True( submission.FullReconcile );
             Assert.Equal( new[] { "keep-me", "added" }, submission.Slugs.Select( s => s.Slug ).ToArray() );
             Assert.True( submission.Slugs[0].IsPrimary );
+        }
+
+        [Fact]
+        public void BuildSubmission_Canonicalizes_To_The_Text_Rock_Stores()
+        {
+            var provided = new[]
+            {
+                new SubmittedSlug { Slug = "Give Now", IsPrimary = true },
+                new SubmittedSlug { Slug = "fall--retreat" },
+                new SubmittedSlug { Slug = "trailing-" }
+            };
+
+            var submission = SlugReconciler.BuildSubmission( provided, null );
+
+            Assert.Equal(
+                new[] { "give-now", "fall-retreat", "trailing" },
+                submission.Slugs.Select( s => s.Slug ).ToArray() );
+        }
+
+        [Theory]
+        [InlineData( "-" )]
+        [InlineData( "---" )]
+        [InlineData( "!!!" )]
+        public void BuildSubmission_Drops_Slugs_Canonicalization_Empties( string emptied )
+        {
+            var provided = new[]
+            {
+                new SubmittedSlug { Slug = emptied },
+                new SubmittedSlug { Slug = "keep", IsPrimary = true }
+            };
+
+            var submission = SlugReconciler.BuildSubmission( provided, null );
+
+            Assert.Equal( new[] { "keep" }, submission.Slugs.Select( s => s.Slug ).ToArray() );
+        }
+
+        [Fact]
+        public void BuildSubmission_All_Slugs_Emptied_Leaves_The_Slug_To_Rock()
+        {
+            // Every entry canonicalized to nothing: the same empty full-reconcile
+            // submission a client that sent no slugs produces, so the block leaves
+            // the list's slugs alone and Rock derives one from the title.
+            var provided = new[]
+            {
+                new SubmittedSlug { Slug = "-" },
+                new SubmittedSlug { Slug = "!!!" }
+            };
+
+            var submission = SlugReconciler.BuildSubmission( provided, null );
+
+            Assert.True( submission.FullReconcile );
+            Assert.Empty( submission.Slugs );
+        }
+
+        [Fact]
+        public void BuildSubmission_Merges_Slugs_That_Canonicalize_The_Same()
+        {
+            // The user typed these differently, so erroring on a "duplicate" would
+            // name text they never entered. Merge instead: first position wins and a
+            // primary flag anywhere in the group wins.
+            var provided = new[]
+            {
+                new SubmittedSlug { Slug = "Give_Now" },
+                new SubmittedSlug { Slug = "give now", IsPrimary = true },
+                new SubmittedSlug { Slug = "other" }
+            };
+
+            var submission = SlugReconciler.BuildSubmission( provided, null );
+
+            Assert.Equal( new[] { "give-now", "other" }, submission.Slugs.Select( s => s.Slug ).ToArray() );
+            Assert.True( submission.Slugs[0].IsPrimary );
+            Assert.False( submission.Slugs[1].IsPrimary );
+        }
+
+        [Fact]
+        public void BuildSubmission_Merge_Keeps_Primary_Flagged_On_The_First_Entry()
+        {
+            var provided = new[]
+            {
+                new SubmittedSlug { Slug = "Give Now", IsPrimary = true },
+                new SubmittedSlug { Slug = "give--now" }
+            };
+
+            var submission = SlugReconciler.BuildSubmission( provided, null );
+
+            Assert.Single( submission.Slugs );
+            Assert.Equal( "give-now", submission.Slugs[0].Slug );
+            Assert.True( submission.Slugs[0].IsPrimary );
+        }
+
+        [Fact]
+        public void BuildSubmission_Scalar_Slug_Is_Canonicalized_Too()
+        {
+            var submission = SlugReconciler.BuildSubmission( null, "Summer Camp 2026" );
+
+            Assert.False( submission.FullReconcile );
+            Assert.Single( submission.Slugs );
+            Assert.Equal( "summer-camp-2026", submission.Slugs[0].Slug );
+            Assert.True( submission.Slugs[0].IsPrimary );
+        }
+
+        // ---- Empty set + title: the "let Rock derive the slug" precondition ----
+
+        [Theory]
+        [InlineData( "Summer Camp" )]
+        [InlineData( "2026" )]
+        [InlineData( "Rock & Roll" )]
+        public void ValidateSubmissionAgainstTitle_Allows_An_Empty_Set_When_The_Title_Yields_A_Slug( string title )
+        {
+            var submission = SlugReconciler.BuildSubmission( new SubmittedSlug[0], null );
+
+            Assert.Null( SlugReconciler.ValidateSubmissionAgainstTitle( submission, title ) );
+        }
+
+        [Theory]
+        [InlineData( "!!!" )]
+        [InlineData( "---" )]
+        [InlineData( "&" )]
+        [InlineData( null )]
+        public void ValidateSubmissionAgainstTitle_Rejects_An_Empty_Set_When_The_Title_Yields_Nothing( string title )
+        {
+            // Nothing submitted and nothing derivable would leave the list with no
+            // slug at all - unreachable by the viewer, web component and REST.
+            var submission = SlugReconciler.BuildSubmission( new SubmittedSlug[0], null );
+
+            var error = SlugReconciler.ValidateSubmissionAgainstTitle( submission, title );
+
+            Assert.NotNull( error );
+            Assert.Contains( "needs a slug", error );
+        }
+
+        [Fact]
+        public void ValidateSubmissionAgainstTitle_Ignores_The_Title_When_Slugs_Were_Submitted()
+        {
+            var submission = SlugReconciler.BuildSubmission( new[] { Submitted( "explicit" ) }, null );
+
+            Assert.Null( SlugReconciler.ValidateSubmissionAgainstTitle( submission, "!!!" ) );
+        }
+
+        [Fact]
+        public void ValidateSubmissionAgainstTitle_Ignores_A_Legacy_ScalarOnly_Submission()
+        {
+            // FullReconcile false: the client can't manage slugs and never deletes, so
+            // an empty set means "leave them alone", not "derive one".
+            var submission = SlugReconciler.BuildSubmission( null, null );
+
+            Assert.False( submission.FullReconcile );
+            Assert.Null( SlugReconciler.ValidateSubmissionAgainstTitle( submission, "!!!" ) );
+        }
+
+        // ---- Set size cap (keeps the conflict query under SQL's parameter limit) ----
+
+        [Fact]
+        public void ValidateSubmissionSize_Allows_A_Set_At_The_Cap()
+        {
+            var provided = Enumerable.Range( 0, SlugReconciler.MaxSlugsPerList )
+                .Select( i => Submitted( $"slug-{i}" ) )
+                .ToArray();
+            var submission = SlugReconciler.BuildSubmission( provided, null );
+
+            Assert.Equal( SlugReconciler.MaxSlugsPerList, submission.Slugs.Count );
+            Assert.Null( SlugReconciler.ValidateSubmissionSize( submission ) );
+        }
+
+        [Fact]
+        public void ValidateSubmissionSize_Rejects_A_Set_Over_The_Cap()
+        {
+            var provided = Enumerable.Range( 0, SlugReconciler.MaxSlugsPerList + 1 )
+                .Select( i => Submitted( $"slug-{i}" ) )
+                .ToArray();
+            var submission = SlugReconciler.BuildSubmission( provided, null );
+
+            var error = SlugReconciler.ValidateSubmissionSize( submission );
+
+            Assert.NotNull( error );
+            Assert.Contains( SlugReconciler.MaxSlugsPerList.ToString(), error );
         }
     }
 }
