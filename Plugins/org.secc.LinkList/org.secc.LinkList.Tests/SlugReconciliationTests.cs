@@ -387,6 +387,65 @@ namespace org.secc.LinkList.Tests
             Assert.Null( SlugReconciler.ValidateSubmissionAgainstTitle( submission, "!!!" ) );
         }
 
+        // ---- Delete gate: only rows the editor actually saw may be deleted ----
+
+        [Fact]
+        public void FilterDeletableIds_Keeps_Rows_The_Editor_Loaded()
+        {
+            // The user removed slug row 2, which was on screen when they loaded.
+            Assert.Equal( new[] { 2 }, SlugReconciler.FilterDeletableIds( new[] { 2 }, new[] { 1, 2 } ).ToArray() );
+        }
+
+        [Fact]
+        public void FilterDeletableIds_Spares_A_Row_The_Editor_Never_Saw()
+        {
+            // Row 9 was added by another editor after this one loaded [1, 2]. The diff
+            // wants it gone only because it isn't in this payload - it is not something
+            // this user removed, so it must survive.
+            var deletable = SlugReconciler.FilterDeletableIds( new[] { 2, 9 }, new[] { 1, 2 } );
+
+            Assert.Equal( new[] { 2 }, deletable.ToArray() );
+        }
+
+        [Fact]
+        public void FilterDeletableIds_Untracked_Caller_Keeps_Full_Reconcile()
+        {
+            // null = a client that doesn't report what it loaded (old bundle or API
+            // caller); it keeps today's behavior rather than silently failing to delete.
+            Assert.Equal( new[] { 2, 9 }, SlugReconciler.FilterDeletableIds( new[] { 2, 9 }, null ).ToArray() );
+        }
+
+        [Fact]
+        public void FilterDeletableIds_Empty_Loaded_Set_Deletes_Nothing()
+        {
+            // An editor that loaded no slug rows can't have removed any.
+            Assert.Empty( SlugReconciler.FilterDeletableIds( new[] { 2, 9 }, new int[0] ) );
+        }
+
+        [Fact]
+        public void FilterDeletableIds_Handles_A_Null_Plan()
+        {
+            Assert.Empty( SlugReconciler.FilterDeletableIds( null, new[] { 1 } ) );
+        }
+
+        [Fact]
+        public void FilterDeletableIds_Composes_With_Reconcile_To_Merge_Concurrent_Adds()
+        {
+            // End to end on the reported bug. Tab B loaded ["keep"] (row 1), then tab A
+            // added "a" (row 9). Tab B now saves ["keep", "b"].
+            var existing = new[] { Existing( 1, "keep" ), Existing( 9, "a" ) };
+            var submitted = new[] { Submitted( "keep", isPrimary: true ), Submitted( "b" ) };
+
+            var plan = SlugReconciler.Reconcile( existing, submitted );
+            var deletable = SlugReconciler.FilterDeletableIds( plan.SlugIdsToDelete, new[] { 1 } );
+
+            // The diff alone would have deleted tab A's slug...
+            Assert.Equal( new[] { 9 }, plan.SlugIdsToDelete.ToArray() );
+            // ...but tab B never saw row 9, so nothing is deleted and "b" is just added.
+            Assert.Empty( deletable );
+            Assert.Equal( new[] { "b" }, plan.SlugsToAdd.ToArray() );
+        }
+
         // ---- Set size cap (keeps the conflict query under SQL's parameter limit) ----
 
         [Fact]

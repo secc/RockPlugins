@@ -459,6 +459,9 @@ namespace org.secc.LinkList.Services
                 Title = item.Title ?? "Untitled",
                 Slug = PrimarySlug( item ),
                 Slugs = includeSlugs ? BuildSlugBags( item ) : null,
+                // Round-tripped by the editor and checked on save (see SaveList) so a
+                // stale tab can't silently revert someone else's title edit.
+                ModifiedDateTime = item.ModifiedDateTime,
                 IsPublic = isPublic,
                 ContentTextColor = item.GetAttributeValue( LinkListGuids.TypeAttributeKey.ContentTextColor ),
                 BackgroundColor = item.GetAttributeValue( LinkListGuids.TypeAttributeKey.BackgroundColor ),

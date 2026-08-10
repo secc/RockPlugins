@@ -319,6 +319,8 @@ const newSlug = ref("");
 // The slug derived from the title on this screen, if any - so the row can be
 // labelled "from title" and can yield primary to the first slug the user adds.
 const autoDerivedSlug = ref("");
+// Slug row ids this editor loaded; see rememberLoadedSlugIds.
+const loadedSlugIds = ref<number[]>([]);
 const slugListEl = ref<HTMLElement | null>(null);
 const isSaving = ref(false);
 const isAddingMember = ref(false);
@@ -344,6 +346,7 @@ watch(analyticsExpanded, expanded => {
 
 watch(() => props.detail, d => {
     bag.value = cloneBag(d.linkList);
+    rememberLoadedSlugIds(d.linkList);
     // Reset the per-screen scratch state too. The parent swaps `detail` in place
     // after a create (same component instance, no :key), and stale text left in
     // the add box would otherwise be committed to the newly loaded list.
@@ -353,6 +356,21 @@ watch(() => props.detail, d => {
     slugMessage.value = "";
     autoDerivedSlug.value = "";
 });
+
+// Records which slug rows this editor is actually looking at. The save posts these
+// so the server can delete a slug the user removed WITHOUT deleting one that another
+// editor added since this screen loaded - by text alone the two are identical
+// ("stored, but not submitted"). Refreshed after each save so a second save in the
+// same session judges against what it now shows.
+function rememberLoadedSlugIds(source: LinkListBag): void {
+    loadedSlugIds.value = (source.slugs || [])
+        .map(s => s.id)
+        .filter(id => id > 0);
+}
+
+// The watcher above only fires when the parent swaps in a different list, so seed
+// from the list this editor mounted with.
+rememberLoadedSlugIds(props.detail.linkList);
 
 const designItems = computed(() => [
     ...(props.detail.designs || []).map(d => ({ value: d.value, text: d.text })),
@@ -620,7 +638,10 @@ async function save(): Promise<void> {
     const primary = (bag.value.slugs || []).find(s => s.isPrimary);
     bag.value.slug = primary?.slug ?? "";
     isSaving.value = true;
-    const result = await invokeBlockAction<LinkListBag>("SaveList", { bag: bag.value });
+    const result = await invokeBlockAction<LinkListBag>("SaveList", {
+        bag: bag.value,
+        loadedSlugIds: loadedSlugIds.value
+    });
     isSaving.value = false;
 
     if (result.isSuccess && result.data) {
@@ -630,6 +651,7 @@ async function save(): Promise<void> {
         const warning = result.data.saveWarning;
         bag.value = cloneBag(result.data);
         bag.value.saveWarning = null;
+        rememberLoadedSlugIds(result.data);
         if (warning) {
             // Stay on the editor so the user can fix and re-save; emitting "saved"
             // would navigate away from a list that isn't fully written yet.

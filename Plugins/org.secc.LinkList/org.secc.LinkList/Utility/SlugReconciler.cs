@@ -98,8 +98,9 @@ namespace org.secc.LinkList.Utility
         /// <see cref="LinkListService.CanonicalizeSlug"/>), slugs left empty by that
         /// are dropped, and slugs that canonicalize to the same text are merged -
         /// keeping the first position and any primary flag.
-        /// An empty result set means "leave this list's slugs alone"; for a list with
-        /// no slug rows Rock's own save hook then mints one from the title.
+        /// An empty result set means "leave this list's slugs alone"; a list left with no
+        /// slug rows gets one derived from its title by the save (see LinkListDetailBlock
+        /// - Rock's own save hook does the same, but only when the item row changed).
         /// </summary>
         public static SlugSubmission BuildSubmission( IEnumerable<SubmittedSlug> providedSlugs, string scalarSlug )
         {
@@ -260,6 +261,34 @@ namespace org.secc.LinkList.Utility
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Narrows <paramref name="plannedIds"/> (from
+        /// <see cref="SlugReconciliationResult.SlugIdsToDelete"/>) to the rows the
+        /// editor actually had on screen when it loaded the list.
+        /// <para>
+        /// Reconciliation diffs by slug TEXT, so a row another editor added after this
+        /// one loaded looks exactly like a row this user deliberately removed - both are
+        /// simply "stored but not submitted". Comparing against the ids the client
+        /// loaded tells them apart: an id the client never saw cannot be something it
+        /// removed, so it is spared and the two edits merge instead of one clobbering
+        /// the other. Deliberate removal still works, because the loaded ids come from
+        /// the ORIGINAL load rather than the submitted set.
+        /// </para>
+        /// A null <paramref name="loadedIds"/> means the caller doesn't track them (a
+        /// pre-ROCK-8987 editor bundle, or a hand-rolled API caller); those keep the
+        /// plain full-reconcile behaviour.
+        /// </summary>
+        public static List<int> FilterDeletableIds( IEnumerable<int> plannedIds, IEnumerable<int> loadedIds )
+        {
+            var planned = ( plannedIds ?? Enumerable.Empty<int>() ).ToList();
+            if ( loadedIds == null )
+            {
+                return planned;
+            }
+            var loaded = new HashSet<int>( loadedIds );
+            return planned.Where( id => loaded.Contains( id ) ).ToList();
         }
     }
 }
