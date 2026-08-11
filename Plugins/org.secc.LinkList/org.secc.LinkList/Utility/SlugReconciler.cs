@@ -30,15 +30,25 @@ namespace org.secc.LinkList.Utility
 
     /// <summary>
     /// A slug submitted by the editor: canonical text plus whether it's the chosen
-    /// primary. Deliberately carries no row id - reconciliation matches on slug text
-    /// (the natural key), so an id here would be decoration that later readers could
-    /// mistake for the thing being matched on.
+    /// primary.
     /// </summary>
     public class SubmittedSlug
     {
         public string Slug { get; set; }
 
         public bool IsPrimary { get; set; }
+
+        /// <summary>
+        /// The slug row the CLIENT believes this text is stored as, or 0 when the user
+        /// typed it in this session.
+        /// <para>
+        /// NOT the match key. Reconciliation matches on slug text and nothing else; this
+        /// exists solely so <see cref="SlugReconciler.FilterConcurrentlyDeleted"/> can
+        /// tell "I still want this stored slug" apart from "this was on screen when I
+        /// loaded and I never touched it". Keep that method its only reader.
+        /// </para>
+        /// </summary>
+        public int ClientRowId { get; set; }
     }
 
     /// <summary>
@@ -54,6 +64,18 @@ namespace org.secc.LinkList.Utility
         public List<SubmittedSlug> Slugs { get; set; } = new List<SubmittedSlug>();
 
         public bool FullReconcile { get; set; }
+    }
+
+    /// <summary>
+    /// The outcome of <see cref="SlugReconciler.FilterConcurrentlyDeleted"/>: the slugs
+    /// the save should act on, and the texts it discarded because another editor deleted
+    /// them (reported to the user so a slug vanishing from their screen is explained).
+    /// </summary>
+    public class SlugFilterResult
+    {
+        public List<SubmittedSlug> Kept { get; set; } = new List<SubmittedSlug>();
+
+        public List<string> DroppedSlugs { get; set; } = new List<string>();
     }
 
     /// <summary>
@@ -114,7 +136,8 @@ namespace org.secc.LinkList.Utility
                         .Select( s => new SubmittedSlug
                         {
                             Slug = LinkListService.CanonicalizeSlug( s.Slug ),
-                            IsPrimary = s.IsPrimary
+                            IsPrimary = s.IsPrimary,
+                            ClientRowId = s.ClientRowId
                         } )
                         .Where( s => !string.IsNullOrWhiteSpace( s.Slug ) )
                         // Two entries the user typed differently ("Give_Now", "give now")
@@ -124,7 +147,14 @@ namespace org.secc.LinkList.Utility
                         .Select( g => new SubmittedSlug
                         {
                             Slug = g.Key,
-                            IsPrimary = g.Any( s => s.IsPrimary )
+                            IsPrimary = g.Any( s => s.IsPrimary ),
+                            // A typed entry (id 0) anywhere in the group makes the whole
+                            // group explicit: a user re-typing a slug that also exists as
+                            // a stored row must not inherit that row's id, or a concurrent
+                            // deletion of it would silently discard what they typed.
+                            ClientRowId = g.Any( s => s.ClientRowId == 0 )
+                                ? 0
+                                : g.Select( s => s.ClientRowId ).First()
                         } )
                         .ToList()
                 };
@@ -280,6 +310,57 @@ namespace org.secc.LinkList.Utility
         /// pre-ROCK-8987 editor bundle, or a hand-rolled API caller); those keep the
         /// plain full-reconcile behaviour.
         /// </summary>
+        /// <summary>
+        /// Drops submitted slugs that another editor deleted after this client loaded, so
+        /// saving a stale screen doesn't resurrect them.
+        /// <para>
+        /// The mirror image of <see cref="FilterDeletableIds"/>. Reconciliation matches on
+        /// text, so a submitted slug carries no evidence of whether the user wants it or
+        /// merely still has it on screen - <see cref="SubmittedSlug.ClientRowId"/> is that
+        /// evidence: an entry whose row the client named is gone from the list was deleted
+        /// by someone else, and re-adding it would undo an explicit deletion.
+        /// </para>
+        /// Kept regardless: entries with no row id (the user typed them this session, which
+        /// includes deliberately re-typing a slug someone else deleted), and entries whose
+        /// TEXT still exists under a different row id - a delete-and-recreate. That text
+        /// guard matters: dropping such an entry would make its live row look unsubmitted
+        /// to <see cref="Reconcile"/> and queue it for deletion.
+        /// A null <paramref name="currentRows"/> keeps everything, as in
+        /// <see cref="FilterDeletableIds"/>.
+        /// </summary>
+        public static SlugFilterResult FilterConcurrentlyDeleted(
+            IEnumerable<SubmittedSlug> submitted, IEnumerable<ExistingSlug> currentRows )
+        {
+            var submittedList = ( submitted ?? Enumerable.Empty<SubmittedSlug>() ).ToList();
+            if ( currentRows == null )
+            {
+                return new SlugFilterResult { Kept = submittedList };
+            }
+
+            var rows = currentRows.Where( r => r != null ).ToList();
+            var currentIds = new HashSet<int>( rows.Select( r => r.Id ) );
+            var currentTexts = new HashSet<string>(
+                rows.Select( r => r.Slug ).Where( s => !string.IsNullOrWhiteSpace( s ) ),
+                StringComparer.OrdinalIgnoreCase );
+
+            var result = new SlugFilterResult();
+            foreach ( var s in submittedList )
+            {
+                var keep = s.ClientRowId == 0
+                    || currentIds.Contains( s.ClientRowId )
+                    || currentTexts.Contains( s.Slug );
+                if ( keep )
+                {
+                    result.Kept.Add( s );
+                }
+                else
+                {
+                    result.DroppedSlugs.Add( s.Slug );
+                }
+            }
+            return result;
+        }
+
         public static List<int> FilterDeletableIds( IEnumerable<int> plannedIds, IEnumerable<int> loadedIds )
         {
             var planned = ( plannedIds ?? Enumerable.Empty<int>() ).ToList();

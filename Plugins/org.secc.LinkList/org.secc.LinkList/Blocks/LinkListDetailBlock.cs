@@ -236,6 +236,47 @@ namespace org.secc.LinkList.Blocks
                     itemService.Add( item );
                 }
 
+                // Discard submitted slugs whose rows another editor deleted while this
+                // client had the list open, so saving a stale screen can't resurrect them.
+                //
+                // This has to happen BEFORE the conflict check below: if the other editor
+                // moved that slug to a different list, the stale submission would collide
+                // with it and the save would be refused over a slug this user never
+                // touched and that is about to be discarded anyway. (The conflict check
+                // itself must stay here, ahead of every write - moving it later would
+                // commit the title and attributes and only then refuse.)
+                //
+                // Deliberately a SECOND, cheap read: the authoritative slug query lower
+                // down has to stay there, because for a new list Rock's save hook mints a
+                // title-derived row during the first SaveChanges that this read can't see.
+                // The gap between the two reads is harmless - this filter is best-effort
+                // by nature.
+                var droppedSlugs = new List<string>();
+                if ( !isNew )
+                {
+                    var currentRows = new ContentChannelItemSlugService( rockContext ).Queryable()
+                        .Where( s => s.ContentChannelItemId == item.Id )
+                        .Select( s => new { s.Id, s.Slug } )
+                        .ToList()
+                        .Select( s => new ExistingSlug { Id = s.Id, Slug = s.Slug } );
+
+                    var filtered = SlugReconciler.FilterConcurrentlyDeleted( slugSubmission.Slugs, currentRows );
+                    if ( filtered.DroppedSlugs.Count > 0 && filtered.Kept.Count == 0 )
+                    {
+                        // Every slug this client knew about is gone. There is nothing left
+                        // to reconcile against, and proceeding would either wipe the list's
+                        // current slugs or invent one from the title, so stop and say so.
+                        return ActionBadRequest(
+                            "This list's slugs were changed by someone else since you opened it. "
+                            + "Reload the list and make your changes again." );
+                    }
+                    // REPLACE the submission: the delete pass keys off Slugs.Count, so a
+                    // filtered copy kept on the side would leave deletes enabled against a
+                    // set that no longer justifies them.
+                    slugSubmission.Slugs = filtered.Kept;
+                    droppedSlugs = filtered.DroppedSlugs;
+                }
+
                 // Reject any slug already used by ANOTHER list in the channel with a
                 // clear, named error - Rock's SaveSlug would silently suffix instead.
                 // item.Id is 0 for a new (unsaved) item, which excludes nothing here.
@@ -263,9 +304,17 @@ namespace org.secc.LinkList.Blocks
                 // Intro content lives in the native Content field (legacy parity).
                 item.Content = bag.IntroContent ?? string.Empty;
 
-                // Set when this save kept a slug another editor added; reported on the
-                // response so the user knows why the list has a slug they didn't add.
-                string concurrentSlugWarning = null;
+                // Notes about slugs this save merged rather than overwrote - a row another
+                // editor added and this save kept, or one they deleted and this save did
+                // not resurrect. Reported together on the response so the user isn't
+                // surprised by a slug list that doesn't match what was on their screen.
+                var concurrentSlugNotes = new List<string>();
+                if ( droppedSlugs.Count > 0 )
+                {
+                    concurrentSlugNotes.Add( droppedSlugs.Count == 1
+                        ? $"Another editor deleted the slug '{droppedSlugs[0]}' while you had this list open, so it was not restored."
+                        : $"Another editor deleted these slugs while you had this list open, so they were not restored: {string.Join( ", ", droppedSlugs )}." );
+                }
 
                 // NOTE: intentionally NOT wrapped in rockContext.WrapTransaction. Rock
                 // helpers used below (ContentChannelItemSlugService.SaveSlug and the
@@ -404,9 +453,9 @@ namespace org.secc.LinkList.Blocks
                                 .ToList();
                             if ( sparedSlugs.Count > 0 )
                             {
-                                concurrentSlugWarning = sparedSlugs.Count == 1
+                                concurrentSlugNotes.Add( sparedSlugs.Count == 1
                                     ? $"Another editor added the slug '{sparedSlugs[0]}' while you had this list open. It was kept."
-                                    : $"Another editor added these slugs while you had this list open, and they were kept: {string.Join( ", ", sparedSlugs )}.";
+                                    : $"Another editor added these slugs while you had this list open, and they were kept: {string.Join( ", ", sparedSlugs )}." );
                             }
                         }
 
@@ -559,7 +608,9 @@ namespace org.secc.LinkList.Blocks
                 }
 
                 var saved = service.BuildBag( item, RequestContext.CurrentPerson, requirePublic: false, includeMembers: true, includeSlugs: true );
-                saved.SaveWarning = concurrentSlugWarning;
+                saved.SaveNotice = concurrentSlugNotes.Count > 0
+                    ? string.Join( " ", concurrentSlugNotes )
+                    : null;
                 return ActionOk( saved );
             }
         }
@@ -851,7 +902,10 @@ namespace org.secc.LinkList.Blocks
                 .Select( s => new SubmittedSlug
                 {
                     Slug = s.Slug,
-                    IsPrimary = s.IsPrimary
+                    IsPrimary = s.IsPrimary,
+                    // Carried for concurrency detection only - see SubmittedSlug.ClientRowId.
+                    // 0 means the user typed this slug in the editor.
+                    ClientRowId = s.Id
                 } )
                 .ToList();
             return SlugReconciler.BuildSubmission( provided, bag.Slug );

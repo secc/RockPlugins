@@ -28,9 +28,9 @@ namespace org.secc.LinkList.Tests
             return new ExistingSlug { Id = id, Slug = slug };
         }
 
-        private static SubmittedSlug Submitted( string slug, bool isPrimary = false )
+        private static SubmittedSlug Submitted( string slug, bool isPrimary = false, int clientRowId = 0 )
         {
-            return new SubmittedSlug { Slug = slug, IsPrimary = isPrimary };
+            return new SubmittedSlug { Slug = slug, IsPrimary = isPrimary, ClientRowId = clientRowId };
         }
 
         [Fact]
@@ -444,6 +444,194 @@ namespace org.secc.LinkList.Tests
             // ...but tab B never saw row 9, so nothing is deleted and "b" is just added.
             Assert.Empty( deletable );
             Assert.Equal( new[] { "b" }, plan.SlugsToAdd.ToArray() );
+        }
+
+        // ---- Resurrect guard: a slug another editor deleted must not come back ----
+
+        [Fact]
+        public void FilterConcurrentlyDeleted_Drops_A_Slug_Whose_Row_Is_Gone()
+        {
+            // The client still shows "x" as row 2, but row 2 no longer exists: another
+            // editor deleted it. Re-adding it would undo their deletion.
+            var submitted = new[] { Submitted( "orig", isPrimary: true, clientRowId: 1 ), Submitted( "x", clientRowId: 2 ) };
+            var current = new[] { Existing( 1, "orig" ) };
+
+            var result = SlugReconciler.FilterConcurrentlyDeleted( submitted, current );
+
+            Assert.Equal( new[] { "orig" }, result.Kept.Select( s => s.Slug ).ToArray() );
+            Assert.Equal( new[] { "x" }, result.DroppedSlugs.ToArray() );
+        }
+
+        [Fact]
+        public void FilterConcurrentlyDeleted_Keeps_Slugs_Whose_Rows_Still_Exist()
+        {
+            var submitted = new[] { Submitted( "orig", clientRowId: 1 ), Submitted( "x", clientRowId: 2 ) };
+            var current = new[] { Existing( 1, "orig" ), Existing( 2, "x" ) };
+
+            var result = SlugReconciler.FilterConcurrentlyDeleted( submitted, current );
+
+            Assert.Equal( 2, result.Kept.Count );
+            Assert.Empty( result.DroppedSlugs );
+        }
+
+        [Fact]
+        public void FilterConcurrentlyDeleted_Always_Keeps_A_Slug_The_User_Typed()
+        {
+            // Id 0 is explicit intent - including deliberately re-typing a slug someone
+            // else just deleted. The user's action wins over the merge rule.
+            var submitted = new[] { Submitted( "x" ), Submitted( "brand-new" ) };
+
+            var result = SlugReconciler.FilterConcurrentlyDeleted( submitted, new ExistingSlug[0] );
+
+            Assert.Equal( new[] { "x", "brand-new" }, result.Kept.Select( s => s.Slug ).ToArray() );
+            Assert.Empty( result.DroppedSlugs );
+        }
+
+        [Fact]
+        public void FilterConcurrentlyDeleted_Keeps_A_Slug_Deleted_And_Recreated_Under_A_New_Id()
+        {
+            // The client knew "x" as row 2; someone deleted row 2 and recreated the same
+            // text as row 15. Dropping it would make row 15 look unsubmitted to Reconcile
+            // and queue a LIVE slug for deletion - so the text has to win over the id.
+            var submitted = new[] { Submitted( "orig", clientRowId: 1 ), Submitted( "x", clientRowId: 2 ) };
+            var current = new[] { Existing( 1, "orig" ), Existing( 15, "x" ) };
+
+            var result = SlugReconciler.FilterConcurrentlyDeleted( submitted, current );
+
+            Assert.Equal( 2, result.Kept.Count );
+            Assert.Empty( result.DroppedSlugs );
+        }
+
+        [Fact]
+        public void FilterConcurrentlyDeleted_Null_Current_Rows_Keeps_Everything()
+        {
+            // Mirrors FilterDeletableIds: null means "caller can't tell us", which must
+            // differ from an empty set (a list that genuinely has no slug rows).
+            var submitted = new[] { Submitted( "x", clientRowId: 2 ) };
+
+            var result = SlugReconciler.FilterConcurrentlyDeleted( submitted, null );
+
+            Assert.Single( result.Kept );
+            Assert.Empty( result.DroppedSlugs );
+        }
+
+        [Fact]
+        public void FilterConcurrentlyDeleted_No_Ids_Anywhere_Is_A_NoOp()
+        {
+            // A pre-fix editor bundle or hand-rolled API caller sends no ids at all;
+            // it keeps the old behavior rather than having its payload gutted.
+            var submitted = new[] { Submitted( "a" ), Submitted( "b" ) };
+
+            var result = SlugReconciler.FilterConcurrentlyDeleted( submitted, new[] { Existing( 7, "unrelated" ) } );
+
+            Assert.Equal( 2, result.Kept.Count );
+            Assert.Empty( result.DroppedSlugs );
+        }
+
+        [Fact]
+        public void FilterConcurrentlyDeleted_Reports_When_Everything_Known_Is_Gone()
+        {
+            // The block turns this into "reload the list": there is nothing left to
+            // reconcile against, so proceeding would wipe the list or invent a slug.
+            var submitted = new[] { Submitted( "x", isPrimary: true, clientRowId: 2 ) };
+            var current = new[] { Existing( 3, "z" ) };
+
+            var result = SlugReconciler.FilterConcurrentlyDeleted( submitted, current );
+
+            Assert.Empty( result.Kept );
+            Assert.Equal( new[] { "x" }, result.DroppedSlugs.ToArray() );
+        }
+
+        [Fact]
+        public void FilterConcurrentlyDeleted_Composes_With_Reconcile_On_The_Reported_Bug()
+        {
+            // End to end. List was [orig(1), x(2)]; tab A removed x; tab B, still showing
+            // x, adds y. Without the filter Reconcile would re-add x.
+            var submitted = new[]
+            {
+                Submitted( "orig", isPrimary: true, clientRowId: 1 ),
+                Submitted( "x", clientRowId: 2 ),
+                Submitted( "y" )
+            };
+            var current = new[] { Existing( 1, "orig" ) };
+
+            var naive = SlugReconciler.Reconcile( current, submitted );
+            Assert.Equal( new[] { "x", "y" }, naive.SlugsToAdd.ToArray() ); // the bug
+
+            var filtered = SlugReconciler.FilterConcurrentlyDeleted( submitted, current );
+            var plan = SlugReconciler.Reconcile( current, filtered.Kept );
+
+            Assert.Equal( new[] { "y" }, plan.SlugsToAdd.ToArray() );
+            Assert.Empty( plan.SlugIdsToDelete );
+            Assert.Equal( "orig", plan.PrimarySlug );
+        }
+
+        [Fact]
+        public void FilterConcurrentlyDeleted_Recreated_Row_Is_Never_A_Delete_Candidate()
+        {
+            // Composition of the two guards: the text guard keeps "x", so the recreated
+            // row 15 is never queued for deletion - which matters because a caller that
+            // omits loadedSlugIds has nothing to spare it (FilterDeletableIds(_, null)
+            // passes every planned id through).
+            var submitted = new[] { Submitted( "orig", isPrimary: true, clientRowId: 1 ), Submitted( "x", clientRowId: 2 ) };
+            var current = new[] { Existing( 1, "orig" ), Existing( 15, "x" ) };
+
+            var filtered = SlugReconciler.FilterConcurrentlyDeleted( submitted, current );
+            var plan = SlugReconciler.Reconcile( current, filtered.Kept );
+
+            Assert.Empty( plan.SlugIdsToDelete );
+            Assert.Empty( SlugReconciler.FilterDeletableIds( plan.SlugIdsToDelete, null ) );
+        }
+
+        [Fact]
+        public void FilterConcurrentlyDeleted_Dropping_The_Flagged_Primary_Promotes_The_First_Survivor()
+        {
+            // Accepted behavior: primary is last-writer-wins, so a stale save whose chosen
+            // primary is gone falls back to its first surviving slug rather than failing.
+            var submitted = new[] { Submitted( "keep", clientRowId: 1 ), Submitted( "x", isPrimary: true, clientRowId: 2 ) };
+            var current = new[] { Existing( 1, "keep" ) };
+
+            var filtered = SlugReconciler.FilterConcurrentlyDeleted( submitted, current );
+            var plan = SlugReconciler.Reconcile( current, filtered.Kept );
+
+            Assert.Equal( "keep", plan.PrimarySlug );
+        }
+
+        [Fact]
+        public void BuildSubmission_Carries_The_Client_Row_Id_Through_Canonicalization()
+        {
+            var provided = new[] { Submitted( "Give Now", clientRowId: 4 ) };
+
+            var submission = SlugReconciler.BuildSubmission( provided, null );
+
+            Assert.Equal( "give-now", submission.Slugs[0].Slug );
+            Assert.Equal( 4, submission.Slugs[0].ClientRowId );
+        }
+
+        [Fact]
+        public void BuildSubmission_Merged_Group_Prefers_A_Typed_Entry()
+        {
+            // A stored row plus the user re-typing the same slug: the merged entry must be
+            // treated as typed (id 0), or a concurrent deletion of that row would discard
+            // what the user deliberately entered.
+            var provided = new[]
+            {
+                Submitted( "Already-Here", clientRowId: 5 ),
+                Submitted( "already-here" )
+            };
+
+            var submission = SlugReconciler.BuildSubmission( provided, null );
+
+            Assert.Single( submission.Slugs );
+            Assert.Equal( 0, submission.Slugs[0].ClientRowId );
+        }
+
+        [Fact]
+        public void BuildSubmission_Scalar_Slug_Has_No_Client_Row_Id()
+        {
+            var submission = SlugReconciler.BuildSubmission( null, "Give Now" );
+
+            Assert.Equal( 0, submission.Slugs[0].ClientRowId );
         }
 
         // ---- Set size cap (keeps the conflict query under SQL's parameter limit) ----

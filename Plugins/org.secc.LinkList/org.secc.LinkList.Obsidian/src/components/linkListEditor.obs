@@ -2,6 +2,7 @@
     <div class="link-list-editor">
         <NotificationBox v-if="errorMessage" alertType="danger">{{ errorMessage }}</NotificationBox>
         <NotificationBox v-if="warningMessage" alertType="warning">{{ warningMessage }}</NotificationBox>
+        <NotificationBox v-if="noticeMessage" alertType="info">{{ noticeMessage }}</NotificationBox>
 
         <div v-if="!detail" class="text-center p-3">
             <i class="fa fa-spinner fa-spin"></i> Loading...
@@ -314,6 +315,9 @@ const errorMessage = ref("");
 // A save that partially succeeded: the list is stored but something after it
 // failed, so this is a warning to act on rather than an outright failure.
 const warningMessage = ref("");
+// A save that fully succeeded but merged a concurrent slug edit - informational, so it
+// does not hold the user on the page the way warningMessage does.
+const noticeMessage = ref("");
 const slugMessage = ref("");
 const newSlug = ref("");
 // The slug derived from the title on this screen, if any - so the row can be
@@ -353,6 +357,7 @@ watch(() => props.detail, d => {
     newSlug.value = "";
     errorMessage.value = "";
     warningMessage.value = "";
+    noticeMessage.value = "";
     slugMessage.value = "";
     autoDerivedSlug.value = "";
 });
@@ -649,9 +654,15 @@ async function save(): Promise<void> {
         // next save is an update rather than a doomed re-create. Adopt it either way
         // and surface the warning instead of claiming a clean save.
         const warning = result.data.saveWarning;
+        // Reports a concurrent edit this save merged. The save DID succeed, so unlike a
+        // warning it doesn't suppress "saved" - it just explains a slug list that may
+        // not match what was on screen.
+        const notice = result.data.saveNotice;
         bag.value = cloneBag(result.data);
         bag.value.saveWarning = null;
+        bag.value.saveNotice = null;
         rememberLoadedSlugIds(result.data);
+        noticeMessage.value = notice || "";
         if (warning) {
             // Stay on the editor so the user can fix and re-save; emitting "saved"
             // would navigate away from a list that isn't fully written yet.

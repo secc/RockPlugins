@@ -77,6 +77,14 @@ namespace org.secc.LinkList.ViewModels
         public string SaveWarning { get; set; }
 
         /// <summary>
+        /// Set when a save fully SUCCEEDED but merged a concurrent edit - a slug another
+        /// editor added that this save kept, or one they deleted that it did not restore.
+        /// Purely informational: unlike <see cref="SaveWarning"/> nothing needs redoing,
+        /// so the editor reports it without treating the save as incomplete.
+        /// </summary>
+        public string SaveNotice { get; set; }
+
+        /// <summary>
         /// True when the current person may delete this list (ADMINISTRATE on
         /// the item - the same check the Delete block action enforces).
         /// Populated only for the management grid; false elsewhere.
