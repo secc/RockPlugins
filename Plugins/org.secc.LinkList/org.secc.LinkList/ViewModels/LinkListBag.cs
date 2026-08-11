@@ -23,7 +23,31 @@ namespace org.secc.LinkList.ViewModels
 
         public int? Id { get; set; }
 
+        /// <summary>
+        /// The PRIMARY slug (computed, read-only for consumers). Kept for
+        /// back-compat: the web component's <c>secc-link-list-loaded</c> event
+        /// payload and the fallback title still read this scalar. The editor
+        /// edits <see cref="Slugs"/>; the save path recomputes this from the
+        /// primary row.
+        /// </summary>
         public string Slug { get; set; }
+
+        /// <summary>
+        /// All slugs for the list (primary + additional). The editor adds,
+        /// removes, and designates the primary here; the save path reconciles
+        /// this set against the item's ContentChannelItemSlug rows. Every entry
+        /// resolves to the list, so keeping an old slug preserves old URLs.
+        /// <para>
+        /// NOTE: intentionally NOT initialized. On the save (deserialization)
+        /// path, null means "the client omitted this collection" - a legacy
+        /// scalar-only client (e.g. a browser holding the pre-multi-slug editor
+        /// bundle) - which the block treats as an upsert-only update that never
+        /// deletes other slugs. A non-null value (even empty) means a slug-aware
+        /// client sent its full set, so the block does a delete-capable reconcile.
+        /// The read path (BuildBag / QueryListSummaries) always assigns it.
+        /// </para>
+        /// </summary>
+        public List<LinkListSlugBag> Slugs { get; set; }
 
         public string Title { get; set; }
 
@@ -36,10 +60,29 @@ namespace org.secc.LinkList.ViewModels
         public string DesignName { get; set; }
 
         /// <summary>
-        /// Last modified timestamp of the underlying ContentChannelItem
-        /// (for the management grid's "Modified" column).
+        /// Last modified timestamp of the underlying ContentChannelItem. Drives the
+        /// management grid's "Modified" column AND the save's optimistic-concurrency
+        /// check: a save whose value no longer matches the stored one is rejected, so
+        /// a stale editor can't revert - or delete the slugs of - someone else's edit.
         /// </summary>
         public System.DateTime? ModifiedDateTime { get; set; }
+
+        /// <summary>
+        /// Set when a save PARTIALLY succeeded: the list itself is stored but a
+        /// follow-on step (link rows, edit-access group) failed. The response still
+        /// carries the saved bag so the editor keeps the list's identity and can retry
+        /// as an update - without this, a retry would look like a brand new list and be
+        /// rejected for conflicting with the slugs it just created. Null on a clean save.
+        /// </summary>
+        public string SaveWarning { get; set; }
+
+        /// <summary>
+        /// Set when a save fully SUCCEEDED but merged a concurrent edit - a slug another
+        /// editor added that this save kept, or one they deleted that it did not restore.
+        /// Purely informational: unlike <see cref="SaveWarning"/> nothing needs redoing,
+        /// so the editor reports it without treating the save as incomplete.
+        /// </summary>
+        public string SaveNotice { get; set; }
 
         /// <summary>
         /// True when the current person may delete this list (ADMINISTRATE on

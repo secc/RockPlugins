@@ -1,4 +1,4 @@
-// <copyright>
+﻿// <copyright>
 // Copyright Southeast Christian Church
 //
 // Licensed under the  Southeast Christian Church License (the "License");
@@ -124,7 +124,7 @@ namespace org.secc.LinkList.Blocks
                     return ActionForbidden();
                 }
 
-                var bag = service.BuildBag( item, RequestContext.CurrentPerson, requirePublic: false, includeMembers: true );
+                var bag = service.BuildBag( item, RequestContext.CurrentPerson, requirePublic: false, includeMembers: true, includeSlugs: true );
                 if ( bag == null )
                 {
                     return ActionNotFound();
@@ -142,8 +142,17 @@ namespace org.secc.LinkList.Blocks
             }
         }
 
+        /// <summary>
+        /// Saves a list. <paramref name="loadedSlugIds"/> is the set of slug row ids the
+        /// editor had on screen when it loaded, which is what lets a save DELETE a slug
+        /// without clobbering one another editor added in the meantime - see
+        /// <see cref="SlugReconciler.FilterDeletableIds"/>. It is request-scoped intent
+        /// rather than list state, so it is a separate parameter instead of a bag field
+        /// (the bag doubles as the read model serialized to anonymous callers). Null when
+        /// the caller doesn't track it.
+        /// </summary>
         [BlockAction]
-        public BlockActionResult SaveList( LinkListBag bag )
+        public BlockActionResult SaveList( LinkListBag bag, List<int> loadedSlugIds = null )
         {
             if ( RequestContext.CurrentPerson == null )
             {
@@ -153,11 +162,13 @@ namespace org.secc.LinkList.Blocks
             {
                 return ActionBadRequest( "Link list payload is required." );
             }
-            // Canonicalize the slug (trim + lowercase) before validation so a
-            // mixed-case slug typed in the editor is accepted and stored in the
-            // same form every other entry point resolves.
-            bag.Slug = LinkListService.NormalizeSlug( bag.Slug );
-            var validation = ValidateBag( bag );
+            // Slugs are canonicalized inside BuildSlugSubmission (via
+            // SlugReconciler.BuildSubmission -> LinkListService.CanonicalizeSlug) to
+            // exactly the text Rock will store, so what ValidateBag checks, what the
+            // conflict check queries, and what every entry point resolves all match.
+            // Built once here and threaded through the whole save.
+            var slugSubmission = BuildSlugSubmission( bag );
+            var validation = ValidateBag( bag, slugSubmission );
             if ( validation != null )
             {
                 return ActionBadRequest( validation );
@@ -187,6 +198,26 @@ namespace org.secc.LinkList.Blocks
                     {
                         return ActionForbidden();
                     }
+
+                    // Optimistic concurrency for the item ROW: reject a save whose view
+                    // of the list predates someone else's, so a stale tab can't silently
+                    // revert their title or intro content.
+                    //
+                    // Scope, precisely: Rock stamps ModifiedDateTime only when the item
+                    // row itself is Added/Modified. Slugs, colours and link rows live in
+                    // other tables and never touch it, so this check CANNOT see those
+                    // edits - the slug case is handled instead by restricting deletions
+                    // to rows the editor actually loaded (see loadedSlugIds below).
+                    // A null value means a client that doesn't round-trip it: left alone.
+                    // Tolerance: SQL datetime resolution and the JSON round-trip don't
+                    // preserve exact ticks.
+                    if ( bag.ModifiedDateTime.HasValue && item.ModifiedDateTime.HasValue
+                        && Math.Abs( ( item.ModifiedDateTime.Value - bag.ModifiedDateTime.Value ).TotalSeconds ) > 1 )
+                    {
+                        return ActionBadRequest(
+                            "This list was changed by someone else since you opened it. "
+                            + "Reload the list and make your changes again." );
+                    }
                 }
                 else
                 {
@@ -205,9 +236,85 @@ namespace org.secc.LinkList.Blocks
                     itemService.Add( item );
                 }
 
+                // Discard submitted slugs whose rows another editor deleted while this
+                // client had the list open, so saving a stale screen can't resurrect them.
+                //
+                // This has to happen BEFORE the conflict check below: if the other editor
+                // moved that slug to a different list, the stale submission would collide
+                // with it and the save would be refused over a slug this user never
+                // touched and that is about to be discarded anyway. (The conflict check
+                // itself must stay here, ahead of every write - moving it later would
+                // commit the title and attributes and only then refuse.)
+                //
+                // Deliberately a SECOND, cheap read: the authoritative slug query lower
+                // down has to stay there, because for a new list Rock's save hook mints a
+                // title-derived row during the first SaveChanges that this read can't see.
+                // The gap between the two reads is harmless - this filter is best-effort
+                // by nature.
+                var droppedSlugs = new List<string>();
+                if ( !isNew )
+                {
+                    var currentRows = new ContentChannelItemSlugService( rockContext ).Queryable()
+                        .Where( s => s.ContentChannelItemId == item.Id )
+                        .Select( s => new { s.Id, s.Slug } )
+                        .ToList()
+                        .Select( s => new ExistingSlug { Id = s.Id, Slug = s.Slug } );
+
+                    var filtered = SlugReconciler.FilterConcurrentlyDeleted( slugSubmission.Slugs, currentRows );
+                    if ( filtered.DroppedSlugs.Count > 0 && filtered.Kept.Count == 0 )
+                    {
+                        // Every slug this client knew about is gone. There is nothing left
+                        // to reconcile against, and proceeding would either wipe the list's
+                        // current slugs or invent one from the title, so stop and say so.
+                        return ActionBadRequest(
+                            "This list's slugs were changed by someone else since you opened it. "
+                            + "Reload the list and make your changes again." );
+                    }
+                    // REPLACE the submission: the delete pass keys off Slugs.Count, so a
+                    // filtered copy kept on the side would leave deletes enabled against a
+                    // set that no longer justifies them.
+                    slugSubmission.Slugs = filtered.Kept;
+                    droppedSlugs = filtered.DroppedSlugs;
+                }
+
+                // Reject any slug already used by ANOTHER list in the channel with a
+                // clear, named error - Rock's SaveSlug would silently suffix instead.
+                // item.Id is 0 for a new (unsaved) item, which excludes nothing here.
+                // Wrapped because this runs BEFORE the save's own try: the query
+                // parameterizes one value per slug, so without the count cap in
+                // ValidateBag an oversized payload would surface as a raw 500.
+                string conflictingSlug;
+                try
+                {
+                    conflictingSlug = service.FindConflictingSlug(
+                        slugSubmission.Slugs.Select( s => s.Slug ), item.Id );
+                }
+                catch ( Exception ex )
+                {
+                    ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
+                    return ActionBadRequest( "Could not check the slugs for conflicts. The error has been logged." );
+                }
+                if ( conflictingSlug != null )
+                {
+                    return ActionBadRequest(
+                        $"The slug '{conflictingSlug}' is already used by another list. Choose a different slug." );
+                }
+
                 item.Title = bag.Title.Trim();
                 // Intro content lives in the native Content field (legacy parity).
                 item.Content = bag.IntroContent ?? string.Empty;
+
+                // Notes about slugs this save merged rather than overwrote - a row another
+                // editor added and this save kept, or one they deleted and this save did
+                // not resurrect. Reported together on the response so the user isn't
+                // surprised by a slug list that doesn't match what was on their screen.
+                var concurrentSlugNotes = new List<string>();
+                if ( droppedSlugs.Count > 0 )
+                {
+                    concurrentSlugNotes.Add( droppedSlugs.Count == 1
+                        ? $"Another editor deleted the slug '{droppedSlugs[0]}' while you had this list open, so it was not restored."
+                        : $"Another editor deleted these slugs while you had this list open, so they were not restored: {string.Join( ", ", droppedSlugs )}." );
+                }
 
                 // NOTE: intentionally NOT wrapped in rockContext.WrapTransaction. Rock
                 // helpers used below (ContentChannelItemSlugService.SaveSlug and the
@@ -216,8 +323,11 @@ namespace org.secc.LinkList.Blocks
                 // a self-deadlock that surfaces as "The wait operation timed out." So these
                 // writes commit individually (as Rock's own detail blocks do). The matrix
                 // rebuild stays atomic on its own: PersistMatrixItems wraps its
-                // delete+upsert in a transaction. The slug catch below rethrows only to
-                // surface a clearer message, not to roll back.
+                // delete+upsert in a transaction.
+                //
+                // Because writes commit as they go, ORDER MATTERS in the slug section
+                // below: it must never delete a slug row until every add has succeeded,
+                // or a later failure leaves a list with dead URLs and no way back.
                 try
                 {
                     rockContext.SaveChanges();
@@ -257,27 +367,184 @@ namespace org.secc.LinkList.Blocks
                     PersistBinaryFile( rockContext, bag.HeaderBackgroundImage );
                     rockContext.SaveChanges();
 
-                    // Slug upsert (uniqueness within the channel is enforced by Rock).
-                    if ( !bag.Slug.IsNullOrWhiteSpace() )
+                    // Multi-slug reconciliation. Only touch slugs when the client
+                    // sent slug data - a legacy client that sent neither a Slugs
+                    // array nor a scalar slug leaves the list's slugs untouched.
+                    var slugService = new ContentChannelItemSlugService( rockContext );
+                    var slugRowsToDelete = new List<ContentChannelItemSlug>();
+                    if ( slugSubmission.FullReconcile || slugSubmission.Slugs.Count > 0 )
                     {
-                        var existingSlug = item.ContentChannelItemSlugs?
-                            .OrderBy( s => s.Id )
-                            .FirstOrDefault();
-                        var slugService = new ContentChannelItemSlugService( rockContext );
-                        try
+                        // Load the item's slug rows EXPLICITLY (a query, not the lazy
+                        // nav) so the diff sees the committed set - which for a NEW list
+                        // already includes the slug Rock derived from the title: its save
+                        // hook mints one for an item with no slug rows, and the
+                        // SaveChanges above is not wrapped in a transaction, so it has
+                        // already run. That hook does NOT fire for an existing item whose
+                        // own row didn't change (Rock skips hooks for an Unchanged
+                        // entity), which is why the title slug is also derived explicitly
+                        // below rather than assumed.
+                        // Tracked entities (not a projection) so this one query serves
+                        // the diff, the primary flag and the deletes alike.
+                        // No WrapTransaction here (same deadlock reason as above):
+                        // SaveSlug opens/commits on its own as it goes.
+                        var slugRows = slugService.Queryable()
+                            .Where( s => s.ContentChannelItemId == item.Id )
+                            .ToList();
+
+                        var slugPlan = SlugReconciler.Reconcile(
+                            slugRows.Select( s => new ExistingSlug { Id = s.Id, Slug = s.Slug } ),
+                            slugSubmission.Slugs );
+                        if ( !slugPlan.IsValid )
                         {
-                            slugService.SaveSlug( item.Id, channel.Id, bag.Slug, existingSlug?.Id );
+                            // ValidateBag already ran, so this is an invariant breach
+                            // rather than user error - but it is still the user's set,
+                            // so name the problem instead of logging "Save failed".
+                            return ActionBadRequest( slugPlan.Error );
                         }
-                        catch ( Exception ex )
+
+                        // Add new slugs. SaveSlug persists each row and RETURNS it,
+                        // which is the only reliable way to learn the STORED text: on
+                        // a collision that appeared after FindConflictingSlug ran it
+                        // silently suffixes "-1", and it returns null without writing
+                        // anything when Rock reduces the text to nothing.
+                        var rowIdBySlug = new Dictionary<string, int>( StringComparer.OrdinalIgnoreCase );
+                        foreach ( var slug in slugPlan.SlugsToAdd )
                         {
-                            // Rethrow to roll back the transaction; surfaced below.
-                            throw new InvalidOperationException( "Slug error: " + ex.Message, ex );
+                            var savedRow = slugService.SaveSlug( item.Id, channel.Id, slug, null );
+                            if ( savedRow == null )
+                            {
+                                // Shouldn't happen: CanonicalizeSlug output is a fixed
+                                // point of Rock's MakeSlugValid, so Rock can't reduce it
+                                // to nothing. Bail out before anything is deleted so the
+                                // list keeps the slugs it still has. Adds that already
+                                // committed stay; a retry is idempotent because the
+                                // reconcile diffs by slug text.
+                                throw new InvalidOperationException(
+                                    $"Rock stored no row for slug '{slug}'; aborted before deleting any slugs." );
+                            }
+                            rowIdBySlug[slug] = savedRow.Id;
+                            slugRows.Add( savedRow );
+                        }
+
+                        // Deletions are DEFERRED until after the matrix rebuild (see
+                        // below): removing a slug kills a public URL for good, so it
+                        // must be the last thing this save does. Only a slug-aware
+                        // client that sent a non-empty set may delete - a legacy
+                        // scalar-only client upserts without deleting, and an empty set
+                        // means "leave the slugs to Rock" (see ValidateBag).
+                        var mayDelete = slugSubmission.FullReconcile && slugSubmission.Slugs.Count > 0;
+                        if ( mayDelete )
+                        {
+                            // Restricted to rows the editor actually loaded, so a slug
+                            // another editor added since then is kept rather than read as
+                            // one this user removed. Deliberate removal is unaffected.
+                            var deletableIds = SlugReconciler.FilterDeletableIds(
+                                slugPlan.SlugIdsToDelete, loadedSlugIds );
+                            slugRowsToDelete = slugRows
+                                .Where( s => deletableIds.Contains( s.Id ) )
+                                .ToList();
+
+                            // Tell the user when that actually spared something, so
+                            // neither editor is surprised by a slug they didn't add.
+                            var sparedSlugs = slugRows
+                                .Where( s => slugPlan.SlugIdsToDelete.Contains( s.Id )
+                                    && !deletableIds.Contains( s.Id ) )
+                                .Select( s => s.Slug )
+                                .ToList();
+                            if ( sparedSlugs.Count > 0 )
+                            {
+                                concurrentSlugNotes.Add( sparedSlugs.Count == 1
+                                    ? $"Another editor added the slug '{sparedSlugs[0]}' while you had this list open. It was kept."
+                                    : $"Another editor added these slugs while you had this list open, and they were kept: {string.Join( ", ", sparedSlugs )}." );
+                            }
+                        }
+
+                        if ( slugRows.Count == 0 )
+                        {
+                            // Derive a slug from the title, the way Rock's own content
+                            // channel item block does. Rock's save hook does this too,
+                            // but ONLY when the item row itself changed - hooks are
+                            // skipped for an Unchanged entity - so a slug-only or no-op
+                            // save on a slug-less list would otherwise leave it
+                            // unreachable. Doing it here makes it deterministic.
+                            var derived = slugService.SaveSlug( item.Id, channel.Id, item.Title, null );
+                            if ( derived != null )
+                            {
+                                slugRows.Add( derived );
+                            }
+                        }
+
+                        if ( slugRows.Count == 0 )
+                        {
+                            // Unreachable: ValidateBag rejects an empty submitted set
+                            // whose title yields no slug, so either a slug was added
+                            // above or one was just derived. A list with no slug is
+                            // unreachable by the viewer, web component and REST, so say
+                            // so rather than reporting a clean save.
+                            throw new InvalidOperationException(
+                                "The list has no slug and none could be derived from the title. Add a slug and save again." );
+                        }
+
+                        // Match the primary row by ID, never by text: SaveSlug may have
+                        // stored a "-1"-suffixed variant of what was submitted, and a
+                        // text comparison would then match nothing and silently clear
+                        // every primary flag. Rows the reconcile kept map to themselves.
+                        int? primaryRowId = null;
+                        if ( slugPlan.PrimarySlug != null )
+                        {
+                            primaryRowId = rowIdBySlug.TryGetValue( slugPlan.PrimarySlug, out var addedRowId )
+                                ? addedRowId
+                                : slugRows
+                                    .Where( r => string.Equals( r.Slug, slugPlan.PrimarySlug, StringComparison.OrdinalIgnoreCase ) )
+                                    .Select( r => ( int? ) r.Id )
+                                    .FirstOrDefault();
+                        }
+                        if ( primaryRowId == null )
+                        {
+                            // Nothing was submitted (Rock derived the slug from the
+                            // title), so keep the list's existing primary if it has one
+                            // and otherwise promote its oldest row - a list with slugs
+                            // always ends up with exactly one primary. Rows queued for
+                            // deletion are never candidates.
+                            var doomedIds = slugRowsToDelete.Select( r => r.Id ).ToList();
+                            var survivors = slugRows.Where( r => !doomedIds.Contains( r.Id ) ).ToList();
+                            primaryRowId = survivors.FirstOrDefault( r => r.IsPrimary )?.Id
+                                ?? survivors.OrderBy( r => r.Id ).First().Id;
+                        }
+
+                        var primaryChanged = false;
+                        foreach ( var row in slugRows )
+                        {
+                            var shouldBePrimary = row.Id == primaryRowId.Value;
+                            if ( row.IsPrimary != shouldBePrimary )
+                            {
+                                row.IsPrimary = shouldBePrimary;
+                                primaryChanged = true;
+                            }
+                        }
+                        if ( primaryChanged )
+                        {
+                            rockContext.SaveChanges();
                         }
                     }
 
                     // Persist link rows: upserts by row Guid, deletes rows missing
                     // from the incoming list, and reorders by list position.
                     service.PersistMatrixItems( item, bag.Items );
+
+                    // Slug deletions go LAST. Everything above commits as it goes, so a
+                    // failure anywhere earlier used to leave a slug's URL permanently
+                    // dead while the user was told the save failed. Deferring them means
+                    // the worst case is a slug that outlives its removal - recoverable by
+                    // saving again - instead of a URL that can never be recovered.
+                    if ( slugRowsToDelete.Count > 0 )
+                    {
+                        foreach ( var row in slugRowsToDelete )
+                        {
+                            slugService.Delete( row );
+                        }
+                        rockContext.SaveChanges();
+                    }
                 }
                 catch ( Exception ex )
                 {
@@ -285,6 +552,19 @@ namespace org.secc.LinkList.Blocks
                     // goes to Rock's exception log; the client gets a generic message
                     // so database/schema details never leak to the browser.
                     ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
+
+                    // The writes above commit as they go, so the list itself may already
+                    // exist. Hand the saved bag back with a warning rather than a bare
+                    // error: otherwise a new list's editor keeps a null id, the retry
+                    // looks like another new list, and it is rejected forever for
+                    // conflicting with the slugs the failed attempt just created.
+                    if ( item.Id > 0 )
+                    {
+                        var partial = service.BuildBag( item, RequestContext.CurrentPerson, requirePublic: false, includeMembers: true, includeSlugs: true );
+                        partial.SaveWarning = "Some of your changes could not be saved. "
+                            + "The error has been logged; review the list and save again.";
+                        return ActionOk( partial );
+                    }
                     return ActionBadRequest( "Save failed. The error has been logged; contact an administrator if it persists." );
                 }
 
@@ -302,11 +582,15 @@ namespace org.secc.LinkList.Blocks
                     catch ( Exception ex )
                     {
                         // The list itself is saved; only the edit-access group failed.
-                        // Log it and tell the user to re-save to (idempotently) create it.
+                        // Return the saved bag with a warning (not a bare error) so the
+                        // editor keeps the new list's identity - re-saving is idempotent
+                        // and finishes the setup, whereas a retry that looked like a new
+                        // list would collide with the slugs this attempt already created.
                         ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
-                        return ActionBadRequest(
-                            "The list was saved, but setting up edit access failed. "
-                            + "The error has been logged. Re-open the list and save again to finish access setup." );
+                        var partial = service.BuildBag( item, RequestContext.CurrentPerson, requirePublic: false, includeMembers: true, includeSlugs: true );
+                        partial.SaveWarning = "The list was saved, but setting up edit access failed. "
+                            + "The error has been logged. Save again to finish access setup.";
+                        return ActionOk( partial );
                     }
                 }
                 else
@@ -323,7 +607,10 @@ namespace org.secc.LinkList.Blocks
                     }
                 }
 
-                var saved = service.BuildBag( item, RequestContext.CurrentPerson, requirePublic: false, includeMembers: true );
+                var saved = service.BuildBag( item, RequestContext.CurrentPerson, requirePublic: false, includeMembers: true, includeSlugs: true );
+                saved.SaveNotice = concurrentSlugNotes.Count > 0
+                    ? string.Join( " ", concurrentSlugNotes )
+                    : null;
                 return ActionOk( saved );
             }
         }
@@ -578,17 +865,50 @@ namespace org.secc.LinkList.Blocks
             }
         }
 
-        private static string ValidateBag( LinkListBag bag )
+        private static string ValidateBag( LinkListBag bag, SlugSubmission submission )
         {
             if ( bag.Title.IsNullOrWhiteSpace() || bag.Title.Trim().Length < 1 || bag.Title.Trim().Length > 250 )
             {
                 return "Title is required and must be 1-250 characters.";
             }
-            if ( !bag.Slug.IsNullOrWhiteSpace() && !LinkListService.IsValidSlug( bag.Slug ) )
-            {
-                return "Slug must be 1-200 chars of letters, digits, or dashes.";
-            }
-            return null;
+
+            // Validate EVERY submitted slug (charset), reject duplicates within the
+            // submitted set, cap the count, and require the title to yield a slug when
+            // the set is empty. Channel-wide uniqueness is checked separately (it needs
+            // a DB query). Slug rules live in LinkListService/SlugReconciler - the
+            // single source of truth.
+            return SlugReconciler.ValidateSubmitted( submission.Slugs )
+                ?? SlugReconciler.ValidateSubmissionSize( submission )
+                ?? SlugReconciler.ValidateSubmissionAgainstTitle( submission, bag.Title );
+        }
+
+        /// <summary>
+        /// The slug set this save should apply. When the client sent a Slugs
+        /// collection (slug-aware editor) it drives a delete-capable reconcile;
+        /// when the collection is omitted (null - a legacy scalar-only client) it
+        /// becomes an upsert-only submission seeded from the scalar
+        /// <see cref="LinkListBag.Slug"/> that never deletes other slugs. All
+        /// canonicalization, blank-dropping and de-duplication happens in
+        /// <see cref="SlugReconciler.BuildSubmission"/>.
+        /// </summary>
+        private static SlugSubmission BuildSlugSubmission( LinkListBag bag )
+        {
+            // Map the bag's slugs to the helper's POCO, preserving null (omitted)
+            // vs non-null (provided) so BuildSubmission can tell them apart. Null
+            // ELEMENTS are dropped first - a hand-rolled "slugs":[null] payload
+            // would otherwise throw here, outside the save's try/catch.
+            var provided = bag.Slugs?
+                .Where( s => s != null )
+                .Select( s => new SubmittedSlug
+                {
+                    Slug = s.Slug,
+                    IsPrimary = s.IsPrimary,
+                    // Carried for concurrency detection only - see SubmittedSlug.ClientRowId.
+                    // 0 means the user typed this slug in the editor.
+                    ClientRowId = s.Id
+                } )
+                .ToList();
+            return SlugReconciler.BuildSubmission( provided, bag.Slug );
         }
 
         private static void SetIfPresent( ContentChannelItem item, string key, string value )
