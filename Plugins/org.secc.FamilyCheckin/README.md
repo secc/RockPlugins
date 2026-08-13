@@ -138,10 +138,24 @@ round trip. Each subclass supplies a `keyFactory` that rebuilds that list from t
 per cache type, per web-farm node — **including when the cached list is empty**. An empty list is a
 valid state (overnight, before the day's first check-in), and refreshing on every call re-ran
 `keyFactory()` every time; for `AttendanceCache` that is a full `dbo.Attendance` scan returning zero
-rows. Tradeoff: after a cache clear or flush during active check-in, `AllKeys`-derived views
-(attendance / occupancy) can read empty for up to 10 seconds before self-healing. Accepted — the
-`ensureKey` / `removeKey` paths still apply inside the throttle window, so individual check-ins are
-not lost.
+rows.
+
+**Eviction is not emptiness.** The key list lives in `RockCache` and can be evicted at any time; the
+throttle timestamp is a process-local `static` and cannot be. `AllKeys()` returns an empty list for
+both cases and cannot distinguish them, so throttling a post-eviction read serves **zero keys** for
+the remainder of the window. PR #281 documented that as a self-healing 10-second gap in
+attendance/occupancy views and accepted it. In practice it was worse than that reads: room setup
+toggles clear caches on every room (`CheckinKioskTypeCache.ClearForTemplateId` plus
+`KioskDeviceHelpers.Clear` per `ToggleLocation`), so with several campuses setting up at once the
+Check-in Monitor's own room and service-time list intermittently rendered empty and only came back
+on repeated refreshes.
+
+`UpdateKeys` therefore also tracks whether the **last rebuild itself** returned empty. An empty cache
+read that contradicts a non-empty rebuild means the entry was evicted, and rebuilds immediately; a
+genuinely empty result stays throttled, preserving the `keyFactory()` savings. `Clear` passes
+`forceRefresh: true`, since a throttled refresh there would flush against a stale or empty key list
+and leave cached items behind. The `ensureKey` / `removeKey` paths still apply inside the throttle
+window, so individual check-ins are never lost.
 
 ## Dependencies & Integrations
 
