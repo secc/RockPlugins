@@ -21,6 +21,7 @@ namespace org.secc.FamilyCheckin.Cache
         // Throttle key refreshes to avoid excessive DB calls
         private static readonly object KeysUpdateLock = new object();
         private static DateTime _lastKeysRefreshUtc = DateTime.MinValue;
+        private static bool _lastKeysRefreshWasEmpty;
         private static readonly TimeSpan KeysRefreshInterval = TimeSpan.FromSeconds( 10 );
 
         public void PostCached()
@@ -125,7 +126,9 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static void Clear( Func<List<string>> keyFactory )
         {
-            UpdateKeys( keyFactory );
+            // Force the rebuild: a throttled refresh here would flush against a stale -- or empty --
+            // key list and silently leave cached items behind.
+            UpdateKeys( keyFactory, forceRefresh: true );
 
             // Create a copy of the keys to avoid collection modification during enumeration
             foreach ( var key in AllKeys().ToList() )
@@ -169,18 +172,29 @@ namespace org.secc.FamilyCheckin.Cache
             return keys ?? new List<string>();
         }
 
-        private static List<string> UpdateKeys( Func<List<string>> keyFactory, string ensureKey = null, string removeKey = null )
+        private static List<string> UpdateKeys( Func<List<string>> keyFactory, string ensureKey = null, string removeKey = null, bool forceRefresh = false )
         {
             lock ( KeysUpdateLock )
             {
                 var now = DateTime.UtcNow;
                 var currentKeys = AllKeys();
 
-                // If within the throttle window, serve the cached key list (applying ensure/remove below).
-                // An empty list can be a valid answer (e.g. overnight, before the day's first check-in) and must
-                // still be throttled; otherwise every caller re-runs keyFactory(), which may be an expensive DB query
-                // (e.g., Attendance keyFactory can trigger a full Attendance scan that returns zero rows).
-                if ( ( now - _lastKeysRefreshUtc ) < KeysRefreshInterval )
+                // AllKeys() returns an empty list for two very different situations and cannot tell them
+                // apart: keyFactory() legitimately having nothing to return (overnight, before the day's
+                // first check-in), and the RockCache entry having been evicted. The throttle timestamp is
+                // a process-local field, so it outlives the cache entry it guards -- which means an
+                // evicted entry would otherwise be served as "empty" for the rest of the throttle window,
+                // handing every caller zero keys and blanking the check-in monitor until the window rolls.
+                //
+                // Tracking whether the last rebuild itself came back empty separates the two: an empty
+                // cache read that contradicts a non-empty rebuild means the entry went away, so rebuild
+                // now. A genuinely empty result stays throttled, which is what keeps keyFactory() -- a
+                // full scan of Attendance in the AttendanceCache case -- from running on every call.
+                var cacheEntryLooksEvicted = !currentKeys.Any() && !_lastKeysRefreshWasEmpty;
+
+                if ( !forceRefresh
+                    && !cacheEntryLooksEvicted
+                    && ( now - _lastKeysRefreshUtc ) < KeysRefreshInterval )
                 {
                     bool modified = false;
 
@@ -208,7 +222,11 @@ namespace org.secc.FamilyCheckin.Cache
 
                 var keys = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
 
-                // Apply ensureKey/removeKey operations to refreshed keys                
+                // Record what the factory produced, before ensure/remove adjustments, so the next
+                // empty cache read can be classified as "still nothing" or "entry evicted".
+                _lastKeysRefreshWasEmpty = !keys.Any();
+
+                // Apply ensureKey/removeKey operations to refreshed keys
                 if ( !string.IsNullOrEmpty( ensureKey ) && !keys.Contains( ensureKey ) )
                 {
                     keys.Add( ensureKey );
