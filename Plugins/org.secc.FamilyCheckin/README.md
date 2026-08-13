@@ -126,23 +126,6 @@ Quartz `IJob`s (both `[DisallowConcurrentExecution]`); scheduled in Rock, not se
 |------------|---------|
 | `CheckinGroupFieldType` | Picks a single or (configurably) multiple check-in groups; stores `Group.Guid`. Backed by `CheckinGroupPicker` and `CheckinGroupFieldAttribute`. |
 
-### Caching
-
-`CheckinCache<T>` — subclassed by `AttendanceCache`, `OccurrenceCache`, and
-`MobileCheckinRecordCache` — keeps a per-type **key list** in `RockCache` (region `AllItems`, key
-`{TypeName}:All`) next to the cached entities, so `All()` / `AllKeys()` can enumerate without a DB
-round trip. Each subclass supplies a `keyFactory` that rebuilds that list from the database.
-`CheckinKioskTypeCache` is **not** part of this layer — it uses Rock's own `ModelCache`.
-
-**Key-list refresh throttling (PR #281):** key-list refreshes are throttled to once per 10 seconds,
-per cache type, per web-farm node — **including when the cached list is empty**. An empty list is a
-valid state (overnight, before the day's first check-in), and refreshing on every call re-ran
-`keyFactory()` every time; for `AttendanceCache` that is a full `dbo.Attendance` scan returning zero
-rows. Tradeoff: after a cache clear or flush during active check-in, `AllKeys`-derived views
-(attendance / occupancy) can read empty for up to 10 seconds before self-healing. Accepted — the
-`ensureKey` / `removeKey` paths still apply inside the throttle window, so individual check-ins are
-not lost.
-
 ## Dependencies & Integrations
 
 - **Rock:** check-in engine (`CheckInState`, `CheckInActionComponent`), workflow engine,
