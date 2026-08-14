@@ -3,7 +3,7 @@
 //
 // Licensed under the  Southeast Christian Church License (the "License");
 // you may not use this file except in compliance with the License.
-// A copy of the License shoud be included with this file.
+// A copy of the License should be included with this file.
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,7 @@ using System.Web.UI.WebControls;
 using CSScriptLibrary;
 using org.secc.FamilyCheckin.Cache;
 using org.secc.FamilyCheckin.Model;
+using org.secc.FamilyCheckin.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
@@ -77,7 +78,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
             internal const string CodeInstructions = "CodeInstructions";
             internal const string PostCheckinInstructions = "PostCheckinInstructions";
             internal const string NotLoggedInMessage = "NotLoggedInMessage";
-            internal const string DebugMode = "DebugMode";
+            internal const string DebugMode = MobileCheckinAuthorization.DEBUG_MODE_ATTRIBUTE_KEY;
         }
 
         private static class PageParameterKeys
@@ -114,7 +115,7 @@ namespace RockWeb.Plugins.org_secc.FamilyCheckin
 
             //This allows us to use a username to build use a username to test or debug
             if ( PageParameter( PageParameterKeys.UserName ).IsNotNullOrWhiteSpace()
-                && ( this.IsUserAuthorized( Rock.Security.Authorization.ADMINISTRATE ) || GetAttributeValue( AttributeKeys.DebugMode ).AsBoolean() ) )
+                && MobileCheckinAuthorization.IsImpersonationAllowed( BlockCache, CurrentPerson ) )
             {
                 var username = PageParameter( PageParameterKeys.UserName );
                 RockContext rockContext = new RockContext();

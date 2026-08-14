@@ -2,7 +2,7 @@
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.0 r1840935">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Kiosk Tests" enabled="true">
-      <stringProp name="TestPlan.comments"></stringProp>
+      <stringProp name="TestPlan.comments">ROCK-8765: ProcessMobileCheckin now rejects anonymous callers even with DebugMode on. Before running, set SessionCookieValue (User Defined Variables) to a valid .ROCK forms-auth cookie for any logged-in user — log in to Rock in a browser and copy the .ROCK cookie value. The cookie is injected on every request by the HTTP Cookie Manager. DebugMode must be ON for the target MobileCheckinStart block during the test and turned OFF afterward.</stringProp>
       <boolProp name="TestPlan.functional_mode">false</boolProp>
       <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">

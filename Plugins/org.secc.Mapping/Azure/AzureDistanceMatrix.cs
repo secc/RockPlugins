@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using org.secc.Mapping.Model;
+using org.secc.Mapping.Utilities;
 using Rock;
 using Rock.Data;
 using Rock.Web.Cache;
@@ -60,6 +61,33 @@ namespace org.secc.Mapping
             {
                 try
                 {
+                    // SOFT, PER-NODE, in-memory rate brake: how many billed computes this node has
+                    // already issued this minute, checked BEFORE the Azure POST. TryConsume rolls the
+                    // per-minute bucket, and only allows destinationAddresses.Count through if that
+                    // keeps this minute at or under budget. The check never throws and never touches
+                    // the DB / network (see ComputeBrake for the soft/per-node caveat). It lives INSIDE
+                    // this try/catch so that even an unexpected throw on the brake/degrade path is
+                    // caught below and falls through to the normal cached-only return rather than
+                    // propagating a 500 -- the "never throws" guarantee is structural, not just by
+                    // convention.
+                    int budgetPerMinute = ComputeBrake.GetBudgetPerMinute();
+                    bool shouldAlert;
+                    if ( !ComputeBrake.TryConsume( destinationAddresses.Count, budgetPerMinute, out shouldAlert ) )
+                    {
+                        // Budget hit -- degrade gracefully to cached-only (do NOT call Azure, do NOT throw).
+                        // Alert at most once per minute bucket to avoid log/DB-write amplification under a flood.
+                        if ( shouldAlert )
+                        {
+                            Rock.Model.ExceptionLogService.LogException( new Exception(
+                                $"Mapping Azure Maps compute brake tripped: {destinationAddresses.Count} uncached destination(s) would exceed this node's per-minute budget of {budgetPerMinute}. Skipping the Azure Maps call and returning cached results only for the rest of this minute. Tune via the '{ComputeBrake.BudgetAttributeKey}' Global Attribute." ) );
+                        }
+
+                        return destinations
+                            .Where( d => d.IsCalculated == true )
+                            .OrderBy( d => d.TravelDuration )
+                            .ToList();
+                    }
+
                     // Get the Azure Maps key from Rock
                     string azureMapsKey = GlobalAttributesCache.Get().GetValue( "AzureMapsKey" );
 
