@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
 using System.Web.Http;
 using QRCoder;
 using Rock.Rest;
@@ -20,29 +21,50 @@ namespace org.secc.QRManager.Rest.Controllers
         [System.Web.Http.Route( "api/qr/{code}" )]
         public HttpResponseMessage GetEntityGuid( string code )
         {
-            var qr = GenerateQR( code );
-            if ( qr == null )
+            // Only accept codes matching the known caller formats (MCR + 12 hex AccessKey, PFP-prefixed
+            // hyphenated alternate id). This blocks arbitrary content from being rendered into a QR image
+            // by this anonymous endpoint (URLs need : / . -- none allowed).
+            //
+            // The 32-char ceiling is deliberate: every real code is at most 18 characters -- both sources
+            // measured at 15 (84,301 MobileCheckinRecord.AccessKey rows and 542,675 alternate-id
+            // PersonSearchKey rows all min 6 / max 15), plus the 3-char "PFP" prefix the Lava filter adds.
+            // Length drives QR version, and GetGraphic( 20 ) renders 20 pixels per module, so the ceiling
+            // bounds the bitmap this anonymous endpoint will allocate per request. 32 leaves ~2x headroom
+            // over the longest real code while halving the worst case a caller can ask for.
+            if ( string.IsNullOrEmpty( code ) || !Regex.IsMatch( code, "^[A-Za-z0-9-]{1,32}$" ) )
             {
-                throw new Exception( "Code Invalid" );
+                return Request.CreateErrorResponse( HttpStatusCode.BadRequest, "Invalid code" );
             }
-            MemoryStream stream = new MemoryStream();
-            qr.Save( stream, ImageFormat.Png );
-            var buffer = stream.ToArray();
+
+            // GenerateQR always returns a Bitmap or throws -- QRCoder's GetGraphic never yields null --
+            // so there is no null branch here. Invalid input is already rejected above with a 400.
+            byte[] buffer;
+            using ( Bitmap qr = GenerateQR( code ) )
+            {
+                using ( MemoryStream stream = new MemoryStream() )
+                {
+                    qr.Save( stream, ImageFormat.Png );
+                    buffer = stream.ToArray();
+                }
+            }
+
             var response = Request.CreateResponse( HttpStatusCode.OK );
             response.Content = new StreamContent( new MemoryStream( buffer ) );
 
             response.Content.Headers.ContentType = new MediaTypeHeaderValue( "image/png" );
-            response.Content.Headers.ContentLength = stream.Length;
+            response.Content.Headers.ContentLength = buffer.Length;
 
             return response;
         }
 
         private static Bitmap GenerateQR( string code )
         {
-            QRCodeGenerator qrGenerator = new QRCodeGenerator();
-            QRCodeData qrCodeData = qrGenerator.CreateQrCode( code, QRCodeGenerator.ECCLevel.Q );
-            QRCode qrCode = new QRCode( qrCodeData );
-            return qrCode.GetGraphic( 20 );
+            using ( QRCodeGenerator qrGenerator = new QRCodeGenerator() )
+            using ( QRCodeData qrCodeData = qrGenerator.CreateQrCode( code, QRCodeGenerator.ECCLevel.Q ) )
+            using ( QRCode qrCode = new QRCode( qrCodeData ) )
+            {
+                return qrCode.GetGraphic( 20 );
+            }
         }
     }
 }

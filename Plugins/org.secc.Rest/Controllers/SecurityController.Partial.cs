@@ -3,7 +3,7 @@
 //
 // Licensed under the  Southeast Christian Church License (the "License");
 // you may not use this file except in compliance with the License.
-// A copy of the License shoud be included with this file.
+// A copy of the License should be included with this file.
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,20 +37,11 @@ namespace org.secc.Rest.Controllers
         public void AddRoutes( HttpRouteCollection routes )
         {
             RouteTable.Routes.MapHttpRoute(
-                name: "security",
-                routeTemplate: "api/org.secc/People/{action}/{param}",
-                defaults: new
-                {
-                    controller = "security",
-                    param = RouteParameter.Optional
-                } ).RouteHandler = new SessionRouteHandler();
-            RouteTable.Routes.MapHttpRoute(
                 name: "securityNoParam",
                 routeTemplate: "api/org.secc/People/{action}",
                 defaults: new
                 {
-                    controller = "security",
-                    param = RouteParameter.Optional
+                    controller = "security"
                 } ).RouteHandler = new SessionRouteHandler();
         }
 
@@ -77,28 +68,6 @@ namespace org.secc.Rest.Controllers
                 return PersonReport( currentUser );
 
 
-            }
-            catch ( Exception ex )
-            {
-                ExceptionLogService.LogException( ex, HttpContext.Current );
-                return ControllerContext.Request.CreateResponse( HttpStatusCode.Forbidden, "Forbidden" );
-            }
-        }
-
-        [HttpGet()]
-        public HttpResponseMessage CurrentUser( string param )
-        {
-            UserLogin currentUser;
-            try
-            {
-                var encryptedTicket = System.Web.Security.FormsAuthentication.Decrypt( param );
-                if ( encryptedTicket != null && encryptedTicket.Expired == false )
-                {
-                    currentUser = new UserLoginService( new Rock.Data.RockContext() ).GetByUserName( encryptedTicket.Name );
-                    return PersonReport( currentUser );
-
-                }
-                return ControllerContext.Request.CreateResponse( HttpStatusCode.NotFound );
             }
             catch ( Exception ex )
             {

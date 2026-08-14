@@ -3,7 +3,7 @@
 //
 // Licensed under the  Southeast Christian Church License (the "License");
 // you may not use this file except in compliance with the License.
-// A copy of the License shoud be included with this file.
+// A copy of the License should be included with this file.
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -111,11 +111,15 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
                  }
             ).ToList();
 
+            // The warning icon renders in its own template column so the Entity Name
+            // column keeps the grid's default HTML encoding (ChangeRequest.Name comes from
+            // the target entity's ToString(), which can contain user-entered text) and the
+            // Excel export gets the un-mangled name.
             foreach ( var request in requests )
             {
                 if ( request.Applied == false && request.WasReviewed == false )
                 {
-                    request.Name = "<i class='fa fa-exclamation-triangle'></i> " + request.Name;
+                    request.Icon = "<i class='fa fa-exclamation-triangle'></i>";
                 }
             }
 
@@ -145,6 +149,7 @@ namespace RockWeb.Plugins.org_secc.ChangeManager
         {
             public int Id { get; set; }
             public string Name { get; set; }
+            public string Icon { get; set; }
             private string entityType = "";
             public string EntityType
             {

@@ -3,7 +3,7 @@
 //
 // Licensed under the  Southeast Christian Church License (the "License");
 // you may not use this file except in compliance with the License.
-// A copy of the License shoud be included with this file.
+// A copy of the License should be included with this file.
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,6 +15,7 @@ using System;
 using System.ComponentModel;
 using System.Web;
 using Microsoft.AspNet.Identity;
+using org.secc.OAuth.Utilities;
 using Rock;
 using Rock.Attribute;
 using Rock.Model;
@@ -63,6 +64,14 @@ namespace RockWeb.Plugins.org_secc.oAuth
 
             string returnUrl = PageParameter( PageParameterKeys.ReturnUrl );
             returnUrl = Server.UrlDecode( returnUrl );
+
+            // ROCK-8763: the returnurl query parameter is attacker-controllable. Ignore it
+            // when it is not a local URL so it cannot be used for an open redirect. The
+            // admin-configured ReturnUrl block setting (below) is trusted and may be external.
+            if ( returnUrl.IsNotNullOrWhiteSpace() && !RedirectUrlHelper.IsSafeRedirectUrl( returnUrl, Request.Url ) )
+            {
+                returnUrl = null;
+            }
 
             if ( returnUrl.IsNullOrWhiteSpace() )
             {

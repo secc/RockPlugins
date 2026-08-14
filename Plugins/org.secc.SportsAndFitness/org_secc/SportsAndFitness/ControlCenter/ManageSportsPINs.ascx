@@ -20,7 +20,6 @@
                     opacity: 1
                 }
         </style>
-        <asp:HiddenField ID="hfPersonId" runat="server" />
         <asp:Panel ID="pnlMain" runat="server" Visible="false">
             <asp:Panel ID="pnlAlert" runat="server" CssClass="alert alert-warning" Visible="false">
                 <h3><i class="fa fa-exclamation-triangle"></i> <asp:Literal ID="lAlertTitle" runat="server" /></h3>
