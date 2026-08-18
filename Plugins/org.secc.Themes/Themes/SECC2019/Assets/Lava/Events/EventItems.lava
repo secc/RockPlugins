@@ -51,7 +51,7 @@
                 {% if eventItemOccurrence.DetailPage != null %}
                     {% assign eventLinkURL = eventItemOccurrence.DetailPage %}
                 {% else %}
-    			    {% assign urlSlug = eventItemOccurrence.URLSlugs | Split:'|' | First | Trim %}
+    			    {% assign urlSlug = eventItemOccurrence.URLSlugs | Default:'' | Split:'|' | First | Trim %}
     				{% if urlSlug != '' %}
     					{% assign eventLinkURL = DetailsPage | Replace:'/details','/' | Append:urlSlug %}
     				{% else %}
@@ -84,7 +84,7 @@
                             {% endif %}
                         </a>
 
-                        {% assign scheduledDates = eventItemOccurrence.ICalendarContent | Split: 'RRULE' %}
+                        {% assign scheduledDates = eventItemOccurrence.ICalendarContent | Default:'' | Split: 'RRULE' %}
                         {% assign scheduledNumDates = scheduledDates | Size %}
                         <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
 
