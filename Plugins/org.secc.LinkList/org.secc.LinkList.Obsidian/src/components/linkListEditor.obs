@@ -214,7 +214,7 @@
                 </div>
             </Panel>
 
-            <Panel v-if="bag.id && (bag.members || []).length >= 0" title="Manage Access" :hasCollapse="true" v-model="accessExpanded">
+            <Panel v-if="bag.id" title="Manage Access" :hasCollapse="true" v-model="accessExpanded">
                 <NotificationBox v-if="memberMessage" alertType="danger">{{ memberMessage }}</NotificationBox>
                 <p v-if="bag.securityGroupName" class="text-muted small">
                     Members of <strong>{{ bag.securityGroupName }}</strong> can edit this list.
@@ -230,6 +230,7 @@
                         <button
                             type="button"
                             class="btn btn-link text-danger btn-sm ms-auto"
+                            :disabled="removingMemberId !== null"
                             @click="removeMember(m.groupMemberId)">
                             Remove
                         </button>
@@ -329,6 +330,7 @@ const loadedSlugIds = ref<number[]>([]);
 const slugListEl = ref<HTMLElement | null>(null);
 const isSaving = ref(false);
 const isAddingMember = ref(false);
+const removingMemberId = ref<number | null>(null);
 const memberToAdd = ref<{ value: string; text: string } | null>(null);
 // Member add/remove failures render inside the Manage Access panel, next to
 // the controls that triggered them - the top-of-page errorMessage is off-screen
@@ -365,6 +367,13 @@ watch(() => props.detail, d => {
     noticeMessage.value = "";
     slugMessage.value = "";
     autoDerivedSlug.value = "";
+    memberMessage.value = "";
+    memberToAdd.value = null;
+});
+
+// A stale add/remove error is confusing once the user changes their selection.
+watch(memberToAdd, () => {
+    memberMessage.value = "";
 });
 
 // Records which slug rows this editor is actually looking at. The save posts these
@@ -698,10 +707,6 @@ async function onDelete(): Promise<void> {
 async function addMember(): Promise<void> {
     if (!memberToAdd.value) return;
     memberMessage.value = "";
-    if (!bag.value.guid) {
-        memberMessage.value = "Save the list before adding members.";
-        return;
-    }
     isAddingMember.value = true;
     const result = await invokeBlockAction<GroupMemberBag>("AddMember", {
         itemGuid: bag.value.guid,
@@ -723,11 +728,14 @@ async function addMember(): Promise<void> {
 
 async function removeMember(groupMemberId: number): Promise<void> {
     if (!bag.value.guid) return;
+    if (removingMemberId.value !== null) return;
     memberMessage.value = "";
+    removingMemberId.value = groupMemberId;
     const result = await invokeBlockAction("RemoveMember", {
         itemGuid: bag.value.guid,
         groupMemberId
     });
+    removingMemberId.value = null;
     if (result.isSuccess) {
         bag.value.members = (bag.value.members || []).filter(m => m.groupMemberId !== groupMemberId);
     }

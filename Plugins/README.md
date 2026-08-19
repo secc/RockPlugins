@@ -114,6 +114,7 @@ documenting* — they are starting points, not a completed security audit.
 | Plugin | Tier | What it does |
 |--------|------|--------------|
 | [Cms](./org.secc.Cms/README.md) | standard | A grab-bag of Southeast's custom Rock CMS blocks — login/profile UI, section/topper page chrome, content-channel and Twitter Lava, QR-code shortlinks, cache/Font-Awesome admin tools — plus a styled `SectionZone` control. |
+| [LinkList](./org.secc.LinkList/README.md) | standard | A "link-in-bio" Link List builder on Rock content channels — Obsidian editor/viewer blocks, multi-slug URLs, per-list security-group edit access, an embeddable `<secc-link-list>` web component, and view/click analytics. |
 | [Widgities](./org.secc.Widgities/README.md) | standard | A drag-and-drop content-builder: admins define reusable "widgity" types (a Lava/Markdown template + an attribute schema), then place and configure them against any Rock entity. |
 | [Attributes](./org.secc.Attributes/README.md) | standard | Three custom Rock attribute field types — a cascading (dependent) dropdown, a typed phone-number picker, and a multi-file uploader — with their edit controls and `[FieldAttribute]` decorators. |
 | [Themes](./org.secc.Themes/README.md) | standard | Southeast's Rock site themes — the master pages, page layouts, and styling that skin Rock's external and check-in sites. |

@@ -1650,7 +1650,6 @@ namespace org.secc.LinkList.Services
         {
             if ( item == null ) throw new ArgumentNullException( nameof( item ) );
 
-            var group = EnsureSecurityGroup( item, currentPerson );
             // The Obsidian PersonPicker supplies PersonAlias.Guid (the alias row's own
             // guid), which only PersonAliasService.GetPerson resolves - PersonService.Get
             // matches Person.Guid and its followMerges overload matches AliasPersonGuid,
@@ -1662,6 +1661,10 @@ namespace org.secc.LinkList.Services
             {
                 return null;
             }
+
+            // Resolve the person before EnsureSecurityGroup so a not-found guid
+            // doesn't leave a freshly created group/auth rule behind.
+            var group = EnsureSecurityGroup( item, currentPerson );
 
             var memberService = new GroupMemberService( _rockContext );
             var existing = memberService
