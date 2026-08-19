@@ -215,6 +215,7 @@
             </Panel>
 
             <Panel v-if="bag.id && (bag.members || []).length >= 0" title="Manage Access" :hasCollapse="true" v-model="accessExpanded">
+                <NotificationBox v-if="memberMessage" alertType="danger">{{ memberMessage }}</NotificationBox>
                 <p v-if="bag.securityGroupName" class="text-muted small">
                     Members of <strong>{{ bag.securityGroupName }}</strong> can edit this list.
                 </p>
@@ -329,6 +330,10 @@ const slugListEl = ref<HTMLElement | null>(null);
 const isSaving = ref(false);
 const isAddingMember = ref(false);
 const memberToAdd = ref<{ value: string; text: string } | null>(null);
+// Member add/remove failures render inside the Manage Access panel, next to
+// the controls that triggered them - the top-of-page errorMessage is off-screen
+// when the user is working in this panel at the bottom of the form.
+const memberMessage = ref("");
 
 // Details and Links start expanded; the rest (Footer, Theme, Header & Media,
 // Manage Access) start collapsed.
@@ -691,7 +696,12 @@ async function onDelete(): Promise<void> {
 }
 
 async function addMember(): Promise<void> {
-    if (!memberToAdd.value || !bag.value.guid) return;
+    if (!memberToAdd.value) return;
+    memberMessage.value = "";
+    if (!bag.value.guid) {
+        memberMessage.value = "Save the list before adding members.";
+        return;
+    }
     isAddingMember.value = true;
     const result = await invokeBlockAction<GroupMemberBag>("AddMember", {
         itemGuid: bag.value.guid,
@@ -707,12 +717,13 @@ async function addMember(): Promise<void> {
         memberToAdd.value = null;
     }
     else {
-        errorMessage.value = result.errorMessage || "Could not add member.";
+        memberMessage.value = result.errorMessage || "Could not add member.";
     }
 }
 
 async function removeMember(groupMemberId: number): Promise<void> {
     if (!bag.value.guid) return;
+    memberMessage.value = "";
     const result = await invokeBlockAction("RemoveMember", {
         itemGuid: bag.value.guid,
         groupMemberId
@@ -721,7 +732,7 @@ async function removeMember(groupMemberId: number): Promise<void> {
         bag.value.members = (bag.value.members || []).filter(m => m.groupMemberId !== groupMemberId);
     }
     else {
-        errorMessage.value = result.errorMessage || "Could not remove member.";
+        memberMessage.value = result.errorMessage || "Could not remove member.";
     }
 }
 </script>

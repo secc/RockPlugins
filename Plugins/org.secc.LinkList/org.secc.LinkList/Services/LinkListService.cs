@@ -1651,7 +1651,13 @@ namespace org.secc.LinkList.Services
             if ( item == null ) throw new ArgumentNullException( nameof( item ) );
 
             var group = EnsureSecurityGroup( item, currentPerson );
-            var person = new PersonService( _rockContext ).Get( personGuid );
+            // The Obsidian PersonPicker supplies PersonAlias.Guid (the alias row's own
+            // guid), which only PersonAliasService.GetPerson resolves - PersonService.Get
+            // matches Person.Guid and its followMerges overload matches AliasPersonGuid,
+            // neither of which is the picker value. Fall back to Person.Guid for callers
+            // that pass a person guid directly.
+            var person = new PersonAliasService( _rockContext ).GetPerson( personGuid )
+                ?? new PersonService( _rockContext ).Get( personGuid );
             if ( person == null )
             {
                 return null;
