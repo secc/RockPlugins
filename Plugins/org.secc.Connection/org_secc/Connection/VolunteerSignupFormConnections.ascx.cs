@@ -101,16 +101,21 @@ namespace org.secc.Connection
                     }
                     foreach ( var roleRequest in _roleRequests )
                     {
+                        // The CardWizard template passes a RoleRequests JSON whose Attributes dictionary
+                        // only contains the final partition's value; earlier partitions (e.g. a leading
+                        // DefinedType) arrive as plain URL parameters. Merge URL keys into the dictionary
+                        // rather than only parsing them when it is null, or those earlier partition values
+                        // never reach the connection request. JSON-provided values keep priority.
                         if ( roleRequest.Attributes == null )
                         {
                             roleRequest.Attributes = new Dictionary<string, string>();
-                            var urlKeys = GetAttributeValues( "UrlKeys" );
-                            foreach ( string urlKey in urlKeys )
+                        }
+                        var urlKeys = GetAttributeValues( "UrlKeys" );
+                        foreach ( string urlKey in urlKeys )
+                        {
+                            if ( !roleRequest.Attributes.ContainsKey( urlKey ) && !string.IsNullOrEmpty( PageParameter( urlKey ) ) )
                             {
-                                if ( !string.IsNullOrEmpty( PageParameter( urlKey ) ) )
-                                {
-                                    roleRequest.Attributes.Add( urlKey, PageParameter( urlKey ) );
-                                }
+                                roleRequest.Attributes.Add( urlKey, PageParameter( urlKey ) );
                             }
                         }
                     }
