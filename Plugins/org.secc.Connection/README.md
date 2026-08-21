@@ -71,6 +71,25 @@ Category in Rock: **SECC > Connection**.
 | Display Add Another | bool (default false) | Show "Connect and Add Another". |
 | Comment label text / Comments Required | text / bool | Comment box label and requirement. |
 
+#### How `UrlKeys` values reach a connection request
+
+Every key listed in **UrlKeys** is read off the query string / route and merged into each entry of
+the `RoleRequests` collection before the form binds. Two details matter:
+
+- **The merge always runs.** It is not limited to links that omit a `RoleRequests` JSON. A
+  `CardWizard` in `Multiple` mode sends a JSON whose `Attributes` dictionary holds only the *final*
+  partition's value, while earlier partitions (a leading DefinedType, say) arrive as plain URL
+  parameters — so both sources have to be combined or the earlier partition values never reach
+  `ConnectionRequest.AssignedGroupMemberAttributeValues`, and the wizard's remaining-spots count
+  never sees them (ROCK-9055).
+- **A non-empty JSON value wins.** The URL is consulted only where the JSON has no value for that
+  key, or has one that is blank/whitespace. Key matching is case-insensitive, matching how
+  `PageParameter` resolves route and query keys, so a camel-cased JSON key still takes precedence
+  over the same key spelled differently in the block setting.
+
+A key must also exist as an attribute on the target group member, and hold a non-empty value, to be
+applied — see `AddGroupMemberAttributes` in `VolunteerSignupFormConnections.ascx.cs`.
+
 **Connection Opportunity Search** — `Lava Template`, `Enable Debug`, `Enable Campus Context`,
 `Set Page Title`, `Display Name/Campus/Attribute Filters`, `Detail Page` (linked page),
 `Connection Type Id` (integer).
@@ -105,13 +124,17 @@ per-partition-type partials (`CardCampus`, `CardDefinedType`, `CardRole`, `CardS
 
 - **Security (medium):** *Volunteer Signup Form - Connections* is a public-facing block that, on
   submit, will **create a new `Person` and a `ConnectionRequest`** when no match is found
-  (`PersonService.SaveNewPerson` at `VolunteerSignupFormConnections.ascx.cs:321`). Person matching
+  (`PersonService.SaveNewPerson` at `VolunteerSignupFormConnections.ascx.cs:405`). Person matching
   uses name + email/birthdate, so unauthenticated form posts can both enumerate-by-side-effect and
   add records. Confirm the page is intended for anonymous use, and consider spam/rate protection
   (e.g. CAPTCHA) — worth confirming.
 - **Security (low):** The form sets group-member attributes from URL parameters via the `UrlKeys`
   setting (`PageParameter(urlKey)`). Only keys the admin lists are honored, but those values are
-  attacker-controllable in the link; review which attributes are exposed this way.
+  attacker-controllable in the link; review which attributes are exposed this way. Note this applies
+  to `CardWizard` JSON signups too, not only to plain-URL links — the merge described under
+  [How `UrlKeys` values reach a connection request](#how-urlkeys-values-reach-a-connection-request)
+  runs on every request. The JSON in the same link is equally attacker-editable, so this widens no
+  trust boundary, but it does mean a listed key can be supplied on any signup URL.
 - **Improvement:** Several services are constructed with their own `new RockContext()` inline
   (e.g. `GroupTypeRoleService`, `ScheduleService`, `DefinedTypeService`) rather than reusing one
   per request, so a single render/bind can spin up multiple contexts. Acceptable, but tidy-able.
@@ -130,3 +153,7 @@ per-partition-type partials (`CardCampus`, `CardDefinedType`, `CardRole`, `CardS
   plugin only calls into it reflectively.
 - Re-package with `BuildPlugin.ps1` (Windows + 7-Zip) — note it intentionally excludes
   `ConnectionOpportunitySearch.ascx*` from the `.plugin`.
+- If a URL-supplied attribute value isn't landing on the connection request, check the merge in the
+  `RoleRequests` getter and the apply step in `AddGroupMemberAttributes` — a key has to survive both.
+
+Last updated: 2026-08-21
