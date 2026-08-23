@@ -20,6 +20,18 @@ This plugin adds Web API controllers to Rock that aren't part of core. They fall
 
 Most controllers extend Rock's `ApiControllerBase` (or `ApiController`) and declare their routes with `[Route(...)]` attributes, so Rock's standard Web API route discovery registers them. `SecurityController` is the exception: it implements `IHasCustomHttpRoutes` and registers its own `api/org.secc/People/{action}` route against a `SessionRouteHandler` so those calls run with ASP.NET session state.
 
+> **Rock 16 note — case-sensitive controller name in custom routes.** Rock 16's REST-controller registration lookup is case-sensitive. When `AddRoutes` maps the custom `api/org.secc/People/{action}` route, the `controller` default must be `"Security"` — matching the controller class name's exact casing. Any other casing causes the route to 404 at runtime even though the assembly loads successfully.
+
+### REST GUIDs (stable identifiers)
+
+Rock 16+ assigns stable GUIDs to controllers and actions so REST endpoint registrations survive renames. The GUIDs for `SecurityController` are:
+
+| Scope | GUID |
+|-------|------|
+| Controller (`[RestControllerGuid]`) | `23B0A764-52A6-4F32-A4C1-F0B5445D3504` |
+| `Post` action (`[RestActionGuid]`) | `D3D6E170-CD7E-43BC-B277-6D0CDA0C20D3` |
+| `CurrentUser` action (`[RestActionGuid]`) | `7080335B-8BD0-4A04-8C16-F4CA54A87C5B` |
+
 ```mermaid
 flowchart TD
     A[HTTP request to api/...] --> B{Route source}
@@ -195,4 +207,4 @@ Only `SecurityController` needs the `IHasCustomHttpRoutes.AddRoutes` + `SessionR
 
 ---
 
-**Last updated:** 2026-07-27
+**Last updated:** 2026-08-23
