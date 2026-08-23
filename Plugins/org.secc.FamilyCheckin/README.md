@@ -56,6 +56,26 @@ pre-registration, mobile start). Used by check-in staff and parents at kiosks an
 Registered via `FamilyCheckinController` (`IHasCustomHttpRoutes`); routed through a
 session-enabled handler so check-in state persists in `HttpContext.Session`.
 
+**Rock 16 note — case-sensitive controller registration:** Rock 16's
+`RockHttpControllerSelector` copies the controller map into a case-sensitive dictionary.
+The custom route's `controller` default is set to `"FamilyCheckin"` (matching the class
+name exactly). A lowercase value causes the controller to fail registration in
+**Security → Rest Controllers** and its auth rules get silently deleted. Request routing
+itself remains case-insensitive, so the symptom is an auth-rule loss, not a 404. If you
+rename the controller class, update the route default to match.
+
+**Stable REST GUIDs** (used by Rock to track auth rules across deployments):
+
+| Scope | GUID |
+|-------|------|
+| `FamilyCheckinController` (controller) | `33C6C91B-09DC-47AE-B929-DA4D7C7DC6E5` |
+| `Family` action | `D6923A3F-BA89-490B-B624-97A8971432EF` |
+| `KioskStatus` action | `0B70C51E-87BA-4D5C-92AD-7526E9AC6B1B` |
+| `ProcessMobileCheckin` action | `AD172A95-FDCC-4066-9100-373FA6FD6F23` |
+
+These GUIDs are pinned via `[RestControllerGuid]` / `[RestActionGuid]` attributes and
+must not be changed once deployed; Rock ties per-controller auth rules to them.
+
 | Route | Method | Auth | Purpose |
 |-------|--------|------|---------|
 | `api/org.secc/familycheckin/Family/{param}` | GET | Kiosk-session gated | Run the configured check-in workflow for a phone-number search and return matching families. Requires `Session["BlockGuid"]` to resolve to the **QuickSearch** kiosk block type; enforces the block's min/max phone length server-side (a leading country "1" is dropped; anything else over-length returns no results rather than being trimmed to a different number); rate-limited per session (history in session state); returns a projected result (`Caption`, `SubCaption`, `Group.Id`) rather than the full check-in graph. See ROCK-8765. |
@@ -201,4 +221,4 @@ attributes (don't hand-edit ones that have already run):
 - Related: scannable codes come from [org.secc.QRManager](../org.secc.QRManager/README.md);
   shared helpers from [org.secc.DevLib](../org.secc.DevLib/README.md).
 
-**Last updated:** 2026-07-21
+**Last updated:** 2026-08-23
