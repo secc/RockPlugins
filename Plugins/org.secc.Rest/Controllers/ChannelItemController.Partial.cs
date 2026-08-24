@@ -116,7 +116,7 @@ namespace org.secc.Rest.Controllers
                     Content = i.ContentChanelItem.Content,
                     Priority = i.ContentChanelItem.Priority,
                     Order = i.ContentChanelItem.Order,
-                    Attributes = i.AttributeValues.ToDictionary( a => a.AttributeKey, a => a.Value ),
+                    Attributes = BuildAttributeDictionary( i.AttributeValues ),
                     Tags = GetTags( i.ContentChanelItem, rockContext ),
                     Slug = i.ContentChanelItem.PrimarySlug,
                     CreatedBy = i.ContentChanelItem.CreatedByPersonName,
@@ -195,7 +195,7 @@ namespace org.secc.Rest.Controllers
                     Content = i.ContentChanelItem.Content,
                     Priority = i.ContentChanelItem.Priority,
                     Order = i.ContentChanelItem.Order,
-                    Attributes = i.AttributeValues.ToDictionary( a => a.AttributeKey, a => a.Value ),
+                    Attributes = BuildAttributeDictionary( i.AttributeValues ),
                     Tags = GetTags( i.ContentChanelItem, rockContext ),
                     Slug = i.ContentChanelItem.PrimarySlug,
                     CreatedBy = i.ContentChanelItem.CreatedByPersonName,
@@ -204,6 +204,16 @@ namespace org.secc.Rest.Controllers
                 } ).ToList();
 
             return Json( items.FirstOrDefault() );
+        }
+
+        private static Dictionary<string, string> BuildAttributeDictionary( IEnumerable<AttributeValue> attributeValues )
+        {
+            // The same key can exist on both a ContentChannelTypeId-qualified and a
+            // ContentChannelId-qualified attribute; the channel-scoped value wins the collision.
+            return attributeValues
+                .GroupBy( av => av.AttributeKey )
+                .Select( g => g.FirstOrDefault( av => AttributeCache.Get( av.AttributeId )?.EntityTypeQualifierColumn == "ContentChannelId" ) ?? g.First() )
+                .ToDictionary( av => av.AttributeKey, av => av.Value );
         }
 
         private List<string> GetTags( ContentChannelItem contentChannelItem, RockContext rockContext )
