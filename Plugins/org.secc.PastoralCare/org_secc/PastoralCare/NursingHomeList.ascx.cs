@@ -555,39 +555,15 @@ namespace RockWeb.Plugins.org_secc.PastoralCare
             Dictionary<Guid, string> volunteerList = new Dictionary<Guid, string>();
             groupId = groupService.GetByGuid( volunteerGroup );
 
-            var groupMemberEntityTypeId = EntityTypeCache.Get( typeof( GroupMember ) ).Id;
-
-            var groupMemberAttributeQry = attributeService.Queryable()
-                .Where( a => a.EntityTypeId == groupMemberEntityTypeId )
-                .Select( a => a.Id );
-
-            var groupMemberAttributeValueQry = attributeValueService.Queryable()
-               .Where( av => groupMemberAttributeQry.Contains( av.AttributeId ) );
-
             if ( groupId != null )
             {
-                var groupMemberList = groupMemberService.Queryable()
+                var groupMembers = groupMemberService.Queryable()
                    .Where( a => a.GroupId == groupId.Id && a.GroupMemberStatus == GroupMemberStatus.Active )
-                   .GroupJoin( groupMemberAttributeValueQry,
-                        gm => gm.Id,
-                        av => av.EntityId,
-                        ( gm, av ) => new { GroupMember = gm, GroupMemberAttributeValues = av } )
-                     .ToList();
+                   .ToList();
 
-                var groupMembers = new List<GroupMember>();
-
-                foreach ( var set in groupMemberList )
-                {
-                    var groupMember = set.GroupMember;
-
-                    groupMember.Attributes = set.GroupMemberAttributeValues
-                        .ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
-
-                    groupMember.AttributeValues = set.GroupMemberAttributeValues
-                        .ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
-
-                    groupMembers.Add( groupMember );
-                }
+                // Rock's bulk LoadAttributes handles qualifier filtering, inherited attributes,
+                // default values, and duplicate keys
+                groupMembers.LoadAttributes( rockContext );
 
                 foreach ( var nursingHome in facilities )
                 {

@@ -73,13 +73,28 @@ namespace org.secc.Rest.Controllers
             //AttributeFiltering
             var ignoreKeys = new List<string> { "contentchannelid", "tag", "take", "page", "hideInactive", "orderby", "reverse" };
 
+            // Same precedence as the response dictionary: when a key exists on both a type- and a
+            // channel-qualified attribute, only the channel-scoped attribute is filterable.
+            var filterableAttributeIdsByKey = attributeQry.ToList()
+                .GroupBy( a => a.Key, System.StringComparer.OrdinalIgnoreCase )
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Any( a => a.EntityTypeQualifierColumn == "ContentChannelId" )
+                        ? g.Where( a => a.EntityTypeQualifierColumn == "ContentChannelId" ).Select( a => a.Id ).ToList()
+                        : g.Select( a => a.Id ).ToList(),
+                    System.StringComparer.OrdinalIgnoreCase );
+
             var urlKeyValues = ControllerContext.Request.GetQueryNameValuePairs();
             foreach ( var pair in urlKeyValues )
             {
                 if ( !ignoreKeys.Contains( pair.Key.ToLower() ) )
                 {
+                    var attributeIds = filterableAttributeIdsByKey.ContainsKey( pair.Key )
+                        ? filterableAttributeIdsByKey[pair.Key]
+                        : new List<int>();
+
                     var filterQry = new AttributeValueService( rockContext ).Queryable()
-                       .Where( av => attributeQry.Where( a => a.Key == pair.Key ).Select( a => a.Id ).Contains( av.AttributeId ) )
+                       .Where( av => attributeIds.Contains( av.AttributeId ) )
                        .Where( av => av.Value == pair.Value );
 
                     contentItems = contentItems.Where( i => filterQry.Select( av => av.EntityId ).Contains( i.Id ) );
@@ -116,7 +131,7 @@ namespace org.secc.Rest.Controllers
                     Content = i.ContentChanelItem.Content,
                     Priority = i.ContentChanelItem.Priority,
                     Order = i.ContentChanelItem.Order,
-                    Attributes = i.AttributeValues.ToDictionary( a => a.AttributeKey, a => a.Value ),
+                    Attributes = BuildAttributeDictionary( i.AttributeValues ),
                     Tags = GetTags( i.ContentChanelItem, rockContext ),
                     Slug = i.ContentChanelItem.PrimarySlug,
                     CreatedBy = i.ContentChanelItem.CreatedByPersonName,
@@ -195,7 +210,7 @@ namespace org.secc.Rest.Controllers
                     Content = i.ContentChanelItem.Content,
                     Priority = i.ContentChanelItem.Priority,
                     Order = i.ContentChanelItem.Order,
-                    Attributes = i.AttributeValues.ToDictionary( a => a.AttributeKey, a => a.Value ),
+                    Attributes = BuildAttributeDictionary( i.AttributeValues ),
                     Tags = GetTags( i.ContentChanelItem, rockContext ),
                     Slug = i.ContentChanelItem.PrimarySlug,
                     CreatedBy = i.ContentChanelItem.CreatedByPersonName,
@@ -204,6 +219,16 @@ namespace org.secc.Rest.Controllers
                 } ).ToList();
 
             return Json( items.FirstOrDefault() );
+        }
+
+        private static Dictionary<string, string> BuildAttributeDictionary( IEnumerable<AttributeValue> attributeValues )
+        {
+            // The same key can exist on both a ContentChannelTypeId-qualified and a
+            // ContentChannelId-qualified attribute; the channel-scoped value wins the collision.
+            return attributeValues
+                .GroupBy( av => av.AttributeKey )
+                .Select( g => g.FirstOrDefault( av => AttributeCache.Get( av.AttributeId )?.EntityTypeQualifierColumn == "ContentChannelId" ) ?? g.First() )
+                .ToDictionary( av => av.AttributeKey, av => av.Value );
         }
 
         private List<string> GetTags( ContentChannelItem contentChannelItem, RockContext rockContext )

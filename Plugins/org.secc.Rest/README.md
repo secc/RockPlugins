@@ -141,6 +141,8 @@ Org policy: communications may not be sent to minors unless another adult is inc
 ### ChannelItems query filtering *(ChannelItemController)*
 Reserved query keys (`contentchannelid`, `tag`, `take`, `page`, `hideInactive`, `orderby`, `reverse`) control paging/sort; **any other query key** is treated as a content-channel-item **attribute key** and filtered on exact attribute value.
 
+**Same-key collision precedence:** the same attribute key can exist on both a `ContentChannelTypeId`-qualified and a `ContentChannelId`-qualified attribute. In both `ChannelItems` and `ChannelItem` responses the **channel-qualified value wins** the collision (previously this crashed with an HTTP 500), and query-string attribute filtering applies the same precedence — when a key exists in both scopes, only the channel-scoped attribute's values are matched, so filtering and the returned `Attributes` dictionary agree.
+
 ### Contribution transactions *(FinancialTransactionsExtensionsController)*
 Returns a nested `DataSet` (transactions + per-account details), filtered to the Contribution transaction type and excluding the **non-cash** currency type (`F64662E7-0E12-4604-BBB0-DB774AC3C830`). Without `personId`, pulls everyone whose `GivingGroupId` equals `groupId`.
 
@@ -207,4 +209,4 @@ Only `SecurityController` needs the `IHasCustomHttpRoutes.AddRoutes` + `SessionR
 
 ---
 
-**Last updated:** 2026-08-23
+**Last updated:** 2026-08-24

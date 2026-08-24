@@ -36,6 +36,10 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [Category( "SECC > Groups" )]
     [Description( "Block to output publish groups in lava." )]
     [CodeEditorField( "Lava Template", "Lava to display all published groups", CodeEditorMode.Lava )]
+    [TextField( "Campus Parameter Name", "Page parameter name for the campus id.", false, "CampusId" )]
+    [TextField( "Category Parameter Name", "Page parameter name for the category id.", false, "CategoryId" )]
+    [TextField( "Filter Categories", "Delimited list of category defined value guids to limit the category filter to.", false, "" )]
+    [TextField( "Category Filter Display Mode", "1 = hidden, 2 or greater = shown.", false, "1" )]
 
     public partial class PublishGroupLava : Rock.Web.UI.RockBlock
     {
@@ -63,29 +67,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             // Initialize services
             var rockContext = new RockContext();
             var publishGroupService = new PublishGroupService( rockContext );
-            var attributeService = new AttributeService( rockContext );
-            var attributeValueService = new AttributeValueService( rockContext );
-
-            //Get the entity types
-            var publishGroupEntityTypeId = EntityTypeCache.Get( typeof( PublishGroup ) ).Id;
-            var groupEntityTypeId = EntityTypeCache.Get( typeof( Group ) ).Id;
-
-            //Attribute Queryables
-            var publishGroupAttributeQry = attributeService.Queryable()
-                .Where( a => a.EntityTypeId == publishGroupEntityTypeId )
-                .Select( a => a.Id );
-
-            var groupAttributeQry = attributeService.Queryable()
-               .Where( a => a.EntityTypeId == groupEntityTypeId )
-               .Select( a => a.Id );
-
-            //Attribute Value Queryables
-            var publishGroupAttributeValueQry = attributeValueService.Queryable()
-                .Where( av => publishGroupAttributeQry.Contains( av.AttributeId ) );
-
-            var groupAttributeValueQry = attributeValueService.Queryable()
-               .Where( av => groupAttributeQry.Contains( av.AttributeId ) );
-
 
             var qry = publishGroupService
                 .Queryable( "Group" )
@@ -94,7 +75,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 .Where( pg => pg.StartDateTime <= Rock.RockDateTime.Today && pg.EndDateTime >= Rock.RockDateTime.Today ) //Active
                 .Where( pg => pg.Group.GroupType.GroupCapacityRule == GroupCapacityRule.None
                               || pg.Group.GroupCapacity == null || pg.Group.GroupCapacity == 0
-                              || pg.Group.Members.Count() < pg.Group.GroupCapacity ); // Not full
+                              || pg.Group.Members.Count( m => m.GroupMemberStatus == GroupMemberStatus.Active ) < pg.Group.GroupCapacity ); // Not full
 
 
             // Filter by campus
@@ -114,33 +95,14 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                         .Any( dv => categories.Contains( dv.Id ) ) );
             }
 
-            //Group join in attributes
-            var mixedQry = qry
-                .GroupJoin( publishGroupAttributeValueQry,
-                    pg => pg.Id,
-                    av => av.EntityId,
-                    ( pg, av ) => new { pg, av } )
-                .GroupJoin( groupAttributeValueQry,
-                    pg => pg.pg.GroupId,
-                    av => av.EntityId,
-                    ( pg, av ) => new { PublishGroup = pg.pg, PublishGroupAttributes = pg.av, GroupAttributes = av } );
+            var publishGroups = qry.ToList()
+                .Where( pg => pg.Group != null )
+                .ToList();
 
-            //Add in the attributes in the proper format
-            var publishGroups = new List<PublishGroup>();
-
-            foreach ( var item in mixedQry.ToList() )
-            {
-                var publishGroup = item.PublishGroup;
-                publishGroup.AttributeValues = item.PublishGroupAttributes.ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
-                publishGroup.Attributes = item.PublishGroupAttributes.ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
-                if ( publishGroup.Group == null )
-                {
-                    continue;
-                }
-                publishGroup.Group.AttributeValues = item.GroupAttributes.ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
-                publishGroup.Group.Attributes = item.GroupAttributes.ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
-                publishGroups.Add( publishGroup );
-            }
+            // Rock's bulk LoadAttributes handles qualifier filtering, inherited attributes,
+            // default values, and duplicate keys
+            publishGroups.LoadAttributes( rockContext );
+            publishGroups.Select( pg => pg.Group ).Distinct().ToList().LoadAttributes( rockContext );
 
             // Output mergefields.
             var mergeFields = LavaHelper.GetCommonMergeFields( this.RockPage, this.CurrentPerson );
@@ -240,7 +202,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             var categoryId = PageParameter( GetAttributeValue( "CategoryParameterName" ) ).AsIntegerOrNull();
             var ministrySlug = PageParameter( "ministry" ).ToLower();
-            if ( categoryId.HasValue )
+            if ( definedType != null && categoryId.HasValue )
             {
                 if ( definedType.DefinedValues.Where( v => ( selectedCategoryGuids.Contains( v.Guid ) || selectedCategoryGuids.Count() == 0 ) && v.Id == categoryId.Value ).FirstOrDefault() != null )
                 {
@@ -248,7 +210,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
 
             }
-            else if ( !string.IsNullOrEmpty( ministrySlug ) )
+            else if ( definedType != null && !string.IsNullOrEmpty( ministrySlug ) )
             {
                 var definedValues = definedType.DefinedValues.Where( v => ( selectedCategoryGuids.Contains( v.Guid ) || selectedCategoryGuids.Count() == 0 ) ).ToList();
                 DefinedTypeService definedTypeService = new DefinedTypeService( new RockContext() );
