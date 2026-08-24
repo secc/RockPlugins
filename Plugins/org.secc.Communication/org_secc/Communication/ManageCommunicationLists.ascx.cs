@@ -479,6 +479,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                 else if ( type.Equals( "Text Message", StringComparison.InvariantCultureIgnoreCase ) )
                 {
                     pnlToggle.Controls.Add( CreatePhoneBox( panelWidget.ID ) );
+                    pnlToggle.Controls.Add( CreateSmsDisclosure( panelWidget.ID ) );
                 }
                 else
                 {
@@ -489,6 +490,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                             break;
                         case CommunicationType.SMS:
                             pnlToggle.Controls.Add( CreatePhoneBox( panelWidget.ID ) );
+                            pnlToggle.Controls.Add( CreateSmsDisclosure( panelWidget.ID ) );
                             break;
 
                         default:
@@ -791,12 +793,34 @@ namespace RockWeb.Plugins.org_secc.Communication
             };
         }
 
+        /// <summary>
+        /// Builds the SMS program disclosures that carriers require to be displayed directly
+        /// beneath the field where a mobile number is collected. Added after every phone box so
+        /// the disclosures travel with the input rather than sitting elsewhere on the page.
+        /// </summary>
+        private Literal CreateSmsDisclosure( string panelWidgetId )
+        {
+            return new Literal
+            {
+                ID = $"lSmsDisclosure{panelWidgetId}",
+                Text = "<div class='text-muted small' style='margin:-8px 0 12px 0;line-height:1.5;'>"
+                    + "Southeast Christian Church text messages. Message frequency varies. "
+                    + "Message &amp; data rates may apply. Reply STOP to opt out, HELP for help. "
+                    + "<a href='https://secc.org/privacy-policy' target='_blank' rel='noopener noreferrer'>Privacy Policy</a>"
+                    + " &middot; "
+                    + "<a href='https://secc.org/terms' target='_blank' rel='noopener noreferrer'>Mobile Terms</a>"
+                    + "</div>"
+            };
+        }
+
         private void SendConfirmationMessage( int groupId )
         {
             var group = CommunicationGroups.FirstOrDefault( g => g.Id == groupId );
             var groupResponseMessage = group.GetAttributeValue( "SMSSubscribeResponse" );
 
-            var smsBody = $"{groupResponseMessage} Reply Y to confirm receiving msgs. Reply HELP for help, STOP to quit. Msg&data rates may apply.";
+            // Carrier compliance: the confirmation must identify the program and disclose message
+            // frequency in addition to the opt-out, help and rate disclosures.
+            var smsBody = $"{groupResponseMessage} Reply Y to confirm msgs from Southeast Christian Church. Msg frequency varies. Reply HELP for help, STOP to quit. Msg&data rates may apply.";
             var fromNumberGuid = GetAttributeValue( "FromSMSNumber" ).AsGuidOrNull();
 
             if ( !fromNumberGuid.HasValue )
