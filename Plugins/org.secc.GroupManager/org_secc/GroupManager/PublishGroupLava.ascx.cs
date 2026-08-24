@@ -131,14 +131,35 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             foreach ( var item in mixedQry.ToList() )
             {
                 var publishGroup = item.PublishGroup;
-                publishGroup.AttributeValues = item.PublishGroupAttributes.ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
-                publishGroup.Attributes = item.PublishGroupAttributes.ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
+                // Group by key: a group can have values for two attributes sharing the same key
+                // (e.g. the same attribute defined on two group types after a group type change)
+                var publishGroupAttributes = item.PublishGroupAttributes
+                    .GroupBy( av => av.AttributeKey )
+                    .Select( g => g.First() )
+                    .ToList();
+                publishGroup.AttributeValues = publishGroupAttributes.ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
+                publishGroup.Attributes = publishGroupAttributes.ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
                 if ( publishGroup.Group == null )
                 {
                     continue;
                 }
-                publishGroup.Group.AttributeValues = item.GroupAttributes.ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
-                publishGroup.Group.Attributes = item.GroupAttributes.ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
+                var groupTypeIdString = publishGroup.Group.GroupTypeId.ToString();
+                var groupAttributes = item.GroupAttributes
+                    .GroupBy( av => av.AttributeKey )
+                    .Select( g => g
+                        .OrderByDescending( av =>
+                        {
+                            // Prefer the attribute qualified to the group's current group type over
+                            // stale values left behind by a group type change
+                            var attribute = AttributeCache.Get( av.AttributeId );
+                            return attribute != null
+                                && attribute.EntityTypeQualifierColumn == "GroupTypeId"
+                                && attribute.EntityTypeQualifierValue == groupTypeIdString;
+                        } )
+                        .First() )
+                    .ToList();
+                publishGroup.Group.AttributeValues = groupAttributes.ToDictionary( av => av.AttributeKey, av => new AttributeValueCache( av ) );
+                publishGroup.Group.Attributes = groupAttributes.ToDictionary( av => av.AttributeKey, av => AttributeCache.Get( av.AttributeId ) );
                 publishGroups.Add( publishGroup );
             }
 
