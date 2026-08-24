@@ -73,13 +73,28 @@ namespace org.secc.Rest.Controllers
             //AttributeFiltering
             var ignoreKeys = new List<string> { "contentchannelid", "tag", "take", "page", "hideInactive", "orderby", "reverse" };
 
+            // Same precedence as the response dictionary: when a key exists on both a type- and a
+            // channel-qualified attribute, only the channel-scoped attribute is filterable.
+            var filterableAttributeIdsByKey = attributeQry.ToList()
+                .GroupBy( a => a.Key, System.StringComparer.OrdinalIgnoreCase )
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Any( a => a.EntityTypeQualifierColumn == "ContentChannelId" )
+                        ? g.Where( a => a.EntityTypeQualifierColumn == "ContentChannelId" ).Select( a => a.Id ).ToList()
+                        : g.Select( a => a.Id ).ToList(),
+                    System.StringComparer.OrdinalIgnoreCase );
+
             var urlKeyValues = ControllerContext.Request.GetQueryNameValuePairs();
             foreach ( var pair in urlKeyValues )
             {
                 if ( !ignoreKeys.Contains( pair.Key.ToLower() ) )
                 {
+                    var attributeIds = filterableAttributeIdsByKey.ContainsKey( pair.Key )
+                        ? filterableAttributeIdsByKey[pair.Key]
+                        : new List<int>();
+
                     var filterQry = new AttributeValueService( rockContext ).Queryable()
-                       .Where( av => attributeQry.Where( a => a.Key == pair.Key ).Select( a => a.Id ).Contains( av.AttributeId ) )
+                       .Where( av => attributeIds.Contains( av.AttributeId ) )
                        .Where( av => av.Value == pair.Value );
 
                     contentItems = contentItems.Where( i => filterQry.Select( av => av.EntityId ).Contains( i.Id ) );

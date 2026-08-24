@@ -70,7 +70,7 @@ Categories in Rock: **SECC > Groups**, **SECC > Camp**, and **Groups**.
 | Breakout Group Migration | RockBlock | Tool to migrate kids into groups. |
 | Camp Group | RockBlock | Camp leaders view their group. |
 | Camp Allergies | RockBlock | Campers in a group who have allergies (backed by a stored proc). |
-| Publish Groups Lava | RockBlock | Output PublishGroups via Lava. |
+| Publish Groups Lava | RockBlock | Output PublishGroups via Lava. Settings: `Lava Template`, `Campus Parameter Name` (default `CampusId`), `Category Parameter Name` (default `CategoryId`), `Filter Categories` (defined-value guid list limiting the category filter), `Category Filter Display Mode` (1 = hidden, 2+ = shown). Hides groups whose **Active** member count has reached `GroupCapacity`; group/publish-group attributes load via Rock's bulk `LoadAttributes` (qualifier filtering, inherited attributes, default values). |
 | Publish Group List | RockBlock | List of PublishGroups. |
 | Publish Group Registration | RockBlock | Register a person for a published group. |
 | Publish Group Request | RockBlock | Display a publish-group request. |
@@ -143,3 +143,5 @@ Ships Rock plugin migrations under `/Migrations/` that build up the `PublishGrou
   migrations that have already run.
 - The Camp Allergies stored procedure is defined inline in `011_AddCampAllergyReportProc`; change
   it with a new migration rather than editing the proc in the database directly.
+
+**Last updated:** 2026-08-24
