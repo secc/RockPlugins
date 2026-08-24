@@ -160,17 +160,11 @@ namespace org.secc.Finance.Utility
                 mergeFields.Add( "Country", string.Empty );
             }
 
-            var transactionDetails = qry.GroupJoin( new AttributeValueService( rockContext ).Queryable(),
-                ft => ft.Id,
-                av => av.Id,
-                ( obj, av ) => new { Transaction = obj, AttributeValues = av } )
-                .ToList()
-                .Select( obj =>
-                 {
-                     obj.Transaction.Attributes = obj.AttributeValues.Select( av2 => AttributeCache.Get( av2.Attribute ) ).ToDictionary( k => k.Key, v => v );
-                     obj.Transaction.AttributeValues = obj.AttributeValues.Select( av2 => new AttributeValueCache( av2 ) ).ToDictionary( k => k.AttributeKey, v => v );
-                     return obj.Transaction;
-                 } );
+            var transactionDetails = qry.ToList();
+
+            // Rock's bulk LoadAttributes handles qualifier filtering, inherited attributes,
+            // default values, and duplicate keys
+            transactionDetails.LoadAttributes( rockContext );
 
             mergeFields.Add( "TransactionDetails", transactionDetails );
 
