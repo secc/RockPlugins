@@ -806,9 +806,9 @@ namespace RockWeb.Plugins.org_secc.Communication
                 Text = "<div class='text-muted small' style='margin:-8px 0 12px 0;line-height:1.5;'>"
                     + "Southeast Christian Church text messages. Message frequency varies. "
                     + "Message &amp; data rates may apply. Reply STOP to opt out, HELP for help. "
-                    + "<a href='https://secc.org/privacy-policy' target='_blank' rel='noopener noreferrer'>Privacy Policy</a>"
+                    + "<a href='https://se.church/privacy-policy' target='_blank' rel='noopener noreferrer'>Privacy Policy</a>"
                     + " &middot; "
-                    + "<a href='https://secc.org/terms' target='_blank' rel='noopener noreferrer'>Mobile Terms</a>"
+                    + "<a href='https://se.church/terms' target='_blank' rel='noopener noreferrer'>Mobile Terms</a>"
                     + "</div>"
             };
         }
