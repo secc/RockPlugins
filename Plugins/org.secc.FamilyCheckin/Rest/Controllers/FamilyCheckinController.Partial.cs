@@ -38,6 +38,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
     /// <summary>
     /// Family Checkin REST API
     /// </summary>
+    [Rock.SystemGuid.RestControllerGuid( "33C6C91B-09DC-47AE-B929-DA4D7C7DC6E5" )]
     public partial class FamilyCheckinController : Rock.Rest.ApiControllerBase, IHasCustomHttpRoutes
     {
         /// <summary>
@@ -72,13 +73,21 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
                 routeTemplate: "api/org.secc/familycheckin/{action}/{param}",
                 defaults: new
                 {
-                    controller = "familycheckin",
+                    // Must match the controller class name's casing exactly. Rock 16's
+                    // RockHttpControllerSelector copies the controller mapping into a
+                    // case-sensitive dictionary, and RegisterControllers() resolves a
+                    // bound {controller} default via that mapping — a lowercase name
+                    // misses, so the controller never registers in Security > Rest
+                    // Controllers and its auth rules get deleted. Request routing
+                    // itself stays case-insensitive either way.
+                    controller = "FamilyCheckin",
                     entityqualifier = RouteParameter.Optional,
                     entityqualifiervalue = RouteParameter.Optional
                 } ).RouteHandler = new SessionRouteHandler();
         }
 
         [HttpGet()]
+        [Rock.SystemGuid.RestActionGuid( "D6923A3F-BA89-490B-B624-97A8971432EF" )]
         public HttpResponseMessage Family( string param )
         {
             try
@@ -173,6 +182,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
         }
 
         [HttpGet()]
+        [Rock.SystemGuid.RestActionGuid( "0B70C51E-87BA-4D5C-92AD-7526E9AC6B1B" )]
         public HttpResponseMessage KioskStatus( int param )
         {
             // ROCK-8765: Intentionally anonymous — physical kiosks are unauthenticated
@@ -204,6 +214,7 @@ namespace org.secc.FamilyCheckin.Rest.Controllers
 
         [Authenticate, Secured]
         [HttpGet()]
+        [Rock.SystemGuid.RestActionGuid( "AD172A95-FDCC-4066-9100-373FA6FD6F23" )]
         public HttpResponseMessage ProcessMobileCheckin( string param )
         {
             try

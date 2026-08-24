@@ -28,6 +28,7 @@ namespace org.secc.Rest.Controllers
     /// <summary>
     /// TaggedItems REST API
     /// </summary>
+    [Rock.SystemGuid.RestControllerGuid( "23B0A764-52A6-4F32-A4C1-F0B5445D3504" )]
     public partial class SecurityController : ApiController, IHasCustomHttpRoutes
     {
         /// <summary>
@@ -41,7 +42,10 @@ namespace org.secc.Rest.Controllers
                 routeTemplate: "api/org.secc/People/{action}",
                 defaults: new
                 {
-                    controller = "security"
+                    // Must match the controller class name's casing exactly — Rock 16's
+                    // controller-mapping lookup during REST controller registration is
+                    // case-sensitive (see FamilyCheckinController.AddRoutes).
+                    controller = "Security"
                 } ).RouteHandler = new SessionRouteHandler();
         }
 
@@ -53,6 +57,7 @@ namespace org.secc.Rest.Controllers
         /// <param name="entityGuid">The entity unique identifier.</param>
         /// <param name="name">The name.</param>
         /// <returns></returns>
+        [Rock.SystemGuid.RestActionGuid( "D3D6E170-CD7E-43BC-B277-6D0CDA0C20D3" )]
         public HttpResponseMessage Post( string phone )
         {
 
@@ -60,6 +65,7 @@ namespace org.secc.Rest.Controllers
         }
 
         [HttpGet()]
+        [Rock.SystemGuid.RestActionGuid( "7080335B-8BD0-4A04-8C16-F4CA54A87C5B" )]
         public HttpResponseMessage CurrentUser()
         {
             try
