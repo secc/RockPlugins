@@ -77,6 +77,24 @@ namespace org.secc.Connection
         DefinedValueCache _homePhone = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_HOME );
         DefinedValueCache _cellPhone = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_PHONE_TYPE_MOBILE );
 
+        private List<string> _urlKeys = null;
+        /// <summary>
+        /// The configured "Group Member Attribute Keys - URL" keys. De-duplicated case-insensitively:
+        /// GetAttributeValues does not de-dupe, so a "Key,Key" entry would otherwise be applied twice
+        /// and throw on the ViewState dictionary Add in AddGroupMemberAttributes.
+        /// </summary>
+        private List<string> UrlKeys
+        {
+            get
+            {
+                if ( _urlKeys == null )
+                {
+                    _urlKeys = GetAttributeValues( "UrlKeys" ).Distinct( StringComparer.OrdinalIgnoreCase ).ToList();
+                }
+                return _urlKeys;
+            }
+        }
+
         private List<ConnectionRoleRequest> _roleRequests = null;
         List<ConnectionRoleRequest> RoleRequests
         {
@@ -101,16 +119,44 @@ namespace org.secc.Connection
                     }
                     foreach ( var roleRequest in _roleRequests )
                     {
-                        if ( roleRequest.Attributes == null )
+                        // The CardWizard template passes a RoleRequests JSON whose Attributes dictionary
+                        // only contains the final partition's value; earlier partitions (e.g. a leading
+                        // DefinedType) arrive as plain URL parameters. Merge URL keys into the dictionary
+                        // rather than only parsing them when it is null, or those earlier partition values
+                        // never reach the connection request. A non-empty JSON value keeps priority.
+                        //
+                        // Rebuilt case-insensitively to match PageParameter, which resolves route and
+                        // query keys case-insensitively; in an ordinal dictionary a casing difference
+                        // between the JSON key and the configured setting adds a second entry and hands
+                        // the URL value priority over the volunteer's actual selection. Copied by hand
+                        // rather than through the case-insensitive copy constructor, which throws when
+                        // the caller-supplied JSON holds two keys differing only in case.
+                        var attributes = new Dictionary<string, string>( StringComparer.OrdinalIgnoreCase );
+                        if ( roleRequest.Attributes != null )
                         {
-                            roleRequest.Attributes = new Dictionary<string, string>();
-                            var urlKeys = GetAttributeValues( "UrlKeys" );
-                            foreach ( string urlKey in urlKeys )
+                            foreach ( var attribute in roleRequest.Attributes )
                             {
-                                if ( !string.IsNullOrEmpty( PageParameter( urlKey ) ) )
-                                {
-                                    roleRequest.Attributes.Add( urlKey, PageParameter( urlKey ) );
-                                }
+                                attributes[attribute.Key] = attribute.Value;
+                            }
+                        }
+                        roleRequest.Attributes = attributes;
+
+                        foreach ( string urlKey in UrlKeys )
+                        {
+                            string jsonValue;
+                            attributes.TryGetValue( urlKey, out jsonValue );
+
+                            // A present-but-blank JSON value is not a selection - AddGroupMemberAttributes
+                            // discards it - so treat it as absent and let the URL supply the value.
+                            if ( !string.IsNullOrWhiteSpace( jsonValue ) )
+                            {
+                                continue;
+                            }
+
+                            var urlValue = PageParameter( urlKey );
+                            if ( !string.IsNullOrWhiteSpace( urlValue ) )
+                            {
+                                attributes[urlKey] = urlValue;
                             }
                         }
                     }
@@ -908,12 +954,7 @@ namespace org.secc.Connection
                     {
                         // Group Attributes
                         var formKeys = GetAttributeValues( "FormKeys" );
-                        var urlKeys = GetAttributeValues( "UrlKeys" );
-
-                        AttributeService attributeService = new AttributeService( rockContext );
-
-                        string groupQualifierValue = group.Id.ToString();
-                        string groupTypeQualifierValue = group.GroupTypeId.ToString();
+                        var urlKeys = UrlKeys;
 
                         // Make a fake group member so we can load some attributes.
                         GroupMember groupMember = new GroupMember();
@@ -933,7 +974,7 @@ namespace org.secc.Connection
                         }
                         viewStateAttributes.Add( viewStateAttribute );
 
-                        Helper.AddDisplayControls( groupMember, phAttributes, groupMember.Attributes.Where( a => !urlKeys.Contains( a.Key ) ).Select( a => a.Key ).ToList(), true, false );
+                        Helper.AddDisplayControls( groupMember, phAttributes, groupMember.Attributes.Where( a => !urlKeys.Contains( a.Key, StringComparer.OrdinalIgnoreCase ) ).Select( a => a.Key ).ToList(), true, false );
                         // ROCK-8710: render the editable Form-key controls below the Waiver Text (phFormAttributes lives outside the repeater, after lWaiverText) instead of inline with the per-role display controls in phAttributes.
                         // ROCK-8710: phFormAttributes is a single shared placeholder, so only render the Form-key edit controls for the first role. Multi-role Form-key support would require a per-role placeholder inside the repeater item (with the waiver moved in) — tracked as a follow-up. For single-role opportunities (the current food-pack use) this is a no-op guard.
                         if ( RepeaterIndex == 0 )
