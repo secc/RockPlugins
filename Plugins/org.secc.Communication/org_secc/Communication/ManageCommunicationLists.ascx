@@ -15,6 +15,7 @@
             <asp:Literal runat="server" ID="ltAttributesHeader"/>
             <asp:PlaceHolder runat="server" ID="phGroupAttributes" />
             <Rock:BootstrapButton runat="server" ID="btnSubscribe" Text="Subscribe" CssClass="btn btn-primary" OnClick="btnSubscribe_Click" />
+            <asp:Literal runat="server" ID="lKeywordSmsDisclosure" />
             <hr />
         </asp:Panel>
         <Rock:NotificationBox runat="server" id="nbNotice" Visible="false" />

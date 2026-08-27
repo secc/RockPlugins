@@ -228,6 +228,13 @@ namespace RockWeb.Plugins.org_secc.Communication
             ltType.Text = type;
             ltDescription.Text = group.Description;
 
+            // This panel is the Subscribe/{keyword} deep-link target advertised in SMS
+            // calls-to-action, so the carrier disclosures must appear here as well.
+            if ( type.IndexOf( "Text Message", StringComparison.InvariantCultureIgnoreCase ) >= 0 )
+            {
+                lKeywordSmsDisclosure.Text = SmsDisclosureHtml( "12px 0 4px 0" );
+            }
+
             GroupMemberService groupMemberService = new GroupMemberService( rockContext );
 
             GroupMember activeMember = null;
@@ -494,6 +501,11 @@ namespace RockWeb.Plugins.org_secc.Communication
                             break;
 
                         default:
+                            // RecipientPreference (0) is the unset default for most people.
+                            // Without an input the Subscribe button is a dead end that fails
+                            // validation against a field that was never rendered, so fall back
+                            // to the email box.
+                            pnlToggle.Controls.Add( CreateEmailBox( panelWidget.ID ) );
                             break;
                     }
                 }
@@ -794,8 +806,26 @@ namespace RockWeb.Plugins.org_secc.Communication
         }
 
         /// <summary>
-        /// Builds the SMS program disclosures that carriers require to be displayed directly
-        /// beneath the field where a mobile number is collected. Added after every phone box so
+        /// The SMS program disclosures that carriers require to be displayed directly beneath
+        /// any field or control that collects a mobile number for opt-in. The org name comes
+        /// from the OrganizationName global attribute; the terms/privacy URLs are deliberately
+        /// hardcoded because they are the exact links filed with the carrier and must not
+        /// drift with CMS changes.
+        /// </summary>
+        private string SmsDisclosureHtml( string margin = "-8px 0 12px 0" )
+        {
+            var organizationName = GlobalAttributesCache.Value( "OrganizationName" );
+            return $"<div class='small' style='color:#595959;margin:{margin};line-height:1.5;'>"
+                + $"{organizationName} text messages. Message frequency varies. "
+                + "Message &amp; data rates may apply. Reply STOP to opt out, HELP for help. "
+                + "<a href='https://se.church/privacy-policy' target='_blank' rel='noopener noreferrer' title='Opens in a new tab'>Privacy Policy</a>"
+                + " &middot; "
+                + "<a href='https://se.church/terms' target='_blank' rel='noopener noreferrer' title='Opens in a new tab'>Mobile Terms</a>"
+                + "</div>";
+        }
+
+        /// <summary>
+        /// Wraps <see cref="SmsDisclosureHtml"/> in a Literal, added after every phone box so
         /// the disclosures travel with the input rather than sitting elsewhere on the page.
         /// </summary>
         private Literal CreateSmsDisclosure( string panelWidgetId )
@@ -803,13 +833,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             return new Literal
             {
                 ID = $"lSmsDisclosure{panelWidgetId}",
-                Text = "<div class='text-muted small' style='margin:-8px 0 12px 0;line-height:1.5;'>"
-                    + "Southeast Christian Church text messages. Message frequency varies. "
-                    + "Message &amp; data rates may apply. Reply STOP to opt out, HELP for help. "
-                    + "<a href='https://se.church/privacy-policy' target='_blank' rel='noopener noreferrer'>Privacy Policy</a>"
-                    + " &middot; "
-                    + "<a href='https://se.church/terms' target='_blank' rel='noopener noreferrer'>Mobile Terms</a>"
-                    + "</div>"
+                Text = SmsDisclosureHtml()
             };
         }
 
@@ -818,9 +842,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             var group = CommunicationGroups.FirstOrDefault( g => g.Id == groupId );
             var groupResponseMessage = group.GetAttributeValue( "SMSSubscribeResponse" );
 
-            // Carrier compliance: the confirmation must identify the program and disclose message
-            // frequency in addition to the opt-out, help and rate disclosures.
-            var smsBody = $"{groupResponseMessage} Reply Y to confirm msgs from Southeast Christian Church. Msg frequency varies. Reply HELP for help, STOP to quit. Msg&data rates may apply.";
+            var smsBody = $"{groupResponseMessage} Reply Y to confirm receiving msgs. Reply HELP for help, STOP to quit. Msg&data rates may apply.";
             var fromNumberGuid = GetAttributeValue( "FromSMSNumber" ).AsGuidOrNull();
 
             if ( !fromNumberGuid.HasValue )

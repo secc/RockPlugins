@@ -35,12 +35,18 @@
                         <div class="form-row">
                             <div class="col-sm-6">
                                 <Rock:RockRadioButtonList ID="cblDeliveryMethod" runat="server" Label="Delivery Method" RepeatDirection="Horizontal" Required="true"
-                                    RequiredErrorMessage="Email or Text Message selection required." ValidationGroup="valRequestPass"
-                                    Help="Carrier message and data rates may apply with text message.  More Info: Text &quot;Help&quot; to 733733.">
+                                    RequiredErrorMessage="Email or Text Message selection required." ValidationGroup="valRequestPass">
                                     <asp:ListItem Text="Email" Value="Email" />
                                     <asp:ListItem Text="Text Message" Value="SMS" />
                                 </Rock:RockRadioButtonList>
-                                
+                                <div class="small" style="color:#595959;margin:4px 0 12px 0;line-height:1.5;">
+                                    Southeast Christian Church text messages. Message frequency varies.
+                                    Message &amp; data rates may apply. Reply STOP to opt out, HELP for help.
+                                    <a href="https://se.church/privacy-policy" target="_blank" rel="noopener noreferrer" title="Opens in a new tab">Privacy Policy</a>
+                                    &middot;
+                                    <a href="https://se.church/terms" target="_blank" rel="noopener noreferrer" title="Opens in a new tab">Mobile Terms</a>
+                                </div>
+
                             </div>
                         </div>
                     </fieldset>

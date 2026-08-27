@@ -43,7 +43,7 @@ Category in Rock: **SECC > Communication**.
 | Block | Purpose | Key settings |
 |-------|---------|--------------|
 | Communication List Wizard | Build a communication targeted at a public communication-list group. | (none) |
-| Manage Communication Lists | Let users manage their communication-list subscriptions; can confirm via SMS keyword. | `AttributeKey` (Type), `KeywordKey` (Keyword), `FromSMSNumber` (confirmation SMS from) |
+| Manage Communication Lists | Let users manage their communication-list subscriptions; can confirm via SMS keyword. Renders the carrier-required SMS disclosures (program name from the `OrganizationName` global attribute, frequency, rates, STOP/HELP, hyperlinked se.church Privacy Policy and Mobile Terms) directly beneath every mobile-number input, including the `Subscribe/{keyword}` deep-link panel. | `AttributeKey` (Type), `KeywordKey` (Keyword), `FromSMSNumber` (confirmation SMS from) |
 | Messaging Phone Numbers | List active phone numbers from the SECC Messaging API. | `DetailPage` (linked page) |
 | Messaging Phone Number Detail | View/edit a phone number and its keywords via the Messaging API. | (none) |
 | Messaging Phone Number Keywords | List/manage keywords for a phone number, with an approval flow. | `ShowFilter` (bool, default true), `EnforceResponseLimit` (bool, default true) |
@@ -121,3 +121,9 @@ Twilio SDK enums aren't needed to read the data.
   numbered migration under `/Migrations/` (don't hand-edit migrations that have already run).
 - Related: [org.secc.Workflow](../org.secc.Workflow/README.md) (the `SMS Send` workflow action and
   Twilio Lookup action).
+- The SMS disclosure text on Manage Communication Lists is a carrier-compliance requirement
+  (Twilio audit of short code 733733, ticket #28958126). The terms/privacy URLs are hardcoded on
+  purpose — they are the links filed with the carrier — so don't swap them for CMS-driven values
+  without re-filing.
+
+_Last updated: 2026-08-27_
