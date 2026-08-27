@@ -3,6 +3,8 @@ Plugins/*/packages/
 Plugins/*/bin/
 Plugins/*/obj/
 Plugins/*/Themes/**/*.css
+# vendor CSS that is not compiled from .less must be tracked
+!Plugins/*/Themes/**/simplebar.css
 Tools/org.secc.OAuthTestClient/.vs/
 Tools/**/bin/
 Tools/**/obj/
