@@ -229,7 +229,11 @@ namespace RockWeb.Plugins.org_secc.Communication
             ltDescription.Text = group.Description;
 
             // This panel is the Subscribe/{keyword} deep-link target advertised in SMS
-            // calls-to-action, so the carrier disclosures must appear here as well.
+            // calls-to-action, so the carrier disclosures must appear here as well. The full
+            // list below stays visible on this page, so a subscriber who expands a list and
+            // switches it to Text Message sees the disclosure twice. That is intentional --
+            // each copy sits with its own consent control, and duplicate disclosure is
+            // compliant where a missing one is not. Don't "de-duplicate" this away.
             if ( type.IndexOf( "Text Message", StringComparison.InvariantCultureIgnoreCase ) >= 0 )
             {
                 lKeywordSmsDisclosure.Text = SmsDisclosureHtml( "12px 0 4px 0" );
