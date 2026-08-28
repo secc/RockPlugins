@@ -814,7 +814,9 @@ namespace RockWeb.Plugins.org_secc.Communication
         /// </summary>
         private string SmsDisclosureHtml( string margin = "-8px 0 12px 0" )
         {
-            var organizationName = GlobalAttributesCache.Value( "OrganizationName" );
+            // Encoded: this is a global attribute an administrator can edit, and it is being
+            // interpolated into markup rendered by a pass-through Literal.
+            var organizationName = System.Web.HttpUtility.HtmlEncode( GlobalAttributesCache.Value( "OrganizationName" ) );
             return $"<div class='small' style='color:#595959;margin:{margin};line-height:1.5;'>"
                 + $"{organizationName} text messages. Message frequency varies. "
                 + "Message &amp; data rates may apply. Reply STOP to opt out, HELP for help. "
