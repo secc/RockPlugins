@@ -30,14 +30,7 @@
                         <div class="form-row">
                             <div class="col-sm-6">
                                 <Rock:PhoneNumberBox ID="tbPhone" runat="server" Label="Mobile Phone" ReadOnly="true" />
-                                <div class="small" style="color:#595959;margin:4px 0 12px 0;line-height:1.5;">
-                                    <%= System.Web.HttpUtility.HtmlEncode( Rock.Web.Cache.GlobalAttributesCache.Value( "OrganizationName" ) ) %>
-                                    text messages. Message frequency varies.
-                                    Message &amp; data rates may apply. Reply STOP to opt out, HELP for help.
-                                    <a href="https://se.church/privacy-policy" target="_blank" rel="noopener noreferrer" title="Opens in a new tab">Privacy Policy</a>
-                                    &middot;
-                                    <a href="https://se.church/terms" target="_blank" rel="noopener noreferrer" title="Opens in a new tab">Mobile Terms</a>
-                                </div>
+                                <%= org.secc.Communication.SmsDisclosure.Html( "4px 0 12px 0" ) %>
                             </div>
                         </div>
                         <div class="form-row">

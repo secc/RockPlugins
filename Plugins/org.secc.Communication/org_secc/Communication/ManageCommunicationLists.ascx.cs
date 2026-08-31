@@ -6,6 +6,7 @@ using System.Linq;
 using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using org.secc.Communication;
 using Rock;
 using Rock.Attribute;
 using Rock.Communication;
@@ -287,7 +288,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             // compliant where a missing one is not. Don't "de-duplicate" this away.
             if ( support.SupportsSms )
             {
-                lKeywordSmsDisclosure.Text = SmsDisclosureHtml( "12px 0 4px 0" );
+                lKeywordSmsDisclosure.Text = SmsDisclosure.Html( "12px 0 4px 0" );
             }
 
             GroupMemberService groupMemberService = new GroupMemberService( rockContext );
@@ -802,36 +803,16 @@ namespace RockWeb.Plugins.org_secc.Communication
         }
 
         /// <summary>
-        /// The SMS program disclosures that carriers require to be displayed directly beneath
-        /// any field or control that collects a mobile number for opt-in. The org name comes
-        /// from the OrganizationName global attribute; the terms/privacy URLs are deliberately
-        /// hardcoded because they are the exact links filed with the carrier and must not
-        /// drift with CMS changes.
-        /// </summary>
-        private string SmsDisclosureHtml( string margin = "-8px 0 12px 0" )
-        {
-            // Encoded: this is a global attribute an administrator can edit, and it is being
-            // interpolated into markup rendered by a pass-through Literal.
-            var organizationName = System.Web.HttpUtility.HtmlEncode( GlobalAttributesCache.Value( "OrganizationName" ) );
-            return $"<div class='small' style='color:#595959;margin:{margin};line-height:1.5;'>"
-                + $"{organizationName} text messages. Message frequency varies. "
-                + "Message &amp; data rates may apply. Reply STOP to opt out, HELP for help. "
-                + "<a href='https://se.church/privacy-policy' target='_blank' rel='noopener noreferrer' title='Opens in a new tab'>Privacy Policy</a>"
-                + " &middot; "
-                + "<a href='https://se.church/terms' target='_blank' rel='noopener noreferrer' title='Opens in a new tab'>Mobile Terms</a>"
-                + "</div>";
-        }
-
-        /// <summary>
-        /// Wraps <see cref="SmsDisclosureHtml"/> in a Literal, added after every phone box so
-        /// the disclosures travel with the input rather than sitting elsewhere on the page.
+        /// Wraps <see cref="SmsDisclosure.Html(string)"/> in a Literal, added after every
+        /// phone box so the disclosures travel with the input rather than sitting elsewhere
+        /// on the page.
         /// </summary>
         private Literal CreateSmsDisclosure( string panelWidgetId )
         {
             return new Literal
             {
                 ID = $"lSmsDisclosure{panelWidgetId}",
-                Text = SmsDisclosureHtml()
+                Text = SmsDisclosure.Html()
             };
         }
 
