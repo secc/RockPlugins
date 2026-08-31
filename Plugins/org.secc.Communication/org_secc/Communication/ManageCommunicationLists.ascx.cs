@@ -666,10 +666,11 @@ namespace RockWeb.Plugins.org_secc.Communication
                     return;
                 }
 
-                if ( mobilePhone == null || mobilePhone.Number != phoneNumber )
-                {
-                    UpdateMobilePhone( phoneNumber );
-                }
+                // Always run the update, even for an unchanged number: subscribing under the
+                // SMS disclosure is the opt-in, and UpdateMobilePhone is what sets
+                // IsMessagingEnabled - a person whose messaging was disabled would otherwise
+                // end up subscribed but unreachable.
+                UpdateMobilePhone( phoneNumber );
                 //SendConfirmationMessage( groupId );
             }
             else
@@ -687,10 +688,12 @@ namespace RockWeb.Plugins.org_secc.Communication
                     return;
                 }
 
-                if ( !email.Equals( Person.Email, StringComparison.InvariantCultureIgnoreCase ) )
-                {
-                    UpdateEmail( email );
-                }
+                // Always run the update, even for an unchanged address: subscribing to an
+                // email list is affirmative consent, and UpdateEmail is what sets
+                // EmailPreference to EmailAllowed - a DoNotEmail person who keeps the
+                // prefilled address would otherwise end up subscribed but unreachable.
+                // This also keeps the CreateEmailBox help text honest.
+                UpdateEmail( email );
             }
 
             RockContext rockContext = new RockContext();
@@ -754,6 +757,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                 person.EmailPreference = EmailPreference.EmailAllowed;
                 context.SaveChanges();
 
+                Person = personService.Get( Person.Guid );
             }
         }
 
