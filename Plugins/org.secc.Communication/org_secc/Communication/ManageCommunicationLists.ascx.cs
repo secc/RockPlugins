@@ -50,6 +50,63 @@ namespace RockWeb.Plugins.org_secc.Communication
             }
         }
 
+        private class ListCommunicationSupport
+        {
+            public bool SupportsSms { get; set; }
+            public bool SupportsEmail { get; set; }
+            public string DisplayText { get; set; }
+        }
+
+        /// <summary>
+        /// Resolves which communication mediums a list supports from the group attribute named
+        /// by the AttributeKey block setting. A blank or missing value means the list supports
+        /// both mediums. This is the single source of truth for type matching — the keyword
+        /// panel, the list-panel render, and Subscribe must all branch off this so the input
+        /// Subscribe looks up is always the one that was rendered.
+        /// </summary>
+        private ListCommunicationSupport GetListCommunicationSupport( Group group )
+        {
+            if ( group.AttributeValues == null )
+            {
+                group.LoadAttributes();
+            }
+
+            var raw = group.GetAttributeValue( GetAttributeValue( "AttributeKey" ) );
+            if ( raw.IsNullOrWhiteSpace() )
+            {
+                raw = "Text Message,Email";
+            }
+
+            var values = raw.SplitDelimitedValues( false );
+            return new ListCommunicationSupport
+            {
+                SupportsSms = values.Any( v => v.Trim().Equals( "Text Message", StringComparison.InvariantCultureIgnoreCase ) ),
+                SupportsEmail = values.Any( v => v.Trim().Equals( "Email", StringComparison.InvariantCultureIgnoreCase ) ),
+                DisplayText = string.Join( ", ", values )
+            };
+        }
+
+        /// <summary>
+        /// The single medium this block collects consent for, for this person and list.
+        /// When the list supports both mediums (including the blank-attribute default),
+        /// the person's communication preference decides, with email as the fallback for
+        /// RecipientPreference/unset.
+        /// </summary>
+        private CommunicationType GetEffectiveMedium( ListCommunicationSupport support )
+        {
+            if ( support.SupportsSms && !support.SupportsEmail )
+            {
+                return CommunicationType.SMS;
+            }
+            if ( support.SupportsEmail && !support.SupportsSms )
+            {
+                return CommunicationType.Email;
+            }
+            return Person.CommunicationPreference == CommunicationType.SMS
+                ? CommunicationType.SMS
+                : CommunicationType.Email;
+        }
+
         #region Base Control Methods
 
         /// <summary>
@@ -217,15 +274,9 @@ namespace RockWeb.Plugins.org_secc.Communication
             }
             ltGroupName.Text = name;
 
-            var type = group.GetAttributeValue( GetAttributeValue( "AttributeKey" ) );
-            if ( type.IsNullOrWhiteSpace() )
-            {
-                type = "Text Message,Email";
-            }
+            var support = GetListCommunicationSupport( group );
 
-            type = string.Join( ", ", type.SplitDelimitedValues( false ) );
-
-            ltType.Text = type;
+            ltType.Text = support.DisplayText;
             ltDescription.Text = group.Description;
 
             // This panel is the Subscribe/{keyword} deep-link target advertised in SMS
@@ -234,7 +285,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             // switches it to Text Message sees the disclosure twice. That is intentional --
             // each copy sits with its own consent control, and duplicate disclosure is
             // compliant where a missing one is not. Don't "de-duplicate" this away.
-            if ( type.IndexOf( "Text Message", StringComparison.InvariantCultureIgnoreCase ) >= 0 )
+            if ( support.SupportsSms )
             {
                 lKeywordSmsDisclosure.Text = SmsDisclosureHtml( "12px 0 4px 0" );
             }
@@ -401,16 +452,11 @@ namespace RockWeb.Plugins.org_secc.Communication
                 panelWidget.Title = group.GetAttributeValue( "PublicName" );
             }
 
-            var type = group.GetAttributeValue( GetAttributeValue( "AttributeKey" ) );
-            if ( type.IsNullOrWhiteSpace() )
-            {
-                type = "Text Message,Email";
-            }
-
-            type = string.Join( ", ", type.SplitDelimitedValues( false ) );
+            var support = GetListCommunicationSupport( group );
+            var medium = GetEffectiveMedium( support );
 
             var text = string.Format( "<small>{0}</small><p>{1}</p>",
-                type,
+                support.DisplayText,
                 group.Description
                 );
 
@@ -434,7 +480,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             if ( member.PersonId == Person.Id )
             {
                 var myAccountLink = ResolveRockUrl( $"~/MyAccount/Edit/{Person.Guid}" );
-                if ( MobilePhone == null && type.Equals( "text message", StringComparison.InvariantCultureIgnoreCase ) )
+                if ( MobilePhone == null && medium == CommunicationType.SMS )
                 {
 
                     NotificationBox phoneAlert = new NotificationBox
@@ -446,7 +492,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                     };
                     pnlToggle.Controls.Add( phoneAlert );
                 }
-                else if ( ( Person.Email.IsNullOrWhiteSpace() || Person.EmailPreference != EmailPreference.EmailAllowed ) && type.Equals( "Email", StringComparison.InvariantCultureIgnoreCase ) )
+                else if ( ( Person.Email.IsNullOrWhiteSpace() || Person.EmailPreference != EmailPreference.EmailAllowed ) && medium == CommunicationType.Email )
                 {
                     NotificationBox emailAlert = new NotificationBox
                     {
@@ -483,35 +529,17 @@ namespace RockWeb.Plugins.org_secc.Communication
             }
             else
             {
-                if ( type.Equals( "Email", StringComparison.InvariantCultureIgnoreCase ) )
-                {
-                    pnlToggle.Controls.Add( CreateEmailBox( panelWidget.ID ) );
-                }
-                else if ( type.Equals( "Text Message", StringComparison.InvariantCultureIgnoreCase ) )
+                // GetEffectiveMedium already folded the person's communication preference
+                // into the dual-medium case, with email as the RecipientPreference/unset
+                // fallback so the Subscribe button is never a dead end without an input.
+                if ( medium == CommunicationType.SMS )
                 {
                     pnlToggle.Controls.Add( CreatePhoneBox( panelWidget.ID ) );
                     pnlToggle.Controls.Add( CreateSmsDisclosure( panelWidget.ID ) );
                 }
                 else
                 {
-                    switch ( Person.CommunicationPreference )
-                    {
-                        case CommunicationType.Email:
-                            pnlToggle.Controls.Add( CreateEmailBox( panelWidget.ID ) );
-                            break;
-                        case CommunicationType.SMS:
-                            pnlToggle.Controls.Add( CreatePhoneBox( panelWidget.ID ) );
-                            pnlToggle.Controls.Add( CreateSmsDisclosure( panelWidget.ID ) );
-                            break;
-
-                        default:
-                            // RecipientPreference (0) is the unset default for most people.
-                            // Without an input the Subscribe button is a dead end that fails
-                            // validation against a field that was never rendered, so fall back
-                            // to the email box.
-                            pnlToggle.Controls.Add( CreateEmailBox( panelWidget.ID ) );
-                            break;
-                    }
+                    pnlToggle.Controls.Add( CreateEmailBox( panelWidget.ID ) );
                 }
 
                 HtmlGenericContainer off = new HtmlGenericContainer
@@ -608,13 +636,22 @@ namespace RockWeb.Plugins.org_secc.Communication
         {
             var communicationGroup = CommunicationGroups.Where( g => g.Id == groupId )
                 .FirstOrDefault();
-
-
-            var communicationType = communicationGroup.GetAttributeValue( "Type" );
             PanelWidget pnlWidget = phGroups.FindControl( panelId ) as PanelWidget;
+
+            if ( communicationGroup == null || pnlWidget == null )
+            {
+                ShowNotice( "Unable to Subscribe",
+                    "We were unable to process your subscription. Please reload the page and try again.",
+                    NotificationBoxType.Danger );
+                return;
+            }
+
+            // Branch on the same medium resolution the render used so the input we look up
+            // here is always the one AddCommunicationPanel rendered.
+            var medium = GetEffectiveMedium( GetListCommunicationSupport( communicationGroup ) );
             GroupMemberStatus status = GroupMemberStatus.Active;
 
-            if ( pnlWidget != null && communicationType.Equals( "Text Message", StringComparison.InvariantCultureIgnoreCase ) )
+            if ( medium == CommunicationType.SMS )
             {
                 var phoneNumberBox = pnlWidget.FindControl( $"tbPhone{panelId}" ) as PhoneNumberBox;
                 var phoneNumber = string.Empty;
@@ -633,16 +670,15 @@ namespace RockWeb.Plugins.org_secc.Communication
                 {
                     UpdateMobilePhone( phoneNumber );
                 }
-                status = GroupMemberStatus.Active;
                 //SendConfirmationMessage( groupId );
             }
-            else if ( pnlWidget != null && communicationType.Equals( "Email", StringComparison.InvariantCultureIgnoreCase ) )
+            else
             {
                 var emailBox = pnlWidget.FindControl( $"tbEmail{panelId}" ) as EmailBox;
                 var email = string.Empty;
                 if ( emailBox != null )
                 {
-                    email = emailBox.Text;
+                    email = emailBox.Text.Trim();
                 }
 
                 if ( email.IsNullOrWhiteSpace() )
@@ -651,59 +687,11 @@ namespace RockWeb.Plugins.org_secc.Communication
                     return;
                 }
 
-                if ( !Person.Email.Equals( email, StringComparison.InvariantCultureIgnoreCase ) )
+                if ( !email.Equals( Person.Email, StringComparison.InvariantCultureIgnoreCase ) )
                 {
                     UpdateEmail( email );
                 }
             }
-            else
-            {
-                if ( Person.CommunicationPreference == CommunicationType.SMS )
-                {
-                    PhoneNumberBox phoneBox = pnlWidget.FindControl( $"tbPhone{panelId}" ) as PhoneNumberBox;
-                    var phoneNumber = String.Empty;
-
-                    if ( phoneBox != null )
-                    {
-                        phoneNumber = PhoneNumber.CleanNumber( phoneBox.Text );
-                    }
-
-                    if ( phoneNumber.IsNullOrWhiteSpace() )
-                    {
-                        ShowMobilePhoneNotice();
-                        return;
-                    }
-
-                    if ( MobilePhone == null || !mobilePhone.Equals( phoneNumber ) )
-                    {
-                        UpdateMobilePhone( phoneNumber );
-                    }
-
-                }
-                else
-                {
-                    EmailBox emailBox = pnlWidget.FindControl( $"tbEmail{panelId}" ) as EmailBox;
-                    var email = String.Empty;
-
-                    if ( emailBox != null )
-                    {
-                        email = emailBox.Text.Trim();
-                    }
-
-                    if ( email.IsNullOrWhiteSpace() )
-                    {
-                        ShowEmailNotice();
-                        return;
-                    }
-
-                    if ( !email.Equals( Person.Email ) )
-                    {
-                        UpdateEmail( email );
-                    }
-                }
-            }
-
-
 
             RockContext rockContext = new RockContext();
             GroupMemberService groupMemberService = new GroupMemberService( rockContext );
