@@ -121,9 +121,12 @@ Twilio SDK enums aren't needed to read the data.
   numbered migration under `/Migrations/` (don't hand-edit migrations that have already run).
 - Related: [org.secc.Workflow](../org.secc.Workflow/README.md) (the `SMS Send` workflow action and
   Twilio Lookup action).
-- The SMS disclosure text on Manage Communication Lists is a carrier-compliance requirement
-  (Twilio audit of short code 733733, ticket #28958126). The terms/privacy URLs are hardcoded on
-  purpose — they are the links filed with the carrier — so don't swap them for CMS-driven values
-  without re-filing.
+- The SMS disclosure text is a carrier-compliance requirement (Twilio audit of short code
+  733733, ticket #28958126). It lives in one place — the public static `SmsDisclosure.Html()`
+  helper in `SmsDisclosure.cs` (compiled into `org.secc.Communication.dll`) — and is called by
+  Manage Communication Lists and by `RequestEventPass` in org.secc.Event. Edit the wording only
+  there, and only after re-checking the CTA template filed with the carrier. The terms/privacy
+  URLs are hardcoded on purpose — they are the links filed with the carrier — so don't swap
+  them for CMS-driven values without re-filing.
 
 _Last updated: 2026-08-27_
