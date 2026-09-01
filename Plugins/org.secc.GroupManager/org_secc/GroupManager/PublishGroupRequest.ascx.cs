@@ -258,17 +258,10 @@ namespace RockWeb.Plugins.GroupManager
                 Rock.Attribute.Helper.AddEditControls( publishGroup, phAttributeEdits, true );
             }
 
-            if ( isHomeGroup ) //Pre-populating the form for Home Groups & disabling the fields
+            if ( isHomeGroup ) //Home Groups: lock registration, location and confirmation fields.
             {
-                tbDescription.Text = publishGroup.Description.IsNotNullOrWhiteSpace() ? publishGroup.Description : publishGroup.Group.Description;
-                var homeGroupSchedule = publishGroup.Group.Schedule;
-                ddlDayOfWeek.SelectedValue = homeGroupSchedule?.WeeklyDayOfWeek != null ? ( ( int ) homeGroupSchedule.WeeklyDayOfWeek ).ToString() : "";
-                ddlDayOfWeek.Enabled = false;
-                tTimeOfDay.SelectedTime = homeGroupSchedule?.WeeklyTimeOfDay;
-                tTimeOfDay.Enabled = false;
-                dpStartDate.SelectedDate = homeGroupSchedule?.EffectiveStartDate ?? publishGroup.StartDate;
-                tbCustomSchedule.Text = PublishGroup.FormatScheduleDates( homeGroupSchedule );
-                tbCustomSchedule.ReadOnly = true;
+                // Schedule fields are already populated from the Group's Schedule above,
+                // the same way as every other group type.
                 tbLocationName.Text = publishGroup.Group.GroupLocations.FirstOrDefault()?.Location?.PostalCode;
                 tbLocationName.ReadOnly = true;
                 ddlRegistration.SelectedValue = "1";
