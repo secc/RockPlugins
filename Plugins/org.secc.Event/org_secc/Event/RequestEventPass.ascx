@@ -30,17 +30,16 @@
                         <div class="form-row">
                             <div class="col-sm-6">
                                 <Rock:PhoneNumberBox ID="tbPhone" runat="server" Label="Mobile Phone" ReadOnly="true" />
+                                <%= org.secc.Communication.SmsDisclosure.Html( "4px 0 12px 0" ) %>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="col-sm-6">
                                 <Rock:RockRadioButtonList ID="cblDeliveryMethod" runat="server" Label="Delivery Method" RepeatDirection="Horizontal" Required="true"
-                                    RequiredErrorMessage="Email or Text Message selection required." ValidationGroup="valRequestPass"
-                                    Help="Carrier message and data rates may apply with text message.  More Info: Text &quot;Help&quot; to 733733.">
+                                    RequiredErrorMessage="Email or Text Message selection required." ValidationGroup="valRequestPass">
                                     <asp:ListItem Text="Email" Value="Email" />
                                     <asp:ListItem Text="Text Message" Value="SMS" />
                                 </Rock:RockRadioButtonList>
-                                
                             </div>
                         </div>
                     </fieldset>

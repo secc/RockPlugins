@@ -88,6 +88,7 @@
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Web" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
@@ -111,6 +112,7 @@
     <Compile Include="Messaging\Model\MessagingPhoneNumber.cs" />
     <Compile Include="Messaging\Model\TwilioPhoneNumber.cs" />
     <Compile Include="SECCMessagingSettings.cs" />
+    <Compile Include="SmsDisclosure.cs" />
     <Compile Include="Migrations\002_Index.cs" />
     <Compile Include="Migrations\001_Init.cs" />
     <Compile Include="Migrations\Configuration.cs" />
