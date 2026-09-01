@@ -261,14 +261,15 @@ namespace RockWeb.Plugins.GroupManager
             if ( isHomeGroup ) //Pre-populating the form for Home Groups & disabling the fields
             {
                 tbDescription.Text = publishGroup.Description.IsNotNullOrWhiteSpace() ? publishGroup.Description : publishGroup.Group.Description;
-                ddlDayOfWeek.SelectedValue = publishGroup.Group.Schedule.WeeklyDayOfWeek != null ? ( ( int ) publishGroup.Group.Schedule.WeeklyDayOfWeek ).ToString() : "";
+                var homeGroupSchedule = publishGroup.Group.Schedule;
+                ddlDayOfWeek.SelectedValue = homeGroupSchedule?.WeeklyDayOfWeek != null ? ( ( int ) homeGroupSchedule.WeeklyDayOfWeek ).ToString() : "";
                 ddlDayOfWeek.Enabled = false;
-                tTimeOfDay.SelectedTime = publishGroup.Group.Schedule.WeeklyTimeOfDay;
+                tTimeOfDay.SelectedTime = homeGroupSchedule?.WeeklyTimeOfDay;
                 tTimeOfDay.Enabled = false;
-                dpStartDate.SelectedDate = publishGroup.Group.Schedule.EffectiveStartDate.HasValue ? publishGroup.Group.Schedule.EffectiveStartDate : publishGroup.StartDate;
-                tbCustomSchedule.Text = PublishGroup.FormatScheduleDates( publishGroup.Group.Schedule );
+                dpStartDate.SelectedDate = homeGroupSchedule?.EffectiveStartDate ?? publishGroup.StartDate;
+                tbCustomSchedule.Text = PublishGroup.FormatScheduleDates( homeGroupSchedule );
                 tbCustomSchedule.ReadOnly = true;
-                tbLocationName.Text = publishGroup.Group.GroupLocations.FirstOrDefault()?.Location.PostalCode;
+                tbLocationName.Text = publishGroup.Group.GroupLocations.FirstOrDefault()?.Location?.PostalCode;
                 tbLocationName.ReadOnly = true;
                 ddlRegistration.SelectedValue = "1";
                 ddlRegistration.Enabled = false;
