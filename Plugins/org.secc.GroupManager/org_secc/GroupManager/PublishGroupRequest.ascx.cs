@@ -70,6 +70,56 @@ namespace RockWeb.Plugins.GroupManager
         DefaultValue = "https://organization.org/groups/register/"
         )]
 
+    [GroupTypesField(
+        "Home Group Types",
+        Description = "Groups of these types get the Home Group treatment: location shown as postal code only, registration forced on, childcare disabled, and the confirmation email fields locked to the Home Group values below. Leave blank to disable.",
+        IsRequired = false,
+        Key = AttributeKeys.HomeGroupTypes,
+        Category = "Home Groups",
+        Order = 10
+        )]
+
+    [TextField(
+        "Home Group Confirmation From Name",
+        Description = "From name used on the confirmation email for Home Groups.",
+        IsRequired = false,
+        Key = AttributeKeys.HomeGroupConfirmationFromName,
+        DefaultValue = "Southeast Christian Church",
+        Category = "Home Groups",
+        Order = 11
+        )]
+
+    [EmailField(
+        "Home Group Confirmation From Email",
+        Description = "From email used on the confirmation email for Home Groups.",
+        IsRequired = false,
+        Key = AttributeKeys.HomeGroupConfirmationFromEmail,
+        DefaultValue = "noreply@secc.org",
+        Category = "Home Groups",
+        Order = 12
+        )]
+
+    [TextField(
+        "Home Group Confirmation Subject",
+        Description = "Subject of the confirmation email for Home Groups. {{ GroupName }} is replaced with the group name.",
+        IsRequired = false,
+        Key = AttributeKeys.HomeGroupConfirmationSubject,
+        DefaultValue = "Group Confirmation | {{ GroupName }}",
+        Category = "Home Groups",
+        Order = 13
+        )]
+
+    [CodeEditorField(
+        "Home Group Confirmation Body",
+        "Body of the confirmation email for Home Groups. {{ GroupName }} is replaced with the group name; other Lava is left for the confirmation email to resolve.",
+        mode: CodeEditorMode.Html,
+        required: false,
+        defaultValue: "{{ 'Global' | Attribute:'EmailHeader' }} Thank you for registering for the home group: {{ GroupName }}. The group leaders will reach out to you shortly with further details. We look forward to seeing you. {{ 'Global' | Attribute:'EmailFooter' }}",
+        category: "Home Groups",
+        order: 14,
+        key: AttributeKeys.HomeGroupConfirmationBody
+        )]
+
     public partial class PublishGroupRequest : RockBlock
     {
         #region Keys
@@ -81,6 +131,11 @@ namespace RockWeb.Plugins.GroupManager
             public const string ChildcareRegistrationDetails = "ChildcareRegistrationDetails";
             public const string DefaultEmail = "DefaultEmail";
             public const string GroupRegistrationUrl = "GroupRegistrationUrl";
+            public const string HomeGroupTypes = "HomeGroupTypes";
+            public const string HomeGroupConfirmationFromName = "HomeGroupConfirmationFromName";
+            public const string HomeGroupConfirmationFromEmail = "HomeGroupConfirmationFromEmail";
+            public const string HomeGroupConfirmationSubject = "HomeGroupConfirmationSubject";
+            public const string HomeGroupConfirmationBody = "HomeGroupConfirmationBody";
         }
 
         /// <summary>Page Parameter Keys for the Block</summary>
@@ -109,9 +164,16 @@ namespace RockWeb.Plugins.GroupManager
                 publishGroup.LoadAttributes();
                 Rock.Attribute.Helper.AddEditControls( publishGroup, phAttributeEdits, false );
 
-                if ( publishGroup.Group != null && publishGroup.Group.GroupTypeId == 60 )
+                if ( publishGroup.Group != null )
                 {
-                    isHomeGroup = true;
+                    var homeGroupTypeIds = GetAttributeValue( AttributeKeys.HomeGroupTypes )
+                        .SplitDelimitedValues()
+                        .Select( g => GroupTypeCache.GetId( g.AsGuid() ) )
+                        .Where( id => id.HasValue )
+                        .Select( id => id.Value )
+                        .ToList();
+
+                    isHomeGroup = homeGroupTypeIds.Contains( publishGroup.Group.GroupTypeId );
                 }
             }
         }
@@ -266,13 +328,16 @@ namespace RockWeb.Plugins.GroupManager
                 tbLocationName.ReadOnly = true;
                 ddlRegistration.SelectedValue = "1";
                 ddlRegistration.Enabled = false;
-                tbConfirmationFromName.Text = "Southeast Christian Church";
+                // Plain token replace, not Lava: the body keeps its Global attribute
+                // merge fields for the confirmation email to resolve at send time.
+                var groupName = publishGroup.Group.Name;
+                tbConfirmationFromName.Text = GetAttributeValue( AttributeKeys.HomeGroupConfirmationFromName );
                 tbConfirmationFromName.ReadOnly = true;
-                tbConfirmationFromEmail.Text = "noreply@secc.org";
+                tbConfirmationFromEmail.Text = GetAttributeValue( AttributeKeys.HomeGroupConfirmationFromEmail );
                 tbConfirmationFromEmail.ReadOnly = true;
-                tbConfirmationSubject.Text = "Group Confirmation | " + publishGroup.Group.Name;
+                tbConfirmationSubject.Text = GetAttributeValue( AttributeKeys.HomeGroupConfirmationSubject ).Replace( "{{ GroupName }}", groupName );
                 tbConfirmationSubject.ReadOnly = true;
-                ceConfirmationBody.Text = "{{ 'Global' | Attribute:'EmailHeader' }} Thank you for registering for the home group: " + publishGroup.Group.Name + ". The group leaders will reach out to you shortly with further details. We look forward to seeing you. {{ 'Global' | Attribute:'EmailFooter' }}";
+                ceConfirmationBody.Text = GetAttributeValue( AttributeKeys.HomeGroupConfirmationBody ).Replace( "{{ GroupName }}", groupName );
                 SwitchRegistrationRequirement( RegistrationRequirement.RegistrationAvailable );
                 ddlChildcareOptions.SelectedValue = "0";
                 ddlChildcareOptions.Enabled = false;
