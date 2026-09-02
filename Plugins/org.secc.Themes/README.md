@@ -2,6 +2,8 @@
 
 > Southeast's Rock site themes — the master pages, page layouts, and styling that skin Rock's external and check-in sites.
 
+Last updated: 2026-09-02
+
 ## Overview
 
 This "plugin" is not compiled code; it is the collection of Rock **themes** Southeast maintains.
@@ -53,7 +55,7 @@ field types here.
 | `SECC2019Portal` | Site (portal) | 10 | Ships a Compass `config.rb` for SCSS compilation. |
 | `SECC2019_Child_Invert` | Check-in | 11 | Adds `Checkin.aspx` + `Checkin-Site.Master`, `Sections`/`SidebarSections`. |
 | `SECC2019_LandingPage` | Landing pages | 17 | Full*/Simple* card, centered, fifty-fifty, and overlay layouts. |
-| `SECC2024` | Public site | 11 | Newer site theme; adds a `TwoColumn` layout. |
+| `SECC2024` | Public site | 11 | Newer site theme; adds a `TwoColumn` layout and Rock 16 progress-tracker compatibility styling for registration/sign-up screens, including size fixes for inline separator SVGs and a responsive hide below 768px. |
 | `SECC2014` | Public site (legacy) | 9 | Older site theme; LESS styles + vendor scripts. |
 | `Easter` | Seasonal site | 8 | Includes `Assets/Lava/` page-render snippets and `Site.Master.cs`. |
 | `ChristmasTogether` | Seasonal check-in | 1 | `Checkin.aspx` + `Site.Master` only; LESS variable overrides. |
