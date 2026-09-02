@@ -1,3 +1,0 @@
-<div id="signup-parent">
-		{% include '~/Plugins/org_secc/Connection/CardPage/Partition.lava' %} 
-</div>
