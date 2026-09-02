@@ -103,7 +103,6 @@
     <!-- Included CSS Files -->
     <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/layout.css", true) %>"/>
     <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/main.css", true) %>"/>
-    <link rel="stylesheet" href="<%# ResolveRockUrl("/Styles/developer.css", true) %>"/>
 
     <!-- GDPR -->
     <link rel="stylesheet" href="/Themes/SECC2019/Scripts/GDPR/gdpr.css" />

@@ -92,7 +92,6 @@
 
     <!-- SECC2019Portal Theme CSS Files -->
     <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/seportal.css", true) %>"/>
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>"/>
     <asp:ContentPlaceHolder ID="css" runat="server" />
 
     <!-- Included JS Files -->
