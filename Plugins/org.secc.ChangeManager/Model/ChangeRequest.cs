@@ -91,7 +91,8 @@ namespace org.secc.ChangeManager.Model
 
             var entityTypeCache = EntityTypeCache.Get( EntityTypeId );
             var entityType = entityTypeCache.GetEntityType();
-            var entityService = Reflection.GetServiceForEntityType( entityType, dbContext );
+            var rockContext = dbContext as RockContext ?? new RockContext();
+            var entityService = Reflection.GetServiceForEntityType( entityType, rockContext );
             System.Reflection.MethodInfo getMethod = entityService.GetType().GetMethod( "Get", new Type[] { typeof( int ) } );
             var mergeObjectEntity = getMethod.Invoke( entityService, new object[] { EntityId } ) as Rock.Data.IEntity;
 

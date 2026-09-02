@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using org.secc.Communication.Data;
 using Rock;
-using Rock.Data;
 using Twilio.Rest.Api.V2010.Account;
 
 namespace org.secc.Communication.Model

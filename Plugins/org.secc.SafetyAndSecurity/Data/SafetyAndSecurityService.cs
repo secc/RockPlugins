@@ -13,14 +13,12 @@
 // </copyright>
 //
 
-using Rock.Data;
-
 namespace org.secc.SafetyAndSecurity.Data
 {
     public class SafetyAndSecurityService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="FamilyCheckinService{T}"/> class.
+        /// Initializes a new instance of the <see cref="SafetyAndSecurityService{T}"/> class.
         /// </summary>
         public SafetyAndSecurityService( Rock.Data.DbContext context )
             : base( context )

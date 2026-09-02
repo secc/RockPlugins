@@ -1,5 +1,4 @@
 ﻿using org.secc.Reporting.Data;
-using Rock.Data;
 
 namespace org.secc.Reporting.Model
 {

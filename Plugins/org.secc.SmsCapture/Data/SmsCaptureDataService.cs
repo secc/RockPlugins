@@ -13,8 +13,6 @@
 // </copyright>
 //
 
-using Rock.Data;
-
 namespace org.secc.SmsCapture.Data
 {
     public class SmsCaptureDataService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()

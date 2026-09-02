@@ -13,7 +13,6 @@
 // </copyright>
 //
 using org.secc.FamilyCheckin.Data;
-using Rock.Data;
 
 namespace org.secc.FamilyCheckin.Model
 {
@@ -21,7 +20,7 @@ namespace org.secc.FamilyCheckin.Model
     {
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="KioskService"/> class.
+        /// Initializes a new instance of the <see cref="MobileCheckinRecordService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
         public MobileCheckinRecordService( Rock.Data.DbContext context ) : base( context ) { }

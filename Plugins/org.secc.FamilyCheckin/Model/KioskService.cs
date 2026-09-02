@@ -16,7 +16,6 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using org.secc.FamilyCheckin.Data;
-using Rock.Data;
 
 namespace org.secc.FamilyCheckin.Model
 {

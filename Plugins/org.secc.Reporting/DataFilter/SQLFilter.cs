@@ -191,7 +191,7 @@ function() {
             {
                 var hash = Helpers.Md5Hash( selection );
 
-                var rockContext = ( RockContext ) serviceInstance.Context;
+                var rockContext = serviceInstance.Context as RockContext ?? new RockContext();
                 MethodInfo queryableMethodInfo = serviceInstance.GetType().GetMethod( "Queryable", new Type[] { } );
                 IQueryable<IEntity> entityQuery = queryableMethodInfo.Invoke( serviceInstance, null ) as IQueryable<IEntity>;
 
@@ -251,6 +251,13 @@ function() {
                 DataViewSqlFilterStoreService dataViewSqlFilterSoreService = new DataViewSqlFilterStoreService( rockContext );
 
                 var selectedEntityIds = dataViewSqlFilterSoreService.Queryable().Where( s => s.Hash == hash ).Select( s => s.EntityId );
+                if ( !( serviceInstance.Context is RockContext ) )
+                {
+                    // Plugin DbContext: a RockContext subquery cannot be composed into another context's query,
+                    // so pull the ids into memory (same ~32k IN-list limit as the small-set branch above).
+                    selectedEntityIds = selectedEntityIds.ToList().AsQueryable();
+                }
+
                 var subselectQry = entityQuery.Where( p => selectedEntityIds.Contains( p.Id ) );
                 return FilterExpressionExtractor.Extract<IEntity>( subselectQry, parameterExpression, "p" );
             }

@@ -13,8 +13,6 @@
 // </copyright>
 //
 
-using Rock.Data;
-
 namespace org.secc.GroupManager.Data
 {
     public class GroupManagerService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()

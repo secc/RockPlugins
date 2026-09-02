@@ -1,6 +1,4 @@
-﻿using Rock.Data;
-
-namespace org.secc.SystemsMonitor.Data
+﻿namespace org.secc.SystemsMonitor.Data
 {
     public class SystemsMonitorService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
     {

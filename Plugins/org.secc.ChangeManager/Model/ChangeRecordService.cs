@@ -12,7 +12,6 @@
 // limitations under the License.
 // </copyright>
 using org.secc.ChangeManager.Data;
-using Rock.Data;
 
 namespace org.secc.ChangeManager.Model
 {

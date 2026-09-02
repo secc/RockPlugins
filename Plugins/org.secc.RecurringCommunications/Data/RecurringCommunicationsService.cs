@@ -13,8 +13,6 @@
 // </copyright>
 //
 
-using Rock.Data;
-
 namespace org.secc.RecurringCommunications.Data
 {
     public class RecurringCommunicationsService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()

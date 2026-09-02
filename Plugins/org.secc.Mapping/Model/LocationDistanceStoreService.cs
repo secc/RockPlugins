@@ -15,7 +15,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using org.secc.Mapping.Data;
-using Rock.Data;
 using Rock.Web.Cache;
 
 namespace org.secc.Mapping.Model
@@ -24,7 +23,7 @@ namespace org.secc.Mapping.Model
     {
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PublishGroup"/> class.
+        /// Initializes a new instance of the <see cref="LocationDistanceStoreService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
         public LocationDistanceStoreService( Rock.Data.DbContext context ) : base( context ) { }

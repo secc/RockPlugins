@@ -13,14 +13,12 @@
 // </copyright>
 //
 
-using Rock.Data;
-
 namespace org.secc.Microframe.Data
 {
     public class MicroframeService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="FamilyCheckinService{T}"/> class.
+        /// Initializes a new instance of the <see cref="MicroframeService{T}"/> class.
         /// </summary>
         public MicroframeService( Rock.Data.DbContext context )
             : base( context )

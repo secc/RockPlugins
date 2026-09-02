@@ -13,7 +13,6 @@
 // </copyright>
 //
 using org.secc.SmsCapture.Data;
-using Rock.Data;
 
 namespace org.secc.SmsCapture.Model
 {

@@ -13,8 +13,6 @@
 // </copyright>
 //
 
-using Rock.Data;
-
 namespace org.secc.Reporting.Data
 {
     public class ReportingService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()

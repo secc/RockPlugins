@@ -13,8 +13,6 @@
 // </copyright>
 //
 
-using Rock.Data;
-
 namespace org.secc.FamilyCheckin.Data
 {
     public class FamilyCheckinService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()

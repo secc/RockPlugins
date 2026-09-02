@@ -13,7 +13,6 @@
 // </copyright>
 //
 using org.secc.FamilyCheckin.Data;
-using Rock.Data;
 
 namespace org.secc.FamilyCheckin.Model
 {

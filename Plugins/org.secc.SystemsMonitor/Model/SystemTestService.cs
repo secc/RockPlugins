@@ -13,7 +13,6 @@
 // </copyright>
 //
 using org.secc.SystemsMonitor.Data;
-using Rock.Data;
 
 namespace org.secc.SystemsMonitor.Model
 {
