@@ -23,7 +23,7 @@ namespace org.secc.Reporting.Model
         /// Initializes a new instance of the <see cref="PublishGroup"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public DataViewSqlFilterStoreService( RockContext context ) : base( context )
+        public DataViewSqlFilterStoreService( Rock.Data.DbContext context ) : base( context )
         {
 
         }

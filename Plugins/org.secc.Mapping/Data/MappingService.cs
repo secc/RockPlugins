@@ -22,7 +22,7 @@ namespace org.secc.Mapping.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="GroupManagerService{T}"/> class.
         /// </summary>
-        public MappingService( RockContext context )
+        public MappingService( Rock.Data.DbContext context )
             : base( context )
         {
         }

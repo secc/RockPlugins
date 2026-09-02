@@ -18,7 +18,7 @@ namespace org.secc.ChangeManager.Model
 {
     public class ChangeRecordService : ChangeManagerService<ChangeRecord>
     {
-        public ChangeRecordService( RockContext context ) : base( context )
+        public ChangeRecordService( Rock.Data.DbContext context ) : base( context )
         {
         }
     }

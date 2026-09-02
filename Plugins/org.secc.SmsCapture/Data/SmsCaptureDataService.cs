@@ -22,7 +22,7 @@ namespace org.secc.SmsCapture.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="SmsCaptureDataService{T}"/> class.
         /// </summary>
-        public SmsCaptureDataService( RockContext context )
+        public SmsCaptureDataService( Rock.Data.DbContext context )
             : base( context )
         {
         }

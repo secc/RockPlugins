@@ -19,7 +19,7 @@ namespace org.secc.SystemsMonitor.Model
 {
     public class SystemTestHistoryService : SystemsMonitorService<SystemTestHistory>
     {
-        public SystemTestHistoryService( RockContext context ) : base( context )
+        public SystemTestHistoryService( Rock.Data.DbContext context ) : base( context )
         {
         }
     }

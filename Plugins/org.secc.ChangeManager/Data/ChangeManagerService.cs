@@ -17,7 +17,7 @@ namespace org.secc.ChangeManager.Data
 {
     public class ChangeManagerService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
     {
-        public ChangeManagerService( RockContext context )
+        public ChangeManagerService( Rock.Data.DbContext context )
            : base( context )
         {
         }

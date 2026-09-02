@@ -24,7 +24,7 @@ namespace org.secc.FamilyCheckin.Model
         /// Initializes a new instance of the <see cref="KioskService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public MobileCheckinRecordService( RockContext context ) : base( context ) { }
+        public MobileCheckinRecordService( Rock.Data.DbContext context ) : base( context ) { }
 
         public override bool CanDelete( MobileCheckinRecord item, out string errorMessage )
         {

@@ -8,7 +8,7 @@ namespace org.secc.Communication.Model
 {
     public class TwilioHistoryService : CommunicationDataService<TwilioHistory>
     {
-        public TwilioHistoryService( RockContext context ) : base( context ) { }
+        public TwilioHistoryService( Rock.Data.DbContext context ) : base( context ) { }
 
         public TwilioHistory AddOrUpdateResource( MessageResource resource )
         {

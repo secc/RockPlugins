@@ -24,6 +24,6 @@ namespace org.secc.RecurringCommunications.Model
         /// Initializes a new instance of the <see cref="PublishGroup"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public RecurringCommunicationService( RockContext context ) : base( context ) { }
+        public RecurringCommunicationService( Rock.Data.DbContext context ) : base( context ) { }
     }
 }

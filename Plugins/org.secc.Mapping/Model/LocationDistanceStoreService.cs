@@ -27,7 +27,7 @@ namespace org.secc.Mapping.Model
         /// Initializes a new instance of the <see cref="PublishGroup"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public LocationDistanceStoreService( RockContext context ) : base( context ) { }
+        public LocationDistanceStoreService( Rock.Data.DbContext context ) : base( context ) { }
 
         /// <summary>
         /// Inserts travel time from an origin to a set of destination objects.

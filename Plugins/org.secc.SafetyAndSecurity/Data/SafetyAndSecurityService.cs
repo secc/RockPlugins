@@ -22,7 +22,7 @@ namespace org.secc.SafetyAndSecurity.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="FamilyCheckinService{T}"/> class.
         /// </summary>
-        public SafetyAndSecurityService( RockContext context )
+        public SafetyAndSecurityService( Rock.Data.DbContext context )
             : base( context )
         {
         }

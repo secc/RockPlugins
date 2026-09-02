@@ -22,7 +22,7 @@ namespace org.secc.Microframe.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="FamilyCheckinService{T}"/> class.
         /// </summary>
-        public MicroframeService( RockContext context )
+        public MicroframeService( Rock.Data.DbContext context )
             : base( context )
         {
         }

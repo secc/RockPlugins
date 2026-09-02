@@ -24,6 +24,6 @@ namespace org.secc.GroupManager.Model
         /// Initializes a new instance of the <see cref="PublishGroup"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public PublishGroupService( RockContext context ) : base( context ) { }
+        public PublishGroupService( Rock.Data.DbContext context ) : base( context ) { }
     }
 }

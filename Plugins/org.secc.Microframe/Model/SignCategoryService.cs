@@ -24,6 +24,6 @@ namespace org.secc.Microframe.Model
         /// Initializes a new instance of the <see cref="KioskService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public SignCategoryService( RockContext context ) : base( context ) { }
+        public SignCategoryService( Rock.Data.DbContext context ) : base( context ) { }
     }
 }

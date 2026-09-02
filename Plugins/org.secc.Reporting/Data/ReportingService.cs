@@ -20,7 +20,7 @@ namespace org.secc.Reporting.Data
     public class ReportingService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
     {
 
-        public ReportingService( RockContext context )
+        public ReportingService( Rock.Data.DbContext context )
             : base( context )
         {
         }

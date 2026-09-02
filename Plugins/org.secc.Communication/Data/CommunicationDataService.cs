@@ -22,7 +22,7 @@ namespace org.secc.Communication.Data
         /// <summary>
         /// Initializes a new instance of the <see cref="FamilyCheckinService{T}"/> class.
         /// </summary>
-        public CommunicationDataService( RockContext context )
+        public CommunicationDataService( Rock.Data.DbContext context )
             : base( context )
         {
         }
