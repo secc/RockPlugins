@@ -13,7 +13,6 @@
 // </copyright>
 //
 using org.secc.GroupManager.Data;
-using Rock.Data;
 
 namespace org.secc.GroupManager.Model
 {
@@ -21,9 +20,9 @@ namespace org.secc.GroupManager.Model
     {
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PublishGroup"/> class.
+        /// Initializes a new instance of the <see cref="PublishGroupService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public PublishGroupService( RockContext context ) : base( context ) { }
+        public PublishGroupService( Rock.Data.DbContext context ) : base( context ) { }
     }
 }

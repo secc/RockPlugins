@@ -13,7 +13,6 @@
 // </copyright>
 //
 using org.secc.RecurringCommunications.Data;
-using Rock.Data;
 
 namespace org.secc.RecurringCommunications.Model
 {
@@ -21,9 +20,9 @@ namespace org.secc.RecurringCommunications.Model
     {
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PublishGroup"/> class.
+        /// Initializes a new instance of the <see cref="RecurringCommunicationService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public RecurringCommunicationService( RockContext context ) : base( context ) { }
+        public RecurringCommunicationService( Rock.Data.DbContext context ) : base( context ) { }
     }
 }

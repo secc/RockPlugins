@@ -13,16 +13,14 @@
 // </copyright>
 //
 
-using Rock.Data;
-
 namespace org.secc.Mapping.Data
 {
     public class MappingService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="GroupManagerService{T}"/> class.
+        /// Initializes a new instance of the <see cref="MappingService{T}"/> class.
         /// </summary>
-        public MappingService( RockContext context )
+        public MappingService( Rock.Data.DbContext context )
             : base( context )
         {
         }

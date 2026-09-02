@@ -16,7 +16,6 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 using org.secc.FamilyCheckin.Data;
-using Rock.Data;
 
 namespace org.secc.FamilyCheckin.Model
 {
@@ -27,7 +26,7 @@ namespace org.secc.FamilyCheckin.Model
         /// Initializes a new instance of the <see cref="KioskService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public KioskService( RockContext context ) : base( context ) { }
+        public KioskService( Rock.Data.DbContext context ) : base( context ) { }
 
         public Kiosk GetByIPAddress( string ipAddress, bool skipReverseLookup = false )
         {

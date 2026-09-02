@@ -13,17 +13,16 @@
 // </copyright>
 //
 using org.secc.Reporting.Data;
-using Rock.Data;
 
 namespace org.secc.Reporting.Model
 {
     public class DataViewSqlFilterStoreService : ReportingService<DataViewSQLFilterStore>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="PublishGroup"/> class.
+        /// Initializes a new instance of the <see cref="DataViewSqlFilterStoreService"/> class.
         /// </summary>
         /// <param name="context">The context.</param>
-        public DataViewSqlFilterStoreService( RockContext context ) : base( context )
+        public DataViewSqlFilterStoreService( Rock.Data.DbContext context ) : base( context )
         {
 
         }

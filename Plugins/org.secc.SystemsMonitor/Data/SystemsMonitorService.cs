@@ -1,10 +1,8 @@
-﻿using Rock.Data;
-
-namespace org.secc.SystemsMonitor.Data
+﻿namespace org.secc.SystemsMonitor.Data
 {
     public class SystemsMonitorService<T> : Rock.Data.Service<T> where T : Rock.Data.Entity<T>, new()
     {
-        public SystemsMonitorService( RockContext context )
+        public SystemsMonitorService( Rock.Data.DbContext context )
             : base( context )
         {
         }

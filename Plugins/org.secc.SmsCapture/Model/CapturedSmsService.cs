@@ -13,12 +13,11 @@
 // </copyright>
 //
 using org.secc.SmsCapture.Data;
-using Rock.Data;
 
 namespace org.secc.SmsCapture.Model
 {
     public class CapturedSmsService : SmsCaptureDataService<CapturedSms>
     {
-        public CapturedSmsService( RockContext context ) : base( context ) { }
+        public CapturedSmsService( Rock.Data.DbContext context ) : base( context ) { }
     }
 }
