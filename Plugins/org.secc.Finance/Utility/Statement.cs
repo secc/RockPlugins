@@ -55,10 +55,10 @@ namespace org.secc.Finance.Utility
             {
                 qry = qry.Where( t => !excludedCurrencyTypes.Contains( t.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid ) );
                 excludedQry = excludedQry.Where( t => excludedCurrencyTypes.Contains( t.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid ) );
-                excludedQry = excludedQry.OrderByDescending( t => t.Transaction.TransactionDateTime );
+                excludedQry = excludedQry.OrderByDescending( t => t.Transaction.TransactionDateTime ).ThenByDescending( t => t.Id );
             }
 
-            qry = qry.OrderByDescending( t => t.Transaction.TransactionDateTime );
+            qry = qry.OrderByDescending( t => t.Transaction.TransactionDateTime ).ThenByDescending( t => t.Id );
 
             mergeFields.Add( "StatementStartDate", dateRange.Start?.ToShortDateString() );
             mergeFields.Add( "StatementEndDate", dateRange.End?.ToShortDateString() );
@@ -160,26 +160,39 @@ namespace org.secc.Finance.Utility
                 mergeFields.Add( "Country", string.Empty );
             }
 
-            var transactionDetails = qry.GroupJoin( new AttributeValueService( rockContext ).Queryable(),
-                ft => ft.Id,
-                av => av.Id,
-                ( obj, av ) => new { Transaction = obj, AttributeValues = av } )
-                .ToList()
-                .Select( obj =>
-                 {
-                     obj.Transaction.Attributes = obj.AttributeValues.Select( av2 => AttributeCache.Get( av2.Attribute ) ).ToDictionary( k => k.Key, v => v );
-                     obj.Transaction.AttributeValues = obj.AttributeValues.Select( av2 => new AttributeValueCache( av2 ) ).ToDictionary( k => k.AttributeKey, v => v );
-                     return obj.Transaction;
-                 } );
+            // Eager-load the navigations the lava and the in-memory AccountSummary grouping walk;
+            // the query is AsNoTracking, so lazy loading of navigations is not reliable.
+            var transactionDetails = qry.Include( t => t.Transaction ).Include( t => t.Account ).ToList();
+
+            var excludedTransactionDetails = excludedCurrencyTypes.Count > 0
+                ? excludedQry.Include( t => t.Transaction ).Include( t => t.Account ).ToList()
+                : new List<FinancialTransactionDetail>();
+
+            // The old code joined AttributeValue.Id to FinancialTransactionDetail.Id (wrong column), so
+            // attributes never loaded. Bulk-load attributes for the details AND their parent transactions —
+            // the statement lava reads values like CheckNumber off the parent FinancialTransaction.
+            transactionDetails.LoadAttributes( rockContext );
+            if ( excludedTransactionDetails.Any() )
+            {
+                excludedTransactionDetails.LoadAttributes( rockContext );
+            }
+
+            var parentTransactions = transactionDetails
+                .Concat( excludedTransactionDetails )
+                .Select( d => d.Transaction )
+                .Where( t => t != null )
+                .DistinctBy( t => t.Id )
+                .ToList();
+            parentTransactions.LoadAttributes( rockContext );
 
             mergeFields.Add( "TransactionDetails", transactionDetails );
 
 
             if ( excludedCurrencyTypes.Count > 0 )
             {
-                mergeFields.Add( "ExcludedTransactionDetails", excludedQry.ToList() );
+                mergeFields.Add( "ExcludedTransactionDetails", excludedTransactionDetails );
             }
-            mergeFields.Add( "AccountSummary", qry.GroupBy( t => new { t.Account.Name, t.Account.PublicName, t.Account.Description } )
+            mergeFields.Add( "AccountSummary", transactionDetails.GroupBy( t => new { t.Account.Name, t.Account.PublicName, t.Account.Description } )
                                                 .Select( s => new AccountSummary
                                                 {
                                                     AccountName = s.Key.Name,
@@ -188,7 +201,8 @@ namespace org.secc.Finance.Utility
                                                     Total = s.Sum( a => a.Amount ),
                                                     Order = s.Max( a => a.Account.Order )
                                                 } )
-                                                .OrderBy( s => s.Order ) );
+                                                .OrderBy( s => s.Order )
+                                                .ToList() );
             // pledge information
             var pledges = new FinancialPledgeService( rockContext ).Queryable().AsNoTracking()
                                 .Where( p => p.PersonAliasId.HasValue && personAliasIds.Contains( p.PersonAliasId.Value )
