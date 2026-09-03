@@ -132,7 +132,9 @@ namespace org.secc.LinkList.Blocks
 
                 var detail = new LinkListDetailInitializationBox
                 {
-                    CanEdit = item.IsAuthorized( Authorization.EDIT, RequestContext.CurrentPerson ),
+                    // Same check SaveList enforces, including the creator fallback for
+                    // a list whose security group is still missing.
+                    CanEdit = service.CanEditItem( item, RequestContext.CurrentPerson ),
                     CanDelete = item.IsAuthorized( Authorization.ADMINISTRATE, RequestContext.CurrentPerson ),
                     LinkList = bag,
                     Designs = service.GetDesignsForPicker()
@@ -194,7 +196,11 @@ namespace org.secc.LinkList.Blocks
                     {
                         return ActionNotFound();
                     }
-                    if ( !item.IsAuthorized( Authorization.EDIT, RequestContext.CurrentPerson ) )
+                    // CanEditItem is item EDIT plus the creator fallback for a list whose
+                    // security group never got created (see LinkListService.CanEditItem):
+                    // without it a creator with no channel EDIT could never re-save such
+                    // a list, and the retry this action advertises would be a 403.
+                    if ( !service.CanEditItem( item, RequestContext.CurrentPerson ) )
                     {
                         return ActionForbidden();
                     }
@@ -221,10 +227,12 @@ namespace org.secc.LinkList.Blocks
                 }
                 else
                 {
-                    if ( !channel.IsAuthorized( Authorization.EDIT, RequestContext.CurrentPerson ) )
-                    {
-                        return ActionForbidden();
-                    }
+                    // Create is open to any signed-in person who can VIEW this block
+                    // (ROCK-9100); Rock checks block VIEW before any block action runs.
+                    // EnsureSecurityGroup below makes the creator the list's editor.
+                    // Rationale and the trade-off (channel EDIT cascades to every item;
+                    // block VIEW cannot be narrower than per-list edit access) live in
+                    // the README's "Manage Access model" bullet.
                     isNew = true;
                     item = new ContentChannelItem
                     {
@@ -328,9 +336,47 @@ namespace org.secc.LinkList.Blocks
                 // Because writes commit as they go, ORDER MATTERS in the slug section
                 // below: it must never delete a slug row until every add has succeeded,
                 // or a later failure leaves a list with dead URLs and no way back.
+                string accessWarning = null;
                 try
                 {
                     rockContext.SaveChanges();
+
+                    // Ensure the list-specific security group IMMEDIATELY after the item
+                    // row commits, before any later write can throw. Since ROCK-9100 the
+                    // creator holds no channel EDIT, so this group is their ONLY edit
+                    // grant: if it were created after the writes below (as it once was),
+                    // a failed attribute/slug/matrix write would leave a committed list
+                    // the creator could never re-save, see, or delete. Safe here because
+                    // this save uses no outer transaction (see NOTE above) - the row is
+                    // already committed when Authorization opens its own connection.
+                    // Idempotent, so it runs on EVERY save: that is what repairs a list
+                    // whose group creation failed on an earlier attempt.
+                    try
+                    {
+                        service.EnsureSecurityGroup( item, RequestContext.CurrentPerson );
+                    }
+                    catch ( Exception ex )
+                    {
+                        // Non-fatal: the list exists and the creator fallback in
+                        // CanEditItem keeps it editable until a later save succeeds here.
+                        ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
+                        accessWarning = "The list was saved, but setting up edit access failed. "
+                            + "The error has been logged. Save again to finish access setup.";
+                    }
+
+                    if ( !isNew )
+                    {
+                        // Keep the security group's name aligned with the (possibly
+                        // changed) title. Non-fatal: a failed rename must not fail the save.
+                        try
+                        {
+                            service.RenameSecurityGroup( item, item.Title );
+                        }
+                        catch ( Exception ex )
+                        {
+                            ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
+                        }
+                    }
 
                     // Persist top-level (non-matrix) attribute values.
                     item.LoadAttributes( rockContext );
@@ -560,59 +606,45 @@ namespace org.secc.LinkList.Blocks
                     // conflicting with the slugs the failed attempt just created.
                     if ( item.Id > 0 )
                     {
-                        var partial = service.BuildBag( item, RequestContext.CurrentPerson, requirePublic: false, includeMembers: true, includeSlugs: true );
-                        partial.SaveWarning = "Some of your changes could not be saved. "
+                        var partial = BuildSavedBag( service, item );
+                        var warning = "Some of your changes could not be saved. "
                             + "The error has been logged; review the list and save again.";
+                        partial.SaveWarning = accessWarning != null
+                            ? accessWarning + " " + warning
+                            : warning;
                         return ActionOk( partial );
                     }
                     return ActionBadRequest( "Save failed. The error has been logged; contact an administrator if it persists." );
                 }
 
-                // Auto-create the list-specific security group on first save (mirrors the
-                // legacy creation workflow). Done AFTER the data transaction commits:
-                // Rock's Authorization plumbing opens its own DB connection, which blocks
-                // on the still-uncommitted rows if run inside the transaction (SQL command
-                // timeout). Idempotent, so a retry is safe.
-                if ( isNew )
-                {
-                    try
-                    {
-                        service.EnsureSecurityGroup( item, RequestContext.CurrentPerson );
-                    }
-                    catch ( Exception ex )
-                    {
-                        // The list itself is saved; only the edit-access group failed.
-                        // Return the saved bag with a warning (not a bare error) so the
-                        // editor keeps the new list's identity - re-saving is idempotent
-                        // and finishes the setup, whereas a retry that looked like a new
-                        // list would collide with the slugs this attempt already created.
-                        ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
-                        var partial = service.BuildBag( item, RequestContext.CurrentPerson, requirePublic: false, includeMembers: true, includeSlugs: true );
-                        partial.SaveWarning = "The list was saved, but setting up edit access failed. "
-                            + "The error has been logged. Save again to finish access setup.";
-                        return ActionOk( partial );
-                    }
-                }
-                else
-                {
-                    // Keep the security group's name aligned with the (possibly
-                    // changed) title. Non-fatal: a failed rename must not fail the save.
-                    try
-                    {
-                        service.RenameSecurityGroup( item, item.Title );
-                    }
-                    catch ( Exception ex )
-                    {
-                        ExceptionLogService.LogException( ex, System.Web.HttpContext.Current );
-                    }
-                }
-
-                var saved = service.BuildBag( item, RequestContext.CurrentPerson, requirePublic: false, includeMembers: true, includeSlugs: true );
+                var saved = BuildSavedBag( service, item );
+                // A set SaveWarning keeps the editor on the page (see linkListEditor.obs),
+                // which is exactly what the access-setup retry needs.
+                saved.SaveWarning = accessWarning;
                 saved.SaveNotice = concurrentSlugNotes.Count > 0
                     ? string.Join( " ", concurrentSlugNotes )
                     : null;
                 return ActionOk( saved );
             }
+        }
+
+        /// <summary>
+        /// Editor bag for a list this request just wrote. BuildBag returns null when the
+        /// caller lacks VIEW on the item (possible when an admin restricts VIEW on the
+        /// channel, since the creator's group is granted only EDIT); the save has already
+        /// committed by then, so fall back to a minimal bag that still carries the
+        /// identity - otherwise the editor would keep a null id and the next save would
+        /// try to re-create the list.
+        /// </summary>
+        private LinkListBag BuildSavedBag( LinkListService service, ContentChannelItem item )
+        {
+            return service.BuildBag( item, RequestContext.CurrentPerson, requirePublic: false, includeMembers: true, includeSlugs: true )
+                ?? new LinkListBag
+                {
+                    Id = item.Id,
+                    Guid = item.Guid.ToString(),
+                    Title = item.Title
+                };
         }
 
         [BlockAction]

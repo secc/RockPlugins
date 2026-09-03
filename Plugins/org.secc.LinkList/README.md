@@ -29,7 +29,21 @@ Two subsystems deserve special mention:
   (`Authorization.AllowSecurityRole`). The editor's "Manage Access" panel adds/removes group
   members (`AddMember`/`RemoveMember` — the last active member can never be removed), and
   renames the group when the list's title changes. All block-action authorization then flows
-  through Rock's standard `item.IsAuthorized( EDIT/ADMINISTRATE )`.
+  through Rock's standard `item.IsAuthorized( EDIT/ADMINISTRATE )`. **Creating** a list needs
+  no channel permission (ROCK-9100): any signed-in person who can VIEW the management/detail
+  blocks may create one and becomes its editor. Be clear about what that means: everyone who
+  can use the Link List pages can also create lists. Creation is *not* separable from per-list
+  edit access, because every Manage Access member already needs that same VIEW to edit their
+  list (the gate Rock checks before a block action runs is the block's VIEW, which inherits
+  the page's rules unless the block has explicit security). Channel **EDIT** is not used as a
+  gate because it cascades to every item (it would make every holder an editor of every list);
+  channel **ADMINISTRATE** still gates the admin tabs (global header/footer, design presets,
+  allowed origins). Because the creator holds no channel EDIT, the per-list group is their
+  *only* edit grant, so `SaveList` creates it immediately after the item row commits (before
+  any later write can fail) and re-runs it on every save. If group creation itself fails, the
+  creator fallback in `LinkListService.CanEditItem` (creator of an item that has no group EDIT
+  rule yet) keeps the list saveable, openable, and visible in the grid until the next
+  successful save creates the group.
 
 ## Project Info
 
@@ -180,9 +194,12 @@ Interaction medium/channel for analytics.
   `EnsureSecurityGroup`/`AddMember`/`RemoveMember` so the Auth rule, group naming, and cache
   flush behavior stay consistent; the Obsidian PersonPicker sends a **PersonAlias guid**, which
   `AddMember` resolves via `PersonAliasService.GetPerson` (with a `Person.Guid` fallback).
+  Editor entry points (`SaveList`, `GetListDetail`, the grid query) check management access
+  through `LinkListService.CanEditItem`, not bare `item.IsAuthorized( EDIT )`, so the
+  creator fallback applies everywhere consistently.
 - **Packaging:** `BuildPlugin.ps1` + `plugin.json` produce the installable package (Release
   DLL + `dist/**`).
 - Related: [org.secc.Cms](../org.secc.Cms/README.md) (legacy `LinkListEditUsers` block over the
   same security groups).
 
-Last updated: 2026-08-19
+Last updated: 2026-09-03

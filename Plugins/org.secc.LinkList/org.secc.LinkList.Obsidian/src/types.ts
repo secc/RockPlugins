@@ -108,7 +108,6 @@ export interface LinkListListInitializationBox {
     navigationUrls?: Record<string, string> | null;
     isAddEnabled?: boolean;
     isDeleteEnabled?: boolean;
-    isBlockVisible?: boolean;
     canManageGlobalSettings?: boolean;
 }
 
