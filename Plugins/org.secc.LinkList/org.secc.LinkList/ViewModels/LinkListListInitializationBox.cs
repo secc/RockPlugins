@@ -30,8 +30,6 @@ namespace org.secc.LinkList.ViewModels
 
         public bool IsDeleteEnabled { get; set; }
 
-        public bool IsBlockVisible { get; set; } = true;
-
         /// <summary>
         /// WS12: true when the current person may edit the org-wide global
         /// header/footer (Administrate on the LinkList ContentChannel). Gates

@@ -28,6 +28,7 @@ using Rock.Data;
 using Rock.Model;
 using Rock.Security;
 using Rock.ViewModels.Core.Grid;
+using Rock.Web.Cache;
 
 namespace org.secc.LinkList.Blocks
 {
@@ -48,7 +49,7 @@ namespace org.secc.LinkList.Blocks
         Order = 0,
         Key = AttributeKey.DetailPage )]
     [TextField( "Admin Security Role(s)",
-        Description = "Comma-delimited list of security role GUIDs whose members can see and edit ALL lists (in addition to Rock Administrators).",
+        Description = "Comma-delimited list of security role GUIDs whose members see ALL lists in the management grid (in addition to Rock Administrators). Editing and deleting are still governed by each list's own security.",
         IsRequired = false,
         Order = 1,
         Key = AttributeKey.AdminSecurityRoles )]
@@ -75,35 +76,21 @@ namespace org.secc.LinkList.Blocks
         {
             // Mirror the auth checks the block actions enforce so the UI only
             // offers what will actually succeed. Add is open to any signed-in
-            // person who can reach this block (ROCK-9100): the creator becomes
-            // the new list's editor via its own security group, so no channel
-            // permission is needed to own a list. Gating Add on channel EDIT
-            // was wrong - that permission cascades to EVERY item, so granting
-            // it to staff would have made everyone an editor of every list.
-            // Who may create is therefore controlled by page/block security.
-            // Global settings still need ADMINISTRATE on the channel. Delete is
+            // person who can VIEW this block (ROCK-9100); the detail block's
+            // SaveList enforces the same and makes the creator the list's editor.
+            // See the README's "Manage Access model" bullet for the rationale.
+            // Global settings need ADMINISTRATE on the channel. Delete is
             // per-item (ADMINISTRATE on the item), surfaced per row via the
             // grid's canDelete field; this flag only controls whether the
             // delete column renders at all.
             var isAuthenticated = RequestContext.CurrentPerson != null;
-            var canManageGlobal = false;
-            if ( isAuthenticated )
-            {
-                using ( var rockContext = new RockContext() )
-                {
-                    var channel = new LinkListService( rockContext ).GetChannel();
-                    canManageGlobal = channel != null
-                        && channel.IsAuthorized( Authorization.ADMINISTRATE, RequestContext.CurrentPerson );
-                }
-            }
 
             return new LinkListListInitializationBox
             {
                 NavigationUrls = GetBoxNavigationUrls(),
                 IsAddEnabled = isAuthenticated,
-                IsDeleteEnabled = RequestContext.CurrentPerson != null,
-                IsBlockVisible = RequestContext.CurrentPerson != null,
-                CanManageGlobalSettings = canManageGlobal
+                IsDeleteEnabled = isAuthenticated,
+                CanManageGlobalSettings = IsChannelAdmin()
             };
         }
 
@@ -196,18 +183,13 @@ namespace org.secc.LinkList.Blocks
             {
                 return ActionForbidden( "Authentication is required." );
             }
+            if ( !IsChannelAdmin() )
+            {
+                return ActionForbidden();
+            }
             using ( var rockContext = new RockContext() )
             {
                 var service = new LinkListService( rockContext );
-                var channel = service.GetChannel();
-                if ( channel == null )
-                {
-                    return ActionInternalServerError( "Link Lists channel not found." );
-                }
-                if ( !channel.IsAuthorized( Authorization.ADMINISTRATE, RequestContext.CurrentPerson ) )
-                {
-                    return ActionForbidden();
-                }
                 return ActionOk( service.GetGlobalSettings() );
             }
         }
@@ -223,18 +205,13 @@ namespace org.secc.LinkList.Blocks
             {
                 return ActionBadRequest( "Global settings payload is required." );
             }
+            if ( !IsChannelAdmin() )
+            {
+                return ActionForbidden();
+            }
             using ( var rockContext = new RockContext() )
             {
                 var service = new LinkListService( rockContext );
-                var channel = service.GetChannel();
-                if ( channel == null )
-                {
-                    return ActionInternalServerError( "Link Lists channel not found." );
-                }
-                if ( !channel.IsAuthorized( Authorization.ADMINISTRATE, RequestContext.CurrentPerson ) )
-                {
-                    return ActionForbidden();
-                }
                 service.SaveGlobalSettings( bag );
                 return ActionOk();
             }
@@ -248,7 +225,7 @@ namespace org.secc.LinkList.Blocks
             using ( var rockContext = new RockContext() )
             {
                 var service = new LinkListService( rockContext );
-                if ( !IsChannelAdmin( service ) )
+                if ( !IsChannelAdmin() )
                 {
                     return ActionForbidden();
                 }
@@ -266,7 +243,7 @@ namespace org.secc.LinkList.Blocks
             using ( var rockContext = new RockContext() )
             {
                 var service = new LinkListService( rockContext );
-                if ( !IsChannelAdmin( service ) )
+                if ( !IsChannelAdmin() )
                 {
                     return ActionForbidden();
                 }
@@ -285,7 +262,7 @@ namespace org.secc.LinkList.Blocks
             using ( var rockContext = new RockContext() )
             {
                 var service = new LinkListService( rockContext );
-                if ( !IsChannelAdmin( service ) )
+                if ( !IsChannelAdmin() )
                 {
                     return ActionForbidden();
                 }
@@ -305,7 +282,7 @@ namespace org.secc.LinkList.Blocks
             using ( var rockContext = new RockContext() )
             {
                 var service = new LinkListService( rockContext );
-                if ( !IsChannelAdmin( service ) )
+                if ( !IsChannelAdmin() )
                 {
                     return ActionForbidden();
                 }
@@ -319,7 +296,7 @@ namespace org.secc.LinkList.Blocks
             using ( var rockContext = new RockContext() )
             {
                 var service = new LinkListService( rockContext );
-                if ( !IsChannelAdmin( service ) )
+                if ( !IsChannelAdmin() )
                 {
                     return ActionForbidden();
                 }
@@ -333,16 +310,18 @@ namespace org.secc.LinkList.Blocks
 
         /// <summary>
         /// True when the current person has ADMINISTRATE on the LinkList channel
-        /// (the gate for every admin-only settings tab).
+        /// (the gate for every admin-only settings tab). Answered from
+        /// ContentChannelCache - same ParentAuthority chain as the entity, no
+        /// per-request DB query - because this also runs on every page render.
         /// </summary>
-        private bool IsChannelAdmin( LinkListService service )
+        private bool IsChannelAdmin()
         {
             if ( RequestContext.CurrentPerson == null )
             {
                 return false;
             }
-            var channel = service.GetChannel();
-            return channel != null && channel.IsAuthorized( Authorization.ADMINISTRATE, RequestContext.CurrentPerson );
+            return ContentChannelCache.Get( LinkListGuids.LinkListChannel.AsGuid() )
+                ?.IsAuthorized( Authorization.ADMINISTRATE, RequestContext.CurrentPerson ) ?? false;
         }
 
         /// <summary>
