@@ -221,10 +221,12 @@ namespace org.secc.LinkList.Blocks
                 }
                 else
                 {
-                    if ( !channel.IsAuthorized( Authorization.EDIT, RequestContext.CurrentPerson ) )
-                    {
-                        return ActionForbidden();
-                    }
+                    // Create needs no channel permission (ROCK-9100). Any signed-in
+                    // person who can reach this block may create a list - Rock already
+                    // requires VIEW on the page and block before a block action runs -
+                    // and EnsureSecurityGroup below makes the creator its editor.
+                    // Channel EDIT is deliberately NOT the gate: it cascades to every
+                    // item, so granting it to staff would open every list to everyone.
                     isNew = true;
                     item = new ContentChannelItem
                     {

@@ -29,7 +29,12 @@ Two subsystems deserve special mention:
   (`Authorization.AllowSecurityRole`). The editor's "Manage Access" panel adds/removes group
   members (`AddMember`/`RemoveMember` — the last active member can never be removed), and
   renames the group when the list's title changes. All block-action authorization then flows
-  through Rock's standard `item.IsAuthorized( EDIT/ADMINISTRATE )`.
+  through Rock's standard `item.IsAuthorized( EDIT/ADMINISTRATE )`. **Creating** a list needs
+  no channel permission (ROCK-9100): any signed-in person who can view the management/detail
+  pages may create one and becomes its editor — control *who can create* with page/block
+  security. Channel **EDIT** is not used as a gate because it cascades to every item (it
+  would make every holder an editor of every list); channel **ADMINISTRATE** still gates the
+  admin tabs (global header/footer, design presets, allowed origins).
 
 ## Project Info
 
@@ -185,4 +190,4 @@ Interaction medium/channel for analytics.
 - Related: [org.secc.Cms](../org.secc.Cms/README.md) (legacy `LinkListEditUsers` block over the
   same security groups).
 
-Last updated: 2026-08-19
+Last updated: 2026-09-02

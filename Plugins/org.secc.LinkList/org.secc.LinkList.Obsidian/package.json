@@ -38,5 +38,10 @@
         "vue": "3.2.35",
         "vue-eslint-parser": "^9.3.1",
         "vue-tsc": "^1.8.27"
+    },
+    "overrides": {
+        "@typescript-eslint/typescript-estree": {
+            "minimatch": "^9.0.9"
+        }
     }
 }

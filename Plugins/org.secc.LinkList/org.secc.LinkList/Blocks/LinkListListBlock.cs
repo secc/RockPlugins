@@ -74,29 +74,33 @@ namespace org.secc.LinkList.Blocks
         public override object GetObsidianBlockInitialization()
         {
             // Mirror the auth checks the block actions enforce so the UI only
-            // offers what will actually succeed: Add requires EDIT on the
-            // LinkList channel (SaveList's create path), global settings need
-            // ADMINISTRATE on the channel. Delete is per-item (ADMINISTRATE on
-            // the item), surfaced per row via the grid's canDelete field; this
-            // flag only controls whether the delete column renders at all.
+            // offers what will actually succeed. Add is open to any signed-in
+            // person who can reach this block (ROCK-9100): the creator becomes
+            // the new list's editor via its own security group, so no channel
+            // permission is needed to own a list. Gating Add on channel EDIT
+            // was wrong - that permission cascades to EVERY item, so granting
+            // it to staff would have made everyone an editor of every list.
+            // Who may create is therefore controlled by page/block security.
+            // Global settings still need ADMINISTRATE on the channel. Delete is
+            // per-item (ADMINISTRATE on the item), surfaced per row via the
+            // grid's canDelete field; this flag only controls whether the
+            // delete column renders at all.
+            var isAuthenticated = RequestContext.CurrentPerson != null;
             var canManageGlobal = false;
-            var canAdd = false;
-            if ( RequestContext.CurrentPerson != null )
+            if ( isAuthenticated )
             {
                 using ( var rockContext = new RockContext() )
                 {
                     var channel = new LinkListService( rockContext ).GetChannel();
                     canManageGlobal = channel != null
                         && channel.IsAuthorized( Authorization.ADMINISTRATE, RequestContext.CurrentPerson );
-                    canAdd = channel != null
-                        && channel.IsAuthorized( Authorization.EDIT, RequestContext.CurrentPerson );
                 }
             }
 
             return new LinkListListInitializationBox
             {
                 NavigationUrls = GetBoxNavigationUrls(),
-                IsAddEnabled = canAdd,
+                IsAddEnabled = isAuthenticated,
                 IsDeleteEnabled = RequestContext.CurrentPerson != null,
                 IsBlockVisible = RequestContext.CurrentPerson != null,
                 CanManageGlobalSettings = canManageGlobal
