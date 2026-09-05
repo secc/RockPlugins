@@ -84,7 +84,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private readonly string ITEM_TYPE_NAME = "Rock.Model.ContentChannelItem";
         private readonly string CONTENT_CACHE_KEY = "Content";
-        private readonly string TEMPLATE_CACHE_KEY = "Template";
 
         #endregion
 
@@ -296,7 +295,6 @@ $('#updateProgress').show();
             SaveAttributeValues();
 
             RemoveCacheItem( CONTENT_CACHE_KEY + ChannelGuid );
-            RemoveCacheItem( TEMPLATE_CACHE_KEY + ChannelGuid );
 
             mdEdit.Hide();
             pnlEditModal.Visible = false;
