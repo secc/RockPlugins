@@ -16,7 +16,7 @@
                     {%- endfor -%}
                 {%- endcapture -%}
                 {%- assign dates = dates | ReplaceLast:'|','' -%}
-                {%- assign datesSorted = dates | Split:'|' | Sort:'' -%}
+                {%- assign datesSorted = dates | Split:'|' | Sort -%}
                 {%- assign jobsAvail = datesSorted | Size -%}
             {%- endwebrequest -%}
 
@@ -33,7 +33,7 @@
                     {%- endcapture -%}
 
                     {%- assign dates = dates | ReplaceLast:'|','' -%}
-                    {%- assign datesSorted = dates | Split:'|' | Sort:'' -%}
+                    {%- assign datesSorted = dates | Split:'|' | Sort -%}
                     {%- assign jobsAvail = datesSorted | Size -%}
 
                     {%- if jobsAvail != 0 -%}

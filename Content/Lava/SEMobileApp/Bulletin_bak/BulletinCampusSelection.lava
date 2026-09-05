@@ -30,7 +30,7 @@
 	    }
 	},
 	"items": [
-	      {% assign campusesSorted = Campuses | Sort:'Order','Asc' %}
+	      {% assign campusesSorted = Campuses | OrderBy:'Order' %}
 	      {% for campus in campusesSorted sort:'Order','Asc' %}
 	        {% assign campusSlug = campus | Attribute:'Slug' %}
 	        {

@@ -111,7 +111,7 @@
                             <div class="event-items col-xs-4 {% if campus | Attribute: 'Slug' != 'Yes' %}col-xs-offset-2{% endif %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if childCareIsAvailable != 'Yes' %}col-xs-offset-2{% endif %}">
                                 <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
                                 <h6>
-                                    {% if eventItemOccurrence.CustomDateText != null && eventItemOccurrence.CustomDateText != '' -%}
+                                    {% if eventItemOccurrence.CustomDateText != null and eventItemOccurrence.CustomDateText != '' -%}
                                         {{ eventItemOccurrence.CustomDateText }}
                                     {% else -%}
                                         {% assign eventItemDatesIsHidden = eventItemOccurrence.AttEventDatesHide %}
@@ -136,7 +136,7 @@
                             <div class="event-items g-padding-x-10--xs col-xs-4 {% if childCareIsAvailable == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}">
                                 <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
                                 <h6>
-                                    {% if eventItemOccurrence.CustomLocationText != null && eventItemOccurrence.CustomLocationText != '' -%}
+                                    {% if eventItemOccurrence.CustomLocationText != null and eventItemOccurrence.CustomLocationText != '' -%}
                                         {{ eventItemOccurrence.CustomLocationText}}
                                     {% else %}
                                         {% if eventItemOccurrence.EventItemOccurrence.Location != '' %}

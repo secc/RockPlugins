@@ -128,51 +128,49 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             }
         }
 
-        public class CampGroupMemberAllergies : ILiquidizable
+        public class CampGroupMemberAllergies : LavaDataObject
         {
-            [LavaHidden]
-            public object this[object key]
+            /// <summary>
+            /// Exposes custom Lava keys (aliases and boolean conversions) for both the DotLiquid and Fluid engines.
+            /// </summary>
+            protected override bool OnTryGetValue( string key, out object result )
             {
-                get
+                switch ( key )
                 {
-                    switch (key.ToStringSafe())
-                    {
-                        case "Id":
-                            return Id;
-                        case "LastName":
-                            return LastName;
-                        case "FirstName":
-                            return NickName;
-                        case "NickName":
-                            return NickName;
-                        case "GroupName":
-                            return GroupName;
-                        case "GroupRole":
-                            return GroupRole;
-                        case "Eggs":
-                            return Eggs.AsBoolean();
-                        case "Fish":
-                            return Fish.AsBoolean();
-                        case "MilkAndDairy":
-                            return MilkAndDairy.AsBoolean();
-                        case "Peanuts":
-                            return Peanuts.AsBoolean();
-                        case "TreeNuts":
-                            return TreeNuts.AsBoolean();
-                        case "Shellfish":
-                            return Shellfish.AsBoolean();
-                        case "Soy":
-                            return Soy.AsBoolean();
-                        case "WheatAndGluten":
-                            return WheatGluten.AsBoolean();
-                        case "Other":
-                            return Other;
-                        case "AllAllergies":
-                            return AllAllergies;
-                        default:
-                            return string.Empty;
-
-                    }
+                    case "Id":
+                        result = Id; return true;
+                    case "LastName":
+                        result = LastName; return true;
+                    case "FirstName":
+                        result = NickName; return true;
+                    case "NickName":
+                        result = NickName; return true;
+                    case "GroupName":
+                        result = GroupName; return true;
+                    case "GroupRole":
+                        result = GroupRole; return true;
+                    case "Eggs":
+                        result = Eggs.AsBoolean(); return true;
+                    case "Fish":
+                        result = Fish.AsBoolean(); return true;
+                    case "MilkAndDairy":
+                        result = MilkAndDairy.AsBoolean(); return true;
+                    case "Peanuts":
+                        result = Peanuts.AsBoolean(); return true;
+                    case "TreeNuts":
+                        result = TreeNuts.AsBoolean(); return true;
+                    case "Shellfish":
+                        result = Shellfish.AsBoolean(); return true;
+                    case "Soy":
+                        result = Soy.AsBoolean(); return true;
+                    case "WheatAndGluten":
+                        result = WheatGluten.AsBoolean(); return true;
+                    case "Other":
+                        result = Other; return true;
+                    case "AllAllergies":
+                        result = AllAllergies; return true;
+                    default:
+                        return base.OnTryGetValue( key, out result );
                 }
             }
 
@@ -237,42 +235,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
             }
 
-            [LavaHidden]
-            public List<string> AvailableKeys
-            {
-                get
-                {
-                    return new List<string> {
-                        "Id",
-                        "LastName",
-                        "FirstName",
-                        "NickName",
-                        "GroupName",
-                        "GroupRole",
-                        "Eggs",
-                        "Fish",
-                        "MilkAndDairy",
-                        "Peanuts",
-                        "TreeNuts",
-                        "Shellfish",
-                        "Soy",
-                        "WheatAndGluten",
-                        "Other",
-                        "AllAllergies"
-                    };
-                }
-            }
 
-            public bool ContainsKey( object key )
-            {
-                var keys = AvailableKeys;
-                return keys.Contains( key.ToStringSafe() );
-            }
 
-            public object ToLiquid()
-            {
-                return this;
-            }
 
         }
     }

@@ -37,7 +37,7 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.HtmlControls;
 using System.Web.UI.WebControls;
-using DotLiquid;
+using Rock.Lava;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -84,7 +84,6 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private readonly string ITEM_TYPE_NAME = "Rock.Model.ContentChannelItem";
         private readonly string CONTENT_CACHE_KEY = "Content";
-        private readonly string TEMPLATE_CACHE_KEY = "Template";
 
         #endregion
 
@@ -296,7 +295,6 @@ $('#updateProgress').show();
             SaveAttributeValues();
 
             RemoveCacheItem( CONTENT_CACHE_KEY + ChannelGuid );
-            RemoveCacheItem( TEMPLATE_CACHE_KEY + ChannelGuid );
 
             mdEdit.Hide();
             pnlEditModal.Visible = false;
@@ -588,8 +586,9 @@ $('#updateProgress').show();
                 }
             }
 
-            var template = GetTemplate();
-            var render = template.Render( Hash.FromDictionary( mergeFields ) );
+            // ResolveMergeFields is engine-agnostic (works under both DotLiquid and Fluid).
+            // Rock caches parsed templates internally, so the block-level Template cache is no longer needed.
+            var render = GetAttributeValue( "ContentLava" ).ResolveMergeFields( mergeFields );
 
             phContent.Controls.Add( new LiteralControl( render ) );
         }
@@ -646,23 +645,6 @@ $('#updateProgress').show();
             }
 
             return attributeValue;
-        }
-
-        private Template GetTemplate()
-        {
-            var template = GetCacheItem( TEMPLATE_CACHE_KEY + ChannelGuid ) as Template;
-            if ( template == null )
-            {
-                template = Template.Parse( GetAttributeValue( "ContentLava" ) );
-
-                int? cacheDuration = GetAttributeValue( "CacheDuration" ).AsInteger();
-                if ( cacheDuration > 0 )
-                {
-                    AddCacheItem( TEMPLATE_CACHE_KEY + ChannelGuid, template, cacheDuration.Value );
-                }
-            }
-
-            return template;
         }
 
         private List<ContentChannelItem> GetContent( List<string> errorMessages, bool FilterByQRS = true )
@@ -1032,7 +1014,7 @@ $('#updateProgress').show();
             return null;
         }
 
-        public class Pagination : DotLiquid.Drop
+        public class Pagination : LavaDataObject
         {
 
             /// <summary>
@@ -1155,7 +1137,7 @@ $('#updateProgress').show();
         /// <summary>
         /// 
         /// </summary>
-        public class PaginationPage : DotLiquid.Drop
+        public class PaginationPage : LavaDataObject
         {
             /// <summary>
             /// Initializes a new instance of the <see cref="PaginationPage"/> class.

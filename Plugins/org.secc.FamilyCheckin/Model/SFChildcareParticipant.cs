@@ -6,7 +6,7 @@ using Rock.Lava;
 
 namespace org.secc.FamilyCheckin.Model
 {
-    public class SFChildcareParticipant : ILiquidizable
+    public class SFChildcareParticipant : LavaDataObject
     {
         
 
@@ -26,57 +26,8 @@ namespace org.secc.FamilyCheckin.Model
         }
 
 
-        [LavaHidden]
-        public object this[object key]
-        {
-            get
-            {
-                switch ( key.ToStringSafe() )
-                {
-                    case "PersonId": return PersonId;
-                    case "FirstName": return FirstName;
-                    case "LastName": return LastName;
-                    case "CheckinTime": return CheckinTime;
-                    case "CheckoutTime": return CheckoutTime;
-                    case "CreditsUsed": return CreditsUsed;
-                    default: return String.Empty;
-                }
-            }
-        }
 
-        [LavaHidden]
-        public List<string> AvailableKeys
-        {
-            get
-            {
-                return new List<string> {
-                "PersonId",
-                "FirstName",
-                "LastName",
-                "CheckinTime",
-                "CheckoutTime",
-                "CreditsUsed",
-                "TotalTimeCheckedIn" };
-            }
-        }
 
-    public bool ContainsKey( object key )
-        {
-            var keys = new List<string> { 
-                "PersonId", 
-                "FirstName", 
-                "LastName", 
-                "CheckinTime", 
-                "CheckoutTime", 
-                "CreditsUsed", 
-                "TotalTimeCheckedIn" };
 
-            return keys.Contains( key.ToStringSafe() );
-        }
-
-        public object ToLiquid()
-        {
-            return this;
-        }
     }
 }

@@ -30,7 +30,7 @@
     		<div class="row">
     			<div id="SEKidsVideo" class="col-sm-12 col-lg-8 g-padding-x-0--xs g-padding-x-60--lg g-padding-b-40--xs">
     				<div class="embed-responsive embed-responsive-16by9 media-border-only">
-                        {% assign seKidsChildItems = SEKidsItem.ChildItems | Sort:'Order','Asc' %}
+                        {% assign seKidsChildItems = SEKidsItem.ChildItems | OrderBy:'Order' %}
                         {%- for resources in seKidsChildItems -%}
                             {% assign resource = resources.ChildContentChannelItem %}
                             {% if resource.ContentChannelId == '77' %}
@@ -44,7 +44,7 @@
     			<div id="SEKidsResources" class="col-sm-12 col-lg-4">
     				{{- SEKidsItem.Content -}}
 
-                    {% assign seKidsChildItems = SEKidsItem.ChildItems | Sort:'Order','Asc' %}
+                    {% assign seKidsChildItems = SEKidsItem.ChildItems | OrderBy:'Order' %}
                     {%- for resources in seKidsChildItems -%}
                         {% assign resource = resources.ChildContentChannelItem %}
                         {% if resource.ContentChannelId == '78' %}

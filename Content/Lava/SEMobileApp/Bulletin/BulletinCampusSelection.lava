@@ -33,7 +33,7 @@ Bulletin Page
 	},
 	"items": [
 		  {%- assign comma = "" -%}
-	      {% assign campusesSorted = Campuses | Sort:'Order','Asc' %}
+	      {% assign campusesSorted = Campuses | OrderBy:'Order' %}
 	      {% for campus in campusesSorted sort:'Order','Asc' %}
 		  	{% assign publicCampus = campus | Attribute:'Public' %}
 	        {% assign campusSlug = campus | Attribute:'Slug' %}
