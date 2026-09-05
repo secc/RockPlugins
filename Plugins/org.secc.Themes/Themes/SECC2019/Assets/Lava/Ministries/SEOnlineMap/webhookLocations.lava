@@ -12,7 +12,7 @@ eqfeed_callback(
             {% endif -%}
             {% assign lat =  loc[0] -%}
             {% assign lng =  loc[1] -%}
-            {% if lng != '' and lng != '' -%}
+            {% if lat != '' and lng != '' -%}
             {{ comma }}{
                 "type": "Feature",
                 "properties": {
@@ -23,7 +23,7 @@ eqfeed_callback(
                 },
                 "geometry": {
                     "type": "Point"
-                    {% if lng != '' and lng != '' -%}
+                    {% if lat != '' and lng != '' -%}
                     ,"coordinates": [
                         {{ lng | Split:'.' | First }}.{{ lng | Split:'.' | Last | Truncate:2,'' }},
                         {{ lat | Split:'.' | First }}.{{ lat | Split:'.' | Last | Truncate:2,'' }}
