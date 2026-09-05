@@ -1,0 +1,67 @@
+			{%- assign spotsLeft = partition.Limit | Minus: partition.Filled -%}
+			{%- comment -%}
+				ROCK-FOODPACK: this is the pack-session (leaf) picker in CardWizardMode "Multiple".
+				The role is already chosen by the time this renders, and it is parentPartition, so
+				each session row can show what that role's window actually is.
+
+				Session start comes from the pack-session Defined Value's EXISTING "DateTime" attribute,
+				so no new per-slot field is needed and there is nothing to keep in sync. Session end is
+				derived as start + length, where length is packSessionLengthMinutes from the block Lava,
+				overridable per session by a SessionLengthMinutes attribute if one session runs long.
+
+				Three tiers, best available wins:
+				  1. Computed window - needs ShiftAnchor / ShiftOffsetMinutes / ShiftLengthMinutes on
+				     the Group Type Role. Prints a real clock range per session.
+				  2. ScheduleNote text, repeated per row. Only when showNoteOnEveryRow is 'true',
+				     since the note is already in the alert at the top of this slide.
+				  3. Nothing.
+
+				shiftText MUST be reset every iteration - PartitionList is included once per session
+				inside Partition.lava's loop and DotLiquid keeps assigns across iterations, so a stale
+				value would bleed onto later rows.
+			{%- endcomment -%}
+			{%- assign shiftText = '' -%}
+			{%- if parentPartition.PartitionType == 'Role' -%}
+				{%- assign roleEntity = parentPartition.Entity -%}
+				{%- assign shiftAnchor = roleEntity | Attribute:'ShiftAnchor','RawValue' -%}
+				{%- assign shiftOffset = roleEntity | Attribute:'ShiftOffsetMinutes','RawValue' | AsInteger -%}
+				{%- assign shiftLength = roleEntity | Attribute:'ShiftLengthMinutes','RawValue' | AsInteger -%}
+				{%- assign sessionStart = partition.Entity | Attribute:'DateTime','RawValue' -%}
+				{%- if shiftLength > 0 and sessionStart != '' and sessionStart != empty -%}
+					{%- assign sessionLength = partition.Entity | Attribute:'SessionLengthMinutes','RawValue' | AsInteger -%}
+					{%- if sessionLength <= 0 -%}
+						{%- assign sessionLength = packSessionLengthMinutes | AsInteger -%}
+					{%- endif -%}
+					{%- if shiftAnchor == 'SessionEnd' -%}
+						{%- assign anchorTime = sessionStart | DateAdd: sessionLength, 'm' -%}
+					{%- else -%}
+						{%- assign anchorTime = sessionStart -%}
+					{%- endif -%}
+					{%- assign shiftStart = anchorTime | DateAdd: shiftOffset, 'm' -%}
+					{%- assign shiftEnd = shiftStart | DateAdd: shiftLength, 'm' -%}
+					{%- capture shiftText -%}Your shift: {{ shiftStart | Date:'h:mm tt' }} &ndash; {{ shiftEnd | Date:'h:mm tt' }}{%- endcapture -%}
+				{%- endif -%}
+				{%- if shiftText == '' and showNoteOnEveryRow == 'true' -%}
+					{%- assign roleNote = roleEntity | Attribute:'ScheduleNote' -%}
+					{%- if roleNote != '' and roleNote != empty -%}
+						{%- capture shiftText -%}{{ roleNote }}{%- endcapture -%}
+					{%- endif -%}
+				{%- endif -%}
+			{%- endif -%}
+			{% if partition.Limit != 0 %}
+				<div class="col-md-10 col-md-offset-1 col-lg-8 col-lg-offset-2">
+					<div class="clearfix">
+						<div class="check">
+							<label>
+								<input type="checkbox" name="{{partition.ParameterName}}" value="{{partition.Entity.Guid}}" {% if partition.Limit > 0 and spotsLeft <= 0 %}disabled="true"{% endif %} />
+								<div class="icon-box"><i class="fa fa-check"></i></div>
+								<h3{% if  partition.Limit > 0 and spotsLeft <= 0 %} style="text-decoration: line-through"{% endif %}><strong><i>{{partition.Entity.Name}}{{partition.Entity.Value}}</i></strong><span class="hidden-xs hidden-sm spots-left"> - <small>{% if spotsLeft <= 0 %}Full{% elseif partition.Limit == null %}Unlimited{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}</small></span></h3>
+							</label>
+							<div class="hidden-md hidden-lg" style="margin: -20px 0px 0px 75px">{% if spotsLeft <= 0 %}Full{% elseif partition.Limit == null %}Unlimited{% else %}{{spotsLeft}} {{ 'Spot' | PluralizeForQuantity:spotsLeft }} Remaining{% endif %}</div>
+							{% if shiftText != '' %}
+								<div class="text-muted" style="margin: 4px 0px 0px 75px; font-size: 13px;"><i class="fa fa-clock-o"></i> {{ shiftText }}</div>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+			{% endif %}

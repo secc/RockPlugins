@@ -15,7 +15,7 @@ Grow Family Resources Message Page
 {%-  assign itemImage = SEKidsItem | Attribute:'Image' -%}
 {%-  assign itemImageGuid = SEKidsItem | Attribute:'Image','RawValue' -%}
 {%- if SEKidsItem and itemStartDateTime <= currentDateTime -%}
-	{%- assign seKidsChildItems = SEKidsItem.ChildItems | Sort:'Order','Asc' -%}
+	{%- assign seKidsChildItems = SEKidsItem.ChildItems | OrderBy:'Order' -%}
 	{%- for resources in seKidsChildItems -%}
 		{%- assign resource = resources.ChildContentChannelItem -%}
 		{%- if resource.ContentChannelId == '77' -%}

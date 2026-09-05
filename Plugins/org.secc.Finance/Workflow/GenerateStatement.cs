@@ -21,6 +21,7 @@ using org.secc.Finance.Utility;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI.Controls;
@@ -96,7 +97,7 @@ namespace org.secc.Finance.Workflow
     /// <summary>
     /// Pledge Summary Class
     /// </summary>
-    public class PledgeSummary : DotLiquid.Drop
+    public class PledgeSummary : LavaDataObject
     {
         /// <summary>
         /// Gets or sets the pledge account identifier.
@@ -174,7 +175,7 @@ namespace org.secc.Finance.Workflow
     /// <summary>
     /// Account Summary Class
     /// </summary>
-    public class AccountSummary : DotLiquid.Drop
+    public class AccountSummary : LavaDataObject
     {
         /// <summary>
         /// Gets or sets the name of the account.

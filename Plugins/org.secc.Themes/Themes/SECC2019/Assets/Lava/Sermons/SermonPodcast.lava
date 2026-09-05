@@ -52,7 +52,7 @@
                     {%- endfor -%}
                     ]
                 {%- endcapture -%}
-                {%- assign echoMessages = echoJSON | FromJSON | Sort:'StartDateTime', 'desc' -%}
+                {%- assign echoMessages = echoJSON | FromJSON | OrderBy:'StartDateTime desc' -%}
                 {%- for echoMessage in echoMessages -%}
                     {%- assign now = 'Now' | Date:'yyyyMMddHHmmss' -%}
                     {%- if now > echoMessage.StartDateTime -%}

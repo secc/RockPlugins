@@ -1,0 +1,117 @@
+		{% if level > 0 %}
+			{% assign divId = partition.ParentIdentifier | Append:'_' | Append: partition.Value %}
+		{% else %}
+			{% assign url = '' %}
+			{% assign level = 0 %}
+			{% assign divId = 'signup' %}
+			{% assign show = 'Global' | PageParameter:'show' %}
+			{% assign foundDiv = false %}
+		{% endif %}
+		{% assign level = level | Plus:1 %}
+		<div id="{{divId}}" data-level="{{level}}" class="slide-box {% if show == '' and show == empty and level == 1 %}{% assign foundDiv = true %}active" style="left: 0%;{% elseif show == divId %}{% assign foundDiv = true %}active" style="left: 0%;{% endif %}">
+			{% if level > 1 %}
+			<div class="row">
+				<div class="col-xs-12">
+					<a href="#" onclick="doSlide('#{{partition.ParentIdentifier}}'); return false;" title="Go Back" class="btn btn-default">
+						Back
+					</a>
+					{%- comment -%}
+						ROCK-FOODPACK: when the slide we are entering is the Schedule step, its parent
+						partition is the Role the person just picked. Surface that role's ScheduleNote
+						attribute here so specialty volunteers see their real arrival/departure window
+						on the same screen where they choose a pack session.
+					{%- endcomment -%}
+					{%- assign roleNote = '' -%}
+					{%- if parentPartition.PartitionType == 'Role' -%}
+						{%- assign roleNote = parentPartition.Entity | Attribute:'ScheduleNote' -%}
+					{%- endif -%}
+					{% if roleNote != '' and roleNote != empty %}
+					<br />
+					<header class="col-sm-10 col-sm-offset-1">
+						<br />
+						<h2>{{ parentPartition.Entity.Name }}</h2>
+						<div class="alert alert-info" style="margin-bottom: 0;">{{ roleNote }}</div>
+						<br />
+					</header>
+					{% elseif partitionDescriptionShow == "True" %}
+					<br />
+					<header class="col-sm-10 col-sm-offset-1">
+						<br />
+						<h2>{{ parentPartition.Entity.Name }}</h2>
+						<p>{{ parentPartition.Entity.Description }}</p>
+						<br />
+					</header>
+					{% endif %}
+				</div>
+			</div>
+			{% endif %}
+
+			<div class="row">
+	            <div class="col-sm-10 col-sm-offset-1">
+				{% assign parameterName = '' %}
+	            {% for partition in Tree %}
+					{% assign partitionSize = partition.Partitions | Size %}
+					{% if partitionSize > 0 or CardWizardMode == "Single" %}
+						{% if partition.PartitionType == 'DefinedType' %}
+							{%- comment -%}
+								ROCK-FOODPACK: the pack sessions are a DefinedType partition (workflow
+								attribute TimeSlot is a Defined Value), not a Schedule partition, so they
+								render through CardDefinedType and would otherwise get the generic
+								"select from the following" header. Name it when it sits under a Role.
+							{%- endcomment -%}
+							{% if forloop.first %}<h3 class="section-header">{% if parentPartition.PartitionType == 'Role' %}Please select your pack session:{% else %}Please select from the following:{% endif %}</h3>{% endif %}
+							{% include '~~/Assets/Lava/FoodPack/CardWizardFoodPack/CardDefinedType.lava' %}
+						{% elseif partition.PartitionType == 'Schedule' %}
+							{% if forloop.first %}<h3 class="section-header">Please select your schedule:</h3>{% endif %}
+							{% include '~~/Assets/Lava/FoodPack/CardWizardFoodPack/CardSchedule.lava' %}
+						{% elseif partition.PartitionType == 'Campus' %}
+							{% if forloop.first %}<h3 class="section-header">Please select your campus:</h3>{% endif %}
+							{% include '~~/Assets/Lava/FoodPack/CardWizardFoodPack/CardCampus.lava' %}
+						{% elseif partition.PartitionType == 'Role' %}
+							{% if forloop.first %}<h3 class="section-header">Please select your serving role:</h3>{% endif %}
+							{% include '~~/Assets/Lava/FoodPack/CardWizardFoodPack/CardRole.lava' %}
+						{% endif %}
+					{% else %}
+						{% assign parameterName = partition.ParameterName %}
+						{% assign type = partition.PartitionType %}
+						{%- comment -%}
+							ROCK-FOODPACK: this is the CardWizardMode == "Multiple" branch, which is what
+							renders the leaf partition as a checkbox list via PartitionList.lava. The pack
+							sessions are the leaf, so this is the header they actually get - the matching
+							patch in the card branch above never fires in Multiple mode.
+						{%- endcomment -%}
+						{% if partition.PartitionType == 'DefinedType' and forloop.first %}
+							<h3 class="section-header">{% if parentPartition.PartitionType == 'Role' %}Please select your pack session(s):{% else %}Please select from the following:{% endif %}</h3>
+						{% elseif partition.PartitionType == 'Schedule' and forloop.first %}
+							<h3 class="section-header">Please select your schedule(s):</h3>
+						{% elseif partition.PartitionType == 'Campus' and forloop.first %}
+							<h3 class="section-header">Please select from the following:</h3>
+						{% elseif partition.PartitionType == 'Role' and forloop.first %}
+							<h3 class="section-header">Please select your serving role(s):</h3>
+						{% endif %}
+						{% include '~~/Assets/Lava/FoodPack/CardWizardFoodPack/PartitionList.lava' %}
+					{% endif %}
+	            {% endfor %}
+	            </div>
+			</div>
+
+			{% if parameterName != '' and CardWizardMode != "Single" %}
+			<div class="row">
+				<div class="col-sm-10 col-sm-offset-1">
+					<a href="{{partition.Url}}" data-type="{{type}}" data-group-id="{{partition.GroupId}}" data-role="{{partition.RoleGuid}}" data-parameter-name="{{parameterName}}" title="Sign Up" class="btn btn-primary pull-right signup-button">
+						Sign Up
+					</a>
+				</div>
+			</div>
+			{% endif %}
+
+        </div>
+        {% for partition in Tree %}
+			{% assign partitionSize = partition.Partitions | Size %}
+			{% if partitionSize > 0 %}
+				{% assign Tree = partition.Partitions %}
+				{% assign parentPartition = partition %}
+				{% include '~~/Assets/Lava/FoodPack/CardWizardFoodPack/Partition.lava' %}
+			{% endif %}
+        {% endfor %}
+		{% assign level =  level | Minus:1 %}

@@ -41,7 +41,7 @@ Grow Family Resources Resources Page
     "items": [
 		{%- assign comma = "" -%}
 		{%- assign resourcesIncluded = false -%}
-			{% assign seKidsChildItems = SEKidsItem.ChildItems | Sort:'Order','Asc' %}
+			{% assign seKidsChildItems = SEKidsItem.ChildItems | OrderBy:'Order' %}
 			{%- for resources in seKidsChildItems -%}
 				{% assign resource = resources.ChildContentChannelItem %}
 					{% if resource.ContentChannelId == '78' %}

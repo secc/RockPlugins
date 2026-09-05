@@ -22,7 +22,7 @@
     {%- comment -%}
     ************ Get the newest sermon if exists ************
     {%- endcomment -%}
-    {%- assign seriesChildItems = series.ChildItems | Sort:'Priority','Asc' -%}
+    {%- assign seriesChildItems = series.ChildItems | OrderBy:'Priority' -%}
     {%- for messages in seriesChildItems reversed -%}
         {%- assign message = messages.ChildContentChannelItem -%}
         {%- if message.ContentChannelId == "23" -%}

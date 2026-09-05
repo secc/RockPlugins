@@ -108,7 +108,7 @@
                             {% endif %}
 
                             <p class="g-font-size-14-xs g-font-weight--300">
-                                <i class="fal fa-calendar"></i> {% if eventItemOccurrence.CustomDateText != null && eventItemOccurrence.CustomDateText != '' -%}
+                                <i class="fal fa-calendar"></i> {% if eventItemOccurrence.CustomDateText != null and eventItemOccurrence.CustomDateText != '' -%}
                                     {{ eventItemOccurrence.CustomDateText }}
                                 {% else -%}
                                     {% assign eventItemDatesIsHidden = eventItemOccurrence.AttEventDatesHide %}
@@ -131,7 +131,7 @@
 
                             <p class="g-font-size-14-xs g-font-weight--300">
                                 <i class="fal fa-map-marker-alt"></i>
-                                {% if eventItemOccurrence.CustomLocationText != null && eventItemOccurrence.CustomLocationText != '' -%}
+                                {% if eventItemOccurrence.CustomLocationText != null and eventItemOccurrence.CustomLocationText != '' -%}
                                     {{ eventItemOccurrence.CustomLocationText}}
                                 {% else %}
                                 {% if eventItemOccurrence.EventItemOccurrence.Location != '' %}

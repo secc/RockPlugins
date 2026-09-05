@@ -23,6 +23,7 @@ using System.Web.UI.WebControls;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Web.Cache;
 using Rock.Web.UI;
@@ -250,7 +251,7 @@ namespace RockWeb.Blocks.Reporting.NextGen
             public string Medications { get; set; }
         }
 
-        class LavaData : DotLiquid.Drop
+        class LavaData : LavaDataObject
         {
             public Person Person { get; set; }
             public List<Group> Groups { get; set; }
