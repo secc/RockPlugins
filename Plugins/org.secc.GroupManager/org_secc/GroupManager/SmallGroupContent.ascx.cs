@@ -294,7 +294,9 @@ $('#updateProgress').show();
 
             SaveAttributeValues();
 
-            RemoveCacheItem( CONTENT_CACHE_KEY + ChannelGuid );
+            // Items are cached per "Item" page parameter (see GetContent), so remove the entry for the
+            // item being viewed. Entries for other items expire on their own after CacheDuration.
+            RemoveCacheItem( CONTENT_CACHE_KEY + ChannelGuid + ( PageParameter( "Item" ) ?? string.Empty ) );
 
             mdEdit.Hide();
             pnlEditModal.Visible = false;
