@@ -2,7 +2,7 @@
 
 namespace org.secc.SystemsMonitor.Helpers
 {
-    class TestResult : DotLiquid.Drop
+    class TestResult : Rock.Lava.LavaDataObject
     {
         public string Name { get; set; }
 

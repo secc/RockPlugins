@@ -198,7 +198,7 @@ namespace RockWeb.Plugins.org_secc.CMS
         public string access_token { get; set; }
     }
 
-    internal class Tweet : DotLiquid.Drop
+    internal class Tweet : LavaDataObject
     {
         public long Id { get; set; }
         public string Text { get; set; }

@@ -132,7 +132,7 @@
                 <div id="magazineHead" class="row">
                     <div class="col-sm-12 col-md-2 text-center hidden-sm">
                         <br>
-                        {%-if currentMessage | Attribute:'FacebookImage' != ''-%}
+                        {%- assign fbImage = currentMessage | Attribute:'FacebookImage' -%}{%- if fbImage != '' -%}
                             {%- assign facebookImageGuid = currentMessage | Attribute:'FacebookImage','RawValue' -%}
                         {%- else -%}
                             {%- assign facebookImageGuid = storyImageGuid -%}

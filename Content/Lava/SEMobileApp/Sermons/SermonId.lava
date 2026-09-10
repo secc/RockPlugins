@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Sermon Page' componententityid:'27193' operation:'View' summary:'Sermon Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'{{id}}'%}
 Sermon Page
 {% endinteractionwrite %}
@@ -17,21 +18,21 @@ Sermon Page
 {%- endcontentchannelitemassociation -%}
 {
 	"header": {
-		"title": "{{sermon.Title | Replace:'"','\"'}}"
+		"title": "{{sermon.Title | Replace:'"',bsq }}"
 	},
 	"actionSheet":{
 		"items":[
 			{
 				"actions":[{
 					"handler":"defaultShare",
-					"body":"Check this out! {{series.Title | Replace:'"','\"'}} | {{sermon.Title | Replace:'"','\"'}}",
+					"body":"Check this out! {{series.Title | Replace:'"',bsq }} | {{sermon.Title | Replace:'"',bsq }}",
 					"url":"{{ 'Global' | Attribute:'PublicApplicationRoot' }}sermons/{{series.PrimarySlug}}/{{sermon.PrimarySlug}}"
 				}]
 			},
 			{
 				"actions":[{
 					"handler":"htmlShare",
-					"body":"<html>Check this out! <a href='{{ 'Global' | Attribute:'PublicApplicationRoot' }}sermons/{{series.PrimarySlug}}/{{sermon.PrimarySlug}}'><b>{{series.Title | Replace:'"','\"'}} | {{sermon.Title | Replace:'"','\"'}}</b></a>.</html>"
+					"body":"<html>Check this out! <a href='{{ 'Global' | Attribute:'PublicApplicationRoot' }}sermons/{{series.PrimarySlug}}/{{sermon.PrimarySlug}}'><b>{{series.Title | Replace:'"',bsq }} | {{sermon.Title | Replace:'"',bsq }}</b></a>.</html>"
 				}]
 			}
 		]
@@ -59,8 +60,8 @@ Sermon Page
     			{ "width":1920, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1920"}
     		]
 		}],
-	"title": "{{sermon.Title | Replace:'"','\"'}}",
-	"body":"{{ sermon.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}"
+	"title": "{{sermon.Title | Replace:'"',bsq }}",
+	"body":"{{ sermon.Content | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}"
 }
 {%- endfor -%}
 {% endcontentchannelitem -%}

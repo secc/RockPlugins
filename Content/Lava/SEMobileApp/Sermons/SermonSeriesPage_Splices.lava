@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {
 	"header": {
 		"title": "Sermons"
@@ -31,7 +32,7 @@
 	            "primary":"#121212",
 	            "primaryAccent":"#FFFFFF"
 	        },
-	        "brandableElements":"{{colors:brand}}"
+	        "brandableElements":""
 	    }
 	},
 	{%- if page != empty -%}
@@ -43,8 +44,8 @@
 	        {%- for item in contentchannelitemItems -%}
 	        {% unless forloop.first %},{% endunless %}
 	        {
-				"title": "{{item.Title | Replace:'"','\"'}}",
-				"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
+				"title": "{{item.Title | Replace:'"',bsq }}",
+				"subtitle": "{{ item.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
 	            "images":[
 				    { "width":400, "url":"https://app.secc.org/GetImage.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=400&height=75&mode=crop&s.roundcorners=80,80,0,0&bgcolor=121212&format=png&margin=40,75,40,0&anchor=topcenter"  }
 			    ],

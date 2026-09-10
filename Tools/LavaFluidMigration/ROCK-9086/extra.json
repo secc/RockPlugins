@@ -1,0 +1,3 @@
+[{"table": "AttributeValue", "id": 79262765,
+  "old": "{% if lng != '' and lng != '' -%}", "new": "{% if lat != '' and lng != '' -%}",
+  "rule": "manual-latlng"}]

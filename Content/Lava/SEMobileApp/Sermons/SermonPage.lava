@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {%- cache key:'subsplash-sermons-{{page}}' duration:'3600' -%}
 {
 	"header": {
@@ -34,8 +35,8 @@
 			    { "url":"https://app.secc.org/GetImage.ashx/{{item | Attribute:'Image', 'RawValue'}}.jpg?guid={{item | Attribute:'Image', 'RawValue'}}&width=110" }
 		    ],
 			"position": "{{forloop.index}}",
-			"title": "{{item.Title | Replace:'"','\"'}}",
-			"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
+			"title": "{{item.Title | Replace:'"',bsq }}",
+			"subtitle": "{{ item.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
 			"actions": [{
 				"handler": "list",
 				"url": "https://app.secc.org/webhooks/Lava.ashx/subsplash/sermons/series/{{item.Id}}"

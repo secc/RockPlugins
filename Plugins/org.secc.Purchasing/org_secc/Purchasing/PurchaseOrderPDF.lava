@@ -67,7 +67,7 @@ table {
             {% assign s2 = ShipTo.City | Size %}
             {% assign s3 = ShipTo.State | Size %}
             {% assign s4 = ShipTo.Zip | Size %}
-            {% if s1 != 0 && s2 != 0 && s3 != 0 && s4 != 0 %}
+            {% if s1 != 0 and s2 != 0 and s3 != 0 and s4 != 0 %}
                 {{ShipTo.Street1}}<br />
                 {{ShipTo.City}}, {{ShipTo.State}} {{ShipTo.Zip}}
             {% endif %}

@@ -74,7 +74,8 @@
 						{% elseif transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == 'dabee8fd-aedf-43e1-8547-4c97fa14d9b6' %}
 						    {%- assign maskedAccount = transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Split:' ' | Index:1 -%}
 						    {%- assign maskedAccountSize = maskedAccount | Size -%}
-						    {%- assign maskedAccountDigits = maskedAccount | RegExMatchValue:'\d+' -%}
+						    {%- capture digitsPattern -%}\d+{%- endcapture -%}
+						    {%- assign maskedAccountDigits = maskedAccount | RegExMatchValue:digitsPattern -%}
 						    {%- assign maskedAccountDigitsSize = maskedAccountDigits | Size -%}
 						    {%- assign maskedAccountNonDigitsSize = maskedAccountSize | Minus:maskedAccountDigitsSize -%}
 						    {%- if maskedAccountDigitsSize == 0 %}{%- assign maskedAccountNonDigitsSize = 8 -%}{% endif %}

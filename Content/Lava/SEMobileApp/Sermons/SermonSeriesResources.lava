@@ -1,8 +1,9 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
 {%- for series in contentchannelitemItems -%}
 {
 	"header": {
-		"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+		"title": "{{series.Title | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}",
 		"style": "featured",
 		"items": [{
 			"images":[

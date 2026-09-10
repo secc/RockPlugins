@@ -8,6 +8,7 @@ using Rock;
 using Rock.Attribute;
 using Rock.CheckIn;
 using Rock.Data;
+using Rock.Lava;
 using Rock.Model;
 using Rock.Workflow;
 using Rock.Workflow.Action.CheckIn;
@@ -71,7 +72,8 @@ namespace org.secc.FamilyCheckin.Workflows
             mergeFields.Add( "CreditsUsed", receiptData.CreditsUsed );
             mergeFields.Add( "CreditsEnding", receiptData.CreditsEnding );
             
-            mergeFields.Add( "Participants", receiptData.Participants );
+            // Participants are plain POCOs (JSON-persisted); wrap them so both Lava engines can read their properties.
+            mergeFields.Add( "Participants", receiptData.Participants.Select( p => new LavaDataObject( p ) ).ToList() );
 
             var label = new CheckInLabel( KioskLabel.Get( receiptLabelFileGuid ), mergeFields );
             label.FileGuid = receiptLabelFileGuid;

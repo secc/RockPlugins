@@ -232,7 +232,7 @@
                 {% for w in workflowItems %}
 					{% assign lat = w | Attribute:'Lat' | AsDouble %}
 					{% assign long = w | Attribute:'Long' | AsDouble %}
-					{% if lat > 0 && long > 0 %}
+					{% if lat > 0 and long > 0 %}
 						/* {{w.Guid}} */
 						prayerwalkMarkers[prayerwalkMarkers.length] = new google.maps.Marker({
 							position: new google.maps.LatLng({{ lat }},{{ long }}),

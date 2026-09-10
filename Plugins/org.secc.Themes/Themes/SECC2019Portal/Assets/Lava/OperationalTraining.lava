@@ -109,7 +109,7 @@
 
 	                {% endif %}
 
-	                {% if trainingType == {{typeName}} %}
+	                {% if trainingType == typeName %}
 
 	                  {%- assign colPos = forloop.index0 | Modulo:3 | Plus:1 -%}
 										{%- assign rowPos = forloop.index | DividedBy:3 | Ceiling -%}

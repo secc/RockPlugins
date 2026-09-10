@@ -16,7 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using DotLiquid;
+using Rock.Lava;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -276,7 +276,7 @@ namespace org.secc.Finance.Utility
     /// <summary>
     /// Pledge Summary Class
     /// </summary>
-    public class PledgeSummary : DotLiquid.Drop
+    public class PledgeSummary : LavaDataObject
     {
         /// <summary>
         /// Gets or sets the pledge account identifier.
@@ -354,7 +354,7 @@ namespace org.secc.Finance.Utility
     /// <summary>
     /// Account Summary Class
     /// </summary>
-    public class AccountSummary : DotLiquid.Drop
+    public class AccountSummary : LavaDataObject
     {
         /// <summary>
         /// Gets or sets the name of the account.
@@ -397,7 +397,7 @@ namespace org.secc.Finance.Utility
         public int Order { get; set; }
     }
 
-    public class MoveCommitmentSummary : DotLiquid.Drop
+    public class MoveCommitmentSummary : LavaDataObject
     {
         public int PersonId { get; set; }
         public decimal AmountPledged { get; set; }

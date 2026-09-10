@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Series Resources' componententityid:'30051' operation:'View' summary:'Series Resources Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'{{series}}'%}
 Series Resources Page
 {% endinteractionwrite %}
@@ -13,7 +14,7 @@ Series Resources Page
 	{%- for series in contentchannelitemItems -%}
 	{
 		"header": {
-			"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+			"title": "{{series.Title | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}",
 			"style": "featured",
 			"items": [{
 				"images":[
