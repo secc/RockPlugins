@@ -500,7 +500,10 @@ namespace org.secc.Rest.Controllers
                 var _rockContext = new RockContext();
                 var groupMemberService = new GroupMemberService( _rockContext );
                 var groupMember = groupMemberService.Get( groupMemberId );
-                if ( groupMember == null )
+
+                // The target must belong to the group the caller is authorized on;
+                // otherwise a caller could hard-delete members of other groups.
+                if ( groupMember == null || groupMember.GroupId != groupId )
                 {
                     return NotFound();
                 }
