@@ -72,7 +72,7 @@ Categories in Rock: **SECC > Groups**, **SECC > Camp**, and **Groups**.
 | Camp Allergies | RockBlock | Campers in a group who have allergies (backed by a stored proc). |
 | Publish Groups Lava | RockBlock | Output PublishGroups via Lava. Settings: `Lava Template`, `Campus Parameter Name` (default `CampusId`), `Category Parameter Name` (default `CategoryId`), `Filter Categories` (defined-value guid list limiting the category filter), `Category Filter Display Mode` (1 = hidden, 2+ = shown). Hides groups whose **Active** member count has reached `GroupCapacity`; group/publish-group attributes load via Rock's bulk `LoadAttributes` (qualifier filtering, inherited attributes, default values). |
 | Publish Group List | RockBlock | List of PublishGroups. |
-| Publish Group Registration | RockBlock | Register a person for a published group. |
+| Publish Group Registration | RockBlock | Register a person for a published group. The confirmation email is sent **From `noreply@secc.org`** with the publish group's `ConfirmationFromName`; the leader-entered `ConfirmationEmail` is used as the **Reply-To**. |
 | Publish Group Request | RockBlock | Display a publish-group request. |
 
 ### Models
