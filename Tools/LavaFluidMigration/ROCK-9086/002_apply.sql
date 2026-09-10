@@ -3,7 +3,7 @@
 -- exact Lava tag, guarded so a row is only touched if the expected text is still present.
 -- Run 001_preflight.sql first. Set @DryRun = 0 to commit. Clear the Rock cache afterwards
 -- (Admin Tools > System Settings > Cache Manager) - AttributeValue and HtmlContent are cached.
-SET NOCOUNT ON; SET XACT_ABORT ON;
+SET NOCOUNT ON; SET XACT_ABORT ON; SET QUOTED_IDENTIFIER ON; SET ANSI_NULLS ON; -- filtered indexes on AttributeValue need QUOTED_IDENTIFIER ON (SSMS default; sqlcmd/DBeaver may not)
 DECLARE @DryRun bit = 1;
 DECLARE @log TABLE (Tbl sysname, Id int, FixRule varchar(40), [Rows] int);
 BEGIN TRAN;
@@ -195,9 +195,19 @@ INSERT @log VALUES ('HtmlContent', 3641, 'and-or', @@ROWCOUNT);
 
 -- HtmlContent 4088: nested {% comment %} blocks (Fluid cannot nest them). Everything after the include is
 -- already commented out, so strip every comment tag and re-wrap the remainder once.
+-- Guard: the include tag must still be present (it is the re-open anchor) and there must still be 2+ comment
+-- openers (nested state), so a drifted row is skipped rather than uncommented, and a second run is a no-op.
 UPDATE HtmlContent SET [Content] = REPLACE(REPLACE(REPLACE([Content], N'{% comment %}', N''), N'{% endcomment %}', N''), N'{% include ''~~/Assets/Lava/Home/NewsHero.lava'' %}', N'{% include ''~~/Assets/Lava/Home/NewsHero.lava'' %} {% comment %}') + N' {% endcomment %}'
- WHERE [Id] = 4088 AND [Version] = (SELECT MAX([Version]) FROM HtmlContent WHERE BlockId = 5362) AND CHARINDEX(N'{% comment %}', [Content]) > 0;
+ WHERE [Id] = 4088 AND [Version] = (SELECT MAX([Version]) FROM HtmlContent WHERE BlockId = 5362)
+   AND CHARINDEX(N'{% include ''~~/Assets/Lava/Home/NewsHero.lava'' %}', [Content]) > 0
+   AND (LEN([Content]) - LEN(REPLACE([Content], N'{% comment %}', N''))) / LEN(N'{% comment %}') >= 2;
 INSERT @log VALUES ('HtmlContent', 4088, 'nested-comment', @@ROWCOUNT);
+
+-- LavaShortcode 11 (parallax): '{% else- %}' is not valid whitespace control. DotLiquid tolerates it, Fluid fails
+-- the whole shortcode so every page using {[ parallax ]} renders truncated. Theme mirrors fixed in PR #304.
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'LavaShortcode', [Id], 'Markup', [Markup] FROM LavaShortcode WHERE [Id] = 11 AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'LavaShortcode' AND b.Id = 11);
+UPDATE LavaShortcode SET [Markup] = REPLACE([Markup], N'{% else- %}', N'{% else -%}') WHERE [Id] = 11 AND CHARINDEX(N'{% else- %}', [Markup]) > 0;
+INSERT @log VALUES ('LavaShortcode', 11, 'else-trim', @@ROWCOUNT);
 
 
 UPDATE HtmlContent SET [Content] = REPLACE([Content], N'| Sort:''Order'',''Asc''', N'| OrderBy:''Order''') WHERE [Id] = 4100 AND [Version] = (SELECT MAX([Version]) FROM HtmlContent WHERE BlockId = 5373) AND CHARINDEX(N'| Sort:''Order'',''Asc''', [Content]) > 0;

@@ -6,7 +6,7 @@ repo-side changes in PR #304.
 
 ## What is changed
 
-53 live rows, 55 statements, all listed with exact before/after text in [`rows.md`](rows.md):
+54 live rows, 56 statements, all listed with exact before/after text in [`rows.md`](rows.md):
 
 | Rule | Rows | Change |
 |---|---|---|
@@ -15,12 +15,32 @@ repo-side changes in PR #304.
 | `Sort:''` on split strings | 3 | → bare `Sort` (silent no-op under Fluid) |
 | inline `\d` / `\w` regex | 13 | → `[0-9]` / `[A-Za-z0-9_]` character classes (Fluid parse error otherwise) |
 | variable `6MthsAgo` | 13 | → `sixMthsAgo`, every usage |
-| nested `{% comment %}` | 1 | strip inner comment tags, re-wrap once |
+| nested `{% comment %}` | 1 | strip inner comment tags, re-wrap once (guarded on the include anchor and on 2+ openers, so drift is skipped and re-runs are no-ops) |
+| `{% else- %}` in the parallax shortcode | 1 | → `{% else -%}` (Fluid fails the whole shortcode, so every `{[ parallax ]}` page renders truncated) |
 | SEOnlineMap feed guard `lng != '' and lng != ''` | 1 | → `lat != '' and lng != ''` (same behaviour fix as the theme copy in PR #304) |
 
 Every statement is a `REPLACE()` of one exact Lava tag, guarded by `CHARINDEX(old) > 0` and,
 for HtmlContent, `Version = MAX(Version)` for that block. Rows edited in Rock after the export
 are therefore skipped, never clobbered, and show up as `Rows = 0` in the log.
+
+## Behaviour changes to test before applying
+
+Rock's vendored DotLiquid evaluates only the **first clause** of `{% if a && b %}` (`If.cs` splits
+conditions on `and`/`or` only, and the unanchored `Syntax` regex drops everything after `a`). After
+the `&&` → `and` rewrite every clause counts, so some conditions flip on production **the day the
+scripts run, with the engine setting untouched**. Confirmed by rendering old vs new on the same
+engine:
+
+| Row | Old (first clause only) | New (all clauses) |
+|---|---|---|
+| WorkflowActionForm 456 Header (`child.Age < 6 && grade == ''`) | shows | hidden when a grade is set |
+| WorkflowActionForm 531 Header (`attribute.IsRequired && attribute.Value == Empty`) | shows | hidden when the value is filled |
+| `PurchaseOrderPDF.lava:70` (repo copy, same class) | address shown | address suppressed when either part is empty |
+
+These are almost certainly the intended behaviour, but before running `002_apply.sql` with
+`@DryRun = 0`: open workflow forms 456 and 531 in staging with one record that **should** show the
+block and one that **should not**, and confirm both after the change. The same class of change
+applies to every `and-or` row in `rows.md` (19 rows).
 
 ## How to apply
 
@@ -31,8 +51,8 @@ Run in SSMS against the target database, in order:
 2. `002_apply.sql` — leave `@DryRun = 1` first and read the log: every statement should show
    `Rows = 1`. Then set `@DryRun = 0` and run again. Originals are copied to
    `dbo._ROCK9086_LavaBackup` before any change.
-3. **Clear the Rock cache** (Admin Tools > System Settings > Cache Manager). AttributeValue
-   and HtmlContent are cached; nothing changes on screen until you do.
+3. **Clear the Rock cache** (Admin Tools > System Settings > Cache Manager). AttributeValue,
+   HtmlContent and LavaShortcode are cached; nothing changes on screen until you do.
 4. `003_verify.sql` — expect `StillHasOld = 0` and `HasNew > 0` on every line.
 5. If anything looks wrong: `004_rollback.sql` restores every touched row from the backup
    table, then clear the cache again.
@@ -53,3 +73,23 @@ parse and run against a Rock 1.16.12 schema.
 Not covered here: check-in label ZPL (BinaryFileData), `~/Content/...` Lava files that live
 only on the web server, and the 245 `{% include %}` tags with dynamic paths — those are for
 the Fluid-verification pass in staging.
+
+Known scan gaps (`scan_db_lava.sql` reads 15 table.column pairs): `ReportField.Selection`,
+`WorkflowType.SummaryViewText`, `DefinedValue.Description`, `Block.PreHtml`, `Block.PostHtml`,
+`Metric.SourceLava` and `Page.HeaderContent` also hold Lava and were never exported. Two rows in
+those columns are already known to break under Fluid (WorkflowType 456 `SummaryViewText` still has
+`&&`; report 2122 mismatches). Add the columns to the scanner in secc-claude-tools, re-export, and
+regenerate before the staging pass. The scanner's rules also do not cover the classes fixed
+repo-side in PR #304 (filters or `{{ }}` or parentheses inside `{% if %}`, `| |`, `{% else- %}`,
+`Date:'yyMMddHHmm' | AsInteger`, `Replace:'"','\"'`), so after applying these scripts burn down
+the DEV `ExceptionLog` signatures from a Fluid-verification run rather than adding regex rules:
+
+```sql
+SELECT COUNT(*) AS Cnt,
+       LEFT(REPLACE(REPLACE(Description, CHAR(13), ' '), CHAR(10), ' '), 260) AS Sig
+FROM ExceptionLog
+WHERE CreatedDateTime >= '<run start>' AND CreatedDateTime < '<run end>'
+  AND (Description LIKE 'Lava%' OR Source LIKE '%Fluid%')
+GROUP BY LEFT(REPLACE(REPLACE(Description, CHAR(13), ' '), CHAR(10), ' '), 260)
+ORDER BY Cnt DESC;
+```

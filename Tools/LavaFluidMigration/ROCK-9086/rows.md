@@ -106,3 +106,5 @@
   `{% if child.Age < 6 && grade == '' %}` → `{% if child.Age < 6 and grade == '' %}`  (and-or)
 - **WorkflowActionForm.Header Id 531**:
   `{% if attribute.IsRequired && attribute.Value == Empty %}` → `{% if attribute.IsRequired and attribute.Value == Empty %}`  (and-or)
+- **LavaShortcode.Markup Id 11** (parallax):
+  `{% else- %}` → `{% else -%}`  (else-trim; theme mirrors fixed in PR #304)
