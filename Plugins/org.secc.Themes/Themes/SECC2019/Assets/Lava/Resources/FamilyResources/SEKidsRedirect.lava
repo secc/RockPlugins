@@ -1,7 +1,7 @@
 {%- contentchannelitem where:'ContentChannelId == 76 && Status == 2' sort:'StartDateTime Desc' -%}
-    {% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger %}
+    {% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsDouble %}
     {%- for item in contentchannelitemItems -%}
-        {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
+        {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsDouble %}
         {% if itemStartDateTime <= currentDateTime %}
             {%- assign campuses = item | Attribute:'Campuses','RawValue' | Split: ',' -%}
             {%- assign ministries = item | Attribute:'Audiences' -%}

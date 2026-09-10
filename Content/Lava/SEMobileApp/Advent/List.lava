@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {
 	"header": {
 		"title": "Advent"
@@ -33,7 +34,7 @@
 				{%- endfor -%}
 				{{ comma }}
                 {
-                    "title": "{{-item.Title | Replace:'"','\"'-}}",
+                    "title": "{{-item.Title | Replace:'"',bsq -}}",
                     "images":[
                         { "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/advent/devotional-button/{{-item.Guid-}}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,80,80,0"  }
                     ],

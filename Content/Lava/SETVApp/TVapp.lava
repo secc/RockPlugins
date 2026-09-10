@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'TV App' componententityid:'27568' operation:'View' summary:'TV App Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
 TV App Page
 {% endinteractionwrite %}
@@ -23,8 +24,8 @@ TV App Page
                     "images":[
                         { "width":720, "url":"https://www.southeastchristian.org/GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}&width=720" }
                     ],
-                    "title": "{{- item.Title | Replace:'"','\"' -}}",
-                    "subtitle": "{{- item | Attribute:'Subtitle' | Replace:'"','\"' -}}",
+                    "title": "{{- item.Title | Replace:'"',bsq  -}}",
+                    "subtitle": "{{- item | Attribute:'Subtitle' | Replace:'"',bsq  -}}",
                     "actions": [{
                         "handler": "detail",
                         "url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/home/{{ item.Guid }}"
@@ -52,7 +53,7 @@ TV App Page
                                     { "width":1920, "url":"https://www.southeastchristian.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1920" }
                                 ],
                                 "title": "Recent Sermon",
-                                "subtitle": "{{sermon.Title | Replace:'"','\"'}} - {{ sermon.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+                                "subtitle": "{{sermon.Title | Replace:'"',bsq }} - {{ sermon.Content | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}",
                                 "actions": [{
                                     "handler": "detail",
                                     "url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/sermon/{{sermon.Id}}"
@@ -87,7 +88,7 @@ TV App Page
                                 { "width":1920, "url":"https://www.southeastchristian.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1920" }
                             ],
                             "title": "Recent Sermon",
-                            "subtitle": "{{sermon.Title | Replace:'"','\"'}} - {{ sermon.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+                            "subtitle": "{{sermon.Title | Replace:'"',bsq }} - {{ sermon.Content | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}",
                             "actions": [{
                                 "handler": "detail",
                                 "url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/sermon/{{sermon.Id}}"
@@ -130,8 +131,8 @@ TV App Page
 				{%- endif -%}
 		    ],
 			"position": "{{forloop.index}}",
-			"title": "{{item.Title | Replace:'"','\"'}}",
-			"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode | StripHtml  }}",
+			"title": "{{item.Title | Replace:'"',bsq }}",
+			"subtitle": "{{ item.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode | StripHtml  }}",
 			"actions": [{
 				"handler": "list",
 				"url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/series/{{item.Id}}"

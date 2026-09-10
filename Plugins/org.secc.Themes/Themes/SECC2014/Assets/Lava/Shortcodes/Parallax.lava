@@ -162,7 +162,7 @@ Note: Do to this javascript requirements of this shortcode you will need to do a
             <div class="parallax-content">
                 {{ blockContent }}
             </div>
-        {% else- %}
+        {% else -%}
             {{ blockContent }}
         {% endif -%}
     </div>

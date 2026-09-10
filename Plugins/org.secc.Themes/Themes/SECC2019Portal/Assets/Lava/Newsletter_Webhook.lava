@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {%- if page != empty -%}
     {%- assign pageNumber = page -%}
 {%- else -%}
@@ -14,8 +15,8 @@
                 {{itemComma}}
                 {
                     "Id": {{item.Id}},
-                    "Name":"{{item.Title | Replace:'"','\"'}}",
-                    "Description":"{{ item.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','<br>' | UrlDecode | StripHtml | Truncate:142 }}",
+                    "Name":"{{item.Title | Replace:'"',bsq }}",
+                    "Description":"{{ item.Content | Replace:'"',bsq  | UrlEncode | Replace:'%0A','<br>' | UrlDecode | StripHtml | Truncate:142 }}",
                     "Date":"{{item.StartDateTime}}",
                     {%- if item.ContentChannelId == 51 -%}
                     "VimeoId": "{{item | Attribute:'VimeoID', 'RawValue'}}"

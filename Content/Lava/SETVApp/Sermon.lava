@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'TV App Sermon' componententityid:'27735' operation:'View' summary:'TV App Sermon Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypdid:'208' relatedentityid:'{{id}}'%}
 TV App Sermon Page
 {% endinteractionwrite %}
@@ -6,7 +7,7 @@ TV App Sermon Page
 {%- for sermon in contentchannelitemItems -%}
 {
 	"header": {
-		"title": "{{sermon.Title | Replace:'"','\"'}}"
+		"title": "{{sermon.Title | Replace:'"',bsq }}"
 	},
 	"sapid":"{{sermon.Guid}}",
 	"images": [{ "width":1080, "url":"https://www.southeastchristian.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1080"}],
@@ -29,8 +30,8 @@ TV App Sermon Page
 			"url":"https://www.southeastchristian.org/GetFile.ashx/{{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}.mp3?guid={{sermon | Attribute:'Audio', 'RawValue'}}",
 			"format":"mp3"
 		}],
-	"title": "{{sermon.Title | Replace:'"','\"'}}",
-	"body":"{%- if fullServiceUrl != "" -%}[{{ sermon | Attribute:'SermonStart' | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode | Append:'] '}}{%- endif -%}{{ sermon.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}"
+	"title": "{{sermon.Title | Replace:'"',bsq }}",
+	"body":"{%- if fullServiceUrl != "" -%}[{{ sermon | Attribute:'SermonStart' | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode | Append:'] '}}{%- endif -%}{{ sermon.Content | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}"
 }
 {%- endfor -%}
 {% endcontentchannelitem -%}

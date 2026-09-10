@@ -1,8 +1,9 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {%- contentchannelitem where:'ContentChannelId == 85 && Id == {{id}}' -%}
 {%- for item in contentchannelitemItems -%}
 {
     "playlist": [{
-        "title": "{{item.Title | Replace:'"','\"'}}",
+        "title": "{{item.Title | Replace:'"',bsq }}",
         "media": [{
             "url": "{{item | Attribute:'Vimeo', 'RawValue'}}",
             "format": "mp4",

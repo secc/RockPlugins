@@ -78,7 +78,9 @@
 	</div>
 	{% endif %}
 
-	{% if LinkedPages.RosterPage != '' and  (LinkedPages.AttendancePage != '' or Group.GroupType.TakesAttendance == 'False') %}
+	{% assign canTakeAttendance = false %}
+	{% if LinkedPages.AttendancePage != '' or Group.GroupType.TakesAttendance == 'False' %}{% assign canTakeAttendance = true %}{% endif %}
+	{% if LinkedPages.RosterPage != '' and canTakeAttendance %}
 		<ul class="nav nav-tabs margin-v-lg">
 			{% if LinkedPages.RosterPage != '' %}
 				{% if LinkedPages.RosterPage == CurrentPage.Path %}

@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow Family Resources Resources' componententityid:'31632' operation:'View' summary:'Grow Family Resources Resources Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypdid:'208' relatedentityid:'{{id}}'%}
 Grow Family Resources Resources Page
 {% endinteractionwrite %}
@@ -17,7 +18,7 @@ Grow Family Resources Resources Page
 {%- if SEKidsItem and itemStartDateTime <= currentDateTime -%}
 {
 	"header": {
-		"title": "{{SEKidsItem.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+		"title": "{{SEKidsItem.Title | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}",
 		"style": "featured",
 		"items": [{
 			"images":[

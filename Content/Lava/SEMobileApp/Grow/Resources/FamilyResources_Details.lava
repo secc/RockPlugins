@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow Family Resources Message' componententityid:'31631' operation:'View' summary:'Grow Family Resources Message Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypdid:'208' relatedentityid:'{{id}}'%}
 Grow Family Resources Message Page
 {% endinteractionwrite %}
@@ -22,7 +23,7 @@ Grow Family Resources Message Page
 			{%- assign resourceVimeoMP4 = resource | Attribute:'vimeo-mp4',"RawValue" -%}
 			{
 				"header": {
-					"title": "{{SEKidsItem.Title | Replace:'"','\"'}}"
+					"title": "{{SEKidsItem.Title | Replace:'"',bsq }}"
 				},
 				"displayOptions":{
 					"colors": {
@@ -49,14 +50,14 @@ Grow Family Resources Message Page
 						{
 							"actions":[{
 								"handler":"defaultShare",
-								"body":"Check this out! {{SEKidsItem.Title | Replace:'"','\"'}}",
+								"body":"Check this out! {{SEKidsItem.Title | Replace:'"',bsq }}",
 								"url":"{{ 'Global' | Attribute:'PublicApplicationRoot' }}familyresources/{{SEKidsItem.PrimarySlug}}"
 							}]
 						},
 						{
 							"actions":[{
 								"handler":"htmlShare",
-								"body":"<html>Check this out! Join us at <a href='{{ 'Global' | Attribute:'PublicApplicationRoot' }}familyresources/{{SEKidsItem.PrimarySlug}}'><b>{{SEKidsItem.Title | Replace:'"','\"'}}</b></a>.</html>"
+								"body":"<html>Check this out! Join us at <a href='{{ 'Global' | Attribute:'PublicApplicationRoot' }}familyresources/{{SEKidsItem.PrimarySlug}}'><b>{{SEKidsItem.Title | Replace:'"',bsq }}</b></a>.</html>"
 							}]
 						}
 					]
@@ -72,8 +73,8 @@ Grow Family Resources Message Page
 						{ "width":1920, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{itemImageGuid}}.jpg?guid={{itemImageGuid}}&w=1920&mode=crop&h=1021&scale=both"}
 					]
 				}],
-				"title": "{{SEKidsItem.Title| Replace:'"','\"'}}",
-				"body":"{{ SEKidsItem.Content | Replace:'"','\"' | StripHtml | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+				"title": "{{SEKidsItem.Title| Replace:'"',bsq }}",
+				"body":"{{ SEKidsItem.Content | Replace:'"',bsq  | StripHtml | UrlEncode | Replace:'%0A','' | UrlDecode }}",
 				"subtitle":"{{ SEKidsItem | Attribute:'PromotionalDate' | Date:'MMMM dd, yyyy' }}",
 				"images":[
 					{ "width":520, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{itemImageGuid}}.jpg?guid={{itemImageGuid}}&w=720&mode=crop&h=383&scale=both"},

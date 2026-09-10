@@ -11,8 +11,8 @@
     {%- endfor -%}
 {%- endcontentchannelitemslug -%}
 
-{% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger %}
-{% assign itemStartDateTime = SEKidsItem.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
+{% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsDouble %}
+{% assign itemStartDateTime = SEKidsItem.StartDateTime | Date:'yyMMddHHmm' | AsDouble %}
 {% assign itemImage = SEKidsItem | Attribute:'Image' -%}
 {% assign itemImageGuid = SEKidsItem | Attribute:'Image','RawValue' -%}
 

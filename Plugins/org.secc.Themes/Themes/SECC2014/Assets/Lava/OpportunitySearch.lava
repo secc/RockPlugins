@@ -23,7 +23,7 @@
         <div class="isotope_item col-xs-12 col-sm-6 col-md-4">
         	{% assign opportunityString = opportunity.Id | ToString %}
         	{% assign opportunityId = "|" | Append: opportunityString | Append: "|" %}
-        	{% if (approvedIds contains opportunityId) %}
+        	{% if approvedIds contains opportunityId %}
                 <h3 class="section-header">{{ opportunity.PublicName }}</h3>
                 <div class="thumbnail">
                   <img src="/GetImage.ashx?id={{ opportunity.PhotoId }}&w=720">

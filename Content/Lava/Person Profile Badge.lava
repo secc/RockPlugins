@@ -3,7 +3,7 @@
 {% assign participate = "false" %}
 {% assign groupMembers = Person | Groups: '191','All' %}
 {% for groupMember in groupMembers %}
-    {% if Person.Id == {{groupMember.PersonId}} %}
+    {% if Person.Id == groupMember.PersonId %}
         {% assign participate = "true" %}
         {% assign count = count | Plus:1 %}
         {% assign trips = trips | Append:{{groupMember.Group.Name}} %}

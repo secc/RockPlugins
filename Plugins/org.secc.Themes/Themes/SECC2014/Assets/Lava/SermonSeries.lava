@@ -180,7 +180,7 @@
 		  {% assign nextPageString = Pagination.NextPage | ToString %}
 		  {% assign prevPageString = Pagination.PreviousPage | ToString %}
 
-		  {% if {{Pagination.PreviousPage == -1 }} %}
+		  {% if Pagination.PreviousPage == -1 %}
 
 		  {% else %}
 		  <a class="btn btn-doors pull-left" href="{{Pagination.UrlTemplate | Replace:'PageNum', prevPageString}}">
@@ -188,7 +188,7 @@
 		  </a>
 		  {% endif %}
 
-		  {% if {{Pagination.NextPage == -1 }} %}
+		  {% if Pagination.NextPage == -1 %}
 
 		  {% else %}
 		  <a class="btn btn-doors pull-right" href="{{Pagination.UrlTemplate | Replace:'PageNum', nextPageString}}">
