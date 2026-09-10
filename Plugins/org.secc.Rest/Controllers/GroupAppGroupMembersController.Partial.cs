@@ -254,7 +254,16 @@ namespace org.secc.Rest.Controllers
                 }
             }
 
-            var recipients = groupMemberServiceHelper.GetRecipients( groupId, message.GroupMemberId, message.SendToParents );
+            // Scope recipients to the caller's view of the group. For table-based
+            // groups the whole study is one Rock group and "table" is a group member
+            // attribute; without the caller, GetGroupMembers returns every member
+            // of the group instead of just the caller's table (ROCK-9151).
+            var recipients = groupMemberServiceHelper.GetRecipients( groupId, message.GroupMemberId, message.SendToParents, currentUser.Person );
+
+            if ( !recipients.Any() )
+            {
+                return BadRequest( "No recipients found for this message." );
+            }
 
             CreateCommunication( message.Subject, message.Body, recipients, currentUser.Person, group, ccEmails );
 
@@ -535,7 +544,17 @@ namespace org.secc.Rest.Controllers
             _rockContext = rockContext;
         }
 
-        public List<Person> GetRecipients( int groupId, int? groupMemberId, bool sendToParents )
+        /// <summary>
+        /// Builds the recipient list for a group communication.
+        /// </summary>
+        /// <param name="groupId">The group being communicated to.</param>
+        /// <param name="groupMemberId">A single group member to target, or 0 for the whole group.</param>
+        /// <param name="sendToParents">Send to the parents of the target(s) instead of the target(s).</param>
+        /// <param name="currentPerson">
+        /// The sender. Required so table-based groups are scoped to the sender's own table;
+        /// when null the entire group is returned.
+        /// </param>
+        public List<Person> GetRecipients( int groupId, int? groupMemberId, bool sendToParents, Person currentPerson = null )
         {
             var groupMemberService = new GroupMemberService( _rockContext );
             var recipients = new List<Person>();
@@ -543,6 +562,13 @@ namespace org.secc.Rest.Controllers
             if ( groupMemberId != 0 )
             {
                 var groupMember = groupMemberService.Get( ( int ) groupMemberId );
+
+                // An individual target must also be within the sender's scope (their
+                // table, for table-based groups); the roster only ever shows those.
+                if ( groupMember == null || !IsInScope( groupMember, currentPerson ) )
+                {
+                    return recipients;
+                }
 
                 if ( sendToParents )
                 {
@@ -557,8 +583,10 @@ namespace org.secc.Rest.Controllers
             else
             {
                 var groupService = new GroupService( _rockContext );
-                // Get the group members of the specified groupId
-                var groupMembers = GetGroupMembers( groupService.Get( groupId ) );
+                // Get the group members the sender can see (their table for table-based groups)
+                var groupMembers = GetGroupMembers( groupService.Get( groupId ), currentPerson )
+                    .Where( gm => gm.GroupMemberStatus != GroupMemberStatus.Inactive )
+                    .ToList();
                 if ( sendToParents )
                 {
 
@@ -581,7 +609,28 @@ namespace org.secc.Rest.Controllers
                 }
             }
 
-            return recipients;
+            // A person can be in the group under more than one role, and siblings share
+            // parents; send each person one copy.
+            return recipients
+                .GroupBy( p => p.Id )
+                .Select( g => g.First() )
+                .ToList();
+        }
+
+        /// <summary>
+        /// True when the target group member is within the current person's view of the
+        /// group, i.e. appears in <see cref="GetGroupMembers(Group, Person)"/> for them.
+        /// With no current person every member is in scope.
+        /// </summary>
+        private bool IsInScope( GroupMember target, Person currentPerson )
+        {
+            if ( currentPerson == null )
+            {
+                return true;
+            }
+
+            var group = new GroupService( _rockContext ).Get( target.GroupId );
+            return GetGroupMembers( group, currentPerson ).Any( gm => gm.Id == target.Id );
         }
 
         public List<Person> GetParents( Person person )
