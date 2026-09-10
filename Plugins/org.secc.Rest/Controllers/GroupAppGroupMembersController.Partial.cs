@@ -76,41 +76,20 @@ namespace org.secc.Rest.Controllers
             if ( isGroupMember || group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
             {
                 var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
-                var groupMembers = groupMemberServiceHelper.GetGroupMembers( group, currentUser.Person );
+
+                // For table-based groups this is the caller's own table; a caller with no
+                // table (not a member, or TableNumber blank) sees nothing.
+                var scope = groupMemberServiceHelper.GetScopedGroupMembers( group, currentUser.Person );
+                if ( !scope.SenderHasScope )
+                {
+                    return Ok( GroupMemberServiceHelper.NotAssignedToTableMessage );
+                }
+
+                var groupMembers = scope.Members;
                 var currentUserGroupMember = groupMembers.FirstOrDefault( gm => gm.PersonId == currentUser.Person.Id );
                 var isCurrentUserLeader = currentUserGroupMember?.GroupRole.IsLeader ?? false;
 
                 var groupMemberList = new List<GroupAppGroupMember>();
-
-                var tableBasedGroupTypeIds = _definedValueService
-                 .GetByDefinedTypeGuid( new Guid( "90526a36-fda6-4c90-997c-636b82b793d8" ) )
-                 .ToList();
-
-                var parsedGroupTypeIds = new List<int>();
-                foreach ( var dv in tableBasedGroupTypeIds )
-                {
-                    if ( int.TryParse( dv.Value, out int groupTypeId ) )
-                    {
-                        parsedGroupTypeIds.Add( groupTypeId );
-                    }
-                }
-
-                var isTableBasedGroup = parsedGroupTypeIds.Contains( group.GroupTypeId );
-
-                if ( isTableBasedGroup )
-                {
-                    currentUserGroupMember.LoadAttributes();
-                    var tableNumberAttribute = currentUserGroupMember.GetAttributeValue( "TableNumber" );
-                    if ( string.IsNullOrEmpty( tableNumberAttribute ) )
-                    {
-                        return Ok( "You are not assigned to a table" );
-                    }
-                    foreach ( var gm in groupMembers )
-                    {
-                        gm.LoadAttributes();
-                    }
-                    groupMembers = groupMembers.Where( gm => gm.GetAttributeValue( "TableNumber" ) == tableNumberAttribute ).ToList();
-                }
 
                 var homeLocationTypeId = _definedValueService.GetByGuid( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME.AsGuid() ).Id;
 
@@ -201,18 +180,42 @@ namespace org.secc.Rest.Controllers
                 return BadRequest( "Invalid request. Please provide a valid 'Subject' and 'Body' in the message." );
             }
 
+            if ( message.SendToParents )
+            {
+                group.LoadAttributes();
+                if ( !group.GetAttributeValue( "AllowEmailParents" ).AsBoolean() )
+                {
+                    return BadRequest( "Invalid request. \"Allow Email Parents\" is not configured for this group." );
+                }
+            }
+
+            // Scope recipients to the caller's view of the group. For table-based
+            // groups the whole study is one Rock group and "table" is a group member
+            // attribute; a caller with no table cannot email anyone (ROCK-9151).
             var groupMemberServiceHelper = new GroupMemberServiceHelper( _context );
+            var scope = groupMemberServiceHelper.GetScopedGroupMembers( group, currentUser.Person );
+            if ( !scope.SenderHasScope )
+            {
+                return BadRequest( GroupMemberServiceHelper.NotAssignedToTableMessage );
+            }
+
             string ccEmails = null;
+            List<GroupMember> targets;
 
             if ( message.GroupMemberId != 0 )
             {
-                var groupMember = _groupMemberService.Get( message.GroupMemberId );
-
-                // The target must belong to the group the caller is authorized on;
-                // otherwise a caller could target members (and parents) of other groups.
-                if ( groupMember == null || groupMember.GroupId != groupId )
+                // The target must be within the caller's scope (their group, and for
+                // table-based groups their table); otherwise a caller could target members
+                // (and parents) they cannot see. Same 404 as an id from another group.
+                var groupMember = scope.Members.FirstOrDefault( gm => gm.Id == message.GroupMemberId );
+                if ( groupMember == null )
                 {
                     return NotFound();
+                }
+
+                if ( groupMember.GroupMemberStatus != GroupMemberStatus.Active )
+                {
+                    return BadRequest( $"{groupMember.Person.FullName} is not an active member of this group." );
                 }
 
                 // Policy: individual communications may not be sent to a minor unless
@@ -240,25 +243,19 @@ namespace org.secc.Rest.Controllers
                         ccEmails = string.Join( ",", parentEmails );
                     }
                 }
-            }
 
-            if ( message.SendToParents )
+                targets = new List<GroupMember> { groupMember };
+            }
+            else
             {
-                group.LoadAttributes();
-                var groupContentItems = new List<GroupContentItem>();
-                bool? emailParentsEnabled = null;
-                emailParentsEnabled = group.GetAttributeValue( "AllowEmailParents" ).AsBoolean();
-                if ( emailParentsEnabled == false )
-                {
-                    return BadRequest( "Invalid request. \"Allow Email Parents\" is not configured for this group." );
-                }
+                // Only active members receive group communications (the roster still lists
+                // inactive/pending members so leaders can see them).
+                targets = scope.Members
+                    .Where( gm => gm.GroupMemberStatus == GroupMemberStatus.Active )
+                    .ToList();
             }
 
-            // Scope recipients to the caller's view of the group. For table-based
-            // groups the whole study is one Rock group and "table" is a group member
-            // attribute; without the caller, GetGroupMembers returns every member
-            // of the group instead of just the caller's table (ROCK-9151).
-            var recipients = groupMemberServiceHelper.GetRecipients( groupId, message.GroupMemberId, message.SendToParents, currentUser.Person );
+            var recipients = groupMemberServiceHelper.GetRecipients( targets, message.SendToParents );
 
             if ( !recipients.Any() )
             {
@@ -458,17 +455,13 @@ namespace org.secc.Rest.Controllers
                 _context.SaveChanges();
             }
 
-            // Add Table Number
-            // check if the group has a group member attribute for table number
-
-            var currentGroupMember = groupMemberService.GetByPersonId( ( int ) currentUser.PersonId ).AsQueryable().AsNoTracking()
-                        .Where( gm => gm.GroupId == group.Id ).FirstOrDefault();
-            currentGroupMember.LoadAttributes();
-            var currentGroupMemberTableNumber = currentGroupMember.GetAttributeValue( "TableNumber" );
-            if ( currentGroupMemberTableNumber != null )
+            // Table-based groups: the new member joins the caller's table. A caller with no
+            // table leaves TableNumber unset rather than writing a blank value.
+            var callerTableNumber = new GroupMemberServiceHelper( _context ).GetScopedGroupMembers( group, currentUser.Person ).TableNumber;
+            if ( callerTableNumber != null )
             {
                 groupMember.LoadAttributes();
-                groupMember.SetAttributeValue( "TableNumber", currentGroupMemberTableNumber );
+                groupMember.SetAttributeValue( "TableNumber", callerTableNumber );
                 groupMember.SaveAttributeValues();
             }
 
@@ -535,8 +528,32 @@ namespace org.secc.Rest.Controllers
         public string GradeOffset { get; set; }
     }
 
+    /// <summary>
+    /// The members of a group as seen by one person. For table-based groups this is the
+    /// person's own table; for every other group it is the whole (non-archived) membership.
+    /// </summary>
+    public class ScopedGroupMembers
+    {
+        /// <summary>The group's type is in the "Table-based" defined type.</summary>
+        public bool IsTableBased { get; set; }
+
+        /// <summary>The viewer's TableNumber, trimmed; null when they have none (or the group is not table-based).</summary>
+        public string TableNumber { get; set; }
+
+        /// <summary>False only for a table-based group whose viewer has no table; such a viewer sees and can email nobody.</summary>
+        public bool SenderHasScope => !IsTableBased || TableNumber != null;
+
+        /// <summary>Non-archived members in scope, leaders first then by name. Not filtered by status.</summary>
+        public List<GroupMember> Members { get; set; } = new List<GroupMember>();
+    }
+
     public class GroupMemberServiceHelper
     {
+        public const string NotAssignedToTableMessage = "You are not assigned to a table";
+
+        private const string TableNumberAttributeKey = "TableNumber";
+        private static readonly Guid TableBasedGroupTypesDefinedTypeGuid = new Guid( "90526a36-fda6-4c90-997c-636b82b793d8" );
+
         private readonly RockContext _rockContext;
 
         public GroupMemberServiceHelper( RockContext rockContext )
@@ -545,158 +562,184 @@ namespace org.secc.Rest.Controllers
         }
 
         /// <summary>
-        /// Builds the recipient list for a group communication.
+        /// True when the group's type is listed in the "Table-based" group types defined type.
         /// </summary>
-        /// <param name="groupId">The group being communicated to.</param>
-        /// <param name="groupMemberId">A single group member to target, or 0 for the whole group.</param>
-        /// <param name="sendToParents">Send to the parents of the target(s) instead of the target(s).</param>
-        /// <param name="currentPerson">
-        /// The sender. Required so table-based groups are scoped to the sender's own table;
-        /// when null the entire group is returned.
-        /// </param>
-        public List<Person> GetRecipients( int groupId, int? groupMemberId, bool sendToParents, Person currentPerson = null )
+        public bool IsTableBasedGroup( Group group )
         {
+            return new DefinedValueService( _rockContext )
+                .GetByDefinedTypeGuid( TableBasedGroupTypesDefinedTypeGuid )
+                .Select( dv => dv.Value )
+                .ToList()
+                .Select( v => v.AsIntegerOrNull() )
+                .Any( id => id == group.GroupTypeId );
+        }
+
+        /// <summary>
+        /// Gets the members of <paramref name="group"/> that <paramref name="currentPerson"/> may
+        /// see and communicate with. For a table-based group that is the current person's own
+        /// table, matched case-sensitively (surrounding whitespace ignored) on the TableNumber group
+        /// member attribute; a current person with no table gets an empty scope.
+        /// </summary>
+        public ScopedGroupMembers GetScopedGroupMembers( Group group, Person currentPerson )
+        {
+            if ( group == null )
+            {
+                throw new ArgumentNullException( nameof( group ) );
+            }
+            if ( currentPerson == null )
+            {
+                throw new ArgumentNullException( nameof( currentPerson ) );
+            }
+
             var groupMemberService = new GroupMemberService( _rockContext );
+            var scope = new ScopedGroupMembers { IsTableBased = IsTableBasedGroup( group ) };
+
+            IQueryable<GroupMember> members = groupMemberService.GetByGroupId( group.Id )
+                .Include( gm => gm.Person )
+                .Include( gm => gm.GroupRole )
+                .Where( gm => gm.IsArchived == false );
+
+            if ( !scope.IsTableBased )
+            {
+                scope.Members = OrderForRoster( members.ToList() );
+                return scope;
+            }
+
+            // A person can hold more than one role in the group; prefer the leader row, then
+            // the oldest, so the same table is chosen on every request.
+            var currentGroupMember = members
+                .Where( gm => gm.PersonId == currentPerson.Id )
+                .OrderByDescending( gm => gm.GroupRole.IsLeader )
+                .ThenBy( gm => gm.Id )
+                .FirstOrDefault();
+
+            if ( currentGroupMember == null )
+            {
+                return scope;
+            }
+
+            currentGroupMember.LoadAttributes();
+            var tableNumber = currentGroupMember.GetAttributeValue( TableNumberAttributeKey );
+            if ( tableNumber.IsNullOrWhiteSpace() )
+            {
+                // Unset attributes come back as the attribute's default value ("" for a text
+                // attribute), so blank means "no table", not "table named ''".
+                return scope;
+            }
+
+            scope.TableNumber = tableNumber.Trim();
+
+            // Only the TableNumber attribute(s) that actually apply to this group's members,
+            // not every attribute in the system that happens to share the key.
+            var tableNumberAttributeIds = currentGroupMember.Attributes.Values
+                .Where( a => a.Key == TableNumberAttributeKey )
+                .Select( a => a.Id )
+                .ToList();
+
+            // SQL narrows the candidates (its collation ignores case and trailing spaces),
+            // then the exact comparison decides, so the scope is never wider than the roster.
+            // Person and GroupRole ride along because Include() does not survive the join.
+            var senderTable = scope.TableNumber;
+            var candidates = members
+                .Join( new AttributeValueService( _rockContext ).Queryable(),
+                        gm => gm.Id,
+                        av => av.EntityId,
+                        ( gm, av ) => new { GroupMember = gm, gm.Person, gm.GroupRole, av.AttributeId, av.Value } )
+                .Where( x => tableNumberAttributeIds.Contains( x.AttributeId ) && x.Value == senderTable )
+                .ToList();
+
+            scope.Members = OrderForRoster( candidates
+                .Where( x => string.Equals( x.Value?.Trim(), senderTable, StringComparison.Ordinal ) )
+                .Select( x => x.GroupMember )
+                .DistinctBy( gm => gm.Id ) );
+            return scope;
+        }
+
+        private static List<GroupMember> OrderForRoster( IEnumerable<GroupMember> members )
+        {
+            return members
+                .OrderByDescending( gm => gm.GroupRole.IsLeader )
+                .ThenBy( gm => gm.Person.LastName )
+                .ThenBy( gm => gm.Person.NickName )
+                .ToList();
+        }
+
+        /// <summary>
+        /// Builds the recipient list for a group communication to <paramref name="targets"/>,
+        /// which the caller has already resolved and validated (scope, group, status).
+        /// </summary>
+        /// <param name="targets">The group members being communicated with.</param>
+        /// <param name="sendToParents">
+        /// Send to parents instead: members who are an adult in their family receive the
+        /// message themselves, children's parents/guardians receive it for them (the same rule
+        /// as the Group Manager website).
+        /// </param>
+        public List<Person> GetRecipients( IEnumerable<GroupMember> targets, bool sendToParents )
+        {
             var recipients = new List<Person>();
 
-            if ( groupMemberId != 0 )
+            foreach ( var groupMember in targets )
             {
-                var groupMember = groupMemberService.Get( ( int ) groupMemberId );
-
-                // An individual target must also be within the sender's scope (their
-                // table, for table-based groups); the roster only ever shows those.
-                if ( groupMember == null || !IsInScope( groupMember, currentPerson ) )
+                var person = groupMember.Person;
+                if ( !sendToParents )
                 {
-                    return recipients;
+                    recipients.Add( person );
+                    continue;
                 }
 
-                if ( sendToParents )
+                var family = GetFamilyRoleInfo( person );
+                if ( family.IsAdult )
                 {
-                    var adults = GetParents( groupMember.Person );
-                    recipients.AddRange( adults );
+                    recipients.Add( person );
                 }
                 else
                 {
-                    recipients.Add( groupMember.Person );
-                }
-            }
-            else
-            {
-                var groupService = new GroupService( _rockContext );
-                // Get the group members the sender can see (their table for table-based groups)
-                var groupMembers = GetGroupMembers( groupService.Get( groupId ), currentPerson )
-                    .Where( gm => gm.GroupMemberStatus != GroupMemberStatus.Inactive )
-                    .ToList();
-                if ( sendToParents )
-                {
-
-                    // Iterate through each group member
-                    foreach ( var groupMember in groupMembers )
-                    {
-                        // Get the parents of the current group member
-                        var groupMemberParents = GetParents( groupMember.Person );
-
-                        // Add the parents to the list
-                        recipients.AddRange( groupMemberParents );
-                    }
-                }
-                else
-                {
-                    foreach ( var groupMember in groupMembers )
-                    {
-                        recipients.Add( groupMember.Person );
-                    }
+                    recipients.AddRange( family.Parents );
                 }
             }
 
             // A person can be in the group under more than one role, and siblings share
             // parents; send each person one copy.
-            return recipients
-                .GroupBy( p => p.Id )
-                .Select( g => g.First() )
-                .ToList();
+            return recipients.DistinctBy( p => p.Id ).ToList();
         }
 
         /// <summary>
-        /// True when the target group member is within the current person's view of the
-        /// group, i.e. appears in <see cref="GetGroupMembers(Group, Person)"/> for them.
-        /// With no current person every member is in scope.
+        /// The adults in each family where <paramref name="person"/> is not an adult.
+        /// Empty for a person who is an adult in every family they belong to.
         /// </summary>
-        private bool IsInScope( GroupMember target, Person currentPerson )
-        {
-            if ( currentPerson == null )
-            {
-                return true;
-            }
-
-            var group = new GroupService( _rockContext ).Get( target.GroupId );
-            return GetGroupMembers( group, currentPerson ).Any( gm => gm.Id == target.Id );
-        }
-
         public List<Person> GetParents( Person person )
         {
-            var parents = new List<Person>();
-            var families = person.GetFamilies().ToList();
-            var adultGuid = new Guid( Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT );
-            foreach ( var family in families )
-            {
-                var familyRoleGuid = family.Members.Where( gm => gm.PersonId == person.Id ).FirstOrDefault().GroupRole.Guid;
-                if ( familyRoleGuid != adultGuid )
-                {
-                    parents.AddRange( family.Members.Where( m => m.GroupRole.Guid == adultGuid ).Select( m => m.Person ).ToList() );
-                }
-            }
-            return parents;
+            return GetFamilyRoleInfo( person ).Parents;
         }
 
-        public List<GroupMember> GetGroupMembers( Group group, Person currentPerson = null )
+        private class FamilyRoleInfo
         {
-            var groupMemberService = new GroupMemberService( _rockContext );
-            var groupMembers = new List<GroupMember>();
+            /// <summary>True when the person holds the Adult role in at least one family.</summary>
+            public bool IsAdult { get; set; }
+            public List<Person> Parents { get; set; } = new List<Person>();
+        }
 
-            if ( currentPerson != null )
+        private static FamilyRoleInfo GetFamilyRoleInfo( Person person )
+        {
+            var info = new FamilyRoleInfo();
+            var adultGuid = Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid();
+
+            foreach ( var family in person.GetFamilies().ToList() )
             {
-                var currentGroupMember = groupMemberService.GetByPersonId( currentPerson.Id ).AsQueryable().AsNoTracking()
-                    .Where( groupmember => groupmember.GroupId == group.Id ).FirstOrDefault();
-
-                if ( currentGroupMember != null )
+                var ownRole = family.Members.FirstOrDefault( gm => gm.PersonId == person.Id )?.GroupRole;
+                if ( ownRole != null && ownRole.Guid == adultGuid )
                 {
-                    currentGroupMember.LoadAttributes();
-                    var currentGroupMemberTableNumber = currentGroupMember.GetAttributeValue( "TableNumber" );
-
-                    if ( currentGroupMemberTableNumber != null )
-                    {
-                        var tableNumberAttributeIds = new AttributeService( _rockContext )
-                        .Queryable()
-                        .Where( a => a.Key == "TableNumber" )
-                        .Select( a => a.Id )
-                        .ToList();
-
-                        groupMembers = groupMemberService.GetByGroupId( group.Id )
-                            .Join( new AttributeValueService( _rockContext ).Queryable(),
-                                    gm => gm.Id,
-                                    av => av.EntityId,
-                                    ( gm, av ) => new { GroupMember = gm, AttributeValue = av } )
-                            .Where( x => tableNumberAttributeIds.Contains( x.AttributeValue.AttributeId ) && x.AttributeValue.Value == currentGroupMemberTableNumber && x.GroupMember.IsArchived == false )
-                            .Select( x => x.GroupMember )
-                            .OrderByDescending( gm => gm.GroupRole.IsLeader )
-                            .ThenBy( gm => gm.Person.LastName )
-                            .ThenBy( gm => gm.Person.NickName )
-                            .ToList();
-
-                        return groupMembers;
-                    }
+                    info.IsAdult = true;
+                }
+                else
+                {
+                    info.Parents.AddRange( family.Members
+                        .Where( m => m.GroupRole.Guid == adultGuid )
+                        .Select( m => m.Person ) );
                 }
             }
 
-            groupMembers = groupMemberService.GetByGroupId( group.Id )
-                .Where( gm => gm.IsArchived == false )
-                .OrderByDescending( gm => gm.GroupRole.IsLeader )
-                .ThenBy( gm => gm.Person.LastName )
-                .ThenBy( gm => gm.Person.NickName )
-                .ToList();
-
-            return groupMembers;
+            return info;
         }
     }
 }
