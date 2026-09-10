@@ -466,8 +466,7 @@ namespace RockWeb.Plugins.org_secc.Administration
         /// <summary>
         /// A class to store personal device for lava
         /// </summary>
-        [DotLiquid.LiquidType( "PersonalDevice", "DeviceIconCssClass", "PlatformValue" )]
-        [LavaType( "PersonalDevice", "DeviceIconCssClass", "PlatformValue" )]
+        // LavaDataObject exposes every public property to both Lava engines, so no [LiquidType]/[LavaType] allow-list applies here.
         public class PersonalDeviceItem : LavaDataObject
         {
             /// <summary>

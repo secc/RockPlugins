@@ -721,16 +721,7 @@ namespace RockWeb.Blocks.Event
         /// <summary>
         /// A class to store event item occurrence data for liquid
         /// </summary>
-        [DotLiquid.LiquidType( "EventItemOccurrence", "DateTime", "Name", "Date", "Time", "Campus", "Location",
-            "LocationDescription", "Description", "Summary", "OccurrenceNote", "DetailPage",
-            "Priority", "URLSlugs", "PrimaryMinistryImageGuid", "PrimaryMinstryTitle", "ImageHeaderText", "ImageHeaderTextSmall",
-            "EventDatesHide", "AttUseOnlyScheduleText", "AttScheduleText", "AttChildcareAvailable", "EventItem", "EventItemPhotoId",
-            "ICalendarContent", "CustomDateText", "CustomLocationText" )]
-        [LavaType( "EventItemOccurrence", "DateTime", "Name", "Date", "Time", "Campus", "Location",
-            "LocationDescription", "Description", "Summary", "OccurrenceNote", "DetailPage",
-            "Priority", "URLSlugs", "PrimaryMinistryImageGuid", "PrimaryMinstryTitle", "ImageHeaderText", "ImageHeaderTextSmall",
-            "EventDatesHide", "AttUseOnlyScheduleText", "AttScheduleText", "AttChildcareAvailable", "EventItem", "EventItemPhotoId",
-            "ICalendarContent", "CustomDateText", "CustomLocationText" )]
+        // LavaDataObject exposes every public property to both Lava engines, so no [LiquidType]/[LavaType] allow-list applies here.
         public class EventOccurrenceSummary : LavaDataObject
         {
             public EventItemOccurrence EventItemOccurrence { get; set; }

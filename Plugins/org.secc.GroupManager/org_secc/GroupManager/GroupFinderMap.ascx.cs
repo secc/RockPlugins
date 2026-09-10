@@ -140,6 +140,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
     //FamilyGrid Settings
     [BooleanField( "ShowFamilyGrid", "", false, "CustomSetting" )]
+    [LavaCommandsField( "Enabled Lava Commands", "The Lava commands that should be enabled for the Map Info, Family Info and Groupless Message templates. Leave empty to allow none (the pre-Fluid behaviour).", false, "", "", 0, "EnabledLavaCommands" )]
 
     public partial class GroupFinderMap : RockBlockCustomSettings
     {
@@ -1169,6 +1170,8 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 if ( showMap && ( groups.Any() || families.Any() ) )
                 {
                     // Templates are resolved with ResolveMergeFields (engine-agnostic; Rock caches parsed templates).
+                    // The block-level "Enabled Lava Commands" setting is passed explicitly: the overload without it would
+                    // apply the global DefaultEnabledLavaCommands, which the old DotLiquid Template.Render never did.
                     string groupInfoTemplate = GetAttributeValue( "MapInfo" );
                     string familyInfoTemplate = GetAttributeValue( "FamilyInfo" );
 
@@ -1216,7 +1219,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             securityActions.Add( "Administrate", group.IsAuthorized( Authorization.ADMINISTRATE, CurrentPerson ) );
                             mergeFields.Add( "AllowedActions", securityActions );
 
-                            string infoWindow = groupInfoTemplate.ResolveMergeFields( mergeFields );
+                            string infoWindow = groupInfoTemplate.ResolveMergeFields( mergeFields, GetAttributeValue( "EnabledLavaCommands" ) );
 
                             if ( debugStatus == ShowDebugStatus.Show )
                             {
@@ -1257,7 +1260,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                             var mergeFields = new Dictionary<string, object>();
                             mergeFields.Add( "Family", family );
-                            string infoWindow = familyInfoTemplate.ResolveMergeFields( mergeFields );
+                            string infoWindow = familyInfoTemplate.ResolveMergeFields( mergeFields, GetAttributeValue( "EnabledLavaCommands" ) );
                             mapItem.InfoWindow = HttpUtility.HtmlEncode( infoWindow.Replace( Environment.NewLine, string.Empty ).Replace( "\n", string.Empty ).Replace( "\t", string.Empty ) );
                             familyMapItems.Add( mapItem );
 
@@ -1471,7 +1474,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 mergeFields.Add( "LinkedPages", linkedPages );
 
-                lMessage.Text = template.ResolveMergeFields( mergeFields );
+                lMessage.Text = template.ResolveMergeFields( mergeFields, GetAttributeValue( "EnabledLavaCommands" ) );
 
             }
         }

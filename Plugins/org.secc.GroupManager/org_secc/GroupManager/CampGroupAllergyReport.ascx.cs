@@ -174,6 +174,34 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 }
             }
 
+            /// <summary>
+            /// The keys templates may use, matching the aliases exposed by <see cref="OnTryGetValue"/>
+            /// (the base implementation would list the raw property names, e.g. WheatGluten instead of WheatAndGluten).
+            /// </summary>
+            public override List<string> AvailableKeys
+            {
+                get
+                {
+                    return new List<string> {
+                        "Id",
+                        "LastName",
+                        "FirstName",
+                        "NickName",
+                        "GroupName",
+                        "GroupRole",
+                        "Eggs",
+                        "Fish",
+                        "MilkAndDairy",
+                        "Peanuts",
+                        "TreeNuts",
+                        "Shellfish",
+                        "Soy",
+                        "WheatAndGluten",
+                        "Other",
+                        "AllAllergies" };
+                }
+            }
+
             public int Id { get; set; }
             public string LastName { get; set; }
             public string NickName { get; set; }
@@ -221,15 +249,18 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                     {
                         sb.Append( "Shellfish, " );
                     }
-                    if (Shellfish.AsBoolean())
+                    if (Soy.AsBoolean())
                     {
                         sb.Append( "Soy, " );
                     }
-                    if (Shellfish.AsBoolean())
+                    if (WheatGluten.AsBoolean())
                     {
                         sb.Append( "Wheat & Gluten, " );
                     }
-                    sb.Append( $"{Other}, " );
+                    if ( Other.IsNotNullOrWhiteSpace() )
+                    {
+                        sb.Append( $"{Other}, " );
+                    }
 
                     return sb.ToString().ReplaceLastOccurrence( ",", string.Empty ).Trim();
                 }

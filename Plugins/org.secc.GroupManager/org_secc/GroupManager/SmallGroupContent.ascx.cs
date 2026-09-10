@@ -77,6 +77,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
     [TextField( "Meta Image Attribute", "Attribute to use for storing the image attribute.", false, "", "CustomSetting" )]
     [CodeEditorField( "ContentLava", "Lava to display content with.", CodeEditorMode.Lava, CodeEditorTheme.Rock, 300,
         true, @"<div class='content'> {% for item in Items %} <div class='row'> <h2> {{ item.Title }} </h2> <div class=''> {{item.Content}} </div> </div> {% endfor %} </div>", "CustomSetting" )]
+    [LavaCommandsField( "Enabled Lava Commands", "The Lava commands that should be enabled for the ContentLava template. Leave empty to allow none (the pre-Fluid behaviour).", false, "", "", 0, "EnabledLavaCommands" )]
 
     public partial class SmallGroupContent : RockBlockCustomSettings
     {
@@ -84,6 +85,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private readonly string ITEM_TYPE_NAME = "Rock.Model.ContentChannelItem";
         private readonly string CONTENT_CACHE_KEY = "Content";
+
+        /// <summary>
+        /// Cache tag shared by every content list this block caches for its channel, so a save can evict them all.
+        /// </summary>
+        private string ContentCacheTag => "secc-smallgroupcontent-" + ChannelGuid;
 
         #endregion
 
@@ -294,9 +300,9 @@ $('#updateProgress').show();
 
             SaveAttributeValues();
 
-            // Items are cached per "Item" page parameter (see GetContent), so remove the entry for the
-            // item being viewed. Entries for other items expire on their own after CacheDuration.
-            RemoveCacheItem( CONTENT_CACHE_KEY + ChannelGuid + ( PageParameter( "Item" ) ?? string.Empty ) );
+            // Items are cached per "Item" page parameter (see GetContent) and every entry for this channel is
+            // tagged, so one tag flush evicts the item-less sidebar entry and every per-item entry at once.
+            RockCache.RemoveForTags( ContentCacheTag );
 
             mdEdit.Hide();
             pnlEditModal.Visible = false;
@@ -590,7 +596,8 @@ $('#updateProgress').show();
 
             // ResolveMergeFields is engine-agnostic (works under both DotLiquid and Fluid).
             // Rock caches parsed templates internally, so the block-level Template cache is no longer needed.
-            var render = GetAttributeValue( "ContentLava" ).ResolveMergeFields( mergeFields );
+            // "Enabled Lava Commands" is passed explicitly so the global DefaultEnabledLavaCommands is not applied (matches the old Template.Render).
+            var render = GetAttributeValue( "ContentLava" ).ResolveMergeFields( mergeFields, GetAttributeValue( "EnabledLavaCommands" ) );
 
             phContent.Controls.Add( new LiteralControl( render ) );
         }
@@ -832,8 +839,9 @@ $('#updateProgress').show();
                             int? cacheDuration = GetAttributeValue( "CacheDuration" ).AsInteger();
                             if ( cacheDuration > 0 )
                             {
-                                string contentItemCache = PageParameter( "Item" ) ?? "";
-                                AddCacheItem( CONTENT_CACHE_KEY + ChannelGuid + contentItemCache, items, cacheDuration.Value );
+                                // Write under the same key that was read above (contentItem is blanked when FilterByQRS is false,
+                                // so the sidebar's item-less list never lands under a per-item key) and tag it for eviction on save.
+                                AddCacheItem( CONTENT_CACHE_KEY + ChannelGuid + contentItem, items, cacheDuration.Value, ContentCacheTag );
                             }
                         }
 

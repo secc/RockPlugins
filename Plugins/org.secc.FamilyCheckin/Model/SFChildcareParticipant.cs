@@ -1,15 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using Rock;
-using Rock.Data;
-using Rock.Lava;
 
 namespace org.secc.FamilyCheckin.Model
 {
-    public class SFChildcareParticipant : LavaDataObject
+    /// <summary>
+    /// One participant on a Sports &amp; Fitness childcare receipt.
+    /// </summary>
+    /// <remarks>
+    /// This type is persisted as JSON in the "CheckoutReceiptData" workflow attribute
+    /// (see <c>SportsAndFitnessChildcareCredits</c>) and read back with <c>FromJsonOrNull</c>,
+    /// so it must stay a plain POCO. Do not derive from <c>LavaDataObject</c>: that type is an
+    /// <c>IDictionary</c> whose <c>Add</c> throws, so Json.NET cannot deserialize it. When the
+    /// receipt is merged into the label template, <c>SportsAndFitnessChidcareReceipt</c> wraps
+    /// each participant in <c>new LavaDataObject( participant )</c> for the Lava engines.
+    /// </remarks>
+    public class SFChildcareParticipant
     {
-        
-
         public int PersonId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -24,10 +29,5 @@ namespace org.secc.FamilyCheckin.Model
                 return CheckoutTime - CheckinTime;
             }
         }
-
-
-
-
-
     }
 }
