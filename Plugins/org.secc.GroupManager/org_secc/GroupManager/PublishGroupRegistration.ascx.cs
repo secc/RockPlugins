@@ -427,8 +427,13 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             mergeObjects["Group"] = _publishGroup.Group;
 
             var message = new RockEmailMessage();
-            message.FromEmail = _publishGroup.ConfirmationEmail;
+            // ROCK-8991: send from a deliverable SECC address; the leader-entered address becomes the Reply-To.
+            message.FromEmail = "noreply@secc.org";
             message.FromName = _publishGroup.ConfirmationFromName;
+            if ( _publishGroup.ConfirmationEmail.IsNotNullOrWhiteSpace() )
+            {
+                message.ReplyToEmail = _publishGroup.ConfirmationEmail;
+            }
             message.Subject = _publishGroup.ConfirmationSubject;
             message.Message = _publishGroup.ConfirmationBody;
             message.AddRecipient( new RockEmailMessageRecipient( person, mergeObjects ) );
