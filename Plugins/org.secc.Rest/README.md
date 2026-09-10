@@ -79,7 +79,7 @@ All require a logged-in user (`GetCurrentUser`, else `401`) and apply per-group 
 | `api/GroupApp/GetGroupMembers/{groupId}` | GET | member or VIEW | Members; leaders also see address/email/phone/parent contact and an `IsMinor` flag (leader-gated). Table-based groups filter by `TableNumber`. |
 | `api/GroupApp/GroupMembers/{groupId}/Communicate` | POST | EDIT **and** MANAGE_MEMBERS | Send an email to all/one member (optionally parents). Individual sends to a minor auto-CC the minor's parents/guardians, or return `400` if no parent email is on record (see minor-communication policy below). The target `GroupMemberId` must belong to `{groupId}` (else `404`). |
 | `api/GroupApp/GroupMembers/{groupId}/Add` | POST | EDIT **and** MANAGE_MEMBERS | Match-or-create a person and add as a member; copies leader's `TableNumber`. |
-| `api/GroupApp/GroupMembers/{groupId}/Remove/{groupMemberId}` | DELETE | EDIT **and** MANAGE_MEMBERS | Hard-delete a group member. |
+| `api/GroupApp/GroupMembers/{groupId}/Remove/{groupMemberId}` | DELETE | EDIT **and** MANAGE_MEMBERS | Hard-delete a group member. The `groupMemberId` must belong to `{groupId}` (else `404`). |
 | `api/GroupApp/Attendance/{groupId}/{occurrenceDate}` | GET | VIEW or leader | Attendance for an occurrence. |
 | `api/GroupApp/Attendance/` | POST | leader | Mark a member (of this group) present. Reconciles with the member's existing attendance for the group+date: with `locationId`, matches within that room (+`scheduleId`); without it, matches by group+person+date, preferring a kiosk-origin row, so a kiosk check-in is flipped rather than duplicated. Creates a row if none exists. |
 | `api/GroupApp/Attendances/{attendanceId}` | DELETE | leader | Delete an attendance record. |
