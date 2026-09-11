@@ -14,8 +14,9 @@
             <Rock:NotificationBox runat="server" ID="nbAlreadySubscribed" NotificationBoxType="Success" />
             <asp:Literal runat="server" ID="ltAttributesHeader"/>
             <asp:PlaceHolder runat="server" ID="phGroupAttributes" />
-            <Rock:BootstrapButton runat="server" ID="btnSubscribe" Text="Subscribe" CssClass="btn btn-primary" OnClick="btnSubscribe_Click" />
+            <Rock:RockCheckBox runat="server" ID="cbKeywordSmsConsent" Visible="false" />
             <asp:Literal runat="server" ID="lKeywordSmsDisclosure" />
+            <Rock:BootstrapButton runat="server" ID="btnSubscribe" Text="Subscribe" CssClass="btn btn-primary" OnClick="btnSubscribe_Click" />
             <hr />
         </asp:Panel>
         <Rock:NotificationBox runat="server" id="nbNotice" Visible="false" />
