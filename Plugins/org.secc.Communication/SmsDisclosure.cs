@@ -30,6 +30,24 @@ namespace org.secc.Communication
             return Html( GlobalAttributesCache.Value( "OrganizationName" ), margin );
         }
 
+        /// <summary>
+        /// The express-consent statement carried on the opt-in checkbox that must precede the
+        /// disclosures. Carriers require the agreement to be affirmative and unbundled, so the
+        /// checkbox is never pre-checked and the calling block refuses to subscribe without it.
+        /// </summary>
+        public static string ConsentText()
+        {
+            return ConsentText( GlobalAttributesCache.Value( "OrganizationName" ) );
+        }
+
+        public static string ConsentText( string organizationName )
+        {
+            var encodedOrgName = HttpUtility.HtmlEncode( organizationName );
+            return $"By checking this box, you agree to receive recurring automated text messages "
+                + $"from {encodedOrgName} at the mobile number provided. Consent is not a condition "
+                + "of purchase.";
+        }
+
         public static string Html( string organizationName, string margin )
         {
             if ( string.IsNullOrWhiteSpace( margin ) || !MarginPattern.IsMatch( margin.Trim() ) )

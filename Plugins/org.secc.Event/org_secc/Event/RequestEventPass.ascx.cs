@@ -71,6 +71,7 @@ namespace RockWeb.Plugins.org_secc.Event
             if (!IsPostBack)
             {
                 lTitle.Text = GetAttributeValue( AttributeKeys.BlockTitleKey );
+                cbSmsConsent.Text = org.secc.Communication.SmsDisclosure.ConsentText();
                 ProcessRequest();
             }
 
@@ -214,6 +215,13 @@ namespace RockWeb.Plugins.org_secc.Event
             if (cblDeliveryMethod.SelectedValue.Equals( "sms", StringComparison.InvariantCultureIgnoreCase ) && tbPhone.Text.IsNullOrWhiteSpace())
             {
                 errorMessage = "Mobile Phone Number is required.";
+            }
+
+            // Carrier rule: no text without an affirmative, never-pre-ticked agreement. Enforced
+            // only on the SMS path -- an emailed pass needs no SMS consent.
+            if (cblDeliveryMethod.SelectedValue.Equals( "sms", StringComparison.InvariantCultureIgnoreCase ) && !cbSmsConsent.Checked)
+            {
+                errorMessage = "Please check the box agreeing to receive text messages.";
             }
 
             if (!errorMessage.IsNullOrWhiteSpace())
