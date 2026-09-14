@@ -433,7 +433,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             message.FromName = _publishGroup.ConfirmationFromName;
             message.ReplyToEmail = _publishGroup.ConfirmationEmail.IsNotNullOrWhiteSpace()
                 ? _publishGroup.ConfirmationEmail.Trim()
-                : _publishGroup.ContactEmail;
+                : _publishGroup.ContactEmail?.Trim();
             message.Subject = _publishGroup.ConfirmationSubject;
             message.Message = _publishGroup.ConfirmationBody;
             message.AddRecipient( new RockEmailMessageRecipient( person, mergeObjects ) );

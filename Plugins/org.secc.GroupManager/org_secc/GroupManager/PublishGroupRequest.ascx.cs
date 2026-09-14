@@ -274,8 +274,11 @@ namespace RockWeb.Plugins.GroupManager
                 ddlRegistration.Enabled = false;
                 tbConfirmationFromName.Text = "Southeast Christian Church";
                 tbConfirmationFromName.ReadOnly = true;
-                // ROCK-8991: this field is now the Reply-To, so let the leader supply an address (pre-filled from the contact email).
-                if ( publishGroup.ContactEmail.IsNotNullOrWhiteSpace() )
+                // ROCK-8991: this field is now the Reply-To, so let the leader supply an address. Pre-fill from the contact
+                // email only when nothing usable is stored (blank, or the legacy forced noreply@secc.org value).
+                if ( publishGroup.ContactEmail.IsNotNullOrWhiteSpace()
+                    && ( tbConfirmationFromEmail.Text.IsNullOrWhiteSpace()
+                        || tbConfirmationFromEmail.Text.Trim().Equals( "noreply@secc.org", StringComparison.OrdinalIgnoreCase ) ) )
                 {
                     tbConfirmationFromEmail.Text = publishGroup.ContactEmail;
                 }
@@ -434,8 +437,7 @@ namespace RockWeb.Plugins.GroupManager
         /// <param name="publishGroupStatus">The publish group status.</param>
         private void Save( PublishGroupStatus publishGroupStatus )
         {
-            // Save can be reached from the confirmation modal, so validate explicitly rather than relying on the button postback.
-            Page.Validate();
+            // All callers (Publish, Save Draft, confirmation modal) post back with CausesValidation, so IsValid is already populated.
             if ( !Page.IsValid )
             {
                 return;
