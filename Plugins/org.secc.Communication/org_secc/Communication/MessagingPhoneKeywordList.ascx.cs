@@ -5,7 +5,6 @@ using System.Data.Entity;
 using System.Linq;
 using System.Linq.Dynamic;
 using System.Web.UI.WebControls;
-using Newtonsoft.Json;
 using org.secc.Communication;
 using org.secc.Communication.Messaging;
 using org.secc.Communication.Messaging.Model;
@@ -260,6 +259,24 @@ namespace RockWeb.Plugins.org_secc.Communication
                 return;
             }
 
+            // The ValueList hidden field holds a pipe-delimited, Uri-encoded list. Rows the user never typed
+            // into come across as empty entries, so clean them out before deciding whether anything was entered.
+            // Only exact duplicates are dropped: this list is rewritten on every save, including edits that
+            // touch nothing but the response message, so a case-insensitive de-dupe would silently discard
+            // deliberate casing variants that the external matcher may well treat as distinct.
+            var phrasesToMatch = Rock.Utility.RockSerializableList
+                .FromUriEncodedString( listPhrasesToMatch.Value ?? string.Empty ).List
+                .Select( p => ( p ?? string.Empty ).Trim() )
+                .Where( p => p.IsNotNullOrWhiteSpace() )
+                .Distinct()
+                .ToList();
+
+            if ( !phrasesToMatch.Any() )
+            {
+                NotificationBoxSetContent( "Please correct the following:", "At least one phrase to match is required.", NotificationBoxType.Validation );
+                return;
+            }
+
             bool isNew = false;
             Keyword keyword = null;
             if ( hfKeywordId.Value.IsNotNullOrWhiteSpace() )
@@ -311,9 +328,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
             keyword.IsActive = switchActive.Checked;
 
-            var wordsToMatch = new List<string>();
-            var listItems = JsonConvert.DeserializeObject<List<ListItems.KeyValuePair>>( listPhrasesToMatch.Value );
-            keyword.PhrasesToMatch = listItems.Select( l => l.Value ).ToList();
+            keyword.PhrasesToMatch = phrasesToMatch;
             keyword.ResponseMessage = tbResponseMessage.Text.Trim();
 
             var client = new MessagingClient();
@@ -413,13 +428,8 @@ namespace RockWeb.Plugins.org_secc.Communication
                 ppContact.SetValue( GetContactPerson( keyword.ContactPerson ) );
 
 
-                var listItems = new List<ListItems.KeyValuePair>();
-                foreach ( var phrase in keyword.PhrasesToMatch )
-                {
-                    listItems.Add( new ListItems.KeyValuePair { Value = phrase } );
-                }
-
-                listPhrasesToMatch.Value = JsonConvert.SerializeObject( listItems );
+                listPhrasesToMatch.Value = Rock.Utility.RockSerializableList
+                    .ToUriEncodedString( keyword.PhrasesToMatch ?? new List<string>() );
                 tbResponseMessage.Text = keyword.ResponseMessage;
             }
 
