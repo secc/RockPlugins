@@ -99,8 +99,8 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Attributes.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Attributes.pdb" "$(SolutionDir)RockWeb\bin"
+    <PostBuildEvent>xcopy /Y /R "$(TargetDir)org.secc.Attributes.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)org.secc.Attributes.pdb" "$(SolutionDir)RockWeb\bin"
 
 </PostBuildEvent>
   </PropertyGroup>
