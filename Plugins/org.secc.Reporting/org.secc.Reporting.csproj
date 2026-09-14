@@ -33,9 +33,9 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
-xcopy /Y /R "$(ProjectDir)bin\Debug\Google.Apis.*" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Reporting.dll" "$(SolutionDir)RockWeb\Bin"
-xcopy /Y /R  "$(ProjectDir)bin\Debug\org.secc.Reporting.pdb" "$(SolutionDir)RockWeb\Bin"</PostBuildEvent>
+xcopy /Y /R "$(TargetDir)Google.Apis.*" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R  "$(TargetDir)org.secc.Reporting.dll" "$(SolutionDir)RockWeb\Bin"
+xcopy /Y /R  "$(TargetDir)org.secc.Reporting.pdb" "$(SolutionDir)RockWeb\Bin"</PostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DotLiquid, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">

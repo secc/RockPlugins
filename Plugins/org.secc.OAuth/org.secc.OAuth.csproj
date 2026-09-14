@@ -159,12 +159,12 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
-xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.OAuth.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\Microsoft.Owin.Security.Oauth*" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\Microsoft.Owin.Security.Cookies*" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\System.Web.Http.Owin*" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\Microsoft.AspNet.Identity.Core*" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\DotNetOpenAuth*" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
+xcopy /Y /R "$(TargetDir)org.secc.OAuth.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)Microsoft.Owin.Security.Oauth*" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)Microsoft.Owin.Security.Cookies*" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)System.Web.Http.Owin*" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)Microsoft.AspNet.Identity.Core*" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)DotNetOpenAuth*" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
