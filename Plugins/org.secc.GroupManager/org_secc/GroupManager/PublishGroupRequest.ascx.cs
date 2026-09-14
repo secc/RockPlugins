@@ -274,8 +274,14 @@ namespace RockWeb.Plugins.GroupManager
                 ddlRegistration.Enabled = false;
                 tbConfirmationFromName.Text = "Southeast Christian Church";
                 tbConfirmationFromName.ReadOnly = true;
-                tbConfirmationFromEmail.Text = "noreply@secc.org";
-                tbConfirmationFromEmail.ReadOnly = true;
+                // ROCK-8991: this field is now the Reply-To, so let the leader supply an address. Pre-fill from the contact
+                // email only when nothing usable is stored (blank, or the legacy forced noreply@secc.org value).
+                if ( publishGroup.ContactEmail.IsNotNullOrWhiteSpace()
+                    && ( tbConfirmationFromEmail.Text.IsNullOrWhiteSpace()
+                        || tbConfirmationFromEmail.Text.Trim().Equals( "noreply@secc.org", StringComparison.OrdinalIgnoreCase ) ) )
+                {
+                    tbConfirmationFromEmail.Text = publishGroup.ContactEmail;
+                }
                 tbConfirmationSubject.Text = "Group Confirmation | " + publishGroup.Group.Name;
                 tbConfirmationSubject.ReadOnly = true;
                 ceConfirmationBody.Text = "{{ 'Global' | Attribute:'EmailHeader' }} Thank you for registering for the home group: " + publishGroup.Group.Name + ". The group leaders will reach out to you shortly with further details. We look forward to seeing you. {{ 'Global' | Attribute:'EmailFooter' }}";
@@ -431,6 +437,12 @@ namespace RockWeb.Plugins.GroupManager
         /// <param name="publishGroupStatus">The publish group status.</param>
         private void Save( PublishGroupStatus publishGroupStatus )
         {
+            // All callers (Publish, Save Draft, confirmation modal) post back with CausesValidation, so IsValid is already populated.
+            if ( !Page.IsValid )
+            {
+                return;
+            }
+
             RockContext rockContext = new RockContext();
             PublishGroupService publishGroupService = new PublishGroupService( rockContext );
             PublishGroup publishGroup = GetPublishGroup( rockContext, publishGroupService );
@@ -509,7 +521,7 @@ namespace RockWeb.Plugins.GroupManager
             publishGroup.ContactEmail = tbContactEmail.Text;
             publishGroup.ContactPhoneNumber = tbContactPhoneNumber.Text;
             publishGroup.ConfirmationFromName = tbConfirmationFromName.Text;
-            publishGroup.ConfirmationEmail = tbConfirmationFromEmail.Text;
+            publishGroup.ConfirmationEmail = tbConfirmationFromEmail.Text.Trim();
             publishGroup.ConfirmationSubject = tbConfirmationSubject.Text;
             publishGroup.ConfirmationBody = ceConfirmationBody.Text;
 
