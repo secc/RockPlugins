@@ -416,7 +416,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
         private void SendConfirmation( Person person )
         {
-            if ( person == null )
+            if ( person == null || person.Email.IsNullOrWhiteSpace() )
             {
                 return;
             }
@@ -428,12 +428,12 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
             var message = new RockEmailMessage();
             // ROCK-8991: send from a deliverable SECC address; the leader-entered address becomes the Reply-To.
+            // Legacy rows can have a blank ConfirmationEmail, so fall back to the (required) ContactEmail.
             message.FromEmail = "noreply@secc.org";
             message.FromName = _publishGroup.ConfirmationFromName;
-            if ( _publishGroup.ConfirmationEmail.IsNotNullOrWhiteSpace() )
-            {
-                message.ReplyToEmail = _publishGroup.ConfirmationEmail;
-            }
+            message.ReplyToEmail = _publishGroup.ConfirmationEmail.IsNotNullOrWhiteSpace()
+                ? _publishGroup.ConfirmationEmail.Trim()
+                : _publishGroup.ContactEmail;
             message.Subject = _publishGroup.ConfirmationSubject;
             message.Message = _publishGroup.ConfirmationBody;
             message.AddRecipient( new RockEmailMessageRecipient( person, mergeObjects ) );
