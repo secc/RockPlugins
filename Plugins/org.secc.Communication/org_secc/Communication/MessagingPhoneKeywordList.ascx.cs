@@ -261,19 +261,22 @@ namespace RockWeb.Plugins.org_secc.Communication
 
             // The ValueList hidden field holds a pipe-delimited, Uri-encoded list. Rows the user never typed
             // into come across as empty entries, so clean them out before deciding whether anything was entered.
+            // The control's client-side Required validator only catches the zero-row case (a single blank row
+            // serialises as "|" and passes it), so this server check is the real gate. Same wording as the
+            // client message Rock generates for a ValueList, so the user sees one sentence either way.
             // Only exact duplicates are dropped: this list is rewritten on every save, including edits that
             // touch nothing but the response message, so a case-insensitive de-dupe would silently discard
             // deliberate casing variants that the external matcher may well treat as distinct.
             var phrasesToMatch = Rock.Utility.RockSerializableList
-                .FromUriEncodedString( listPhrasesToMatch.Value ?? string.Empty ).List
-                .Select( p => ( p ?? string.Empty ).Trim() )
+                .FromUriEncodedString( listPhrasesToMatch.Value ).List
+                .Select( p => p.Trim() )
                 .Where( p => p.IsNotNullOrWhiteSpace() )
                 .Distinct()
                 .ToList();
 
             if ( !phrasesToMatch.Any() )
             {
-                NotificationBoxSetContent( "Please correct the following:", "At least one phrase to match is required.", NotificationBoxType.Validation );
+                NotificationBoxSetContent( "Please correct the following:", "Phrases to Match must have at least one value.", NotificationBoxType.Validation );
                 return;
             }
 
@@ -282,6 +285,12 @@ namespace RockWeb.Plugins.org_secc.Communication
             if ( hfKeywordId.Value.IsNotNullOrWhiteSpace() )
             {
                 keyword = LoadKeyword( hfKeywordId.Value );
+                if ( keyword == null )
+                {
+                    // MessagingClient.GetKeyword only throws on 404; any other failure deserializes to null.
+                    NotificationBoxSetContent( "Unable to save keyword", "The keyword could not be loaded from the Messaging service. Please try again.", NotificationBoxType.Danger );
+                    return;
+                }
             }
             else
             {
@@ -428,8 +437,9 @@ namespace RockWeb.Plugins.org_secc.Communication
                 ppContact.SetValue( GetContactPerson( keyword.ContactPerson ) );
 
 
+                // ToUriEncodedString calls Uri.EscapeDataString per element, which throws on null.
                 listPhrasesToMatch.Value = Rock.Utility.RockSerializableList
-                    .ToUriEncodedString( keyword.PhrasesToMatch ?? new List<string>() );
+                    .ToUriEncodedString( keyword.PhrasesToMatch.Where( p => p != null ).ToList() );
                 tbResponseMessage.Text = keyword.ResponseMessage;
             }
 
