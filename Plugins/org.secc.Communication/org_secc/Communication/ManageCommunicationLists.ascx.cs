@@ -328,6 +328,15 @@ namespace RockWeb.Plugins.org_secc.Communication
 
             if ( hasActiveMember )
             {
+                // Already a member, so this is a settings update, not an opt-in. Hiding the
+                // consent controls stops the checkbox being left stranded when the Subscribe
+                // button is hidden below, and stops an existing subscriber being asked to
+                // re-consent just to change their subscription settings. The server gate keys
+                // off cbKeywordSmsConsent.Visible, so hiding it here also disables that check --
+                // correct, because no opt-in and no IsMessagingEnabled write happens on this path.
+                cbKeywordSmsConsent.Visible = false;
+                lKeywordSmsDisclosure.Text = string.Empty;
+
                 if ( activeMember.Attributes.Any() )
                 {
                     nbAlreadySubscribed.Visible = true;

@@ -19,7 +19,7 @@
             <Rock:BootstrapButton runat="server" ID="btnSubscribe" Text="Subscribe" CssClass="btn btn-primary" OnClick="btnSubscribe_Click" />
             <hr />
         </asp:Panel>
-        <Rock:NotificationBox runat="server" id="nbNotice" Visible="false" />
+        <Rock:NotificationBox runat="server" id="nbNotice" CssClass="js-subscription-notice" Visible="false" />
         <Rock:NotificationBox runat="server" ID="nbSuccess" NotificationBoxType="Success" />
         <Rock:DynamicPlaceholder runat="server" ID="phGroups" />
 
@@ -57,6 +57,16 @@
         if (window.Sys && Sys.Application && !window.__seccConsentGate) {
             window.__seccConsentGate = true;
             Sys.Application.add_load(wire);
+        }
+        // Validation notices render at the top of the block, so a person scrolled down to a
+        // list sees nothing happen when a subscribe is refused. Bring it into view.
+        function showNotice() {
+            var n = $('.js-subscription-notice:visible').first();
+            if (n.length && n[0].scrollIntoView) { n[0].scrollIntoView({ block: 'center' }); }
+        }
+        if (window.Sys && Sys.Application && !window.__seccNoticeScroll) {
+            window.__seccNoticeScroll = true;
+            Sys.Application.add_load(showNotice);
         }
         if (window.jQuery) { jQuery(wire); }
     }());
