@@ -25,3 +25,39 @@
 
     </ContentTemplate>
 </asp:UpdatePanel>
+
+
+<script>
+    // Greys out any Subscribe control tagged data-requires-consent until its paired consent
+    // box is ticked. Presentation only -- HasSmsConsent on the server is the real gate.
+    (function () {
+        function wire() {
+            $('[data-requires-consent]').each(function () {
+                var btn = $(this);
+                var cb = $(document.getElementById(btn.attr('data-requires-consent')));
+                if (!cb.length) { return; }
+                function sync() {
+                    var ok = cb.is(':checked');
+                    btn.css({
+                        opacity: ok ? '' : '0.5',
+                        cursor: ok ? '' : 'not-allowed',
+                        pointerEvents: ok ? '' : 'none'
+                    }).attr('aria-disabled', !ok);
+                }
+                if (!btn.data('consentWired')) {
+                    btn.data('consentWired', true);
+                    btn.on('click', function (e) {
+                        if (!cb.is(':checked')) { e.preventDefault(); e.stopImmediatePropagation(); return false; }
+                    });
+                }
+                cb.off('change.consentGate').on('change.consentGate', sync);
+                sync();
+            });
+        }
+        if (window.Sys && Sys.Application && !window.__seccConsentGate) {
+            window.__seccConsentGate = true;
+            Sys.Application.add_load(wire);
+        }
+        if (window.jQuery) { jQuery(wire); }
+    }());
+</script>

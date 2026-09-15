@@ -290,6 +290,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             {
                 cbKeywordSmsConsent.Text = SmsDisclosure.ConsentText();
                 cbKeywordSmsConsent.Visible = true;
+                btnSubscribe.Attributes["data-requires-consent"] = cbKeywordSmsConsent.ClientID;
                 lKeywordSmsDisclosure.Text = SmsDisclosure.Html( "-4px 0 12px 22px" );
             }
 
@@ -535,10 +536,17 @@ namespace RockWeb.Plugins.org_secc.Communication
                 // GetEffectiveMedium already folded the person's communication preference
                 // into the dual-medium case, with email as the RecipientPreference/unset
                 // fallback so the Subscribe button is never a dead end without an input.
+                Panel consentBlock = null;
                 if ( medium == CommunicationType.SMS )
                 {
                     pnlToggle.Controls.Add( CreatePhoneBox( panelWidget.ID ) );
-                    pnlToggle.Controls.Add( CreateSmsConsentBlock( panelWidget.ID ) );
+
+                    // The consent sentence and disclosures are a paragraph, not a button, so they
+                    // sit in the panel body above pnlToggle rather than inside it. pnlToggle is a
+                    // Bootstrap .btn-group -- inline-block, sized to its widest child -- and a 34em
+                    // block of legal text inside it stretches the whole group.
+                    consentBlock = CreateSmsConsentBlock( panelWidget.ID );
+                    panelWidget.Controls.AddAt( panelWidget.Controls.IndexOf( pnlToggle ), consentBlock );
                 }
                 else
                 {
@@ -562,6 +570,19 @@ namespace RockWeb.Plugins.org_secc.Communication
                 };
                 pnlToggle.Controls.Add( on );
                 on.Click += ( s, e ) => { Subscribe( group.Id, panelWidget.ID ); };
+
+                // Affordance only: the button greys out until the box is ticked, so the
+                // requirement is visible before the click instead of as a validation error
+                // after it. Real enforcement stays server-side in HasSmsConsent -- a disabled
+                // anchor is trivially re-enabled in devtools or bypassed by replaying the postback.
+                if ( consentBlock != null )
+                {
+                    var consentBox = consentBlock.FindControl( $"cbSmsConsent{panelWidget.ID}" ) as RockCheckBox;
+                    if ( consentBox != null )
+                    {
+                        on.Attributes["data-requires-consent"] = consentBox.ClientID;
+                    }
+                }
             }
 
             member.LoadAttributes();
@@ -832,9 +853,8 @@ namespace RockWeb.Plugins.org_secc.Communication
         /// </summary>
         private Panel CreateSmsConsentBlock( string panelWidgetId )
         {
-            // pnlToggle is a Bootstrap .btn-group, which is inline-block and sizes to its widest
-            // child. Without a bound, the consent sentence stretches the whole group across the
-            // panel, so the block carries its own width.
+            // Bounded so the consent sentence wraps at a readable measure rather than running
+            // the full width of the panel.
             var wrapper = new Panel
             {
                 ID = $"pnlSmsConsent{panelWidgetId}",
