@@ -60,5 +60,36 @@ namespace org.secc.Communication.Tests
 
             Assert.Contains( $"margin:{margin};", html );
         }
+
+        [Fact]
+        public void ConsentText_EncodesOrganizationName()
+        {
+            var text = SmsDisclosure.ConsentText( "Org <script>alert(1)</script>" );
+
+            Assert.DoesNotContain( "<script>", text );
+            Assert.Contains( "&lt;script&gt;", text );
+        }
+
+        [Fact]
+        public void ConsentText_IsAnAffirmativeCheckboxStatement()
+        {
+            var text = SmsDisclosure.ConsentText( "Org" );
+
+            // Carriers require the wording to describe the act of ticking the box, and to say
+            // consent is not a condition of purchase. Both are audited.
+            Assert.StartsWith( "By checking this box", text );
+            Assert.Contains( "Org", text );
+            Assert.Contains( "Consent is not a condition of purchase.", text );
+        }
+
+        [Fact]
+        public void ConsentText_CarriesNoMarkup()
+        {
+            // Rendered as a checkbox label, not as pass-through HTML.
+            var text = SmsDisclosure.ConsentText( "Org" );
+
+            Assert.DoesNotContain( "<", text );
+            Assert.DoesNotContain( ">", text );
+        }
     }
 }
