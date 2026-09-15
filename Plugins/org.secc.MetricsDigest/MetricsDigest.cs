@@ -17,7 +17,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
 using System.Linq;
-using DotLiquid;
+using Rock.Lava;
 using Rock;
 using Rock.Attribute;
 using Rock.Communication;
@@ -189,7 +189,7 @@ namespace org.secc.Jobs
 
     }
 
-    public class MetricCount : Drop
+    public class MetricCount : LavaDataObject
     {
         public CampusCache Campus { get; set; }
 

@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {
 	"header": {
 		"title": "Sermons"
@@ -31,7 +32,7 @@
 	            "primary":"#121212",
 	            "primaryAccent":"#FFFFFF"
 	        },
-	        "brandableElements":"{{colors:brand}}"
+	        "brandableElements":""
 	    }
 	},
 	{%- if page != empty -%}
@@ -58,8 +59,8 @@
 			{%- assign itemActionUrl = "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/" | Append:item.Id -%}
 			{%- endif -%}
 	        {
-				"title": "{{item.Title | Replace:'"','\"'}}",
-				"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
+				"title": "{{item.Title | Replace:'"',bsq }}",
+				"subtitle": "{{ item.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
 	            "images":[
 					{ "width":920, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/card/{{item.Guid | Upcase}}"  }
 			    ],

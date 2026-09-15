@@ -1,4 +1,4 @@
-{% if AllowedActions.View == true || AllowedActions.Edit == true || AllowedActions.Administrate == true %}
+{% if AllowedActions.View == true or AllowedActions.Edit == true or AllowedActions.Administrate == true %}
 
 	{% assign countActive = -1 %}
 	{% assign countInactive = -1 %}
@@ -78,7 +78,9 @@
 	</div>
 	{% endif %}
 
-	{% if LinkedPages.RosterPage != '' and  (LinkedPages.AttendancePage != '' or Group.GroupType.TakesAttendance == 'False') %}
+	{% assign canTakeAttendance = false %}
+	{% if LinkedPages.AttendancePage != '' or Group.GroupType.TakesAttendance == 'False' %}{% assign canTakeAttendance = true %}{% endif %}
+	{% if LinkedPages.RosterPage != '' and canTakeAttendance %}
 		<ul class="nav nav-tabs margin-v-lg">
 			{% if LinkedPages.RosterPage != '' %}
 				{% if LinkedPages.RosterPage == CurrentPage.Path %}

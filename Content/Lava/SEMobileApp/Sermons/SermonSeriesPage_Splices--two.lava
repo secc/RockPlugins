@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Sermons' componententityid:'27191' operation:'View' summary:'Sermons Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' %}
 Sermons Page
 {% endinteractionwrite %}
@@ -34,7 +35,7 @@ Sermons Page
 	            "primary":"#121212",
 	            "primaryAccent":"#FFFFFF"
 	        },
-	        "brandableElements":"{{colors:brand}}"
+	        "brandableElements":""
 	    }
 	},
 	{%- if page != empty -%}
@@ -65,8 +66,8 @@ Sermons Page
 				{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/tabs/series/" | Append:item.Id -%}
 				{%- endif -%}
 		        {
-					"title": "{{item.Title | Replace:'"','\"'}}",
-					"subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
+					"title": "{{item.Title | Replace:'"',bsq }}",
+					"subtitle": "{{ item.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
 		            "images":[
 						{%- assign seriesImageGuid = item | Attribute:'Image', 'RawValue' -%}
 						{%- if seriesImageGuid != empty -%}

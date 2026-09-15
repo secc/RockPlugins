@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Sermon V2 Playlist' componententityid:'33575' operation:'View' summary:'Sermon Page V2 Playlist' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'{{id}}'%}
 Sermon Page V2
 {% endinteractionwrite %}
@@ -15,8 +16,8 @@ Sermon Page V2
 {%- endcontentchannelitemassociation -%}
 {
     "playlist": [{
-        "title": "{{sermon.Title | Replace:'"','\"'}}",
-        "subtitle": "{{series.Title  Replace:'"','\"'}}",
+        "title": "{{sermon.Title | Replace:'"',bsq }}",
+        "subtitle": "{{series.Title | Replace:'"',bsq }}",
         "appTitle": "Southeast Christian Church",
         "extraSubtitles": ["{{ sermon | Attribute:'Speaker' }}"],
         "media": [{
@@ -45,14 +46,14 @@ Sermon Page V2
                 {
                     "actions":[{
                         "handler":"defaultShare",
-                        "body":"Check this out! {{series.Title | Replace:'"','\"'}} | {{sermon.Title | Replace:'"','\"'}}",
+                        "body":"Check this out! {{series.Title | Replace:'"',bsq }} | {{sermon.Title | Replace:'"',bsq }}",
                         "url":"{{ 'Global' | Attribute:'PublicApplicationRoot' }}sermons/{{series.PrimarySlug}}/{{sermon.PrimarySlug}}"
                     }]
                 },
                 {
                     "actions":[{
                         "handler":"htmlShare",
-                        "body":"<html>Check this out! <a href='{{ 'Global' | Attribute:'PublicApplicationRoot' }}sermons/{{series.PrimarySlug}}/{{sermon.PrimarySlug}}'><b>{{series.Title | Replace:'"','\"'}} | {{sermon.Title | Replace:'"','\"'}}</b></a>.</html>"
+                        "body":"<html>Check this out! <a href='{{ 'Global' | Attribute:'PublicApplicationRoot' }}sermons/{{series.PrimarySlug}}/{{sermon.PrimarySlug}}'><b>{{series.Title | Replace:'"',bsq }} | {{sermon.Title | Replace:'"',bsq }}</b></a>.</html>"
                     }]
                 }
             ]

@@ -37,7 +37,7 @@ using System.Linq.Expressions;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using DotLiquid;
+using Rock.Lava;
 
 using Rock;
 using Rock.Attribute;
@@ -96,7 +96,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 </div>
 
 <div class='margin-v-sm'>
-{% if Location.FormattedHtmlAddress && Location.FormattedHtmlAddress != '' %}
+{% if Location.FormattedHtmlAddress and Location.FormattedHtmlAddress != '' %}
 	{{ Location.FormattedHtmlAddress }}
 {% endif %}
 </div>
@@ -140,6 +140,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
     //FamilyGrid Settings
     [BooleanField( "ShowFamilyGrid", "", false, "CustomSetting" )]
+    [LavaCommandsField( "Enabled Lava Commands", "The Lava commands that should be enabled for the Map Info, Family Info and Groupless Message templates. Leave empty to allow none (the pre-Fluid behaviour).", false, "", "", 0, "EnabledLavaCommands" )]
 
     public partial class GroupFinderMap : RockBlockCustomSettings
     {
@@ -1168,8 +1169,11 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                 // If a map is to be shown
                 if ( showMap && ( groups.Any() || families.Any() ) )
                 {
-                    Template groupInfoTemplate = Template.Parse( GetAttributeValue( "MapInfo" ) );
-                    Template familyInfoTemplate = Template.Parse( GetAttributeValue( "FamilyInfo" ) );
+                    // Templates are resolved with ResolveMergeFields (engine-agnostic; Rock caches parsed templates).
+                    // The block-level "Enabled Lava Commands" setting is passed explicitly: the overload without it would
+                    // apply the global DefaultEnabledLavaCommands, which the old DotLiquid Template.Render never did.
+                    string groupInfoTemplate = GetAttributeValue( "MapInfo" );
+                    string familyInfoTemplate = GetAttributeValue( "FamilyInfo" );
 
                     bool showDebug = UserCanEdit && GetAttributeValue( "MapInfoDebug" ).AsBoolean();
                     lMapInfoDebug.Visible = showDebug;
@@ -1215,7 +1219,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
                             securityActions.Add( "Administrate", group.IsAuthorized( Authorization.ADMINISTRATE, CurrentPerson ) );
                             mergeFields.Add( "AllowedActions", securityActions );
 
-                            string infoWindow = groupInfoTemplate.Render( Hash.FromDictionary( mergeFields ) );
+                            string infoWindow = groupInfoTemplate.ResolveMergeFields( mergeFields, GetAttributeValue( "EnabledLavaCommands" ) );
 
                             if ( debugStatus == ShowDebugStatus.Show )
                             {
@@ -1256,7 +1260,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                             var mergeFields = new Dictionary<string, object>();
                             mergeFields.Add( "Family", family );
-                            string infoWindow = familyInfoTemplate.Render( Hash.FromDictionary( mergeFields ) );
+                            string infoWindow = familyInfoTemplate.ResolveMergeFields( mergeFields, GetAttributeValue( "EnabledLavaCommands" ) );
                             mapItem.InfoWindow = HttpUtility.HtmlEncode( infoWindow.Replace( Environment.NewLine, string.Empty ).Replace( "\n", string.Empty ).Replace( "\t", string.Empty ) );
                             familyMapItems.Add( mapItem );
 
@@ -1449,7 +1453,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
             {
                 //Could not find any groups re-show address field
                 pnlSearch.Visible = true;
-                Template template = Template.Parse( GetAttributeValue( "GrouplessMessage" ) );
+                string template = GetAttributeValue( "GrouplessMessage" );
 
 
                 // Resolve lava template
@@ -1470,7 +1474,7 @@ namespace RockWeb.Plugins.org_secc.GroupManager
 
                 mergeFields.Add( "LinkedPages", linkedPages );
 
-                lMessage.Text = template.Render( Hash.FromDictionary( mergeFields ) );
+                lMessage.Text = template.ResolveMergeFields( mergeFields, GetAttributeValue( "EnabledLavaCommands" ) );
 
             }
         }

@@ -79,7 +79,8 @@
 						        {%- assign maskedAccount = maskedRaw | Split:' ' | Index:1 -%}
 						    {%- endif -%}
 						    {%- assign maskedAccountSize = maskedAccount | Size -%}
-						    {%- assign maskedAccountDigits = maskedAccount | RegExMatchValue:'\d+' -%}
+						    {%- capture digitsPattern -%}\d+{%- endcapture -%}
+						    {%- assign maskedAccountDigits = maskedAccount | RegExMatchValue:digitsPattern -%}
 						    {%- assign maskedAccountDigitsSize = maskedAccountDigits | Size -%}
 						    {%- assign maskedAccountNonDigitsSize = maskedAccountSize | Minus:maskedAccountDigitsSize -%}
 						    {%- if maskedAccountDigitsSize == 0 %}{%- assign maskedAccountNonDigitsSize = 8 -%}{% endif %}

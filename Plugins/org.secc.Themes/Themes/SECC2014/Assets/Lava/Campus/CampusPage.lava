@@ -135,12 +135,12 @@ Campus - Section
 
                             {% for serviceDay in campusServices.adult %}
                                 {{serviceDay.day}}:
-                                {% assign timesCount = serviceDay.times | Size %}
+                                {% assign timesCount = serviceDay.times | Size %}{% assign secondLast = timesCount | Minus:1 %}
 
                                 {% for times in serviceDay.times %}
-                                    {{times.time}}{% if (times.interpreted == true %}*{%assign interpreted = true %}{% endif %}
-                                    {% if (forloop.rindex0 == 0 %}<br />{% break %}
-                                    {% elseif (forloop.rindex0 == 1 and timesCount > 2) %} &amp;{% else %},{% endif %}
+                                    {{times.time}}{% if times.interpreted == true %}*{%assign interpreted = true %}{% endif %}
+                                    {% if forloop.last %}<br />{% break %}
+                                    {% elseif forloop.index == secondLast and timesCount > 2 %} &amp;{% else %},{% endif %}
                                 {% endfor %}
 
                             {% endfor %}
@@ -161,14 +161,14 @@ Campus - Section
 
                         <strong>MSM:</strong>{% for serviceDay in campusServices.msm %}
                                 <span class="service-day">{{serviceDay.day}}s:</span>
-                                {% assign timesCount = serviceDay.times | Size %}
+                                {% assign timesCount = serviceDay.times | Size %}{% assign secondLast = timesCount | Minus:1 %}
                                 {% assign serviceLocation = serviceDay.location %}
                                 <span class="service-time">
                                     {% for times in serviceDay.times %}
-                                        {{times.time}}{% if (times.interpreted == true %}*{%assign interpreted = true %}{% endif %}
-                                        {% if (forloop.rindex0 == 0 %}
+                                        {{times.time}}{% if times.interpreted == true %}*{%assign interpreted = true %}{% endif %}
+                                        {% if forloop.last %}
                                             {% break %}
-                                        {% elseif (forloop.rindex0 == 1 and timesCount > 2) %}
+                                        {% elseif forloop.index == secondLast and timesCount > 2 %}
                                             &amp;
                                         {% else %},
                                         {% endif %}
@@ -194,14 +194,14 @@ Campus - Section
 
                         <strong>HSM:</strong>{% for serviceDay in campusServices.hsm %}
                                 <span class="service-day">{{serviceDay.day}}s:</span>
-                                {% assign timesCount = serviceDay.times | Size %}
+                                {% assign timesCount = serviceDay.times | Size %}{% assign secondLast = timesCount | Minus:1 %}
                                 {% assign serviceLocation = serviceDay.location %}
                                 <span class="service-time">
                                     {% for times in serviceDay.times %}
-                                        {{times.time}}{% if (times.interpreted == true %}*{%assign interpreted = true %}{% endif %}
-                                        {% if (forloop.rindex0 == 0 %}
+                                        {{times.time}}{% if times.interpreted == true %}*{%assign interpreted = true %}{% endif %}
+                                        {% if forloop.last %}
                                             {% break %}
-                                        {% elseif (forloop.rindex0 == 1 and timesCount > 2) %}
+                                        {% elseif forloop.index == secondLast and timesCount > 2 %}
                                             &amp;
                                         {% else %},
                                         {% endif %}

@@ -28,7 +28,7 @@
 // limitations under the License.
 // </copyright>
 //
-using DotLiquid;
+using Rock.Lava;
 using ImageResizer.ExtensionMethods;
 using iText.Kernel.Pdf;
 using iText.Kernel.Utils;
@@ -530,7 +530,7 @@ namespace RockWeb.Plugins.org_secc.Finance
 
         #endregion
 
-        public class DocumentData : ILiquidizable
+        public class DocumentData : LavaDataObject
         {
             private static List<int> mailPersonIds = new List<int>();
 
@@ -575,10 +575,6 @@ namespace RockWeb.Plugins.org_secc.Finance
                 }
             }
 
-            public object ToLiquid()
-            {
-                return this;
-            }
         }
     }
 }
