@@ -69,7 +69,7 @@
                     <div class="well">
                         <div class="row">
                             <div class="col-md-4 col-sm-6">
-                                <Rock:ListItems ID="listPhrasesToMatch" runat="server" Label="Phrases to Match" Required="true"  RequiredErrorMessage="At least one phrase to match is required." ValidationGroup="keyword-edit" />
+                                <Rock:ValueList ID="listPhrasesToMatch" runat="server" Label="Phrases to Match" ValuePrompt="Phrase" Required="true" ValidationGroup="keyword-edit" />
                             </div>
                             <div class="col-md-8 col-sm-6">
                                 <Rock:RockTextBox ID="tbResponseMessage" runat="server" Label="Response Message" TextMode="MultiLine" MaxLength="160" Required="true" RequiredErrorMessage="Response Message is required." ValidationGroup="keyword-edit" />
