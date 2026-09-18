@@ -424,6 +424,14 @@ namespace RockWeb.Plugins.org_secc.Communication
             if ( keywordId.IsNotNullOrWhiteSpace() )
             {
                 keyword = LoadKeyword( keywordId );
+                if ( keyword == null )
+                {
+                    // MessagingClient.GetKeyword only throws on 404; any other failure deserializes to null.
+                    // Falling through would open a blank form with no hfKeywordId, so the next Save would
+                    // create a second keyword instead of editing this one.
+                    NotificationBoxSetContent( "Unable to open keyword", "The keyword could not be loaded from the Messaging service. Please try again.", NotificationBoxType.Danger );
+                    return;
+                }
             }
             KeywordFormClear();
             if ( keyword != null )
