@@ -471,10 +471,12 @@ namespace org.secc.Rest.Controllers
         }
 
         /// <summary>
-        /// Removes a group member from the provided group.
+        /// Removes a group member from the provided group. The target must be within the
+        /// caller's scope (their group, and their own table for a table-based group) and must
+        /// not be the last active leader within that scope.
+        /// </summary>
         /// <param name="groupId">The group ID</param>
-        /// <param name="groupMemberId">The group member ID</param>"
-        /// 
+        /// <param name="groupMemberId">The group member ID</param>
         [HttpDelete]
         [System.Web.Http.Route( "api/GroupApp/GroupMembers/{groupId}/Remove/{groupMemberId}" )]
         public IHttpActionResult RemoveGroupMember( int groupId, int groupMemberId )
@@ -499,15 +501,45 @@ namespace org.secc.Rest.Controllers
 
             if ( groupMemberId > 0 )
             {
-                var _rockContext = new RockContext();
-                var groupMemberService = new GroupMemberService( _rockContext );
-                var groupMember = groupMemberService.Get( groupMemberId );
+                // Resolve the target through the caller's scope, the same way Communicate does:
+                // their group, and for a table-based group their own table. Group-level EDIT +
+                // MANAGE_MEMBERS is held by every table leader, so scoping by group alone would
+                // still let one table leader delete another table's members. The scope also
+                // excludes archived rows, which GroupMemberService.Get (AsNoFilter) returns.
+                var scope = new GroupMemberServiceHelper( _context ).GetScopedGroupMembers( group, currentUser.Person );
+                if ( !scope.SenderHasScope )
+                {
+                    return BadRequest( GroupMemberServiceHelper.NotAssignedToTableMessage );
+                }
+
+                var groupMember = scope.Members.FirstOrDefault( gm => gm.Id == groupMemberId );
                 if ( groupMember == null )
                 {
                     return NotFound();
                 }
-                groupMemberService.Delete( groupMember );
-                _rockContext.SaveChanges();
+
+                // Removing the last active leader leaves nobody holding MANAGE_MEMBERS, so the
+                // remaining members cannot add anyone back and recovery needs Rock staff. Counted
+                // within the scope, not the whole group: for a table-based group no other table's
+                // leader can reach these members, so a table's own last leader strands it.
+                if ( groupMember.GroupMemberStatus == GroupMemberStatus.Active
+                    && groupMember.GroupRole != null && groupMember.GroupRole.IsLeader )
+                {
+                    var hasOtherActiveLeader = scope.Members.Any( gm => gm.Id != groupMember.Id
+                        && gm.GroupMemberStatus == GroupMemberStatus.Active
+                        && gm.GroupRole != null && gm.GroupRole.IsLeader );
+
+                    if ( !hasOtherActiveLeader )
+                    {
+                        return BadRequest( "You cannot remove the last active leader." );
+                    }
+                }
+
+                // Two-arg overload clears RegistrationRegistrant.GroupMemberId first. That FK is
+                // WillCascadeOnDelete( false ), so the single-arg overload leaves it set and
+                // SaveChanges throws for a member placed in the group by an event registration.
+                _groupMemberService.Delete( groupMember, true );
+                _context.SaveChanges();
                 return Ok();
             }
             else
