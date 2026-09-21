@@ -117,8 +117,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.QRManager.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.QRManager.pdb" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\QRCoder.dll" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
+    <PostBuildEvent>xcopy /Y /R "$(TargetDir)org.secc.QRManager.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)org.secc.QRManager.pdb" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)QRCoder.dll" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
   </PropertyGroup>
 </Project>

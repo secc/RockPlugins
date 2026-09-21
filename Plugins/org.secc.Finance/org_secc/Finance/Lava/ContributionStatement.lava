@@ -69,10 +69,15 @@
 							{% endfor %}
 							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} #{{ checkNumber }}
 						{% elseif transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == '928a2e04-c77b-4282-888f-ec549cee026a' %}
-						    {% assign maskedAccountDigitsSize = transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Right:4 | Size %}
+						    {% assign maskedAccountDigitsSize = transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Default:'' | Right:4 | Size %}
 							&#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; {% if maskedAccountDigitsSize == 4 %}{{ transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Right:4 }}{% else %}&#8226;&#8226;&#8226;&#8226;{% endif %}
 						{% elseif transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == 'dabee8fd-aedf-43e1-8547-4c97fa14d9b6' %}
-						    {%- assign maskedAccount = transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Split:' ' | Index:1 -%}
+						    {%- comment -%}AccountNumberMasked can be null (e.g. Service Reef imports); Split throws on null{%- endcomment -%}
+						    {%- assign maskedRaw = transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Default:'' -%}
+						    {%- assign maskedAccount = '' -%}
+						    {%- if maskedRaw != '' -%}
+						        {%- assign maskedAccount = maskedRaw | Split:' ' | Index:1 -%}
+						    {%- endif -%}
 						    {%- assign maskedAccountSize = maskedAccount | Size -%}
 						    {%- assign maskedAccountDigits = maskedAccount | RegExMatchValue:'\d+' -%}
 						    {%- assign maskedAccountDigitsSize = maskedAccountDigits | Size -%}
