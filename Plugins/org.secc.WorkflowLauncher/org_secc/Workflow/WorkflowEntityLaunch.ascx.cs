@@ -114,11 +114,18 @@ namespace RockWeb.Plugins.org_secc.Workflow
                         var service = Reflection.GetServiceForEntityType( entityType, Reflection.GetDbContextForEntityType( entityType ) );
 
                         MethodInfo getMethod = service.GetType().GetMethod( "Get", new Type[] { typeof( int ) } );
-                        MethodInfo launchWorkflowMethod = entity.GetType().GetMethod( "LaunchWorkflow", new Type[] { typeof( int ), typeof( string ), typeof( Dictionary<string, string> ) } );
+                        // Rock v20 removed the 3-argument LaunchWorkflow overloads, so look up the
+                        // 4-argument overload (int? workflowTypeId, string workflowName, Dictionary attributes, int? initiatorPersonAliasId).
+                        // The parameter is int?, not int, so the lookup must use typeof( int? ) to match.
+                        MethodInfo launchWorkflowMethod = entity.GetType().GetMethod( "LaunchWorkflow", new Type[] { typeof( int? ), typeof( string ), typeof( Dictionary<string, string> ), typeof( int? ) } );
                         if ( launchWorkflowMethod != null )
                         {
                             litOutput.Text = "Launching workflow for " + entity.ToString() + "<br />";
-                            var workflowResult = launchWorkflowMethod.Invoke( entity, new object[] { workflowType.Id, entity.ToString(), attributes } );
+                            launchWorkflowMethod.Invoke( entity, new object[] { ( int? ) workflowType.Id, entity.ToString(), attributes, CurrentPersonAliasId } );
+                        }
+                        else
+                        {
+                            litOutput.Text = "Unable to launch workflow: LaunchWorkflow method not found on " + entity.TypeName + ".";
                         }
                     }
                 }
