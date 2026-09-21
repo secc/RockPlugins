@@ -126,11 +126,13 @@ Ships Rock plugin migrations (SQL only — `Down()` is intentionally empty):
   `Utility/Statement.cs`; to change the action's inputs/output, edit `Workflow/GenerateStatement.cs`.
 - The default on-screen statement markup lives in the **Lava Template** block setting of
   Contribution Statement Lava (and in `org_secc/Finance/Lava/ContributionStatement.lava`); the
-  generation run is configured on the Contribution Statement Generator block.
+  generation run is configured on the Contribution Statement Generator block. In the default
+  template, ACH rows now handle a null `AccountNumberMasked` by rendering a fully masked fallback
+  (`••••••••`) instead of attempting to split a null value.
 - The batch driver is `Jobs/ProcessGivingStatements.cs` — it keys off the configured generator
   workflow type and activity name, so adding a new generation step is a workflow change, not a code
   change.
 - File access/serving rules live in `Handlers/GetStatement.ashx.cs`; deletion in
   `Rest/Controllers/FinancialStatementsController.cs`.
 
-**Last updated:** 2026-07-15
+**Last updated:** 2026-09-14

@@ -76,9 +76,9 @@ All require a logged-in user (`GetCurrentUser`, else `401`) and apply per-group 
 |-------|--------|---------------|---------|
 | `api/GroupApp/GroupList/` | GET | current user | Groups the user is an active member of, within configured GroupApp group types. |
 | `api/GroupApp/GetGroup/{groupId}` | GET | member or VIEW | Group summary; optional `getContent` / `getAllowEmailParents`. |
-| `api/GroupApp/GetGroupMembers/{groupId}` | GET | member or VIEW | Members; leaders also see address/email/phone/parent contact and an `IsMinor` flag (leader-gated). Table-based groups filter by `TableNumber`. |
-| `api/GroupApp/GroupMembers/{groupId}/Communicate` | POST | EDIT **and** MANAGE_MEMBERS | Send an email to all/one member (optionally parents). Individual sends to a minor auto-CC the minor's parents/guardians, or return `400` if no parent email is on record (see minor-communication policy below). The target `GroupMemberId` must belong to `{groupId}` (else `404`). |
-| `api/GroupApp/GroupMembers/{groupId}/Add` | POST | EDIT **and** MANAGE_MEMBERS | Match-or-create a person and add as a member; copies leader's `TableNumber`. |
+| `api/GroupApp/GetGroupMembers/{groupId}` | GET | member or VIEW | Members; leaders also see address/email/phone/parent contact and an `IsMinor` flag (leader-gated). Table-based groups show only the caller's own table (`TableNumber` match is case-sensitive, surrounding whitespace ignored); a caller with no table gets `200 "You are not assigned to a table"`. |
+| `api/GroupApp/GroupMembers/{groupId}/Communicate` | POST | EDIT **and** MANAGE_MEMBERS | Send an email to all/one member (optionally parents). Recipients are the caller's scope from `GetGroupMembers` (own table for table-based groups; `400` if the caller has no table) and only **Active** members. The target `GroupMemberId` must be in that scope (else `404`) and Active (else `400`). Individual sends to a minor auto-CC the minor's parents/guardians, or return `400` if no parent email is on record (see minor-communication policy below). `SendToParents` follows the Group Manager website: family adults receive the email themselves, minors' parents receive it for them. |
+| `api/GroupApp/GroupMembers/{groupId}/Add` | POST | EDIT **and** MANAGE_MEMBERS | Match-or-create a person and add as a member; copies the caller's `TableNumber` when they have one. |
 | `api/GroupApp/GroupMembers/{groupId}/Remove/{groupMemberId}` | DELETE | EDIT **and** MANAGE_MEMBERS | Hard-delete a group member. |
 | `api/GroupApp/Attendance/{groupId}/{occurrenceDate}` | GET | VIEW or leader | Attendance for an occurrence. |
 | `api/GroupApp/Attendance/` | POST | leader | Mark a member (of this group) present. Reconciles with the member's existing attendance for the group+date: with `locationId`, matches within that room (+`scheduleId`); without it, matches by group+person+date, preferring a kiosk-origin row, so a kiosk check-in is flipped rather than duplicated. Creates a row if none exists. |
@@ -113,7 +113,7 @@ GroupApp behavior is driven by **defined types** resolved by Guid (not block set
 | Defined Type Guid | Meaning |
 |-------------------|---------|
 | **`f75bdfa7-582b-4e0d-9715-5e47b0eb57cf`** | Group types surfaced in the app's group list. |
-| **`90526a36-fda6-4c90-997c-636b82b793d8`** | "Table-based" group types — members are filtered to the leader's `TableNumber`. |
+| **`90526a36-fda6-4c90-997c-636b82b793d8`** | "Table-based" group types — roster and communications are scoped to the caller's own `TableNumber` (`GroupMemberServiceHelper.GetScopedGroupMembers`). |
 | **`3780965b-3da0-4609-9577-cf8d39ec601a`** | "Student" group types. |
 
 Each defined value's `Value` is parsed as an integer GroupTypeId. Other in-code constants: `GroupTracker` is set for GroupTypeId 107/109 on CampusId 1; home/meeting location types resolved via Rock system Guids.
@@ -125,7 +125,7 @@ Org policy: communications may not be sent to minors unless another adult is inc
 - **Minor** = `Person.AgeClassification == AgeClassification.Child`. Rock's classification folds in birthdate, family role, and `IsLockedAsChild`, so minors with no birthdate on record are still caught. `== Child` (not `!= Adult`) because businesses are skipped by Rock's classifier and stay `Unknown` — they must not be treated as minors. The same predicate drives the roster's `IsMinor` flag and parent-info display.
 - If the target is a minor, all parent/guardian emails (family adults via `GetParents`, deduplicated) are set on `Communication.CCEmails`, so parents receive a copy of the individual email.
 - If the target is a minor and **no** parent has an email on record, the request fails with `400` and a descriptive message.
-- Parents-only sends (`SendToParents = true`) and whole-group sends (`GroupMemberId = 0`) are unchanged — group sends include adult leaders as recipients, which satisfies the policy.
+- Parents sends (`SendToParents = true`) deliver to minors' parents and to adult members directly; whole-group sends (`GroupMemberId = 0`) include adult leaders as recipients, which satisfies the policy.
 - CC is safe here because an individual send has exactly one recipient; Rock CCs per recipient, so CC must **not** be used for multi-recipient sends.
 
 ### Account create *(AccountController)*
@@ -209,4 +209,4 @@ Only `SecurityController` needs the `IHasCustomHttpRoutes.AddRoutes` + `SessionR
 
 ---
 
-**Last updated:** 2026-08-24
+**Last updated:** 2026-09-10

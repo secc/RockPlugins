@@ -54,7 +54,7 @@
   <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R /E /I "$(ProjectDir)Themes" "$(SolutionDir)RockWeb\Themes"
 xcopy /Y /R /E /I "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
-xcopy /Y /R "$(ProjectDir)bin\Debug\dotless.*" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
+xcopy /Y /R "$(TargetDir)dotless.*" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

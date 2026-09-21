@@ -87,6 +87,6 @@
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.SignNowWorkflow.*" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
+    <PostBuildEvent>xcopy /Y /R "$(TargetDir)org.secc.SignNowWorkflow.*" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
   </PropertyGroup>
 </Project>
