@@ -2,7 +2,7 @@
 
 > Southeast's custom event/registration blocks — calendar Lava, a heavily-customized registration entry/detail pair, QR event passes, SignNow signing, camp-placement import, and the Community Gives Back program.
 
-Last updated: 2026-08-28
+Last updated: 2026-09-21
 
 ## Overview
 
