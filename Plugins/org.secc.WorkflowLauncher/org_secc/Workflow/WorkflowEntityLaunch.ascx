@@ -9,7 +9,7 @@
             <div class="panel-body">
                 <div class="clearfix">
                     <Rock:NotificationBox NotificationBoxType="Info" ID="nbInformation" runat="server"></Rock:NotificationBox>
-                    <Rock:BootstrapButton ID="bbtnLaunch" runat="server" Enabled="false" OnClick="Launch_Click" Text="Launch" CssClass="btn btn-primary pull-right" />
+                    <Rock:BootstrapButton ID="bbtnLaunch" runat="server" Enabled="false" OnClick="Launch_Click" Text="Launch" DataLoadingText="Launching..." CssClass="btn btn-primary pull-right" />
                 </div>
                 <h3>Output</h3>
                 <div class="well" style="background-color: #fff">
