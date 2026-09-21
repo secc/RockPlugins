@@ -47,15 +47,15 @@ Category in Rock: **SECC > Workflow** / **SECC > WorkFlow** (the bulk pair use t
 | Block | Purpose | Key settings |
 |-------|---------|--------------|
 | Workflow Launcher | Launch a chosen workflow type for a Group's members, a Registration Instance's registrations (one or all), or a Person Data View's people. | (none — `WorkflowTypeField` is picked in the UI) |
-| Workflow Entity Launch | Launch one workflow for a single entity resolved from the `EntityId` querystring; group-member launches preset `Group`/`Person` attributes. Uses `LaunchWorkflow( int? workflowTypeId, string workflowName, Dictionary<string,string> attributes, int? initiatorPersonAliasId )` and passes `CurrentPersonAliasId` as initiator. | **EntityType**, **WorkflowType** |
+| Workflow Entity Launch | Launch one workflow for a single entity resolved from the `EntityId` querystring; group-member launches preset `Group`/`Person` attributes. Sets the current person as initiator, refuses inactive workflow types, and skips the launch if an active workflow of that type already exists for the entity. | **EntityType**, **WorkflowType** |
 | Workflow Bulk Select | Filterable grid of one workflow type's instances (the type comes from the `WorkflowTypeId` page parameter; a picker is shown if absent); selected (or all filtered) rows are pushed into a 1-day `EntitySet` and handed to the update page. | **UpdatePage** (linked page); reads `WorkflowTypeId` page parameter |
 | Workflow Bulk Update | Over the `EntitySetId`'s workflows: set attribute values (Lava-resolved), reactivate/complete, set status, and activate a new activity, then re-process each. | (none — reads `EntitySetId` page parameter) |
 
-The `WorkflowEntityLaunch` block resolves the entity service/`Get`/`LaunchWorkflow` reflectively from
-the configured `EntityType`, so it works against any entity type that exposes a `LaunchWorkflow`
-extension. For Rock v20 compatibility, it targets the four-argument overload where the first argument
-is nullable `int?` (not `int`) and includes the initiator alias id. The `WorkflowLauncher` block
-restricts its entity-type dropdown to Group, Registration Instance, and Data View.
+The `WorkflowEntityLaunch` block loads the entity via `Reflection.GetIEntityForEntityType` from the
+configured `EntityType`, so it works against any Rock entity type. It launches synchronously through
+`Workflow.Activate` + `WorkflowService.Process` (not the queued `LaunchWorkflow` extension) so that
+processing errors are shown to the user instead of only landing in the exception log. The
+`WorkflowLauncher` block restricts its entity-type dropdown to Group, Registration Instance, and Data View.
 
 ## Dependencies & Integrations
 
@@ -111,5 +111,3 @@ Ships one Rock plugin migration under `/Migrations/`:
   workflow-closing jobs in [org.secc.Jobs](../org.secc.Jobs/README.md).
  
 Last updated: 2026-09-21
-</content>
-</invoke>
