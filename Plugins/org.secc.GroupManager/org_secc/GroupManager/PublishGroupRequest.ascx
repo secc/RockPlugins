@@ -150,7 +150,8 @@
                             <h3>Confirmation Email</h3>
                             <hr />
                             <Rock:RockTextBox runat="server" ID="tbConfirmationFromName" Label="Confirmation From Name" Required="true" />
-                            <Rock:EmailBox runat="server" ID="tbConfirmationFromEmail" Label="Confirmation From Email" Required="true" />
+                            <Rock:EmailBox runat="server" ID="tbConfirmationFromEmail" Label="Confirmation Reply-To Email" Required="true"
+                                Help="Sets the Reply-To address on the confirmation email. The email is always sent from noreply@secc.org." />
                             <Rock:RockTextBox runat="server" ID="tbConfirmationSubject" Label="Confirmation Email Subject" Required="true" />
                             <Rock:HtmlEditor runat="server" ID="ceConfirmationBody" Label="Confirmation Email Body" Height="400" Required="true" />
                         </asp:Panel>

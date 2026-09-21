@@ -118,17 +118,17 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Imaging.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\org.secc.Imaging.pdb" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\NReco.ImageGenerator.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\Microsoft.Azure.CognitiveServices.Vision.Face.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\Microsoft.IdentityModel.Clients.ActiveDirectory.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\Microsoft.Rest.ClientRuntime.Azure.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\Microsoft.Rest.ClientRuntime.dll" "$(SolutionDir)RockWeb\bin"
+    <PostBuildEvent>xcopy /Y /R "$(TargetDir)org.secc.Imaging.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)org.secc.Imaging.pdb" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)NReco.ImageGenerator.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)Microsoft.Azure.CognitiveServices.Vision.Face.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)Microsoft.IdentityModel.Clients.ActiveDirectory.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)Microsoft.Rest.ClientRuntime.Azure.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)Microsoft.Rest.ClientRuntime.dll" "$(SolutionDir)RockWeb\bin"
 xcopy /Y /R /E /I /C "$(ProjectDir)org_secc" "$(SolutionDir)RockWeb\Plugins\org_secc"
-xcopy /Y /R "$(ProjectDir)bin\Debug\ImageResizer.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\ImageResizer.xml" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\ImageResizer.Plugins.SimpleFilters.dll" "$(SolutionDir)RockWeb\bin"
-xcopy /Y /R "$(ProjectDir)bin\Debug\ImageResizer.Plugins.SimpleFilters.xml" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
+xcopy /Y /R "$(TargetDir)ImageResizer.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)ImageResizer.xml" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)ImageResizer.Plugins.SimpleFilters.dll" "$(SolutionDir)RockWeb\bin"
+xcopy /Y /R "$(TargetDir)ImageResizer.Plugins.SimpleFilters.xml" "$(SolutionDir)RockWeb\bin"</PostBuildEvent>
   </PropertyGroup>
 </Project>
