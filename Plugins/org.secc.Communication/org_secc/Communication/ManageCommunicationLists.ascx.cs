@@ -286,7 +286,11 @@ namespace RockWeb.Plugins.org_secc.Communication
             // switches it to Text Message sees the disclosure twice. That is intentional --
             // each copy sits with its own consent control, and duplicate disclosure is
             // compliant where a missing one is not. Don't "de-duplicate" this away.
-            if ( support.SupportsSms )
+            // Gate on the effective medium, not SupportsSms, so this agrees with the per-list
+            // panels: on a list that carries both Email and Text Message, a person whose
+            // preference resolves to Email is subscribing to email and is not asked to agree
+            // to texts.
+            if ( GetEffectiveMedium( support ) == CommunicationType.SMS )
             {
                 cbKeywordSmsConsent.Text = SmsDisclosure.ConsentText();
                 cbKeywordSmsConsent.Visible = true;
@@ -546,6 +550,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                 // into the dual-medium case, with email as the RecipientPreference/unset
                 // fallback so the Subscribe button is never a dead end without an input.
                 Panel consentBlock = null;
+                RockCheckBox consentBox = null;
                 if ( medium == CommunicationType.SMS )
                 {
                     // The consent sentence and disclosures are a paragraph, not a button, so they
@@ -560,7 +565,7 @@ namespace RockWeb.Plugins.org_secc.Communication
                     // Panel (not a naming container), so its ID and lookup are unchanged.
                     var insertAt = panelWidget.Controls.IndexOf( pnlToggle );
                     panelWidget.Controls.AddAt( insertAt, CreatePhoneBox( panelWidget.ID ) );
-                    consentBlock = CreateSmsConsentBlock( panelWidget.ID );
+                    consentBlock = CreateSmsConsentBlock( panelWidget.ID, out consentBox );
                     panelWidget.Controls.AddAt( insertAt + 1, consentBlock );
                 }
                 else
@@ -590,13 +595,9 @@ namespace RockWeb.Plugins.org_secc.Communication
                 // requirement is visible before the click instead of as a validation error
                 // after it. Real enforcement stays server-side in HasSmsConsent -- a disabled
                 // anchor is trivially re-enabled in devtools or bypassed by replaying the postback.
-                if ( consentBlock != null )
+                if ( consentBox != null )
                 {
-                    var consentBox = consentBlock.FindControl( $"cbSmsConsent{panelWidget.ID}" ) as RockCheckBox;
-                    if ( consentBox != null )
-                    {
-                        on.Attributes["data-requires-consent"] = consentBox.ClientID;
-                    }
+                    on.Attributes["data-requires-consent"] = consentBox.ClientID;
                 }
             }
 
@@ -661,6 +662,13 @@ namespace RockWeb.Plugins.org_secc.Communication
                 "Mobile phone number is required when registering for this communication list.",
                 NotificationBoxType.Validation );
 
+        }
+
+        private void ShowConsentNotice()
+        {
+            ShowNotice( "Consent Required",
+                "Please check the box agreeing to receive text messages before subscribing.",
+                NotificationBoxType.Validation );
         }
 
         private void ShowNotice( string heading, string message, NotificationBoxType boxType = NotificationBoxType.Info )
@@ -866,7 +874,7 @@ namespace RockWeb.Plugins.org_secc.Communication
         /// require an affirmative, never-pre-ticked agreement ahead of the disclosures, and
         /// <see cref="Subscribe"/> refuses to run without it -- this is a gate, not a decoration.
         /// </summary>
-        private Panel CreateSmsConsentBlock( string panelWidgetId )
+        private Panel CreateSmsConsentBlock( string panelWidgetId, out RockCheckBox consentBox )
         {
             // Bounded so the consent sentence wraps at a readable measure rather than running
             // the full width of the panel.
@@ -878,12 +886,13 @@ namespace RockWeb.Plugins.org_secc.Communication
             wrapper.Style["display"] = "block";
             wrapper.Style["max-width"] = "34em";
 
-            wrapper.Controls.Add( new RockCheckBox
+            consentBox = new RockCheckBox
             {
                 ID = $"cbSmsConsent{panelWidgetId}",
                 Checked = false,
                 Text = SmsDisclosure.ConsentText()
-            } );
+            };
+            wrapper.Controls.Add( consentBox );
             wrapper.Controls.Add( CreateSmsDisclosure( panelWidgetId ) );
 
             return wrapper;
@@ -902,9 +911,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             // record of consent -- subscribing anyway is the exact thing the carrier audits.
             if ( consent == null || !consent.Checked )
             {
-                ShowNotice( "Consent Required",
-                    "Please check the box agreeing to receive text messages before subscribing.",
-                    NotificationBoxType.Validation );
+                ShowConsentNotice();
                 return false;
             }
 
@@ -980,12 +987,11 @@ namespace RockWeb.Plugins.org_secc.Communication
         {
             var groupId = ( int ) ViewState["KeywordGroupId"];
 
-            // Only made visible for Text Message lists, so an unticked box is a refused opt-in.
+            // Only made visible when the effective medium is SMS, so an unticked box is a
+            // refused opt-in. This panel has no mobile-number input; the number on file is used.
             if ( cbKeywordSmsConsent.Visible && !cbKeywordSmsConsent.Checked )
             {
-                ShowNotice( "Consent Required",
-                    "Please check the box agreeing to receive text messages before subscribing.",
-                    NotificationBoxType.Validation );
+                ShowConsentNotice();
                 return;
             }
 

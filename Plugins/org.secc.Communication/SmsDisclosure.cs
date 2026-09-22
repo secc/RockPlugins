@@ -48,6 +48,25 @@ namespace org.secc.Communication
                 + "of purchase.";
         }
 
+        /// <summary>
+        /// Consent statement for a single, user-requested text (e.g. an event pass). The recurring
+        /// wording in <see cref="ConsentText()"/> would misdescribe a one-off send, and carriers
+        /// care that the agreement says what will actually be sent.
+        /// </summary>
+        public static string OneTimeConsentText( string whatIsSent )
+        {
+            return OneTimeConsentText( GlobalAttributesCache.Value( "OrganizationName" ), whatIsSent );
+        }
+
+        public static string OneTimeConsentText( string organizationName, string whatIsSent )
+        {
+            var encodedOrgName = HttpUtility.HtmlEncode( organizationName );
+            var encodedWhat = HttpUtility.HtmlEncode( whatIsSent );
+            return $"By checking this box, you agree to receive a text message from {encodedOrgName} "
+                + $"with {encodedWhat} at the mobile number provided. Message and data rates may apply. "
+                + "Required for Text Message delivery only.";
+        }
+
         public static string Html( string organizationName, string margin )
         {
             if ( string.IsNullOrWhiteSpace( margin ) || !MarginPattern.IsMatch( margin.Trim() ) )

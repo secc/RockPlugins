@@ -83,6 +83,26 @@ namespace org.secc.Communication.Tests
         }
 
         [Fact]
+        public void OneTimeConsentText_DoesNotClaimRecurringMessages()
+        {
+            // A one-off send described as "recurring" misstates what the person agreed to.
+            var text = SmsDisclosure.OneTimeConsentText( "Org", "your event pass" );
+
+            Assert.StartsWith( "By checking this box", text );
+            Assert.DoesNotContain( "recurring", text );
+            Assert.Contains( "your event pass", text );
+        }
+
+        [Fact]
+        public void OneTimeConsentText_EncodesInputs()
+        {
+            var text = SmsDisclosure.OneTimeConsentText( "Org <b>", "<script>x</script>" );
+
+            Assert.DoesNotContain( "<", text );
+            Assert.Contains( "&lt;script&gt;", text );
+        }
+
+        [Fact]
         public void ConsentText_CarriesNoMarkup()
         {
             // Rendered as a checkbox label, not as pass-through HTML.

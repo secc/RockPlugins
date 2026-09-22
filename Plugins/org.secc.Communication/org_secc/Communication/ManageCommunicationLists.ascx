@@ -40,8 +40,7 @@
                     var ok = cb.is(':checked');
                     btn.css({
                         opacity: ok ? '' : '0.5',
-                        cursor: ok ? '' : 'not-allowed',
-                        pointerEvents: ok ? '' : 'none'
+                        cursor: ok ? '' : 'not-allowed'
                     }).attr('aria-disabled', !ok);
                 }
                 if (!btn.data('consentWired')) {

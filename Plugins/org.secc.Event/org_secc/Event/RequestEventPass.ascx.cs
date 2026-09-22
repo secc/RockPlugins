@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -71,7 +72,8 @@ namespace RockWeb.Plugins.org_secc.Event
             if (!IsPostBack)
             {
                 lTitle.Text = GetAttributeValue( AttributeKeys.BlockTitleKey );
-                cbSmsConsent.Text = org.secc.Communication.SmsDisclosure.ConsentText();
+                // An event pass is one text, so the recurring-program wording would misdescribe it.
+                cbSmsConsent.Text = org.secc.Communication.SmsDisclosure.OneTimeConsentText( "your event pass" );
                 ProcessRequest();
             }
 
@@ -206,28 +208,41 @@ namespace RockWeb.Plugins.org_secc.Event
 
         protected void lbApplePass_Click( object sender, EventArgs e )
         {
-            var errorMessage = string.Empty;
+            // Collect every problem so the person fixes them in one pass, not one per submit.
+            var missingFields = new List<string>();
+            var isSms = cblDeliveryMethod.SelectedValue.Equals( "sms", StringComparison.InvariantCultureIgnoreCase );
+
             if (cblDeliveryMethod.SelectedValue.Equals( "email", StringComparison.InvariantCultureIgnoreCase ) && tbEmail.Text.IsNullOrWhiteSpace())
             {
-                errorMessage = "Email Address is required.";
+                missingFields.Add( "Email Address is required." );
             }
 
-            if (cblDeliveryMethod.SelectedValue.Equals( "sms", StringComparison.InvariantCultureIgnoreCase ) && tbPhone.Text.IsNullOrWhiteSpace())
+            if (isSms && tbPhone.Text.IsNullOrWhiteSpace())
             {
-                errorMessage = "Mobile Phone Number is required.";
+                missingFields.Add( "Mobile Phone Number is required." );
             }
 
             // Carrier rule: no text without an affirmative, never-pre-ticked agreement. Enforced
-            // only on the SMS path -- an emailed pass needs no SMS consent.
-            if (cblDeliveryMethod.SelectedValue.Equals( "sms", StringComparison.InvariantCultureIgnoreCase ) && !cbSmsConsent.Checked)
-            {
-                errorMessage = "Please check the box agreeing to receive text messages.";
-            }
+            // only on the SMS path -- an emailed pass needs no SMS consent. Consent is not a
+            // missing field, so it is reported separately rather than under that heading.
+            var consentMissing = isSms && !cbSmsConsent.Checked;
 
-            if (!errorMessage.IsNullOrWhiteSpace())
+            if (missingFields.Any() || consentMissing)
             {
-                nbMessages.Title = "<strong>Required Fields Missing</strong>";
-                nbMessages.Text = $"<p>{errorMessage}</p>";
+                var html = string.Empty;
+                if (missingFields.Any())
+                {
+                    html += "<p><strong>Required Fields Missing</strong></p><ul><li>"
+                        + string.Join( "</li><li>", missingFields ) + "</li></ul>";
+                }
+                if (consentMissing)
+                {
+                    html += "<p><strong>Consent Required</strong></p>"
+                        + "<p>Please check the box agreeing to receive a text message to deliver your pass by text.</p>";
+                }
+
+                nbMessages.Title = string.Empty;
+                nbMessages.Text = html;
                 nbMessages.NotificationBoxType = NotificationBoxType.Validation;
                 nbMessages.Visible = true;
                 return;

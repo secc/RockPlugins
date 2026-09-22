@@ -43,7 +43,7 @@ Category in Rock: **SECC > Communication**.
 | Block | Purpose | Key settings |
 |-------|---------|--------------|
 | Communication List Wizard | Build a communication targeted at a public communication-list group. | (none) |
-| Manage Communication Lists | Let users manage their communication-list subscriptions; can confirm via SMS keyword. Renders an unchecked SMS consent checkbox (`SmsDisclosure.ConsentText()`) above the carrier-required disclosures (`SmsDisclosure.Html()`) directly beneath every mobile-number input, including the `Subscribe/{keyword}` deep-link panel. The checkbox is a hard gate: an SMS subscribe is refused while it is unticked, and it fails closed if the control is missing. | `AttributeKey` (Type), `KeywordKey` (Keyword), `FromSMSNumber` (confirmation SMS from) |
+| Manage Communication Lists | Let users manage their communication-list subscriptions; can confirm via SMS keyword. On each list panel whose effective medium is Text Message, renders the mobile-number input, then an unchecked SMS consent checkbox (`SmsDisclosure.ConsentText()`), then the carrier-required disclosures (`SmsDisclosure.Html()`), then Subscribe. The `Subscribe/{keyword}` deep-link panel has no mobile-number input (the number on file is used), so there the checkbox and disclosures sit directly above Subscribe. Both paths gate on the same effective medium, so on a list carrying both Email and Text Message a person whose preference resolves to Email is not asked to consent to texts. The checkbox is a hard gate: an SMS subscribe is refused while it is unticked, and it fails closed if the control is missing. | `AttributeKey` (Type), `KeywordKey` (Keyword), `FromSMSNumber` (confirmation SMS from) |
 | Messaging Phone Numbers | List active phone numbers from the SECC Messaging API. | `DetailPage` (linked page) |
 | Messaging Phone Number Detail | View/edit a phone number and its keywords via the Messaging API. | (none) |
 | Messaging Phone Number Keywords | List/manage keywords for a phone number, with an approval flow. | `ShowFilter` (bool, default true), `EnforceResponseLimit` (bool, default true) |
@@ -123,7 +123,7 @@ Twilio SDK enums aren't needed to read the data.
   Twilio Lookup action).
 - The SMS consent and disclosure text is a carrier-compliance requirement (Twilio audit of
   short code 733733, ticket #28958126). Both live in one place — the public static
-  `SmsDisclosure.ConsentText()` and `SmsDisclosure.Html()` helpers in `SmsDisclosure.cs`
+  `SmsDisclosure.ConsentText()`, `SmsDisclosure.OneTimeConsentText()` (single sends such as an event pass) and `SmsDisclosure.Html()` helpers in `SmsDisclosure.cs`
   (compiled into `org.secc.Communication.dll`) — and are called by Manage Communication Lists
   and by `RequestEventPass` in org.secc.Event. Edit the wording only there, and only after
   re-checking the CTA template filed with the carrier. The terms/privacy URLs are hardcoded on
