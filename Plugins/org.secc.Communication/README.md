@@ -132,5 +132,14 @@ Twilio SDK enums aren't needed to read the data.
 - The consent checkbox must never ship pre-checked and must keep blocking the subscribe. That
   combination *is* the opt-in record — there is no separate consent audit table — so weakening
   either half silently removes the proof the carrier asked for.
+- **The pages behind those two links are not ours, and each exists twice.** `se.church/terms` and
+  `se.church/privacy-policy` are **Webflow** pages owned by the web/comms team; near-identical
+  copies also live in Rock at `/terms` (page 1166, block 2274) and `/privacy-policy` (page 1165,
+  block 2273). The **Webflow** URLs are the ones filed with the carrier, so don't "fix" the links
+  to point at the Rock copies we can edit — that silently breaks the filing. Their *content* is
+  carrier-mandated too (the terms page must carry the short code, message frequency, rates,
+  STOP/HELP, the support contact from the HELP response, and a carrier-liability line; the privacy
+  policy must state that personal information is not shared with third parties for marketing).
+  Changing either page is a compliance change, not a copy edit.
 
-_Last updated: 2026-09-11_
+_Last updated: 2026-09-22_
