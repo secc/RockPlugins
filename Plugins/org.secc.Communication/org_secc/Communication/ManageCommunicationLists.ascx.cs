@@ -548,14 +548,20 @@ namespace RockWeb.Plugins.org_secc.Communication
                 Panel consentBlock = null;
                 if ( medium == CommunicationType.SMS )
                 {
-                    pnlToggle.Controls.Add( CreatePhoneBox( panelWidget.ID ) );
-
                     // The consent sentence and disclosures are a paragraph, not a button, so they
                     // sit in the panel body above pnlToggle rather than inside it. pnlToggle is a
                     // Bootstrap .btn-group -- inline-block, sized to its widest child -- and a 34em
                     // block of legal text inside it stretches the whole group.
+                    //
+                    // The phone box moves out with them, ahead of the consent block, so the page
+                    // reads mobile number -> consent + disclosures -> Subscribe: the agreement
+                    // refers to "the mobile number provided", so the number has to come first.
+                    // Subscribe finds the box via pnlWidget.FindControl, and pnlToggle is a plain
+                    // Panel (not a naming container), so its ID and lookup are unchanged.
+                    var insertAt = panelWidget.Controls.IndexOf( pnlToggle );
+                    panelWidget.Controls.AddAt( insertAt, CreatePhoneBox( panelWidget.ID ) );
                     consentBlock = CreateSmsConsentBlock( panelWidget.ID );
-                    panelWidget.Controls.AddAt( panelWidget.Controls.IndexOf( pnlToggle ), consentBlock );
+                    panelWidget.Controls.AddAt( insertAt + 1, consentBlock );
                 }
                 else
                 {
