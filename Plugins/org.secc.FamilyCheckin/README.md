@@ -146,6 +146,43 @@ Quartz `IJob`s (both `[DisallowConcurrentExecution]`); scheduled in Rock, not se
 |------------|---------|
 | `CheckinGroupFieldType` | Picks a single or (configurably) multiple check-in groups; stores `Group.Guid`. Backed by `CheckinGroupPicker` and `CheckinGroupFieldAttribute`. |
 
+### Caching
+
+`CheckinCache<T>` — subclassed by `AttendanceCache`, `OccurrenceCache`, and
+`MobileCheckinRecordCache` — keeps a per-type **key list** in `RockCache` (region `AllItems`, key
+`{TypeName}:All`) next to the cached entities, so `All()` / `AllKeys()` can enumerate without a DB
+round trip. Each subclass supplies a `keyFactory` that rebuilds that list from the database.
+`CheckinKioskTypeCache` is **not** part of this layer — it uses Rock's own `ModelCache`.
+
+**Key-list refreshes are throttled** to once per 10 seconds, per cache type, per web-farm node —
+**including when the list is empty**. An empty list is a valid state (overnight, before the day's
+first check-in), and refreshing it on every call re-ran `keyFactory()` every time; for
+`AttendanceCache` that is a full `dbo.Attendance` scan returning zero rows, which on `rockprod`
+produced a sustained ~98% CPU plateau overnight (PR #281).
+
+**Eviction is not emptiness.** The key list lives in `RockCache` and can disappear at any time —
+memory eviction, a local `Clear`, or `CheckinCacheConsumer` dropping it when another node publishes
+a change. The throttle timestamp is a process-local `static` and survives all of those. `AllKeys()`
+returns an empty list both when the entry is gone and when it is genuinely empty, so throttling a
+read after the entry disappeared serves **zero keys** for the rest of the window. That is what
+blanked the Check-in Monitor's rooms and service times during room setup (each `ToggleLocation`
+publishes a cache message, and every node drops its list) and why #281 was reverted (PR #287).
+
+`UpdateKeys` separates the two by remembering whether the **key list it last wrote to the cache**
+was empty — tracked on every write, including the throttled `ensureKey` / `removeKey` path, not just
+full rebuilds:
+
+- an empty read that contradicts a non-empty last write means the entry went away, so it rebuilds
+  immediately;
+- a genuinely empty list stays throttled, preserving the `keyFactory()` savings;
+- whenever `CheckinCacheConsumer` drops a node's list for a change published elsewhere, it also
+  clears that record (`InvalidateKeysState`), because the remote change means this node no longer
+  knows what the list contains — so the next read rebuilds rather than trusting a stale "empty".
+
+`Clear` passes `forceRefresh: true`, since a throttled refresh there would flush against a stale or
+empty key list and leave cached items behind. Individual check-ins still apply inside the throttle
+window through `ensureKey`, with no database round trip.
+
 ## Dependencies & Integrations
 
 - **Rock:** check-in engine (`CheckInState`, `CheckInActionComponent`), workflow engine,
@@ -221,4 +258,4 @@ attributes (don't hand-edit ones that have already run):
 - Related: scannable codes come from [org.secc.QRManager](../org.secc.QRManager/README.md);
   shared helpers from [org.secc.DevLib](../org.secc.DevLib/README.md).
 
-**Last updated:** 2026-08-23
+**Last updated:** 2026-09-22

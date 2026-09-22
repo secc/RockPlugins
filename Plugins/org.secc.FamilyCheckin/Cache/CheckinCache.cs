@@ -21,7 +21,24 @@ namespace org.secc.FamilyCheckin.Cache
         // Throttle key refreshes to avoid excessive DB calls
         private static readonly object KeysUpdateLock = new object();
         private static DateTime _lastKeysRefreshUtc = DateTime.MinValue;
+        // Whether the key list this node last wrote to the cache was empty. Tracks every write, not just
+        // full rebuilds, so it always describes what the cache should currently hold. See UpdateKeys.
+        private static bool _lastWrittenKeysWereEmpty;
         private static readonly TimeSpan KeysRefreshInterval = TimeSpan.FromSeconds( 10 );
+
+        /// <summary>
+        /// Called when this node's key list is dropped because of a change published by another node
+        /// (see <see cref="CheckinCacheConsumer"/>). The remote change means this node no longer knows
+        /// what the list contains, so forget that it was last written empty: the next read of the missing
+        /// entry is then treated as an eviction and rebuilds, instead of being trusted and throttled.
+        /// </summary>
+        internal static void InvalidateKeysState()
+        {
+            lock ( KeysUpdateLock )
+            {
+                _lastWrittenKeysWereEmpty = false;
+            }
+        }
 
         public void PostCached()
         {
@@ -125,7 +142,9 @@ namespace org.secc.FamilyCheckin.Cache
 
         public static void Clear( Func<List<string>> keyFactory )
         {
-            UpdateKeys( keyFactory );
+            // Force the rebuild: a throttled refresh here would flush against a stale -- or empty --
+            // key list and silently leave cached items behind.
+            UpdateKeys( keyFactory, forceRefresh: true );
 
             // Create a copy of the keys to avoid collection modification during enumeration
             foreach ( var key in AllKeys().ToList() )
@@ -169,15 +188,33 @@ namespace org.secc.FamilyCheckin.Cache
             return keys ?? new List<string>();
         }
 
-        private static List<string> UpdateKeys( Func<List<string>> keyFactory, string ensureKey = null, string removeKey = null )
+        private static List<string> UpdateKeys( Func<List<string>> keyFactory, string ensureKey = null, string removeKey = null, bool forceRefresh = false )
         {
             lock ( KeysUpdateLock )
             {
                 var now = DateTime.UtcNow;
                 var currentKeys = AllKeys();
 
-                // If within throttle window and we have existing keys
-                if ( currentKeys.Any() && ( now - _lastKeysRefreshUtc ) < KeysRefreshInterval )
+                // AllKeys() returns an empty list for two very different situations and cannot tell them
+                // apart: keyFactory() legitimately having nothing to return (overnight, before the day's
+                // first check-in), and the RockCache entry having been evicted. The throttle timestamp is
+                // a process-local field, so it outlives the cache entry it guards -- which means an
+                // evicted entry would otherwise be served as "empty" for the rest of the throttle window,
+                // handing every caller zero keys and blanking the check-in monitor until the window rolls.
+                //
+                // Tracking whether the list this node last wrote was empty separates the two: an empty
+                // cache read that contradicts a non-empty last write means the entry went away, so rebuild
+                // now. A genuinely empty list stays throttled, which is what keeps keyFactory() -- a
+                // full scan of Attendance in the AttendanceCache case -- from running on every call.
+                //
+                // The flag has to describe what was written, not what keyFactory() returned: an empty
+                // rebuild followed by a throttled ensureKey leaves a non-empty list in the cache, and if
+                // that entry is then evicted the read must rebuild, not be trusted as "still empty".
+                var cacheEntryLooksEvicted = !currentKeys.Any() && !_lastWrittenKeysWereEmpty;
+
+                if ( !forceRefresh
+                    && !cacheEntryLooksEvicted
+                    && ( now - _lastKeysRefreshUtc ) < KeysRefreshInterval )
                 {
                     bool modified = false;
 
@@ -198,6 +235,7 @@ namespace org.secc.FamilyCheckin.Cache
                     if ( modified )
                     {
                         RockCache.AddOrUpdate( AllKey, AllRegion, currentKeys );
+                        _lastWrittenKeysWereEmpty = !currentKeys.Any();
                     }
 
                     return currentKeys;
@@ -205,7 +243,7 @@ namespace org.secc.FamilyCheckin.Cache
 
                 var keys = keyFactory().Select( k => QualifiedKey( k ) ).ToList();
 
-                // Apply ensureKey/removeKey operations to refreshed keys                
+                // Apply ensureKey/removeKey operations to refreshed keys
                 if ( !string.IsNullOrEmpty( ensureKey ) && !keys.Contains( ensureKey ) )
                 {
                     keys.Add( ensureKey );
@@ -217,6 +255,10 @@ namespace org.secc.FamilyCheckin.Cache
                 }
 
                 RockCache.AddOrUpdate( AllKey, AllRegion, keys );
+
+                // Record what was written, after ensure/remove, so the next empty cache read can be
+                // classified as "still nothing" or "entry went away".
+                _lastWrittenKeysWereEmpty = !keys.Any();
                 _lastKeysRefreshUtc = now;
                 return keys;
             }
