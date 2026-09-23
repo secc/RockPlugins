@@ -472,8 +472,9 @@ namespace org.secc.Rest.Controllers
 
         /// <summary>
         /// Removes a group member from the provided group. The target must be within the
-        /// caller's scope (their group, and their own table for a table-based group) and must
-        /// not be the last active leader within that scope.
+        /// caller's scope (their group, and their own table for a table-based group; the whole
+        /// group for staff with a security grant and no table) and must not be the last active
+        /// member with an editing role within that scope.
         /// </summary>
         /// <param name="groupId">The group ID</param>
         /// <param name="groupMemberId">The group member ID</param>
@@ -507,29 +508,46 @@ namespace org.secc.Rest.Controllers
                 // still let one table leader delete another table's members. The scope also
                 // excludes archived rows, which GroupMemberService.Get (AsNoFilter) returns.
                 var scope = new GroupMemberServiceHelper( _context ).GetScopedGroupMembers( group, currentUser.Person );
+                var members = scope.Members;
                 if ( !scope.SenderHasScope )
                 {
-                    return BadRequest( GroupMemberServiceHelper.NotAssignedToTableMessage );
+                    // Staff who hold EDIT + MANAGE_MEMBERS through Rock security (not a group
+                    // role) oversee the whole group, so a caller with no table falls back to the
+                    // full roster. Authorization.Authorized skips Group.IsAuthorized's group-role
+                    // grant, so a table leader with a blank TableNumber still gets the 400.
+                    var hasSecurityGrant = Rock.Security.Authorization.Authorized( group, Rock.Security.Authorization.EDIT, currentUser.Person )
+                        && Rock.Security.Authorization.Authorized( group, Rock.Security.Authorization.MANAGE_MEMBERS, currentUser.Person );
+                    if ( !hasSecurityGrant )
+                    {
+                        return BadRequest( GroupMemberServiceHelper.NotAssignedToTableMessage );
+                    }
+
+                    members = _groupMemberService.GetByGroupId( group.Id )
+                        .Include( gm => gm.GroupRole )
+                        .Where( gm => gm.IsArchived == false )
+                        .ToList();
                 }
 
-                var groupMember = scope.Members.FirstOrDefault( gm => gm.Id == groupMemberId );
+                var groupMember = members.FirstOrDefault( gm => gm.Id == groupMemberId );
                 if ( groupMember == null )
                 {
                     return NotFound();
                 }
 
-                // Removing the last active leader leaves nobody holding MANAGE_MEMBERS, so the
-                // remaining members cannot add anyone back and recovery needs Rock staff. Counted
-                // within the scope, not the whole group: for a table-based group no other table's
-                // leader can reach these members, so a table's own last leader strands it.
+                // Removing the last active member whose role grants EDIT (which also grants
+                // MANAGE_MEMBERS) leaves nobody in the group who can manage members, so the
+                // remaining members cannot add anyone back and recovery needs Rock staff. Keyed
+                // on CanEdit, not IsLeader, because Group.IsAuthorized grants from the role flags.
+                // Counted within the scope, not the whole group: for a table-based group no other
+                // table's leader can reach these members, so a table's own last editor strands it.
                 if ( groupMember.GroupMemberStatus == GroupMemberStatus.Active
-                    && groupMember.GroupRole != null && groupMember.GroupRole.IsLeader )
+                    && groupMember.GroupRole != null && groupMember.GroupRole.CanEdit )
                 {
-                    var hasOtherActiveLeader = scope.Members.Any( gm => gm.Id != groupMember.Id
+                    var hasOtherActiveEditor = members.Any( gm => gm.Id != groupMember.Id
                         && gm.GroupMemberStatus == GroupMemberStatus.Active
-                        && gm.GroupRole != null && gm.GroupRole.IsLeader );
+                        && gm.GroupRole != null && gm.GroupRole.CanEdit );
 
-                    if ( !hasOtherActiveLeader )
+                    if ( !hasOtherActiveEditor )
                     {
                         return BadRequest( "You cannot remove the last active leader." );
                     }
