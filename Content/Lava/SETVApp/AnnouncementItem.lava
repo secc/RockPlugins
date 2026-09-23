@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'TV App Home Announcements' componententityid:'31221' operation:'View' summary:'TV App Home Announcements Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
 TV App Home Announcements Page
 {% endinteractionwrite %}
@@ -20,6 +21,6 @@ TV App Home Announcements Page
     		"url":"{{videoUrl}}",
             "format":"{{- item | Attribute:'VideoType' -}}"
         }],
-	"title": "{{- item.Title | Replace:'"','\"'  -}}{% if subtitleSize > 0 %}: {{ item | Attribute:'Subtitle' | Replace:'"','\"'  }}{% endif %}",
-	"body":"{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode | StripHtml }}"
+	"title": "{{- item.Title | Replace:'"',bsq   -}}{% if subtitleSize > 0 %}: {{ item | Attribute:'Subtitle' | Replace:'"',bsq   }}{% endif %}",
+	"body":"{{ item.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode | StripHtml }}"
 }

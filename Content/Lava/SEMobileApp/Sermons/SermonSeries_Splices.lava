@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Sermon Series' componententityid:'27192' operation:'View' summary:'Sermon Series Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'{{series}}'%}
 Sermon Series Page
 {% endinteractionwrite %}
@@ -15,7 +16,7 @@ Sermon Series Page
 {%- for series in contentchannelitemItems -%}
 {
 	"header": {
-		"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+		"title": "{{series.Title | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}",
 		"style": "featured",
 		"items": [{
 			"images":[
@@ -58,8 +59,8 @@ Sermon Series Page
 			{%- assign zeroSermons = false -%}
 	        {{ comma }}
 			{
-				"title": "{{sermon.Title | Replace:'"','\"'}}",
-				"subtitle": "{{ sermon | Attribute:'Speaker' | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }} {{ '&bull;' | HtmlDecode }} {{ sermon.StartDateTime | Date:'MMMM d, yyyy' }}",
+				"title": "{{sermon.Title | Replace:'"',bsq }}",
+				"subtitle": "{{ sermon | Attribute:'Speaker' | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }} {{ '&bull;' | HtmlDecode }} {{ sermon.StartDateTime | Date:'MMMM d, yyyy' }}",
 				"images":[
 					{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/button/{{sermon.Guid}}?bgcolor=121314&mode=crop&s.roundcorners=40&margin=80,80,80,0"  }
 				],

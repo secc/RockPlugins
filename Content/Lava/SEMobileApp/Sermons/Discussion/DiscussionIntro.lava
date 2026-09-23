@@ -31,7 +31,7 @@
 	            "primary":"#121212",
 	            "primaryAccent":"#FFFFFF"
 	        },
-	        "brandableElements":"{{colors:brand}}"
+	        "brandableElements":""
 	    }
 	},
 	"items": [

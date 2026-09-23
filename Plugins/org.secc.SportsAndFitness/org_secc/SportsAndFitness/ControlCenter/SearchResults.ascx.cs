@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.UI.WebControls;
-using DotLiquid;
 using org.secc.DevLib.SportsAndFitness;
 using Rock;
 using Rock.Attribute;
@@ -318,7 +317,7 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         #endregion
     }
 
-    public class PersonResults : Rock.Lava.ILiquidizable
+    public class PersonResults : Rock.Lava.LavaDataObject
 
     {
         public Person PersonResult { get; set; }
@@ -329,74 +328,9 @@ namespace RockWeb.Plugins.org_secc.SportsAndFitness.ControlCenter
         public int? PickleBallMemberId { get; set; }
         public string MobilePhone { get; set; }
 
-        public object ToLiquid()
-        {
-            return this;
-        }
-
-       [LavaHidden]
-        public List<string> AvailableKeys
-        {
-            get
-            {
-                var availableKeys = new List<string>
-                    {
-                        "PersonResult",
-                        "ConnectionStatusValue",
-                        "RecordStatusValue",
-                        "SportsAndFitnessMemberId",
-                        "GroupFitnessMemberId",
-                        "PickleBallMemberId",
-                        "MobilePhone"
-                    };
-
-                return availableKeys;
-            }
-        }
-
-        [LavaHidden]
-        public object this[object key]
-        {
-            get
-            {
-                switch (key.ToStringSafe())
-                {
-                    case "PersonResult":
-                        return PersonResult;
-                    case "ConnectionStatusValue":
-                        return ConnectionStatusValue;
-                    case "RecordStatusValue":
-                        return RecordStatusValue;
-                    case "SportsAndFitnessMemberId":
-                        return SportsAndFitnessMemberId;
-                    case "GroupFitnessMemberId":
-                        return GroupFitnessMemberId;
-                    case "PickleBallMemberId":
-                        return PickleBallMemberId;
-                    case "MobilePhone":
-                        return MobilePhone;
-                    default:
-                        return string.Empty;
-                }
-            }
-        }
-
-        public bool ContainsKey( object key )
-        {
-            var keyList = new List<string>
-                {
-                    "PersonResult",
-                    "ConnectionStatusValue",
-                    "RecordStatusValue",
-                    "SportsAndFitnessMemberId",
-                    "GroupFitnessMemberId",
-                    "PickleBallMemberId",
-                    "MemberPhone"
-                };
 
 
-            return keyList.Contains( key.ToStringSafe() );
-        }
+
     }
 
 }

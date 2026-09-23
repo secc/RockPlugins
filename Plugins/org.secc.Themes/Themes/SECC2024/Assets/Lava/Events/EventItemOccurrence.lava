@@ -46,7 +46,8 @@
                 {% endfor %}
             {% else %}
                 {% if scheduleText == empty %}
-                    {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+                    {% assign contactName = EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim %}
+                    {% if contactName != '' %}
                         <i class="fal fa-calendar"></i> Date and/or time has not been set yet. Please {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} for more details.
                         {% else %}
                         <i class="fal fa-calendar"></i> Date and/or time has not been set yet. Please contact for more details.
@@ -81,9 +82,9 @@
     {% endif %}
 
 
-    {% if (EventItemOccurrence.ContactPersonAlias.Person.Fullname | Trim != '') or EventItemOccurrence.ContactEmail != '' or EventItemOccurrence.ContactPhone != '' %}
+    {% if contactName != '' or EventItemOccurrence.ContactEmail != '' or EventItemOccurrence.ContactPhone != '' %}
         <p class="g-font-size-14-xs g-font-weight--300">
-            <i class="fal fa-address-book"></i> Contact: {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}{{ EventItemOccurrence.ContactPersonAlias.Person.FullName }}&emsp;{% endif %}{% if EventItemOccurrence.ContactEmail != '' %}<a href="mailto:{{ EventItemOccurrence.ContactEmail }}">{{ EventItemOccurrence.ContactEmail }}</a>&emsp;{% endif %}{{ EventItemOccurrence.ContactPhone }}
+            <i class="fal fa-address-book"></i> Contact: {% if contactName != '' %}{{ EventItemOccurrence.ContactPersonAlias.Person.FullName }}&emsp;{% endif %}{% if EventItemOccurrence.ContactEmail != '' %}<a href="mailto:{{ EventItemOccurrence.ContactEmail }}">{{ EventItemOccurrence.ContactEmail }}</a>&emsp;{% endif %}{{ EventItemOccurrence.ContactPhone }}
         </p>
         {%comment%}
             <!--Removing notes because no one uses them-->
@@ -94,7 +95,7 @@
 
                 <h6 class="g-padding-t-40--xs">
                     <span class="g-font-weight--800 uppercase">Contact</span><br />
-                    {% if EventItemOccurrence.ContactPersonAlias.Person.FullName | Trim != '' %}
+                    {% if contactName != '' %}
                         {{ EventItemOccurrence.ContactPersonAlias.Person.FullName }} <br />
                     {% endif %}
                     {% if EventItemOccurrence.ContactEmail != '' %}
@@ -148,7 +149,7 @@
 
             {% else %}
             {% for linkage in EventItemOccurrence.Linkages %}
-                {% if linkage.RegistrationInstanceId > 0 ) %}
+                {% if linkage.RegistrationInstanceId > 0 %}
 
                     {% assign daysTillStartDate = 'Now' | DateDiff:linkage.RegistrationInstance.StartDateTime,'m' %}
                     {% assign daysTillEndDate = 'Now' | DateDiff:linkage.RegistrationInstance.EndDateTime,'m' %}

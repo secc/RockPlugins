@@ -77,7 +77,7 @@ $(window).load(function() {
   {% assign nextPageString = Pagination.NextPage | ToString %}
   {% assign prevPageString = Pagination.PreviousPage | ToString %}
 
-  {% if {{Pagination.PreviousPage == -1 }} %}
+  {% if Pagination.PreviousPage == -1 %}
   <div class="button prev inactive pull-left">
 	<i class="fa fa-chevron-left"></i>
   </div>
@@ -87,7 +87,7 @@ $(window).load(function() {
   </a>
   {% endif %}
 
-  {% if {{Pagination.NextPage == -1 }} %}
+  {% if Pagination.NextPage == -1 %}
   <div class="button next inactive pull-right">
 	<i class="fa fa-chevron-right"></i>
   </div>

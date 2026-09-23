@@ -16,7 +16,7 @@
         {[ wow animate:'fadeIn' duration:'.8s' ]}
         <ul class="list-inline clearfix g-padding-t-0--xs g-padding-b-150--xs g-padding-x-150--md text-center g-margin-x-auto--xs">
 
-            {% assign campusesSorted = Campuses | Sort:'Order','Asc' %}
+            {% assign campusesSorted = Campuses | OrderBy:'Order' %}
             {% for campus in campusesSorted %}
                 {% assign publicCampus = campus | Attribute:'Public' %}
                 {% assign slug = campus | Attribute:'Slug' %}

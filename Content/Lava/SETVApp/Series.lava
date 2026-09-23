@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'TV App Series' componententityid:'27734' operation:'View' summary:'TV App Series Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypdid:'208' relatedentityid:'{{id}}'%}
 TV App Series Page
 {% endinteractionwrite %}
@@ -17,7 +18,7 @@ TV App Series Page
 {%- endunless -%}
 {
 	"header": {
-		"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+		"title": "{{series.Title | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}",
 		"style": "banner",
 		"items": [{
 			"images":[
@@ -39,8 +40,8 @@ TV App Series Page
 	            "images":[
 					{ "width":308, "url":"https://www.southeastchristian.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=308" }
 	            ],
-				"title": "{{sermon.Title | Replace:'"','\"'}}",
-				"subtitle": "{{ sermon.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+				"title": "{{sermon.Title | Replace:'"',bsq }}",
+				"subtitle": "{{ sermon.Content | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}",
 				"actions": [{
 					"handler": "detail",
 					"url": "https://www.southeastchristian.org/webhooks/Subsplash.ashx/tvapp/sermon/{{sermon.Id}}"

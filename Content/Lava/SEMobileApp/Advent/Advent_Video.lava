@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {%- contentchannelitem where:'ContentChannelId == 85 && Id == {{id}}' -%}
 {%- for item in contentchannelitemItems -%}
 {
@@ -16,7 +17,7 @@
     }, {
         "type": "text",
         "props": {
-            "content": "{{item.Title | Replace:'"','\"'}}",
+            "content": "{{item.Title | Replace:'"',bsq }}",
             "h1": true
         }
     }]
