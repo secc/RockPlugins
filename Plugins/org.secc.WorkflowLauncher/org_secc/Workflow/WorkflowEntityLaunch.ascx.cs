@@ -102,12 +102,33 @@ namespace RockWeb.Plugins.org_secc.Workflow
         }
 
         /// <summary>
-        /// Handles the Launch button click. Launches the configured workflow for the entity
-        /// synchronously so that success or failure can be reported back to the user.
+        /// Handles the Launch button click. Refuses to launch if an active workflow of the same
+        /// type already exists for the entity, and offers a "Launch Anyway" button instead.
         /// </summary>
         protected void Launch_Click( object sender, EventArgs e )
         {
+            LaunchWorkflow( force: false );
+        }
+
+        /// <summary>
+        /// Handles the Launch Anyway button click. Launches even when an active workflow of the
+        /// same type already exists for the entity.
+        /// </summary>
+        protected void LaunchAnyway_Click( object sender, EventArgs e )
+        {
+            LaunchWorkflow( force: true );
+        }
+
+        /// <summary>
+        /// Launches the configured workflow for the entity synchronously so that success or
+        /// failure can be reported back to the user.
+        /// </summary>
+        /// <param name="force">When false, an existing active workflow of the same type for this
+        /// entity blocks the launch and the user is offered a "Launch Anyway" button.</param>
+        private void LaunchWorkflow( bool force )
+        {
             bbtnLaunch.Enabled = false;
+            bbtnLaunchAnyway.Visible = false;
 
             Guid? workflowGuid = GetAttributeValue( "WorkflowType" ).AsGuidOrNull();
             var workflowType = workflowGuid.HasValue ? WorkflowTypeCache.Get( workflowGuid.Value ) : null;
@@ -140,18 +161,34 @@ namespace RockWeb.Plugins.org_secc.Workflow
                     var workflowService = new WorkflowService( rockContext );
 
                     // Guard against a replayed/duplicate postback launching a second copy of the
-                    // same workflow for the same entity.
-                    var entityTypeId = EntityTypeCache.GetId( entity.GetType() );
-                    bool alreadyActive = workflowService.Queryable()
-                        .Any( w => w.WorkflowTypeId == workflowType.Id
-                            && w.EntityTypeId == entityTypeId
-                            && w.EntityId == entity.Id
-                            && w.ActivatedDateTime.HasValue
-                            && !w.CompletedDateTime.HasValue );
-                    if ( alreadyActive )
+                    // same workflow for the same entity. The user can override via "Launch Anyway"
+                    // (e.g. when the existing workflow is stuck).
+                    if ( !force )
                     {
-                        ShowMessage( string.Format( "An active <i>{0}</i> workflow already exists for <i>{1}</i>. It was not launched again.", workflowType.Name.EncodeHtml(), encodedEntityName ), NotificationBoxType.Warning );
-                        return;
+                        var entityTypeId = EntityTypeCache.GetId( entity.GetType() );
+                        var existing = workflowService.Queryable()
+                            .Where( w => w.WorkflowTypeId == workflowType.Id
+                                && w.EntityTypeId == entityTypeId
+                                && w.EntityId == entity.Id
+                                && w.ActivatedDateTime.HasValue
+                                && !w.CompletedDateTime.HasValue )
+                            .OrderByDescending( w => w.ActivatedDateTime )
+                            .ToList();
+
+                        if ( existing.Any() )
+                        {
+                            ShowMessage(
+                                string.Format( "{0} active <i>{1}</i> workflow{2} already exist{3} for <i>{4}</i>. Nothing was launched. Review the existing workflow{2} below, or click \"Launch Anyway\" to start another one.",
+                                    existing.Count,
+                                    workflowType.Name.EncodeHtml(),
+                                    existing.Count == 1 ? string.Empty : "s",
+                                    existing.Count == 1 ? "s" : string.Empty,
+                                    encodedEntityName ),
+                                NotificationBoxType.Warning );
+                            litOutput.Text = string.Join( "<br />", existing.Select( w => DescribeWorkflow( w ) ) );
+                            bbtnLaunchAnyway.Visible = true;
+                            return;
+                        }
                     }
 
                     var workflow = Rock.Model.Workflow.Activate( workflowType, entityName, rockContext );
@@ -221,6 +258,34 @@ namespace RockWeb.Plugins.org_secc.Workflow
             }
 
             return Reflection.GetIEntityForEntityType( entityType, entityId.Value );
+        }
+
+        /// <summary>
+        /// Builds a one-line HTML description of an existing workflow, linked to the core
+        /// Workflow Detail page when that page exists.
+        /// </summary>
+        private string DescribeWorkflow( Rock.Model.Workflow workflow )
+        {
+            string label = string.Format( "{0} (#{1})", workflow.Name.EncodeHtml(), workflow.WorkflowId.EncodeHtml() );
+
+            var detailPage = PageCache.Get( Rock.SystemGuid.Page.WORKFLOW_DETAIL.AsGuid() );
+            if ( detailPage != null )
+            {
+                var pageRef = new Rock.Web.PageReference( detailPage.Id, 0, new Dictionary<string, string> { { "WorkflowId", workflow.Id.ToString() } } );
+                label = string.Format( "<a href=\"{0}\">{1}</a>", pageRef.BuildUrl(), label );
+            }
+
+            string activated = workflow.ActivatedDateTime.HasValue
+                ? workflow.ActivatedDateTime.Value.ToShortDateTimeString()
+                : "unknown";
+            string status = string.IsNullOrWhiteSpace( workflow.Status ) ? string.Empty : string.Format( ", status <i>{0}</i>", workflow.Status.EncodeHtml() );
+            var activityNames = workflow.ActiveActivities
+                .Where( a => a.ActivityTypeCache != null )
+                .Select( a => a.ActivityTypeCache.Name.EncodeHtml() )
+                .ToList();
+            string activities = activityNames.Any() ? string.Format( ", waiting on {0}", string.Join( ", ", activityNames ) ) : string.Empty;
+
+            return string.Format( "{0} &mdash; started {1}{2}{3}", label, activated, status, activities );
         }
 
         /// <summary>
