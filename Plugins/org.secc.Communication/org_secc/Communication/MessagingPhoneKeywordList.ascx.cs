@@ -5,7 +5,6 @@ using System.Data.Entity;
 using System.Linq;
 using System.Linq.Dynamic;
 using System.Web.UI.WebControls;
-using Newtonsoft.Json;
 using org.secc.Communication;
 using org.secc.Communication.Messaging;
 using org.secc.Communication.Messaging.Model;
@@ -13,6 +12,7 @@ using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Utility;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -191,7 +191,9 @@ namespace RockWeb.Plugins.org_secc.Communication
             }
             lStatus.Text = $"<span class='{cssClass}'>{labelText}</span>";
 
-            var phrases = string.Join( "<br />", item.PhrasesToMatch );
+            // Phrases are user-entered and FromUriEncodedString decodes %3C etc. on save, so markup can reach
+            // the Messaging service without tripping request validation. Encode before writing to the Literal.
+            var phrases = string.Join( "<br />", item.PhrasesToMatch.Select( p => p.EncodeHtml() ) );
             Literal lPhrases = e.Row.FindControl( "lKeywordPhrases" ) as Literal;
             lPhrases.Text = phrases;
 
@@ -254,9 +256,37 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         private void lbKeywordSave_Click( object sender, EventArgs e )
         {
+            // Server-side backstop for the Name / Response Message / Phrases validators; the
+            // ValidationSummary already shows the messages, so just stop here.
+            if ( !Page.IsValid )
+            {
+                return;
+            }
+
             if ( !KeywordDateRangeIsValid() )
             {
                 NotificationBoxSetContent( "Please correct the following:", "Start Date must be before End Date.", NotificationBoxType.Validation );
+                return;
+            }
+
+            // The ValueList hidden field holds a pipe-delimited, Uri-encoded list. Rows the user never typed
+            // into come across as empty entries, so clean them out before deciding whether anything was entered.
+            // The control's client-side Required validator only catches the zero-row case (a single blank row
+            // serialises as "|" and passes it), so this server check is the real gate. Same wording as the
+            // client message Rock generates for a ValueList, so the user sees one sentence either way.
+            // Only exact duplicates are dropped: this list is rewritten on every save, including edits that
+            // touch nothing but the response message, so a case-insensitive de-dupe would silently discard
+            // deliberate casing variants that the external matcher may well treat as distinct.
+            var phrasesToMatch = RockSerializableList
+                .FromUriEncodedString( listPhrasesToMatch.Value ).List
+                .Select( p => p.Trim() )
+                .Where( p => p.IsNotNullOrWhiteSpace() )
+                .Distinct()
+                .ToList();
+
+            if ( !phrasesToMatch.Any() )
+            {
+                NotificationBoxSetContent( "Please correct the following:", "Phrases to Match must have at least one value.", NotificationBoxType.Validation );
                 return;
             }
 
@@ -265,6 +295,10 @@ namespace RockWeb.Plugins.org_secc.Communication
             if ( hfKeywordId.Value.IsNotNullOrWhiteSpace() )
             {
                 keyword = LoadKeyword( hfKeywordId.Value );
+                if ( keyword == null )
+                {
+                    return;
+                }
             }
             else
             {
@@ -311,9 +345,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
             keyword.IsActive = switchActive.Checked;
 
-            var wordsToMatch = new List<string>();
-            var listItems = JsonConvert.DeserializeObject<List<ListItems.KeyValuePair>>( listPhrasesToMatch.Value );
-            keyword.PhrasesToMatch = listItems.Select( l => l.Value ).ToList();
+            keyword.PhrasesToMatch = phrasesToMatch;
             keyword.ResponseMessage = tbResponseMessage.Text.Trim();
 
             var client = new MessagingClient();
@@ -387,10 +419,20 @@ namespace RockWeb.Plugins.org_secc.Communication
             tbResponseMessage.Text = string.Empty;
         }
 
+        /// <summary>
+        /// Loads a keyword from the Messaging service. On any failure (deleted keyword, service error, bad
+        /// response) shows an error notification and returns null; callers must stop without mutating state.
+        /// Falling through on the open path would leave a blank form with no hfKeywordId, so the next Save
+        /// would create a second keyword instead of editing this one.
+        /// </summary>
         private Keyword LoadKeyword( string id )
         {
             var client = new MessagingClient();
             var keyword = client.GetKeyword( hfPhoneNumberId.Value, id );
+            if ( keyword == null )
+            {
+                NotificationBoxSetContent( "Unable to load keyword", "The keyword could not be loaded from the Messaging service. It may have been deleted, or the service may be unavailable. Please refresh and try again.", NotificationBoxType.Danger );
+            }
             return keyword;
         }
 
@@ -400,6 +442,10 @@ namespace RockWeb.Plugins.org_secc.Communication
             if ( keywordId.IsNotNullOrWhiteSpace() )
             {
                 keyword = LoadKeyword( keywordId );
+                if ( keyword == null )
+                {
+                    return;
+                }
             }
             KeywordFormClear();
             if ( keyword != null )
@@ -413,13 +459,9 @@ namespace RockWeb.Plugins.org_secc.Communication
                 ppContact.SetValue( GetContactPerson( keyword.ContactPerson ) );
 
 
-                var listItems = new List<ListItems.KeyValuePair>();
-                foreach ( var phrase in keyword.PhrasesToMatch )
-                {
-                    listItems.Add( new ListItems.KeyValuePair { Value = phrase } );
-                }
-
-                listPhrasesToMatch.Value = JsonConvert.SerializeObject( listItems );
+                // ToUriEncodedString calls Uri.EscapeDataString per element, which throws on null.
+                listPhrasesToMatch.Value = RockSerializableList
+                    .ToUriEncodedString( keyword.PhrasesToMatch.Where( p => p != null ).ToList() );
                 tbResponseMessage.Text = keyword.ResponseMessage;
             }
 
