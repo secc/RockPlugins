@@ -1,0 +1,219 @@
+{%- interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Home' componententityid:'27194' operation:'View' summary:'App Homepage' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'107' -%}
+  App Block Home Page
+{%- endinteractionwrite -%}
+{%- assign nowDateTime = 'Now' | Date -%}
+{%- assign today = 'Now' | Date:'dddd' -%}
+{%- assign streamBannerShowDays = 'Sunday' -%}
+{%- assign bulletinOneShowDays = 'Thursday|Sunday' -%}
+{%- assign bulletinTwoShowDays = 'Monday|Tuesday|Wednesday|Thursday|Friday' -%}
+{
+  "header": {
+    "title": "SECC App | Block Home Page"
+  },
+  "blocks": [
+    {
+        {%- mediaelement where:'Name *! "Full Service"' sort:'Id desc' limit:'1' -%}
+          {%- assign latestMedia = mediaelementItems | First -%}
+          {%- assign mediaItemId = latestMedia.ForeignGuid -%}
+          {%- assign thumbs = latestMedia.ThumbnailDataJson | FromJSON -%}
+          {%- assign posterImageUrl = thumbs | First | Property:'Link' -%}
+          "type": "mediaBanner",
+          "props": {
+            "playlistUrl": "https://feeds.subsplash.com/api/v1/media-playlist/{{mediaItemId}}",
+            "posterAspectRatio": 1.3,
+            "posterImageUrl": "{{posterImageUrl}}",
+            "averageColor": "#d6d6d7",
+            "vibrantColor": "#b5bcbd",
+            "mediaItemId": "{{mediaItemId}}",
+            "subtitle": "Latest Sermon",
+            "blocks":[
+              {
+                "type": "button",
+                "props": {
+                  "title": "Watch Latest Sermon",
+                  "color": "#151c2e",
+                  "icon":"play",
+                  {%-comment -%}
+                  "action": {
+                    {%- if Headers.sap-app-version >= '5.4.0' -%}
+                      "handler": "blockPage",
+                      "topBarStyle": "transparent",
+                      "url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}api/subsplash/webhook/sermon/v2/{{latestMedia.Id}}"
+                    {%- else -%}
+                      "handler": "detail",
+                      "url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}api/subsplash/webhook/sermon/{{latestMedia.Id}}"
+                    {%- endif -%}
+                  }
+                    {%-endcomment-%}
+                    "action": {
+                      "handler": "nativeShell",
+                      "moduleCommand": {
+                        "route": "/media/d/{{latestMedia.SourceKey}}"
+                      }
+                    }
+                }
+              }
+            ]
+          }
+        {%- endmediaelement -%}
+    },
+    {% comment %}
+    {
+        "type":"button",
+        "props": {
+          "title": "All sermons",
+          "action": {
+            "handler":"blockPage",
+            "type": "navigation",
+            "url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}api/subsplash/webhook/sermons-2/1"
+          },
+        "bottomSpacing":"large",
+        "secondary": false,
+        "color":"#333333",
+        "textColor":"#FFFFFF",
+        "textAlignmentHorizontal": "end",
+        "h1": true,
+        "hasBottomBorder": true
+        }
+    },
+    {% endcomment %}
+    {
+      "type":"button",
+        "props": {
+          "title": "All Sermons",
+          "action":
+            {
+              "handler": "dynamicMedia",
+              "type": "navigation",
+              "listId": "39b8500c-10a2-4ce3-b103-8133b2c7248b"
+            }
+        }
+    },
+    {
+        "type":"image",
+            "props": {
+                "averageColor": "#121212",
+                "imageUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}Content/SEapp/move-banner.jpg",
+                "horizontalSpacing": "medium",
+                "topSpacing": "large",
+                "bottomSpacing": "small",
+                "imageRadius": "medium",
+                "action": {
+                        "handler":"browser",
+                        "type":"navigation",
+                        "style":"external",
+                        "contentUrl": "https://www.se.church/move-updates"
+                }
+            }
+    },
+    {
+        "type": "text",
+        "props": {
+          "topSpacing": "large",
+          {%comment%}"bottomSpacing": "small",{%endcomment%}
+          "hasBottomBorder": true,
+          "content": "",
+          "h1": true
+        }
+    },
+    {
+        "type": "list",
+        "props": {
+          "title": "Test",
+          "bottomSpacing": "large",
+          "horizontalSpacing": "medium",
+          "horizontal": true,
+          "pagingEnabled": false,
+          "listStyle": "grid",
+          "itemStyle": "wide",
+          "textPosition": "overlay",
+          "textAlignmentHorizontal": "center",
+          "textAlignmentVertical": "center",
+          "indicatorRadius": "medium",
+          {%comment%}
+          "more": {
+            "title": "More",
+            "action": {
+              "handler": "blockPage",
+              "url": "https://example.com/list/00000000-0000-0000-0000-000000000000.json"
+            }
+          },
+          {%endcomment%}
+          "data": [
+            {
+              "title": "",
+              "image": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx?id=3782222&width=250",
+              "action": {
+                  "handler": "browser",
+                  "contentUrl": "https://www.se.church/churchnews",
+                  "style": "external"
+              }
+            }
+
+            {%- contentchannelitem where:'ContentChannelId == 106' sort:'Order' %}
+              {%- for item in contentchannelitemItems%}
+                  {% if item.StartDateTime > nowDateTime %}
+                      {% continue %}
+                  {% endif %}
+                  {% if item.ExpireDateTime %}
+                      {% if item.ExpireDateTime < nowDateTime %}
+                          {%continue%}
+                      {% endif %}
+                  {% endif %}
+                  {%- assign subtitle = item | Attribute:'Subtitle' %}
+                  {%- assign subtitleSize = subtitle | Size %}
+                  ,{
+                      "title": "",
+                      {%- if subtitleSize > 0 %}"subtitle": "{{item | Attribute:'Subtitle'}}",{%- endif%}
+                      "image": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx?guid={{ item | Attribute:'Image', 'RawValue' }}&width=250",
+                      "action": {
+                          {{item | Attribute:'Action', 'RawValue' }}
+                      }
+                  }
+              {%- endfor %}
+          {%- endcontentchannelitem %}
+
+          ]
+        }
+      }
+      {%- contentchannelitem where:'ContentChannelId == 107' sort:'Order' %}
+        {%- for item in contentchannelitemItems %}
+          {% if item.StartDateTime > nowDateTime %}
+            {% continue %}
+          {% endif %}
+          {% if item.ExpireDateTime %}
+              {% if item.ExpireDateTime < nowDateTime %}
+                  {%continue%}
+              {% endif %}
+          {% endif %}
+            {%- assign subtitle = item | Attribute:'Subtitle' %}
+            {%- assign subtitleSize = subtitle | Size %}
+            {%- assign slug = item.PrimarySlug -%}
+            {%- if slug == "streaming-now" -%}
+              {%- unless streamBannerShowDays contains today -%}
+                {%- continue -%}
+              {%- endunless -%}
+            {%- endif -%}
+            {%- if slug == "sekids-check-in" -%}
+              {%- unless bulletinOneShowDays contains today -%}
+                {%- continue -%}
+              {%- endunless -%}
+            {%- endif -%}
+            ,{
+              "type": "image",
+              "props": {
+                "imageUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx?guid={{ item | Attribute:'Image', 'RawValue' }}&width=500",
+                "horizontalSpacing": "medium",
+                "topSpacing": "large",
+                "bottomSpacing": "small",
+                "imageRadius": "medium",
+                "averageColor": "#000000",
+                "action": {
+                    {{item | Attribute:'Action', 'RawValue' }}
+                }
+              }
+            }
+        {%- endfor %}
+    {%- endcontentchannelitem %}
+  ]
+}

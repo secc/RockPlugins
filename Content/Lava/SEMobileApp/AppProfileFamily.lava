@@ -1,0 +1,144 @@
+<style>
+    .se-carat {
+        left: -2.5rem;
+    }
+</style>
+
+{% if CurrentPerson.AgeClassification == 'Child' %}
+	{% assign isAdult = false  %}
+{% else %}
+	{% assign isAdult = true  %}
+{% endif %}
+
+{% assign familyName = '' %}
+
+{% assign zIndexC = rows | Size | Plus: 10 %}
+
+<div id="family" class="fluid-container g-padding-x-0--xs g-padding-y-60--xs">
+    {% for row in rows %}
+		{% if familyName != row.FamilyName %}
+			{% assign familyName = row.FamilyName %}
+			{% assign index =  forloop.index0 %}
+			{% if index > 0 %}
+				</div> {% comment %} Close out the last family {% endcomment %}
+			{% endif %}
+			<div class="row">
+				<div class="col-md-12 text-center g-padding-b-20--xs g-padding-x-40--xs">
+					<h3 class="g-font-family--secondary">{{ row.FamilyName}}</h3>
+				</div>
+			</div>
+			<div class="clearfix">
+			{% endif %}
+				{% assign person = row.PersonId | PersonById %}
+				<div class="col-xs-12 col-sm-12 col-md-6 col-lg-4 g-padding-x-40--xs g-padding-x-20--md g-padding-t-20--xs">
+					<div class="se-panel" style="z-index: {{ zIndexC }}">
+						<span class="g-padding-y-40--xs g-padding-x-60--xs g-padding-y-60--sm g-padding-x-80--sm g-padding-y-80--lg g-padding-x-120--lg">
+							{% assign avatar = "" %}
+							<a href="/MyAccount/AppProfile/Edit/{{ person.Guid }}">
+								{% if Person.PhotoUrl != " "%}
+									{% assign avatar = person.PhotoUrl %}
+								{% elseif familyMember.GroupRoleId == 3 %}
+									{% if person.Gender == "Male" %}
+										{% assign avatar = "/Themes/SECC2019/Assets/img/SE/Users/Man_Avatar.svg" %}
+									{% elseif person.Gender == "Female" %}
+										{% assign avatar = "/Themes/SECC2019/Assets/img/SE/Users/Woman_Avatar.svg" %}
+									{% else %}
+										<!-- Bi-gender? -->
+									{% endif %}
+								{% elseif familyMember.GroupRoleId == 4 %}
+									{% if person.Gender == "Male" %}
+										{% assign avatar = "/Themes/SECC2019/Assets/img/SE/Users/Boy_Avatar.svg" %}
+									{% elseif person.Gender == "Female" %}
+										{% assign avatar = "/Themes/SECC2019/Assets/img/SE/Users/Girl_Avatar.svg" %}
+									{% else %}
+										<!-- Bi-gender? -->
+									{% endif %}
+								{% else %}
+								<!-- Not a kid or an adult? -->
+								{% endif %}
+								<img src="{{ avatar }}" title="Change Image" class="img-responsive img-circle" style="margin: 0 auto; max-width: 180px;">
+							</a>
+						</span>
+						<div class="caption g-padding-b-40--xs">
+							<div class="g-position--relative clearfix">
+								{[ faq columns:'1' autoheight:'true' accordionclass:'accordions-nostyle']}
+									[[ item title:'{{ person.FullName }}' ]]
+										<div class="g-padding-x-20--xs g-padding-y-20--xs">
+											<p>
+												<span class="g-font-weight--600 text-uppercase">Age</span><br />
+												{% if person.NickName %}
+													{{ person.Age }} Years ({{ person.BirthDate | Date:'M/d/yyyy'}})
+												{% endif %}
+											</p>
+												<br />
+											<p>
+											<span class="g-font-weight--600 text-uppercase">Gender</span><br />
+												{% if person.Gender %}
+													{{ person.Gender }}
+												{% endif %}
+											</p>
+											<br />
+											{% if familyMember.GroupRoleId != 4 %}
+												<p>
+													<span class="g-font-weight--600 text-uppercase">Martial Status</span><br />
+														{% definedvalue where:'DefinedTypeId == 7' sort:'Value' %}
+															{% for definedValueItem in definedvalueItems %}
+																{% if person.MaritalStatusValueId == definedValueItem.Id %}
+																	{{ definedValueItem.Value }} ({{ person.AnniversaryDate | Date:'M/d' }})
+																{% endif %}
+															{% endfor %}
+														{% enddefinedvalue %}
+												</p>
+												<br />
+											{% endif %}
+											<p>
+												<span class="g-font-weight--600 text-uppercase">Email</span><br />
+													{% if person.Email != "" %}
+														{{ person.Email }}
+													{% else %}
+														Email address is not set.
+													{% endif %}
+											</p>
+											<br />
+											<p>
+												<span class="g-font-weight--600 text-uppercase">Address</span><br />
+													{% assign personalHome =  person | Address:'Home' %}
+													{% if personalHome != '' %}
+														{{ personalHome }}
+												{% endif %}
+											</p>
+												<br />
+											<p>
+												<span class="g-font-weight--600 text-uppercase">Phone</span><br />
+													{% for phone in person.PhoneNumbers %}
+														{{ phone.NumberFormatted }} <small>({{ phone.NumberTypeValue.Value }})</small><br />
+													{% endfor %}
+											</p>
+										</div>
+										{% if isAdult -%}
+										<div class="actions">
+											<a href="/MyAccount/AppProfile/Edit/{{ person.Guid }}" title="Change Account Info" class="btn btn-primary">Edit Person</a>
+											<a href="/MyAccount/AppProfile/Remove/{{ person.Guid }}" title="Remove From Family" class="btn btn-danger">Remove Person</a>
+										</div>
+										{% endif -%}
+									[[ enditem ]]
+								{[ endfaq ]}
+							</div>
+						</div>
+					</div>
+				</div>
+				{% assign zIndexC = zIndexC | Minus:1 %}
+			{% endfor %}
+		</div>
+    <div class="row g-padding-x-20--xs g-padding-t-20--xs">
+        <div class="col-md-12 g-padding-b-20--xs actions">
+            <a class="btn btn-primary btn-xs g-font-size-30--xs g-font-size-40--sm" href="/MyAccount/AppProfile/Edit/" style="color: #000000;
+				background: transparent;
+				padding: 0.5rem 1.5rem;
+				border-width: 0.4rem;
+				border-style: solid;
+				border-color: #000000;
+				border-radius: 3rem !important;"> Add New Family Member</a>
+        </div>
+    </div>
+</div>

@@ -1,4 +1,3 @@
-{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Sermon V2' componententityid:'33574' operation:'View' summary:'Sermon Page V2' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'{{id}}'%}
 Sermon Page V2
 {% endinteractionwrite %}
@@ -34,13 +33,13 @@ Sermon Page V2
     }, {
         "type": "text",
         "props": {
-            "content": "{{sermon.Title | Replace:'"',bsq }}",
+            "content": "{{sermon.Title | Replace:'"','\"'}}",
             "h1": true
         }
     }, {
         "type": "text",
         "props": {
-            "content": "{{series.Title | Replace:'"',bsq }}",
+            "content": "{{series.Title  Replace:'"','\"'}}",
             "subtitle": true,
             "topSpacing": "small"
         }
@@ -76,7 +75,7 @@ Sermon Page V2
                 "action": {
                     "handler": "share",
                     "shareUrl": "{{ shareUrl }}",
-                    "shareBody": "Check this out! {{series.Title | Replace:'"',bsq }} | {{sermon.Title | Replace:'"',bsq }}"
+                    "shareBody": "Check this out! {{series.Title | Replace:'"','\"'}} | {{sermon.Title | Replace:'"','\"'}}"
                 }
             }]
         }
@@ -116,7 +115,7 @@ Sermon Page V2
     }{% endcomment %}, {
         "type": "text",
         "props": {
-            "content": "{{ sermon.Content | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+            "content": "{{ sermon.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
             "markdown": true,
             "topSpacing": "medium"
         }

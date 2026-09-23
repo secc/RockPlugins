@@ -217,7 +217,7 @@
 </div>
 
 <script async
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAE0SCdnU3rGnC2bO5l24Y4dcfjpvstxzU&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key={{ 'Global' | Attribute:'GoogleAPIKey' }}&callback=initMap">
     </script>
 
 <script>

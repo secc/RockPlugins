@@ -12,8 +12,8 @@
 {%- endcontentchannelitem -%}
 <html>
     <head>
-        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/layout.css?v=637171650738055685"/>
-        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/main.css?v=637171650775243506"/>
+        <link rel="stylesheet" href="{{ 'Global' | Attribute:'PublicApplicationRoot' }}Themes/SECC2019/Styles/layout.css?v=637171650738055685"/>
+        <link rel="stylesheet" href="{{ 'Global' | Attribute:'PublicApplicationRoot' }}Themes/SECC2019/Styles/main.css?v=637171650775243506"/>
         <style>
             html, body {
               margin: 0px;
@@ -26,7 +26,7 @@
               height:1040px;
               background-color: #262626;
               border-radius: 40px;
-              background-image: url("https://app.secc.org/GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}");
+              background-image: url("{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}");
               background-repeat: no-repeat;
               background-size: contain;
               background-position: top;

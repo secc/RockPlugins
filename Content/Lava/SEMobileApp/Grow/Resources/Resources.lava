@@ -30,14 +30,14 @@ Grow Resources Page
 	            "primary":"#121212",
 	            "primaryAccent":"#FFFFFF"
 	        },
-	        "brandableElements":""
+	        "brandableElements":"{{colors:brand}}"
 	    }
 	},
 	"items": [
 		{%- contentchannelitem Id:'2389' -%}
 		  {%- assign childItemsSorted = contentchannelitem.ChildItems | Sort:"Order" -%}
+		  {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
 		  {%- for item in childItemsSorted -%}
-			  {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
 			  {%- assign startDateTime = item.ChildContentChannelItem.StartDateTime | Date:'yyyyMMddHHmmss' -%}
 			  {%- assign endDateTime = item.ChildContentChannelItem.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
 			  {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
@@ -54,15 +54,23 @@ Grow Resources Page
 						  "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/{{ item.ChildContentChannelItem.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=10"}
 						  ]
 					  {%- if actionJson != "" -%}
-					  ,"actions":[{
-						  {{-actionJson-}}
-					  }],
-					  "title": "{{ title }}",
-					  "subtitle": "{{ subtitle }}"
+						,"actions":[{
+							{{-actionJson-}}
+						}],
+						"title": "{{ title }}",
+						"subtitle": "{{ subtitle }}"
 					  {%- endif -%}
 				  }{%- if forloop.last -%}{%- else -%},{%- endif -%}
 			  {%- endif -%}
 		  {%- endfor %}
 	  {%- endcontentchannelitem %}
+	  {%-comment-%}
+		,{
+			"actions":[{
+				"handler":"blockPage",
+				"url":"https://app.secc.org/api/subsplash/webhook/test"
+			}]
+		}
+		{%- endcomment -%}
 	]
 }

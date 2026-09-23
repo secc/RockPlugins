@@ -1,4 +1,3 @@
-{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow Family Resources' componententityid:'31629' operation:'View' summary:'Grow Family Resources Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
 Grow Family Resources Page
 {% endinteractionwrite %}
@@ -31,7 +30,7 @@ Grow Family Resources Page
 	            "primary":"#121212",
 	            "primaryAccent":"#FFFFFF"
 	        },
-	        "brandableElements":""
+	        "brandableElements":"{{colors:brand}}"
 	    }
 	},
 	"items": [
@@ -54,10 +53,10 @@ Grow Family Resources Page
 				{%- endfor -%}
 				{%- if resourcesCount != 0 -%}
 					{%- assign itemActionHandler = "subtabs" -%}
-					{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/grow/resources/familyresources/tab/" | Append:item.Id -%}
+					{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"api/subsplash/webhook/grow/resources/familyresources/tab/" | Append:item.Id -%}
 				{%- else -%}
 					{%- assign itemActionHandler = "detail" -%}
-					{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/grow/resources/familyresources/message/" | Append:item.Id -%}
+					{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"api/subsplash/webhook/grow/resources/familyresources/message/" | Append:item.Id -%}
 				{%- endif -%}
                 {%- assign itemImage = item | Attribute:'Image' -%}
                 {%- assign itemImageGuid = item | Attribute:'Image','RawValue' -%}
@@ -66,7 +65,7 @@ Grow Family Resources Page
 				{%- if ministries contains "Children" or ministries contains "Family" -%}
 				{{ comma }}
                 {
-                    "title": "{{-item.Title | Replace:'"',bsq -}}",
+                    "title": "{{-item.Title | Replace:'"','\"'-}}",
                     "images":[{
                         "width": 667,
                         "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/listcard/{{- item.Guid -}}?mode=crop&s.roundcorners=20&bgcolor=121212"

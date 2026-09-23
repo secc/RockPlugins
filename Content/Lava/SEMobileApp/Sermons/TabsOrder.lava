@@ -1,4 +1,3 @@
-{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Active Tab' componententityid:'30050' operation:'View' summary:'Active Tab Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'{{series}}'%}
 Active Tab Page
 {% endinteractionwrite %}
@@ -6,7 +5,7 @@ Active Tab Page
 {%- for series in contentchannelitemItems -%}
 {
 	"header": {
-		"title": "{{series.Title | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}"
+		"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}"
 	},
     "items": [
         {%- if activeTabTest == "" -%}
@@ -14,14 +13,14 @@ Active Tab Page
             "title": "Sermons",
             "actions": [{
 				"handler": "list",
-				"url": "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}"
+				"url": "https://app.secc.org/api/subsplash/webhook/sermons/series/{{series.Id}}"
 			}]
         },
         {
             "title": "Resources",
             "actions": [{
                 "handler": "list",
-                "url": "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}/resources"
+                "url": "https://app.secc.org/api/subsplash/webhook/sermons/series/{{series.Id}}/resources"
             }]
         }
         {%- else -%}
@@ -29,14 +28,14 @@ Active Tab Page
             "title": "Resources",
             "actions": [{
                 "handler": "list",
-                "url": "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}/resources"
+                "url": "https://app.secc.org/api/subsplash/webhook/sermons/series/{{series.Id}}/resources"
             }]
         },
         {
             "title": "Sermons",
             "actions": [{
 				"handler": "list",
-				"url": "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/{{series.Id}}"
+				"url": "https://app.secc.org/api/subsplash/webhook/sermons/series/{{series.Id}}"
 			}]
         }
         {%- endif -%}

@@ -1,4 +1,3 @@
-{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow Sermon Study Guides' componententityid:'31182' operation:'View' summary:'Grow Sermon Study Guides Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
 Grow Sermon Study Guides Page
 {% endinteractionwrite %}
@@ -30,14 +29,15 @@ Grow Sermon Study Guides Page
 	            "primary":"#121212",
 	            "primaryAccent":"#FFFFFF"
 	        },
-	        "brandableElements":""
+	        "brandableElements":"{{colors:brand}}"
 	    }
 	},
 	"items": [
         {%- contentchannelitem where:'ContentChannelId == 24' sort:'StartDateTime desc' offset:'{{offset}}' limit:'120'  -%}
+			{%- assign hasOutput = false -%}
             {%- for series in contentchannelitemItems -%}
 	        	{%- assign itemActionHandler = "list" -%}
-				{%- assign itemActionUrl = "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/" | Append:series.Id -%}
+				{%- assign itemActionUrl = 'Global' |  Attribute:'MobileApplicationRoot' | Append:'api/subsplash/webhook/sermons/series/' | Append:series.Id -%}
 				{%- assign resourcesCount = 0 -%}
 				{%- assign itemChildItems = series.ChildItems | Sort:'Order' -%}
 				{%- for messages in itemChildItems -%}
@@ -47,12 +47,13 @@ Grow Sermon Study Guides Page
 					{%- endif -%}
 				{%- endfor -%}
 				{%- if resourcesCount != 0 -%}
-					{%- unless forloop.first -%},{%- endunless -%}
+					{%- if hasOutput -%},{%- endif -%}
+            		{%- assign hasOutput = true -%}
 					{%- assign itemActionHandler = "subtabs" -%}
-					{%- assign itemActionUrl = "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/" | Append:series.Id | Append:'/resources' -%}
+					{%- assign itemActionUrl = 'Global' |  Attribute:'MobileApplicationRoot' | Append:'api/subsplash/webhook/tabs/series/' | Append:series.Id | Append:'/resources' -%}
 					{
-						"title": "{{-series.Title | Replace:'"',bsq -}}",
-						"subtitle": "{{- series.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode  -}}",
+						"title": "{{-series.Title | Replace:'"','\"'-}}",
+						"subtitle": "{{- series.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  -}}",
 			            "images":[{
 							"width": 667,
 							"url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/listcard/{{- series.Guid -}}?mode=crop&s.roundcorners=20&bgcolor=121212"

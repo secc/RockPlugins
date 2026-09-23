@@ -7,8 +7,8 @@
 {% endfor %}
 <html>
     <head>
-        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/layout.css"/>
-        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/main.css"/>
+        <link rel="stylesheet" href="https://my.southeastchristian.org/Themes/SECC2019/Styles/layout.css"/>
+        <link rel="stylesheet" href="https://my.southeastchristian.org/Themes/SECC2019/Styles/main.css"/>
         <style>
             html, body {
               margin: 0px;

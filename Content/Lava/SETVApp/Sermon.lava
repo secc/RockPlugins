@@ -1,4 +1,3 @@
-{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'TV App Sermon' componententityid:'27735' operation:'View' summary:'TV App Sermon Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypdid:'208' relatedentityid:'{{id}}'%}
 TV App Sermon Page
 {% endinteractionwrite %}
@@ -7,31 +6,53 @@ TV App Sermon Page
 {%- for sermon in contentchannelitemItems -%}
 {
 	"header": {
-		"title": "{{sermon.Title | Replace:'"',bsq }}"
+		"title": "{{sermon.Title | Replace:'"','\"'}}"
 	},
-	"sapid":"{{sermon.Guid}}",
-	"images": [{ "width":1080, "url":"https://www.southeastchristian.org/GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1080"}],
+	{% assign mediaElementShortCode = sermon | Attribute:'SubsplashVideo','SourceKey' %}
+	{%- if mediaElementShortCode != empty and mediaElementShortCode != '' -%}
+		"sapid":"{{ mediaElementShortCode }}",
+	{%- else -%}
+		"sapid":"0000000",
+	{%- endif -%}
+	"images": [{ "width":1080, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot'}}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1080"}],
 	"media": [
-	    {
-        {%- assign fullServiceUrl = sermon | Attribute:'FullServiceVideoUrl' -%}
-        {%- assign videoStreamingUrl = sermon | Attribute:'VimeoStreamingUrl' -%}
-        {%- if fullServiceUrl != "" -%}
-    		"url":"{{fullServiceUrl}}",
-            "format":"mp4"
-        {%- elseif videoStreamingUrl != "" -%}
-            "url":"https://www.southeastchristian.org/webhooks/lava.ashx/streaming/{{sermon.Guid}}.m3u8",
-            "format":"m3u8"
-        {%- else -%}
-            "url":"{{sermon | Attribute:'VimeoDownloadUrl'}}",
-            "format":"mp4"
-        {%- endif -%}
-        },
+		{%- if mediaElementShortCode != empty and mediaElementShortCode != '' -%}
+			{% assign mediaElement = sermon | Attribute:'SubsplashVideo','FileDataJson'  %}
+			{
+				"url":"{{ mediaElement | FromJSON | Where:'Format', 'application/x-mpegURL' | Select:'Link' }}",
+				"format":"m3u8",
+				"sapid":"{{ mediaElementShortCode }}"
+			},
+			{
+				"url":"{{ mediaElement | FromJSON | Where:'Format', 'video/mp4' | Select:'Link' }}",
+				"format":"mp4",
+				"sapid":"{{ mediaElementShortCode }}"
+			},
+		{%- else -%}
+	    	{
+			{%- assign fullServiceUrl = sermon | Attribute:'FullServiceVideoUrl' -%}
+			{%- assign videoStreamingUrl = sermon | Attribute:'VimeoStreamingUrl' -%}
+			{%- if fullServiceUrl != "" -%}
+				"url":"{{fullServiceUrl}}",
+				"sapid":"0000000",
+				"format":"mp4"
+			{%- elseif videoStreamingUrl != "" -%}
+				"url":"{{ 'Global' | Attribute:'MobileApplicationRoot'}}webhooks/lava.ashx/streaming/{{sermon.Guid}}.m3u8",
+				"sapid":"0000000",
+				"format":"m3u8"
+			{%- else -%}
+				"url":"{{sermon | Attribute:'VimeoDownloadUrl'}}",
+				"sapid":"0000000",
+				"format":"mp4"
+			{%- endif -%}
+			},
+		{%- endif -%}
 		{
-			"url":"https://www.southeastchristian.org/GetFile.ashx/{{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}.mp3?guid={{sermon | Attribute:'Audio', 'RawValue'}}",
+			"url":"{{ 'Global' | Attribute:'MobileApplicationRoot'}}GetFile.ashx/{{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}.mp3?guid={{sermon | Attribute:'Audio', 'RawValue'}}",
 			"format":"mp3"
 		}],
-	"title": "{{sermon.Title | Replace:'"',bsq }}",
-	"body":"{%- if fullServiceUrl != "" -%}[{{ sermon | Attribute:'SermonStart' | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode | Append:'] '}}{%- endif -%}{{ sermon.Content | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}"
+	"title": "{{sermon.Title | Replace:'"','\"'}}",
+	"body":"{%- if fullServiceUrl != "" and fullServiceUrl != null -%}[{{ sermon | Attribute:'SermonStart' | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode | Append:'] '}}{%- endif -%}{{ sermon.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}"
 }
 {%- endfor -%}
 {% endcontentchannelitem -%}

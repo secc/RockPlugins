@@ -1,4 +1,3 @@
-{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Sermon V2 Playlist' componententityid:'33575' operation:'View' summary:'Sermon Page V2 Playlist' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'{{id}}'%}
 Sermon Page V2
 {% endinteractionwrite %}
@@ -16,22 +15,46 @@ Sermon Page V2
 {%- endcontentchannelitemassociation -%}
 {
     "playlist": [{
-        "title": "{{sermon.Title | Replace:'"',bsq }}",
-        "subtitle": "{{series.Title | Replace:'"',bsq }}",
+        "title": "{{sermon.Title | Replace:'"','\"'}}",
+        "subtitle": "{{series.Title  Replace:'"','\"'}}",
         "appTitle": "Southeast Christian Church",
         "extraSubtitles": ["{{ sermon | Attribute:'Speaker' }}"],
-        "media": [{
-            "url": "{{sermon | Attribute:'VimeoDownloadUrl'}}",
-            "format": "mp4",
-            "downloadable": false,
-            "images":[
-    			{ "width":520, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=720"},
-    			{ "width":1080, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1080"},
-    			{ "width":1280, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1280"},
-    			{ "width":1920, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1920"}
-    		]
-        }, {
-			"url":"https://www.southeastchristian.org/GetFile.ashx/{{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}.mp3?guid={{sermon | Attribute:'Audio', 'RawValue'}}",
+        {% assign mediaElementShortCode = sermon | Attribute:'SubsplashVideo','SourceKey' %}
+        {%- if mediaElementShortCode != empty -%}
+            "sapid":"{{ mediaElementShortCode }}",
+        {%- endif -%}
+        "media": [
+            {%- if mediaElementShortCode != empty -%}
+            {
+                {% assign mediaElement = sermon | Attribute:'SubsplashVideo','FileDataJson'  %}
+                "url":"{{ mediaElement| FromJSON | Where:'Format', 'application/x-mpegURL' | Select:'Link' }}",
+                {%- comment -%}
+                "url": "{{sermon | Attribute:'VimeoDownloadUrl'}}",
+                {%- endcomment -%}
+                "format": "m3u8",
+                "downloadable": false,
+                "images":[
+                    { "width":520, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=720"},
+                    { "width":1080, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1080"},
+                    { "width":1280, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1280"},
+                    { "width":1920, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1920"}
+                ]
+            },
+        {%- else -%}
+			{
+				"url":"{{sermon | Attribute:'VimeoDownloadUrl'}}",
+				"format":"mp4",
+				"downloadable":false,
+				"images":[
+					{ "width":520, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=720"},
+					{ "width":1080, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1080"},
+					{ "width":1280, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1280"},
+					{ "width":1920, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{sermon | Attribute:'Image', 'RawValue'}}.jpg?guid={{sermon | Attribute:'Image', 'RawValue'}}&width=1920"}
+				]
+			},
+		{%- endif -%}
+        {
+			"url":"{{ 'Global' | Attribute:'PublicApplicationRoot' }}GetFile.ashx/{{message.ChildContentChannelItem | Attribute:'Audio', 'RawValue'}}.mp3?guid={{sermon | Attribute:'Audio', 'RawValue'}}",
 			"format":"mp3",
 			"downloadable":"true",
     		"images":[
@@ -46,14 +69,14 @@ Sermon Page V2
                 {
                     "actions":[{
                         "handler":"defaultShare",
-                        "body":"Check this out! {{series.Title | Replace:'"',bsq }} | {{sermon.Title | Replace:'"',bsq }}",
+                        "body":"Check this out! {{series.Title | Replace:'"','\"'}} | {{sermon.Title | Replace:'"','\"'}}",
                         "url":"{{ 'Global' | Attribute:'PublicApplicationRoot' }}sermons/{{series.PrimarySlug}}/{{sermon.PrimarySlug}}"
                     }]
                 },
                 {
                     "actions":[{
                         "handler":"htmlShare",
-                        "body":"<html>Check this out! <a href='{{ 'Global' | Attribute:'PublicApplicationRoot' }}sermons/{{series.PrimarySlug}}/{{sermon.PrimarySlug}}'><b>{{series.Title | Replace:'"',bsq }} | {{sermon.Title | Replace:'"',bsq }}</b></a>.</html>"
+                        "body":"<html>Check this out! <a href='{{ 'Global' | Attribute:'PublicApplicationRoot' }}sermons/{{series.PrimarySlug}}/{{sermon.PrimarySlug}}'><b>{{series.Title | Replace:'"','\"'}} | {{sermon.Title | Replace:'"','\"'}}</b></a>.</html>"
                     }]
                 }
             ]

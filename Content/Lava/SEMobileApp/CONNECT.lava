@@ -1,10 +1,10 @@
 {%- if CurrentPerson != "" -%}
 	{%- if CurrentPerson.Gender == "Male" -%}
-		{%- assign connectImage = "https://www.southeastchristian.org/Content/Ministries/Men/Rectangle%2013012.jpg" -%}
+		{%- assign connectImage = "https://my.southeastchristian.org/Content/Ministries/Men/Rectangle%2013012.jpg" -%}
 	{%- elseif CurrentPerson.Gender == "Female" -%}
-		{%- assign connectImage = "https://www.southeastchristian.org/Content/Ministries/Women/IMG_3031.jpg" -%}
+		{%- assign connectImage = "https://my.southeastchristian.org/Content/Ministries/Women/IMG_3031.jpg" -%}
 	{%- else -%}
-		{%- assign connectImage = "https://www.southeastchristian.org/Content/Ministries/Starting-Point/Rectangle%2012990.jpg" -%}
+		{%- assign connectImage = "https://my.southeastchristian.org/Content/Ministries/Starting-Point/Rectangle%2012990.jpg" -%}
 	{%- endif -%}
 {%- endif -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Connect' componententityid:'27195' operation:'View' summary:'Connect Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' %}
@@ -43,7 +43,7 @@ Connect Page
 		{
 			"images":[{
 				"width":500,
-				"url":"https://www.southeastchristian.org/Content/Ministries/Men/Rectangle%2013012.jpg"
+				"url":"https://my.southeastchristian.org/Content/Ministries/Men/Rectangle%2013012.jpg"
 			}],
 			"title": "Man Challenge",
 			"subtitle": "Man Challenge is an opportunity for men to be equipped and encouraged as we open God's Word together. We offer both a teaching time and a small group time.",
@@ -69,7 +69,7 @@ Connect Page
 		{
 			"images":[{
 				"width":500,
-				"url":"https://www.southeastchristian.org/Content/Ministries/Starting-Point/Rectangle%2012990.jpg"
+				"url":"https://my.southeastchristian.org/Content/Ministries/Starting-Point/Rectangle%2012990.jpg"
 			}],
 			"title": "Starting Point Class",
 			"subtitle": "If you're new to faith, just checking things out, or coming back to church after some time away, Starting Point is a great first step to get connected and find out more about Southeast.",
@@ -95,7 +95,7 @@ Connect Page
 		{
 			"images":[{
 				"width":500,
-				"url":"https://www.southeastchristian.org/Content/Groups/SE-13099.jpg"
+				"url":"https://my.southeastchristian.org/Content/Groups/SE-13099.jpg"
 			}],
 			"title": "Groups",
 			"subtitle": "Groups are a great way for you to get connected and grow in your faith with others from Southeast. Find the right group for you today!",
@@ -107,7 +107,7 @@ Connect Page
 		{
 			"images":[{
 				"width":500,
-				"url":"https://www.southeastchristian.org/Content/Serve/2019/Rectangle-13070-2.jpg"
+				"url":"https://my.southeastchristian.org/Content/Serve/2019/Rectangle-13070-2.jpg"
 			}],
 			"title": "Serve",
 			"subtitle": "We believe serving in the church is both a privilege and an act of worship. Through volunteering, we are able to fellowship with our church family, grow spiritually, and help others connect to Jesus and one another.",
@@ -119,7 +119,7 @@ Connect Page
 		{
 			"images":[{
 				"width":500,
-				"url":"https://www.southeastchristian.org/Content/Locations/DSC_5131.jpg"
+				"url":"https://my.southeastchristian.org/Content/Locations/DSC_5131.jpg"
 			}],
 			"title": "Contact",
 			"subtitle": "Click here, and we will have someone will follow up with you.",

@@ -1,0 +1,141 @@
+{% if Person.AgeClassification == 'Child' %}
+	{% assign isAdult = false  %}
+{% else %}
+	{% assign isAdult = true  %}
+{% endif %}
+<main class="container-fluid">
+<div class="row">
+<div class="col-md-12">
+    <div class="g-margin-x-20--xs">
+        <div class="clearfix g-margin-b-20--xs" >
+
+            <span class="g-position--absolute g-padding-y-20--xs g-padding-x-15--xs" style="right: 0px;top: 6px;z-index:100;">
+            {%if isAdult -%}
+			<a href="/MyAccount/AppProfile/Edit/{{ Person.Guid }}" title="Change Account Info" class="se-action-btn g-padding-y-15--xs g-padding-x-15--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
+                <i class="fas fa-user-edit"></i>
+            </a>
+			{% endif -%}
+        </span>
+
+        <div class="fluid-container">
+            <div class="col-md-5 g-padding-x-80--xs g-padding-y-80--xs">
+                <div class="g-width-100-percent--xs g-position--relative g-display-block--xs text-center">
+                    {%if isAdult -%}
+                    <a href="/MyAccount/AppProfile/Edit/{{ Person.Guid }}">
+                    {% endif -%}
+                        <div class="g-display-inline-block--xs g-margin-x-auto--xs g-position--relative" style="max-width:300px;">
+                            <img src="{{ Person.PhotoUrl }}" title="Change Image" class="img-responsive img-circle">
+                            {%if isAdult -%}
+                            <style>
+                            #changePhoto {
+                                position: absolute;
+                                right: 7.5%;
+                                display: inline-block;
+                                bottom: 7.5%;
+                                background-color: white;
+                                width: 60px;
+                                height: 60px;
+                                border-radius: 100%;
+                                border: 2px solid black;
+                                text-align: center;
+                                line-height: 60px;
+                                font-size: 28px;
+                                color: #4c4c4c;
+                                transition: all .2s ease-out;
+                            }
+                            #changePhoto:hover {
+                                color: #000;
+                            }
+                            </style>
+                            {% comment %}
+                            <span id="changePhoto">
+                                <i class="fas fa-camera-retro"></i>
+                            </span>
+                            {% endcomment %}
+                        {% endif -%}
+                        </div>
+                    {%if isAdult -%}
+                    </a>
+                    {% endif -%}
+                </div>
+            </div>
+            <div class="col-md-7 g-padding-b-80--xs g-padding-t-80--lg">
+                <h3 class="g-font-weight--700 g-padding-b-20--xs g-font-size-70--xs text-center">
+                    {% if Person.NickName %}
+                        {{ Person.NickName }} {{ Person.LastName }}
+                    {% endif %}
+                </h3>
+
+                <div class="container-fluid g-padding-x-0--xs">
+                    <div class="g-padding-x-0--xs">
+                        <p class="g-margin-y-0--xs g-font-weight--400 text-uppercase g-font-size-30--xs g-color--gray-light">
+                            Email Address
+                        </p>
+                    </div>
+                    <div class="g-padding-x-0--xs g-font-size-40--xs">
+                        {{ Person.Email }}
+    				</div>
+                </div>
+
+                <div class="container-fluid g-padding-x-0--xs g-padding-t-20--xs">
+                    <div class="g-padding-x-0--xs">
+                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase g-font-size-30--xs g-color--gray-light">
+                            Address
+                        </p>
+                    </div>
+                    <div class="g-padding-x-0--xs g-font-size-40--xs">
+                        {% assign personalHome =  Person | Address:'Home' %}
+						{% if personalHome != '' %}
+						    {{ personalHome }}
+						{% endif %}
+                        <br />
+    				</div>
+                </div>
+                <div class="container-fluid g-padding-x-0--xs g-padding-t-20--xs">
+                    <div class="g-padding-x-0--xs">
+                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase g-font-size-30--xs g-color--gray-light">
+                            Phone
+                        </p>
+                    </div>
+                    <div class="g-padding-x-0--xs g-font-size-40--xs">
+                        {% for phone in Person.PhoneNumbers %}
+						    {{ phone.NumberFormatted }} <small>({{ phone.NumberTypeValue.Value }})</small><br />
+						{% endfor %}
+    				</div>
+                </div>
+                <div class="container-fluid g-padding-x-0--xs">
+                    <hr />
+                    <div class="col-xs-12 col-md-6 g-padding-x-0--xs">
+                        <p class="g-margin-y-0--xs g-font-weight--600 text-uppercase g-padding-r-10--xs g-font-size-30--xs g-color--gray-light">
+                            Account Settings
+                        </p>
+                    </div>
+                    <div class="col-xs-12 col-md-6 g-padding-x-0--xs actions">
+                        <a href="~/ChangePassword" class="btn g-font-size-40--xs">Change Password</a><br>
+                        <a href="/MyAccount/AppProfile/MySubscriptions" class="btn g-font-size-40--xs">Subscriptions</a><br>
+                        <a href="/MyAccount/AppProfile/EmailPreference" class="btn g-font-size-40--xs">Unsubscribe</a>
+
+                    </div>
+                </div>
+                <div class="container-fluid g-padding-x-0--xs">
+                    <hr />
+                    <div class="col-xs-12 col-md-6 g-padding-x-0--xs actions">
+                        {%if isAdult -%}
+                            <a href="/MyAccount/AppProfile/Edit/{{ Person.Guid }}" title="Change Account Info" class="btn btn-primary g-font-size-40--xs" style="color: #000000;
+                                background: transparent;
+                                padding: 0.5rem 1.5rem;
+                                border-width: 0.4rem;
+                                border-style: solid;
+                                border-color: #000000;
+                                border-radius: 3rem !important;">Edit Account</a>
+                        {% endif -%}
+                        <a href="/applogout" class="btn g-font-size-40--xs">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+</main>

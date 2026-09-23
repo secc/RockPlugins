@@ -1,9 +1,8 @@
-{%- capture bsq -%}\"{%- endcapture -%}
 {%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
 {%- for series in contentchannelitemItems -%}
 {
 	"header": {
-		"title": "{{series.Title | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+		"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
 		"style": "featured",
 		"items": [{
 			"images":[
@@ -54,7 +53,7 @@
 						{%- if studiesStudiesIncluded == false -%}
 						{
 							"images":[
-								{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/ResourcesStudies.jpg"  }
+								{ "width":747, "url":"https://my.southeastchristian.org/Content/SubSplash/ResourcesStudies.jpg"  }
 							]
 						},
 						{%- assign studiesStudiesIncluded = true -%}
@@ -76,7 +75,7 @@
 						{%- if studiesReadingPlansIncluded == false -%}
 						{
 							"images":[
-								{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/ResourcesReadingPlans.jpg"  }
+								{ "width":747, "url":"https://my.southeastchristian.org/Content/SubSplash/ResourcesReadingPlans.jpg"  }
 							]
 						},
 						{%- assign studiesReadingPlansIncluded = true -%}
@@ -98,7 +97,7 @@
 						{%- if studiesMediaIncluded == false -%}
 						{
 							"images":[
-								{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/ResourcesMedia.jpg"  }
+								{ "width":747, "url":"https://my.southeastchristian.org/Content/SubSplash/ResourcesMedia.jpg"  }
 							]
 						},
 						{%- assign studiesMediaIncluded = true -%}
@@ -123,7 +122,7 @@
 				{{ comma }}
 				{
 					"images":[
-						{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank121212.jpg"  }
+						{ "width":747, "url":"https://my.southeastchristian.org/Content/SubSplash/SermonBlank121212.jpg"  }
 					]
 				}
 				{%- endif -%}

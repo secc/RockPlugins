@@ -20,7 +20,7 @@
             "actions": [{
                 "handler": "blockPage",
                 "topBarStyle": "default",
-                "url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/advent/{{item.Id}}/video"
+                "url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}api/subsplash/webhook/advent/{{item.Id}}/video"
             }]
         },
         {%- endif -%}
@@ -37,7 +37,7 @@
             "title": "Resources",
             "actions": [{
                 "handler": "list",
-                "url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/advent/{{item.Id}}/resources"
+                "url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}api/subsplash/webhook/advent/{{item.Id}}/resources"
             }]
         }{%- endif -%}
     ]

@@ -1,0 +1,152 @@
+{%raw%}{%endraw%}
+<section id="VueApp">
+    <div id="app" class="container">
+        <div class="">
+
+            <div v-for="publishGroup in groupList" class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" :data-day="publishGroup.MeetingDay" :data-online="publishGroup.IsOnlineGroup">
+                <div class="clearfix card">
+                    <div class="img-hover">
+                        <img :src="publishGroup.ImageUri" class="event-image img-responsive" onerror="this.style.display='none'" loading="lazy">
+                    </div>
+                    <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
+                        <h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">
+                            {%raw%}{{ publishGroup.Title}}{%endraw%}
+                        </h5>
+                        <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">
+                            {%raw%}{{ publishGroup.CampusName }}{%endraw%}
+                        </h6>
+                        <div class="readmore_dates" style="overflow-y: inherit">
+                            <!--div style='height:auto;'>
+                                {%raw%}{{ publishGroup.Description }}{%endraw%}
+                                <br />
+                            </div-->
+                        </div>
+                    </div>
+                    <div class="row" style="padding:0 10%;">
+                        {% assign scheduleText = null %}
+                        {% assign meetingDaySize = {{publishGroup.MeetingDay}} | Trim | Size %}
+                        {% assign meetingTimeSize = {{publishGroup.MeetingDay}} | Trim | Size %}
+                        {% if {{publishGroup.CustomSchedule}} != '' %}
+                            {% assign scheduleText = {{publishGroup.CustomSchedule}} %}
+                        {% elseif meetingDaySize > 0 and meetingTimeSize > 0 %}
+                            {% assign scheduleText = {{publishGroup.MeetingDay}} | Append:'s ' | Append:{{publishGroup.MeetingTime}} %}
+                        {% endif %}
+
+                        {% assign offset = 0 %}
+                        {% if scheduleText == null %}
+                            {% assign offset = offset | Plus: 2 %}
+                          {% endif %}
+                          {% if {{publishGroup.MeetingLocation}} == null or {{publishGroup.MeetingLocation}} == empty %}
+                            {% assign offset = offset | Plus: 2 %}
+                          {% endif %}
+                          {% if {{publishGroup.IsChildcareAvailable}} != true %}
+                            {% assign offset = offset | Plus: 2 %}
+                          {% endif %}
+
+                          {% if scheduleText != null %}
+                            {% assign remainder = 4 %}
+                            {% if offset == 4 %}
+                              {% assign offset = 3 %}
+                              {% assign remainder = 6 %}
+                            {% endif %}
+
+                            <div class="event-items col-xs-{{remainder}} {% if {{publishGroup.MeetingLocation}} != null and {{publishGroup.MeetingLocation}} != empty  %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter{% endif %} col-xs-offset-{{offset}}">
+                                 <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
+                                 <h6>
+                                    {{ scheduleText }}
+                                    {% if {{publishGroup.StartDate}} and {{publishGroup.StartDate}} != empty %}
+                                    <br>
+                                    Starting: {{ {{publishGroup.StartDate}} | Date:'MMM d'}}
+                                    {% endif %}
+                                 </h6>
+                            </div>
+                            {% assign offset = 0 %}
+                        {% endif %}
+
+
+                        {% if {{publishGroup.MeetingLocation}} != null and {{publishGroup.MeetingLocation}} != empty%}
+                            <div class="event-items g-padding-x-10--xs col-xs-4 {% if {{publishGroup.ChildcareAvailable}} == true %}g-ver-divider__solid__r--gray-lighter{% endif %}  col-xs-offset-{{offset}}">
+                                 <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
+                                 <h6>
+                                    {%raw%}{{ publishGroup.MeetingLocation }}{%endraw%}
+                                 </h6>
+                            </div>
+                            {% assign offset = 0 %}
+                        {% endif %}
+
+                        <!-- ChildCare -->
+                        {% if {{publishGroup.IsChildcareAvailable}} == true %}
+                            <div class="event-items col-xs-4 g-padding-x-10--xs col-xs-offset-{{offset}}">
+                                <div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
+                                <h6>Children's<br>Programming<br> Available</h6>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
+
+                        <div class="col-md-6">
+                            <a :href="publishGroup.ContactUri" class='eventCardLink link--hover-underscore'>
+                                <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
+                                    Contact
+                                </h6>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a :href="publishGroup.RegistrationUri" class='eventCardLink link--hover-underscore'>
+                                <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
+                                {% if {{publishGroup.RegistrationRequirement}} != 0 %}
+                                    Register&nbsp;Now
+                                {% else %}
+                                    Details
+                                {% endif %}
+                                </h6>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        <ol>
+            <group-card
+                v-for="publishGroup in groupList"
+                v-bind:group="publishGroup"
+                v-bind:key="publishGroup.id"
+            ></group-card>
+        </ol>
+    </div>
+</section>
+<script src="/Themes/SECC2019/Scripts/readmore.min.js"></script>
+
+<script>
+    let groupsArray = [];
+    async function getGroups() {
+        groupsArray = await fetch('https://www.southeastchristian.org/webhooks/lava.ashx/publishgroup/list')
+        .then((response) => response.json())
+        .then((data) => (data));
+    }
+
+    function start() {
+        return getGroups();
+    }
+
+
+    (async() => {
+        await start();
+
+
+
+    Vue.component('group-card', {
+        props: ['group'],
+        template: '<li>{%raw%}{{ group.Name }}{%endraw%}</li>'
+      })
+
+    var app = new Vue({
+        el: '#app',
+        data: {
+            groupList: groupsArray
+        }
+      })
+      })();
+</script>

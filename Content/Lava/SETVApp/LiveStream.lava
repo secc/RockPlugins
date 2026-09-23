@@ -6,7 +6,7 @@ TV App Live Stream Page
 		"title": "Live Stream"
 	},
 	"sapid":"livestream",
-	"images": [{ "width":1080, "url":"https://www.southeastchristian.org/Content/Ministries/SE-Online/IMG_3166.jpg"}],
+	"images": [{ "width":1080, "url":"{{ 'Global' | Attribute:'PublicApplicationRoot' }}Content/Ministries/SE-Online/IMG_3166.jpg"}],
 	"media": [
 	    {
     		"url":"https://link.theplatform.com/s/IfSiAC/media/X2MF3_jZxkHp?formats=m3u&format=redirect&affiliate=Roku",

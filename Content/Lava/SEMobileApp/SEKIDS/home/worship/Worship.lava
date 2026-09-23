@@ -1,0 +1,49 @@
+{
+    "blocks": [
+        {
+            "type": "mediaBanner",
+            "props": {
+                "playlistUrl": "https://app.secc.org/api/subsplash/webhook/sekids/home/worship/video",
+                "posterImageUrl": "https://my.southeastchristian.org/Content/Dynamic/Campus/Blankenbaker/IMG_1346.jpg",
+                "bannerBackgroundUrl": "",
+                "averageColor": "#8257ED",
+                "vibrantColor": "#8257ED",
+            }
+        },{
+            "type": "button",
+            "props": {
+                "title": "Audio Only",
+                "topSpacing": "small",
+                "bottomSpacing": "medium",
+                "action":{
+                    "handler":"audio",
+                    "type":"navigation",
+                    "playlist":[{
+                        "media":[{
+                            "url":"https://app.secc.org/content/file_example_MP3_700KB.mp3",
+                            "format":"mp3"
+                        }]
+                    }]
+                }
+            }
+        },
+        {
+            "type": "text",
+            "props": {
+                "content": "Worship",
+                "subtitle": true,
+                "topSpacing": "small"
+            }
+        },
+        {
+            "type": "text",
+            "props": {
+                "content": "Date • Title",
+                "body1": false,
+                "numberOfLines": 200,
+                "format": true,
+                "topSpacing": "small"
+            }
+        }
+    ]
+}

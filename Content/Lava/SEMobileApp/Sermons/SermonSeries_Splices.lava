@@ -1,4 +1,3 @@
-{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Sermon Series' componententityid:'27192' operation:'View' summary:'Sermon Series Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'{{series}}'%}
 Sermon Series Page
 {% endinteractionwrite %}
@@ -16,7 +15,7 @@ Sermon Series Page
 {%- for series in contentchannelitemItems -%}
 {
 	"header": {
-		"title": "{{series.Title | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+		"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
 		"style": "featured",
 		"items": [{
 			"images":[
@@ -48,42 +47,46 @@ Sermon Series Page
 		{%- assign resourcesCount = 0 -%}
 		{%- assign zeroSermons = true -%}
         {%- for seriesChild in series.ChildItems reversed -%}
-        {%- assign sermon = seriesChild.ChildContentChannelItem -%}
-		{%- assign startDateTime = sermon.StartDateTime | Date:'yyyyMMddHHmmss' -%}
-		{%- assign endDateTime = sermon.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
-		{%- comment -%}
-		** Checks to see if there's a sermon. **
-		{%- endcomment -%}
-		{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
-        {%- if sermon.ContentChannelId == "23" -%}
-			{%- assign zeroSermons = false -%}
-	        {{ comma }}
-			{
-				"title": "{{sermon.Title | Replace:'"',bsq }}",
-				"subtitle": "{{ sermon | Attribute:'Speaker' | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }} {{ '&bull;' | HtmlDecode }} {{ sermon.StartDateTime | Date:'MMMM d, yyyy' }}",
-				"images":[
-					{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/button/{{sermon.Guid}}?bgcolor=121314&mode=crop&s.roundcorners=40&margin=80,80,80,0"  }
-				],
-				"actions": [{
-					{%- if Headers.sap-app-version >= '5.4.0' -%}
-						"handler": "blockPage",
-						"topBarStyle": "transparent",
-						"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/Subsplash.ashx/sermon/v2/{{sermon.Id}}"
-					{%- else -%}
-						"handler": "detail",
-						"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/Subsplash.ashx/sermon/{{sermon.Id}}"
-					{%- endif -%}
-				}]
-			}
-	        {%- assign comma = "," -%}
-        {%- endif -%}
-		{%- endif -%}
-		{%- comment -%}
-		** Checks to see if there are resources. **
-		{%- endcomment -%}
-		{%- if sermon.ContentChannelId != "23" -%}
-			{%- assign resourcesCount = resourcesCount | Plus:1 -%}
-		{%- endif -%}
+			{%- assign sermon = seriesChild.ChildContentChannelItem -%}
+			{%- assign startDateTime = sermon.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+			{%- assign endDateTime = sermon.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+			{%- comment -%}
+			** Checks to see if there's a sermon. **
+			{%- endcomment -%}
+			{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+				{%- if sermon.ContentChannelId == "23" -%}
+					{%- assign zeroSermons = false -%}
+					{{ comma }}
+					{
+						"title": "{{sermon.Title | Replace:'"','\"'}}",
+						"subtitle": "{{ sermon | Attribute:'Speaker' | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }} {{ '&bull;' | HtmlDecode }} {{ sermon.StartDateTime | Date:'MMMM d, yyyy' }}",
+						"images":[
+							{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/button/{{sermon.Guid}}?bgcolor=121314&mode=crop&s.roundcorners=40&margin=80,80,80,0"  }
+						],
+						"actions": [{
+							{%- if Headers.sap-app-version >= '5.4.0' -%}
+								"handler": "blockPage",
+								"topBarStyle": "transparent",
+								"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}api/subsplash/webhook/sermon/v2/{{sermon.Id}}"
+							{%- else -%}
+								"handler": "detail",
+								"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}api/subsplash/webhook/sermon/{{sermon.Id}}"
+							{%- endif -%}
+							{%comment%}
+							"handler": "detail",
+							"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}api/subsplash/webhook/sermon/{{sermon.Id}}"
+							{%endcomment%}
+						}]
+					}
+					{%- assign comma = "," -%}
+				{%- endif -%}
+			{%- endif -%}
+			{%- comment -%}
+			** Checks to see if there are resources. **
+			{%- endcomment -%}
+			{%- if sermon.ContentChannelId != "23" -%}
+				{%- assign resourcesCount = resourcesCount | Plus:1 -%}
+			{%- endif -%}
 		{%- endfor -%}
 		{%- if zeroSermons == true -%}
 		{
@@ -98,11 +101,13 @@ Sermon Series Page
 			]
 		}
 		{%- endif -%}
+		{%-comment-%}
 		,{
 			"images":[
-				{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank121212.jpg"  }
+				{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Content/SubSplash/SermonBlank121212.jpg"  }
 			]
 		}
+		{%-endcomment-%}
     ]
 }
 {%- endfor -%}

@@ -1,4 +1,3 @@
-{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow Family Resources Resources' componententityid:'31632' operation:'View' summary:'Grow Family Resources Resources Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypdid:'208' relatedentityid:'{{id}}'%}
 Grow Family Resources Resources Page
 {% endinteractionwrite %}
@@ -18,7 +17,7 @@ Grow Family Resources Resources Page
 {%- if SEKidsItem and itemStartDateTime <= currentDateTime -%}
 {
 	"header": {
-		"title": "{{SEKidsItem.Title | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+		"title": "{{SEKidsItem.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
 		"style": "featured",
 		"items": [{
 			"images":[
@@ -42,7 +41,7 @@ Grow Family Resources Resources Page
     "items": [
 		{%- assign comma = "" -%}
 		{%- assign resourcesIncluded = false -%}
-			{% assign seKidsChildItems = SEKidsItem.ChildItems | OrderBy:'Order' %}
+			{% assign seKidsChildItems = SEKidsItem.ChildItems | Sort:'Order','Asc' %}
 			{%- for resources in seKidsChildItems -%}
 				{% assign resource = resources.ChildContentChannelItem %}
 					{% if resource.ContentChannelId == '78' %}
@@ -94,7 +93,7 @@ Grow Family Resources Resources Page
 			{{ comma }}
 			{
 				"images":[
-					{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank121212.jpg"  }
+					{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Content/SubSplash/SermonBlank121212.jpg"  }
 				]
 			}
     ]

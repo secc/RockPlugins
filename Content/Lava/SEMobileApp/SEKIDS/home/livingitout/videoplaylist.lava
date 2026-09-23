@@ -1,0 +1,15 @@
+{% comment %} /sekids/home/livingitout/video/{Id} {% endcomment %}
+{%- contentchannelitem where:'ContentChannelId == 95 && Id == {{Id}}' -%}
+{%- for item in contentchannelitemItems -%}
+{
+    "playlist": [{
+        "title": "{{item.Title | Replace:'"','\"'}}",
+        "media": [{
+            "url": "{{item | Attribute:'videourl','RawValue'}}",
+            "format": "mp4",
+            "downloadable": false
+        }]
+    }]
+}
+{%- endfor -%}
+{% endcontentchannelitem -%}

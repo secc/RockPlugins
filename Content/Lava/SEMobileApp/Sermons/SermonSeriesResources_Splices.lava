@@ -1,7 +1,7 @@
-{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Series Resources' componententityid:'30051' operation:'View' summary:'Series Resources Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'{{series}}'%}
 Series Resources Page
 {% endinteractionwrite %}
+
 {%- assign cacheOS = '' -%}
 {%- if Headers.sap-device-os == 'Android' -%}
 	{%- assign cacheOS = 'subsplash-sermons-android-resources--' | Append:series -%}
@@ -14,7 +14,7 @@ Series Resources Page
 	{%- for series in contentchannelitemItems -%}
 	{
 		"header": {
-			"title": "{{series.Title | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}",
+			"title": "{{series.Title | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode }}",
 			"style": "featured",
 			"items": [{
 				"images":[
@@ -178,25 +178,46 @@ Series Resources Page
 				{%- assign downloadsArray = "[" | Append: downloadsJSONArray | Append: "]" | FromJSON -%}
 				{%- assign childItemsSize = downloadsArray | Size -%}
 				{%- if childItemsSize > 0 -%}
-					{{ comma }}{
-					"images":[
+					{%- comment -%}
+					{{ comma }}
+					{}
+					{
+
+						"images":[
 							{%- assign Title = "Studies" | Escape | EscapeDataString -%}
 							{%- assign Body = "Find related studies below." | Escape | EscapeDataString -%}
+								{ "width":747, "url":"https://app.secc.org/content/SubSplash/SermonBlank121212.jpg"  }
+
 							{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/info/?Body={{ Body }}&Title={{ Title }}"  }
 						]
+
 					}
+					{%- endcomment -%}
 					{%- for resource in downloadsArray -%}
 						{%- assign resourceMediaFile = resource.AttributeValues.ResourceFile -%}
 						{%- if resourceMediaFile.Value != null -%}
-							,{
+							{%- if forloop.index != 1 -%},{%- endif -%}{
 								"title": "{{ resource.Title }}",
 								"subtitle": "Download",
 								"images":[
 									{ "width":747, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/sermon/resource/button/{{ resource.Guid }}?bgcolor=121212&mode=crop&s.roundcorners=40&margin=80,0,80,80"  }
 								],
 								"actions": [{
-									"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
-									"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",
+									"handler":"browser",
+									"style":"external",
+{%comment%}
+									{%- if browser contains 'android' -%}
+										"handler": "externalBrowser",
+										"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetFile.ashx?guid={{ resourceMediaFile.Value }}",
+										"style": "external",
+										{%- else -%}
+										"handler": "internalBrowser showTabBar",
+										"contentUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetFile.ashx?guid={{ resourceMediaFile.Value }}",
+										"style": "internal",
+									{%- endif -%}
+									{%endcomment%}
+									{%-comment-%}"handler": "{%- if Headers.sap-device-os == 'Android' -%}browser{%- else -%}internalBrowser showTabBar{%- endif -%}",
+									"style":"{%- if Headers.sap-device-os == 'Android' -%}external{%- else -%}internal{%- endif -%}",{%-endcomment-%}
 									"type":"navigation",
 									"showBrowserControls": true,
 									"contentUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetFile.ashx?guid={{ resourceMediaFile.Value }}"
@@ -281,7 +302,7 @@ Series Resources Page
 				{{ comma }}
 				{
 					"images":[
-						{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}/Content/SubSplash/SermonBlank121212.jpg"  }
+						{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Content/SubSplash/SermonBlank121212.jpg"  }
 					]
 				}
 
