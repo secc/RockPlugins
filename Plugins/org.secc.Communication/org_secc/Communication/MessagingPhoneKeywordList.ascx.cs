@@ -12,6 +12,7 @@ using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
+using Rock.Utility;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 
@@ -190,7 +191,9 @@ namespace RockWeb.Plugins.org_secc.Communication
             }
             lStatus.Text = $"<span class='{cssClass}'>{labelText}</span>";
 
-            var phrases = string.Join( "<br />", item.PhrasesToMatch );
+            // Phrases are user-entered and FromUriEncodedString decodes %3C etc. on save, so markup can reach
+            // the Messaging service without tripping request validation. Encode before writing to the Literal.
+            var phrases = string.Join( "<br />", item.PhrasesToMatch.Select( p => p.EncodeHtml() ) );
             Literal lPhrases = e.Row.FindControl( "lKeywordPhrases" ) as Literal;
             lPhrases.Text = phrases;
 
@@ -253,6 +256,13 @@ namespace RockWeb.Plugins.org_secc.Communication
 
         private void lbKeywordSave_Click( object sender, EventArgs e )
         {
+            // Server-side backstop for the Name / Response Message / Phrases validators; the
+            // ValidationSummary already shows the messages, so just stop here.
+            if ( !Page.IsValid )
+            {
+                return;
+            }
+
             if ( !KeywordDateRangeIsValid() )
             {
                 NotificationBoxSetContent( "Please correct the following:", "Start Date must be before End Date.", NotificationBoxType.Validation );
@@ -267,7 +277,7 @@ namespace RockWeb.Plugins.org_secc.Communication
             // Only exact duplicates are dropped: this list is rewritten on every save, including edits that
             // touch nothing but the response message, so a case-insensitive de-dupe would silently discard
             // deliberate casing variants that the external matcher may well treat as distinct.
-            var phrasesToMatch = Rock.Utility.RockSerializableList
+            var phrasesToMatch = RockSerializableList
                 .FromUriEncodedString( listPhrasesToMatch.Value ).List
                 .Select( p => p.Trim() )
                 .Where( p => p.IsNotNullOrWhiteSpace() )
@@ -287,8 +297,6 @@ namespace RockWeb.Plugins.org_secc.Communication
                 keyword = LoadKeyword( hfKeywordId.Value );
                 if ( keyword == null )
                 {
-                    // MessagingClient.GetKeyword only throws on 404; any other failure deserializes to null.
-                    NotificationBoxSetContent( "Unable to save keyword", "The keyword could not be loaded from the Messaging service. Please try again.", NotificationBoxType.Danger );
                     return;
                 }
             }
@@ -411,10 +419,20 @@ namespace RockWeb.Plugins.org_secc.Communication
             tbResponseMessage.Text = string.Empty;
         }
 
+        /// <summary>
+        /// Loads a keyword from the Messaging service. On any failure (deleted keyword, service error, bad
+        /// response) shows an error notification and returns null; callers must stop without mutating state.
+        /// Falling through on the open path would leave a blank form with no hfKeywordId, so the next Save
+        /// would create a second keyword instead of editing this one.
+        /// </summary>
         private Keyword LoadKeyword( string id )
         {
             var client = new MessagingClient();
             var keyword = client.GetKeyword( hfPhoneNumberId.Value, id );
+            if ( keyword == null )
+            {
+                NotificationBoxSetContent( "Unable to load keyword", "The keyword could not be loaded from the Messaging service. It may have been deleted, or the service may be unavailable. Please refresh and try again.", NotificationBoxType.Danger );
+            }
             return keyword;
         }
 
@@ -426,10 +444,6 @@ namespace RockWeb.Plugins.org_secc.Communication
                 keyword = LoadKeyword( keywordId );
                 if ( keyword == null )
                 {
-                    // MessagingClient.GetKeyword only throws on 404; any other failure deserializes to null.
-                    // Falling through would open a blank form with no hfKeywordId, so the next Save would
-                    // create a second keyword instead of editing this one.
-                    NotificationBoxSetContent( "Unable to open keyword", "The keyword could not be loaded from the Messaging service. Please try again.", NotificationBoxType.Danger );
                     return;
                 }
             }
@@ -446,7 +460,7 @@ namespace RockWeb.Plugins.org_secc.Communication
 
 
                 // ToUriEncodedString calls Uri.EscapeDataString per element, which throws on null.
-                listPhrasesToMatch.Value = Rock.Utility.RockSerializableList
+                listPhrasesToMatch.Value = RockSerializableList
                     .ToUriEncodedString( keyword.PhrasesToMatch.Where( p => p != null ).ToList() );
                 tbResponseMessage.Text = keyword.ResponseMessage;
             }

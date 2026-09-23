@@ -191,12 +191,29 @@ namespace org.secc.Communication
             request.AddHeader( "x-functions-key", settings.MessagingKey );
             var response = restClient.Execute( request );
 
-            if (response.StatusCode == HttpStatusCode.NotFound)
+            // Returns null for any failure (404, other error status, timeout, or a body that isn't a keyword)
+            // so callers have a single case to handle. An error body can be valid JSON and still deserialize
+            // to a non-null Keyword, hence the Guid.Empty check.
+            if (response.StatusCode != HttpStatusCode.OK)
             {
-                throw new Exception( $"Keyword {keywordId} not found." );
+                return null;
             }
 
-            var k = JsonConvert.DeserializeObject<Keyword>( response.Content );
+            Keyword k;
+            try
+            {
+                k = JsonConvert.DeserializeObject<Keyword>( response.Content );
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+
+            if (k == null || k.Id == Guid.Empty)
+            {
+                return null;
+            }
+
             return k;
         }
 

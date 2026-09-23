@@ -46,7 +46,7 @@ Category in Rock: **SECC > Communication**.
 | Manage Communication Lists | Let users manage their communication-list subscriptions; can confirm via SMS keyword. Renders the carrier-required SMS disclosures (program name from the `OrganizationName` global attribute, frequency, rates, STOP/HELP, hyperlinked se.church Privacy Policy and Mobile Terms) directly beneath every mobile-number input, including the `Subscribe/{keyword}` deep-link panel. | `AttributeKey` (Type), `KeywordKey` (Keyword), `FromSMSNumber` (confirmation SMS from) |
 | Messaging Phone Numbers | List active phone numbers from the SECC Messaging API. | `DetailPage` (linked page) |
 | Messaging Phone Number Detail | View/edit a phone number and its keywords via the Messaging API. | (none) |
-| Messaging Phone Number Keywords | List/manage keywords for a phone number. The status filter includes Pending Approval, but no approval workflow is driven from this block. Phrases to Match use a `ValueList`; on save the block trims each phrase, drops blank rows and exact duplicates, and rejects the save server-side if no phrase remains. If the Messaging API fails to return a keyword when opening or saving, the block shows an error instead of falling back to a blank form (which would have created a duplicate on save). Phrases cannot be drag-reordered (order is not used by anything in the plugin). | `ShowFilter` (bool, default true), `EnforceResponseLimit` (bool, default true) |
+| Messaging Phone Number Keywords | List/manage keywords for a phone number. The status filter includes Pending Approval, but no approval workflow is driven from this block. Phrases to Match use a `ValueList`; on save the block trims each phrase, drops blank rows and exact duplicates, and rejects the save server-side if no phrase remains. If the Messaging API fails to return a keyword when opening or saving (deleted keyword, error status, or unreadable response), the block shows an error instead of falling back to a blank form (which would have created a duplicate on save). Phrases cannot be drag-reordered (order is not used by anything in the plugin). Phrases are HTML-encoded when shown in the grid. | `ShowFilter` (bool, default true), `EnforceResponseLimit` (bool, default true) |
 | Sync Twilio History | Manually trigger a Twilio history sync for a date range. | (none) |
 
 The Messaging blocks call `MessagingClient`, which reads its base URL and function key from the
@@ -129,4 +129,4 @@ Twilio SDK enums aren't needed to read the data.
   URLs are hardcoded on purpose — they are the links filed with the carrier — so don't swap
   them for CMS-driven values without re-filing.
 
-_Last updated: 2026-09-18_
+_Last updated: 2026-09-23_
