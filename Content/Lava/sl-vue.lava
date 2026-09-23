@@ -26,7 +26,7 @@
                         {% assign scheduleText = null %}
                         {% assign meetingDaySize = {{publishGroup.MeetingDay}} | Trim | Size %}
                         {% assign meetingTimeSize = {{publishGroup.MeetingDay}} | Trim | Size %}
-                        {% if {{publishGroup.CustomSchedule}} != '' %}
+                        {% if publishGroup.CustomSchedule != '' %}
                             {% assign scheduleText = {{publishGroup.CustomSchedule}} %}
                         {% elseif meetingDaySize > 0 and meetingTimeSize > 0 %}
                             {% assign scheduleText = {{publishGroup.MeetingDay}} | Append:'s ' | Append:{{publishGroup.MeetingTime}} %}
@@ -36,10 +36,10 @@
                         {% if scheduleText == null %}
                             {% assign offset = offset | Plus: 2 %}
                           {% endif %}
-                          {% if {{publishGroup.MeetingLocation}} == null or {{publishGroup.MeetingLocation}} == empty %}
+                          {% if publishGroup.MeetingLocation == null or publishGroup.MeetingLocation == empty %}
                             {% assign offset = offset | Plus: 2 %}
                           {% endif %}
-                          {% if {{publishGroup.IsChildcareAvailable}} != true %}
+                          {% if publishGroup.IsChildcareAvailable != true %}
                             {% assign offset = offset | Plus: 2 %}
                           {% endif %}
 
@@ -50,11 +50,11 @@
                               {% assign remainder = 6 %}
                             {% endif %}
 
-                            <div class="event-items col-xs-{{remainder}} {% if {{publishGroup.MeetingLocation}} != null and {{publishGroup.MeetingLocation}} != empty  %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter{% endif %} col-xs-offset-{{offset}}">
+                            <div class="event-items col-xs-{{remainder}} {% if publishGroup.MeetingLocation != null and publishGroup.MeetingLocation != empty  %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter{% endif %} col-xs-offset-{{offset}}">
                                  <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
                                  <h6>
                                     {{ scheduleText }}
-                                    {% if {{publishGroup.StartDate}} and {{publishGroup.StartDate}} != empty %}
+                                    {% if publishGroup.StartDate and publishGroup.StartDate != empty %}
                                     <br>
                                     Starting: {{ {{publishGroup.StartDate}} | Date:'MMM d'}}
                                     {% endif %}
@@ -64,8 +64,8 @@
                         {% endif %}
 
 
-                        {% if {{publishGroup.MeetingLocation}} != null and {{publishGroup.MeetingLocation}} != empty%}
-                            <div class="event-items g-padding-x-10--xs col-xs-4 {% if {{publishGroup.ChildcareAvailable}} == true %}g-ver-divider__solid__r--gray-lighter{% endif %}  col-xs-offset-{{offset}}">
+                        {% if publishGroup.MeetingLocation != null and publishGroup.MeetingLocation != empty%}
+                            <div class="event-items g-padding-x-10--xs col-xs-4 {% if publishGroup.ChildcareAvailable == true %}g-ver-divider__solid__r--gray-lighter{% endif %}  col-xs-offset-{{offset}}">
                                  <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
                                  <h6>
                                     {%raw%}{{ publishGroup.MeetingLocation }}{%endraw%}
@@ -75,7 +75,7 @@
                         {% endif %}
 
                         <!-- ChildCare -->
-                        {% if {{publishGroup.IsChildcareAvailable}} == true %}
+                        {% if publishGroup.IsChildcareAvailable == true %}
                             <div class="event-items col-xs-4 g-padding-x-10--xs col-xs-offset-{{offset}}">
                                 <div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
                                 <h6>Children's<br>Programming<br> Available</h6>
@@ -95,7 +95,7 @@
                         <div class="col-md-6">
                             <a :href="publishGroup.RegistrationUri" class='eventCardLink link--hover-underscore'>
                                 <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
-                                {% if {{publishGroup.RegistrationRequirement}} != 0 %}
+                                {% if publishGroup.RegistrationRequirement != 0 %}
                                     Register&nbsp;Now
                                 {% else %}
                                     Details

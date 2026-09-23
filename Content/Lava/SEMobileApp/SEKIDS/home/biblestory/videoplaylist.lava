@@ -1,9 +1,10 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% comment %} /sekids/home/biblestory/video/{Id} {% endcomment %}
 {%- contentchannelitem where:'ContentChannelId == 94 && Id == {{Id}}' -%}
 {%- for item in contentchannelitemItems -%}
 {
     "playlist": [{
-        "title": "{{item.Title | Replace:'"','\"'}}",
+        "title": "{{item.Title | Replace:'"',bsq }}",
         "media": [{
             "url": "{{item | Attribute:'videourl','RawValue'}}",
             "format": "mp4",

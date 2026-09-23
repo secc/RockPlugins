@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {
     "blocks": [
         {%- contentchannelitem where:'ContentChannelId == 95' -%}
@@ -17,7 +18,7 @@
                     {%- assign hideTitle = item | Attribute:'HideTitle' | AsBoolean -%}
                     {%- assign hideDescription = item | Attribute:'HideDescription' | AsBoolean -%}
                     {%- assign imageGuid = item | Attribute:'VideoCover', 'RawValue' -%}
-                    {%- assign description = item | Attribute:'Description' | StripNewlines | Replace:'\','\\' | Replace:'"','\"' -%}
+                    {%- assign description = item | Attribute:'Description' | StripNewlines | Replace:'\','\\' | Replace:'"',bsq  -%}
                     {%- assign video = item | Attribute:'videourl','RawValue' -%}
                     {%- assign extraLinks = item | Attribute:'ExtraLinks' -%}
                     {

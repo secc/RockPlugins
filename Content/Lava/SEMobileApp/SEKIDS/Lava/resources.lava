@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' operation:'View' summary:'SE!KIDS@Home Resources Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' componententitytypeid:'31' componentname:'SE!KIDS@Home Resources Page' componententityid:'50487' %}
 SE!KIDS@Home Resources Page
 {% endinteractionwrite %}
@@ -19,7 +20,7 @@ SE!KIDS@Home Resources Page
                     {%- assign hideTitle = item | Attribute:'HideTitle' | AsBoolean -%}
                     {%- assign hideDescription = item | Attribute:'HideDescription' | AsBoolean -%}
                     {%- assign imageGuid = item | Attribute:'VideoCover', 'RawValue' -%}
-                    {%- assign description = item | Attribute:'Description' | StripNewlines | Replace:'\','\\' | Replace:'"','\"' -%}
+                    {%- assign description = item | Attribute:'Description' | StripNewlines | Replace:'\','\\' | Replace:'"',bsq  -%}
                     {%- assign video = item | Attribute:'videourl','RawValue' -%}
                     {%- assign extraLinks = item | Attribute:'ExtraLinks' -%}
                     {

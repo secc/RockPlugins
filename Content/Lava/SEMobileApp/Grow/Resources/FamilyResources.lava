@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Grow Family Resources' componententityid:'31629' operation:'View' summary:'Grow Family Resources Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
 Grow Family Resources Page
 {% endinteractionwrite %}
@@ -30,7 +31,7 @@ Grow Family Resources Page
 	            "primary":"#121212",
 	            "primaryAccent":"#FFFFFF"
 	        },
-	        "brandableElements":"{{colors:brand}}"
+	        "brandableElements":""
 	    }
 	},
 	"items": [
@@ -65,7 +66,7 @@ Grow Family Resources Page
 				{%- if ministries contains "Children" or ministries contains "Family" -%}
 				{{ comma }}
                 {
-                    "title": "{{-item.Title | Replace:'"','\"'-}}",
+                    "title": "{{-item.Title | Replace:'"',bsq -}}",
                     "images":[{
                         "width": 667,
                         "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/grow/resources/listcard/{{- item.Guid -}}?mode=crop&s.roundcorners=20&bgcolor=121212"

@@ -1,3 +1,4 @@
+{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Sermons' componententityid:'27191' operation:'View' summary:'Sermons Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' %}
 Sermons Page
 {% endinteractionwrite %}
@@ -48,8 +49,8 @@ Sermons Page
                     "type": "image",
                     "props": {
                         {%-comment-%}
-                        "title": "{{item.Title | Replace:'"','\"'}}",
-                        "subtitle": "{{ item.Content  | Replace:'"','\"' | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
+                        "title": "{{item.Title | Replace:'"',bsq }}",
+                        "subtitle": "{{ item.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
                         {%-endcomment-%}
                         {%- assign seriesImageGuid = item | Attribute:'Image', 'RawValue' -%}
                         {%- if seriesImageGuid != empty -%}
