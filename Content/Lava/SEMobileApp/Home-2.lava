@@ -1,7 +1,7 @@
 {%- interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Home' componententityid:'27194' operation:'View' summary:'App Homepage' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'107' -%}
   App Block Home Page
 {%- endinteractionwrite -%}
-{%- assign nowDateTime = 'Now' | Date -%}
+{%- assign nowDateTime = 'Now' | Date:'yyyy-MM-dd HH:mm:ss' | AsDateTime -%}
 {%- assign today = 'Now' | Date:'dddd' -%}
 {%- assign streamBannerShowDays = 'Sunday' -%}
 {%- assign bulletinOneShowDays = 'Thursday|Sunday' -%}

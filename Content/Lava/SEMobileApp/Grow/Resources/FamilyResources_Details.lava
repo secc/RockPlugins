@@ -11,7 +11,7 @@ Grow Family Resources Message Page
 		{%- endif -%}
 	{%- endfor -%}
 {%- endcontentchannelitem -%}
-{%-  assign currentDateTime = 'Now' | Date:'dd/MM/yy HH:mm' | AsDateTime -%}
+{%-  assign currentDateTime = 'Now' | Date:'yyyy-MM-dd HH:mm' | AsDateTime -%}
 {%-  assign itemStartDateTime = SEKidsItem.StartDateTime | AsDateTime -%}
 {%-  assign itemImage = SEKidsItem | Attribute:'Image' -%}
 {%-  assign itemImageGuid = SEKidsItem | Attribute:'Image','RawValue' -%}

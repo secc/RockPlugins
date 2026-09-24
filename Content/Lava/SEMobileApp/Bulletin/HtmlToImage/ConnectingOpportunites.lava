@@ -1,5 +1,5 @@
 {%- contentchannelitem where:'Guid == "{{Guid}}"' -%}
-{%- assign item = contentchannelitemItems | First - %}
+{%- assign item = contentchannelitemItems | First -%}
 {%- endcontentchannelitem -%}
 {%- assign lineCount = 6 -%}
 {%- if connectTitle == "" -%}

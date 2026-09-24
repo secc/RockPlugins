@@ -1,5 +1,5 @@
 {%- contentchannelitem where:'Guid == "{{Guid}}"' -%}
-    {%- assign item = contentchannelitemItems | First - %}
+    {%- assign item = contentchannelitemItems | First -%}
     {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
     {%- assign sermonsCount = 0 -%}
 	{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}

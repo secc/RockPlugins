@@ -1,5 +1,5 @@
 {%- campus where:'Guid == "{{CampusGuid}}"' -%}
-{%- assign campus = campusItems | First - %}
+{%- assign campus = campusItems | First -%}
 {%- endcampus -%}
 
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Bulletin Campus' componententityid:'30280' operation:'View' summary:'Bulletin Campus Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'67' relatedentityid:'{{ campus.id }}'%}
