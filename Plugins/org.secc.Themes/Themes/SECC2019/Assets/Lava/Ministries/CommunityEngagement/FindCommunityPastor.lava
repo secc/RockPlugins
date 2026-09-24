@@ -25,7 +25,7 @@
                 <div class="col-md-7 g-padding-y-20--xs">
                     <!-- <div id="your-pastor"></div> -->
                     <div class="row g-padding-y-20--xs" id="dynamicPastor">
-                        
+
                     </div>
                 </div>
             </div>
@@ -54,18 +54,18 @@
     <div class="container">
 
           <div class="row">
-          
+
           {% groupmember where:'GroupId == 1015929' limit:30 %}
           {% for member in groupmemberItems %}
-          
+
             <div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 text-center g-margin-b-150--md">
-			    <img src="{{member | Attribute:'OfficialImage'}}" class="img-responsive img-circle g-width-350--xs g-margin-x-auto--xs g-margin-b-40--xs">
+			    <img src="{{member | Attribute:'OfficialImage'}}&mode=crop&width=350&height=350&scale=both" class="img-responsive img-circle g-width-350--xs g-margin-x-auto--xs g-margin-b-40--xs">
 			    <h4 class="g-line-height--xs"><strong>{{member.Person.FullName}}</strong></h4>
 			</div>
-			
+
           {% endfor %}
           {% endgroupmember %}
-          
+
         </div>
 
 	</div>

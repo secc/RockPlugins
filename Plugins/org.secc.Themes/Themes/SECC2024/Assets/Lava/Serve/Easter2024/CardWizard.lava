@@ -108,6 +108,10 @@
 		if (captureHistory) {
 			history.pushState({slideIn:slideIn}, slideInId, "?show="+slideInId);
 		}
+
+		$('html, body').animate({
+			scrollTop: $("#signup").offset().top - 100
+		}, 1000);
     }
     resizeblock = function(selector){
         ch = $(selector).height();
@@ -119,7 +123,7 @@
 
     $(document).ready(function() {
        $('#signup-container').css('display', 'block');
-       {% assign showParam = 'Global' | PageParameter:'show' %}{% assign showOk = showParam | RegExMatch:'^[A-Za-z0-9_-]+$' %}resizeblock('#{% if showOk %}{{ showParam }}{% else %}signup{% endif %}');
+       resizeblock('#{% assign showDiv = 'Global' | PageParameter:'show' | Size > 0 %}{% if show > 0 %}{{'Global' | PageParameter:'show'}}{% else %}signup{% endif %}');
     });
 
 	$(window).on("popstate", function(e) {

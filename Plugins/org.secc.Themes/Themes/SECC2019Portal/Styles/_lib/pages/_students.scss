@@ -1,0 +1,36 @@
+/* ----------------------------------------------------------------------------------
+	Students: Sets the style for certain aspects of the Students Pages
+----------------------------------------------------------------------------------- */
+
+.campus-list {
+  text-align: center;
+  .se-logo {
+    font-size: 1.8em;
+  }
+  li {
+    margin-bottom: 1em;
+  }
+}
+
+@media (max-width: 480px) {
+  .campus-list .se-logo {
+    font-size: 1.3em !important;
+  }
+}
+
+.student-section header {
+  font-size: 2em;
+  letter-spacing: .1em;
+}
+
+@media only screen and (max-width: 768px) {
+  /* For mobile phones: */
+  .student-section header {
+    font-size: 1em;
+    letter-spacing: .001em;
+    img {
+      margin-right: 40px;
+      max-width: 25%;
+    }
+  }
+}

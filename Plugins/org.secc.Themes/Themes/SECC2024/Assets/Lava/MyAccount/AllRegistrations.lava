@@ -1,0 +1,81 @@
+{% capture externalSite %}{{ 'Global' | Attribute:'PublicApplicationRoot' }}{% endcapture %}
+{% assign registrationCount = Registrations | Size %}
+{% assign now = 'Now' | Date:'yyyyMMdd' | AsDouble %}
+
+{% if registrationCount > 0 %}
+<div class="fluid-container g-padding-x-0--xs g-padding-y-30--xs">
+    <h2 class="g-font-family--secondary g-margin-b-10--xs g-padding-x-20--xs">All Registrations</h2>
+    <br />
+    <div id="AllRegistrations" class="isotope_wrap clearfix">
+        {% for registration in Registrations %}
+            {% comment %}
+                Figure out if the registration was created more than a year ago
+            {% endcomment %}
+            {% assign rCDT = registration.CreatedDateTime | Date:'yyyyMMdd' | AsDouble %}
+            {% assign diff = now | Minus: rCDT %}
+            {% if diff > 10000 %}
+                {% continue %}
+            {% endif %}
+
+            {% assign templateId = registration.RegistrationTemplateId %}
+            {% if templateId == 1349 or templateId == 1350 or templateId == 1352 or templateId == 1359 or templateId == 1383 or templateId == 1384 or templateId == 1385 or templateId == 1386 or templateId == 1387 or templateId == 1388 or templateId == 1389 or templateId == 1390 or templateId == 1391 or templateId == 1392 %}
+                {% assign showPass = true %}
+            {% else %}
+                {% assign showPass = false %}
+            {% endif %}
+            <div class="isotope_item col-xs-12 col-sm-12 col-md-6 g-padding-x-40--xs g-padding-x-20--md">
+                <div class="se-panel clearfix text-center">
+                    <div class="g-padding-x-25--xs g-padding-x-30--md g-padding-t-30--xs g-padding-t-40--md g-margin-b-20--xs g-margin-b-25--md">
+                        <h3 class="g-font-family--secondary g-font-size-24--xs g-font-size-32--md g-padding-b-20--xs g-padding-b-25--md">
+                            {{ registration.RegistrationInstance.Name }}
+                        </h3>
+
+                        <p class="g-font-size-18--xs g-font-weight--300">
+                            Registrants ({{ registration.CreatedDateTime | Date:'MM/dd/yy' }}):<br />
+                            {% for registrant in registration.Registrants %}
+                            {{ registrant.Person.FullName }}</small><br />
+                            {% endfor %}
+                        </p>
+
+                        {% if registration.BalanceDue > 0 %}
+                            <label class='label label-warning g-font-size-24--xs'>{{ registration.BalanceDue | FormatAsCurrency}}</label>
+                        {% endif %}
+
+                        <div style="display: flex;justify-content: space-between;flex-wrap:wrap;" class="text-center col-xs-12 g-margin-t-40--xs text-center g-margin-b-25--xs g-margin-b-30--md">
+                            <div class="" style="flex:1 1 0;">
+                                <a href="{{ externalSite }}Registration?RegistrationId={{ registration.Id }}" class="se-btn se-btn--primary-brd {% if showPass %}g-width-90-percent--md{%endif%} g-width-100-percent--xs se-btn--sm">
+                                    Update Registration
+                                </a>
+                            </div>
+                            {% if showPass %}
+                                <div class="" style="flex:1 1 0;">
+                                    <a href="{{ externalSite }}EventPass/{{ registration.Guid }}" class="se-btn se-btn--primary-brd g-width-90-percent--md g-width-100-percent--xs se-btn--sm">
+                                        QR Fast Pass
+                                    </a>
+                                </div>
+                            {%endif%}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+	</div>
+</div>
+{% endif %}
+
+<script>
+    $(window).load(function() {
+        var isoOptions = {
+            percentPosition: true,
+            itemSelector: '.isotope_item'
+        };
+        // Initialize Connection Opportunities Isotope
+        var $grid = $('.isotope_wrap').isotope(isoOptions);
+        // reveal all items after init
+        var $items = $grid.find('.isotope_item');
+        $grid.imagesLoaded( function() {
+          // init Isotope after all images have loaded
+          $grid.removeClass('hide-on-load').addClass('is-showing-items').isotope('layout');
+        });
+    });
+</script>

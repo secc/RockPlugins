@@ -1,0 +1,28 @@
+<h1>Household Information</h1>
+<p>Please verify your household information and help us update our ministry consent.</p>
+<div class="row">
+    <div class="col-sm-6">
+        <h4>{{ FamilyName | Append:' Household' }} </h4>
+        {{ Person | Address:'Home','[[FormattedAddress]]'}}
+        <div class="row" style="padding-top:15px;padding-bottom:15px;">
+            <div class="col-sm-6">
+                {{ Person.FullName }}<br />
+                {{ Person | PhoneNumber:'Mobile' }}
+            </div>
+            <div class="col-sm-6">
+                {% if Spouse == null %}
+                    &nbsp;
+                {% else %}
+                    {{ Spouse.FullName }}<br />
+                    {{ Spouse | PhoneNumber:'Mobile' }}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <h4>Minor Children</h4>
+        {% for child in Children %}
+            {{ child.FullName }} ({{ child.Age }})<br />
+        {% endfor %}
+    </div>
+</div>

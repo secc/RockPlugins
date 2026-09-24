@@ -308,7 +308,6 @@ code {
 //$font-size-h1;
 em,
 li {
-  @include font($size: $font-size-24, $weight: 500);
   color: $color-heading;
 
   > a {

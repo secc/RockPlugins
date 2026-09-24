@@ -1,0 +1,59 @@
+{%- contentchannelitem where:'Guid == "{{Guid}}"' -%}
+    {%- assign item = contentchannelitemItems | First - %}
+    {%- assign lastSermon = item.ChildItems | Last -%}
+	{%- assign sermonsCount = 0 %}
+	{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
+	{%- for messages in itemChildItems -%}
+		{% assign message = messages.ChildContentChannelItem -%}
+		{% if message.ContentChannelId == "23" %}
+			{%- assign sermonsCount = sermonsCount | Plus:1 -%}
+		{%- endif -%}
+	{%- endfor -%}
+{%- endcontentchannelitem -%}
+<html>
+    <head>
+        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/layout.css?v=637171650738055685"/>
+        <link rel="stylesheet" href="https://www.southeastchristian.org/Themes/SECC2019/Styles/main.css?v=637171650775243506"/>
+        <style>
+            html, body {
+              margin: 0px;
+              padding: 0px;
+              background-color: #121212;
+            }
+            .box {
+              margin: 30px 60px;
+              width: 800px;
+              height:1040px;
+              background-color: #262626;
+              border-radius: 40px;
+              background-image: url("https://www.southeastchristian.org/GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}");
+              background-repeat: no-repeat;
+              background-size: contain;
+              background-position: top;
+            }
+            .box h4, .box h5, .box p {
+              color: white;
+            }
+            .content{
+              padding: 520px 60px 60px 60px;
+              height: 100%;
+              overflow: hidden;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="box">
+            <div class="content">
+                	<h1 class="g-font-weight--700 g-color--white g-line-height">{{item.Title | Upcase }}</h1>
+                    {% if sermonsCount > 1 -%}
+                	    <h2 class="g-color--white g-line-height">{{ item.StartDateTime | Date:'MMM dd, yyyy' }} - {{ lastSermon.ChildContentChannelItem.StartDateTime | Date:'MMM dd, yyyy' }}<br />
+                        SERMONS: {{ sermonsCount }}</h2>
+                        <br />
+                        <h2 class="g-color--white g-padding-t-20--xs g-line-height">{{item.Content | TruncateWords:40}}</h2>
+                    {% else %}
+                        <h2 class="g-color--white g-padding-t-20--xs g-line-height">{{item.Content | TruncateWords:60}}</h2>
+                    {% endif %}
+            </div>
+        </div>
+    </body>
+</html>

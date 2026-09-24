@@ -19,128 +19,128 @@
 {% endif %}
 
 <style>
-.grid {
-    display: grid;
-    grid-template-columns: 100%;
-}
-@media (min-width: 48em) {
-    .grid { grid-template-columns: 50% 50%; }
-}
-.readmore_dates {
-   transition: height 100ms;
-   overflow: hidden;
-   display: none;
-}
-.isotope_item {
-    z-index: 1;
-}
-.se-dropdown {
-	border: 1px rgba(29, 31, 33, 0.20) solid;
-    border-radius: 4px;
-	cursor: pointer;
-	padding: 5px 70px 5px 15px;
-	display: block;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	overflow: hidden;
-	color: black;
-	line-height: 28px;
-	text-transform: uppercase;
-	font-weight: 600;
-	box-sizing: border-box;
-	display: inline-block;
-	margin: 0;
-	position: relative;
-	vertical-align: middle;
-	margin-top: 5px;
-	min-width: 170px;
-	z-index: 10;
-	width: 100%;
-}
-.se-dropdown .arrow {
-	height: auto;
-	position: absolute;
-	top: 19px;
-	right: 15px;
-	width: 20px;
-}
-.se-dropdown .arrow b {
-	border-color: white;
-	border-style: none;
-	border-width: 0px;
-	height: 0;
-	position: absolute;
-	width: 0;
-}
-.se-dropdown .arrow b:before {
-	width: 10px;
-	height: 10px;
-	content: "";
-	border: solid #000000;
-	border-width: 0 2px 2px 0;
-	display: inline-block;
-	position: absolute;
-	top: 55%;
-	left: 50%;
-	transition: all 0.4s ease;
-	transform: translate(-50%, -50%) rotate(45deg);
-	-webkit-transform: translate(-50%, -50%) rotate(45deg);
-}
-.se-dropdown + div {
-	box-shadow:0px 0px 5px 1px rgba(0, 0, 0, 0.15);
-	padding: 15px;
-	display: none;
-	position: absolute;
-	background-color: #FFFFFF;
-    background-image: linear-gradient(rgba(254, 240, 228, 0.3),rgba(254, 240, 228, 0.3));
-	overflow: visible;
-	box-sizing: border-box;
-	z-index: 1051;
-	margin-bottom: 20px;
-}
-.se-dropdown[aria-expanded="true"] + div {
-	display: block;
-}
-.se-dropdown[aria-expanded="true"] .arrow b:before {
-	transform: translate(-50%, -50%) rotate(-135deg);
-	-webkit-transform: translate(-50%, -50%) rotate(-135deg);
-	top: 3px;
-}
+    .grid {
+        display: grid;
+        grid-template-columns: 100%;
+    }
+    @media (min-width: 48em) {
+        .grid { grid-template-columns: 50% 50%; }
+    }
+    .readmore_dates {
+    transition: height 100ms;
+    overflow: hidden;
+    display: none;
+    }
+    .isotope_item {
+        z-index: 1;
+    }
+    .se-dropdown {
+        border: 1px rgba(29, 31, 33, 0.20) solid;
+        border-radius: 4px;
+        cursor: pointer;
+        padding: 5px 70px 5px 15px;
+        display: block;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        color: black;
+        line-height: 28px;
+        text-transform: uppercase;
+        font-weight: 600;
+        box-sizing: border-box;
+        display: inline-block;
+        margin: 0;
+        position: relative;
+        vertical-align: middle;
+        margin-top: 5px;
+        min-width: 170px;
+        z-index: 10;
+        width: 100%;
+    }
+    .se-dropdown .arrow {
+        height: auto;
+        position: absolute;
+        top: 19px;
+        right: 15px;
+        width: 20px;
+    }
+    .se-dropdown .arrow b {
+        border-color: white;
+        border-style: none;
+        border-width: 0px;
+        height: 0;
+        position: absolute;
+        width: 0;
+    }
+    .se-dropdown .arrow b:before {
+        width: 10px;
+        height: 10px;
+        content: "";
+        border: solid #000000;
+        border-width: 0 2px 2px 0;
+        display: inline-block;
+        position: absolute;
+        top: 55%;
+        left: 50%;
+        transition: all 0.4s ease;
+        transform: translate(-50%, -50%) rotate(45deg);
+        -webkit-transform: translate(-50%, -50%) rotate(45deg);
+    }
+    .se-dropdown + div {
+        box-shadow:0px 0px 5px 1px rgba(0, 0, 0, 0.15);
+        padding: 15px;
+        display: none;
+        position: absolute;
+        background-color: #FFFFFF;
+        background-image: linear-gradient(rgba(254, 240, 228, 0.3),rgba(254, 240, 228, 0.3));
+        overflow: visible;
+        box-sizing: border-box;
+        z-index: 1051;
+        margin-bottom: 20px;
+    }
+    .se-dropdown[aria-expanded="true"] + div {
+        display: block;
+    }
+    .se-dropdown[aria-expanded="true"] .arrow b:before {
+        transform: translate(-50%, -50%) rotate(-135deg);
+        -webkit-transform: translate(-50%, -50%) rotate(-135deg);
+        top: 3px;
+    }
 
-.se-input {
-	background-color: white;
-	border: 1px rgba(29, 31, 33, 0.20) solid;
-    border-radius: 4px;
-	padding: 5px 70px 5px 15px;
-	display: block;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	overflow: hidden;
-	color: black;
-	line-height: 28px;
-	text-transform: uppercase;
-	font-weight: 600;
-	box-sizing: border-box;
-	display: inline-block;
-	margin: 0;
-	position: relative;
-	vertical-align: middle;
-	margin-top: 5px;
-	min-width: 170px;
-	z-index: 10;
-}
-.se-zipcode-loading {
-	position: absolute;
-	right: 25px;
-	top: 18px;
-	z-index: 30;
-}
-@media (max-width:991px)
-{
-	.se-dropdown + div {
-		position: relative;
-	}
-}
+    .se-input {
+        background-color: white;
+        border: 1px rgba(29, 31, 33, 0.20) solid;
+        border-radius: 4px;
+        padding: 5px 70px 5px 15px;
+        display: block;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        color: black;
+        line-height: 28px;
+        text-transform: uppercase;
+        font-weight: 600;
+        box-sizing: border-box;
+        display: inline-block;
+        margin: 0;
+        position: relative;
+        vertical-align: middle;
+        margin-top: 5px;
+        min-width: 170px;
+        z-index: 10;
+    }
+    .se-zipcode-loading {
+        position: absolute;
+        right: 25px;
+        top: 18px;
+        z-index: 30;
+    }
+    @media (max-width:991px)
+    {
+        .se-dropdown + div {
+            position: relative;
+        }
+    }
 </style>
 
 <div class="container g-width-100-percent--xs">
@@ -206,6 +206,12 @@
                     </div>
                 </div>
             </div>
+            <div id="moreOptions">
+                <h3 class="g-font-family--secondary g-font-size-20--xs g-font-size-28--md" style="padding-top: 30px !important; margin-bottom: 5px;">Need more options?</h3>
+                <a class="g-font-weight--700 g-line-height--sm" style="text-decoration: underline; color:#000000; font-size: 1rem;" href="https://my.southeastchristian.org/groups/oncampus/southeast/all">On-Campus Groups</a><br>
+                <div style="height: 10px"></div>
+                <a class="g-font-weight--700 g-line-height--sm" style="text-decoration: underline; color:#000000; font-size: 1rem;" href="https://my.southeastchristian.org/groups/homegroups">Home Groups</a>
+            </div>
         </div>
 
 
@@ -268,11 +274,11 @@
 
                         <div class="caption g-margin-b-40--xs g-padding-x-60--xs">
                             <h3 class="g-font-family--secondary g-font-size-24--xs g-font-size-32--md g-padding-b-20--xs g-padding-b-25--md" style="margin-bottom: 5px;">
-                                {{ group.Name }}
+                                {{ group.Name | Truncate:40,'...' }}
                             </h3>
                             {% if group.Description != '' %}
                             <div class="readmore_dates">
-                                {{group.Description}}
+                                {{group.Description | Truncate:325,'...'}}
                                 <br />
                             </div>
                             {% endif %}
@@ -289,6 +295,12 @@
                             <div class="" style="flex:1 1 0;">
                                 {[ sebutton title:'Register' href:'/onlinegroups/signup/{{ group.Id }}' type:'light' target:'' addclasses:'g-width-90-percent--xs se-btn--sm' theme:'2024' ]}
                             </div>
+                        </div>
+
+                        <div class="mobile-only" style="position:absolute;top:1rem;right:1rem;">
+                            <a onclick="shareMessage('{{ group.Name | Replace:"'","\'"}}','Join me at {{ group.Name | Replace:"'","\'"}}!','{{ 'Global' | Attribute:'PublicApplicationRoot' }}onlinegroups/signup/{{ group.Id }}')">
+                                <i class="fas fa-share-alt" style="color:#1D1F21"></i>
+                            </a>
                         </div>
 
 
@@ -611,4 +623,35 @@
     function pageLoad() {
 			reapplyIso();
 	}
+</script>
+
+<script>
+    function shareMessage(title, message, url) {
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            text: message + '\n',
+            url: url
+        })
+            .then(() => console.log("Message shared successfully!"))
+            .catch((error) => console.error("Error sharing message:", error));
+    } else {
+        console.log("Share API is not supported in this browser.");
+    }
+}
+
+function isMobileDevice() {
+    return /Mobi|Android/i.test(navigator.userAgent);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var elements = document.getElementsByClassName('mobile-only');
+    for (var i = 0; i < elements.length; i++) {
+        if (isMobileDevice()) {
+            elements[i].style.display = 'block';
+        } else {
+            elements[i].style.display = 'none';
+        }
+    }
+});
 </script>

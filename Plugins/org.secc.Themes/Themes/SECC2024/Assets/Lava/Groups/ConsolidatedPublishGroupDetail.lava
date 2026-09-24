@@ -1,0 +1,104 @@
+{% assign photo = 'Global' | Attribute:'PublicApplicationRoot' | Append: '/GetImage.ashx?id=' | Append: PublishGroup.ImageId  %}
+{{ PublishGroup.Title | Append: ' | Southeast Christian Church' | SetPageTitle }}
+
+<div class="container g-padding-l-0--xs g-padding-l-15--md">
+    <div class="row">
+        <div class="col-md-4 g-padding-t-65--md">
+            <img src="{{photo}}" class="event-image img-responsive" onerror="this.style.display='none'">
+        </div>
+        <div class="col-md-8">
+			<div class="g-padding-b-10--xs g-text-center--xs g-text-left--lg g-padding-t-0--lg">
+                    {[ socialshare facebooktitle:'{{ PublishGroup.Title }}' emailsubject:'{{ PublishGroup.Title | Escape }}' facebookimage:'{{ photo }}' facebooksummary:'{{ PublishGroup.Description | StripHtml }}' ]}
+            </div>
+            <h3 class="g-font-family--secondary g-margin-b-20--xs g-font-size-34--xs g-font-weight--500">{{PublishGroup.Title}}</h3>
+
+            <p class="g-font-family--primary g-margin-b-30--xs" style="color: #616264;">{{ PublishGroup.Description }}</p>
+
+                <div class="event-calendar g-width-600--sm g-margin-x-auto--xs g-margin-x-0--lg">
+                    {% if PublishGroup.ScheduleText != empty %}
+    					<div class="event-items {% if PublishGroup.ChildcareAvailable != true %}col-xs-offset-0 col-md-offset-0{% endif %} col-xs-12 col-md-4" style="margin-left: 0px; padding-left:0px;">
+    						<i class="fal fa-calendar-alt" style="font-size: 24px; margin-top:10px; margin-bottom: 20px;"></i>
+    						<h6 class="g-font-size-14--xs">
+                                {% if PublishGroup.Group.GroupTypeId == 60 %} <!-- If home group -->
+                                    <h6 class="g-padding-b-10--xs g-font-weight--700 g-font-size-14--xs" style="color: #616264;">{{ PublishGroup.Group.Schedule.FriendlyScheduleText }}</h6>
+                                    {% if PublishGroup.StartDate and PublishGroup.StartDate != empty %}
+                                        <h6 class="g-font-size-14--xs" style="color: #616264;">Starting: {{ PublishGroup.StartDate | Date:'MMM d'}}</h6>
+                                    {% endif %}
+                                {% else %}
+                                    {% assign scheduleParts = PublishGroup.ScheduleText | Split:' • ' %}
+                                    <h6 class="g-padding-b-10--xs g-font-weight--700 g-font-size-14--xs" style="color: #616264;">{{ scheduleParts[0] }}</h6>
+                                    {% if scheduleParts.size > 1 %}
+                                        <h6 class="g-font-size-14--xs" style="color: #616264;">{{ scheduleParts[1] }}</h6>
+                                    {% endif %}
+                                    {% if PublishGroup.StartDate and PublishGroup.StartDate != empty %}
+                                    <h6 class="g-font-size-14--xs" style="color: #616264;">Starting: {{ PublishGroup.StartDate | Date:'MMM d'}}</h6>
+                                    {% endif %}
+                                {% endif %}
+    						</h6>
+    					</div>
+    				{% endif %}
+
+    				{% if PublishGroup.MeetingLocation != null and PublishGroup.MeetingLocation != empty%}
+    					<div class="event-items g-padding-x-10--xs col-xs-12 col-md-4">
+							 <i class="fal fa-map-marker-alt" style="font-size: 24px; margin-top:10px; margin-bottom: 20px;"></i>
+    						 <h6 class="g-padding-b-10--xs g-font-weight--700 g-font-size-14--xs" style="color: #616264;">{{ PublishGroup.Group.Campus.Name }}</h6>
+							 <h6 class="g-font-size-14--xs" style="color: #616264;">{{ PublishGroup.MeetingLocation }}</h6>
+    					</div>
+    					{% assign offset = 0 %}
+    				{% endif %}
+
+					<!-- ChildCare -->
+					{% if PublishGroup.ChildcareAvailable == true %}
+					<div class="event-items g-padding-l-0--xs g-padding-x-10--md col-xs-12 col-md-4">
+						<i class="fal fa-child" style="font-size: 24px; margin-top:10px; margin-bottom: 20px;"></i>
+						<h6 class="g-font-size-14--xs" style="color: #616264;">Children's<br>Programming<br> Available</h6>
+					</div>
+					{% endif %}
+
+					{% assign registrationLink = '/groups/oncampus/details/' | Append:PublishGroup.Slug %}
+					<div class="mobile-only event-items g-padding-l-0--xs g-padding-x-10--md col-xs-12 col-md-4" onclick="shareMessage('{{ PublishGroup.Title | Replace:"'","\'"}}','Join me at {{ PublishGroup.Title | Replace:"'","\'"}}!','{{registrationLink}}')" style="pointer:cursor">
+						<i class="fas fa-share-alt" style="font-size: 24px; margin-top:10px; margin-bottom: 20px;"></i>
+						<h6 class="g-font-size-14--xs" style="color: #616264;">Share</h6>
+					</div>
+                 </div>
+
+        </div>
+    </div>
+</div>
+<br><br>
+{% if PublishGroup.RegistrationRequirement != 0 %}
+	<h3 class="g-font-family--secondary">Register:</h3>
+{% else %}
+    <h6>This group does not require registration. Just show up!</h6>
+{% endif %}
+
+<script>
+    function shareMessage(title, message, url) {
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            text: message + '\n',
+            url: url
+        })
+            .then(() => console.log("Message shared successfully!"))
+            .catch((error) => console.error("Error sharing message:", error));
+    } else {
+        console.log("Share API is not supported in this browser.");
+    }
+}
+
+function isMobileDevice() {
+    return /Mobi|Android/i.test(navigator.userAgent);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var elements = document.getElementsByClassName('mobile-only');
+    for (var i = 0; i < elements.length; i++) {
+        if (isMobileDevice()) {
+            elements[i].style.display = 'block';
+        } else {
+            elements[i].style.display = 'none';
+        }
+    }
+});
+</script>

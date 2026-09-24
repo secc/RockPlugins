@@ -80,13 +80,39 @@
     <meta http-equiv="X-UA-Compatible" content="IE=10" />
     <title></title>
 
-    <script src="<%# ResolveRockUrl("~/Scripts/modernizr.js", true) %>"></script>
-    <script src="<%# ResolveRockUrl("~/Scripts/jquery-3.3.1.min.js", true) %>"></script>
+
+    <script src="<%# ResolveRockUrl("~/Scripts/jquery-3.3.1.min.js" ) %>"></script>
     <script src="<%# ResolveRockUrl("~/Scripts/jquery-migrate-3.0.1.min.js" ) %>"></script>
 
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/bootstrap.css", true) %>" />
-    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/theme.css", true) %>" />
+    <!-- Set the viewport width to device width for mobile -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=2.0">
 
+    <!-- SECC2019 Theme CSS Files -->
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~/Themes/SECC2019/Styles/layout.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~/Themes/SECC2019/Styles/main.css", true) %>"/>
+
+    <!-- SECC2019Portal Theme CSS Files -->
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~~/Styles/seportal.css", true) %>"/>
+    <link rel="stylesheet" href="<%# ResolveRockUrl("~/Styles/developer.css", true) %>"/>
+    <asp:ContentPlaceHolder ID="css" runat="server" />
+
+    <!-- Included JS Files -->
+    <script src="<%# ResolveRockUrl("~/Themes/SECC2019/Scripts/modernizr-custom.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~/Themes/SECC2019/Scripts/global-dist.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~/Themes/SECC2019/Scripts/isotope.pkgd.min.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~/Themes/SECC2019/Scripts/imagesloaded.pkgd.min.js" ) %>"></script>
+    <script src="<%# ResolveRockUrl("~/Themes/SECC2019/Scripts/smooth-scroll.min.js" ) %>" ></script>
+    <script src="<%# ResolveRockUrl("~/Themes/SECC2019/Scripts/select2/select2.full.min.js" ) %>" ></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.7/jarallax.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/object-fit-images/3.2.3/ofi.min.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jarallax/1.10.7/jarallax-video.js" ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vivus/0.4.4/vivus.min.js" ></script>
+    <link href="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe.css?v=4.1.2-1.0.4" />
+    <link href="/Themes/SECC2019/Assets/vendor/photo_swipe/default-skin/default-skin.css?v=4.1.2-1.0.4" />
+    <script src="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe.js"></script>
+    <script src="/Themes/SECC2019/Assets/vendor/photo_swipe/photoswipe-ui-default.js"></script>
+	
     <style>
         html, body {
             height: auto;

@@ -1,0 +1,89 @@
+@import 'init';
+
+
+
+.switch {
+    position			: relative;
+    width				: 57px;
+    -webkit-user-select	:none;
+    -moz-user-select	:none;
+    -ms-user-select		: none;
+}
+
+.switch-label {
+    display				: block;
+    overflow			: hidden;
+    cursor				: pointer;
+    border				: 2px solid $LightGrayColor;
+    border-radius		: 4px;
+    margin				: 0px;
+    font-size			: 1em;
+    max-width			: none;
+    font-weight			: 400;
+}
+.switch-inner {
+    display				: block;
+    width				: 200%;
+    margin-left			: -100%;
+
+    -moz-transition		: margin 0.3s ease-in 0s;
+    -webkit-transition	: margin 0.3s ease-in 0s;
+    -o-transition		: margin 0.3s ease-in 0s;
+    transition			: margin 0.3s ease-in 0s;
+}
+.switch-inner:before,
+.switch-inner:after {
+    display				: block;
+    float				: left;
+    width				: 50%;
+    height				: 20px;
+    padding				: 0;
+    line-height			: 20px;
+    font-size			: 1em;
+    color				: #FFFFFF;
+    font-family			: $Proxima;
+    font-weight			: 400;
+
+    -moz-box-sizing		: border-box;
+    -webkit-box-sizing	: border-box;
+    box-sizing			: border-box;
+}
+.switch-inner:before {
+    content				: "Yes";
+    padding-left		: 6px;
+    background-color	: $LightGrayColor;
+    color				: #FFFFFF;
+}
+.switch-inner:after {
+    content				: "No";
+    padding-right		: 6px;
+    background-color	: $LightGrayColor;
+    color				: #FFFFFF;
+    text-align			: right;
+}
+.switch-switch {
+    display				: block;
+    width				: 19px;
+    background			: $LinkColor;
+    border				: 2px solid $LightGrayColor;
+    border-radius		: 4px;
+    position			: absolute;
+    top					: 0;
+    bottom				: 0;
+    right				: 37px;
+
+    -moz-transition		: all 0.3s ease-in 0s;
+    -webkit-transition	: all 0.3s ease-in 0s;
+    -o-transition		: all 0.3s ease-in 0s;
+    transition			: all 0.3s ease-in 0s;
+}
+
+.switch-checkbox {
+    display				: none;
+}
+.switch-checkbox:checked + .switch-label .switch-inner {
+    margin-left			: 0;
+}
+.switch-checkbox:checked + .switch-label .switch-switch {
+    right				: 0px;
+}

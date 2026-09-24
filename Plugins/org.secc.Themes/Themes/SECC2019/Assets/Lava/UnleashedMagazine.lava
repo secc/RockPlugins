@@ -5,7 +5,7 @@
 {%- assign storySlug = 'Global' | PageParameter:'StorySlug' -%}
 {%- cache key:'storyPage:{{storySlug}}' duration:'0' twopass:'true' -%}
 
-{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' | AsDouble -%}
 
 {%- comment -%}
 ************ Get the story or issue from the slug ************
@@ -29,8 +29,8 @@
 {% else %}
     {%- contentchannelitem where:'ContentChannelId==89' -%}
         {%- for item in contentchannelitemItems -%}
-            {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
-            {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+            {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' | AsDouble -%}
+            {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | AsDouble | Default:'99999999999999' -%}
             {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
                 {%- assign magazine = item -%}
                 {%- break -%}
@@ -106,7 +106,7 @@
                             <div class="row">
                                 <div class="col-md-8 col-md-offset-2">
                                     <h1 class="g-font-weight--800 g-font-size-100--xs g-font-size-115--md g-font-size-150--lg g-padding-y-50--lg text-center">{{currentMessage.Title}}</h1>
-                                    <h4 class="g-font-weight--200 text-center uppercase">{{currentMessageParentTitle}}</h3>
+                                    <h4 class="g-font-weight--600 text-center uppercase">{{currentMessageParentTitle}}</h3>
                                 </div>
                             </div>
                         </div>
@@ -132,7 +132,7 @@
                 <div id="magazineHead" class="row">
                     <div class="col-sm-12 col-md-2 text-center hidden-sm">
                         <br>
-                        {%- assign fbImage = currentMessage | Attribute:'FacebookImage' -%}{%- if fbImage != '' -%}
+                        {%-if currentMessage | Attribute:'FacebookImage' != ''-%}
                             {%- assign facebookImageGuid = currentMessage | Attribute:'FacebookImage','RawValue' -%}
                         {%- else -%}
                             {%- assign facebookImageGuid = storyImageGuid -%}

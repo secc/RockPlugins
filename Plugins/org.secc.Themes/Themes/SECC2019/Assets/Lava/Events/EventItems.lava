@@ -51,7 +51,7 @@
                 {% if eventItemOccurrence.DetailPage != null %}
                     {% assign eventLinkURL = eventItemOccurrence.DetailPage %}
                 {% else %}
-    			    {% assign urlSlug = eventItemOccurrence.URLSlugs | Default:'' | Split:'|' | First | Trim %}
+    			    {% assign urlSlug = eventItemOccurrence.URLSlugs | Split:'|' | First | Trim %}
     				{% if urlSlug != '' %}
     					{% assign eventLinkURL = DetailsPage | Replace:'/details','/' | Append:urlSlug %}
     				{% else %}
@@ -84,7 +84,7 @@
                             {% endif %}
                         </a>
 
-                        {% assign scheduledDates = eventItemOccurrence.ICalendarContent | Default:'' | Split: 'RRULE' %}
+                        {% assign scheduledDates = eventItemOccurrence.ICalendarContent | Split: 'RRULE' %}
                         {% assign scheduledNumDates = scheduledDates | Size %}
                         <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
 
@@ -108,10 +108,10 @@
                         </div><!-- END: caption -->
 
                         <div class="row g-margin-x-0--xs">
-                            <div class="event-items col-xs-4 g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if childCareIsAvailable != 'Yes' %}col-xs-offset-2{% endif %}">
+                            <div class="event-items col-xs-4 {% if campus | Attribute: 'Slug' != 'Yes' %}col-xs-offset-2{% endif %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter {% if childCareIsAvailable != 'Yes' %}col-xs-offset-2{% endif %}">
                                 <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
                                 <h6>
-                                    {% if eventItemOccurrence.CustomDateText != null and eventItemOccurrence.CustomDateText != '' -%}
+                                    {% if eventItemOccurrence.CustomDateText != null && eventItemOccurrence.CustomDateText != '' -%}
                                         {{ eventItemOccurrence.CustomDateText }}
                                     {% else -%}
                                         {% assign eventItemDatesIsHidden = eventItemOccurrence.AttEventDatesHide %}
@@ -136,7 +136,7 @@
                             <div class="event-items g-padding-x-10--xs col-xs-4 {% if childCareIsAvailable == 'Yes' %}g-ver-divider__solid__r--gray-lighter{% endif %}">
                                 <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
                                 <h6>
-                                    {% if eventItemOccurrence.CustomLocationText != null and eventItemOccurrence.CustomLocationText != '' -%}
+                                    {% if eventItemOccurrence.CustomLocationText != null && eventItemOccurrence.CustomLocationText != '' -%}
                                         {{ eventItemOccurrence.CustomLocationText}}
                                     {% else %}
                                         {% if eventItemOccurrence.EventItemOccurrence.Location != '' %}

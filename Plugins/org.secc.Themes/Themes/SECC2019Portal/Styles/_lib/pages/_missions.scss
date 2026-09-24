@@ -1,0 +1,520 @@
+/* ----------------------------------------------------------------------------------
+	Missions: Sets the style for certain aspects of the Missions Page
+----------------------------------------------------------------------------------- */
+
+.missionsBody {
+  .section-header.inverse {
+    &::after, &::before {
+      background-color: rgba(255, 255, 255, 0.7);
+    }
+  }
+  .upgotd-box {
+    margin: 0 auto !important;
+    border: 1px solid #a09d99 !important;
+    padding: 1em 2em !important;
+    width: 100% !important;
+  }
+  .event-header .se-logo {
+    font-size: inherit !important;
+  }
+  .section-header {
+    color: #000;
+    &::after {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+@charset "UTF-8";
+
+.section-header::before {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.missionsBody .section-header.inverse {
+  color: #fff;
+  &::after {
+    background-color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+.section-header.inverse::before {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.missionsBody {
+  .social {
+    float: left;
+    margin: 4px 10px 20px 0;
+  }
+  .social-icon-conversation {
+    width: auto;
+    height: 36px;
+  }
+  .conversation {
+    border-bottom: 1px solid #666;
+    margin-bottom: 10px;
+    letter-spacing: 0.4px;
+  }
+  #textprayer {
+    color: #000;
+  }
+  #MissionariesModal .modal-body {
+    font-size: 0.8em;
+  }
+  #PRAY {
+    background-color: #231f20;
+    color: #fff;
+    .highlight_text {
+      color: #2eb2d1;
+    }
+    hr {
+      border-top: 1px solid #fff;
+    }
+  }
+  #SEND {
+    background-color: #a09d99;
+  }
+  .center {
+    text-align: center;
+    margin: 0 auto;
+  }
+  .show-box {
+    margin-top: 5px;
+    padding: 1em;
+    .church-logo {
+      max-width: 220px;
+      max-height: 150px;
+    }
+  }
+  .equal {
+    width: 90%;
+    text-align: center;
+  }
+  .enhanced-photos {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-box-flex-direction: row;
+    -moz-box-flex-direction: row;
+    -webkit-flex-direction: row;
+    -ms-flex-direction: row;
+    flex-direction: row;
+    -webkit-box-flex-wrap: wrap;
+    -moz-box-flex-wrap: wrap;
+    -webkit-flex-wrap: wrap;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    -webkit-box-justify-content: space-between;
+    -moz-box-justify-content: space-between;
+    -webkit-justify-content: space-between;
+    -ms-justify-content: space-between;
+    justify-content: space-between;
+    -webkit-box-align-items: stretch;
+    -moz-box-align-items: stretch;
+    -webkit-align-items: stretch;
+    -ms-align-items: stretch;
+    align-items: stretch;
+    -webkit-box-align-content: space-between;
+    -moz-box-align-content: space-between;
+    -webkit-align-content: space-between;
+    -ms-align-content: space-between;
+    align-content: space-between;
+    a {
+      color: #383735;
+    }
+    .missions_icon {
+      max-width: 8em;
+    }
+    .sp-photo {
+      display: table;
+      position: relative;
+      width: 30%;
+      padding-bottom: 30%;
+      margin-bottom: 1.5em;
+      height: 0;
+      color: #222;
+      text-align: center;
+      transition: background-color 200ms ease-out;
+      .photo-content {
+        position: absolute;
+        bottom: 0;
+        margin-bottom: 10%;
+        width: 100%;
+        p {
+          margin-bottom: 0;
+        }
+        h3 {
+          font-family: proxima-nova-n9,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+          font-weight: 900;
+          font-size: 2.25em;
+          line-height: .9;
+          font-style: italic;
+          text-transform: uppercase;
+          color: #fff;
+          background-color: rgba(35, 31, 32, 0.77);
+          letter-spacing: 0;
+          padding: 0.5em 0;
+        }
+        .description {
+          line-height: 1.5em;
+          font-size: 14px;
+          width: 80%;
+          margin: 0 auto;
+          color: #2eb2d1;
+        }
+        .speaker {
+          margin-top: 10px;
+          font-family: proxima-nova-n7,proxima-nova,"Helvetica Neue",Helvetica,Arial,sans-serif;
+          font-weight: 600;
+          text-transform: uppercase;
+        }
+      }
+    }
+  }
+  upgotd {
+    color: #000000;
+    font-family: Verdana, Arial, sans-serif;
+  }
+  .upgotd-box {
+    border: 0px solid #777777;
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+    background-color: #FFFFFF;
+    text-align: center;
+    width: 350px;
+    font-size: 12px;
+    padding: 0;
+    margin: 0;
+    a {
+      color: #185ca6;
+      text-decoration: none;
+      &:hover {
+        color: #777777;
+        text-decoration: none;
+      }
+    }
+    img {
+      display: inline;
+    }
+  }
+  .upgotd-title {
+    background-color: #FFFFFF;
+    border-top-left-radius: -1px;
+    border-top-right-radius: -1px;
+    padding: 7px;
+    a {
+      background-color: #FFFFFF;
+      border-top-left-radius: -1px;
+      border-top-right-radius: -1px;
+      font-weight: bold;
+      color: #185ca6 !important;
+      font-size: 14px !important;
+      margin-bottom: 0px;
+      &:hover {
+        text-transform: uppercase;
+        background-color: #FFFFFF;
+        font-weight: bold;
+        color: #777777 !important;
+        font-size: 14px !important;
+        margin-bottom: 7px;
+      }
+    }
+  }
+  .upgotd-image {
+    display: inline-block;
+    text-align: left;
+    float: left;
+    padding-top: 0px;
+  }
+  .upgotd-pray {
+    font-weight: normal;
+    padding: 0px;
+    font-size: 11px;
+    margin-bottom: 5px;
+    margin-top: 3px;
+  }
+  .upgotd-people {
+    display: inline;
+    font-weight: normal;
+    font-size: 15px !important;
+    padding-bottom: 2px;
+    a {
+      color: #185ca6 !important;
+      font-size: 15px;
+      font-weight: 800;
+      &:hover {
+        color: #777777 !important;
+      }
+    }
+  }
+  .upgotd-table {
+    margin-bottom: 4px;
+    line-height: 100%;
+    margin-top: 7px;
+    text-align: left;
+    tr {
+      border: none;
+      text-align: left;
+    }
+    td {
+      background-color: #FFFFFF;
+      font-size: 12px;
+      line-height: 150%;
+      font-family: Verdana, Arial, sans-serif;
+      font-weight: normal;
+      color: #000000;
+      text-align: left;
+      border: 0px;
+      margin: 0px !important;
+      padding: 0px 0px 0px 5px !important;
+    }
+  }
+  .upgotd-footer {
+    border-bottom-left-radius: -1px;
+    border-bottom-right-radius: -1px !important;
+    width: 100%;
+    display: inline-block;
+    padding-top: 3px;
+    background-color: #FFFFFF;
+    color: #000000 !important;
+    font-weight: normal;
+    font-size: 12px;
+    padding-bottom: 5px;
+    line-height: 150%;
+    a {
+      color: #185ca6 !important;
+      font-weight: bold;
+      font-size: 12px;
+      &:hover {
+        color: #777777 !important;
+        font-weight: bold;
+        font-size: 12px;
+      }
+    }
+  }
+  .upgotd-cite {
+    font-weight: normal;
+    font-size: 10px;
+  }
+}
+
+.upgotd-cite a {
+  font-weight: normal;
+  font-size: 10px;
+}
+
+.missionsBody .upgotd-logo {
+  padding: 0px 2px 4px 2px;
+  width: 22px;
+  height: 20px;
+}
+
+@media (min-width: 768px) {
+  .missionsBody {
+    .section-header {
+      &::before {
+        margin-left: -53%;
+        text-align: right;
+      }
+      &::after {
+        margin-left: 3%;
+        position: absolute;
+        top: 51%;
+        overflow: hidden;
+        width: 50%;
+        height: 1px;
+        content: '\a0';
+        background-color: rgba(160, 157, 153, 0.3);
+      }
+      &::before {
+        position: absolute;
+        top: 51%;
+        overflow: hidden;
+        width: 50%;
+        height: 1px;
+        content: '\a0';
+        background-color: rgba(160, 157, 153, 0.3);
+      }
+    }
+    .enhanced-photos {
+      #PRAY_THUMB::after {
+        background: url(/Content/Connect/send_cover.jpg) 50% top no-repeat;
+      }
+      #SEND_THUMB::after {
+        background: url(/Content/Connect/studying.jpg) 50% top no-repeat;
+      }
+      #GO_THUMB::after {
+        background: url("https://rock.secc.org/Content/Connect/helping_others.jpg") 50% top no-repeat;
+      }
+      .sp-photo::after {
+        position: absolute;
+        content: "";
+        background-size: cover;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: -1;
+      }
+    }
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  .missionsBody .jarallax {
+    min-height: 300px !important;
+  }
+}
+
+@media only screen and (min-width: 601px) and (max-width: 1200px) {
+  .missionsBody .jarallax {
+    min-height: 400px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .missionsBody {
+    .hidden-xs {
+      display: none !important;
+    }
+    .enhanced-photos .sp-photo {
+      width: 100%;
+      height: auto;
+      padding-bottom: 1em;
+      padding-top: 1em;
+      &.inactive {
+        background-color: #a09d99;
+      }
+      .carousel-inner .carousel-caption {
+        display: none;
+      }
+      .photo-content {
+        position: relative;
+        margin-bottom: 3%;
+        .missions_icon {
+          width: 80%;
+          margin-left: 20%;
+        }
+        .description {
+          text-align: left;
+          font-size: 1em;
+          padding: 0;
+          width: 60%;
+        }
+        .photo-title {
+          width: 75%;
+          margin: 0.5em auto 0;
+        }
+        h3 {
+          text-align: left;
+          font-size: 25px;
+          margin: 0;
+          background: 0 0;
+        }
+        .speaker {
+          text-align: left;
+          margin: 0;
+        }
+      }
+    }
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  .missionsBody {
+    .hidden-sm {
+      display: none !important;
+    }
+    .enhanced-photos .sp-photo {
+      padding-bottom: 44%;
+      .photo-content {
+        .description {
+          font-size: .85em;
+          visibility: hidden;
+        }
+        h3 {
+          background: 0 0;
+          font-size: 1.5em;
+        }
+      }
+      &:not(.inactive) .photo-content {
+        .description {
+          visibility: visible;
+          font-weight: bolder;
+        }
+        p {
+          visibility: visible;
+        }
+      }
+    }
+  }
+}
+
+@media (min-width: 1200px) {
+  .missionsBody .hidden-lg {
+    display: none !important;
+  }
+}
+
+@media (max-width: 991px) {
+  .missionsBody {
+    aside + * {
+      margin-top: 1em;
+    }
+    .mission-actions {
+      > div {
+        margin-bottom: 2em;
+      }
+      h3.copy {
+        margin-bottom: 10px;
+        font-size: 18px;
+      }
+      h4 {
+        margin-bottom: 0;
+        font-size: 15px;
+      }
+    }
+    .enhanced-photos .sp-photo {
+      background-color: rgba(35, 31, 32, 0.77);
+    }
+  }
+}
+
+@media (min-width: 992px) {
+  .missionsBody .enhanced-photos .sp-photo {
+    &:not(.inactive):hover {
+      background-color: #231f20;
+      p {
+        visibility: visible;
+      }
+    }
+    p {
+      visibility: hidden;
+    }
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .missionsBody {
+    .enhanced-photos .sp-photo .photo-content {
+      margin-bottom: 5%;
+      .description {
+        font-size: 0.85em;
+      }
+      h3 {
+        font-size: 1.5em;
+      }
+      .speaker {
+        margin-top: 5px;
+      }
+    }
+    .hidden-md {
+      display: none !important;
+    }
+  }
+}

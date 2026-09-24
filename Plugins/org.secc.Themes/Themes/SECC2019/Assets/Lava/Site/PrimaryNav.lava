@@ -1,5 +1,5 @@
 <nav class="cd-nav">
-    {% assign personGuid = CurrentPerson.Guid %}
+    {%- assign personGuid = CurrentPerson.Guid %}
     <ul id="cd-primary-nav" class="cd-primary-nav is-fixed {% unless personGuid != null %}logged-in{% endunless %}">
 
         <li class="has-children">
@@ -9,7 +9,7 @@
                 <li class="see-all">
                     <a href="/locations">Plan Your Visit</a>
                 </li>
-                {% assign campusesSorted = Campuses | OrderBy:'Order' %}
+                {% assign campusesSorted = Campuses | Sort:'Order','Asc' %}
                 {% for campus in campusesSorted %}
                     {% assign publicCampus = campus | Attribute:'Public' %}
                     {% assign slug = campus | Attribute:'Slug' %}
@@ -18,7 +18,7 @@
                         <li>
                             <a class="cd-nav-item" href="/location/{{slug}}">
                                 <h3>{{ campus.Name }}</h3>
-                                <img src="/GetImage.ashx?Guid={{ CampusImageThumb.Guid }}" class="img-responsive" alt="{{campus.Name}}" />
+                                <img src="/GetImage.ashx?Guid={{ CampusImageThumb.Guid }}" class="img-responsive" alt="{{campus.Name}}">
                             </a>
                         </li>
                     {% endif %}
@@ -170,7 +170,7 @@
                         <a href="/ministries/seniors">Seniors</a>
                     </li>
                     <li>
-                        <a href="/ministries/generous-living">Generous Living</a>
+                        <a href="/ministries/generous-living">Personal Finance</a>
                     </li>
                     <li>
                         <a href="/ministries/foster-and-adoption">Foster Care & Adoption </a>

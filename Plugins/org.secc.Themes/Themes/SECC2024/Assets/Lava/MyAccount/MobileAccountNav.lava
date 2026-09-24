@@ -47,17 +47,36 @@
             </div>
         </div>
         {%-comment-%}Financial Coaching{%-endcomment-%}
-    {%- assign groupMembers = CurrentPerson | Group: "968132" -%}
-    {%- for groupMember in groupMembers -%}
-        {%- if groupMember.GroupRoleId == 826 -%}
-            <div class="swiper-slide {% if currentPage == '/MyAccount/MyFinancialCoachingCases' %} active {% endif %}">
-                <div class="swiper-menu-item">
-                    <a href="/MyAccount/MyFinancialCoachingCases" class="g-font-size-18--xs"><i class="fal fa-comment-alt-dollar fa-2x" style="vertical-align: middle"></i>
-                    <br />Coaching</a>
+        {%- assign groupMembers = CurrentPerson | Group: "968132" -%}
+        {%- for groupMember in groupMembers -%}
+            {%- if groupMember.GroupRoleId == 826 or groupMember.GroupRoleId == 1343 -%}
+                <div class="swiper-slide {% if currentPage == '/MyAccount/MyFinancialCoachingCases' %} active {% endif %}">
+                    <div class="swiper-menu-item">
+                        <a href="/MyAccount/MyFinancialCoachingCases" class="g-font-size-18--xs"><i class="fal fa-comment-alt-dollar fa-2x" style="vertical-align: middle"></i>
+                        <br />Coaching</a>
+                    </div>
                 </div>
-            </div>
-        {%- endif -%}
-    {%- endfor -%}
+            {%- endif -%}
+        {%- endfor -%}
+        {%-comment-%}MOVE Leader Coaching{%-endcomment-%}
+        {%- assign groupMembers = CurrentPerson | Group: "1400552" -%}
+        {%- for groupMember in groupMembers -%}
+            {%- if groupMember.GroupRoleId == 1373 or groupMember.GroupRoleId == 1374 -%}
+                <div class="swiper-slide {% if currentPage == '/MyAccount/MyStakeholderCases' %} active {% endif %}">
+                    <div class="swiper-menu-item">
+                        <a href="/MyAccount/MyStakeholders" class="g-font-size-18--xs"><i class="fal fa-light fa-handshake fa-2x" style="vertical-align: middle"></i>
+                        <br />MOVE</a>
+                    </div>
+                </div>
+            {%- endif -%}
+        {%- endfor -%}
+        {%-comment-%}Volunteer Status{%-endcomment-%}
+		<div class="swiper-slide {% if currentPage == '/MyVolunteerStatus' %} active {% endif %}">
+			<div class="swiper-menu-item">
+				<a href="/MyVolunteerStatus" class="g-font-size-18--xs"><i class="fal fa-solid fa-user-check fa-2x" style="vertical-align: middle"></i>
+				<br />Volunteer</a>
+			</div>
+		</div>
         <div class="swiper-slide {% if currentPage == '/MyEvents' %} active {% endif %}">
             <div class="swiper-menu-item">
                 <a href="/MyEvents" class="g-font-size-18--xs"><i class="fal fa-users fa-2x" style="vertical-align: middle"></i>

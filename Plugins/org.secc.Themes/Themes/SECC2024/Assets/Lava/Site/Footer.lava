@@ -130,12 +130,12 @@
             <div class="subtitle">We’d love to hear from you.</div>
         </div>
         <div class="contact-section">
-            <div class="contact-item">
+            {% comment %} <div class="contact-item">
                 <a href="mailto:cministry@secc.org">
                     <span class="label">Email Us:</span>
                     <span class="value">cministry@secc.org</span>
                 </a>
-            </div>
+            </div> {% endcomment %}
             <div class="contact-item">
                 <a href="tel:+15022538000">
                     <span class="label">Call Us:</span>
@@ -154,7 +154,7 @@
     <div class="footer-links">
         <div class="social-icons g-margin-b-100--xs g-margin-b-0--lg">
             <a href="https://www.youtube.com/user/southeastchrist"><i class="fab fa-youtube"></i></a>
-            <a href="https://twitter.com/southeastchrist"><i class="fab fa-twitter"></i></a>
+            {%comment%}<a href="https://twitter.com/southeastchrist"><i class="fab fa-twitter"></i></a>{%endcomment%}
             <a href="https://www.facebook.com/southeastchrist/"><i class="fab fa-facebook"></i></a>
             <a href="https://www.instagram.com/southeastchrist/"><i class="fab fa-instagram"></i></a>
         </div>

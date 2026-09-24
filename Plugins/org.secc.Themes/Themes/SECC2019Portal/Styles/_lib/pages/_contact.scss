@@ -1,0 +1,72 @@
+/* ----------------------------------------------------------------------------------
+	Contact: Sets the style for certain aspects of the Contact Page
+----------------------------------------------------------------------------------- */
+
+#Contact {
+  padding-top: 2em !important;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.42857;
+  color: #222;
+  background-color: #fff;
+  ul {
+    margin-top: 2.5em;
+  }
+  li {
+    text-align: left;
+  }
+  .phone {
+    display: block;
+    font-size: 1.5em;
+  }
+}
+
+.p .contactPage-phone {
+  margin-bottom: 0.6em;
+}
+
+#Contact .plain-section-header {
+  font-size: 22px;
+  letter-spacing: .03em;
+  border-bottom: 1px solid #ccc;
+}
+
+#campus-information .campus-info {
+  -webkit-box-flex: 1 1 20%;
+  -moz-box-flex: 1 1 20%;
+  -webkit-flex: 1 1 20%;
+  -ms-flex: 1 1 20%;
+  flex: 1 1 20%;
+  text-align: center;
+  padding: 4em 0;
+  .se-logo {
+    font-size: 35px;
+  }
+  h4 {
+    margin: 2em 0;
+  }
+  button, h5 {
+    margin-top: 2em;
+  }
+}
+
+@media (max-width: 991px) {
+  #Contact div[class|=col] {
+    margin-bottom: 2em;
+  }
+  #campus-information .campus-info + .campus-info {
+    border-top: 1px solid #fff;
+  }
+}
+
+@media (min-width: 768px) {
+  #campus-information .campus-info + .campus-info {
+    border-left: 1px solid #fff;
+  }
+}
+
+@media (max-width: 767px) {
+  #campus-information header {
+    margin-bottom: 0 !important;
+  }
+}

@@ -1,0 +1,37 @@
+/*	Use this file to change/override bootstrap variables.
+*	Variables should be defined at the top of the file,
+*	with the bootstrap import coming at the end.
+*********************************************************/
+$grid-columns: 12;
+$grid-gutter-width: 30px;
+$container-large-desktop: 1170px;
+
+
+/* Load icon fonts from this directory. */
+$icon-font-path: "../Assets/fonts/";
+
+/* default text settings */
+$font-size-base: 16px;
+$font-family-sans-serif	: $PrimaryCopyFont;
+$text-color: $CopyColor;
+
+
+/* default settings for headings and titles */
+$headings-font-family: $TitleFont;
+$headings-font-weight: 700;
+$headings-color: inherit;
+
+$font-size-h1: floor(($font-size-base * 2.25));
+$font-size-h2: floor(($font-size-base * 1.75));
+$font-size-h3: floor(($font-size-base * 1.5));
+$font-size-h4: floor(($font-size-base * 1.25));
+$font-size-h5: $font-size-base;
+$font-size-h6: floor(($font-size-base * .86));
+
+$header-font-sizes: $font-size-h1, $font-size-h2, $font-size-h3, $font-size-h4, $font-size-h5, $font-size-h6;
+
+
+$alert-padding: 5px 15px;
+
+/* DO NOT ADD VARIABLES BELOW THIS LINE */
+@import '../bootstrap/variables';

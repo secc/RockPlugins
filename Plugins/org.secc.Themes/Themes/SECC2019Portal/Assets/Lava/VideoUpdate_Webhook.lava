@@ -1,4 +1,3 @@
-{%- capture bsq -%}\"{%- endcapture -%}
 {%- if page != empty -%}
     {%- assign pageNumber = page -%}
 {%- else -%}
@@ -7,7 +6,7 @@
 {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
 {%- assign setNumber = 5 -%}
 {%- assign offset = pageNumber | Minus:1 | Times: setNumber -%}
-{%- contentchannelitem where:'ContentChannelId == 51' sort:'StartDateTime desc' offset:'{{offset}}' limit:'{{setNumber}}'  -%}
+{%- contentchannelitem where:'ContentChannelId == 51' sort:'StartDateTime desc' offset:'{{offset}}' limit:'{{setNumber}}' securityenabled:'false'  -%}
 {"OnePointUpdateVideos":
     [
         {%- assign itemComma = '' -%}
@@ -19,8 +18,8 @@
                 {{itemComma}}
                 {
                     "Id": {{item.Id}},
-                    "Name":"{{item.Title | Replace:'"',bsq }}",
-                    "Description":"{{ item.Content | Replace:'"',bsq  | UrlEncode | Replace:'%0A','<br>' | UrlDecode | StripHtml | Truncate:142 }}",
+                    "Name":"{{item.Title | Replace:'"','\"'}}",
+                    "Description":"{{ item.Content | Replace:'"','\"' | UrlEncode | Replace:'%0A','<br>' | UrlDecode | StripHtml | Truncate:142 }}",
                     "Date":"{{item.StartDateTime}}",
                     "VimeoId": "{{vimeoId}}"
                 }
