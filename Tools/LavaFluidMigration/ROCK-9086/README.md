@@ -165,7 +165,12 @@ only on the web server, and the 245 `{% include %}` tags with dynamic paths — 
 the Fluid-verification pass in staging. Note that the repo's `Content/Lava/` changes in PR #304
 (59 files: mobile-app JSON escaping, `{{colors:brand}}`, `OrderBy`, `| |`, badge `{{ }}`-in-`if`)
 are **not** deployed by the pipeline — the `Content` folder is a network share and has to be
-updated by hand, after diffing against what is on the share.
+updated by hand, after diffing against what is on the share. The same is true of `Themes/`: the theme
+folders are hand-copied to the share too, and on 2026-09-24 dev's theme folder still had the pre-#304 files
+(`/events` failed on `&&`, `/page/1607` on `| |`). Both were re-baselined from production with production as
+the source of truth and the Fluid fixes re-applied on top — Content in PR #316, Themes in PR #317 — after a
+database liveness check of which themes are still used; deploy both to the prod and dev shares by hand after
+merging (LF export, byte-compare copy, no deletes).
 
 Known scan gaps (`scan_db_lava.sql` reads 15 table.column pairs): `ReportField.Selection`,
 `WorkflowType.SummaryViewText`, `DefinedValue.Description`, `Block.PreHtml`, `Block.PostHtml`,
