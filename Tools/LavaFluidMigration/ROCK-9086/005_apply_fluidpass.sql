@@ -62,6 +62,9 @@ INSERT @log VALUES ('AttributeValue', 16588591, 'reserved-keyword', @@ROWCOUNT);
 
 SELECT * FROM @log ORDER BY Tbl, Id;
 IF EXISTS (SELECT 1 FROM @log WHERE [Rows] <> 1) PRINT 'WARNING: some statements did not update exactly one row - review before committing.';
+-- a live run must be all-or-nothing: a drifted row means the dry run was not read, so nothing is committed
+IF @DryRun = 0 AND EXISTS (SELECT 1 FROM @log WHERE [Rows] <> 1)
+BEGIN ROLLBACK; THROW 50000, 'ROCK9086 pass 2: a guarded update did not match exactly one row; nothing committed.', 1; END
 
 -- verify (inside the transaction so the dry run shows the would-be result)
 SELECT 'WorkflowActionForm' Tbl, 531 Id, CHARINDEX(N'{% if url | RegExMatch', [Header]) StillHasOld, CHARINDEX(N'{% if urlIsRelative %}', [Header]) HasNew FROM WorkflowActionForm WHERE Id = 531

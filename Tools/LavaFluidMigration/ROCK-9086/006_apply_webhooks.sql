@@ -73,6 +73,9 @@ INSERT @log VALUES ('AttributeValue', 43357, 'bad-trim', @@ROWCOUNT);
 
 SELECT * FROM @log ORDER BY FixRule, Id;
 IF EXISTS (SELECT 1 FROM @log WHERE [Rows] <> 1) PRINT 'WARNING: some statements did not update exactly one row - review before committing.';
+-- a live run must be all-or-nothing: a drifted row means the dry run was not read, so nothing is committed
+IF @DryRun = 0 AND EXISTS (SELECT 1 FROM @log WHERE [Rows] <> 1)
+BEGIN ROLLBACK; THROW 50000, 'ROCK9086 pass 3: a guarded update did not match exactly one row; nothing committed.', 1; END
 
 -- verify inside the transaction
 SELECT av.Id AttrValueId, dv.Id DvId, dv.Value Route,
