@@ -52,7 +52,7 @@
                     {%- endfor -%}
                     ]
                 {%- endcapture -%}
-                {%- assign echoMessages = echoJSON | FromJSON | Sort:'StartDateTime', 'desc' -%}
+                {%- assign echoMessages = echoJSON | FromJSON | OrderBy:'StartDateTime desc' -%}
                 {%- for echoMessage in echoMessages -%}
                     {%- assign now = 'Now' | Date:'yyyyMMddHHmmss' -%}
                     {%- if now > echoMessage.StartDateTime -%}
@@ -71,7 +71,7 @@
                         <itunes:author>Southeast Christian Church</itunes:author>
                     </item>
                     {%- endif -%}
-                {%- endfor - %}
+                {%- endfor -%}
                 {%- assign mediaURL = item | Attribute:'Audio','Path' | Replace:'~/','' -%}
                 {%- assign mediaGuid = item | Attribute:'Audio','RawValue' -%}
                 {%- assign expireDays = 'Now' | DateDiff: parent.ExpireDateTime, 'd' -%}

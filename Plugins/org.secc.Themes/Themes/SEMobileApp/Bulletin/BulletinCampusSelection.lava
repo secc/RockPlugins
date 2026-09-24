@@ -26,12 +26,12 @@
 	            "primary":"#121212",
 	            "primaryAccent":"#FFFFFF"
 	        },
-	        "brandableElements":"{{colors:brand}}"
+	        "brandableElements":""
 	    }
 	},
 	"items": [
-	      {% assign campusesSorted = Campuses | Sort:'Order','Asc' %}
-	      {% for campus in campusesSorted sort:'Order','Asc' %}
+	      {% assign campusesSorted = Campuses | OrderBy:'Order' %}
+	      {% for campus in campusesSorted %}
 	        {% assign campusSlug = campus | Attribute:'Slug' %}
 	        {
 				"images":[

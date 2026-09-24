@@ -157,7 +157,7 @@
         			{%- if campusServicesJSON != "" -%}
         				{%- assign campusServices = campusServicesJSON | FromJSON -%}
         				{%- for serviceDay in campusServices.adult -%}
-        					{{serviceDay.day}}:&nbsp;{%- assign timesCount = serviceDay.times | Size -%} {%- for times in serviceDay.times -%} {{times.time}}{% if (forloop.rindex0 == 0 %}<br />{% break %}{% elseif (forloop.rindex0 == 1 and timesCount > 2) %} &amp;{% else %},{% endif %}{%- endfor -%}
+        					{{serviceDay.day}}:&nbsp;{%- assign timesCount = serviceDay.times | Size -%}{%- assign secondLast = timesCount | Minus:1 -%} {%- for times in serviceDay.times -%} {{times.time}}{% if forloop.last %}<br />{% break %}{% elseif forloop.index == secondLast and timesCount > 2 %} &amp;{% else %},{% endif %}{%- endfor -%}
         				{%- endfor -%}
         			{%- endif -%}
     		    {%- endcapture -%}

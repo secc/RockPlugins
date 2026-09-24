@@ -1198,10 +1198,10 @@
         <div class="fluid-container">
             <section class="cards-section">
                     <div class="isotope_wrap">
-                        {% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsInteger %}
+                        {% assign currentDateTime = 'Now' | Date:'yyMMddHHmm' | AsDouble %}
                         {% for item in Items %}
-                            {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsInteger %}
-                            {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsInteger %}
+                            {% assign itemStartDateTime = item.StartDateTime | Date:'yyMMddHHmm' | AsDouble %}
+                            {% assign itemExpireDateTime = item.ExpireDateTime | Date:'yyMMddHHmm' | AsDouble %}
                             {% if itemStartDateTime <= currentDateTime %}
                                 {% if itemExpireDateTime > currentDateTime or itemExpireDateTime == null %}
                                     {% assign ImageGuid = item | Attribute:'Image','RawValue' %}
