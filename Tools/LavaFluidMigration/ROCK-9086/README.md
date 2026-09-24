@@ -68,6 +68,37 @@ exercised on dev: workflow action-type Lava (the `6MthsAgo` and regex rows fire 
 workflows run), DefinedValue templates (types 48/236/245), `{[ parallax ]}` pages, the three
 GroupFinderMap popups, Registration page 413.
 
+## Pass 3 — webhook templates (`006_apply_webhooks.sql`)
+
+The Subsplash mobile-app and TV-app JSON is served by `api/subsplash/webhook/{path}` (com.subsplash controller);
+`{path}` resolves against DefinedType 277 *Subsplash Webhook*, whose `Template` attribute usually just
+`{% include %}`s a `Content/Lava/SEMobileApp/...` file. DefinedType 236 *Lava Webhook* is the website
+equivalent. Neither column was in the Phase 2 export. Crawling every route on dev with the engine on
+FluidVerification (seed every parameterless route, follow the `api/subsplash/webhook` links in the JSON,
+rewrite `app.secc.org` to the dev host) found 21 rows, 25 statements:
+
+| Class | Rows | Change |
+|---|---|---|
+| `Replace:'"','\"'` (json-escape) | 20 | → `Replace:'"',bsq` with `{%- capture bsq -%}\"{%- endcapture -%}` prepended (same fix as the repo files in PR #304) |
+| `Replace:'','\'` | 4 | → `Replace:bs,bsbs` with two captures prepended — Fluid reads `'` as an escaped quote and never closes the string |
+| `"{{colors:brand}}"` | 1 | → `""` (`/sermondiscussion`) |
+| `Split:'\|'- %}` (space before `%}`) | 1 | → `-%}` (`/campusdata`). Fluid: "End of tag '%}' was expected"; the error names the enclosing block, not the bad tag |
+
+Every rewrite was rendered on both engines with the LavaProbe harness (cases A4/B2/C2). Applied on dev
+2026-09-24; the re-crawl of 400 URLs left only the two routes whose include files do not exist on any
+share (`/weekend` → `Home/Weekend.lava`, `/home/tabs` → `Home/HomeTabs.lava`), which fail identically on
+DotLiquid.
+
+The same crawl found three more `Content/Lava` classes, fixed in PR #316: the `- %}` trim in 20 HtmlToImage
+templates; `Home-2.lava` (the live `/home` template) comparing `item.ExpireDateTime` against
+`'Now' | Date` — a string, which Fluid never orders against a DateTime, so **expired banners came back**
+(fix: `'Now' | Date:'yyyy-MM-dd HH:mm:ss' | AsDateTime`; note `'Now' | AsDateTime` alone is null on both
+engines); and `FamilyResources_Details.lava` parsing `'Now' | Date:'dd/MM/yy HH:mm' | AsDateTime` as
+month/day → null → empty response on **both** engines since 2022.
+
+Pre-existing, not Fluid: `/sekids/home/worship` (DV 50683) emits invalid JSON (missing comma between
+blocks) on DotLiquid today.
+
 ## Behaviour changes to test before applying
 
 Rock's vendored DotLiquid evaluates only the **first clause** of `{% if a && b %}` (`If.cs` splits
@@ -96,7 +127,7 @@ Run in SSMS against the target database, in order:
 2. `002_apply.sql` — leave `@DryRun = 1` first and read the log: every statement should show
    `Rows = 1` (except 12442 and 3386, see above). Then set `@DryRun = 0` and run again. Originals
    are copied to `dbo._ROCK9086_LavaBackup` before any change.
-3. `005_apply_fluidpass.sql` — same dry-run then live routine; expect `Rows = 1` on all five and
+3. `005_apply_fluidpass.sql` and `006_apply_webhooks.sql` — same dry-run then live routine; expect `Rows = 1` on every line and
    `StillHasOld = 0`, `HasNew > 0` in its own verify block.
 4. **Clear the Rock cache** (route `/cachemanager`; not under Admin Tools > System Settings on
    1.16). AttributeValue, HtmlContent, LavaShortcode and WorkflowActionForm are cached; nothing
@@ -155,4 +186,4 @@ GROUP BY LEFT(REPLACE(REPLACE(Description, CHAR(13), ' '), CHAR(10), ' '), 260)
 ORDER BY Cnt DESC;
 ```
 
-Last updated: 2026-09-23
+Last updated: 2026-09-24
