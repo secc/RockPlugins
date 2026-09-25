@@ -8,7 +8,7 @@
     "blocks": [{
         "type": "mediaBanner",
         "props": {
-            "playlistUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/Subsplash.ashx/advent/{{item.Id}}/playlist.json",
+            "playlistUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}api/subsplash/webhook/advent/{{item.Id}}/playlist.json",
             "posterImageUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}Webhooks/ImageGenerator.ashx/homeimage/e534f1f6-f353-4a7c-968d-bfbc4a944feb?mode=crop&s.roundcorners=20&bgcolor=121212",
             "bannerBackgroundUrl": "",
             "averageColor": "#3B143B",

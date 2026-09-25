@@ -36,6 +36,7 @@
 
     async function redirectToRegistrationUrl(locationId){
         let response = await fetch('/Webhooks/Lava.ashx/shine-gala?location='+locationId);
+        console.log(response);
         let data = await response.text();
         window.location.href = data.trim();
     };

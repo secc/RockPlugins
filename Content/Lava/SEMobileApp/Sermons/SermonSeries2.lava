@@ -1,0 +1,92 @@
+{%- capture bsq -%}\"{%- endcapture -%}
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Sermon Series' componententityid:'27192' operation:'View' summary:'Sermon Series Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'{{series}}'%}
+Sermon Series Page
+{% endinteractionwrite %}
+
+{%- assign cacheSpecific = '' -%}
+{%- if Headers.sap-app-version >= '5.4.0' -%}
+	{%- assign cacheSpecific = 'subsplash-sermons-v2--series-' | Append:series -%}
+{%- else -%}
+	{%- assign cacheSpecific = 'subsplash-sermons-v1-series-' | Append:series -%}
+{%- endif -%}
+
+{%- cache key:'{{cacheSpecific}}' duration:'3600' -%}
+{%- contentchannelitem where:'ContentChannelId == 24 && Id == {{series}}' sort:'StartDateTime desc'  -%}
+{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+{%- for series in contentchannelitemItems -%}
+{
+	"header": {
+		"title": "{{series.Title | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }}"
+	},
+    "blocks": [
+		{
+			"type":"image",
+			"props": {
+				"imageUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{series | Attribute:'Image', 'RawValue'}}.jpg?guid={{series | Attribute:'Image', 'RawValue'}}&bgcolor=121314&width=1280&height=720",
+				"aspectRatio":1.77,
+				"horizontalSpacing":"none"
+			}
+		},
+		{%- assign resourcesCount = 0 -%}
+		{%- assign zeroSermons = true -%}
+		{
+			"type": "list",
+			"props": {
+				"bottomSpacing": "large",
+				"listStyle": "rows",
+				"itemStyle": "square",
+				"indicatorRadius": "circle",
+				"marginsEnabled": true,
+				"data": [
+					{%- for seriesChild in series.ChildItems reversed -%}
+					{%- assign sermon = seriesChild.ChildContentChannelItem -%}
+					{%- assign startDateTime = sermon.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+					{%- assign endDateTime = sermon.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+					{%- comment -%}
+					** Checks to see if there's a sermon. **
+					{%- endcomment -%}
+					{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+						{%- if sermon.ContentChannelId == "23" -%}
+							{%- assign zeroSermons = false -%}
+
+							{%- assign mediaElement = sermon | Attribute:'SubsplashVideo','FileDataJson' %}
+							{%- assign mediaItemId = sermon | Attribute:'SubsplashVideo','ForeignGuid' %}
+
+							{% unless forloop.first %},{% endunless %}
+							{
+								"title": "{{sermon.Title | Replace:'"',bsq }}",
+								"subtitle": "{{ sermon | Attribute:'Speaker' | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode }} {{ '&bull;' | HtmlDecode }} {{ sermon.StartDateTime | Date:'MMMM d, yyyy' }}",
+								"action": {
+									{%- if Headers.sap-app-version >= '5.4.0' -%}
+										"handler": "blockPage",
+										"topBarStyle": "transparent",
+										"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}api/subsplash/webhook/sermon/v2/{{sermon.Id}}"
+									{%- else -%}
+										"handler": "detail",
+										"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}api/subsplash/webhook/sermon/{{sermon.Id}}"
+									{%- endif -%}
+								}
+							}
+						{%-endif-%}
+					{%-endif-%}
+					{%- comment -%}
+					** Checks to see if there are resources. **
+					{%- endcomment -%}
+					{%- if sermon.ContentChannelId != "23" -%}
+						{%- assign resourcesCount = resourcesCount | Plus:1 -%}
+					{%- endif -%}
+					{%- endfor -%}
+					{%- if zeroSermons == true -%}
+						{
+							"title": "Sermons Coming Soon",
+							"subtitle": "Look under resources for more info."
+						}
+					{%-endif-%}
+				]
+			}
+		}
+	]
+}
+{%- endfor -%}
+{% endcontentchannelitem -%}
+{%- endcache -%}

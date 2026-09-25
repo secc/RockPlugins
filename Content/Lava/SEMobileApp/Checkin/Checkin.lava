@@ -39,7 +39,7 @@
 	    }
 	},
 	"items": [
-		{%- assign kidsCheckin = 'https://www.southeastchristian.org/mobilecheckin' -%}
+		{%- assign kidsCheckin = 'Global' | Attribute:'MobileApplicationRoot' | Append:'mobilecheckin' -%}
         {%- comment -%}
         General Image
         {%- endcomment -%}

@@ -54,10 +54,10 @@ Grow Family Resources Page
 				{%- endfor -%}
 				{%- if resourcesCount != 0 -%}
 					{%- assign itemActionHandler = "subtabs" -%}
-					{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/grow/resources/familyresources/tab/" | Append:item.Id -%}
+					{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"api/subsplash/webhook/grow/resources/familyresources/tab/" | Append:item.Id -%}
 				{%- else -%}
 					{%- assign itemActionHandler = "detail" -%}
-					{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/grow/resources/familyresources/message/" | Append:item.Id -%}
+					{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"api/subsplash/webhook/grow/resources/familyresources/message/" | Append:item.Id -%}
 				{%- endif -%}
                 {%- assign itemImage = item | Attribute:'Image' -%}
                 {%- assign itemImageGuid = item | Attribute:'Image','RawValue' -%}

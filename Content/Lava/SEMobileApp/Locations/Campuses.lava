@@ -47,7 +47,7 @@ Campuses Page
 				"title":"{{campus.Name}}",
 				"actions": [{
 					"handler": "list",
-					"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/campus/{{campus.Id}}"
+					"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}api/subsplash/webhook/campus/{{campus.Id}}"
 				}]
 			}
 			{%- assign comma = "," -%}

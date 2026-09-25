@@ -10,7 +10,7 @@ Grow Page
             "title": "Resources",
             "actions": [{
                 "handler": "list",
-                "url": "https://app.secc.org/webhooks/SubSplash.ashx/grow/resources"
+                "url": "https://app.secc.org/api/subsplash/webhook/grow/resources"
             }]
         },
         {
@@ -18,7 +18,7 @@ Grow Page
             "actions": [{
 				"handler": "bible",
                 "type": "navigation",
-                "reading_plan_id": "b2feabc3-a836-43ca-bc8d-8832e172a9cd"
+                "reading_plan_id": "2a872f14-ab62-4370-83a6-68a9b50705fb"
 			}]
         }
     ]

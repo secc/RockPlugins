@@ -1,0 +1,384 @@
+{% assign pageParamCampusId = 'Global' | PageParameter:'campusId' %}
+{% comment %} {% assign campusIdSize = pageParamCampusId | Size %} {% endcomment %}
+{% assign pageParamCampus = 'Global' | PageParameter:'campus' | Downcase | Replace:"-","" %}
+{% assign selectedCampus = null %}
+{% for campus in Campuses %}
+	{% assign campusName = campus.Name | Downcase | Replace:" ",""  %}
+	{% if campus.Id == pageParamCampusId or campusName == pageParamCampus %}
+		{% assign selectedCampus = campus %}
+		{% break %}
+	{% endif %}
+{% endfor %}
+{%assign selectedMinistry = 'Global' | PageParameter:'audience' | Trim%}
+
+<style>
+  .hide {
+    display: none;
+  }
+
+  .readmore_dates {
+    transition: height 100ms;
+    overflow: hidden;
+    display: none;
+ }
+ .se-dropdown {
+  border: 2px solid black;
+  cursor: pointer;
+  padding: 5px 70px 5px 15px;
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: black;
+  line-height: 28px;
+  text-transform: uppercase;
+  font-weight: 600;
+  box-sizing: border-box;
+  display: inline-block;
+  margin: 0;
+  position: relative;
+  vertical-align: middle;
+  margin-top: 5px;
+  min-width: 170px;
+  width: 100%;
+  z-index: 10;
+}
+
+
+.se-dropdown .arrow {
+  height: auto;
+  position: absolute;
+  top: 19px;
+  right: 15px;
+  width: 20px;
+}
+.se-dropdown .arrow b {
+  border-color: white;
+  border-style: none;
+  border-width: 0px;
+  height: 0;
+  position: absolute;
+  width: 0;
+}
+.se-dropdown .arrow b:before {
+  width: 10px;
+  height: 10px;
+  content: "";
+  border: solid #000000;
+  border-width: 0 2px 2px 0;
+  display: inline-block;
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  transition: all 0.4s ease;
+  transform: translate(-50%, -50%) rotate(45deg);
+  -webkit-transform: translate(-50%, -50%) rotate(45deg);
+}
+.se-dropdown + div {
+  box-shadow:0px 0px 5px 1px rgba(0, 0, 0, 0.15);
+  padding: 15px;
+  display: none;
+  position: absolute;
+  background-color: #FFFFFF;
+  overflow: visible;
+  box-sizing: border-box;
+  z-index: 1051;
+}
+.se-dropdown[aria-expanded="true"] + div {
+  display: block;
+}
+.se-dropdown[aria-expanded="true"] .arrow b:before {
+  transform: translate(-50%, -50%) rotate(-135deg);
+  -webkit-transform: translate(-50%, -50%) rotate(-135deg);
+  top: 3px;
+}
+</style>
+
+
+<div class="container">
+  <div class="row">
+      <div class="col-xs-12 col-sm-12">
+          <div class="filterbox">
+              <div class="row">
+                  <div class="col-xs-12 col-md-12">
+                      <h3 class="g-font-weight--600">Find a Group</h3>
+                      <p class="g-font-weight--400 g-line-height--sm">Find a group that interests you by selecting a campus and/or ministry. Click on the image to see more details or to register.</p>
+                      <br />
+                  </div>
+
+                  <div class="col-xs-12 col-md-3 g-padding-y-40--md" >
+                      <select class="select2-campuses" name="campus">
+                      <option value="allCampuses" data-shortcode="SE" {% if selectedCampus == null %} selected="selected"{% endif %}>All Locations</option>
+                      {% for campus in Campuses %}
+                        {% assign publicCampus = campus | Attribute:'Public' %}
+                        {% if publicCampus == 'Yes' %}
+                              <option value="{{ campus.Id }}" data-shortcode="{{ campus.ShortCode }}" data-campus="{{ campus.Name | Downcase | Replace:" ",""}}"{% if selectedCampus.Id > 0 and selectedCampus.Id == campus.Id %} selected="selected"{% endif %}>
+                                  {{ campus.Name }}
+                              </option>
+                        {% endif %}
+                      {% endfor %}
+                      </select>
+                  </div>
+
+                  <div class="col-xs-12 col-md-3 g-padding-y-20--xs g-padding-y-40--sm" >
+                      <select class="select2-ministries" name="ministry">
+                        <option value="allMinistries">All Ministries</option>
+
+                        {% assign availAudienceIds = '' %}
+                        {% assign pgwebrequestroot = '/Webhooks/Lava.ashx/publishgroups/' %}
+                        {% assign pgwebrequest = pgwebrequestroot %}
+                        {% if selectedCampus != null %}
+                          {% assign pgwebrequest = pgwebrequest | Append:selectedCampus.Id %}
+                        {% endif %}
+                        {% webrequest url:'{{ pgwebrequest }}' %}
+                          {% for item in results %}
+                            {% for data in item.AvailAudienceIds %}
+                              {% assign availAudienceIds = availAudienceIds | Append:',' | Append:data.Key %}
+                            {% endfor %}
+                          {% endfor %}
+                        {% endwebrequest %}
+                        {% assign ministrySlug = 'Global' | PageParameter:'ministry' | Downcase  %}
+                        {% definedvalue where:'DefinedTypeId==16' %}
+                          {% assign definedvalueItemsSorted = definedvalueItems | Sort: 'Order' %}
+                          {% for definedValue in definedvalueItemsSorted %}
+                            {% assign idRepresentation = definedValue.Id | AsString %}
+                            {% assign validAudience = availAudienceIds | Split:',' | Contains:idRepresentation %}
+                            {% if validAudience %}
+                              {% assign publicFilter = definedValue | Attribute:'PublicFilter' %}
+                              {% if publicFilter == "Yes" %}
+                                {% assign urlSlug = definedValue | Attribute:'URLSlug' %}
+                                <option value="{{ definedValue.Id }}" data-ministry="{{urlSlug}}" {% if urlSlug == ministrySlug %} selected="selected"{% endif %}>{{ definedValue.Value | Capitalize }}</option>
+                                {% if urlSlug == ministrySlug %}
+                                  {%assign selectedMinistry = definedValue.Id %}
+                                {% endif %}
+                              {% endif %}
+                            {% endif %}
+                          {% endfor %}
+                        {% enddefinedvalue %}
+
+                      </select>
+                  </div>
+
+        <div class="col-xs-12 col-md-3 g-padding-y-40--md" tabindex="0" >
+          <span class="se-dropdown" data-toggle="dropdown-content" data-reveal="daysOfTheWeek" aria-expanded="false" data-control="#groupFilters">
+            Meets On<span class="g-font-weight--100" id="dayOfTheWeekText"></span>
+            <span class="arrow" role="presentation"><b role="presentation"></b></span>
+          </span>
+          <div id="daysOfTheWeek" class="button-group filter-button-group g-padding-x-10--xs g-display-inline-block--xs g-margin-t-10--xs">
+            <p>Select a day of the week:</p>
+            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Sunday" data-toggle="tooltip" data-placement="bottom" title="Sunday">S</a>
+            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Monday" data-toggle="tooltip" data-placement="bottom" title="Monday">M</a>
+            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Tuesday" data-toggle="tooltip" data-placement="bottom" title="Tuesday">T</a>
+            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Wednesday" data-toggle="tooltip" data-placement="bottom" title="Wednesday">W</a>
+            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Thursday" data-toggle="tooltip" data-placement="bottom" title="Thursday">T</a>
+            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Friday" data-toggle="tooltip" data-placement="bottom" title="Friday">F</a>
+            <a class="button se-btn se-btn--tag uppercase no-transitions" data-filter="Saturday" data-toggle="tooltip" data-placement="bottom" title="Saturday">S</a>
+          </div>
+        </div>
+
+        <div class="col-xs-12 col-md-3 g-padding-y-50--md g-padding-y-20--xs" tabindex="0" >
+          <a class="button se-btn se-btn--tag uppercase no-transitions" id="groupType"
+          data-filter="True" data-toggle="tooltip" data-placement="bottom" title="Show Only Groups That Meet Online">Online Group</a>
+        </div>
+              </div>
+
+          </div>
+      </div>
+  </div>
+</div>
+<div class="container">
+  <div class="">
+
+{% assign webrequest = 'https://www.southeastchristian.org/webhooks/lava.ashx/publishgroup/list' %}
+{% if selectedCampus != null %}
+  {% assign webrequest = webrequest | Append:'?campus=' | Append:selectedCampus.Id %}
+{% else %}
+  {% assign webrequest = webrequest | Append:'?campus=-1' %}
+{% endif %}
+{% if selectedMinistry != null %}
+  {% assign webrequest = webrequest | Append:'&audience=' | Append:selectedMinistry %}
+{% else %}
+  {% assign webrequest = webrequest | Append:'&audience=-1' %}
+{% endif %}
+<h1>{{webrequest}}</h1>
+{% webrequest url:'{{webrequest}}' %}
+  {% assign publishGroupCount = results | Size %}
+
+  {% for publishGroup in results %}
+    {% assign registrationLink = '/groups/oncampus/details/' | Append:publishGroup.Slug %}
+    {% assign contactLink = '/groups/oncampus/contact/' | Append:publishGroup.Guid %}
+
+    {% assign scheduleText = null %}
+    {% assign meetingDaySize = publishGroup.MeetingDay | Trim | Size %}
+    {% assign meetingTimeSize = publishGroup.MeetingDay | Trim | Size %}
+    {% if publishGroup.CustomSchedule != '' %}
+      {% assign scheduleText = publishGroup.CustomSchedule %}
+    {% elseif meetingDaySize > 0 and meetingTimeSize > 0 %}
+      {% assign scheduleText = publishGroup.MeetingDay | Append:'s ' | Append:publishGroup.MeetingTime %}
+    {% endif %}
+
+    {% assign rowNumber = forloop.index | Modulo: 3 %}
+    {% if rowNumber == 1 %}
+      <div class="row">
+    {% endif %}
+
+    <div class="isotope_item col-xs-12 col-md-6 col-lg-4 event-calendar" data-day="{{ publishGroup.MeetingDay}}" data-online="{{ publishGroup | Attribute: 'IsOnlineGroup', 'RawValue'}}">
+            <div class="clearfix card">
+      <div class="img-hover">
+        <img src="/GetImage.ashx?id={{ publishGroup.ImageId }}&w=720" class="event-image img-responsive" onerror="this.style.display='none'" loading="lazy">
+      </div>
+      <div class="caption g-padding-x-30--xs g-padding-t-30--xs g-margin-b-40--xs">
+          <h5 class="g-font-family--secondary g-padding-r-60--xs" style="margin-bottom: 5px;">
+              {{ publishGroup.Title}}
+          </h5>
+          <h6 class="uppercase g-padding-b-20--xs g-font-weight--700">
+            {{ publishGroup.CampusName }}
+          </h6>
+            <div class="readmore_dates" style="overflow-y: inherit">
+              <div style='height:auto;'>
+                {{ publishGroup.Description }}
+                <br />
+              </div>
+            </div>
+      </div>
+      <div class="row" style="padding:0 10%;">
+        {% assign offset = 0 %}
+        {% if scheduleText == null %}
+          {% assign offset = offset | Plus: 2 %}
+        {% endif %}
+        {% if publishGroup.MeetingLocation == null or publishGroup.MeetingLocation == empty %}
+          {% assign offset = offset | Plus: 2 %}
+        {% endif %}
+        {% if publishGroup.IsChildcareAvailable != true %}
+          {% assign offset = offset | Plus: 2 %}
+        {% endif %}
+
+        {% if scheduleText != null %}
+          {% assign remainder = 4 %}
+          {% if offset == 4 %}
+            {% assign offset = 3 %}
+            {% assign remainder = 6 %}
+          {% endif %}
+
+          <div class="event-items col-xs-{{remainder}} {% if publishGroup.MeetingLocation != null and publishGroup.MeetingLocation != empty  %} g-padding-x-10--xs g-ver-divider__solid__r--gray-lighter{% endif %} col-xs-offset-{{offset}}">
+             <div class="event-icon --calendar"><!-- Calendar SVG Image --></div>
+             <h6>
+              {{ scheduleText }}
+              {% if publishGroup.StartDate and publishGroup.StartDate != empty %}
+              <br>
+              Starting: {{ publishGroup.StartDate | Date:'MMM d'}}
+              {% endif %}
+             </h6>
+          </div>
+          {% assign offset = 0 %}
+        {% endif %}
+
+
+        {% if publishGroup.MeetingLocation != null and publishGroup.MeetingLocation != empty%}
+          <div class="event-items g-padding-x-10--xs col-xs-4 {% if publishGroup.IsChildcareAvailable == true %}g-ver-divider__solid__r--gray-lighter{% endif %}  col-xs-offset-{{offset}}">
+             <div class="event-icon --location"><!-- Marker / Location SVG Image --></div>
+             <h6>
+              {{ publishGroup.MeetingLocation }}
+             </h6>
+          </div>
+          {% assign offset = 0 %}
+        {% endif %}
+
+        <!-- ChildCare -->
+        {% if publishGroup.IsChildcareAvailable == true %}
+                        <div class="event-items col-xs-4 g-padding-x-10--xs col-xs-offset-{{offset}}">
+                            <div class="event-icon --teddy-bear"><!-- Teddy Bear SVG Image --></div>
+                            <h6>Children's<br>Programming<br> Available</h6>
+                        </div>
+        {% endif %}
+                </div>
+
+                <div class="text-center col-xs-12 g-margin-t-40--xs g-hor-divider__solid__t--gray-lighter">
+
+                    <div class="col-md-6">
+                        <a href="{{ contactLink }}" class='eventCardLink link--hover-underscore'>
+                            <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
+                                Contact
+                            </h6>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{{ registrationLink }}" class='eventCardLink link--hover-underscore'>
+                            <h6 class="uppercase g-font-weight--600 g-font-size-22--xs g-letter-spacing--1 g-padding-y-40--xs g-padding-t-10--xs g-padding-x-30--xs">
+                            {% if publishGroup.RegistrationRequirement != 0 %}
+                                Register&nbsp;Now
+                            {% else %}
+                                Details
+                            {% endif %}
+                            </h6>
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+        </div><!-- END: isotope_item -->
+      {% if rowNumber == 0 or forloop.last %}
+        </div>
+      {% endif %}
+  {% endfor %}
+
+{% endwebrequest %}
+
+<div id="noresultmsg" class="row" {% unless publishGroupCount == 0 or ministyCount == 0 %}style="display: none;"{% endunless %}>
+  <div class="col-xs-12 text-center">
+      <div style="border: 1px solid rgba(32, 30, 29, 0.50); padding: 20px; border-radius: 5px;">
+          <p style="margin: 0px;">There are no groups for this ministy at this time. Please try another campus or ministry.</p>
+      </div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<script src="/Themes/SECC2019/Scripts/readmore.min.js"></script>
+<script>
+$(document).ready(function() {
+  	//make days of week clicky
+		$('[data-toggle="dropdown-content"]').click(function(e) {
+			e.preventDefault();
+			var $this = $( this );
+			var toggleId = $this.attr('data-reveal');
+			toggleOneFilterAtATime($this);
+		});
+
+		function toggleOneFilterAtATime($selected) {
+			// close all of the others - before opening this
+			$('[data-control="#groupFilters"]').not($selected).attr('aria-expanded','false');
+			$('#select2-campuses').select2('close');
+			$selected.attr('aria-expanded', function (i, attr) {
+				return attr == 'true' ? 'false' : 'true'
+			});
+		}
+
+
+
+	$daysOfTheWeek = $('#daysOfTheWeek').on( 'click', '.button', function(e) {
+		  e.preventDefault();
+		  var $this = $( this );
+		  var filterValue = $this.attr('data-filter');
+		  $this.toggleClass('active');
+		  buildDaysFilters(filterValue);
+		  runFilters();
+		});
+	// hide descriptions
+	$('.readmore_dates').readmore({
+		speed: 200,
+		lessLink: '<a href="#" class="pull-right uppercase" style="padding: 2rem;width: 100%;text-align: right;"><span class="se-carat se-carat--up"></span></a>',
+		moreLink: '<a href="#" class="pull-right" style="display: inline-block;padding: 2rem;position: relative;height: 7rem;width: 100%;margin-top: -6rem;"><span class="pull-right se-carat se-carat--down" style="margin-top: 2rem;"></span></a>',
+		embedCSS: false,
+		collapsedHeight: 0,
+		beforeToggle: function(tr, el, ex) {
+			$(el).show();
+		},
+		afterToggle: function(trigger, element, expanded) {
+			$('.isotope_wrap').isotope(isoOptions); // re-initialize
+		}
+	});
+});
+</script>

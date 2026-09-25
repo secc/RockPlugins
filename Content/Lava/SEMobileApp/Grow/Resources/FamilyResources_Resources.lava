@@ -94,7 +94,7 @@ Grow Family Resources Resources Page
 			{{ comma }}
 			{
 				"images":[
-					{ "width":747, "url":"https://www.southeastchristian.org/Content/SubSplash/SermonBlank121212.jpg"  }
+					{ "width":747, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot' }}Content/SubSplash/SermonBlank121212.jpg"  }
 				]
 			}
     ]

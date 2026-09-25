@@ -1,26 +1,48 @@
 {%- capture bsq -%}\"{%- endcapture -%}
-{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'TV App Home Announcements' componententityid:'31221' operation:'View' summary:'TV App Home Announcements Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
-TV App Home Announcements Page
-{% endinteractionwrite %}
+{%- interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'TV App Home Announcements' componententityid:'31221' operation:'View' summary:'TV App Home Announcements Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' -%}TV App Home Announcements Page{%- endinteractionwrite -%}
 {%- contentchannelitem where:'Guid == "{{Guid}}"' -%}
-{%- assign item = contentchannelitemItems | First - %}
+{%- assign item = contentchannelitemItems | First -%}
 {%- assign subtitleSize = item | Attribute:'Subtitle' | Size -%}
+{%- assign mediaElementShortCode = item | Attribute:'SubsplashVideo','SourceKey' -%}
+{%- assign mediaElement = item | Attribute:'SubsplashVideo','FileDataJson'  -%}
 {%- endcontentchannelitem -%}
 {
 	"header": {
 		"title": "{{- item.Title -}}{% if subtitleSize > 0 %}: {{ item | Attribute:'Subtitle' }}{% endif %}"
 	},
-	"sapid":"{{- item.Guid -}}",
-	"images": [{ "width":1080, "url":"https://app.secc.org/GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}&width=720"}],
+	{%- if mediaElementShortCode != empty and mediaElementShortCode != '' -%}
+		"sapid":"{{ mediaElementShortCode }}",
+	{%- else -%}
+		"sapid":"0000000",
+	{%- endif -%}
+	"images": [{ "width":1080, "url":"{{ 'Global' | Attribute:'MobileApplicationRoot'}}GetImage.ashx/{{item | Attribute:'Image','RawValue'}}.jpg?guid={{item | Attribute:'Image','RawValue'}}&width=720"}],
 	"media": [
-	    {
-		{%- assign videoUrl = item | Attribute:'VideoURL','RawValue' -%}
-		{%- if videoUrl contains 'm3u8' -%}
-			{%- capture videoUrl -%}https://www.southeastchristian.org/webhooks/lava.ashx/streaming/{{item.Guid}}.m3u8{% endcapture %}
+		{%- if mediaElement != empty and mediaElement != '' -%}
+			{
+				"url":"{{ mediaElement| FromJSON | Where:'Format', 'application/x-mpegURL' | Select:'Link' }}",
+				"format":"m3u8",
+				"downloadable":false,
+				"sapid":"{{ mediaElementShortCode }}"
+			},
+			{
+				"url":"{{ mediaElement | FromJSON | Where:'Format', 'video/mp4' | Select:'Link' }}",
+				"format":"mp4",
+				"sapid":"{{ mediaElementShortCode }}"
+			}
+		{%- else -%}
+			{
+				{%- assign videoUrl = item | Attribute:'VideoURL','RawValue' -%}
+				{%-comment-%}
+				{%- if videoUrl contains 'm3u8' -%}
+					{%- capture videoUrl -%}{{ 'Global' | Attribute:'MobileApplicationRoot'}}webhooks/lava.ashx/streaming/{{item.Guid}}.m3u8{% endcapture %}
+				{%- endif -%}
+				{%-endcomment-%}
+					"url":"{{videoUrl}}",
+					"format":"{{- item | Attribute:'VideoType' -}}",
+					"sapid":"0000000"
+			}
 		{%- endif -%}
-    		"url":"{{videoUrl}}",
-            "format":"{{- item | Attribute:'VideoType' -}}"
-        }],
+        ],
 	"title": "{{- item.Title | Replace:'"',bsq   -}}{% if subtitleSize > 0 %}: {{ item | Attribute:'Subtitle' | Replace:'"',bsq   }}{% endif %}",
 	"body":"{{ item.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode | StripHtml }}"
 }

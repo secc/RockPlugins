@@ -1,0 +1,38 @@
+{
+    "header": {
+        "title": "SE!KIDS"
+    },
+    "blocks": [
+        {
+            "type": "image",
+            "props": {
+                "averageColor": "#121212",
+                "imageUrl": "https://app.secc.org/Content/Lava/SEMobileApp/SEKIDS/assets/SEKIDSCheckInButtonImage.jpg",
+                "horizontalSpacing": "medium",
+                "topSpacing": "large",
+                "bottomSpacing": "small",
+                "imageRadius": "medium",
+                "action": {
+                    "url": "https://app.secc.org/api/subsplash/webhook/checkin/0",
+                    "handler": "list",
+                    "authProviderId": "ccaf1fb2-03e0-4093-8f97-f8f60f125ddc"
+                }
+            }
+        },
+        {
+            "type": "image",
+            "props": {
+                "averageColor": "#121212",
+                "imageUrl": "https://app.secc.org/Content/Lava/SEMobileApp/SEKIDS/assets/SEKIDShomeButtonImage.jpg",
+                "horizontalSpacing": "medium",
+                "topSpacing": "medium",
+                "bottomSpacing": "medium",
+                "imageRadius": "medium",
+                "action": {
+                    "handler": "blockPage",
+                    "url": "https://app.secc.org/api/subsplash/webhook/sekids/home"
+                }
+            }
+        }
+    ]
+}

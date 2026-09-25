@@ -45,7 +45,7 @@
 	        {% unless forloop.first %},{% endunless %}
 
 			{%- assign itemActionHandler = "list" -%}
-			{%- assign itemActionUrl = "https://app.secc.org/webhooks/SubSplash.ashx/sermons/series/" | Append:item.Id -%}
+			{%- assign itemActionUrl = "https://app.secc.org/api/subsplash/webhook/sermons/series/" | Append:item.Id -%}
 			{%- assign resourcesCount = 0 -%}
 			{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
 			{%- for messages in itemChildItems -%}
@@ -56,7 +56,7 @@
 			{%- endfor -%}
 			{%- if resourcesCount != 0 -%}
 			{%- assign itemActionHandler = "subtabs" -%}
-			{%- assign itemActionUrl = "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/" | Append:item.Id -%}
+			{%- assign itemActionUrl = "https://app.secc.org/api/subsplash/webhook/tabs/series/" | Append:item.Id -%}
 			{%- endif -%}
 	        {
 				"title": "{{item.Title | Replace:'"',bsq }}",

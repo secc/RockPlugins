@@ -1,0 +1,63 @@
+{
+    "blocks": [
+        {
+            "type": "mediaBanner",
+            "props": {
+                "playlistUrl": "https://app.secc.org/api/subsplash/webhook/sekids/home/video",
+                "posterImageUrl": "https://my.southeastchristian.org/Content/Lava/SEMobileApp/SEKIDS/assets/SEKIDSepisodeimageAug7.jpg",
+                "bannerBackgroundUrl": "",
+                "averageColor": "#8C5F48",
+                "vibrantColor": "#8C5F48"
+            }
+        },
+        {
+            "type": "text",
+            "props": {
+                "h1": true,
+                "bottomSpacing": "small",
+                "content": "SE!KIDS @ Home"
+            }
+        },
+        {
+            "type": "text",
+            "props": {
+                "bottomSpacing": "large",
+                "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum fermentum pulvinar dolor, quis interdum orci faucibus nec. Morbi lobortis ex odio, et dignissim arcu fermentum ac. Pellentesque consequat ultrices elementum. Duis aliquet, lectus eu mollis viverra, odio metus vulputate orci, vitae tincidunt odio risus ac mi. Proin quis nulla ante. Phasellus vel est ultricies, semper neque ac, finibus elit. Suspendisse ut aliquet dolor. Donec elementum malesuada enim, accumsan tempus purus bibendum sed. Donec non leo ut sem volutpat condimentum vitae id magna."
+            }
+        },
+        {
+            "type": "button",
+            "props": {
+                "title": "Worship",
+                "topSpacing": "medium",
+                "action": {
+                    "handler": "blockPage",
+                    "url": "https://app.secc.org/api/subsplash/webhook/sekids/home/worship"
+                }
+            }
+        },
+        {
+            "type": "button",
+            "props": {
+                "title": "Bible Story",
+                "topSpacing": "medium",
+                "action": {
+                    "handler": "blockPage",
+                    "url": "https://app.secc.org/api/subsplash/webhook/sekids/home/biblestory"
+                }
+            }
+        },
+        {
+            "type": "button",
+            "props": {
+                "title": "Living it Out",
+                "topSpacing": "medium",
+                "bottomSpacing": "large",
+                "action": {
+                    "handler": "blockPage",
+                    "url": "https://app.secc.org/api/subsplash/webhook/sekids/home/livingitout"
+                }
+            }
+        }
+    ]
+}

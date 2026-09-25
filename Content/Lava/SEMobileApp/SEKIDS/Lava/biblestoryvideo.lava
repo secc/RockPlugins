@@ -1,0 +1,21 @@
+{%- capture bsq -%}\"{%- endcapture -%}
+{% comment %} /sekids/home/livingitout/video/{Id} {% endcomment %}
+{%- contentchannelitem id:'ContentChannelId == 94 && Id == {{Id}}' -%}
+{%- for item in contentchannelitemItems -%}
+{% assign video = item | Attribute:'videourl','RawValue' %}
+{% if video != '' %}
+{
+    "playlist": [{
+        "title": "{{item.Title | Replace:'"',bsq }}",
+        "media": [{
+            "url": "{{item | Attribute:'videourl','RawValue'}}",
+            "format": "mp4",
+            "downloadable": false
+        }]
+    }]
+}
+{% else %}
+{{ 'https://my.southeastchristian.org/notfound' | PageRedirect }}
+{% endif %}
+{%- endfor -%}
+{% endcontentchannelitem -%}

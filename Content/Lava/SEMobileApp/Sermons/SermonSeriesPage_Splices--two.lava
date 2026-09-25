@@ -51,8 +51,8 @@ Sermons Page
             {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
             {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
 		        {{ comma }}
-				{%- assign itemActionHandler = "list" -%}
-				{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/sermons/series/" | Append:item.Id -%}
+				{%- assign itemActionHandler = "blockPage" -%}
+				{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"api/subsplash/webhook/sermons/series-2/" | Append:item.Id -%}
 				{%- assign resourcesCount = 0 -%}
 				{%- assign itemChildItems = item.ChildItems | Sort:'Order' -%}
 				{%- for messages in itemChildItems -%}
@@ -63,7 +63,7 @@ Sermons Page
 				{%- endfor -%}
 				{%- if resourcesCount != 0 -%}
 				{%- assign itemActionHandler = "subtabs" -%}
-				{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/tabs/series/" | Append:item.Id -%}
+				{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"api/subsplash/webhook/tabs/series/" | Append:item.Id -%}
 				{%- endif -%}
 		        {
 					"title": "{{item.Title | Replace:'"',bsq }}",

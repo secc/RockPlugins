@@ -9,7 +9,7 @@ More Page
 			"title": "More",
 			"images": [{
 				"width": 500,
-				"url": "https://www.southeastchristian.org/Content/About/IMG_3954.jpg"
+				"url": "https://my.southeastchristian.org/Content/About/IMG_3954.jpg"
 			}],
 			"actions": [{
 				"handler": "list",

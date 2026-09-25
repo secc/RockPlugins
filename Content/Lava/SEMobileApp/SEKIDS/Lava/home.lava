@@ -1,0 +1,66 @@
+{% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' operation:'View' summary:'SE!KIDS@Home Home Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' componententitytypeid:'31' componentname:'SE!KIDS@Home Home Page' componententityid:'50686' %}
+SE!KIDS@Home Home Page
+{% endinteractionwrite %}
+{
+    "blocks": [
+        {
+            "type": "mediaBanner",
+            "props": {
+                "playlistUrl": "https://app.secc.org/api/subsplash/webhook/sekids/home/video",
+                "posterImageUrl": "https://my.southeastchristian.org/Content/Lava/SEMobileApp/SEKIDS/assets/K2Vid.png",
+                "bannerBackgroundUrl": "",
+                "averageColor": "#121212",
+                "vibrantColor": "#121212"
+            }
+        },
+        {
+            "type": "text",
+            "props": {
+                "h1": true,
+                "bottomSpacing": "small",
+                "content": "SE!KIDS@home"
+            }
+        },
+        {
+            "type": "text",
+            "props": {
+                "bottomSpacing": "large",
+                "content": "Welcome to SE!KIDS@home...where families are encouraged and equipped to Discover God, His Story and Our Place in It. Look around and you’ll find Worship Songs, Bible Stories and Family Challenges! We’re excited you stopped by!"
+            }
+        },
+        {
+            "type": "button",
+            "props": {
+                "title": "Early Childhood",
+                "topSpacing": "medium",
+                "action": {
+                    "handler": "blockPage",
+                    "url": "https://app.secc.org/api/subsplash/webhook/sekids/home/worship"
+                }
+            }
+        },
+        {
+            "type": "button",
+            "props": {
+                "title": "Elementary",
+                "topSpacing": "medium",
+                "action": {
+                    "handler": "blockPage",
+                    "url": "https://app.secc.org/api/subsplash/webhook/sekids/home/biblestory/nocategory"
+                }
+            }
+        },
+        {
+            "type": "button",
+            "props": {
+                "title": "Resources",
+                "topSpacing": "medium",
+                "bottomSpacing": "large",
+                "action": {
+                    "handler": "blockPage",
+                    "url": "https://app.secc.org/api/subsplash/webhook/sekids/home/resources"
+                }
+            }
+        }
+    ]
+}

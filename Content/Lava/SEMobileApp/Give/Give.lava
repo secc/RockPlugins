@@ -1,68 +1,44 @@
-{%- capture bsq -%}\"{%- endcapture -%}
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Give' componententityid:'30809' operation:'View' summary:'Give Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}'%}
 Give Page
-{% endinteractionwrite %}{
-	"header": {
-		"title": "Give"
-	},
-	"displayOptions":{
-		"style":"stacked",
-		"contentWidthRatio":1.0,
-	    "itemDisplayOptions":{
-			"indicatorAspectRatio":0.485103626943005,
-			"indicatorShadowEnabled":true,
-        	"maxWidth":1400,
-	        "textPosition": "none"
-	    },
-		"colors":{
-	        "brand":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
-	        },
-			"theme":{
-	            "primary":"#121212",
-				"block":"#262626",
-	            "blockAccent":"#262626",
-	            "secondaryAccent":"#FFFFFF",
-	            "primaryAccent":"#FFFFFF"
-	        },
-	        "topBar":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
-	        },
-	        "bottomBar":{
-	            "primary":"#121212",
-	            "primaryAccent":"#FFFFFF"
-	        },
-	        "brandableElements":""
-	    }
-	},
-	"items": [
-        {% assign intervalCuts = 749 %}
-        {% assign interY1 = 0 %}
-        {%- assign interY2 = intervalCuts | Plus:1 -%}
-        {%- assign comma = "" -%}
-        {% for i in (0..3) %}
-        {{ comma }}
-        {
-			"title": "{{item.Title | Replace:'"',bsq }}",
-			"subtitle": "{{ item.Content  | Replace:'"',bsq  | UrlEncode | Replace:'%0A','' | UrlDecode  }}",
-            "images":[
-				{ "width":772, "url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/give?bgcolor=121314&crop=(0,{{ interY1 }},1544,{{ interY2 }})&anchor=topcenter&format=jpg"  }
-			],
-			"actions": [{
-				"handler": "externalBrowser",
-        		"url": "https://pushpay.com/pay/southeastchristian"
-			}]
-		}
-        {%- assign comma = "," -%}
-		{%- if forloop.index ==  1 -%}
-			{%- assign interY1 = interY1 | Plus:intervalCuts | Minus:1 -%}
-			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
-		{%- else -%}
-			{%- assign interY1 = interY1 | Plus:intervalCuts -%}
-			{%- assign interY2 = interY2 | Plus:intervalCuts -%}
-		{%- endif -%}
-        {% endfor %}
-    ]
+{% endinteractionwrite %}
+{%- assign givingLink = 'https://pushpay.com/pay/southeastchristian'%}
+{
+  "blocks": [
+
+			{
+			"type": "browser",
+			"props": {
+				"url": "https://app.secc.org/Content/Lava/SEMobileApp/Give/Give.html",
+				"actionDispatch": true,
+				"height": 1
+			}
+			},
+			{
+				"type":"text",
+				"props": {
+					"align":"center",
+					"expandable": false,
+					"topSpacing": "xxl",
+					"bottomwSpacing": "xxl",
+					"content": "God is using your generosity\nto make a difference.",
+					"h1": true
+				}
+			},
+			{
+				"type":"button",
+				"props": {
+					"align":"center",
+					"color":"#28A5BB",
+					"width": "content",
+					"title": "Give now",
+					"topSpacing": "xxl",
+					"bottomwSpacing": "xxl",
+					"action": {
+							"handler": "browser",
+							"style": "external",
+							"contentUrl": "{{ givingLink }}"
+						}
+				}
+			}
+		]
 }

@@ -37,7 +37,7 @@ Prayer Page
 	    }
 	},
 	"items": [
-		{%- assign prayerLink = 'https://www.southeastchristian.org/howcanwehelp' -%}
+		{%- assign prayerLink = 'Global' | Attribute:'PublicApplicationRoot' | Append:'howcanwehelp' -%}
         {%- assign prayerCell = '5022538144' -%}
         {%- assign prayerEmail = 'prayer@secc.org' -%}
         {%- comment -%}

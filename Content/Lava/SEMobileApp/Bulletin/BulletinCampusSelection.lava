@@ -47,7 +47,7 @@ Bulletin Page
 				"title":"{{campus.Name}}",
 				"actions": [{
 					"handler": "list",
-					"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}webhooks/SubSplash.ashx/bulletin/campuses/{{campus.Guid}}"
+					"url": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}api/subsplash/webhook/bulletin/campuses/{{campus.Guid}}"
 				}]
 			}
 			{%- assign comma = "," -%}

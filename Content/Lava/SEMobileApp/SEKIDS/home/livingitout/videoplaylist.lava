@@ -1,0 +1,16 @@
+{%- capture bsq -%}\"{%- endcapture -%}
+{% comment %} /sekids/home/livingitout/video/{Id} {% endcomment %}
+{%- contentchannelitem where:'ContentChannelId == 95 && Id == {{Id}}' -%}
+{%- for item in contentchannelitemItems -%}
+{
+    "playlist": [{
+        "title": "{{item.Title | Replace:'"',bsq }}",
+        "media": [{
+            "url": "{{item | Attribute:'videourl','RawValue'}}",
+            "format": "mp4",
+            "downloadable": false
+        }]
+    }]
+}
+{%- endfor -%}
+{% endcontentchannelitem -%}

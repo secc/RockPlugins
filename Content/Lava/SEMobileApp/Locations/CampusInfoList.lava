@@ -55,7 +55,7 @@
                 "type":"navigation",
                 "style":"external",
                 "showBrowserControls": false,
-                "contentUrl": "https://southeastchristian.org/seapp/campus/directions/{{campusSlug}}"
+                "contentUrl": "{{ 'Global' | Attribute:'PublicApplicationRoot' }}seapp/campus/directions/{{campusSlug}}"
             }]{%- endif -%}
 		}
         {%- assign comma = "," -%}
@@ -127,7 +127,7 @@
 					{% publishgroup where:'Id == {{- publishGroupId -}}' sort:'Order' %}
 						{%- assign publishGroup = publishgroupItems | First -%}
 					{%- endpublishgroup -%}
-					{%- assign registrationLink = 'https://www.southeastchristian.org/groups/oncampus/details/' | Append:publishGroup.Slug -%}
+					{%- assign registrationLink = '{{ 'Global' | Attribute:'PublicApplicationRoot' }}groups/oncampus/details/' | Append:publishGroup.Slug -%}
 				{%- endif -%}
 
 				{%- comment -%}
@@ -148,7 +148,7 @@
 							"type":"navigation",
 							"style":"external",
 							"showBrowserControls": false,
-							"contentUrl": "https://www.southeastchristian.org/groups/oncampus/{{campusSlug}}/all"
+							"contentUrl": "{{ 'Global' | Attribute:'PublicApplicationRoot' }}groups/oncampus/{{campusSlug}}/all"
 						}]
 					{%- else -%}
 						{%- if registrationLink != "" -%},"actions":[{
@@ -168,7 +168,7 @@
 							"type":"navigation",
 							"style":"external",
 							"showBrowserControls": false,
-							"contentUrl": "https://www.southeastchristian.org/groups/oncampus/{{campusSlug}}/all"
+							"contentUrl": "{{ 'Global' | Attribute:'PublicApplicationRoot' }}groups/oncampus/{{campusSlug}}/all"
 						}]{%- endif -%}
 					{%- endif -%}
 				}

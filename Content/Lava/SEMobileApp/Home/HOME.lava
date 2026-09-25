@@ -1,0 +1,217 @@
+{%- interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Home' componententityid:'27194' operation:'View' summary:'App Homepage' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'208' relatedentityid:'2087' -%}
+App Homepage
+{%- endinteractionwrite -%}
+{%- assign newVersion = false -%}
+{%- assign requiredVersion = '5019000' | Times:1 -%}
+{%- if sap-app-version != null %}
+    {%- assign currentVersion = sap-app-version | Split:'.' -%}
+{%- else %}
+    {%- assign currentVersion = '0.0.0' | Split:'.' -%}
+{%- endif %}
+{%- assign currentVersion_levelOne = currentVersion[0] | Times:1000000 -%}
+{%- assign currentVersion_levelTwo = currentVersion[1] | Times:1000 -%}
+{%- assign currentVersion_levelThree = currentVersion[2] -%}
+{%- assign currentVersionFinal = currentVersion_levelOne | Plus: currentVersion_levelTwo | Plus: currentVersion_levelThree -%}
+{%- if currentVersionFinal >= requiredVersion -%}
+	{%- assign newVersion = true -%}
+{%- endif -%}
+
+
+{
+	"header": {
+		"title": "Home"
+	},
+	"displayOptions":{
+		"style":"stacked",
+		"contentWidthRatio":9.5,
+	    "itemDisplayOptions":{
+	        "indicatorAspectRatio":2.47407,
+	        "textPosition": "none"
+	    },
+		"colors":{
+	        "brand":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "theme":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "topBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "bottomBar":{
+	            "primary":"#121212",
+	            "primaryAccent":"#FFFFFF"
+	        },
+	        "brandableElements":""
+	    }
+	},
+	"items": [
+	{%- contentchannelitem Id:'2087' -%}
+		{%- assign childItemsSorted = contentchannelitem.ChildItems | Sort:"Order" -%}
+		{%- assign comma = "" -%}
+		{%- for item in childItemsSorted -%}
+			{%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+			{%- assign today = 'Now' | Date:'dddd' -%}
+			{%- assign streamBannerShowDays = 'Sunday' -%}
+			{%- assign bulletinOneShowDays = 'Saturday|Sunday' -%}
+			{%- assign bulletinTwoShowDays = 'Monday|Tuesday|Wednesday|Thursday|Friday' -%}
+			{%- assign slug = item.ChildContentChannelItem.PrimarySlug -%}
+			{%- assign startDateTime = item.ChildContentChannelItem.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+			{%- assign endDateTime = item.ChildContentChannelItem.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+			{%- assign title = item.ChildContentChannelItem.Title -%}
+			{%- assign subtitle = item.ChildContentChannelItem | Attribute:'Subtitle' -%}
+			{%- assign imageGuid = item.ChildContentChannelItem | Attribute:'Image','RawValue' -%}
+			{%- assign actionJson = item.ChildContentChannelItem | Attribute:'Action' -%}
+			{%- if slug == "streaming-now-1" or slug == "bulletin-1" or slug == "bulletin-2" or slug == "sekids-check-in-1" or slug == "sekids-check-in-2" or slug == "sekidsinitialweekday" or slug == "sekidsinitialweekend" -%}
+				{%- if slug == "streaming-now-1" and streamBannerShowDays contains today -%}
+					{%- comment -%} Start: Banner Item{%- endcomment -%}
+					{%- if Headers.sap-device-os == 'Android' -%}
+						{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
+					{%- endif -%}
+					{{ comma }}
+					{
+						"images":[
+							{"width": 668,
+							"url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+							]
+						{%- if actionJson != "" -%}
+						,"actions":[{
+							{{-actionJson-}}
+						}],
+						"title": "{{ title }}",
+						"subtitle": "{{ subtitle }}"
+						{%- endif -%}
+					}
+					{%- assign comma = "," -%}
+					{%- comment -%} End: Banner Item{%- endcomment -%}
+				{%- elseif slug == "bulletin-1" or slug == "sekids-check-in-1" -%}
+					{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+						{% if bulletinOneShowDays contains today %}
+							{%- comment -%} Start: Banner Item{%- endcomment -%}
+							{%- if Headers.sap-device-os == 'Android' -%}
+								{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
+							{%- endif -%}
+							{{ comma }}
+							{
+								"images":[
+									{"width": 668,
+									"url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+									]
+								{%- if actionJson != "" -%}
+								,"actions":[{
+									{{-actionJson-}}
+								}],
+								"title": "{{ title }}",
+								"subtitle": "{{ subtitle }}"
+								{%- endif -%}
+							}
+							{%- assign comma = "," -%}
+							{%- comment -%} End: Banner Item{%- endcomment -%}
+						{%- endif -%}
+					{%- endif -%}
+				{%- elseif slug == "bulletin-2" or slug == "sekids-check-in-2" -%}
+					{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+						{% if bulletinTwoShowDays contains today %}
+							{%- comment -%} Start: Banner Item{%- endcomment -%}
+							{%- if Headers.sap-device-os == 'Android' -%}
+								{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
+							{%- endif -%}
+							{{ comma }}
+							{
+								"images":[
+									{"width": 668,
+									"url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+									]
+								{%- if actionJson != "" -%}
+								,"actions":[{
+									{{-actionJson-}}
+								}],
+								"title": "{{ title }}",
+								"subtitle": "{{ subtitle }}"
+								{%- endif -%}
+							}
+							{%- assign comma = "," -%}
+							{%- comment -%} End: Banner Item{%- endcomment -%}
+						{%- endif -%}
+					{%- endif -%}
+				{%- elseif slug == "sekidsinitialweekend" -%}
+					{% comment %} This shows the item at the top of the **list** during the weekend {% endcomment %}
+					{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime and bulletinOneShowDays contains today -%}
+						{{ comma }}
+						{
+						"images":[
+							{"width": 668,
+							"url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+						]
+						,"actions":[{
+							{%- if newVersion == true -%}
+								"handler": "blockPage",
+								"topBarStyle": "transparent",
+								"url": "https://app.secc.org/api/subsplash/webhook/sekids/initial"
+							{%- else -%}
+								"handler": "list",
+								"url": "https://app.secc.org/api/subsplash/webhook/sekids/pleaseupdate"
+							{%- endif -%}
+						}],
+						"title": "SE!KIDS",
+						"subtitle": "Check in or watch church on the go"
+						}
+						{%- assign comma = "," -%}
+					{%- endif -%}
+				{%- elseif slug == "sekidsinitialweekday" -%}
+					{% comment %} This shows the item within the **list** during the week{% endcomment %}
+					{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime and bulletinTwoShowDays contains today -%}
+						{{ comma }}
+						{
+						"images":[
+							{"width": 668,
+							"url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+						]
+						,"actions":[{
+							{%- if newVersion == true -%}
+								"handler": "blockPage",
+								"topBarStyle": "transparent",
+								"url": "https://app.secc.org/api/subsplash/webhook/sekids/initial"
+							{%- else -%}
+								"handler": "list",
+								"url": "https://app.secc.org/api/subsplash/webhook/sekids/pleaseupdate"
+							{%- endif -%}
+						}],
+						"title": "SE!KIDS",
+						"subtitle": "Check in or watch church on the go"
+						}
+						{%- assign comma = "," -%}
+					{%- endif -%}
+				{%- endif -%}
+			{%- else -%}
+				{%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+					{%- comment -%} Start: Banner Item{%- endcomment -%}
+					{%- if Headers.sap-device-os == 'Android' -%}
+						{%- assign actionJson = actionJson | Replace:'internalBrowser showTabBar', 'browser' -%}
+					{%- endif -%}
+					{{ comma }}
+					{
+						"images":[
+							{"width": 668,
+							"url":"https://churchseimaging.azurewebsites.net/api/ImageFromHtml/homeimage/{{ item.ChildContentChannelItem.Guid }}?mode=crop&s.roundcorners=20&bgcolor=121212"}
+							]
+						{%- if actionJson != "" -%}
+						,"actions":[{
+							{{-actionJson-}}
+						}],
+						"title": "{{ title }}",
+						"subtitle": "{{ subtitle }}"
+						{%- endif -%}
+					}
+					{%- assign comma = "," -%}
+					{%- comment -%} End: Banner Item{%- endcomment -%}
+				{%- endif -%}
+			{%- endif -%}
+
+		{%- endfor %}
+	{%- endcontentchannelitem %}
+	]
+}

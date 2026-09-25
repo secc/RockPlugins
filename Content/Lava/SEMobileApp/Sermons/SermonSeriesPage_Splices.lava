@@ -52,7 +52,7 @@
 				"actions": [{
 					"handler": "subtabs",
             		"type": "navigation",
-					"url": "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
+					"url": "https://app.secc.org/api/subsplash/webhook/tabs/series/{{item.Id}}"
 				}]
 			},
 			{
@@ -62,7 +62,7 @@
 				"actions": [{
 					"handler": "subtabs",
             		"type": "navigation",
-					"url": "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
+					"url": "https://app.secc.org/api/subsplash/webhook/tabs/series/{{item.Id}}"
 				}]
 			},
 			{
@@ -72,7 +72,7 @@
 				"actions": [{
 					"handler": "subtabs",
             		"type": "navigation",
-					"url": "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
+					"url": "https://app.secc.org/api/subsplash/webhook/tabs/series/{{item.Id}}"
 				}]
 			},
 			{
@@ -82,7 +82,7 @@
 				"actions": [{
 					"handler": "subtabs",
             		"type": "navigation",
-					"url": "https://app.secc.org/webhooks/SubSplash.ashx/tabs/series/{{item.Id}}"
+					"url": "https://app.secc.org/api/subsplash/webhook/tabs/series/{{item.Id}}"
 				}]
 			}
 	        {%- endfor -%}

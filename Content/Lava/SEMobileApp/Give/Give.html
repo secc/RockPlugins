@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Redirecting...</title>
+</head>
+<body>
+  <script>
+    window.onload = function() {
+      // 1. Define the action the app should take.
+      // This is the same external browser action we want.
+      const redirectAction = {
+        handler: 'browser',
+        style: 'external',
+        contentUrl: 'https://pushpay.com/pay/southeastchristian'
+      };
+
+      // 2. Create the message object the app is listening for.
+      const message = {
+        type: 'dispatchAction',
+        action: redirectAction
+      };
+
+      // 3. Send the message to the app.
+      // This check is required by the documentation.
+      if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+        window.ReactNativeWebView.postMessage(JSON.stringify(message));
+      }
+      // 4. Redirect the browser as a fallback.
+      const DEEP_LINK_URL = 'sap9zmvsr://sap/eyJoYW5kbGVyIjogImJyb3dzZXIiLCAic3R5bGUiOiAiZXh0ZXJuYWwiLCAiY29udGVudFVybCI6ICJodHRwczovL3B1c2hwYXkuY29tL3BheS9zb3V0aGVhc3RjaHJpc3RpYW4ifQ==';
+      setTimeout(() => {
+          window.location.href = DEEP_LINK_URL;
+        }, 3000);
+    }
+  </script>
+</body>
+</html>

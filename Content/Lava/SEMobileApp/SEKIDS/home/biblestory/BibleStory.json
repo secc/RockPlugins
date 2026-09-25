@@ -1,0 +1,34 @@
+{
+    "blocks": [
+        {
+            "type": "image",
+            "props": {
+                "averageColor": "#121212",
+                "imageUrl": "https://churchseimaging.azurewebsites.net/api/ImageFromHtml/customhomeimage/5452",
+                "horizontalSpacing": "medium",
+                "topSpacing": "large",
+                "bottomSpacing": "small",
+                "imageRadius": "medium",
+                "action": {
+                    "handler": "blockPage",
+                    "url": "https://app.secc.org/api/subsplash/webhook/sekids/home/biblestory/earlychildhood"
+                }
+            }
+        },
+        {
+            "type": "image",
+            "props": {
+                "averageColor": "#121212",
+                "imageUrl": "https://churchseimaging.azurewebsites.net/api/ImageFromHtml/customhomeimage/5453",
+                "horizontalSpacing": "medium",
+                "topSpacing": "medium",
+                "bottomSpacing": "medium",
+                "imageRadius": "medium",
+                "action": {
+                    "handler": "blockPage",
+                    "url": "https://app.secc.org/api/subsplash/webhook/sekids/home/biblestory/elementary"
+                }
+            }
+        }
+    ]
+}

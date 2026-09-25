@@ -1,5 +1,5 @@
 {%- campus where:'Guid == "{{CampusGuid}}"' -%}
-{%- assign campus = campusItems | First - %}
+{%- assign campus = campusItems | First -%}
 {%- endcampus -%}
 
 {% interactionwrite channeltypemediumvalueid:'45691' channelname:'Subsplash App' componententitytypeid:'31' componentname:'Bulletin Campus' componententityid:'30280' operation:'View' summary:'Bulletin Campus Page' personaliasid:'{{ CurrentPerson.PrimaryAliasId }}' relatedentitytypeid:'67' relatedentityid:'{{ campus.id }}'%}
@@ -29,7 +29,7 @@ Bulletin Campus Page
 		"style": "featured"
 		{%- if seriesImageGuid != empty -%}
 			{%- assign itemActionHandler = "list" -%}
-			{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/sermons/series/" | Append:series.Id -%}
+			{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"api/subsplash/webhook/sermons/series/" | Append:series.Id -%}
 			{%- assign resourcesCount = 0 -%}
 			{%- assign itemChildItems = series.ChildItems | Sort:'Order' -%}
 			{%- for messages in itemChildItems -%}
@@ -40,7 +40,7 @@ Bulletin Campus Page
 			{%- endfor -%}
 			{%- if resourcesCount != 0 -%}
 				{%- assign itemActionHandler = "subtabs" -%}
-				{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"webhooks/SubSplash.ashx/tabs/series/" | Append:series.Id -%}
+				{%- assign itemActionUrl = 'Global' | Attribute:'MobileApplicationRoot' | Append:"api/subsplash/webhook/tabs/series/" | Append:series.Id -%}
 			{%- endif -%}
 		,"items": [{
 			"images":[

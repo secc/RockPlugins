@@ -1,0 +1,188 @@
+{{ 'https://rock.secc.org/Themes/Rock/Styles/connection-request.css' | AddCssLink }}
+
+<style>
+	.overflow-scroll {
+		height: calc(100vh - 250px);
+		}
+
+	.jira-board {
+		border: solid 1px #eaeaea;
+		margin: auto;
+	}
+
+	.board-card-name{
+		margin-bottom:5px;
+		margin-left:5px;
+	}
+
+	.modal-header {
+		padding:0px;
+	}
+
+	.flag{
+		background-color:#dbdbdb;
+	}
+
+	.close {
+		margin-right:5px !important;
+	}
+
+	.modal {
+		border-radius:10px;
+	}
+	.modal-title{
+		margin-left:10px;
+	}
+
+	#modalTitle{
+		font-weight:bold;
+	}
+
+	.badge-epic{
+		background-color:#904ee2;
+	}
+
+	.badge{
+		width:30px;
+	}
+
+	.status-header {
+		background: #666;
+		color: white;
+		text-align: center;
+		text-transform: uppercase;
+	}
+
+</style>
+
+
+<div class="jira-board" >
+<div class="panel-body p-0 overflow-scroll board-column-container dragscroll js-dragscroll ">
+<div class="d-flex flex-row w-100 h-100 js-column-container" >
+{% for topic in JiraTopics -%}
+	<div class="board-column">
+		<div class="board-heading">
+			<div class="board-heading-details">
+				<span class="board-column-title">{{ topic.Name }}</span>
+				<span class="board-count">{{ topic.JiraTickets | Size }}</span>
+			</div>
+			<div class="board-heading-pill" style="background: #ddd"></div>
+		</div>
+		<div class="board-cards">
+			{% for ticket in topic.JiraTickets %}
+				{% assign ticketType = ticket.TicketType | AsString  %}
+				{% if ticketType == 'Bug' %}
+					{% assign ticketIcon = 'fa fa-bug' %}
+					{% assign badgeType = 'badge-danger' %}
+				{% elseif ticketType == 'Story' %}
+					{% assign ticketIcon = 'fa fa-bookmark' %}
+					{% assign badgeType = 'badge-success' %}
+				{% elseif ticketType == 'Task' %}
+					{% assign ticketIcon = 'fa fa-check-square' %}
+					{% assign badgeType = 'badge-info' %}
+				{% elseif ticketType == 'Subtask' %}
+					{% assign ticketIcon = 'fa fa-check-square' %}
+					{% assign badgeType = 'badge-default' %}
+				{% elseif ticketType == 'Epic' %}
+					{% assign ticketIcon = 'fa fa-bolt' %}
+					{% assign badgeType = 'badge-epic' %}
+				{% endif %}
+				<div class="board-card" data-title='{{ticket.Title}}' data-key="{{ticket.Key}}" data-ticketType="{{ticketType}}" data-badgeType="{{ badgeType }}"
+				data-ticketIcon="{{ticketIcon}}" data-description="{{ticket.Description |Replace:'"', "'" | NewlineToBr }}" data-age="{{ticket.CreatedDateTime | DaysFromNow}}" data-status="{{topic.Name}}">
+				<div class="board-card-main">
+					<div class="board-card-name">
+						<span class="badge {{badgeType}} font-weight-normal" title="{{ ticketType }}"><i class="{{ ticketIcon }}"></i></span> <b>{{ticket.Key}}</b>
+						<br>{{ ticket.Title }}
+						<br>
+					</div>
+				</div>
+			</div>
+
+			{% endfor -%}
+		</div>
+	</div>
+{% endfor -%}
+</div>
+</div>
+</div>
+<br>
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Legend:</h3>
+  </div>
+  <div class="panel-body">
+	<div class="row">
+		<div class="col-md-6">
+		<b>Backlog</b>: Tickets waiting to be prioritized.
+		<br><b>On Deck</b>: Tickets ready to be worked on.
+		<br><b>In Progress</b>: Tickets activly being worked on.
+		<br><b>Awaiting Release</b>: Tickets that are done, but are not yet deployed.
+		<br><b>Recently Complete</b>: Tickets completed or released in the last week.
+
+		</div>
+	  <div class="col-md-6">
+			<span class="badge badge-danger font-weight-normal" title="Bug"><i class="fa fa-bug"></i></span> <b>Bug</b>: An issue with existing functionality.
+			<br><span class="badge badge-success font-weight-normal" title="Story"><i class="fa fa-bookmark"></i></span> <b>Story</b>: New functionality to achieve a goal.
+			<br><span class="badge badge-info font-weight-normal" title="Task"><i class="fa fa-check-square"></i></span> <b>Task</b>: General work to be complete.
+			<br><span class="badge badge-default font-weight-normal" title="Subtask"><i class="fa fa-check-square"></i></span> <b>Subtask</b>: General work as part of a larger activity.
+			<br><span class="badge badge-epic font-weight-normal" title="Epic"><i class="fa fa-bolt"></i></span> <b>Epic</b>: Large multipart project.
+		</div>
+	</div>
+  </div>
+</div>
+
+
+<div id="ticketModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+	<div class="modal-header">
+		<div class="modal-header status-header">
+			<b>Status:</b> <span id="ticketStatus"></span>
+		</div>
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		<div class="col-md-4 flag">
+			<span id="ticketType"></span>
+			<br>
+			<small><span id="ticketAge"></span></small>
+		</div>
+        <h2 id="ticketKey" class="modal-title text-center"></h2>
+      </div>
+		<div class="modal-body">
+			<div id="modalTitle"></div>
+			<hr>
+			<div id="modalDescription"></div>
+		</div>
+    </div>
+  </div>
+</div>
+
+<script>
+$('.board-card').click( function(e)
+	{
+		displayModalForElement(this);
+	});
+
+function displayModalForElement(element){
+	$('#modalTitle').html($(element).attr('data-title'));
+	$('#modalDescription').html($(element).attr('data-description'));
+	$('#ticketAge').html($(element).attr('data-age'));
+	$('#ticketKey').html($(element).attr('data-key'));
+	$('#ticketType').html( "<span class='badge " +  $(element).attr('data-badgeType') + "'font-weight-normal><i class='" + $(element).attr('data-ticketIcon') + "'></i></span> " + $(element).attr('data-ticketType') );
+	$('#ticketStatus').html($(element).attr('data-status'));
+	$('#ticketModal').modal();
+}
+
+$(document).ready(function() {
+	const urlSearchParams = new URLSearchParams(window.location.search);
+	const params = Object.fromEntries(urlSearchParams.entries());
+	if (params.ticket) {
+		const ticket = params.ticket.toUpperCase();
+		console.log(ticket);
+		var ticketElement = document.querySelector("[data-key='"+ticket+"']");
+		if (ticketElement)
+		{
+			displayModalForElement(ticketElement);
+		}
+	}
+});
+</script>

@@ -1,0 +1,64 @@
+{
+    "blocks": [
+        {%- contentchannelitem where:'ContentChannelId == 95' -%}
+		    {%- assign itemsSorted = contentchannelitemItems | Sort:"Order" -%}
+            {%- assign count = 0 -%}
+            {%- assign comma = "" -%}
+            {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
+            {%- for item in itemsSorted -%}
+
+                {%- assign startDateTime = item.StartDateTime | Date:'yyyyMMddHHmmss' -%}
+                {%- assign endDateTime = item.ExpireDateTime | Date:'yyyyMMddHHmmss' | Default:'99999999999999' -%}
+                {%- if startDateTime <= nowDateTime and nowDateTime <= endDateTime -%}
+
+                    {%- assign count = count | Plus:1 -%}
+                    {{ comma }}
+                    {%- assign hideTitle = item | Attribute:'HideTitle' | AsBoolean -%}
+                    {%- assign hideDescription = item | Attribute:'HideDescription' | AsBoolean -%}
+                    {%- assign imageGuid = item | Attribute:'VideoCover', 'RawValue' -%}
+                    {%- assign description = item | Attribute:'Description' -%}
+                    {
+                        "type": "mediaBanner",
+                        "props": {
+                            "playlistUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}api/subsplash/webhook/sekids/home/livingitout/video/{{ item.Id }}",
+                            "posterImageUrl": "{{ 'Global' | Attribute:'MobileApplicationRoot' }}GetImage.ashx/{{ imageGuid }}.jpg?guid={{ imageGuid }}&bgcolor=121212&width=1200",
+                            "bannerBackgroundUrl": "",
+                            "averageColor": "#121212",
+                            "vibrantColor": "#121212"
+                        }
+                    }
+                    {% if hideTitle != true %}
+                    ,{
+                        "type": "text",
+                        "props": {
+                            "h1": true,
+                            "content": "{{ item.Title }}",
+                            "align": "left"
+                        }
+                    }
+                    {% endif %}
+                    {% if hideDescription != true %}
+                    ,{
+                        "type": "text",
+                        "props": {
+                            "bottomSpacing": "large",
+                            "content": "{{ description }}"
+                        }
+                    }
+                    {% endif %}
+                    {%- assign comma = "," -%}
+                {%- endif -%}
+            {%- endfor %}
+            {% if count == 0 %}
+            {
+                "type": "text",
+                "props": {
+                    "topSpacing": "large",
+                    "bottomSpacing": "large",
+                    "content": "There are no updates yet. Come back and check again soon!"
+                }
+            }
+            {% endif %}
+        {%- endcontentchannelitem -%}
+    ]
+}
