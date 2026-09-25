@@ -99,6 +99,27 @@ month/day → null → empty response on **both** engines since 2022.
 Pre-existing, not Fluid: `/sekids/home/worship` (DV 50683) emits invalid JSON (missing comma between
 blocks) on DotLiquid today.
 
+## Pass 4 — rows production itself reported (`007_apply_prodpass.sql`)
+
+Production's engine was set to *DotLiquid (with Fluid verification)* on 2026-09-25, so its own ExceptionLog became the
+burn-down source. After `002`/`005`/`006` and the Content/Themes share copy, four database rows kept failing:
+
+| Row | Page | Pattern | Change |
+|---|---|---|---|
+| AttributeValue 3241 | `/MyDashboard` (BEMA *My Workflows Lava*) | `>= aYearAgo  AND ... Status = 'Active'` — uppercase `AND`, single `=` | `and` / `==` |
+| AttributeValue 54526705 | OnePoint `/documents` | `{% if documentCategory == {{ctgyName}} %}` | bare variable |
+| AttributeValue 328839027, 361818241 | `/groups/oncampus` redirect blocks | `Replace:' ':''` — colon between the filter arguments | `Replace:' ',''` |
+
+Forms verified with LavaProbe (R2/R4/R6). Applied to production 2026-09-25. Still open from the same log: the *View Case*
+HtmlContent rows (`{% workflow where:'Guid == "{{workflowGuid}}"' limit:'1'%}` → "A value was expected"; entity tags cannot be
+probed offline), one Communication body with a parse error (page 1123, a single email, not a template), and *Render output
+mismatch* warnings on the group pages that still need Expected/Actual diffing.
+
+**Production deploy notes (2026-09-25):** the three prod web nodes serve `/Content` and `/Themes` as IIS virtual directories
+on `\seccrockprod.file.core.windows.net\iis\IIS_Rock16`, so copying to that share is the deploy. Rock caches parsed
+templates per app lifetime — clear the cache **after** the copy finishes (a clear during the copy re-caches old files, which is
+what happened on the first attempt). A tracked `Thumbs.db` under `my-secc` is locked on the share; skip it.
+
 ## Behaviour changes to test before applying
 
 Rock's vendored DotLiquid evaluates only the **first clause** of `{% if a && b %}` (`If.cs` splits
@@ -127,7 +148,7 @@ Run in SSMS against the target database, in order:
 2. `002_apply.sql` — leave `@DryRun = 1` first and read the log: every statement should show
    `Rows = 1` (except 12442 and 3386, see above). Then set `@DryRun = 0` and run again. Originals
    are copied to `dbo._ROCK9086_LavaBackup` before any change.
-3. `005_apply_fluidpass.sql` and `006_apply_webhooks.sql` — same dry-run then live routine; expect `Rows = 1` on every line and
+3. `005_apply_fluidpass.sql`, `006_apply_webhooks.sql` and `007_apply_prodpass.sql` — same dry-run then live routine; expect `Rows = 1` on every line and
    `StillHasOld = 0`, `HasNew > 0` in its own verify block. Unlike `002`, these two have no expected zeros, so a
    live run (`@DryRun = 0`) that finds any `Rows <> 1` rolls back and throws — nothing is committed.
 4. **Clear the Rock cache** (route `/cachemanager`; not under Admin Tools > System Settings on
@@ -192,4 +213,4 @@ GROUP BY LEFT(REPLACE(REPLACE(Description, CHAR(13), ' '), CHAR(10), ' '), 260)
 ORDER BY Cnt DESC;
 ```
 
-Last updated: 2026-09-24
+Last updated: 2026-09-25
