@@ -19,6 +19,8 @@
     {% endif %}
 
     <div class="isotope_wrap">
+        {%- comment -%}Fluid: an unassigned limit: variable yields zero iterations (DotLiquid ignores it){%- endcomment -%}
+        {%- if limitEvents == null or limitEvents == '' -%}{%- assign limitEvents = 1000000 -%}{%- endif -%}
         {% for eventItemList in EventItems limit:limitEvents %}
             {% assign campusId = 0 %}
             {% assign multiCampus = false %}
