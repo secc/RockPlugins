@@ -273,12 +273,12 @@
                                         {% assign groupZipCode = groupLocation.Location.PostalCode %}
                                         {% assign meetingLocations = meetingLocations | Plus:1 %}
                                         {% assign meetingType = groupLocation.GroupLocationTypeValueId %}
-                                    {%- when '19' and meetingType == '' -%}
+                                    {%- when '19' -%}
                                     {% comment %} 19 == Home {% endcomment %}
                                         {% assign groupZipCode = groupLocation.Location.PostalCode %}
                                         {% assign meetingLocations = meetingLocations | Plus:1 %}
                                         {% assign meetingType = groupLocation.GroupLocationTypeValueId %}
-                                    {%- when null and meetingType == '' -%}
+                                    {%- when null -%}
                                     {% comment %} undefined {% endcomment %}
                                         {% assign groupZipCode = groupLocation.Location.PostalCode %}
                                         {% assign meetingLocations = meetingLocations | Plus:1 %}
