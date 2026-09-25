@@ -1,3 +1,4 @@
+{%- capture bsapos -%}\'{%- endcapture -%}
 <div class="container g-width-100-percent--xs{%comment%}g-padding-x-20--xs g-padding-x-40--md g-width-100-percent--xs{%endcomment%}">
     <div class="">
         <div class="col-md-4">
@@ -396,7 +397,7 @@
                                     </div>
 
                                     <div class="mobile-only" style="position:absolute;top:1rem;right:1rem;">
-                                        <a onclick="shareMessage('{{ group.Name | Replace:"'","\'"}}','Join me at {{ group.Name | Replace:"'","\'"}}!','{{ 'Global' | Attribute:'PublicApplicationRoot' }}groups/homegroups/registration/{{ group.Id }}')">
+                                        <a onclick="shareMessage('{{ group.Name | Replace:"'",bsapos}}','Join me at {{ group.Name | Replace:"'",bsapos}}!','{{ 'Global' | Attribute:'PublicApplicationRoot' }}groups/homegroups/registration/{{ group.Id }}')">
                                             <i class="fas fa-share-alt" style="color:#1D1F21"></i>
                                         </a>
                                     </div>

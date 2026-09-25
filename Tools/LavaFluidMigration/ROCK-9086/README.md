@@ -118,11 +118,21 @@ expression parser rejects and Rock attributes to the enclosing block. Now the ba
 production and dev 2026-09-25. Rule of thumb: when Fluid blames a block tag, read the block body first.
 
 Still open from the same log: ~~the *View Case*
-HtmlContent rows~~ (fixed by 008), one Communication body with a parse error (page 1123, a single email, not a template), and *Render output
-mismatch* warnings on the group pages that still need Expected/Actual diffing.
+HtmlContent rows~~ (fixed by 008), one Communication body with a parse error (page 1123, a single email, not a template), and
+~~*Render output mismatch* warnings on the group pages~~ (diffed; see below).
+
+**Group-page render mismatches (theme files, not SQL).** Diffing Expected/Actual on the group pages gave two results:
+
+- `PublishGroupDetail.lava` — whitespace only (DotLiquid keeps a newline between `</script>` and the next `<div>`). Benign.
+- The share buttons — `shareMessage('{{ group.Name | Replace:"'","\'" }}', …)` escapes apostrophes for the JavaScript string
+  on DotLiquid (`Men\'s`) but is a no-op on Fluid (`Men's`), which ends the `onclick` string early for any group name with an
+  apostrophe. Same mechanism as the json-escape class in pass 3: Fluid decodes `"\'"` to a bare `'`. Fixed in the six SECC2024
+  `Assets/Lava/Groups/` files that use it (ConsolidatedGroups, ConsolidatedPublishGroupDetail, GroupFinder, HomeGroups,
+  OnlineGroups, PublishGroupDetail) with `{%- capture bsapos -%}\'{%- endcapture -%}` at the top and `Replace:"'",bsapos`
+  (LavaProbe Q2/S1 identical on both engines). These are theme files, so copy them to both shares and clear the cache.
 
 **Production deploy notes (2026-09-25):** the three prod web nodes serve `/Content` and `/Themes` as IIS virtual directories
-on `\seccrockprod.file.core.windows.net\iis\IIS_Rock16`, so copying to that share is the deploy. Rock caches parsed
+on `\\seccrockprod.file.core.windows.net\iis\IIS_Rock16`, so copying to that share is the deploy. Rock caches parsed
 templates per app lifetime — clear the cache **after** the copy finishes (a clear during the copy re-caches old files, which is
 what happened on the first attempt). A tracked `Thumbs.db` under `my-secc` is locked on the share; skip it.
 
