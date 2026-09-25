@@ -1,3 +1,4 @@
+{%- capture bsapos -%}\'{%- endcapture -%}
 {% assign photo = 'Global' | Attribute:'PublicApplicationRoot' | Append: '/GetImage.ashx?id=' | Append: PublishGroup.ImageId  %}
 {{ PublishGroup.Title | Append: ' | Southeast Christian Church' | SetPageTitle }}
 
@@ -49,7 +50,7 @@
 					{% endif %}
 
 					{% assign registrationLink = '/groups/oncampus/details/' | Append:PublishGroup.Slug %}
-					<div class="mobile-only event-items g-padding-l-0--xs g-padding-x-10--md col-xs-12 col-md-4" onclick="shareMessage('{{ PublishGroup.Title | Replace:"'","\'"}}','Join me at {{ PublishGroup.Title | Replace:"'","\'"}}!','{{registrationLink}}')" style="pointer:cursor">
+					<div class="mobile-only event-items g-padding-l-0--xs g-padding-x-10--md col-xs-12 col-md-4" onclick="shareMessage('{{ PublishGroup.Title | Replace:"'",bsapos}}','Join me at {{ PublishGroup.Title | Replace:"'",bsapos}}!','{{registrationLink}}')" style="pointer:cursor">
 						<i class="fas fa-share-alt" style="font-size: 24px; margin-top:10px; margin-bottom: 20px;"></i>
 						<h6 class="g-font-size-14--xs" style="color: #616264;">Share</h6>
 					</div>
