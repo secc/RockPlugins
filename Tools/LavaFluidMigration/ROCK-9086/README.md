@@ -116,7 +116,7 @@ probed offline), one Communication body with a parse error (page 1123, a single 
 mismatch* warnings on the group pages that still need Expected/Actual diffing.
 
 **Production deploy notes (2026-09-25):** the three prod web nodes serve `/Content` and `/Themes` as IIS virtual directories
-on `\seccrockprod.file.core.windows.net\iis\IIS_Rock16`, so copying to that share is the deploy. Rock caches parsed
+on \\seccrockprod.file.core.windows.net\iis\IIS_Rock16, so copying to that share is the deploy; clear the cache **after** the copy finishes (a clear during the copy re-caches old files, which is
 templates per app lifetime — clear the cache **after** the copy finishes (a clear during the copy re-caches old files, which is
 what happened on the first attempt). A tracked `Thumbs.db` under `my-secc` is locked on the share; skip it.
 
