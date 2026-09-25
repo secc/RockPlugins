@@ -131,6 +131,24 @@ HtmlContent rows~~ (fixed by 008), one Communication body with a parse error (pa
   OnlineGroups, PublishGroupDetail) with `{%- capture bsapos -%}\'{%- endcapture -%}` at the top and `Replace:"'",bsapos`
   (LavaProbe Q2/S1 identical on both engines). These are theme files, so copy them to both shares and clear the cache.
 
+## Pass 6 — the next rows production reported (`009_apply_prodpass2.sql` + theme files)
+
+With the share-button fix live, the remaining prod rows were:
+
+| Where | Pattern | Fix |
+|---|---|---|
+| AttributeValue 359962155 — `/groups/homegroups` Redirect block `Url` | `{% if ((…) or (…)) %}` (Fluid rejects parens) and `Replace:' ':''` | precomputed `hasFilter`, one plain `if` per clause; comma between args |
+| AttributeValue 449779791, 449129643 — *RSVP Weekend Follow-up* (Detect tapback, Build Note) | `\s` / `\S` inside a quoted regex argument — Fluid "End of tag" | pattern moved into a `capture` (the Build Note capture has no right trim so `' to '` keeps its leading space) |
+| 7 connection-card workflow `Phone` / *Get Phone Number* values | `Slice: 3,15` — Fluid reads the 2nd argument as an end index and drops the last two digits | `Slice: 3,100` |
+| `HomeGroups.lava` (SECC2024, SECC2019, Child_Invert) and `OpportunitySearch.lava` (SECC2024, SECC2019) | `{%- when '19' and meetingType == '' -%}` — Fluid parse error; DotLiquid ignores everything after the first value | `{%- when '19' -%}` / `{%- when null -%}` (what DotLiquid already did) |
+
+**Behaviour change on the Home Groups redirect.** DotLiquid never evaluated the parenthesised condition as written: `?type=`,
+`?meet=`, `?handicap=` or `?otc=` on their own fell through to the campus-only branch (LavaProbe P4–P7). The rewrite does
+what the template says, so those filters now carry through to `/allgroups`.
+
+The RSVP workflow was built on production after dev was last copied, so on dev its two rows log `-1` (absent) instead of
+failing the run.
+
 **Production deploy notes (2026-09-25):** the three prod web nodes serve `/Content` and `/Themes` as IIS virtual directories
 on `\\seccrockprod.file.core.windows.net\iis\IIS_Rock16`, so copying to that share is the deploy. Rock caches parsed
 templates per app lifetime — clear the cache **after** the copy finishes (a clear during the copy re-caches old files, which is
@@ -164,7 +182,7 @@ Run in SSMS against the target database, in order:
 2. `002_apply.sql` — leave `@DryRun = 1` first and read the log: every statement should show
    `Rows = 1` (except 12442 and 3386, see above). Then set `@DryRun = 0` and run again. Originals
    are copied to `dbo._ROCK9086_LavaBackup` before any change.
-3. `005_apply_fluidpass.sql`, `006_apply_webhooks.sql`, `007_apply_prodpass.sql` and `008_apply_viewcase.sql` — run each dry-run then live; expect `Rows = 1` on every line. The 005/006/008 verify blocks should show `StillHasOld = 0`, `HasNew > 0`; 007 uses its `Old*`/`New*` columns. A live run of any of them with `Rows <> 1` rolls back and throws — nothing is committed.
+3. `005_apply_fluidpass.sql`, `006_apply_webhooks.sql`, `007_apply_prodpass.sql`, `008_apply_viewcase.sql` and `009_apply_prodpass2.sql` — run each dry-run then live; expect `Rows = 1` on every line (009 also allows `-1`, a row that does not exist in that database). The 005/006/008 verify blocks should show `StillHasOld = 0`, `HasNew > 0`; 007 and 009 use their `Old*`/`New*` columns. A live run of any of them with an unexpected row count rolls back and throws — nothing is committed.
 4. **Clear the Rock cache** (route `/cachemanager`; not under Admin Tools > System Settings on
    1.16). AttributeValue, HtmlContent, LavaShortcode and WorkflowActionForm are cached; nothing
    changes on screen until you do.
