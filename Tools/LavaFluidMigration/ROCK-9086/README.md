@@ -169,8 +169,17 @@ debug text inside an HTML comment on two signature documents.
 webhook stamps local dates with a `Z`, and DotLiquid's JSON parse converts them to local time (a day back); Fluid keeps
 the date. Fluid is right, so nothing changes; prod shows the correct dates once it runs on Fluid.
 
-**Still open — class-wide:** `{% assign X = {{…}} %}` is in 273 workflow action values across 257 workflow types (mostly
-*Registration Connection* workflows). They all fail to parse on Fluid and need a generated sweep of their own.
+## Pass 8 — `{{ }}` inside `assign`, everywhere (`011_apply_assign_mustache.sql`)
+
+A wide `LIKE '%{%%assign % = {{%'` first suggested 273 workflow action values; it was matching an `assign` on one line
+and a `= {{ … }}` in SQL text further down. `gen_011.py` scans the dumped values with a real tag regex and found 16 rows
+(18 tags): 6 workflow action values (workflow 639 and siblings: `EventContact`, `StaffContact`, `MinistryArea`,
+`SECCLocation`, `ChildContact`), 4 workflow form headers (`failflag = {{Workflow | Attribute:'RegExFailureFlag'}}`), and 6
+HTML blocks — five more copies of the View Case `wStatus = {{Workflow.Status}}` line and one `connectStatus`. All use the
+no-space form DotLiquid resolves, so the bare expression renders the same (LavaProbe G1–G3, V1/V2).
+
+Left alone: AttributeValue 121667807 (workflow 639, *Set Today's date*) puts a whole template inside one `assign` tag. It
+fails to parse on DotLiquid too, so it has never worked; it needs its owner to say what it was meant to do.
 
 **Production deploy notes (2026-09-25):** the three prod web nodes serve `/Content` and `/Themes` as IIS virtual directories
 on `\\seccrockprod.file.core.windows.net\iis\IIS_Rock16`, so copying to that share is the deploy. Rock caches parsed
@@ -205,7 +214,7 @@ Run in SSMS against the target database, in order:
 2. `002_apply.sql` — leave `@DryRun = 1` first and read the log: every statement should show
    `Rows = 1` (except 12442 and 3386, see above). Then set `@DryRun = 0` and run again. Originals
    are copied to `dbo._ROCK9086_LavaBackup` before any change.
-3. `005_apply_fluidpass.sql`, `006_apply_webhooks.sql`, `007_apply_prodpass.sql`, `008_apply_viewcase.sql`, `009_apply_prodpass2.sql` and `010_apply_prodpass3.sql` — run each dry-run then live; expect `Rows = 1` on every line (009 and 010 also allow `-1`, a row that does not exist in that database). The 005/006/008 verify blocks should show `StillHasOld = 0`, `HasNew > 0`; 007 and 009 use their `Old*`/`New*` columns, 010 its `StillOld` counts. A live run of any of them with an unexpected row count rolls back and throws — nothing is committed.
+3. `005_apply_fluidpass.sql`, `006_apply_webhooks.sql`, `007_apply_prodpass.sql`, `008_apply_viewcase.sql`, `009_apply_prodpass2.sql`, `010_apply_prodpass3.sql` and `011_apply_assign_mustache.sql` — run each dry-run then live; expect `Rows = 1` on every line (009-011 also allow `-1`, a row that does not exist in that database). The 005/006/008 verify blocks should show `StillHasOld = 0`, `HasNew > 0`; 007 and 009 use their `Old*`/`New*` columns, 010 and 011 their `StillOld` counts. A live run of any of them with an unexpected row count rolls back and throws — nothing is committed.
 4. **Clear the Rock cache** (route `/cachemanager`; not under Admin Tools > System Settings on
    1.16). AttributeValue, HtmlContent, LavaShortcode and WorkflowActionForm are cached; nothing
    changes on screen until you do.
