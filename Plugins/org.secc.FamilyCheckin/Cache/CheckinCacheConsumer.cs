@@ -71,6 +71,7 @@ namespace org.secc.FamilyCheckin.Cache
 
                         // Invalidate the AllKeys list as an item was added/updated
                         RockCache.Remove( allKeysListCacheKey, allKeysListCacheRegion );
+                        CheckinCache<T>.InvalidateKeysState();
 
                         RockLogger.Log.Debug( RockLogDomains.Bus,
                             $"Updated cache for key {message.Key}. Server: {RockMessageBus.NodeName}. AdditionalData: {message.AdditionalData}" );
@@ -91,6 +92,7 @@ namespace org.secc.FamilyCheckin.Cache
                     }
                     // invalidate AllKeys on error
                     RockCache.Remove( allKeysListCacheKey, allKeysListCacheRegion );
+                    CheckinCache<T>.InvalidateKeysState();
                 }
             }
             else if ( message.Key != null )
@@ -106,6 +108,7 @@ namespace org.secc.FamilyCheckin.Cache
                 }
                 // Invalidate the AllKeys list as an item was removed
                 RockCache.Remove( allKeysListCacheKey, allKeysListCacheRegion );
+                CheckinCache<T>.InvalidateKeysState();
 
                 RockLogger.Log.Debug( RockLogDomains.Bus, $"Removed cache for key {message.Key}" );
             }
@@ -116,6 +119,7 @@ namespace org.secc.FamilyCheckin.Cache
                 RockCache.ClearCachedItemsForType( typeof( T ) );
                 // Clear/invalidate the AllKeys list specifically
                 RockCache.Remove( allKeysListCacheKey, allKeysListCacheRegion );
+                CheckinCache<T>.InvalidateKeysState();
                 RockLogger.Log.Debug( RockLogDomains.Bus, $"Cleared all cache for type {typeName}" );
             }
         }
