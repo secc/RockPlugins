@@ -148,9 +148,7 @@ Run in SSMS against the target database, in order:
 2. `002_apply.sql` — leave `@DryRun = 1` first and read the log: every statement should show
    `Rows = 1` (except 12442 and 3386, see above). Then set `@DryRun = 0` and run again. Originals
    are copied to `dbo._ROCK9086_LavaBackup` before any change.
-3. `005_apply_fluidpass.sql`, `006_apply_webhooks.sql` and `007_apply_prodpass.sql` — same dry-run then live routine; expect `Rows = 1` on every line and
-   `StillHasOld = 0`, `HasNew > 0` in its own verify block. Unlike `002`, these two have no expected zeros, so a
-   live run (`@DryRun = 0`) that finds any `Rows <> 1` rolls back and throws — nothing is committed.
+3. `005_apply_fluidpass.sql`, `006_apply_webhooks.sql` and `007_apply_prodpass.sql` — run each dry-run then live; expect `Rows = 1` on every line. The 005/006 verify blocks should show `StillHasOld = 0`, `HasNew > 0`; 007 uses its `Old*`/`New*` columns. A live run of any of the three with `Rows <> 1` rolls back and throws — nothing is committed.
 4. **Clear the Rock cache** (route `/cachemanager`; not under Admin Tools > System Settings on
    1.16). AttributeValue, HtmlContent, LavaShortcode and WorkflowActionForm are cached; nothing
    changes on screen until you do.
