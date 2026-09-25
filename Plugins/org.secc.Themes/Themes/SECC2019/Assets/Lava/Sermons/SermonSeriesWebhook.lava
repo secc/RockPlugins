@@ -1,4 +1,4 @@
-{% cache key:'webook-sermons-{{page}}' duration:'0' %}
+{%- cache key:'webook-sermons-{{page}}' duration:'0' -%}
 {%- capture bsq -%}\"{%- endcapture -%}
 {%- if page != empty -%}
     {%- assign pageNumber = page -%}

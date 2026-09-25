@@ -87,7 +87,7 @@ div[id*="pnlNotActive"] {
 }
 
 body {
-    background-image: url("../Assets/Images/SE!Kids_Checkin_BG.png");
+    background-image: url("../Assets/Images/SoutheastKids_BG.png");
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
@@ -113,7 +113,7 @@ body {
     overflow-x: hidden;
 
     &::before {
-        background-image: url("../Assets/Images/SEKids_logo_white.svg");
+        background-image: url("../Assets/Images/SoutheastKids_Logo.svg");
         background-repeat: no-repeat;
         background-attachment: initial;
         content: '';

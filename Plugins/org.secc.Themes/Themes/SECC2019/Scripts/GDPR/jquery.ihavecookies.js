@@ -60,8 +60,6 @@
             uncheckBoxes: false
         }, options);
 
-        settings.expires = 30;
-
         var myCookie = getCookie('cookieControl');
         var myCookiePrefs = getCookie('cookieControlPrefs');
         if (!myCookie || !myCookiePrefs || event == 'reinit') {

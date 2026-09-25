@@ -1,0 +1,101 @@
+.img-responsive {
+	&.pull-left {
+		margin-right: 1rem;
+	}
+
+	&.pull-right {
+		margin-left: 1rem;
+	}
+
+	&.inline {
+		display: inline-block;
+	}
+}
+
+.glyphicon {
+	font-size: .8em;
+}
+
+h1, .h1,
+h2, .h2,
+h3, .h3,
+h4, .h4,
+h5, .h5,
+h6, .h6 {
+	margin: 0px;
+}
+
+h5, h6, .h5, .h6 {
+	color: $CopyColor;
+}
+
+hr {
+	border-top: 1px solid $HighlightColor;
+}
+
+.carousel-caption {
+	@include FontSmoothing;
+}
+
+@include non-phones {
+	.row.equal-height-columns {
+		@include flexbox;
+		& > *[class*="col-"] {
+			@include flexbox-prop("flex", 1 0 auto);
+		}
+	}
+}
+
+
+@mixin make-jumbo-columns($gutter-width: 30px, $i: 1, $list: ".col-xs-#{$i}, .col-sm-#{$i}, .col-md-#{$i}, .col-lg-#{$i}") {
+  @for $i from (1 + 1) through $grid-columns {
+    $list: "#{$list}, .col-xs-#{$i}, .col-sm-#{$i}, .col-md-#{$i}, .col-lg-#{$i}";
+  }
+  #{$list} {
+    // Inner gutter via padding
+    padding-left:  ($gutter-width / 2);
+    padding-right: ($gutter-width / 2);
+  }
+
+  .row.normal {
+  	#{$list} {
+  		padding-left: ($grid-gutter-width / 2);
+  		padding-right: ($grid-gutter-width / 2);
+  	}
+  }
+}
+
+
+
+@media (min-width: 1600px) {
+	$gutter: 80px;
+
+	@include make-jumbo-columns($gutter-width: $gutter);
+
+	.row {
+		margin-left: ($gutter / -2);
+		margin-right: ($gutter / -2);
+
+		&.normal {
+			margin-left: ($grid-gutter-width / -2);
+			margin-right: ($grid-gutter-width / -2);
+		}
+	}
+
+	.container {
+		width: (1600px - $gutter - 30px);
+	}
+
+	.container-fluid {
+    	margin-right: auto;
+    	margin-left: auto;
+    	padding-left: 40px;
+    	padding-right: 40px;
+	}
+}
+
+@media print {
+  a[href]:after {
+    content: none !important;
+  }
+}

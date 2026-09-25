@@ -2,7 +2,7 @@
 
 > Southeast's Rock site themes — the master pages, page layouts, and styling that skin Rock's external and check-in sites.
 
-Last updated: 2026-09-02
+Last updated: 2026-09-25
 
 ## Overview
 
@@ -37,9 +37,17 @@ look.
   KyleIdlman17/           One-off event/site theme
   my-secc/                "my.secc" theme (ships Site.Master.cs code-behind)
   SECC2019/ChurchOnline/  Church Online Platform skins (Template.liquid + SCSS, 3 sub-themes)
-  SEMobileApp/            Lava snippets for the mobile app (GrowTabs, Give card) — no layouts
+  SEMobileApp/            2020-era mobile-app Lava (Home, Sermons, Bulletin, cards) — no layouts
   RockConfiguration_Baks/ Backup copies of Global Attribute email-template Lava (header/footer/full)
 ```
+
+## Source of truth
+
+Themes are served from a network share that the CI/CD pipeline does **not** deploy; they are copied there by hand,
+and the share (production) is the source of truth. On 2026-09-24 the repo was re-baselined from the production share
+for the themes the database still uses (ROCK-9086, PR #317) with the Fluid-compatibility fixes re-applied on top;
+`KyleIdlman17`, `SE Kids` and `StarkLess` were not synced (retired / unused). After merging a theme change, copy the
+theme folder to the prod and dev shares (LF line endings, byte-compare, no deletes) and clear the Rock cache.
 
 ## Components
 
@@ -69,7 +77,7 @@ field types here.
 | Folder | Contents |
 |--------|----------|
 | `SECC2019/ChurchOnline/Themes/` | Church Online Platform skins — `SEOnlineDarkTheme`, `SEOnlineDarkThemeYellow`, `SEOnlineLightTheme`, each `Template.liquid` + `javascript.js` + `stylesheet*.scss`. |
-| `SEMobileApp/` | Lava for the mobile app: `GrowTabs.lava`, `Give/Give.lava`, `Give/HtmlToImage/GiveCard.html`. |
+| `SEMobileApp/` | 2020-era copy of the mobile-app Lava (Home, Sermons, Bulletin, HtmlToImage cards, `AppProfile*.lava`, `Bulletin/MetricsInRock.lava`) plus `GrowTabs.lava` and `Give/`. Three of these files are still included by live pages; the current mobile-app templates live in `Content/Lava/SEMobileApp/`. |
 | `RockConfiguration_Baks/GlobalAttributeEmailTemplates/` | Backup Lava for the Email Header / Footer / Full email-template Global Attributes. |
 
 ## Dependencies & Integrations

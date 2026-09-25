@@ -5,64 +5,40 @@
 </style>
 
 {% assign trainingHistory = CurrentPerson | Attribute:'EmployeeTraining', 'Object' %}
-<div class="page-menu g-bg-color--white" style="height: auto">
-    <div class="container-fluid text-center" style="padding: 0;">
-        <nav class="page-nav text-center"  style="height: auto">
-            <ul class="list-inline">
-              {% attribute id:'64657' %}
-                {% for aq in attribute.AttributeQualifiers %}
-                  {% if aq.Key == "values" %}
-                    {% assign trainingTypes = aq.Value | Split:',' %}
-                  {% endif %}
-                {% endfor %}
-              {% endattribute %}
-              {% for type in trainingTypes %}
-                <li><a class="uppercase se-btn se-btn--dark-brd uppercase g-letter-spacing--1" href="#{{ type | ToCssClass | Trim }}">
-                    {% if typeName == "Recurring" %}
-                        Recurring
-                    {% elseif type == "Other" %}
-                        Specific
-                    {% else %}
-                        {{ type | Trim }}
-                    {% endif %}
-                </a></li>
-              {% endfor %}
-            </ul>
-        </nav>
-    </div>
-</div>
+{% attribute id:'64657' %}
+{% for aq in attribute.AttributeQualifiers %}
+    {% if aq.Key == "values" %}
+    {% assign trainingTypes = aq.Value | Split:',' %}
+    {% endif %}
+{% endfor %}
+{% endattribute %}
+
 {% for type in trainingTypes %}
 {% assign typeName = type | Trim %}
 {% assign typeSlug = type | ToCssClass | Trim %}
-<section id="{{typeSlug}}" class="{% cycle 'class':'g-bg-color--gray-lightest','' %}">
+{% if typeName != "Recurring" %}
+    {%continue%}
+{% endif %}
+<section id="{{typeSlug}}" class="{% cycle 'class':'g-bg-color--white','' %}">
     <div class="container">
         <div class="row g-padding-t-150--xs">
             <div class="col-xs-12 g-padding-b-40--xs">
                 <h1 class="g-font-size--jumbo-1 g-font-family--secondary text-center">
                     {% if typeName == "Recurring" %}
                         Recurring Training
-                    {% elseif typeName == "Other" %}
-                        Specific Training
-                    {% else %}
-                        {{typeName}} Training
                     {% endif %}
                 </h1>
                 <div class="g-width-90-percent--sm g-width-70-percent--md g-margin-x-auto--xs" >
                     {% if typeName == "Recurring" %}
                     <p>This group of trainings are required for ALL staff members regardless of how long you’ve worked at Southeast. Each will need to be renewed after specific intervals.</p>
                     {% endif %}
-                    {% if typeName == "Onboarding" %}
-                    <p>These trainings are required for ALL new staff members to get acclimated to working at Southeast and will introduce you to the different departments you will interact with as an employee.</p>
-                    {% endif %}
-                    {% if typeName == "Other" %}
-                    <p>This group of trainings is for specific tasks that some Southeast Staff need to know. Not sure how to navigate a specific task in your role? There’s probably a training here that meets your need.</p>
-                    {% endif %}
                 </div>
             </div>
         </div>
         <div class="isotope_wrap g-padding-b-150--xs clearfix">
-				{% definedvalue where:'DefinedTypeId == 257 && TrainingType == {{typeName}}' %}
+				{% definedvalue where:'DefinedTypeId == 257 && TrainingType == {{typeName}} && IsActive == true' %}
 	                {% for definedValueItem in definedvalueItems %}
+
 	                {% assign trainingType = definedValueItem | Attribute:"TrainingType" %}
                     {% assign trainingRecurringFreq = definedValueItem | Attribute:"RecurringFrequency","RawValue" %}
 	                {% assign trainingTaken = false | AsBoolean %}

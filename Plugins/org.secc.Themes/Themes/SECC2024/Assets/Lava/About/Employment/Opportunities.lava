@@ -1,3 +1,13 @@
+<style>
+    .MsoNoSpacing {
+        font-size: 1rem!important;
+        font-weight: 400!important;
+    }
+    .cd-main-content li {
+        font-size: 1rem!important;
+        font-weight: 400!important;
+    }
+</style>
 <div class="container">
     <div class="row">
         <article class="col-sm-10 col-sm-offset-1">
@@ -44,10 +54,10 @@
 
                                 {%- capture customHtmlTitle -%}
                                     <header>
-                                        <h3 class="job-title g-font-weight--700 g-font-size-34--xs" style="margin: 0px !important;">{{ job.Title }}</h3>
-                                        <h5 class="location uppercase text g-font-size-24--xs g-padding-b-20--xs"style="margin: 0px !important;">{{ job.Location }}</h5>
-                                        <h5 class="department g-font-size-24--xs" style="margin: 0px !important;">{{ job.Department }}</h5>
-                                        <h5 class="type g-font-size-24--xs" style="margin: 0px !important;"><i>{{ job.Type }}</i></h5>
+                                        <h2 class="job-title g-font-family--secondary g-font-size-24--xs g-font-size-32--md g-padding-b-20--xs" style="margin: 0px !important;">{{ job.Title }}</h2>
+                                        <p class="location uppercase text g-padding-b-20--xs g-font-size-14---xs g-font-weight--300" style="margin: 0px !important;">{{ job.Location }}</p>
+                                        <p class="department g-font-size-14---xs g-font-weight--300" style="margin: 0px !important;">{{ job.Department }}</p>
+                                        <p class="type g-font-size-14---xs g-font-weight--300" style="margin: 0px !important;"><i>{{ job.Type }}</i></p>
                                     </header>
                                 {%- endcapture -%}
                                 {%- assign customTitleEncoded = customHtmlTitle | EscapeDataString -%}
@@ -68,10 +78,10 @@
                                 {%- for item in jobsByDate -%}
                                     {%- capture customHtmlTitle -%}
                                         <header>
-                                            <h3 class="job-title g-font-weight--700 g-font-size-34--xs" style="margin: 0px !important;">{{ item.Title }}</h3>
-                                            <h5 class="location uppercase text g-font-size-24--xs g-padding-b-20--xs"style="margin: 0px !important;">{{ item.Location }}</h5>
-                                            <h5 class="department g-font-size-24--xs" style="margin: 0px !important;">{{ item.Department }}</h5>
-                                            <h5 class="type g-font-size-24--xs" style="margin: 0px !important;"><i>{{ item.Type }}</i></h5>
+                                            <h2 class="job-title g-font-family--secondary g-font-size-24--xs g-font-size-32--md g-padding-b-20--xs" style="margin: 0px !important;">{{ item.Title }}</h2>
+                                            <p class="location uppercase text g-padding-b-20--xs g-font-size-14---xs g-font-weight--300" style="margin: 0px !important;">{{ item.Location }}</p>
+                                            <p class="department g-font-size-14---xs g-font-weight--300" style="margin: 0px !important;">{{ item.Department }}</>
+                                            <p class="type g-font-size-14---xs g-font-weight--300" style="margin: 0px !important;"><i>{{ item.Type }}</i></>
                                         </header>
                                     {%- endcapture -%}
                                     {%- assign customTitleEncoded = customHtmlTitle | EscapeDataString -%}

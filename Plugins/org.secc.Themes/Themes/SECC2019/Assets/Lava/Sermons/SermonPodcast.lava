@@ -60,8 +60,8 @@
                         <title>{{ echoMessage.Item.Title | Escape }}</title>
                         <secc:title>{{ echoMessage.Item.Title | Escape }}</secc:title>
                         <description>{{ echoMessage.Item.Title | Escape }}</description>
-                        <link>{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ echoMessage.MediaUrl }}</link>
-                        <enclosure url="{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ echoMessage.MediaUrl }}" length="{{ size }}" type="audio/mpeg"></enclosure>
+                        <link>https://southeastchristian.org/GetFile.ashx/sermon.mp3?guid={{ echoMessage.MediaGuid }}</link>
+                        <enclosure url="https://southeastchristian.org/GetFile.ashx/sermon.mp3?guid={{ echoMessage.MediaGuid }}" length="{{ size }}" type="audio/mpeg"></enclosure>
                         <guid>{{ echoMessage.MediaGuid }}</guid>
                         <pubDate>{{ echoMessage.Item.StartDateTime | Date:'ddd, dd MMM yyyy' }} EST</pubDate>
                         <copyright>{{ echoMessage.Item.StartDateTime | Date:'yyyy' }}</copyright>
@@ -71,7 +71,7 @@
                         <itunes:author>Southeast Christian Church</itunes:author>
                     </item>
                     {%- endif -%}
-                {%- endfor - %}
+                {%- endfor -%}
                 {%- assign mediaURL = item | Attribute:'Audio','Path' | Replace:'~/','' -%}
                 {%- assign mediaGuid = item | Attribute:'Audio','RawValue' -%}
                 {%- assign expireDays = 'Now' | DateDiff: parent.ExpireDateTime, 'd' -%}
@@ -86,8 +86,8 @@
                         <title>{{ parent.Title | Escape }}: {{ item.Title | Escape }}</title>
                         <secc:title>{{ item.Title | Escape }}</secc:title>
                         <description>{{ summary }} Speaker: {{ speaker }}</description>
-                        <link>{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}</link>
-                        <enclosure url="{{ 'Global' | Attribute:'PublicApplicationRoot' }}{{ mediaURL }}" length="{{ size }}" type="audio/mpeg"></enclosure>
+                        <link>https://southeastchristian.org/GetFile.ashx/sermon.mp3?guid={{ mediaGuid }}</link>
+                        <enclosure url="https://southeastchristian.org/GetFile.ashx/sermon.mp3?guid={{ mediaGuid }}" length="{{ size }}" type="audio/mpeg"></enclosure>
                         <guid>{{ mediaGuid }}</guid>
                         <pubDate>{{ pubdate }} EST</pubDate>
                         <copyright>{{ pubdate | Date:'yyyy' }}</copyright>

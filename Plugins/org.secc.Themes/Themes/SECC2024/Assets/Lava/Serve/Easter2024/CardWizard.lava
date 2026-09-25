@@ -108,6 +108,10 @@
 		if (captureHistory) {
 			history.pushState({slideIn:slideIn}, slideInId, "?show="+slideInId);
 		}
+
+		$('html, body').animate({
+			scrollTop: $("#signup").offset().top - 100
+		}, 1000);
     }
     resizeblock = function(selector){
         ch = $(selector).height();

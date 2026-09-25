@@ -40,11 +40,6 @@ input {
 	font-size: 1.6rem;
 }
 
-input[type="checkbox"],
-input[type="radio"] {
-	font-size: inherit;
-}
-
 input[type="search"]::-ms-clear {
 	/* removes close icon - IE */
     display: none;
@@ -68,6 +63,12 @@ Main components
 	/*@include transform(translateZ(0));
 	will-change: transform;*/
 //}
+
+.cd-main-header {
+	li {
+		font-weight: 600;
+	}
+}
 
 .cd-main-content, .cd-main-header {
 	position: relative;
@@ -131,11 +132,7 @@ Main components
 		.cd-logo img.inverse {
 			display: block;
 		}
-	}
-
-	li {
-		font-weight: 600;
-	}
+	}	
 
 	@include MQ(maxL) {
 		&.nav-is-visible {

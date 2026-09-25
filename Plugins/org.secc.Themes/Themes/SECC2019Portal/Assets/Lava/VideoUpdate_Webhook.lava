@@ -7,7 +7,7 @@
 {%- assign nowDateTime = 'Now' | Date:'yyyyMMddHHmmss' -%}
 {%- assign setNumber = 5 -%}
 {%- assign offset = pageNumber | Minus:1 | Times: setNumber -%}
-{%- contentchannelitem where:'ContentChannelId == 51' sort:'StartDateTime desc' offset:'{{offset}}' limit:'{{setNumber}}'  -%}
+{%- contentchannelitem where:'ContentChannelId == 51' sort:'StartDateTime desc' offset:'{{offset}}' limit:'{{setNumber}}' securityenabled:'false'  -%}
 {"OnePointUpdateVideos":
     [
         {%- assign itemComma = '' -%}

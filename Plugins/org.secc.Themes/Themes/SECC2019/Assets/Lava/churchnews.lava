@@ -1,0 +1,145 @@
+{% assign now = 'Now' | Date:'yyyyMMddhhmmss' | AsDouble %}
+{% assign announcementsChannelId = 102 %}
+{% assign eventsChannelId = 103 %}
+<div id="ChurchNews">
+    <section id="hero" class="bg-tan">
+        <div class="container g-padding-y-100--lg">
+            <div class="row">
+                <div class="col-md-5 g-padding-t-100--xs g-padding-b-50--xs">
+                    <h1 class="g-padding-y-50--xs g-font-size-140--xs g-font-size-150--lg g-font-weight--700 g-text-center--xs g-text-left--lg">Church News</h1>
+                    <p class="g-text-center--xs g-text-left--lg">From local church events to connection opportunities, there's something for everyone here at Southeast.</p>
+                </div>
+                <div class="col-md-7">
+                    <div class="g-padding-t-50--xs g-padding-b-100--xs">
+                        {[ youtube id:'xmdifWfX0OE' ]}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="page-menu">
+        <div class="container-fluid text-center" style="padding: 0;">
+            <nav class="page-nav text-center">
+                <ul class="list-inline">
+                    <li><a href="#Announcements">Announcements</a></li>
+                    <li><a href="#Events">Events</a></li>
+                    <li><a href="#Updates">Congregational Updates</a></li>
+                    <li><a href="#Connect">Connect</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    <section id="Announcements" class="bg-tan news-content">
+        <div class="container g-padding-b-100--xs">
+            <h2 class="g-padding-t-100--xs g-padding-b-50--xs">Announcements</h2>
+            {% contentchannelitem where:'ContentChannelId == "{{announcementsChannelId}}"'%}
+                {% for item in contentchannelitemItems%}
+                    {% assign start = item.StartDateTime | Date:'yyyyMMddhhmmss' | AsDouble %}
+                    {% assign expire = item.ExpireDateTime | Date:'yyyyMMddhhmmss' | AsDouble %}
+                    {% if now < start or now >= expire%}
+                        {%continue%}
+                    {% endif %}
+                    <h3 class="g-font-weight--600">{{item.Title}}</h3>
+                    <p>{{item.Content}}</p>
+                    {% if forloop.last != true%}
+                        <hr>
+                    {% endif %}
+                {% endfor %}
+            {% endcontentchannelitem %}
+        </div>
+    </section>
+    <section id="Events" class="news-content">
+        <div class="container g-padding-b-100--xs">
+            <h2 class="g-padding-t-100--xs g-padding-b-50--xs">Events</h2>
+            {% contentchannelitem where:'ContentChannelId == "{{eventsChannelId}}"'%}
+                {% for item in contentchannelitemItems%}
+                    {% assign start = item.StartDateTime | Date:'yyyyMMddhhmmss' | AsDouble %}
+                    {% assign expire = item.ExpireDateTime | Date:'yyyyMMddhhmmss' | AsDouble %}
+                    {% if now < now or now > expire%}
+                        {%continue%}
+                    {% endif %}
+                    <h3 class="g-font-weight--600">{{item.Title}}</h3>
+                    <h4 class="event-dates">{{item | Attribute:'EventDates'}}</h4>
+                    <p>{{item.Content}}</p>
+                    {% if forloop.last != true%}
+                        <hr>
+                    {% endif %}
+                {% endfor %}
+            {% endcontentchannelitem %}
+        </div>
+    </section>
+    <section id="Updates" class="bg-tan">
+        <div class="container text-center g-padding-b-100--xs">
+            <h2 class="g-padding-t-100--xs g-padding-b-50--xs">Congregational Updates</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="update-box g-padding-y-20--xs g-margin-y-20--xs">
+                        <h3 class="g-font-weight--600 g-font-size-38--xs">Church-Wide Attendance</h3>
+                        <p id="Worship" class="g-font-size-48--xs">0</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="update-box g-padding-y-20--xs g-margin-y-20--xs">
+                        <h3 class="g-font-weight--600 g-font-size-38--xs">Campus General Fund</h3>
+                        <p id="Giving" class="g-font-size-48--xs">$0.00</p>
+                    </div>
+                </div>
+            </div>
+            <p class="g-font-size-34--xs g-padding-y-30--xs"><b>Be a part of what God is doing to impact the kingdom.</b></p>
+            {[ sebutton title:'Give Now' href:'https://www.southeastchristian.org/give' type:'dark' addclasses:'' ]}
+        </div>
+    </section>
+    <section id="Connect">
+        <div class="container text-center g-padding-b-100--xs">
+            <h2 class="g-padding-t-100--xs g-padding-b-50--xs">Connect With Us!</h2>
+            <p class="g-padding-y-20--xs">Need prayer? Have questions? Want to get involved in a small group? Get in touch!</p>
+            {[ sebutton title:'Connect' href:'https://www.southeastchristian.org/connect' type:'dark' addclasses:'g-margin-b-50--xs' ]}
+            <hr class="g-padding-b-50--xs">
+            <p class="g-font-weight--600 g-font-size-50--xs g-padding-b-50--xs">Stay in the loop and see what we're up to:</p>
+            <div class="text-center">
+                <div style="display:flex;justify-content:center;" class="">
+                    <a href="https://www.facebook.com/southeastchrist/" target="_blank"><img src="/Content/Home/fb_logo.png" alt="Facebook Logo" class="img-responsive"></a>
+                    <a href="https://twitter.com/southeastchrist" target="_blank"><img class="img-responsive" src="/Content/Home/twitter_logo.png" alt="Twitter Logo"></a>
+                    <a href="https://www.instagram.com/southeastchrist/" target="_blank"><img class="img-responsive" src="/Content/Home/ig_logo.png" alt="Instagram Logo"></a>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    function formatNumberWithDollar(number) {
+      const formattingOptions = {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+      };
+      const formatter = new Intl.NumberFormat('en-US', formattingOptions);
+      const finalString = formatter.format(number);
+      return `${finalString}`;
+    }
+
+
+    let myRequest = new Request('/webhooks/lava.ashx/se-engage/generalgiving/'+ "{{ 'Now'| Date:'yyyy-MM-dd'}}" +'/chart.json');
+
+    fetch(myRequest)
+      .then((response) => response.json())
+      .then((data) => {
+        for (const item of data) {
+          document.querySelector("#Giving").textContent = formatNumberWithDollar(item.giving);
+          break;
+        }
+      })
+      .catch(console.error);
+
+    {% assign lastSunday = 'Now' | DateAdd:-7 | SundayDate %}
+    // attendanceMetricIds = [2,11,12,14,17];
+    let requestString = '/webhooks/lava.ashx/se-engage/scorecard/2,11,12,14,17/' + '"{{lastSunday | Date:'yyyy-MM-dd'}}"' + '/0/data.json';
+    myRequest = new Request(requestString.replace(/['"]+/g, ''));
+    fetch(myRequest)
+      .then((response) => response.json())
+      .then((data) => {
+          document.querySelector("#Worship").textContent = data.WeekendTotal.toLocaleString();
+      })
+      .catch(console.error);
+</script>

@@ -89,6 +89,12 @@
             </script>
 
             {% for publishGroup in results %}
+                {% if forloop.index == 25 %} {% comment %} Force update the DOM after first 25 groups are loaded {% endcomment %}
+                    <script>
+                        document.querySelector('.isotope_wrap.is-showing-items').innerHTML += "";
+                        console.log('First 25 groups loaded...');
+                    </script>
+                {% endif %}
                 {% assign registrationLink = '/groups/oncampus/details/' | Append:publishGroup.Slug %}
                 {% assign contactLink = '/groups/oncampus/contact/' | Append:publishGroup.Guid %}
                 <div class="event-calendar isotope_item g-width-100-percent--xs g-width-49-percent--lg" data-day="{{ publishGroup.MeetingDay}}" data-online="{{ publishGroup.IsOnlineGroup}}">
@@ -100,18 +106,18 @@
                         {%endcomment%}
                         <div class="caption g-padding-x-25--xs g-padding-x-30--md g-padding-t-30--xs g-padding-t-40--md g-margin-b-20--xs g-margin-b-25--md">
                             <h3 class="g-font-family--secondary g-font-size-24--xs g-font-size-32--md g-padding-b-20--xs g-padding-b-25--md" style="margin-bottom: 5px;">
-                                {{ publishGroup.Title}}
+                                {{ publishGroup.Title | Truncate:40,'...' }}
                             </h3>
 
                             <div class="readmore_dates" style="overflow-y: inherit">
                                 <div style='height:auto;'>
-                                    {{ publishGroup.Description }}
+                                    {{ publishGroup.Description | Truncate:325,'...' }}
                                     <br />
                                 </div>
                             </div>
                             {%comment%}
                             {%endcomment%}
-                            <p class="g-font-size-14-xs g-font-weight--300">
+                            <p class="g-font-size-14---xs g-font-weight--300">
                                 <i class="fal fa-church"></i> {{ publishGroup.CampusName }}
                             </p>
 
@@ -124,7 +130,7 @@
                                 </div>
                                 {% assign offset = 0 %}
                                 {%endcomment%}
-                                <p class="g-font-size-14-xs g-font-weight--300">
+                                <p class="g-font-size-14--xs g-font-weight--300">
                                     <i class="fal fa-map-marker-alt"></i> {{ publishGroup.MeetingLocation }}
                                 </p>
                             {% endif %}
@@ -133,7 +139,7 @@
                             {% assign meetingDaySize = publishGroup.MeetingDay | Trim | Size %}
                             {% assign meetingTimeSize = publishGroup.MeetingDay | Trim | Size %}
                             {% if publishGroup.CustomSchedule != '' %}
-                                {% assign scheduleText = publishGroup.CustomSchedule | StripHtml %}
+                                {% assign scheduleText = publishGroup.CustomSchedule %}
                             {% elseif meetingDaySize > 0 and meetingTimeSize > 0 %}
                                 {% assign scheduleText = publishGroup.MeetingDay | Append:'s ' | Append:publishGroup.MeetingTime %}
                             {% endif %}
@@ -169,7 +175,7 @@
                                 </div>
                                 {% assign offset = 0 %}
                                 {%endcomment%}
-                                <p class="g-font-size-14-xs g-font-weight--300">
+                                <p class="g-font-size-14--xs g-font-weight--300">
                                     <i class="fal fa-calendar"></i> {{ scheduleText }}{% if publishGroup.StartDate and publishGroup.StartDate != empty %} | Starting: {{ publishGroup.StartDate | Date:'MMM d'}}
                                     {% endif %}
                                 </p>
@@ -183,7 +189,7 @@
                                     <h6>Children's<br>Programming<br> Available</h6>
                                 </div>
                                 {%endcomment%}
-                                <p class="g-font-size-14-xs g-font-weight--300">
+                                <p class="g-font-size-14--xs g-font-weight--300">
                                     <i class="fal fa-child"></i> Children's Programming Available
                                 </p>
                             {% endif %}
@@ -225,6 +231,12 @@
 
                         </div>
 
+                        <div class="mobile-only" style="position:absolute;top:1rem;right:1rem;">
+                            <a onclick="shareMessage('{{ publishGroup.Name | Replace:"'","\'"}}','Join me at {{ publishGroup.Name | Replace:"'","\'"}}!','{{registrationLink}}')">
+                                <i class="fas fa-share-alt" style="color:#1D1F21"></i>
+                            </a>
+                        </div>
+
                     </div>
                 </div><!-- END: isotope_item -->
             {% endfor %}
@@ -248,3 +260,34 @@
     </div>
 
 </div><!-- END: bootstrap container -->
+{% comment %} Code for share button {%endcomment%}
+<script>
+    function shareMessage(title, message, url) {
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            text: message + '\n',
+            url: url
+        })
+            .then(() => console.log("Message shared successfully!"))
+            .catch((error) => console.error("Error sharing message:", error));
+    } else {
+        console.log("Share API is not supported in this browser.");
+    }
+}
+
+function isMobileDevice() {
+    return /Mobi|Android/i.test(navigator.userAgent);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var elements = document.getElementsByClassName('mobile-only');
+    for (var i = 0; i < elements.length; i++) {
+        if (isMobileDevice()) {
+            elements[i].style.display = 'block';
+        } else {
+            elements[i].style.display = 'none';
+        }
+    }
+});
+</script>

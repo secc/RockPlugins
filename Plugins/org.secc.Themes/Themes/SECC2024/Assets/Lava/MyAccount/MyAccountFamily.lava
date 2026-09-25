@@ -4,6 +4,66 @@
     }
 </style>
 
+<script>
+	function removeGuestKR(el) {
+		const webhookUrl = "https://my.southeastchristian.org/Webhooks/LaunchWorkflow.ashx?WorkflowTypeId=835";
+
+		const krId = el.dataset.krid;
+		const guestGuid = el.dataset.guestguid;
+
+		const payload = {
+			KnownRelationshipOwnerId: krId,
+			GuestGuid: guestGuid
+		};
+
+		fetch(webhookUrl, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(payload)
+		})
+		.then(response => {
+			if (response.ok) {
+				window.location.reload();
+			} else {
+				alert("Failed to remove guest.");
+			}
+		})
+		.catch(error => {
+			console.error("Error:", error);
+			alert("An error occurred while triggering the workflow.");
+		});
+	}
+
+	let removeGuestButtonKR = null;
+
+	function confirmRemoveKR(el) {
+		removeGuestButtonKR = el;
+		removeGuestButtonKR.style.display = "none";
+
+		var confirmRemoveClass = "confirmRemoveKR-" + el.dataset.krid;
+
+		var confirmRemoveElements = document.querySelectorAll(`.${confirmRemoveClass}`);
+
+		confirmRemoveElements.forEach(element => {
+			element.style.display = "block";
+		});
+	}
+
+	function cancelRemoveKR(el){
+		removeGuestButtonKR.style.display = "block";
+
+		var confirmRemoveClass = "confirmRemoveKR-" + el.dataset.krid;
+
+		var confirmRemoveElements = document.querySelectorAll(`.${confirmRemoveClass}`);
+
+		confirmRemoveElements.forEach(element => {
+			element.style.display = "none";
+		});
+	}
+</script>
+
 {% if CurrentPerson.AgeClassification == 'Child' %}
 	{% assign isAdult = false  %}
 {% else %}
@@ -24,7 +84,7 @@
 			{% endif %}
 			<div class="row">
 				<div class="col-md-12 text-center g-padding-b-20--xs g-padding-x-40--xs">
-					<h3 class="g-font-family--secondary">{{ row.FamilyName}}</h3>
+					<h2 class="g-font-family--secondary">{{ row.FamilyName}}</h2>
 				</div>
 			</div>
 			<div class="isotope_wrap clearfix">
@@ -66,7 +126,7 @@
 								{% else %}
 								<!-- Not a kid or an adult? -->
 								{% endif %}
-								<img src="{{ avatar }}" title="Change Image" class="img-responsive img-circle" style="margin: 0 auto; max-width: 180px;">
+								<img src="{{ avatar }}&Size=180" title="Change Image" class="img-responsive img-circle" style="margin: 0 auto; max-width: 180px;">
 							</a>
 						</span>
 						<div class="caption g-padding-b-40--xs">
@@ -75,14 +135,14 @@
 									[[ item title:'{{ person.FullName }}' ]]
 										<div class="g-padding-x-20--xs g-padding-y-20--xs">
 											<p>
-												<span class="g-font-weight--600 text-uppercase">Age</span><br />
+												<span class="g-font-weight--600">Age</span><br />
 												{% if person.NickName %}
 													{{ person.Age }} Years ({{ person.BirthDate | Date:'M/d/yyyy'}})
 												{% endif %}
 											</p>
 												<br />
 											<p>
-											<span class="g-font-weight--600 text-uppercase">Gender</span><br />
+											<span class="g-font-weight--600">Gender</span><br />
 												{% if person.Gender %}
 													{{ person.Gender }}
 												{% endif %}
@@ -90,7 +150,7 @@
 											<br />
 											{% if familyMember.GroupRoleId != 4 %}
 												<p>
-													<span class="g-font-weight--600 text-uppercase">Martial Status</span><br />
+													<span class="g-font-weight--600">Martial Status</span><br />
 														{% definedvalue where:'DefinedTypeId == 7' sort:'Value' %}
 															{% for definedValueItem in definedvalueItems %}
 																{% if person.MaritalStatusValueId == definedValueItem.Id %}
@@ -102,7 +162,7 @@
 												<br />
 											{% endif %}
 											<p>
-												<span class="g-font-weight--600 text-uppercase">Email</span><br />
+												<span class="g-font-weight--600">Email</span><br />
 													{% if person.Email != "" %}
 														{{ person.Email }}
 													{% else %}
@@ -111,7 +171,7 @@
 											</p>
 											<br />
 											<p>
-												<span class="g-font-weight--600 text-uppercase">Address</span><br />
+												<span class="g-font-weight--600">Address</span><br />
 													{% assign personalHome =  person | Address:'Home' %}
 													{% if personalHome != '' %}
 														{{ personalHome }}
@@ -119,11 +179,57 @@
 											</p>
 												<br />
 											<p>
-												<span class="g-font-weight--600 text-uppercase">Phone</span><br />
+												<span class="g-font-weight--600">Phone</span><br />
 													{% for phone in person.PhoneNumbers %}
 														{{ phone.NumberFormatted }} <small>({{ phone.NumberTypeValue.Value }})</small><br />
 													{% endfor %}
 											</p>
+												<br />
+											{% if person.AgeClassification == 'Child' %}
+												{% assign allergy = person | Attribute:'Allergy' %}
+												{% assign allergySize = allergy | Size %}
+												{% if allergySize > 0 %}
+													<p>
+														<span class="g-font-weight--600">Allergy:</span><br />
+														{{ allergy }}
+													</p>
+													<br />
+												{% endif %}
+												{% assign medicalNotes = person | Attribute:'MedicalNotes' %}
+												{% assign medicalNotesSize = medicalNotes | Size %}
+												{% if medicalNotesSize > 0 %}
+													<p>
+														<span class="g-font-weight--600">Medical Notes:</span><br />
+														{{ medicalNotes }}
+													</p>
+													<br />
+												{% endif %}
+												<p>
+												<span class="g-font-weight--600">Can be checked in by:</span><br />
+													{% if row.KnownRelationships != null %}
+														{% assign knownRelationships = row.KnownRelationships | FromJSON %}
+														{% for kr in knownRelationships %}
+															<div class="g-margin-y-10--xs" style="display: flex; flex-direction: row; align-items: center;">
+																<p style="margin-right: 15px;">{{ kr.KRPersonName }}</p>
+																<a onclick="confirmRemoveKR(this)" data-krid="{{kr.KRPersonId}}" title="Remove" class="se-action-btn g-color--dark g-radius--circle">
+																	<i class="fas fa-user-times"></i>
+																</a>
+
+																<p style="display: none; padding-left: 30px; padding-right: 10px;" class="confirmRemoveKR-{{kr.KRPersonId}}">Are you sure?</p>
+
+																<a style="display: none" onclick="removeGuestKR(this)" data-krid="{{kr.KRPersonId}}" data-guestguid="{{person.Guid}}" title="Yes" class="confirmRemoveKR-{{kr.KRPersonId}} se-action-btn g-padding-x-10--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
+																	<i class="fas fa-check"></i>
+																</a>
+																<a style="display: none" onclick="cancelRemoveKR(this)" data-krid="{{kr.KRPersonId}}" title="Cancel" class="confirmRemoveKR-{{kr.KRPersonId}} se-action-btn g-padding-x-10--xs g-color--dark g-radius--circle g-bg-color-hover--black-opacity-lightest">
+																	<i class="fas fa-times"></i>
+																</a>
+															</div>
+														{% endfor %}
+													{% else %}
+														N/A
+													{% endif %}
+												</p>
+											{% endif %}
 										</div>
 									[[ enditem ]]
 								{[ endfaq ]}

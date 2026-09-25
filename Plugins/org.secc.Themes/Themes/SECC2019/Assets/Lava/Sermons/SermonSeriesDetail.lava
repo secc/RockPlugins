@@ -236,19 +236,22 @@
 
             {%- assign currentMessageVideoId = currentMessage | Attribute:'VimeoId' -%}
 			{%- assign youtubeMessageVideoId = currentMessage | Attribute:'YouTubeId' -%}
+            {%- assign mediaElementShortCode = currentMessage | Attribute:'SubsplashVideo','SourceKey' -%}
 
             <div class="series-detail container">
                 <div id="seriesHead" class="row">
-                    {%- unless currentMessageVideoId == empty and youtubeMessageVideoId == empty -%}
+                    {%- unless currentMessageVideoId == empty and youtubeMessageVideoId == empty and mediaElementShortCode == empty -%}
                     <div id="sermonVideo" class="col-sm-12 col-lg-8 g-padding-x-0--xs g-padding-x-60--lg">
                         <div class="embed-responsive embed-responsive-16by9 media-border-only">
                             <div class="embed-responsive embed-responsive-16by9 media-border-only">
-							{% if youtubeMessageVideoId != null and youtubeMessageVideoId != '' %}
-								{% assign startTime =  currentMessage | Attribute:'YoutubeSermonStartTime' %}
-								<iframe width="640" height="360" src="https://www.youtube.com/embed/{{youtubeMessageVideoId}}?start={{startTime}}" title="{{currentMessage.Title}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-							{% else %}
-                                <iframe src="https://player.vimeo.com/video/{{ currentMessageVideoId }}?title=0&byline=0&portrait=0" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
-							{% endif %}
+                                {% if youtubeMessageVideoId != null and youtubeMessageVideoId != '' %}
+    								{% assign startTime =  currentMessage | Attribute:'YoutubeSermonStartTime' %}
+    								<iframe width="640" height="360" src="https://www.youtube.com/embed/{{youtubeMessageVideoId}}?start={{startTime}}" title="{{currentMessage.Title}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                {% elseif mediaElementShortCode != null and mediaElementShortCode != '' %}
+                                    <div class="sap-embed-player"><iframe src="https://subsplash.com/+wtvh/embed/mi/+{{mediaElementShortCode}}?audio&video&logoWatermark" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe></div><style type="text/css">div.sap-embed-player{position:relative;width:100%;height:0;padding-top:56.25%;}div.sap-embed-player>iframe{position:absolute;top:0;left:0;width:100%;height:100%;}</style>
+    							{% else %}
+                                    <iframe src="https://player.vimeo.com/video/{{ currentMessageVideoId }}?title=0&byline=0&portrait=0" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+    							{% endif %}
                             </div>
                         </div>
         			</div>

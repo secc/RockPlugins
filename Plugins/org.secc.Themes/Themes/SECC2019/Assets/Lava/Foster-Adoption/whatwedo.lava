@@ -1,0 +1,41 @@
+<div class="col-lg-4 col-md-6 col-sm-6 event-calendar">
+    <div class="card" style="margin: auto 2rem;">
+        <div class="img-hover">
+            <img src="/Content/Ministries/Foster-Adoption/Inform_icon.svg" onerror="this.style.display='none'" style="margin: auto; height: 120px" class="event-image img-responsive center g-margin-y-70--xs">
+            <h3 class="uppercase g-font-family--secondary text-center">Inform</h3>
+        </div>
+        <div id="inform-details" aria-expanded="false" class="collapse" style="height: 0px;">
+            <hr>
+            <p class="text-center">The content goes here</p>
+        </div>
+        <p class="text-center"><a class="collapsed" role="button" data-toggle="collapse" href="#inform-details" aria-expanded="false" aria-controls="inform-details"><i id="inform-caret" aria-hidden="true" class="fal fa-angle-down text-center fa-2x g-color--black"></i></a></p>
+    </div>
+</div>
+
+<div class="col-lg-4 col-md-6 col-sm-6 event-calendar">
+    <div class="card" style="margin: auto 2rem;">
+        <div class="img-hover">
+            <img src="/Content/Ministries/Foster-Adoption/Connect_icon.svg" onerror="this.style.display='none'" style="margin: auto; height: 120px" class="event-image img-responsive center g-margin-y-70--xs g-padding-y-20--xs">
+            <h3 class="uppercase g-font-family--secondary text-center">Connect</h3>
+        </div>
+        <div id="connect-details" aria-expanded="false" class="collapse" style="height: 0px;">
+            <hr>
+            <p class="text-center">The content goes here</p>
+        </div>
+        <p class="text-center"><a class="collapsed" role="button" data-toggle="collapse" href="#connect-details" aria-expanded="false" aria-controls="connect-details"><i id="connect-caret" aria-hidden="true" class="fal fa-angle-down text-center fa-2x g-color--black"></i></a></p>
+    </div>
+</div>
+
+<div class="col-lg-4 col-md-6 col-sm-6 event-calendar">
+    <div class="card" style="margin: auto 2rem;">
+        <div class="img-hover">
+            <img src="/Content/Ministries/Foster-Adoption/Equip_icon.svg" onerror="this.style.display='none'" style="margin: auto; height: 120px" class="event-image img-responsive center g-margin-y-70--xs">
+            <h3 class="uppercase g-font-family--secondary text-center">Equip</h3>
+        </div>
+        <div id="equip-details" aria-expanded="false" class="collapse" style="height: 0px;">
+            <hr>
+            <p class="text-center">The content goes here</p>
+        </div>
+        <p class="text-center"><a class="collapsed" role="button" data-toggle="collapse" href="#equip-details" aria-expanded="false" aria-controls="equip-details"><i id="equip-caret" aria-hidden="true" class="fal fa-angle-down text-center fa-2x g-color--black"></i></a></p>
+    </div>
+</div>

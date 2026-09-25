@@ -1,0 +1,40 @@
+<br />
+{% capture externalSite %}{{ 'Global' | Attribute:'PublicApplicationRoot' }}{% endcapture %}
+{% assign registrationCount = Registrations | Size %}
+{% if registrationCount > 0 %}
+<div class="fluid-container g-padding-x-0--xs g-padding-y-30--xs">
+    <h2 class="g-font-family--secondary g-margin-b-10--xs g-padding-x-20--xs">Events With Outstanding Balances</h2>
+    <br />
+    <div class="isotope_wrap clearfix">
+        {% for registration in Registrations %}
+        <div class="isotope_item col-xs-12 col-sm-12 col-md-6 g-padding-x-40--xs g-padding-x-20--md">
+            <div class="se-panel clearfix text-center">
+                <div class="g-padding-x-25--xs g-padding-x-30--md g-padding-t-30--xs g-padding-t-40--md g-margin-b-20--xs g-margin-b-25--md">
+                    <h3 class="g-font-family--secondary g-font-size-24--xs g-font-size-32--md g-padding-b-20--xs g-padding-b-25--md">
+                        {{ registration.RegistrationInstance.Name }}
+                    </h3>
+                    <p class="g-font-size-18--xs g-font-weight--300">
+                        Registrants ({{ registration.CreatedDateTime | Date:'MM/dd/yy' }}):<br />
+                        {% for registrant in registration.Registrants %}
+                        {{ registrant.Person.FullName }}</small><br />
+                        {% endfor %}
+                    </p>
+                    {% if registration.BalanceDue > 0 %}
+                    <label class='label label-warning  g-font-size-24--xs'>
+                        {{ registration.BalanceDue | FormatAsCurrency}}</label>
+                    {% endif %}
+
+                    <div class="text-center col-xs-12 g-margin-t-40--xs text-center g-margin-b-25--xs g-margin-b-30--md" style="display: flex;justify-content: space-between;">
+                        <div class="" style="flex:1 1 0;">
+                            <a href="{{ externalSite }}Registration?RegistrationId={{ registration.Id }}" class="se-btn se-btn--primary-brd g-width-100-percent--xs se-btn--sm">
+                                Update Registration
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}

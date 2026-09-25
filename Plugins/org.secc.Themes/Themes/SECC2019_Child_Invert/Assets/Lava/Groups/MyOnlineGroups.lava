@@ -1,0 +1,52 @@
+<script>
+function sendFeedback(){
+	var feedback = document.getElementById("tbFeedback").value;
+	document.location = "{{ 'Global' | Attribute: 'PublicApplicationRoot'}}myonlinegroups/feedback?Command=Submit&Feedback=" + feedback;
+}
+</script>
+
+<div class="text-center">
+<h1><u>My Online Groups</u></h1>
+<br>
+</div>
+<div class="embed-responsive embed-responsive-16by9">
+    <iframe class="embed-responsive-item" src="https://player.vimeo.com/video/347136440?title=0&byline=0&portrait=0" width="640" height="360" frameborder="0" allow="autoplay; fullscreen" allowfullscreen>
+    </iframe>
+</div>
+<br>
+<div>
+	<div class="col-md-6 text-center" style="border: solid 1px black">
+	<h4><u>My Online Groups</u></h4>
+	{% if CurrentPerson != null %}
+	{% assign hasGroup = 'false' %}
+	{% assign groupIds = '|' %}
+
+	{% group where:'GroupTypeId == 324' limit:'1000' %}
+		{% for group in groupItems %}
+			{% assign groupIds = groupIds | Append:group.Id | Append: '|' %}
+		{% endfor %}
+	{% endgroup %}
+	{% groupmember where:'PersonId == {{CurrentPerson.Id}} && GroupMemberStatus == 1' limit:'10000' %}
+		{% for member in groupmemberItems %}
+			{% assign searchString = '|' | Append: member.GroupId | Append: '|' %}
+			{% if groupIds contains searchString%}
+				{% assign hasGroup = 'true' %}
+				<p>
+				<a href="{{member.Group | Attribute:'ZoomMeetingUrl', 'RawValue' }}" target="_blank">{{member.Group.Name}}</a>
+				{% if member.Group.Schedule != null %}  
+				<br>{{ member.Group.Schedule.WeeklyDayOfWeek }}s {{ member.Group.Schedule.WeeklyTimeOfDay | Date:'@ h:mm tt'}}
+				{% endif %}
+				</p>
+			{% endif %}
+		{% endfor %}
+	{% endgroupmember %}
+	{% endif %}
+	</div>
+	<div class="col-md-6 text-center" style="border: solid 1px black">
+		<h4><u>Feedback</u></h4>
+		<form>
+		<textarea Id="tbFeedback" style="border: solid 1px black"></textarea>
+		<a href="javascript:sendFeedback()" class="btn btn-primary">Submit</a>
+		</form>
+	</div>
+</div>
