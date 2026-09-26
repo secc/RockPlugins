@@ -333,7 +333,7 @@
                                             <i class="fal fa-calendar"></i>
                                             {% if group.Schedule.WeeklyDayOfWeek != null and group.Schedule.WeeklyDayOfWeek != "" %}
                                                 {{ group.Schedule.WeeklyDayOfWeek }} {{  group.Schedule.WeeklyTimeOfDay | Date:'@ h:mm tt' }}
-                                            {% else if dayofWeek != ''  %}
+                                            {% else %}
                                                 {{ dayofWeek }} - Contact for Details
                                             {% else %}
                                                 Contact for details
