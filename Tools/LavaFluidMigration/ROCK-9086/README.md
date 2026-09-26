@@ -206,6 +206,28 @@ Rock or on the shares. `/lavatester` rows are someone's work in progress. `?them
 asks for a `PrimaryHeaderNav.lava` that theme does not have. `events/bible-beach` mismatches because DotLiquid writes
 `Liquid error: … Int32 … String` into the Ministry filter and Fluid does not — Fluid is right.
 
+## Pass 10 — dates stored as big numbers (`013_apply_datenumber.sql` + 24 theme/Content files)
+
+The SE!Kids video pages threw "Value was either too large or too small for an Int32". The stack trace ends in
+`Rock.Lava.Fluid.FluidExtensions.ToRealObjectValue` (Rock 1.16.12, `FluidExtensions.cs` line 247), which returns `(int) d` for
+every whole-number decimal. It runs whenever a shortcode collects merge fields (`DynamicShortcode.OnRender` →
+`GetMergeFields`) and whenever a Rock filter such as `Plus` receives the value. Today as `yyMMddHHmm` is 2609251846 — over
+Int32 — so every `Date:'yyMMddHHmm' | AsDouble` (and `yyyyMMddHHmm`, `yyyyMMddHHmmss`) blows up on Fluid once a shortcode or
+filter touches it. Dates before 2021-06 fit, which is why it only started recently. DotLiquid never makes that cast.
+Worth reporting upstream to Spark.
+
+Fix: a decimal point after the day — `yyMMdd.HHmm`, `yyyyMMdd.HHmm`, `yyyyMMdd.HHmmss`. Ordering and equality are unchanged
+(the time becomes the fraction), the whole part stays at 6–8 digits, and blank dates behave the same (LavaProbe U1–U4,
+V1–V4). Hard-coded literals next to these get the same point (`'202601041115'` → `'20260104.1115'`, the "never expires"
+`Default:'99999999999999'` → `'99999999.999999'`).
+
+- 24 repo files under `Themes/` and `Content/Lava/` (`gen_013.py --apply-files`).
+- 7 HTML blocks (`013_apply_datenumber.sql`): 469, 4109 (SE!Kids video), 4257, 4621, 6434, 6544, 10546.
+- **Behaviour change:** HtmlContent 4257 (page 2429 *Resources*) used `AsInteger`, which overflows on DotLiquid too, so that
+  block has failed since mid-2021; it now uses `AsDouble`.
+- HtmlContent 10546 and `churchnews.lava` use a 12-hour `hhmmss`, so 1 PM sorts before 11 AM. Kept as is; changing it would
+  change behaviour.
+
 **Production deploy notes (2026-09-25):** the three prod web nodes serve `/Content` and `/Themes` as IIS virtual directories
 on `\\seccrockprod.file.core.windows.net\iis\IIS_Rock16`, so copying to that share is the deploy. Rock caches parsed
 templates per app lifetime — clear the cache **after** the copy finishes (a clear during the copy re-caches old files, which is
@@ -239,7 +261,7 @@ Run in SSMS against the target database, in order:
 2. `002_apply.sql` — leave `@DryRun = 1` first and read the log: every statement should show
    `Rows = 1` (except 12442 and 3386, see above). Then set `@DryRun = 0` and run again. Originals
    are copied to `dbo._ROCK9086_LavaBackup` before any change.
-3. `005_apply_fluidpass.sql`, `006_apply_webhooks.sql`, `007_apply_prodpass.sql`, `008_apply_viewcase.sql`, `009_apply_prodpass2.sql`, `010_apply_prodpass3.sql`, `011_apply_assign_mustache.sql` and `012_apply_prodpass4.sql` — run each dry-run then live; expect `Rows = 1` on every line (009-012 also allow `-1`, a row that does not exist in that database). The 005/006/008 verify blocks should show `StillHasOld = 0`, `HasNew > 0`; 007 and 009 use their `Old*`/`New*` columns, 010-012 their `StillOld` counts. A live run of any of them with an unexpected row count rolls back and throws — nothing is committed.
+3. `005_apply_fluidpass.sql`, `006_apply_webhooks.sql`, `007_apply_prodpass.sql`, `008_apply_viewcase.sql`, `009_apply_prodpass2.sql`, `010_apply_prodpass3.sql`, `011_apply_assign_mustache.sql`, `012_apply_prodpass4.sql` and `013_apply_datenumber.sql` — run each dry-run then live; expect `Rows = 1` on every line (009-013 also allow `-1`, a row that does not exist in that database). The 005/006/008 verify blocks should show `StillHasOld = 0`, `HasNew > 0`; 007 and 009 use their `Old*`/`New*` columns, 010-013 their `StillOld` counts. A live run of any of them with an unexpected row count rolls back and throws — nothing is committed.
 4. **Clear the Rock cache** (route `/cachemanager`; not under Admin Tools > System Settings on
    1.16). AttributeValue, HtmlContent, LavaShortcode and WorkflowActionForm are cached; nothing
    changes on screen until you do.
