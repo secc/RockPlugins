@@ -108,6 +108,7 @@
     <link rel="stylesheet" href="/Themes/SECC2024/Scripts/GDPR/gdpr.css" />
 
     <asp:ContentPlaceHolder ID="css" runat="server" />
+    <asp:ContentPlaceHolder ID="CustomStyles" runat="server" />
 
     <!-- Included JS Files -->
     <script src="<%# ResolveRockUrl("~~/Scripts/modernizr-custom.js" ) %>" ></script>
