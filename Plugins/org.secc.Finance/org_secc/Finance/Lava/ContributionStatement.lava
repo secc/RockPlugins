@@ -60,14 +60,23 @@
 						<td>{{ transaction.Transaction.TransactionDateTime | Date:'M/d/yyyy' }}</td>
 						<td>
 						{% if transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == '8b086a19-405a-451f-8d44-174e92d6b402' %}
-							{% assign checkNumber = transaction.Transaction.TransactionCode %}
+							{%- comment -%}ROCK-9037: never fall back to the PushPay TransactionCode. Check number sources, in order: the CheckNumber attribute, then a strictly formatted 'Check #12345' transaction Summary. If neither is available, print the currency type with no number.{%- endcomment -%}
+							{%- assign checkNumber = '' -%}
 							{% for av in transaction.Transaction.AttributeValues  %}
 								{% if av.AttributeKey == 'CheckNumber' and av.Value != '' and av.Value != empty %}
 									{% assign checkNumber = av.Value %}
 									{% break %}
 								{% endif %}
 							{% endfor %}
-							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} #{{ checkNumber }}
+							{%- if checkNumber == '' -%}
+								{%- capture checkSummaryPattern -%}^\s*Check #[0-9]+\s*${%- endcapture -%}
+								{%- capture checkDigitsPattern -%}[0-9]+{%- endcapture -%}
+								{%- assign summaryMatch = transaction.Transaction.Summary | RegExMatchValue:checkSummaryPattern | Default:'' -%}
+								{%- if summaryMatch and summaryMatch != '' -%}
+									{%- assign checkNumber = summaryMatch | RegExMatchValue:checkDigitsPattern | Default:'' -%}
+								{%- endif -%}
+							{%- endif -%}
+							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }}{% if checkNumber and checkNumber != '' %} #{{ checkNumber }}{% endif %}
 						{% elseif transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == '928a2e04-c77b-4282-888f-ec549cee026a' %}
 						    {% assign maskedAccountDigitsSize = transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Default:'' | Right:4 | Size %}
 							&#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; {% if maskedAccountDigitsSize == 4 %}{{ transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Right:4 }}{% else %}&#8226;&#8226;&#8226;&#8226;{% endif %}
