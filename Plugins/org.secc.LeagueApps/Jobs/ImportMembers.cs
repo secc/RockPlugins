@@ -38,6 +38,10 @@ namespace org.secc.LeagueApps.Jobs
             do
             {
                 members = apiClient.GetPrivate<List<Member>>( "v2/sites/{siteid}/export/members-2?last-updated=" + latestUpdated.ToString() + "&last-id=" + lastId.ToString() );
+                if ( members == null )
+                {
+                    break;
+                }
                 foreach ( var member in members )
                 {
                     lastId = member.userId;

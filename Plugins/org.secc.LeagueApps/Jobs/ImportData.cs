@@ -192,7 +192,19 @@ namespace org.secc.LeagueApps
                     league3.SaveAttributeValues();
                     dbContext.SaveChanges();
 
-                    var applicants = apiClient.GetPrivate<List<Registrations>>( "/v2/sites/{siteid}/export/registrations-2?last-updated=0&last-id=0&program-id=" + program.programId );
+                    List<Registrations> applicants;
+                    try
+                    {
+                        applicants = apiClient.GetPrivate<List<Registrations>>( "/v2/sites/{siteid}/export/registrations-2?last-updated=0&last-id=0&program-id=" + program.programId );
+                    }
+                    catch ( Exception ex )
+                    {
+                        // Don't let one bad program export abort the whole job; report it and move on.
+                        warnings += "Could not load registrations for program " + program.programId + " (" + program.name + "): " + ex.Message + Environment.NewLine;
+                        ExceptionLogService.LogException( ex );
+                        processed++;
+                        continue;
+                    }
 
                     UpdateLastStatusMessage( "Processing league " + ( processed + 1 ) + " of " + programs.Count + ": " + program.startTime.Year + " > " + program.mode + " > " + program.name + " (" + applicants.Count + " members)." );
 
@@ -222,8 +234,24 @@ namespace org.secc.LeagueApps
                             //    just use the standard person match/create logic
                             if ( person == null )
                             {
-                                var member = apiClient.GetPrivate<Member>( "/v2/sites/{siteid}/members/" + applicant.userId );
+                                Member member;
+                                try
+                                {
+                                    member = apiClient.GetPrivate<Member>( "/v2/sites/{siteid}/members/" + applicant.userId );
+                                }
+                                catch ( Exception ex )
+                                {
+                                    warnings += "Could not load member " + applicant.userId + " for program " + program.programId + " (" + program.name + "): " + ex.Message + Environment.NewLine;
+                                    ExceptionLogService.LogException( ex );
+                                    continue;
+                                }
                                 person = LeagueAppsHelper.CreatePersonFromMember( member, connectionStatus );
+                            }
+
+                            if ( person == null )
+                            {
+                                warnings += "Could not match or create a person for LeagueApps user " + applicant.userId + " in program " + program.programId + " (" + program.name + ")." + Environment.NewLine;
+                                continue;
                             }
 
                             // Check to see if the group member already exists

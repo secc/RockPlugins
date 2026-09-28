@@ -120,32 +120,48 @@ namespace org.secc.LeagueApps
             var response = client.SendAsync( request ).GetAwaiter().GetResult();
             var responseStr = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 
-            if ( !string.IsNullOrWhiteSpace( responseStr ) )
+            if ( !response.IsSuccessStatusCode || string.IsNullOrWhiteSpace( responseStr ) )
             {
-                dynamic obj = JObject.Parse( responseStr );
-                string token = obj.access_token;
-                var newClient = new HttpClient( new LoggingHandler( new HttpClientHandler() ) );
-                newClient.BaseAddress = new Uri( "https://admin.leagueapps.io" );
-                newClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue( "Bearer", token );
-
-                //magic string (sorry)
-                resource = resource.Replace( "{siteid}", siteId );
-
-                response = newClient.GetAsync( resource ).GetAwaiter().GetResult();
-                var export = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-
-
-                try
-                {
-                    return JsonConvert.DeserializeObject<T>( export );
-                }
-                catch ( Exception ex )
-                {
-                    ExceptionLogService.LogException( ex );
-                }
-
+                throw new Exception( "LeagueApps auth failed: " + ( int ) response.StatusCode + " " + response.ReasonPhrase + " " + Truncate( responseStr ) );
             }
-            return default( T );
+
+            dynamic obj = JObject.Parse( responseStr );
+            string token = obj.access_token;
+            if ( string.IsNullOrWhiteSpace( token ) )
+            {
+                throw new Exception( "LeagueApps auth failed: no access_token in response " + Truncate( responseStr ) );
+            }
+
+            var newClient = new HttpClient( new LoggingHandler( new HttpClientHandler() ) );
+            newClient.BaseAddress = new Uri( "https://admin.leagueapps.io" );
+            newClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue( "Bearer", token );
+
+            //magic string (sorry)
+            resource = resource.Replace( "{siteid}", siteId );
+
+            response = newClient.GetAsync( resource ).GetAwaiter().GetResult();
+            var export = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+            if ( !response.IsSuccessStatusCode )
+            {
+                throw new Exception( "LeagueApps API Response: " + ( int ) response.StatusCode + " " + response.ReasonPhrase + " for " + resource + " " + Truncate( export ) );
+            }
+
+            var result = JsonConvert.DeserializeObject<T>( export );
+            if ( result == null )
+            {
+                throw new Exception( "LeagueApps API returned an empty response for " + resource );
+            }
+            return result;
+        }
+
+        private static string Truncate( string value, int maxLength = 500 )
+        {
+            if ( string.IsNullOrEmpty( value ) || value.Length <= maxLength )
+            {
+                return value;
+            }
+            return value.Substring( 0, maxLength ) + "...";
         }
     }
 
