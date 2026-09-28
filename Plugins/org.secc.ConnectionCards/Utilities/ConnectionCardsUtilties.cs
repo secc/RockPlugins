@@ -30,56 +30,81 @@ namespace org.secc.ConnectionCards.Utilities
             int desired_x_dpi = 96;
             int desired_y_dpi = 96;
 
-            using ( GhostscriptRasterizer rasterizer = new GhostscriptRasterizer() )
+            // ROCK-9041: Copy the provider stream into memory and dispose it so the caller can
+            // delete the source BinaryFile without a provider handle still open on it.
+            byte[] pdfBytes;
+            using ( var contentStream = inputFile.ContentStream )
             {
+                pdfBytes = ReadAllBytes( contentStream );
+            }
 
+            using ( GhostscriptRasterizer rasterizer = new GhostscriptRasterizer() )
+            using ( MemoryStream pdfStream = new MemoryStream( pdfBytes ) )
+            {
+                rasterizer.Open( pdfStream );
+                if ( rasterizer.PageCount > 0 )
+                {
+                    string filename = "ImageConvertedPDF.png";
 
-                    rasterizer.Open( inputFile.ContentStream );
-                    if ( rasterizer.PageCount > 0 )
+                    using ( Image img = rasterizer.GetPage( desired_x_dpi, desired_y_dpi, 1 ) )
+                    using ( MemoryStream m = new MemoryStream() )
                     {
-                        string filename = "ImageConvertedPDF.png";
+                        img.Save( m, ImageFormat.Png );
+                        var data = m.ToArray();
 
-                        Image img = rasterizer.GetPage( desired_x_dpi, desired_y_dpi, 1 );
-                        using ( MemoryStream m = new MemoryStream() )
+                        // ROCK-9041: Assign ContentStream (not DatabaseData) so whichever storage
+                        // provider the file type uses receives the content on save.
+                        var outputFile = new BinaryFile()
                         {
-                            img.Save( m, ImageFormat.Png );
-                            var data = m.ToArray();
-                            var databaseData = new BinaryFileData()
-                            {
-                                Content = data
-                            };
-                            var outputFile = new BinaryFile()
-                            {
-                                FileName = filename,
-                                MimeType = "image/png",
-                                DatabaseData = databaseData,
-                            };
-                            return outputFile;
-                        }
+                            FileName = filename,
+                            MimeType = "image/png",
+                            FileSize = data.Length,
+                            ContentStream = new MemoryStream( data ),
+                        };
+                        return outputFile;
                     }
-
-
+                }
             }
             return new BinaryFile();
         }
 
         public static BinaryFile RotateImage( BinaryFile inputFile, RotateFlipType rotateFlipType, RockContext rockContext )
         {
-                Image image = Image.FromStream( inputFile.ContentStream );
+            byte[] imageBytes;
+            using ( var contentStream = inputFile.ContentStream )
+            {
+                imageBytes = ReadAllBytes( contentStream );
+            }
+
+            using ( MemoryStream inMS = new MemoryStream( imageBytes ) )
+            using ( Image image = Image.FromStream( inMS ) )
+            using ( var outMS = new MemoryStream() )
+            {
                 image.RotateFlip( rotateFlipType );
-                using ( var outMS = new MemoryStream() )
-                {
-                    image.Save( outMS, ImageFormat.Png );
-                    inputFile.ContentStream = outMS;
-                    rockContext.SaveChanges();
-                    return inputFile;
-                }
+                image.Save( outMS, ImageFormat.Png );
+
+                // ROCK-9041: Hand the provider a fresh stream positioned at 0. Assigning outMS directly
+                // left the position at the end, which uploaded a zero-byte blob under Azure.
+                var data = outMS.ToArray();
+                inputFile.FileSize = data.Length;
+                inputFile.ContentStream = new MemoryStream( data );
+                rockContext.SaveChanges();
+                return inputFile;
+            }
         }
 
 
         public static List<BinaryFile> ChopImage( BinaryFile inputFile, int cols, int rows, RockContext rockContext )
         {
-            using ( MemoryStream ms = new MemoryStream( inputFile.DatabaseData.Content ) )
+            // ROCK-9041: Read through ContentStream so this works for any storage provider,
+            // not just Database (DatabaseData is null for files stored elsewhere).
+            byte[] imageBytes;
+            using ( var contentStream = inputFile.ContentStream )
+            {
+                imageBytes = ReadAllBytes( contentStream );
+            }
+
+            using ( MemoryStream ms = new MemoryStream( imageBytes ) )
             {
                 List<BinaryFile> output = new List<BinaryFile>();
                 Image originalImage = Image.FromStream( ms );
@@ -98,16 +123,13 @@ namespace org.secc.ConnectionCards.Utilities
                             clone = Crop( clone );
                             clone.Save( outMS, ImageFormat.Png );
                             var data = outMS.ToArray();
-                            var databaseData = new BinaryFileData()
-                            {
-                                Content = data
-                            };
                             var element = new BinaryFile()
                             {
                                 BinaryFileTypeId = inputFile.BinaryFileTypeId,
                                 FileName = "Connection Card",
                                 MimeType = "image/png",
-                                DatabaseData = databaseData
+                                FileSize = data.Length,
+                                ContentStream = new MemoryStream( data )
                             };
                             BinaryFileService binaryFileService = new BinaryFileService( rockContext );
                             binaryFileService.Add( element );
@@ -117,6 +139,27 @@ namespace org.secc.ConnectionCards.Utilities
                 }
                 rockContext.SaveChanges();
                 return output;
+            }
+        }
+
+        /// <summary>
+        /// Copies a storage provider stream into a byte array. Returns an empty array when the stream is null.
+        /// </summary>
+        private static byte[] ReadAllBytes( Stream stream )
+        {
+            if ( stream == null )
+            {
+                return new byte[0];
+            }
+
+            using ( MemoryStream ms = new MemoryStream() )
+            {
+                if ( stream.CanSeek )
+                {
+                    stream.Position = 0;
+                }
+                stream.CopyTo( ms );
+                return ms.ToArray();
             }
         }
 
