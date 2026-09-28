@@ -925,10 +925,10 @@ namespace org.secc.Connection
         /// <param name="rockContext">The rock context.</param>
         /// <param name="firstName">The entered first name, matched against first or nick name.</param>
         /// <param name="lastName">The entered last name.</param>
-        /// <param name="birthdate">The entered birthdate. A person with a different birthdate on file is never matched.</param>
+        /// <param name="birthdate">The entered birthdate. A person whose birthdate on file is neither the same nor a likely typo of it is never matched.</param>
         /// <param name="email">The entered email.</param>
         /// <param name="phone">The entered phone, cleaned to digits.</param>
-        /// <param name="householdFamilyId">The family a new registrant should join: set only when the adults who own the email or phone share exactly one family.</param>
+        /// <param name="householdFamilyId">The family a new registrant should join: set only when the adults who own the email or phone share exactly one family, someone there has the entered last name, and nobody there has the entered first name.</param>
         /// <returns>The single matching family member, or null.</returns>
         private Person FindHouseholdMember( RockContext rockContext, string firstName, string lastName, DateTime? birthdate, string email, string phone, out int? householdFamilyId )
         {
@@ -963,8 +963,17 @@ namespace org.secc.Connection
 
             if ( birthdate.HasValue )
             {
+                // Parents often mistype a child's birthdate. Prefer an exact match, then no birthdate on
+                // file, then one where two of year, month and day agree. A minor is only matched to an
+                // adult on an exact birthdate.
+                var isMinor = birthdate.Value > RockDateTime.Today.AddYears( -18 );
+                var inexactCandidates = candidates.Where( p => !isMinor || p.AgeClassification != AgeClassification.Adult ).ToList();
+
                 var sameBirthdate = candidates.Where( p => p.BirthDate == birthdate.Value ).ToList();
-                candidates = sameBirthdate.Any() ? sameBirthdate : candidates.Where( p => !p.BirthDate.HasValue ).ToList();
+                var noBirthdate = inexactCandidates.Where( p => !p.BirthDate.HasValue ).ToList();
+                var nearBirthdate = inexactCandidates.Where( p => p.BirthDate.HasValue && IsLikelyBirthdateTypo( p.BirthDate.Value, birthdate.Value ) ).ToList();
+
+                candidates = sameBirthdate.Any() ? sameBirthdate : noBirthdate.Any() ? noBirthdate : nearBirthdate;
             }
 
             var householdIds = contactOwnerMemberships
@@ -976,10 +985,34 @@ namespace org.secc.Connection
 
             if ( householdIds.Count == 1 )
             {
-                householdFamilyId = householdIds[0];
+                // Only place a new child where someone shares their last name (not, say, a grandparent's
+                // family) and nobody already has their first name (more likely an existing member whose
+                // birthdate was mistyped).
+                var householdId = householdIds[0];
+                var householdMembers = groupMemberService.Queryable()
+                    .Where( m => m.GroupId == householdId )
+                    .Select( m => m.Person );
+
+                if ( householdMembers.Any( p => p.LastName == lastName ) &&
+                    !householdMembers.Any( p => p.FirstName == firstName || p.NickName == firstName ) )
+                {
+                    householdFamilyId = householdId;
+                }
             }
 
             return candidates.Count == 1 ? candidates[0] : null;
+        }
+
+        /// <summary>
+        /// Whether two different birthdates agree on two of year, month and day, the usual shape of a typo.
+        /// </summary>
+        private static bool IsLikelyBirthdateTypo( DateTime onFile, DateTime entered )
+        {
+            var matchingParts = ( onFile.Year == entered.Year ? 1 : 0 ) +
+                ( onFile.Month == entered.Month ? 1 : 0 ) +
+                ( onFile.Day == entered.Day ? 1 : 0 );
+
+            return matchingParts >= 2;
         }
 
         private void SavePhone( PhoneNumberBox phoneNumberBox, Person person, Guid phoneTypeGuid, History.HistoryChangeList changes )
