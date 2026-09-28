@@ -317,6 +317,12 @@ namespace org.secc.Connection
                     // submit — an existing on-file birthday is never touched.
                     bool birthDateFilledFromForm = false;
 
+                    // Set when the registrant was found in, or added to, the family of the person who owns
+                    // the entered email or phone (a parent signing up a child), so the parent's phone is not
+                    // copied onto the child.
+                    bool enteredForHouseholdMember = false;
+                    int? householdFamilyId = null;
+
                     string firstName = tbFirstName.Text.Trim();
                     string lastName = tbLastName.Text.Trim();
                     DateTime? birthdate = bpBirthdate.SelectedDate;
@@ -375,6 +381,16 @@ namespace org.secc.Connection
                             // If one person with same name and email address exists, use that person
                             person = personMatches.First();
                         }
+                        else
+                        {
+                            // A parent signing up a child usually enters their own email and phone, so the
+                            // match above fails for the child. Look for the child in the parent's family
+                            // before creating anyone, or a duplicate is created in a family of its own
+                            // carrying the parent's phone and family check-in shows it as a second family.
+                            var phone = pnPhone.Visible ? PhoneNumber.CleanNumber( pnPhone.Number ) : string.Empty;
+                            person = FindHouseholdMember( rockContext, firstName, lastName, birthdate, email, phone, out householdFamilyId );
+                            enteredForHouseholdMember = person != null && !email.Equals( person.Email, StringComparison.OrdinalIgnoreCase );
+                        }
                     }
 
                     // If person was not found, create a new one
@@ -384,13 +400,21 @@ namespace org.secc.Connection
                         var dvcConnectionStatus = DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() );
                         var dvcRecordStatus = DefinedValueCache.Get( GetAttributeValue( "RecordStatus" ).AsGuid() );
 
+                        // A minor entered with a parent's contact info belongs in the parent's family
+                        bool addToHousehold = householdFamilyId.HasValue &&
+                            birthdate.HasValue &&
+                            birthdate.Value > RockDateTime.Today.AddYears( -18 );
+
                         person = new Person();
                         person.FirstName = firstName;
                         person.LastName = lastName;
                         person.IsEmailActive = true;
                         person.SetBirthDate( birthdate );
                         birthDateFilledFromForm = birthdate.HasValue;
-                        person.Email = email;
+                        if ( !addToHousehold )
+                        {
+                            person.Email = email;
+                        }
                         person.EmailPreference = EmailPreference.EmailAllowed;
                         person.RecordTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_TYPE_PERSON.AsGuid() ).Id;
                         if ( dvcConnectionStatus != null )
@@ -402,7 +426,17 @@ namespace org.secc.Connection
                             person.RecordStatusValueId = dvcRecordStatus.Id;
                         }
 
-                        PersonService.SaveNewPerson( person, rockContext, campusId, false );
+                        if ( addToHousehold )
+                        {
+                            var childRoleId = GroupTypeCache.GetFamilyGroupType().Roles
+                                .First( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() ).Id;
+                            PersonService.AddPersonToFamily( person, true, householdFamilyId.Value, childRoleId, rockContext );
+                            enteredForHouseholdMember = true;
+                        }
+                        else
+                        {
+                            PersonService.SaveNewPerson( person, rockContext, campusId, false );
+                        }
                         person = personService.Get( person.Id );
                     }
 
@@ -411,12 +445,14 @@ namespace org.secc.Connection
                     {
                         var changes = new History.HistoryChangeList();
 
-                        // Save the phone number differently, depending on selected phone type
-                        if ( pnPhone.Visible && ddlPhoneType.SelectedValue == _cellPhone.Guid.ToString() )
+                        // Save the phone number differently, depending on selected phone type. Skipped for a
+                        // household member entered with a parent's contact info: the phone is the parent's,
+                        // and SavePhone would overwrite the child's own number of that type.
+                        if ( !enteredForHouseholdMember && pnPhone.Visible && ddlPhoneType.SelectedValue == _cellPhone.Guid.ToString() )
                         {
                             SavePhone( pnPhone, person, _cellPhone.Guid, changes );
                         }
-                        else if ( pnPhone.Visible && ddlPhoneType.SelectedValue == _homePhone.Guid.ToString() )
+                        else if ( !enteredForHouseholdMember && pnPhone.Visible && ddlPhoneType.SelectedValue == _homePhone.Guid.ToString() )
                         {
                             SavePhone( pnPhone, person, _homePhone.Guid, changes );
                         }
@@ -880,6 +916,70 @@ namespace org.secc.Connection
                     lDebug.Text = mergeFields.lavaDebugInfo();
                 }
             }
+        }
+
+        /// <summary>
+        /// Finds the registrant among the family members of whoever owns the entered email or phone,
+        /// for a signup where someone (usually a parent) entered their own contact info for another person.
+        /// </summary>
+        /// <param name="rockContext">The rock context.</param>
+        /// <param name="firstName">The entered first name, matched against first or nick name.</param>
+        /// <param name="lastName">The entered last name.</param>
+        /// <param name="birthdate">The entered birthdate. A person with a different birthdate on file is never matched.</param>
+        /// <param name="email">The entered email.</param>
+        /// <param name="phone">The entered phone, cleaned to digits.</param>
+        /// <param name="householdFamilyId">The family a new registrant should join: set only when the adults who own the email or phone share exactly one family.</param>
+        /// <returns>The single matching family member, or null.</returns>
+        private Person FindHouseholdMember( RockContext rockContext, string firstName, string lastName, DateTime? birthdate, string email, string phone, out int? householdFamilyId )
+        {
+            householdFamilyId = null;
+            if ( email.IsNullOrWhiteSpace() && phone.IsNullOrWhiteSpace() )
+            {
+                return null;
+            }
+
+            var familyGroupTypeId = GroupTypeCache.GetFamilyGroupType().Id;
+            var adultRoleGuid = Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid();
+            var groupMemberService = new GroupMemberService( rockContext );
+
+            var contactOwnerMemberships = groupMemberService.Queryable()
+                .Where( m => m.Group.GroupTypeId == familyGroupTypeId &&
+                    !m.Group.IsArchived &&
+                    !m.Person.IsDeceased &&
+                    ( ( email != string.Empty && m.Person.Email == email ) ||
+                      ( phone != string.Empty && m.Person.PhoneNumbers.Any( pn => pn.Number == phone ) ) ) );
+
+            var ownerFamilyIds = contactOwnerMemberships.Select( m => m.GroupId );
+
+            var candidateIds = groupMemberService.Queryable()
+                .Where( m => ownerFamilyIds.Contains( m.GroupId ) )
+                .Select( m => m.PersonId );
+
+            var candidates = new PersonService( rockContext ).Queryable()
+                .Where( p => candidateIds.Contains( p.Id ) &&
+                    ( p.FirstName == firstName || p.NickName == firstName ) &&
+                    p.LastName == lastName )
+                .ToList();
+
+            if ( birthdate.HasValue )
+            {
+                var sameBirthdate = candidates.Where( p => p.BirthDate == birthdate.Value ).ToList();
+                candidates = sameBirthdate.Any() ? sameBirthdate : candidates.Where( p => !p.BirthDate.HasValue ).ToList();
+            }
+
+            var householdIds = contactOwnerMemberships
+                .Where( m => m.GroupRole.Guid == adultRoleGuid )
+                .Select( m => m.GroupId )
+                .Distinct()
+                .Take( 2 )
+                .ToList();
+
+            if ( householdIds.Count == 1 )
+            {
+                householdFamilyId = householdIds[0];
+            }
+
+            return candidates.Count == 1 ? candidates[0] : null;
         }
 
         private void SavePhone( PhoneNumberBox phoneNumberBox, Person person, Guid phoneTypeGuid, History.HistoryChangeList changes )
