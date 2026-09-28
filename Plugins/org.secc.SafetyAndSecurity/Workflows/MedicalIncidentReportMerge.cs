@@ -85,7 +85,15 @@ namespace org.secc.SafetyAndSecurity
 
             using ( MemoryStream ms = new MemoryStream() )
             {
-                PdfDocument doc = new PdfDocument( new PdfReader( PDF.ContentStream ), new PdfWriter( ms ) );
+                // ROCK-9041: Copy the storage provider stream into memory and dispose it rather than
+                // handing iText a provider stream it never closes.
+                byte[] pdfBytes;
+                using ( var contentStream = PDF.ContentStream )
+                {
+                    pdfBytes = contentStream.ReadBytesToEnd();
+                }
+
+                PdfDocument doc = new PdfDocument( new PdfReader( new MemoryStream( pdfBytes ) ), new PdfWriter( ms ) );
                 PdfAcroForm form = PdfAcroForm.GetAcroForm( doc, true );
                 var pdfFields = form.GetAllFormFields();
 

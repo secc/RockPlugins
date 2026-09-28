@@ -82,7 +82,12 @@ namespace org.secc.SafetyAndSecurity
                 PDF = binaryFileService.Get( GetActionAttributeValue( action, "AdultVolunteerApplicationPDF" ).AsGuid() );
             }
 
-            var pdfBytes = PDF.ContentStream.ReadBytesToEnd();
+            // ROCK-9041: Dispose the storage provider stream after reading the template bytes.
+            byte[] pdfBytes;
+            using ( var contentStream = PDF.ContentStream )
+            {
+                pdfBytes = contentStream.ReadBytesToEnd();
+            }
 
             var renderedPdfBytes = GeneratePdfWithFields( pdfBytes, fields, flattenFields: true );
 

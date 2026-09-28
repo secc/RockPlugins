@@ -70,7 +70,12 @@ namespace org.secc.SafetyAndSecurity
 
             BinaryFile PDF = binaryFileService.Get( GetActionAttributeValue( action, "ExternalChurchReferencePDF" ).AsGuid() );
 
-            var pdfBytes = PDF.ContentStream.ReadBytesToEnd();
+            // ROCK-9041: Dispose the storage provider stream after reading the template bytes.
+            byte[] pdfBytes;
+            using ( var contentStream = PDF.ContentStream )
+            {
+                pdfBytes = contentStream.ReadBytesToEnd();
+            }
 
             using ( MemoryStream ms = new MemoryStream() )
             {
