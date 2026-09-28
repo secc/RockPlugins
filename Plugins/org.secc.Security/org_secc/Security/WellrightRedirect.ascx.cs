@@ -128,7 +128,12 @@ namespace RockWeb.Plugins.org_secc.Security
             {
                 return "";
             }
-            var binaryData = binaryFile.ContentStream.ReadBytesToEnd();
+            // ROCK-9041: Dispose the storage provider stream after reading the certificate bytes.
+            byte[] binaryData;
+            using ( var contentStream = binaryFile.ContentStream )
+            {
+                binaryData = contentStream.ReadBytesToEnd();
+            }
 
             X509Certificate2 signingCert = new X509Certificate2(
                 binaryData,

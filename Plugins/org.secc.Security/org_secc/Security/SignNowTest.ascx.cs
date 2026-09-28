@@ -44,9 +44,11 @@ namespace RockWeb.Plugins.org_secc.Security
                 string tempFile = Path.GetTempPath() + "VolunteerApplication_" + person.FirstName + person.LastName + ".pdf";
 
                 // Open a FileStream to write to the file:
+                // ROCK-9041: Dispose the storage provider stream after copying it to the temp file.
                 using ( Stream fileStream = File.OpenWrite( tempFile ) )
+                using ( Stream contentStream = renderedPDF.ContentStream )
                 {
-                    renderedPDF.ContentStream.CopyTo( fileStream );
+                    contentStream.CopyTo( fileStream );
                 }
 
                 SignNow signNow = new SignNow();
