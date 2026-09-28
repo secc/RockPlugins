@@ -46,7 +46,11 @@ namespace org.secc.LeagueApps
                     RockContext rockContext = new RockContext();
                     BinaryFileService binaryFileService = new BinaryFileService( rockContext );
                     var p12File = binaryFileService.GetNoTracking( Settings.GetAttributeValue( Constants.LeagueAppsServiceAccountFile ).AsGuid() );
-                    certificate = p12File.ContentStream.ReadBytesToEnd();
+                    // ROCK-9041: Dispose the storage provider stream after reading it.
+                    using ( var contentStream = p12File?.ContentStream )
+                    {
+                        certificate = contentStream?.ReadBytesToEnd();
+                    }
                 }
                 return certificate;
             }
