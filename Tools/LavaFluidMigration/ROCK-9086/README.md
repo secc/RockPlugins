@@ -273,8 +273,11 @@ on the group finder (Fluid is right), DotLiquid-only `Liquid error:` text, `?the
 (a Person or null), so DotLiquid's first-clause-only reading gives the same result (LavaProbe case 32). `SummaryViewText` was
 not in any earlier sweep; worth adding to the scanner's column list.
 
-**Open:** sermon series pages stop rendering on Fluid at the YouTube id (`SermonSeriesDetail.lava`, the `youtube`
-shortcode); Bema pipeline `ActionLinks` render empty on Fluid (plugin object, not Lava — new plugin version requested from
+**Ignored:** sermon series pages stop rendering on Fluid at the YouTube id (`SermonSeriesDetail.lava`, the `youtube`
+shortcode). The Rock sermon pages are retired — sermons live on Webflow and the page carries a Lava redirect there — so
+treat these rows as known.
+
+**Open:** Bema pipeline `ActionLinks` render empty on Fluid (plugin object, not Lava — new plugin version requested from
 BEMA); LWYA blog `Page:'Title'` returns the page name on Fluid.
 
 **Production deploy notes (2026-09-25):** the three prod web nodes serve `/Content` and `/Themes` as IIS virtual directories
