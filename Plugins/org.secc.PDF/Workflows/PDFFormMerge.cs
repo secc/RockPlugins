@@ -129,12 +129,17 @@ namespace org.secc.PDF
                 throw new InvalidOperationException( "PDF Template binary file was not found. Guid: " + templateGuid );
             }
 
-            if ( pdf.ContentStream == null )
+            // ROCK-9041: Dispose the storage provider stream after reading the template bytes.
+            byte[] pdfBytes;
+            using ( var contentStream = pdf.ContentStream )
             {
-                throw new InvalidOperationException( "PDF Template content stream is empty or unavailable. Guid: " + templateGuid );
-            }
+                if ( contentStream == null )
+                {
+                    throw new InvalidOperationException( "PDF Template content stream is empty or unavailable. Guid: " + templateGuid );
+                }
 
-            var pdfBytes = pdf.ContentStream.ReadBytesToEnd();
+                pdfBytes = contentStream.ReadBytesToEnd();
+            }
             if ( pdfBytes == null || pdfBytes.Length == 0 )
             {
                 throw new InvalidOperationException( "PDF Template has no content. Guid: " + templateGuid );

@@ -90,8 +90,21 @@ namespace org.secc.PDF.Workflows
 
             PdfMerger merger = new PdfMerger(pdfDocument);
 
-            PdfDocument pdfDoc1 = new PdfDocument(new PdfReader(pdf1.ContentStream));
-            PdfDocument pdfDoc2 = new PdfDocument(new PdfReader(pdf2.ContentStream));
+            // ROCK-9041: Copy the storage provider streams into memory and dispose them rather than
+            // handing iText a provider stream it never closes.
+            byte[] pdf1Bytes;
+            byte[] pdf2Bytes;
+            using ( var stream1 = pdf1.ContentStream )
+            {
+                pdf1Bytes = stream1.ReadBytesToEnd();
+            }
+            using ( var stream2 = pdf2.ContentStream )
+            {
+                pdf2Bytes = stream2.ReadBytesToEnd();
+            }
+
+            PdfDocument pdfDoc1 = new PdfDocument(new PdfReader(new MemoryStream(pdf1Bytes)));
+            PdfDocument pdfDoc2 = new PdfDocument(new PdfReader(new MemoryStream(pdf2Bytes)));
 
             merger.Merge(pdfDoc1, 1, pdfDoc1.GetNumberOfPages());
             merger.Merge(pdfDoc2, 1, pdfDoc2.GetNumberOfPages());
