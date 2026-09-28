@@ -80,6 +80,12 @@ namespace org.secc.SignNowWorkflow
                 string tempPath = Path.GetTempPath();
                 string tempFileName = ( String ) document["document_name"];
                 var result = SignNowSDK.Document.Download( token, signNowDocumentId, tempPath, tempFileName );
+                string downloadedFilePath = $"{tempPath}{tempFileName}.pdf";
+
+                // ROCK-9041: Read the downloaded PDF into memory instead of handing the storage provider an
+                // open FileStream. Not every provider disposes ContentStream on save, which left the temp file
+                // locked and made the File.Delete below throw.
+                var signedPdfStream = new MemoryStream( File.ReadAllBytes( downloadedFilePath ) );
 
                 // Put it into the workflow attribute
                 BinaryFile signedPDF = binaryfileService.Get( documentGuid );
@@ -106,7 +112,7 @@ namespace org.secc.SignNowWorkflow
                             signedPDF.BinaryFileTypeId = new BinaryFileTypeService( rockContext ).Get( binaryFileTypeGuid ).Id;
                         }
                     }
-                    signedPDF.ContentStream = new FileStream( $"{tempPath}{tempFileName}.pdf", FileMode.Open);
+                    signedPDF.ContentStream = signedPdfStream;
 
                     rockContext.SaveChanges();
 
@@ -123,12 +129,13 @@ namespace org.secc.SignNowWorkflow
                 else
                 {
                     signedPDF.FileName = tempFileName;
-                    signedPDF.ContentStream = new FileStream( $"{tempPath}{tempFileName}.pdf", FileMode.Open );
+                    signedPDF.ContentStream = signedPdfStream;
 
+                    rockContext.SaveChanges();
                 }
 
                 // Delete the file when we are done:
-                File.Delete( tempPath + tempFileName );
+                File.Delete( downloadedFilePath );
 
                 // We have a signed copy
                 SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "PDFSigned" ).AsGuid(), "True" );
