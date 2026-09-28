@@ -250,9 +250,20 @@ weekend's SE!Kids Int32 rows are from before it. Every rewrite keeps the DotLiqu
 | AttributeValue 211932365, page 3135 | `{% if {{row.Status}} … %}` | `{% if row.Status … %}` |
 | AttributeValue 55093101, 58019746 (block LavaTemplates) | `when '19' and meetingType == ''` | `when '19'` |
 | SystemCommunication 9 *Workflow Form Notification* | `{% if url \| RegExMatch:… %}` | assign first, as WorkflowActionForm 531 already does |
+| AttributeValue 3752511/3752514, 71943274/71943275, 446668184/446668185 — MinistrySafe *Send the Email* body/subject (workflow types 108, 421 and a prod-only copy) | `Attribute:'IsRenewal'` is the formatted Boolean, `Yes`/`No`, compared to `True` | `Attribute:'IsRenewal','RawValue'` and `== 'True'` |
+| HtmlContent 12330, `/MyVolunteerStatus` | `CurrentPerson \| PersonInDataView:'1678'` — not a Lava filter | `CurrentPerson.Id \| IsInDataView:'1678'` (data view *Ministry Safe Training is Expired*) |
 
-**Behaviour change:** SystemCommunication 9 — DotLiquid ignored the `RegExMatch` and prefixed *every* attribute URL with
-`InternalApplicationRoot`; now only relative ones are.
+**Behaviour changes on DotLiquid:**
+
+- SystemCommunication 9 — DotLiquid ignored the `RegExMatch` and prefixed *every* attribute URL with
+  `InternalApplicationRoot`; now only relative ones are.
+- MinistrySafe emails — `Yes` never equalled `True` on DotLiquid, so every email used the first-time wording (Fluid would
+  have used the renewal wording for everyone). Renewals now get the renewal subject and body.
+- MyVolunteerStatus — the unknown filter meant *Expired* never showed on DotLiquid (and always would on Fluid). People in
+  data view 1678 now see *Expired* and the *Renew MinistrySafe* button; the page runs that data view once per view.
+
+AttributeValue rows are guarded on `AttributeId` and `EntityId` as well as `Id`: on RockDev, ids 446668184/446668185 are
+unrelated rows (action 76744 exists only on prod), so they log `-1` there.
 
 **Not fixed here (benign):** per-render tokens (ConfirmAccount, Unsubscribe, rckipid, shortlinks), the "Starting:" day shift
 on the group finder (Fluid is right), DotLiquid-only `Liquid error:` text, `?theme=` requests for files the theme lacks.
