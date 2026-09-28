@@ -268,9 +268,14 @@ unrelated rows (action 76744 exists only on prod), so they log `-1` there.
 **Not fixed here (benign):** per-render tokens (ConfirmAccount, Unsubscribe, rckipid, shortlinks), the "Starting:" day shift
 on the group finder (Fluid is right), DotLiquid-only `Liquid error:` text, `?theme=` requests for files the theme lacks.
 
+**`015_apply_wftype456.sql`** (`gen_015.py`): WorkflowType 456 *The Unified Connection Card* `SummaryViewText` (shown on
+`/Workflow/{id}`) has `{% if person != null && person != empty %}` — `&&` → `and`. `person` is `Attribute:'Person','Object'`
+(a Person or null), so DotLiquid's first-clause-only reading gives the same result (LavaProbe case 32). `SummaryViewText` was
+not in any earlier sweep; worth adding to the scanner's column list.
+
 **Open:** sermon series pages stop rendering on Fluid at the YouTube id (`SermonSeriesDetail.lava`, the `youtube`
-shortcode); Bema pipeline `ActionLinks` render empty on Fluid (plugin object, not Lava); LWYA blog `Page:'Title'` returns the
-page name on Fluid; one `{% if person != null && person != empty %}` on workflow type 456 not found in any stored column.
+shortcode); Bema pipeline `ActionLinks` render empty on Fluid (plugin object, not Lava — new plugin version requested from
+BEMA); LWYA blog `Page:'Title'` returns the page name on Fluid.
 
 **Production deploy notes (2026-09-25):** the three prod web nodes serve `/Content` and `/Themes` as IIS virtual directories
 on `\\seccrockprod.file.core.windows.net\iis\IIS_Rock16`, so copying to that share is the deploy. Rock caches parsed
@@ -305,7 +310,7 @@ Run in SSMS against the target database, in order:
 2. `002_apply.sql` — leave `@DryRun = 1` first and read the log: every statement should show
    `Rows = 1` (except 12442 and 3386, see above). Then set `@DryRun = 0` and run again. Originals
    are copied to `dbo._ROCK9086_LavaBackup` before any change.
-3. `005_apply_fluidpass.sql`, `006_apply_webhooks.sql`, `007_apply_prodpass.sql`, `008_apply_viewcase.sql`, `009_apply_prodpass2.sql`, `010_apply_prodpass3.sql`, `011_apply_assign_mustache.sql`, `012_apply_prodpass4.sql`, `013_apply_datenumber.sql` and `014_apply_prodpass5.sql` — run each dry-run then live; expect `Rows = 1` on every line (009-014 also allow `-1`, a row that does not exist in that database). The 005/006/008 verify blocks should show `StillHasOld = 0`, `HasNew > 0`; 007 and 009 use their `Old*`/`New*` columns, 010-014 their `StillOld` counts. A live run of any of them with an unexpected row count rolls back and throws — nothing is committed.
+3. `005_apply_fluidpass.sql`, `006_apply_webhooks.sql`, `007_apply_prodpass.sql`, `008_apply_viewcase.sql`, `009_apply_prodpass2.sql`, `010_apply_prodpass3.sql`, `011_apply_assign_mustache.sql`, `012_apply_prodpass4.sql`, `013_apply_datenumber.sql`, `014_apply_prodpass5.sql` and `015_apply_wftype456.sql` — run each dry-run then live; expect `Rows = 1` on every line (009-015 also allow `-1`, a row that does not exist in that database). The 005/006/008 verify blocks should show `StillHasOld = 0`, `HasNew > 0`; 007 and 009 use their `Old*`/`New*` columns, 010-015 their `StillOld` counts. A live run of any of them with an unexpected row count rolls back and throws — nothing is committed.
 4. **Clear the Rock cache** (route `/cachemanager`; not under Admin Tools > System Settings on
    1.16). AttributeValue, HtmlContent, LavaShortcode and WorkflowActionForm are cached; nothing
    changes on screen until you do.
