@@ -275,10 +275,13 @@ not in any earlier sweep; worth adding to the scanner's column list.
 
 **Ignored:** sermon series pages stop rendering on Fluid at the YouTube id (`SermonSeriesDetail.lava`, the `youtube`
 shortcode). The Rock sermon pages are retired — sermons live on Webflow and the page carries a Lava redirect there — so
-treat these rows as known.
+treat these rows as known. The LWYA blog header (HtmlContent 284 and 10 copies, `/lwya/blog/post`) gets the page name
+from `'Global' | Page:'Title'` on Fluid instead of the post title; it only feeds the breadcrumb and a commented-out
+heading, and the LWYA site (Site 18) had ~4 human views in the 90 days to 2026-09-28 (109 of 113 were a Chrome 48 crawler),
+so these rows are known too. Candidate for retiring or redirecting like the sermon pages.
 
 **Open:** Bema pipeline `ActionLinks` render empty on Fluid (plugin object, not Lava — new plugin version requested from
-BEMA); LWYA blog `Page:'Title'` returns the page name on Fluid.
+BEMA).
 
 **Production deploy notes (2026-09-25):** the three prod web nodes serve `/Content` and `/Themes` as IIS virtual directories
 on `\\seccrockprod.file.core.windows.net\iis\IIS_Rock16`, so copying to that share is the deploy. Rock caches parsed
