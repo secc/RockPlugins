@@ -3,8 +3,8 @@ Reads scratchpad/vals/p14-<Table>-<Id>-<Col>.txt (exact prod values), applies li
 Tools/LavaFluidMigration/ROCK-9086/015_apply_wftype456.sql with per-row guarded REPLACEs (same shape as 005-013)."""
 import os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
-REPO = r"C:\Users\stephenl\source\repos\RockPlugins-16"
-OUT = os.path.join(REPO, r"Tools\LavaFluidMigration\ROCK-9086\015_apply_wftype456.sql")
+V = os.environ.get("ROCK9086_VALS", os.path.join(HERE, "vals"))  # prod dumps are not committed; point ROCK9086_VALS at them
+OUT = os.path.join(HERE, "015_apply_wftype456.sql")
 SQ = chr(39)
 
 R_JOB = [("job.[" + SQ + "Job Serial" + SQ + "]", "job[" + SQ + "Job Serial" + SQ + "]")]
@@ -42,7 +42,7 @@ ROWS = [
 # AttributeValue Id -> (AttributeId, EntityId) on production: ids are not guaranteed to be the same row on dev, so the
 # update and the "absent" (-1) check both match all three
 AV_KEYS = {}
-for kv in open(os.path.join(HERE, "vals", "p14-av-keys.txt"), encoding="utf-8").read().strip().split(","):
+for kv in open(os.path.join(V, "p14-av-keys.txt"), encoding="utf-8").read().strip().split(","):
     i_, a_, e_ = (int(x) for x in kv.split(":"))
     AV_KEYS[i_] = (a_, e_)
 
@@ -70,7 +70,7 @@ IF OBJECT_ID('dbo._ROCK9086_LavaBackup') IS NULL
 """]
 verify = []
 for tbl, i, col, label, rules in ROWS:
-    p = os.path.join(HERE, "vals", "p14-%s-%d-%s.txt" % (tbl, i, col))
+    p = os.path.join(V, "p14-%s-%d-%s.txt" % (tbl, i, col))
     t = open(p, encoding="utf-8", newline="").read()
     pairs = []
     for o, n in rules:
@@ -84,9 +84,12 @@ for tbl, i, col, label, rules in ROWS:
     for o, n, c in pairs:
         assert o not in new or o in n, (tbl, i, o)
     colq = "[%s]" % col
-    # always back up the pre-pass value: some rows were already backed up by an earlier pass (BackedUpAt tells them apart)
-    L.append("INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT '%s', x.[Id], '%s', x.%s FROM [%s] x WHERE x.[Id] = %d;"
-             % (tbl, col, colq, tbl, i))
+    # one backup per row, holding the original value: skip rows an earlier pass already backed up. AttributeValue ids
+    # also match AttributeId/EntityId so an unrelated row with the same id on another database is never backed up
+    key = " AND x.[AttributeId] = %d AND x.[EntityId] = %d" % AV_KEYS[i] if tbl == "AttributeValue" else ""
+    L.append("INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT '%s', x.[Id], '%s', x.%s FROM [%s] x WHERE x.[Id] = %d%s\n"
+             "  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = '%s' AND b.Id = x.[Id] AND b.Col = '%s');"
+             % (tbl, col, colq, tbl, i, key, tbl, col))
     expr = colq
     for o, n, c in pairs:
         expr = "REPLACE(%s, %s, %s)" % (expr, q(o), q(n))

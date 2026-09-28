@@ -1,8 +1,9 @@
 """Generate Tools/LavaFluidMigration/ROCK-9086/010_apply_prodpass3.sql from the dumped prod values in scratchpad/vals.
 Every (old, new) pair is checked against the dumped value first: it must occur the expected number of times."""
 import os, sys
-V = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vals")
-OUT = r"C:\Users\stephenl\source\repos\RockPlugins-16\Tools\LavaFluidMigration\ROCK-9086\010_apply_prodpass3.sql"
+HERE = os.path.dirname(os.path.abspath(__file__))
+V = os.environ.get("ROCK9086_VALS", os.path.join(HERE, "vals"))  # prod dumps are not committed; point ROCK9086_VALS at them
+OUT = os.path.join(HERE, "010_apply_prodpass3.sql")
 BSQ = "{%- capture bsq -%}\\\"{%- endcapture -%}"          # {%- capture bsq -%}\"{%- endcapture -%}
 
 def val(name):

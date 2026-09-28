@@ -32,7 +32,7 @@ INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'HtmlContent', x
 INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'SystemCommunication', x.[Id], 'Body', x.[Body] FROM SystemCommunication x WHERE x.[Id] IN (9)
   AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'SystemCommunication' AND b.Id = x.[Id] AND b.Col = 'Body');
 
-UPDATE HtmlContent SET [Content] = CAST(N'<section id="WhatsNextForYou">
+UPDATE HtmlContent SET [Content] = CAST(N'' AS nvarchar(max)) + N'<section id="WhatsNextForYou">
     <div class="container g-padding-t-50--md">
 
         <div class="row">
@@ -152,7 +152,7 @@ UPDATE HtmlContent SET [Content] = CAST(N'<section id="WhatsNextForYou">
         <br>
         <br>
     </div>
-</section>' AS nvarchar(max))
+</section>'
 WHERE [Id] = 10753 AND HASHBYTES('SHA2_256', [Content]) = 0xC86853A015D6C30D46BFEBFD6DD7A162DB1F3A9DA45E5BD71B2F4A0ACCC9532F AND [Version] = (SELECT MAX([Version]) FROM HtmlContent h2 WHERE h2.BlockId = HtmlContent.BlockId);
 INSERT @log VALUES ('HtmlContent', 10753, 'nested-comment', @@ROWCOUNT);
 UPDATE HtmlContent SET [Content] = REPLACE([Content], N'{% if (forloop.rindex0 == 0 %}<br />{% break %}{% elseif (forloop.rindex0 == 1 and timesCount > 2) %} &amp;{% else %},{% endif %}', N'{% if forloop.last %}<br />{% break %}{% else %},{% endif %}')

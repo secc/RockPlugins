@@ -32,69 +32,80 @@ BEGIN TRAN;
 IF OBJECT_ID('dbo._ROCK9086_LavaBackup') IS NULL
     CREATE TABLE dbo._ROCK9086_LavaBackup (Tbl sysname NOT NULL, Id int NOT NULL, Col sysname NOT NULL, OldValue nvarchar(max) NULL, BackedUpAt datetime NOT NULL DEFAULT GETDATE());
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'HtmlContent', x.[Id], 'Content', x.[Content] FROM [HtmlContent] x WHERE x.[Id] = 4591;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'HtmlContent', x.[Id], 'Content', x.[Content] FROM [HtmlContent] x WHERE x.[Id] = 4591
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'HtmlContent' AND b.Id = x.[Id] AND b.Col = 'Content');
 UPDATE [HtmlContent] SET [Content] = REPLACE([Content], N'job.[''Job Serial'']', N'job[''Job Serial'']')
 WHERE [Id] = 4591
   AND (DATALENGTH([Content]) - DATALENGTH(REPLACE([Content], N'job.[''Job Serial'']', N''))) / DATALENGTH(N'job.[''Job Serial'']') = 1
   AND [Version] = (SELECT MAX([Version]) FROM HtmlContent h2 WHERE h2.BlockId = HtmlContent.BlockId);
 INSERT @log VALUES ('HtmlContent', 4591, 'dot-bracket', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'HtmlContent', x.[Id], 'Content', x.[Content] FROM [HtmlContent] x WHERE x.[Id] = 5306;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'HtmlContent', x.[Id], 'Content', x.[Content] FROM [HtmlContent] x WHERE x.[Id] = 5306
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'HtmlContent' AND b.Id = x.[Id] AND b.Col = 'Content');
 UPDATE [HtmlContent] SET [Content] = REPLACE([Content], N'item | | Attribute', N'item | Attribute')
 WHERE [Id] = 5306
   AND (DATALENGTH([Content]) - DATALENGTH(REPLACE([Content], N'item | | Attribute', N''))) / DATALENGTH(N'item | | Attribute') = 1
   AND [Version] = (SELECT MAX([Version]) FROM HtmlContent h2 WHERE h2.BlockId = HtmlContent.BlockId);
 INSERT @log VALUES ('HtmlContent', 5306, 'double-pipe', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'WorkflowActionForm', x.[Id], 'Header', x.[Header] FROM [WorkflowActionForm] x WHERE x.[Id] = 289;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'WorkflowActionForm', x.[Id], 'Header', x.[Header] FROM [WorkflowActionForm] x WHERE x.[Id] = 289
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'WorkflowActionForm' AND b.Id = x.[Id] AND b.Col = 'Header');
 UPDATE [WorkflowActionForm] SET [Header] = REPLACE([Header], N'Address,''Home'',', N'Address:''Home'',')
 WHERE [Id] = 289
   AND (DATALENGTH([Header]) - DATALENGTH(REPLACE([Header], N'Address,''Home'',', N''))) / DATALENGTH(N'Address,''Home'',') = 1;
 INSERT @log VALUES ('WorkflowActionForm', 289, 'comma-args', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'WorkflowActionForm', x.[Id], 'Header', x.[Header] FROM [WorkflowActionForm] x WHERE x.[Id] = 292;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'WorkflowActionForm', x.[Id], 'Header', x.[Header] FROM [WorkflowActionForm] x WHERE x.[Id] = 292
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'WorkflowActionForm' AND b.Id = x.[Id] AND b.Col = 'Header');
 UPDATE [WorkflowActionForm] SET [Header] = REPLACE([Header], N'Address,''Home'',', N'Address:''Home'',')
 WHERE [Id] = 292
   AND (DATALENGTH([Header]) - DATALENGTH(REPLACE([Header], N'Address,''Home'',', N''))) / DATALENGTH(N'Address,''Home'',') = 1;
 INSERT @log VALUES ('WorkflowActionForm', 292, 'comma-args', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'WorkflowActionForm', x.[Id], 'Header', x.[Header] FROM [WorkflowActionForm] x WHERE x.[Id] = 339;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'WorkflowActionForm', x.[Id], 'Header', x.[Header] FROM [WorkflowActionForm] x WHERE x.[Id] = 339
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'WorkflowActionForm' AND b.Id = x.[Id] AND b.Col = 'Header');
 UPDATE [WorkflowActionForm] SET [Header] = REPLACE([Header], N'Address,''Home'',', N'Address:''Home'',')
 WHERE [Id] = 339
   AND (DATALENGTH([Header]) - DATALENGTH(REPLACE([Header], N'Address,''Home'',', N''))) / DATALENGTH(N'Address,''Home'',') = 1;
 INSERT @log VALUES ('WorkflowActionForm', 339, 'comma-args', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'WorkflowActionForm', x.[Id], 'Header', x.[Header] FROM [WorkflowActionForm] x WHERE x.[Id] = 691;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'WorkflowActionForm', x.[Id], 'Header', x.[Header] FROM [WorkflowActionForm] x WHERE x.[Id] = 691
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'WorkflowActionForm' AND b.Id = x.[Id] AND b.Col = 'Header');
 UPDATE [WorkflowActionForm] SET [Header] = REPLACE([Header], N'Address,''Home'',', N'Address:''Home'',')
 WHERE [Id] = 691
   AND (DATALENGTH([Header]) - DATALENGTH(REPLACE([Header], N'Address,''Home'',', N''))) / DATALENGTH(N'Address,''Home'',') = 1;
 INSERT @log VALUES ('WorkflowActionForm', 691, 'comma-args', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'WorkflowActionForm', x.[Id], 'Footer', x.[Footer] FROM [WorkflowActionForm] x WHERE x.[Id] = 36;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'WorkflowActionForm', x.[Id], 'Footer', x.[Footer] FROM [WorkflowActionForm] x WHERE x.[Id] = 36
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'WorkflowActionForm' AND b.Id = x.[Id] AND b.Col = 'Footer');
 UPDATE [WorkflowActionForm] SET [Footer] = REPLACE([Footer], N'{% if lastActivityDate >= ''08/2/2019'' %}', N'{% assign showActionsCutoff = ''2019-08-02'' | AsDateTime %}{% if lastActivityDate >= showActionsCutoff %}')
 WHERE [Id] = 36
   AND (DATALENGTH([Footer]) - DATALENGTH(REPLACE([Footer], N'{% if lastActivityDate >= ''08/2/2019'' %}', N''))) / DATALENGTH(N'{% if lastActivityDate >= ''08/2/2019'' %}') = 1;
 INSERT @log VALUES ('WorkflowActionForm', 36, 'date-vs-string', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'WorkflowActionForm', x.[Id], 'Header', x.[Header] FROM [WorkflowActionForm] x WHERE x.[Id] = 565;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'WorkflowActionForm', x.[Id], 'Header', x.[Header] FROM [WorkflowActionForm] x WHERE x.[Id] = 565
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'WorkflowActionForm' AND b.Id = x.[Id] AND b.Col = 'Header');
 UPDATE [WorkflowActionForm] SET [Header] = REPLACE([Header], N'''MinLeadTime''| | DateAdd', N'''MinLeadTime'' | DateAdd')
 WHERE [Id] = 565
   AND (DATALENGTH([Header]) - DATALENGTH(REPLACE([Header], N'''MinLeadTime''| | DateAdd', N''))) / DATALENGTH(N'''MinLeadTime''| | DateAdd') = 1;
 INSERT @log VALUES ('WorkflowActionForm', 565, 'double-pipe', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'WorkflowActionForm', x.[Id], 'Header', x.[Header] FROM [WorkflowActionForm] x WHERE x.[Id] = 566;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'WorkflowActionForm', x.[Id], 'Header', x.[Header] FROM [WorkflowActionForm] x WHERE x.[Id] = 566
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'WorkflowActionForm' AND b.Id = x.[Id] AND b.Col = 'Header');
 UPDATE [WorkflowActionForm] SET [Header] = REPLACE([Header], N'''MinLeadTime''| | DateAdd', N'''MinLeadTime'' | DateAdd')
 WHERE [Id] = 566
   AND (DATALENGTH([Header]) - DATALENGTH(REPLACE([Header], N'''MinLeadTime''| | DateAdd', N''))) / DATALENGTH(N'''MinLeadTime''| | DateAdd') = 1;
 INSERT @log VALUES ('WorkflowActionForm', 566, 'double-pipe', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'SystemCommunication', x.[Id], 'Body', x.[Body] FROM [SystemCommunication] x WHERE x.[Id] = 9;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'SystemCommunication', x.[Id], 'Body', x.[Body] FROM [SystemCommunication] x WHERE x.[Id] = 9
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'SystemCommunication' AND b.Id = x.[Id] AND b.Col = 'Body');
 UPDATE [SystemCommunication] SET [Body] = REPLACE([Body], N'{% if url | RegExMatch:''^[/~].*$'' %}', N'{% assign urlIsRelative = url | RegExMatch:''^[/~].*$'' %}{% if urlIsRelative %}')
 WHERE [Id] = 9
   AND (DATALENGTH([Body]) - DATALENGTH(REPLACE([Body], N'{% if url | RegExMatch:''^[/~].*$'' %}', N''))) / DATALENGTH(N'{% if url | RegExMatch:''^[/~].*$'' %}') = 1;
 INSERT @log VALUES ('SystemCommunication', 9, 'filter-in-if', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 418179915;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 418179915 AND x.[AttributeId] = 17501 AND x.[EntityId] = 22117
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE(REPLACE(REPLACE([Value], N'recommended == true', N'recommended == ''True'''), N'reasonToNotVolunteer == false', N'reasonToNotVolunteer == ''False'''), N'isMinor == true', N'isMinor == ''True''')
 WHERE [Id] = 418179915 AND [AttributeId] = 17501 AND [EntityId] = 22117
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'recommended == true', N''))) / DATALENGTH(N'recommended == true') = 2
@@ -102,125 +113,144 @@ WHERE [Id] = 418179915 AND [AttributeId] = 17501 AND [EntityId] = 22117
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'isMinor == true', N''))) / DATALENGTH(N'isMinor == true') = 1;
 INSERT @log VALUES ('AttributeValue', 418179915, 'rawvalue-bool', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 419773863;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 419773863 AND x.[AttributeId] = 17501 AND x.[EntityId] = 24872
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE(REPLACE([Value], N'recommended == true', N'recommended == ''True'''), N'reasonToNotVolunteer == false', N'reasonToNotVolunteer == ''False''')
 WHERE [Id] = 419773863 AND [AttributeId] = 17501 AND [EntityId] = 24872
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'recommended == true', N''))) / DATALENGTH(N'recommended == true') = 1
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'reasonToNotVolunteer == false', N''))) / DATALENGTH(N'reasonToNotVolunteer == false') = 1;
 INSERT @log VALUES ('AttributeValue', 419773863, 'rawvalue-bool', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 119518117;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 119518117 AND x.[AttributeId] = 1019 AND x.[EntityId] = 7584
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE([Value], N'Attribute:''LocationShortCode''''}}', N'Attribute:''LocationShortCode''}}')
 WHERE [Id] = 119518117 AND [AttributeId] = 1019 AND [EntityId] = 7584
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'Attribute:''LocationShortCode''''}}', N''))) / DATALENGTH(N'Attribute:''LocationShortCode''''}}') = 1;
 INSERT @log VALUES ('AttributeValue', 119518117, 'extra-quote', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 119518133;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 119518133 AND x.[AttributeId] = 1019 AND x.[EntityId] = 7589
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE([Value], N'Attribute:''LocationShortCode''''}}', N'Attribute:''LocationShortCode''}}')
 WHERE [Id] = 119518133 AND [AttributeId] = 1019 AND [EntityId] = 7589
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'Attribute:''LocationShortCode''''}}', N''))) / DATALENGTH(N'Attribute:''LocationShortCode''''}}') = 1;
 INSERT @log VALUES ('AttributeValue', 119518133, 'extra-quote', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 181166313;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 181166313 AND x.[AttributeId] = 1019 AND x.[EntityId] = 8032
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE([Value], N'Attribute:''LocationShortCode''''}}', N'Attribute:''LocationShortCode''}}')
 WHERE [Id] = 181166313 AND [AttributeId] = 1019 AND [EntityId] = 8032
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'Attribute:''LocationShortCode''''}}', N''))) / DATALENGTH(N'Attribute:''LocationShortCode''''}}') = 1;
 INSERT @log VALUES ('AttributeValue', 181166313, 'extra-quote', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 119518134;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 119518134 AND x.[AttributeId] = 1016 AND x.[EntityId] = 7589
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE([Value], N'{% if (Registraion == ''None'') AND (AddRegCom != '' '') %}', N'{% if Registraion == ''None'' and AddRegCom != '' '' %}')
 WHERE [Id] = 119518134 AND [AttributeId] = 1016 AND [EntityId] = 7589
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'{% if (Registraion == ''None'') AND (AddRegCom != '' '') %}', N''))) / DATALENGTH(N'{% if (Registraion == ''None'') AND (AddRegCom != '' '') %}') = 1;
 INSERT @log VALUES ('AttributeValue', 119518134, 'parens-AND', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 181933899;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 181933899 AND x.[AttributeId] = 1016 AND x.[EntityId] = 8034
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE([Value], N'{% if (Registraion == ''None'') AND (AddRegCom != '' '') %}', N'{% if Registraion == ''None'' and AddRegCom != '' '' %}')
 WHERE [Id] = 181933899 AND [AttributeId] = 1016 AND [EntityId] = 8034
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'{% if (Registraion == ''None'') AND (AddRegCom != '' '') %}', N''))) / DATALENGTH(N'{% if (Registraion == ''None'') AND (AddRegCom != '' '') %}') = 1;
 INSERT @log VALUES ('AttributeValue', 181933899, 'parens-AND', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 51107841;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 51107841 AND x.[AttributeId] = 1027 AND x.[EntityId] = 4007
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE(REPLACE([Value], N'| Size asInteger ', N'| Size '), N'| Size  asInteger ', N'| Size ')
 WHERE [Id] = 51107841 AND [AttributeId] = 1027 AND [EntityId] = 4007
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'| Size asInteger ', N''))) / DATALENGTH(N'| Size asInteger ') = 2
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'| Size  asInteger ', N''))) / DATALENGTH(N'| Size  asInteger ') = 1;
 INSERT @log VALUES ('AttributeValue', 51107841, 'size-junk', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 3889252;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 3889252 AND x.[AttributeId] = 1027 AND x.[EntityId] = 1173
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE([Value], N'''Spouse'':''NickName''', N'''Spouse'',''NickName''')
 WHERE [Id] = 3889252 AND [AttributeId] = 1027 AND [EntityId] = 1173
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'''Spouse'':''NickName''', N''))) / DATALENGTH(N'''Spouse'':''NickName''') = 1;
 INSERT @log VALUES ('AttributeValue', 3889252, 'colon-args', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 101737557;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 101737557 AND x.[AttributeId] = 1201 AND x.[EntityId] = 6335
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE(REPLACE([Value], N'{{row.WeekStart | Replace:" 12:00:00 AM",""}}', N'{{row.WeekStart | Date:''M/d/yyyy''}}'), N'{{row.WeekEnd | Replace:" 12:00:00 AM",""}}', N'{{row.WeekEnd | Date:''M/d/yyyy''}}')
 WHERE [Id] = 101737557 AND [AttributeId] = 1201 AND [EntityId] = 6335
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'{{row.WeekStart | Replace:" 12:00:00 AM",""}}', N''))) / DATALENGTH(N'{{row.WeekStart | Replace:" 12:00:00 AM",""}}') = 1
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'{{row.WeekEnd | Replace:" 12:00:00 AM",""}}', N''))) / DATALENGTH(N'{{row.WeekEnd | Replace:" 12:00:00 AM",""}}') = 1;
 INSERT @log VALUES ('AttributeValue', 101737557, 'date-tostring', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 211932365;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 211932365 AND x.[AttributeId] = 1201 AND x.[EntityId] = 6994
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE(REPLACE([Value], N'{% if {{row.Status}} != ''Active'' %}', N'{% if row.Status != ''Active'' %}'), N'{% if {{row.OneXStory}} == ''True'' %}', N'{% if row.OneXStory == ''True'' %}')
 WHERE [Id] = 211932365 AND [AttributeId] = 1201 AND [EntityId] = 6994
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'{% if {{row.Status}} != ''Active'' %}', N''))) / DATALENGTH(N'{% if {{row.Status}} != ''Active'' %}') = 1
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'{% if {{row.OneXStory}} == ''True'' %}', N''))) / DATALENGTH(N'{% if {{row.OneXStory}} == ''True'' %}') = 1;
 INSERT @log VALUES ('AttributeValue', 211932365, 'mustache-in-if', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 55093101;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 55093101 AND x.[AttributeId] = 81470 AND x.[EntityId] = 4501
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE([Value], N'{%- when ''19'' and meetingType == '''' -%}', N'{%- when ''19'' -%}')
 WHERE [Id] = 55093101 AND [AttributeId] = 81470 AND [EntityId] = 4501
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'{%- when ''19'' and meetingType == '''' -%}', N''))) / DATALENGTH(N'{%- when ''19'' and meetingType == '''' -%}') = 1;
 INSERT @log VALUES ('AttributeValue', 55093101, 'when-and', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 58019746;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 58019746 AND x.[AttributeId] = 81470 AND x.[EntityId] = 4608
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE([Value], N'{%- when ''19'' and meetingType == '''' -%}', N'{%- when ''19'' -%}')
 WHERE [Id] = 58019746 AND [AttributeId] = 81470 AND [EntityId] = 4608
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'{%- when ''19'' and meetingType == '''' -%}', N''))) / DATALENGTH(N'{%- when ''19'' and meetingType == '''' -%}') = 1;
 INSERT @log VALUES ('AttributeValue', 58019746, 'when-and', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 3752511;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 3752511 AND x.[AttributeId] = 1016 AND x.[EntityId] = 1139
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE(REPLACE([Value], N'isRenewal = Workflow | Attribute:''IsRenewal'' ', N'isRenewal = Workflow | Attribute:''IsRenewal'',''RawValue'' '), N'isRenewal == True ', N'isRenewal == ''True'' ')
 WHERE [Id] = 3752511 AND [AttributeId] = 1016 AND [EntityId] = 1139
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'isRenewal = Workflow | Attribute:''IsRenewal'' ', N''))) / DATALENGTH(N'isRenewal = Workflow | Attribute:''IsRenewal'' ') = 1
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'isRenewal == True ', N''))) / DATALENGTH(N'isRenewal == True ') = 1;
 INSERT @log VALUES ('AttributeValue', 3752511, 'renewal-rawvalue', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 3752514;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 3752514 AND x.[AttributeId] = 1019 AND x.[EntityId] = 1139
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE(REPLACE([Value], N'isRenewal = Workflow | Attribute:''IsRenewal'' ', N'isRenewal = Workflow | Attribute:''IsRenewal'',''RawValue'' '), N'isRenewal == True ', N'isRenewal == ''True'' ')
 WHERE [Id] = 3752514 AND [AttributeId] = 1019 AND [EntityId] = 1139
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'isRenewal = Workflow | Attribute:''IsRenewal'' ', N''))) / DATALENGTH(N'isRenewal = Workflow | Attribute:''IsRenewal'' ') = 1
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'isRenewal == True ', N''))) / DATALENGTH(N'isRenewal == True ') = 1;
 INSERT @log VALUES ('AttributeValue', 3752514, 'renewal-rawvalue', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 71943274;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 71943274 AND x.[AttributeId] = 1019 AND x.[EntityId] = 4807
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE(REPLACE([Value], N'isRenewal = Workflow | Attribute:''IsRenewal'' ', N'isRenewal = Workflow | Attribute:''IsRenewal'',''RawValue'' '), N'isRenewal == True ', N'isRenewal == ''True'' ')
 WHERE [Id] = 71943274 AND [AttributeId] = 1019 AND [EntityId] = 4807
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'isRenewal = Workflow | Attribute:''IsRenewal'' ', N''))) / DATALENGTH(N'isRenewal = Workflow | Attribute:''IsRenewal'' ') = 1
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'isRenewal == True ', N''))) / DATALENGTH(N'isRenewal == True ') = 1;
 INSERT @log VALUES ('AttributeValue', 71943274, 'renewal-rawvalue', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 71943275;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 71943275 AND x.[AttributeId] = 1016 AND x.[EntityId] = 4807
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE(REPLACE([Value], N'isRenewal = Workflow | Attribute:''IsRenewal'' ', N'isRenewal = Workflow | Attribute:''IsRenewal'',''RawValue'' '), N'isRenewal == True ', N'isRenewal == ''True'' ')
 WHERE [Id] = 71943275 AND [AttributeId] = 1016 AND [EntityId] = 4807
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'isRenewal = Workflow | Attribute:''IsRenewal'' ', N''))) / DATALENGTH(N'isRenewal = Workflow | Attribute:''IsRenewal'' ') = 1
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'isRenewal == True ', N''))) / DATALENGTH(N'isRenewal == True ') = 1;
 INSERT @log VALUES ('AttributeValue', 71943275, 'renewal-rawvalue', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 446668184;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 446668184 AND x.[AttributeId] = 1019 AND x.[EntityId] = 76744
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE(REPLACE([Value], N'isRenewal = Workflow | Attribute:''IsRenewal'' ', N'isRenewal = Workflow | Attribute:''IsRenewal'',''RawValue'' '), N'isRenewal == True ', N'isRenewal == ''True'' ')
 WHERE [Id] = 446668184 AND [AttributeId] = 1019 AND [EntityId] = 76744
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'isRenewal = Workflow | Attribute:''IsRenewal'' ', N''))) / DATALENGTH(N'isRenewal = Workflow | Attribute:''IsRenewal'' ') = 1
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'isRenewal == True ', N''))) / DATALENGTH(N'isRenewal == True ') = 1;
 INSERT @log VALUES ('AttributeValue', 446668184, 'renewal-rawvalue', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 446668185;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'AttributeValue', x.[Id], 'Value', x.[Value] FROM [AttributeValue] x WHERE x.[Id] = 446668185 AND x.[AttributeId] = 1016 AND x.[EntityId] = 76744
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'AttributeValue' AND b.Id = x.[Id] AND b.Col = 'Value');
 UPDATE [AttributeValue] SET [Value] = REPLACE(REPLACE([Value], N'isRenewal = Workflow | Attribute:''IsRenewal'' ', N'isRenewal = Workflow | Attribute:''IsRenewal'',''RawValue'' '), N'isRenewal == True ', N'isRenewal == ''True'' ')
 WHERE [Id] = 446668185 AND [AttributeId] = 1016 AND [EntityId] = 76744
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'isRenewal = Workflow | Attribute:''IsRenewal'' ', N''))) / DATALENGTH(N'isRenewal = Workflow | Attribute:''IsRenewal'' ') = 1
   AND (DATALENGTH([Value]) - DATALENGTH(REPLACE([Value], N'isRenewal == True ', N''))) / DATALENGTH(N'isRenewal == True ') = 1;
 INSERT @log VALUES ('AttributeValue', 446668185, 'renewal-rawvalue', @@ROWCOUNT);
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'HtmlContent', x.[Id], 'Content', x.[Content] FROM [HtmlContent] x WHERE x.[Id] = 12330;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'HtmlContent', x.[Id], 'Content', x.[Content] FROM [HtmlContent] x WHERE x.[Id] = 12330
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'HtmlContent' AND b.Id = x.[Id] AND b.Col = 'Content');
 UPDATE [HtmlContent] SET [Content] = REPLACE([Content], N'CurrentPerson | PersonInDataView:''1678''', N'CurrentPerson.Id | IsInDataView:''1678''')
 WHERE [Id] = 12330
   AND (DATALENGTH([Content]) - DATALENGTH(REPLACE([Content], N'CurrentPerson | PersonInDataView:''1678''', N''))) / DATALENGTH(N'CurrentPerson | PersonInDataView:''1678''') = 1

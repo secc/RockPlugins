@@ -2,8 +2,9 @@
 Rewrites `{% assign X = {{EXPR}} %}` (no space inside the braces - the form DotLiquid resolves) to `{% assign X = EXPR %}`.
 Every rewrite is checked against the dumped value first."""
 import os, re, sys
-V = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vals")
-OUT = r"C:\Users\stephenl\source\repos\RockPlugins-16\Tools\LavaFluidMigration\ROCK-9086\011_apply_assign_mustache.sql"
+HERE = os.path.dirname(os.path.abspath(__file__))
+V = os.environ.get("ROCK9086_VALS", os.path.join(HERE, "vals"))  # prod dumps are not committed; point ROCK9086_VALS at them
+OUT = os.path.join(HERE, "011_apply_assign_mustache.sql")
 TIGHT = re.compile(r"\{% assign ([A-Za-z_]\w*) = \{\{([^{}\s][^{}]*[^{}\s])\}\} %\}")
 SKIP = {"sw-121667807"}   # a whole template inside one assign tag - fails to parse on DotLiquid too; left for the owner
 TABLES = {"sw": ("AttributeValue", "Value"), "fh": ("WorkflowActionForm", "Header"), "ht": ("HtmlContent", "Content")}

@@ -6,8 +6,9 @@ touches it. Putting a decimal point after the day keeps the integer part at 6-8 
   (always)        write Tools/LavaFluidMigration/ROCK-9086/013_apply_datenumber.sql from scratchpad/vals/dn-hc-*.txt"""
 import os, re, sys, hashlib
 HERE = os.path.dirname(os.path.abspath(__file__))
-REPO = r"C:\Users\stephenl\source\repos\RockPlugins-16"
-OUT = os.path.join(REPO, r"Tools\LavaFluidMigration\ROCK-9086\013_apply_datenumber.sql")
+REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
+V = os.environ.get("ROCK9086_VALS", os.path.join(HERE, "vals"))  # prod dumps are not committed; point ROCK9086_VALS at them
+OUT = os.path.join(HERE, "013_apply_datenumber.sql")
 FMT = re.compile(r"(Date:\s*')(yyMMdd|yyyyMMdd)((?:HH|hh)mm(?:ss)?)('\s*\|\s*)As(Double|Decimal|Integer)\b")
 # hard-coded yyyyMMddHHmm[ss] literals fed to AsDouble next to these formats
 LIT = re.compile(r"'(\d{8})(\d{4}|\d{6})'(\s*\|\s*AsDouble|\s*-?%\}|\s*\|)")
@@ -44,10 +45,10 @@ def q(s):
     return "N'" + s.replace("'", "''") + "'"
 
 rows = []
-for f in sorted(os.listdir(os.path.join(HERE, "vals"))):
+for f in sorted(os.listdir(V)):
     if not f.startswith("dn-hc-"): continue
     i = int(f[6:-4])
-    t = open(os.path.join(HERE, "vals", f), encoding="utf-8", newline="").read()
+    t = open(os.path.join(V, f), encoding="utf-8", newline="").read()
     t2, n1, n2 = rewrite(t)
     if not n1: continue
     # express the change as exact (old, new) snippet pairs, one per distinct changed tag

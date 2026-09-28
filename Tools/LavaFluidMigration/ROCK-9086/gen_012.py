@@ -2,8 +2,8 @@
 plus probe-cases22.txt (LavaProbe cases comparing each old template on DotLiquid with the new one on both engines)."""
 import os, re, sys, hashlib
 HERE = os.path.dirname(os.path.abspath(__file__))
-V = os.path.join(HERE, "vals")
-OUT = r"C:\Users\stephenl\source\repos\RockPlugins-16\Tools\LavaFluidMigration\ROCK-9086\012_apply_prodpass4.sql"
+V = os.environ.get("ROCK9086_VALS", os.path.join(HERE, "vals"))  # prod dumps are not committed; point ROCK9086_VALS at them
+OUT = os.path.join(HERE, "012_apply_prodpass4.sql")
 
 def val(n): return open(os.path.join(V, n + ".txt"), encoding="utf-8", newline="").read()
 
@@ -17,7 +17,8 @@ def q(s):
             if buf: parts.append("N'" + "".join(buf).replace("'", "''") + "'"); buf = []
             parts.append("NCHAR(%d)" % ord(ch))
     if buf or not parts: parts.append("N'" + "".join(buf).replace("'", "''") + "'")
-    return parts[0] if len(parts) == 1 else "CAST(" + " + ".join(parts) + " AS nvarchar(max))"
+    # the first operand is MAX so SQL Server never caps the concatenation at 4000 characters
+    return parts[0] if len(parts) == 1 else "CAST(N'' AS nvarchar(max)) + " + " + ".join(parts)
 
 def flatten_nested_comments(t):
     """Keep outermost comment/endcomment tags, drop the inner ones (Fluid ends a comment at the first endcomment)."""
@@ -145,6 +146,6 @@ loop = "{% assign serviceDay = '' %}{% assign timesCount = 3 %}{% assign ts = '9
 add("P2-times", loop.replace("%s", rows[1][5][0][0]), loop.replace("%s", rows[1][5][0][1]))
 sc = "{% assign w = 'x' %}<p>Req: " + "%s" + "{{ Workflow.Name }}</a></p>"
 add("P3-sc9", sc.replace("%s", rows[2][5][0][0]), sc.replace("%s", rows[2][5][0][1]))
-open(os.path.join(HERE, "probe-cases22.txt"), "w", encoding="utf-8").write("\n".join(cases) + "\n")
+open(os.path.join(os.path.dirname(os.path.abspath(V)), "probe-cases22.txt"), "w", encoding="utf-8").write("\n".join(cases) + "\n")
 print("wrote", OUT, "rows:", len(rows))
 print("10753 comment tags old/new:", len(re.findall(r"\{%-?\s*(?:end)?comment\s*-?%\}", old)), len(re.findall(r"\{%-?\s*(?:end)?comment\s*-?%\}", new)))

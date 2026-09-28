@@ -12,7 +12,8 @@ BEGIN TRAN;
 IF OBJECT_ID('dbo._ROCK9086_LavaBackup') IS NULL
     CREATE TABLE dbo._ROCK9086_LavaBackup (Tbl sysname NOT NULL, Id int NOT NULL, Col sysname NOT NULL, OldValue nvarchar(max) NULL, BackedUpAt datetime NOT NULL DEFAULT GETDATE());
 
-INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'WorkflowType', x.[Id], 'SummaryViewText', x.[SummaryViewText] FROM [WorkflowType] x WHERE x.[Id] = 456;
+INSERT dbo._ROCK9086_LavaBackup (Tbl, Id, Col, OldValue) SELECT 'WorkflowType', x.[Id], 'SummaryViewText', x.[SummaryViewText] FROM [WorkflowType] x WHERE x.[Id] = 456
+  AND NOT EXISTS (SELECT 1 FROM dbo._ROCK9086_LavaBackup b WHERE b.Tbl = 'WorkflowType' AND b.Id = x.[Id] AND b.Col = 'SummaryViewText');
 UPDATE [WorkflowType] SET [SummaryViewText] = REPLACE([SummaryViewText], N'{% if person != null && person != empty %}', N'{% if person != null and person != empty %}')
 WHERE [Id] = 456
   AND (DATALENGTH([SummaryViewText]) - DATALENGTH(REPLACE([SummaryViewText], N'{% if person != null && person != empty %}', N''))) / DATALENGTH(N'{% if person != null && person != empty %}') = 1;
