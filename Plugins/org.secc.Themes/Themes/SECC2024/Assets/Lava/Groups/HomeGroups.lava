@@ -335,8 +335,6 @@
                                                 {{ group.Schedule.WeeklyDayOfWeek }} {{  group.Schedule.WeeklyTimeOfDay | Date:'@ h:mm tt' }}
                                             {% else %}
                                                 {{ dayofWeek }} - Contact for Details
-                                            {% else %}
-                                                Contact for details
                                             {% endif %}
                                         </p>
 
