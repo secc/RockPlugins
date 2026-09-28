@@ -81,7 +81,12 @@ namespace org.secc.Imaging.AI
                 return false;
             }
 
-            var stream = CropDetectedFace( detectedFace, binaryFile.ContentStream, scaleFactor );
+            // ROCK-9041: Dispose the storage provider stream once the crop has read it.
+            MemoryStream stream;
+            using ( var contentStream = binaryFile.ContentStream )
+            {
+                stream = CropDetectedFace( detectedFace, contentStream, scaleFactor );
+            }
 
             UpdatePersonPhoto( person, stream );
 
