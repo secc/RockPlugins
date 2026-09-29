@@ -32,7 +32,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using Rock;
@@ -302,7 +301,7 @@ namespace org.secc.Connection
                     .Where( o => o.Id == opportunityId )
                     .FirstOrDefault();
 
-                int defaultStatusId = opportunity.ConnectionType.ConnectionStatuses
+                int defaultStatusId = opportunity == null ? 0 : opportunity.ConnectionType.ConnectionStatuses
                     .Where( s => s.IsDefault )
                     .Select( s => s.Id )
                     .FirstOrDefault();
@@ -317,15 +316,16 @@ namespace org.secc.Connection
                     // submit — an existing on-file birthday is never touched.
                     bool birthDateFilledFromForm = false;
 
-                    // Set when the registrant was found in, or added to, the family of the person who owns
-                    // the entered email or phone (a parent signing up a child), so the parent's phone is not
-                    // copied onto the child.
+                    // Set when the registrant was entered with someone else's email (a parent signing up a
+                    // child), so the parent's phone and email are not copied onto the child.
                     bool enteredForHouseholdMember = false;
                     int? householdFamilyId = null;
+                    bool contactOwnerFound = false;
 
                     string firstName = tbFirstName.Text.Trim();
                     string lastName = tbLastName.Text.Trim();
-                    DateTime? birthdate = bpBirthdate.SelectedDate;
+                    // A hidden picker still holds the value ShowDetail prefilled from the current person.
+                    DateTime? birthdate = bpBirthdate.Visible ? bpBirthdate.SelectedDate : null;
                     string email = tbEmail.Text.Trim();
                     int? campusId = cpCampus.SelectedCampusId;
 
@@ -342,7 +342,7 @@ namespace org.secc.Connection
                     else if ( CurrentPerson != null &&
                       CurrentPerson.LastName.Equals( lastName, StringComparison.OrdinalIgnoreCase ) &&
                       ( CurrentPerson.NickName.Equals( firstName, StringComparison.OrdinalIgnoreCase ) || CurrentPerson.FirstName.Equals( firstName, StringComparison.OrdinalIgnoreCase ) ) &&
-                      CurrentPerson.Email.Equals( email, StringComparison.OrdinalIgnoreCase ) )
+                      string.Equals( CurrentPerson.Email, email, StringComparison.OrdinalIgnoreCase ) )
                     {
                         // If the name and email entered are the same as current person (wasn't changed), use the current person
                         person = personService.Get( CurrentPerson.Id );
@@ -350,28 +350,10 @@ namespace org.secc.Connection
 
                     else
                     {
-                        List<Person> personMatches = new List<Person>();
-                        if ( Assembly.GetExecutingAssembly().GetReferencedAssemblies()
-                            .FirstOrDefault( c => c.FullName == "org.secc.PersonMatch" ) != null )
+                        var personMatches = personService.FindPersons( firstName, lastName, email ).ToList();
+                        if ( bpBirthdate.Visible )
                         {
-                            var assembly = Assembly.Load( "org.secc.PersonMatch" );
-                            if ( assembly != null )
-                            {
-                                Type type = assembly.GetExportedTypes().Where( et => et.FullName == "org.secc.PersonMatch.Extension" ).FirstOrDefault();
-                                if ( type != null )
-                                {
-                                    var matchMethod = type.GetMethod( "GetByMatch" );
-                                    personMatches = ( ( IEnumerable<Person> ) matchMethod.Invoke( null, new object[] { personService, firstName, lastName, birthdate, email, null, null, null } ) ).ToList();
-                                }
-                            }
-                        }
-                        else
-                        {
-                            personMatches = personService.FindPersons( firstName, lastName, email ).ToList();
-                            if ( bpBirthdate.Visible )
-                            {
-                                personMatches = personMatches.Where( p => p.BirthDate == birthdate ).ToList();
-                            }
+                            personMatches = personMatches.Where( p => p.BirthDate == birthdate ).ToList();
                         }
 
                         if ( personMatches.Count() == 1 &&
@@ -383,13 +365,15 @@ namespace org.secc.Connection
                         }
                         else
                         {
-                            // A parent signing up a child usually enters their own email and phone, so the
-                            // match above fails for the child. Look for the child in the parent's family
-                            // before creating anyone, or a duplicate is created in a family of its own
-                            // carrying the parent's phone and family check-in shows it as a second family.
-                            var phone = pnPhone.Visible ? PhoneNumber.CleanNumber( pnPhone.Number ) : string.Empty;
-                            person = FindHouseholdMember( rockContext, firstName, lastName, birthdate, email, phone, out householdFamilyId );
-                            enteredForHouseholdMember = person != null && !email.Equals( person.Email, StringComparison.OrdinalIgnoreCase );
+                            // A parent signing up a child usually enters their own email, so the match above
+                            // fails for the child. Look for the child in the parent's family before creating
+                            // anyone, or a duplicate is created in a family of its own carrying the parent's
+                            // phone and family check-in shows it as a second family.
+                            person = FindHouseholdMember( rockContext, firstName, lastName, birthdate, email, out householdFamilyId, out contactOwnerFound );
+
+                            // Nothing typed into the form is written onto someone reached through their
+                            // family, whatever email they have on file.
+                            enteredForHouseholdMember = person != null;
                         }
                     }
 
@@ -401,9 +385,14 @@ namespace org.secc.Connection
                         var dvcRecordStatus = DefinedValueCache.Get( GetAttributeValue( "RecordStatus" ).AsGuid() );
 
                         // A minor entered with a parent's contact info belongs in the parent's family
-                        bool addToHousehold = householdFamilyId.HasValue &&
-                            birthdate.HasValue &&
-                            birthdate.Value > RockDateTime.Today.AddYears( -18 );
+                        bool isMinor = birthdate.HasValue && birthdate.Value > RockDateTime.Today.AddYears( -18 );
+                        bool addToHousehold = householdFamilyId.HasValue && isMinor;
+
+                        // Even without a single family to join (email on adults in two families, a different
+                        // last name, an ambiguous name), a minor entered with someone else's email never gets
+                        // that email or phone: the parent's phone on the child is what makes family check-in
+                        // show a second family.
+                        bool withholdContactInfo = addToHousehold || ( contactOwnerFound && isMinor );
 
                         person = new Person();
                         person.FirstName = firstName;
@@ -411,7 +400,7 @@ namespace org.secc.Connection
                         person.IsEmailActive = true;
                         person.SetBirthDate( birthdate );
                         birthDateFilledFromForm = birthdate.HasValue;
-                        if ( !addToHousehold )
+                        if ( !withholdContactInfo )
                         {
                             person.Email = email;
                         }
@@ -428,15 +417,20 @@ namespace org.secc.Connection
 
                         if ( addToHousehold )
                         {
+                            // This commits the child into the family before the requirement gate below runs,
+                            // as SaveNewPerson always has: the gate needs a saved person and Rock has no clean
+                            // person delete. A blocked signup therefore leaves the child in the family with the
+                            // birthdate reverted; FindHouseholdMember's no-birthdate tier picks them back up on
+                            // a corrected resubmit.
                             var childRoleId = GroupTypeCache.GetFamilyGroupType().Roles
                                 .First( r => r.Guid == Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_CHILD.AsGuid() ).Id;
                             PersonService.AddPersonToFamily( person, true, householdFamilyId.Value, childRoleId, rockContext );
-                            enteredForHouseholdMember = true;
                         }
                         else
                         {
                             PersonService.SaveNewPerson( person, rockContext, campusId, false );
                         }
+                        enteredForHouseholdMember = withholdContactInfo;
                         person = personService.Get( person.Id );
                     }
 
@@ -488,13 +482,24 @@ namespace org.secc.Connection
                         // already committed above via SaveNewPerson; this is a no-op when clean.)
                         rockContext.SaveChanges();
 
+                        // A child reached through the parent's email carries no contact info of their own, so
+                        // leave the parent's on the request where the connector can see it.
+                        string comments = tbComments.Text.Trim();
+                        if ( enteredForHouseholdMember )
+                        {
+                            var signedUpBy = pnPhone.Visible && pnPhone.Number.IsNotNullOrWhiteSpace()
+                                ? string.Format( "{0} {1}", email, pnPhone.Number.Trim() )
+                                : email;
+                            comments = ( comments.IsNotNullOrWhiteSpace() ? comments + Environment.NewLine : string.Empty ) + "Signed up by: " + signedUpBy;
+                        }
+
                         // Now that we have a person, we can create the connection requests
                         int RepeaterIndex = 0;
                         foreach ( ConnectionRoleRequest roleRequest in RoleRequests )
                         {
                             var connectionRequest = new ConnectionRequest();
                             connectionRequest.PersonAliasId = person.PrimaryAliasId.Value;
-                            connectionRequest.Comments = tbComments.Text.Trim();
+                            connectionRequest.Comments = comments;
                             connectionRequest.ConnectionOpportunityId = opportunity.Id;
                             connectionRequest.ConnectionState = ConnectionState.Active;
                             connectionRequest.ConnectionStatusId = defaultStatusId;
@@ -919,46 +924,84 @@ namespace org.secc.Connection
         }
 
         /// <summary>
-        /// Finds the registrant among the family members of whoever owns the entered email or phone,
-        /// for a signup where someone (usually a parent) entered their own contact info for another person.
+        /// An email found on adults in more families than this is shared or a placeholder (none@none.com)
+        /// and says nothing about which family the registrant belongs to. Two allows for separated parents.
+        /// </summary>
+        private const int MaxOwnerFamilies = 2;
+
+        /// <summary>
+        /// Finds the registrant among the family members of whoever owns the entered email, for a signup
+        /// where someone (usually a parent) entered their own email for another person. Only the email
+        /// identifies the family: this form is anonymous, and a phone number is too easy to know.
         /// </summary>
         /// <param name="rockContext">The rock context.</param>
         /// <param name="firstName">The entered first name, matched against first or nick name.</param>
         /// <param name="lastName">The entered last name.</param>
-        /// <param name="birthdate">The entered birthdate. A person whose birthdate on file is neither the same nor a likely typo of it is never matched.</param>
+        /// <param name="birthdate">The entered birthdate. A person whose birthdate on file is neither the same nor a likely typo of it is never matched. Without one, only non-adults are matched.</param>
         /// <param name="email">The entered email.</param>
-        /// <param name="phone">The entered phone, cleaned to digits.</param>
-        /// <param name="householdFamilyId">The family a new registrant should join: set only when the adults who own the email or phone share exactly one family, someone there has the entered last name, and nobody there has the entered first name.</param>
+        /// <param name="householdFamilyId">The family a new registrant should join: set only when nobody in the owner's families matched, the adults who own the email share exactly one family, someone there has the entered last name, nobody there has the entered first name, and nobody anywhere in Rock has the entered name and birthdate.</param>
+        /// <param name="contactOwnerFound">Whether the entered email belongs to someone in a family, so a new minor is known to have been entered with someone else's contact info.</param>
         /// <returns>The single matching family member, or null.</returns>
-        private Person FindHouseholdMember( RockContext rockContext, string firstName, string lastName, DateTime? birthdate, string email, string phone, out int? householdFamilyId )
+        private Person FindHouseholdMember( RockContext rockContext, string firstName, string lastName, DateTime? birthdate, string email, out int? householdFamilyId, out bool contactOwnerFound )
         {
             householdFamilyId = null;
-            if ( email.IsNullOrWhiteSpace() && phone.IsNullOrWhiteSpace() )
+            contactOwnerFound = false;
+            if ( email.IsNullOrWhiteSpace() )
             {
                 return null;
             }
 
             var familyGroupTypeId = GroupTypeCache.GetFamilyGroupType().Id;
             var adultRoleGuid = Rock.SystemGuid.GroupRole.GROUPROLE_FAMILY_MEMBER_ADULT.AsGuid();
+            var personService = new PersonService( rockContext );
             var groupMemberService = new GroupMemberService( rockContext );
 
-            var contactOwnerMemberships = groupMemberService.Queryable()
-                .Where( m => m.Group.GroupTypeId == familyGroupTypeId &&
-                    !m.Group.IsArchived &&
-                    !m.Person.IsDeceased &&
-                    ( ( email != string.Empty && m.Person.Email == email ) ||
-                      ( phone != string.Empty && m.Person.PhoneNumbers.Any( pn => pn.Number == phone ) ) ) );
+            // The owner only identifies the family; nothing is written to them, so their account
+            // protection profile does not matter here. It does for whoever is reused below.
+            var ownerIds = personService.Queryable()
+                .Where( p => p.Email == email )
+                .Select( p => p.Id )
+                .ToList();
+            if ( !ownerIds.Any() )
+            {
+                return null;
+            }
 
-            var ownerFamilyIds = contactOwnerMemberships.Select( m => m.GroupId );
+            var ownerMemberships = groupMemberService.Queryable()
+                .Where( m => ownerIds.Contains( m.PersonId ) &&
+                    m.Group.GroupTypeId == familyGroupTypeId &&
+                    !m.Group.IsArchived )
+                .Select( m => new { m.GroupId, IsAdult = m.GroupRole.Guid == adultRoleGuid } )
+                .ToList();
+            if ( !ownerMemberships.Any() )
+            {
+                return null;
+            }
+            contactOwnerFound = true;
 
-            var candidateIds = groupMemberService.Queryable()
-                .Where( m => ownerFamilyIds.Contains( m.GroupId ) )
-                .Select( m => m.PersonId );
+            var ownerFamilyIds = ownerMemberships.Select( m => m.GroupId ).Distinct().ToList();
+            if ( ownerFamilyIds.Count > MaxOwnerFamilies )
+            {
+                return null;
+            }
 
-            var candidates = new PersonService( rockContext ).Queryable()
-                .Where( p => candidateIds.Contains( p.Id ) &&
-                    ( p.FirstName == firstName || p.NickName == firstName ) &&
-                    p.LastName == lastName )
+            // Like FindPersons, never reuse someone whose account protection profile keeps them out of
+            // duplicate matching, or an anonymous post could attach a signup to a person with a login.
+            var ignoredProfiles = new SecuritySettingsService().SecuritySettings.AccountProtectionProfilesForDuplicateDetectionToIgnore;
+
+            // Name comparisons below run in memory, so they must ignore case the way the SQL collation does.
+            var familyMemberships = groupMemberService.Queryable()
+                .Where( m => ownerFamilyIds.Contains( m.GroupId ) && !m.Person.IsDeceased )
+                .Select( m => new { m.GroupId, m.Person } )
+                .ToList();
+
+            var candidates = familyMemberships
+                .Select( m => m.Person )
+                .GroupBy( p => p.Id )
+                .Select( g => g.First() )
+                .Where( p => !ignoredProfiles.Contains( p.AccountProtectionProfile ) &&
+                    ( NameEquals( p.FirstName, firstName ) || NameEquals( p.NickName, firstName ) ) &&
+                    NameEquals( p.LastName, lastName ) )
                 .ToList();
 
             if ( birthdate.HasValue )
@@ -975,32 +1018,54 @@ namespace org.secc.Connection
 
                 candidates = sameBirthdate.Any() ? sameBirthdate : noBirthdate.Any() ? noBirthdate : nearBirthdate;
             }
+            else
+            {
+                // With no birthdate to tell them apart, a same-named adult (John Sr.) is never reused for
+                // a child (John Jr.) entered with the family's email.
+                candidates = candidates.Where( p => p.AgeClassification != AgeClassification.Adult ).ToList();
+            }
 
-            var householdIds = contactOwnerMemberships
-                .Where( m => m.GroupRole.Guid == adultRoleGuid )
+            var adultFamilyIds = ownerMemberships
+                .Where( m => m.IsAdult )
                 .Select( m => m.GroupId )
                 .Distinct()
-                .Take( 2 )
                 .ToList();
 
-            if ( householdIds.Count == 1 )
+            // A new child is only placed when nobody in the owner's families came close (an ambiguous
+            // match keeps the old behavior) and the owning adults share exactly one family.
+            if ( candidates.Count == 0 && birthdate.HasValue && adultFamilyIds.Count == 1 )
             {
-                // Only place a new child where someone shares their last name (not, say, a grandparent's
-                // family) and nobody already has their first name (more likely an existing member whose
-                // birthdate was mistyped).
-                var householdId = householdIds[0];
-                var householdMembers = groupMemberService.Queryable()
+                // Only place a new child where someone shares their last name and nobody already has their
+                // first name (more likely an existing member whose birthdate was mistyped).
+                var householdId = adultFamilyIds[0];
+                var householdMembers = familyMemberships
                     .Where( m => m.GroupId == householdId )
-                    .Select( m => m.Person );
+                    .Select( m => m.Person )
+                    .ToList();
 
-                if ( householdMembers.Any( p => p.LastName == lastName ) &&
-                    !householdMembers.Any( p => p.FirstName == firstName || p.NickName == firstName ) )
+                if ( householdMembers.Any( p => NameEquals( p.LastName, lastName ) ) &&
+                    !householdMembers.Any( p => NameEquals( p.FirstName, firstName ) || NameEquals( p.NickName, firstName ) ) )
                 {
-                    householdFamilyId = householdId;
+                    // A grandparent or adult sibling shares the last name too, so make sure the child does not
+                    // already exist elsewhere (same name and exact birthdate) before creating a copy here.
+                    var existsElsewhere = personService.Queryable()
+                        .Any( p => ( p.FirstName == firstName || p.NickName == firstName ) &&
+                            p.LastName == lastName &&
+                            p.BirthDate == birthdate.Value );
+
+                    if ( !existsElsewhere )
+                    {
+                        householdFamilyId = householdId;
+                    }
                 }
             }
 
             return candidates.Count == 1 ? candidates[0] : null;
+        }
+
+        private static bool NameEquals( string onFile, string entered )
+        {
+            return string.Equals( onFile, entered, StringComparison.OrdinalIgnoreCase );
         }
 
         /// <summary>

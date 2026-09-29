@@ -110,13 +110,12 @@ per-partition-type partials (`CardCampus`, `CardDefinedType`, `CardRole`, `CardS
 ## Dependencies & Integrations
 
 - **Rock:** `RockContext`, connection model (`ConnectionRequest`, `ConnectionOpportunity`,
-  `ConnectionType`), `PersonService` (`FindPersons`, `SaveNewPerson`), `GroupService`,
-  `GroupTypeRoleService`, `ScheduleService`, defined types/values, `HistoryService`, the Rock
-  block/Lava framework, campus context.
-- **Cross-plugin:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) — the form loads it
-  **reflectively** (`org.secc.PersonMatch.Extension.GetByMatch`) for person matching, falling back
-  to `PersonService.FindPersons` when the assembly isn't present.
-- No third-party APIs.
+  `ConnectionType`), `PersonService` (`FindPersons`, `SaveNewPerson`, `AddPersonToFamily`),
+  `GroupMemberService`, `GroupService`, `GroupTypeRoleService`, `ScheduleService`,
+  `SecuritySettingsService` (account protection profiles ignored for duplicate matching), defined
+  types/values, `HistoryService`, the Rock block/Lava framework, campus context.
+- No cross-plugin dependencies (an earlier reflective call into `org.secc.PersonMatch` never ran and
+  was removed) and no third-party APIs.
 
 ## Observations
 
@@ -124,10 +123,11 @@ per-partition-type partials (`CardCampus`, `CardDefinedType`, `CardRole`, `CardS
 
 - **Security (medium):** *Volunteer Signup Form - Connections* is a public-facing block that, on
   submit, will **create a new `Person` and a `ConnectionRequest`** when no match is found
-  (`PersonService.SaveNewPerson` at `VolunteerSignupFormConnections.ascx.cs:405`). Person matching
-  uses name + email/birthdate, so unauthenticated form posts can both enumerate-by-side-effect and
-  add records. Confirm the page is intended for anonymous use, and consider spam/rate protection
-  (e.g. CAPTCHA) — worth confirming.
+  (`PersonService.SaveNewPerson` / `AddPersonToFamily` in `btnConnect_Click`). Person matching
+  uses name + email (+ birthdate when shown), and the household path below can add a minor to the
+  family of whoever owns the entered email, so unauthenticated form posts can both
+  enumerate-by-side-effect and add records. Confirm the page is intended for anonymous use, and
+  consider spam/rate protection (e.g. CAPTCHA) — worth confirming.
 - **Security (low):** The form sets group-member attributes from URL parameters via the `UrlKeys`
   setting (`PageParameter(urlKey)`). Only keys the admin lists are honored, but those values are
   attacker-controllable in the link; review which attributes are exposed this way. Note this applies
@@ -149,11 +149,21 @@ per-partition-type partials (`CardCampus`, `CardDefinedType`, `CardRole`, `CardS
   rather than editing the defaults, as the in-code default comment advises.
 - To change registrant capture, person matching, or `ConnectionRequest` creation, edit
   `VolunteerSignupFormConnections.ascx.cs` (`btnConnect_Click`).
-- Person-matching behavior lives in [org.secc.PersonMatch](../org.secc.PersonMatch/README.md); this
-  plugin only calls into it reflectively.
+- Person matching runs in two steps. `PersonService.FindPersons` (name + email, filtered to the
+  entered birthdate when the picker is shown) reuses a person only when there is exactly one match
+  with the entered email. When that fails — typically a parent signing up a child with the parent's
+  own email — `FindHouseholdMember` looks in the families of whoever owns the entered email
+  (email only; a phone number is not private enough for an anonymous form) for the entered name,
+  preferring an exact birthdate, then none on file, then a likely typo; people whose account
+  protection profile Rock ignores for duplicate detection are never reused. With no hit, a minor is
+  added to the owning adults' family with the child role when the adults share one family, someone
+  there has the last name, nobody has the first name, and no one anywhere in Rock has that name and
+  birthdate; otherwise a new family is created as before. A minor entered with someone else's email
+  never gets that email or phone (the parent's phone on the child is what makes family check-in
+  show a second family); the parent's contact info goes into the request comments instead.
 - Re-package with `BuildPlugin.ps1` (Windows + 7-Zip) — note it intentionally excludes
   `ConnectionOpportunitySearch.ascx*` from the `.plugin`.
 - If a URL-supplied attribute value isn't landing on the connection request, check the merge in the
   `RoleRequests` getter and the apply step in `AddGroupMemberAttributes` — a key has to survive both.
 
-Last updated: 2026-08-21
+Last updated: 2026-09-29
