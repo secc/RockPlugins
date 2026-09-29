@@ -14,7 +14,7 @@ This is Southeast's catch-all **security and identity** plugin. Most of it is Ro
 - **Root namespace:** `org.secc.Security` (library) / `RockWeb.Plugins.org_secc.Security` (blocks)
 - **Target framework:** .NET Framework 4.7.2
 - **Deploys to:** `RockWeb/bin/` (the `org.secc.Security.dll` SAML library), `RockWeb/Plugins/org_secc/` (block markup + code-behind), and `RockWeb/Themes/` (the `my-secc` theme) — all via the PostBuildEvent xcopy.
-- **Cross-plugin dependency:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (used by the Captive Portal block).
+- **Cross-plugin dependencies:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (used by the Captive Portal block); [org.secc.DevLib](../org.secc.DevLib/README.md) (`ReadContentBytes`, used by the WellRight Redirect and SignNow Test blocks to read binary files through their storage provider).
 
 ## Project Layout
 
@@ -147,7 +147,7 @@ Both `RockBlock`s with a **Detail Page** (`LinkedPage`, Detail only), a **Show (
 
 - **Rock:** `RockBlock` / `PersonBlock`, `RockContext`, `PersonService` / `PersonalDeviceService` / `UserLoginService` / `AttendanceService`, `RockPage.LinkPersonAliasToDevice`, `Rock.Security.Authorization`, `DefinedValueCache` / `DefinedTypeCache`, `GlobalAttributesCache`, `Rock.SignNow` (`SignNow`, `SignNowSDK`), block-attribute framework, Lava merge-field resolution.
 - **Third-party:** `System.Security.Cryptography.Xml` (SAML signing), `UAParser` (device/OS parsing in captive portals), `Newtonsoft.Json` (MultiPass + SignNow), external services **WellRight**, **Church Online**, **SignNow**, and the SECC **FrontPorch** captive-portal cloud.
-- **Cross-plugin:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) — imported by the Captive Portal block.
+- **Cross-plugin:** [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) — imported by the Captive Portal block; [org.secc.DevLib](../org.secc.DevLib/README.md) — `ReadContentBytes` imported by `WellrightRedirect` and `SignNowTest`. Since these blocks are RockWeb-compiled, the deployed `org.secc.DevLib.dll` must include that method.
 
 ## Edge Cases & Constraints
 
@@ -165,6 +165,7 @@ Both `RockBlock`s with a **Detail Page** (`LinkedPage`, Detail only), a **Show (
 - **Security (review):** Church Online's SSO scheme uses a **fixed IV** (`"OpenSSL for Ruby"`) and HMAC-**SHA1**. Both are dictated by the Church Online/MultiPass spec, so they likely can't change unilaterally, but they're weak primitives worth noting if the integration is ever revisited. The `SSOKey` is a non-encrypted password `TextField`.
 - **Security (low):** `SignNowTest` is a "Test for sign now" block with a **hardcoded document Guid** (`5bb17a5b-…`) that creates a SignNow document/invite for `CurrentPerson` on every page load, writes a temp PDF to disk, and has no auth gating beyond page security. It looks like dev scaffolding; confirm it isn't deployed on a reachable production page.
 - **Security (low):** `CertificateUtility` exports the signing cert's private key to an XML string (`PrivateKey.ToXmlString(true)`) and re-imports it into a CSP on every sign. Functional, but the private key transits managed memory in the clear; fine for an internal signing path, noted for awareness.
+- **Key storage (ROCK-9041):** `WellrightRedirect` loads the PFX with `Exportable | MachineKeySet` (no `PersistKeySet`) and disposes the `X509Certificate2` after signing, and `CertificateUtility` disposes its `RSACryptoServiceProvider` (`PersistKeyInCsp = false`). Before this, every WellRight page load left a new private-key file in the machine key store.
 - **Improvement:** Several blocks `new RockContext()` repeatedly within a single request (e.g. Captive Portal creates a fresh context in `DoesPersonalDeviceExist`, `CreateDevice`, `VerifyDeviceInfo`, `Prefill`). Minor, but consolidating to one context per request would be cleaner.
 - **Improvement:** The compiled assembly contains only the SAML2 library; everything else is RockWeb-compiled. A maintainer touching a block won't see it in the csproj — note that when adding files.
 
@@ -206,4 +207,6 @@ There is no MEF/registration step — these are Rock blocks, placed on a page vi
 - SAML payload/signing changes go in `SAML2/SAML20Assertion.cs` / `CertificateUtility.cs` (the only csproj-compiled code, shipped as `org.secc.Security.dll`).
 - Captive-portal person matching delegates to the `GetByMatch` extension method in [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) (invoked on `PersonService`) — change matching there, not here.
 - The bundled `Themes/my-secc` theme (Layouts/Styles/Lava partials) is deployed by the same PostBuildEvent; theme edits live under `Themes/my-secc/`.
-- `SignNowTest` is test scaffolding — don't extend it for production; build a proper block instead.
+- `SignNowTest` is test scaffolding — don't extend it for production; build a proper block instead. It writes its temp PDF into a per-request directory and deletes it in a `finally`.
+
+Last updated: 2026-09-29

@@ -64,6 +64,8 @@ Both are `ActionComponent`s exported via MEF (`[Export(typeof(ActionComponent))]
   (`GetAccessToken`) from Rock's SignNow configuration.
 - **SignNowSDK:** `Document.Create` / `Invite` / `Get` / `Download`, `User.Create`, `OAuth2.RequestToken`.
 - **Third-party:** Newtonsoft.Json 11.0.2 (`JObject`/`JArray` response parsing), SignNow REST API.
+- **Cross-plugin:** [org.secc.DevLib](../org.secc.DevLib/README.md) — `ReadContentBytes` extension used by
+  `SignNow Create` to read the document through its storage provider.
 - **Other project refs:** `Rock.Common`, and `DotLiquid` (Lava `ResolveMergeFields` on the **Redirect Uri**).
 - **Other:** EntityFramework 6.1.3 (referenced; no plugin migrations shipped).
 
@@ -77,9 +79,13 @@ Both are `ActionComponent`s exported via MEF (`[Export(typeof(ActionComponent))]
   error adds an error message instead of throwing), reads the bytes into memory, and deletes the directory
   in a `finally` before any database work; a failed delete is logged, not thrown. The bytes go to
   `signedPDF.ContentStream` as a `MemoryStream` and `SaveChanges()` runs in both the new-`BinaryFile` and
-  existing-`BinaryFile` branches. New files fall back to the Default file type when the attribute has no
-  `binaryFileType` qualifier (otherwise Rock silently drops the content), and the stored file name gets a
-  `.pdf` extension. (Before ROCK-9041 every run shared `%TEMP%\{document_name}.pdf`, the action handed the
+  existing-`BinaryFile` branches. New files use the file type named by the attribute's `binaryFileType`
+  qualifier and fall back to the Default file type only when the qualifier is blank (otherwise Rock
+  silently drops the content); a qualifier that names a missing file type is an error, not a fallback, so
+  a signed application is never stored under the less-secured Default type by accident. The destination
+  attribute and file type are resolved before the download, so a misconfigured action fails without
+  calling SignNow. The stored file name gets a `.pdf` extension, and the `%PDF-` header is accepted
+  anywhere in the first 1024 bytes. (Before ROCK-9041 every run shared `%TEMP%\{document_name}.pdf`, the action handed the
   provider an open `FileStream`, and it deleted the path without the `.pdf` suffix, so temp PDFs piled up.)
   `SignNow Create` also removes its upload temp directory in a `finally`, including on error returns.
 - **SDK error handling:** SignNowSDK uses RestSharp 105, which never throws on transport failures. The SDK
