@@ -76,8 +76,12 @@ named `InvalidOperationException`.
   which is always true (an `||` that can never be false). The intended check was likely
   `!= null && != 0`; as written it relies on the later `binaryFileService.Get(...) != null` to bail.
 - **Improvement:** `Crop` calls `GetPixel` per pixel across the whole cell, which is slow for
-  large/high-dpi sheets. (`ChopImage` itself now iterates exactly `cols` x `rows` cells and clamps each
-  4px-inset rectangle to the bitmap, so sizes that don't divide evenly no longer throw.)
+  large/high-dpi sheets. (`ChopImage` itself now iterates exactly `cols` x `rows` cells, so sizes that
+  don't divide evenly no longer throw.)
+- **Note:** `ChopImage` rejects a grid with fewer than 1 row/column, or cells of 4px or less, with an
+  `InvalidOperationException`. The block shows the message and keeps the scan so the user can retry;
+  the Rows/Columns controls also have `Minimum="1"`. A PDF with no pages makes `ConvertPDFToImage`
+  return `null`, and the block shows "The uploaded PDF has no pages to convert."
 - **Note:** Because generated images are now saved through `ContentStream`, Rock's `BinaryFile` save
   hook resizes them if the block's **BinaryFileType** sets a max width/height. The rasterized sheet is
   then downscaled before it's chopped, so leave those limits unset on this file type.
