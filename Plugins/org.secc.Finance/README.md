@@ -124,21 +124,26 @@ Ships Rock plugin migrations (SQL only — `Down()` is intentionally empty):
 
 - To change what a statement contains (transactions, fund summary, pledges), edit
   `Utility/Statement.cs`; to change the action's inputs/output, edit `Workflow/GenerateStatement.cs`.
-- The default on-screen statement markup lives in the **Lava Template** block setting of
-  Contribution Statement Lava (and in `org_secc/Finance/Lava/ContributionStatement.lava`); the
-  generation run is configured on the Contribution Statement Generator block. In the default
-  template, ACH rows now handle a null `AccountNumberMasked` by rendering a fully masked fallback
-  (`••••••••`) instead of attempting to split a null value.
 - The statements the Generate Statements page produces render from the **LavaTemplate** attribute
   on two actions of the "Generate Contribution Statement" workflow type, stored in the database:
-  "Generate the Giving Statement" and "Generate the QCD Statement". `org_secc/Finance/Lava/ContributionStatement.lava`
-  and `org_secc/Finance/Lava/QCDContributionStatement.lava` are reference copies of those two
-  templates. Nothing loads them, so editing a file changes nothing until the same change is made in
-  the database; keep both in step by hand.
+  "Generate the Giving Statement" and "Generate the QCD Statement". In the Giving template, ACH rows
+  handle a null `AccountNumberMasked` by rendering a fully masked fallback (`••••••••`) instead of
+  attempting to split a null value.
+- `org_secc/Finance/Lava/ContributionStatement.lava` and `org_secc/Finance/Lava/QCDContributionStatement.lava`
+  are exact reference copies of those two templates (synced from PROD 2026-09-29, ROCK-9037). Nothing
+  in Rock includes them, so editing a file changes nothing until the same change is made in the
+  database; keep both in step by hand. The Giving copy keeps the 5 CRLF line endings the database
+  value has, and `.gitattributes` marks both files `-text` so git never rewrites them.
+- The on-screen **Contribution Statement Lava** block (pages "Contribution Statement" and
+  "Contribution Statement V1") is separate: its Lava Template setting is
+  `{% include '~\Assets\Lava\ContributionStatement.lava' %}`, a file on the web server that this
+  repo does not deploy (the post-build copies `org_secc/` to `RockWeb/Plugins/org_secc/`). The
+  2019-era markup that `ContributionStatement.lava` held before ROCK-9037 is in git history
+  (`git show c07d8666:Plugins/org.secc.Finance/org_secc/Finance/Lava/ContributionStatement.lava`).
 - The batch driver is `Jobs/ProcessGivingStatements.cs` — it keys off the configured generator
   workflow type and activity name, so adding a new generation step is a workflow change, not a code
   change.
 - File access/serving rules live in `Handlers/GetStatement.ashx.cs`; deletion in
   `Rest/Controllers/FinancialStatementsController.cs`.
 
-**Last updated:** 2026-09-14
+**Last updated:** 2026-09-29

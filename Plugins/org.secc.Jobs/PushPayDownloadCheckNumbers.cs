@@ -19,6 +19,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -42,6 +43,18 @@ namespace org.secc.Jobs
         /// </summary>
         private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds( 30 ) };
 
+        /// <summary>
+        /// Failed calls (timeouts, 5xx) in a row before the run gives up. Without this, a Pushpay
+        /// outage costs every remaining gift 19 merchants x the 30 second timeout.
+        /// </summary>
+        private const int MaxConsecutiveErrors = 10;
+
+        /// <summary>
+        /// Longest the job waits for a token the Pushpay DLL still considers valid to reach its
+        /// stored expiry, after Pushpay has already rejected it.
+        /// </summary>
+        private static readonly TimeSpan MaxTokenExpiryWait = TimeSpan.FromMinutes( 2 );
+
         // OAuth tokens are issued per Pushpay ACCOUNT, not per merchant - our 19 merchants all
         // share one account and therefore one token.
         private readonly Dictionary<int, string> _accountTokens = new Dictionary<int, string>();
@@ -63,7 +76,7 @@ namespace org.secc.Jobs
             AttributeValueService attributeValueService = new AttributeValueService( rockContext );
 
             // Fetch any transactions that don't have check numbers
-            var checkTransactions = financialTransactionService.Queryable( "FinancialPaymentDetail" )
+            var candidates = financialTransactionService.Queryable()
                                         .Where( ft => ft.SourceTypeValueId == transactionSource.Id
                                                       && ft.FinancialPaymentDetail.CurrencyTypeValueId == currencyType.Id
                                                       && ft.CreatedDateTime >= dateRange.Start
@@ -79,14 +92,22 @@ namespace org.secc.Jobs
                                         // Newest first, so a long backfill fills in the current
                                         // statement quarter before the old gifts.
                                         .OrderByDescending( ft => ft.Transaction.CreatedDateTime )
-                                        .Select( ft => ft.Transaction )
+                                        // Only the Id and the Pushpay payment token are needed; each
+                                        // match is loaded and saved in its own short-lived context.
+                                        .Select( ft => new { ft.Transaction.Id, ft.Transaction.ForeignKey } )
                                         .ToList();
+
+            // Without a Pushpay payment token there is nothing to look up. These can never succeed,
+            // so they are reported but not counted as errors (that would flag every run).
+            int noPaymentToken = candidates.Count( c => c.ForeignKey.IsNullOrWhiteSpace() );
+            var checkTransactions = candidates.Where( c => c.ForeignKey.IsNotNullOrWhiteSpace() ).ToList();
 
             int updates = 0;
             int pending = 0;
             int notFound = 0;
             int errors = 0;
             int processed = 0;
+            int consecutiveErrors = 0;
             var errorsByStatus = new Dictionary<string, int>();
             string stopReason = null;
 
@@ -108,16 +129,8 @@ namespace org.secc.Jobs
 
                 foreach ( var transaction in checkTransactions )
                 {
-                    if ( transaction.ForeignKey.IsNullOrWhiteSpace() )
-                    {
-                        errors++;
-                        AddErrorStatus( errorsByStatus, "NoPaymentToken" );
-                        processed++;
-                        continue;
-                    }
-
                     bool resolved = false;
-                    bool sawError = false;
+                    string lastErrorStatus = null;
 
                     for ( int i = 0; i < merchantDataList.Count; i++ )
                     {
@@ -132,16 +145,34 @@ namespace org.secc.Jobs
 
                         if ( paymentResult.Outcome == CallOutcome.Unauthorized )
                         {
-                            stopReason = string.Format( "Stopped early: Pushpay token rejected after refresh at {0}; if this happens right after ~06:15 the DLL does not renew expired tokens: schedule this job right after 'Pushpay Downloads'.", RockDateTime.Now.ToString( "HH:mm" ) );
+                            stopReason = string.Format( "Stopped early at {0}: Pushpay rejected the access token even after requesting a new one. Check that the Pushpay account is still authorized in Rock. The next scheduled run will pick up where this one stopped.", RockDateTime.Now.ToString( "HH:mm" ) );
                             break;
                         }
 
+                        if ( paymentResult.Outcome == CallOutcome.Error )
+                        {
+                            lastErrorStatus = paymentResult.StatusLabel ?? "Unknown";
+                            consecutiveErrors++;
+
+                            if ( consecutiveErrors >= MaxConsecutiveErrors )
+                            {
+                                stopReason = string.Format( "Stopped early: {0} Pushpay calls in a row failed (last: {1}), so Pushpay may be unavailable. The next scheduled run will pick up where this one stopped.", consecutiveErrors, lastErrorStatus );
+                                break;
+                            }
+
+                            continue;
+                        }
+
+                        // Any real answer from Pushpay (found, pending or not found) resets the streak.
+                        consecutiveErrors = 0;
+
                         if ( paymentResult.Outcome == CallOutcome.Found )
                         {
-                            transaction.LoadAttributes( rockContext );
-                            transaction.SetAttributeValue( checkNumberAttribute.Key, paymentResult.CheckNumber );
-                            transaction.SaveAttributeValues();
-                            updates++;
+                            if ( SaveCheckNumber( transaction.Id, checkNumberAttribute.Key, paymentResult.CheckNumber ) )
+                            {
+                                updates++;
+                            }
+
                             resolved = true;
                             PromoteMerchant( merchantDataList, i );
                             break;
@@ -156,12 +187,6 @@ namespace org.secc.Jobs
                             break;
                         }
 
-                        if ( paymentResult.Outcome == CallOutcome.Error )
-                        {
-                            sawError = true;
-                            AddErrorStatus( errorsByStatus, paymentResult.StatusLabel );
-                        }
-
                         // CallOutcome.NotFound - this payment belongs to another merchant, keep looking.
                     }
 
@@ -174,9 +199,11 @@ namespace org.secc.Jobs
 
                     if ( !resolved )
                     {
-                        if ( sawError )
+                        if ( lastErrorStatus != null )
                         {
+                            // One entry per failed gift, so the status breakdown adds up to Errors.
                             errors++;
+                            AddErrorStatus( errorsByStatus, lastErrorStatus );
                         }
                         else
                         {
@@ -198,6 +225,11 @@ namespace org.secc.Jobs
 
             result += string.Format( ". Processed {0} of {1}.", processed, checkTransactions.Count );
 
+            if ( noPaymentToken > 0 )
+            {
+                result += string.Format( " Skipped {0} with no Pushpay payment token.", noPaymentToken );
+            }
+
             if ( stopReason.IsNotNullOrWhiteSpace() )
             {
                 result += " " + stopReason;
@@ -210,6 +242,28 @@ namespace org.secc.Jobs
                 // RockJobListener uses this.Result as the status message for a warning exception,
                 // so the job reports Warning with the summary instead of plain success.
                 throw new RockJobWarningException( Result );
+            }
+        }
+
+        /// <summary>
+        /// Writes the check number to one transaction in its own context, so a long run doesn't
+        /// accumulate every transaction and its attributes in a single change tracker.
+        /// </summary>
+        private static bool SaveCheckNumber( int transactionId, string attributeKey, string checkNumber )
+        {
+            using ( var rockContext = new RockContext() )
+            {
+                var transaction = new FinancialTransactionService( rockContext ).Get( transactionId );
+                if ( transaction == null )
+                {
+                    // Deleted since the candidate list was built.
+                    return false;
+                }
+
+                transaction.LoadAttributes( rockContext );
+                transaction.SetAttributeValue( attributeKey, checkNumber );
+                transaction.SaveAttributeValues( rockContext );
+                return true;
             }
         }
 
@@ -248,22 +302,45 @@ namespace org.secc.Jobs
         /// </summary>
         private string FetchAccessToken( int accountId, bool forceRefresh )
         {
-            string oAuthToken = null;
-            DateTime? tokenExpires = null;
-
-            if ( !forceRefresh )
-            {
-                _accountTokens.TryGetValue( accountId, out oAuthToken );
-                _accountTokenExpires.TryGetValue( accountId, out tokenExpires );
-            }
+            string cachedToken;
+            DateTime? tokenExpires;
+            _accountTokens.TryGetValue( accountId, out cachedToken );
+            _accountTokenExpires.TryGetValue( accountId, out tokenExpires );
 
             // TokenExpires is stored in Rock server local time, so compare against RockDateTime.Now
             // (Rock's configured timezone) rather than DateTime.Now or DateTime.UtcNow.
-            if ( oAuthToken.IsNotNullOrWhiteSpace() && tokenExpires.HasValue && RockDateTime.Now < tokenExpires.Value )
+            if ( !forceRefresh && cachedToken.IsNotNullOrWhiteSpace() && tokenExpires.HasValue && RockDateTime.Now < tokenExpires.Value )
             {
-                return oAuthToken;
+                return cachedToken;
             }
 
+            string oAuthToken = InvokeGetAccessToken( accountId );
+
+            // The DLL only renews a token once its stored expiry has passed. If Pushpay rejected the
+            // token a little early (clock skew), the DLL hands back the same one; wait out the few
+            // remaining seconds and ask again rather than ending the run.
+            if ( forceRefresh && oAuthToken == cachedToken )
+            {
+                DateTime? storedExpires = GetTokenExpires( accountId );
+                if ( storedExpires.HasValue )
+                {
+                    TimeSpan wait = storedExpires.Value - RockDateTime.Now + TimeSpan.FromSeconds( 5 );
+                    if ( wait > TimeSpan.Zero && wait <= MaxTokenExpiryWait )
+                    {
+                        Thread.Sleep( wait );
+                        oAuthToken = InvokeGetAccessToken( accountId );
+                    }
+                }
+            }
+
+            _accountTokens[accountId] = oAuthToken;
+            _accountTokenExpires[accountId] = GetTokenExpires( accountId );
+
+            return oAuthToken;
+        }
+
+        private string InvokeGetAccessToken( int accountId )
+        {
             if ( _accessTokenMethodInfo == null )
             {
                 Assembly assembly = Assembly.LoadFrom( System.Web.Hosting.HostingEnvironment.MapPath( "~/bin/com.pushpay.RockRMS.dll" ) );
@@ -271,12 +348,7 @@ namespace org.secc.Jobs
                 _accessTokenMethodInfo = pushpayApiType.GetMethod( "GetAccessToken" );
             }
 
-            oAuthToken = Convert.ToString( _accessTokenMethodInfo.Invoke( null, new object[] { accountId } ) );
-
-            _accountTokens[accountId] = oAuthToken;
-            _accountTokenExpires[accountId] = GetTokenExpires( accountId );
-
-            return oAuthToken;
+            return Convert.ToString( _accessTokenMethodInfo.Invoke( null, new object[] { accountId } ) );
         }
 
         /// <summary>
