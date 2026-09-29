@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 using iText.Forms;
 using iText.Kernel.Pdf;
+using org.secc.DevLib.Extensions;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -85,13 +86,9 @@ namespace org.secc.SafetyAndSecurity
 
             using ( MemoryStream ms = new MemoryStream() )
             {
-                // ROCK-9041: Copy the storage provider stream into memory and dispose it rather than
-                // handing iText a provider stream it never closes.
-                byte[] pdfBytes;
-                using ( var contentStream = PDF.ContentStream )
-                {
-                    pdfBytes = contentStream.ReadBytesToEnd();
-                }
+                // ROCK-9041: Read the template into memory through a fresh provider stream (disposed) rather
+                // than handing iText a provider stream it never closes; see BinaryFileExtensions.ReadContentBytes.
+                byte[] pdfBytes = PDF.ReadContentBytes( "PDF Template" );
 
                 PdfDocument doc = new PdfDocument( new PdfReader( new MemoryStream( pdfBytes ) ), new PdfWriter( ms ) );
                 PdfAcroForm form = PdfAcroForm.GetAcroForm( doc, true );

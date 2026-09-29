@@ -23,6 +23,7 @@ using Microsoft.Azure.CognitiveServices.Vision.Face;
 using Microsoft.Azure.CognitiveServices.Vision.Face.Models;
 using org.secc.DevLib.Components;
 using org.secc.Imaging.Components;
+using org.secc.DevLib.Extensions;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -81,11 +82,12 @@ namespace org.secc.Imaging.AI
                 return false;
             }
 
-            // ROCK-9041: Dispose the storage provider stream once the crop has read it.
+            // ROCK-9041: Crop from an in-memory copy read through a fresh provider stream (disposed);
+            // see BinaryFileExtensions.ReadContentBytes.
             MemoryStream stream;
-            using ( var contentStream = binaryFile.ContentStream )
+            using ( var imageStream = new MemoryStream( binaryFile.ReadContentBytes( "Person photo" ) ) )
             {
-                stream = CropDetectedFace( detectedFace, contentStream, scaleFactor );
+                stream = CropDetectedFace( detectedFace, imageStream, scaleFactor );
             }
 
             UpdatePersonPhoto( person, stream );

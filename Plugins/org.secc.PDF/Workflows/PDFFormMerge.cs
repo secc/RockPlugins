@@ -19,6 +19,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using iText.Forms;
 using iText.Kernel.Pdf;
+using org.secc.DevLib.Extensions;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -129,21 +130,8 @@ namespace org.secc.PDF
                 throw new InvalidOperationException( "PDF Template binary file was not found. Guid: " + templateGuid );
             }
 
-            // ROCK-9041: Dispose the storage provider stream after reading the template bytes.
-            byte[] pdfBytes;
-            using ( var contentStream = pdf.ContentStream )
-            {
-                if ( contentStream == null )
-                {
-                    throw new InvalidOperationException( "PDF Template content stream is empty or unavailable. Guid: " + templateGuid );
-                }
-
-                pdfBytes = contentStream.ReadBytesToEnd();
-            }
-            if ( pdfBytes == null || pdfBytes.Length == 0 )
-            {
-                throw new InvalidOperationException( "PDF Template has no content. Guid: " + templateGuid );
-            }
+            // ROCK-9041: Read through a fresh provider stream; see BinaryFileExtensions.ReadContentBytes.
+            var pdfBytes = pdf.ReadContentBytes( "PDF Template" );
 
             var mergedBytes = ApplyMergeFields( pdfBytes, pdfWorkflowObject, flatten );
 

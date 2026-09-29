@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
+using org.secc.DevLib.Extensions;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -43,13 +44,9 @@ namespace RockWeb.Plugins.org_secc.Security
                 // Save the file to a temporary place
                 string tempFile = Path.GetTempPath() + "VolunteerApplication_" + person.FirstName + person.LastName + ".pdf";
 
-                // Open a FileStream to write to the file:
-                // ROCK-9041: Dispose the storage provider stream after copying it to the temp file.
-                using ( Stream fileStream = File.OpenWrite( tempFile ) )
-                using ( Stream contentStream = renderedPDF.ContentStream )
-                {
-                    contentStream.CopyTo( fileStream );
-                }
+                // ROCK-9041: Read through a fresh provider stream (see BinaryFileExtensions.ReadContentBytes).
+                // WriteAllBytes truncates, so a leftover temp file from a failed run can't leave trailing bytes.
+                File.WriteAllBytes( tempFile, renderedPDF.ReadContentBytes( "Volunteer application PDF" ) );
 
                 SignNow signNow = new SignNow();
                 string snErrorMessage = "";
