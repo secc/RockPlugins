@@ -18,6 +18,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using Ghostscript.NET.Rasterizer;
+using org.secc.DevLib.Extensions;
 using Rock.Data;
 using Rock.Model;
 
@@ -30,13 +31,9 @@ namespace org.secc.ConnectionCards.Utilities
             int desired_x_dpi = 96;
             int desired_y_dpi = 96;
 
-            // ROCK-9041: Copy the provider stream into memory and dispose it so the caller can
-            // delete the source BinaryFile without a provider handle still open on it.
-            byte[] pdfBytes;
-            using ( var contentStream = inputFile.ContentStream )
-            {
-                pdfBytes = ReadAllBytes( contentStream );
-            }
+            // ROCK-9041: Copy the content into memory through a fresh provider stream (disposed) so the
+            // caller can delete the source BinaryFile without a provider handle still open on it.
+            byte[] pdfBytes = inputFile.ReadContentBytes( "Connection card sheet PDF" );
 
             using ( GhostscriptRasterizer rasterizer = new GhostscriptRasterizer() )
             using ( MemoryStream pdfStream = new MemoryStream( pdfBytes ) )
@@ -70,11 +67,9 @@ namespace org.secc.ConnectionCards.Utilities
 
         public static BinaryFile RotateImage( BinaryFile inputFile, RotateFlipType rotateFlipType, RockContext rockContext )
         {
-            byte[] imageBytes;
-            using ( var contentStream = inputFile.ContentStream )
-            {
-                imageBytes = ReadAllBytes( contentStream );
-            }
+            // ROCK-9041: Read through a fresh provider stream (disposed) and dispose the Image; the old code
+            // left both open.
+            byte[] imageBytes = inputFile.ReadContentBytes( "Connection card sheet image" );
 
             using ( MemoryStream inMS = new MemoryStream( imageBytes ) )
             using ( Image image = Image.FromStream( inMS ) )
@@ -83,8 +78,7 @@ namespace org.secc.ConnectionCards.Utilities
                 image.RotateFlip( rotateFlipType );
                 image.Save( outMS, ImageFormat.Png );
 
-                // ROCK-9041: Hand the provider a fresh stream positioned at 0. Assigning outMS directly
-                // left the position at the end, which uploaded a zero-byte blob under Azure.
+                // Copy the PNG out so the stream handed to the provider outlives this using block.
                 var data = outMS.ToArray();
                 inputFile.FileSize = data.Length;
                 inputFile.ContentStream = new MemoryStream( data );
@@ -96,32 +90,38 @@ namespace org.secc.ConnectionCards.Utilities
 
         public static List<BinaryFile> ChopImage( BinaryFile inputFile, int cols, int rows, RockContext rockContext )
         {
-            // ROCK-9041: Read through ContentStream so this works for any storage provider,
+            // ROCK-9041: Read through the storage provider so this works for any provider,
             // not just Database (DatabaseData is null for files stored elsewhere).
-            byte[] imageBytes;
-            using ( var contentStream = inputFile.ContentStream )
-            {
-                imageBytes = ReadAllBytes( contentStream );
-            }
+            byte[] imageBytes = inputFile.ReadContentBytes( "Connection card sheet image" );
 
             using ( MemoryStream ms = new MemoryStream( imageBytes ) )
+            using ( Image originalImage = Image.FromStream( ms ) )
+            using ( Bitmap sourceBitmap = new Bitmap( originalImage ) )
             {
                 List<BinaryFile> output = new List<BinaryFile>();
-                Image originalImage = Image.FromStream( ms );
-                Bitmap sourceBitmap = new Bitmap( originalImage );
-                int width = originalImage.Width;
-                int height = originalImage.Height;
-                int elementWidth = width / cols;
-                int elementHeight = height / rows;
-                for ( var x = 0; x < width; x += elementWidth )
+                var bounds = new Rectangle( 0, 0, sourceBitmap.Width, sourceBitmap.Height );
+                int elementWidth = sourceBitmap.Width / cols;
+                int elementHeight = sourceBitmap.Height / rows;
+
+                // Exactly cols x rows cells. Stepping x/y by the element size until the edge added an extra
+                // partial column/row when the size wasn't evenly divisible, and its rectangle ran past the
+                // bitmap (Clone throws OutOfMemoryException). The 4px inset trims scan borders between cards.
+                for ( var col = 0; col < cols; col++ )
                 {
-                    for ( var y = 0; y < height; y += elementHeight )
+                    for ( var row = 0; row < rows; row++ )
                     {
-                        using ( MemoryStream outMS = new MemoryStream() )
+                        var cell = Rectangle.Intersect( bounds,
+                            new Rectangle( col * elementWidth + 4, row * elementHeight + 4, elementWidth - 4, elementHeight - 4 ) );
+                        if ( cell.Width <= 0 || cell.Height <= 0 )
                         {
-                            var clone = sourceBitmap.Clone( new Rectangle( x + 4, y + 4, elementWidth - 4, elementHeight - 4 ), sourceBitmap.PixelFormat );
-                            clone = Crop( clone );
-                            clone.Save( outMS, ImageFormat.Png );
+                            continue;
+                        }
+
+                        using ( MemoryStream outMS = new MemoryStream() )
+                        using ( Bitmap clone = sourceBitmap.Clone( cell, sourceBitmap.PixelFormat ) )
+                        using ( Bitmap cropped = Crop( clone ) )
+                        {
+                            cropped.Save( outMS, ImageFormat.Png );
                             var data = outMS.ToArray();
                             var element = new BinaryFile()
                             {
@@ -139,27 +139,6 @@ namespace org.secc.ConnectionCards.Utilities
                 }
                 rockContext.SaveChanges();
                 return output;
-            }
-        }
-
-        /// <summary>
-        /// Copies a storage provider stream into a byte array. Returns an empty array when the stream is null.
-        /// </summary>
-        private static byte[] ReadAllBytes( Stream stream )
-        {
-            if ( stream == null )
-            {
-                return new byte[0];
-            }
-
-            using ( MemoryStream ms = new MemoryStream() )
-            {
-                if ( stream.CanSeek )
-                {
-                    stream.Position = 0;
-                }
-                stream.CopyTo( ms );
-                return ms.ToArray();
             }
         }
 
