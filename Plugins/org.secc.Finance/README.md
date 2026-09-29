@@ -129,6 +129,12 @@ Ships Rock plugin migrations (SQL only — `Down()` is intentionally empty):
   generation run is configured on the Contribution Statement Generator block. In the default
   template, ACH rows now handle a null `AccountNumberMasked` by rendering a fully masked fallback
   (`••••••••`) instead of attempting to split a null value.
+- The statements the Generate Statements page produces render from the **LavaTemplate** attribute
+  on two actions of the "Generate Contribution Statement" workflow type, stored in the database:
+  "Generate the Giving Statement" and "Generate the QCD Statement". `org_secc/Finance/Lava/ContributionStatement.lava`
+  and `org_secc/Finance/Lava/QCDContributionStatement.lava` are reference copies of those two
+  templates. Nothing loads them, so editing a file changes nothing until the same change is made in
+  the database; keep both in step by hand.
 - The batch driver is `Jobs/ProcessGivingStatements.cs` — it keys off the configured generator
   workflow type and activity name, so adding a new generation step is a workflow change, not a code
   change.
