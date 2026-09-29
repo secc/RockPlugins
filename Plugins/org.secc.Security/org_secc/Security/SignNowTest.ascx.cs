@@ -41,42 +41,59 @@ namespace RockWeb.Plugins.org_secc.Security
 
                 BinaryFile renderedPDF = binaryfileService.Get( documentGuid );
 
-                // Save the file to a temporary place
-                string tempFile = Path.GetTempPath() + "VolunteerApplication_" + person.FirstName + person.LastName + ".pdf";
-
-                // ROCK-9041: Read through a fresh provider stream (see BinaryFileExtensions.ReadContentBytes).
-                // WriteAllBytes truncates, so a leftover temp file from a failed run can't leave trailing bytes.
-                File.WriteAllBytes( tempFile, renderedPDF.ReadContentBytes( "Volunteer application PDF" ) );
-
-                SignNow signNow = new SignNow();
-                string snErrorMessage = "";
-                String token = signNow.GetAccessToken( false, out snErrorMessage );
-
-                JObject result = SignNowSDK.Document.Create( token, tempFile, false ); //Changed from true
-                string documentId = result.Value<string>( "id" );
-
-                // Get the invite link
-                var error = new List<string>();
-                signNowInviteLink = signNow.GetInviteLink( documentId, out error );
-                string url = "";
-                string newDocumentId = "";
-                using ( var client = new HttpClient( new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate } ) )
+                // Save the file to a temporary directory unique to this request (same pattern as SignNowCreate),
+                // and remove it however the upload ends so a failed run can't leave the PDF in the temp directory.
+                string tempDirectory = Path.Combine( Path.GetTempPath(), Path.GetRandomFileName() );
+                try
                 {
-                    client.DefaultRequestHeaders.TryAddWithoutValidation( "Accept", Context.Request.AcceptTypes );
-                    client.DefaultRequestHeaders.TryAddWithoutValidation( "Accept-Encoding", "gzip, deflate" );
-                    client.DefaultRequestHeaders.TryAddWithoutValidation( "User-Agent", Context.Request.UserAgent );
-                    client.DefaultRequestHeaders.TryAddWithoutValidation( "Accept-Charset", "ISO-8859-1" );
+                    Directory.CreateDirectory( tempDirectory );
+                    string tempFile = Path.Combine( tempDirectory, "VolunteerApplication_" + person.FirstName + person.LastName + ".pdf" );
 
-                    client.BaseAddress = new Uri( signNowInviteLink );
-                    HttpResponseMessage response = client.GetAsync( "" ).Result;
-                    url = response.RequestMessage.RequestUri.AbsoluteUri;
-                    MatchCollection mc = Regex.Matches( url, "document_id%253D([0-9,a-f]{40})" );
-                    newDocumentId = mc[0].Groups[1].Value;
+                    // ROCK-9041: Read through a fresh provider stream (see BinaryFileExtensions.ReadContentBytes).
+                    File.WriteAllBytes( tempFile, renderedPDF.ReadContentBytes( "Volunteer application PDF" ) );
+
+                    SignNow signNow = new SignNow();
+                    string snErrorMessage = "";
+                    String token = signNow.GetAccessToken( false, out snErrorMessage );
+
+                    JObject result = SignNowSDK.Document.Create( token, tempFile, false ); //Changed from true
+                    string documentId = result.Value<string>( "id" );
+
+                    // Get the invite link
+                    var error = new List<string>();
+                    signNowInviteLink = signNow.GetInviteLink( documentId, out error );
+                    string url = "";
+                    string newDocumentId = "";
+                    using ( var client = new HttpClient( new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate } ) )
+                    {
+                        client.DefaultRequestHeaders.TryAddWithoutValidation( "Accept", Context.Request.AcceptTypes );
+                        client.DefaultRequestHeaders.TryAddWithoutValidation( "Accept-Encoding", "gzip, deflate" );
+                        client.DefaultRequestHeaders.TryAddWithoutValidation( "User-Agent", Context.Request.UserAgent );
+                        client.DefaultRequestHeaders.TryAddWithoutValidation( "Accept-Charset", "ISO-8859-1" );
+
+                        client.BaseAddress = new Uri( signNowInviteLink );
+                        HttpResponseMessage response = client.GetAsync( "" ).Result;
+                        url = response.RequestMessage.RequestUri.AbsoluteUri;
+                        MatchCollection mc = Regex.Matches( url, "document_id%253D([0-9,a-f]{40})" );
+                        newDocumentId = mc[0].Groups[1].Value;
+                    }
+
+                    JObject createLinkRes = SignNowSDK.Link.Create( token, documentId );
                 }
-
-                // Delete the file when we are done:
-                File.Delete( tempFile );
-                JObject createLinkRes = SignNowSDK.Link.Create( token, documentId );
+                finally
+                {
+                    try
+                    {
+                        if ( Directory.Exists( tempDirectory ) )
+                        {
+                            Directory.Delete( tempDirectory, true );
+                        }
+                    }
+                    catch ( Exception ex )
+                    {
+                        ExceptionLogService.LogException( ex );
+                    }
+                }
             }
         }
     }

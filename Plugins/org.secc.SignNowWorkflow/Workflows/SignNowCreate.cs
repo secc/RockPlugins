@@ -61,6 +61,11 @@ namespace org.secc.SignNowWorkflow
             BinaryFileService binaryfileService = new BinaryFileService( rockContext );
 
             BinaryFile renderedPDF = binaryfileService.Get( documentGuid );
+            if ( renderedPDF == null )
+            {
+                errorMessages.Add( "Rendered PDF binary file was not found." );
+                return false;
+            }
 
             SignNow signNow = new SignNow();
             string snErrorMessage = "";
@@ -88,11 +93,13 @@ namespace org.secc.SignNowWorkflow
                 documentId = ( result as JObject )?.Value<string>( "id" );
                 if ( string.IsNullOrWhiteSpace( documentId ) )
                 {
-                    errorMessages.Add( "SignNow Document Creation Error: " + ( result?.ToString() ?? "No response from SignNow." ) );
+                    errorMessages.Add( "SignNow Document Creation Error: " + DescribeResponse( result ) );
                     return false;
                 }
             }
-            catch ( JsonException ex )
+            // InvalidOperationException: ReadContentBytes found no content. IOException / UnauthorizedAccessException:
+            // the temp file could not be written (e.g. a FileName with invalid path characters).
+            catch ( Exception ex ) when ( ex is JsonException || ex is InvalidOperationException || ex is IOException || ex is UnauthorizedAccessException )
             {
                 errorMessages.Add( "SignNow Document Creation Error: " + ex.Message );
                 return false;
@@ -117,27 +124,53 @@ namespace org.secc.SignNowWorkflow
             var signerEmail = "guest_signer_" + Guid.NewGuid().ToString() + "@no.reply";
             var signerPassword = Guid.NewGuid().ToString();
 
-            var user = SignNowSDK.User.Create( signerEmail, signerPassword );
-
-            JObject OAuthRes = SignNowSDK.OAuth2.RequestToken( signerEmail, signerPassword );
-            var userAccessToken = OAuthRes.Value<string>( "access_token" );
-
-            dynamic dataobject = new
+            // The document now exists in SignNow and its id is saved above, so a failure below leaves that
+            // document behind and a retry uploads a new one. Report the failure rather than throwing an NRE so
+            // the workflow log says what went wrong. The SDK returns null when a request fails.
+            string userAccessToken;
+            try
             {
-                to = new[]  {
-                        new {
-                            email = signerEmail,
-                            role = GetAttributeValue(action,"SignerRole"),
-                            role_id = "",
-                            order = 1
-                        }
-                    },
-                from = "SignNow@secc.org"
-            };
+                object user = SignNowSDK.User.Create( signerEmail, signerPassword );
+                if ( ( user as JObject )?.Value<string>( "id" ) == null )
+                {
+                    errorMessages.Add( "SignNow Signer Creation Error: " + DescribeResponse( user ) );
+                    return false;
+                }
 
+                object oauthResult = SignNowSDK.OAuth2.RequestToken( signerEmail, signerPassword );
+                userAccessToken = ( oauthResult as JObject )?.Value<string>( "access_token" );
+                if ( string.IsNullOrWhiteSpace( userAccessToken ) )
+                {
+                    errorMessages.Add( "SignNow Signer Token Error: " + DescribeResponse( oauthResult ) );
+                    return false;
+                }
 
-            // Get the invite link
-            var generated = SignNowSDK.Document.Invite( token, documentId, dataobject, DisableEmail: true );
+                dynamic dataobject = new
+                {
+                    to = new[]  {
+                            new {
+                                email = signerEmail,
+                                role = GetAttributeValue(action,"SignerRole"),
+                                role_id = "",
+                                order = 1
+                            }
+                        },
+                    from = "SignNow@secc.org"
+                };
+
+                // Create the invite; SignNow answers {"status":"success"} and an error object otherwise.
+                object invite = SignNowSDK.Document.Invite( token, documentId, dataobject, DisableEmail: true );
+                if ( ( invite as JObject )?.Value<string>( "status" ) != "success" )
+                {
+                    errorMessages.Add( "SignNow Invite Error: " + DescribeResponse( invite ) );
+                    return false;
+                }
+            }
+            catch ( JsonException ex )
+            {
+                errorMessages.Add( "SignNow Invite Error: " + ex.Message );
+                return false;
+            }
 
             var signNowInviteLink = string.Format(
                 "https://signnow.com/dispatch?route=fieldinvite&document_id={0}&access_token={1}&mobileweb=mobileweb_only",
@@ -155,6 +188,11 @@ namespace org.secc.SignNowWorkflow
             SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowInviteLink" ).AsGuid(), signNowInviteLink );
             SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid(), documentId );
             return true;
+        }
+
+        private static string DescribeResponse( object response )
+        {
+            return response == null ? "No response from SignNow." : response.ToString();
         }
     }
 }

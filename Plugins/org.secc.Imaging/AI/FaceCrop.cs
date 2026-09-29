@@ -151,11 +151,12 @@ namespace org.secc.Imaging.AI
 
             var roll = ( float ) Math.Round( detectedFace.FaceAttributes.HeadPose.Roll, 2 );
 
+            // Dispose the rotated source and the target too; UpdatePersonImage runs this for every row of a
+            // query, and two undisposed full-size bitmaps per photo exhaust GDI+ before the GC catches up.
             using ( var src = Image.FromStream( imageStream ) as Bitmap )
+            using ( Bitmap rotatedSrc = RotateImage( src, -roll ) )
+            using ( Bitmap target = new Bitmap( 500, 500 ) )
             {
-                // Rotate the source image first
-                Bitmap rotatedSrc = RotateImage( src, -roll );
-
                 // Rotate the face rectangle coordinates
                 PointF center = new PointF( src.Width / 2f, src.Height / 2f );
 
@@ -200,32 +201,24 @@ namespace org.secc.Imaging.AI
                 // Ensure cropRect is within bounds
                 cropRect.Intersect( new Rectangle( 0, 0, rotatedSrc.Width, rotatedSrc.Height ) );
 
-                // Create target bitmap
-                Bitmap target = new Bitmap( 500, 500 );
-
+                // Draw the crop into the target bitmap
                 using ( Graphics g = Graphics.FromImage( target ) )
                 {
                     g.DrawImage( rotatedSrc, new Rectangle( 0, 0, target.Width, target.Height ), cropRect, GraphicsUnit.Pixel );
                 }
 
                 // Save the target bitmap
-                ImageCodecInfo myImageCodecInfo;
-                System.Drawing.Imaging.Encoder myEncoder;
-                EncoderParameter myEncoderParameter;
-                EncoderParameters myEncoderParameters;
+                ImageCodecInfo myImageCodecInfo = GetEncoderInfo( "image/jpeg" );
+                System.Drawing.Imaging.Encoder myEncoder = System.Drawing.Imaging.Encoder.Quality;
 
-                myEncoder = System.Drawing.Imaging.Encoder.Quality;
-                myImageCodecInfo = GetEncoderInfo( "image/jpeg" );
+                using ( EncoderParameters myEncoderParameters = new EncoderParameters( 1 ) )
+                {
+                    myEncoderParameters.Param[0] = new EncoderParameter( myEncoder, 95L );
 
-                myEncoderParameters = new EncoderParameters( 1 );
-                myEncoderParameter = new EncoderParameter( myEncoder, 95L );
-                myEncoderParameters.Param[0] = myEncoderParameter;
-
-                var stream = new MemoryStream();
-
-                target.Save( stream, myImageCodecInfo, myEncoderParameters );
-
-                return stream;
+                    var stream = new MemoryStream();
+                    target.Save( stream, myImageCodecInfo, myEncoderParameters );
+                    return stream;
+                }
             }
         }
 

@@ -28,10 +28,12 @@ namespace org.secc.DevLib.Extensions
         /// Disposing <see cref="BinaryFile.ContentStream"/> instead is unsafe: the entity caches that stream
         /// and only re-fetches it when CanSeek is false, and Azure's blob stream still reports CanSeek after
         /// Dispose, so any later read of the same tracked BinaryFile would get a disposed stream back.
-        /// Unsaved files (no storage provider yet) are read from their in-memory ContentStream, which the
-        /// caller owns and which is left open.
+        /// Unsaved files (Id == 0) are read from their in-memory ContentStream, which the caller owns and
+        /// which is left open. Whether a file is unsaved is decided by Id, not by StorageProvider: calling
+        /// SetStorageEntityTypeId on a new file sets StorageProvider before the content is stored.
         /// Because stored files are always read from the provider, save first if you have assigned a new
         /// ContentStream to a tracked file; otherwise this returns the previously stored bytes.
+        /// Exceptions thrown by the storage provider itself (IO, Azure, ...) are not caught here.
         /// </remarks>
         /// <param name="binaryFile">The binary file.</param>
         /// <param name="description">A short name for the file used in error messages, e.g. "PDF Template".</param>
@@ -45,7 +47,7 @@ namespace org.secc.DevLib.Extensions
             }
 
             byte[] bytes;
-            if ( binaryFile.StorageProvider != null )
+            if ( binaryFile.Id != 0 && binaryFile.StorageProvider != null )
             {
                 using ( var stream = binaryFile.StorageProvider.GetContentStream( binaryFile ) )
                 {

@@ -106,6 +106,52 @@ namespace org.secc.SignNowWorkflow
                     fileName += ".pdf";
                 }
 
+                // Resolve where the signed PDF will be stored before downloading it, so a misconfigured
+                // action fails without making the SignNow requests on every poll.
+                BinaryFile signedPDF = binaryfileService.Get( documentGuid );
+                AttributeCache destinationAttribute = null;
+                BinaryFileType binaryFileType = null;
+                if ( signedPDF == null )
+                {
+                    destinationAttribute = AttributeCache.Get( GetActionAttributeValue( action, "Document" ).AsGuid(), rockContext );
+                    if ( destinationAttribute == null )
+                    {
+                        errorMessages.Add( "The Document attribute for the SignNow Download action could not be found." );
+                        return false;
+                    }
+
+                    // BinaryFile's save hook only stores content for new files that have a file type. Use the
+                    // type the attribute names; fall back to the default type only when it names none. A type
+                    // that is named but missing is an error: silently storing a signed application under the
+                    // default type would drop the security the configured type carries.
+                    var binaryFileTypeService = new BinaryFileTypeService( rockContext );
+                    string binaryFileTypeQualifier = null;
+                    if ( destinationAttribute.QualifierValues.TryGetValue( "binaryFileType", out var qualifierValue ) )
+                    {
+                        binaryFileTypeQualifier = qualifierValue.Value;
+                    }
+
+                    if ( string.IsNullOrWhiteSpace( binaryFileTypeQualifier ) )
+                    {
+                        binaryFileType = binaryFileTypeService.Get( Rock.SystemGuid.BinaryFiletype.DEFAULT.AsGuid() );
+                    }
+                    else
+                    {
+                        var binaryFileTypeGuid = binaryFileTypeQualifier.AsGuidOrNull();
+                        if ( binaryFileTypeGuid.HasValue )
+                        {
+                            binaryFileType = binaryFileTypeService.Get( binaryFileTypeGuid.Value );
+                        }
+                    }
+
+                    if ( binaryFileType == null )
+                    {
+                        errorMessages.Add( string.Format( "The file type configured on the Document attribute ({0}) could not be found, so the signed SignNow document was not stored.",
+                            string.IsNullOrWhiteSpace( binaryFileTypeQualifier ) ? "default" : binaryFileTypeQualifier ) );
+                        return false;
+                    }
+                }
+
                 // ROCK-9041: Download into a directory unique to this call so concurrent runs can't read each
                 // other's PDF, and remove it before any database work so cleanup can't fail after the save.
                 // Previously every run shared %TEMP%\{document_name}.pdf, a FileStream on it was handed to the
@@ -159,35 +205,8 @@ namespace org.secc.SignNowWorkflow
                 }
 
                 // Put it into the workflow attribute
-                BinaryFile signedPDF = binaryfileService.Get( documentGuid );
                 if ( signedPDF == null )
                 {
-                    var destinationAttribute = AttributeCache.Get( GetActionAttributeValue( action, "Document" ).AsGuid(), rockContext );
-                    if ( destinationAttribute == null )
-                    {
-                        errorMessages.Add( "The Document attribute for the SignNow Download action could not be found." );
-                        return false;
-                    }
-
-                    // BinaryFile's save hook only stores content for new files that have a file type, so fall back
-                    // to the default type when the attribute doesn't name one.
-                    var binaryFileTypeService = new BinaryFileTypeService( rockContext );
-                    BinaryFileType binaryFileType = null;
-                    if ( destinationAttribute.QualifierValues.TryGetValue( "binaryFileType", out var binaryFileTypeQualifier ) )
-                    {
-                        var binaryFileTypeGuid = binaryFileTypeQualifier.Value.AsGuidOrNull();
-                        if ( binaryFileTypeGuid.HasValue )
-                        {
-                            binaryFileType = binaryFileTypeService.Get( binaryFileTypeGuid.Value );
-                        }
-                    }
-                    binaryFileType = binaryFileType ?? binaryFileTypeService.Get( Rock.SystemGuid.BinaryFiletype.DEFAULT.AsGuid() );
-                    if ( binaryFileType == null )
-                    {
-                        errorMessages.Add( "No file type is available to store the signed SignNow document." );
-                        return false;
-                    }
-
                     signedPDF = new BinaryFile();
                     // TODO: This probably shouldn't be hardcoded
                     signedPDF.MimeType = "application/pdf";
@@ -238,7 +257,16 @@ namespace org.secc.SignNowWorkflow
 
         private static bool IsPdf( byte[] content )
         {
-            return content != null && content.Length >= 5 && Encoding.ASCII.GetString( content, 0, 5 ) == "%PDF-";
+            // The PDF spec allows the "%PDF-" header anywhere in the first 1024 bytes (ISO 32000-1 §7.5.2);
+            // some writers and proxies prepend a BOM or whitespace.
+            if ( content == null )
+            {
+                return false;
+            }
+
+            int searchLength = Math.Min( content.Length, 1024 );
+            string head = Encoding.ASCII.GetString( content, 0, searchLength );
+            return head.IndexOf( "%PDF-", StringComparison.Ordinal ) >= 0;
         }
     }
 }

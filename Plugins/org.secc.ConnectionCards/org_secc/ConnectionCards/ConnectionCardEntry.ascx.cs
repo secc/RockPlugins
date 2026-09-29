@@ -140,8 +140,16 @@ namespace RockWeb.Plugins.org_secc.ConnectionCards
             }
             catch ( InvalidOperationException ex )
             {
-                // Bad grid or unreadable image: keep the scan so the user can fix the grid and retry.
+                // Bad grid or missing content: keep the scan so the user can fix the grid and retry.
                 ShowError( ex.Message );
+                return;
+            }
+            catch ( Exception ex )
+            {
+                // Storage provider failure, corrupt image, GDI+ error: log it and keep the scan rather than
+                // sending the user to the error page.
+                ExceptionLogService.LogException( ex );
+                ShowError( "Could not read the scanned sheet: " + ex.Message );
                 return;
             }
             binaryFileService.Delete( binaryFile );
