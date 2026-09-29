@@ -44,10 +44,17 @@ namespace org.secc.Jobs
         private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds( 30 ) };
 
         /// <summary>
-        /// Failed calls (timeouts, 5xx) in a row before the run gives up. Without this, a Pushpay
-        /// outage costs every remaining gift 19 merchants x the 30 second timeout.
+        /// Failed calls (timeouts, 5xx) on one gift before the job stops trying that gift. It is
+        /// counted as an error and retried on the next run.
         /// </summary>
-        private const int MaxConsecutiveErrors = 10;
+        private const int MaxErrorsPerGift = 3;
+
+        /// <summary>
+        /// Gifts in a row that end in errors, with no real answer from Pushpay in between, before
+        /// the run gives up. A single bad gift can't stop the run, but an outage stops it after a
+        /// few gifts instead of costing every remaining gift 19 merchants x the 30 second timeout.
+        /// </summary>
+        private const int MaxConsecutiveFailedGifts = 5;
 
         /// <summary>
         /// Longest the job waits for a token the Pushpay DLL still considers valid to reach its
@@ -107,7 +114,7 @@ namespace org.secc.Jobs
             int notFound = 0;
             int errors = 0;
             int processed = 0;
-            int consecutiveErrors = 0;
+            int consecutiveFailedGifts = 0;
             var errorsByStatus = new Dictionary<string, int>();
             string stopReason = null;
 
@@ -130,6 +137,8 @@ namespace org.secc.Jobs
                 foreach ( var transaction in checkTransactions )
                 {
                     bool resolved = false;
+                    bool gotAnswer = false;
+                    int giftErrors = 0;
                     string lastErrorStatus = null;
 
                     for ( int i = 0; i < merchantDataList.Count; i++ )
@@ -152,19 +161,19 @@ namespace org.secc.Jobs
                         if ( paymentResult.Outcome == CallOutcome.Error )
                         {
                             lastErrorStatus = paymentResult.StatusLabel ?? "Unknown";
-                            consecutiveErrors++;
+                            giftErrors++;
 
-                            if ( consecutiveErrors >= MaxConsecutiveErrors )
+                            if ( giftErrors >= MaxErrorsPerGift )
                             {
-                                stopReason = string.Format( "Stopped early: {0} Pushpay calls in a row failed (last: {1}), so Pushpay may be unavailable. The next scheduled run will pick up where this one stopped.", consecutiveErrors, lastErrorStatus );
+                                // Give up on this gift for now; the next run retries it.
                                 break;
                             }
 
                             continue;
                         }
 
-                        // Any real answer from Pushpay (found, pending or not found) resets the streak.
-                        consecutiveErrors = 0;
+                        // A real answer from Pushpay (found, pending or not found).
+                        gotAnswer = true;
 
                         if ( paymentResult.Outcome == CallOutcome.Found )
                         {
@@ -212,6 +221,23 @@ namespace org.secc.Jobs
                     }
 
                     processed++;
+
+                    // Only gifts where Pushpay never answered count toward the outage check; any
+                    // real answer shows Pushpay is up and resets the streak.
+                    if ( gotAnswer )
+                    {
+                        consecutiveFailedGifts = 0;
+                    }
+                    else if ( lastErrorStatus != null )
+                    {
+                        consecutiveFailedGifts++;
+
+                        if ( consecutiveFailedGifts >= MaxConsecutiveFailedGifts )
+                        {
+                            stopReason = string.Format( "Stopped early: {0} gifts in a row got only errors from Pushpay (last: {1}), so Pushpay may be unavailable. The next scheduled run will pick up where this one stopped.", consecutiveFailedGifts, lastErrorStatus );
+                            break;
+                        }
+                    }
                 }
             }
 
