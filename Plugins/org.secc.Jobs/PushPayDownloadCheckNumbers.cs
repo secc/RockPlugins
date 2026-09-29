@@ -112,6 +112,7 @@ namespace org.secc.Jobs
             int updates = 0;
             int pending = 0;
             int notFound = 0;
+            int deleted = 0;
             int errors = 0;
             int processed = 0;
             int consecutiveFailedGifts = 0;
@@ -180,6 +181,10 @@ namespace org.secc.Jobs
                             if ( SaveCheckNumber( transaction.Id, checkNumberAttribute.Key, paymentResult.CheckNumber ) )
                             {
                                 updates++;
+                            }
+                            else
+                            {
+                                deleted++;
                             }
 
                             resolved = true;
@@ -250,6 +255,11 @@ namespace org.secc.Jobs
             }
 
             result += string.Format( ". Processed {0} of {1}.", processed, checkTransactions.Count );
+
+            if ( deleted > 0 )
+            {
+                result += string.Format( " {0} deleted during the run, so nothing was saved for them.", deleted );
+            }
 
             if ( noPaymentToken > 0 )
             {
