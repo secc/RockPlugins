@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -69,6 +70,29 @@ namespace org.secc.Jobs
 
         private MethodInfo _accessTokenMethodInfo = null;
 
+        // Pushpay's documented API limits (https://pushpay.io/docs/guidance/rate_limiting): 10 a second,
+        // 60 a minute, 500 an hour, 5,000 a day. Calls are paced under the per-minute limit, and a run
+        // stops at a call budget below the hourly limit so "Pushpay Downloads", which uses the same
+        // account, keeps headroom. A backfill simply continues on the next scheduled run.
+        private TimeSpan _minCallInterval = TimeSpan.FromMilliseconds( 1100 );
+        private int _maxCallsPerRun = 400;
+
+        /// <summary>
+        /// A 429 is retried after the retry-after wait Pushpay sends, plus an increasing backoff, as
+        /// Pushpay's guidance asks. The run stops after this many retries in a row, or if Pushpay asks
+        /// for a longer wait than <see cref="MaxRateLimitWait"/>.
+        /// </summary>
+        private const int MaxRateLimitRetries = 3;
+        private static readonly TimeSpan MaxRateLimitWait = TimeSpan.FromMinutes( 5 );
+        private static readonly TimeSpan DefaultRetryAfter = TimeSpan.FromSeconds( 60 );
+
+        private const string DefaultApiUrl = "https://api.pushpay.com/";
+
+        private readonly Stopwatch _sinceLastCall = new Stopwatch();
+        private int _callCount = 0;
+        private int _forbiddenCount = 0;
+        private readonly Dictionary<int, string> _accountApiUrls = new Dictionary<int, string>();
+
         public override void Execute()
         {
             var rockContext = new RockContext();
@@ -118,6 +142,7 @@ namespace org.secc.Jobs
             int consecutiveFailedGifts = 0;
             var errorsByStatus = new Dictionary<string, int>();
             string stopReason = null;
+            bool stoppedAtCallBudget = false;
 
             if ( checkTransactions.Count > 0 )
             {
@@ -147,9 +172,17 @@ namespace org.secc.Jobs
                         // Fetch the payment information from PushPay
                         PaymentResult paymentResult = FetchPayment( merchantDataList[i], transaction.ForeignKey );
 
+                        if ( paymentResult.Outcome == CallOutcome.CallBudgetExhausted )
+                        {
+                            // Expected during a backfill, so this does not turn the run into a Warning.
+                            stoppedAtCallBudget = true;
+                            stopReason = string.Format( "Stopped after {0} Pushpay calls, this run's limit (Pushpay allows 500 an hour, shared with Pushpay Downloads). The next scheduled run will pick up where this one stopped.", _callCount );
+                            break;
+                        }
+
                         if ( paymentResult.Outcome == CallOutcome.RateLimited )
                         {
-                            stopReason = "Stopped early: Pushpay returned HTTP 429 (rate limited). The next scheduled run will pick up where this one stopped.";
+                            stopReason = "Stopped early: Pushpay kept returning HTTP 429 (rate limited) after waiting as it asked. The next scheduled run will pick up where this one stopped.";
                             break;
                         }
 
@@ -266,6 +299,13 @@ namespace org.secc.Jobs
                 result += string.Format( " Skipped {0} with no Pushpay payment token.", noPaymentToken );
             }
 
+            if ( _forbiddenCount > 0 )
+            {
+                // Pushpay does not document whether another merchant's payment returns 403 or 404, so a
+                // 403 is treated as "not at this merchant". Report it, so a real permission problem shows.
+                result += string.Format( " Pushpay answered 403 on {0} of {1} calls (treated as not at that merchant).", _forbiddenCount, _callCount );
+            }
+
             if ( stopReason.IsNotNullOrWhiteSpace() )
             {
                 result += " " + stopReason;
@@ -273,7 +313,7 @@ namespace org.secc.Jobs
 
             Result = result;
 
-            if ( errors > 0 || stopReason.IsNotNullOrWhiteSpace() )
+            if ( errors > 0 || ( stopReason.IsNotNullOrWhiteSpace() && !stoppedAtCallBudget ) )
             {
                 // RockJobListener uses this.Result as the status message for a warning exception,
                 // so the job reports Warning with the summary instead of plain success.
@@ -411,35 +451,109 @@ namespace org.secc.Jobs
 
         /// <summary>
         /// Calls PushPay for one payment against one merchant. A 401 gets one forced token refresh
-        /// and one retry; anything thrown (HttpClient timeouts included) becomes an Error outcome so
-        /// a single bad call can't end the run the way task.Wait() used to.
+        /// and one retry; a 429 waits as Pushpay asks and retries (see <see cref="MaxRateLimitRetries"/>);
+        /// anything thrown (HttpClient timeouts included) becomes an Error outcome so a single bad call
+        /// can't end the run the way task.Wait() used to.
         /// </summary>
         private PaymentResult FetchPayment( MerchantData merchantData, string paymentToken )
         {
-            for ( int attempt = 0; attempt <= 1; attempt++ )
+            int attempt = 0;
+            int rateLimitRetries = 0;
+
+            while ( true )
             {
+                if ( _callCount >= _maxCallsPerRun )
+                {
+                    return new PaymentResult { Outcome = CallOutcome.CallBudgetExhausted };
+                }
+
                 PaymentResult paymentResult;
 
                 try
                 {
                     string oAuthToken = FetchAccessToken( merchantData.AccountId, attempt > 0 );
-                    paymentResult = GetPayment( oAuthToken, merchantData.MerchantKey, paymentToken ).GetAwaiter().GetResult();
+                    WaitForCallSlot();
+                    _callCount++;
+                    paymentResult = GetPayment( GetApiUrl( merchantData.AccountId ), oAuthToken, merchantData.MerchantKey, paymentToken ).GetAwaiter().GetResult();
                 }
                 catch ( Exception ex )
                 {
                     return new PaymentResult { Outcome = CallOutcome.Error, StatusLabel = ex.GetBaseException().GetType().Name };
                 }
 
+                if ( paymentResult.Outcome == CallOutcome.RateLimited )
+                {
+                    // Pushpay's guidance: wait the retry-after value plus an increasing backoff (1s, 2s, 4s).
+                    rateLimitRetries++;
+                    TimeSpan wait = ( paymentResult.RetryAfter ?? DefaultRetryAfter ) + TimeSpan.FromSeconds( Math.Pow( 2, rateLimitRetries - 1 ) );
+                    if ( rateLimitRetries > MaxRateLimitRetries || wait > MaxRateLimitWait )
+                    {
+                        return paymentResult;
+                    }
+
+                    Thread.Sleep( wait );
+                    continue;
+                }
+
                 if ( paymentResult.Outcome == CallOutcome.Unauthorized && attempt == 0 )
                 {
                     // The token expired mid-run; get a fresh one and retry this one call.
+                    attempt++;
                     continue;
+                }
+
+                if ( paymentResult.StatusLabel == "403" )
+                {
+                    _forbiddenCount++;
                 }
 
                 return paymentResult;
             }
+        }
 
-            return new PaymentResult { Outcome = CallOutcome.Error, StatusLabel = "Unknown" };
+        /// <summary>
+        /// Keeps calls at least <see cref="_minCallInterval"/> apart, under Pushpay's per-minute limit.
+        /// </summary>
+        private void WaitForCallSlot()
+        {
+            if ( _sinceLastCall.IsRunning )
+            {
+                TimeSpan remaining = _minCallInterval - _sinceLastCall.Elapsed;
+                if ( remaining > TimeSpan.Zero )
+                {
+                    Thread.Sleep( remaining );
+                }
+            }
+
+            _sinceLastCall.Restart();
+        }
+
+        /// <summary>
+        /// The API base URL stored on the Pushpay account (e.g. https://api.pushpay.com/), so the job
+        /// follows the account's configuration, sandbox included, instead of a hard-coded host.
+        /// </summary>
+        private string GetApiUrl( int accountId )
+        {
+            string apiUrl;
+            if ( !_accountApiUrls.TryGetValue( accountId, out apiUrl ) )
+            {
+                var parameters = new Dictionary<string, object>();
+                parameters.Add( "@Id", accountId );
+
+                apiUrl = Convert.ToString( DbService.ExecuteScalar(
+                    "SELECT ApiUrl FROM _com_pushPay_RockRMS_Account WHERE Id = @Id",
+                    CommandType.Text,
+                    parameters ) );
+
+                if ( apiUrl.IsNullOrWhiteSpace() )
+                {
+                    apiUrl = DefaultApiUrl;
+                }
+
+                _accountApiUrls[accountId] = apiUrl;
+            }
+
+            return apiUrl;
         }
 
 
@@ -449,9 +563,15 @@ namespace org.secc.Jobs
         /// <remarks>
         ///	Get a payment details from a payment token
         /// </remarks>
-        private static async Task<PaymentResult> GetPayment( string oAuthToken, string merchantKey, string paymentToken )
+        private static async Task<PaymentResult> GetPayment( string apiUrl, string oAuthToken, string merchantKey, string paymentToken )
         {
-            var requestUrl = string.Format( "https://api.pushpay.com/v1/merchant/{0}/payment/{1}", merchantKey, paymentToken );
+            string baseUrl = apiUrl.TrimEnd( '/' );
+            if ( !baseUrl.EndsWith( "/v1", StringComparison.OrdinalIgnoreCase ) )
+            {
+                baseUrl += "/v1";
+            }
+
+            var requestUrl = string.Format( "{0}/merchant/{1}/payment/{2}", baseUrl, merchantKey, paymentToken );
 
             // The bearer token rides on the request, not on DefaultRequestHeaders - the HttpClient
             // is shared and its default headers must not be mutated per call.
@@ -471,13 +591,33 @@ namespace org.secc.Jobs
 
                     if ( statusCode == 429 )
                     {
-                        return new PaymentResult { Outcome = CallOutcome.RateLimited, StatusLabel = "429" };
+                        TimeSpan? retryAfter = null;
+                        var retryAfterHeader = httpResponse.Headers.RetryAfter;
+                        if ( retryAfterHeader != null )
+                        {
+                            if ( retryAfterHeader.Delta.HasValue )
+                            {
+                                retryAfter = retryAfterHeader.Delta.Value;
+                            }
+                            else if ( retryAfterHeader.Date.HasValue )
+                            {
+                                retryAfter = retryAfterHeader.Date.Value - DateTimeOffset.UtcNow;
+                            }
+
+                            if ( retryAfter < TimeSpan.Zero )
+                            {
+                                retryAfter = TimeSpan.Zero;
+                            }
+                        }
+
+                        return new PaymentResult { Outcome = CallOutcome.RateLimited, StatusLabel = "429", RetryAfter = retryAfter };
                     }
 
-                    if ( statusCode == 404 )
+                    if ( statusCode == 404 || statusCode == 403 )
                     {
-                        // This merchant doesn't know the payment; the caller tries the next one.
-                        return new PaymentResult { Outcome = CallOutcome.NotFound, StatusLabel = "404" };
+                        // This merchant doesn't know the payment; the caller tries the next one. Pushpay
+                        // doesn't document which of the two it returns for another merchant's payment.
+                        return new PaymentResult { Outcome = CallOutcome.NotFound, StatusLabel = statusCode.ToString() };
                     }
 
                     if ( !httpResponse.IsSuccessStatusCode )
@@ -512,6 +652,7 @@ namespace org.secc.Jobs
             NotFound,
             Unauthorized,
             RateLimited,
+            CallBudgetExhausted,
             Error
         }
 
@@ -520,6 +661,7 @@ namespace org.secc.Jobs
             public CallOutcome Outcome { get; set; }
             public string CheckNumber { get; set; }
             public string StatusLabel { get; set; }
+            public TimeSpan? RetryAfter { get; set; }
         }
     }
 
