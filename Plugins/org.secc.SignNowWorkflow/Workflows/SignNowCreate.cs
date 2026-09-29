@@ -20,6 +20,7 @@ using System.IO;
 using System.Web;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using org.secc.DevLib.Extensions;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -79,11 +80,8 @@ namespace org.secc.SignNowWorkflow
                 Directory.CreateDirectory( tempDirectory );
                 string tempFile = tempDirectory + Path.DirectorySeparatorChar + renderedPDF.FileName;
 
-                // Open a FileStream to write to the file:
-                using ( Stream fileStream = File.OpenWrite( tempFile ) )
-                {
-                    renderedPDF.ContentStream.CopyTo( fileStream );
-                }
+                // ROCK-9041: Read through a fresh provider stream; see BinaryFileExtensions.ReadContentBytes.
+                File.WriteAllBytes( tempFile, renderedPDF.ReadContentBytes( "Rendered PDF" ) );
 
                 // The SDK returns null when the request fails and non-object JSON on some SignNow errors.
                 object result = SignNowSDK.Document.Create( token, tempFile, true );
