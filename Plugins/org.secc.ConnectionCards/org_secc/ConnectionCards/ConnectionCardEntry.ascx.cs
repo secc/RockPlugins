@@ -45,6 +45,7 @@ namespace RockWeb.Plugins.org_secc.ConnectionCards
             }
 
             nbSuccess.Visible = false;
+            nbError.Visible = false;
             if ( string.IsNullOrWhiteSpace( hfImageGuid.Value ) )
             {
                 pnlEdit.Visible = false;
@@ -95,6 +96,10 @@ namespace RockWeb.Plugins.org_secc.ConnectionCards
                         hfImageGuid.Value = binaryFile.Guid.ToString();
                         ShowImage();
                     }
+                    else
+                    {
+                        ShowError( "The uploaded PDF has no pages to convert." );
+                    }
                 }
             }
         }
@@ -128,7 +133,17 @@ namespace RockWeb.Plugins.org_secc.ConnectionCards
             var binaryFile = binaryFileService.Get( imageGuid );
             int cols = nbCols.Value;
             int rows = nbRows.Value;
-            var binaryFiles = ConnectionCardsUtilties.ChopImage( binaryFile, cols, rows, rockContext );
+            List<BinaryFile> binaryFiles;
+            try
+            {
+                binaryFiles = ConnectionCardsUtilties.ChopImage( binaryFile, cols, rows, rockContext );
+            }
+            catch ( InvalidOperationException ex )
+            {
+                // Bad grid or unreadable image: keep the scan so the user can fix the grid and retry.
+                ShowError( ex.Message );
+                return;
+            }
             binaryFileService.Delete( binaryFile );
             rockContext.SaveChanges();
             foreach ( var connectionCard in binaryFiles )
@@ -140,6 +155,12 @@ namespace RockWeb.Plugins.org_secc.ConnectionCards
             hfImageGuid.Value = "";
             fMainSheet.BinaryFileId = 0;
             nbSuccess.Visible = true;
+        }
+
+        private void ShowError( string message )
+        {
+            nbError.Text = message;
+            nbError.Visible = true;
         }
 
         protected void btnBack_Click( object sender, EventArgs e )

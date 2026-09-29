@@ -62,7 +62,10 @@ namespace org.secc.ConnectionCards.Utilities
                     }
                 }
             }
-            return new BinaryFile();
+
+            // No pages: return null so the caller's null check handles it. An empty BinaryFile (no MimeType)
+            // made Rock's save hook throw a NullReferenceException.
+            return null;
         }
 
         public static BinaryFile RotateImage( BinaryFile inputFile, RotateFlipType rotateFlipType, RockContext rockContext )
@@ -98,24 +101,31 @@ namespace org.secc.ConnectionCards.Utilities
             using ( Image originalImage = Image.FromStream( ms ) )
             using ( Bitmap sourceBitmap = new Bitmap( originalImage ) )
             {
-                List<BinaryFile> output = new List<BinaryFile>();
-                var bounds = new Rectangle( 0, 0, sourceBitmap.Width, sourceBitmap.Height );
+                // Fail loudly on a bad grid before anything is saved, so the caller keeps the source scan.
+                // The 4px inset below needs each cell to be more than 4px in both directions.
+                if ( cols < 1 || rows < 1 )
+                {
+                    throw new InvalidOperationException( string.Format( "Rows and Columns must both be at least 1 (got {0} rows, {1} columns).", rows, cols ) );
+                }
+
                 int elementWidth = sourceBitmap.Width / cols;
                 int elementHeight = sourceBitmap.Height / rows;
+                if ( elementWidth <= 4 || elementHeight <= 4 )
+                {
+                    throw new InvalidOperationException( string.Format( "A {0} x {1} grid is too fine for this {2} x {3} pixel sheet.", rows, cols, sourceBitmap.Height, sourceBitmap.Width ) );
+                }
+
+                List<BinaryFile> output = new List<BinaryFile>();
 
                 // Exactly cols x rows cells. Stepping x/y by the element size until the edge added an extra
                 // partial column/row when the size wasn't evenly divisible, and its rectangle ran past the
-                // bitmap (Clone throws OutOfMemoryException). The 4px inset trims scan borders between cards.
+                // bitmap (Clone throws OutOfMemoryException). Integer division keeps every cell inside the
+                // bitmap. The 4px inset trims scan borders between cards.
                 for ( var col = 0; col < cols; col++ )
                 {
                     for ( var row = 0; row < rows; row++ )
                     {
-                        var cell = Rectangle.Intersect( bounds,
-                            new Rectangle( col * elementWidth + 4, row * elementHeight + 4, elementWidth - 4, elementHeight - 4 ) );
-                        if ( cell.Width <= 0 || cell.Height <= 0 )
-                        {
-                            continue;
-                        }
+                        var cell = new Rectangle( col * elementWidth + 4, row * elementHeight + 4, elementWidth - 4, elementHeight - 4 );
 
                         using ( MemoryStream outMS = new MemoryStream() )
                         using ( Bitmap clone = sourceBitmap.Clone( cell, sourceBitmap.PixelFormat ) )
