@@ -49,6 +49,9 @@ re-fetches only when `CanSeek` is false, and Azure's blob stream still reports `
 `Dispose`. So disposing it breaks any later read of the same tracked `BinaryFile`, for example a
 second merge action or an email attachment later in the same workflow pass (ROCK-9041).
 
+Stored files are always read from the provider. If you assign a new `ContentStream` to a tracked
+file, call `SaveChanges()` before `ReadContentBytes`, or you get the previously stored bytes.
+
 ### Migration extension methods
 
 Extend `Rock.Plugin.Migration` so plugin migrations can add keys/indexes that the EF `TableBuilder`

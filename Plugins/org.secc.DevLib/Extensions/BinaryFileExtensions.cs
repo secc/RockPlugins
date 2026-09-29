@@ -30,6 +30,8 @@ namespace org.secc.DevLib.Extensions
         /// Dispose, so any later read of the same tracked BinaryFile would get a disposed stream back.
         /// Unsaved files (no storage provider yet) are read from their in-memory ContentStream, which the
         /// caller owns and which is left open.
+        /// Because stored files are always read from the provider, save first if you have assigned a new
+        /// ContentStream to a tracked file; otherwise this returns the previously stored bytes.
         /// </remarks>
         /// <param name="binaryFile">The binary file.</param>
         /// <param name="description">A short name for the file used in error messages, e.g. "PDF Template".</param>
