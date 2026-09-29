@@ -81,6 +81,14 @@ Both are `ActionComponent`s exported via MEF (`[Export(typeof(ActionComponent))]
   `binaryFileType` qualifier (otherwise Rock silently drops the content), and the stored file name gets a
   `.pdf` extension. (Before ROCK-9041 every run shared `%TEMP%\{document_name}.pdf`, the action handed the
   provider an open `FileStream`, and it deleted the path without the `.pdf` suffix, so temp PDFs piled up.)
+  `SignNow Create` also removes its upload temp directory in a `finally`, including on error returns.
+- **SDK error handling:** SignNowSDK uses RestSharp 105, which never throws on transport failures. The SDK
+  then returns `null`, or the raw error body (object, array, or non-JSON), instead of the expected object.
+  The `Document.Get`, `Download`, and `Create` calls treat the result as untyped, report
+  "No response from SignNow" for `null`, and catch `JsonException` for non-JSON bodies. `Document.Download`
+  sends the request twice and saves the second body without a status check, so `SignNow Download` only
+  accepts the file if it starts with `%PDF-`; otherwise it errors and leaves `PDF Signed` unchanged so the
+  workflow keeps polling. The existing-file branch also resets `MimeType` to `application/pdf`.
 - **Improvement:** The "is it signed?" check is a simple `signatures.Count > 0` poll with no timeout or
   expiration handling — the workflow must re-run `SignNow Download` itself (e.g. on a delay/loop) until a
   signature appears. There's no detection of a declined/expired invite.

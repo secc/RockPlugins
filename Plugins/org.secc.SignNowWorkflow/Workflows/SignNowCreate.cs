@@ -18,6 +18,7 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Web;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Rock;
 using Rock.Attribute;
@@ -60,17 +61,6 @@ namespace org.secc.SignNowWorkflow
 
             BinaryFile renderedPDF = binaryfileService.Get( documentGuid );
 
-            // Save the file to a temporary place
-            string tempDirectory = Path.Combine( Path.GetTempPath(), Path.GetRandomFileName() );
-            Directory.CreateDirectory( tempDirectory );
-            string tempFile = tempDirectory + Path.DirectorySeparatorChar + renderedPDF.FileName;
-
-            // Open a FileStream to write to the file:
-            using ( Stream fileStream = File.OpenWrite( tempFile ) )
-            {
-                renderedPDF.ContentStream.CopyTo( fileStream );
-            }
-
             SignNow signNow = new SignNow();
             string snErrorMessage = "";
             String token = signNow.GetAccessToken( false, out snErrorMessage );
@@ -79,15 +69,50 @@ namespace org.secc.SignNowWorkflow
                 errorMessages.Add( snErrorMessage );
                 return false;
             }
-            JObject result = SignNowSDK.Document.Create( token, tempFile, true );
-            string documentId = result.Value<string>( "id" );
-            if ( string.IsNullOrWhiteSpace( documentId ) )
+
+            // Save the file to a temporary place for the upload, and remove it however the upload ends so the
+            // unsigned document doesn't pile up in the temp directory on retries (ROCK-9041).
+            string documentId;
+            string tempDirectory = Path.Combine( Path.GetTempPath(), Path.GetRandomFileName() );
+            try
             {
-                errorMessages.Add( "SignNow Document Creation Error: " + result.ToString() );
+                Directory.CreateDirectory( tempDirectory );
+                string tempFile = tempDirectory + Path.DirectorySeparatorChar + renderedPDF.FileName;
+
+                // Open a FileStream to write to the file:
+                using ( Stream fileStream = File.OpenWrite( tempFile ) )
+                {
+                    renderedPDF.ContentStream.CopyTo( fileStream );
+                }
+
+                // The SDK returns null when the request fails and non-object JSON on some SignNow errors.
+                object result = SignNowSDK.Document.Create( token, tempFile, true );
+                documentId = ( result as JObject )?.Value<string>( "id" );
+                if ( string.IsNullOrWhiteSpace( documentId ) )
+                {
+                    errorMessages.Add( "SignNow Document Creation Error: " + ( result?.ToString() ?? "No response from SignNow." ) );
+                    return false;
+                }
+            }
+            catch ( JsonException ex )
+            {
+                errorMessages.Add( "SignNow Document Creation Error: " + ex.Message );
                 return false;
             }
-            // Clean up the temporary directory
-            Directory.Delete( tempDirectory, true );
+            finally
+            {
+                try
+                {
+                    if ( Directory.Exists( tempDirectory ) )
+                    {
+                        Directory.Delete( tempDirectory, true );
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    action.AddLogEntry( $"Could not delete SignNow temp directory {tempDirectory}: {ex.Message}", true );
+                }
+            }
 
             SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "SignNowDocumentId" ).AsGuid(), documentId );
 

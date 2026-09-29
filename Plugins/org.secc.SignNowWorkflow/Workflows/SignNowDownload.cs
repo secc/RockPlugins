@@ -18,6 +18,7 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Rock;
@@ -72,11 +73,24 @@ namespace org.secc.SignNowWorkflow
             }
 
             //Check if document is signed.
-            JObject document = SignNowSDK.Document.Get( token, signNowDocumentId );
+            // The SDK returns null when the request fails, and a non-object JSON body or a non-JSON body
+            // (e.g. a gateway error page) on SignNow errors, so don't assume a JObject.
+            object documentResult;
+            try
+            {
+                documentResult = SignNowSDK.Document.Get( token, signNowDocumentId );
+            }
+            catch ( JsonException ex )
+            {
+                errorMessages.Add( "SignNow Document Error: " + ex.Message );
+                return false;
+            }
+
+            JObject document = documentResult as JObject;
             var signatures = document?["signatures"] as JArray;
             if ( signatures == null )
             {
-                errorMessages.Add( "SignNow Document Error: " + document );
+                errorMessages.Add( "SignNow Document Error: " + DescribeResponse( documentResult ) );
                 return false;
             }
 
@@ -104,17 +118,27 @@ namespace org.secc.SignNowWorkflow
                     Directory.CreateDirectory( tempDirectory );
 
                     // The SDK saves to Path.GetDirectoryName( SaveFilePath ), so the trailing separator is required.
-                    JObject result = SignNowSDK.Document.Download( token, signNowDocumentId, tempDirectory + Path.DirectorySeparatorChar, "signed" ) as JObject;
-                    string downloadedFilePath = result?.Value<string>( "file" );
+                    object downloadResult = SignNowSDK.Document.Download( token, signNowDocumentId, tempDirectory + Path.DirectorySeparatorChar, "signed" );
+                    string downloadedFilePath = ( downloadResult as JObject )?.Value<string>( "file" );
                     if ( string.IsNullOrWhiteSpace( downloadedFilePath ) || !File.Exists( downloadedFilePath ) )
                     {
-                        errorMessages.Add( "SignNow Download Error: " + result );
+                        errorMessages.Add( "SignNow Download Error: " + DescribeResponse( downloadResult ) );
                         return false;
                     }
 
                     signedPdfBytes = File.ReadAllBytes( downloadedFilePath );
+
+                    // The SDK fetches the file with a second request and saves its body without a status check, so
+                    // a SignNow error on that request lands here as JSON rather than a PDF.
+                    if ( !IsPdf( signedPdfBytes ) )
+                    {
+                        string body = Encoding.UTF8.GetString( signedPdfBytes, 0, Math.Min( signedPdfBytes.Length, 500 ) );
+                        errorMessages.Add( "SignNow Download Error: the downloaded file is not a PDF. " + body );
+                        return false;
+                    }
                 }
-                catch ( Exception ex ) when ( ex is IOException || ex is UnauthorizedAccessException || ex is JsonException || ex is System.Net.WebException )
+                // ArgumentNullException: the SDK's second request failed and it tried to save a null body.
+                catch ( Exception ex ) when ( ex is IOException || ex is UnauthorizedAccessException || ex is JsonException || ex is ArgumentNullException )
                 {
                     errorMessages.Add( "SignNow Download Error: " + ex.Message );
                     return false;
@@ -123,7 +147,10 @@ namespace org.secc.SignNowWorkflow
                 {
                     try
                     {
-                        Directory.Delete( tempDirectory, true );
+                        if ( Directory.Exists( tempDirectory ) )
+                        {
+                            Directory.Delete( tempDirectory, true );
+                        }
                     }
                     catch ( Exception ex )
                     {
@@ -184,6 +211,8 @@ namespace org.secc.SignNowWorkflow
                 }
                 else
                 {
+                    // The existing file may have been uploaded as another type (e.g. DOCX); it now holds a PDF.
+                    signedPDF.MimeType = "application/pdf";
                     signedPDF.FileName = fileName;
                     signedPDF.ContentStream = new MemoryStream( signedPdfBytes );
 
@@ -200,6 +229,16 @@ namespace org.secc.SignNowWorkflow
                 SetWorkflowAttributeValue( action, GetActionAttributeValue( action, "PDFSigned" ).AsGuid(), "False" );
             }
             return true;
+        }
+
+        private static string DescribeResponse( object response )
+        {
+            return response == null ? "No response from SignNow." : response.ToString();
+        }
+
+        private static bool IsPdf( byte[] content )
+        {
+            return content != null && content.Length >= 5 && Encoding.ASCII.GetString( content, 0, 5 ) == "%PDF-";
         }
     }
 }
