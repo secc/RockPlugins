@@ -9,6 +9,7 @@ SELECT Tbl, Id, Col, OldValue INTO #orig FROM (
 ) b WHERE rn = 1;
 UPDATE t SET t.[DefaultValue] = b.OldValue FROM Attribute t JOIN #orig b ON b.Tbl = 'Attribute' AND b.Col = 'DefaultValue' AND b.Id = t.[Id]; PRINT 'Attribute.DefaultValue: ' + CAST(@@ROWCOUNT AS varchar) + ' rows restored';
 UPDATE t SET t.[Value] = b.OldValue FROM AttributeValue t JOIN #orig b ON b.Tbl = 'AttributeValue' AND b.Col = 'Value' AND b.Id = t.[Id]; PRINT 'AttributeValue.Value: ' + CAST(@@ROWCOUNT AS varchar) + ' rows restored';
+UPDATE t SET t.[Message] = b.OldValue FROM CommunicationTemplate t JOIN #orig b ON b.Tbl = 'CommunicationTemplate' AND b.Col = 'Message' AND b.Id = t.[Id]; PRINT 'CommunicationTemplate.Message: ' + CAST(@@ROWCOUNT AS varchar) + ' rows restored';
 UPDATE t SET t.[Content] = b.OldValue FROM HtmlContent t JOIN #orig b ON b.Tbl = 'HtmlContent' AND b.Col = 'Content' AND b.Id = t.[Id]; PRINT 'HtmlContent.Content: ' + CAST(@@ROWCOUNT AS varchar) + ' rows restored';
 UPDATE t SET t.[PreHtml] = b.OldValue FROM Block t JOIN #orig b ON b.Tbl = 'Block' AND b.Col = 'PreHtml' AND b.Id = t.[Id]; PRINT 'Block.PreHtml: ' + CAST(@@ROWCOUNT AS varchar) + ' rows restored';
 UPDATE t SET t.[Markup] = b.OldValue FROM LavaShortcode t JOIN #orig b ON b.Tbl = 'LavaShortcode' AND b.Col = 'Markup' AND b.Id = t.[Id]; PRINT 'LavaShortcode.Markup: ' + CAST(@@ROWCOUNT AS varchar) + ' rows restored';
@@ -20,7 +21,7 @@ UPDATE t SET t.[PostHtml] = b.OldValue FROM WorkflowActionFormAttribute t JOIN #
 UPDATE t SET t.[NoActionMessage] = b.OldValue FROM WorkflowType t JOIN #orig b ON b.Tbl = 'WorkflowType' AND b.Col = 'NoActionMessage' AND b.Id = t.[Id]; PRINT 'WorkflowType.NoActionMessage: ' + CAST(@@ROWCOUNT AS varchar) + ' rows restored';
 UPDATE t SET t.[SummaryViewText] = b.OldValue FROM WorkflowType t JOIN #orig b ON b.Tbl = 'WorkflowType' AND b.Col = 'SummaryViewText' AND b.Id = t.[Id]; PRINT 'WorkflowType.SummaryViewText: ' + CAST(@@ROWCOUNT AS varchar) + ' rows restored';
 -- a backup row no statement above restores is a table/column this script does not know yet: stop instead of half-restoring
-IF EXISTS (SELECT 1 FROM #orig WHERE Tbl + '.' + Col NOT IN ('Attribute.DefaultValue', 'AttributeValue.Value', 'Block.PreHtml', 'HtmlContent.Content',
+IF EXISTS (SELECT 1 FROM #orig WHERE Tbl + '.' + Col NOT IN ('Attribute.DefaultValue', 'AttributeValue.Value', 'Block.PreHtml', 'CommunicationTemplate.Message', 'HtmlContent.Content',
     'LavaShortcode.Markup', 'ReportField.Selection', 'SystemCommunication.Body', 'WorkflowActionForm.Header', 'WorkflowActionForm.Footer',
     'WorkflowActionFormAttribute.PostHtml', 'WorkflowType.NoActionMessage', 'WorkflowType.SummaryViewText'))
     THROW 50000, 'Backup table has a Tbl/Col this rollback does not handle; add it before running.', 1;
