@@ -50,6 +50,14 @@ namespace org.secc.Finance.Utility
             {
                 qry = qry.Where( t => accountGuids.Contains( t.Account.Guid ) );
             }
+            var excludedQry = qry;
+            if ( excludedCurrencyTypes.Count > 0 )
+            {
+                qry = qry.Where( t => !excludedCurrencyTypes.Contains( t.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid ) );
+                excludedQry = excludedQry.Where( t => excludedCurrencyTypes.Contains( t.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid ) );
+                excludedQry = excludedQry.OrderByDescending( t => t.Transaction.TransactionDateTime ).ThenByDescending( t => t.Id );
+            }
+
             qry = qry.OrderByDescending( t => t.Transaction.TransactionDateTime ).ThenByDescending( t => t.Id );
 
             mergeFields.Add( "StatementStartDate", dateRange.Start?.ToShortDateString() );
@@ -154,59 +162,11 @@ namespace org.secc.Finance.Utility
 
             // Eager-load the navigations the lava and the in-memory AccountSummary grouping walk;
             // the query is AsNoTracking, so lazy loading of navigations is not reliable.
-            // FinancialPaymentDetail is loaded too, for the currency split below.
-            var householdDetails = qry
-                .Include( t => t.Transaction.FinancialPaymentDetail )
-                .Include( t => t.Account )
-                .ToList();
+            var transactionDetails = qry.Include( t => t.Transaction ).Include( t => t.Account ).ToList();
 
-            // Split the household's gifts by currency type in memory rather than in SQL. With the
-            // currency filter in the query, SQL Server started from the currency types (every
-            // check, card and ACH payment in the database) instead of this household, and the QCD
-            // statement's 14 excluded types timed out at 30 seconds on every household. One
-            // household's gifts for a statement period is a small list.
-            List<FinancialTransactionDetail> transactionDetails;
-            List<FinancialTransactionDetail> excludedTransactionDetails;
-
-            if ( excludedCurrencyTypes.Count > 0 )
-            {
-                var excludedCurrencyTypeIds = excludedCurrencyTypes
-                    .Select( g => DefinedValueCache.Get( g ) )
-                    .Where( dv => dv != null )
-                    .Select( dv => dv.Id )
-                    .ToList();
-
-                // A gift with no currency type can't be placed on either list: putting it on the main
-                // list would print it on the QCD statement too. It stays off both, as the old SQL
-                // filters did, but is logged so Finance can fix the gift. None exist on PROD
-                // (0 of ~4.6 million tax-deductible gift lines since 2008). The list is already in
-                // statement order.
-                var withCurrencyType = householdDetails
-                    .Where( t => t.Transaction?.FinancialPaymentDetail?.CurrencyTypeValueId != null )
-                    .ToList();
-
-                int noCurrencyTypeCount = householdDetails.Count - withCurrencyType.Count;
-                if ( noCurrencyTypeCount > 0 )
-                {
-                    ExceptionLogService.LogException( new Exception( string.Format(
-                        "Contribution statement for GivingId {0}: {1} gift line(s) with no currency type were left off the statement. Set the currency type on the gift and regenerate the statement.",
-                        targetPerson.GivingId,
-                        noCurrencyTypeCount ) ), null );
-                }
-
-                transactionDetails = withCurrencyType
-                    .Where( t => !excludedCurrencyTypeIds.Contains( t.Transaction.FinancialPaymentDetail.CurrencyTypeValueId.Value ) )
-                    .ToList();
-
-                excludedTransactionDetails = withCurrencyType
-                    .Where( t => excludedCurrencyTypeIds.Contains( t.Transaction.FinancialPaymentDetail.CurrencyTypeValueId.Value ) )
-                    .ToList();
-            }
-            else
-            {
-                transactionDetails = householdDetails;
-                excludedTransactionDetails = new List<FinancialTransactionDetail>();
-            }
+            var excludedTransactionDetails = excludedCurrencyTypes.Count > 0
+                ? excludedQry.Include( t => t.Transaction ).Include( t => t.Account ).ToList()
+                : new List<FinancialTransactionDetail>();
 
             // The old code joined AttributeValue.Id to FinancialTransactionDetail.Id (wrong column), so
             // attributes never loaded. Bulk-load attributes for the details AND their parent transactions —
