@@ -130,10 +130,16 @@ Ships Rock plugin migrations (SQL only — `Down()` is intentionally empty):
   handle a null `AccountNumberMasked` by rendering a fully masked fallback (`••••••••`) instead of
   attempting to split a null value.
 - `org_secc/Finance/Lava/ContributionStatement.lava` and `org_secc/Finance/Lava/QCDContributionStatement.lava`
-  are exact reference copies of those two templates (synced from PROD 2026-09-29, ROCK-9037). Nothing
-  in Rock includes them, so editing a file changes nothing until the same change is made in the
-  database; keep both in step by hand. The Giving copy keeps the 5 CRLF line endings the database
-  value has, and `.gitattributes` marks both files `-text` so git never rewrites them.
+  are exact reference copies of those two templates (synced from PROD 2026-09-29, ROCK-9037). The
+  live statements don't read them, so editing a file changes nothing on those statements until the
+  same change is made in the database; keep both in step by hand. The Giving copy keeps the 5 CRLF
+  line endings the database value has, and `.gitattributes` marks both files `-text` so git never
+  rewrites them.
+- The post-build copies `ContributionStatement.lava` to `RockWeb/Plugins/org_secc/Finance/Lava/`, and
+  one workflow type still includes it from there: "OLD: Generate Contribution Statement", action
+  "Generate the Giving Statement" (`{% include '~\Plugins\org_secc\Finance\Lava\ContributionStatement.lava' %}`).
+  That workflow type is still active but has run no statements in the last year; a deploy changes
+  what it renders.
 - The on-screen **Contribution Statement Lava** block (pages "Contribution Statement" and
   "Contribution Statement V1") is separate: its Lava Template setting is
   `{% include '~\Assets\Lava\ContributionStatement.lava' %}`, a file on the web server that this
