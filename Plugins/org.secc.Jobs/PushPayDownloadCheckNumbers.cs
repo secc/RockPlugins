@@ -93,6 +93,12 @@ namespace org.secc.Jobs
         private int _forbiddenCount = 0;
         private readonly Dictionary<int, string> _accountApiUrls = new Dictionary<int, string>();
 
+        /// <summary>
+        /// A run with at least this many calls, more than half of them 403, is reported as a Warning:
+        /// that looks like lost permission rather than payments that belong to other merchants.
+        /// </summary>
+        private const int MinCallsForForbiddenCheck = 10;
+
         public override void Execute()
         {
             var rockContext = new RockContext();
@@ -125,7 +131,12 @@ namespace org.secc.Jobs
                                         .OrderByDescending( ft => ft.Transaction.CreatedDateTime )
                                         // Only the Id and the Pushpay payment token are needed; each
                                         // match is loaded and saved in its own short-lived context.
-                                        .Select( ft => new { ft.Transaction.Id, ft.Transaction.ForeignKey } )
+                                        .Select( ft => new
+                                        {
+                                            ft.Transaction.Id,
+                                            ft.Transaction.ForeignKey,
+                                            AccountIds = ft.Transaction.TransactionDetails.Select( d => d.AccountId )
+                                        } )
                                         .ToList();
 
             // Without a Pushpay payment token there is nothing to look up. These can never succeed,
@@ -143,22 +154,27 @@ namespace org.secc.Jobs
             var errorsByStatus = new Dictionary<string, int>();
             string stopReason = null;
             bool stoppedAtCallBudget = false;
+            int resolvedAtFundMerchant = 0;
+            int resolvedByFallback = 0;
 
             if ( checkTransactions.Count > 0 )
             {
                 // First setup our PushPay Merchant data. Tokens are fetched per account, lazily.
-                DataSet merchants = DbService.GetDataSet( "select AccountId, MerchantKey from _com_pushPay_RockRMS_Merchant", CommandType.Text, null );
+                DataSet merchants = DbService.GetDataSet( "select Id, AccountId, MerchantKey from _com_pushPay_RockRMS_Merchant", CommandType.Text, null );
 
                 List<MerchantData> merchantDataList = new List<MerchantData>();
 
                 foreach ( DataRow merchantRow in merchants.Tables[0].Rows )
                 {
                     MerchantData data = new MerchantData();
+                    data.MerchantId = merchantRow["Id"].ToString().AsInteger();
                     data.AccountId = merchantRow["AccountId"].ToString().AsInteger();
                     data.MerchantKey = merchantRow["MerchantKey"].ToString();
 
                     merchantDataList.Add( data );
                 }
+
+                Dictionary<int, HashSet<int>> merchantsByFinancialAccount = GetMerchantsByFinancialAccount();
 
                 foreach ( var transaction in checkTransactions )
                 {
@@ -167,10 +183,22 @@ namespace org.secc.Jobs
                     int giftErrors = 0;
                     string lastErrorStatus = null;
 
-                    for ( int i = 0; i < merchantDataList.Count; i++ )
+                    // The Pushpay plugin files each gift under a Rock account taken from its own
+                    // merchant's fund mapping (or that merchant's default account), so only the merchants
+                    // mapped to the gift's account can own it: 2-3 of the 19. Try those first, then the
+                    // rest, in case a gift was moved to another fund by hand after it was imported.
+                    HashSet<int> fundMerchantIds = GetFundMerchantIds( transaction.AccountIds, merchantsByFinancialAccount );
+                    List<MerchantData> merchantOrder = merchantDataList
+                        .Where( m => fundMerchantIds.Contains( m.MerchantId ) )
+                        .Concat( merchantDataList.Where( m => !fundMerchantIds.Contains( m.MerchantId ) ) )
+                        .ToList();
+
+                    for ( int i = 0; i < merchantOrder.Count; i++ )
                     {
+                        MerchantData merchant = merchantOrder[i];
+
                         // Fetch the payment information from PushPay
-                        PaymentResult paymentResult = FetchPayment( merchantDataList[i], transaction.ForeignKey );
+                        PaymentResult paymentResult = FetchPayment( merchant, transaction.ForeignKey );
 
                         if ( paymentResult.Outcome == CallOutcome.CallBudgetExhausted )
                         {
@@ -221,7 +249,8 @@ namespace org.secc.Jobs
                             }
 
                             resolved = true;
-                            PromoteMerchant( merchantDataList, i );
+                            CountResolvedMerchant( merchant, fundMerchantIds, ref resolvedAtFundMerchant, ref resolvedByFallback );
+                            PromoteMerchant( merchantDataList, merchant );
                             break;
                         }
 
@@ -230,7 +259,8 @@ namespace org.secc.Jobs
                             // PushPay knows the payment, it just isn't deposited yet. Not an error.
                             pending++;
                             resolved = true;
-                            PromoteMerchant( merchantDataList, i );
+                            CountResolvedMerchant( merchant, fundMerchantIds, ref resolvedAtFundMerchant, ref resolvedByFallback );
+                            PromoteMerchant( merchantDataList, merchant );
                             break;
                         }
 
@@ -289,6 +319,12 @@ namespace org.secc.Jobs
 
             result += string.Format( ". Processed {0} of {1}.", processed, checkTransactions.Count );
 
+            if ( resolvedAtFundMerchant + resolvedByFallback > 0 )
+            {
+                // Shows whether the fund-to-merchant mapping predicts the right merchant in practice.
+                result += string.Format( " Found at a fund-matched merchant {0}, by fallback {1}. Pushpay calls {2}.", resolvedAtFundMerchant, resolvedByFallback, _callCount );
+            }
+
             if ( deleted > 0 )
             {
                 result += string.Format( " {0} deleted during the run, so nothing was saved for them.", deleted );
@@ -311,9 +347,17 @@ namespace org.secc.Jobs
                 result += " " + stopReason;
             }
 
+            // Mostly 403s is not "payments at other merchants" - it looks like the Pushpay account lost
+            // permission, which would otherwise show only as every gift being "not found".
+            bool mostlyForbidden = _callCount >= MinCallsForForbiddenCheck && _forbiddenCount * 2 > _callCount;
+            if ( mostlyForbidden )
+            {
+                result += " Most Pushpay calls were refused with 403: check that the Pushpay account in Rock is still authorized for all merchants.";
+            }
+
             Result = result;
 
-            if ( errors > 0 || ( stopReason.IsNotNullOrWhiteSpace() && !stoppedAtCallBudget ) )
+            if ( errors > 0 || mostlyForbidden || ( stopReason.IsNotNullOrWhiteSpace() && !stoppedAtCallBudget ) )
             {
                 // RockJobListener uses this.Result as the status message for a warning exception,
                 // so the job reports Warning with the summary instead of plain success.
@@ -356,18 +400,86 @@ namespace org.secc.Jobs
         }
 
         /// <summary>
-        /// Moves the merchant that just answered to the front. Nothing in Rock records which
-        /// merchant owns a payment, so trying the last one that worked turns the typical cost from
-        /// 19 calls per transaction into one or two.
+        /// Moves the merchant that just answered to the front, so among a gift's fund-matched
+        /// merchants (and in the fallback) the one that worked last is tried first.
         /// </summary>
-        private static void PromoteMerchant( List<MerchantData> merchantDataList, int index )
+        private static void PromoteMerchant( List<MerchantData> merchantDataList, MerchantData merchantData )
         {
+            int index = merchantDataList.IndexOf( merchantData );
             if ( index > 0 )
             {
-                MerchantData merchantData = merchantDataList[index];
                 merchantDataList.RemoveAt( index );
                 merchantDataList.Insert( 0, merchantData );
             }
+        }
+
+        private static void CountResolvedMerchant( MerchantData merchant, HashSet<int> fundMerchantIds, ref int resolvedAtFundMerchant, ref int resolvedByFallback )
+        {
+            if ( fundMerchantIds.Contains( merchant.MerchantId ) )
+            {
+                resolvedAtFundMerchant++;
+            }
+            else
+            {
+                resolvedByFallback++;
+            }
+        }
+
+        /// <summary>
+        /// Every merchant whose Pushpay setup can file a gift under each Rock account: its fund
+        /// mappings (one account per fund, or one per campus) and its default account, which is used
+        /// for funds that aren't mapped. Read from the Pushpay plugin's own tables.
+        /// </summary>
+        private static Dictionary<int, HashSet<int>> GetMerchantsByFinancialAccount()
+        {
+            const string sql = @"
+SELECT mf.MerchantId, mf.FinancialAccountId AS AccountId
+FROM _com_pushPay_RockRMS_MerchantFund mf
+WHERE mf.FinancialAccountId IS NOT NULL
+UNION
+SELECT mf.MerchantId, mfc.FinancialAccountId
+FROM _com_pushPay_RockRMS_MerchantFundCampus mfc
+JOIN _com_pushPay_RockRMS_MerchantFund mf ON mf.Id = mfc.MerchantFundId
+WHERE mfc.FinancialAccountId IS NOT NULL
+UNION
+SELECT m.Id, m.DefaultFinancialAccountId
+FROM _com_pushPay_RockRMS_Merchant m
+WHERE m.DefaultFinancialAccountId IS NOT NULL";
+
+            var map = new Dictionary<int, HashSet<int>>();
+            DataSet rows = DbService.GetDataSet( sql, CommandType.Text, null );
+
+            foreach ( DataRow row in rows.Tables[0].Rows )
+            {
+                int accountId = row["AccountId"].ToString().AsInteger();
+                int merchantId = row["MerchantId"].ToString().AsInteger();
+
+                HashSet<int> merchantIds;
+                if ( !map.TryGetValue( accountId, out merchantIds ) )
+                {
+                    merchantIds = new HashSet<int>();
+                    map[accountId] = merchantIds;
+                }
+
+                merchantIds.Add( merchantId );
+            }
+
+            return map;
+        }
+
+        private static HashSet<int> GetFundMerchantIds( IEnumerable<int> accountIds, Dictionary<int, HashSet<int>> merchantsByFinancialAccount )
+        {
+            var merchantIds = new HashSet<int>();
+            foreach ( int accountId in accountIds )
+            {
+                HashSet<int> accountMerchants;
+                if ( merchantsByFinancialAccount.TryGetValue( accountId, out accountMerchants ) )
+                {
+                    merchantIds.UnionWith( accountMerchants );
+                }
+            }
+
+            return merchantIds;
         }
 
         /// <summary>
@@ -667,6 +779,7 @@ namespace org.secc.Jobs
 
     class MerchantData
     {
+        public int MerchantId { get; set; }
         public int AccountId { get; set; }
         public string MerchantKey { get; set; }
     }
