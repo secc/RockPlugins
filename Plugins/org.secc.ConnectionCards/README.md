@@ -53,9 +53,16 @@ Block settings:
 | `ChopImage` | Splits the image into `cols` x `rows` cells, whitespace-crops each, and persists one `BinaryFile` per cell. |
 | `Crop` | Trims surrounding white border from a single card bitmap (scans rows/columns, averaging each pixel's red channel and treating an average > 235 as "white"). |
 
+`ConvertPDFToImage`, `RotateImage` and `ChopImage` work with any Rock storage provider (Database,
+FileSystem, Azure Blob). They read the source file with `org.secc.DevLib`'s `BinaryFile.ReadContentBytes()`,
+which buffers a fresh provider stream into memory and disposes it, and they write results by assigning
+`ContentStream` so the file type's provider stores them on save. A missing or empty source file throws a
+named `InvalidOperationException`.
+
 ## Dependencies & Integrations
 
 - **Rock:** `RockContext`, `BinaryFileService` / `BinaryFileTypeService`, `BinaryFile`, the Rock block/UI framework (`RockBlock`, `FileUploader`), and the workflow engine (`LaunchWorkflow`).
+- **SECC:** `org.secc.DevLib` (`BinaryFile.ReadContentBytes()` for provider-agnostic reads).
 - **Third-party:** `Ghostscript.NET` (PDF rasterization — requires the native Ghostscript runtime on the server), `System.Drawing` (image rotate/crop/PNG output).
 
 ## Observations
@@ -68,15 +75,18 @@ Block settings:
 - **Improvement:** `fMainSheet_FileUploaded` guards with `mainSheetId != null || mainSheetId != 0`,
   which is always true (an `||` that can never be false). The intended check was likely
   `!= null && != 0`; as written it relies on the later `binaryFileService.Get(...) != null` to bail.
-- **Improvement:** The chop loop in `ChopImage` clones `new Rectangle( x + 4, y + 4, elementWidth - 4, elementHeight - 4 )`
-  and `Crop` calls `GetPixel` per pixel across the whole cell. For large/high-dpi sheets this is slow
-  and the `+4`/`-4` insets can throw if a cell is near the image edge; review bounds for non-evenly-divisible sizes.
+- **Improvement:** `Crop` calls `GetPixel` per pixel across the whole cell, which is slow for
+  large/high-dpi sheets. (`ChopImage` itself now iterates exactly `cols` x `rows` cells, so sizes that
+  don't divide evenly no longer throw.)
+- **Note:** `ChopImage` rejects a grid with fewer than 1 row/column, or cells of 4px or less, with an
+  `InvalidOperationException`. The block shows the message and keeps the scan so the user can retry;
+  the Rows/Columns controls also have `Minimum="1"`. A PDF with no pages makes `ConvertPDFToImage`
+  return `null`, and the block shows "The uploaded PDF has no pages to convert."
+- **Note:** Because generated images are now saved through `ContentStream`, Rock's `BinaryFile` save
+  hook resizes them if the block's **BinaryFileType** sets a max width/height. The rasterized sheet is
+  then downscaled before it's chopped, so leave those limits unset on this file type.
 - **Improvement:** `Ghostscript.NET` depends on a native Ghostscript install being present on the
   server; failures there surface only at upload time. Worth documenting the server prerequisite.
-- **Improvement:** `RotateImage` writes the rotated PNG into a `MemoryStream` declared in a `using`
-  block, assigns it to `inputFile.ContentStream`, then calls `SaveChanges()` — the stream is
-  disposed when the `using` exits, so whether the rotated bytes persist depends on Rock reading the
-  stream before disposal. Worth confirming rotation actually survives a save.
 
 ## Making Changes
 
@@ -85,3 +95,5 @@ Block settings:
 - The per-card workflow is configured via the block's **WorkflowType** setting and launched in
   `btnCrop_Click`; the downstream review/keying logic lives in that workflow, not in this plugin.
   See [org.secc.Workflow](../org.secc.Workflow/README.md) for related workflow actions.
+
+Last updated: 2026-09-29

@@ -83,6 +83,11 @@ EF entities stored in the Rock database (Rock `IRockEntity` / `ISecured`).
   HTTP calls, Newtonsoft.Json. The `.csproj` also references `Rock.SignNow` / `SignNowSDK` /
   `CSLibrary` (CudaSign), though no code in this project currently calls them.
 - **External APIs:** MinistrySafe (`MinistrySafeAPIURL` + `MinistrySafeAPIToken` Global Attributes).
+- **Storage providers:** the five `*Merge` workflow actions read their PDF template with
+  `org.secc.DevLib`'s `BinaryFile.ReadContentBytes()`, which buffers a fresh storage-provider stream into
+  memory and disposes it before iText processes it. Templates for these confidential forms can live in
+  any Rock storage provider (Database, FileSystem, Azure Blob). A missing or empty template fails the
+  action with a named error.
 
 ## Migrations
 
@@ -129,3 +134,5 @@ Ships one EF plugin migration under `/Migrations/`:
   hand-edit `001_Init` once it has run.
 - Related: workflow-engine helpers and other custom actions live in
   [org.secc.Workflow](../org.secc.Workflow/README.md).
+
+Last updated: 2026-09-29

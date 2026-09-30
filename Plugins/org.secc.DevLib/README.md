@@ -22,6 +22,7 @@ third file is a single DTO that looks misplaced.
 
 ```
 /Components/             SettingsComponent (Rock.Extension.Component base) + SettingsContainer (MEF singleton)
+/Extensions/             BinaryFileExtensions — provider-agnostic BinaryFile content reads
 /Extensions/Migration/   RockMigrationExtensions + TableBuilderExtensions — EF migration SQL helpers for Rock.Plugin.Migration
 /SportsAndFitness/        ControlCenterSearchItem — a lone search DTO (JSON-serializable)
 /Properties/             AssemblyInfo
@@ -36,6 +37,20 @@ third file is a single DTO that looks misplaced.
 | `SettingsComponent` | abstract `Rock.Extension.Component` | Base for a "settings as a Rock component" pattern; declares an abstract `Name` property. Static `GetComponent<T>()` resolves the registered component by matching `EntityType.Name` against `typeof(T).FullName` over `SettingsContainer.Instance.Dictionary`, then force-reloads its attributes (safe on multi-server). |
 | `SettingsContainer` | `Container<SettingsComponent, IComponentData>` | MEF singleton (`[ImportMany]`) that discovers `SettingsComponent` implementations; `GetComponent`/`GetComponentName` look one up by entity-type string. |
 | `ControlCenterSearchItem` | plain DTO | `SearchTerm` + `SearchByPIN` / `SearchByPhone` flags; `ToString()` returns `ToJson()`. No callers in this assembly. |
+
+### BinaryFile extension methods
+
+| Method | On | Purpose |
+|--------|----|---------|
+| `ReadContentBytes(description)` | `Rock.Model.BinaryFile` | Returns the file's bytes for any storage provider. Stored files are read through a fresh `StorageProvider.GetContentStream()` that is disposed; unsaved files fall back to their in-memory `ContentStream` (left open, caller-owned). Throws `InvalidOperationException` naming `description` when the file is null, empty, or its storage is unavailable. |
+
+Use this instead of wrapping `binaryFile.ContentStream` in `using`. The entity caches that stream and
+re-fetches only when `CanSeek` is false, and Azure's blob stream still reports `CanSeek` after
+`Dispose`. So disposing it breaks any later read of the same tracked `BinaryFile`, for example a
+second merge action or an email attachment later in the same workflow pass (ROCK-9041).
+
+Stored files are always read from the provider. If you assign a new `ContentStream` to a tracked
+file, call `SaveChanges()` before `ReadContentBytes`, or you get the previously stored bytes.
 
 ### Migration extension methods
 
@@ -89,3 +104,5 @@ multi-column overloads. Both files default a missing FK principal column to `Id`
   member names in sync with the referenced EntityFramework version.
 - This is a library — there are no pages, jobs, or endpoints to wire up here. Behavior surfaces in
   whichever plugin references the assembly.
+
+Last updated: 2026-09-29

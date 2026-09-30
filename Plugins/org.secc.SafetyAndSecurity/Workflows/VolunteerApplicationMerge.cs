@@ -19,6 +19,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using iText.Forms;
 using iText.Kernel.Pdf;
+using org.secc.DevLib.Extensions;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -82,7 +83,8 @@ namespace org.secc.SafetyAndSecurity
                 PDF = binaryFileService.Get( GetActionAttributeValue( action, "AdultVolunteerApplicationPDF" ).AsGuid() );
             }
 
-            var pdfBytes = PDF.ContentStream.ReadBytesToEnd();
+            // ROCK-9041: Read through a fresh provider stream; see BinaryFileExtensions.ReadContentBytes.
+            byte[] pdfBytes = PDF.ReadContentBytes( "PDF Template" );
 
             var renderedPdfBytes = GeneratePdfWithFields( pdfBytes, fields, flattenFields: true );
 

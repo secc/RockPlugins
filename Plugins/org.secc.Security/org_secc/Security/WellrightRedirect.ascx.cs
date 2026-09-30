@@ -21,6 +21,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Xml;
 using org.secc.Security.SAML2;
+using org.secc.DevLib.Extensions;
 using Rock;
 using Rock.Attribute;
 using Rock.Data;
@@ -128,13 +129,8 @@ namespace RockWeb.Plugins.org_secc.Security
             {
                 return "";
             }
-            var binaryData = binaryFile.ContentStream.ReadBytesToEnd();
-
-            X509Certificate2 signingCert = new X509Certificate2(
-                binaryData,
-                GetAttributeValue( AttributeKey.CertificatePassword ),
-                X509KeyStorageFlags.Exportable | X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet
-            );
+            // ROCK-9041: Read through a fresh provider stream; see BinaryFileExtensions.ReadContentBytes.
+            byte[] binaryData = binaryFile.ReadContentBytes( "Wellright signing certificate" );
 
             var attributeStatements = new Dictionary<string, string> {
                 {"FirstName", CurrentPerson.FirstName },
@@ -144,17 +140,24 @@ namespace RockWeb.Plugins.org_secc.Security
                 { "Email", CurrentPerson.Email },
             };
 
-            var response = SAML20Assertion.CreateSAML20Response(
-                "Southeast Christian Church",
-                60 * 24 * GetAttributeValue( AttributeKey.DaysValid ).AsInteger(),
-                "WellRight",
-                CurrentPerson.Email,
-                GetAttributeValue( AttributeKey.RequestUrl ),
-                attributeStatements,
-                signingCert
-                );
-
-            return response;
+            // No PersistKeySet: persisting left a new private-key file in the machine key store on every
+            // page load. Exportable stays because CertificateUtility exports the key to sign. Disposing the
+            // certificate removes its temporary key container.
+            using ( X509Certificate2 signingCert = new X509Certificate2(
+                binaryData,
+                GetAttributeValue( AttributeKey.CertificatePassword ),
+                X509KeyStorageFlags.Exportable | X509KeyStorageFlags.MachineKeySet ) )
+            {
+                return SAML20Assertion.CreateSAML20Response(
+                    "Southeast Christian Church",
+                    60 * 24 * GetAttributeValue( AttributeKey.DaysValid ).AsInteger(),
+                    "WellRight",
+                    CurrentPerson.Email,
+                    GetAttributeValue( AttributeKey.RequestUrl ),
+                    attributeStatements,
+                    signingCert
+                    );
+            }
         }
 
         private void DisplayData( string response )

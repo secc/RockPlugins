@@ -77,7 +77,9 @@ and Response Headers — intended as reusable templates for the image generator.
   framework, defined types, `BinaryFiletype.PERSON_IMAGE`.
 - **Third-party:** `NReco.ImageGenerator` (wkhtmltoimage HTML->image), `Microsoft.Azure.CognitiveServices.Vision.Face`
   (face detection), `System.Drawing` (rotate/crop/encode), `ImageResizer`.
-- **Cross-plugin:** [org.secc.DevLib](../org.secc.DevLib/README.md) (`SettingsComponent` base for `MicrosoftFaceSettings`).
+- **Cross-plugin:** [org.secc.DevLib](../org.secc.DevLib/README.md) (`SettingsComponent` base for `MicrosoftFaceSettings`;
+  `ReadContentBytes`, which `FaceCrop` uses to read the source photo through whichever storage provider
+  holds it and which throws a clear `InvalidOperationException` when the file is missing or empty).
 
 ## Migrations
 
@@ -120,3 +122,7 @@ and Response Headers — intended as reusable templates for the image generator.
   (`Components/MicrosoftFaceSettings.cs`), edited through Rock, not in code.
 - To change which photos a batch targets, edit the matching `*.ascx.cs` in `org_secc/Imaging/`.
 - New defined-type attributes belong in a new numbered migration under `/Migrations/`.
+- `FaceCrop.CropDetectedFace` disposes the source, rotated and target bitmaps; keep any new GDI+ objects in
+  `using` blocks, since the batch blocks run it for every row of a query.
+
+Last updated: 2026-09-29
