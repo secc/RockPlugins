@@ -40,7 +40,7 @@ Most configuration lives on the shared `LeagueAppsSettings` component (see below
 
 | Job (class) | Purpose | Key settings |
 |-------------|---------|--------------|
-| `ImportData` | Pull current programs, build/refresh the `Year > Category > League` group tree (league keyed by `ForeignId = programId`), set league group attributes, then enroll each registrant as a `GroupMember` with a mapped role; deactivates leagues no longer returned. | All `LeagueAppsSettings` attributes; no per-job attributes |
+| `ImportData` | Pull current programs, build/refresh the `Year > Category > League` group tree (league keyed by `ForeignId = programId`), set league group attributes, then enroll each registrant (paging the `registrations-2` export) as a `GroupMember` with a mapped role, falling back to the group type default role when the mapped role is missing; deactivates leagues no longer returned. A program or registrant that fails is skipped with a warning; an auth failure ends the run. | All `LeagueAppsSettings` attributes; no per-job attributes |
 | `Jobs.ImportMembers` | Page through all members and backfill the `LeagueAppsUserId` person attribute and `LeagueAppsFamilyId` family attribute. | **CreateNew** (`BooleanField`) — create a new person if no Rock match |
 
 ### Settings (`LeagueAppsSettings`)
@@ -67,7 +67,7 @@ POCOs deserialized from LeagueApps JSON; epoch-millisecond dates use a custom `M
 | Class | Maps to |
 |-------|---------|
 | `Programs` | A program/league (id, name, sport, season, gender, mode, dates, URLs, logo). |
-| `Registrations` | A registrant within a program (`userId`, `team`, `role`). |
+| `Registrations` | A registrant within a program (`userId`, `team`, `role`; `id` + `lastUpdated` are the export paging cursor). |
 | `Member` | A LeagueApps member (id, name, email, birth date, gender, address, phone, `groupId`). |
 
 ### Migration-installed data
@@ -141,3 +141,5 @@ Ships Rock plugin migrations under `/Migrations/`:
   `/Migrations/` — don't hand-edit migrations that have already run.
 - Related: people created here flow through the same matching concerns as
   [org.secc.PersonMatch](../org.secc.PersonMatch/README.md).
+
+Last updated: 2026-10-02

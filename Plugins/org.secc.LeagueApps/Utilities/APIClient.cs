@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
@@ -94,36 +96,43 @@ namespace org.secc.LeagueApps
         private const int JwtLifetimeSeconds = 300;
         private const int TokenRefreshMarginSeconds = 30;
 
+        // Admin error bodies are kept short in messages; they end up in ExceptionLog and job status.
+        private const int MaxErrorBodyLength = 200;
+
         /// <summary>
         /// Calls an authenticated LeagueApps admin API resource and deserializes the JSON body.
         /// Returns <c>default(T)</c> (null for reference types) when the body is empty or the JSON literal
         /// <c>null</c>; callers that page through export endpoints rely on this as the end-of-data signal.
-        /// Throws <see cref="LeagueAppsAuthException"/> when a bearer token cannot be obtained, and a plain
-        /// <see cref="Exception"/> carrying status, resource and a truncated body for any other failure.
+        /// Throws <see cref="LeagueAppsAuthException"/> when a bearer token cannot be obtained or is rejected
+        /// even after a refresh, and a plain <see cref="Exception"/> carrying status and resource for any other failure.
         /// </summary>
         public T GetPrivate<T>( string resource )
         {
             var siteId = Encryption.DecryptString( Settings.GetAttributeValue( Constants.LeagueAppsSiteId ) );
-            var token = GetBearerToken();
 
             //magic string (sorry)
             resource = resource.Replace( "{siteid}", siteId );
 
             string export;
-            HttpResponseMessage response;
-            using ( var request = new HttpRequestMessage( HttpMethod.Get, resource ) )
-            {
-                request.Headers.Authorization = new AuthenticationHeaderValue( "Bearer", token );
-                response = adminClient.SendAsync( request ).GetAwaiter().GetResult();
-            }
-            using ( response )
-            {
-                export = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            string reasonPhrase;
+            var statusCode = SendAdminRequest( resource, GetBearerToken(), out reasonPhrase, out export );
 
-                if ( !response.IsSuccessStatusCode )
+            if ( statusCode == HttpStatusCode.Unauthorized )
+            {
+                // The cached token can be rejected before its local expiry (revocation, clock skew).
+                // Drop it and retry once with a fresh one before declaring the run's credentials dead.
+                bearerToken = null;
+                statusCode = SendAdminRequest( resource, GetBearerToken(), out reasonPhrase, out export );
+
+                if ( statusCode == HttpStatusCode.Unauthorized )
                 {
-                    throw new Exception( "LeagueApps API Response: " + ( int ) response.StatusCode + " " + response.ReasonPhrase + " for " + resource + " " + Truncate( export ) );
+                    throw new LeagueAppsAuthException( "LeagueApps rejected a freshly issued bearer token: 401 " + reasonPhrase + " for " + resource );
                 }
+            }
+
+            if ( ( int ) statusCode < 200 || ( int ) statusCode > 299 )
+            {
+                throw new Exception( "LeagueApps API Response: " + ( int ) statusCode + " " + reasonPhrase + " for " + resource + " " + export.Truncate( MaxErrorBodyLength ) );
             }
 
             if ( string.IsNullOrWhiteSpace( export ) )
@@ -137,13 +146,28 @@ namespace org.secc.LeagueApps
             }
             catch ( JsonException ex )
             {
-                throw new Exception( "LeagueApps API returned a body that could not be parsed as " + typeof( T ).Name + " for " + resource + ": " + ex.Message + " Body: " + Truncate( export ), ex );
+                // A successful body is member data; report its size, not its contents.
+                throw new Exception( "LeagueApps API returned a " + export.Length + "-character body that could not be parsed as " + typeof( T ).Name + " for " + resource + ": " + ex.Message, ex );
+            }
+        }
+
+        private static HttpStatusCode SendAdminRequest( string resource, string token, out string reasonPhrase, out string body )
+        {
+            using ( var request = new HttpRequestMessage( HttpMethod.Get, resource ) )
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue( "Bearer", token );
+                using ( var response = adminClient.SendAsync( request ).GetAwaiter().GetResult() )
+                {
+                    body = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+                    reasonPhrase = response.ReasonPhrase;
+                    return response.StatusCode;
+                }
             }
         }
 
         /// <summary>
         /// Returns a cached OAuth bearer token, exchanging a fresh JWT assertion only when the cached token
-        /// is missing or about to expire.
+        /// is missing or about to expire. Any failure to obtain a token surfaces as <see cref="LeagueAppsAuthException"/>.
         /// </summary>
         private string GetBearerToken()
         {
@@ -152,6 +176,23 @@ namespace org.secc.LeagueApps
                 return bearerToken;
             }
 
+            try
+            {
+                return RequestBearerToken();
+            }
+            catch ( LeagueAppsAuthException )
+            {
+                throw;
+            }
+            catch ( Exception ex )
+            {
+                // Network errors, timeouts and certificate problems all mean no call in this run can succeed.
+                throw new LeagueAppsAuthException( "LeagueApps auth failed: " + ex.Message, ex );
+            }
+        }
+
+        private string RequestBearerToken()
+        {
             var clientId = Encryption.DecryptString( Settings.GetAttributeValue( Constants.LeagueAppsClientId ) );
 
             // Get a Unix Timestamp
@@ -196,7 +237,7 @@ namespace org.secc.LeagueApps
 
                     if ( !response.IsSuccessStatusCode || string.IsNullOrWhiteSpace( responseStr ) )
                     {
-                        throw new LeagueAppsAuthException( "LeagueApps auth failed: " + ( int ) response.StatusCode + " " + response.ReasonPhrase + " " + Truncate( responseStr ) );
+                        throw new LeagueAppsAuthException( "LeagueApps auth failed: " + ( int ) response.StatusCode + " " + response.ReasonPhrase + " " + responseStr.Truncate( MaxErrorBodyLength ) );
                     }
                 }
             }
@@ -208,29 +249,27 @@ namespace org.secc.LeagueApps
             }
             catch ( JsonException ex )
             {
-                throw new LeagueAppsAuthException( "LeagueApps auth failed: token response was not JSON: " + ex.Message + " Body: " + Truncate( responseStr ), ex );
+                // The token response carries the token itself, so never echo the body.
+                throw new LeagueAppsAuthException( "LeagueApps auth failed: token response was not JSON: " + ex.Message, ex );
             }
 
             string token = obj.Value<string>( "access_token" );
             if ( string.IsNullOrWhiteSpace( token ) )
             {
-                throw new LeagueAppsAuthException( "LeagueApps auth failed: no access_token in response " + Truncate( responseStr ) );
+                throw new LeagueAppsAuthException( "LeagueApps auth failed: no access_token in response" );
             }
 
-            // Honor expires_in if LeagueApps sends it; otherwise assume the JWT lifetime.
-            var expiresIn = obj.Value<int?>( "expires_in" ) ?? JwtLifetimeSeconds;
+            // Honor expires_in if LeagueApps sends it (as an integer, decimal or numeric string);
+            // otherwise assume the JWT lifetime.
+            double expiresIn;
+            var expiresInValue = obj["expires_in"] as JValue;
+            if ( !double.TryParse( Convert.ToString( expiresInValue?.Value, CultureInfo.InvariantCulture ), NumberStyles.Float,CultureInfo.InvariantCulture, out expiresIn ) || expiresIn <= 0 )
+            {
+                expiresIn = JwtLifetimeSeconds;
+            }
             bearerToken = token;
             bearerTokenExpiresUtc = DateTime.UtcNow.AddSeconds( expiresIn );
             return bearerToken;
-        }
-
-        private static string Truncate( string value, int maxLength = 500 )
-        {
-            if ( string.IsNullOrEmpty( value ) || value.Length <= maxLength )
-            {
-                return value;
-            }
-            return value.Substring( 0, maxLength ) + "...";
         }
     }
 

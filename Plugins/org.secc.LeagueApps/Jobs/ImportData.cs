@@ -45,13 +45,14 @@ namespace org.secc.LeagueApps
             GroupService groupService = new GroupService( dbContext );
             AttributeService attributeService = new AttributeService( dbContext );
             AttributeValueService attributeValueService = new AttributeValueService( dbContext );
-            GroupTypeRoleService groupTypeRoleService = new GroupTypeRoleService( dbContext );
             DefinedValueService definedValueService = new DefinedValueService( dbContext );
             DefinedTypeService definedTypeService = new DefinedTypeService( dbContext );
             BinaryFileService binaryFileService = new BinaryFileService( dbContext );
 
             var warnings = new List<string>();
             var processed = 0;
+            var skipped = 0;
+            var totalPrograms = 0;
 
             try
             {
@@ -76,12 +77,15 @@ namespace org.secc.LeagueApps
                 var groupEntityType = EntityTypeCache.Get( typeof( Group ) ).Id;
 
                 var programs = apiClient.GetPublic<List<Programs>>( "/v1/sites/{siteid}/programs/current" );
+                totalPrograms = programs.Count;
+                var programNumber = 0;
 
 
                 var groups = groupService.Queryable().Where( g => g.GroupTypeId == leagueGroupType.Id ).ToList();
 
                 foreach ( Contracts.Programs program in programs )
                 {
+                    programNumber++;
                     // Process the program
                     Group league = null;
                     Group league2 = null;
@@ -201,131 +205,35 @@ namespace org.secc.LeagueApps
                     List<Registrations> applicants;
                     try
                     {
-                        // An empty body deserializes to null; treat that as a program with no registrations.
-                        applicants = apiClient.GetPrivate<List<Registrations>>( "/v2/sites/{siteid}/export/registrations-2?last-updated=0&last-id=0&program-id=" + program.programId )
-                            ?? new List<Registrations>();
+                        applicants = GetRegistrations( apiClient, program.programId );
                     }
-                    catch ( LeagueAppsAuthException )
-                    {
-                        // Every later call would fail the same way; fail fast instead of warning per program.
-                        throw;
-                    }
-                    catch ( Exception ex )
+                    catch ( Exception ex ) when ( !( ex is LeagueAppsAuthException ) )
                     {
                         // Don't let one bad program export abort the whole job; report it and move on.
                         warnings.Add( "Could not load registrations for program " + program.programId + " (" + program.name + "): " + ex.Message );
                         ExceptionLogService.LogException( ex );
-                        processed++;
+                        skipped++;
                         continue;
                     }
 
-                    UpdateLastStatusMessage( "Processing league " + ( processed + 1 ) + " of " + programs.Count + ": " + program.startTime.Year + " > " + program.mode + " > " + program.name + " (" + applicants.Count + " members)." );
+                    UpdateLastStatusMessage( "Processing league " + programNumber + " of " + programs.Count + ": " + program.startTime.Year + " > " + program.mode + " > " + program.name + " (" + applicants.Count + " members)." );
 
                     var consecutiveMemberFailures = 0;
 
                     foreach ( Contracts.Registrations applicant in applicants )
                     {
-                        // Use a fresh RockContext on every person/groupmember to keep things moving quickly
-                        using ( var rockContext = new RockContext() )
+                        try
                         {
-                            PersonService personService = new PersonService( rockContext );
-                            GroupMemberService groupMemberService = new GroupMemberService( rockContext );
-                            LocationService locationService = new LocationService( rockContext );
-
-                            Person person = null;
-
-                            // 1. Try to load the person using the LeagueApps UserId
-                            var attributevalue = applicant.userId.ToString();
-                            var personIds = attributeValueService.Queryable().Where( av => av.AttributeId == personattribute.Id &&
-                                ( av.Value == attributevalue ||
-                                  av.Value.Contains( "|" + attributevalue + "|" ) ||
-                                  av.Value.StartsWith( attributevalue + "|" ) ) ).Select( av => av.EntityId );
-                            if ( personIds.Count() == 1 )
+                            if ( !ImportApplicant( apiClient, applicant, league3, leagueGroupType, groupMemberAttribute, personattribute, connectionStatus, attributeValueService, program, warnings, ref consecutiveMemberFailures ) )
                             {
-                                person = personService.Get( personIds.FirstOrDefault().Value );
+                                break;
                             }
-
-                            // 2. If we don't have a person match then
-                            //    just use the standard person match/create logic
-                            if ( person == null )
-                            {
-                                Member member;
-                                try
-                                {
-                                    member = apiClient.GetPrivate<Member>( "/v2/sites/{siteid}/members/" + applicant.userId );
-                                }
-                                catch ( LeagueAppsAuthException )
-                                {
-                                    throw;
-                                }
-                                catch ( Exception ex )
-                                {
-                                    warnings.Add( "Could not load member " + applicant.userId + " for program " + program.programId + " (" + program.name + "): " + ex.Message );
-                                    ExceptionLogService.LogException( ex );
-
-                                    // A run of identical failures means the API or contract is broken, not the data.
-                                    // Stop hammering it for this program rather than logging once per applicant.
-                                    consecutiveMemberFailures++;
-                                    if ( consecutiveMemberFailures >= MaxConsecutiveMemberFailures )
-                                    {
-                                        warnings.Add( "Skipping the rest of program " + program.programId + " (" + program.name + ") after " + consecutiveMemberFailures + " consecutive member lookup failures." );
-                                        break;
-                                    }
-                                    continue;
-                                }
-                                consecutiveMemberFailures = 0;
-
-                                if ( member == null )
-                                {
-                                    warnings.Add( "LeagueApps returned no member record for user " + applicant.userId + " in program " + program.programId + " (" + program.name + ")." );
-                                    continue;
-                                }
-
-                                person = LeagueAppsHelper.CreatePersonFromMember( member, connectionStatus );
-                            }
-
-                            // Check to see if the group member already exists
-                            var groupmember = groupMemberService.GetByGroupIdAndPersonId( league3.Id, person.Id ).FirstOrDefault();
-
-                            if ( groupmember == null )
-                            {
-                                Guid guid5 = Guid.NewGuid();
-                                groupmember = new GroupMember();
-                                groupmember.PersonId = person.Id;
-                                groupmember.GroupId = league3.Id;
-                                groupmember.IsSystem = false;
-                                groupmember.Guid = guid5;
-
-                                if ( !String.IsNullOrEmpty( applicant.role ) )
-                                {
-                                    var role = applicant.role.Split( '(' )[0].Trim();
-
-                                    if ( role == "FREEAGENT" || role == "PLAYER" )
-                                        role = "Member";
-                                    else if ( role == "CAPTAIN" )
-                                        role = "Captain";
-                                    else if ( role == "HEAD COACH" || role == "Head Coach" )
-                                        role = "Head Coach";
-                                    else if ( role == "ASST. COACH" || role == "Asst. Coach" )
-                                        role = "Asst. Coach";
-                                    else
-                                        role = "Member";
-                                    var grouprole = groupTypeRoleService.Queryable().Where( r => r.GroupTypeId == leagueGroupType.Id && r.Name == role ).FirstOrDefault().Id;
-                                    groupmember.GroupRoleId = grouprole;
-                                }
-                                else
-                                {
-                                    groupmember.GroupRoleId = leagueGroupType.DefaultGroupRoleId.Value;
-                                }
-                                groupmember.GroupMemberStatus = GroupMemberStatus.Active;
-                                groupMemberService.Add( groupmember );
-                                rockContext.SaveChanges();
-                            }
-
-                            // Make sure we update the team if necessary
-                            groupmember.LoadAttributes();
-                            groupmember.SetAttributeValue( groupMemberAttribute.Key, applicant.team );
-                            groupmember.SaveAttributeValues( rockContext );
+                        }
+                        catch ( Exception ex ) when ( !( ex is LeagueAppsAuthException ) )
+                        {
+                            // Isolate per-applicant failures (person create, save, attribute errors) from the rest of the run.
+                            warnings.Add( "Could not import user " + applicant.userId + " into program " + program.programId + " (" + program.name + "): " + ex.Message );
+                            ExceptionLogService.LogException( ex );
                         }
                     }
                     processed++;
@@ -340,7 +248,13 @@ namespace org.secc.LeagueApps
             }
             catch ( Exception ex )
             {
-                throw new Exception( "LeagueApps Job Failed", ex );
+                // Keep the per-program warnings gathered before the abort; they are not otherwise in the job status.
+                var message = "LeagueApps Job Failed: " + ex.Message;
+                if ( warnings.Any() )
+                {
+                    message += Environment.NewLine + BuildSummary( processed, skipped, totalPrograms, warnings );
+                }
+                throw new Exception( message, ex );
             }
             finally
             {
@@ -349,16 +263,184 @@ namespace org.secc.LeagueApps
 
             if ( warnings.Any() )
             {
-                // Every warning is already in the exception log; keep the job status message to a sane size.
-                var message = "Imported " + processed + " leagues with " + warnings.Count + " warning(s):" + Environment.NewLine
-                    + string.Join( Environment.NewLine, warnings.Take( MaxWarningsInStatus ) );
-                if ( warnings.Count > MaxWarningsInStatus )
-                {
-                    message += Environment.NewLine + "... and " + ( warnings.Count - MaxWarningsInStatus ) + " more (see Exception Log).";
-                }
-                throw new Exception( message );
+                throw new Exception( BuildSummary( processed, skipped, totalPrograms, warnings ) );
             }
             Result = "Successfully imported " + processed + " leagues.";
+        }
+
+        /// <summary>
+        /// Pages through the registrations export for one program. The export returns up to 1000 rows per call,
+        /// keyed by the (lastUpdated, id) of the last row; an empty page or empty body ends the export.
+        /// </summary>
+        private static List<Registrations> GetRegistrations( APIClient apiClient, int programId )
+        {
+            var registrations = new List<Registrations>();
+            long lastUpdated = 0;
+            long lastId = 0;
+
+            while ( true )
+            {
+                var page = apiClient.GetPrivate<List<Registrations>>( "/v2/sites/{siteid}/export/registrations-2?last-updated=" + lastUpdated + "&last-id=" + lastId + "&program-id=" + programId );
+                if ( page == null || !page.Any() )
+                {
+                    return registrations;
+                }
+
+                registrations.AddRange( page );
+
+                var last = page.Last();
+                if ( last.lastUpdated == lastUpdated && last.id == lastId )
+                {
+                    throw new Exception( "Registrations export did not advance past last-updated=" + lastUpdated + ", last-id=" + lastId + " after " + registrations.Count + " rows." );
+                }
+                lastUpdated = last.lastUpdated;
+                lastId = last.id;
+            }
+        }
+
+        /// <summary>
+        /// Adds or updates one applicant as a member of the league group.
+        /// Returns false when the rest of the program should be skipped because member lookups keep failing.
+        /// </summary>
+        private static bool ImportApplicant( APIClient apiClient, Registrations applicant, Group league, GroupTypeCache leagueGroupType, AttributeCache groupMemberAttribute,
+            AttributeCache personattribute, DefinedValueCache connectionStatus, AttributeValueService attributeValueService, Programs program, List<string> warnings, ref int consecutiveMemberFailures )
+        {
+            // Use a fresh RockContext on every person/groupmember to keep things moving quickly
+            using ( var rockContext = new RockContext() )
+            {
+                PersonService personService = new PersonService( rockContext );
+                GroupMemberService groupMemberService = new GroupMemberService( rockContext );
+
+                Person person = null;
+
+                // 1. Try to load the person using the LeagueApps UserId
+                var attributevalue = applicant.userId.ToString();
+                var personIds = attributeValueService.Queryable().Where( av => av.AttributeId == personattribute.Id &&
+                    ( av.Value == attributevalue ||
+                      av.Value.Contains( "|" + attributevalue + "|" ) ||
+                      av.Value.StartsWith( attributevalue + "|" ) ) ).Select( av => av.EntityId );
+                if ( personIds.Count() == 1 )
+                {
+                    person = personService.Get( personIds.FirstOrDefault().Value );
+                }
+
+                // 2. If we don't have a person match then
+                //    just use the standard person match/create logic
+                if ( person == null )
+                {
+                    Member member;
+                    try
+                    {
+                        member = apiClient.GetPrivate<Member>( "/v2/sites/{siteid}/members/" + applicant.userId );
+                    }
+                    catch ( Exception ex ) when ( !( ex is LeagueAppsAuthException ) )
+                    {
+                        warnings.Add( "Could not load member " + applicant.userId + " for program " + program.programId + " (" + program.name + "): " + ex.Message );
+                        ExceptionLogService.LogException( ex );
+
+                        // A run of identical failures means the API or contract is broken, not the data.
+                        // Stop hammering it for this program rather than logging once per applicant.
+                        consecutiveMemberFailures++;
+                        if ( consecutiveMemberFailures >= MaxConsecutiveMemberFailures )
+                        {
+                            warnings.Add( "Skipping the rest of program " + program.programId + " (" + program.name + ") after " + consecutiveMemberFailures + " consecutive member lookup failures." );
+                            return false;
+                        }
+                        return true;
+                    }
+                    consecutiveMemberFailures = 0;
+
+                    if ( member == null )
+                    {
+                        warnings.Add( "LeagueApps returned no member record for user " + applicant.userId + " in program " + program.programId + " (" + program.name + ")." );
+                        return true;
+                    }
+
+                    person = LeagueAppsHelper.CreatePersonFromMember( member, connectionStatus );
+                    if ( person == null )
+                    {
+                        warnings.Add( "Could not match or create a person for user " + applicant.userId + " in program " + program.programId + " (" + program.name + ")." );
+                        return true;
+                    }
+                }
+
+                // Check to see if the group member already exists
+                var groupmember = groupMemberService.GetByGroupIdAndPersonId( league.Id, person.Id ).FirstOrDefault();
+
+                if ( groupmember == null )
+                {
+                    var roleId = ResolveRoleId( applicant.role, leagueGroupType );
+                    if ( !roleId.HasValue )
+                    {
+                        warnings.Add( "League group type has no '" + MapRoleName( applicant.role ) + "' role and no default role; skipped user " + applicant.userId + " in program " + program.programId + " (" + program.name + ")." );
+                        return true;
+                    }
+
+                    groupmember = new GroupMember();
+                    groupmember.PersonId = person.Id;
+                    groupmember.GroupId = league.Id;
+                    groupmember.IsSystem = false;
+                    groupmember.Guid = Guid.NewGuid();
+                    groupmember.GroupRoleId = roleId.Value;
+                    groupmember.GroupMemberStatus = GroupMemberStatus.Active;
+                    groupMemberService.Add( groupmember );
+                    rockContext.SaveChanges();
+                }
+
+                // Make sure we update the team if necessary
+                groupmember.LoadAttributes();
+                groupmember.SetAttributeValue( groupMemberAttribute.Key, applicant.team );
+                groupmember.SaveAttributeValues( rockContext );
+            }
+            return true;
+        }
+
+        /// <summary>Maps a LeagueApps role label (e.g. "CAPTAIN (Team A)") to the league group type role name.</summary>
+        private static string MapRoleName( string leagueAppsRole )
+        {
+            if ( string.IsNullOrEmpty( leagueAppsRole ) )
+            {
+                return null;
+            }
+
+            var role = leagueAppsRole.Split( '(' )[0].Trim();
+
+            if ( role == "CAPTAIN" )
+                return "Captain";
+            else if ( role == "HEAD COACH" || role == "Head Coach" )
+                return "Head Coach";
+            else if ( role == "ASST. COACH" || role == "Asst. Coach" )
+                return "Asst. Coach";
+            else
+                return "Member";
+        }
+
+        /// <summary>
+        /// Returns the group role for an applicant, falling back to the group type's default role when the
+        /// applicant has no role or the mapped role is missing from the group type.
+        /// </summary>
+        private static int? ResolveRoleId( string leagueAppsRole, GroupTypeCache leagueGroupType )
+        {
+            var roleName = MapRoleName( leagueAppsRole );
+            var role = roleName == null ? null : leagueGroupType.Roles.FirstOrDefault( r => r.Name == roleName );
+            return role?.Id ?? leagueGroupType.DefaultGroupRoleId;
+        }
+
+        private static string BuildSummary( int processed, int skipped, int totalPrograms, List<string> warnings )
+        {
+            // Every warning is already in the exception log; keep the job status message to a sane size.
+            var message = "Imported " + processed + " of " + totalPrograms + " leagues";
+            if ( skipped > 0 )
+            {
+                message += " (" + skipped + " skipped)";
+            }
+            message += " with " + warnings.Count + " warning(s):" + Environment.NewLine
+                + string.Join( Environment.NewLine, warnings.Take( MaxWarningsInStatus ) );
+            if ( warnings.Count > MaxWarningsInStatus )
+            {
+                message += Environment.NewLine + "... and " + ( warnings.Count - MaxWarningsInStatus ) + " more (see Exception Log).";
+            }
+            return message;
         }
     }
 }
