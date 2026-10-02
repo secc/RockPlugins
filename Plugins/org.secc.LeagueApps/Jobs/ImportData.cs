@@ -32,6 +32,12 @@ namespace org.secc.LeagueApps
 
     public class ImportData : RockJob
     {
+        /// <summary>Stop looking up members for a program after this many back-to-back failures.</summary>
+        private const int MaxConsecutiveMemberFailures = 10;
+
+        /// <summary>Cap on warning lines included in the thrown job status message.</summary>
+        private const int MaxWarningsInStatus = 50;
+
         /// <summary>Process all leagues (programs) from LeagueApps.</summary>
         public override void Execute()
         {
@@ -44,7 +50,7 @@ namespace org.secc.LeagueApps
             DefinedTypeService definedTypeService = new DefinedTypeService( dbContext );
             BinaryFileService binaryFileService = new BinaryFileService( dbContext );
 
-            var warnings = string.Empty;
+            var warnings = new List<string>();
             var processed = 0;
 
             try
@@ -195,18 +201,27 @@ namespace org.secc.LeagueApps
                     List<Registrations> applicants;
                     try
                     {
-                        applicants = apiClient.GetPrivate<List<Registrations>>( "/v2/sites/{siteid}/export/registrations-2?last-updated=0&last-id=0&program-id=" + program.programId );
+                        // An empty body deserializes to null; treat that as a program with no registrations.
+                        applicants = apiClient.GetPrivate<List<Registrations>>( "/v2/sites/{siteid}/export/registrations-2?last-updated=0&last-id=0&program-id=" + program.programId )
+                            ?? new List<Registrations>();
+                    }
+                    catch ( LeagueAppsAuthException )
+                    {
+                        // Every later call would fail the same way; fail fast instead of warning per program.
+                        throw;
                     }
                     catch ( Exception ex )
                     {
                         // Don't let one bad program export abort the whole job; report it and move on.
-                        warnings += "Could not load registrations for program " + program.programId + " (" + program.name + "): " + ex.Message + Environment.NewLine;
+                        warnings.Add( "Could not load registrations for program " + program.programId + " (" + program.name + "): " + ex.Message );
                         ExceptionLogService.LogException( ex );
                         processed++;
                         continue;
                     }
 
                     UpdateLastStatusMessage( "Processing league " + ( processed + 1 ) + " of " + programs.Count + ": " + program.startTime.Year + " > " + program.mode + " > " + program.name + " (" + applicants.Count + " members)." );
+
+                    var consecutiveMemberFailures = 0;
 
                     foreach ( Contracts.Registrations applicant in applicants )
                     {
@@ -239,19 +254,34 @@ namespace org.secc.LeagueApps
                                 {
                                     member = apiClient.GetPrivate<Member>( "/v2/sites/{siteid}/members/" + applicant.userId );
                                 }
+                                catch ( LeagueAppsAuthException )
+                                {
+                                    throw;
+                                }
                                 catch ( Exception ex )
                                 {
-                                    warnings += "Could not load member " + applicant.userId + " for program " + program.programId + " (" + program.name + "): " + ex.Message + Environment.NewLine;
+                                    warnings.Add( "Could not load member " + applicant.userId + " for program " + program.programId + " (" + program.name + "): " + ex.Message );
                                     ExceptionLogService.LogException( ex );
+
+                                    // A run of identical failures means the API or contract is broken, not the data.
+                                    // Stop hammering it for this program rather than logging once per applicant.
+                                    consecutiveMemberFailures++;
+                                    if ( consecutiveMemberFailures >= MaxConsecutiveMemberFailures )
+                                    {
+                                        warnings.Add( "Skipping the rest of program " + program.programId + " (" + program.name + ") after " + consecutiveMemberFailures + " consecutive member lookup failures." );
+                                        break;
+                                    }
                                     continue;
                                 }
-                                person = LeagueAppsHelper.CreatePersonFromMember( member, connectionStatus );
-                            }
+                                consecutiveMemberFailures = 0;
 
-                            if ( person == null )
-                            {
-                                warnings += "Could not match or create a person for LeagueApps user " + applicant.userId + " in program " + program.programId + " (" + program.name + ")." + Environment.NewLine;
-                                continue;
+                                if ( member == null )
+                                {
+                                    warnings.Add( "LeagueApps returned no member record for user " + applicant.userId + " in program " + program.programId + " (" + program.name + ")." );
+                                    continue;
+                                }
+
+                                person = LeagueAppsHelper.CreatePersonFromMember( member, connectionStatus );
                             }
 
                             // Check to see if the group member already exists
@@ -317,9 +347,16 @@ namespace org.secc.LeagueApps
                 dbContext.SaveChanges();
             }
 
-            if ( warnings.Length > 0 )
+            if ( warnings.Any() )
             {
-                throw new Exception( warnings );
+                // Every warning is already in the exception log; keep the job status message to a sane size.
+                var message = "Imported " + processed + " leagues with " + warnings.Count + " warning(s):" + Environment.NewLine
+                    + string.Join( Environment.NewLine, warnings.Take( MaxWarningsInStatus ) );
+                if ( warnings.Count > MaxWarningsInStatus )
+                {
+                    message += Environment.NewLine + "... and " + ( warnings.Count - MaxWarningsInStatus ) + " more (see Exception Log).";
+                }
+                throw new Exception( message );
             }
             Result = "Successfully imported " + processed + " leagues.";
         }

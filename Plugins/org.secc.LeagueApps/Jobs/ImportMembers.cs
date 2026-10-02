@@ -34,14 +34,28 @@ namespace org.secc.LeagueApps.Jobs
 
             var count = 0;
             var errors = new List<string>();
+            Exception fetchError = null;
 
             do
             {
-                members = apiClient.GetPrivate<List<Member>>( "v2/sites/{siteid}/export/members-2?last-updated=" + latestUpdated.ToString() + "&last-id=" + lastId.ToString() );
+                try
+                {
+                    members = apiClient.GetPrivate<List<Member>>( "v2/sites/{siteid}/export/members-2?last-updated=" + latestUpdated.ToString() + "&last-id=" + lastId.ToString() );
+                }
+                catch ( Exception ex )
+                {
+                    // Stop paging but keep the work already done so the job status reports it.
+                    fetchError = ex;
+                    ExceptionLogService.LogException( ex, null );
+                    break;
+                }
+
+                // An empty body means no more pages.
                 if ( members == null )
                 {
                     break;
                 }
+
                 foreach ( var member in members )
                 {
                     lastId = member.userId;
@@ -101,6 +115,12 @@ namespace org.secc.LeagueApps.Jobs
             {
                 resultMsg.AppendFormat( " {0} error(s) occurred: ", errors.Count );
                 resultMsg.Append( string.Join( "; ", errors ) );
+            }
+
+            if ( fetchError != null )
+            {
+                // Fail the job, but carry the partial result in the message so progress is not lost.
+                throw new Exception( resultMsg + " Import aborted after last-id " + lastId + ": " + fetchError.Message, fetchError );
             }
 
             Result = resultMsg.ToString();
