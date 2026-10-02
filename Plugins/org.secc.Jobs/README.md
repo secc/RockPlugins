@@ -69,7 +69,7 @@ Rock job attributes (read from the `JobDataMap`).
   engine, defined types/values, attribute framework, plugin migrations (`Rock.Plugin`).
 - **Cross-plugin:** [org.secc.FamilyCheckin](../org.secc.FamilyCheckin/README.md) — `StoreAttendanceFromInteraction`
   uses `org.secc.FamilyCheckin.Utilities`.
-- **Third-party APIs:** PushPay (`api.pushpay.com`, OAuth token obtained reflectively from
+- **Third-party APIs:** PushPay (the account's `ApiUrl`, default `api.pushpay.com`; OAuth token obtained reflectively from
   `com.pushpay.RockRMS.dll`), Front Porch device API (host + token from Global Attributes).
 - **Other:** Newtonsoft.Json (snapshot serialization), Ical.Net / NodaTime (transitive).
 
@@ -91,8 +91,9 @@ Ships Rock plugin migrations under `/Migrations/`:
   renumbering as appropriate.
 - **Improvement:** `PushPayDownloadCheckNumbers` loads `com.pushpay.RockRMS.dll` via reflection at
   runtime (`Assembly.LoadFrom` + `GetMethod("GetAccessToken")`). This is a brittle, hard-to-detect
-  coupling — a rename in that plugin breaks this job only at runtime. The job's `errors` counter is
-  also never incremented, so the result string always reports `0 Error(s)`.
+  coupling — a rename in that plugin breaks this job only at runtime. Since ROCK-9037 the Result
+  reports updated / pending / not found / errors (by status), the job ends as Warning when anything
+  failed, and the exception behind each failed call is in the Exception List.
 - **Security (low):** `FrontPorchDeviceRemoval` and `PushPayDownloadCheckNumbers` reach external HTTP
   APIs using credentials from Global Attributes / merchant rows. Confirm those tokens are stored
   encrypted and that the Front Porch `Host`/token global attributes are not broadly readable.

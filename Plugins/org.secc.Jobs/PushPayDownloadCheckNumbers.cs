@@ -78,6 +78,12 @@ namespace org.secc.Jobs
         private int _maxCallsPerRun = 400;
 
         /// <summary>
+        /// Gifts created in the last this-many days are searched at every merchant; older ones only at
+        /// the merchants their fund maps to (see Execute).
+        /// </summary>
+        private int _fullSearchDays = 3;
+
+        /// <summary>
         /// A 429 is retried after the retry-after wait Pushpay sends, plus an increasing backoff, as
         /// Pushpay's guidance asks. The run stops after this many retries in a row, or if Pushpay asks
         /// for a longer wait than <see cref="MaxRateLimitWait"/>.
@@ -94,8 +100,9 @@ namespace org.secc.Jobs
         private readonly Dictionary<int, string> _accountApiUrls = new Dictionary<int, string>();
 
         /// <summary>
-        /// A run with at least this many calls, more than half of them 403, is reported as a Warning:
-        /// that looks like lost permission rather than payments that belong to other merchants.
+        /// A run with at least this many calls, more than half of them 403, and no payment located is
+        /// reported as a Warning: that looks like lost permission rather than payments that belong to
+        /// other merchants.
         /// </summary>
         private const int MinCallsForForbiddenCheck = 10;
 
@@ -135,6 +142,7 @@ namespace org.secc.Jobs
                                         {
                                             ft.Transaction.Id,
                                             ft.Transaction.ForeignKey,
+                                            ft.Transaction.CreatedDateTime,
                                             AccountIds = ft.Transaction.TransactionDetails.Select( d => d.AccountId )
                                         } )
                                         .ToList();
@@ -156,6 +164,8 @@ namespace org.secc.Jobs
             bool stoppedAtCallBudget = false;
             int resolvedAtFundMerchant = 0;
             int resolvedByFallback = 0;
+            int fundMerchantsOnly = 0;
+            DateTime fullSearchCutoff = RockDateTime.Now.AddDays( -_fullSearchDays );
 
             if ( checkTransactions.Count > 0 )
             {
@@ -188,17 +198,26 @@ namespace org.secc.Jobs
                     // mapped to the gift's account can own it: 2-3 of the 19. Try those first, then the
                     // rest, in case a gift was moved to another fund by hand after it was imported.
                     HashSet<int> fundMerchantIds = GetFundMerchantIds( transaction.AccountIds, merchantsByFinancialAccount );
-                    List<MerchantData> merchantOrder = merchantDataList
-                        .Where( m => fundMerchantIds.Contains( m.MerchantId ) )
-                        .Concat( merchantDataList.Where( m => !fundMerchantIds.Contains( m.MerchantId ) ) )
-                        .ToList();
+                    IEnumerable<MerchantData> merchantOrder = merchantDataList.Where( m => fundMerchantIds.Contains( m.MerchantId ) );
 
-                    for ( int i = 0; i < merchantOrder.Count; i++ )
+                    // The job keeps no record of earlier runs, so a gift no merchant knows would cost all
+                    // 19 merchants every night. Search the rest only during the gift's first few runs (it is
+                    // still in the fund it was imported under then, so the fallback rarely finds anything
+                    // later); after that, ask only its fund-matched merchants, which is enough to pick up a
+                    // pending payment once it's deposited.
+                    if ( fundMerchantIds.Count == 0 || transaction.CreatedDateTime >= fullSearchCutoff )
                     {
-                        MerchantData merchant = merchantOrder[i];
+                        merchantOrder = merchantOrder.Concat( merchantDataList.Where( m => !fundMerchantIds.Contains( m.MerchantId ) ) );
+                    }
+                    else
+                    {
+                        fundMerchantsOnly++;
+                    }
 
+                    foreach ( MerchantData merchant in merchantOrder.ToList() )
+                    {
                         // Fetch the payment information from PushPay
-                        PaymentResult paymentResult = FetchPayment( merchant, transaction.ForeignKey );
+                        PaymentResult paymentResult = FetchPayment( merchant, transaction.Id, transaction.ForeignKey );
 
                         if ( paymentResult.Outcome == CallOutcome.CallBudgetExhausted )
                         {
@@ -319,10 +338,17 @@ namespace org.secc.Jobs
 
             result += string.Format( ". Processed {0} of {1}.", processed, checkTransactions.Count );
 
-            if ( resolvedAtFundMerchant + resolvedByFallback > 0 )
+            int located = resolvedAtFundMerchant + resolvedByFallback;
+            if ( located > 0 )
             {
                 // Shows whether the fund-to-merchant mapping predicts the right merchant in practice.
-                result += string.Format( " Found at a fund-matched merchant {0}, by fallback {1}. Pushpay calls {2}.", resolvedAtFundMerchant, resolvedByFallback, _callCount );
+                // Counts both updated and pending gifts: either way Pushpay said which merchant has it.
+                result += string.Format( " Of the {0} updated or pending, {1} were at a fund-matched merchant and {2} by fallback. Pushpay calls {3}.", located, resolvedAtFundMerchant, resolvedByFallback, _callCount );
+            }
+
+            if ( fundMerchantsOnly > 0 )
+            {
+                result += string.Format( " {0} gifts older than {1} days were looked up at their fund-matched merchants only.", fundMerchantsOnly, _fullSearchDays );
             }
 
             if ( deleted > 0 )
@@ -347,9 +373,11 @@ namespace org.secc.Jobs
                 result += " " + stopReason;
             }
 
-            // Mostly 403s is not "payments at other merchants" - it looks like the Pushpay account lost
-            // permission, which would otherwise show only as every gift being "not found".
-            bool mostlyForbidden = _callCount >= MinCallsForForbiddenCheck && _forbiddenCount * 2 > _callCount;
+            // Mostly 403s with no payment located anywhere looks like the Pushpay account lost
+            // permission, which would otherwise show only as every gift being "not found". If Pushpay
+            // answers 403 for another merchant's payment, ordinary misses are 403s too, so any gift that
+            // was located shows the token and permissions still work and the run is not flagged.
+            bool mostlyForbidden = located == 0 && _callCount >= MinCallsForForbiddenCheck && _forbiddenCount * 2 > _callCount;
             if ( mostlyForbidden )
             {
                 result += " Most Pushpay calls were refused with 403: check that the Pushpay account in Rock is still authorized for all merchants.";
@@ -495,8 +523,10 @@ WHERE m.DefaultFinancialAccountId IS NOT NULL";
             _accountTokens.TryGetValue( accountId, out cachedToken );
             _accountTokenExpires.TryGetValue( accountId, out tokenExpires );
 
-            // TokenExpires is stored in Rock server local time, so compare against RockDateTime.Now
-            // (Rock's configured timezone) rather than DateTime.Now or DateTime.UtcNow.
+            // The Pushpay plugin writes TokenExpires in Rock time (RockDateTime, Rock's configured
+            // timezone): on PROD data it is the account row's ModifiedDateTime plus the 60 minute token
+            // life, both set by "Pushpay Downloads" at 05:15 Rock time. So compare against
+            // RockDateTime.Now, not DateTime.Now or DateTime.UtcNow.
             if ( !forceRefresh && cachedToken.IsNotNullOrWhiteSpace() && tokenExpires.HasValue && RockDateTime.Now < tokenExpires.Value )
             {
                 return cachedToken;
@@ -567,9 +597,10 @@ WHERE m.DefaultFinancialAccountId IS NOT NULL";
         /// anything thrown (HttpClient timeouts included) becomes an Error outcome so a single bad call
         /// can't end the run the way task.Wait() used to.
         /// </summary>
-        private PaymentResult FetchPayment( MerchantData merchantData, string paymentToken )
+        private PaymentResult FetchPayment( MerchantData merchantData, int transactionId, string paymentToken )
         {
-            int attempt = 0;
+            bool refreshedToken = false;
+            bool refreshToken = false;
             int rateLimitRetries = 0;
 
             while ( true )
@@ -583,13 +614,17 @@ WHERE m.DefaultFinancialAccountId IS NOT NULL";
 
                 try
                 {
-                    string oAuthToken = FetchAccessToken( merchantData.AccountId, attempt > 0 );
+                    // Force the refresh only on the retry right after a 401, not on every 429 retry after it.
+                    string oAuthToken = FetchAccessToken( merchantData.AccountId, refreshToken );
+                    refreshToken = false;
                     WaitForCallSlot();
                     _callCount++;
                     paymentResult = GetPayment( GetApiUrl( merchantData.AccountId ), oAuthToken, merchantData.MerchantKey, paymentToken ).GetAwaiter().GetResult();
                 }
                 catch ( Exception ex )
                 {
+                    // The Result only has room for the exception type, so keep the detail in the Exception List.
+                    ExceptionLogService.LogException( new Exception( string.Format( "PushPay Load Check Numbers: payment lookup failed for transaction {0} at Pushpay merchant {1}.", transactionId, merchantData.MerchantId ), ex ) );
                     return new PaymentResult { Outcome = CallOutcome.Error, StatusLabel = ex.GetBaseException().GetType().Name };
                 }
 
@@ -607,10 +642,11 @@ WHERE m.DefaultFinancialAccountId IS NOT NULL";
                     continue;
                 }
 
-                if ( paymentResult.Outcome == CallOutcome.Unauthorized && attempt == 0 )
+                if ( paymentResult.Outcome == CallOutcome.Unauthorized && !refreshedToken )
                 {
                     // The token expired mid-run; get a fresh one and retry this one call.
-                    attempt++;
+                    refreshedToken = true;
+                    refreshToken = true;
                     continue;
                 }
 
@@ -789,8 +825,6 @@ WHERE m.DefaultFinancialAccountId IS NOT NULL";
         public string PaymentMethodType { get; set; }
         public string Source { get; set; }
         public DepositedCheck DepositedCheck { get; set; }
-        [JsonIgnore]
-        public string Error { get; set; }
     }
 
     public class DepositedCheck
