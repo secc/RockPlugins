@@ -40,8 +40,34 @@ Most configuration lives on the shared `LeagueAppsSettings` component (see below
 
 | Job (class) | Purpose | Key settings |
 |-------------|---------|--------------|
-| `ImportData` | Pull current programs, build/refresh the `Year > Category > League` group tree (league keyed by `ForeignId = programId`), set league group attributes, then enroll each registrant as a `GroupMember` with a mapped role; deactivates leagues no longer returned. | All `LeagueAppsSettings` attributes; no per-job attributes |
+| `ImportData` | Pull current programs, build/refresh the `Year > Category > League` group tree (league keyed by `ForeignId = programId`), set league group attributes, then enroll each registrant (paging the `registrations-2` export) as a `GroupMember` with a mapped role, falling back to the group type's default role when the mapped role is missing; deactivates leagues no longer returned. | All `LeagueAppsSettings` attributes; no per-job attributes |
 | `Jobs.ImportMembers` | Page through all members and backfill the `LeagueAppsUserId` person attribute and `LeagueAppsFamilyId` family attribute. | **CreateNew** (`BooleanField`) — create a new person if no Rock match |
+
+#### Error handling
+
+- **`APIClient.GetPrivate`** throws on any non-2xx response or unparseable body, with the HTTP status
+  and resource in the message (`LeagueAppsApiException`, which carries the status code). Error bodies
+  are capped at 200 characters, and a body that fails to parse is reported by length only, because it
+  can hold member data. An empty body returns `null`, which both jobs treat as the end of a paged
+  export.
+- **Auth:** the bearer token is cached per `APIClient` and refreshed 30 s before `expires_in` (default
+  300 s). A 401 drops the cached token and retries once. A second 401, or any failure while getting a
+  token (bad response, network error, timeout, certificate), throws `LeagueAppsAuthException`. Token
+  endpoint bodies are never echoed; only a standard OAuth `error` code (e.g. `invalid_grant`) is.
+- **`ImportData`** fails before touching any league if the current programs request returns an empty
+  body (an empty list `[]` is still valid), since a missing list would otherwise deactivate every
+  league. It keeps going past a program whose registrations fail to load (the program counts as
+  skipped) and past an applicant that fails (member lookup, person create, save). Each failure is
+  logged to the Exception Log and added as a warning. A program is abandoned, and counted as skipped,
+  after 10 consecutive failed member lookups. A 404 (member gone from LeagueApps) is a warning but
+  resets the run; applicants already matched in Rock make no lookup and do not affect it. A repeated
+  boundary row in the `registrations-2` export is dropped, and the cursor must move forward or the
+  program fails. `LeagueAppsAuthException` ends the run immediately. The job fails if any warnings
+  were recorded. Its status reads "Imported X of N leagues (Y skipped)" and lists the first 50
+  warnings, even when the run aborted part-way.
+- **`ImportMembers`** stops paging on a fetch error and fails the job. The message includes the
+  partial count and the last `userId` reached. Errors for individual members are collected in the job
+  result.
 
 ### Settings (`LeagueAppsSettings`)
 
@@ -67,7 +93,7 @@ POCOs deserialized from LeagueApps JSON; epoch-millisecond dates use a custom `M
 | Class | Maps to |
 |-------|---------|
 | `Programs` | A program/league (id, name, sport, season, gender, mode, dates, URLs, logo). |
-| `Registrations` | A registrant within a program (`userId`, `team`, `role`). |
+| `Registrations` | A registrant within a program (`userId`, `team`, `role`; `id` + `lastUpdated` are the export paging cursor). |
 | `Member` | A LeagueApps member (id, name, email, birth date, gender, address, phone, `groupId`). |
 
 ### Migration-installed data
@@ -89,12 +115,12 @@ POCOs deserialized from LeagueApps JSON; epoch-millisecond dates use a custom `M
 - **Cross-plugin:** [org.secc.DevLib](../org.secc.DevLib/README.md) — `SettingsComponent` base for
   `LeagueAppsSettings`, and `ReadContentBytes`, which `APIClient` uses to read the PKCS#12 service
   account file through its storage provider (a missing or empty file throws a clear
-  `InvalidOperationException` instead of failing later inside the JWT signing);
+  `InvalidOperationException`, surfaced as `LeagueAppsAuthException`, instead of failing later inside the JWT signing);
   [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) — types used by the match helpers.
 - **Third-party APIs:** LeagueApps (`public.leagueapps.io`, `auth.leagueapps.io`,
   `admin.leagueapps.io`) — public calls use an `la-api-key` header; private calls sign an RS256 JWT
-  with the PKCS#12 key and exchange it for an OAuth bearer token.
-- **Other:** RestSharp (public client), `System.Net.Http.HttpClient` (private client), `jose-jwt`
+  with the PKCS#12 key and exchange it for an OAuth bearer token, which is cached and reused until near expiry.
+- **Other:** RestSharp (public client), shared static `System.Net.Http.HttpClient` instances (auth and admin), `jose-jwt`
   (JWT signing), `Security.Cryptography` (RSACng for CNG keys), Newtonsoft.Json.
 
 ## Migrations
@@ -122,6 +148,10 @@ Ships Rock plugin migrations under `/Migrations/`:
   `APIClient` (the password matches Google service-account `.p12` convention). The auth flow also runs
   async work via `.GetAwaiter().GetResult()`, which can deadlock under some sync contexts — acceptable
   inside a Quartz job thread, but worth noting if this code is ever reused on a request thread.
+- **Risk:** For a `.p12` with a CNG key, `APIClient` signs with clrsecurity's `Security.Cryptography.RSACng`.
+  On .NET Framework 4.7.2 that class throws `NotImplementedException` from `RSA.HashData`, so the JWT
+  can't be signed and every run fails with `LeagueAppsAuthException`. Only CSP-keyed files (the usual
+  Google-style service-account export) work. Seen in an offline harness on 2026-10-02.
 - **Improvement:** `LeagueAppsHelper.GetPersonByApiId` matches with a substring `Value.Contains(userId + "|")`,
   while `ImportData` uses a stricter three-pattern match (`== id`, `Contains("|" + id + "|")`,
   `StartsWith(id + "|")`). The substring `Contains` is the looser of the two — a query for `12|` also
@@ -138,10 +168,12 @@ Ships Rock plugin migrations under `/Migrations/`:
 - Person matching, creation, suffix parsing, and family resolution all live in
   `Utilities/LeagueAppsHelper.cs`; the match overloads accept injected lists for unit testing.
 - To consume a new LeagueApps API field, add it to the matching `Contracts/*` POCO and reference it in
-  the job; API auth and request plumbing is in `Utilities/APIClient.cs`.
+  the job; API auth and request plumbing is in `Utilities/APIClient.cs`. New `GetPrivate` call sites
+  should let `LeagueAppsAuthException` propagate (`catch ( Exception ex ) when ( !( ex is LeagueAppsAuthException ) )`)
+  so a dead credential stops the run instead of producing a warning per call.
 - New seed data (defined types/values, attributes) belongs in a new numbered migration under
   `/Migrations/` — don't hand-edit migrations that have already run.
 - Related: people created here flow through the same matching concerns as
   [org.secc.PersonMatch](../org.secc.PersonMatch/README.md).
 
-Last updated: 2026-09-29
+Last updated: 2026-10-02
