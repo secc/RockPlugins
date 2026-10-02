@@ -161,7 +161,11 @@ per-partition-type partials (`CardCampus`, `CardDefinedType`, `CardRole`, `CardS
   there has the last name, nobody has the first name, and no one anywhere in Rock has that name and
   birthdate; otherwise a new family is created as before. A minor entered with someone else's email
   never gets that email or phone (the parent's phone on the child is what makes family check-in
-  show a second family); the parent's contact info goes into the request comments instead.
+  show a second family); the parent's contact info goes into the request comments instead. For a
+  person matched by name and email, `SavePhone` adds a number only when none of that type is on
+  file and never replaces one (only the signed-in person may change their own) — SECC keeps the
+  account-protection duplicate-ignore list empty on purpose, so this is the guard against an
+  anonymous post redirecting someone's mobile.
 - Re-package with `BuildPlugin.ps1` (Windows + 7-Zip) — note it intentionally excludes
   `ConnectionOpportunitySearch.ascx*` from the `.plugin`.
 - If a URL-supplied attribute value isn't landing on the connection request, check the merge in the

@@ -1115,6 +1115,14 @@ namespace org.secc.Connection
                         person.PhoneNumbers.Add( phone );
                         phone.NumberTypeValueId = numberType.Id;
                     }
+                    else if ( CurrentPerson == null || CurrentPerson.Id != person.Id )
+                    {
+                        // A number already on file is never replaced from the anonymous form. Name and
+                        // email are enough to be matched here, and an overwritten mobile would redirect
+                        // passwordless sign-in. Only the signed-in person may change their own number;
+                        // everyone else's goes through My Account or staff.
+                        return;
+                    }
                     else
                     {
                         oldPhoneNumber = phone.NumberFormattedWithCountryCode;
