@@ -28,6 +28,7 @@ namespace org.secc.Finance.Utility
     {
         public static void AddMergeFields( Dictionary<string, object> mergeFields, Person targetPerson, DateRange dateRange, List<Guid> excludedCurrencyTypes, List<Guid> accountGuids = null )
         {
+            excludedCurrencyTypes = excludedCurrencyTypes ?? new List<Guid>();
 
             RockContext rockContext = new RockContext();
 
@@ -154,9 +155,11 @@ namespace org.secc.Finance.Utility
 
             // Eager-load the navigations the lava and the in-memory AccountSummary grouping walk;
             // the query is AsNoTracking, so lazy loading of navigations is not reliable.
-            // FinancialPaymentDetail is loaded too, for the currency split below.
+            // FinancialPaymentDetail is loaded for the currency split below, and its CurrencyTypeValue
+            // because the Giving statement lava reads it on every row; left to lazy loading, that was
+            // one extra query per gift (859 for one large household).
             var householdDetails = qry
-                .Include( t => t.Transaction.FinancialPaymentDetail )
+                .Include( t => t.Transaction.FinancialPaymentDetail.CurrencyTypeValue )
                 .Include( t => t.Account )
                 .ToList();
 
@@ -170,37 +173,14 @@ namespace org.secc.Finance.Utility
 
             if ( excludedCurrencyTypes.Count > 0 )
             {
-                var excludedCurrencyTypeIds = excludedCurrencyTypes
-                    .Select( g => DefinedValueCache.Get( g ) )
-                    .Where( dv => dv != null )
-                    .Select( dv => dv.Id )
-                    .ToList();
-
-                // A gift with no currency type can't be placed on either list: putting it on the main
-                // list would print it on the QCD statement too. It stays off both, as the old SQL
-                // filters did, but is logged so Finance can fix the gift. None exist on PROD
-                // (0 of ~4.6 million tax-deductible gift lines since 2008). The list is already in
-                // statement order.
-                var withCurrencyType = householdDetails
-                    .Where( t => t.Transaction?.FinancialPaymentDetail?.CurrencyTypeValueId != null )
-                    .ToList();
-
-                int noCurrencyTypeCount = householdDetails.Count - withCurrencyType.Count;
+                int noCurrencyTypeCount = SplitByCurrencyType( householdDetails, excludedCurrencyTypes, out transactionDetails, out excludedTransactionDetails );
                 if ( noCurrencyTypeCount > 0 )
                 {
-                    ExceptionLogService.LogException( new Exception( string.Format(
-                        "Contribution statement for GivingId {0}: {1} gift line(s) with no currency type were left off the statement. Set the currency type on the gift and regenerate the statement.",
+                    ExceptionLogService.LogException( new MissingCurrencyTypeException( string.Format(
+                        "Contribution statement for GivingId {0}: {1} gift line(s) with no currency type were printed with the statement's main gifts. Set the currency type on the gift and regenerate the statement.",
                         targetPerson.GivingId,
-                        noCurrencyTypeCount ) ), null );
+                        noCurrencyTypeCount ) ), System.Web.HttpContext.Current );
                 }
-
-                transactionDetails = withCurrencyType
-                    .Where( t => !excludedCurrencyTypeIds.Contains( t.Transaction.FinancialPaymentDetail.CurrencyTypeValueId.Value ) )
-                    .ToList();
-
-                excludedTransactionDetails = withCurrencyType
-                    .Where( t => excludedCurrencyTypeIds.Contains( t.Transaction.FinancialPaymentDetail.CurrencyTypeValueId.Value ) )
-                    .ToList();
             }
             else
             {
@@ -309,6 +289,56 @@ namespace org.secc.Finance.Utility
                     .FirstOrDefault();
 
             mergeFields.Add("MoveSummary", moveSummary);
+        }
+
+        /// <summary>
+        /// Splits a household's gifts, in statement order, into the statement's main gifts and those in an
+        /// excluded currency type, in one pass. A gift with no currency type stays with the main gifts, as
+        /// the old SQL filter kept it (so it isn't silently left off every statement).
+        /// </summary>
+        /// <returns>The number of gifts that had no currency type.</returns>
+        private static int SplitByCurrencyType( List<FinancialTransactionDetail> householdDetails, List<Guid> excludedCurrencyTypes,
+            out List<FinancialTransactionDetail> transactionDetails, out List<FinancialTransactionDetail> excludedTransactionDetails )
+        {
+            var excludedCurrencyTypeIds = new HashSet<int>( excludedCurrencyTypes
+                .Select( g => DefinedValueCache.Get( g ) )
+                .Where( dv => dv != null )
+                .Select( dv => dv.Id ) );
+
+            transactionDetails = new List<FinancialTransactionDetail>();
+            excludedTransactionDetails = new List<FinancialTransactionDetail>();
+            int noCurrencyTypeCount = 0;
+
+            foreach ( var detail in householdDetails )
+            {
+                var currencyTypeValueId = detail.Transaction?.FinancialPaymentDetail?.CurrencyTypeValueId;
+                if ( currencyTypeValueId == null )
+                {
+                    noCurrencyTypeCount++;
+                    transactionDetails.Add( detail );
+                }
+                else if ( excludedCurrencyTypeIds.Contains( currencyTypeValueId.Value ) )
+                {
+                    excludedTransactionDetails.Add( detail );
+                }
+                else
+                {
+                    transactionDetails.Add( detail );
+                }
+            }
+
+            return noCurrencyTypeCount;
+        }
+    }
+
+    /// <summary>
+    /// Logged when a contribution statement includes gifts that have no currency type, so these entries
+    /// can be filtered in the Exception List.
+    /// </summary>
+    public class MissingCurrencyTypeException : Exception
+    {
+        public MissingCurrencyTypeException( string message ) : base( message )
+        {
         }
     }
 
