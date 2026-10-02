@@ -61,9 +61,10 @@ Most configuration lives on the shared `LeagueAppsSettings` component (see below
   logged to the Exception Log and added as a warning. A program is abandoned, and counted as skipped,
   after 10 consecutive failed member lookups. A 404 (member gone from LeagueApps) is a warning but
   resets the run; applicants already matched in Rock make no lookup and do not affect it. A repeated
-  boundary row in the `registrations-2` export is dropped. `LeagueAppsAuthException` ends the run
-  immediately. The job fails if any warnings were recorded. Its status reads "Imported X of N leagues
-  (Y skipped)" and lists the first 50 warnings, even when the run aborted part-way.
+  boundary row in the `registrations-2` export is dropped, and the cursor must move forward or the
+  program fails. `LeagueAppsAuthException` ends the run immediately. The job fails if any warnings
+  were recorded. Its status reads "Imported X of N leagues (Y skipped)" and lists the first 50
+  warnings, even when the run aborted part-way.
 - **`ImportMembers`** stops paging on a fetch error and fails the job. The message includes the
   partial count and the last `userId` reached. Errors for individual members are collected in the job
   result.

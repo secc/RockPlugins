@@ -309,8 +309,10 @@ namespace org.secc.LeagueApps
 
                 registrations.AddRange( page );
 
+                // Keyset paging only terminates if the cursor moves forward. Equality alone is not enough: an API
+                // that ignored the cursor would, after the boundary row is dropped, step the cursor backwards forever.
                 var last = page.Last();
-                if ( last.lastUpdated == lastUpdated && last.id == lastId )
+                if ( last.lastUpdated < lastUpdated || ( last.lastUpdated == lastUpdated && last.id <= lastId ) )
                 {
                     throw new Exception( "Registrations export did not advance past last-updated=" + lastUpdated + ", last-id=" + lastId + " after " + registrations.Count + " rows." );
                 }
