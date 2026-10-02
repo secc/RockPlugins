@@ -78,7 +78,12 @@ namespace org.secc.LeagueApps
             }
 
 
-            var export = response.Content.ToString();
+            // An empty body deserializes to null; callers decide whether that is an error.
+            var export = response.Content;
+            if ( string.IsNullOrWhiteSpace( export ) )
+            {
+                return default( T );
+            }
             return JsonConvert.DeserializeObject<T>( export );
         }
 
@@ -135,7 +140,7 @@ namespace org.secc.LeagueApps
 
             if ( ( int ) statusCode < 200 || ( int ) statusCode > 299 )
             {
-                throw new Exception( "LeagueApps API Response: " + ( int ) statusCode + " " + reasonPhrase + " for " + resource + " " + export.Truncate( MaxErrorBodyLength ) );
+                throw new LeagueAppsApiException( statusCode, "LeagueApps API Response: " + ( int ) statusCode + " " + reasonPhrase + " for " + resource + " " + export.Truncate( MaxErrorBodyLength ) );
             }
 
             if ( string.IsNullOrWhiteSpace( export ) )
@@ -240,7 +245,8 @@ namespace org.secc.LeagueApps
 
                     if ( !response.IsSuccessStatusCode || string.IsNullOrWhiteSpace( responseStr ) )
                     {
-                        throw new LeagueAppsAuthException( "LeagueApps auth failed: " + ( int ) response.StatusCode + " " + response.ReasonPhrase + " " + responseStr.Truncate( MaxErrorBodyLength ) );
+                        // Never echo the token endpoint's body; report only the standard OAuth error code if it sent one.
+                        throw new LeagueAppsAuthException( "LeagueApps auth failed: " + ( int ) response.StatusCode + " " + response.ReasonPhrase + GetOAuthErrorCode( responseStr ) );
                     }
                 }
             }
@@ -274,6 +280,27 @@ namespace org.secc.LeagueApps
             bearerTokenExpiresUtc = DateTime.UtcNow.AddSeconds( expiresIn );
             return bearerToken;
         }
+
+        /// <summary>
+        /// Returns " (error: code)" for an RFC 6749 error response such as <c>{"error":"invalid_grant"}</c>,
+        /// or an empty string when the body is not one. The code is a short fixed token, never the body itself.
+        /// </summary>
+        private static string GetOAuthErrorCode( string body )
+        {
+            try
+            {
+                var code = JObject.Parse( body ).Value<string>( "error" );
+                if ( !string.IsNullOrWhiteSpace( code ) && code.Length <= 64 && System.Text.RegularExpressions.Regex.IsMatch( code, "^[A-Za-z0-9_.-]+$" ) )
+                {
+                    return " (error: " + code + ")";
+                }
+            }
+            catch ( Exception )
+            {
+                // Not a JSON error object; report status only.
+            }
+            return string.Empty;
+        }
     }
 
     /// <summary>
@@ -284,6 +311,20 @@ namespace org.secc.LeagueApps
     {
         public LeagueAppsAuthException( string message ) : base( message ) { }
         public LeagueAppsAuthException( string message, Exception innerException ) : base( message, innerException ) { }
+    }
+
+    /// <summary>
+    /// Raised for a non-2xx admin API response other than an unrecoverable 401, so callers can tell
+    /// an ordinary per-record miss (404) from an API that is failing.
+    /// </summary>
+    public class LeagueAppsApiException : Exception
+    {
+        public HttpStatusCode StatusCode { get; }
+
+        public LeagueAppsApiException( HttpStatusCode statusCode, string message ) : base( message )
+        {
+            StatusCode = statusCode;
+        }
     }
 
     public class LoggingHandler : DelegatingHandler

@@ -46,18 +46,24 @@ Most configuration lives on the shared `LeagueAppsSettings` component (see below
 #### Error handling
 
 - **`APIClient.GetPrivate`** throws on any non-2xx response or unparseable body, with the HTTP status
-  and resource in the message. Error bodies are capped at 200 characters, and a body that fails to
-  parse is reported by length only, because it can hold member data. An empty body returns `null`,
-  which both jobs treat as the end of a paged export.
+  and resource in the message (`LeagueAppsApiException`, which carries the status code). Error bodies
+  are capped at 200 characters, and a body that fails to parse is reported by length only, because it
+  can hold member data. An empty body returns `null`, which both jobs treat as the end of a paged
+  export.
 - **Auth:** the bearer token is cached per `APIClient` and refreshed 30 s before `expires_in` (default
   300 s). A 401 drops the cached token and retries once. A second 401, or any failure while getting a
-  token (bad response, network error, timeout, certificate), throws `LeagueAppsAuthException`.
-- **`ImportData`** keeps going past a program whose registrations fail to load (the program counts as
+  token (bad response, network error, timeout, certificate), throws `LeagueAppsAuthException`. Token
+  endpoint bodies are never echoed; only a standard OAuth `error` code (e.g. `invalid_grant`) is.
+- **`ImportData`** fails before touching any league if the current programs request returns an empty
+  body (an empty list `[]` is still valid), since a missing list would otherwise deactivate every
+  league. It keeps going past a program whose registrations fail to load (the program counts as
   skipped) and past an applicant that fails (member lookup, person create, save). Each failure is
-  logged to the Exception Log and added as a warning. A program is abandoned after 10 consecutive
-  member lookup failures. `LeagueAppsAuthException` ends the run immediately. The job fails if any
-  warnings were recorded. Its status reads "Imported X of N leagues (Y skipped)" and lists the first 50
-  warnings, even when the run aborted part-way.
+  logged to the Exception Log and added as a warning. A program is abandoned, and counted as skipped,
+  after 10 consecutive failed member lookups. A 404 (member gone from LeagueApps) is a warning but
+  resets the run; applicants already matched in Rock make no lookup and do not affect it. A repeated
+  boundary row in the `registrations-2` export is dropped. `LeagueAppsAuthException` ends the run
+  immediately. The job fails if any warnings were recorded. Its status reads "Imported X of N leagues
+  (Y skipped)" and lists the first 50 warnings, even when the run aborted part-way.
 - **`ImportMembers`** stops paging on a fetch error and fails the job. The message includes the
   partial count and the last `userId` reached. Errors for individual members are collected in the job
   result.

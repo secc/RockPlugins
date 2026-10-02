@@ -109,7 +109,7 @@ namespace org.secc.LeagueApps.Jobs
             } while ( members != null && members.Any() );
 
             var resultMsg = new StringBuilder();
-            resultMsg.AppendFormat( "Successfully imported {0} participant(s).", count );
+            resultMsg.AppendFormat( fetchError == null ? "Successfully imported {0} participant(s)." : "Imported {0} participant(s) before the export failed.", count );
 
             if ( errors.Any() )
             {

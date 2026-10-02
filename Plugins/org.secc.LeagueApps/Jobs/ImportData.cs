@@ -77,6 +77,11 @@ namespace org.secc.LeagueApps
                 var groupEntityType = EntityTypeCache.Get( typeof( Group ) ).Id;
 
                 var programs = apiClient.GetPublic<List<Programs>>( "/v1/sites/{siteid}/programs/current" );
+                if ( programs == null )
+                {
+                    // Treating a missing list as "no programs" would deactivate every league below.
+                    throw new Exception( "LeagueApps returned an empty body for the current programs list." );
+                }
                 totalPrograms = programs.Count;
                 var programNumber = 0;
 
@@ -219,6 +224,7 @@ namespace org.secc.LeagueApps
                     UpdateLastStatusMessage( "Processing league " + programNumber + " of " + programs.Count + ": " + program.startTime.Year + " > " + program.mode + " > " + program.name + " (" + applicants.Count + " members)." );
 
                     var consecutiveMemberFailures = 0;
+                    var abandoned = false;
 
                     foreach ( Contracts.Registrations applicant in applicants )
                     {
@@ -226,6 +232,7 @@ namespace org.secc.LeagueApps
                         {
                             if ( !ImportApplicant( apiClient, applicant, league3, leagueGroupType, groupMemberAttribute, personattribute, connectionStatus, attributeValueService, program, warnings, ref consecutiveMemberFailures ) )
                             {
+                                abandoned = true;
                                 break;
                             }
                         }
@@ -236,7 +243,15 @@ namespace org.secc.LeagueApps
                             ExceptionLogService.LogException( ex );
                         }
                     }
-                    processed++;
+
+                    if ( abandoned )
+                    {
+                        skipped++;
+                    }
+                    else
+                    {
+                        processed++;
+                    }
                 }
 
                 foreach ( Group sportsleague in groups )
@@ -271,6 +286,7 @@ namespace org.secc.LeagueApps
         /// <summary>
         /// Pages through the registrations export for one program. The export returns up to 1000 rows per call,
         /// keyed by the (lastUpdated, id) of the last row; an empty page or empty body ends the export.
+        /// The cursor is believed to be exclusive, but a repeated boundary row is dropped in case it is not.
         /// </summary>
         private static List<Registrations> GetRegistrations( APIClient apiClient, int programId )
         {
@@ -281,6 +297,11 @@ namespace org.secc.LeagueApps
             while ( true )
             {
                 var page = apiClient.GetPrivate<List<Registrations>>( "/v2/sites/{siteid}/export/registrations-2?last-updated=" + lastUpdated + "&last-id=" + lastId + "&program-id=" + programId );
+                if ( page != null && lastId != 0 )
+                {
+                    page.RemoveAll( r => r.lastUpdated == lastUpdated && r.id == lastId );
+                }
+
                 if ( page == null || !page.Any() )
                 {
                     return registrations;
@@ -333,12 +354,20 @@ namespace org.secc.LeagueApps
                     {
                         member = apiClient.GetPrivate<Member>( "/v2/sites/{siteid}/members/" + applicant.userId );
                     }
+                    catch ( LeagueAppsApiException ex ) when ( ex.StatusCode == System.Net.HttpStatusCode.NotFound )
+                    {
+                        // A missing member is a data problem, and the API answered, so it resets the failure run.
+                        warnings.Add( "LeagueApps has no member " + applicant.userId + " for program " + program.programId + " (" + program.name + ")." );
+                        consecutiveMemberFailures = 0;
+                        return true;
+                    }
                     catch ( Exception ex ) when ( !( ex is LeagueAppsAuthException ) )
                     {
                         warnings.Add( "Could not load member " + applicant.userId + " for program " + program.programId + " (" + program.name + "): " + ex.Message );
                         ExceptionLogService.LogException( ex );
 
-                        // A run of identical failures means the API or contract is broken, not the data.
+                        // A run of failed lookups means the API or contract is broken, not the data. Applicants already
+                        // in Rock make no lookup, so they neither count toward nor reset the run.
                         // Stop hammering it for this program rather than logging once per applicant.
                         consecutiveMemberFailures++;
                         if ( consecutiveMemberFailures >= MaxConsecutiveMemberFailures )
@@ -422,7 +451,7 @@ namespace org.secc.LeagueApps
         private static int? ResolveRoleId( string leagueAppsRole, GroupTypeCache leagueGroupType )
         {
             var roleName = MapRoleName( leagueAppsRole );
-            var role = roleName == null ? null : leagueGroupType.Roles.FirstOrDefault( r => r.Name == roleName );
+            var role = roleName == null ? null : leagueGroupType.Roles.FirstOrDefault( r => string.Equals( r.Name, roleName, StringComparison.OrdinalIgnoreCase ) );
             return role?.Id ?? leagueGroupType.DefaultGroupRoleId;
         }
 
