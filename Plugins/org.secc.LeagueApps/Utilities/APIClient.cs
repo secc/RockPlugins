@@ -14,6 +14,7 @@ using Newtonsoft.Json.Linq;
 using org.secc.LeagueApps.Components;
 using org.secc.LeagueApps.Utilities;
 using RestSharp;
+using org.secc.DevLib.Extensions;
 using Rock;
 using Rock.Data;
 using Rock.Model;
@@ -48,7 +49,9 @@ namespace org.secc.LeagueApps
                     RockContext rockContext = new RockContext();
                     BinaryFileService binaryFileService = new BinaryFileService( rockContext );
                     var p12File = binaryFileService.GetNoTracking( Settings.GetAttributeValue( Constants.LeagueAppsServiceAccountFile ).AsGuid() );
-                    certificate = p12File.ContentStream.ReadBytesToEnd();
+                    // ROCK-9041: Read through a fresh provider stream (disposed); throws a clear error when the
+                    // service account file is missing or empty. See BinaryFileExtensions.ReadContentBytes.
+                    certificate = p12File.ReadContentBytes( "LeagueApps service account file" );
                 }
                 return certificate;
             }

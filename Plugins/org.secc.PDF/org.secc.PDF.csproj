@@ -194,6 +194,12 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\org.secc.DevLib\org.secc.DevLib.csproj">
+      <Project>{a6e9c252-af5b-4fa6-bce1-91a5540cbfb4}</Project>
+      <Name>org.secc.DevLib</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <PropertyGroup>
     <PostBuildEvent>xcopy /Y /R "$(TargetDir)org.secc.PDF.dll" "$(SolutionDir)RockWeb\bin"

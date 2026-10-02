@@ -106,8 +106,10 @@ POCOs deserialized from LeagueApps JSON; epoch-millisecond dates use a custom `M
   services), `RockMigrationHelper` plugin migrations, `Rock.Security.Encryption`, the attribute and
   caching frameworks.
 - **Cross-plugin:** [org.secc.DevLib](../org.secc.DevLib/README.md) — `SettingsComponent` base for
-  `LeagueAppsSettings`; [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) — types used by the
-  match helpers.
+  `LeagueAppsSettings`, and `ReadContentBytes`, which `APIClient` uses to read the PKCS#12 service
+  account file through its storage provider (a missing or empty file throws a clear
+  `InvalidOperationException`, surfaced as `LeagueAppsAuthException`, instead of failing later inside the JWT signing);
+  [org.secc.PersonMatch](../org.secc.PersonMatch/README.md) — types used by the match helpers.
 - **Third-party APIs:** LeagueApps (`public.leagueapps.io`, `auth.leagueapps.io`,
   `admin.leagueapps.io`) — public calls use an `la-api-key` header; private calls sign an RS256 JWT
   with the PKCS#12 key and exchange it for an OAuth bearer token, which is cached and reused until near expiry.
