@@ -195,23 +195,18 @@ namespace org.secc.Jobs
 
                     // The Pushpay plugin files each gift under a Rock account taken from its own
                     // merchant's fund mapping (or that merchant's default account), so only the merchants
-                    // mapped to the gift's account can own it: 2-3 of the 19. Try those first, then the
-                    // rest, in case a gift was moved to another fund by hand after it was imported.
+                    // mapped to the gift's account can own it: 2-3 of the 19. Try those first. The rest are
+                    // a fallback (for a fund mapping that changed, or a gift whose fund maps to no merchant)
+                    // and are tried only during the gift's first few runs: the job keeps no record between
+                    // runs, so otherwise a gift no merchant knows would cost all 19 merchants every night.
+                    // After that its fund-matched merchants alone still pick up a pending payment once it's
+                    // deposited.
                     HashSet<int> fundMerchantIds = GetFundMerchantIds( transaction.AccountIds, merchantsByFinancialAccount );
                     IEnumerable<MerchantData> merchantOrder = merchantDataList.Where( m => fundMerchantIds.Contains( m.MerchantId ) );
-
-                    // The job keeps no record of earlier runs, so a gift no merchant knows would cost all
-                    // 19 merchants every night. Search the rest only during the gift's first few runs (it is
-                    // still in the fund it was imported under then, so the fallback rarely finds anything
-                    // later); after that, ask only its fund-matched merchants, which is enough to pick up a
-                    // pending payment once it's deposited.
-                    if ( fundMerchantIds.Count == 0 || transaction.CreatedDateTime >= fullSearchCutoff )
+                    bool fundMerchantsOnlyForGift = fundMerchantIds.Count > 0 && transaction.CreatedDateTime < fullSearchCutoff;
+                    if ( !fundMerchantsOnlyForGift )
                     {
                         merchantOrder = merchantOrder.Concat( merchantDataList.Where( m => !fundMerchantIds.Contains( m.MerchantId ) ) );
-                    }
-                    else
-                    {
-                        fundMerchantsOnly++;
                     }
 
                     foreach ( MerchantData merchant in merchantOrder.ToList() )
@@ -308,6 +303,10 @@ namespace org.secc.Jobs
                     }
 
                     processed++;
+                    if ( fundMerchantsOnlyForGift )
+                    {
+                        fundMerchantsOnly++;
+                    }
 
                     // Only gifts where Pushpay never answered count toward the outage check; any
                     // real answer shows Pushpay is up and resets the streak.
@@ -348,7 +347,9 @@ namespace org.secc.Jobs
 
             if ( fundMerchantsOnly > 0 )
             {
-                result += string.Format( " {0} gifts older than {1} days were looked up at their fund-matched merchants only.", fundMerchantsOnly, _fullSearchDays );
+                result += fundMerchantsOnly == 1
+                    ? string.Format( " 1 gift older than {0} days was looked up at its fund-matched merchants only.", _fullSearchDays )
+                    : string.Format( " {0} gifts older than {1} days were looked up at their fund-matched merchants only.", fundMerchantsOnly, _fullSearchDays );
             }
 
             if ( deleted > 0 )

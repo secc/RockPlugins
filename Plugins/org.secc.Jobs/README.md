@@ -93,7 +93,8 @@ Ships Rock plugin migrations under `/Migrations/`:
   runtime (`Assembly.LoadFrom` + `GetMethod("GetAccessToken")`). This is a brittle, hard-to-detect
   coupling — a rename in that plugin breaks this job only at runtime. Since ROCK-9037 the Result
   reports updated / pending / not found / errors (by status), the job ends as Warning when anything
-  failed, and the exception behind each failed call is in the Exception List.
+  failed, and calls that throw (timeouts, connection or database errors) are logged to the
+  Exception List; HTTP error statuses are counted in the Result instead.
 - **Security (low):** `FrontPorchDeviceRemoval` and `PushPayDownloadCheckNumbers` reach external HTTP
   APIs using credentials from Global Attributes / merchant rows. Confirm those tokens are stored
   encrypted and that the Front Porch `Host`/token global attributes are not broadly readable.
