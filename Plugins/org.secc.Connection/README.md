@@ -154,8 +154,9 @@ per-partition-type partials (`CardCampus`, `CardDefinedType`, `CardRole`, `CardS
   with the entered email. When that fails — typically a parent signing up a child with the parent's
   own email — `FindHouseholdMember` looks in the families of whoever owns the entered email
   (email only; a phone number is not private enough for an anonymous form) for the entered name,
-  preferring an exact birthdate, then none on file, then a likely typo; people whose account
-  protection profile Rock ignores for duplicate detection are never reused. With no hit, a minor is
+  preferring an exact birthdate, then none on file, then a likely typo (identical copies on the
+  exact tier reuse the oldest); people whose account protection profile Rock ignores for duplicate
+  detection are never reused, and High/Extreme never are whatever that setting says. With no hit, a minor is
   added to the owning adults' family with the child role when the adults share one family, someone
   there has the last name, nobody has the first name, and no one anywhere in Rock has that name and
   birthdate; otherwise a new family is created as before. A minor entered with someone else's email

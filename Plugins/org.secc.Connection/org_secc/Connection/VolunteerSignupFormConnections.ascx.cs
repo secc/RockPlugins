@@ -371,8 +371,9 @@ namespace org.secc.Connection
                             // phone and family check-in shows it as a second family.
                             person = FindHouseholdMember( rockContext, firstName, lastName, birthdate, email, out householdFamilyId, out contactOwnerFound );
 
-                            // Nothing typed into the form is written onto someone reached through their
-                            // family, whatever email they have on file.
+                            // No email or phone typed into the form is written onto someone reached through
+                            // their family, whatever email they have on file. A birthdate is still filled in
+                            // when they have none (ROCK-8790, below) so the requirement gate can evaluate it.
                             enteredForHouseholdMember = person != null;
                         }
                     }
@@ -562,7 +563,11 @@ namespace org.secc.Connection
                                     // &, ', or < don't break the markup. .EncodeHtml() is Rock's string
                                     // extension (via using Rock;) and is null-safe. Literal markup in the
                                     // format strings (the div wrapper, <br />) stays un-encoded.
-                                    var registrantName = ( !string.IsNullOrWhiteSpace( person.NickName ) ? person.NickName : person.FirstName ).EncodeHtml();
+                                    // Someone reached through their family is named as entered: the nickname on
+                                    // file would tell an anonymous poster something they did not type.
+                                    var registrantName = enteredForHouseholdMember
+                                        ? firstName.EncodeHtml()
+                                        : ( !string.IsNullOrWhiteSpace( person.NickName ) ? person.NickName : person.FirstName ).EncodeHtml();
                                     var assignedRoleName = connectionRequest.AssignedGroupMemberRoleId.HasValue
                                         ? new GroupTypeRoleService( rockContext ).Get( connectionRequest.AssignedGroupMemberRoleId.Value )?.Name.EncodeHtml()
                                         : null;
@@ -987,7 +992,9 @@ namespace org.secc.Connection
 
             // Like FindPersons, never reuse someone whose account protection profile keeps them out of
             // duplicate matching, or an anonymous post could attach a signup to a person with a login.
+            // High and Extreme are skipped whatever Security Settings say: that list can be emptied.
             var ignoredProfiles = new SecuritySettingsService().SecuritySettings.AccountProtectionProfilesForDuplicateDetectionToIgnore;
+            var highProtection = Rock.Utility.Enums.AccountProtectionProfile.High;
 
             // Name comparisons below run in memory, so they must ignore case the way the SQL collation does.
             var familyMemberships = groupMemberService.Queryable()
@@ -999,7 +1006,8 @@ namespace org.secc.Connection
                 .Select( m => m.Person )
                 .GroupBy( p => p.Id )
                 .Select( g => g.First() )
-                .Where( p => !ignoredProfiles.Contains( p.AccountProtectionProfile ) &&
+                .Where( p => p.AccountProtectionProfile < highProtection &&
+                    !ignoredProfiles.Contains( p.AccountProtectionProfile ) &&
                     ( NameEquals( p.FirstName, firstName ) || NameEquals( p.NickName, firstName ) ) &&
                     NameEquals( p.LastName, lastName ) )
                 .ToList();
@@ -1013,6 +1021,16 @@ namespace org.secc.Connection
                 var inexactCandidates = candidates.Where( p => !isMinor || p.AgeClassification != AgeClassification.Adult ).ToList();
 
                 var sameBirthdate = candidates.Where( p => p.BirthDate == birthdate.Value ).ToList();
+
+                // A family already holding two identical copies of a child (same name and birthdate) would
+                // otherwise be ambiguous and get a third. Reuse the oldest copy. Only the exact tier gets
+                // this; the other two are guesses.
+                if ( sameBirthdate.Count > 1 &&
+                    sameBirthdate.All( p => NameEquals( p.FirstName, sameBirthdate[0].FirstName ) && NameEquals( p.LastName, sameBirthdate[0].LastName ) ) )
+                {
+                    sameBirthdate = new List<Person> { sameBirthdate.OrderBy( p => p.Id ).First() };
+                }
+
                 var noBirthdate = inexactCandidates.Where( p => !p.BirthDate.HasValue ).ToList();
                 var nearBirthdate = inexactCandidates.Where( p => p.BirthDate.HasValue && IsLikelyBirthdateTypo( p.BirthDate.Value, birthdate.Value ) ).ToList();
 
