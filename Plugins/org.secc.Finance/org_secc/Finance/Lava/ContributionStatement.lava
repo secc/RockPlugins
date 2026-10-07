@@ -158,16 +158,12 @@
 						    {% assign accountList = accountList | Append:', ' | Append: transaction.Account.PublicName %}
 						{% endif %}
 						{% endif %}
+						{%- comment -%}ROCK-9037 review: track the previous gift for non-QCD rows only, and don't reset accountList at the end of each row. That reset gave the pending row a skipped QCD row's fund, and cut a multi-fund gift's fund list down to its last fund.{%- endcomment -%}
+						{% assign prevTransactionId = transaction.Transaction.Id %}
 					{% endif %}
 					{% if forloop.last %}
 						{{row | Replace:'[[accountList]]',accountList}}
 					</table>
-					{% endif %}
-					{% assign prevTransactionId = transaction.Transaction.Id %}
-					{% if transaction.Account.PublicName == '' or transaction.Account.PublicName == null %}
-					    {% assign accountList = transaction.Account.Name %}
-				    {% else %}
-				        {% assign accountList = transaction.Account.PublicName %}
 					{% endif %}
 				{% endfor %}
 			{% endif %}
