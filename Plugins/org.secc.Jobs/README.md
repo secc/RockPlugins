@@ -94,7 +94,8 @@ Ships Rock plugin migrations under `/Migrations/`:
   coupling — a rename in that plugin breaks this job only at runtime. Since ROCK-9037 the Result
   reports updated / pending / not found / errors (by status), the job ends as Warning when anything
   failed, and calls that throw (timeouts, connection or database errors) are logged to the
-  Exception List; HTTP error statuses are counted in the Result instead.
+  Exception List; HTTP error statuses are counted in the Result instead. A check number that
+  can't be saved is logged too and counted as a `SaveFailed` error; five in a row stop the run.
 - **Security (low):** `FrontPorchDeviceRemoval` and `PushPayDownloadCheckNumbers` reach external HTTP
   APIs using credentials from Global Attributes / merchant rows. Confirm those tokens are stored
   encrypted and that the Front Porch `Host`/token global attributes are not broadly readable.

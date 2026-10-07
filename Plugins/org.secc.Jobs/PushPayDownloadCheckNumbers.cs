@@ -54,6 +54,8 @@ namespace org.secc.Jobs
         /// Gifts in a row that end in errors, with no real answer from Pushpay in between, before
         /// the run gives up. A single bad gift can't stop the run, but an outage stops it after a
         /// few gifts instead of costing every remaining gift 19 merchants x the 30 second timeout.
+        /// The same limit applies to check numbers in a row that Pushpay found but Rock couldn't save,
+        /// so a database problem doesn't spend the call budget on numbers that can't be kept.
         /// </summary>
         private const int MaxConsecutiveFailedGifts = 5;
 
@@ -159,6 +161,7 @@ namespace org.secc.Jobs
             int errors = 0;
             int processed = 0;
             int consecutiveFailedGifts = 0;
+            int consecutiveSaveFailures = 0;
             var errorsByStatus = new Dictionary<string, int>();
             string stopReason = null;
             bool stoppedAtCallBudget = false;
@@ -192,6 +195,7 @@ namespace org.secc.Jobs
                     bool gotAnswer = false;
                     int giftErrors = 0;
                     string lastErrorStatus = null;
+                    bool saveFailed = false;
 
                     // The Pushpay plugin files each gift under a Rock account taken from its own
                     // merchant's fund mapping (or that merchant's default account), so only the merchants
@@ -253,7 +257,23 @@ namespace org.secc.Jobs
 
                         if ( paymentResult.Outcome == CallOutcome.Found )
                         {
-                            if ( SaveCheckNumber( transaction.Id, checkNumberAttribute.Key, paymentResult.CheckNumber ) )
+                            bool saved;
+                            try
+                            {
+                                saved = SaveCheckNumber( transaction.Id, checkNumberAttribute.Key, paymentResult.CheckNumber );
+                            }
+                            catch ( Exception ex )
+                            {
+                                // A failed save (deadlock, timeout) is this gift's error, not the run's: log it,
+                                // count it, and go on. The gift still has no check number, so the next run retries it.
+                                ExceptionLogService.LogException( new Exception( string.Format( "PushPay Load Check Numbers: could not save the check number for transaction {0}.", transaction.Id ), ex ) );
+                                lastErrorStatus = "SaveFailed";
+                                saveFailed = true;
+                                break;
+                            }
+
+                            consecutiveSaveFailures = 0;
+                            if ( saved )
                             {
                                 updates++;
                             }
@@ -321,6 +341,17 @@ namespace org.secc.Jobs
                         if ( consecutiveFailedGifts >= MaxConsecutiveFailedGifts )
                         {
                             stopReason = string.Format( "Stopped early: {0} gifts in a row got only errors from Pushpay (last: {1}), so Pushpay may be unavailable. The next scheduled run will pick up where this one stopped.", consecutiveFailedGifts, lastErrorStatus );
+                            break;
+                        }
+                    }
+
+                    if ( saveFailed )
+                    {
+                        consecutiveSaveFailures++;
+
+                        if ( consecutiveSaveFailures >= MaxConsecutiveFailedGifts )
+                        {
+                            stopReason = string.Format( "Stopped early: {0} check numbers in a row could not be saved to Rock (details in the Exception List). The next scheduled run will pick up where this one stopped.", consecutiveSaveFailures );
                             break;
                         }
                     }
