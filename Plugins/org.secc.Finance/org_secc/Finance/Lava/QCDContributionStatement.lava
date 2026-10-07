@@ -1,3 +1,5 @@
+{%- assign transactionCount = TransactionDetails | Size -%}{%- if transactionCount > 0 -%}
+
 <style>
     thead { display: table-header-group }
     tfoot { display: table-row-group }
@@ -9,11 +11,11 @@
 <div style="min-width: 1024px;">
 	<div class="row">
 		<div class="col-xs-8">
-			<h1>{{ StatementStartDate | Date:'yyyy' }} {% if StatementEndMonthDay == '1231' %}Annual{% else %}Year-to-date{% endif %} Giving Statement</h1>
+			<h1>{{ StatementStartDate | Date:'yyyy' }} {% if StatementEndMonthDay == '1231' %}Annual{% else %}Year-to-date{% endif %} Qualified Charitable Distribution Statement</h1>
     		<strong>Period</strong>: &nbsp;{{ StatementStartDate | Date:'MMM d' }} - {{ StatementEndDate | Date:'MMM d, yyyy' }}
     		{%- assign StreetAddress1 = StreetAddress1 | Trim -%}
     		{%- if StreetAddress1 != '' -%}
-			<div style="margin: 210px 0px 50px 75px; font-size: 12pt;">
+			<div style="margin: 150px 0px 50px 75px; font-size: 12pt;">
     			<strong>{{ Salutation | Upcase }}</strong><br />
     			{{ StreetAddress1 | Upcase  }} <br />
     			{% assign StreetAddress2 = StreetAddress2 | Trim %}{% if StreetAddress2 != '' %}
@@ -42,131 +44,62 @@
 	</div>
 	<div class="row">
 		<div class="col-xs-8">
+			
 			{% for transaction in TransactionDetails reversed %}
 				{% if forloop.first %}
-				<h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Giving for {{ StatementStartDate | Date:'MMM d' }} - {{ StatementEndDate | Date:'MMM d, yyyy' }}</h4>
+				<h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Qualified Charitable Distribution gifts for {{ StatementStartDate | Date:'MMM d' }} - {{ StatementEndDate | Date:'MMM d, yyyy' }}</h4>
 			
 			
 				<table class="table table-bordered table-striped table-condensed">
-					<thead>
-						<tr>
-							<th>Date</th>
-							<th>Method</th>
-							<th>Fund</th>
-							<th align="right">Amount</th>
-						</tr>
-					</thead>
-				{% endif %}
 					<tr>
-						<td>{{ transaction.Transaction.TransactionDateTime | Date:'M/d/yyyy' }}</td>
-						<td>
-						{% if transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == '8b086a19-405a-451f-8d44-174e92d6b402' %}
-							{%- comment -%}ROCK-9037: never fall back to the PushPay TransactionCode. Check number sources, in order: the CheckNumber attribute, then a strictly formatted 'Check #12345' transaction Summary. If neither is available, print the currency type with no number.{%- endcomment -%}
-							{%- assign checkNumber = '' -%}
-							{% for av in transaction.Transaction.AttributeValues  %}
-								{% if av.AttributeKey == 'CheckNumber' and av.Value != '' and av.Value != empty %}
-									{% assign checkNumber = av.Value %}
-									{% break %}
-								{% endif %}
-							{% endfor %}
-							{%- if checkNumber == '' -%}
-								{%- capture checkSummaryPattern -%}^\s*Check #[0-9]+\s*${%- endcapture -%}
-								{%- capture checkDigitsPattern -%}[0-9]+{%- endcapture -%}
-								{%- assign summaryMatch = transaction.Transaction.Summary | RegExMatchValue:checkSummaryPattern | Default:'' -%}
-								{%- if summaryMatch and summaryMatch != '' -%}
-									{%- assign checkNumber = summaryMatch | RegExMatchValue:checkDigitsPattern | Default:'' -%}
-								{%- endif -%}
-							{%- endif -%}
-							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }}{% if checkNumber and checkNumber != '' %} #{{ checkNumber }}{% endif %}
-						{% elseif transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == '928a2e04-c77b-4282-888f-ec549cee026a' %}
-						    {% assign maskedAccountDigitsSize = transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Default:'' | Right:4 | Size %}
-							&#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; &#8226;&#8226;&#8226;&#8226; {% if maskedAccountDigitsSize == 4 %}{{ transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Right:4 }}{% else %}&#8226;&#8226;&#8226;&#8226;{% endif %}
-						{% elseif transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid == 'dabee8fd-aedf-43e1-8547-4c97fa14d9b6' %}
-						    {%- comment -%}AccountNumberMasked can be null (e.g. Service Reef imports); Split throws on null{%- endcomment -%}
-{%- assign maskedRaw = transaction.Transaction.FinancialPaymentDetail.AccountNumberMasked | Default:'' -%}
-{%- assign maskedAccount = '' -%}
-{%- if maskedRaw != '' -%}
-    {%- assign maskedAccount = maskedRaw | Split:' ' | Index:1 -%}
-{%- endif -%}
-						    {%- assign maskedAccountSize = maskedAccount | Size -%}
-						    {%- assign maskedAccountDigits = maskedAccount | RegExMatchValue:'[0-9]+' -%}
-						    {%- assign maskedAccountDigitsSize = maskedAccountDigits | Size -%}
-						    {%- assign maskedAccountNonDigitsSize = maskedAccountSize | Minus:maskedAccountDigitsSize -%}
-						    {%- if maskedAccountDigitsSize == 0 %}{%- assign maskedAccountNonDigitsSize = 8 -%}{% endif %}
-							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} - 
-							{% for i in (1..maskedAccountNonDigitsSize) %}&#8226;{% endfor %}{{ maskedAccountDigits }}
-						{% else %}
-							{{ transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value }} 
-						{% endif %}</td>
-						<td>
-						    {%- if transaction.Account.PublicName == '' or transaction.Account.PublicName == null -%}
-						        {{- transaction.Account.Name -}}
-					        {%- else -%}
-					            {{- transaction.Account.PublicName -}}
-						    {%- endif -%}
-					    </td>
-						<td align="right">{{ transaction.Amount | FormatAsCurrency  }}</td>
+						<th>Date</th>
+						<th>Check #</th>
+						<th>Financial Firm</th>
+						<th>Fund</th>
+						<th align="right">Amount</th>
 					</tr>
-					{% assign total = total | Plus:transaction.Amount %}
+				{% endif %}
+				{% assign accountName = transaction.Account.PublicName %}
+				{% if accountName == '' or accountName == null %}
+				    {% assign accountName = transaction.Account.Name %}
+				{% endif %}
+                <tr>
+                    <td>{{ transaction.Transaction.TransactionDateTime | Date:'M/d/yyyy' }}</td>
+                    <td>
+                    {%- comment -%}ROCK-9037: never fall back to the PushPay TransactionCode. Check number sources, in order: the CheckNumber attribute, then a strictly formatted 'Check #12345' transaction Summary. If neither is available, print nothing.{%- endcomment -%}
+                    {%- assign checkNumber = '' -%}
+                    {% for av in transaction.Transaction.AttributeValues  %}
+                        {% if av.AttributeKey == 'CheckNumber' and av.Value != '' and av.Value != empty %}
+                            {% assign checkNumber = av.Value %}
+                            {% break %}
+                        {% endif %}
+                    {% endfor %}
+                    {%- if checkNumber == '' -%}
+                        {%- capture checkSummaryPattern -%}^\s*Check #[0-9]+\s*${%- endcapture -%}
+                        {%- capture checkDigitsPattern -%}[0-9]+{%- endcapture -%}
+                        {%- assign summaryMatch = transaction.Transaction.Summary | RegExMatchValue:checkSummaryPattern | Default:'' -%}
+                        {%- if summaryMatch and summaryMatch != '' -%}
+                            {%- assign checkNumber = summaryMatch | RegExMatchValue:checkDigitsPattern | Default:'' -%}
+                        {%- endif -%}
+                    {%- endif -%}
+                    {% if checkNumber and checkNumber != '' %}#{{ checkNumber }}{% endif %}
+                    </td>
+                    <td>{{ transaction.Transaction.Summary }}</td>
+                    <td>{{ accountName }}</td>
+                    <td align="right">{{ transaction.Amount | FormatAsCurrency  }}</td>
+                </tr>
+				{% assign total = total | Plus:transaction.Amount %}
 
 				{% if forloop.last %}
 					<tfoot>
 						<tr>
-							<th colspan="3" class="text-right">Total contributions:</th>
+							<th colspan="4" class="text-right">Total contributions:</th>
 							<th class="text-right">{{total| FormatAsCurrency }}</th>
 						</tr>
 					</tfoot>
 				</table>
 				{% endif %}
 			{% endfor %}
-			
-			{% assign qcdGiftCount = Workflow | Attribute:'QCDGiftCount' |  AsInteger %}
-			{% assign excludedTransactionCount = ExcludedTransactionDetails |  Size %}
-			
-			{% if excludedTransactionCount > qcdGiftCount %}
-				{% for transaction in ExcludedTransactionDetails reversed %}
-					{% if forloop.first %}
-					<h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Non Cash gifts for {{ StatementStartDate | Date:'MMM d' }} - {{ StatementEndDate | Date:'MMM d, yyyy' }}</h4>
-				
-				
-					<table class="table table-bordered table-striped table-condensed">
-						<tr>
-							<th>Date</th>
-							<th>Description</th>
-							<th>Fund</th>
-						</tr>
-					{% endif %}
-					{% if transaction.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Value != "Qualified Charitable Distribution" %}
-						{% if prevTransactionId != transaction.Transaction.Id %}
-							{{row | Replace:'[[accountList]]',accountList}}
-							{% if transaction.Account.PublicName == '' or transaction.Account.PublicName == null %}
-							    {% assign accountList = transaction.Account.Name %}
-						    {% else %}
-						        {% assign accountList = transaction.Account.PublicName %}
-							{% endif %}
-							{% capture row %}
-								<tr>
-									<td>{{ transaction.Transaction.TransactionDateTime | Date:'M/d/yyyy' }}</td>
-									<td>{{ transaction.Transaction.Summary }}</td>
-									<td>[[accountList]]</td>
-								</tr>
-							{% endcapture%}
-						{% else %}
-						{% if transaction.Account.PublicName == '' or transaction.Account.PublicName == null %}
-						    {% assign accountList = accountList | Append:', ' | Append: transaction.Account.Name %}
-						{% else %}
-						    {% assign accountList = accountList | Append:', ' | Append: transaction.Account.PublicName %}
-						{% endif %}
-						{% endif %}
-						{%- comment -%}ROCK-9037 review: track the previous gift for non-QCD rows only, and don't reset accountList at the end of each row. That reset gave the pending row a skipped QCD row's fund, and cut a multi-fund gift's fund list down to its last fund.{%- endcomment -%}
-						{% assign prevTransactionId = transaction.Transaction.Id %}
-					{% endif %}
-					{% if forloop.last %}
-						{{row | Replace:'[[accountList]]',accountList}}
-					</table>
-					{% endif %}
-				{% endfor %}
-			{% endif %}
 		</div>
 		<div class="col-xs-4">
 			<h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Giving Summary</h4>
@@ -187,8 +120,8 @@
 				Total Giving
 			 </div>
 			 <br />
-			 <small><em>No goods or services were given in exchange for the listed contributions other than intangible religious benefits.  If any amount listed is a Qualified Charitable Distribution from an IRA account, please contact your tax advisor as to the deductibility of the contribution.</em></small>
-			 <div style="padding-top:30px;">
+			 <small><em>No goods or services were given in exchange for the listed contributions other than intangible religious benefits.  Amounts listed are Qualified Charitable Distributions from an IRA account.  Please contact your tax advisor as to the deductibility of the contributions.</em></small>
+ 			  <div style="padding-top:30px;">
     			 <div style="border: 1px solid black; text-align:center;box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px; padding:15px;">
     			     <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAVoAAAB3CAYAAABCFIgqAAAACXBIWXMAAAsTAAALEwEAmpwYAAAGOWlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgOS4xLWMwMDIgNzkuYTFjZDEyZjQxLCAyMDI0LzExLzA4LTE2OjA5OjIwICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgMjYuMyAoTWFjaW50b3NoKSIgeG1wOkNyZWF0ZURhdGU9IjIwMjUtMDItMjdUMTQ6MDU6MTItMDU6MDAiIHhtcDpNb2RpZnlEYXRlPSIyMDI1LTAyLTI3VDE0OjA5OjE4LTA1OjAwIiB4bXA6TWV0YWRhdGFEYXRlPSIyMDI1LTAyLTI3VDE0OjA5OjE4LTA1OjAwIiBkYzpmb3JtYXQ9ImltYWdlL3BuZyIgcGhvdG9zaG9wOkNvbG9yTW9kZT0iMyIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDplZjNiNTE5Ny04ODhkLTQ2ZTktOTVlMS01YzBhZTZmZmMwZDIiIHhtcE1NOkRvY3VtZW50SUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDpjZmFjMWI4Yi05NTA1LWYwNDEtOTc4Mi01MjNiN2Y1OTYxNzEiIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1MTNkMjNhMi01YTJjLTQ1OGYtYjU4NC0wZTE4NmUzMGQ3ODYiPiA8eG1wTU06SGlzdG9yeT4gPHJkZjpTZXE+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjcmVhdGVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjUxM2QyM2EyLTVhMmMtNDU4Zi1iNTg0LTBlMTg2ZTMwZDc4NiIgc3RFdnQ6d2hlbj0iMjAyNS0wMi0yN1QxNDowNToxMi0wNTowMCIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIDI2LjMgKE1hY2ludG9zaCkiLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249ImNvbnZlcnRlZCIgc3RFdnQ6cGFyYW1ldGVycz0iZnJvbSBhcHBsaWNhdGlvbi92bmQuYWRvYmUucGhvdG9zaG9wIHRvIGltYWdlL3BuZyIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6ZWYzYjUxOTctODg4ZC00NmU5LTk1ZTEtNWMwYWU2ZmZjMGQyIiBzdEV2dDp3aGVuPSIyMDI1LTAyLTI3VDE0OjA5OjE4LTA1OjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgMjYuMyAoTWFjaW50b3NoKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8L3JkZjpTZXE+IDwveG1wTU06SGlzdG9yeT4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz5qgJUoAAAq0UlEQVR4nO2dd/wcVbXAvyEQEh69XHGRHqXcBUSaoEJQCFXEa4EHFpSmKCC6SHk8H0iHFUEEQQjl4UNUHCK9CUFA4YHUvTylBoQFJpTQIUDy/jizZH6zfffM7vyS+X4+v0+yOzNn7u7OnDn33FPGzJkzh5ycnJyc9Fhg2APIycnJmdfJFW1OTk5O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" alt="MOVE Tag Line" width="200px;" />
     			     <h1>{{ MoveSummary.AmountPledged | FormatAsCurrency }} {% comment %} {{ '0' | FormatAsCurrency }} {% endcomment %}</h1>
@@ -198,75 +131,27 @@
      			     <hr style="width:75px; color:rbca(0,0,0,0.23); margin-top:0px;margin-bottom:0px;">
     			     <strong>Giving to Date</strong>
     			 </div>
-    			 <br />
+     			 <br />
     			 {% if MoveSummary.PledgeDuration == 1 %}
                    <small>This section reflects giving from 4/1/2026 - 4/1/2027 towards your 1-year MOVE Commitment.</small>
                  {% else %}
                    <small>This section reflects giving from 4/1/2025 - 4/1/2027 towards your 2-year MOVE Commitment.</small>
                  {% endif %}
 			 </div>
-	{% assign pledgeCount = Pledges | Size %}
-
-	{% if pledgeCount > 0 %}
-		<h4 class="margin-t-md margin-b-md" style="border-bottom: 2px solid black;">Pledge Summary</h4>
-	 
-		{% for pledge in Pledges %}
-		    {% assign pledgeAccountName = pledge.PublicName %}
-		    {% if pledgeAccountName == '' or pledgeAccountName == null %}
-		        {% assign pledgeAccountName = pledge.AccountName %}
-		    {% endif %}
-			<div class="row">
-				<div class="col-xs-12">
-					<strong>{{ pledgeAccountName }}</strong>
-					<div class="row">
-						<div class="col-xs-6 text-right">
-							Pledged:
-						</div>
-						<div class="col-xs-6 text-right">
-							{{ '0' | FormatAsCurrency }} {% comment %} {{ pledge.AmountPledged | FormatAsCurrency }} {% endcomment %}
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-xs-6 text-right">
-							Given:
-						</div>
-						<div class="col-xs-6 text-right">
-							{{ pledge.AmountGiven | FormatAsCurrency }}
-						</div>
-					</div>
-				</div>
-				<div class="col-xs-12 padding-t-md">
-					<div class="progress">
-					  <div class="progress-bar" role="progressbar" aria-valuenow="{{ pledge.PercentComplete }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ pledge.PercentComplete }}%;">
-					  {% if pledge.PercentComplete == 0 %}<div style="color:black; padding-left: 5px;">{{ pledge.PercentComplete }}%</div>
-					  {% else %}
-						{{ pledge.PercentComplete }}%
-					  {% endif %}
-					  </div>
-					</div>
-				</div>
-			</div>
-		{% endfor %}
-	{% endif %}
 		</div>
 	</div>
 
 
 	<hr style="opacity: .5;" />
 	<p class="text-center">
-        At Southeast, we believe it is all ONE MISSION that we're on--connecting people to Jesus and one another--to unleash the full force of the church
-        to love people one at a time. Therefore, beginning in April 2025, every gift you give to Southeast will go toward both our ongoing ministries and the
-        vision God has placed in front of us for the future. Thank you for your generosity, and we are excited to see what God will do in us and through
-        us as we move together, forward, and closer.
+        At Southeast, we believe it is all ONE MISSION that we're on--connecting people to Jesus and one another--to unleash the full force of the church to love people one at a time. Therefore, beginning in April 2025, every gift you give to Southeast will go toward both our ongoing ministries and the vision God has placed in front of us for the future. Thank you for your generosity, and we are excited to see what God will do in us and through us as we move 
+        together, forward, and closer.
 	</p>
 	<p class="text-center">
-	    Proceeds amounts from stock donations are included in your Move Giving-to-date total but may not represent your tax-deductible amount. Please
-        consult your tax advisor. Giving through a foundation or employee payroll deduction program will be included in your Move 
-        Giving-to-date total but not listed in the detailed transactions above since you will receive tax documentation through the foundation or 
-        program.
+	    Proceeds amounts from stock donations are included in your Move Giving-to-date total but may not represent your tax-deductible amount. Please consult your tax advisor. Giving through a foundation or employee payroll deduction program will be included in your Move Giving-to-date total but not listed in the detailed transactions above since you will receive tax documentation through the foundation or program.
 	</p>
 	<p class="text-center">
-        If you have any questions about your statement, please email giving@secc.org or call the donation hotline at 502-253-8707. Please include 
-        your name, address, telephone number and a detailed message.	    
+        If you have any questions about your statement, please email giving@secc.org or call the donation hotline at 502-253-8707. Please include your name, address, telephone number and a detailed message.	    
 	</p>
 </div>
+{%- endif -%}
