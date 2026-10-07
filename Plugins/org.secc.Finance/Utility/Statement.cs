@@ -13,6 +13,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -26,6 +27,11 @@ namespace org.secc.Finance.Utility
 {
     public class Statement
     {
+        // Excluded currency type guids already logged as unresolved by this process. A stale guid is a
+        // setting problem, the same on every statement, so it is logged once rather than once per
+        // household (a statement run is ~20,000 statements).
+        private static readonly ConcurrentDictionary<Guid, bool> _loggedUnresolvedCurrencyTypes = new ConcurrentDictionary<Guid, bool>();
+
         public static void AddMergeFields( Dictionary<string, object> mergeFields, Person targetPerson, DateRange dateRange, List<Guid> excludedCurrencyTypes, List<Guid> accountGuids = null )
         {
             excludedCurrencyTypes = excludedCurrencyTypes ?? new List<Guid>();
@@ -185,12 +191,15 @@ namespace org.secc.Finance.Utility
 
             // A deleted or merged currency type leaves a dead guid in the Excluded Currency Types
             // setting, and gifts of the type that replaced it print with the main gifts.
-            if ( unresolvedCurrencyTypes.Any() )
+            var newlyUnresolvedCurrencyTypes = unresolvedCurrencyTypes
+                .Where( g => _loggedUnresolvedCurrencyTypes.TryAdd( g, true ) )
+                .ToList();
+            if ( newlyUnresolvedCurrencyTypes.Any() )
             {
                 ExceptionLogService.LogException( new MissingCurrencyTypeException( string.Format(
-                    "Contribution statement for GivingId {0}: excluded currency type(s) {1} no longer exist and were ignored. Update the statement's Excluded Currency Types setting.",
-                    targetPerson.GivingId,
-                    string.Join( ", ", unresolvedCurrencyTypes ) ) ), System.Web.HttpContext.Current );
+                    "Contribution statements: excluded currency type(s) {0} no longer exist and were ignored (first seen on GivingId {1}; logged once until the app restarts). Update the statement's Excluded Currency Types setting.",
+                    string.Join( ", ", newlyUnresolvedCurrencyTypes ),
+                    targetPerson.GivingId ) ), System.Web.HttpContext.Current );
             }
 
             List<FinancialTransactionDetail> transactionDetails;
