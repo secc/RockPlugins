@@ -13,6 +13,7 @@
 // </copyright>
 //
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -26,8 +27,14 @@ namespace org.secc.Finance.Utility
 {
     public class Statement
     {
+        // Excluded currency type guids already logged as unresolved by this process. A stale guid is a
+        // setting problem, the same on every statement, so it is logged once rather than once per
+        // household (a statement run is ~20,000 statements).
+        private static readonly ConcurrentDictionary<Guid, bool> _loggedUnresolvedCurrencyTypes = new ConcurrentDictionary<Guid, bool>();
+
         public static void AddMergeFields( Dictionary<string, object> mergeFields, Person targetPerson, DateRange dateRange, List<Guid> excludedCurrencyTypes, List<Guid> accountGuids = null )
         {
+            excludedCurrencyTypes = excludedCurrencyTypes ?? new List<Guid>();
 
             RockContext rockContext = new RockContext();
 
@@ -50,14 +57,6 @@ namespace org.secc.Finance.Utility
             {
                 qry = qry.Where( t => accountGuids.Contains( t.Account.Guid ) );
             }
-            var excludedQry = qry;
-            if ( excludedCurrencyTypes.Count > 0 )
-            {
-                qry = qry.Where( t => !excludedCurrencyTypes.Contains( t.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid ) );
-                excludedQry = excludedQry.Where( t => excludedCurrencyTypes.Contains( t.Transaction.FinancialPaymentDetail.CurrencyTypeValue.Guid ) );
-                excludedQry = excludedQry.OrderByDescending( t => t.Transaction.TransactionDateTime ).ThenByDescending( t => t.Id );
-            }
-
             qry = qry.OrderByDescending( t => t.Transaction.TransactionDateTime ).ThenByDescending( t => t.Id );
 
             mergeFields.Add( "StatementStartDate", dateRange.Start?.ToShortDateString() );
@@ -162,11 +161,59 @@ namespace org.secc.Finance.Utility
 
             // Eager-load the navigations the lava and the in-memory AccountSummary grouping walk;
             // the query is AsNoTracking, so lazy loading of navigations is not reliable.
-            var transactionDetails = qry.Include( t => t.Transaction ).Include( t => t.Account ).ToList();
+            // FinancialPaymentDetail is loaded for the currency split below, and its CurrencyTypeValue
+            // because the Giving statement lava reads it on every row; left to lazy loading, that was
+            // one extra query per gift (859 for one large household).
+            var householdDetails = qry
+                .Include( t => t.Transaction.FinancialPaymentDetail.CurrencyTypeValue )
+                .Include( t => t.Account )
+                .ToList();
 
-            var excludedTransactionDetails = excludedCurrencyTypes.Count > 0
-                ? excludedQry.Include( t => t.Transaction ).Include( t => t.Account ).ToList()
-                : new List<FinancialTransactionDetail>();
+            // Split the household's gifts by currency type in memory rather than in SQL. With the
+            // currency filter in the query, SQL Server started from the currency types (every
+            // check, card and ACH payment in the database) instead of this household, and the QCD
+            // statement's 14 excluded types timed out at 30 seconds on every household. One
+            // household's gifts for a statement period is a small list.
+            var excludedCurrencyTypeIds = new HashSet<int>();
+            var unresolvedCurrencyTypes = new List<Guid>();
+            foreach ( var currencyTypeGuid in excludedCurrencyTypes.Distinct() )
+            {
+                var currencyType = DefinedValueCache.Get( currencyTypeGuid );
+                if ( currencyType != null )
+                {
+                    excludedCurrencyTypeIds.Add( currencyType.Id );
+                }
+                else
+                {
+                    unresolvedCurrencyTypes.Add( currencyTypeGuid );
+                }
+            }
+
+            // A deleted or merged currency type leaves a dead guid in the Excluded Currency Types
+            // setting, and gifts of the type that replaced it print with the main gifts.
+            var newlyUnresolvedCurrencyTypes = unresolvedCurrencyTypes
+                .Where( g => _loggedUnresolvedCurrencyTypes.TryAdd( g, true ) )
+                .ToList();
+            if ( newlyUnresolvedCurrencyTypes.Any() )
+            {
+                ExceptionLogService.LogException( new MissingCurrencyTypeException( string.Format(
+                    "Contribution statements: excluded currency type(s) {0} no longer exist and were ignored (first seen on GivingId {1}; logged once until the app restarts). Update the statement's Excluded Currency Types setting.",
+                    string.Join( ", ", newlyUnresolvedCurrencyTypes ),
+                    targetPerson.GivingId ) ), System.Web.HttpContext.Current );
+            }
+
+            List<FinancialTransactionDetail> transactionDetails;
+            List<FinancialTransactionDetail> excludedTransactionDetails;
+            int noCurrencyTypeCount = SplitByCurrencyType( householdDetails, excludedCurrencyTypeIds, out transactionDetails, out excludedTransactionDetails );
+
+            // Only a statement that excludes currency types can misplace an untyped gift.
+            if ( noCurrencyTypeCount > 0 && excludedCurrencyTypes.Count > 0 )
+            {
+                ExceptionLogService.LogException( new MissingCurrencyTypeException( string.Format(
+                    "Contribution statement for GivingId {0}: {1} gift line(s) with no currency type were listed with the statement's main gifts. If a gift belongs to one of the statement's excluded currency types, set its currency type and regenerate the statement.",
+                    targetPerson.GivingId,
+                    noCurrencyTypeCount ) ), System.Web.HttpContext.Current );
+            }
 
             // The old code joined AttributeValue.Id to FinancialTransactionDetail.Id (wrong column), so
             // attributes never loaded. Bulk-load attributes for the details AND their parent transactions —
@@ -269,6 +316,52 @@ namespace org.secc.Finance.Utility
                     .FirstOrDefault();
 
             mergeFields.Add("MoveSummary", moveSummary);
+        }
+
+        /// <summary>
+        /// Splits a household's gifts, in statement order, into the statement's main gifts and those in an
+        /// excluded currency type, in one pass. A gift with no currency type stays with the main gifts, as
+        /// the old SQL filter kept it (so it isn't silently left off every statement).
+        /// </summary>
+        /// <returns>The number of gifts that had no currency type.</returns>
+        private static int SplitByCurrencyType( List<FinancialTransactionDetail> householdDetails, HashSet<int> excludedCurrencyTypeIds,
+            out List<FinancialTransactionDetail> transactionDetails, out List<FinancialTransactionDetail> excludedTransactionDetails )
+        {
+            transactionDetails = new List<FinancialTransactionDetail>();
+            excludedTransactionDetails = new List<FinancialTransactionDetail>();
+            int noCurrencyTypeCount = 0;
+
+            foreach ( var detail in householdDetails )
+            {
+                var currencyTypeValueId = detail.Transaction?.FinancialPaymentDetail?.CurrencyTypeValueId;
+                if ( currencyTypeValueId == null )
+                {
+                    noCurrencyTypeCount++;
+                    transactionDetails.Add( detail );
+                }
+                else if ( excludedCurrencyTypeIds.Contains( currencyTypeValueId.Value ) )
+                {
+                    excludedTransactionDetails.Add( detail );
+                }
+                else
+                {
+                    transactionDetails.Add( detail );
+                }
+            }
+
+            return noCurrencyTypeCount;
+        }
+    }
+
+    /// <summary>
+    /// Logged when a contribution statement includes gifts that have no currency type, or its Excluded
+    /// Currency Types setting names a currency type that no longer exists, so these entries can be
+    /// filtered in the Exception List.
+    /// </summary>
+    public class MissingCurrencyTypeException : Exception
+    {
+        public MissingCurrencyTypeException( string message ) : base( message )
+        {
         }
     }
 
