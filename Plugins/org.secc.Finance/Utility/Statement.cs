@@ -168,24 +168,42 @@ namespace org.secc.Finance.Utility
             // check, card and ACH payment in the database) instead of this household, and the QCD
             // statement's 14 excluded types timed out at 30 seconds on every household. One
             // household's gifts for a statement period is a small list.
-            List<FinancialTransactionDetail> transactionDetails;
-            List<FinancialTransactionDetail> excludedTransactionDetails;
-
-            if ( excludedCurrencyTypes.Count > 0 )
+            var excludedCurrencyTypeIds = new HashSet<int>();
+            var unresolvedCurrencyTypes = new List<Guid>();
+            foreach ( var currencyTypeGuid in excludedCurrencyTypes.Distinct() )
             {
-                int noCurrencyTypeCount = SplitByCurrencyType( householdDetails, excludedCurrencyTypes, out transactionDetails, out excludedTransactionDetails );
-                if ( noCurrencyTypeCount > 0 )
+                var currencyType = DefinedValueCache.Get( currencyTypeGuid );
+                if ( currencyType != null )
                 {
-                    ExceptionLogService.LogException( new MissingCurrencyTypeException( string.Format(
-                        "Contribution statement for GivingId {0}: {1} gift line(s) with no currency type were printed with the statement's main gifts. Set the currency type on the gift and regenerate the statement.",
-                        targetPerson.GivingId,
-                        noCurrencyTypeCount ) ), System.Web.HttpContext.Current );
+                    excludedCurrencyTypeIds.Add( currencyType.Id );
+                }
+                else
+                {
+                    unresolvedCurrencyTypes.Add( currencyTypeGuid );
                 }
             }
-            else
+
+            // A deleted or merged currency type leaves a dead guid in the Excluded Currency Types
+            // setting, and gifts of the type that replaced it print with the main gifts.
+            if ( unresolvedCurrencyTypes.Any() )
             {
-                transactionDetails = householdDetails;
-                excludedTransactionDetails = new List<FinancialTransactionDetail>();
+                ExceptionLogService.LogException( new MissingCurrencyTypeException( string.Format(
+                    "Contribution statement for GivingId {0}: excluded currency type(s) {1} no longer exist and were ignored. Update the statement's Excluded Currency Types setting.",
+                    targetPerson.GivingId,
+                    string.Join( ", ", unresolvedCurrencyTypes ) ) ), System.Web.HttpContext.Current );
+            }
+
+            List<FinancialTransactionDetail> transactionDetails;
+            List<FinancialTransactionDetail> excludedTransactionDetails;
+            int noCurrencyTypeCount = SplitByCurrencyType( householdDetails, excludedCurrencyTypeIds, out transactionDetails, out excludedTransactionDetails );
+
+            // Only a statement that excludes currency types can misplace an untyped gift.
+            if ( noCurrencyTypeCount > 0 && excludedCurrencyTypes.Count > 0 )
+            {
+                ExceptionLogService.LogException( new MissingCurrencyTypeException( string.Format(
+                    "Contribution statement for GivingId {0}: {1} gift line(s) with no currency type were listed with the statement's main gifts. If a gift belongs to one of the statement's excluded currency types, set its currency type and regenerate the statement.",
+                    targetPerson.GivingId,
+                    noCurrencyTypeCount ) ), System.Web.HttpContext.Current );
             }
 
             // The old code joined AttributeValue.Id to FinancialTransactionDetail.Id (wrong column), so
@@ -297,14 +315,9 @@ namespace org.secc.Finance.Utility
         /// the old SQL filter kept it (so it isn't silently left off every statement).
         /// </summary>
         /// <returns>The number of gifts that had no currency type.</returns>
-        private static int SplitByCurrencyType( List<FinancialTransactionDetail> householdDetails, List<Guid> excludedCurrencyTypes,
+        private static int SplitByCurrencyType( List<FinancialTransactionDetail> householdDetails, HashSet<int> excludedCurrencyTypeIds,
             out List<FinancialTransactionDetail> transactionDetails, out List<FinancialTransactionDetail> excludedTransactionDetails )
         {
-            var excludedCurrencyTypeIds = new HashSet<int>( excludedCurrencyTypes
-                .Select( g => DefinedValueCache.Get( g ) )
-                .Where( dv => dv != null )
-                .Select( dv => dv.Id ) );
-
             transactionDetails = new List<FinancialTransactionDetail>();
             excludedTransactionDetails = new List<FinancialTransactionDetail>();
             int noCurrencyTypeCount = 0;
@@ -332,8 +345,9 @@ namespace org.secc.Finance.Utility
     }
 
     /// <summary>
-    /// Logged when a contribution statement includes gifts that have no currency type, so these entries
-    /// can be filtered in the Exception List.
+    /// Logged when a contribution statement includes gifts that have no currency type, or its Excluded
+    /// Currency Types setting names a currency type that no longer exists, so these entries can be
+    /// filtered in the Exception List.
     /// </summary>
     public class MissingCurrencyTypeException : Exception
     {

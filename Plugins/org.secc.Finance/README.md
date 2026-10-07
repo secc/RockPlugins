@@ -52,7 +52,9 @@ payment detail and currency type) and split in memory: gifts in an excluded type
 Server plan from the currency types instead of the household, and the QCD statement timed out. A
 gift with no currency type stays in `TransactionDetails`, as it did with the SQL filter, and is
 logged to the Exception List as a `MissingCurrencyTypeException` naming the `GivingId`, so Finance
-can set the type and regenerate the statement.
+can set the type and regenerate the statement. An excluded currency type guid that no longer
+resolves to a defined value (the type was deleted or merged) is ignored and logged the same way, so
+the stale setting can be updated.
 
 `AddMergeFields` also adds a **`MoveSummary`** object (populated from the `_org_secc_Commitment_GetTotalsByPersonId` stored proc) that exposes the giving family's MOVE
 commitment to the statement Lava. Available merge fields: `MoveSummary.AmountPledged`,
@@ -144,4 +146,4 @@ Ships Rock plugin migrations (SQL only — `Down()` is intentionally empty):
 - File access/serving rules live in `Handlers/GetStatement.ashx.cs`; deletion in
   `Rest/Controllers/FinancialStatementsController.cs`.
 
-**Last updated:** 2026-10-02
+**Last updated:** 2026-10-07
