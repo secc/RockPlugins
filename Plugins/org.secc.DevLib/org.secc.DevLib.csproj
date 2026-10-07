@@ -66,6 +66,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Components\SettingsContainer.cs" />
+    <Compile Include="Extensions\BinaryFileExtensions.cs" />
     <Compile Include="Extensions\Migration\RockMigrationExtensions.cs" />
     <Compile Include="Extensions\Migration\TableBuilderExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -4,6 +4,7 @@
     <ContentTemplate>
         <asp:HiddenField ID="hfImageGuid" runat="server" />
         <Rock:NotificationBox runat="server" Visible="false" ID="nbSuccess" NotificationBoxType="Success" Text="Workflows have been started"></Rock:NotificationBox>
+        <Rock:NotificationBox runat="server" Visible="false" ID="nbError" NotificationBoxType="Danger"></Rock:NotificationBox>
         <asp:Panel runat="server" ID="pnlUpload">
             <div class="panel panel-default">
                 <div class="panel-heading">
@@ -28,10 +29,10 @@
                             DataLoadingText="<i class='fa fa-repeat fa-spin'></i>"></Rock:BootstrapButton>
                     </div>
                     <div style="width: 125px; display:inline-block">
-                        <Rock:NumberUpDown runat="server" Label="Rows" ID="nbRows" />
+                        <Rock:NumberUpDown runat="server" Label="Rows" ID="nbRows" Minimum="1" />
                     </div>
                     <div style="width: 125px; display:inline-block">
-                        <Rock:NumberUpDown runat="server" Label="Columns" ID="nbCols" />
+                        <Rock:NumberUpDown runat="server" Label="Columns" ID="nbCols" Minimum="1" />
                     </div>
                     <div class="pull-right">
 

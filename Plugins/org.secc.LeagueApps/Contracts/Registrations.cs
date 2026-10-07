@@ -17,6 +17,9 @@ namespace org.secc.LeagueApps.Contracts
 {
     public class Registrations
     {
+        // id and lastUpdated are the export paging cursor (last-id / last-updated).
+        public long id { get; set; }
+        public long lastUpdated { get; set; }
         public int userId { get; set; }
         public string team { get; set; }
         public string role { get; set; }
