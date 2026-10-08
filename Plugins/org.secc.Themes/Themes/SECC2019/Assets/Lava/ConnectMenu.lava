@@ -110,7 +110,7 @@
 			        <li><a href="/connect/deaf-and-disabilities-ministry/">Deaf &amp; Disabilities</a></li>
 		        {% endif %}
 
-                {% if currentPage == '/connect/care' or currentPage == '/connect/care/' or currentPage == '/connect/care/care-faq' or currentPage == '/connect/care/care-faq/' or currentPage == '/connect/care/encounter-groups' or or currentPage == '/connect/care/encounter-groups/' or currentPage == '/connect/care/mentoring' or or currentPage == '/connect/care/mentoring/' %}
+                {% if currentPage == '/connect/care' or currentPage == '/connect/care/' or currentPage == '/connect/care/care-faq' or currentPage == '/connect/care/care-faq/' or currentPage == '/connect/care/encounter-groups' or currentPage == '/connect/care/encounter-groups/' or currentPage == '/connect/care/mentoring' or currentPage == '/connect/care/mentoring/' %}
                     <li class="dropdown active">
                 {% else %}
                     <li class="dropdown">
