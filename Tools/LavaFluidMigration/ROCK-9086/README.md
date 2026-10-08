@@ -338,6 +338,13 @@ DotLiquid (LavaProbe cases 38, P1–P10, Q1–Q17). 17 rows on production; the t
 The report owner rewrote the other Lava columns of reports 1522 and 1528–1532 by hand on 2026-09-30; 71196 was the one
 left over.
 
+**Applied 2026-10-08** on RockDev (13 rows, 4 absent) and rockprod (17 rows), dry run then live, cache cleared through the
+Cache Manager on both. Verified on sedev before prod: Pastoral tab for person 68058 shows `0` visits and check icons, MIX pages
+1159/1162 render their date-gated text, type-72 workflow 00534 summary omits "When/Where was it held" (occurred = No), and a
+`/sftraining` submit as a different participant took the PersonMismatch branch (workflow 01906, test person 787868 left on dev).
+On prod after the clear: Pastoral 68058, workflow 00525 (occurred = Yes, line shown) and report 1532 rendered with zero new
+Lava rows in the ExceptionLog.
+
 **New divergence class:** Fluid's `NumberValue == StringValue` converts the string to a number, so `0 == ''` is true
 (`5 == ''` is false, `0 == null` is false on both). Any `{% if n == '' %}` guard on a count or id is suspect; compare to
 `null`, or `| ToString` first.
