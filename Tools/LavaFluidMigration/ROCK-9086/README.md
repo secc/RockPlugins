@@ -349,10 +349,13 @@ Lava rows in the ExceptionLog.
 (`5 == ''` is false, `0 == null` is false on both). Any `{% if n == '' %}` guard on a count or id is suspect; compare to
 `null`, or `| ToString` first.
 
-**Still open after this pass:** `/oldsite/connect` has `or or` in an `if` (6 rows, not in any database column — a theme
-file of the old site); `api/Lava/RenderTemplate` still receives the `{% capture s.roundcorners %}` template nightly
-(57 rows, client-sent); BEMA pipeline `ActionLinks` (waiting on BEMA). *MyVolunteerStatus* logs `(Block: sql) Conversion
-failed … uniqueidentifier` — a bad AttributeValue joined to `PersonAlias.Guid`, not Lava.
+**Also fixed 2026-10-08:** `ConnectMenu.lava` (SECC2014/SECC2019/SECC2024 copies) had `or or` twice in the care-menu `if`;
+only the *SECC - 2014 - OLD* site's `/oldsite/connect/*` pages include it. Fixed in the repo and copied to both shares, cache
+cleared, `/oldsite/connect/care` rendered on prod with no Lava rows.
+
+**Still open, tracked elsewhere:** BEMA pipeline `ActionLinks` (new plugin version in hand); `api/Lava/RenderTemplate` still
+receives the `{% capture s.roundcorners %}` image-generation template from an unknown client (ROCK-9253); *MyVolunteerStatus*
+`(Block: sql) Conversion failed … uniqueidentifier`, a data problem in the page's SQL joins, not Lava (ROCK-9254).
 
 **Production deploy notes (2026-09-25):** the three prod web nodes serve `/Content` and `/Themes` as IIS virtual directories
 on `\\seccrockprod.file.core.windows.net\iis\IIS_Rock16`, so copying to that share is the deploy. Rock caches parsed
