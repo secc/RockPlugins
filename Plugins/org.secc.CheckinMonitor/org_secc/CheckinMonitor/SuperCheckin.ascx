@@ -371,6 +371,32 @@
                     document.querySelector('[id*="mdQRPin_serverSaveLink"]').click();
                 }
             }
+
+            // Add a "Newborn to Pre-K" option to the Grade Pickers so that a
+            // grade isn't mistakenly selected for an Early Childhood kid.
+            // It has the same empty value as the blank option, so no grade is saved.
+            function addPreK() {
+                var gradePickers = document.querySelectorAll("[id$='ddlGradePicker'], [id$='gpEditGrade']");
+                for (var i = 0; i < gradePickers.length; i++) {
+                    var gradePicker = gradePickers[i];
+                    if (gradePicker.querySelector("option[data-prek]") != null) {
+                        continue;
+                    }
+                    var option = document.createElement("option");
+                    option.text = "Newborn to Pre-K";
+                    option.value = "";
+                    option.setAttribute("data-prek", "true");
+                    gradePicker.add(option, gradePicker.options[1]);
+                }
+            }
+
+            $(document).ready(function () {
+                addPreK();
+            });
+
+            Sys.WebForms.PageRequestManager.getInstance().add_pageLoaded(function () {
+                addPreK();
+            });
         </script>
     </ContentTemplate>
 </asp:UpdatePanel>
