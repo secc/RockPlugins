@@ -65,6 +65,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
     {
         private RockContext _rockContext;
         private List<int> _approvedPeopleIds;
+
+        // Grade picker option for kids younger than Kindergarten. It is not a grade offset,
+        // so SelectedGradeOffset is null and no graduation year is saved for it.
+        private const string PreKGradeValue = "prek";
+        private const string PreKGradeText = "Newborn to Pre-K";
+
         protected override void OnInit( EventArgs e )
         {
             base.OnInit( e );
@@ -74,6 +80,10 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             }
 
             RockPage.AddScriptLink( "~/Scripts/CheckinClient/ZebraPrint.js" );
+
+            // Added on every request so the option exists before post data is loaded
+            AddPreKOption( ddlGradePicker );
+            AddPreKOption( gpEditGrade );
         }
 
         protected override void OnLoad( EventArgs e )
@@ -609,26 +619,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             tbNewPersonFirstName.Text = "";
             tbNewPersonLastName.Text = "";
             dpNewPersonBirthDate.SelectedDate = null;
-            ypNewGraduation.Text = "";
+            ddlGradePicker.SelectedIndex = 0;
 
             rblNewPersonGender.Items.Clear();
             rblNewPersonGender.BindToEnum<Gender>();
 
-            var gradeLabel = "";
-            var today = RockDateTime.Today;
-            var transitionDate = GlobalAttributesCache.Get().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
-
-            if ( transitionDate > today )
-            {
-                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.AddYears( -1 ).Year, today.Year );
-            }
-            else
-            {
-                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.Year, today.AddYears( 1 ).Year );
-            }
-            ddlGradePicker.Label = gradeLabel;
-
-            ScriptManager.RegisterStartupScript( ddlGradePicker, ddlGradePicker.GetType(), "grade-selection-" + BlockId.ToString(), ddlGradePicker.GetJavascriptForYearPicker( ypNewGraduation ), true );
+            SetGradeLabel( ddlGradePicker );
         }
 
         protected void btnSaveAddPerson_Click( object sender, EventArgs e )
@@ -651,10 +647,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 person.Gender = rblNewPersonGender.SelectedValueAsEnum<Gender>();
             }
             person.SetBirthDate( dpNewPersonBirthDate.SelectedDate );
-            if ( ypNewGraduation.SelectedYear.HasValue )
-            {
-                person.GraduationYear = ypNewGraduation.SelectedYear.Value;
-            }
+            person.GraduationYear = Person.GraduationYearFromGradeOffset( ddlGradePicker.SelectedGradeOffset );
 
             person.ConnectionStatusValueId = DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
 
@@ -730,8 +723,6 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
                 if ( !person.HasGraduated ?? false )
                 {
-                    ypEditGraduation.SelectedYear = person.GraduationYear;
-
                     int gradeOffset = person.GradeOffset.Value;
                     var maxGradeOffset = gpEditGrade.MaxGradeOffset;
 
@@ -741,29 +732,29 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                         gradeOffset++;
                     }
 
-                    gpEditGrade.SetValue( gradeOffset );
+                    if ( gradeOffset > maxGradeOffset )
+                    {
+                        // Graduation year is after the Kindergarten year
+                        gpEditGrade.SetValue( PreKGradeValue );
+                    }
+                    else
+                    {
+                        gpEditGrade.SetValue( gradeOffset );
+                    }
+                }
+                else if ( !person.GraduationYear.HasValue && IsPreKAge( person ) )
+                {
+                    gpEditGrade.SetValue( PreKGradeValue );
                 }
                 else
                 {
-                    ypEditGraduation.SelectedYear = null;
                     gpEditGrade.SelectedIndex = 0;
                 }
-            }
-            var gradeLabel = "";
-            var today = RockDateTime.Today;
-            var transitionDate = GlobalAttributesCache.Get().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( RockDateTime.Today.Year, 6, 1 );
 
-            if ( transitionDate > today )
-            {
-                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.AddYears( -1 ).Year, today.Year );
+                // Remember what was loaded so saving only changes the graduation year if the grade was changed
+                ViewState["EditGradeInitialValue"] = gpEditGrade.SelectedValue;
             }
-            else
-            {
-                gradeLabel = string.Format( "Grade (For School Year {0}-{1})", today.Year, today.AddYears( 1 ).Year );
-            }
-            gpEditGrade.Label = gradeLabel;
-
-            ScriptManager.RegisterStartupScript( gpEditGrade, gpEditGrade.GetType(), "grade-selection-" + BlockId.ToString(), gpEditGrade.GetJavascriptForYearPicker( ypEditGraduation ), true );
+            SetGradeLabel( gpEditGrade );
 
             var AttributeList = new List<int>();
 
@@ -808,15 +799,15 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
             }
 
+            var originalBirthDate = person.BirthDate;
+            var originalGraduationYear = person.GraduationYear;
+
             person.SetBirthDate( dpEditBirthDate.SelectedDate );
 
-            if ( ypEditGraduation.SelectedYear.HasValue )
+            // Only change the graduation year if the grade was changed, so an untouched grade is never altered
+            if ( gpEditGrade.SelectedValue != ( ViewState["EditGradeInitialValue"] as string ) )
             {
-                person.GraduationYear = ypEditGraduation.SelectedYear.Value;
-            }
-            else
-            {
-                person.GraduationYear = null;
+                person.GraduationYear = Person.GraduationYearFromGradeOffset( gpEditGrade.SelectedGradeOffset );
             }
 
             var AttributeList = new List<int>();
@@ -877,10 +868,69 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             if ( cPerson != null )
             {
                 cPerson.Person.SetBirthDate( person.BirthDate );
+                cPerson.Person.GraduationYear = person.GraduationYear;
             }
 
-            DisplayFamilyMemberMenu();
+            if ( person.IsValid && ( person.BirthDate != originalBirthDate || person.GraduationYear != originalGraduationYear ) )
+            {
+                // Age and grade decide which groups a person can check into, so rebuild their options
+                ActivateFamily();
+            }
+            else
+            {
+                DisplayFamilyMemberMenu();
+            }
             nbChange.Visible = true;
+        }
+
+        /// <summary>
+        /// Adds the "Newborn to Pre-K" option right below the blank option of a grade picker.
+        /// </summary>
+        private void AddPreKOption( GradePicker gradePicker )
+        {
+            if ( gradePicker.Items.FindByValue( PreKGradeValue ) == null )
+            {
+                gradePicker.Items.Insert( 1, new ListItem( PreKGradeText, PreKGradeValue ) );
+            }
+        }
+
+        /// <summary>
+        /// Gets the date the current school year started, based on the GradeTransitionDate global attribute.
+        /// </summary>
+        private DateTime GetSchoolYearStart()
+        {
+            var today = RockDateTime.Today;
+            var transitionDate = GlobalAttributesCache.Get().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( today.Year, 6, 1 );
+            var schoolYearStart = new DateTime( today.Year, transitionDate.Month, 1 ).AddDays( transitionDate.Day - 1 );
+
+            return schoolYearStart > today ? schoolYearStart.AddYears( -1 ) : schoolYearStart;
+        }
+
+        private void SetGradeLabel( GradePicker gradePicker )
+        {
+            var schoolYearStart = GetSchoolYearStart();
+            gradePicker.Label = string.Format( "Grade (For School Year {0}-{1})", schoolYearStart.Year, schoolYearStart.Year + 1 );
+        }
+
+        /// <summary>
+        /// Determines whether the person was younger than 5 when the current school year started (too young for Kindergarten).
+        /// </summary>
+        private bool IsPreKAge( Person person )
+        {
+            if ( !person.BirthDate.HasValue )
+            {
+                return false;
+            }
+
+            var schoolYearStart = GetSchoolYearStart();
+            var birthDate = person.BirthDate.Value;
+            var age = schoolYearStart.Year - birthDate.Year;
+            if ( birthDate > schoolYearStart.AddYears( -age ) )
+            {
+                age--;
+            }
+
+            return age < 5;
         }
 
         protected void btnCancelAttributes_Click( object sender, EventArgs e )

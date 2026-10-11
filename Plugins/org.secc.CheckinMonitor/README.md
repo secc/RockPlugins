@@ -43,7 +43,7 @@ Category in Rock: **SECC > Check-in**.
 | Live Monitor | `RockBlock` | Auto-refreshing feed of the latest ~100 attendances today, a per-minute count, and a server CPU readout. |
 | Mobile Check-in Viewer | `CheckInBlock` | Lists active `MobileCheckinRecord`s for the current kiosk type and prints (aggregated) pickup labels. |
 | Cache Inspect | `RockBlock` | Browse/verify/flush the FamilyCheckin caches (occurrences, attendances, mobile records, kiosk types). |
-| Super Checkin | `CheckInBlock` | Manual check-in desk: search, edit attributes, add phone, add a PIN login, complete/reprint tags. |
+| Super Checkin | `CheckInBlock` | Manual check-in desk: search, add/edit a person (including grade), edit attributes, add phone, add a PIN login, complete/reprint tags. |
 | Super Search | `CheckInBlock` | On-screen keypad searching by phone number or name; hands the result to the check-in workflow. |
 
 ### Block Settings
@@ -129,9 +129,17 @@ Keys in **bold** are the attribute keys used in code.
 - Manual check-in behavior (add person/phone/PIN, QR validation, reprint) is all in
   `SuperCheckin.ascx.cs`; the workflow activity names it drives come from the **Checkin Activity** /
   **Reprint Activity** block settings, so wiring it to a different check-in template is a config change.
+- **Grade on Add/Edit Person:** the Grade picker is the only grade input; the graduation year is
+  calculated on the server from it (`Person.GraduationYearFromGradeOffset`). Both pickers get a
+  **"Newborn to Pre-K"** option (value `prek`, added in `OnInit`) that saves no grade, so staff don't
+  pick Kindergarten for Early Childhood kids. Edit Person shows "Newborn to Pre-K" for a child with
+  no grade who was under 5 when the school year started (from the `GradeTransitionDate` global
+  attribute) or whose graduation year is later than Kindergarten's, and only writes the graduation year when the Grade dropdown is changed — choosing
+  "Newborn to Pre-K" there clears an existing grade. When a birthdate or grade changes, the family's
+  check-in options are rebuilt (`ActivateFamily`) so age/grade filtering reflects the change.
 - The cache types browsed/flushed by `CacheInspect` are defined in
   [org.secc.FamilyCheckin](../org.secc.FamilyCheckin/README.md), not here — add cache fields there.
 - Search input is seeded into the standard check-in workflow in `SuperSearch.ascx.cs`
   (`ProcessActivity`), so the matching/family logic lives in the configured workflow, not this block.
-</content>
-</invoke>
+
+Last updated: 2026-10-11
