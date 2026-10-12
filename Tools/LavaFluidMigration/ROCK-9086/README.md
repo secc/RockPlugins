@@ -374,6 +374,8 @@ signatures; all but one are the benign classes above). 2 rows on production, ide
 **New divergence class:** DateTime compared to a date-like string (`>=`, `<`, …) is TRUE/FALSE as expected on DotLiquid
 and always FALSE on Fluid. Compare DateTime to DateTime (`AsDateTime`) or number to number (`Date:'yyyyMMdd' | AsInteger`).
 
+**Applied 2026-10-12** on RockDev and rockprod (2 rows each), dry run then live, cache cleared through the Cache Manager on both. Verified on sedev first: Nursing Home workflow 2892998 and Homebound workflow 1311939 show the Visit History Actions column with edit/delete buttons, no Liquid errors, zero Lava rows in the dev log. On prod after the clear: Nursing Home workflow 3557841 (the one from the log) and Homebound 429835 render the column; the only new Lava rows are the GroupFinder day shift.
+
 **Looked at, nothing to change:** the `/southloucam` "SLCAM October" occurrence list (`parts[1]` on a note without `|`
 threw *Index was out of range* on DotLiquid and carried the previous hangout text; Fluid rendered it correctly) — the
 block was replaced by Content Channel Views the same afternoon. Page 511 `groupmember where:'PersonId=={{personId}}'`
