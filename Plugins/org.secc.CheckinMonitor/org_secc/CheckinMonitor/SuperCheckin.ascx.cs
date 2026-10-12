@@ -181,6 +181,68 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             DisplayFamilyMemberMenu();
         }
 
+        /// <summary>
+        /// Re-runs the check-in workflow after a person is added or their age or grade changes, keeping the rooms
+        /// already selected for the family. Unlike ActivateFamily, an error shows a warning instead of leaving the family.
+        /// </summary>
+        /// <param name="changedPersonId">The person who was added or changed. Their selections in groups that are now excluded are dropped.</param>
+        private void RefreshFamilyOptions( int changedPersonId )
+        {
+            // The workflow rebuilds every family member's group types, which clears their selections, so remember them first
+            var selectedScheduleKeys = new HashSet<string>( CurrentCheckInState.CheckIn.CurrentFamily.People
+                .SelectMany( p => p.GroupTypes
+                    .SelectMany( gt => gt.Groups )
+                    .SelectMany( g => g.Locations
+                        .SelectMany( l => l.Schedules
+                            .Where( s => s.Selected )
+                            .Select( s => GetScheduleKey( p, g, l, s ) ) ) ) ) );
+
+            List<string> errorMessages = new List<string>();
+            ProcessActivity( GetAttributeValue( "WorkflowActivity" ), out errorMessages );
+
+            foreach ( var checkinPerson in CurrentCheckInState.CheckIn.CurrentFamily.People )
+            {
+                foreach ( var group in checkinPerson.GroupTypes.SelectMany( gt => gt.Groups ) )
+                {
+                    if ( checkinPerson.Person.Id == changedPersonId && group.ExcludedByFilter )
+                    {
+                        continue;
+                    }
+
+                    foreach ( var location in group.Locations )
+                    {
+                        foreach ( var schedule in location.Schedules )
+                        {
+                            if ( selectedScheduleKeys.Contains( GetScheduleKey( checkinPerson, group, location, schedule ) ) )
+                            {
+                                schedule.Selected = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ( errorMessages.Any() )
+            {
+                // Start a new workflow next time. Otherwise the failed activity stays active and runs first on every
+                // later activity in this session, including Complete Check-in.
+                CurrentWorkflow = null;
+            }
+
+            SaveState();
+            DisplayFamilyMemberMenu();
+
+            if ( errorMessages.Any() )
+            {
+                maWarning.Show( "The changes were saved, but the check-in options could not be refreshed: " + string.Join( " ", errorMessages ).EncodeHtml(), ModalAlertType.Warning );
+            }
+        }
+
+        private static string GetScheduleKey( CheckInPerson checkinPerson, CheckInGroup group, CheckInLocation location, CheckInSchedule schedule )
+        {
+            return string.Format( "{0}|{1}|{2}|{3}", checkinPerson.Person.Id, group.Group.Id, location.Location.Id, schedule.Schedule.Id );
+        }
+
         private List<int> GetApprovedIds()
         {
             var approvedPeopleGuid = GetAttributeValue( "ApprovedPeople" ).AsGuid();
@@ -450,14 +512,16 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             var selectedPersonId = ( int ) ViewState["SelectedPersonId"];
             var checkinPerson = CurrentCheckInState.CheckIn.Families.Where( f => f.Selected ).First().People.Where( p => p.Person.Id == selectedPersonId ).FirstOrDefault();
-            var canWorkWithMinors = IsApproved( checkinPerson.Person );
 
             phCheckin.Controls.Clear();
 
+            // A person added while the check-in options could not be refreshed is not in the check-in state yet
             if ( checkinPerson == null )
             {
                 return;
             }
+
+            var canWorkWithMinors = IsApproved( checkinPerson.Person );
 
             var volunteerGroupIds = OccurrenceCache.GetVolunteerOccurrences().Select( o => o.GroupId ).ToList();
             var childGroupIds = OccurrenceCache.GetChildrenOccurrences().Select( o => o.GroupId ).ToList();
@@ -689,7 +753,7 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                 }
             }
             ViewState["SelectedPersonId"] = person.Id;
-            ActivateFamily();
+            RefreshFamilyOptions( person.Id );
             EditPerson( person );
         }
 
@@ -726,19 +790,19 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     int gradeOffset = person.GradeOffset.Value;
                     var maxGradeOffset = gpEditGrade.MaxGradeOffset;
 
-                    // keep trying until we find a Grade that has a gradeOffset that that includes the Person's gradeOffset (for example, there might be combined grades)
-                    while ( !gpEditGrade.Items.OfType<ListItem>().Any( a => a.Value.AsInteger() == gradeOffset ) && gradeOffset <= maxGradeOffset )
-                    {
-                        gradeOffset++;
-                    }
-
                     if ( gradeOffset > maxGradeOffset )
                     {
-                        // Graduation year is after the Kindergarten year
+                        // Graduation year is after the lowest school grade's (Kindergarten)
                         gpEditGrade.SetValue( PreKGradeValue );
                     }
                     else
                     {
+                        // keep trying until we find a Grade that has a gradeOffset that that includes the Person's gradeOffset (for example, there might be combined grades)
+                        while ( !gpEditGrade.Items.OfType<ListItem>().Any( a => a.Value.AsInteger() == gradeOffset ) && gradeOffset <= maxGradeOffset )
+                        {
+                            gradeOffset++;
+                        }
+
                         gpEditGrade.SetValue( gradeOffset );
                     }
                 }
@@ -786,17 +850,12 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
 
             var person = new PersonService( _rockContext ).Get( personId );
 
-            if ( person.ConnectionStatusValueId == DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id )
+            var canEditName = person.ConnectionStatusValueId == DefinedValueCache.Get( GetAttributeValue( "ConnectionStatus" ).AsGuid() ).Id;
+            if ( canEditName )
             {
                 person.FirstName = tbEditFirst.Text;
                 person.NickName = tbEditFirst.Text;
                 person.LastName = tbEditLast.Text;
-
-                var checkinPerson = CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Person.Id == person.Id ).FirstOrDefault();
-                if ( checkinPerson != null )
-                {
-                    checkinPerson.Person = person.Clone( false );
-                }
             }
 
             var originalBirthDate = person.BirthDate;
@@ -808,6 +867,13 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
             if ( gpEditGrade.SelectedValue != ( ViewState["EditGradeInitialValue"] as string ) )
             {
                 person.GraduationYear = Person.GraduationYearFromGradeOffset( gpEditGrade.SelectedGradeOffset );
+            }
+
+            // Validate before saving anything, because saving an attribute value also saves the person
+            if ( !person.IsValid )
+            {
+                maWarning.Show( string.Join( "<br>", person.ValidationResults.Select( r => r.ErrorMessage.EncodeHtml() ) ), ModalAlertType.Alert );
+                return;
             }
 
             var AttributeList = new List<int>();
@@ -835,46 +901,31 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
                     System.Web.UI.Control attributeControl = fsAttributes.FindControl( string.Format( "attribute_field_{0}", attribute.Id ) );
                     if ( attributeControl != null )
                     {
-                        string originalValue = person.GetAttributeValue( attribute.Key );
                         string newValue = attribute.FieldType.Field.GetEditValue( attributeControl, attribute.QualifierValues );
                         Rock.Attribute.Helper.SaveAttributeValue( person, attribute, newValue, _rockContext );
-
-                        // Check for changes to write to history
-                        if ( ( originalValue ?? string.Empty ).Trim() != ( newValue ?? string.Empty ).Trim() )
-                        {
-                            string formattedOriginalValue = string.Empty;
-                            if ( !string.IsNullOrWhiteSpace( originalValue ) )
-                            {
-                                formattedOriginalValue = attribute.FieldType.Field.FormatValue( null, originalValue, attribute.QualifierValues, false );
-                            }
-
-                            string formattedNewValue = string.Empty;
-                            if ( !string.IsNullOrWhiteSpace( newValue ) )
-                            {
-                                formattedNewValue = attribute.FieldType.Field.FormatValue( null, newValue, attribute.QualifierValues, false );
-                            }
-                        }
                     }
                 }
             }
-            if ( person.IsValid )
-            {
-                _rockContext.SaveChanges();
-            }
+            _rockContext.SaveChanges();
             pnlPersonInformation.Visible = true;
             pnlEditPerson.Visible = false;
 
-            var cPerson = CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Person.Id == person.Id ).FirstOrDefault();
-            if ( cPerson != null )
+            var checkinPerson = CurrentCheckInState.CheckIn.CurrentFamily.People.Where( p => p.Person.Id == person.Id ).FirstOrDefault();
+            if ( checkinPerson != null )
             {
-                cPerson.Person.SetBirthDate( person.BirthDate );
-                cPerson.Person.GraduationYear = person.GraduationYear;
+                if ( canEditName )
+                {
+                    checkinPerson.Person = person.Clone( false );
+                }
+
+                checkinPerson.Person.SetBirthDate( person.BirthDate );
+                checkinPerson.Person.GraduationYear = person.GraduationYear;
             }
 
-            if ( person.IsValid && ( person.BirthDate != originalBirthDate || person.GraduationYear != originalGraduationYear ) )
+            if ( person.BirthDate != originalBirthDate || person.GraduationYear != originalGraduationYear )
             {
                 // Age and grade decide which groups a person can check into, so rebuild their options
-                ActivateFamily();
+                RefreshFamilyOptions( person.Id );
             }
             else
             {
@@ -895,42 +946,27 @@ namespace RockWeb.Plugins.org_secc.CheckinMonitor
         }
 
         /// <summary>
-        /// Gets the date the current school year started, based on the GradeTransitionDate global attribute.
+        /// Labels a grade picker with the current school year. Uses Rock's graduation date, which also decides
+        /// the graduation year that gets saved and the grade that check-in filters on.
         /// </summary>
-        private DateTime GetSchoolYearStart()
-        {
-            var today = RockDateTime.Today;
-            var transitionDate = GlobalAttributesCache.Get().GetValue( "GradeTransitionDate" ).AsDateTime() ?? new DateTime( today.Year, 6, 1 );
-            var schoolYearStart = new DateTime( today.Year, transitionDate.Month, 1 ).AddDays( transitionDate.Day - 1 );
-
-            return schoolYearStart > today ? schoolYearStart.AddYears( -1 ) : schoolYearStart;
-        }
-
         private void SetGradeLabel( GradePicker gradePicker )
         {
-            var schoolYearStart = GetSchoolYearStart();
-            gradePicker.Label = string.Format( "Grade (For School Year {0}-{1})", schoolYearStart.Year, schoolYearStart.Year + 1 );
+            var graduationYear = PersonService.GetCurrentGraduationYear();
+            gradePicker.Label = string.Format( "Grade (For School Year {0}-{1})", graduationYear - 1, graduationYear );
         }
 
         /// <summary>
-        /// Determines whether the person was younger than 5 when the current school year started (too young for Kindergarten).
+        /// Determines whether the person is too young for Kindergarten. The GradeTransitionDate global attribute is
+        /// the Kindergarten cutoff, so this is whether they were younger than 5 when the current school year started.
         /// </summary>
         private bool IsPreKAge( Person person )
         {
-            if ( !person.BirthDate.HasValue )
-            {
-                return false;
-            }
+            var schoolYearStart = PersonService.GetCurrentGraduationDate().AddYears( -1 );
 
-            var schoolYearStart = GetSchoolYearStart();
-            var birthDate = person.BirthDate.Value;
-            var age = schoolYearStart.Year - birthDate.Year;
-            if ( birthDate > schoolYearStart.AddYears( -age ) )
-            {
-                age--;
-            }
+            // The second argument is the date the age is calculated on
+            var ageAtSchoolYearStart = Person.GetAge( person.BirthDate, schoolYearStart );
 
-            return age < 5;
+            return ageAtSchoolYearStart.HasValue && ageAtSchoolYearStart.Value < 5;
         }
 
         protected void btnCancelAttributes_Click( object sender, EventArgs e )
