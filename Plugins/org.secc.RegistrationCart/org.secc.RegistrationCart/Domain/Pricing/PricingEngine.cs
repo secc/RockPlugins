@@ -21,7 +21,8 @@ using org.secc.RegistrationCart.Domain.Entities;
 namespace org.secc.RegistrationCart.Domain.Pricing;
 
 /// <summary>
-/// Computes line-item and total pricing for a cart, including discount codes.
+/// Computes line-item and total pricing for a cart, including discount codes and how each
+/// discount splits across the lines it applies to (<see cref="DiscountAllocator"/>).
 /// Pure: it reads a <see cref="Cart"/> (with navigation properties loaded) plus the
 /// set of applied <see cref="CartDiscount"/>s and returns a <see cref="PricedCart"/>.
 /// Prices are read from cart snapshots, not live catalog values, so admin catalog changes
@@ -40,6 +41,7 @@ public class PricingEngine
 
         var discounts = new List<AppliedDiscount>();
         var remaining = lines.Sum(l => l.LineTotal); // discounts can't exceed this in aggregate
+        var lineRoom = lines.Select(l => ToCents(l.LineTotal)).ToArray(); // per line, what discounts haven't taken yet
         foreach (var cd in cart.Discounts)
         {
             // Check live validity window (IsActive, ValidFrom, ValidTo) — intentional.
@@ -53,12 +55,45 @@ public class PricingEngine
             if (amount <= 0)
                 continue;
 
-            discounts.Add(new AppliedDiscount(cd.DiscountCode.Code, Round(amount)));
+            var applied = Round(amount);
+            var cents = DiscountAllocator.Allocate(ToCents(applied), AllocationWeights(cd, lines), lineRoom);
+            var allocations = new List<DiscountAllocation>();
+            for (var i = 0; i < lines.Count; i++)
+            {
+                if (cents[i] == 0)
+                    continue;
+                allocations.Add(new DiscountAllocation(lines[i].LineItemId, cents[i] / 100m));
+                lineRoom[i] -= cents[i];
+            }
+
+            discounts.Add(new AppliedDiscount(cd.DiscountCode.Code, applied, allocations));
             remaining -= amount;
         }
 
         return new PricedCart(lines, discounts);
     }
+
+    /// <summary>
+    /// How one discount is spread over the lines, mirroring how <see cref="ComputeDiscount"/>
+    /// arrived at its amount: percent discounts and order-level amounts in proportion to each
+    /// line's total, per-line amounts evenly; offering-scoped codes only over matching lines.
+    /// </summary>
+    private static decimal[] AllocationWeights(CartDiscount cd, IReadOnlyList<PricedLineItem> lines) =>
+        lines.Select(l =>
+        {
+            var byTotal = cd.SnapshotType == DiscountType.Percent || cd.SnapshotScope == DiscountScope.Order;
+            var weight = byTotal ? l.LineTotal : 1m;
+            switch (cd.SnapshotScope)
+            {
+                case DiscountScope.Order:
+                case DiscountScope.LineItem:
+                    return weight;
+                case DiscountScope.Offering:
+                    return MatchesOffering(l, cd) ? weight : 0m;
+                default:
+                    return 0m;
+            }
+        }).ToArray();
 
     private static PricedLineItem BuildLine(CartLineItem li)
     {
@@ -111,4 +146,7 @@ public class PricingEngine
 
     private static decimal Round(decimal value) =>
         Math.Round(value, 2, MidpointRounding.AwayFromZero);
+
+    private static long ToCents(decimal value) =>
+        (long)Math.Round(value * 100m, MidpointRounding.AwayFromZero);
 }

@@ -416,12 +416,10 @@ namespace org.secc.RegistrationCart.Services
             var registrationService = new RegistrationService( _rockContext );
             var instanceService = new RegistrationInstanceService( _rockContext );
             var feeItemService = new RegistrationTemplateFeeItemService( _rockContext );
-            var discountShares = DiscountShares( priced );
             var map = new Dictionary<int, int>();
 
             foreach ( var line in cart.LineItems )
             {
-                var pricedLine = priced.Lines.First( l => l.LineItemId == line.Id );
                 var instance = instanceService.Get( line.RegistrationInstanceId );
 
                 var registration = new Registration
@@ -431,8 +429,10 @@ namespace org.secc.RegistrationCart.Services
                     FirstName = payer.NickName.IsNotNullOrWhiteSpace() ? payer.NickName : payer.FirstName,
                     LastName = payer.LastName,
                     ConfirmationEmail = payer.Email,
-                    DiscountCode = string.Join( ",", priced.Discounts.Select( d => d.Code ) ).Truncate( 100 ),
-                    DiscountAmount = discountShares.TryGetValue( line.Id, out var share ) ? share : 0m,
+                    // Only the codes that took something off this line, and only their share of it
+                    // (Rock subtracts DiscountAmount from the registrant's cost + fees).
+                    DiscountCode = string.Join( ",", priced.CodesFor( line.Id ) ).Truncate( 100 ),
+                    DiscountAmount = priced.DiscountFor( line.Id ),
                     DiscountPercentage = 0m,
                     IsTemporary = false
                 };
@@ -475,37 +475,10 @@ namespace org.secc.RegistrationCart.Services
             return map;
         }
 
-        /// <summary>Spreads the cart's discount total across lines in proportion to line totals (cents-exact).</summary>
-        private static Dictionary<int, decimal> DiscountShares( PricedCart priced )
-        {
-            var shares = new Dictionary<int, decimal>();
-            var subtotal = priced.Subtotal;
-            var discount = priced.DiscountTotal;
-            if ( discount <= 0m || subtotal <= 0m )
-            {
-                return shares;
-            }
-
-            decimal allocated = 0m;
-            var lines = priced.Lines.ToList();
-            for ( int i = 0; i < lines.Count; i++ )
-            {
-                decimal share = i == lines.Count - 1
-                    ? discount - allocated
-                    : Math.Round( discount * lines[i].LineTotal / subtotal, 2, MidpointRounding.AwayFromZero );
-                share = Math.Min( share, lines[i].LineTotal );
-                shares[lines[i].LineItemId] = share;
-                allocated += share;
-            }
-
-            return shares;
-        }
-
         private void SaveTransaction( FinancialTransaction transaction, Cart cart, Person payer, PricedCart priced,
             Dictionary<int, int> registrationIds, FinancialGateway financialGateway, string batchNamePrefix )
         {
             var instanceService = new RegistrationInstanceService( _rockContext );
-            var discountShares = DiscountShares( priced );
 
             transaction.AuthorizedPersonAliasId = payer.PrimaryAliasId;
             transaction.TransactionDateTime = RockDateTime.Now;
@@ -524,7 +497,9 @@ namespace org.secc.RegistrationCart.Services
                 var pricedLine = priced.Lines.First( l => l.LineItemId == line.Id );
                 var instance = instanceService.Get( line.RegistrationInstanceId );
                 var accountId = instance.AccountId;
-                var amount = pricedLine.LineTotal - ( discountShares.TryGetValue( line.Id, out var share ) ? share : 0m );
+                // Each line posts net of the discounts that applied to it, so an offering-scoped
+                // code only reduces that offering's account. The details add up to priced.Total.
+                var amount = pricedLine.LineTotal - priced.DiscountFor( line.Id );
 
                 transaction.TransactionDetails.Add( new FinancialTransactionDetail
                 {

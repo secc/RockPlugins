@@ -31,7 +31,11 @@ prices to the total the page showed (the page then shows the new total; nothing 
 gateways) → in one DB transaction create one `Registration` + `RegistrationRegistrant`
 (+ `RegistrationRegistrantFee` rows) per line, one `FinancialTransaction` in a batch named by the
 block's *Batch Name Prefix* with a detail line per registration posting to the instance's
-account, then mark the cart **CheckedOut**. The cart row is the idempotency record: a second
+account, then mark the cart **CheckedOut**. Each detail line (and the registration's
+`DiscountAmount` / `DiscountCode`) is net of only the discounts that applied to that line: the
+pricing engine splits each code across its own lines in whole cents (offering codes over the
+matching lines, order and percent codes by line total, per-line amounts evenly), so the
+details add up exactly to the charge. The cart row is the idempotency record: a second
 request for the same cart is told the checkout is in progress or already done. The cart goes
 back to **Open** only when nothing was charged (declined, or stopped before the gateway call).
 If registration creation fails *after* a successful charge, the cart is still closed with
@@ -64,8 +68,8 @@ org.secc.RegistrationCart/              C# plugin assembly
   Blocks/                               4 public + 2 admin RockBlockType classes (+ base classes)
   Domain/                               Pure pricing/eligibility engine (no Rock types): Enums,
                                         CheckoutRules, Entities (pricing model),
-                                        Pricing/PricingEngine, Pricing/EligibilityService,
-                                        Pricing/PricedCart
+                                        Pricing/PricingEngine, Pricing/DiscountAllocator,
+                                        Pricing/EligibilityService, Pricing/PricedCart
   Migrations/001_CreateRegistrationCart Tables, entity/block types, pages, routes, blocks
   Model/                                9 entities: 3 overlays, DiscountCode, 5 cart tables
   Services/                             CatalogService, CartManager, CartPricing,
@@ -136,7 +140,9 @@ add time.
 
 - `org.secc.RegistrationCart.Tests` — xunit over the pure logic: `PricingEngineTests`,
   `EligibilityServiceTests`, `GradeBandsTests`, `CheckoutRulesTests` (where a stopped
-  checkout leaves the cart; the shown-total check). No RockContext.
+  checkout leaves the cart; the shown-total check), `DiscountAllocationTests` (which lines and
+  accounts each discount comes off; postings add up to the charge, including 500 random
+  carts). No RockContext.
 
 ## Observations
 
@@ -151,8 +157,12 @@ add time.
 - **Total check is total-only:** checkout compares the amount, not the contents. A cart that
   changed in another tab to different items with the same total is charged and registered as
   it is now.
-- **Discount posting:** `DiscountShares` spreads the whole cart discount proportionally across
-  *all* lines, so an offering-scoped code also reduces other instances' account postings.
+- **Discount larger than its own lines:** the engine clamps each code against the whole cart's
+  remaining value, not just the lines it applies to. So an offering code worth more than its
+  lines have left (a flat amount above the line price, or stacked after an order discount)
+  still takes the full amount, and the excess posts against other lines. Capping it instead
+  would change totals, so it waits on the stacking-rules decision
+  (`DiscountAllocationTests` pins the current behavior).
 - **Capacity / window:** capacity and the registration window are checked only when a line is
   added; `Validate()` doesn't re-check them at checkout and carts don't hold spots.
 - **Gateway support:** works with Obsidian-hosted gateways (Rock NMI, Test Gateway) or the My
