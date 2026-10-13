@@ -21,7 +21,10 @@ namespace org.secc.RegistrationCart.Domain.Pricing;
 /// <summary>A priced add-on selection on a line item.</summary>
 public record PricedAddOn(int AddOnItemId, string Name, decimal Price);
 
-/// <summary>A fully priced cart line: a registrant + variant + chosen add-ons.</summary>
+/// <summary>
+/// A fully priced cart line: a registrant + variant + chosen add-ons. A wait-listed line is
+/// priced at zero (nothing is due until a spot opens).
+/// </summary>
 public record PricedLineItem(
     int LineItemId,
     int RegistrantId,
@@ -30,7 +33,8 @@ public record PricedLineItem(
     string OfferingTitle,
     string VariantName,
     decimal BasePrice,
-    IReadOnlyList<PricedAddOn> AddOns)
+    IReadOnlyList<PricedAddOn> AddOns,
+    bool IsWaitList = false)
 {
     public decimal AddOnTotal => AddOns.Sum(a => a.Price);
     public decimal LineTotal => BasePrice + AddOnTotal;

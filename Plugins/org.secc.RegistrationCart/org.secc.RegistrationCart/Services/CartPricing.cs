@@ -55,7 +55,8 @@ namespace org.secc.RegistrationCart.Services
                     Offering = new DomainEntities.Offering { Id = line.RegistrationTemplateId, Title = line.RegistrationTemplate?.Name ?? "" },
                     OfferingVariantId = line.RegistrationInstanceId,
                     OfferingVariant = new DomainEntities.OfferingVariant { Id = line.RegistrationInstanceId, Name = line.RegistrationInstance?.Name ?? "" },
-                    SnapshotBasePrice = line.SnapshotBasePrice
+                    SnapshotBasePrice = line.SnapshotBasePrice,
+                    IsWaitList = line.IsWaitList
                 };
 
                 foreach ( var addOn in line.AddOns )

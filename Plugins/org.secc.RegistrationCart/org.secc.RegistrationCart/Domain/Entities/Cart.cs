@@ -95,6 +95,9 @@ public class CartLineItem
     /// <summary>Variant base price captured when the item was added to the cart.</summary>
     public decimal SnapshotBasePrice { get; set; }
 
+    /// <summary>On the wait list: priced at zero and left out of discounts until a spot opens.</summary>
+    public bool IsWaitList { get; set; }
+
     public ICollection<CartLineItemAddOn> AddOns { get; set; } = new List<CartLineItemAddOn>();
 }
 

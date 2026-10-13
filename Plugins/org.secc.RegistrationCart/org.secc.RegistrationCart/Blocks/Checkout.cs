@@ -12,6 +12,7 @@
 // limitations under the License.
 // </copyright>
 //
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using org.secc.RegistrationCart.Services;
@@ -63,18 +64,30 @@ namespace org.secc.RegistrationCart.Blocks
             var cart = manager?.GetOpenCart();
             var person = GetCurrentPerson();
 
+            // Place campers in seats or on the wait list first, so the total shown is the one
+            // checkout will expect. ProcessCheckout places them again under the seat lock.
+            var problems = new List<string>();
+            if ( cart != null && cart.LineItems.Any() )
+            {
+                var processor = new CheckoutProcessor( RockContext );
+                problems.AddRange( processor.Validate( cart ) );
+
+                var seats = processor.ReassignSeats( cart );
+                problems.AddRange( seats.Problems );
+                if ( seats.Changes.Any() )
+                {
+                    RockContext.SaveChanges();
+                }
+            }
+
             var box = new CheckoutInitializationBox
             {
                 Navigation = BuildNavigation( cart ),
                 Cart = ToBag( manager?.Price( cart ) ?? global::org.secc.RegistrationCart.Domain.Pricing.PricedCart.Empty, cart ),
                 PayerName = person?.FullName,
-                PayerEmail = person?.Email
+                PayerEmail = person?.Email,
+                Problems = problems
             };
-
-            if ( cart != null && cart.LineItems.Any() )
-            {
-                box.Problems = new CheckoutProcessor( RockContext ).Validate( cart );
-            }
 
             var gateway = GetFinancialGateway();
             if ( gateway != null )

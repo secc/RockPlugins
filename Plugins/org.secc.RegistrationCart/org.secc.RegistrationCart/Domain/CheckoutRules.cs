@@ -48,11 +48,19 @@ public static class CheckoutRules
         (start is null || start.Value <= now) && (end is null || end.Value >= now);
 
     /// <summary>
-    /// How many of <paramref name="wanted"/> seats don't fit: 0 when they all fit, never more
-    /// than <paramref name="wanted"/> (even if others already overfilled it). A missing or zero
+    /// Splits one cart's <paramref name="wanted"/> campers for a camp into the seats that are
+    /// left and the rest. The first campers in cart order get the seats; the rest go on the
+    /// wait list when the template has one, else they are refused. A missing or zero
     /// <paramref name="maxAttendees"/> means no limit (Rock's convention).
     /// </summary>
-    /// <param name="taken">Seats already taken by others.</param>
-    public static int SeatsShort(int? maxAttendees, int taken, int wanted) =>
-        maxAttendees is > 0 ? Math.Min(wanted, Math.Max(0, taken + wanted - maxAttendees.Value)) : 0;
+    /// <param name="taken">Seats already taken by others (even past the limit, e.g. staff overfilled it).</param>
+    public static SeatAssignment AssignSeats(int? maxAttendees, int taken, int wanted, bool waitListEnabled)
+    {
+        var seated = maxAttendees is > 0 ? Math.Max(0, Math.Min(wanted, maxAttendees.Value - taken)) : wanted;
+        var rest = wanted - seated;
+        return waitListEnabled ? new SeatAssignment(seated, rest, 0) : new SeatAssignment(seated, 0, rest);
+    }
 }
+
+/// <summary>How one cart's campers for one camp are placed: in a seat, on the wait list, or refused.</summary>
+public readonly record struct SeatAssignment(int Seated, int WaitListed, int Refused);

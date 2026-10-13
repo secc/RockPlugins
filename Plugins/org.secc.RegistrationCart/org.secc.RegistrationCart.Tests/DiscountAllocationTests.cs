@@ -285,6 +285,7 @@ public class DiscountAllocationTests
             var lines = Enumerable.Range(1, random.Next(1, 6))
                 .Select(id => Line(id, random.Next(1, 4), random.Next(0, 50001) / 100m,
                     Enumerable.Range(0, random.Next(0, 3)).Select(_ => random.Next(0, 10001) / 100m).ToArray()))
+                .Select(l => random.Next(0, 5) == 0 ? WaitListed(l) : l)
                 .ToList();
             var codes = Enumerable.Range(0, random.Next(0, 4))
                 .Select(i =>
@@ -298,6 +299,68 @@ public class DiscountAllocationTests
 
             AssertPostsExactly(_engine.Price(CartWith(lines, codes), Today));
         }
+    }
+
+    // ---- wait list ---------------------------------------------------
+
+    private static CartLineItem WaitListed(CartLineItem line)
+    {
+        line.IsWaitList = true;
+        return line;
+    }
+
+    [Fact]
+    public void Wait_listed_line_costs_nothing_now()
+    {
+        var cart = CartWith(new[]
+        {
+            Line(1, 1, 300m, 35m),
+            WaitListed(Line(2, 1, 300m, 35m)),
+        });
+
+        var priced = _engine.Price(cart, Today);
+
+        Assert.Equal(335m, priced.Total);
+        var waiting = priced.Lines.Single(l => l.LineItemId == 2);
+        Assert.True(waiting.IsWaitList);
+        Assert.Equal(0m, waiting.LineTotal);
+        AssertPostsExactly(priced);
+    }
+
+    [Fact]
+    public void Per_camper_code_does_not_count_wait_listed_campers()
+    {
+        var cart = CartWith(new[]
+        {
+            Line(1, 1, 300m),
+            WaitListed(Line(2, 1, 300m)),
+        }, Code("SIBLING", DiscountScope.LineItem, DiscountType.Amount, 20m));
+
+        var priced = _engine.Price(cart, Today);
+
+        // $20 for the one camper who pays now, not $40 squeezed onto that camper.
+        Assert.Equal(20m, priced.DiscountTotal);
+        Assert.Equal(20m, priced.DiscountFor(1));
+        Assert.Equal(0m, priced.DiscountFor(2));
+        Assert.Empty(priced.CodesFor(2));
+        AssertPostsExactly(priced);
+    }
+
+    [Fact]
+    public void Offering_percent_code_skips_wait_listed_campers()
+    {
+        var cart = CartWith(new[]
+        {
+            Line(1, offeringId: 1, 200m),
+            WaitListed(Line(2, offeringId: 1, 200m)),
+        }, Code("ADV15", DiscountScope.Offering, DiscountType.Percent, 15m, offeringId: 1));
+
+        var priced = _engine.Price(cart, Today);
+
+        Assert.Equal(30m, priced.DiscountTotal);
+        Assert.Equal(30m, priced.DiscountFor(1));
+        Assert.Equal(0m, priced.DiscountFor(2));
+        AssertPostsExactly(priced);
     }
 
     // ---- allocator -----------------------------------------------------

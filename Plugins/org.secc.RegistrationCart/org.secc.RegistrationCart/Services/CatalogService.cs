@@ -61,6 +61,9 @@ namespace org.secc.RegistrationCart.Services
             public string EventDateSource { get; set; }
             public DateTime? RegistrationDeadline => Instance.EndDateTime;
             public int? SpotsRemaining { get; set; }
+            public bool IsFull => SpotsRemaining.HasValue && SpotsRemaining.Value <= 0;
+            /// <summary>Rock's template setting: a full instance takes wait-list registrations.</summary>
+            public bool WaitListEnabled => Instance.RegistrationTemplate.WaitListEnabled;
             public int RegisteredCount { get; set; }
             public bool IsOpen { get; set; }
             public bool IsVisible => Setting?.IsVisible ?? true;
@@ -239,15 +242,15 @@ namespace org.secc.RegistrationCart.Services
                 .GroupBy( l => l.InstanceId )
                 .ToDictionary( g => g.Key, g => g.First() );
 
-            // Seats taken: real registrants (not wait-listed) + lines in open carts and in carts
-            // mid-checkout (Processing), which are about to become registrants.
+            // Seats taken: real registrants (not wait-listed) + seated lines in open carts and in
+            // carts mid-checkout (Processing), which are about to become registrants.
             var registered = new RegistrationRegistrantService( _rockContext ).Queryable()
                 .Where( r => instanceIds.Contains( r.Registration.RegistrationInstanceId ) && !r.OnWaitList )
                 .GroupBy( r => r.Registration.RegistrationInstanceId )
                 .Select( g => new { InstanceId = g.Key, Count = g.Count() } )
                 .ToDictionary( x => x.InstanceId, x => x.Count );
             var reserved = new CartLineItemService( _rockContext ).Queryable()
-                .Where( l => instanceIds.Contains( l.RegistrationInstanceId ) && ( l.Cart.Status == CartStatus.Open || l.Cart.Status == CartStatus.Processing ) )
+                .Where( l => instanceIds.Contains( l.RegistrationInstanceId ) && !l.IsWaitList && ( l.Cart.Status == CartStatus.Open || l.Cart.Status == CartStatus.Processing ) )
                 .GroupBy( l => l.RegistrationInstanceId )
                 .Select( g => new { InstanceId = g.Key, Count = g.Count() } )
                 .ToDictionary( x => x.InstanceId, x => x.Count );

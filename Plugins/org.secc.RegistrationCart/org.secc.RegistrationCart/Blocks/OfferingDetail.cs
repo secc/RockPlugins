@@ -151,7 +151,8 @@ namespace org.secc.RegistrationCart.Blocks
                     SessionText = DateRangeText( i.EventStart, i.EventEnd ),
                     DeadlineText = i.RegistrationDeadline.HasValue ? "Register by " + i.RegistrationDeadline.Value.ToString( "MMM d" ) : "",
                     EligibleGradeBands = ( int ) i.Bands,
-                    SpotsRemaining = i.SpotsRemaining
+                    SpotsRemaining = i.SpotsRemaining,
+                    WaitListEnabled = i.WaitListEnabled
                 } );
             }
 

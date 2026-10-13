@@ -63,11 +63,21 @@ namespace org.secc.RegistrationCart.Services
             _rockContext = rockContext;
         }
 
+        /// <summary>Result of <see cref="ReassignSeats"/>.</summary>
+        public class SeatCheck
+        {
+            /// <summary>Campers that don't fit a camp with no wait list. Checkout can't go on.</summary>
+            public List<string> Problems { get; } = new List<string>();
+
+            /// <summary>Lines moved onto or off the wait list (already set on the cart, not saved). The total changed.</summary>
+            public List<string> Changes { get; } = new List<string>();
+        }
+
         /// <summary>
         /// Problems that stop this cart checking out, at most one per registration instance.
         /// Empty = OK. Re-checks at checkout what held when each line was added: the instance
-        /// and its template are active and shown in the cart, registration is open, the
-        /// instance has an account, and its capacity holds with this cart's lines.
+        /// and its template are active and shown in the cart, registration is open, and the
+        /// instance has an account. Seats are <see cref="ReassignSeats"/>.
         /// </summary>
         public List<string> Validate( Cart cart )
         {
@@ -79,8 +89,7 @@ namespace org.secc.RegistrationCart.Services
             }
 
             var now = RockDateTime.Now;
-            var wanted = cart.LineItems.GroupBy( l => l.RegistrationInstanceId ).ToDictionary( g => g.Key, g => g.Count() );
-            var instanceIds = wanted.Keys.ToList();
+            var instanceIds = cart.LineItems.Select( l => l.RegistrationInstanceId ).Distinct().ToList();
 
             var instances = new RegistrationInstanceService( _rockContext ).Queryable()
                 .Include( i => i.RegistrationTemplate )
@@ -95,7 +104,6 @@ namespace org.secc.RegistrationCart.Services
                 .Where( s => instanceIds.Contains( s.RegistrationInstanceId ) && !s.IsVisible )
                 .Select( s => s.RegistrationInstanceId )
                 .ToList();
-            var taken = SeatsTakenByOthers( instanceIds, cart.Id );
 
             foreach ( var instanceId in instanceIds )
             {
@@ -122,33 +130,85 @@ namespace org.secc.RegistrationCart.Services
                 {
                     problems.Add( $"Registration instance \"{instance.Name}\" has no financial account. An administrator must set one in Rock." );
                 }
-                else
-                {
-                    var seatsShort = CheckoutRules.SeatsShort( instance.MaxAttendees, taken[instanceId], wanted[instanceId] );
-                    var seatsLeft = wanted[instanceId] - seatsShort;
-                    if ( seatsShort > 0 )
-                    {
-                        problems.Add( seatsLeft == 0
-                            ? $"\"{instance.Name}\" is full."
-                            : $"\"{instance.Name}\" has only {seatsLeft} spot{( seatsLeft == 1 ? "" : "s" )} left, but your cart has {wanted[instanceId]}." );
-                    }
-                }
             }
 
             return problems;
         }
 
         /// <summary>
+        /// Places this cart's campers in the seats each camp has left, in cart order (the order
+        /// they were added). Campers who don't fit go on the wait list when the template has
+        /// one, else they are problems. A camper whose place changed (the camp filled up, or a
+        /// spot opened) has <see cref="CartLineItem.IsWaitList"/> updated on the cart, unsaved,
+        /// and is listed in <see cref="SeatCheck.Changes"/>: the total changed, so the shopper
+        /// must confirm it again.
+        /// </summary>
+        public SeatCheck ReassignSeats( Cart cart )
+        {
+            var check = new SeatCheck();
+            if ( cart == null || cart.LineItems.Count == 0 )
+            {
+                return check;
+            }
+
+            var linesByInstance = cart.LineItems
+                .GroupBy( l => l.RegistrationInstanceId )
+                .ToDictionary( g => g.Key, g => g.OrderBy( l => l.Id ).ToList() );
+            var instanceIds = linesByInstance.Keys.ToList();
+            var instances = new RegistrationInstanceService( _rockContext ).Queryable()
+                .Include( i => i.RegistrationTemplate )
+                .Where( i => instanceIds.Contains( i.Id ) )
+                .ToDictionary( i => i.Id );
+            var taken = SeatsTakenByOthers( instanceIds, cart.Id );
+
+            foreach ( var instanceId in instanceIds )
+            {
+                if ( !instances.TryGetValue( instanceId, out var instance ) )
+                {
+                    continue; // Validate reports a missing instance.
+                }
+
+                var lines = linesByInstance[instanceId];
+                var seats = CheckoutRules.AssignSeats( instance.MaxAttendees, taken[instanceId], lines.Count, instance.RegistrationTemplate.WaitListEnabled );
+                if ( seats.Refused > 0 )
+                {
+                    check.Problems.Add( seats.Seated == 0
+                        ? $"\"{instance.Name}\" is full."
+                        : $"\"{instance.Name}\" has only {seats.Seated} spot{( seats.Seated == 1 ? "" : "s" )} left, but your cart has {lines.Count}." );
+                    continue;
+                }
+
+                for ( var i = 0; i < lines.Count; i++ )
+                {
+                    var line = lines[i];
+                    var waitList = i >= seats.Seated;
+                    if ( line.IsWaitList == waitList )
+                    {
+                        continue;
+                    }
+
+                    line.IsWaitList = waitList;
+                    var name = line.CartRegistrant?.DisplayName ?? "A camper";
+                    check.Changes.Add( waitList
+                        ? $"\"{instance.Name}\" filled up, so {name} is now on the wait list (nothing is due for them now)."
+                        : $"A spot opened in \"{instance.Name}\", so {name} is no longer on the wait list." );
+                }
+            }
+
+            return check;
+        }
+
+        /// <summary>
         /// Seats taken per instance by everyone but this cart: registrants not on the wait list
-        /// plus lines in other carts that are mid-checkout (Processing). Open carts don't hold
-        /// seats at checkout, so whoever checks out first gets them.
+        /// plus seated lines in other carts that are mid-checkout (Processing). Open carts don't
+        /// hold seats at checkout, so whoever checks out first gets them.
         /// </summary>
         private Dictionary<int, int> SeatsTakenByOthers( List<int> instanceIds, int cartId )
         {
             // Lines first, registrants second: a checkout that commits in between is counted
             // twice (refusing a seat that was free) rather than not at all (overbooking).
             var inFlight = new CartLineItemService( _rockContext ).Queryable()
-                .Where( l => instanceIds.Contains( l.RegistrationInstanceId ) && l.CartId != cartId && l.Cart.Status == CartStatus.Processing )
+                .Where( l => instanceIds.Contains( l.RegistrationInstanceId ) && l.CartId != cartId && !l.IsWaitList && l.Cart.Status == CartStatus.Processing )
                 .GroupBy( l => l.RegistrationInstanceId )
                 .Select( g => new { InstanceId = g.Key, Count = g.Count() } )
                 .ToDictionary( x => x.InstanceId, x => x.Count );
@@ -240,6 +300,21 @@ namespace org.secc.RegistrationCart.Services
                     {
                         return Stop( cart, ChargeOutcome.NotAttempted, result, string.Join( " ", problems ) );
                     }
+
+                    var seats = ReassignSeats( cart );
+                    if ( seats.Problems.Any() )
+                    {
+                        return Stop( cart, ChargeOutcome.NotAttempted, result, string.Join( " ", seats.Problems ) );
+                    }
+
+                    // A camper moved onto or off the wait list, so the total changed: save the new
+                    // placement (Stop saves) and have the shopper confirm the new total.
+                    if ( seats.Changes.Any() )
+                    {
+                        result.CartChanged = true;
+                        return Stop( cart, ChargeOutcome.NotAttempted, result,
+                            string.Join( " ", seats.Changes ) + $" Your total is now {CartPricing.Price( cart ).Total.FormatAsCurrency()}. Please review it and pay again." );
+                    }
                 }
 
                 priced = CartPricing.Price( cart );
@@ -260,7 +335,7 @@ namespace org.secc.RegistrationCart.Services
                 result.ItemDescriptions = priced.Lines.Select( l =>
                 {
                     var date = lineInstance.TryGetValue( l.LineItemId, out var iid ) && dateTexts.TryGetValue( iid, out var dt ) && dt.IsNotNullOrWhiteSpace() ? " · " + dt : "";
-                    return $"{l.RegistrantName} — {l.OfferingTitle}: {l.VariantName}{date}";
+                    return $"{l.RegistrantName} — {l.OfferingTitle}: {l.VariantName}{date}{( l.IsWaitList ? " (wait list)" : "" )}";
                 } ).ToList();
 
                 if ( priced.Total > 0m )
@@ -545,7 +620,7 @@ namespace org.secc.RegistrationCart.Services
                 var registrant = new RegistrationRegistrant
                 {
                     PersonAliasId = line.CartRegistrant.PersonAliasId,
-                    OnWaitList = false,
+                    OnWaitList = line.IsWaitList,
                     Cost = line.SnapshotBasePrice
                 };
                 registration.Registrants.Add( registrant );
@@ -596,7 +671,8 @@ namespace org.secc.RegistrationCart.Services
             }
 
             var registrationEntityTypeId = EntityTypeCache.Get<Registration>().Id;
-            foreach ( var line in cart.LineItems )
+            // Wait-listed campers pay nothing now; Rock bills them when they come off the list.
+            foreach ( var line in cart.LineItems.Where( l => !l.IsWaitList ) )
             {
                 var pricedLine = priced.Lines.First( l => l.LineItemId == line.Id );
                 var instance = instanceService.Get( line.RegistrationInstanceId );

@@ -38,6 +38,7 @@ public class PricingEngine
     public PricedCart Price(Cart cart, DateTime asOf)
     {
         var lines = cart.LineItems.Select(BuildLine).ToList();
+        var payable = lines.Where(l => !l.IsWaitList).ToList(); // wait-listed lines owe nothing now and take no discount
 
         var discounts = new List<AppliedDiscount>();
         var remaining = lines.Sum(l => l.LineTotal); // discounts can't exceed this in aggregate
@@ -50,7 +51,7 @@ public class PricingEngine
             if (cd.DiscountCode is null || !cd.DiscountCode.IsValidOn(asOf))
                 continue;
 
-            var amount = ComputeDiscount(cd, lines);
+            var amount = ComputeDiscount(cd, payable);
             amount = Math.Min(amount, remaining); // never over-discount the cart
             if (amount <= 0)
                 continue;
@@ -81,6 +82,9 @@ public class PricingEngine
     private static decimal[] AllocationWeights(CartDiscount cd, IReadOnlyList<PricedLineItem> lines) =>
         lines.Select(l =>
         {
+            if (l.IsWaitList)
+                return 0m;
+
             var byTotal = cd.SnapshotType == DiscountType.Percent || cd.SnapshotScope == DiscountScope.Order;
             var weight = byTotal ? l.LineTotal : 1m;
             switch (cd.SnapshotScope)
@@ -97,9 +101,10 @@ public class PricingEngine
 
     private static PricedLineItem BuildLine(CartLineItem li)
     {
+        // A wait-listed line owes nothing now; Rock charges it when the camper comes off the list.
         var addOns = li.AddOns
             .Where(a => a.AddOnItem is not null)
-            .Select(a => new PricedAddOn(a.AddOnItemId, a.AddOnItem.Name, a.SnapshotPrice))
+            .Select(a => new PricedAddOn(a.AddOnItemId, a.AddOnItem.Name, li.IsWaitList ? 0m : a.SnapshotPrice))
             .ToList();
 
         return new PricedLineItem(
@@ -109,8 +114,9 @@ public class PricingEngine
             li.OfferingId,
             li.Offering?.Title ?? li.OfferingVariant?.Offering?.Title ?? "",
             li.OfferingVariant?.Name ?? "",
-            li.SnapshotBasePrice,
-            addOns);
+            li.IsWaitList ? 0m : li.SnapshotBasePrice,
+            addOns,
+            li.IsWaitList);
     }
 
     /// <summary>Compute the raw discount amount for one applied code against the priced lines.</summary>

@@ -25,18 +25,21 @@
                     </div>
                     <div v-for="line in group.lines" :key="line.lineItemId" class="rc-line">
                         <div>
-                            <div><b>{{ line.offeringTitle }}</b> <span class="rc-muted">— {{ line.variantName }}</span></div>
+                            <div><b>{{ line.offeringTitle }}</b> <span class="rc-muted">— {{ line.variantName }}</span> <span v-if="line.isWaitList" class="rc-badge">Wait list</span></div>
                             <div v-if="line.dateText" class="rc-small rc-muted" style="display: inline-flex; gap: 6px; align-items: center; margin-top: 2px;">
                                 <svg class="rc-ico" style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
                                 {{ line.dateText }}
                             </div>
                             <ul class="rc-line-items">
-                                <li><span>Registration</span><span>{{ money(line.basePrice) }}</span></li>
-                                <li v-for="a in (line.addOns ?? [])" :key="a.name ?? ''"><span>{{ a.name }}</span><span>{{ a.price > 0 ? "+ " + money(a.price) : "Included" }}</span></li>
+                                <li v-if="line.isWaitList"><span>This option is full. Nothing is due now; you'll be contacted if a spot opens.</span></li>
+                                <template v-else>
+                                    <li><span>Registration</span><span>{{ money(line.basePrice) }}</span></li>
+                                    <li v-for="a in (line.addOns ?? [])" :key="a.name ?? ''"><span>{{ a.name }}</span><span>{{ a.price > 0 ? "+ " + money(a.price) : "Included" }}</span></li>
+                                </template>
                             </ul>
                         </div>
                         <div class="rc-line-side">
-                            <span class="rc-line-total">{{ money(line.lineTotal) }}</span>
+                            <span class="rc-line-total">{{ line.isWaitList ? "Wait list" : money(line.lineTotal) }}</span>
                             <button type="button" class="rc-link-btn rc-link-danger rc-small" :disabled="isBusy" @click="removeLine(line.lineItemId)">Remove</button>
                         </div>
                     </div>

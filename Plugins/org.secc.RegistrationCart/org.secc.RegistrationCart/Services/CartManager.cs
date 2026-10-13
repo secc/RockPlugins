@@ -253,7 +253,9 @@ namespace org.secc.RegistrationCart.Services
                 return null;
             }
 
-            if ( option.SpotsRemaining.HasValue && option.SpotsRemaining.Value <= 0 )
+            // A full camp takes the camper on its wait list when Rock's template allows one.
+            // Checkout re-places every camper anyway, so this only decides what the cart shows.
+            if ( option.IsFull && !option.WaitListEnabled )
             {
                 errorMessage = $"{option.Instance.Name} is full.";
                 return null;
@@ -265,7 +267,8 @@ namespace org.secc.RegistrationCart.Services
                 CartRegistrantId = registrant.Id,
                 RegistrationTemplateId = template.Template.Id,
                 RegistrationInstanceId = option.Instance.Id,
-                SnapshotBasePrice = option.Price
+                SnapshotBasePrice = option.Price,
+                IsWaitList = option.IsFull
             };
 
             var requested = new HashSet<int>( feeItemIds ?? Enumerable.Empty<int>() );

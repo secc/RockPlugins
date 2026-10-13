@@ -50,12 +50,13 @@
                             <h3 style="margin-bottom: 4px;">{{ group.name }}</h3>
                             <div v-for="line in group.lines" :key="line.lineItemId" style="display: flex; justify-content: space-between; gap: 16px; padding: 4px 0;">
                                 <span style="display: flex; flex-direction: column;">
-                                    <span>{{ line.offeringTitle }} — {{ line.variantName }}<span v-if="paidAddOns(line).length" class="rc-muted rc-small"> (+ {{ paidAddOns(line).join(", ") }})</span></span>
+                                    <span>{{ line.offeringTitle }} — {{ line.variantName }}<span v-if="paidAddOns(line).length" class="rc-muted rc-small"> (+ {{ paidAddOns(line).join(", ") }})</span> <span v-if="line.isWaitList" class="rc-badge">Wait list</span></span>
                                     <span v-if="line.dateText" class="rc-small rc-muted">{{ line.dateText }}</span>
                                 </span>
-                                <span>{{ money(line.lineTotal) }}</span>
+                                <span>{{ line.isWaitList ? "Nothing due now" : money(line.lineTotal) }}</span>
                             </div>
                         </div>
+                        <p v-if="hasWaitList" class="rc-small rc-muted" style="margin-top: 10px;">Campers on a wait list are registered now but pay nothing yet. If a spot opens, you'll be contacted to pay the balance.</p>
                     </section>
 
                     <div v-if="problems.length" class="rc-notice rc-notice-danger">
@@ -143,6 +144,8 @@
         }
         return groups;
     });
+
+    const hasWaitList = computed<boolean>(() => (cart.value.lines ?? []).some(l => l.isWaitList));
 
     const canPay = computed<boolean>(() => {
         if (isPlacing.value || problems.value.length > 0 || !cart.value.lines?.length) return false;

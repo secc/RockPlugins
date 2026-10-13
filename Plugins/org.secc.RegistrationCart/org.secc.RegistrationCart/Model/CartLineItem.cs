@@ -45,6 +45,13 @@ namespace org.secc.RegistrationCart.Model
         [DecimalPrecision( 18, 2 )]
         public decimal SnapshotBasePrice { get; set; }
 
+        /// <summary>
+        /// The camp is full and its template allows a wait list: nothing is due now and checkout
+        /// creates a wait-listed registrant. Re-assigned at checkout in cart order.
+        /// </summary>
+        [DataMember]
+        public bool IsWaitList { get; set; }
+
         /// <summary>The Rock Registration created for this line at checkout.</summary>
         [DataMember]
         public int? RegistrationId { get; set; }

@@ -25,10 +25,13 @@ Offering block can add a new child to the family). Eligibility uses coarse **gra
 Checkout (`Services/CheckoutProcessor.cs`) mirrors Rock's stock RegistrationEntry block:
 claim the cart (one conditional `UPDATE … WHERE Status = Open` moves it to **Processing**, so
 only one request can charge it) → read and re-validate the cart (each instance and template
-still active and shown in the cart, registration window open, an account set, and capacity:
-registrants + lines in other carts mid-checkout + this cart's lines ≤ *Max Attendees*), and
-refuse if it no longer prices to the total the page showed (the page then shows the new total;
-nothing is charged) → charge the gateway token once
+still active and shown in the cart, registration window open, an account set) and place its
+campers in the seats left (registrants + seated lines in other carts mid-checkout count
+against *Max Attendees*; this cart's campers take seats in the order they were added, and the
+rest go on the **wait list** when the template has *Wait List Enabled*, else checkout is
+refused). If a camper moved onto or off the wait list, or the cart no longer prices to the
+total the page showed, refuse with the new total (the page shows it; nothing is charged) and
+the shopper pays again → charge the gateway token once
 (`IGatewayComponent.Charge`, creating a customer vault record first for Obsidian-hosted
 gateways) → in one DB transaction create one `Registration` + `RegistrationRegistrant`
 (+ `RegistrationRegistrantFee` rows) per line, one `FinancialTransaction` in a batch named by the
@@ -111,6 +114,7 @@ add time.
 | # | What |
 |---|------|
 | 001 | Creates the 9 tables, registers entity + block types, creates the External pages under the stock External site's home page (if the site exists) and the admin pages under Installed Plugins, wires the blocks' linked-page settings. Page routes are set **global**. |
+| 002 | Adds `CartLineItem.IsWaitList`. |
 
 ## Configuration
 
@@ -166,12 +170,17 @@ add time.
   would change totals, so it waits on the stacking-rules decision
   (`DiscountAllocationTests` pins the current behavior).
 - **Seats go to whoever pays first:** carts don't hold seats at checkout. The catalog's "spots
-  remaining" counts lines in open carts, but the checkout capacity check counts only
-  registrants and carts mid-checkout, so a camp can show full to one family while another's
-  open cart is abandoned. Claim + validate run under a per-instance SQL app lock (`SeatLock`,
-  held for milliseconds, not through the gateway call). Registrants added outside the cart
-  (staff in Rock) don't take that lock. There is no wait list: a full camp is refused at
-  checkout.
+  remaining" counts seated lines in open carts, but checkout counts only registrants and
+  carts mid-checkout, so a camp can show full to one family while another's open cart is
+  abandoned. Claim, validate and seat placement run under a per-instance SQL app lock
+  (`SeatLock`, held for milliseconds, not through the gateway call). Registrants added outside
+  the cart (staff in Rock) don't take that lock.
+- **Wait list:** follows the template's *Wait List Enabled*. A full camp can be added as a
+  wait-list line ($0, left out of discounts); at checkout lines move onto or off the wait list
+  as seats allow (cart order), and the shopper re-confirms any change. Wait-listed campers
+  become `OnWaitList` registrants with no transaction detail; staff move them off the list in
+  Rock, which bills the balance. Rock's wait-list emails are not sent yet (see registration
+  side effects below).
 - **Gateway support:** works with Obsidian-hosted gateways (Rock NMI, Test Gateway) or the My
   Well tokenizer. The PayFlow Pro gateway (`org.secc.PayFlowPro`) supports neither.
 - **Bypasses registration side effects:** Registration rows are written directly — no registrant

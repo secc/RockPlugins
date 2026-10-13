@@ -166,6 +166,8 @@ export type PricedLineBag = {
 
     dateText?: string | null;
 
+    isWaitList: boolean;
+
     lineItemId: number;
 
     lineTotal: number;
@@ -275,6 +277,8 @@ export type VariantBag = {
     sessionText?: string | null;
 
     spotsRemaining?: number | null;
+
+    waitListEnabled: boolean;
 };
 
 export type AddOnGroupBag = {

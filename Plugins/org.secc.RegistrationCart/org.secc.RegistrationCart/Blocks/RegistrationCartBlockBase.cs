@@ -100,6 +100,7 @@ namespace org.secc.RegistrationCart.Blocks
                     DateText = instanceByLine.TryGetValue( line.LineItemId, out var instanceId ) && dateTexts.TryGetValue( instanceId, out var dt ) ? dt : "",
                     BasePrice = line.BasePrice,
                     LineTotal = line.LineTotal,
+                    IsWaitList = line.IsWaitList,
                     AddOns = line.AddOns.Select( a => new PricedAddOnBag { Name = a.Name, Price = a.Price } ).ToList()
                 } );
             }

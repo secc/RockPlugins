@@ -54,6 +54,8 @@ namespace org.secc.RegistrationCart.ViewModels
         public decimal BasePrice { get; set; }
         public List<PricedAddOnBag> AddOns { get; set; } = new List<PricedAddOnBag>();
         public decimal LineTotal { get; set; }
+        /// <summary>On the wait list: nothing is due now (prices are zero).</summary>
+        public bool IsWaitList { get; set; }
     }
 
     public class PricedAddOnBag
@@ -139,6 +141,8 @@ namespace org.secc.RegistrationCart.ViewModels
         public string DeadlineText { get; set; }
         public int EligibleGradeBands { get; set; }
         public int? SpotsRemaining { get; set; }
+        /// <summary>When full, a camper can still be added to the wait list (Rock template setting).</summary>
+        public bool WaitListEnabled { get; set; }
     }
 
     /// <summary>A Rock RegistrationTemplateFee.</summary>
