@@ -48,6 +48,20 @@ namespace org.secc.RegistrationCart.Services
         /// <summary>The person's open cart with its full graph, or null.</summary>
         public Cart GetOpenCart()
         {
+            return CartGraph( OpenCarts() ).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// The id of the person's open cart, or null. Loads no entities, so a checkout can claim
+        /// the cart first and then read its contents fresh.
+        /// </summary>
+        public int? GetOpenCartId()
+        {
+            return OpenCarts().Select( c => ( int? ) c.Id ).FirstOrDefault();
+        }
+
+        private IQueryable<Cart> OpenCarts()
+        {
             // Query aliases explicitly: the current person may have been loaded by another
             // context, so its navigation collections can't be relied on.
             var aliasIds = new PersonAliasService( _rockContext ).Queryable()
@@ -59,10 +73,9 @@ namespace org.secc.RegistrationCart.Services
                 aliasIds.Add( _person.PrimaryAliasId.Value );
             }
 
-            return CartGraph( new CartService( _rockContext ).Queryable() )
+            return new CartService( _rockContext ).Queryable()
                 .Where( c => c.Status == CartStatus.Open && aliasIds.Contains( c.OwnerPersonAliasId ) )
-                .OrderByDescending( c => c.Id )
-                .FirstOrDefault();
+                .OrderByDescending( c => c.Id );
         }
 
         public Cart GetOrCreateOpenCart()

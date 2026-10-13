@@ -83,5 +83,24 @@ public enum CartStatus
 {
     Open = 0,
     CheckedOut = 1,
-    Abandoned = 2
+    Abandoned = 2,
+    /// <summary>
+    /// Claimed by a checkout that is charging the gateway. Only one request can move a cart
+    /// Open → Processing, so only one can charge it. A cart left here means the payment
+    /// outcome is unknown and needs checking against the gateway.
+    /// </summary>
+    Processing = 3
+}
+
+/// <summary>What happened at the payment gateway when a checkout stopped.</summary>
+public enum ChargeOutcome
+{
+    /// <summary>Stopped before the gateway was called (nothing to charge, or a problem found first).</summary>
+    NotAttempted = 0,
+    /// <summary>The gateway answered with an error: nothing was charged.</summary>
+    Declined = 1,
+    /// <summary>The gateway took the money.</summary>
+    Charged = 2,
+    /// <summary>The gateway call failed without an answer: the card may or may not have been charged.</summary>
+    Unknown = 3
 }

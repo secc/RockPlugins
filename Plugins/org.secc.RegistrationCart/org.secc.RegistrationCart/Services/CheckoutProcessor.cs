@@ -14,6 +14,8 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
+using System.Data.SqlClient;
 using System.Linq;
 using org.secc.RegistrationCart.Model;
 using Rock;
@@ -28,12 +30,14 @@ namespace org.secc.RegistrationCart.Services
 {
     /// <summary>
     /// Turns an open cart into money and registrations:
+    ///   0. claims the cart (Open → Processing) with one conditional UPDATE,
     ///   1. charges the gateway token once,
     ///   2. creates one Rock Registration (+ registrant + fees) per line item,
     ///   3. records one FinancialTransaction (batched) with a detail line per registration,
     ///   4. closes the cart.
-    /// The cart row is the idempotency record — a cart that is already CheckedOut is
-    /// never charged again.
+    /// The cart row is the idempotency record: only the request that claims the cart can
+    /// charge it, and the cart goes back to Open only when nothing was charged
+    /// (<see cref="CheckoutRules.StatusAfterStop"/>).
     /// </summary>
     public class CheckoutProcessor
     {
@@ -87,85 +91,132 @@ namespace org.secc.RegistrationCart.Services
             return problems.Distinct().ToList();
         }
 
-        public Result Process( Cart cart, Person payer, FinancialGateway financialGateway, string gatewayToken, string batchNamePrefix )
+        /// <summary>
+        /// Checks out the cart with id <paramref name="cartId"/>. The cart must not already be
+        /// loaded in this processor's RockContext: it is read only after it has been claimed, so
+        /// what gets charged and registered is what the cart held at that moment.
+        /// </summary>
+        public Result Process( int cartId, Person payer, FinancialGateway financialGateway, string gatewayToken, string batchNamePrefix )
         {
+            if ( _rockContext.ChangeTracker.Entries<Cart>().Any( e => e.Entity.Id == cartId ) )
+            {
+                throw new InvalidOperationException( "The cart must be read after it is claimed, but it is already loaded in this RockContext." );
+            }
+
+            // ---- 0. Claim --------------------------------------------------------
+            // Two requests (two tabs, a retry after a timeout) can both get here with the same
+            // open cart. Only the one that moves it Open → Processing may go on to charge.
+            if ( !TryClaim( cartId ) )
+            {
+                return ClaimLost( cartId );
+            }
+
             var result = new Result();
+            Cart cart;
+            PricedCart priced;
+            IGatewayComponent gateway = null;
+            ReferencePaymentInfo paymentInfo = null;
 
-            if ( cart.Status == CartStatus.CheckedOut )
+            // Nothing below can have charged the card until the gateway call, so any failure
+            // here hands the cart back.
+            try
             {
-                result.AlreadyProcessed = true;
-                result.Success = cart.FinancialTransactionId.HasValue || cart.LastCheckoutError.IsNullOrWhiteSpace();
-                result.TransactionId = cart.FinancialTransactionId;
-                result.ErrorMessage = cart.LastCheckoutError;
+                cart = CartManager.CartGraph( new CartService( _rockContext ).Queryable() ).FirstOrDefault( c => c.Id == cartId );
+                if ( cart == null )
+                {
+                    result.ErrorMessage = CartUnavailableMessage;
+                    return result;
+                }
+
+                if ( !cart.LineItems.Any() )
+                {
+                    return Stop( cart, ChargeOutcome.NotAttempted, result, "Your cart is empty." );
+                }
+
+                var problems = Validate( cart );
+                if ( problems.Any() )
+                {
+                    return Stop( cart, ChargeOutcome.NotAttempted, result, string.Join( " ", problems ) );
+                }
+
+                priced = CartPricing.Price( cart );
+                result.Total = priced.Total;
+                var dateTexts = new CatalogService( _rockContext ).GetEventDateTexts( cart.LineItems.Select( l => l.RegistrationInstanceId ) );
+                var lineInstance = cart.LineItems.ToDictionary( l => l.Id, l => l.RegistrationInstanceId );
+                result.ItemDescriptions = priced.Lines.Select( l =>
+                {
+                    var date = lineInstance.TryGetValue( l.LineItemId, out var iid ) && dateTexts.TryGetValue( iid, out var dt ) && dt.IsNotNullOrWhiteSpace() ? " · " + dt : "";
+                    return $"{l.RegistrantName} — {l.OfferingTitle}: {l.VariantName}{date}";
+                } ).ToList();
+
+                if ( priced.Total > 0m )
+                {
+                    if ( financialGateway == null )
+                    {
+                        return Stop( cart, ChargeOutcome.NotAttempted, result, "No payment gateway is configured on the checkout block." );
+                    }
+
+                    if ( gatewayToken.IsNullOrWhiteSpace() )
+                    {
+                        return Stop( cart, ChargeOutcome.NotAttempted, result, "The payment form did not return a payment token. Please try again." );
+                    }
+
+                    gateway = financialGateway.GetGatewayComponent() as IGatewayComponent;
+                    if ( gateway == null )
+                    {
+                        return Stop( cart, ChargeOutcome.NotAttempted, result, "The configured payment gateway is not available." );
+                    }
+
+                    paymentInfo = new ReferencePaymentInfo
+                    {
+                        ReferenceNumber = gatewayToken,
+                        Amount = priced.Total,
+                        Description = Summary( priced ),
+                        FirstName = payer.FirstName,
+                        LastName = payer.LastName,
+                        Email = payer.Email,
+                        TransactionTypeValueId = DefinedValueCache.GetId( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_EVENT_REGISTRATION.AsGuid() )
+                    };
+                }
+            }
+            catch ( Exception ex )
+            {
+                ExceptionLogService.LogException( new Exception( $"Registration Cart: checkout of cart {cartId} failed before the payment was taken.", ex ) );
+                StopOnFreshContext( cartId, ChargeOutcome.NotAttempted, "Checkout failed before payment: " + ex.Message );
+                result.ErrorMessage = "Something went wrong. You have not been charged. Please try again.";
                 return result;
             }
-
-            var problems = Validate( cart );
-            if ( problems.Any() )
-            {
-                result.ErrorMessage = string.Join( " ", problems );
-                return result;
-            }
-
-            var priced = CartPricing.Price( cart );
-            result.Total = priced.Total;
-            var dateTexts = new CatalogService( _rockContext ).GetEventDateTexts( cart.LineItems.Select( l => l.RegistrationInstanceId ) );
-            var lineInstance = cart.LineItems.ToDictionary( l => l.Id, l => l.RegistrationInstanceId );
-            result.ItemDescriptions = priced.Lines.Select( l =>
-            {
-                var date = lineInstance.TryGetValue( l.LineItemId, out var iid ) && dateTexts.TryGetValue( iid, out var dt ) && dt.IsNotNullOrWhiteSpace() ? " · " + dt : "";
-                return $"{l.RegistrantName} — {l.OfferingTitle}: {l.VariantName}{date}";
-            } ).ToList();
 
             // ---- 1. Charge -------------------------------------------------------
             FinancialTransaction transaction = null;
             if ( priced.Total > 0m )
             {
-                if ( financialGateway == null )
-                {
-                    result.ErrorMessage = "No payment gateway is configured on the checkout block.";
-                    return result;
-                }
-
-                if ( gatewayToken.IsNullOrWhiteSpace() )
-                {
-                    result.ErrorMessage = "The payment form did not return a payment token. Please try again.";
-                    return result;
-                }
-
-                var gateway = financialGateway.GetGatewayComponent() as IGatewayComponent;
-                if ( gateway == null )
-                {
-                    result.ErrorMessage = "The configured payment gateway is not available.";
-                    return result;
-                }
-
-                var paymentInfo = new ReferencePaymentInfo
-                {
-                    ReferenceNumber = gatewayToken,
-                    Amount = priced.Total,
-                    Description = Summary( priced ),
-                    FirstName = payer.FirstName,
-                    LastName = payer.LastName,
-                    Email = payer.Email,
-                    TransactionTypeValueId = DefinedValueCache.GetId( Rock.SystemGuid.DefinedValue.TRANSACTION_TYPE_EVENT_REGISTRATION.AsGuid() )
-                };
-
                 string errorMessage;
-                transaction = Charge( gateway, financialGateway, paymentInfo, out errorMessage );
+                try
+                {
+                    transaction = Charge( gateway, financialGateway, paymentInfo, out errorMessage );
+                }
+                catch ( Exception ex )
+                {
+                    // No answer from the gateway, so the card may have been charged. The cart
+                    // stays claimed so a retry can't charge it again before someone checks.
+                    ExceptionLogService.LogException( new Exception( $"Registration Cart: the gateway charge for cart {cart.Id} failed without an answer; the payment outcome is unknown.", ex ) );
+                    return Stop( cart, ChargeOutcome.Unknown, result,
+                        "We couldn't confirm whether your payment went through. Please contact the office before trying again.",
+                        "Payment outcome unknown (gateway error): " + ex.Message );
+                }
+
                 if ( transaction == null )
                 {
                     result.IsDeclined = true;
-                    result.ErrorMessage = errorMessage.IsNullOrWhiteSpace() ? "Payment was declined. Please try a different card." : errorMessage;
-                    cart.LastCheckoutError = result.ErrorMessage;
-                    _rockContext.SaveChanges();
-                    return result;
+                    return Stop( cart, ChargeOutcome.Declined, result,
+                        errorMessage.IsNullOrWhiteSpace() ? "Payment was declined. Please try a different card." : errorMessage );
                 }
             }
 
             // ---- 2 + 3. Registrations, transaction, close cart ---------------------
-            // From here on the money has been taken, so whatever happens the cart must
-            // close: a retry must never charge twice.
+            // Once money has been taken the cart must close whatever happens: a retry must
+            // never charge twice.
             try
             {
                 _rockContext.WrapTransaction( () =>
@@ -190,26 +241,127 @@ namespace org.secc.RegistrationCart.Services
             }
             catch ( Exception ex )
             {
-                ExceptionLogService.LogException( new Exception( $"Registration Cart: payment {transaction?.TransactionCode} succeeded for cart {cart.Id} but registration creation failed.", ex ) );
+                var outcome = transaction != null ? ChargeOutcome.Charged : ChargeOutcome.NotAttempted;
+                ExceptionLogService.LogException( new Exception( transaction != null
+                    ? $"Registration Cart: payment {transaction.TransactionCode} succeeded for cart {cart.Id} but registration creation failed."
+                    : $"Registration Cart: registration creation failed for cart {cart.Id}; nothing was charged.", ex ) );
 
-                // Close the cart with the error recorded so support can reconcile.
-                using ( var fresh = new RockContext() )
-                {
-                    var closing = new CartService( fresh ).Get( cart.Id );
-                    if ( closing != null )
-                    {
-                        closing.Status = CartStatus.CheckedOut;
-                        closing.CheckedOutDateTime = RockDateTime.Now;
-                        closing.LastCheckoutError = ( "Payment " + ( transaction?.TransactionCode ?? "(none)" ) + " succeeded but registrations could not be created: " + ex.Message ).Truncate( 2000 );
-                        fresh.SaveChanges();
-                    }
-                }
+                // A charged cart closes with the error kept so support can reconcile; a cart that
+                // cost nothing opens again.
+                StopOnFreshContext( cart.Id, outcome, ( transaction != null
+                    ? "Payment " + transaction.TransactionCode + " succeeded but registrations could not be created: "
+                    : "Registrations could not be created (nothing was charged): " ) + ex.Message );
 
-                result.ErrorMessage = "Your payment was received but we could not finish creating the registrations. Please contact the office — do not pay again.";
+                result.ErrorMessage = transaction != null
+                    ? PaidButNotRegisteredMessage
+                    : "We could not create your registrations. You have not been charged. Please try again or contact the office.";
                 return result;
             }
 
             return result;
+        }
+
+        private const string PaidButNotRegisteredMessage = "Your payment was received but we could not finish creating the registrations. Please contact the office — do not pay again.";
+        private const string CartUnavailableMessage = "Your cart is no longer available. Please reload the page.";
+
+        /// <summary>
+        /// Moves the cart Open → Processing in one conditional UPDATE. Only the request whose
+        /// UPDATE changes the row gets true; a concurrent one sees zero rows affected.
+        /// </summary>
+        private bool TryClaim( int cartId )
+        {
+            var rowsAffected = _rockContext.Database.ExecuteSqlCommand(
+                "UPDATE [_org_secc_RegistrationCart_Cart] SET [Status] = @Processing, [ModifiedDateTime] = @Now WHERE [Id] = @CartId AND [Status] = @Open",
+                new SqlParameter( "@Processing", ( int ) CartStatus.Processing ),
+                new SqlParameter( "@Now", RockDateTime.Now ),
+                new SqlParameter( "@CartId", cartId ),
+                new SqlParameter( "@Open", ( int ) CartStatus.Open ) );
+
+            return rowsAffected == 1;
+        }
+
+        /// <summary>Another request claimed the cart first: report what became of it.</summary>
+        private Result ClaimLost( int cartId )
+        {
+            var result = new Result { AlreadyProcessed = true };
+            var state = new CartService( _rockContext ).Queryable().AsNoTracking()
+                .Where( c => c.Id == cartId )
+                .Select( c => new
+                {
+                    c.Status,
+                    c.FinancialTransactionId,
+                    c.LastCheckoutError,
+                    Total = c.FinancialTransaction.TransactionDetails.Sum( d => ( decimal? ) d.Amount )
+                } )
+                .FirstOrDefault();
+
+            switch ( state?.Status )
+            {
+                case CartStatus.CheckedOut:
+                    result.Success = state.FinancialTransactionId.HasValue || state.LastCheckoutError.IsNullOrWhiteSpace();
+                    result.TransactionId = state.FinancialTransactionId;
+                    result.Total = state.Total ?? 0m;
+                    result.ErrorMessage = result.Success ? null : PaidButNotRegisteredMessage;
+                    break;
+
+                case CartStatus.Processing:
+                    result.ErrorMessage = "This checkout is already being processed in another window. Please wait a minute before trying again, and contact the office if you're unsure whether it went through.";
+                    break;
+
+                case CartStatus.Open:
+                    // Claimed and handed back between our UPDATE and this read.
+                    result.AlreadyProcessed = false;
+                    result.ErrorMessage = "Your cart was busy. Please try again.";
+                    break;
+
+                default:
+                    result.AlreadyProcessed = false;
+                    result.ErrorMessage = CartUnavailableMessage;
+                    break;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Ends a claimed checkout that did not finish: records the error and moves the cart to
+        /// <see cref="CheckoutRules.StatusAfterStop"/> for <paramref name="outcome"/>.
+        /// </summary>
+        /// <param name="message">Shown to the shopper.</param>
+        /// <param name="detail">Kept on the cart for support; defaults to <paramref name="message"/>.</param>
+        private Result Stop( Cart cart, ChargeOutcome outcome, Result result, string message, string detail = null )
+        {
+            cart.Status = CheckoutRules.StatusAfterStop( outcome );
+            cart.LastCheckoutError = ( detail ?? message ).Truncate( 2000 );
+            _rockContext.SaveChanges();
+
+            result.ErrorMessage = message;
+            return result;
+        }
+
+        /// <summary>
+        /// <see cref="Stop"/> on a fresh RockContext, for failures that leave this processor's
+        /// context holding half-saved changes.
+        /// </summary>
+        private static void StopOnFreshContext( int cartId, ChargeOutcome outcome, string detail )
+        {
+            using ( var fresh = new RockContext() )
+            {
+                var cart = new CartService( fresh ).Get( cartId );
+                if ( cart == null )
+                {
+                    return;
+                }
+
+                cart.Status = CheckoutRules.StatusAfterStop( outcome );
+                if ( cart.Status == CartStatus.CheckedOut )
+                {
+                    cart.CheckedOutDateTime = RockDateTime.Now;
+                }
+
+                cart.LastCheckoutError = detail.Truncate( 2000 );
+                fresh.SaveChanges();
+            }
         }
 
         private static string Summary( PricedCart priced ) =>

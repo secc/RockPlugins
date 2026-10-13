@@ -23,14 +23,19 @@ Offering block can add a new child to the family). Eligibility uses coarse **gra
 (Elementary, Middle School, High School, Adults) derived from Rock's `GradeOffset`.
 
 Checkout (`Services/CheckoutProcessor.cs`) mirrors Rock's stock RegistrationEntry block:
-re-validate the cart → charge the gateway token once (`IGatewayComponent.Charge`, creating a
-customer vault record first for Obsidian-hosted gateways) → in one DB transaction create one
-`Registration` + `RegistrationRegistrant` (+ `RegistrationRegistrantFee` rows) per line, one
-`FinancialTransaction` in a batch named by the block's *Batch Name Prefix* with a detail line per
-registration posting to the instance's account, then mark the cart **CheckedOut**. The cart row
-is the idempotency record. If registration creation fails *after* a successful charge, the cart
-is still closed with `LastCheckoutError` set (and the exception logged with the transaction code)
-so support can reconcile; the shopper is told not to pay again.
+claim the cart (one conditional `UPDATE … WHERE Status = Open` moves it to **Processing**, so
+only one request can charge it) → read and re-validate the cart → charge the gateway token once
+(`IGatewayComponent.Charge`, creating a customer vault record first for Obsidian-hosted
+gateways) → in one DB transaction create one `Registration` + `RegistrationRegistrant`
+(+ `RegistrationRegistrantFee` rows) per line, one `FinancialTransaction` in a batch named by the
+block's *Batch Name Prefix* with a detail line per registration posting to the instance's
+account, then mark the cart **CheckedOut**. The cart row is the idempotency record: a second
+request for the same cart is told the checkout is in progress or already done. The cart goes
+back to **Open** only when nothing was charged (declined, or stopped before the gateway call).
+If registration creation fails *after* a successful charge, the cart is still closed with
+`LastCheckoutError` set (and the exception logged with the transaction code) so support can
+reconcile; the shopper is told not to pay again. If the gateway call fails without an answer,
+the cart stays **Processing** (see Observations).
 
 Originally built (and verified end to end against Rock 16.9 with the Test Gateway) as a
 standalone `com.secc.ShoppingCart` project; ported into this repo on 2026-10-13 with the
@@ -56,8 +61,9 @@ assembly. It has **not** been installed on rockalpha or production yet.
 org.secc.RegistrationCart/              C# plugin assembly
   Blocks/                               4 public + 2 admin RockBlockType classes (+ base classes)
   Domain/                               Pure pricing/eligibility engine (no Rock types): Enums,
-                                        Entities (pricing model), Pricing/PricingEngine,
-                                        Pricing/EligibilityService, Pricing/PricedCart
+                                        CheckoutRules, Entities (pricing model),
+                                        Pricing/PricingEngine, Pricing/EligibilityService,
+                                        Pricing/PricedCart
   Migrations/001_CreateRegistrationCart Tables, entity/block types, pages, routes, blocks
   Model/                                9 entities: 3 overlays, DiscountCode, 5 cart tables
   Services/                             CatalogService, CartManager, CartPricing,
@@ -127,15 +133,19 @@ add time.
 ## Tests
 
 - `org.secc.RegistrationCart.Tests` — xunit over the pure logic: `PricingEngineTests`,
-  `EligibilityServiceTests`, `GradeBandsTests`. No RockContext.
+  `EligibilityServiceTests`, `GradeBandsTests`, `CheckoutRulesTests` (where a stopped
+  checkout leaves the cart). No RockContext.
 
 ## Observations
 
 *From the pre-port assessment (2026-10-13) — fix before production use.*
 
-- **Double charge race:** `CheckoutProcessor.Process` checks `Status == CheckedOut` and then
-  charges with no lock; two concurrent checkouts (two tabs, a retry after a timeout) can both
-  charge. Needs an atomic Open → Processing transition before the gateway call.
+- **Carts stuck in Processing:** a cart left with `Status = 3` (Processing) means the gateway
+  call failed without an answer (`LastCheckoutError` starts "Payment outcome unknown") or the
+  server stopped mid-checkout. The shopper can't retry it (their next visit starts a new cart),
+  and its lines keep holding seats. Support: check the gateway for a charge from the payer at
+  that time, then set `Status` to 1 (CheckedOut — charged; create the registrations by hand) or
+  0 (Open — not charged; the shopper can check out again).
 - **Charged total isn't confirmed:** `Checkout.ProcessCheckout` charges whatever the open cart
   prices to *now*; the client should send the total it displayed and the server should refuse
   on mismatch.

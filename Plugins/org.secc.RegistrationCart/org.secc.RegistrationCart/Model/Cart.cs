@@ -27,7 +27,8 @@ namespace org.secc.RegistrationCart.Model
 {
     /// <summary>
     /// One shopping cart per logged-in person. The cart row IS the idempotency record:
-    /// once Status is CheckedOut (with a FinancialTransactionId) a retry cannot charge again.
+    /// checkout moves it Open → Processing before charging, so only one request can charge
+    /// it, and once Status is CheckedOut a retry cannot charge again.
     /// </summary>
     [RockDomain( "Registration Cart" )]
     [Table( "_org_secc_RegistrationCart_Cart" )]

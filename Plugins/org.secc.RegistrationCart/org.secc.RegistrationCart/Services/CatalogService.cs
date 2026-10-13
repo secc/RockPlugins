@@ -239,14 +239,15 @@ namespace org.secc.RegistrationCart.Services
                 .GroupBy( l => l.InstanceId )
                 .ToDictionary( g => g.Key, g => g.First() );
 
-            // Seats taken: real registrants (not wait-listed) + lines in open carts.
+            // Seats taken: real registrants (not wait-listed) + lines in open carts and in carts
+            // mid-checkout (Processing), which are about to become registrants.
             var registered = new RegistrationRegistrantService( _rockContext ).Queryable()
                 .Where( r => instanceIds.Contains( r.Registration.RegistrationInstanceId ) && !r.OnWaitList )
                 .GroupBy( r => r.Registration.RegistrationInstanceId )
                 .Select( g => new { InstanceId = g.Key, Count = g.Count() } )
                 .ToDictionary( x => x.InstanceId, x => x.Count );
             var reserved = new CartLineItemService( _rockContext ).Queryable()
-                .Where( l => instanceIds.Contains( l.RegistrationInstanceId ) && l.Cart.Status == CartStatus.Open )
+                .Where( l => instanceIds.Contains( l.RegistrationInstanceId ) && ( l.Cart.Status == CartStatus.Open || l.Cart.Status == CartStatus.Processing ) )
                 .GroupBy( l => l.RegistrationInstanceId )
                 .Select( g => new { InstanceId = g.Key, Count = g.Count() } )
                 .ToDictionary( x => x.InstanceId, x => x.Count );

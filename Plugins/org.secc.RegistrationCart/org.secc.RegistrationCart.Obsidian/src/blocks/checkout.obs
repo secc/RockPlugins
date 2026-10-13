@@ -6,6 +6,7 @@
         <div v-if="completed" class="rc-confirm">
             <span class="rc-confirm-mark"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>
             <h1>You're all set.</h1>
+            <p v-if="completed.alreadyProcessed" class="rc-small rc-muted">This checkout was already completed in another window.</p>
             <p v-if="completed.total > 0" class="rc-lead">Your payment of <b>{{ money(completed.total) }}</b> went through.</p>
             <p v-else class="rc-lead">No payment was needed.</p>
             <p v-if="completed.transactionId" class="rc-small rc-muted">Transaction #{{ completed.transactionId }}</p>
@@ -171,7 +172,7 @@
     async function processCheckout(gatewayToken: string): Promise<void> {
         try {
             const result = await invokeBlockAction<CheckoutResultBag>("ProcessCheckout", { request: { gatewayToken } });
-            if (!result.isSuccess || !result.data) { paymentError.value = result.errorMessage || "Something went wrong. You have not been charged."; return; }
+            if (!result.isSuccess || !result.data) { paymentError.value = result.errorMessage || "Something went wrong. Please contact the office before trying again."; return; }
             const data = result.data;
             if (data.success) { completed.value = data; navigation.value = { ...navigation.value, cartItemCount: 0 }; window.scrollTo({ top: 0 }); }
             else if (data.isDeclined) paymentError.value = `Payment declined: ${data.errorMessage ?? "please try a different card."}`;

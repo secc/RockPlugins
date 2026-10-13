@@ -129,14 +129,15 @@ namespace org.secc.RegistrationCart.Blocks
                 return ActionUnauthorized( "Please sign in." );
             }
 
-            var cart = manager.GetOpenCart();
-            if ( cart == null || !cart.LineItems.Any() )
+            // Only the id: the processor reads the cart's contents after it has claimed it.
+            var cartId = manager.GetOpenCartId();
+            if ( cartId == null )
             {
                 return ActionBadRequest( "Your cart is empty." );
             }
 
             var processor = new CheckoutProcessor( RockContext );
-            var result = processor.Process( cart, person, GetFinancialGateway(), request?.GatewayToken, GetAttributeValue( AttributeKey.BatchNamePrefix ) );
+            var result = processor.Process( cartId.Value, person, GetFinancialGateway(), request?.GatewayToken, GetAttributeValue( AttributeKey.BatchNamePrefix ) );
 
             return ActionOk( new CheckoutResultBag
             {
