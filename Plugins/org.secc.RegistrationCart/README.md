@@ -24,9 +24,11 @@ Offering block can add a new child to the family). Eligibility uses coarse **gra
 
 Checkout (`Services/CheckoutProcessor.cs`) mirrors Rock's stock RegistrationEntry block:
 claim the cart (one conditional `UPDATE … WHERE Status = Open` moves it to **Processing**, so
-only one request can charge it) → read and re-validate the cart, and refuse if it no longer
-prices to the total the page showed (the page then shows the new total; nothing is charged)
-→ charge the gateway token once
+only one request can charge it) → read and re-validate the cart (each instance and template
+still active and shown in the cart, registration window open, an account set, and capacity:
+registrants + lines in other carts mid-checkout + this cart's lines ≤ *Max Attendees*), and
+refuse if it no longer prices to the total the page showed (the page then shows the new total;
+nothing is charged) → charge the gateway token once
 (`IGatewayComponent.Charge`, creating a customer vault record first for Obsidian-hosted
 gateways) → in one DB transaction create one `Registration` + `RegistrationRegistrant`
 (+ `RegistrationRegistrantFee` rows) per line, one `FinancialTransaction` in a batch named by the
@@ -73,7 +75,7 @@ org.secc.RegistrationCart/              C# plugin assembly
   Migrations/001_CreateRegistrationCart Tables, entity/block types, pages, routes, blocks
   Model/                                9 entities: 3 overlays, DiscountCode, 5 cart tables
   Services/                             CatalogService, CartManager, CartPricing,
-                                        CheckoutProcessor, GradeBands
+                                        CheckoutProcessor, GradeBands, SeatLock
   ViewModels/                           Bags/boxes shared with the Obsidian blocks
   SystemGuid.cs                         Every GUID the plugin owns — never change
 org.secc.RegistrationCart.Obsidian/     Vue 3 / Obsidian frontend
@@ -140,7 +142,7 @@ add time.
 
 - `org.secc.RegistrationCart.Tests` — xunit over the pure logic: `PricingEngineTests`,
   `EligibilityServiceTests`, `GradeBandsTests`, `CheckoutRulesTests` (where a stopped
-  checkout leaves the cart; the shown-total check), `DiscountAllocationTests` (which lines and
+  checkout leaves the cart; the shown-total check; registration window and seats), `DiscountAllocationTests` (which lines and
   accounts each discount comes off; postings add up to the charge, including 500 random
   carts). No RockContext.
 
@@ -163,8 +165,13 @@ add time.
   still takes the full amount, and the excess posts against other lines. Capping it instead
   would change totals, so it waits on the stacking-rules decision
   (`DiscountAllocationTests` pins the current behavior).
-- **Capacity / window:** capacity and the registration window are checked only when a line is
-  added; `Validate()` doesn't re-check them at checkout and carts don't hold spots.
+- **Seats go to whoever pays first:** carts don't hold seats at checkout. The catalog's "spots
+  remaining" counts lines in open carts, but the checkout capacity check counts only
+  registrants and carts mid-checkout, so a camp can show full to one family while another's
+  open cart is abandoned. Claim + validate run under a per-instance SQL app lock (`SeatLock`,
+  held for milliseconds, not through the gateway call). Registrants added outside the cart
+  (staff in Rock) don't take that lock. There is no wait list: a full camp is refused at
+  checkout.
 - **Gateway support:** works with Obsidian-hosted gateways (Rock NMI, Test Gateway) or the My
   Well tokenizer. The PayFlow Pro gateway (`org.secc.PayFlowPro`) supports neither.
 - **Bypasses registration side effects:** Registration rows are written directly — no registrant

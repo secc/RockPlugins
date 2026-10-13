@@ -63,7 +63,7 @@
                         <div>
                             <b>Checkout isn't available yet.</b>
                             <ul><li v-for="p in problems" :key="p">{{ p }}</li></ul>
-                            <span class="rc-small">Please contact the office.</span>
+                            <span class="rc-small">Remove these from your cart, or contact the office if you need help.</span>
                         </div>
                     </div>
 

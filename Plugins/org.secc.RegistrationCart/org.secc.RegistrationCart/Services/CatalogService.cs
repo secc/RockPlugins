@@ -282,7 +282,7 @@ namespace org.secc.RegistrationCart.Services
                         EventEnd = instanceSetting?.EventEndDate ?? ( instanceSetting?.EventStartDate != null ? null : linkage?.EventEnd ),
                         EventDateSource = instanceSetting?.EventStartDate != null ? "setting" : ( linkage?.EventStart != null ? "linked" : null ),
                         RegisteredCount = registered.TryGetValue( instance.Id, out var rc ) ? rc : 0,
-                        IsOpen = ( instance.StartDateTime == null || instance.StartDateTime <= now ) && ( instance.EndDateTime == null || instance.EndDateTime >= now )
+                        IsOpen = CheckoutRules.IsWindowOpen( instance.StartDateTime, instance.EndDateTime, now )
                     };
 
                     if ( instance.MaxAttendees.HasValue && instance.MaxAttendees.Value > 0 )

@@ -42,4 +42,17 @@ public static class CheckoutRules
     /// </summary>
     public static bool TotalMatches(decimal shownTotal, decimal currentTotal) =>
         Math.Round(shownTotal, 2, MidpointRounding.AwayFromZero) == Math.Round(currentTotal, 2, MidpointRounding.AwayFromZero);
+
+    /// <summary>Whether registration is open at <paramref name="now"/>. A missing start or end leaves that side open; both ends are inclusive.</summary>
+    public static bool IsWindowOpen(DateTime? start, DateTime? end, DateTime now) =>
+        (start is null || start.Value <= now) && (end is null || end.Value >= now);
+
+    /// <summary>
+    /// How many of <paramref name="wanted"/> seats don't fit: 0 when they all fit, never more
+    /// than <paramref name="wanted"/> (even if others already overfilled it). A missing or zero
+    /// <paramref name="maxAttendees"/> means no limit (Rock's convention).
+    /// </summary>
+    /// <param name="taken">Seats already taken by others.</param>
+    public static int SeatsShort(int? maxAttendees, int taken, int wanted) =>
+        maxAttendees is > 0 ? Math.Min(wanted, Math.Max(0, taken + wanted - maxAttendees.Value)) : 0;
 }

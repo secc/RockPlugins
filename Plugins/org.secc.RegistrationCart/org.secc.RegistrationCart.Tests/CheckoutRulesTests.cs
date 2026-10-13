@@ -71,4 +71,48 @@ public class CheckoutRulesTests
     {
         Assert.False(CheckoutRules.TotalMatches(decimal.Parse(shown, CultureInfo.InvariantCulture), decimal.Parse(current, CultureInfo.InvariantCulture)));
     }
+
+    // ---- registration window -------------------------------------------
+
+    private static readonly DateTime Now = new(2027, 3, 1, 9, 0, 0);
+
+    [Fact]
+    public void Window_with_no_dates_is_always_open()
+    {
+        Assert.True(CheckoutRules.IsWindowOpen(null, null, Now));
+    }
+
+    [Fact]
+    public void Window_is_open_from_start_through_end_inclusive()
+    {
+        Assert.True(CheckoutRules.IsWindowOpen(Now, Now.AddDays(30), Now));
+        Assert.True(CheckoutRules.IsWindowOpen(Now.AddDays(-30), Now, Now));
+    }
+
+    [Fact]
+    public void Window_is_closed_before_it_opens_and_after_it_ends()
+    {
+        Assert.False(CheckoutRules.IsWindowOpen(Now.AddMinutes(1), null, Now));
+        Assert.False(CheckoutRules.IsWindowOpen(null, Now.AddMinutes(-1), Now));
+    }
+
+    // ---- capacity ------------------------------------------------------
+
+    [Theory]
+    [InlineData(null, 500, 3)]
+    [InlineData(0, 500, 3)] // Rock treats 0 as no limit
+    public void No_limit_means_nothing_is_short(int? max, int taken, int wanted)
+    {
+        Assert.Equal(0, CheckoutRules.SeatsShort(max, taken, wanted));
+    }
+
+    [Theory]
+    [InlineData(100, 97, 3, 0)]  // exactly fills the camp
+    [InlineData(100, 98, 3, 1)]  // one of this cart's campers doesn't fit
+    [InlineData(100, 100, 2, 2)] // full before this cart
+    [InlineData(100, 105, 1, 1)] // already overbooked (e.g. staff added registrants): still just this cart's lines
+    public void Seats_short_counts_this_carts_lines_against_what_is_left(int max, int taken, int wanted, int expected)
+    {
+        Assert.Equal(expected, CheckoutRules.SeatsShort(max, taken, wanted));
+    }
 }

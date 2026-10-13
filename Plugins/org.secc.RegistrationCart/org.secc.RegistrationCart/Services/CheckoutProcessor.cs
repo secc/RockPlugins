@@ -62,7 +62,12 @@ namespace org.secc.RegistrationCart.Services
             _rockContext = rockContext;
         }
 
-        /// <summary>Problems that must be fixed by an admin before this cart can check out. Empty = OK.</summary>
+        /// <summary>
+        /// Problems that stop this cart checking out, at most one per registration instance.
+        /// Empty = OK. Re-checks at checkout what held when each line was added: the instance
+        /// and its template are active and shown in the cart, registration is open, the
+        /// instance has an account, and its capacity holds with this cart's lines.
+        /// </summary>
         public List<string> Validate( Cart cart )
         {
             var problems = new List<string>();
@@ -72,25 +77,88 @@ namespace org.secc.RegistrationCart.Services
                 return problems;
             }
 
-            var instanceService = new RegistrationInstanceService( _rockContext );
-            foreach ( var line in cart.LineItems )
+            var now = RockDateTime.Now;
+            var wanted = cart.LineItems.GroupBy( l => l.RegistrationInstanceId ).ToDictionary( g => g.Key, g => g.Count() );
+            var instanceIds = wanted.Keys.ToList();
+
+            var instances = new RegistrationInstanceService( _rockContext ).Queryable()
+                .Include( i => i.RegistrationTemplate )
+                .Where( i => instanceIds.Contains( i.Id ) )
+                .ToDictionary( i => i.Id );
+            var templateIds = instances.Values.Select( i => i.RegistrationTemplateId ).Distinct().ToList();
+            var hiddenTemplateIds = new TemplateSettingService( _rockContext ).Queryable()
+                .Where( s => templateIds.Contains( s.RegistrationTemplateId ) && !s.IsVisible )
+                .Select( s => s.RegistrationTemplateId )
+                .ToList();
+            var hiddenInstanceIds = new InstanceSettingService( _rockContext ).Queryable()
+                .Where( s => instanceIds.Contains( s.RegistrationInstanceId ) && !s.IsVisible )
+                .Select( s => s.RegistrationInstanceId )
+                .ToList();
+            var taken = SeatsTakenByOthers( instanceIds, cart.Id );
+
+            foreach ( var instanceId in instanceIds )
             {
-                var instance = instanceService.Get( line.RegistrationInstanceId );
-                if ( instance == null )
+                if ( !instances.TryGetValue( instanceId, out var instance ) )
                 {
-                    problems.Add( $"\"{line.RegistrationInstance?.Name}\" no longer exists in Rock." );
+                    var name = cart.LineItems.First( l => l.RegistrationInstanceId == instanceId ).RegistrationInstance?.Name;
+                    problems.Add( $"\"{name}\" no longer exists in Rock." );
                 }
-                else if ( !instance.IsActive )
+                else if ( !instance.IsActive || !instance.RegistrationTemplate.IsActive )
                 {
                     problems.Add( $"\"{instance.Name}\" is no longer active." );
+                }
+                else if ( hiddenTemplateIds.Contains( instance.RegistrationTemplateId ) || hiddenInstanceIds.Contains( instance.Id ) )
+                {
+                    problems.Add( $"\"{instance.Name}\" is no longer offered here." );
+                }
+                else if ( !CheckoutRules.IsWindowOpen( instance.StartDateTime, instance.EndDateTime, now ) )
+                {
+                    problems.Add( instance.StartDateTime > now
+                        ? $"Registration for \"{instance.Name}\" hasn't opened yet."
+                        : $"Registration for \"{instance.Name}\" has closed." );
                 }
                 else if ( instance.AccountId == null )
                 {
                     problems.Add( $"Registration instance \"{instance.Name}\" has no financial account. An administrator must set one in Rock." );
                 }
+                else
+                {
+                    var seatsShort = CheckoutRules.SeatsShort( instance.MaxAttendees, taken[instanceId], wanted[instanceId] );
+                    var seatsLeft = wanted[instanceId] - seatsShort;
+                    if ( seatsShort > 0 )
+                    {
+                        problems.Add( seatsLeft == 0
+                            ? $"\"{instance.Name}\" is full."
+                            : $"\"{instance.Name}\" has only {seatsLeft} spot{( seatsLeft == 1 ? "" : "s" )} left, but your cart has {wanted[instanceId]}." );
+                    }
+                }
             }
 
-            return problems.Distinct().ToList();
+            return problems;
+        }
+
+        /// <summary>
+        /// Seats taken per instance by everyone but this cart: registrants not on the wait list
+        /// plus lines in other carts that are mid-checkout (Processing). Open carts don't hold
+        /// seats at checkout, so whoever checks out first gets them.
+        /// </summary>
+        private Dictionary<int, int> SeatsTakenByOthers( List<int> instanceIds, int cartId )
+        {
+            // Lines first, registrants second: a checkout that commits in between is counted
+            // twice (refusing a seat that was free) rather than not at all (overbooking).
+            var inFlight = new CartLineItemService( _rockContext ).Queryable()
+                .Where( l => instanceIds.Contains( l.RegistrationInstanceId ) && l.CartId != cartId && l.Cart.Status == CartStatus.Processing )
+                .GroupBy( l => l.RegistrationInstanceId )
+                .Select( g => new { InstanceId = g.Key, Count = g.Count() } )
+                .ToDictionary( x => x.InstanceId, x => x.Count );
+            var registered = new RegistrationRegistrantService( _rockContext ).Queryable()
+                .Where( r => instanceIds.Contains( r.Registration.RegistrationInstanceId ) && !r.OnWaitList )
+                .GroupBy( r => r.Registration.RegistrationInstanceId )
+                .Select( g => new { InstanceId = g.Key, Count = g.Count() } )
+                .ToDictionary( x => x.InstanceId, x => x.Count );
+
+            return instanceIds.ToDictionary( id => id, id =>
+                ( inFlight.TryGetValue( id, out var lines ) ? lines : 0 ) + ( registered.TryGetValue( id, out var registrants ) ? registrants : 0 ) );
         }
 
         /// <summary>
@@ -107,41 +175,70 @@ namespace org.secc.RegistrationCart.Services
                 throw new InvalidOperationException( "The cart must be read after it is claimed, but it is already loaded in this RockContext." );
             }
 
-            // ---- 0. Claim --------------------------------------------------------
-            // Two requests (two tabs, a retry after a timeout) can both get here with the same
-            // open cart. Only the one that moves it Open → Processing may go on to charge.
-            if ( !TryClaim( cartId ) )
-            {
-                return ClaimLost( cartId );
-            }
-
             var result = new Result();
+            var claimed = false;
             Cart cart;
             PricedCart priced;
             IGatewayComponent gateway = null;
             ReferencePaymentInfo paymentInfo = null;
 
             // Nothing below can have charged the card until the gateway call, so any failure
-            // here hands the cart back.
+            // here hands a claimed cart back.
             try
             {
-                cart = CartManager.CartGraph( new CartService( _rockContext ).Queryable() ).FirstOrDefault( c => c.Id == cartId );
-                if ( cart == null )
-                {
-                    result.ErrorMessage = CartUnavailableMessage;
-                    return result;
-                }
+                // Lock the cart's instances while claiming and validating, so two checkouts
+                // can't both count the same last seat. The lock is short: once this cart is
+                // Processing, every later check counts its lines as taken, so it isn't held
+                // through the gateway call.
+                var lockedInstanceIds = new CartLineItemService( _rockContext ).Queryable()
+                    .Where( l => l.CartId == cartId )
+                    .Select( l => l.RegistrationInstanceId )
+                    .Distinct()
+                    .ToList();
 
-                if ( !cart.LineItems.Any() )
+                using ( var seatLock = SeatLock.Acquire( _rockContext, lockedInstanceIds ) )
                 {
-                    result.CartChanged = true;
-                    return Stop( cart, ChargeOutcome.NotAttempted, result, "Your cart is empty." );
-                }
+                    if ( seatLock == null )
+                    {
+                        result.ErrorMessage = "Checkout is busy right now. Please try again in a moment.";
+                        return result;
+                    }
 
-                var problems = Validate( cart );
-                if ( problems.Any() )
-                {
-                    return Stop( cart, ChargeOutcome.NotAttempted, result, string.Join( " ", problems ) );
+                    // ---- 0. Claim ----------------------------------------------------
+                    // Two requests (two tabs, a retry after a timeout) can both get here with
+                    // the same open cart. Only the one that moves it Open → Processing may go
+                    // on to charge.
+                    if ( !TryClaim( cartId ) )
+                    {
+                        return ClaimLost( cartId );
+                    }
+
+                    claimed = true;
+                    cart = CartManager.CartGraph( new CartService( _rockContext ).Queryable() ).FirstOrDefault( c => c.Id == cartId );
+                    if ( cart == null )
+                    {
+                        result.ErrorMessage = CartUnavailableMessage;
+                        return result;
+                    }
+
+                    if ( !cart.LineItems.Any() )
+                    {
+                        result.CartChanged = true;
+                        return Stop( cart, ChargeOutcome.NotAttempted, result, "Your cart is empty." );
+                    }
+
+                    // A line for another instance was added after the lock was taken.
+                    if ( cart.LineItems.Any( l => !lockedInstanceIds.Contains( l.RegistrationInstanceId ) ) )
+                    {
+                        result.CartChanged = true;
+                        return Stop( cart, ChargeOutcome.NotAttempted, result, "Your cart changed while checking out. Please review it and try again." );
+                    }
+
+                    var problems = Validate( cart );
+                    if ( problems.Any() )
+                    {
+                        return Stop( cart, ChargeOutcome.NotAttempted, result, string.Join( " ", problems ) );
+                    }
                 }
 
                 priced = CartPricing.Price( cart );
@@ -198,7 +295,11 @@ namespace org.secc.RegistrationCart.Services
             catch ( Exception ex )
             {
                 ExceptionLogService.LogException( new Exception( $"Registration Cart: checkout of cart {cartId} failed before the payment was taken.", ex ) );
-                StopOnFreshContext( cartId, ChargeOutcome.NotAttempted, "Checkout failed before payment: " + ex.Message );
+                if ( claimed )
+                {
+                    StopOnFreshContext( cartId, ChargeOutcome.NotAttempted, "Checkout failed before payment: " + ex.Message );
+                }
+
                 result.ErrorMessage = "Something went wrong. You have not been charged. Please try again.";
                 return result;
             }
