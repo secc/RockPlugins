@@ -46,6 +46,8 @@ namespace org.secc.RegistrationCart.Services
             public bool Success { get; set; }
             public bool AlreadyProcessed { get; set; }
             public bool IsDeclined { get; set; }
+            /// <summary>The cart no longer matched what the shopper was shown; it was not charged and is open again.</summary>
+            public bool CartChanged { get; set; }
             public string ErrorMessage { get; set; }
             public int? TransactionId { get; set; }
             public List<int> RegistrationIds { get; set; } = new List<int>();
@@ -96,7 +98,9 @@ namespace org.secc.RegistrationCart.Services
         /// loaded in this processor's RockContext: it is read only after it has been claimed, so
         /// what gets charged and registered is what the cart held at that moment.
         /// </summary>
-        public Result Process( int cartId, Person payer, FinancialGateway financialGateway, string gatewayToken, string batchNamePrefix )
+        /// <param name="expectedTotal">The total the shopper was shown. If the claimed cart prices
+        /// to anything else, nothing is charged and the cart opens again.</param>
+        public Result Process( int cartId, decimal expectedTotal, Person payer, FinancialGateway financialGateway, string gatewayToken, string batchNamePrefix )
         {
             if ( _rockContext.ChangeTracker.Entries<Cart>().Any( e => e.Entity.Id == cartId ) )
             {
@@ -130,6 +134,7 @@ namespace org.secc.RegistrationCart.Services
 
                 if ( !cart.LineItems.Any() )
                 {
+                    result.CartChanged = true;
                     return Stop( cart, ChargeOutcome.NotAttempted, result, "Your cart is empty." );
                 }
 
@@ -141,6 +146,17 @@ namespace org.secc.RegistrationCart.Services
 
                 priced = CartPricing.Price( cart );
                 result.Total = priced.Total;
+
+                // Charge only the amount the shopper agreed to. The cart can change after the
+                // page loaded (edits in another tab, a discount code that has since expired).
+                if ( !CheckoutRules.TotalMatches( expectedTotal, priced.Total ) )
+                {
+                    result.CartChanged = true;
+                    return Stop( cart, ChargeOutcome.NotAttempted, result,
+                        $"Your cart changed since this page loaded. The total is now {priced.Total.FormatAsCurrency()}. Please review it and try again.",
+                        $"Cart changed: shopper was shown {expectedTotal:0.00}, cart priced to {priced.Total:0.00}." );
+                }
+
                 var dateTexts = new CatalogService( _rockContext ).GetEventDateTexts( cart.LineItems.Select( l => l.RegistrationInstanceId ) );
                 var lineInstance = cart.LineItems.ToDictionary( l => l.Id, l => l.RegistrationInstanceId );
                 result.ItemDescriptions = priced.Lines.Select( l =>

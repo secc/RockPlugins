@@ -14,6 +14,7 @@
 //
 #nullable enable
 using System;
+using System.Globalization;
 using System.Linq;
 using org.secc.RegistrationCart.Domain;
 using Xunit;
@@ -49,5 +50,25 @@ public class CheckoutRulesTests
             .Where(o => o != ChargeOutcome.NotAttempted && o != ChargeOutcome.Declined);
 
         Assert.All(mightHaveCharged, o => Assert.NotEqual(CartStatus.Open, CheckoutRules.StatusAfterStop(o)));
+    }
+
+    [Theory]
+    [InlineData("125.00", "125.00")]
+    [InlineData("125", "125.00")]
+    [InlineData("0", "0.00")]
+    [InlineData("0.30000000000000004", "0.30")] // 0.1 + 0.2 after a trip through a JavaScript number
+    public void Shown_total_matches_the_same_amount_in_cents(string shown, string current)
+    {
+        Assert.True(CheckoutRules.TotalMatches(decimal.Parse(shown, CultureInfo.InvariantCulture), decimal.Parse(current, CultureInfo.InvariantCulture)));
+    }
+
+    [Theory]
+    [InlineData("125.00", "125.01")] // a cent either way is a different charge
+    [InlineData("125.01", "125.00")]
+    [InlineData("0", "50.00")]      // a free cart that now costs money
+    [InlineData("150.00", "125.00")] // a line was removed in another tab
+    public void Any_difference_in_cents_is_a_changed_cart(string shown, string current)
+    {
+        Assert.False(CheckoutRules.TotalMatches(decimal.Parse(shown, CultureInfo.InvariantCulture), decimal.Parse(current, CultureInfo.InvariantCulture)));
     }
 }

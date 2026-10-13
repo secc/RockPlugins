@@ -13,11 +13,13 @@
 // </copyright>
 //
 #nullable enable
+using System;
+
 namespace org.secc.RegistrationCart.Domain;
 
 /// <summary>
-/// Cart status rules for checkout. A checkout claims its cart (Open → Processing) before it
-/// calls the gateway; these rules say where the cart goes when that checkout stops.
+/// Checkout rules. A checkout claims its cart (Open → Processing) before it calls the gateway;
+/// these rules decide whether it may charge and where the cart goes when it stops.
 /// </summary>
 public static class CheckoutRules
 {
@@ -33,4 +35,11 @@ public static class CheckoutRules
         ChargeOutcome.Charged => CartStatus.CheckedOut,
         _ => CartStatus.Processing
     };
+
+    /// <summary>
+    /// Whether the cart still prices to the total the shopper was shown. Compared in cents, so
+    /// a total that went through a JavaScript number (e.g. 0.30000000000000004) still matches.
+    /// </summary>
+    public static bool TotalMatches(decimal shownTotal, decimal currentTotal) =>
+        Math.Round(shownTotal, 2, MidpointRounding.AwayFromZero) == Math.Round(currentTotal, 2, MidpointRounding.AwayFromZero);
 }

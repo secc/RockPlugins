@@ -231,6 +231,8 @@ namespace org.secc.RegistrationCart.ViewModels
     public class CheckoutRequestBag
     {
         public string GatewayToken { get; set; }
+        /// <summary>The total the shopper was shown. Checkout is refused if the cart no longer prices to it.</summary>
+        public decimal ExpectedTotal { get; set; }
     }
 
     public class CheckoutResultBag
@@ -238,6 +240,9 @@ namespace org.secc.RegistrationCart.ViewModels
         public bool Success { get; set; }
         public bool AlreadyProcessed { get; set; }
         public bool IsDeclined { get; set; }
+        /// <summary>The cart no longer matched what the shopper was shown; nothing was charged. <see cref="Cart"/> holds it as it is now.</summary>
+        public bool CartChanged { get; set; }
+        public PricedCartBag Cart { get; set; }
         public string ErrorMessage { get; set; }
         public int? TransactionId { get; set; }
         public decimal Total { get; set; }

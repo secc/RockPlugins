@@ -136,19 +136,34 @@ namespace org.secc.RegistrationCart.Blocks
                 return ActionBadRequest( "Your cart is empty." );
             }
 
-            var processor = new CheckoutProcessor( RockContext );
-            var result = processor.Process( cartId.Value, person, GetFinancialGateway(), request?.GatewayToken, GetAttributeValue( AttributeKey.BatchNamePrefix ) );
+            if ( request == null )
+            {
+                return ActionBadRequest( "Please reload the page and try again." );
+            }
 
-            return ActionOk( new CheckoutResultBag
+            var processor = new CheckoutProcessor( RockContext );
+            var result = processor.Process( cartId.Value, request.ExpectedTotal, person, GetFinancialGateway(), request.GatewayToken, GetAttributeValue( AttributeKey.BatchNamePrefix ) );
+
+            var bag = new CheckoutResultBag
             {
                 Success = result.Success,
                 AlreadyProcessed = result.AlreadyProcessed,
                 IsDeclined = result.IsDeclined,
+                CartChanged = result.CartChanged,
                 ErrorMessage = result.ErrorMessage,
                 TransactionId = result.TransactionId,
                 Total = result.Total,
                 ItemDescriptions = result.ItemDescriptions
-            } );
+            };
+
+            if ( result.CartChanged )
+            {
+                // Send the cart as it is now so the page can show what would be charged.
+                var cart = manager.GetOpenCart();
+                bag.Cart = ToBag( manager.Price( cart ), cart );
+            }
+
+            return ActionOk( bag );
         }
 
         private FinancialGateway GetFinancialGateway()

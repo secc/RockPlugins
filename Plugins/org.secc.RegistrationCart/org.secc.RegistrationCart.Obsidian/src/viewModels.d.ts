@@ -370,11 +370,17 @@ export type TokenizerSettingsBag = {
 };
 
 export type CheckoutRequestBag = {
+    expectedTotal: number;
+
     gatewayToken?: string | null;
 };
 
 export type CheckoutResultBag = {
     alreadyProcessed: boolean;
+
+    cart?: PricedCartBag | null;
+
+    cartChanged: boolean;
 
     errorMessage?: string | null;
 

@@ -24,7 +24,9 @@ Offering block can add a new child to the family). Eligibility uses coarse **gra
 
 Checkout (`Services/CheckoutProcessor.cs`) mirrors Rock's stock RegistrationEntry block:
 claim the cart (one conditional `UPDATE … WHERE Status = Open` moves it to **Processing**, so
-only one request can charge it) → read and re-validate the cart → charge the gateway token once
+only one request can charge it) → read and re-validate the cart, and refuse if it no longer
+prices to the total the page showed (the page then shows the new total; nothing is charged)
+→ charge the gateway token once
 (`IGatewayComponent.Charge`, creating a customer vault record first for Obsidian-hosted
 gateways) → in one DB transaction create one `Registration` + `RegistrationRegistrant`
 (+ `RegistrationRegistrantFee` rows) per line, one `FinancialTransaction` in a batch named by the
@@ -134,7 +136,7 @@ add time.
 
 - `org.secc.RegistrationCart.Tests` — xunit over the pure logic: `PricingEngineTests`,
   `EligibilityServiceTests`, `GradeBandsTests`, `CheckoutRulesTests` (where a stopped
-  checkout leaves the cart). No RockContext.
+  checkout leaves the cart; the shown-total check). No RockContext.
 
 ## Observations
 
@@ -146,9 +148,9 @@ add time.
   and its lines keep holding seats. Support: check the gateway for a charge from the payer at
   that time, then set `Status` to 1 (CheckedOut — charged; create the registrations by hand) or
   0 (Open — not charged; the shopper can check out again).
-- **Charged total isn't confirmed:** `Checkout.ProcessCheckout` charges whatever the open cart
-  prices to *now*; the client should send the total it displayed and the server should refuse
-  on mismatch.
+- **Total check is total-only:** checkout compares the amount, not the contents. A cart that
+  changed in another tab to different items with the same total is charged and registered as
+  it is now.
 - **Discount posting:** `DiscountShares` spreads the whole cart discount proportionally across
   *all* lines, so an offering-scoped code also reduces other instances' account postings.
 - **Capacity / window:** capacity and the registration window are checked only when a line is
