@@ -154,7 +154,11 @@ namespace org.secc.RegistrationCart.Blocks
                 return ActionBadRequest( "Please reload the page and try again." );
             }
 
-            var processor = new CheckoutProcessor( RockContext );
+            var processor = new CheckoutProcessor( RockContext )
+            {
+                AppRoot = RequestContext.RootUrlPath.EnsureTrailingForwardslash(),
+                ThemeRoot = RequestContext.RootUrlPath + RequestContext.ResolveRockUrl( "~~/" )
+            };
             var result = processor.Process( cartId.Value, request.ExpectedTotal, person, GetFinancialGateway(), request.GatewayToken, GetAttributeValue( AttributeKey.BatchNamePrefix ) );
 
             var bag = new CheckoutResultBag

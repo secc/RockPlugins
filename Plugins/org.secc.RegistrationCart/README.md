@@ -48,6 +48,14 @@ If registration creation fails *after* a successful charge, the cart is still cl
 reconcile; the shopper is told not to pay again. If the gateway call fails without an answer,
 the cart stays **Processing** (see Observations).
 
+After the registrations are committed, checkout does what Rock's own RegistrationEntry block
+does after saving a new registration: registrar notes and history, puts registrants who aren't
+wait-listed in the instance's linked group (the registration's `GroupId` comes from the
+instance's first linkage with a group; the member gets the template's role and status), queues
+Rock's confirmation email and staff notification, and launches the template's registrant
+workflow and the template and instance registration workflows. A failure there is logged and
+never undoes the registrations or the payment.
+
 Originally built (and verified end to end against Rock 16.9 with the Test Gateway) as a
 standalone `com.secc.ShoppingCart` project; ported into this repo on 2026-10-13 with the
 `org.secc` naming, repo build conventions, and the pricing domain folded into the plugin
@@ -179,13 +187,17 @@ add time.
   wait-list line ($0, left out of discounts); at checkout lines move onto or off the wait list
   as seats allow (cart order), and the shopper re-confirms any change. Wait-listed campers
   become `OnWaitList` registrants with no transaction detail; staff move them off the list in
-  Rock, which bills the balance. Rock's wait-list emails are not sent yet (see registration
-  side effects below).
+  Rock, which bills the balance. The confirmation email is Rock's, so the template's Lava
+  decides what a wait-listed registrant is told.
 - **Gateway support:** works with Obsidian-hosted gateways (Rock NMI, Test Gateway) or the My
   Well tokenizer. The PayFlow Pro gateway (`org.secc.PayFlowPro`) supports neither.
-- **Bypasses registration side effects:** Registration rows are written directly — no registrant
-  forms/attributes, digital signatures (SignNow), registration workflows, linked-group
-  placement, confirmation emails, or PersonMatch.
+- **No registration forms or signatures yet:** the cart doesn't collect the template's form
+  fields (person fields, person/registrant/group member attributes) or the inline signature
+  document, and doesn't run PersonMatch. 2026 camp templates have ~41 form fields over 5 forms
+  (emergency contacts, school/grade, allergies, medications, insurance, the financial
+  assistance questions, T-shirt, photo) and every camp template requires an inline signature.
+  Registration workflows, group placement, confirmation/notification emails and notes/history
+  do run (see Overview).
 - **Add child:** creates a Pending person with no birthdate/gender and a representative grade
   (`GradeBands.GradeOffsetFor` — e.g. Elementary → 3rd grade); duplicate-prone.
 - **Migration placement:** pages hang off Rock's *stock* External site/home page, and all routes

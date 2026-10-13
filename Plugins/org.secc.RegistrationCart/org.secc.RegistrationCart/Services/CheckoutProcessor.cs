@@ -23,6 +23,7 @@ using Rock;
 using Rock.Data;
 using Rock.Financial;
 using Rock.Model;
+using Rock.Tasks;
 using Rock.Web.Cache;
 using org.secc.RegistrationCart.Domain;
 using org.secc.RegistrationCart.Domain.Pricing;
@@ -62,6 +63,12 @@ namespace org.secc.RegistrationCart.Services
         {
             _rockContext = rockContext;
         }
+
+        /// <summary>Site root for links in the confirmation and notification emails (as Rock's RegistrationEntry passes it).</summary>
+        public string AppRoot { get; set; }
+
+        /// <summary>Theme root for the confirmation and notification emails.</summary>
+        public string ThemeRoot { get; set; }
 
         /// <summary>Result of <see cref="ReassignSeats"/>.</summary>
         public class SeatCheck
@@ -451,7 +458,138 @@ namespace org.secc.RegistrationCart.Services
                 return result;
             }
 
+            // ---- 4. What Rock does after a registration is saved -------------------
+            RunPostSave( result.RegistrationIds, payer );
+
             return result;
+        }
+
+        /// <summary>
+        /// Once the registrations are committed, does what Rock's own RegistrationEntry block does
+        /// after saving a new registration: registrar history and notes, places registrants (not
+        /// wait-listed) in the instance's linked group, queues the confirmation email and the
+        /// staff notification, and launches the template's registrant workflow and the template
+        /// and instance registration workflows. Each registration is handled on its own context;
+        /// failures are logged, never thrown, because the registrations and the payment stand.
+        /// </summary>
+        private void RunPostSave( IEnumerable<int> registrationIds, Person payer )
+        {
+            foreach ( var registrationId in registrationIds )
+            {
+                try
+                {
+                    using ( var rockContext = new RockContext() )
+                    {
+                        var registration = new RegistrationService( rockContext ).Queryable()
+                            .Include( r => r.RegistrationInstance.RegistrationTemplate )
+                            .Include( r => r.Registrants.Select( rr => rr.PersonAlias.Person ) )
+                            .FirstOrDefault( r => r.Id == registrationId );
+                        if ( registration == null )
+                        {
+                            continue;
+                        }
+
+                        var settings = new RegistrationSettings( registration.RegistrationInstance.RegistrationTemplate, registration.RegistrationInstance );
+
+                        registration.SavePersonNotesAndHistory( payer, payer.PrimaryAliasId, new List<int>() );
+                        AddRegistrantsToGroup( rockContext, settings, registration );
+
+                        new ProcessSendRegistrationConfirmation.Message
+                        {
+                            RegistrationId = registration.Id,
+                            AppRoot = AppRoot,
+                            ThemeRoot = ThemeRoot
+                        }.Send();
+
+                        new ProcessSendRegistrationNotification.Message
+                        {
+                            RegistrationId = registration.Id,
+                            AppRoot = AppRoot,
+                            ThemeRoot = ThemeRoot
+                        }.Send();
+
+                        foreach ( var registrant in registration.Registrants.Where( r => r.PersonAlias?.Person != null ) )
+                        {
+                            var parameters = new Dictionary<string, string>
+                            {
+                                { "RegistrationId", registration.Id.ToString() },
+                                { "RegistrationRegistrantId", registrant.Id.ToString() }
+                            };
+                            registrant.LaunchWorkflow( settings.RegistrantWorkflowTypeId, registration.ToString(), parameters, null );
+                        }
+
+                        foreach ( var workflowTypeId in settings.WorkflowTypeIds )
+                        {
+                            registration.LaunchWorkflow( workflowTypeId, registration.ToString(), null, null );
+                        }
+                    }
+                }
+                catch ( Exception ex )
+                {
+                    ExceptionLogService.LogException( new Exception( $"Registration Cart: post-save steps failed for registration {registrationId}.", ex ) );
+                }
+            }
+        }
+
+        /// <summary>
+        /// Puts the registration's registrants who aren't on the wait list into its group, the way
+        /// Rock's RegistrationEntry does: an existing member gets the template's member status,
+        /// a new one also the template's role (or the group type's default role).
+        /// </summary>
+        private static void AddRegistrantsToGroup( RockContext rockContext, RegistrationSettings settings, Registration registration )
+        {
+            if ( !registration.GroupId.HasValue )
+            {
+                return;
+            }
+
+            var group = new GroupService( rockContext ).Get( registration.GroupId.Value );
+            if ( group == null )
+            {
+                return;
+            }
+
+            var groupMemberService = new GroupMemberService( rockContext );
+            foreach ( var registrant in registration.Registrants.Where( r => !r.OnWaitList && r.PersonAlias != null ) )
+            {
+                var personId = registrant.PersonAlias.PersonId;
+                var groupMember = group.Members.FirstOrDefault( m => m.PersonId == personId );
+                if ( groupMember == null )
+                {
+                    groupMember = new GroupMember
+                    {
+                        GroupId = group.Id,
+                        PersonId = personId,
+                        GroupMemberStatus = settings.GroupMemberStatus,
+                        GroupRoleId = settings.GroupTypeId == group.GroupTypeId && settings.GroupMemberRoleId.HasValue
+                            ? settings.GroupMemberRoleId.Value
+                            : group.GroupType.DefaultGroupRoleId ?? group.GroupType.Roles.Select( r => r.Id ).FirstOrDefault()
+                    };
+                    groupMemberService.Add( groupMember );
+                }
+                else
+                {
+                    groupMember.GroupMemberStatus = settings.GroupMemberStatus;
+                }
+
+                rockContext.SaveChanges();
+                registrant.GroupMemberId = groupMember.Id;
+                rockContext.SaveChanges();
+            }
+        }
+
+        /// <summary>
+        /// The group the instance's event linkage places registrants in. Rock's RegistrationEntry
+        /// finds it from the calendar link it was opened from; the cart has no such link, so it
+        /// uses the instance's first linkage that names a group (each camp has one).
+        /// </summary>
+        private int? LinkedGroupId( int registrationInstanceId )
+        {
+            return new EventItemOccurrenceGroupMapService( _rockContext ).Queryable()
+                .Where( m => m.RegistrationInstanceId == registrationInstanceId && m.GroupId.HasValue )
+                .OrderBy( m => m.Id )
+                .Select( m => m.GroupId )
+                .FirstOrDefault();
         }
 
         private const string PaidButNotRegisteredMessage = "Your payment was received but we could not finish creating the registrations. Please contact the office — do not pay again.";
@@ -613,6 +751,7 @@ namespace org.secc.RegistrationCart.Services
                     DiscountCode = string.Join( ",", priced.CodesFor( line.Id ) ).Truncate( 100 ),
                     DiscountAmount = priced.DiscountFor( line.Id ),
                     DiscountPercentage = 0m,
+                    GroupId = LinkedGroupId( instance.Id ),
                     IsTemporary = false
                 };
                 registrationService.Add( registration );
