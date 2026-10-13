@@ -14,6 +14,7 @@
 //
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Data.SqlClient;
 using System.Linq;
@@ -387,12 +388,14 @@ namespace org.secc.RegistrationCart.Services
         /// </summary>
         private bool TryClaim( int cartId )
         {
+            // Set Value explicitly: new SqlParameter( name, 0 ) binds the constant 0 to the
+            // SqlDbType overload, leaving the parameter typed but without a value.
             var rowsAffected = _rockContext.Database.ExecuteSqlCommand(
                 "UPDATE [_org_secc_RegistrationCart_Cart] SET [Status] = @Processing, [ModifiedDateTime] = @Now WHERE [Id] = @CartId AND [Status] = @Open",
-                new SqlParameter( "@Processing", ( int ) CartStatus.Processing ),
-                new SqlParameter( "@Now", RockDateTime.Now ),
-                new SqlParameter( "@CartId", cartId ),
-                new SqlParameter( "@Open", ( int ) CartStatus.Open ) );
+                new SqlParameter( "@Processing", SqlDbType.Int ) { Value = ( int ) CartStatus.Processing },
+                new SqlParameter( "@Now", SqlDbType.DateTime ) { Value = RockDateTime.Now },
+                new SqlParameter( "@CartId", SqlDbType.Int ) { Value = cartId },
+                new SqlParameter( "@Open", SqlDbType.Int ) { Value = ( int ) CartStatus.Open } );
 
             return rowsAffected == 1;
         }

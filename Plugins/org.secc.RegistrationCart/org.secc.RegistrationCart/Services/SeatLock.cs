@@ -62,8 +62,8 @@ namespace org.secc.RegistrationCart.Services
                     var resource = "org.secc.RegistrationCart.Seats." + instanceId;
                     var status = rockContext.Database.SqlQuery<int>(
                         "DECLARE @Status int; EXEC @Status = sp_getapplock @Resource = @Resource, @LockMode = 'Exclusive', @LockOwner = 'Session', @LockTimeout = @Timeout; SELECT @Status;",
-                        new SqlParameter( "@Resource", resource ),
-                        new SqlParameter( "@Timeout", TimeoutMilliseconds ) ).Single();
+                        new SqlParameter( "@Resource", System.Data.SqlDbType.NVarChar, 255 ) { Value = resource },
+                        new SqlParameter( "@Timeout", System.Data.SqlDbType.Int ) { Value = TimeoutMilliseconds } ).Single();
 
                     if ( status < 0 )
                     {
@@ -91,7 +91,7 @@ namespace org.secc.RegistrationCart.Services
                 {
                     _rockContext.Database.ExecuteSqlCommand( TransactionalBehavior.DoNotEnsureTransaction,
                         "EXEC sp_releaseapplock @Resource = @Resource, @LockOwner = 'Session';",
-                        new SqlParameter( "@Resource", resource ) );
+                        new SqlParameter( "@Resource", System.Data.SqlDbType.NVarChar, 255 ) { Value = resource } );
                 }
                 catch
                 {
