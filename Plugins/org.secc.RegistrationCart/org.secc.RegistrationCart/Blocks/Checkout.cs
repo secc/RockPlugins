@@ -82,11 +82,16 @@ namespace org.secc.RegistrationCart.Blocks
                 box.IsGatewayConfigured = true;
                 if ( gateway.GetGatewayComponent() is IObsidianHostedGatewayComponent hosted )
                 {
+                    // Rock-internal API (RK1000), but it is how Rock's own Obsidian
+                    // RegistrationEntry block renders the hosted payment control; there is no
+                    // public equivalent.
+#pragma warning disable RK1000
                     box.GatewayControl = new GatewayControlBag
                     {
                         FileUrl = hosted.GetObsidianControlFileUrl( gateway ),
                         Settings = hosted.GetObsidianControlSettings( gateway, null )
                     };
+#pragma warning restore RK1000
                 }
                 else
                 {

@@ -347,7 +347,7 @@ namespace org.secc.RegistrationCart.Migrations
             string route, string routeGuid, string blockTypeGuid, string blockName, string blockGuid )
         {
             RockMigrationHelper.AddPage( true, parentPageGuid, layoutGuid, name, description, pageGuid, icon );
-            RockMigrationHelper.AddPageRoute( pageGuid, route, routeGuid );
+            RockMigrationHelper.AddOrUpdatePageRoute( pageGuid, route, routeGuid );
             // Rock only matches a route for requests on the page's own site unless the route
             // is global. Make ours global so the pages resolve on any host name.
             Sql( $"UPDATE [PageRoute] SET [IsGlobal] = 1 WHERE [Guid] = '{routeGuid}'" );

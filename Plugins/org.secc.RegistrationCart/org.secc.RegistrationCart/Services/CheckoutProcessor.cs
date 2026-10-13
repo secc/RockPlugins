@@ -220,12 +220,15 @@ namespace org.secc.RegistrationCart.Services
             errorMessage = null;
 
             // Mirrors Rock's own RegistrationEntry block: Obsidian-hosted gateways want a
-            // customer vault record before a tokenized charge.
+            // customer vault record before a tokenized charge. CreateCustomerAccount is a
+            // Rock-internal API (RK1000) with no public equivalent.
             if ( gateway is IObsidianHostedGatewayComponent obsidianGateway )
             {
                 if ( paymentInfo.GatewayPersonIdentifier.IsNullOrWhiteSpace() )
                 {
+#pragma warning disable RK1000
                     var customerToken = obsidianGateway.CreateCustomerAccount( financialGateway, paymentInfo, out errorMessage );
+#pragma warning restore RK1000
                     if ( errorMessage.IsNotNullOrWhiteSpace() )
                     {
                         return null;
