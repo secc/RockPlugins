@@ -63,6 +63,7 @@ documenting* — they are starting points, not a completed security audit.
 |--------|------|--------------|
 | [Event](./org.secc.Event/README.md) | standard | Southeast's custom event/registration blocks — calendar Lava, a heavily-customized registration entry/detail pair, QR event passes, SignNow signing, camp-placement import, and the Community Gives Back program. |
 | [Equip](./org.secc.Equip/README.md) | standard | A self-contained learning-management system (LMS) for Rock — courses, chapters, multi-format lesson pages, quizzes, and per-person completion tracking with group/data-view requirements. |
+| [RegistrationCart](./org.secc.RegistrationCart/README.md) | standard | A multi-registrant cart over Rock registration templates/instances/fees — parents register several family members for several events and check out once; Obsidian blocks, plugin migration, cross-registration discount codes, batched gateway checkout. |
 
 ## Workflow & Automation
 

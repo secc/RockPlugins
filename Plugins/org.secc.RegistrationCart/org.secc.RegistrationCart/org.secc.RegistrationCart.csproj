@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <!-- Records and file-scoped namespaces in Domain/ need a modern compiler; the
+         net472 SDK default is C# 7.3. Domain/ files opt into #nullable themselves. -->
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RockWebPath Condition="'$(RockWebPath)' == '' And Exists('$(SolutionDir)RockWeb\Bin')">$(SolutionDir)RockWeb</RockWebPath>
+    <AdditionalAssembliesToCopy></AdditionalAssembliesToCopy>
+    <CopyToRockWeb>true</CopyToRockWeb>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SparkDevNetwork.Rock.Build.Tasks" Version="1.0.10" />
+    <PackageReference Include="SparkDevNetwork.Rock.Analyzers" Version="1.0.10" />
+    <PackageReference Include="RockRMS.Rock" Version="1.16.9-rc.1" />
+    <PackageReference Include="RockRMS.Rock.Blocks" Version="1.16.9-rc.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <!-- Provided by Rock at runtime (Rock's own DotLiquid fork, not on NuGet; Rock's
+         entity base class implements its interfaces). Private=false so we compile
+         against Rock's copy and never ship/overwrite it. -->
+    <Reference Include="DotLiquid">
+      <HintPath>$(RockWebPath)\Bin\DotLiquid.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- SparkDevNetwork.Rock.Build.Tasks' CopyAssemblyToRockWeb no-ops without a
+       rock-dev-tool environment.json, which this repo doesn't use, so copy the plugin
+       assembly (+ pdb) into RockWeb\Bin ourselves (same as org.secc.LinkList). -->
+  <Target Name="CopyPluginToRockWebBin" AfterTargets="Build" Condition="'$(RockWebPath)' != ''">
+    <ItemGroup>
+      <PluginOutput Include="$(TargetPath)" />
+      <PluginOutput Include="$(TargetDir)$(TargetName).pdb" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PluginOutput)" DestinationFolder="$(RockWebPath)\Bin" SkipUnchangedFiles="true" />
+    <Message Importance="high" Text="RegistrationCart: copied $(TargetFileName) to $(RockWebPath)\Bin" />
+  </Target>
+
+</Project>

@@ -1,0 +1,309 @@
+<template>
+    <div class="regcart">
+        <FieldGuide />
+
+        <div v-if="config.errorMessage" class="rc-notice">
+            <span>{{ config.errorMessage }}</span>
+        </div>
+
+        <template v-else-if="offering">
+            <header class="rc-header">
+                <div class="rc-header-text">
+                    <a v-if="navigation.catalogUrl" :href="navigation.catalogUrl" class="rc-back">
+                        <svg class="rc-ico" style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+                        All registrations
+                    </a>
+                    <h1>{{ offering.title }}</h1>
+                    <span class="rc-muted" v-if="offering.dateText || offering.offeringTypeText">{{ [offering.offeringTypeText, offering.dateText].filter(Boolean).join(" · ") }}</span>
+                </div>
+                <CartNav :navigation="navigation" />
+            </header>
+
+            <p v-if="offering.description" class="rc-lead" style="margin: -8px 0 24px;">{{ offering.description }}</p>
+
+            <SignInNotice v-if="!navigation.isSignedIn" :loginUrl="navigation.loginUrl" />
+
+            <div v-else class="rc-layout">
+                <div>
+                    <!-- 1. Who -->
+                    <section class="rc-step">
+                        <div class="rc-step-title"><span class="rc-step-num">1</span><h2>Who's going?</h2></div>
+                        <div class="rc-chips" role="radiogroup" aria-label="Choose a person">
+                            <button v-for="p in people"
+                                    :key="p.personAliasId"
+                                    type="button"
+                                    class="rc-chip"
+                                    :class="{ 'rc-chip-selected': p.personAliasId === selectedPersonAliasId }"
+                                    role="radio"
+                                    :aria-checked="p.personAliasId === selectedPersonAliasId"
+                                    @click="selectPerson(p.personAliasId)">
+                                <span class="rc-avatar">{{ initials(p.fullName) }}</span>
+                                <span class="rc-chip-text"><b>{{ p.fullName }}</b><span>{{ p.gradeText }}<template v-if="p.isInCart"> · in cart</template></span></span>
+                            </button>
+                            <button v-if="config.canAddFamilyMembers" type="button" class="rc-btn rc-dashed" @click="isAddPersonOpen = true">
+                                <svg class="rc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                                Add a child
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- 2. Option -->
+                    <section v-if="selectedPerson" class="rc-step">
+                        <div class="rc-step-title"><span class="rc-step-num">2</span><h2>Which option for {{ firstName(selectedPerson.fullName) }}?</h2></div>
+                        <p v-if="band === GradeBand.None" class="rc-muted">
+                            {{ selectedPerson.fullName }} doesn't have a grade on file, so no options can be shown. Please contact the office to update their record.
+                        </p>
+                        <p v-else-if="!eligibleVariants.length" class="rc-muted">
+                            Nothing here is open to {{ band === GradeBand.Adults ? "adults" : gradeBandText(band) + " students" }}.
+                        </p>
+                        <div v-else class="rc-options" role="radiogroup" aria-label="Choose an option">
+                            <label v-for="v in allVariants" :key="v.id" class="rc-option" :class="{ 'rc-option-selected': v.id === selectedVariantId, 'rc-option-disabled': !v.eligible || isFull(v) }">
+                                <input type="radio" name="regcart-variant" :value="v.id" :disabled="!v.eligible || isFull(v)" v-model="selectedVariantId" />
+                                <span class="rc-option-main">
+                                    <b>{{ v.name }}</b>
+                                    <span>{{ optionMeta(v) }}</span>
+                                </span>
+                                <span class="rc-option-price">{{ money(v.basePrice) }}</span>
+                            </label>
+                        </div>
+                    </section>
+
+                    <!-- 3. Extras -->
+                    <section v-if="selectedVariant" class="rc-step">
+                        <div class="rc-step-title"><span class="rc-step-num">3</span><h2>Extras</h2></div>
+                        <p v-if="!visibleGroups.length" class="rc-muted">No extras for this option.</p>
+                        <div v-else class="rc-addons">
+                            <div v-for="g in visibleGroups" :key="g.group.id" class="rc-addon-group">
+                                <div class="rc-eyebrow">{{ g.group.name }} · {{ groupRule(g.group) }}</div>
+                                <label v-for="item in g.items" :key="item.id" class="rc-addon-row">
+                                    <input v-if="g.group.selectionMode === SelectionMode.Single"
+                                           type="radio"
+                                           :name="`regcart-group-${g.group.id}`"
+                                           :checked="isSelected(g.group.id, item.id)"
+                                           @change="selectSingle(g.group.id, item.id)" />
+                                    <input v-else
+                                           type="checkbox"
+                                           :checked="isSelected(g.group.id, item.id)"
+                                           :disabled="g.group.isLocked"
+                                           @change="toggleMulti(g.group.id, item.id, ($event.target as HTMLInputElement).checked)" />
+                                    <span>{{ item.name }}</span>
+                                    <span v-if="item.price === 0" class="rc-addon-included">Included</span>
+                                    <span v-else class="rc-addon-price">+ {{ money(item.price) }}</span>
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Summary rail -->
+                <aside class="rc-rail" v-if="selectedPerson">
+                    <span class="rc-eyebrow">{{ possessive(firstName(selectedPerson.fullName)) }} registration</span>
+                    <template v-if="selectedVariant">
+                        <div style="display: flex; flex-direction: column; gap: 2px;">
+                            <b>{{ selectedVariant.name }}</b>
+                            <span v-if="selectedVariant.sessionText" class="rc-small rc-muted" style="display: inline-flex; gap: 6px; align-items: center;">
+                                <svg class="rc-ico" style="width: 13px; height: 13px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+                                {{ selectedVariant.sessionText }}
+                            </span>
+                        </div>
+                        <dl class="rc-totals">
+                            <div><dt>Registration</dt><dd>{{ money(selectedVariant.basePrice) }}</dd></div>
+                            <div v-for="item in chosenItems" :key="item.id"><dt class="rc-muted">{{ item.name }}</dt><dd>{{ item.price > 0 ? money(item.price) : "Included" }}</dd></div>
+                            <div class="rc-grand"><dt>Line total</dt><dd>{{ money(lineTotal) }}</dd></div>
+                        </dl>
+                        <p v-if="cartError" class="rc-error" role="alert">{{ cartError }}</p>
+                        <button type="button" class="rc-btn rc-btn-primary rc-btn-block" :disabled="!canAddToCart" @click="addToCart">
+                            {{ isAdding ? "Adding…" : "Add to cart" }}
+                        </button>
+                    </template>
+                    <p v-else class="rc-muted rc-small">Pick an option to see the price.</p>
+                    <p class="rc-muted rc-small" v-if="otherPeople.length">You can add {{ otherPeople.join(" and ") }} next, then pay for everyone at once.</p>
+                </aside>
+            </div>
+        </template>
+
+        <Modal v-model="isAddPersonOpen" title="Add a child to your family" saveText="Add" :isSaveButtonDisabled="isAddingPerson" @save="addFamilyMember">
+            <NotificationBox v-if="addPersonError" alertType="danger">{{ addPersonError }}</NotificationBox>
+            <p class="text-muted">This creates the person in our system and adds them to your family.</p>
+            <div class="row">
+                <div class="col-sm-6"><TextBox v-model="newFirstName" label="First name" rules="required" /></div>
+                <div class="col-sm-6"><TextBox v-model="newLastName" label="Last name" rules="required" /></div>
+            </div>
+            <DropDownList v-model="newGradeBand" label="Grade" :items="gradeBandOptions" :showBlankItem="false" />
+        </Modal>
+    </div>
+</template>
+
+<script setup lang="ts">
+    import { computed, ref, watch } from "vue";
+    import DropDownList from "@Obsidian/Controls/dropDownList.obs";
+    import Modal from "@Obsidian/Controls/modal.obs";
+    import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+    import TextBox from "@Obsidian/Controls/textBox.obs";
+    import { useConfigurationValues, useInvokeBlockAction } from "@Obsidian/Utility/block";
+    import FieldGuide from "../shared/fieldGuide.partial.obs";
+    import CartNav from "../shared/cartNav.partial.obs";
+    import SignInNotice from "../shared/signInNotice.partial.obs";
+    import { GradeBand, SelectionMode, gradeBandOptions, gradeBandText, goTo, initials, isEligible, money } from "../shared/registrationCart.partial";
+    import { AddOnGroupBag, AddOnItemBag, NavigationBag, OfferingDetailInitializationBox, RegistrantOptionBag, VariantBag } from "../viewModels";
+
+    const config = useConfigurationValues<OfferingDetailInitializationBox>();
+    const invokeBlockAction = useInvokeBlockAction();
+
+    const navigation = ref<NavigationBag>(config.navigation ?? { isSignedIn: false, cartItemCount: 0 });
+    const offering = computed(() => config.offering ?? null);
+    const people = ref<RegistrantOptionBag[]>(config.people ?? []);
+
+    const selectedPersonAliasId = ref<number | null>(people.value.length === 1 ? people.value[0].personAliasId : null);
+    const selectedVariantId = ref<number | null>(null);
+    const selections = ref<Record<number, number[]>>({});
+    const cartError = ref("");
+    const isAdding = ref(false);
+
+    const isAddPersonOpen = ref(false);
+    const isAddingPerson = ref(false);
+    const addPersonError = ref("");
+    const newFirstName = ref("");
+    const newLastName = ref("");
+    const newGradeBand = ref(String(GradeBand.Elementary));
+
+    const selectedPerson = computed(() => people.value.find(p => p.personAliasId === selectedPersonAliasId.value) ?? null);
+    const band = computed<number>(() => selectedPerson.value?.gradeBand ?? GradeBand.None);
+    const otherPeople = computed<string[]>(() => people.value.filter(p => p.personAliasId !== selectedPersonAliasId.value && !p.isInCart).map(p => firstName(p.fullName)).slice(0, 3));
+
+    type VariantRow = VariantBag & { eligible: boolean };
+    const allVariants = computed<VariantRow[]>(() => (offering.value?.variants ?? []).map(v => ({ ...v, eligible: isEligible(v.eligibleGradeBands, band.value) })));
+    const eligibleVariants = computed<VariantRow[]>(() => allVariants.value.filter(v => v.eligible));
+    const selectedVariant = computed<VariantBag | null>(() => eligibleVariants.value.find(v => v.id === selectedVariantId.value) ?? null);
+
+    type VisibleGroup = { group: AddOnGroupBag; items: AddOnItemBag[] };
+    const visibleGroups = computed<VisibleGroup[]>(() => {
+        if (!selectedVariant.value) return [];
+        return (offering.value?.addOnGroups ?? [])
+            .map(g => ({ group: g, items: (g.items ?? []).filter(i => isEligible(i.eligibleGradeBands, band.value)) }))
+            .filter(g => g.items.length > 0);
+    });
+
+    const chosenItems = computed<AddOnItemBag[]>(() => {
+        const chosen = new Set(Object.values(selections.value).flat());
+        return visibleGroups.value.flatMap(g => g.items).filter(i => chosen.has(i.id));
+    });
+
+    const lineTotal = computed<number>(() => (selectedVariant.value?.basePrice ?? 0) + chosenItems.value.reduce((sum, i) => sum + i.price, 0));
+
+    const canAddToCart = computed<boolean>(() => {
+        if (!selectedVariant.value || !selectedPerson.value || isAdding.value) return false;
+        return visibleGroups.value.filter(g => g.group.isRequired).every(g => (selections.value[g.group.id] ?? []).length > 0);
+    });
+
+    function firstName(full: string | null | undefined): string {
+        return (full ?? "").split(" ")[0] || "them";
+    }
+
+    function possessive(name: string): string {
+        return name.endsWith("s") ? `${name}'` : `${name}'s`;
+    }
+
+    function isFull(v: VariantBag): boolean {
+        return v.spotsRemaining !== null && v.spotsRemaining !== undefined && v.spotsRemaining <= 0;
+    }
+
+    function optionMeta(v: VariantRow): string {
+        const parts: string[] = [];
+        if (v.sessionText) parts.push(v.sessionText);
+        if (!v.eligible) parts.push(`Not for ${firstName(selectedPerson.value?.fullName)}`);
+        else if (isFull(v)) parts.push("Full");
+        if (v.campusName) parts.push(v.campusName);
+        if (v.eligible && !isFull(v) && v.deadlineText) parts.push(v.deadlineText);
+        if (v.eligible && !isFull(v) && v.spotsRemaining !== null && v.spotsRemaining !== undefined && v.spotsRemaining <= 5) parts.push(`${v.spotsRemaining} spot${v.spotsRemaining === 1 ? "" : "s"} left`);
+        return parts.join(" · ");
+    }
+
+    function groupRule(g: AddOnGroupBag): string {
+        if (g.isLocked) return "included with every registration";
+        return `${g.isRequired ? "required" : "optional"} · ${g.selectionMode === SelectionMode.Single ? "choose one" : "choose any"}`;
+    }
+
+    function selectPerson(personAliasId: number): void {
+        selectedPersonAliasId.value = personAliasId;
+        selectedVariantId.value = null;
+        selections.value = {};
+        cartError.value = "";
+    }
+
+    watch(selectedVariantId, () => {
+        const next: Record<number, number[]> = {};
+        for (const g of visibleGroups.value) {
+            if (g.group.isLocked && g.items.length) next[g.group.id] = g.items.map(i => i.id);
+            else if (g.group.isRequired && g.group.selectionMode === SelectionMode.Single && g.items.length) next[g.group.id] = [g.items[0].id];
+        }
+        selections.value = next;
+        cartError.value = "";
+    });
+
+    function isSelected(groupId: number, itemId: number): boolean {
+        return (selections.value[groupId] ?? []).includes(itemId);
+    }
+
+    function selectSingle(groupId: number, itemId: number): void {
+        selections.value = { ...selections.value, [groupId]: [itemId] };
+    }
+
+    function toggleMulti(groupId: number, itemId: number, on: boolean): void {
+        const current = selections.value[groupId] ?? [];
+        const next = on ? [...current.filter(id => id !== itemId), itemId] : current.filter(id => id !== itemId);
+        selections.value = { ...selections.value, [groupId]: next };
+    }
+
+    async function addToCart(): Promise<void> {
+        if (!selectedPerson.value || !selectedVariant.value) return;
+        isAdding.value = true;
+        cartError.value = "";
+        try {
+            const result = await invokeBlockAction<NavigationBag>("AddToCart", {
+                request: {
+                    personAliasId: selectedPerson.value.personAliasId,
+                    registrationInstanceId: selectedVariant.value.id,
+                    feeItemIds: Object.values(selections.value).flat()
+                }
+            });
+            if (result.isSuccess && result.data) {
+                navigation.value = result.data;
+                if (result.data.cartUrl) { goTo(result.data.cartUrl); return; }
+            }
+            else {
+                cartError.value = result.errorMessage || "That item could not be added.";
+            }
+        }
+        finally {
+            isAdding.value = false;
+        }
+    }
+
+    async function addFamilyMember(): Promise<void> {
+        addPersonError.value = "";
+        if (!newFirstName.value.trim() || !newLastName.value.trim()) {
+            addPersonError.value = "First and last name are required.";
+            return;
+        }
+        isAddingPerson.value = true;
+        try {
+            const result = await invokeBlockAction<{ people: RegistrantOptionBag[]; newPersonAliasId: number | null }>("AddFamilyMember", {
+                request: { firstName: newFirstName.value, lastName: newLastName.value, gradeBand: parseInt(newGradeBand.value, 10) }
+            });
+            if (result.isSuccess && result.data) {
+                people.value = result.data.people ?? [];
+                if (result.data.newPersonAliasId) selectPerson(result.data.newPersonAliasId);
+                newFirstName.value = "";
+                newLastName.value = "";
+                isAddPersonOpen.value = false;
+            }
+            else {
+                addPersonError.value = result.errorMessage || "The person could not be added.";
+            }
+        }
+        finally {
+            isAddingPerson.value = false;
+        }
+    }
+</script>

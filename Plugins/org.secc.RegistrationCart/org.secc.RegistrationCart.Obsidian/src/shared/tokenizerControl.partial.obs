@@ -1,0 +1,85 @@
+<template>
+    <div>
+        <p v-if="!ready && !errorMessage" class="rc-muted rc-small">Loading secure payment form…</p>
+        <NotificationBox v-if="errorMessage" alertType="danger">{{ errorMessage }}</NotificationBox>
+        <div :id="containerId" v-show="ready"></div>
+    </div>
+</template>
+
+<script setup lang="ts">
+    // Fallback payment form for gateways that do not expose a Rock-hosted (Obsidian)
+    // payment control: loads the gotnpgateway/My Well Tokenizer iframe directly.
+    // Card data never touches Rock; only the resulting single-use token does.
+    import { onMounted, onBeforeUnmount, PropType, ref } from "vue";
+    import NotificationBox from "@Obsidian/Controls/notificationBox.obs";
+    import { loadJavaScriptAsync } from "@Obsidian/Utility/page";
+    import { newGuid } from "@Obsidian/Utility/guid";
+    import { TokenizerSettingsBag } from "../viewModels";
+
+    type TokenizerResponse = { status?: string; token?: string; message?: string };
+    type TokenizerInstance = { submit: () => void };
+    type TokenizerCtor = new (options: Record<string, unknown>) => TokenizerInstance;
+
+    const props = defineProps({
+        settings: {
+            type: Object as PropType<TokenizerSettingsBag>,
+            required: true
+        }
+    });
+
+    const emit = defineEmits<{
+        (e: "success", token: string): void;
+        (e: "error", message: string): void;
+    }>();
+
+    const containerId = `regcart-tokenizer-${newGuid()}`;
+    const ready = ref(false);
+    const errorMessage = ref("");
+    let tokenizer: TokenizerInstance | null = null;
+    let armed = false;
+
+    onMounted(async () => {
+        const scriptUrl = props.settings.scriptUrl ?? "";
+        const loaded = await loadJavaScriptAsync(scriptUrl, () => typeof (window as unknown as Record<string, unknown>)["Tokenizer"] === "function");
+        const ctor = (window as unknown as Record<string, unknown>)["Tokenizer"] as TokenizerCtor | undefined;
+        if (!loaded || !ctor) {
+            errorMessage.value = "The payment form could not be loaded. Please try again later.";
+            return;
+        }
+
+        tokenizer = new ctor({
+            url: props.settings.gatewayUrl,
+            apikey: props.settings.publicKey,
+            container: `#${containerId}`,
+            submission: (resp: TokenizerResponse) => {
+                if (!armed) {
+                    return;
+                }
+                armed = false;
+                if (resp.status === "success" && resp.token) {
+                    emit("success", resp.token);
+                }
+                else {
+                    emit("error", resp.message || "Payment was not completed. Please check the card details and try again.");
+                }
+            }
+        });
+        ready.value = true;
+    });
+
+    onBeforeUnmount(() => {
+        tokenizer = null;
+    });
+
+    /** Called by the parent when the shopper clicks Pay. */
+    function submit(): void {
+        if (!tokenizer) {
+            emit("error", "The payment form is not ready yet. Please wait a moment and try again.");
+            return;
+        }
+        armed = true;
+        tokenizer.submit();
+    }
+
+    defineExpose({ submit });
+</script>
