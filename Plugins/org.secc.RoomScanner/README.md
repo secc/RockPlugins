@@ -111,7 +111,7 @@ Plain serialization types returned by / posted to the controller — not EF enti
   as no limit (core check-in manager semantics; previously null meant full) and counts the batch being
   moved against the threshold (`occupancy + moving > threshold`, excluding batch rows already in the room).
 - **Behaviour (2026-10-03):** person History `RelatedData` written by the scanner records the client
-  IP address; the synchronous reverse DNS lookup on every history write was removed.
+  IP address.
 - **Improvement:** `CategoryCache.Get( 4 )` and `CategoryId == 4` are **hard-coded integer ids** for
   the person-history category (in `DataHelper` and `RoomReport`). A Guid lookup would survive a
   reseed/import. There are also **OAuth copy-paste leftovers** in the **Configuration** block — its

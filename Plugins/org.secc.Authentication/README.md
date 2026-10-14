@@ -85,7 +85,7 @@ Category in Rock: **SECC > Security**. Three panels (phone → code → resolve)
 
 - **Rock:** `AuthenticationComponent`, `UserLogin`/`UserLoginService`, `PhoneNumberService`, `RockSMSMessage`/`RockSMSMessageRecipient`, `Authorization.SetAuthCookie`, `DefinedValueCache`/`EntityTypeCache`, `ExceptionLogService`, `RockBlock`.
 - **Third-party:** `BCrypt.Net` (OTP hashing); the OTP text rides Rock's configured SMS transport (Twilio etc.).
-- **Cross-plugin:** none required. Related: [org.secc.OAuth](../org.secc.OAuth/README.md) explicitly permits this provider in its resource-owner grant.
+- **Cross-plugin:** none required. Related: org.secc.OAuth's resource-owner grant accepts this provider.
 
 ## Edge Cases & Constraints
 
@@ -126,4 +126,4 @@ No registration step is needed for the component — MEF discovers `[Export(type
 - Code lifecycle, rate limiting, age/owner rules, and the SMS body live in `SMSAuthentication.cs`.
 - Login screen, panel flow, and the Enter/auto-submit JS live in `org_secc/Authentication/SMSLogin.ascx(.cs)`.
 - The **From** number, **Message**, **BCrypt Cost Factor**, and **Minimum Age** are component attributes (Admin Tools > Security > Authentication Services), not block settings.
-- This provider is allowed by [org.secc.OAuth](../org.secc.OAuth/README.md)'s resource-owner grant — coordinate changes to the `Rock.Security.ExternalAuthentication.SMSAuthentication` type name with that plugin.
+- org.secc.OAuth's resource-owner grant accepts this provider by type name (`Startup.cs`) — coordinate changes to the `Rock.Security.ExternalAuthentication.SMSAuthentication` type name with that plugin.

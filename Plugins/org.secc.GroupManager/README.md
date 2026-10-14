@@ -60,9 +60,8 @@ type:
   sees only members whose value is also blank.
 - Keys are case-sensitive and must name a GroupMember attribute on the group.
 
-Check `FilterAttribute` values before changing them. In production
-(2026-10-14), `FilterGroupType` is type 178 "Filtered Group Parent", and its children 176
-(`TableLeader`) and 375 (`TableNumber`) are the only filtered types.
+In production (2026-10-14), `FilterGroupType` is type 178 "Filtered Group Parent", and its
+children 176 (`TableLeader`) and 375 (`TableNumber`) are the only filtered types.
 
 ### Blocks
 

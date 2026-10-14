@@ -74,16 +74,16 @@ Both are `ActionComponent`s exported via MEF (`[Export(typeof(ActionComponent))]
 *Noticed while documenting — not a full audit.*
 
 - **Temp-file handling (ROCK-9041):** `SignNow Download` has `Document.Download` write the signed PDF into
-  a new directory unique to each call (`Path.GetTempPath()` + `Path.GetRandomFileName()`). It checks the SDK result for the saved `file` path (a SignNow
-  error adds an error message instead of throwing), reads the bytes into memory, and deletes the directory
-  in a `finally` before any database work; a failed delete is logged, not thrown. The bytes go to
-  `signedPDF.ContentStream` as a `MemoryStream` and `SaveChanges()` runs in both the new-`BinaryFile` and
-  existing-`BinaryFile` branches. New files use the file type named by the attribute's `binaryFileType`
-  qualifier and fall back to the Default file type only when the qualifier is blank (otherwise Rock
-  silently drops the content); a qualifier that names a missing file type is an error, not a fallback. The destination
-  attribute and file type are resolved before the download, so a misconfigured action fails without
-  calling SignNow. The stored file name gets a `.pdf` extension, and the `%PDF-` header is accepted
-  anywhere in the first 1024 bytes.
+  a new directory unique to each call (`Path.GetTempPath()` + `Path.GetRandomFileName()`). It checks the
+  SDK result for the saved `file` path (a SignNow error adds an error message instead of throwing), reads
+  the bytes into memory, and deletes the directory in a `finally` before any database work; a failed
+  delete is logged, not thrown. The bytes go to `signedPDF.ContentStream` as a `MemoryStream` and
+  `SaveChanges()` runs in both the new-`BinaryFile` and existing-`BinaryFile` branches. New files use the
+  file type named by the attribute's `binaryFileType` qualifier and fall back to the Default file type
+  only when the qualifier is blank (otherwise Rock silently drops the content); a qualifier that names a
+  missing file type is an error, not a fallback. The destination attribute and file type are resolved
+  before the download, so a misconfigured action fails without calling SignNow. The stored file name gets
+  a `.pdf` extension, and the `%PDF-` header is accepted anywhere in the first 1024 bytes.
   `SignNow Create` also removes its upload temp directory in a `finally`, including on error returns.
 - **SDK error handling:** SignNowSDK uses RestSharp 105, which never throws on transport failures. The SDK
   then returns `null`, or the raw error body (object, array, or non-JSON), instead of the expected object.
