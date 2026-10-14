@@ -26,7 +26,8 @@ pre-registration, mobile start). Used by check-in staff and parents at kiosks an
 ```
 /Model/          Kiosk, CheckinKioskType, MobileCheckinRecord entities + services (EF, custom tables)
 /Data/           FamilyCheckinContext — plugin EF DbContext (NullDatabaseInitializer; uses RockContext db)
-/Cache/          CheckinCache<T> + KioskType/MobileCheckinRecord/Attendance/Occurrence caches
+/Cache/          CheckinCache<T> + KioskType/MobileCheckinRecord/Attendance/Occurrence caches;
+                 CheckinKeyList maintains each cache type's key list
 /Workflows/      ~25 custom CheckInActionComponent actions (load, filter, save, reserve, labels)
 /Rest/           FamilyCheckinController + session-enabled route/controller handlers
 /Jobs/           Quartz IJob — expire mobile reservations, reset disabled group-location-schedules
@@ -216,9 +217,40 @@ attributes (don't hand-edit ones that have already run):
 - Kiosk/KioskType/MobileCheckinRecord shape changes go in `Model/` plus a new numbered migration
   under `/Migrations/`; the cache wrappers in `Cache/` must be kept in sync (see the desync checks
   in `MobileCheckinRecordCache`).
+- **Cache key lists (ROCK-8772):** each `CheckinCache<T>` type keeps a list of its cached keys
+  (`AllKeys`), maintained by `Cache/CheckinKeyList.cs`. The published list is a read-only snapshot:
+  every change builds and publishes a new list, so callers can enumerate `AllKeys(...)` without
+  copying or locking it, and must never cast it back to a mutable list. A null list means "not
+  loaded"; an empty list is a valid cached result. The key factory (a DB query) runs outside the
+  update lock and is throttled to one reload per 10 seconds (monotonic clock); changes made while it
+  runs are replayed onto its result. `CheckinCacheConsumer` ignores messages from its own node and
+  applies other nodes' adds/removes through `CheckinCache<T>.ApplyRemoteKeyChange` rather than
+  dropping the list. Unit tests: `../org.secc.FamilyCheckin.Tests` (build with MSBuild, passing
+  `/p:SolutionDir=` your Rock checkout, then `dotnet test` the output DLL).
+- **Cache loads never overwrite newer writes (ROCK-8818):** a load reads from the DB and then
+  caches what it read. `Cache/CheckinWriteGuard.cs` makes sure that copy is dropped if a live
+  update (`AddOrUpdate`, `Remove`, `Clear`, or a message from another node via
+  `CheckinCacheConsumer`) changed the same key after the load began. Every cache write goes
+  through the guard: live writes call `RecordWrite`/`RecordClear`, and loads call
+  `BeginLoad` → `AddLoaded` → `EndLoad`, taking the stamp **before** the query. Keep the cache
+  writes in-memory only, because they run under the guard's lock.
+- **AttendanceCache bulk load (ROCK-8818):** `AttendanceCache.All()` loads cache misses in bulk
+  instead of one query per key. When at least half the keys are missing (a cold cache), it runs
+  one query over today's attendance. Otherwise it queries the missing ids in chunks of 500. The
+  occurrence lookup (`OccurrenceCache.CreateLookup()`) is built before the attendance query. Only
+  one bulk load runs at a time (`Cache/SingleFlight.cs`): callers that arrive mid-load share its
+  result, or its exception, and do not queue to repeat it. Keys with no matching attendance, and
+  keys that aren't exactly `AttendanceCache:<id>`, are removed from the key list after the load.
+  When every key is cached (the warm path, e.g. CheckinMonitor's per-room calls every 10 s), `All()`
+  returns a list sized to the key count, which stays off the Large Object Heap up to ~10,600 keys.
+  A local integration harness (fixture SQL + a localhost-only `.ashx`) lives in
+  `../org.secc.FamilyCheckin.Tests/Harness/`; see its README. Never deploy it to a shared server.
+- **Attendance with no person:** an attendance with no `PersonAlias` is cached as `PersonId` 0 /
+  "Unnamed Person". It counts toward `OccurrenceCache.IsFull`, matching the DB row count. It is
+  excluded from RoomScanner's volunteer count, because it can't count as a known adult in the room.
 - Kiosk-facing UI lives in `org_secc/FamilyCheckin/*.ascx[.cs]`; visual theming lives under
   `/Themes/`.
 - Related: scannable codes come from [org.secc.QRManager](../org.secc.QRManager/README.md);
   shared helpers from [org.secc.DevLib](../org.secc.DevLib/README.md).
 
-**Last updated:** 2026-08-23
+**Last updated:** 2026-10-12

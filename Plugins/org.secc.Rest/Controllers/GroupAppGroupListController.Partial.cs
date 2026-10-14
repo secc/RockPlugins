@@ -123,7 +123,7 @@ namespace org.secc.Rest.Controllers
                     && gm.IsArchived == false
                     && gm.GroupMemberStatus == GroupMemberStatus.Active );
 
-            if ( isGroupMember || !group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
+            if ( isGroupMember || group.IsAuthorized( Rock.Security.Authorization.VIEW, currentUser.Person ) )
             {
 
 
@@ -135,7 +135,7 @@ namespace org.secc.Rest.Controllers
                         group.TypeId,
                         group.IsActive,
                         group.IsArchived,
-                        NextSchedule = group.Schedule.GetNextStartDateTime( RockDateTime.Today )
+                        NextSchedule = group.Schedule?.GetNextStartDateTime( RockDateTime.Today )
                     }
                     );
                 }

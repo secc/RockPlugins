@@ -85,6 +85,9 @@
     <Compile Include="Helpers\Trak1Request.cs" />
     <Compile Include="Helpers\Trak1RequiredField.cs" />
     <Compile Include="Helpers\Trak1Response.cs" />
+    <Compile Include="Helpers\Trak1Client.cs" />
+    <Compile Include="Helpers\Trak1Exception.cs" />
+    <Compile Include="Helpers\Trak1StatusUpdate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Workflow\Trak1Status.cs" />
   </ItemGroup>

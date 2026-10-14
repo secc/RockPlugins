@@ -4,7 +4,6 @@ using Rock.Bus;
 using Rock.Bus.Consumer;
 using Rock.Bus.Queue;
 using Rock.Logging;
-using Rock.Web.Cache;
 
 namespace org.secc.FamilyCheckin.Cache
 {
@@ -16,6 +15,12 @@ namespace org.secc.FamilyCheckin.Cache
         public override void Consume( CheckinCacheMessage message )
         {
             if ( message == null )
+            {
+                return;
+            }
+
+            // The sending node already updated its own items and key list before publishing.
+            if ( RockMessageBus.IsFromSelf( message ) )
             {
                 return;
             }
@@ -48,9 +53,8 @@ namespace org.secc.FamilyCheckin.Cache
         /// </summary>
         private void ProcessCacheMessage<T>( CheckinCacheMessage message )
         {
-            // Constants for the AllKeys list, matching CheckinCache<T>
-            string allKeysListCacheKey = $"{typeof( T ).Name}:All";
-            string allKeysListCacheRegion = "AllItems"; // This is the 'AllRegion' constant from CheckinCache<T>
+            // Key list changes go through CheckinCache<T> so they take its lock and publish a new snapshot.
+            // Removing the list instead would race with a local update that is copying the old list.
 
             // If we have additional data, this is an update
             if ( !string.IsNullOrEmpty( message.AdditionalData ) )
@@ -60,17 +64,9 @@ namespace org.secc.FamilyCheckin.Cache
                     var item = JsonConvert.DeserializeObject<T>( message.AdditionalData );
                     if ( item != null )
                     {
-                        if ( message.Region != null )
-                        {
-                            RockCache.AddOrUpdate( message.Key, message.Region, item );
-                        }
-                        else
-                        {
-                            RockCache.AddOrUpdate( message.Key, item );
-                        }
-
-                        // Invalidate the AllKeys list as an item was added/updated
-                        RockCache.Remove( allKeysListCacheKey, allKeysListCacheRegion );
+                        // Recorded through CheckinCache<T> so a load that read before this update cannot overwrite it.
+                        CheckinCache<T>.ApplyRemoteItem( message.Key, message.Region, item );
+                        CheckinCache<T>.ApplyRemoteKeyChange( message.Key, null );
 
                         RockLogger.Log.Debug( RockLogDomains.Bus,
                             $"Updated cache for key {message.Key}. Server: {RockMessageBus.NodeName}. AdditionalData: {message.AdditionalData}" );
@@ -81,31 +77,16 @@ namespace org.secc.FamilyCheckin.Cache
                     RockLogger.Log.Error( RockLogDomains.Bus,
                         $"Error deserializing cache update message for key {message.Key}. {ex.Message} Server: {RockMessageBus.NodeName}." );
 
-                    if ( message.Region != null )
-                    {
-                        RockCache.Remove( message.Key, message.Region );
-                    }
-                    else
-                    {
-                        RockCache.Remove( message.Key );
-                    }
-                    // invalidate AllKeys on error
-                    RockCache.Remove( allKeysListCacheKey, allKeysListCacheRegion );
+                    CheckinCache<T>.ApplyRemoteRemove( message.Key, message.Region );
+                    // The item still exists on the sending node; the next Get reloads it locally.
+                    CheckinCache<T>.ApplyRemoteKeyChange( message.Key, null );
                 }
             }
             else if ( message.Key != null )
             {
                 // This is a remove for a specific key
-                if ( message.Region != null )
-                {
-                    RockCache.Remove( message.Key, message.Region );
-                }
-                else
-                {
-                    RockCache.Remove( message.Key );
-                }
-                // Invalidate the AllKeys list as an item was removed
-                RockCache.Remove( allKeysListCacheKey, allKeysListCacheRegion );
+                CheckinCache<T>.ApplyRemoteRemove( message.Key, message.Region );
+                CheckinCache<T>.ApplyRemoteKeyChange( null, message.Key );
 
                 RockLogger.Log.Debug( RockLogDomains.Bus, $"Removed cache for key {message.Key}" );
             }
@@ -113,9 +94,7 @@ namespace org.secc.FamilyCheckin.Cache
             {
                 // This is a clear all for this cache type
                 string typeName = typeof( T ).Name;
-                RockCache.ClearCachedItemsForType( typeof( T ) );
-                // Clear/invalidate the AllKeys list specifically
-                RockCache.Remove( allKeysListCacheKey, allKeysListCacheRegion );
+                CheckinCache<T>.ApplyRemoteClear();
                 RockLogger.Log.Debug( RockLogDomains.Bus, $"Cleared all cache for type {typeName}" );
             }
         }

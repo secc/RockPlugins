@@ -47,6 +47,25 @@ user preference), the current group member, and an optional member-attribute fil
 access. Block settings: **Home Page** (redirect target), **GroupType** (restrict to one type),
 **Leaders Only** (leaders-only access).
 
+**Member filter.** The filter turns on only when the current group's type inherits directly
+(`InheritedGroupTypeId`) from the group type named by the `FilterGroupType` **global** attribute.
+The member-attribute key comes from the `FilterAttribute` **group-type** attribute on that group
+type:
+
+- The value is a comma-separated list of GroupMember attribute keys. Keys are trimmed and blank
+  entries dropped; a null or blank value means no filter.
+- Only the **first** key is used. In `Grade,Campus`, members are filtered by `Grade` and `Campus`
+  is ignored.
+- Leaders see only members whose value for that key equals their own. A leader with a blank value
+  sees only members whose value is also blank.
+- Keys are case-sensitive. A key that isn't a GroupMember attribute on the group returns null for
+  everyone, so the filter matches the whole group without any error.
+
+Before ROCK-8828, comma lists and keys with stray spaces never matched, which silently left the
+filter off. They now filter, so check `FilterAttribute` values before changing them. In production
+(2026-10-14), `FilterGroupType` is type 178 "Filtered Group Parent", and its children 176
+(`TableLeader`) and 375 (`TableNumber`) are the only filtered types.
+
 ### Blocks
 
 Categories in Rock: **SECC > Groups**, **SECC > Camp**, and **Groups**.
@@ -144,4 +163,4 @@ Ships Rock plugin migrations under `/Migrations/` that build up the `PublishGrou
 - The Camp Allergies stored procedure is defined inline in `011_AddCampAllergyReportProc`; change
   it with a new migration rather than editing the proc in the database directly.
 
-**Last updated:** 2026-09-14
+**Last updated:** 2026-10-14

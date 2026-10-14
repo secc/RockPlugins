@@ -103,6 +103,7 @@
     <Compile Include="Migrations\003_ImageGeneratorCleanup.cs" />
     <Compile Include="Migrations\002_ImageGeneratorDefinedTypeResponseHeaders.cs" />
     <Compile Include="Migrations\001_ImageGeneratorDefinedType.cs" />
+    <Compile Include="Migrations\004_RemoveUpdatePersonImageBlock.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rest\ImagingController.Partial.cs" />
   </ItemGroup>

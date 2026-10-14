@@ -151,8 +151,9 @@ namespace org.secc.Imaging.AI
 
             var roll = ( float ) Math.Round( detectedFace.FaceAttributes.HeadPose.Roll, 2 );
 
-            // Dispose the rotated source and the target too; UpdatePersonImage runs this for every row of a
-            // query, and two undisposed full-size bitmaps per photo exhaust GDI+ before the GC catches up.
+            // Dispose the rotated source and the target too; UpdatePersonImageFromRegistration runs this for
+            // every matching registrant, and two undisposed full-size bitmaps per photo exhaust GDI+ before
+            // the GC catches up.
             using ( var src = Image.FromStream( imageStream ) as Bitmap )
             using ( Bitmap rotatedSrc = RotateImage( src, -roll ) )
             using ( Bitmap target = new Bitmap( 500, 500 ) )

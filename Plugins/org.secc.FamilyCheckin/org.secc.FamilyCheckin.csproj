@@ -121,10 +121,13 @@
     <Compile Include="Cache\CheckinCache.cs" />
     <Compile Include="Cache\CheckinCacheConsumer.cs" />
     <Compile Include="Cache\CheckinCacheMessage.cs" />
+    <Compile Include="Cache\CheckinKeyList.cs" />
+    <Compile Include="Cache\CheckinWriteGuard.cs" />
     <Compile Include="Cache\CheckinKioskTypeCache.cs" />
     <Compile Include="Cache\MobileCheckinRecordCache.cs" />
     <Compile Include="Cache\AttendanceCache.cs" />
     <Compile Include="Cache\OccurrenceCache.cs" />
+    <Compile Include="Cache\SingleFlight.cs" />
     <Compile Include="Data\FamilyCheckinContext.cs" />
     <Compile Include="Data\FamilyCheckinService.cs" />
     <Compile Include="Exceptions\CheckInStateLost.cs" />

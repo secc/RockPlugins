@@ -19,9 +19,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
-using Newtonsoft.Json;
 using org.secc.Trak1.Helpers;
 using Rock;
 using Rock.Attribute;
@@ -49,7 +46,6 @@ namespace org.secc.Trak1.BackgroundCheck
     [UrlLinkField( "Report URL", "URL to get report of requests.", true, "https://stgapi.trak-1.com/Trak1.WebServices/Integration/GetReportUrl", "", 6 )]
     public class Trak1 : BackgroundCheckComponent
     {
-
         private Person GetCurrentPerson()
         {
             using ( var rockContext = new RockContext() )
@@ -110,7 +106,6 @@ namespace org.secc.Trak1.BackgroundCheck
                             .Where( p => p.Guid.Equals( personAliasGuid.Value ) )
                             .Select( p => p.Person )
                             .FirstOrDefault();
-                        person.LoadAttributes( rockContext );
                     }
                 }
 
@@ -120,14 +115,27 @@ namespace org.secc.Trak1.BackgroundCheck
                     return false;
                 }
 
+                if ( requestTypeAttribute == null )
+                {
+                    errorMessages.Add( "Trak-1 background check provider requires a 'Request Type' attribute that contains the package to run." );
+                    return false;
+                }
+
                 //Get required fields from workflow
-                var packageList = GetPackageList();
                 var packageName = workflow.GetAttributeValue( requestTypeAttribute.Key );
                 // If this is a defined value, fetch the value
-                if ( requestTypeAttribute.FieldType.Guid.ToString().ToUpper() == Rock.SystemGuid.FieldType.DEFINED_VALUE )
+                if ( !string.IsNullOrWhiteSpace( packageName ) && requestTypeAttribute.FieldType.Guid.ToString().ToUpper() == Rock.SystemGuid.FieldType.DEFINED_VALUE )
                 {
-                    packageName = DefinedValueCache.Get( packageName ).Value;
+                    var packageDefinedValue = DefinedValueCache.Get( packageName.AsGuid() );
+                    packageName = packageDefinedValue != null ? packageDefinedValue.Value : null;
                 }
+                if ( string.IsNullOrWhiteSpace( packageName ) )
+                {
+                    errorMessages.Add( "The workflow's 'Request Type' attribute does not contain a valid Trak-1 package." );
+                    return false;
+                }
+
+                var packageList = GetPackageList();
                 var package = packageList.Where( p => p.PackageName == packageName ).FirstOrDefault();
                 if ( package == null )
                 {
@@ -212,22 +220,8 @@ namespace org.secc.Trak1.BackgroundCheck
                 };
 
 
-                var content = JsonConvert.SerializeObject( request );
-
-                Trak1Response response = null;
-
-                using ( var client = new HttpClient( new HttpClientHandler() ) )
-                {
-                    client.BaseAddress = new Uri( GetAttributeValue( "RequestURL" ) );
-                    var clientResponse = client.PostAsync( "", new StringContent( content, Encoding.UTF8, "application/json" ) ).Result.Content.ReadAsStringAsync().Result;
-                    response = JsonConvert.DeserializeObject<Trak1Response>( clientResponse );
-                }
-
-                if ( !string.IsNullOrWhiteSpace( response.Error?.Message ) )
-                {
-                    errorMessages.Add( response.Error.Message );
-                    return false;
-                }
+                // Throws a Trak1Exception on an HTTP error, a vendor error or a missing transaction id
+                var response = Trak1Client.Default.RunPackage( GetAttributeValue( "RequestURL" ), request );
 
                 var transactionId = response.TransactionId;
 
@@ -263,10 +257,20 @@ namespace org.secc.Trak1.BackgroundCheck
                 return true;
             }
 
+            catch ( Trak1Exception ex )
+            {
+                // An error Trak-1 reported itself is only shown on the workflow, as before
+                if ( ex.VendorMessage == null )
+                {
+                    ExceptionLogService.LogException( ex, null );
+                }
+                errorMessages.Add( ex.Message );
+                return false;
+            }
             catch ( Exception ex )
             {
                 ExceptionLogService.LogException( ex, null );
-                errorMessages.Add( ex.Message );
+                errorMessages.Add( ex.GetBaseException().Message );
                 return false;
             }
         }
@@ -277,16 +281,8 @@ namespace org.secc.Trak1.BackgroundCheck
             var subscriberCode = Encryption.DecryptString( GetAttributeValue( "SubscriberCode" ) );
             var companyCode = Encryption.DecryptString( GetAttributeValue( "CompanyCode" ) );
 
-            List<Trak1Package> packages = null;
-
-            using ( var client = new HttpClient( new HttpClientHandler() ) )
-            {
-                var url = string.Format( "{0}/{1}/{2}", packageUrl, subscriberCode, companyCode );
-                client.BaseAddress = new Uri( url );
-                var clientResponse = client.GetAsync( "" ).Result.Content.ReadAsStringAsync().Result;
-                packages = JsonConvert.DeserializeObject<List<Trak1Package>>( clientResponse );
-            }
-            return packages;
+            var url = string.Format( "{0}/{1}/{2}", packageUrl, subscriberCode, companyCode );
+            return Trak1Client.Default.GetPackages( url );
         }
 
         public override string GetReportUrl( string reportKey )

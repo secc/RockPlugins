@@ -72,9 +72,11 @@ time and throws (failing the job) on a non-200 response or accumulated warnings.
 Both jobs resolve a ServiceReef participant/payer to a Rock `Person` in tiered fashion: (1) look up
 the ServiceReef member's `ArenaId` against `PersonAlias.AliasPersonId`; (2) (`ImportTrips` only)
 match on the **ServiceReef UserId** person attribute; (3) fall back to `PersonService.GetByMatch`
-(via [org.secc.PersonMatch](../org.secc.PersonMatch/README.md)); (4) create a new person + home
-location if no match. When multiple matches are found, Member records are preferred over Attendee,
-then the lowest `Id`.
+(via [org.secc.PersonMatch](../org.secc.PersonMatch/README.md)); (4) create a new person if no
+match, with a home location on the new family built from the ServiceReef address. `ImportData`
+skips the home location when the payer has no address; `ImportTrips` still assumes an address is
+present (see Observations). When multiple matches are found, Member records are preferred over
+Attendee, then the lowest `Id`.
 
 ## Dependencies & Integrations
 
@@ -116,9 +118,11 @@ Ships Rock plugin migrations under `/Migrations/`:
   removes nothing, so non-address-matching candidates are never pruned and disambiguation falls
   through to the member/attendee/lowest-`Id` tiebreak on the unfiltered list. Review that
   address-disambiguation path.
-- **Improvement:** New-person creation dereferences `result.Address.*` (e.g. `ImportData` line ~306,
-  `ImportTrips` line ~395) without the null guard used a few lines earlier, so a participant/payer
-  with a null Address will throw a `NullReferenceException` for the create path.
+- **Improvement:** `ImportTrips` new-person creation (~L384–394) dereferences `result2.Address.*`
+  without the null guard used a few lines earlier, so a participant with a null Address throws a
+  `NullReferenceException` after the person and family are saved and aborts the rest of the run.
+  `ImportData` now guards this path (ROCK-8805); the same guard for `ImportTrips` is tracked in
+  ROCK-9267.
 - **Security (low):** API keys/secrets and PayPal credentials are stored as `EncryptedTextField`
   job attributes and decrypted at runtime — appropriate. Confirm the ServiceReef API base URL and
   these job attributes are only visible to Finance/admin roles in the Jobs admin UI.
@@ -134,3 +138,5 @@ Ships Rock plugin migrations under `/Migrations/`:
   hand-edit migrations that have already run.
 - Related: person matching is shared with [org.secc.PersonMatch](../org.secc.PersonMatch/README.md);
   transaction tender lookups come from [org.secc.PayPalReporting](../org.secc.PayPalReporting/README.md).
+
+Last updated: 2026-10-13

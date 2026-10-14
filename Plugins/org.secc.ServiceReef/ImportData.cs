@@ -293,19 +293,22 @@ namespace org.secc.ServiceReef
                                             person.ConnectionStatusValueId = connectionStatus.Id;
                                             person.RecordStatusValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.PERSON_RECORD_STATUS_ACTIVE.AsGuid() ).Id;
                                             Group family = PersonService.SaveNewPerson( person, dbContext );
-                                            GroupLocation location = new GroupLocation();
-                                            location.GroupLocationTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME ).Id;
-                                            location.Location = new Location()
+                                            if ( result.Address != null )
                                             {
-                                                Street1 = result.Address.Address1,
-                                                Street2 = result.Address.Address2,
-                                                City = result.Address.City,
-                                                State = result.Address.State,
-                                                PostalCode = result.Address.Zip,
-                                                Country = result.Address.Country
-                                            };
+                                                GroupLocation location = new GroupLocation();
+                                                location.GroupLocationTypeValueId = DefinedValueCache.Get( Rock.SystemGuid.DefinedValue.GROUP_LOCATION_TYPE_HOME ).Id;
+                                                location.Location = new Location()
+                                                {
+                                                    Street1 = result.Address.Address1,
+                                                    Street2 = result.Address.Address2,
+                                                    City = result.Address.City,
+                                                    State = result.Address.State,
+                                                    PostalCode = result.Address.Zip,
+                                                    Country = result.Address.Country
+                                                };
+                                                family.GroupLocations.Add( location );
+                                            }
                                             family.CampusId = CampusCache.All().FirstOrDefault().Id;
-                                            family.GroupLocations.Add( location );
                                             dbContext.SaveChanges();
                                         }
 
