@@ -58,8 +58,7 @@ type:
   is ignored.
 - Leaders see only members whose value for that key equals their own. A leader with a blank value
   sees only members whose value is also blank.
-- Keys are case-sensitive. A key that isn't a GroupMember attribute on the group returns null for
-  everyone, so the filter matches the whole group without any error.
+- Keys are case-sensitive and must name a GroupMember attribute on the group.
 
 Check `FilterAttribute` values before changing them. In production
 (2026-10-14), `FilterGroupType` is type 178 "Filtered Group Parent", and its children 176

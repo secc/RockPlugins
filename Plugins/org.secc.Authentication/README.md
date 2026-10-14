@@ -2,7 +2,7 @@
 
 > A passwordless **SMS one-time-code** authentication provider for Rock — texts a 6-digit code to a person's mobile number and logs them in with it.
 
-> **Doc tier: deep.** Small surface (one auth component + one login block) but it's a credential-issuing authentication path — documented at the deeper tier so the code lifecycle, rate limiting, and security trade-offs are explicit. Most SECC plugins use the lighter standard tier.
+> **Doc tier: deep.** Small surface (one auth component + one login block) but it's a credential-issuing authentication path — documented at the deeper tier so the code lifecycle and rate limiting are explicit. Most SECC plugins use the lighter standard tier.
 
 ## Overview
 
@@ -49,7 +49,7 @@ flowchart TD
 **Conventions / contracts:**
 - The component is discovered by MEF: `[Export(typeof(AuthenticationComponent))]` + `[ExportMetadata("ComponentName", "SMS Authentication")]`, registered under the type name `Rock.Security.ExternalAuthentication.SMSAuthentication` (note: the class lives in the Rock namespace, not `org.secc`).
 - `ServiceType` is `External` and `RequiresRemoteAuthentication` is `true` — Rock treats it like a third-party provider.
-- The OTP is the `UserLogin.Password`: a `Random.Next(100000, 999999)` value, BCrypt-hashed via the **BCrypt Cost Factor** attribute. The code's validity window is enforced off `LastPasswordChangedDateTime` (30 minutes), and the attempt cap off `FailedPasswordAttemptCount` (5).
+- The OTP is the `UserLogin.Password`: a random six-digit value (100000–999999) from a cryptographic RNG (`RandomNumberGenerator`), BCrypt-hashed via the **BCrypt Cost Factor** attribute. The code's validity window is enforced off `LastPasswordChangedDateTime` (30 minutes), and the attempt cap off `FailedPasswordAttemptCount` (5).
 - One `UserLogin` per person, keyed `SMS_<person.Id>`. It is upserted on each generate (resets failed-attempt count, re-stamps the timestamp, sets `IsConfirmed = true`).
 - Phone-number ownership must resolve to **exactly one** living person; 0, >1, or deceased fails closed with a generic "There was an issue with your request" message.
 - Rate limiting (`SMSRecords`) is keyed on IP + phone number.

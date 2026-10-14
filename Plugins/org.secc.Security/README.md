@@ -2,7 +2,7 @@
 
 > A grab-bag of SECC security/identity Rock **blocks** — Wi-Fi captive portals, SAML/SSO redirects to third-party services (WellRight, Church Online), PIN management, and self-service account blocks — plus a small reusable SAML 2.0 assertion library.
 
-> **Doc tier: deep.** This plugin brokers credentials and identity to external systems (it builds and signs SAML assertions, derives SSO tokens, and stands up public Wi-Fi onboarding pages), so it's documented at the deeper technical tier — the SSO/redirect flow, per-block config attributes, and the security-sensitive edges. Most SECC plugins use the lighter standard tier.
+> **Doc tier: deep.** This plugin brokers credentials and identity to external systems (it builds and signs SAML assertions, derives SSO tokens, and stands up public Wi-Fi onboarding pages), so it's documented at the deeper technical tier — the SSO/redirect flow and per-block config attributes. Most SECC plugins use the lighter standard tier.
 
 ## Overview
 

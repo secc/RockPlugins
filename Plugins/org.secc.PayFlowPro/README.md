@@ -41,7 +41,7 @@ flowchart TD
     B -->|recurring schedule setup| D["SetPayPeriod(recurringInfo, freq)"]
     D --> D1[Map frequency Guid -> PayFlow<br/>PayPeriod code WEEK/BIWK/MONT/FRWK/...]
     B -->|download payments job| E["GetPayments(gateway, start, end, out err)"]
-    E --> E1[Force TLS 1.0/1.1/1.2]
+    E --> E1[Set TLS protocol]
     E1 --> E2[RecurringBillingReport<br/>via Rock.PayFlowPro.Reporting.Api]
     E2 --> E3[CustomReport for amount/<br/>tender/email by transaction id]
     E3 --> E4{txn found<br/>in custom report?}
@@ -78,7 +78,7 @@ flowchart TD
 | `SupportedPaymentSchedules` | Advertises only One-Time, Weekly, Bi-Weekly, Monthly (Twice-Monthly is commented out). The base set is replaced. |
 | `SetPayPeriod` (private) | Maps each Rock frequency Guid to a PayFlow `PayPeriod` code, including the SECC-specific `FRWK` (Every 4 Weeks); One-Time becomes a 1-term yearly profile. |
 | `Charge` | After `base.Charge`, if a `ReferencePaymentInfo` charge fails with `"[19] Original transaction ID not found"` **and** a matching `FinancialPersonSavedAccount` is found (by `TransactionCode` + gateway id), deletes that saved account and replaces the error with a user-readable message. If no matching saved account is found, the original `[19]` error is left untouched. |
-| `GetPayments` | Replaces payment download: forces TLS, then queries `RecurringBillingReport` + `CustomReport` (+ a `TransactionIDSearch` fallback) via `Rock.PayFlowPro.Reporting.Api` to build `Payment` rows with amount, tender, schedule, and billing email (as a `CCEmail` attribute). |
+| `GetPayments` | Replaces payment download: sets the TLS protocol, then queries `RecurringBillingReport` + `CustomReport` (+ a `TransactionIDSearch` fallback) via `Rock.PayFlowPro.Reporting.Api` to build `Payment` rows with amount, tender, schedule, and billing email (as a `CCEmail` attribute). |
 
 ## Dependencies & Integrations
 
