@@ -37,12 +37,36 @@ public class PricingEngine
     /// </summary>
     public PricedCart Price(Cart cart, DateTime asOf)
     {
-        var lines = cart.LineItems.Select(BuildLine).ToList();
-        var payable = lines.Where(l => !l.IsWaitList).ToList(); // wait-listed lines owe nothing now and take no discount
-
+        var items = cart.LineItems.ToList();
+        var lines = items.Select(BuildLine).ToList();
         var discounts = new List<AppliedDiscount>();
-        var remaining = lines.Sum(l => l.LineTotal); // discounts can't exceed this in aggregate
         var lineRoom = lines.Select(l => ToCents(l.LineTotal)).ToArray(); // per line, what discounts haven't taken yet
+
+        // A line with its template's own code takes that code first and no other: one code
+        // per line, never stacked with the cart's codes.
+        var hasOwnCode = items.Select(li => !string.IsNullOrWhiteSpace(li.TemplateDiscountCode)).ToArray();
+        for (var i = 0; i < lines.Count; i++)
+        {
+            if (!hasOwnCode[i] || lines[i].IsWaitList)
+                continue;
+
+            var item = items[i];
+            var raw = item.TemplateDiscountPercentage > 0m
+                ? lines[i].LineTotal * item.TemplateDiscountPercentage
+                : item.TemplateDiscountAmount;
+            var cents = Math.Min(ToCents(Math.Max(0m, raw)), lineRoom[i]);
+            if (cents == 0)
+                continue;
+
+            var amount = cents / 100m;
+            discounts.Add(new AppliedDiscount(item.TemplateDiscountCode!, amount, new[] { new DiscountAllocation(lines[i].LineItemId, amount) }));
+            lineRoom[i] -= cents;
+        }
+
+        // Wait-listed lines owe nothing now and take no discount.
+        var takesCartCodes = lines.Select((l, i) => !l.IsWaitList && !hasOwnCode[i]).ToArray();
+        var payable = lines.Where((l, i) => takesCartCodes[i]).ToList();
+        var remaining = payable.Sum(l => l.LineTotal); // cart codes can't exceed this in aggregate
         foreach (var cd in cart.Discounts)
         {
             // Check live validity window (IsActive, ValidFrom, ValidTo) — intentional.
@@ -57,7 +81,7 @@ public class PricingEngine
                 continue;
 
             var applied = Round(amount);
-            var cents = DiscountAllocator.Allocate(ToCents(applied), AllocationWeights(cd, lines), lineRoom);
+            var cents = DiscountAllocator.Allocate(ToCents(applied), AllocationWeights(cd, lines, takesCartCodes), CartCodeRoom(lineRoom, takesCartCodes));
             var allocations = new List<DiscountAllocation>();
             for (var i = 0; i < lines.Count; i++)
             {
@@ -78,11 +102,12 @@ public class PricingEngine
     /// How one discount is spread over the lines, mirroring how <see cref="ComputeDiscount"/>
     /// arrived at its amount: percent discounts and order-level amounts in proportion to each
     /// line's total, per-line amounts evenly; offering-scoped codes only over matching lines.
+    /// Lines that don't take cart codes (wait-listed, or with their own code) weigh nothing.
     /// </summary>
-    private static decimal[] AllocationWeights(CartDiscount cd, IReadOnlyList<PricedLineItem> lines) =>
-        lines.Select(l =>
+    private static decimal[] AllocationWeights(CartDiscount cd, IReadOnlyList<PricedLineItem> lines, bool[] takesCartCodes) =>
+        lines.Select((l, i) =>
         {
-            if (l.IsWaitList)
+            if (!takesCartCodes[i])
                 return 0m;
 
             var byTotal = cd.SnapshotType == DiscountType.Percent || cd.SnapshotScope == DiscountScope.Order;
@@ -98,6 +123,10 @@ public class PricingEngine
                     return 0m;
             }
         }).ToArray();
+
+    /// <summary>What cart codes may still take from each line: nothing from a line they don't apply to.</summary>
+    private static long[] CartCodeRoom(long[] lineRoom, bool[] takesCartCodes) =>
+        lineRoom.Select((room, i) => takesCartCodes[i] ? room : 0L).ToArray();
 
     private static PricedLineItem BuildLine(CartLineItem li)
     {

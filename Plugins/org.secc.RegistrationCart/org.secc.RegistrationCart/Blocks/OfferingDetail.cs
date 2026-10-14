@@ -35,6 +35,8 @@ namespace org.secc.RegistrationCart.Blocks
     [LinkedPage( "Catalog Page", Key = NavAttributeKey.CatalogPage, IsRequired = false, Order = 1 )]
     [BooleanField( "Allow Adding Family Members", Key = AttributeKey.AllowAddFamilyMember, DefaultBooleanValue = true,
         Description = "Let the signed-in person add a new child to their family from this page.", Order = 2 )]
+    [WorkflowTypeField( "Discount Code Workflow", Key = AttributeKey.DiscountCodeWorkflow, AllowMultiple = false, IsRequired = false,
+        Description = "Runs when a camper is added to the cart to apply a registration template discount code, e.g. financial assistance. Passes an entity which is a Dictionary containing \"RegistrationInstance\" and \"RegistrationInfo\" keys, as SECC's RegistrationEntry did. The code applies to that camper alone.", Order = 3 )]
 
     [Rock.SystemGuid.EntityTypeGuid( SystemGuid.EntityType.BLOCK_OFFERING_DETAIL )]
     [Rock.SystemGuid.BlockTypeGuid( SystemGuid.BlockType.OFFERING_DETAIL )]
@@ -43,6 +45,7 @@ namespace org.secc.RegistrationCart.Blocks
         private static class AttributeKey
         {
             public const string AllowAddFamilyMember = "AllowAddFamilyMember";
+            public const string DiscountCodeWorkflow = "DiscountCodeWorkflow";
         }
 
         public override string ObsidianFileUrl => ObsidianBlockUrl( "offeringDetail" );
@@ -98,7 +101,7 @@ namespace org.secc.RegistrationCart.Blocks
             var signatureData = request.ExistingSignatureDocumentGuid.HasValue
                 ? RegistrationSignatures.ForExistingDocument( request.ExistingSignatureDocumentGuid.Value )
                 : request.SignatureData;
-            var line = manager.AddLineItem( request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues, signatureData, out var error );
+            var line = manager.AddLineItem( request.PersonAliasId, request.RegistrationInstanceId, request.FeeItemIds, request.FieldValues, signatureData, GetAttributeValue( AttributeKey.DiscountCodeWorkflow ).AsGuidOrNull(), out var error );
             if ( line == null )
             {
                 return ActionBadRequest( error ?? "That item could not be added." );

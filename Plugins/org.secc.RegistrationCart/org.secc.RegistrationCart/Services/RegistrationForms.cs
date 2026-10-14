@@ -481,6 +481,27 @@ namespace org.secc.RegistrationCart.Services
         }
 
         /// <summary>
+        /// The answered attribute fields (person, group member and registrant attributes) as the
+        /// stored values Rock's RegistrantInfo.FieldValues holds, keyed by form field Id, for
+        /// workflows such as SECC's "Set Attribute from Registrant Field".
+        /// </summary>
+        public static Dictionary<int, FieldValueObject> AttributeFieldValues( RegistrationTemplate template, Dictionary<Guid, object> values )
+        {
+            var fieldValues = new Dictionary<int, FieldValueObject>();
+            foreach ( var field in template.Forms.SelectMany( f => f.Fields ).Where( f => f.AttributeId.HasValue ) )
+            {
+                var attribute = AttributeCache.Get( field.AttributeId.Value );
+                var answer = values.GetValueOrNull( field.Guid );
+                if ( attribute != null && answer != null )
+                {
+                    fieldValues[field.Id] = new FieldValueObject( field, PrivateValue( attribute, answer.ToStringSafe() ) );
+                }
+            }
+
+            return fieldValues;
+        }
+
+        /// <summary>
         /// Sets each answered attribute field of <paramref name="source"/> on the entity. Rock
         /// writes registrant attributes even when unanswered (blank), the others only when answered.
         /// </summary>

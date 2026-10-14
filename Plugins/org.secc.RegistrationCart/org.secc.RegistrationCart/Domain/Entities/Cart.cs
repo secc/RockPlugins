@@ -98,6 +98,19 @@ public class CartLineItem
     /// <summary>On the wait list: priced at zero and left out of discounts until a spot opens.</summary>
     public bool IsWaitList { get; set; }
 
+    /// <summary>
+    /// The line's own code from its registration template (e.g. a financial-assistance code the
+    /// discount code workflow made at add-to-cart). It takes this line alone and stops the
+    /// cart's codes from stacking on it.
+    /// </summary>
+    public string? TemplateDiscountCode { get; set; }
+
+    /// <summary>Flat amount of <see cref="TemplateDiscountCode"/>, capped at the line total.</summary>
+    public decimal TemplateDiscountAmount { get; set; }
+
+    /// <summary>Percentage of <see cref="TemplateDiscountCode"/> as a fraction (0.25 = 25%), as Rock stores it.</summary>
+    public decimal TemplateDiscountPercentage { get; set; }
+
     public ICollection<CartLineItemAddOn> AddOns { get; set; } = new List<CartLineItemAddOn>();
 }
 

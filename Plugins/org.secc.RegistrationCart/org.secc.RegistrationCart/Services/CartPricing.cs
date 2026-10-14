@@ -56,7 +56,10 @@ namespace org.secc.RegistrationCart.Services
                     OfferingVariantId = line.RegistrationInstanceId,
                     OfferingVariant = new DomainEntities.OfferingVariant { Id = line.RegistrationInstanceId, Name = line.RegistrationInstance?.Name ?? "" },
                     SnapshotBasePrice = line.SnapshotBasePrice,
-                    IsWaitList = line.IsWaitList
+                    IsWaitList = line.IsWaitList,
+                    TemplateDiscountCode = line.TemplateDiscountCode,
+                    TemplateDiscountAmount = line.TemplateDiscountAmount,
+                    TemplateDiscountPercentage = line.TemplateDiscountPercentage
                 };
 
                 foreach ( var addOn in line.AddOns )

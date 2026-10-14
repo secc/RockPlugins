@@ -13,6 +13,7 @@
 // </copyright>
 //
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
 using System.Runtime.Serialization;
@@ -62,6 +63,24 @@ namespace org.secc.RegistrationCart.Model
         /// <summary>The signed inline signature document, as Rock's electronic signature returns it.</summary>
         [DataMember]
         public string SignatureData { get; set; }
+
+        /// <summary>
+        /// A code from the registration template's own discounts that the discount code workflow
+        /// applied at add-to-cart (the financial-assistance code). It takes this line alone and no
+        /// cart code stacks on it; checkout records it as the registration's discount code.
+        /// </summary>
+        [DataMember]
+        [MaxLength( 100 )]
+        public string TemplateDiscountCode { get; set; }
+
+        [DataMember]
+        [DecimalPrecision( 18, 2 )]
+        public decimal TemplateDiscountAmount { get; set; }
+
+        /// <summary>As a fraction (0.25 = 25%), as Rock stores it.</summary>
+        [DataMember]
+        [DecimalPrecision( 18, 2 )]
+        public decimal TemplateDiscountPercentage { get; set; }
 
         /// <summary>The Rock Registration created for this line at checkout.</summary>
         [DataMember]

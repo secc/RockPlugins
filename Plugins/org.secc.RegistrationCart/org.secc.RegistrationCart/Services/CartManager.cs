@@ -204,7 +204,7 @@ namespace org.secc.RegistrationCart.Services
         /// Adds a registrant-for-instance line with the chosen fee items, enforcing ownership,
         /// grade-band eligibility, uniqueness, capacity and Rock's fee rules. Prices are snapshotted.
         /// </summary>
-        public CartLineItem AddLineItem( int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, string signatureData, out string errorMessage )
+        public CartLineItem AddLineItem( int personAliasId, int registrationInstanceId, IEnumerable<int> feeItemIds, Dictionary<Guid, object> fieldValues, string signatureData, Guid? discountCodeWorkflowGuid, out string errorMessage )
         {
             errorMessage = null;
             var cart = GetOrCreateOpenCart();
@@ -324,6 +324,16 @@ namespace org.secc.RegistrationCart.Services
                 }
 
                 line.SignatureData = signatureData;
+            }
+
+            // The discount code workflow (financial assistance) runs once the line is otherwise valid.
+            // Its code is this line's alone; cart codes never stack on it.
+            var applied = DiscountCodeWorkflow.Run( discountCodeWorkflowGuid, option.Instance.Id, _person, registrantPerson, FormAnswers( template.Template, fieldValues ), line.SnapshotBasePrice + line.AddOns.Sum( a => a.SnapshotPrice ) );
+            if ( applied != null )
+            {
+                line.TemplateDiscountCode = applied.Code;
+                line.TemplateDiscountAmount = applied.Amount;
+                line.TemplateDiscountPercentage = applied.Percentage;
             }
 
             lineService.Add( line );

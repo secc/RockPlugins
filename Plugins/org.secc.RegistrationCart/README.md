@@ -14,7 +14,8 @@ are the *add-ons*. Staff set up a camp the normal Rock way and it appears in the
 is configured twice. The plugin stores only what Rock lacks:
 
 - cart contents (cart, registrants, line items, add-ons, applied discounts),
-- cross-registration **discount codes** (separate from Rock's per-template discounts),
+- cross-registration **discount codes** (separate from Rock's per-template discounts; the one
+  exception is the financial-assistance code, below),
 - a small **overlay** per template / instance / fee item: show in cart, grade-band or adult
   eligibility, catalog image and description, sort order.
 
@@ -56,6 +57,16 @@ Rock's confirmation email and staff notification, and launches the template's re
 workflow and the template and instance registration workflows. A failure there is logged and
 never undoes the registrations or the payment.
 
+**Financial assistance.** When the Offering block's *Discount Code Workflow* is set (prod: WF 725
+"Automatic Financial Assistance"), it runs as each camper is added to the cart, the way SECC's
+RegistrationEntry fork ran it: the entity is a dictionary with `RegistrationInstance` and
+`RegistrationInfo` (the camper's form answers as registrant field values), and a code the
+workflow applies (725 makes a single-use `FA-` template discount: the $50/$100 tier, or the
+template cost less $20 for "More") is stored on that line. It comes off that line only and no
+cart code stacks on it. Checkout records it as the registration's discount code, so the
+template's registration workflow (728) then launches the FA evaluation as before. A
+wait-listed line keeps its code on the registration for when a seat opens.
+
 Originally built (and verified end to end against Rock 16.9 with the Test Gateway) as a
 standalone `com.secc.ShoppingCart` project; ported into this repo on 2026-10-13 with the
 `org.secc` naming, repo build conventions, and the pricing domain folded into the plugin
@@ -86,8 +97,8 @@ org.secc.RegistrationCart/              C# plugin assembly
   Migrations/001_CreateRegistrationCart Tables, entity/block types, pages, routes, blocks
   Model/                                9 entities: 3 overlays, DiscountCode, 5 cart tables
   Services/                             CatalogService, CartManager, CartPricing,
-                                        CheckoutProcessor, GradeBands, RegistrationForms,
-                                        RegistrationSignatures, SeatLock
+                                        CheckoutProcessor, DiscountCodeWorkflow, GradeBands,
+                                        RegistrationForms, RegistrationSignatures, SeatLock
   ViewModels/                           Bags/boxes shared with the Obsidian blocks
   SystemGuid.cs                         Every GUID the plugin owns — never change
 org.secc.RegistrationCart.Obsidian/     Vue 3 / Obsidian frontend
@@ -105,7 +116,7 @@ plugin.json / BuildPlugin.ps1           Rock plugin packaging
 | Block | Page (created by migration) | What it does | Settings |
 |-------|-----------------------------|--------------|----------|
 | Registration Cart Catalog (`Catalog`) | External › Registration (`/registrations`) | Lists visible templates with an open instance. | Heading, Intro, Offering Detail Page, Cart Page |
-| Registration Cart Offering (`OfferingDetail`) | `/registrations/offering/{OfferingKey}` | Pick a family member (or add a child), an instance and fees, and fill in the template's registration forms; add to cart. | Allow Adding Family Members, Cart Page, Catalog Page |
+| Registration Cart Offering (`OfferingDetail`) | `/registrations/offering/{OfferingKey}` | Pick a family member (or add a child), an instance and fees, and fill in the template's registration forms; add to cart. | Allow Adding Family Members, Discount Code Workflow, Cart Page, Catalog Page |
 | Registration Cart (`Cart`) | `/registrations/cart` | Cart with pricing; apply/remove discount codes; remove lines. | Checkout Page, Catalog Page |
 | Registration Cart Checkout (`Checkout`) | `/registrations/checkout` | Payment + checkout. Uses the gateway's Obsidian hosted control when it has one, else a My Well tokenizer iframe. | Financial Gateway, Batch Name Prefix, Tokenizer Script URL / Gateway URL / Public Key, Cart Page, Catalog Page |
 | Registration Cart Settings (`AdminCatalogSettings`) | Admin Tools › Installed Plugins › Registration Cart (`/admin/registration-cart`) | Per template/instance/fee item visibility, eligibility, image, order. Saves require block EDIT. | Catalog Page |
@@ -125,6 +136,7 @@ add time.
 | 001 | Creates the 9 tables, registers entity + block types, creates the External pages under the stock External site's home page (if the site exists) and the admin pages under Installed Plugins, wires the blocks' linked-page settings. Page routes are set **global**. |
 | 002 | Adds `CartLineItem.IsWaitList`. |
 | 003 | Adds `CartLineItem.FieldValuesJson` (form answers) and `CartLineItem.SignatureData`. |
+| 004 | Adds `CartLineItem.TemplateDiscountCode` / `TemplateDiscountAmount` / `TemplateDiscountPercentage` (the financial-assistance code). |
 
 ## Configuration
 
@@ -137,7 +149,10 @@ add time.
    is the instance cost when the template sets cost on instance, else the template cost. Campus
    and event dates come from the instance's event linkage when present.
 4. **Catalog settings / discount codes:** Admin Tools › Installed Plugins › Registration Cart.
-5. **Security:** public pages work for any signed-in person (anonymous visitors get a sign-in
+5. **Financial assistance:** set the Offering block's *Discount Code Workflow* to WF 725
+   (`fd55a10c-e44a-4a02-b347-37cb9f67be66`), as block 4171 had it for the fork. Leave the
+   templates' registration workflow (728) as it is.
+6. **Security:** public pages work for any signed-in person (anonymous visitors get a sign-in
    prompt); admin blocks need EDIT (inherited from Installed Plugins).
 
 ## Dependencies & Integrations
@@ -158,7 +173,7 @@ add time.
   `EligibilityServiceTests`, `GradeBandsTests`, `CheckoutRulesTests` (where a stopped
   checkout leaves the cart; the shown-total check; registration window and seats), `DiscountAllocationTests` (which lines and
   accounts each discount comes off; postings add up to the charge, including 500 random
-  carts). No RockContext.
+  carts, and carts with financial-assistance codes). No RockContext.
 
 ## Observations
 
@@ -209,11 +224,17 @@ add time.
   can't be added unsigned. Unlike Rock, the SignatureDocument and its PDF are created after the
   paid registrations commit (`Services/RegistrationSignatures`), so a PDF failure is logged
   rather than undoing a paid registration.
+- **Financial assistance:** 725 runs on every add (it's a persisted workflow type, so each add
+  leaves a Workflow row), and a code is generated even if the line is later removed; unused
+  `FA-` codes stay on the template unused. Removing and re-adding a camper makes a new code. A
+  line with an FA code takes no cart code (one code per camper). 725 has no branch for the
+  1st–2nd "$25" tier, so it gets the cost-less-$20 amount, as it does on prod today.
 - **Add child:** creates a Pending person with no birthdate/gender and a representative grade
   (`GradeBands.GradeOffsetFor` — e.g. Elementary → 3rd grade); duplicate-prone.
 - **Migration placement:** pages hang off Rock's *stock* External site/home page, and all routes
   (including `/admin/registration-cart`) are made global.
-- **Business rules to confirm:** discount codes stack (by design, see `PricingEngineTests`);
+- **Business rules to confirm:** cart discount codes stack with each other (by design, see
+  `PricingEngineTests`) but never with a financial-assistance code;
   separate code system from Rock template discounts; sign-in required (no guest checkout).
 
 ## Making Changes
@@ -229,4 +250,4 @@ add time.
   `npm run viewmodels`.
 - **Packaging:** `BuildPlugin.ps1` + `plugin.json` (Release DLL + `dist/**`).
 
-Last updated: 2026-10-13
+Last updated: 2026-10-14

@@ -4,7 +4,7 @@
         <div v-for="d in cart.discounts ?? []" :key="d.code ?? ''" class="rc-discount-row">
             <dt>
                 {{ d.code }}
-                <button v-if="canRemoveDiscounts" type="button" class="rc-link-btn rc-link-danger" :aria-label="`Remove ${d.code}`" @click="$emit('removeDiscount', d.cartDiscountId)">
+                <button v-if="canRemoveDiscounts && d.cartDiscountId" type="button" class="rc-link-btn rc-link-danger" :aria-label="`Remove ${d.code}`" @click="$emit('removeDiscount', d.cartDiscountId)">
                     <svg class="rc-ico" style="width: 12px; height: 12px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
                 </button>
             </dt>

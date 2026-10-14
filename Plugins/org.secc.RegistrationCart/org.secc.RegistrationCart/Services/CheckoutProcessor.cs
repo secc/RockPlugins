@@ -776,6 +776,16 @@ namespace org.secc.RegistrationCart.Services
                     GroupId = new CatalogService( _rockContext ).GetLinkedGroupId( instance.Id ),
                     IsTemporary = false
                 };
+
+                // A wait-listed line owes nothing now, but its own template code (financial
+                // assistance) stays on the registration for Rock to apply once a seat opens.
+                if ( line.IsWaitList && line.TemplateDiscountCode.IsNotNullOrWhiteSpace() )
+                {
+                    registration.DiscountCode = line.TemplateDiscountCode;
+                    registration.DiscountAmount = line.TemplateDiscountAmount;
+                    registration.DiscountPercentage = line.TemplateDiscountPercentage;
+                }
+
                 registrationService.Add( registration );
 
                 var registrant = new RegistrationRegistrant

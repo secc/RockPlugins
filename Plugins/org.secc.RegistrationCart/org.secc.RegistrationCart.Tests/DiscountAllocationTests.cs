@@ -363,6 +363,126 @@ public class DiscountAllocationTests
         AssertPostsExactly(priced);
     }
 
+    // ---- the line's own template code (financial assistance) ------------
+
+    private static CartLineItem WithOwnCode(CartLineItem line, string code, decimal amount, decimal percentage = 0m)
+    {
+        line.TemplateDiscountCode = code;
+        line.TemplateDiscountAmount = amount;
+        line.TemplateDiscountPercentage = percentage;
+        return line;
+    }
+
+    [Fact]
+    public void Own_code_comes_off_its_line_only()
+    {
+        var cart = CartWith(new[]
+        {
+            WithOwnCode(Line(1, 1, 300m, 35m), "FA-ABC123", 50m),
+            Line(2, 1, 300m),
+        });
+
+        var priced = _engine.Price(cart, Today);
+
+        Assert.Equal(50m, priced.DiscountFor(1));
+        Assert.Equal(0m, priced.DiscountFor(2));
+        Assert.Equal(new[] { "FA-ABC123" }, priced.CodesFor(1));
+        Assert.Equal(585m, priced.Total);
+        AssertPostsExactly(priced);
+    }
+
+    [Fact]
+    public void Cart_codes_never_stack_on_a_line_with_its_own_code()
+    {
+        var cart = CartWith(new[]
+        {
+            WithOwnCode(Line(1, 1, 300m), "FA-ABC123", 50m),
+            Line(2, 1, 200m),
+        },
+        Code("HALF", DiscountScope.Order, DiscountType.Percent, 50m),
+        Code("SIBLING", DiscountScope.LineItem, DiscountType.Amount, 20m),
+        Code("BIG", DiscountScope.Order, DiscountType.Amount, 1000m));
+
+        var priced = _engine.Price(cart, Today);
+
+        // HALF is half of line 2 only, SIBLING counts line 2 only, BIG clamps to what line 2 has left.
+        Assert.Equal(50m, priced.DiscountFor(1));
+        Assert.Equal(new[] { "FA-ABC123" }, priced.CodesFor(1));
+        Assert.Equal(200m, priced.DiscountFor(2));
+        Assert.Equal(100m, priced.Discounts.Single(d => d.Code == "HALF").Amount);
+        Assert.Equal(20m, priced.Discounts.Single(d => d.Code == "SIBLING").Amount);
+        Assert.Equal(80m, priced.Discounts.Single(d => d.Code == "BIG").Amount);
+        Assert.Equal(250m, priced.Total);
+        AssertPostsExactly(priced);
+    }
+
+    [Fact]
+    public void Own_code_is_capped_at_the_line_total()
+    {
+        // "More" assistance: the template cost less $20, on a line whose fee was waived.
+        var cart = CartWith(new[] { WithOwnCode(Line(1, 1, 280m), "FA-MORE01", 380m) });
+
+        var priced = _engine.Price(cart, Today);
+
+        Assert.Equal(280m, priced.DiscountFor(1));
+        Assert.Equal(0m, priced.Total);
+        AssertPostsExactly(priced);
+    }
+
+    [Fact]
+    public void Own_percentage_code_is_a_fraction_of_the_line()
+    {
+        var cart = CartWith(new[] { WithOwnCode(Line(1, 1, 300m, 33.33m), "FA-PCT", 0m, 0.25m) });
+
+        var priced = _engine.Price(cart, Today);
+
+        Assert.Equal(83.33m, priced.DiscountFor(1)); // 25% of 333.33, rounded
+        AssertPostsExactly(priced);
+    }
+
+    [Fact]
+    public void Wait_listed_line_takes_nothing_off_now_even_with_its_own_code()
+    {
+        var cart = CartWith(new[] { WaitListed(WithOwnCode(Line(1, 1, 300m), "FA-ABC123", 50m)) });
+
+        var priced = _engine.Price(cart, Today);
+
+        Assert.Empty(priced.Discounts);
+        Assert.Equal(0m, priced.Total);
+    }
+
+    [Fact]
+    public void Random_carts_with_own_codes_always_post_exactly()
+    {
+        var random = new Random(20261014);
+        for (var n = 0; n < 500; n++)
+        {
+            var lines = Enumerable.Range(1, random.Next(1, 6))
+                .Select(id => Line(id, random.Next(1, 4), random.Next(0, 50001) / 100m,
+                    Enumerable.Range(0, random.Next(0, 3)).Select(_ => random.Next(0, 10001) / 100m).ToArray()))
+                .Select(l => random.Next(0, 3) == 0
+                    ? WithOwnCode(l, $"FA-{l.Id}", random.Next(0, 2) == 0 ? random.Next(0, 60001) / 100m : 0m, random.Next(0, 2) == 0 ? random.Next(0, 101) / 100m : 0m)
+                    : l)
+                .Select(l => random.Next(0, 5) == 0 ? WaitListed(l) : l)
+                .ToList();
+            var codes = Enumerable.Range(0, random.Next(0, 4))
+                .Select(i =>
+                {
+                    var scope = (DiscountScope)random.Next(0, 3);
+                    var type = (DiscountType)random.Next(0, 2);
+                    var value = type == DiscountType.Percent ? random.Next(1, 101) : random.Next(1, 30001) / 100m;
+                    return Code($"C{i}", scope, type, value, scope == DiscountScope.Offering ? random.Next(1, 4) : null);
+                })
+                .ToArray();
+
+            var priced = _engine.Price(CartWith(lines, codes), Today);
+
+            AssertPostsExactly(priced);
+            foreach (var line in lines.Where(l => l.TemplateDiscountCode is not null))
+                Assert.All(priced.CodesFor(line.Id), c => Assert.Equal(line.TemplateDiscountCode, c));
+        }
+    }
+
     // ---- allocator -----------------------------------------------------
 
     [Fact]
