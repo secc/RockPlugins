@@ -72,10 +72,22 @@
                         </div>
                     </section>
 
-                    <!-- 3. Extras -->
+                    <!-- 3. The template's registration forms (Rock's order: forms, fees, signature) -->
+                    <section v-if="selectedVariant && selectedPerson && hasForms" class="rc-step">
+                        <div class="rc-step-title"><span class="rc-step-num">3</span><h2>About {{ firstName(selectedPerson.fullName) }}</h2></div>
+                        <p v-if="isLoadingValues" class="rc-muted">Loading…</p>
+                        <RockForm v-else v-model:submit="submitForms" @submit="proceed">
+                            <RegistrantForms :forms="offering?.forms ?? []"
+                                             :fieldValues="fieldValues"
+                                             :lists="offering?.formLists ?? {}"
+                                             :isWaitList="joiningWaitList" />
+                        </RockForm>
+                    </section>
+
+                    <!-- Fees, under the template's Fee Term -->
                     <section v-if="selectedVariant" class="rc-step">
-                        <div class="rc-step-title"><span class="rc-step-num">3</span><h2>Extras</h2></div>
-                        <p v-if="!visibleGroups.length" class="rc-muted">No extras for this option.</p>
+                        <div class="rc-step-title"><span class="rc-step-num">{{ feesStep }}</span><h2>{{ offering.feeTerm || "Extras" }}</h2></div>
+                        <p v-if="!visibleGroups.length" class="rc-muted">No {{ (offering.feeTerm || "extras").toLowerCase() }} for this option.</p>
                         <div v-else class="rc-addons">
                             <div v-for="g in visibleGroups" :key="g.group.id" class="rc-addon-group">
                                 <div class="rc-eyebrow">{{ g.group.name }} · {{ groupRule(g.group) }}</div>
@@ -98,21 +110,9 @@
                         </div>
                     </section>
 
-                    <!-- 4. The template's registration forms -->
-                    <section v-if="selectedVariant && selectedPerson && hasForms" class="rc-step">
-                        <div class="rc-step-title"><span class="rc-step-num">4</span><h2>About {{ firstName(selectedPerson.fullName) }}</h2></div>
-                        <p v-if="isLoadingValues" class="rc-muted">Loading…</p>
-                        <RockForm v-else v-model:submit="submitForms" @submit="proceed">
-                            <RegistrantForms :forms="offering?.forms ?? []"
-                                             :fieldValues="fieldValues"
-                                             :lists="offering?.formLists ?? {}"
-                                             :isWaitList="joiningWaitList" />
-                        </RockForm>
-                    </section>
-
-                    <!-- 5. The template's signature document -->
+                    <!-- The template's signature document -->
                     <section v-if="signatureDocument?.documentHtml" class="rc-step">
-                        <div class="rc-step-title"><span class="rc-step-num">5</span><h2>Sign the {{ documentTerm }}</h2></div>
+                        <div class="rc-step-title"><span class="rc-step-num">{{ feesStep + 1 }}</span><h2>Sign the {{ documentTerm }}</h2></div>
                         <iframe class="rc-signature-doc" :srcdoc="signatureDocument.documentHtml" title="Document to sign" style="width: 100%; height: 420px; border: 1px solid var(--rc-line, #d8d2c4); background: #fff;"></iframe>
                         <ElectronicSignature v-model="signatureValue" :isDrawn="offering?.isSignatureDrawn ?? false" :documentTerm="documentTerm" @signed="onSigned" />
                         <p v-if="signError" class="rc-error" role="alert">{{ signError }}</p>
@@ -200,6 +200,7 @@
     const isLoadingValues = ref(false);
     const submitForms = ref(false);
     const hasForms = computed<boolean>(() => (offering.value?.forms ?? []).some(f => (f.fields ?? []).length > 0));
+    const feesStep = computed<number>(() => hasForms.value ? 4 : 3);
 
     const isAddPersonOpen = ref(false);
     const isAddingPerson = ref(false);

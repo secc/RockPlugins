@@ -212,7 +212,10 @@ add time.
 - **Registration forms:** the offering page shows the template's forms for the chosen camper
   with Rock's own field controls, required-field validation and show/hide rules
   (`Services/RegistrationForms`, a port of Rock's RegistrationEntry form handling; Rock's form
-  bags are reused as-is). Answers are stored on the cart line and written at checkout the way
+  bags are reused as-is). The page follows Rock's order: forms, then the fees (headed by the
+  template's *Fee Term*, e.g. "Track Times"), then the signature, so text a template puts after
+  its last form question (such as a fee disclosure) sits right above the fees, as in Rock.
+  Answers are stored on the cart line and written at checkout the way
   Rock writes them: person fields (name excepted; address and campus go to the family) and
   person attributes to the person, registrant attributes to the registrant, group member
   attributes once the camper is in the group; "lock if values exist" is honoured. Fields hidden

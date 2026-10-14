@@ -137,6 +137,8 @@ namespace org.secc.RegistrationCart.ViewModels
         public string IdKey { get; set; }
         public string OfferingTypeText { get; set; }
         public string RegistrantTerm { get; set; }
+        /// <summary>What the template calls its fees (Rock's Fee Term), e.g. "Track Times"; the extras step's heading.</summary>
+        public string FeeTerm { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public string ImageUrl { get; set; }

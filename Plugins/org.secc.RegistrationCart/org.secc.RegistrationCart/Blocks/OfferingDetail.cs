@@ -278,6 +278,7 @@ namespace org.secc.RegistrationCart.Blocks
                 IdKey = t.Template.IdKey,
                 OfferingTypeText = t.Template.Category?.Name,
                 RegistrantTerm = t.Template.RegistrantTerm.IsNotNullOrWhiteSpace() ? t.Template.RegistrantTerm : "Registrant",
+                FeeTerm = t.Template.FeeTerm.IsNotNullOrWhiteSpace() ? t.Template.FeeTerm : "Extras",
                 Title = t.Template.Name,
                 Description = t.Description,
                 ImageUrl = t.ImageUrl,

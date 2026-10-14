@@ -266,6 +266,8 @@ export type OfferingBag = {
 
     description?: string | null;
 
+    feeTerm?: string | null;
+
     formLists?: FormListsBag | null;
 
     forms?: RegistrationEntryFormBag[] | null;
